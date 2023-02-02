@@ -123,6 +123,7 @@ operations\nwill appear here</string>
     <string name="choose_amount_fee">Transfer fee</string>
     <string name="choose_amount_tip">Tip</string>
     <string name="common_continue">Continue</string>
+    <string name="common_preview">Preview</string>
     <string name="common_amount">Amount</string>
     <string name="wallet_send_confirm_transfer">Confirm transfer</string>
     <string name="wallet_search_empty_title">Make sure that the address is
@@ -1021,4 +1022,14 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="polkaswap_path_unavailable_message">Unfortunately there is no such pair, but you can choose another one</string>
     <string name="polkaswap_maximum_sold">Max Sold</string>
     <string name="polkaswap_insufficient_liqudity">Insufficient liquidity</string>
+    <string name="polkaswap_market_alert_title">Market selection isn\'t available</string>
+    <string name="polkaswap_market_alert_message">You haven\'t completed the swap adjustments. One or both assets haven\'t been chosen, so the market selection isn\'t available.</string>
+    <string name="polkaswap_market_alert_positive_button">Choose asset</string>
+    <string name="polkaswap_maximum_sold_title">Maximum sold</string>
+    <string name="polkaswap_minimum_received_title">Minimum received</string>
+    <string name="polkaswap_maximum_sold_info">Your transaction will revert if there is a large, unfavorable price movement before it is confirmed.</string>
+    <string name="polkaswap_minimum_received_info">Your transaction will revert if there is a large, unfavorable price movement before it is confirmed.</string>
+    <string name="polkaswap_liqudity_fee_title">Liquidity provider fee</string>
+    <string name="polkaswap_liqudity_fee_info">A portion of each trade (0.3%) goes to liquidity providers as a protocol incentive.</string>
+    <string name="polkaswap_network_fee_info">Network fee is used to ensure SORA system\'s growth and stable performance.</string>
 </resources>

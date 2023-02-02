@@ -24,6 +24,16 @@ interface QuickInput {
     val value: Double
 }
 
+enum class QuickAmountInput(
+    override val label: String,
+    override val value: Double
+) : QuickInput {
+    MAX("MAX", 1.0),
+    P75("75%", 0.75),
+    P50("50%", 0.5),
+    P25("25%", 0.25)
+}
+
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun QuickInput(

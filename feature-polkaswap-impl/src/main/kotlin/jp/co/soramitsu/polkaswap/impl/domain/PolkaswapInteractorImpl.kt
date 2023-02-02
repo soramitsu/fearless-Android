@@ -8,7 +8,9 @@ import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.accountId
 import jp.co.soramitsu.common.data.network.runtime.model.QuoteResponse
 import jp.co.soramitsu.common.presentation.LoadingState
+import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.polkaswap.api.data.PolkaswapRepository
+import jp.co.soramitsu.polkaswap.api.domain.InsufficientLiquidityException
 import jp.co.soramitsu.polkaswap.api.domain.PathUnavailableException
 import jp.co.soramitsu.polkaswap.api.domain.PolkaswapInteractor
 import jp.co.soramitsu.polkaswap.api.domain.models.SwapDetails
@@ -28,6 +30,7 @@ import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
 import kotlin.math.max
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.debounce
@@ -42,7 +45,7 @@ class PolkaswapInteractorImpl @Inject constructor(
 
     override var polkaswapChainId = soraMainChainId
     override val availableMarkets: MutableMap<Int, List<Market>> = mutableMapOf(0 to listOf(Market.SMART))
-    override val bestDexIdFlow: MutableStateFlow<LoadingState<Int>> = MutableStateFlow(LoadingState.Loading())
+    override val bestDexIdFlow: MutableStateFlow<LoadingState<Int>> = MutableStateFlow(LoadingState.Loaded(0))
 
     override fun setChainId(chainId: ChainId?) {
         chainId?.takeIf { it in listOf(soraMainChainId, soraTestChainId) }?.let { polkaswapChainId = chainId }
@@ -64,6 +67,7 @@ class PolkaswapInteractorImpl @Inject constructor(
         return polkaswapRepository.getAvailableDexes(polkaswapChainId)
     }
 
+    @OptIn(FlowPreview::class)
     override fun observePoolReserves(fromTokenId: String, toTokenId: String, market: Market): Flow<String> {
         val flows = mutableListOf<Flow<String>>()
         if (market == Market.XYK || market == Market.SMART) {
@@ -118,12 +122,12 @@ class PolkaswapInteractorImpl @Inject constructor(
             curMarkets = curMarkets
         )?.let { it.first to it.second.toModel(feeAsset.token.configuration) } ?: run {
             bestDexIdFlow.emit(previousBestDex)
-            return Result.success(null)
+            return Result.failure(InsufficientLiquidityException())
         }
 
         bestDexIdFlow.emit(LoadingState.Loaded(bestDex))
 
-        if (swapQuote.amount == BigDecimal.ZERO) return Result.success(null)
+        if (swapQuote.amount.compareTo(BigDecimal.ZERO) == 0) return Result.success(null)
 
         val minMax =
             (swapQuote.amount * BigDecimal.valueOf(slippageTolerance / 100)).let {
@@ -150,17 +154,14 @@ class PolkaswapInteractorImpl @Inject constructor(
 
         val networkFee = feeAsset.token.configuration.amountFromPlanks(networkFeeInPlanks)
 
-        val (per, liquidityFee) = synchronized(swapQuote) {
-            if (swapQuote.amount == BigDecimal.ZERO) return Result.success(null)
-            val per1 = amount.divide(swapQuote.amount, scale, RoundingMode.HALF_EVEN)
-            val per2 = swapQuote.amount.divide(amount, scale, RoundingMode.HALF_EVEN)
-            val liquidityFee = swapQuote.fee
-            (per1 to per2) to liquidityFee
-        }
+        if (swapQuote.amount.compareTo(BigDecimal.ZERO) == 0) return Result.success(null)
+        val per1 = amount.divide(swapQuote.amount, scale, RoundingMode.HALF_EVEN)
+        val per2 = swapQuote.amount.divide(amount, scale, RoundingMode.HALF_EVEN)
+        val liquidityFee = swapQuote.fee
 
         val (fromTokenOnToToken, toTokenOnFromToken) = when (desired) {
-            WithDesired.INPUT -> per
-            WithDesired.OUTPUT -> per.second to per.first
+            WithDesired.INPUT -> per1 to per2
+            WithDesired.OUTPUT -> per2 to per1
         }
 
         val details = SwapDetails(
@@ -238,5 +239,33 @@ class PolkaswapInteractorImpl @Inject constructor(
         desired: WithDesired
     ): Result<String> {
         return polkaswapRepository.swap(polkaswapChainId, dexId, inputAssetId, outputAssetId, amount, limit, filter, markets, desired)
+    }
+
+    override suspend fun calcFakeFee(): BigDecimal {
+        val feeAsset = getFeeAsset() ?: return BigDecimal.ZERO
+        val feeAssetId = feeAsset.token.configuration.currencyId ?: return BigDecimal.ZERO
+        val markets = emptyList<Market>()
+        val liquidityProxyFee = polkaswapRepository.getSwapQuote(
+            chainId = polkaswapChainId,
+            tokenFromId = feeAssetId,
+            tokenToId = "0x0200080000000000000000000000000000000000000000000000000000000000",
+            amount = BigInteger.ONE,
+            desired = WithDesired.INPUT,
+            curMarkets = markets,
+            dexId = 0
+        )?.fee.orZero()
+
+        val fee = polkaswapRepository.estimateSwapFee(
+            polkaswapChainId,
+            0,
+            feeAssetId,
+            feeAssetId,
+            BigInteger.ONE,
+            BigInteger.ONE,
+            markets.toFilters(),
+            markets.backStrings(),
+            WithDesired.INPUT
+        )
+        return feeAsset.token.configuration.amountFromPlanks(fee) + feeAsset.token.configuration.amountFromPlanks(liquidityProxyFee)
     }
 }

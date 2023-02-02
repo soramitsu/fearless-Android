@@ -44,6 +44,7 @@ import jp.co.soramitsu.common.compose.component.FeeInfo
 import jp.co.soramitsu.common.compose.component.FeeInfoViewState
 import jp.co.soramitsu.common.compose.component.MarginHorizontal
 import jp.co.soramitsu.common.compose.component.MarginVertical
+import jp.co.soramitsu.common.compose.component.QuickAmountInput
 import jp.co.soramitsu.common.compose.component.QuickInput
 import jp.co.soramitsu.common.compose.component.SelectorState
 import jp.co.soramitsu.common.compose.component.SelectorWithBorder
@@ -81,16 +82,6 @@ interface SendSetupScreenInterface {
     fun onAmountFocusChanged(focusState: FocusState)
     fun onQuickAmountInput(input: Double)
     fun onWarningInfoClick()
-}
-
-enum class QuickAmountInput(
-    override val label: String,
-    override val value: Double
-) : QuickInput {
-    MAX("MAX", 1.0),
-    P75("75%", 0.75),
-    P50("50%", 0.5),
-    P25("25%", 0.25)
 }
 
 @OptIn(ExperimentalComposeUiApi::class)

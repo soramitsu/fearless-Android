@@ -1,6 +1,8 @@
 package jp.co.soramitsu.polkaswap.impl.presentation.swap_tokens
 
 import androidx.compose.ui.focus.FocusState
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -12,6 +14,7 @@ import jp.co.soramitsu.common.base.errors.ValidationException
 import jp.co.soramitsu.common.compose.component.AmountInputViewState
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.applyFiatRate
 import jp.co.soramitsu.common.utils.combine
 import jp.co.soramitsu.common.utils.flowOf
@@ -23,14 +26,16 @@ import jp.co.soramitsu.common.validation.SpendInsufficientBalanceException
 import jp.co.soramitsu.common.validation.UnableToPayFeeException
 import jp.co.soramitsu.common.validation.WaitForFeeCalculationException
 import jp.co.soramitsu.feature_polkaswap_impl.R
+import jp.co.soramitsu.polkaswap.api.domain.InsufficientLiquidityException
 import jp.co.soramitsu.polkaswap.api.domain.PathUnavailableException
 import jp.co.soramitsu.polkaswap.api.domain.PolkaswapInteractor
+import jp.co.soramitsu.polkaswap.api.domain.models.SwapDetails
 import jp.co.soramitsu.polkaswap.api.models.Market
 import jp.co.soramitsu.polkaswap.api.models.WithDesired
 import jp.co.soramitsu.polkaswap.api.presentation.PolkaswapRouter
 import jp.co.soramitsu.polkaswap.api.presentation.models.SwapDetailsParcelModel
-import jp.co.soramitsu.polkaswap.api.presentation.models.SwapDetailsViewState
 import jp.co.soramitsu.polkaswap.api.presentation.models.TransactionSettingsModel
+import jp.co.soramitsu.polkaswap.api.presentation.models.detailsToViewState
 import jp.co.soramitsu.polkaswap.impl.presentation.transaction_settings.TransactionSettingsFragment
 import jp.co.soramitsu.wallet.api.domain.ExistentialDepositUseCase
 import jp.co.soramitsu.wallet.api.presentation.WalletRouter
@@ -43,14 +48,17 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+
+typealias TooltipEvent = Event<Pair<String, String>>
 
 @HiltViewModel
 class SwapTokensViewModel @Inject constructor(
@@ -60,6 +68,12 @@ class SwapTokensViewModel @Inject constructor(
     private val existentialDepositUseCase: ExistentialDepositUseCase,
     savedStateHandle: SavedStateHandle
 ) : BaseViewModel(), SwapTokensCallbacks {
+
+    private val _showMarketsWarningEvent = MutableLiveData<Event<Unit>>()
+    val showMarketsWarningEvent: LiveData<Event<Unit>> = _showMarketsWarningEvent
+
+    private val _showTooltipEvent = MutableLiveData<TooltipEvent>()
+    val showTooltipEvent: LiveData<TooltipEvent> = _showTooltipEvent
 
     private val enteredFromAmountFlow = MutableStateFlow("0")
     private val enteredToAmountFlow = MutableStateFlow("0")
@@ -82,10 +96,9 @@ class SwapTokensViewModel @Inject constructor(
     private var desired: WithDesired? = null
 
     private val dexes = flowOf { polkaswapInteractor.getAvailableDexes() }.stateIn(viewModelScope, SharingStarted.Eagerly, listOf())
-    private var allFee: BigDecimal = BigDecimal.ZERO
-    private var minMax: BigDecimal? = null
 
     private val isLoading = MutableStateFlow(false)
+    private var initialFee = BigDecimal.ZERO
 
     @OptIn(FlowPreview::class)
     private val poolReservesFlow = combine(fromAsset, toAsset, selectedMarket) { fromAsset, toAsset, selectedMarket ->
@@ -102,10 +115,18 @@ class SwapTokensViewModel @Inject constructor(
         polkaswapInteractor.observePoolReserves(fromAsset, toAsset, market)
     }
 
-    @OptIn(FlowPreview::class)
+    private val amountInput = combine(enteredFromAmountFlow, enteredToAmountFlow) { fromInput, toInput ->
+        when (desired) {
+            WithDesired.INPUT -> fromInput.toBigDecimal()
+            WithDesired.OUTPUT -> toInput.toBigDecimal()
+            null -> BigDecimal.ZERO
+        }
+    }
+        .catch { emit(BigDecimal.ZERO) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, BigDecimal.ZERO)
+
     private val swapDetails = combine(
-        fromAmountInputViewState.debounce(200),
-        toAmountInputViewState.debounce(200),
+        amountInput,
         fromAsset,
         toAsset,
         selectedMarket,
@@ -114,8 +135,34 @@ class SwapTokensViewModel @Inject constructor(
         poolReservesFlow,
         transform = ::getSwapDetails
     ).catch {
-        showError(it)
-        emit(null)
+        emit(Result.failure(it))
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, Result.success(null))
+
+    private val swapDetailsViewState = swapDetails.map {
+        it.fold(
+            onSuccess = { details ->
+                details ?: return@map null
+                val fromAsset = fromAsset.value ?: return@map null
+                val toAsset = toAsset.value ?: return@map null
+                fillSecondInputField(details.amount)
+                detailsToViewState(resourceManager, amountInput.value, fromAsset, toAsset, details, desired ?: return@map null)
+            },
+            onFailure = { throwable ->
+                val error = when (throwable) {
+                    is PathUnavailableException -> ValidationException(
+                        resourceManager.getString(R.string.common_error_general_title),
+                        resourceManager.getString(R.string.polkaswap_path_unavailable_message)
+                    )
+                    is InsufficientLiquidityException -> ValidationException(
+                        resourceManager.getString(R.string.common_error_general_title),
+                        resourceManager.getString(R.string.polkaswap_insufficient_liqudity)
+                    )
+                    else -> throwable
+                }
+                showError(error)
+                return@map null
+            }
+        )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private var assetResultJob: Job? = null
@@ -126,7 +173,7 @@ class SwapTokensViewModel @Inject constructor(
         fromAmountInputViewState,
         toAmountInputViewState,
         selectedMarket,
-        swapDetails,
+        swapDetailsViewState,
         isLoading
     ) { fromAmountInput, toAmountInput, selectedMarket, swapDetails, isLoading ->
         SwapTokensContentViewState(
@@ -150,6 +197,14 @@ class SwapTokensViewModel @Inject constructor(
                 slippageTolerance.value = it.slippageTolerance
             }
             .launchIn(viewModelScope)
+
+        viewModelScope.launch {
+            combine(fromAsset.filterNotNull(), toAsset.filterNotNull(), dexes) { fromAsset, toAsset, dexes ->
+                polkaswapInteractor.fetchAvailableSources(fromAsset, toAsset, dexes)
+            }.launchIn(viewModelScope)
+
+            initialFee = polkaswapInteractor.calcFakeFee()
+        }
     }
 
     private fun observeResultFor(assetFlow: MutableStateFlow<Asset?>) {
@@ -166,115 +221,34 @@ class SwapTokensViewModel @Inject constructor(
 
     @Suppress("UNUSED_PARAMETER")
     private suspend fun getSwapDetails(
-        fromAmountInputViewState: AmountInputViewState,
-        toAmountInputViewState: AmountInputViewState,
+        amount: BigDecimal,
         fromAsset: Asset?,
         toAsset: Asset?,
         selectedMarket: Market,
         slippageTolerance: Double,
         dexes: List<BigInteger>,
         reserves: Any
-    ): SwapDetailsViewState? {
-        fromAsset ?: return null
-        toAsset ?: return null
-        desired ?: return null
-        if (dexes.isEmpty()) return null
+    ): Result<SwapDetails?> {
+        val emptyResult = Result.success(null)
+        fromAsset ?: return emptyResult
+        toAsset ?: return emptyResult
+        desired ?: return emptyResult
+        if (dexes.isEmpty()) return emptyResult
+        if (amount.compareTo(BigDecimal.ZERO) == 0) return emptyResult
 
-        polkaswapInteractor.fetchAvailableSources(fromAsset, toAsset, dexes)
+        return polkaswapInteractor.calcDetails(dexes, fromAsset, toAsset, amount, desired!!, slippageTolerance, selectedMarket)
+    }
 
-        val amount = try {
-            when (desired) {
-                WithDesired.INPUT -> fromAmountInputViewState.tokenAmount
-                WithDesired.OUTPUT -> toAmountInputViewState.tokenAmount
-                null -> return null
-            }.toBigDecimal()
-        } catch (e: java.lang.NumberFormatException) {
-            return null
-        }
-        if (amount == BigDecimal.ZERO) return null
-
-        val detailsCalcResult = polkaswapInteractor.calcDetails(dexes, fromAsset, toAsset, amount, desired!!, slippageTolerance, selectedMarket)
-        return detailsCalcResult.fold(
-            onSuccess = { details ->
-                if (details == null) {
-                    showError(
-                        ValidationException(
-                            resourceManager.getString(R.string.common_error_general_title),
-                            resourceManager.getString(R.string.polkaswap_insufficient_liqudity)
-                        )
-                    )
-                    return null
-                }
-
-                var fromAmount = ""
-                var toAmount = ""
-                var minMaxTitle: String? = null
-                var minMaxAmount: String? = null
-                var minMaxFiat: String? = null
-
-                when (desired) {
-                    WithDesired.INPUT -> {
-                        enteredToAmountFlow.value = details.amount.format()
-                        fromAmount = amount.formatTokenAmount(fromAsset.token.configuration)
-                        toAmount = details.amount.formatTokenAmount(toAsset.token.configuration)
-
-                        minMaxTitle = resourceManager.getString(R.string.common_min_received)
-                        minMaxAmount = details.minMax.formatTokenAmount(toAsset.token.configuration)
-                        minMaxFiat = toAsset.token.fiatAmount(details.minMax)?.formatAsCurrency(toAsset.token.fiatSymbol)
-                    }
-                    WithDesired.OUTPUT -> {
-                        enteredFromAmountFlow.value = details.amount.format()
-                        fromAmount = details.amount.formatTokenAmount(fromAsset.token.configuration)
-                        toAmount = amount.formatTokenAmount(toAsset.token.configuration)
-
-                        minMaxTitle = resourceManager.getString(R.string.polkaswap_maximum_sold)
-                        minMaxAmount = details.minMax.formatTokenAmount(fromAsset.token.configuration)
-                        minMaxFiat = fromAsset.token.fiatAmount(details.minMax)?.formatAsCurrency(fromAsset.token.fiatSymbol)
-                    }
-                    else -> Unit
-                }
-                val tokenFromId = requireNotNull(fromAsset.token.configuration.currencyId)
-                val tokenToId = requireNotNull(toAsset.token.configuration.currencyId)
-                allFee = details.networkFee + details.liquidityProviderFee
-                minMax = details.minMax
-                SwapDetailsViewState(
-                    fromTokenId = tokenFromId,
-                    toTokenId = tokenToId,
-                    fromTokenName = fromAsset.token.configuration.symbolToShow.uppercase(),
-                    toTokenName = toAsset.token.configuration.symbolToShow.uppercase(),
-                    fromTokenImage = fromAsset.token.configuration.iconUrl,
-                    toTokenImage = toAsset.token.configuration.iconUrl,
-                    fromTokenAmount = fromAmount,
-                    toTokenAmount = toAmount,
-                    minmaxTitle = minMaxTitle.orEmpty(),
-                    toTokenMinReceived = minMaxAmount.orEmpty(),
-                    toFiatMinReceived = minMaxFiat.orEmpty(),
-                    fromTokenOnToToken = details.fromTokenOnToToken.format(),
-                    toTokenOnFromToken = details.toTokenOnFromToken.format(),
-                    networkFee = SwapDetailsViewState.NetworkFee(
-                        details.feeAsset.token.configuration.symbolToShow.uppercase(),
-                        details.networkFee.formatTokenAmount(details.feeAsset.token.configuration),
-                        details.feeAsset.token.fiatAmount(details.networkFee)?.formatAsCurrency(details.feeAsset.token.fiatSymbol)
-                    ),
-                    liquidityProviderFee = SwapDetailsViewState.NetworkFee(
-                        details.feeAsset.token.configuration.symbolToShow.uppercase(),
-                        details.liquidityProviderFee.formatTokenAmount(details.feeAsset.token.configuration),
-                        details.feeAsset.token.fiatAmount(details.liquidityProviderFee)?.formatAsCurrency(details.feeAsset.token.fiatSymbol)
-                    )
-                )
-            },
-            onFailure = {
-                val error = when (it) {
-                    is PathUnavailableException -> ValidationException(
-                        resourceManager.getString(R.string.common_error_general_title),
-                        resourceManager.getString(R.string.polkaswap_path_unavailable_message)
-                    )
-                    else -> it
-                }
-                showError(error)
-                null
+    private fun fillSecondInputField(amount: BigDecimal) {
+        when (desired) {
+            WithDesired.INPUT -> {
+                enteredToAmountFlow.value = amount.format()
             }
-        )
+            WithDesired.OUTPUT -> {
+                enteredFromAmountFlow.value = amount.format()
+            }
+            else -> Unit
+        }
     }
 
     private fun getAmountInputViewState(
@@ -366,19 +340,24 @@ class SwapTokensViewModel @Inject constructor(
     override fun onPreviewClick() {
         viewModelScope.launch {
             isLoading.value = true
-            val swapDetailsValue = swapDetails.value ?: run {
+            val swapDetailsViewState = swapDetailsViewState.value ?: run {
                 isLoading.value = false
                 showError(WaitForFeeCalculationException(resourceManager))
                 return@launch
             }
-            validate()?.let {
+            val swapDetails = swapDetails.value.getOrNull() ?: run {
+                isLoading.value = false
+                showError(WaitForFeeCalculationException(resourceManager))
+                return@launch
+            }
+            validate(swapDetails)?.let {
                 isLoading.value = false
                 showError(it)
                 return@launch
             }
             var amountInPlanks: BigInteger = BigInteger.ZERO
             var minMaxInPlanks: BigInteger? = null
-
+            val minMax = swapDetails.minMax
             when (desired) {
                 WithDesired.INPUT -> {
                     amountInPlanks = fromAsset.value?.token?.planksFromAmount(enteredFromAmountFlow.value.toBigDecimal()).orZero()
@@ -399,16 +378,16 @@ class SwapTokensViewModel @Inject constructor(
                 minMaxInPlanks
             )
             isLoading.value = false
-            polkaswapRouter.openSwapPreviewDialog(swapDetailsValue, detailsParcelModel)
+            polkaswapRouter.openSwapPreviewDialog(swapDetailsViewState, detailsParcelModel)
         }
     }
 
-    private suspend fun validate(): Throwable? {
+    private suspend fun validate(swapDetails: SwapDetails): Throwable? {
         val feeAsset = requireNotNull(polkaswapInteractor.getFeeAsset())
         val ed = existentialDepositUseCase(feeAsset.token.configuration).let { feeAsset.token.configuration.amountFromPlanks(it) }
         val amountToSwap = enteredFromAmountFlow.value.toBigDecimal()
         val available = requireNotNull(fromAsset.value?.transferable)
-        val fee = allFee
+        val fee = swapDetails.networkFee + swapDetails.liquidityProviderFee
         return when {
             amountToSwap >= available -> {
                 SpendInsufficientBalanceException(resourceManager)
@@ -443,6 +422,10 @@ class SwapTokensViewModel @Inject constructor(
     }
 
     override fun onMarketSettingsClick() {
+        if (fromAsset.value == null || toAsset.value == null) {
+            _showMarketsWarningEvent.value = Event(Unit)
+            return
+        }
         val initialSettings = TransactionSettingsModel(selectedMarket.value, slippageTolerance.value)
         polkaswapRouter.openTransactionSettingsDialog(initialSettings)
     }
@@ -469,6 +452,30 @@ class SwapTokensViewModel @Inject constructor(
         isToAmountFocused.value = focusState.hasFocus
     }
 
+    override fun minMaxToolTopClick() {
+        val tooltip = when (desired) {
+            WithDesired.INPUT -> R.string.polkaswap_minimum_received_title to R.string.polkaswap_minimum_received_info
+            WithDesired.OUTPUT -> R.string.polkaswap_maximum_sold_title to R.string.polkaswap_maximum_sold_info
+            null -> return
+        }
+
+        _showTooltipEvent.value = Event(resourceManager.getString(tooltip.first) to resourceManager.getString(tooltip.second))
+    }
+
+    override fun liquidityProviderTooltipClick() {
+        _showTooltipEvent.value = Event(
+            resourceManager.getString(R.string.polkaswap_liqudity_fee_title) to
+                resourceManager.getString(R.string.polkaswap_liqudity_fee_info)
+        )
+    }
+
+    override fun networkFeeTooltipClick() {
+        _showTooltipEvent.value = Event(
+            resourceManager.getString(R.string.network_fee) to
+                resourceManager.getString(R.string.polkaswap_network_fee_info)
+        )
+    }
+
     private fun openSelectAsset(
         selectedAssetFlow: MutableStateFlow<Asset?>,
         excludeAssetFlow: MutableStateFlow<Asset?>
@@ -481,5 +488,53 @@ class SwapTokensViewModel @Inject constructor(
             selectedAssetId = selectedAssetId,
             excludeAssetId = excludeAssetId
         )
+    }
+
+    fun marketAlertConfirmed() {
+        when {
+            fromAsset.value == null -> {
+                onFromTokenSelect()
+            }
+            toAsset.value == null -> {
+                onToTokenSelect()
+            }
+        }
+    }
+
+    var awaitNewFeeJob: Job? = null
+
+    override fun onQuickAmountInput(value: Double) {
+        viewModelScope.launch {
+            desired ?: return@launch
+
+            val transferable = fromAsset.value?.transferable.orZero()
+            val details = swapDetails.value.getOrNull()
+
+            val isFeeAsset = fromAsset.value?.token?.configuration?.id == polkaswapInteractor.getFeeAsset()?.token?.configuration?.id
+            val amount = transferable.multiply(value.toBigDecimal())
+            val fee = if (details == null) {
+                val liquidityProviderFee = amount.multiply(BigDecimal.valueOf(0.003))
+                liquidityProviderFee + initialFee
+            } else {
+                details.networkFee + details.liquidityProviderFee
+            }
+            val result = if (isFeeAsset) amount.minus(fee) else amount
+            val formattedAmount = result.takeIf { it >= BigDecimal.ZERO }.orZero().format()
+
+            enteredFromAmountFlow.value = formattedAmount
+
+            if (isFeeAsset.not()) return@launch
+
+            awaitNewFeeJob?.cancel()
+            awaitNewFeeJob = viewModelScope.launch {
+                swapDetails.collectLatest { detailsResult ->
+                    val newDetails = detailsResult.getOrNull() ?: return@collectLatest
+
+                    val newResult = amount.minus(newDetails.networkFee).minus(newDetails.liquidityProviderFee).takeIf { it >= BigDecimal.ZERO }.orZero()
+                    enteredFromAmountFlow.value = newResult.format()
+                    awaitNewFeeJob?.cancel()
+                }
+            }
+        }
     }
 }

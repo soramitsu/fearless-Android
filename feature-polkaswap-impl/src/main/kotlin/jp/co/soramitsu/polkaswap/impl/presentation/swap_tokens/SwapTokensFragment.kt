@@ -1,5 +1,7 @@
 package jp.co.soramitsu.polkaswap.impl.presentation.swap_tokens
 
+import android.os.Bundle
+import android.view.View
 import android.widget.FrameLayout
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
@@ -11,6 +13,9 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
 import jp.co.soramitsu.common.compose.component.BottomSheetScreen
+import jp.co.soramitsu.common.presentation.ErrorDialog
+import jp.co.soramitsu.common.presentation.InfoDialog
+import jp.co.soramitsu.feature_polkaswap_impl.R
 
 @AndroidEntryPoint
 class SwapTokensFragment : BaseComposeBottomSheetDialogFragment<SwapTokensViewModel>() {
@@ -36,6 +41,27 @@ class SwapTokensFragment : BaseComposeBottomSheetDialogFragment<SwapTokensViewMo
                 state = state,
                 callbacks = viewModel
             )
+        }
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        viewModel.showMarketsWarningEvent.observeEvent {
+            val res = requireContext()
+            ErrorDialog(
+                title = res.getString(R.string.polkaswap_market_alert_title),
+                message = res.getString(R.string.polkaswap_market_alert_message),
+                positiveButtonText = res.getString(R.string.polkaswap_market_alert_positive_button),
+                positiveClick = { viewModel.marketAlertConfirmed() },
+                negativeButtonText = res.getString(R.string.common_cancel)
+            ).show(childFragmentManager)
+        }
+
+        viewModel.showTooltipEvent.observeEvent {
+            InfoDialog(
+                title = it.first,
+                message = it.second
+            ).show(childFragmentManager)
         }
     }
 

@@ -46,4 +46,5 @@ interface PolkaswapInteractor {
 
     fun setChainId(chainId: ChainId?)
     suspend fun getFeeAsset(): Asset?
+    suspend fun calcFakeFee(): BigDecimal
 }
