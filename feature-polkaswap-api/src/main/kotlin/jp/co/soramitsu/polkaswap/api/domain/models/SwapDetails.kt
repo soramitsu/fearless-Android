@@ -8,7 +8,7 @@ data class SwapDetails(
     val minMax: BigDecimal,
     val fromTokenOnToToken: BigDecimal,
     val toTokenOnFromToken: BigDecimal,
-    val networkFee: BigDecimal,
     val liquidityProviderFee: BigDecimal,
-    val feeAsset: Asset
+    val feeAsset: Asset,
+    val bestDexId: Int
 )

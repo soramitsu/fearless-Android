@@ -20,7 +20,7 @@ interface PolkaswapInteractor {
     fun observePoolReserves(fromTokenId: String, toTokenId: String, market: Market): Flow<String>
 
     suspend fun calcDetails(
-        dexes: List<BigInteger>,
+        availableDexPaths: List<Int>,
         tokenFrom: Asset,
         tokenTo: Asset,
         amount: BigDecimal,
@@ -29,7 +29,7 @@ interface PolkaswapInteractor {
         market: Market
     ): Result<SwapDetails?>
 
-    suspend fun fetchAvailableSources(tokenInput: Asset, tokenOutput: Asset, dexes: List<BigInteger>)
+    suspend fun fetchAvailableSources(tokenInput: Asset, tokenOutput: Asset, availableDexes: List<Int>): Set<Market>
     val bestDexIdFlow: StateFlow<LoadingState<Int>>
     val availableMarkets: MutableMap<Int, List<Market>>
 
@@ -47,4 +47,14 @@ interface PolkaswapInteractor {
     fun setChainId(chainId: ChainId?)
     suspend fun getFeeAsset(): Asset?
     suspend fun calcFakeFee(): BigDecimal
+    suspend fun estimateSwapFee(
+        bestDex: Int,
+        tokenFromId: String,
+        tokenToId: String,
+        amountInPlanks: BigInteger,
+        market: Market,
+        desired: WithDesired
+    ): BigInteger
+
+    suspend fun getAvailableDexesForPair(tokenFromId: String, tokenToId: String, dexes: List<BigInteger>): List<Int>
 }
