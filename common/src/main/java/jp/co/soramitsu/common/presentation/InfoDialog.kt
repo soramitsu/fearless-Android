@@ -6,14 +6,19 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -29,6 +34,8 @@ import jp.co.soramitsu.common.compose.component.H3
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.theme.black2
+import jp.co.soramitsu.common.compose.theme.white04
+import jp.co.soramitsu.common.compose.theme.white16
 
 class InfoDialog(
     private val title: String,
@@ -90,7 +97,18 @@ private fun InfoDialogContent(title: String, message: String) {
                 .padding(horizontal = 16.dp)
                 .fillMaxWidth()
         ) {
-            MarginVertical(margin = 34.dp)
+            MarginVertical(margin = 40.dp)
+            Icon(
+                painter = painterResource(id = R.drawable.ic_info_14),
+                tint = white16,
+                contentDescription = null,
+                modifier = Modifier
+                    .background(color = white04, shape = CircleShape)
+                    .size(56.dp)
+                    .padding(14.dp)
+                    .align(Alignment.CenterHorizontally)
+            )
+            MarginVertical(margin = 24.dp)
             H3(text = title, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
             MarginVertical(margin = 16.dp)
             B0(
