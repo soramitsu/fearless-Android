@@ -340,45 +340,51 @@ class SwapTokensViewModel @Inject constructor(
     override fun onPreviewClick() {
         viewModelScope.launch {
             isLoading.value = true
-            val swapDetailsViewState = swapDetailsViewState.value ?: run {
+            val bestDexId = (polkaswapInteractor.bestDexIdFlow.value as? LoadingState.Loaded)?.data
+
+            val swapDetailsViewStateReady = swapDetailsViewState.value != null
+            val swapDetailsReady = swapDetails.value.getOrNull() != null
+            val bestDexIdReady = bestDexId != null
+            val isAllDataReady = swapDetailsViewStateReady && swapDetailsReady && bestDexIdReady
+
+            if (!isAllDataReady) {
                 isLoading.value = false
                 showError(WaitForFeeCalculationException(resourceManager))
                 return@launch
             }
-            val swapDetails = swapDetails.value.getOrNull() ?: run {
-                isLoading.value = false
-                showError(WaitForFeeCalculationException(resourceManager))
-                return@launch
-            }
+
+            val swapDetails = requireNotNull(swapDetails.value.getOrNull())
+
             validate(swapDetails)?.let {
                 isLoading.value = false
                 showError(it)
                 return@launch
             }
-            var amountInPlanks: BigInteger = BigInteger.ZERO
-            var minMaxInPlanks: BigInteger? = null
-            val minMax = swapDetails.minMax
+
+            val amountInPlanks: BigInteger
+            val minMaxInPlanks: BigInteger?
+
             when (desired) {
                 WithDesired.INPUT -> {
                     amountInPlanks = fromAsset.value?.token?.planksFromAmount(enteredFromAmountFlow.value.toBigDecimal()).orZero()
-                    minMaxInPlanks = toAsset.value?.token?.planksFromAmount(minMax.orZero())
+                    minMaxInPlanks = toAsset.value?.token?.planksFromAmount(swapDetails.minMax.orZero())
                 }
                 WithDesired.OUTPUT -> {
                     amountInPlanks = toAsset.value?.token?.planksFromAmount(enteredToAmountFlow.value.toBigDecimal()).orZero()
-                    minMaxInPlanks = fromAsset.value?.token?.planksFromAmount(minMax.orZero())
+                    minMaxInPlanks = fromAsset.value?.token?.planksFromAmount(swapDetails.minMax.orZero())
                 }
-                else -> Unit
+                else -> return@launch
             }
 
             val detailsParcelModel = SwapDetailsParcelModel(
                 amountInPlanks,
                 selectedMarket.value,
                 requireNotNull(desired),
-                requireNotNull((polkaswapInteractor.bestDexIdFlow.value as? LoadingState.Loaded)?.data),
+                requireNotNull(bestDexId),
                 minMaxInPlanks
             )
             isLoading.value = false
-            polkaswapRouter.openSwapPreviewDialog(swapDetailsViewState, detailsParcelModel)
+            polkaswapRouter.openSwapPreviewDialog(requireNotNull(swapDetailsViewState.value), detailsParcelModel)
         }
     }
 
