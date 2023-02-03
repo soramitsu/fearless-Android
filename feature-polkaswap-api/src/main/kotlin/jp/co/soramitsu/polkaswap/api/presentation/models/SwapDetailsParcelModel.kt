@@ -12,5 +12,6 @@ data class SwapDetailsParcelModel(
     val selectedMarket: Market,
     val desired: WithDesired,
     val dexId: Int,
-    val minMax: BigInteger?
+    val minMax: BigInteger?,
+    val networkFee: SwapDetailsViewState.NetworkFee
 ) : Parcelable
