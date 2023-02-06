@@ -43,6 +43,7 @@ import jp.co.soramitsu.polkaswap.api.presentation.models.SwapDetailsViewState
 
 data class SwapPreviewState(
     val swapDetailsViewState: SwapDetailsViewState,
+    val networkFee: SwapDetailsViewState.NetworkFee,
     val isLoading: Boolean
 )
 
@@ -196,8 +197,8 @@ fun SwapPreviewContent(
                             ),
                             TitleValueViewState(
                                 title = stringResource(R.string.common_network_fee),
-                                value = state.swapDetailsViewState.networkFee.tokenAmount,
-                                additionalValue = state.swapDetailsViewState.networkFee.fiatAmount
+                                value = state.networkFee.tokenAmount,
+                                additionalValue = state.networkFee.fiatAmount
                             )
                         )
                     )
@@ -235,11 +236,6 @@ fun SwapPreviewContentPreview() {
                 toFiatMinReceived = "\$0.98",
                 fromTokenAmount = "1",
                 toTokenAmount = "2",
-                networkFee = SwapDetailsViewState.NetworkFee(
-                    tokenAmount = "0.0007",
-                    tokenName = "XOR",
-                    fiatAmount = "\$ 0.32"
-                ),
                 liquidityProviderFee = SwapDetailsViewState.NetworkFee(
                     tokenAmount = "0.0007",
                     tokenName = "XOR",
@@ -248,6 +244,11 @@ fun SwapPreviewContentPreview() {
                 fromTokenOnToToken = "0",
                 toTokenOnFromToken = "0",
                 minmaxTitle = stringResource(id = R.string.common_min_received)
+            ),
+            networkFee = SwapDetailsViewState.NetworkFee(
+                tokenAmount = "0.0007",
+                tokenName = "XOR",
+                fiatAmount = "\$ 0.32"
             ),
             false
         ),

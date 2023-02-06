@@ -29,7 +29,8 @@ class SwapPreviewViewModel @Inject constructor(
     private val swapDetailsViewState = savedStateHandle.get<SwapDetailsViewState>(SwapPreviewFragment.KEY_SWAP_DETAILS)!!
     private val swapDetailsParcelModel = savedStateHandle.get<SwapDetailsParcelModel>(SwapPreviewFragment.KEY_SWAP_DETAILS_PARCEL)!!
 
-    val state = MutableStateFlow(SwapPreviewState(swapDetailsViewState = swapDetailsViewState, isLoading = false))
+    val state =
+        MutableStateFlow(SwapPreviewState(swapDetailsViewState = swapDetailsViewState, networkFee = swapDetailsParcelModel.networkFee, isLoading = false))
 
     override fun onBackClick() {
         polkaswapRouter.back()

@@ -27,7 +27,6 @@ data class SwapDetailsViewState(
     val toTokenAmount: String,
     val toTokenMinReceived: String,
     val toFiatMinReceived: String,
-    val networkFee: NetworkFee,
     val liquidityProviderFee: NetworkFee,
     val fromTokenOnToToken: String,
     val toTokenOnFromToken: String,
@@ -82,7 +81,6 @@ fun detailsToViewState(
             minMaxAmount = details.minMax.formatTokenAmount(fromAsset.token.configuration)
             minMaxFiat = fromAsset.token.fiatAmount(details.minMax)?.formatAsCurrency(fromAsset.token.fiatSymbol)
         }
-        else -> Unit
     }
     val tokenFromId = requireNotNull(fromAsset.token.configuration.currencyId)
     val tokenToId = requireNotNull(toAsset.token.configuration.currencyId)
@@ -101,11 +99,6 @@ fun detailsToViewState(
         toFiatMinReceived = minMaxFiat.orEmpty(),
         fromTokenOnToToken = details.fromTokenOnToToken.format(),
         toTokenOnFromToken = details.toTokenOnFromToken.format(),
-        networkFee = SwapDetailsViewState.NetworkFee(
-            details.feeAsset.token.configuration.symbolToShow.uppercase(),
-            details.networkFee.formatTokenAmount(details.feeAsset.token.configuration),
-            details.feeAsset.token.fiatAmount(details.networkFee)?.formatAsCurrency(details.feeAsset.token.fiatSymbol)
-        ),
         liquidityProviderFee = SwapDetailsViewState.NetworkFee(
             details.feeAsset.token.configuration.symbolToShow.uppercase(),
             details.liquidityProviderFee.formatTokenAmount(details.feeAsset.token.configuration),

@@ -50,6 +50,8 @@ import jp.co.soramitsu.common.compose.theme.customColors
 import jp.co.soramitsu.common.compose.theme.customTypography
 import jp.co.soramitsu.common.compose.theme.grayButtonBackground
 import jp.co.soramitsu.common.compose.theme.white08
+import jp.co.soramitsu.common.presentation.LoadingState
+import jp.co.soramitsu.common.presentation.dataOrNull
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_polkaswap_impl.R
 import jp.co.soramitsu.polkaswap.api.models.Market
@@ -60,7 +62,8 @@ data class SwapTokensContentViewState(
     val toAmountInputViewState: AmountInputViewState,
     val selectedMarket: Market,
     val swapDetailsViewState: SwapDetailsViewState?,
-    val isLoading: Boolean
+    val isLoading: Boolean,
+    val networkFeeViewState: LoadingState<out SwapDetailsViewState.NetworkFee?>
 ) {
     companion object {
 
@@ -70,7 +73,8 @@ data class SwapTokensContentViewState(
                 toAmountInputViewState = AmountInputViewState.default(resourceManager),
                 selectedMarket = Market.SMART,
                 swapDetailsViewState = null,
-                isLoading = false
+                isLoading = false,
+                networkFeeViewState = LoadingState.Loaded(null)
             )
         }
     }
@@ -208,7 +212,11 @@ fun SwapTokensContent(
                     }
 
                     if (state.swapDetailsViewState != null) {
-                        TransactionDescription(swapDetailsViewState = state.swapDetailsViewState, callbacks = callbacks)
+                        TransactionDescription(
+                            swapDetailsViewState = state.swapDetailsViewState,
+                            networkFeeViewState = state.networkFeeViewState,
+                            callbacks = callbacks
+                        )
                     }
                 }
 
@@ -239,6 +247,7 @@ fun SwapTokensContent(
 @Composable
 private fun TransactionDescription(
     swapDetailsViewState: SwapDetailsViewState,
+    networkFeeViewState: LoadingState<out SwapDetailsViewState.NetworkFee?>,
     modifier: Modifier = Modifier,
     callbacks: SwapTokensCallbacks
 ) {
@@ -290,15 +299,26 @@ private fun TransactionDescription(
             tooltipClick = callbacks::liquidityProviderTooltipClick
         )
 
-        FeeInfo(
-            state = FeeInfoViewState(
-                caption = stringResource(R.string.common_network_fee),
-                feeAmount = swapDetailsViewState.networkFee.tokenAmount,
-                feeAmountFiat = swapDetailsViewState.networkFee.fiatAmount,
-                tooltip = true
-            ),
-            tooltipClick = callbacks::networkFeeTooltipClick
-        )
+        when {
+            networkFeeViewState is LoadingState.Loading -> FeeInfo(
+                state = FeeInfoViewState(
+                    caption = stringResource(R.string.common_network_fee),
+                    feeAmount = null,
+                    feeAmountFiat = null,
+                    tooltip = true
+                ),
+                tooltipClick = callbacks::networkFeeTooltipClick
+            )
+            networkFeeViewState is LoadingState.Loaded && networkFeeViewState.dataOrNull() != null -> FeeInfo(
+                state = FeeInfoViewState(
+                    caption = stringResource(R.string.common_network_fee),
+                    feeAmount = networkFeeViewState.dataOrNull()?.tokenAmount,
+                    feeAmountFiat = networkFeeViewState.dataOrNull()?.fiatAmount,
+                    tooltip = true
+                ),
+                tooltipClick = callbacks::networkFeeTooltipClick
+            )
+        }
     }
 }
 
