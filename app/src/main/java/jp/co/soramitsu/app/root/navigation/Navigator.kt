@@ -129,6 +129,7 @@ import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.extrinsic.Ext
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.extrinsic.ExtrinsicDetailsPayload
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.reward.RewardDetailFragment
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.reward.RewardDetailsPayload
+import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.swap.SwapDetailFragment
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.transfer.TransferDetailFragment
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -675,6 +676,12 @@ class Navigator :
         val bundle = ExtrinsicDetailFragment.getBundle(payload)
 
         navController?.navigate(R.id.open_extrinsic_detail, bundle)
+    }
+
+    override fun openSwapDetail(operation: OperationParcelizeModel.Swap) {
+        val bundle = SwapDetailFragment.getBundle(operation)
+
+        navController?.navigate(R.id.swapDetailFragment, bundle)
     }
 
     override fun openWallets(accountChosenNavDirection: AccountChosenNavDirection) {

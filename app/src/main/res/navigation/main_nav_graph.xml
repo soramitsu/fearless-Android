@@ -679,6 +679,11 @@
         android:label="swapPreviewFragment" />
 
     <dialog
+        android:id="@+id/swapDetailFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.transaction.detail.swap.SwapDetailFragment"
+        android:label="swapDetailFragment" />
+
+    <dialog
         android:id="@+id/selectMarketFragment"
         android:name="jp.co.soramitsu.polkaswap.impl.presentation.select_market.SelectMarketFragment"
         android:label="selectMarketFragment" />

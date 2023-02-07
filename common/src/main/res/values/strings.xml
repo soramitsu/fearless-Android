@@ -1032,4 +1032,7 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="polkaswap_liqudity_fee_title">Liquidity provider fee</string>
     <string name="polkaswap_liqudity_fee_info">A portion of each trade (0.3%) goes to liquidity providers as a protocol incentive.</string>
     <string name="polkaswap_network_fee_info">Network fee is used to ensure SORA system\'s growth and stable performance.</string>
+    <string name="polkaswap_confirmation_swap_stub">Swap</string>
+    <string name="polkaswap_confirmation_swapped_stub">Swapped</string>
+
 </resources>

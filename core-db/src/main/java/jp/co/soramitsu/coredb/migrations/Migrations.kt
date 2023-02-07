@@ -3,6 +3,43 @@ package jp.co.soramitsu.coredb.migrations
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
+val Migration_46_47 = object : Migration(45, 46) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+        database.execSQL("ALTER TABLE operations RENAME TO _operations")
+        database.execSQL(
+            """
+                CREATE TABLE IF NOT EXISTS `operations` (
+                `id` TEXT NOT NULL, 
+                `address` TEXT NOT NULL, 
+                `chainId` TEXT NOT NULL, 
+                `chainAssetId` TEXT NOT NULL, 
+                `time` INTEGER NOT NULL, 
+                `status` INTEGER NOT NULL, 
+                `source` INTEGER NOT NULL, 
+                `operationType` INTEGER NOT NULL, 
+                `module` TEXT, 
+                `call` TEXT, 
+                `amount` TEXT, 
+                `sender` TEXT, 
+                `receiver` TEXT, 
+                `hash` TEXT, 
+                `fee` TEXT, 
+                `isReward` INTEGER, 
+                `era` INTEGER, 
+                `validator` TEXT, 
+                `liquidityFee` TEXT, 
+                `market` TEXT, 
+                `targetAssetId` TEXT, 
+                `targetAmount` TEXT, 
+                PRIMARY KEY(`id`, `address`, `chainId`, `chainAssetId`)
+                )
+            """.trimIndent()
+        )
+        database.execSQL("INSERT INTO operations SELECT * FROM _operations")
+        database.execSQL("DROP TABLE _operations")
+    }
+}
+
 val Migration_45_46 = object : Migration(45, 46) {
     override fun migrate(database: SupportSQLiteDatabase) {
         // on some devices FOREIGN KEY(`chainId`) REFERENCES to `_chains` table.

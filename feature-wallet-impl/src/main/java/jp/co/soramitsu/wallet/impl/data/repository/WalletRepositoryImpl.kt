@@ -1,9 +1,6 @@
 package jp.co.soramitsu.wallet.impl.data.repository
 
 import com.opencsv.CSVReaderHeaderAware
-import java.lang.Integer.min
-import java.math.BigDecimal
-import java.math.BigInteger
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.accountId
 import jp.co.soramitsu.common.data.model.CursorPage
@@ -36,12 +33,14 @@ import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain.ExternalApi.Section.Type
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.isSora
 import jp.co.soramitsu.runtime.multiNetwork.getRuntime
 import jp.co.soramitsu.wallet.api.data.cache.AssetCache
 import jp.co.soramitsu.wallet.impl.data.mappers.mapAssetLocalToAsset
 import jp.co.soramitsu.wallet.impl.data.mappers.mapNodeToOperation
 import jp.co.soramitsu.wallet.impl.data.mappers.mapOperationLocalToOperation
 import jp.co.soramitsu.wallet.impl.data.mappers.mapOperationToOperationLocalDb
+import jp.co.soramitsu.wallet.impl.data.mappers.toOperation
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.SubstrateRemoteSource
 import jp.co.soramitsu.wallet.impl.data.network.model.request.SubqueryHistoryRequest
 import jp.co.soramitsu.wallet.impl.data.network.phishing.PhishingApi
@@ -61,6 +60,10 @@ import jp.co.soramitsu.wallet.impl.domain.model.Transfer
 import jp.co.soramitsu.wallet.impl.domain.model.TransferValidityStatus
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
+import jp.co.soramitsu.xnetworking.networkclient.SoramitsuNetworkClient
+import jp.co.soramitsu.xnetworking.txhistory.TxHistoryItem
+import jp.co.soramitsu.xnetworking.txhistory.TxHistoryResult
+import jp.co.soramitsu.xnetworking.txhistory.client.sorawallet.SubQueryClientForSoraWalletFactory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -69,6 +72,9 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.withContext
+import java.lang.Integer.min
+import java.math.BigDecimal
+import java.math.BigInteger
 
 class WalletRepositoryImpl(
     private val substrateSource: SubstrateRemoteSource,
@@ -85,7 +91,9 @@ class WalletRepositoryImpl(
     private val availableFiatCurrencies: GetAvailableFiatCurrencies,
     private val updatesMixin: UpdatesMixin,
     private val remoteConfigFetcher: RemoteConfigFetcher,
-    private val currentAccountAddress: CurrentAccountAddressUseCase
+    private val currentAccountAddress: CurrentAccountAddressUseCase,
+    private val soramitsuNetworkClient: SoramitsuNetworkClient,
+    private val soraSubqueryFactory: SubQueryClientForSoraWalletFactory
 ) : WalletRepository, UpdatesProviderUi by updatesMixin {
 
     override fun assetsFlow(meta: MetaAccount): Flow<List<AssetWithStatus>> {
@@ -245,7 +253,7 @@ class WalletRepositoryImpl(
             getOperations(pageSize, cursor = null, filters, accountId, chain, chainAsset)
         }.getOrDefault(CursorPage(null, emptyList()))
 
-        val elements = page.map { mapOperationToOperationLocalDb(it, chainAsset, OperationLocal.Source.SUBQUERY) }
+        val elements = page.map { mapOperationToOperationLocalDb(it, OperationLocal.Source.SUBQUERY) }
 
         operationDao.insertFromSubquery(accountAddress, chain.id, chainAsset.id, elements)
         cursorStorage.saveCursor(chain.id, chainAsset.id, accountId, page.nextCursor)
@@ -269,10 +277,26 @@ class WalletRepositoryImpl(
                 throw HistoryNotSupportedException()
             }
             val requestRewards = chainAsset.staking != Chain.Asset.StakingType.UNSUPPORTED
+
+            val accountAddress = chain.addressOf(accountId)
+            if (chain.id.isSora()) {
+                val subQueryClientForSora = soraSubqueryFactory.create(soramitsuNetworkClient, historyUrl, pageSize)
+
+                val soraHistory: TxHistoryResult<TxHistoryItem> = subQueryClientForSora.getTransactionHistoryPaged(
+                    accountAddress,
+                    chain.name,
+                    1
+                )
+
+                val soraHistoryItems: List<TxHistoryItem> = soraHistory.items
+                val soraOperations = soraHistoryItems.mapNotNull { it.toOperation(chain, chainAsset, accountAddress) }
+                return@withContext CursorPage(null, soraOperations)
+            }
+
             val response = walletOperationsApi.getOperationsHistory(
                 url = historyUrl,
                 SubqueryHistoryRequest(
-                    accountAddress = chain.addressOf(accountId),
+                    accountAddress = accountAddress,
                     pageSize,
                     cursor,
                     filters,
@@ -296,17 +320,17 @@ class WalletRepositoryImpl(
             }
 
             val pageInfo = response.historyElements.pageInfo
-            val filteredOperations = if (!chainAsset.isUtility) {
-                response.historyElements.nodes.filter {
-                    it.transfer?.assetId == encodedCurrencyId ||
-                        it.extrinsic?.assetId == encodedCurrencyId ||
-                        it.reward?.assetId == encodedCurrencyId
-                }
-            } else {
+            val filteredOperations = if (chainAsset.isUtility) {
                 response.historyElements.nodes.filter {
                     it.transfer?.assetId == null &&
                         it.extrinsic?.assetId == null &&
                         it.reward?.assetId == null
+                }
+            } else {
+                response.historyElements.nodes.filter {
+                    it.transfer?.assetId == encodedCurrencyId ||
+                        it.extrinsic?.assetId == encodedCurrencyId ||
+                        it.reward?.assetId == encodedCurrencyId
                 }
             }
 
@@ -325,7 +349,7 @@ class WalletRepositoryImpl(
 
         return operationDao.observe(accountAddress, chain.id, chainAsset.id)
             .mapList {
-                mapOperationLocalToOperation(it, chainAsset)
+                mapOperationLocalToOperation(it, chainAsset, chain)
             }
             .mapLatest { operations ->
                 val cursor = cursorStorage.awaitCursor(chain.id, chainAsset.id, accountId)

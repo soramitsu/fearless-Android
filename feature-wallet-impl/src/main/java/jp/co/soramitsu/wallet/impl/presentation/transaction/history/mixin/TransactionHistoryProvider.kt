@@ -114,6 +114,10 @@ class TransactionHistoryProvider(
                     is OperationParcelizeModel.Reward -> {
                         router.openRewardDetail(RewardDetailsPayload(operation, assetPayload.chainId))
                     }
+
+                    is OperationParcelizeModel.Swap -> {
+                        router.openSwapDetail(operation)
+                    }
                 }
             }
         }

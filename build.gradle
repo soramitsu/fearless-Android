@@ -22,6 +22,7 @@ buildscript {
         biometricVersion = '1.1.0'
 
         progressButtonsVersion = '2.1.0'
+        xNetworkingVersion = '0.0.46'
 
         daggerVersion = '2.43'
         javaxInjectVersion = '1'
@@ -168,6 +169,7 @@ buildscript {
         gifDep = "pl.droidsonroids.gif:android-gif-drawable:$gifVersion"
 
         wsDep = "com.neovisionaries:nv-websocket-client:$wsVersion"
+        xNetworkingDep = "jp.co.soramitsu:XNetworking-android:$xNetworkingVersion"
 
         shimmerDep = "com.facebook.shimmer:shimmer:$shimmerVersion"
 
@@ -202,7 +204,7 @@ buildscript {
     dependencies {
         classpath 'com.android.tools.build:gradle:7.3.1'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
-        classpath 'com.google.gms:google-services:4.3.14'
+        classpath 'com.google.gms:google-services:4.3.15'
         classpath "com.google.firebase:firebase-appdistribution-gradle:$firebaseAppDistrVersion"
         classpath "com.github.triplet.gradle:play-publisher:$playPublisherVersion"
         classpath "com.google.dagger:hilt-android-gradle-plugin:$daggerVersion"

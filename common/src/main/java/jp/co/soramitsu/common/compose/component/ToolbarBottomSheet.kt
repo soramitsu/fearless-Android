@@ -13,12 +13,13 @@ import jp.co.soramitsu.common.R
 
 @Composable
 fun ToolbarBottomSheet(
+    modifier: Modifier = Modifier,
     title: String?,
     @DrawableRes navigationIconResId: Int = R.drawable.ic_arrow_left_24,
     onNavigationClick: () -> Unit
 ) {
     Box(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .height(32.dp)
     ) {
