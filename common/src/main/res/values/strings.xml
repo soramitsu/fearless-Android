@@ -1037,7 +1037,7 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="polkaswap_confirmation_swap_stub">Swap</string>
     <string name="polkaswap_confirmation_swapped_stub">Swapped</string>
     <string name="polkaswap_not_enough_result_to_pay_fee_title">Swap fee error</string>
-    <string name="polkaswap_not_enough_result_to_pay_fee_message">The required fee cannot be covered by your available tokens and the transaction amount is not enough to cover the fee. Please add more tokens or adjust the transaction amount to proceed.</string>
+    <string name="polkaswap_not_enough_result_to_pay_fee_message">Sorry, you don\'t have enough funds to pay the network fee. We can\'t charge the fee neither from your current balance nor from the swap results. Please add more tokens or adjust the transaction amount to proceed.</string>
     <string name="common_disclaimer">Disclaimer</string>
     <string name="polkaswap_disclaimer_message">Please read before continuing to use Polkaswap</string>
     <string name="common_read">Read</string>

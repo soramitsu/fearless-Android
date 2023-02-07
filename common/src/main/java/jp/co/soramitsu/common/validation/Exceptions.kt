@@ -76,5 +76,5 @@ class UnableToPayFeeException(resourceManager: ResourceManager) : ValidationExce
 
 class NotEnoughResultedAmountToPayFeeException(resourceManager: ResourceManager) : ValidationException(
     message = resourceManager.getString(R.string.polkaswap_not_enough_result_to_pay_fee_title),
-    explanation = resourceManager.getString(R.string.polkaswap_not_enough_result_to_pay_fee_message) // todo correct the message
+    explanation = resourceManager.getString(R.string.polkaswap_not_enough_result_to_pay_fee_message)
 )
