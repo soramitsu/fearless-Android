@@ -217,15 +217,17 @@ class SwapTokensViewModel @Inject constructor(
         selectedMarket,
         swapDetailsViewState,
         networkFeeViewStateFlow,
-        isLoading
-    ) { fromAmountInput, toAmountInput, selectedMarket, swapDetails, networkFeeState, isLoading ->
+        isLoading,
+        polkaswapInteractor.observeHasReadDisclaimer()
+    ) { fromAmountInput, toAmountInput, selectedMarket, swapDetails, networkFeeState, isLoading, hasReadDisclaimer ->
         SwapTokensContentViewState(
             fromAmountInputViewState = fromAmountInput,
             toAmountInputViewState = toAmountInput,
             selectedMarket = selectedMarket,
             swapDetailsViewState = swapDetails,
             networkFeeViewState = networkFeeState,
-            isLoading = isLoading
+            isLoading = isLoading,
+            hasReadDisclaimer = hasReadDisclaimer
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, SwapTokensContentViewState.default(resourceManager))
 
@@ -613,5 +615,9 @@ class SwapTokensViewModel @Inject constructor(
                 }
             }
         }
+    }
+
+    override fun onDisclaimerClick() {
+        polkaswapRouter.openDisclaimer()
     }
 }

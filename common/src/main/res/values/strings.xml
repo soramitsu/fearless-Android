@@ -1038,4 +1038,16 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="polkaswap_confirmation_swapped_stub">Swapped</string>
     <string name="polkaswap_not_enough_result_to_pay_fee_title">Swap fee error</string>
     <string name="polkaswap_not_enough_result_to_pay_fee_message">The required fee cannot be covered by your available tokens and the transaction amount is not enough to cover the fee. Please add more tokens or adjust the transaction amount to proceed.</string>
+    <string name="common_disclaimer">Disclaimer</string>
+    <string name="polkaswap_disclaimer_message">Please read before continuing to use Polkaswap</string>
+    <string name="common_read">Read</string>
+
+    <string name="polkaswap_info_text_1">Polkaswap is maintained by the SORA community. Before continuing to use Polkaswap, please review the %%Polkaswap FAQ%%  and documentation, which includes a detailed explanation on how Polkaswap works, as well as the %%Polkaswap Memorandum and Terms of Services%%, and %%Privacy Policy%%.\n\nThese documents are crucial to a secure and positive user experience. By using Polkaswap, you acknowledge that you have read and understand these documents.</string>
+    <string name="polkaswap_info_text_2">You also acknowledge the following:</string>
+    <string name="polkaswap_info_text_3">Your sole responsibility for compliance with all laws that may apply to your particular use of Polkaswap in your legal jurisdiction;</string>
+    <string name="polkaswap_info_text_4">Your understanding that the current version of Polkaswap is an alpha version: it has not been fully tested, and some functions may not perform as designed;</string>
+    <string name="polkaswap_info_text_5">Your understanding and voluntary acceptance of the risks involved in using Polkaswap, including, but not limited to, the risk of losing tokens.</string>
+    <string name="polkaswap_info_text_6">Once more, please do not continue without reading the %%Polkaswap FAQ%%, %%Polkaswap Memorandum and Terms of Services%%, and %%Privacy Policy%%!</string>
+    <string name="polkaswap_info_switch_text">I confirm that I have read all of the documents mentioned and pressing "continue" I accept them.</string>
+
 </resources>

@@ -941,4 +941,15 @@
     <string name="polkaswap_confirmation_swapped_stub">Swapped</string>
     <string name="polkaswap_not_enough_result_to_pay_fee_title">Ошибка комиссии за свап</string>
     <string name="polkaswap_not_enough_result_to_pay_fee_message">Требуемая комиссия не может быть покрыта вашими доступными токенами, а сумма транзакции недостаточна, чтобы покрыть комиссию. Пожалуйста, добавьте больше токенов или измените сумму транзакции, чтобы продолжить.</string>
+    <string name="common_disclaimer">Дисклеймер</string>
+    <string name="polkaswap_disclaimer_message">Пожалйста прочитайте перед использованием polkaswap</string>
+    <string name="common_read">Читать</string>
+
+    <string name="polkaswap_info_text_1">Polkaswap разрабатывается сообществом SORA. Перед тем, как стать контрибьютером Polkaswap, ознакомьтесь с %%Polkaswap FAQ%% и документацией, которая описывает то, как работает Polkaswap, %%Polkaswap Меморандумом и Условиями и положениями%%, и %%Политикой конфиденциальности%%.\n\nЭти документы важны для безопасной и комфортной работы пользователей. Используя Polkaswap вы соглашаетесь, что вы прочли и поняли суть документов.</string>
+    <string name="polkaswap_info_text_2">Вы также осознаете:</string>
+    <string name="polkaswap_info_text_3">Вашу личную ответственность за соблюдение законов, которые могут применяться к использованию Polkaswap в вашей юрисдикции;</string>
+    <string name="polkaswap_info_text_4">Что текущая версия Polkaswap является альфа-версией: она не была полностью протестирована, и некоторые функции могут работать не так, как задумано;</string>
+    <string name="polkaswap_info_text_5">Понимание и добровольное принятие рисков, связанных с использованием Polkaswap, включая, но не ограничиваясь, риском потери токенов.</string>
+    <string name="polkaswap_info_text_6">Не продолжайте, пока не ознакомитесь с %%Polkaswap FAQ%%, %%Polkaswap Меморандумом и Условиями и положениями%%, и %%Политикой конфиденциальности%%!</string>
+    <string name="polkaswap_info_switch_text">Я подтверждаю, что ознакомился со всеми упомянутыми документами и, нажимая «продолжить», принимаю их.</string>
 </resources>

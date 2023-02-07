@@ -668,6 +668,11 @@
         android:label="swapTokensFragment" />
 
     <dialog
+        android:id="@+id/polkaswapDisclaimerFragment"
+        android:name="jp.co.soramitsu.polkaswap.impl.presentation.disclaimer.PolkaswapDisclaimerFragment"
+        android:label="polkaswapDisclaimerFragment" />
+
+    <dialog
         android:id="@+id/transactionSettingsFragment"
         android:name="jp.co.soramitsu.polkaswap.impl.presentation.transaction_settings.TransactionSettingsFragment"
         android:label="transactionSettingsFragment" />

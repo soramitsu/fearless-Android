@@ -7,6 +7,7 @@ import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.accountId
 import jp.co.soramitsu.common.data.network.runtime.model.QuoteResponse
+import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.polkaswap.api.data.PolkaswapRepository
@@ -39,12 +40,22 @@ class PolkaswapInteractorImpl @Inject constructor(
     private val chainRegistry: ChainRegistry,
     private val walletRepository: WalletRepository,
     private val accountRepository: AccountRepository,
-    private val polkaswapRepository: PolkaswapRepository
+    private val polkaswapRepository: PolkaswapRepository,
+    private val sharedPreferences: Preferences
 ) : PolkaswapInteractor {
 
     override var polkaswapChainId = soraMainChainId
     override val availableMarkets: MutableMap<Int, List<Market>> = mutableMapOf(0 to listOf(Market.SMART))
     override val bestDexIdFlow: MutableStateFlow<LoadingState<Int>> = MutableStateFlow(LoadingState.Loaded(0))
+    override var hasReadDisclaimer: Boolean
+        get() = sharedPreferences.getBoolean(PolkaswapInteractor.HAS_READ_DISCLAIMER_KEY, false)
+        set(value) {
+            sharedPreferences.putBoolean(PolkaswapInteractor.HAS_READ_DISCLAIMER_KEY, value)
+        }
+
+    override fun observeHasReadDisclaimer(): Flow<Boolean> {
+        return sharedPreferences.booleanFlow(PolkaswapInteractor.HAS_READ_DISCLAIMER_KEY, false)
+    }
 
     override fun setChainId(chainId: ChainId?) {
         chainId?.takeIf { it in listOf(soraMainChainId, soraTestChainId) }?.let { polkaswapChainId = chainId }

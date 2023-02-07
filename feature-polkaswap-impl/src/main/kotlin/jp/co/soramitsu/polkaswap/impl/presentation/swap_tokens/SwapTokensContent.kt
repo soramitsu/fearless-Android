@@ -42,6 +42,8 @@ import jp.co.soramitsu.common.compose.component.FullScreenLoading
 import jp.co.soramitsu.common.compose.component.Grip
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.component.NavigationIconButton
+import jp.co.soramitsu.common.compose.component.Notification
+import jp.co.soramitsu.common.compose.component.NotificationState
 import jp.co.soramitsu.common.compose.component.QuickAmountInput
 import jp.co.soramitsu.common.compose.component.QuickInput
 import jp.co.soramitsu.common.compose.theme.black05
@@ -49,6 +51,7 @@ import jp.co.soramitsu.common.compose.theme.colorAccentDark
 import jp.co.soramitsu.common.compose.theme.customColors
 import jp.co.soramitsu.common.compose.theme.customTypography
 import jp.co.soramitsu.common.compose.theme.grayButtonBackground
+import jp.co.soramitsu.common.compose.theme.warningOrange
 import jp.co.soramitsu.common.compose.theme.white08
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.presentation.dataOrNull
@@ -63,7 +66,8 @@ data class SwapTokensContentViewState(
     val selectedMarket: Market,
     val swapDetailsViewState: SwapDetailsViewState?,
     val isLoading: Boolean,
-    val networkFeeViewState: LoadingState<out SwapDetailsViewState.NetworkFee?>
+    val networkFeeViewState: LoadingState<out SwapDetailsViewState.NetworkFee?>,
+    val hasReadDisclaimer: Boolean
 ) {
     companion object {
 
@@ -74,7 +78,8 @@ data class SwapTokensContentViewState(
                 selectedMarket = Market.SMART,
                 swapDetailsViewState = null,
                 isLoading = false,
-                networkFeeViewState = LoadingState.Loaded(null)
+                networkFeeViewState = LoadingState.Loaded(null),
+                hasReadDisclaimer = false
             )
         }
     }
@@ -109,6 +114,8 @@ interface SwapTokensCallbacks {
     fun networkFeeTooltipClick()
 
     fun onQuickAmountInput(value: Double)
+
+    fun onDisclaimerClick()
 }
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -219,7 +226,21 @@ fun SwapTokensContent(
                         )
                     }
                 }
-
+                if (state.hasReadDisclaimer.not()) {
+                    Box(modifier = modifier.padding(horizontal = 16.dp)) {
+                        Notification(
+                            state = NotificationState(
+                                iconRes = R.drawable.ic_warning_filled,
+                                titleRes = R.string.common_disclaimer,
+                                value = stringResource(id = R.string.polkaswap_disclaimer_message),
+                                buttonTextRes = R.string.common_read,
+                                color = warningOrange
+                            ),
+                            onAction = callbacks::onDisclaimerClick
+                        )
+                    }
+                    MarginVertical(margin = 16.dp)
+                }
                 AccentButton(
                     modifier = Modifier
                         .fillMaxWidth()
