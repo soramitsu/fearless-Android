@@ -8,6 +8,7 @@ import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.TitleValueViewState
+import jp.co.soramitsu.common.compose.theme.greenText
 import jp.co.soramitsu.common.data.network.BlockExplorerUrlBuilder
 import jp.co.soramitsu.common.mixin.api.Browserable
 import jp.co.soramitsu.common.resources.ClipboardManager
@@ -75,6 +76,11 @@ class SuccessViewModel @Inject constructor(
             title = resourceManager.getString(R.string.hash),
             value = operationHash?.shorten(),
             clickState = TitleValueViewState.ClickState(R.drawable.ic_copy_filled_24, SuccessViewState.CODE_HASH_CLICK)
+        ),
+        TitleValueViewState(
+            title = resourceManager.getString(R.string.all_done_alert_result_stub),
+            value = resourceManager.getString(R.string.all_done_alert_success_stub),
+            valueColor = greenText
         )
     )
 
