@@ -1036,5 +1036,4 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="all_done_alert_success_stub">Success</string>
     <string name="polkaswap_confirmation_swap_stub">Swap</string>
     <string name="polkaswap_confirmation_swapped_stub">Swapped</string>
-
 </resources>

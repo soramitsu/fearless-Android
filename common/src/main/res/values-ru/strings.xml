@@ -938,7 +938,5 @@
     <string name="polkaswap_network_fee_info">Плата за сеть используется для обеспечения роста и стабильной работы системы SORA.</string>
     <string name="all_done_alert_result_stub">Результат</string>
     <string name="all_done_alert_success_stub">Успешно</string>
-
-
     <string name="polkaswap_confirmation_swapped_stub">Swapped</string>
 </resources>

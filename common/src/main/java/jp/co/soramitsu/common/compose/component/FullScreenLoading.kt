@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -26,15 +27,19 @@ import jp.co.soramitsu.common.compose.theme.transparent
 import jp.co.soramitsu.common.compose.theme.white08
 
 @Composable
-fun FullScreenLoading(isLoading: Boolean, BlurredContent: @Composable () -> Unit) {
+fun FullScreenLoading(
+    isLoading: Boolean,
+    contentAlignment: Alignment = Alignment.TopStart,
+    BlurredContent: @Composable () -> Unit
+) {
     val blurModifier = if (isLoading) Modifier.blur(10.dp) else Modifier
     Box(
-        modifier = Modifier
-            .fillMaxSize()
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = contentAlignment
     ) {
         Box(
             modifier = Modifier
-                .fillMaxSize()
+                .fillMaxWidth()
                 .then(blurModifier)
         ) {
             BlurredContent()
