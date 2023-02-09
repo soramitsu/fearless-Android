@@ -1,11 +1,14 @@
 package jp.co.soramitsu.runtime.multiNetwork.chain.model
 
+import android.os.Parcelable
 import jp.co.soramitsu.common.data.network.BlockExplorerUrlBuilder
 import jp.co.soramitsu.common.domain.AppVersion
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.DictEnum
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.Struct
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainAssetType
+import kotlinx.parcelize.IgnoredOnParcel
+import kotlinx.parcelize.Parcelize
 
 typealias ChainId = String
 
@@ -50,6 +53,7 @@ data class Chain(
         val overridesCommon: Boolean
     )
 
+    @Parcelize
     data class Asset(
         val id: String,
         val symbol: String,
@@ -68,14 +72,16 @@ data class Chain(
         val type: ChainAssetType?,
         val currencyId: String?,
         val existentialDeposit: String?
-    ) {
+    ) : Parcelable {
 
         enum class StakingType {
             UNSUPPORTED, RELAYCHAIN, PARACHAIN
         }
 
+        @IgnoredOnParcel
         val symbolToShow = displayName ?: symbol
 
+        @IgnoredOnParcel
         val chainToSymbol = chainId to symbol
 
         val orderInStaking: Int
@@ -84,9 +90,13 @@ data class Chain(
                 else -> order
             }
 
+        @IgnoredOnParcel
         private val isSoraUtilityAsset = isUtility && chainId in SORA_WITH_XOR_TRANSFER_PALLET_ASSET
+
+        @IgnoredOnParcel
         val typeExtra = if (isSoraUtilityAsset) ChainAssetType.SoraUtilityAsset else type
 
+        @IgnoredOnParcel
         @Suppress("IMPLICIT_CAST_TO_ANY")
         val currency = when (typeExtra) {
             null, ChainAssetType.Normal -> null
@@ -224,6 +234,8 @@ fun ChainId.defaultChainSort() = when (this) {
     kusamaChainId -> 2
     else -> 3
 }
+
+fun ChainId.isSora() = this in listOf(soraMainChainId, soraTestChainId)
 
 enum class TypesUsage {
     ON_CHAIN, UNSUPPORTED

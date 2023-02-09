@@ -59,6 +59,7 @@ dependencies {
     implementation project(':core-db')
     implementation project(':common')
     implementation project(':feature-wallet-api')
+    implementation project(':feature-polkaswap-api')
     implementation project(':feature-account-api')
     implementation project(':feature-account-impl')
     implementation project(':runtime')
@@ -100,6 +101,7 @@ dependencies {
     implementation retrofitDep
 
     implementation wsDep
+    implementation xNetworkingDep
 
     implementation zXingCoreDep
     implementation zXingEmbeddedDep

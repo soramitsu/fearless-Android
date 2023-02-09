@@ -1,10 +1,12 @@
 package jp.co.soramitsu.wallet.impl.di
 
 import android.content.ContentResolver
+import android.content.Context
 import com.google.gson.Gson
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Named
 import javax.inject.Singleton
@@ -73,6 +75,8 @@ import jp.co.soramitsu.wallet.impl.presentation.balance.assetActions.buy.BuyMixi
 import jp.co.soramitsu.wallet.impl.presentation.balance.assetActions.buy.BuyMixinProvider
 import jp.co.soramitsu.wallet.impl.presentation.send.SendSharedState
 import jp.co.soramitsu.wallet.impl.presentation.transaction.filter.HistoryFiltersProvider
+import jp.co.soramitsu.xnetworking.networkclient.SoramitsuNetworkClient
+import jp.co.soramitsu.xnetworking.txhistory.client.sorawallet.SubQueryClientForSoraWalletFactory
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -145,7 +149,9 @@ class WalletFeatureModule {
         availableFiatCurrencies: GetAvailableFiatCurrencies,
         updatesMixin: UpdatesMixin,
         remoteConfigFetcher: RemoteConfigFetcher,
-        currentAccountAddressUseCase: CurrentAccountAddressUseCase
+        currentAccountAddressUseCase: CurrentAccountAddressUseCase,
+        soramitsuNetworkClient: SoramitsuNetworkClient,
+        soraSubqueryFactory: SubQueryClientForSoraWalletFactory
     ): WalletRepository = WalletRepositoryImpl(
         substrateSource,
         operationsDao,
@@ -161,7 +167,9 @@ class WalletFeatureModule {
         availableFiatCurrencies,
         updatesMixin,
         remoteConfigFetcher,
-        currentAccountAddressUseCase
+        currentAccountAddressUseCase,
+        soramitsuNetworkClient,
+        soraSubqueryFactory
     )
 
     @Provides
@@ -319,4 +327,15 @@ class WalletFeatureModule {
     fun provideAddressBookRepository(
         addressBookDao: AddressBookDao
     ): AddressBookRepository = AddressBookRepositoryImpl(addressBookDao)
+
+    @Singleton
+    @Provides
+    fun provideSoramitsuNetworkClient(): SoramitsuNetworkClient =
+        SoramitsuNetworkClient(logging = BuildConfig.DEBUG)
+
+    @Singleton
+    @Provides
+    fun provideSubQueryClientForSoraWalletFactory(
+        @ApplicationContext context: Context
+    ): SubQueryClientForSoraWalletFactory = SubQueryClientForSoraWalletFactory(context)
 }

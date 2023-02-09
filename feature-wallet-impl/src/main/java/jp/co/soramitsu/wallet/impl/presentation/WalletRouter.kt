@@ -56,6 +56,8 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
 
     fun openTransferDetail(transaction: OperationParcelizeModel.Transfer, assetPayload: AssetPayload)
 
+    fun openSwapDetail(operation: OperationParcelizeModel.Swap)
+
     fun openExtrinsicDetail(payload: ExtrinsicDetailsPayload)
 
     fun openRewardDetail(payload: RewardDetailsPayload)

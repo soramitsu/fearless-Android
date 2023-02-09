@@ -18,7 +18,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.Divider
-import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -51,7 +50,6 @@ import jp.co.soramitsu.common.compose.component.ShimmerRectangle
 import jp.co.soramitsu.common.compose.component.getImageRequest
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.theme.black3
-import jp.co.soramitsu.common.compose.theme.customColors
 import jp.co.soramitsu.common.compose.theme.gray2
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.utils.formatDateTime
@@ -408,15 +406,10 @@ private fun TransactionItem(
         Spacer(modifier = Modifier.weight(1f))
         Column(horizontalAlignment = Alignment.End) {
             Row {
-                val balanceChangeStatusColor = if (item.amount.startsWith("+")) {
-                    MaterialTheme.customColors.greenText
-                } else {
-                    MaterialTheme.customColors.white
-                }
-
                 B1(
                     text = item.amount,
-                    color = balanceChangeStatusColor,
+                    color = item.amountColor,
+                    overflow = TextOverflow.Ellipsis,
                     maxLines = 1
                 )
                 Spacer(modifier = Modifier.width(5.dp))
