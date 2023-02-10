@@ -158,6 +158,7 @@ from the right network</string>
     <string name="wallet_balance_details_existential_deposit">Minimal balance</string>
     <string name="wallet_send_existential_warning_message">Your transfer will remove account from blockstore since it will make total balance lower than minimal balance.</string>
     <string name="common_warning">Warning</string>
+    <string name="common_important">Important</string>
     <string name="common_unknown">Unknown</string>
     <string name="connection_delete_confirm">Delete</string>
     <string name="network_status_connecting">Connecting…</string>
@@ -1048,7 +1049,7 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="polkaswap_info_text_4">Your understanding that the current version of Polkaswap is an alpha version: it has not been fully tested, and some functions may not perform as designed;</string>
     <string name="polkaswap_info_text_5">Your understanding and voluntary acceptance of the risks involved in using Polkaswap, including, but not limited to, the risk of losing tokens.</string>
     <string name="polkaswap_info_text_6">Once more, please do not continue without reading the %%Polkaswap FAQ%%, %%Polkaswap Memorandum and Terms of Services%%, and %%Privacy Policy%%!</string>
-    <string name="polkaswap_info_switch_text">I confirm that I have read all of the documents mentioned and pressing "continue" I accept them.</string>
+    <string name="polkaswap_info_switch_text">I confirm that I have read all of the documents mentioned and pressing \"Continue\" I accept them.</string>
 
     <string name="polkaswap_disclaimer_settings_item" translatable="false">Polkaswap disclaimer</string>
 

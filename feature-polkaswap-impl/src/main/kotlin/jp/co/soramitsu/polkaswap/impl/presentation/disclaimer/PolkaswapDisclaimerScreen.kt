@@ -50,6 +50,7 @@ import jp.co.soramitsu.common.compose.theme.transparent
 import jp.co.soramitsu.common.compose.theme.warningOrange
 import jp.co.soramitsu.common.compose.theme.white
 import jp.co.soramitsu.common.compose.theme.white50
+import jp.co.soramitsu.common.compose.theme.white64
 import jp.co.soramitsu.feature_polkaswap_impl.R
 
 data class PolkaswapDisclaimerViewState(
@@ -57,7 +58,8 @@ data class PolkaswapDisclaimerViewState(
     val userResponsibilityTitle: String,
     val userResponsibilities: List<String>,
     val disclaimerReminder: TextWithHighlights,
-    val hasReadChecked: Boolean
+    val hasReadChecked: Boolean,
+    val switchEnabled: Boolean
 )
 
 interface DisclaimerScreenInterface {
@@ -115,17 +117,24 @@ fun PolkaswapDisclaimerScreen(state: PolkaswapDisclaimerViewState, callbacks: Di
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 val switchText = buildAnnotatedString {
                     withStyle(SpanStyle(color = warningOrange)) {
-                        append(stringResource(id = R.string.common_warning).uppercase() + ": ")
+                        append(stringResource(id = R.string.common_important).uppercase() + ": ")
                     }
                     append(stringResource(id = R.string.polkaswap_info_switch_text))
                 }
                 H5(text = switchText, overflow = TextOverflow.Ellipsis, color = black2, modifier = Modifier.weight(1f))
                 MarginHorizontal(margin = 8.dp)
-                val trackColor = if (state.hasReadChecked) colorAccent else black3
+                val trackColor = when {
+                    state.switchEnabled &&
+                        state.hasReadChecked -> colorAccent
+                    !state.switchEnabled &&
+                        state.hasReadChecked -> colorAccentDark
+                    else -> black3
+                }
                 Switch(
                     colors = switchColors,
                     checked = state.hasReadChecked,
                     onCheckedChange = { callbacks.onHasReadChecked() },
+                    enabled = state.switchEnabled,
                     modifier = Modifier
                         .background(color = trackColor, shape = RoundedCornerShape(20.dp))
                         .padding(3.dp)
@@ -152,7 +161,12 @@ fun PolkaswapDisclaimerScreen(state: PolkaswapDisclaimerViewState, callbacks: Di
 val switchColors = object : SwitchColors {
     @Composable
     override fun thumbColor(enabled: Boolean, checked: Boolean): State<Color> {
-        return rememberUpdatedState(white)
+        val color = if (enabled) {
+            white
+        } else {
+            white64
+        }
+        return rememberUpdatedState(color)
     }
 
     @Composable
@@ -237,7 +251,8 @@ private fun PolkaswapDisclaimerScreenPreview() {
         userResponsibilityTitle,
         userResponsibilityItems,
         disclaimerReminder,
-        false
+        false,
+        true
     )
     FearlessTheme {
         PolkaswapDisclaimerScreen(
