@@ -50,9 +50,18 @@ class PolkaswapDisclaimerViewModel @Inject constructor(
         highlightTextParams
     )
 
+    private val switchEnabled = !polkaswapInteractor.hasReadDisclaimer
+
     private val hasRead = MutableStateFlow(polkaswapInteractor.hasReadDisclaimer)
 
-    private val initialState = PolkaswapDisclaimerViewState(polkaswapMaintained, userResponsibilityTitle, userResponsibilities, disclaimerReminder, false)
+    private val initialState = PolkaswapDisclaimerViewState(
+        polkaswapMaintained,
+        userResponsibilityTitle,
+        userResponsibilities,
+        disclaimerReminder,
+        polkaswapInteractor.hasReadDisclaimer,
+        switchEnabled
+    )
 
     val state = hasRead.map {
         initialState.copy(hasReadChecked = it)

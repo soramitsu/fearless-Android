@@ -154,6 +154,7 @@
     <string name="wallet_balance_details_existential_deposit">Минимальный баланс</string>
     <string name="wallet_send_existential_warning_message">Ваш перевод удалит аккаунт, так как общий баланс станет ниже минимального.</string>
     <string name="common_warning">Предупреждение</string>
+    <string name="common_important">Важно</string>
     <string name="common_unknown">Неизвестно</string>
     <string name="connection_delete_confirm">Удалить</string>
     <string name="network_status_connecting">Подключение…</string>
@@ -951,5 +952,5 @@
     <string name="polkaswap_info_text_4">Что текущая версия Polkaswap является альфа-версией: она не была полностью протестирована, и некоторые функции могут работать не так, как задумано;</string>
     <string name="polkaswap_info_text_5">Понимание и добровольное принятие рисков, связанных с использованием Polkaswap, включая, но не ограничиваясь, риском потери токенов.</string>
     <string name="polkaswap_info_text_6">Не продолжайте, пока не ознакомитесь с %%Polkaswap FAQ%%, %%Polkaswap Меморандумом и Условиями и положениями%%, и %%Политикой конфиденциальности%%!</string>
-    <string name="polkaswap_info_switch_text">Я подтверждаю, что ознакомился со всеми упомянутыми документами и, нажимая «продолжить», принимаю их.</string>
+    <string name="polkaswap_info_switch_text">Я подтверждаю, что ознакомился со всеми упомянутыми документами и, нажимая «Продолжить», принимаю их.</string>
 </resources>
