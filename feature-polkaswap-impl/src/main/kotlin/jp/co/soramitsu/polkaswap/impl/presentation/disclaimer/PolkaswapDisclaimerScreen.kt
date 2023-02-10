@@ -63,6 +63,7 @@ data class PolkaswapDisclaimerViewState(
 interface DisclaimerScreenInterface {
     fun onLinkClick(url: String)
     fun onContinueClick()
+    fun onBackClick()
     fun onHasReadChecked()
 }
 
@@ -81,7 +82,7 @@ fun PolkaswapDisclaimerScreen(state: PolkaswapDisclaimerViewState, callbacks: Di
                 title = stringResource(
                     id = R.string.common_disclaimer
                 ),
-                onNavigationClick = {}
+                onNavigationClick = callbacks::onBackClick
             )
             MarginVertical(margin = 8.dp)
             TextWithLinks(state.polkaswapMaintained, onLinkClick = callbacks::onLinkClick)
@@ -245,6 +246,7 @@ private fun PolkaswapDisclaimerScreenPreview() {
                 override fun onLinkClick(url: String) = Unit
                 override fun onContinueClick() = Unit
                 override fun onHasReadChecked() = Unit
+                override fun onBackClick() = Unit
             }
         )
     }

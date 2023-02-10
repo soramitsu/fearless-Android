@@ -618,6 +618,6 @@ class SwapTokensViewModel @Inject constructor(
     }
 
     override fun onDisclaimerClick() {
-        polkaswapRouter.openDisclaimer()
+        polkaswapRouter.openPolkaswapDisclaimer()
     }
 }

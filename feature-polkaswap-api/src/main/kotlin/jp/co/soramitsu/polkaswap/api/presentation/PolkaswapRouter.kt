@@ -30,7 +30,7 @@ interface PolkaswapRouter {
 
     fun openOperationSuccess(operationHash: String?, chainId: ChainId)
 
-    fun openDisclaimer()
+    fun openPolkaswapDisclaimer()
 
     fun openWebViewer(title: String, url: String)
 }

@@ -74,4 +74,8 @@ class PolkaswapDisclaimerViewModel @Inject constructor(
     override fun onHasReadChecked() {
         hasRead.value = hasRead.value.not()
     }
+
+    override fun onBackClick() {
+        polkaswapRouter.back()
+    }
 }

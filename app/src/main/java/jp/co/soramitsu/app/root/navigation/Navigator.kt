@@ -650,7 +650,7 @@ class Navigator :
         openOperationSuccess(operationHash, chainId, null)
     }
 
-    override fun openDisclaimer() {
+    override fun openPolkaswapDisclaimer() {
         navController?.navigate(R.id.polkaswapDisclaimerFragment)
     }
 

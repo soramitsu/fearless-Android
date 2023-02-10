@@ -1050,4 +1050,6 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="polkaswap_info_text_6">Once more, please do not continue without reading the %%Polkaswap FAQ%%, %%Polkaswap Memorandum and Terms of Services%%, and %%Privacy Policy%%!</string>
     <string name="polkaswap_info_switch_text">I confirm that I have read all of the documents mentioned and pressing "continue" I accept them.</string>
 
+    <string name="polkaswap_disclaimer_settings_item" translatable="false">Polkaswap disclaimer</string>
+
 </resources>
