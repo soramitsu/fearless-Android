@@ -48,6 +48,7 @@ class ProfileFragment : BaseFragment<ProfileViewModel>() {
             changePinCodeTv.setOnClickListener { viewModel.changePinCodeClicked() }
             profileCurrency.setOnClickListener { viewModel.currencyClicked() }
             profileExperimentalFeatures.setOnClickListener { viewModel.onExperimentalClicked() }
+            polkaswapDisclaimerTv.setOnClickListener { viewModel.polkaswapDisclaimerClicked() }
 
             viewModel.hasMissingAccountsFlow.observe {
                 missingAccountsIcon.isVisible = it

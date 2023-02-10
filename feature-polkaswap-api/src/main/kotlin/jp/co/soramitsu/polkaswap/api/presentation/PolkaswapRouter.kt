@@ -29,4 +29,8 @@ interface PolkaswapRouter {
     fun openSelectMarketDialog()
 
     fun openOperationSuccess(operationHash: String?, chainId: ChainId)
+
+    fun openPolkaswapDisclaimer()
+
+    fun openWebViewer(title: String, url: String)
 }

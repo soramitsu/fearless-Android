@@ -23,7 +23,7 @@ import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.orZero
-import jp.co.soramitsu.common.validation.ExistentialDepositCrossedException
+import jp.co.soramitsu.common.validation.NotEnoughResultedAmountToPayFeeException
 import jp.co.soramitsu.common.validation.SpendInsufficientBalanceException
 import jp.co.soramitsu.common.validation.UnableToPayFeeException
 import jp.co.soramitsu.common.validation.WaitForFeeCalculationException
@@ -40,7 +40,6 @@ import jp.co.soramitsu.polkaswap.api.presentation.models.SwapDetailsViewState
 import jp.co.soramitsu.polkaswap.api.presentation.models.TransactionSettingsModel
 import jp.co.soramitsu.polkaswap.api.presentation.models.detailsToViewState
 import jp.co.soramitsu.polkaswap.impl.presentation.transaction_settings.TransactionSettingsFragment
-import jp.co.soramitsu.wallet.api.domain.ExistentialDepositUseCase
 import jp.co.soramitsu.wallet.api.presentation.WalletRouter
 import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
@@ -69,7 +68,6 @@ class SwapTokensViewModel @Inject constructor(
     private val resourceManager: ResourceManager,
     private val polkaswapInteractor: PolkaswapInteractor,
     private val polkaswapRouter: PolkaswapRouter,
-    private val existentialDepositUseCase: ExistentialDepositUseCase,
     savedStateHandle: SavedStateHandle
 ) : BaseViewModel(), SwapTokensCallbacks {
 
@@ -219,15 +217,17 @@ class SwapTokensViewModel @Inject constructor(
         selectedMarket,
         swapDetailsViewState,
         networkFeeViewStateFlow,
-        isLoading
-    ) { fromAmountInput, toAmountInput, selectedMarket, swapDetails, networkFeeState, isLoading ->
+        isLoading,
+        polkaswapInteractor.observeHasReadDisclaimer()
+    ) { fromAmountInput, toAmountInput, selectedMarket, swapDetails, networkFeeState, isLoading, hasReadDisclaimer ->
         SwapTokensContentViewState(
             fromAmountInputViewState = fromAmountInput,
             toAmountInputViewState = toAmountInput,
             selectedMarket = selectedMarket,
             swapDetailsViewState = swapDetails,
             networkFeeViewState = networkFeeState,
-            isLoading = isLoading
+            isLoading = isLoading,
+            hasReadDisclaimer = hasReadDisclaimer
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, SwapTokensContentViewState.default(resourceManager))
 
@@ -446,28 +446,26 @@ class SwapTokensViewModel @Inject constructor(
 
     private suspend fun validate(swapDetails: SwapDetails): Throwable? {
         val feeAsset = requireNotNull(polkaswapInteractor.getFeeAsset())
-        val ed = existentialDepositUseCase(feeAsset.token.configuration).let { feeAsset.token.configuration.amountFromPlanks(it) }
         val amountToSwap = enteredFromAmountFlow.value.toBigDecimal()
+        val toTokenAmount = enteredToAmountFlow.value.toBigDecimal()
         val available = requireNotNull(fromAsset.value?.transferable)
         val networkFee = requireNotNull(networkFeeFlow.value.dataOrNull())
         val fee = networkFee + swapDetails.liquidityProviderFee
+        val isFromFeeAsset = fromAsset.value?.token?.configuration?.id == feeAsset.token.configuration.id
+        val isToFeeAsset = toAsset.value?.token?.configuration?.id == feeAsset.token.configuration.id
 
         return when {
             amountToSwap >= available -> {
                 SpendInsufficientBalanceException(resourceManager)
             }
-            fromAsset.value?.token?.configuration?.id == feeAsset.token.configuration.id && available <= amountToSwap + fee -> {
-                SpendInsufficientBalanceException(resourceManager)
-            }
-            feeAsset.transferable <= fee -> {
+            isToFeeAsset.not() && feeAsset.transferable <= fee -> {
                 UnableToPayFeeException(resourceManager)
             }
-            fromAsset.value?.token?.configuration?.id == feeAsset.token.configuration.id && (available - amountToSwap - fee) <= ed -> {
-                ExistentialDepositCrossedException(resourceManager)
+            isToFeeAsset && feeAsset.transferable <= fee && (toTokenAmount - fee) <= feeAsset.transferable -> {
+                NotEnoughResultedAmountToPayFeeException(resourceManager)
             }
-
-            (feeAsset.transferable - fee) <= ed -> {
-                ExistentialDepositCrossedException(resourceManager)
+            isFromFeeAsset && available <= amountToSwap + fee -> {
+                SpendInsufficientBalanceException(resourceManager)
             }
             else -> null
         }
@@ -617,5 +615,9 @@ class SwapTokensViewModel @Inject constructor(
                 }
             }
         }
+    }
+
+    override fun onDisclaimerClick() {
+        polkaswapRouter.openPolkaswapDisclaimer()
     }
 }

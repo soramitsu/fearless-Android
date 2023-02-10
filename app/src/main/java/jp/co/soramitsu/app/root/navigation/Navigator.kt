@@ -650,6 +650,10 @@ class Navigator :
         openOperationSuccess(operationHash, chainId, null)
     }
 
+    override fun openPolkaswapDisclaimer() {
+        navController?.navigate(R.id.polkaswapDisclaimerFragment)
+    }
+
     override fun openOperationSuccess(operationHash: String?, chainId: ChainId, customMessage: String?) {
         val bundle = SuccessFragment.getBundle(operationHash, chainId, customMessage)
 

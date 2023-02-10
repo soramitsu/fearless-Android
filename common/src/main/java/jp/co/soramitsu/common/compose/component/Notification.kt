@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -31,7 +32,14 @@ data class NotificationState(
 fun Notification(state: NotificationState, onAction: () -> Unit) {
     BackgroundCornered {
         Row(Modifier.padding(8.dp)) {
-            Image(res = state.iconRes, modifier = Modifier.align(Alignment.Top), tint = state.color)
+            MarginHorizontal(margin = 8.dp)
+            Image(
+                res = state.iconRes,
+                modifier = Modifier
+                    .size(20.dp)
+                    .align(Alignment.CenterVertically),
+                tint = state.color
+            )
             MarginHorizontal(margin = 8.dp)
             Column(Modifier.weight(1f)) {
                 H6(text = stringResource(id = state.titleRes), color = state.color)
