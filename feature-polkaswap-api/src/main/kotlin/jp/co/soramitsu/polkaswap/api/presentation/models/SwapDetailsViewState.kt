@@ -1,6 +1,8 @@
 package jp.co.soramitsu.polkaswap.api.presentation.models
 
 import android.os.Parcelable
+import java.math.BigDecimal
+import jp.co.soramitsu.common.compose.component.GradientIconState
 import jp.co.soramitsu.common.data.network.runtime.model.QuoteResponse
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.format
@@ -13,7 +15,6 @@ import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import kotlinx.parcelize.Parcelize
-import java.math.BigDecimal
 
 @Parcelize
 data class SwapDetailsViewState(
@@ -21,8 +22,8 @@ data class SwapDetailsViewState(
     val toTokenId: String,
     val fromTokenName: String,
     val toTokenName: String,
-    val fromTokenImage: String?,
-    val toTokenImage: String?,
+    val fromTokenImage: GradientIconState?,
+    val toTokenImage: GradientIconState?,
     val fromTokenAmount: String,
     val toTokenAmount: String,
     val toTokenMinReceived: String,
@@ -90,8 +91,8 @@ fun detailsToViewState(
         toTokenId = tokenToId,
         fromTokenName = fromAsset.token.configuration.symbolToShow.uppercase(),
         toTokenName = toAsset.token.configuration.symbolToShow.uppercase(),
-        fromTokenImage = fromAsset.token.configuration.iconUrl,
-        toTokenImage = toAsset.token.configuration.iconUrl,
+        fromTokenImage = GradientIconState.Remote(fromAsset.token.configuration.iconUrl, fromAsset.token.configuration.color),
+        toTokenImage = GradientIconState.Remote(toAsset.token.configuration.iconUrl, toAsset.token.configuration.color),
         fromTokenAmount = fromAmount,
         toTokenAmount = toAmount,
         minmaxTitle = minMaxTitle.orEmpty(),

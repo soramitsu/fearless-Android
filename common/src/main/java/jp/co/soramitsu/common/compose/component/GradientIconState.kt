@@ -1,5 +1,6 @@
 package jp.co.soramitsu.common.compose.component
 
+import android.os.Parcelable
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -22,6 +23,16 @@ import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.theme.colorAccentDark
 import jp.co.soramitsu.common.compose.theme.transparent
+import kotlinx.parcelize.Parcelize
+
+@Parcelize
+sealed class GradientIconState : Parcelable {
+    @Parcelize
+    class Remote(val url: String, val color: String?) : GradientIconState()
+
+    @Parcelize
+    class Local(@DrawableRes val res: Int) : GradientIconState()
+}
 
 @Composable
 fun GradientIcon(
@@ -83,26 +94,31 @@ fun GradientIcon(
 
 @Composable
 fun GradientIcon(
-    icon: ConfirmScreenViewState.Icon,
+    icon: GradientIconState,
     color: Color,
     modifier: Modifier = Modifier,
-    background: Color = transparent
+    background: Color = transparent,
+    contentPadding: PaddingValues = PaddingValues(0.dp)
 ) {
     when (icon) {
-        is ConfirmScreenViewState.Icon.Remote -> {
+        is GradientIconState.Remote -> {
+            val iconColor = Color(android.graphics.Color.parseColor("#" + icon.color))
             GradientIcon(
                 icon = icon.url,
-                color = color,
+                color = iconColor,
                 modifier = modifier,
-                background = background
+                background = background,
+                tintImage = false,
+                contentPadding = contentPadding
             )
         }
-        is ConfirmScreenViewState.Icon.Local -> {
+        is GradientIconState.Local -> {
             GradientIcon(
                 iconRes = icon.res,
                 color = color,
                 modifier = modifier,
-                background = background
+                background = background,
+                contentPadding = contentPadding
             )
         }
     }

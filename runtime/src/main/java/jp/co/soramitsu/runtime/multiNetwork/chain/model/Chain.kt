@@ -71,7 +71,8 @@ data class Chain(
         val isUtility: Boolean,
         val type: ChainAssetType?,
         val currencyId: String?,
-        val existentialDeposit: String?
+        val existentialDeposit: String?,
+        val color: String?
     ) : Parcelable {
 
         enum class StakingType {

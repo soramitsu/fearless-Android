@@ -20,6 +20,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.compose.component.AccentButton
 import jp.co.soramitsu.common.compose.component.FullScreenLoading
+import jp.co.soramitsu.common.compose.component.GradientIconState
 import jp.co.soramitsu.common.compose.component.Grip
 import jp.co.soramitsu.common.compose.component.InfoTable
 import jp.co.soramitsu.common.compose.component.MarginVertical
@@ -161,8 +162,8 @@ fun SwapPreviewContentPreview() {
                 toTokenId = "1002",
                 fromTokenName = "VAL",
                 toTokenName = "XSTUSD",
-                fromTokenImage = "",
-                toTokenImage = "",
+                fromTokenImage = GradientIconState.Remote("", ""),
+                toTokenImage = GradientIconState.Remote("", ""),
                 toTokenMinReceived = "1",
                 toFiatMinReceived = "\$0.98",
                 fromTokenAmount = "1",

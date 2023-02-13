@@ -3,6 +3,12 @@ package jp.co.soramitsu.coredb.migrations
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
+val Migration_47_48 = object : Migration(47, 48) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+        database.execSQL("ALTER TABLE chain_assets ADD COLUMN `color` TEXT DEFAULT NULL")
+    }
+}
+
 val Migration_46_47 = object : Migration(45, 46) {
     override fun migrate(database: SupportSQLiteDatabase) {
         database.execSQL("ALTER TABLE operations RENAME TO _operations")
