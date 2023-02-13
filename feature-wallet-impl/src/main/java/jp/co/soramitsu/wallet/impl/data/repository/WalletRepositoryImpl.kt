@@ -1,5 +1,6 @@
 package jp.co.soramitsu.wallet.impl.data.repository
 
+import android.os.Build
 import com.opencsv.CSVReaderHeaderAware
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.accountId
@@ -33,7 +34,6 @@ import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain.ExternalApi.Section.Type
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.isSora
 import jp.co.soramitsu.runtime.multiNetwork.getRuntime
 import jp.co.soramitsu.wallet.api.data.cache.AssetCache
 import jp.co.soramitsu.wallet.impl.data.mappers.mapAssetLocalToAsset
@@ -42,10 +42,12 @@ import jp.co.soramitsu.wallet.impl.data.mappers.mapOperationLocalToOperation
 import jp.co.soramitsu.wallet.impl.data.mappers.mapOperationToOperationLocalDb
 import jp.co.soramitsu.wallet.impl.data.mappers.toOperation
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.SubstrateRemoteSource
+import jp.co.soramitsu.wallet.impl.data.network.model.request.GiantsquidHistoryRequest
 import jp.co.soramitsu.wallet.impl.data.network.model.request.SubqueryHistoryRequest
+import jp.co.soramitsu.wallet.impl.data.network.model.request.SubsquidHistoryRequest
 import jp.co.soramitsu.wallet.impl.data.network.phishing.PhishingApi
 import jp.co.soramitsu.wallet.impl.data.network.subquery.HistoryNotSupportedException
-import jp.co.soramitsu.wallet.impl.data.network.subquery.SubQueryOperationsApi
+import jp.co.soramitsu.wallet.impl.data.network.subquery.OperationsHistoryApi
 import jp.co.soramitsu.wallet.impl.data.storage.TransferCursorStorage
 import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
 import jp.co.soramitsu.wallet.impl.domain.interfaces.TransactionFilter
@@ -75,11 +77,14 @@ import kotlinx.coroutines.withContext
 import java.lang.Integer.min
 import java.math.BigDecimal
 import java.math.BigInteger
+import java.text.SimpleDateFormat
+import java.time.Instant
+import java.util.Locale
 
 class WalletRepositoryImpl(
     private val substrateSource: SubstrateRemoteSource,
     private val operationDao: OperationDao,
-    private val walletOperationsApi: SubQueryOperationsApi,
+    private val walletOperationsApi: OperationsHistoryApi,
     private val httpExceptionHandler: HttpExceptionHandler,
     private val phishingApi: PhishingApi,
     private val assetCache: AssetCache,
@@ -95,6 +100,8 @@ class WalletRepositoryImpl(
     private val soramitsuNetworkClient: SoramitsuNetworkClient,
     private val soraSubqueryFactory: SubQueryClientForSoraWalletFactory
 ) : WalletRepository, UpdatesProviderUi by updatesMixin {
+
+    private val giantsquidDateFormat by lazy { SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSSSSX", Locale.getDefault()) }
 
     override fun assetsFlow(meta: MetaAccount): Flow<List<AssetWithStatus>> {
         return combine(
@@ -273,71 +280,298 @@ class WalletRepositoryImpl(
     ): CursorPage<Operation> {
         return withContext(Dispatchers.Default) {
             val historyUrl = chain.externalApi?.history?.url
-            if (historyUrl == null || chain.externalApi?.history?.type != Type.SUBQUERY) {
+            val historyType = chain.externalApi?.history?.type
+
+            if (historyUrl == null || historyType?.isHistory() != true) {
                 throw HistoryNotSupportedException()
             }
-            val requestRewards = chainAsset.staking != Chain.Asset.StakingType.UNSUPPORTED
 
             val accountAddress = chain.addressOf(accountId)
-            if (chain.id.isSora()) {
-                val subQueryClientForSora = soraSubqueryFactory.create(soramitsuNetworkClient, historyUrl, pageSize)
-
-                val soraHistory: TxHistoryResult<TxHistoryItem> = subQueryClientForSora.getTransactionHistoryPaged(
-                    accountAddress,
-                    chain.name,
-                    1
-                )
-
-                val soraHistoryItems: List<TxHistoryItem> = soraHistory.items
-                val soraOperations = soraHistoryItems.mapNotNull { it.toOperation(chain, chainAsset, accountAddress) }
-                return@withContext CursorPage(null, soraOperations)
-            }
-
-            val response = walletOperationsApi.getOperationsHistory(
-                url = historyUrl,
-                SubqueryHistoryRequest(
-                    accountAddress = accountAddress,
-                    pageSize,
-                    cursor,
-                    filters,
-                    requestRewards
-                )
-            ).data.query
-
-            val encodedCurrencyId = if (!chainAsset.isUtility) {
-                val runtime = chainRegistry.getRuntime(chain.id)
-                val currencyIdKey = runtime.typeRegistry.types.keys.find { it.contains("CurrencyId") }
-                val currencyIdType = runtime.typeRegistry.types[currencyIdKey]
-
-                useScaleWriter {
-                    val currency = chainAsset.currency as? DictEnum.Entry<*> ?: return@useScaleWriter
-                    val alias = (currencyIdType?.value as Alias)
-                    val currencyIdEnum = alias.aliasedReference.requireValue() as DictEnum
-                    currencyIdEnum.encode(this, runtime, currency)
-                }.toHexString(true)
-            } else {
-                null
-            }
-
-            val pageInfo = response.historyElements.pageInfo
-            val filteredOperations = if (chainAsset.isUtility) {
-                response.historyElements.nodes.filter {
-                    it.transfer?.assetId == null &&
-                        it.extrinsic?.assetId == null &&
-                        it.reward?.assetId == null
+            when (historyType) {
+                Type.SORA -> {
+                    val soraStartPage = 1L
+                    val page = cursor?.toLongOrNull() ?: soraStartPage
+                    val soraOperations = getSoraOperationsHistory(historyUrl, pageSize, page, chain, chainAsset, accountAddress, filters)
+                    return@withContext CursorPage(page.inc().toString(), soraOperations)
                 }
-            } else {
-                response.historyElements.nodes.filter {
-                    it.transfer?.assetId == encodedCurrencyId ||
-                        it.extrinsic?.assetId == encodedCurrencyId ||
-                        it.reward?.assetId == encodedCurrencyId
+                Type.SUBQUERY -> {
+                    return@withContext getSubqueryHistoryOperations(historyUrl, pageSize, accountAddress, chain, chainAsset, filters, cursor)
+                }
+                Type.SUBSQUID -> {
+                    val page = cursor?.toIntOrNull() ?: 0
+                    val operations = getSubsquidHistoryOperations(historyUrl, accountAddress, pageSize, page, chainAsset, filters)
+                    return@withContext CursorPage(page.inc().toString(), operations)
+                }
+                Type.GIANTSQUID -> {
+                    val page = 0
+                    val operations = getGiantsquidHistoryOperations(historyUrl, accountAddress, pageSize, page, chainAsset, filters)
+                    return@withContext CursorPage(null, operations)
+                }
+                else -> {
+                    return@withContext CursorPage(null, emptyList<Operation>())
                 }
             }
-
-            val operations = filteredOperations.map { mapNodeToOperation(it, chainAsset) }
-
-            CursorPage(pageInfo.endCursor, operations)
         }
+    }
+
+    private fun TransactionFilter.isAppliedOrNull(filters: Collection<TransactionFilter>) = when {
+        this in filters -> true
+        else -> null
+    }
+
+    private suspend fun getSubsquidHistoryOperations(
+        historyUrl: String,
+        accountAddress: String,
+        pageSize: Int,
+        page: Int,
+        chainAsset: Chain.Asset,
+        filters: Set<TransactionFilter>
+    ): List<Operation> {
+        val response = walletOperationsApi.getSubsquidOperationsHistory(
+            url = historyUrl,
+            SubsquidHistoryRequest(
+                accountAddress = accountAddress,
+                pageSize,
+                pageSize * page
+            )
+        )
+
+        val operations = response.data.historyElements.map {
+            val transfer = TransactionFilter.TRANSFER.isAppliedOrNull(filters)?.let { transferApplied ->
+                it.transfer?.let { transfer ->
+                    Operation(
+                        id = it.id,
+                        address = it.address,
+                        time = it.timestamp.toLong(),
+                        chainAsset = chainAsset,
+                        type = Operation.Type.Transfer(
+                            hash = transfer.extrinsicHash,
+                            myAddress = accountAddress,
+                            amount = transfer.amount.toBigIntegerOrNull().orZero(),
+                            receiver = transfer.to,
+                            sender = transfer.from,
+                            status = Operation.Status.fromSuccess(transfer.success),
+                            fee = transfer.fee?.toBigIntegerOrNull()
+                        )
+                    )
+                }
+            }
+            val reward = TransactionFilter.REWARD.isAppliedOrNull(filters)?.let { rewardApplied ->
+                it.reward?.let { reward ->
+                    Operation(
+                        id = it.id,
+                        address = it.address,
+                        time = it.timestamp.toLong(),
+                        chainAsset = chainAsset,
+                        type = Operation.Type.Reward(
+                            amount = reward.amount.toBigIntegerOrNull().orZero(),
+                            isReward = reward.isReward,
+                            era = reward.era ?: 0,
+                            validator = reward.validator
+                        )
+                    )
+                }
+            }
+            val extrinsic = TransactionFilter.EXTRINSIC.isAppliedOrNull(filters)?.let { extrinsicApplied ->
+                it.extrinsic?.let { extrinsic ->
+                    Operation(
+                        id = it.id,
+                        address = it.address,
+                        time = it.timestamp.toLong(),
+                        chainAsset = chainAsset,
+                        type = Operation.Type.Extrinsic(
+                            hash = extrinsic.hash,
+                            module = extrinsic.module,
+                            call = extrinsic.call,
+                            fee = extrinsic.fee.toBigIntegerOrNull().orZero(),
+                            status = Operation.Status.fromSuccess(extrinsic.success)
+                        )
+                    )
+                }
+            }
+            listOfNotNull(transfer, reward, extrinsic)
+        }.flatten()
+        return operations
+    }
+
+    private suspend fun getGiantsquidHistoryOperations(
+        historyUrl: String,
+        accountAddress: String,
+        pageSize: Int,
+        page: Int,
+        chainAsset: Chain.Asset,
+        filters: Set<TransactionFilter>
+    ): List<Operation> {
+        val response = walletOperationsApi.getGiantsquidOperationsHistory(
+            url = historyUrl,
+            GiantsquidHistoryRequest(
+                accountAddress = accountAddress,
+                pageSize,
+                pageSize * page
+            )
+        )
+
+        val transfers = filters.firstOrNull { it == TransactionFilter.TRANSFER }?.let {
+            response.data.transfers?.map { transfer ->
+                Operation(
+                    id = transfer.id,
+                    address = accountAddress,
+                    time = parseTimeToMillis(transfer.transfer.timestamp),
+                    chainAsset = chainAsset,
+                    type = Operation.Type.Transfer(
+                        hash = transfer.transfer.extrinsicHash,
+                        myAddress = accountAddress,
+                        amount = transfer.transfer.amount.toBigIntegerOrNull().orZero(),
+                        receiver = transfer.transfer.to?.id.orEmpty(),
+                        sender = transfer.transfer.from?.id.orEmpty(),
+                        status = Operation.Status.fromSuccess(transfer.transfer.success == true),
+                        fee = BigInteger.ZERO
+                    )
+                )
+            }
+        }.orEmpty()
+
+        val rewards = filters.firstOrNull { it == TransactionFilter.REWARD }?.let {
+            response.data.rewards?.map { reward ->
+                Operation(
+                    id = reward.id,
+                    address = accountAddress,
+                    time = parseTimeToMillis(reward.timestamp),
+                    chainAsset = chainAsset,
+                    type = Operation.Type.Reward(
+                        amount = reward.amount.toBigIntegerOrNull().orZero(),
+                        isReward = true,
+                        era = reward.era.orZero().toInt(),
+                        validator = reward.validator
+                    )
+                )
+            }
+        }.orEmpty()
+
+        if (TransactionFilter.EXTRINSIC in filters) {
+            // todo complete history parse
+            response.data.slashes?.map { slash ->
+                Operation(
+                    id = slash.id,
+                    address = accountAddress,
+                    time = parseTimeToMillis(slash.timestamp),
+                    chainAsset = chainAsset,
+                    type = Operation.Type.Extrinsic(
+                        hash = "",
+                        module = "slash",
+                        call = "",
+                        fee = BigInteger.ZERO,
+                        status = Operation.Status.COMPLETED
+                    )
+                )
+            }
+            response.data.bonds?.map { bond ->
+                Operation(
+                    id = bond.id,
+                    address = accountAddress,
+                    time = parseTimeToMillis(bond.timestamp),
+                    chainAsset = chainAsset,
+                    type = Operation.Type.Extrinsic(
+                        hash = bond.extrinsicHash.orEmpty(),
+                        module = "bond",
+                        call = bond.amount,
+                        fee = BigInteger.ZERO,
+                        status = Operation.Status.fromSuccess(bond.success == true)
+                    )
+                )
+            }
+        }
+
+        return transfers + rewards
+    }
+
+    private fun parseTimeToMillis(timestamp: String): Long {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            Instant.parse(timestamp).toEpochMilli()
+        } else {
+            try {
+                giantsquidDateFormat.parse(timestamp)?.time ?: 0
+            } catch (e: Exception) {
+                0
+            }
+        }
+    }
+
+    private suspend fun getSubqueryHistoryOperations(
+        historyUrl: String,
+        pageSize: Int,
+        accountAddress: String,
+        chain: Chain,
+        chainAsset: Chain.Asset,
+        filters: Set<TransactionFilter>,
+        cursor: String?
+    ): CursorPage<Operation> {
+        val requestRewards = chainAsset.staking != Chain.Asset.StakingType.UNSUPPORTED
+        val response = walletOperationsApi.getOperationsHistory(
+            url = historyUrl,
+            SubqueryHistoryRequest(
+                accountAddress = accountAddress,
+                pageSize,
+                cursor,
+                filters,
+                requestRewards
+            )
+        ).data.query
+
+        val encodedCurrencyId = if (!chainAsset.isUtility) {
+            val runtime = chainRegistry.getRuntime(chain.id)
+            val currencyIdKey = runtime.typeRegistry.types.keys.find { it.contains("CurrencyId") }
+            val currencyIdType = runtime.typeRegistry.types[currencyIdKey]
+
+            useScaleWriter {
+                val currency = chainAsset.currency as? DictEnum.Entry<*> ?: return@useScaleWriter
+                val alias = (currencyIdType?.value as Alias)
+                val currencyIdEnum = alias.aliasedReference.requireValue() as DictEnum
+                currencyIdEnum.encode(this, runtime, currency)
+            }.toHexString(true)
+        } else {
+            null
+        }
+
+        val pageInfo = response.historyElements.pageInfo
+        val filteredOperations = if (chainAsset.isUtility) {
+            response.historyElements.nodes.filter {
+                it.transfer?.assetId == null &&
+                    it.extrinsic?.assetId == null &&
+                    it.reward?.assetId == null
+            }
+        } else {
+            response.historyElements.nodes.filter {
+                it.transfer?.assetId == encodedCurrencyId ||
+                    it.extrinsic?.assetId == encodedCurrencyId ||
+                    it.reward?.assetId == encodedCurrencyId
+            }
+        }
+
+        val operations = filteredOperations.map { mapNodeToOperation(it, chainAsset) }
+
+        return CursorPage(pageInfo.endCursor, operations)
+    }
+
+    private suspend fun getSoraOperationsHistory(
+        historyUrl: String,
+        pageSize: Int,
+        page: Long,
+        chain: Chain,
+        chainAsset: Chain.Asset,
+        accountAddress: String,
+        filters: Set<TransactionFilter>
+    ): List<Operation> {
+        val subQueryClientForSora = soraSubqueryFactory.create(soramitsuNetworkClient, historyUrl, pageSize)
+
+        val soraHistory: TxHistoryResult<TxHistoryItem> = subQueryClientForSora.getTransactionHistoryPaged(
+            accountAddress,
+            chain.name,
+            page
+        )
+
+        val soraHistoryItems: List<TxHistoryItem> = soraHistory.items
+        return soraHistoryItems.mapNotNull { it.toOperation(chain, chainAsset, accountAddress, filters) }
     }
 
     override fun operationsFirstPageFlow(

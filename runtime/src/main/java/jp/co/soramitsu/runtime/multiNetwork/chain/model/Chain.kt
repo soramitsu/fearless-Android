@@ -152,7 +152,9 @@ data class Chain(
     ) {
         data class Section(val type: Type, val url: String) {
             enum class Type {
-                SUBQUERY, GITHUB, UNKNOWN
+                SUBQUERY, SORA, SUBSQUID, GIANTSQUID, GITHUB, UNKNOWN;
+
+                fun isHistory() = this in listOf(SUBQUERY, SORA, SUBSQUID, GIANTSQUID)
             }
         }
     }
@@ -234,8 +236,6 @@ fun ChainId.defaultChainSort() = when (this) {
     kusamaChainId -> 2
     else -> 3
 }
-
-fun ChainId.isSora() = this in listOf(soraMainChainId, soraTestChainId)
 
 enum class TypesUsage {
     ON_CHAIN, UNSUPPORTED

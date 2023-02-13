@@ -19,6 +19,8 @@ private const val NOMINATION_POOL_OPTION = "poolStaking"
 
 private fun mapSectionTypeRemoteToSectionType(section: String) = when (section) {
     "subquery" -> Chain.ExternalApi.Section.Type.SUBQUERY
+    "subsquid" -> Chain.ExternalApi.Section.Type.SUBSQUID
+    "giantsquid" -> Chain.ExternalApi.Section.Type.GIANTSQUID
     "github" -> Chain.ExternalApi.Section.Type.GITHUB
     else -> Chain.ExternalApi.Section.Type.UNKNOWN
 }
