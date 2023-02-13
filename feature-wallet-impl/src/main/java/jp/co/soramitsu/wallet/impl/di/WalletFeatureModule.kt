@@ -50,7 +50,7 @@ import jp.co.soramitsu.wallet.impl.data.network.blockchain.WssSubstrateSource
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.updaters.BalancesUpdateSystem
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.updaters.PaymentUpdaterFactory
 import jp.co.soramitsu.wallet.impl.data.network.phishing.PhishingApi
-import jp.co.soramitsu.wallet.impl.data.network.subquery.SubQueryOperationsApi
+import jp.co.soramitsu.wallet.impl.data.network.subquery.OperationsHistoryApi
 import jp.co.soramitsu.wallet.impl.data.repository.AddressBookRepositoryImpl
 import jp.co.soramitsu.wallet.impl.data.repository.RuntimeWalletConstants
 import jp.co.soramitsu.wallet.impl.data.repository.TokenRepositoryImpl
@@ -83,8 +83,8 @@ import jp.co.soramitsu.xnetworking.txhistory.client.sorawallet.SubQueryClientFor
 class WalletFeatureModule {
 
     @Provides
-    fun provideSubQueryApi(networkApiCreator: NetworkApiCreator): SubQueryOperationsApi {
-        return networkApiCreator.create(SubQueryOperationsApi::class.java)
+    fun provideHistoryApi(networkApiCreator: NetworkApiCreator): OperationsHistoryApi {
+        return networkApiCreator.create(OperationsHistoryApi::class.java)
     }
 
     @Provides
@@ -137,7 +137,7 @@ class WalletFeatureModule {
     fun provideWalletRepository(
         substrateSource: SubstrateRemoteSource,
         operationsDao: OperationDao,
-        subQueryOperationsApi: SubQueryOperationsApi,
+        operationsHistoryApi: OperationsHistoryApi,
         httpExceptionHandler: HttpExceptionHandler,
         phishingApi: PhishingApi,
         phishingDao: PhishingDao,
@@ -155,7 +155,7 @@ class WalletFeatureModule {
     ): WalletRepository = WalletRepositoryImpl(
         substrateSource,
         operationsDao,
-        subQueryOperationsApi,
+        operationsHistoryApi,
         httpExceptionHandler,
         phishingApi,
         assetCache,

@@ -1,12 +1,12 @@
 package jp.co.soramitsu.wallet.impl.data.network.model.request
 
 import android.annotation.SuppressLint
-import jp.co.soramitsu.wallet.impl.domain.interfaces.TransactionFilter
-import jp.co.soramitsu.wallet.impl.domain.interfaces.allFiltersIncluded
 import jp.co.soramitsu.wallet.impl.data.network.model.request.SubqueryExpressions.and
 import jp.co.soramitsu.wallet.impl.data.network.model.request.SubqueryExpressions.anyOf
 import jp.co.soramitsu.wallet.impl.data.network.model.request.SubqueryExpressions.not
 import jp.co.soramitsu.wallet.impl.data.network.model.request.SubqueryExpressions.or
+import jp.co.soramitsu.wallet.impl.domain.interfaces.TransactionFilter
+import jp.co.soramitsu.wallet.impl.domain.interfaces.allFiltersIncluded
 
 private class ModuleRestriction(
     val moduleName: String,

@@ -16,6 +16,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.wallet.api.presentation.formatters.tokenAmountFromPlanks
 import jp.co.soramitsu.wallet.impl.data.network.model.response.SubqueryHistoryElementResponse
+import jp.co.soramitsu.wallet.impl.domain.interfaces.TransactionFilter
 import jp.co.soramitsu.wallet.impl.domain.model.Operation
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
@@ -170,10 +171,13 @@ fun mapOperationLocalToOperation(
     }
 }
 
-fun TxHistoryItem.toOperation(chain: Chain, chainAsset: Chain.Asset, accountAddress: String): Operation? {
+fun TxHistoryItem.toOperation(chain: Chain, chainAsset: Chain.Asset, accountAddress: String, filters: Set<TransactionFilter>): Operation? {
     val timeInMillis = timestamp.toLongOrNull()?.secondsToMillis() ?: 0
-    return when (method) {
-        "transfer" -> Operation(
+    val isTransferAllowed = filters.contains(TransactionFilter.TRANSFER) && method == "transfer"
+    val isSwapAllowed = filters.contains(TransactionFilter.EXTRINSIC) && method == "swap"
+
+    return when {
+        isTransferAllowed -> Operation(
             id = id,
             address = accountAddress,
             time = timeInMillis,
@@ -188,7 +192,7 @@ fun TxHistoryItem.toOperation(chain: Chain, chainAsset: Chain.Asset, accountAddr
                 fee = chainAsset.planksFromAmount(networkFee.toBigDecimal().orZero())
             )
         )
-        "swap" -> {
+        isSwapAllowed -> {
             val baseCurrencyId = data?.firstOrNull { it.paramName == "baseAssetId" }?.paramValue
             val baseAsset = chain.assets.firstOrNull { it.currencyId == baseCurrencyId } ?: return null
             val baseAssetAmount = data?.firstOrNull { it.paramName == "baseAssetAmount" }?.paramValue?.toBigDecimal().orZero()
