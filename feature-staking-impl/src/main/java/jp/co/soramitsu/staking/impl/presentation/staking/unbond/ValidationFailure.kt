@@ -39,6 +39,9 @@ fun unbondValidationFailure(
 }
 
 fun unbondPayloadAutoFix(payload: UnbondValidationPayload, reason: UnbondValidationFailure) = when (reason) {
-    is UnbondValidationFailure.BondedWillCrossExistential -> payload.copy(amount = reason.willBeUnbonded, shouldChillBeforeUnbond = true)
+    is UnbondValidationFailure.BondedWillCrossExistential -> payload.copy(
+        amount = reason.willBeUnbonded,
+        shouldChillBeforeUnbond = payload.collatorAddress == null
+    )
     else -> payload
 }
