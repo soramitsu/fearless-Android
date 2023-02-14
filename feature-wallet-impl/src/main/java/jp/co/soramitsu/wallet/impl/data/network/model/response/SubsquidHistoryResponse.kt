@@ -1,9 +1,14 @@
 package jp.co.soramitsu.wallet.impl.data.network.model.response
 
+import java.math.BigInteger
+
 class SubsquidHistoryResponse(val historyElements: Array<HistoryElement>) {
     class HistoryElement(
         val id: String,
-        val timestamp: String,
+        val blockNumber: Int,
+        val extrinsicIdx: String?,
+        val extrinsicHash: String?,
+        val timestamp: Long,
         val address: String,
         val reward: SubsquidRewardOrSlash?,
         val extrinsic: SubsquidExtrinsic?,
@@ -11,13 +16,12 @@ class SubsquidHistoryResponse(val historyElements: Array<HistoryElement>) {
     ) {
 
         class SubsquidRewardOrSlash(
+            val eventIdx: String,
             val amount: String,
             val isReward: Boolean,
             val era: Int?,
-            val validator: String?,
             val stash: String?,
-            val eventIdx: String?,
-            val assetId: String?
+            val validator: String?
         )
 
         class SubsquidExtrinsic(
@@ -25,20 +29,16 @@ class SubsquidHistoryResponse(val historyElements: Array<HistoryElement>) {
             val module: String,
             val call: String,
             val fee: String,
-            val success: Boolean,
-            val assetId: String?
+            val success: Boolean
         )
 
         class SubsquidTransfer(
             val amount: String,
             val to: String,
             val from: String,
-            val fee: String?,
-            val block: String?,
-            val extrinsicId: String?,
-            val extrinsicHash: String?,
-            val success: Boolean,
-            val assetId: String?
+            val fee: BigInteger?,
+            val eventIdx: String,
+            val success: Boolean
         )
     }
 }

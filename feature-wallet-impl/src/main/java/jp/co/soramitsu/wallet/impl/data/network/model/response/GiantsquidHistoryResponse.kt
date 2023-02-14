@@ -13,31 +13,30 @@ class GiantsquidHistoryResponse(
         val transfer: GiantsquidTransfer
     )
 
-    class GiantsquidDestination(
+    class GiantsquidAccount(
         val id: String
     )
 
     class GiantsquidTransfer(
         val id: String,
-        val amount: String,
-        val to: GiantsquidDestination?,
-        val from: GiantsquidDestination?,
-        val success: Boolean?,
-        val extrinsicHash: String?,
+        val blockNumber: BigInteger,
         val timestamp: String,
-        val blockNumber: BigInteger?,
-        val type: String?
+        val extrinsicHash: String?,
+        val from: GiantsquidAccount?,
+        val to: GiantsquidAccount?,
+        val amount: String,
+        val success: Boolean
     )
 
     class GiantsquidReward(
+        val id: String,
+        val timestamp: String,
+        val blockNumber: Int,
+        val extrinsicHash: String?,
         val amount: String,
         val era: BigInteger?,
-        val accountId: String?,
-        val validator: String?,
-        val timestamp: String,
-        val extrinsicHash: String?,
-        val blockNumber: BigInteger?,
-        val id: String
+        val validatorId: String?,
+        val account: GiantsquidAccount?
     )
 
     class GiantsquidBond(
