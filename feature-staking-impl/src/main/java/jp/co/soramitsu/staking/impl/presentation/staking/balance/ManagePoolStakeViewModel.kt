@@ -116,7 +116,13 @@ class ManagePoolStakeViewModel @Inject constructor(
         val hasRewardsForClaim = pool.pendingRewards > BigInteger.ZERO
         val claimable = asset.token.amountFromPlanks(pool.pendingRewards).formatTokenAmount(asset.token.configuration)
         val claimNotification = if (hasRewardsForClaim) {
-            NotificationState(R.drawable.ic_status_warning_16, R.string.pool_claim_reward, claimable, R.string.common_claim, colorAccent)
+            NotificationState(
+                R.drawable.ic_status_warning_16,
+                resourceManager.getString(R.string.pool_claim_reward),
+                claimable,
+                resourceManager.getString(R.string.common_claim),
+                colorAccent
+            )
         } else {
             null
         }
@@ -124,9 +130,9 @@ class ManagePoolStakeViewModel @Inject constructor(
             val redeemableFormatted = asset.token.amountFromPlanks(redeemable).formatTokenAmount(asset.token.configuration)
             NotificationState(
                 R.drawable.ic_status_warning_16,
-                R.string.pool_redeem,
+                resourceManager.getString(R.string.pool_redeem),
                 redeemableFormatted,
-                R.string.staking_redeem,
+                resourceManager.getString(R.string.staking_redeem),
                 colorAccent
             )
         }
@@ -135,9 +141,9 @@ class ManagePoolStakeViewModel @Inject constructor(
         val noValidatorsNotification = if (selectValidatorsNotification) {
             NotificationState(
                 R.drawable.ic_status_warning_16,
-                R.string.pool_select_validators_notification_title,
+                resourceManager.getString(R.string.pool_select_validators_notification_title),
                 resourceManager.getString(R.string.pool_select_validators_notification_message),
-                R.string.common_select,
+                resourceManager.getString(R.string.common_select),
                 colorAccent
             )
         } else {

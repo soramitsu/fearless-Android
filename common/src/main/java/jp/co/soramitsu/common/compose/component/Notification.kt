@@ -1,7 +1,6 @@
 package jp.co.soramitsu.common.compose.component
 
 import androidx.annotation.DrawableRes
-import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.height
@@ -22,9 +21,9 @@ import jp.co.soramitsu.common.compose.theme.white50
 
 data class NotificationState(
     @DrawableRes val iconRes: Int,
-    @StringRes val titleRes: Int,
+    val title: String,
     val value: String,
-    @StringRes val buttonTextRes: Int,
+    val buttonText: String,
     val color: Color
 )
 
@@ -42,11 +41,11 @@ fun Notification(state: NotificationState, onAction: () -> Unit) {
             )
             MarginHorizontal(margin = 8.dp)
             Column(Modifier.weight(1f)) {
-                H6(text = stringResource(id = state.titleRes), color = state.color)
+                H6(text = state.title, color = state.color)
                 B1(text = state.value, color = white50)
             }
             TextButtonSmall(
-                text = stringResource(id = state.buttonTextRes),
+                text = state.buttonText,
                 colors = customButtonColors(state.color),
                 onClick = onAction,
                 modifier = Modifier
@@ -63,9 +62,9 @@ fun Notification(state: NotificationState, onAction: () -> Unit) {
 private fun Preview() {
     val state = NotificationState(
         R.drawable.ic_status_warning_16,
-        R.string.staking_reward_details_status_claimable,
+        stringResource(R.string.staking_reward_details_status_claimable),
         "0.49191 KSM",
-        R.string.staking_unbond_v1_9_0,
+        stringResource(R.string.staking_unbond_v1_9_0),
         colorAccent
     )
     FearlessTheme {

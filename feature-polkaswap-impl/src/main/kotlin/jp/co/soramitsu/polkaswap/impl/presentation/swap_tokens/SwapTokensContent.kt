@@ -231,9 +231,9 @@ fun SwapTokensContent(
                         Notification(
                             state = NotificationState(
                                 iconRes = R.drawable.ic_warning_filled,
-                                titleRes = R.string.common_disclaimer,
+                                title = stringResource(R.string.common_disclaimer).uppercase(),
                                 value = stringResource(id = R.string.polkaswap_disclaimer_message),
-                                buttonTextRes = R.string.common_read,
+                                buttonText = stringResource(R.string.common_read),
                                 color = warningOrange
                             ),
                             onAction = callbacks::onDisclaimerClick

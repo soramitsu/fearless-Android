@@ -16,6 +16,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.compose.component.AccentButton
+import jp.co.soramitsu.common.compose.component.GradientIconState
 import jp.co.soramitsu.common.compose.component.Grip
 import jp.co.soramitsu.common.compose.component.InfoTable
 import jp.co.soramitsu.common.compose.component.MarginVertical
@@ -27,8 +28,8 @@ import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.polkaswap.api.models.Market
 
 data class SwapDetailState(
-    val fromTokenImage: String,
-    val toTokenImage: String,
+    val fromTokenImage: GradientIconState,
+    val toTokenImage: GradientIconState,
     val fromTokenAmount: String,
     val toTokenAmount: String,
     val fromTokenName: String,
@@ -81,10 +82,10 @@ fun SwapPreviewContent(
                 MarginVertical(margin = 16.dp)
 
                 SwapHeader(
-                    fromTokenAmount = state.fromTokenAmount,
-                    toTokenAmount = state.toTokenAmount,
                     fromTokenImage = state.fromTokenImage,
-                    toTokenImage = state.toTokenImage
+                    toTokenImage = state.toTokenImage,
+                    fromTokenAmount = state.fromTokenAmount,
+                    toTokenAmount = state.toTokenAmount
                 )
 
                 val infoItems = listOf(
@@ -146,8 +147,8 @@ fun SwapDetailContentPreview() {
         state = SwapDetailState(
             fromTokenName = "VAL",
             toTokenName = "XSTUSD",
-            fromTokenImage = "",
-            toTokenImage = "",
+            fromTokenImage = GradientIconState.Remote("", ""),
+            toTokenImage = GradientIconState.Remote("", ""),
             fromTokenAmount = "1",
             toTokenAmount = "2",
             liquidityProviderFee = "0.0007",

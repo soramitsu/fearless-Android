@@ -3,40 +3,20 @@ package jp.co.soramitsu.coredb.migrations
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
-val Migration_46_47 = object : Migration(45, 46) {
+val Migration_47_48 = object : Migration(47, 48) {
     override fun migrate(database: SupportSQLiteDatabase) {
-        database.execSQL("ALTER TABLE operations RENAME TO _operations")
-        database.execSQL(
-            """
-                CREATE TABLE IF NOT EXISTS `operations` (
-                `id` TEXT NOT NULL, 
-                `address` TEXT NOT NULL, 
-                `chainId` TEXT NOT NULL, 
-                `chainAssetId` TEXT NOT NULL, 
-                `time` INTEGER NOT NULL, 
-                `status` INTEGER NOT NULL, 
-                `source` INTEGER NOT NULL, 
-                `operationType` INTEGER NOT NULL, 
-                `module` TEXT, 
-                `call` TEXT, 
-                `amount` TEXT, 
-                `sender` TEXT, 
-                `receiver` TEXT, 
-                `hash` TEXT, 
-                `fee` TEXT, 
-                `isReward` INTEGER, 
-                `era` INTEGER, 
-                `validator` TEXT, 
-                `liquidityFee` TEXT, 
-                `market` TEXT, 
-                `targetAssetId` TEXT, 
-                `targetAmount` TEXT, 
-                PRIMARY KEY(`id`, `address`, `chainId`, `chainAssetId`)
-                )
-            """.trimIndent()
-        )
-        database.execSQL("INSERT INTO operations SELECT * FROM _operations")
-        database.execSQL("DROP TABLE _operations")
+        database.execSQL("ALTER TABLE chain_assets ADD COLUMN `color` TEXT DEFAULT NULL")
+    }
+}
+
+val Migration_46_47 = object : Migration(46, 47) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+        database.execSQL("ALTER TABLE operations ADD COLUMN `liquidityFee` TEXT DEFAULT NULL")
+        database.execSQL("ALTER TABLE operations ADD COLUMN `market` TEXT DEFAULT NULL")
+        database.execSQL("ALTER TABLE operations ADD COLUMN `targetAssetId` TEXT DEFAULT NULL")
+        database.execSQL("ALTER TABLE operations ADD COLUMN `targetAmount` TEXT DEFAULT NULL")
+
+        database.execSQL("DELETE FROM operations")
     }
 }
 

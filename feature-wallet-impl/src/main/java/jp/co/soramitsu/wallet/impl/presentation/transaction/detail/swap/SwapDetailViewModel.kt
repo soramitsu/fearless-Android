@@ -19,6 +19,7 @@ import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.presentation.model.OperationParcelizeModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import javax.inject.Inject
+import jp.co.soramitsu.common.compose.component.GradientIconState
 
 @HiltViewModel
 class SwapDetailViewModel @Inject constructor(
@@ -32,8 +33,8 @@ class SwapDetailViewModel @Inject constructor(
 
     val state = MutableStateFlow(
         SwapDetailState(
-            fromTokenImage = swap.chainAsset.iconUrl,
-            toTokenImage = swap.targetAsset?.iconUrl.orEmpty(),
+            fromTokenImage = GradientIconState.Remote(swap.chainAsset.iconUrl, swap.chainAsset.color),
+            toTokenImage = GradientIconState.Remote(swap.targetAsset?.iconUrl.orEmpty(), swap.targetAsset?.color.orEmpty()),
             fromTokenAmount = swap.baseAssetAmount.tokenAmountFromPlanks(swap.chainAsset).format(),
             toTokenAmount = swap.targetAsset?.let { swap.targetAssetAmount?.tokenAmountFromPlanks(it) }?.format().orEmpty(),
             fromTokenName = swap.chainAsset.symbolToShow.uppercase(),

@@ -8,6 +8,7 @@ import jp.co.soramitsu.common.AlertViewState
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.base.errors.ValidationException
 import jp.co.soramitsu.common.compose.component.ConfirmScreenViewState
+import jp.co.soramitsu.common.compose.component.GradientIconState
 import jp.co.soramitsu.common.compose.component.TitleValueViewState
 import jp.co.soramitsu.common.compose.component.ToolbarViewState
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -112,9 +113,9 @@ abstract class BaseConfirmViewModel(
     val viewState by lazy {
         combine(tableItemsFlow, isLoadingStateFlow) { tableItems, isLoading ->
             val icon = if (customIcon != null) {
-                ConfirmScreenViewState.Icon.Local(customIcon)
+                GradientIconState.Local(customIcon)
             } else {
-                ConfirmScreenViewState.Icon.Remote(asset.token.configuration.iconUrl)
+                GradientIconState.Remote(asset.token.configuration.iconUrl, asset.token.configuration.color)
             }
 
             ConfirmScreenViewState(
@@ -191,7 +192,7 @@ abstract class BaseConfirmViewModel(
                 amountViewState,
                 defaultFeeState
             ),
-            ConfirmScreenViewState.Icon.Remote(asset.token.configuration.iconUrl),
+            GradientIconState.Remote(asset.token.configuration.iconUrl, asset.token.configuration.color),
             titleRes,
             additionalMessageRes,
             isLoading = false

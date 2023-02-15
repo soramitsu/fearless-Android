@@ -116,7 +116,8 @@ private fun ChainRemote.toChain(assetsById: Map<String?, AssetRemote>): Chain {
                 isUtility = chainAsset.isUtility ?: false,
                 type = ChainAssetType.from(chainAsset.type),
                 currencyId = assetRemote?.currencyId,
-                existentialDeposit = assetRemote?.existentialDeposit
+                existentialDeposit = assetRemote?.existentialDeposit,
+                color = assetRemote?.color
             )
         }
     }
@@ -189,7 +190,8 @@ fun mapChainLocalToChain(chainLocal: JoinedChainInfo): Chain {
             isUtility = it.isUtility ?: false,
             type = it.type?.let { ChainAssetType.valueOf(it) },
             currencyId = it.currencyId,
-            existentialDeposit = it.existentialDeposit
+            existentialDeposit = it.existentialDeposit,
+            color = it.color
         )
     }
 
@@ -262,7 +264,8 @@ fun mapChainToChainLocal(chain: Chain): JoinedChainInfo {
             isUtility = it.isUtility,
             type = it.type?.name,
             currencyId = it.currencyId,
-            existentialDeposit = it.existentialDeposit
+            existentialDeposit = it.existentialDeposit,
+            color = it.color
         )
     }
 
