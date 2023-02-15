@@ -87,7 +87,7 @@ class StakingBalanceFragment : BaseFragment<StakingBalanceViewModel>(R.layout.fr
         viewModel.pendingAction.observe {
             binding.stakingBalanceActions.bondMore.isEnabled = it.not()
             binding.stakingBalanceActions.unbond.isEnabled = it.not()
-            binding.stakingBalanceActions.redeem.isEnabled = it.not()
+            binding.stakingBalanceActions.redeem.isEnabled = viewModel.redeemEnabledLiveData.value == true
         }
 
         viewModel.redeemEnabledLiveData.observe {
