@@ -603,8 +603,8 @@ class Navigator :
         navController?.navigate(R.id.swapTokensFragment, bundle)
     }
 
-    override fun openSelectChain(assetId: String, chooserMode: Boolean) {
-        val bundle = ChainSelectFragment.getBundle(assetId = assetId, chooserMode = chooserMode)
+    override fun openSelectChain(assetId: String, chainId: ChainId?, chooserMode: Boolean) {
+        val bundle = ChainSelectFragment.getBundle(assetId = assetId, chainId = chainId, chooserMode = chooserMode)
         navController?.navigate(R.id.chainSelectFragment, bundle)
     }
 

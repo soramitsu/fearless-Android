@@ -195,7 +195,7 @@ object TransactionStateMachine {
 
             is Action.AssetPayloadChanged -> {
                 if (canUseCache(using = state.filters)) {
-                    sideEffectListener(SideEffect.TriggerCache(state.assetPayload))
+                    sideEffectListener(SideEffect.TriggerCache(action.assetPayload))
                 } else {
                     sideEffectListener(
                         SideEffect.LoadPage(
