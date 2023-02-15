@@ -457,7 +457,7 @@ class SendSetupViewModel @Inject constructor(
 
     override fun onChainClick() {
         sharedState.assetId?.let { assetId ->
-            router.openSelectChain(assetId = assetId, chooserMode = false)
+            router.openSelectChain(assetId = assetId, chainId = sharedState.chainId, chooserMode = false)
         }
     }
 

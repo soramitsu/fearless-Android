@@ -3,7 +3,6 @@ package jp.co.soramitsu.wallet.impl.presentation.balance.chainselector
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.runtime.ext.utilityAsset
@@ -20,6 +19,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @HiltViewModel
 class ChainSelectViewModel @Inject constructor(
@@ -45,7 +45,9 @@ class ChainSelectViewModel @Inject constructor(
     private val chainsFlow = chainInteractor.getChainsFlow().mapNotNull { chains ->
         when {
             initialSelectedAssetId != null -> {
-                chains.firstOrNull { it.assets.any { it.id == initialSelectedAssetId } }?.let { chainOfTheAsset ->
+                chains.firstOrNull {
+                    initialSelectedChainId in listOf(null, it.id) && it.assets.any { it.id == initialSelectedAssetId }
+                }?.let { chainOfTheAsset ->
                     selectedChainId.value = chainOfTheAsset.id
 
                     val symbolToShow = chainOfTheAsset.assets.firstOrNull { it.id == (initialSelectedAssetId) }?.symbolToShow

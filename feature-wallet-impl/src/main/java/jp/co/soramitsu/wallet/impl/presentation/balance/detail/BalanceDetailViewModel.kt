@@ -5,7 +5,6 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import jp.co.soramitsu.account.api.presentation.account.AddressDisplayUseCase
 import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.account.api.presentation.exporting.ExportSource
@@ -58,6 +57,7 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @HiltViewModel
 class BalanceDetailViewModel @Inject constructor(
@@ -260,7 +260,7 @@ class BalanceDetailViewModel @Inject constructor(
     fun openSelectChain() {
         launch {
             val asset = assetModelFlow.first()
-            router.openSelectChain(asset.token.configuration.id)
+            router.openSelectChain(asset.token.configuration.id, asset.token.configuration.chainId)
         }
     }
 

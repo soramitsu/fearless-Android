@@ -340,18 +340,18 @@ class WalletRepositoryImpl(
             val transfer = TransactionFilter.TRANSFER.isAppliedOrNull(filters)?.let { transferApplied ->
                 it.transfer?.let { transfer ->
                     Operation(
-                        id = it.id,
+                        id = it.extrinsicIdx ?: it.id,
                         address = it.address,
-                        time = it.timestamp.toLong(),
+                        time = it.timestamp,
                         chainAsset = chainAsset,
                         type = Operation.Type.Transfer(
-                            hash = transfer.extrinsicHash,
+                            hash = it.extrinsicHash,
                             myAddress = accountAddress,
                             amount = transfer.amount.toBigIntegerOrNull().orZero(),
                             receiver = transfer.to,
                             sender = transfer.from,
                             status = Operation.Status.fromSuccess(transfer.success),
-                            fee = transfer.fee?.toBigIntegerOrNull()
+                            fee = transfer.fee
                         )
                     )
                 }
@@ -361,7 +361,7 @@ class WalletRepositoryImpl(
                     Operation(
                         id = it.id,
                         address = it.address,
-                        time = it.timestamp.toLong(),
+                        time = it.timestamp,
                         chainAsset = chainAsset,
                         type = Operation.Type.Reward(
                             amount = reward.amount.toBigIntegerOrNull().orZero(),
@@ -377,7 +377,7 @@ class WalletRepositoryImpl(
                     Operation(
                         id = it.id,
                         address = it.address,
-                        time = it.timestamp.toLong(),
+                        time = it.timestamp,
                         chainAsset = chainAsset,
                         type = Operation.Type.Extrinsic(
                             hash = extrinsic.hash,
@@ -442,7 +442,7 @@ class WalletRepositoryImpl(
                         amount = reward.amount.toBigIntegerOrNull().orZero(),
                         isReward = true,
                         era = reward.era.orZero().toInt(),
-                        validator = reward.validator
+                        validator = reward.validatorId
                     )
                 )
             }

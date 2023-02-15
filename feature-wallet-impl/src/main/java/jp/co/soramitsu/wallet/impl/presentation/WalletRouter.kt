@@ -32,7 +32,7 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
 
     fun openSwapTokensScreen(assetPayload: AssetPayload)
 
-    fun openSelectChain(assetId: String, chooserMode: Boolean = true)
+    fun openSelectChain(assetId: String, chainId: ChainId? = null, chooserMode: Boolean = true)
 
     fun openSelectChain(
         selectedChainId: ChainId? = null,
