@@ -46,35 +46,37 @@ data class ConfirmJoinPoolScreenViewState(
 fun ConfirmJoinPoolScreen(state: ConfirmJoinPoolScreenViewState, onNavigationClick: () -> Unit, onConfirm: () -> Unit) {
     BottomSheetScreen(Modifier.verticalScroll(rememberScrollState())) {
         FullScreenLoading(isLoading = state.isLoading) {
-            Toolbar(state = state.toolbarViewState, onNavigationClick = onNavigationClick)
-            Column(
-                modifier = Modifier
-                    .padding(horizontal = 16.dp)
-            ) {
-                MarginVertical(margin = 24.dp)
-                GradientIcon(icon = state.assetIcon, color = colorAccentDark, modifier = Modifier.align(CenterHorizontally))
-                H2(
-                    text = stringResource(id = R.string.pool_staking_confirm_join_title),
-                    modifier = Modifier.align(CenterHorizontally),
-                    color = black2
-                )
-                MarginVertical(margin = 8.dp)
-                H1(text = state.amount, modifier = Modifier.align(CenterHorizontally))
-                MarginVertical(margin = 24.dp)
-                InfoTable(listOf(state.address, state.selectedPool, state.networkFee))
-                MarginVertical(margin = 24.dp)
-                state.additionalMessage?.let {
-                    B2(text = it, color = black1)
-                    MarginVertical(margin = 8.dp)
-                }
-                AccentButton(
-                    text = stringResource(id = R.string.common_confirm),
+            Column {
+                Toolbar(state = state.toolbarViewState, onNavigationClick = onNavigationClick)
+                Column(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .height(48.dp),
-                    onClick = onConfirm
-                )
-                MarginVertical(margin = 16.dp)
+                        .padding(horizontal = 16.dp)
+                ) {
+                    MarginVertical(margin = 24.dp)
+                    GradientIcon(icon = state.assetIcon, color = colorAccentDark, modifier = Modifier.align(CenterHorizontally))
+                    H2(
+                        text = stringResource(id = R.string.pool_staking_confirm_join_title),
+                        modifier = Modifier.align(CenterHorizontally),
+                        color = black2
+                    )
+                    MarginVertical(margin = 8.dp)
+                    H1(text = state.amount, modifier = Modifier.align(CenterHorizontally))
+                    MarginVertical(margin = 24.dp)
+                    InfoTable(listOf(state.address, state.selectedPool, state.networkFee))
+                    MarginVertical(margin = 24.dp)
+                    state.additionalMessage?.let {
+                        B2(text = it, color = black1)
+                        MarginVertical(margin = 8.dp)
+                    }
+                    AccentButton(
+                        text = stringResource(id = R.string.common_confirm),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp),
+                        onClick = onConfirm
+                    )
+                    MarginVertical(margin = 16.dp)
+                }
             }
         }
     }
@@ -89,7 +91,7 @@ private fun ConfirmJoinPoolScreenPreview() {
         address = TitleValueViewState("From", "Account for join", "0x3784348729384923849223423"),
         selectedPool = TitleValueViewState("Selected Pool", "Pool #1", "id: 1"),
         networkFee = TitleValueViewState("Network Fee", "0.0051 KSM", "$0.32"),
-        assetIcon = GradientIconState.Remote("https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Karura.svg", ""),
+        assetIcon = GradientIconState.Remote("https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Karura.svg", "ffffff"),
         isLoading = false
     )
     FearlessTheme {
