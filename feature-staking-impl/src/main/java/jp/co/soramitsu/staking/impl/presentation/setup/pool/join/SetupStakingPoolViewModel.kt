@@ -20,15 +20,19 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.applyFiatRate
 import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.common.utils.formatAsCurrency
+import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.validation.AmountTooLowToStakeException
+import jp.co.soramitsu.common.validation.ExistentialDepositCrossedException
 import jp.co.soramitsu.common.validation.StakeInsufficientBalanceException
+import jp.co.soramitsu.common.validation.WaitForFeeCalculationException
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.staking.impl.domain.StakingInteractor
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
 import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSharedStateProvider
 import jp.co.soramitsu.staking.impl.scenarios.StakingPoolInteractor
+import jp.co.soramitsu.wallet.api.domain.ExistentialDepositUseCase
 import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
@@ -37,6 +41,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -49,7 +54,8 @@ class SetupStakingPoolViewModel @Inject constructor(
     private val iconGenerator: AddressIconGenerator,
     private val stakingPoolInteractor: StakingPoolInteractor,
     private val router: StakingRouter,
-    private val stakingPoolSharedStateProvider: StakingPoolSharedStateProvider
+    private val stakingPoolSharedStateProvider: StakingPoolSharedStateProvider,
+    private val existentialDepositUseCase: ExistentialDepositUseCase
 ) : BaseViewModel() {
 
     private val chain: Chain
@@ -99,10 +105,13 @@ class SetupStakingPoolViewModel @Inject constructor(
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, defaultAmountInputState)
 
-    private val feeInfoViewStateFlow: Flow<FeeInfoViewState> = enteredAmountFlow.map { enteredAmount ->
+    private val feeInPlanksFlow = enteredAmountFlow.map { enteredAmount ->
         val amount = enteredAmount.toBigDecimalOrNull().orZero()
         val inPlanks = asset.token.planksFromAmount(amount)
-        val feeInPlanks = stakingPoolInteractor.estimateJoinFee(inPlanks)
+        stakingPoolInteractor.estimateJoinFee(inPlanks)
+    }.inBackground().stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    private val feeInfoViewStateFlow: Flow<FeeInfoViewState> = feeInPlanksFlow.filterNotNull().map { feeInPlanks ->
         val fee = asset.token.amountFromPlanks(feeInPlanks)
         val feeFormatted = fee.formatTokenAmount(asset.token.configuration)
         val feeFiat = fee.applyFiatRate(asset.token.fiatRate)?.formatAsCurrency(asset.token.fiatSymbol)
@@ -176,9 +185,12 @@ class SetupStakingPoolViewModel @Inject constructor(
         val transferableInPlanks = asset.token.planksFromAmount(asset.transferable)
         val minToJoinInPlanks = stakingPoolInteractor.getMinToJoinPool(chain.id)
         val minToJoinFormatted = asset.token.amountFromPlanks(minToJoinInPlanks).formatTokenAmount(asset.token.configuration)
+        val existentialDeposit = existentialDepositUseCase(asset.token.configuration)
+        val feeInPlanks = feeInPlanksFlow.value ?: return Result.failure(WaitForFeeCalculationException(resourceManager))
 
         return when {
-            amountInPlanks >= transferableInPlanks -> Result.failure(StakeInsufficientBalanceException(resourceManager))
+            amountInPlanks + feeInPlanks >= transferableInPlanks -> Result.failure(StakeInsufficientBalanceException(resourceManager))
+            transferableInPlanks - amountInPlanks - feeInPlanks <= existentialDeposit -> Result.failure(ExistentialDepositCrossedException(resourceManager))
             amountInPlanks < minToJoinInPlanks -> Result.failure(AmountTooLowToStakeException(resourceManager, minToJoinFormatted))
             else -> Result.success(Unit)
         }
