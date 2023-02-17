@@ -327,11 +327,7 @@ class ConfirmStakingViewModel @Inject constructor(
 
             setupStakingSharedState.set(currentProcessState.finish())
 
-            if (currentProcessState.payload is Payload.RelayChain) {
-                router.returnToCurrentValidators()
-            } else {
-                router.returnToMain()
-            }
+            router.returnToMain()
         } else {
             showError(setupResult.requireException())
         }
