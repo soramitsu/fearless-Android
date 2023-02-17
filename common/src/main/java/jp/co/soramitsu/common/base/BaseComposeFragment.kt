@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.ModalBottomSheetState
@@ -26,11 +27,9 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTagsAsResourceId
-import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.LiveData
 import jp.co.soramitsu.common.R
-import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.presentation.ErrorDialog
 import jp.co.soramitsu.common.utils.Event
@@ -68,11 +67,12 @@ abstract class BaseComposeFragment<T : BaseViewModel> : Fragment() {
                     )
 
                     Background()
+
                     Scaffold(
+                        modifier = Modifier.systemBarsPadding(),
                         scaffoldState = scaffoldState,
                         topBar = {
                             Column {
-                                MarginVertical(margin = 24.dp) // it's status bar
                                 Toolbar(modalBottomSheetState)
                             }
                         },
