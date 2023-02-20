@@ -7,8 +7,6 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.asFlow
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.math.BigDecimal
-import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.presentation.actions.AddAccountBottomSheet
 import jp.co.soramitsu.common.AlertViewState
@@ -83,6 +81,8 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.math.BigDecimal
+import javax.inject.Inject
 
 private const val CURRENT_ICON_SIZE = 40
 
@@ -222,7 +222,7 @@ class BalanceListViewModel @Inject constructor(
                 }
 
                 val assetChainUrls = when (selectedChainId) {
-                    null -> chains.filter { it.id != showChain?.id && it.assets.any { it.symbolToShow == symbolToShow } }
+                    null -> chains.filter { it.assets.any { it.symbolToShow == symbolToShow } }
                         .associate { it.id to it.icon }
                     else -> emptyMap()
                 }

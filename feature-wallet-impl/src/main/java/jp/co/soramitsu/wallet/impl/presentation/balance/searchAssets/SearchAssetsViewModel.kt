@@ -69,11 +69,7 @@ class SearchAssetsViewModel @Inject constructor(
         chainInteractor.getChainsFlow(),
         connectingChainIdsFlow
     ) { assets: List<AssetWithStatus>, chains: List<Chain>, chainConnectings: Set<ChainId> ->
-        val assetStates = mutableListOf<AssetListItemViewState>()
-
-        assets
-            .filter { it.hasAccount }
-            .sortedWith(defaultAssetListSort())
+        assets.filter { it.hasAccount }
             .map { assetWithStatus ->
                 val token = assetWithStatus.asset.token
                 val tokenConfig = token.configuration
@@ -88,7 +84,7 @@ class SearchAssetsViewModel @Inject constructor(
                 val tokenChains = chains.filter { it.assets.any { it.symbolToShow == symbolToShow } }
                 val hasNetworkIssue = tokenChains.any { it.id in chainConnectings }
 
-                val assetListItemViewState = AssetListItemViewState(
+                AssetListItemViewState(
                     assetIconUrl = tokenConfig.iconUrl,
                     assetChainName = chain?.name ?: tokenConfig.chainName,
                     assetSymbol = tokenConfig.symbol,
@@ -106,13 +102,7 @@ class SearchAssetsViewModel @Inject constructor(
                     priceId = tokenConfig.priceId,
                     hasNetworkIssue = hasNetworkIssue
                 )
-                assetStates.add(assetListItemViewState)
             }
-        assetStates.sortedWith(
-            compareBy<AssetListItemViewState> { it.assetSymbol }
-                .thenBy { it.assetChainName }
-                .thenBy { it.chainId.defaultChainSort() }
-        )
     }
 
     val state = combine(
@@ -132,12 +122,6 @@ class SearchAssetsViewModel @Inject constructor(
             searchQuery = searchQuery
         )
     }.stateIn(scope = this, started = SharingStarted.Eagerly, initialValue = null)
-
-    private fun defaultAssetListSort() = compareByDescending<AssetWithStatus> { it.asset.total.orZero() > BigDecimal.ZERO }
-        .thenByDescending { it.asset.fiatAmount.orZero() }
-        .thenBy { it.asset.token.configuration.isTestNet }
-        .thenBy { it.asset.token.configuration.chainId.defaultChainSort() }
-        .thenBy { it.asset.token.configuration.chainName }
 
     @OptIn(ExperimentalMaterialApi::class)
     override fun actionItemClicked(actionType: ActionItemType, chainId: ChainId, chainAssetId: String, swipeableState: SwipeableState<SwipeState>) {

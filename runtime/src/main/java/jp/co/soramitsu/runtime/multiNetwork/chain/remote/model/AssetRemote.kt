@@ -15,5 +15,6 @@ data class AssetRemote(
     val transfersEnabled: Boolean?,
     val type: ChainAssetType?,
     val currencyId: String?,
-    val existentialDeposit: String?
+    val existentialDeposit: String?,
+    val isNative: Boolean?
 )
