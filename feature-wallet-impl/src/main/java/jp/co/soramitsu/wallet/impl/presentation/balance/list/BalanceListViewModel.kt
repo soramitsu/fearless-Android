@@ -75,6 +75,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
@@ -343,13 +344,15 @@ class BalanceListViewModel @Inject constructor(
     }.stateIn(scope = this, started = SharingStarted.Eagerly, initialValue = LoadingState.Loading())
 
     init {
-        viewModelScope.launch {
-            router.chainSelectorPayloadFlow.collect { chainId ->
-                interactor.saveChainId(chainId)
-                selectedChainId.value = chainId
-            }
-        }
-        selectedChainId.value = interactor.getSavedChainId()
+        router.chainSelectorPayloadFlow.map { chainId ->
+            val walletId = interactor.getSelectedMetaAccount().id
+            interactor.saveChainId(walletId, chainId)
+            selectedChainId.value = chainId
+        }.launchIn(this)
+
+        interactor.selectedMetaAccountFlow().map { wallet ->
+            selectedChainId.value = interactor.getSavedChainId(wallet.id)
+        }.launchIn(this)
     }
 
     private fun sync() {

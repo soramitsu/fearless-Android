@@ -106,9 +106,9 @@ interface WalletInteractor {
 
     fun observeAssets(): Flow<List<AssetWithStatus>>
 
-    fun saveChainId(chainId: ChainId?)
+    fun saveChainId(walletId: Long, chainId: ChainId?)
 
-    fun getSavedChainId(): ChainId?
+    suspend fun getSavedChainId(walletId: Long): ChainId?
 
     suspend fun getEquilibriumAccountInfo(asset: Chain.Asset, accountId: AccountId): EqAccountInfo?
     suspend fun getEquilibriumAssetRates(chainAsset: Chain.Asset): Map<BigInteger, EqOraclePricePoint?>
