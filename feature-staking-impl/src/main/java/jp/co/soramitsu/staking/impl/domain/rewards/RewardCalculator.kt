@@ -4,6 +4,7 @@ import android.util.Log
 import jp.co.soramitsu.common.utils.fractionToPercentage
 import jp.co.soramitsu.common.utils.median
 import jp.co.soramitsu.common.utils.orZero
+import jp.co.soramitsu.common.utils.percentageToFraction
 import jp.co.soramitsu.common.utils.sumByBigInteger
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
@@ -283,7 +284,7 @@ class SubqueryRewardCalculator(
         }
         val collatorApyMap = response.fold({
             it.data.stakers.mapNotNull { element ->
-                element.stashId?.let { it.fromHex().toHexString(false) to element.apr24h }
+                element.stashId?.let { it.fromHex().toHexString(false) to element.apr24h?.percentageToFraction() }
             }.toMap()
         }, {
             Log.e("GetSubsquidRewards", "GetSubsquidRewards::getApy error: ${it.localizedMessage ?: it.message}")

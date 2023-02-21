@@ -49,6 +49,7 @@ fun WalletScreen(
             onBalanceClick = callback::onBalanceClicked
         )
         if (data.hasNetworkIssues) {
+            MarginVertical(margin = 6.dp)
             NetworkIssuesBadge(onClick = callback::onNetworkIssuesClicked)
         }
         MarginVertical(margin = 24.dp)

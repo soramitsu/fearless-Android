@@ -108,35 +108,40 @@ class ChainSelectViewModel @Inject constructor(
     fun onChainSelected(chainItemState: ChainItemState?) {
         choiceDone = true
         val chainId = chainItemState?.id
-        if (selectedChainId.value != chainId) {
-            selectedChainId.value = chainId
-            walletRouter.setChainSelectorPayload(chainId)
+        if (selectedChainId.value == chainId) {
             if (chooserMode) {
                 walletRouter.back()
-                return
             }
+            return
+        }
 
-            val assetId = chainItemState?.tokenSymbols?.entries?.firstOrNull { it.value == symbolFlow.value }?.key
+        selectedChainId.value = chainId
+        walletRouter.setChainSelectorPayload(chainId)
+        if (chooserMode) {
+            walletRouter.back()
+            return
+        }
 
-            chainId?.let {
-                launch {
-                    val chain = walletInteractor.getChain(it)
-                    if (sharedSendState.assetId == null) {
-                        when {
-                            chain.assets.size == 1 -> {
-                                assetSpecified(assetId = chain.assets[0].id, chainId = chain.id)
-                            }
-                            chain.assets.filter { it.currencyId == tokenCurrencyId }.size == 1 -> {
-                                assetSpecified(assetId = chain.assets.filter { it.currencyId == tokenCurrencyId }[0].id, chainId = chain.id)
-                            }
-                            else -> {
-                                walletRouter.back()
-                                walletRouter.openSelectChainAsset(chain.id)
-                            }
+        val assetId = chainItemState?.tokenSymbols?.entries?.firstOrNull { it.value == symbolFlow.value }?.key
+
+        chainId?.let {
+            launch {
+                val chain = walletInteractor.getChain(it)
+                if (sharedSendState.assetId == null) {
+                    when {
+                        chain.assets.size == 1 -> {
+                            assetSpecified(assetId = chain.assets[0].id, chainId = chain.id)
                         }
-                    } else {
-                        assetSpecified(assetId = assetId ?: chain.utilityAsset.id, chainId = it)
+                        chain.assets.filter { it.currencyId == tokenCurrencyId }.size == 1 -> {
+                            assetSpecified(assetId = chain.assets.filter { it.currencyId == tokenCurrencyId }[0].id, chainId = chain.id)
+                        }
+                        else -> {
+                            walletRouter.back()
+                            walletRouter.openSelectChainAsset(chain.id)
+                        }
                     }
+                } else {
+                    assetSpecified(assetId = assetId ?: chain.utilityAsset.id, chainId = it)
                 }
             }
         }

@@ -285,6 +285,9 @@ class WalletRepositoryImpl(
             if (historyUrl == null || historyType?.isHistory() != true) {
                 throw HistoryNotSupportedException()
             }
+            if (historyType in listOf(Type.GIANTSQUID, Type.SUBSQUID) && chainAsset.isUtility.not()) {
+                throw HistoryNotSupportedException()
+            }
 
             val accountAddress = chain.addressOf(accountId)
             when (historyType) {
