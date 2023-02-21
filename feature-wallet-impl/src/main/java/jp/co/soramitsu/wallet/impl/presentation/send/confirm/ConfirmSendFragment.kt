@@ -11,7 +11,7 @@ import androidx.fragment.app.viewModels
 import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.account.api.presentation.actions.setupExternalActions
 import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
-import jp.co.soramitsu.wallet.api.presentation.mixin.observeTransferChecks
+import jp.co.soramitsu.common.presentation.ErrorDialog
 import jp.co.soramitsu.wallet.impl.domain.model.PhishingType
 import jp.co.soramitsu.wallet.impl.presentation.send.TransferDraft
 
@@ -34,7 +34,17 @@ class ConfirmSendFragment : BaseComposeBottomSheetDialogFragment<ConfirmSendView
         super.onViewCreated(view, savedInstanceState)
 
         setupExternalActions(viewModel)
-        observeTransferChecks(viewModel, viewModel::warningConfirmed, viewModel::errorAcknowledged)
+
+        viewModel.openValidationWarningEvent.observeEvent { (result, warning) ->
+            ErrorDialog(
+                title = warning.message,
+                message = warning.explanation,
+                positiveButtonText = warning.positiveButtonText,
+                negativeButtonText = warning.negativeButtonText,
+                positiveClick = { viewModel.warningConfirmed(result) },
+                isHideable = false
+            ).show(childFragmentManager)
+        }
     }
 
     @Composable

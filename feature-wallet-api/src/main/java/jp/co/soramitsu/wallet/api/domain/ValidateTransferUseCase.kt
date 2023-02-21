@@ -20,6 +20,15 @@ interface ValidateTransferUseCase {
         fee: BigInteger?,
         confirmedValidations: List<TransferValidationResult> = emptyList()
     ): Result<TransferValidationResult>
+
+    suspend fun validateEd(
+        amountInPlanks: BigInteger,
+        asset: Asset,
+        recipientAddress: String,
+        ownAddress: String,
+        fee: BigInteger,
+        confirmedValidations: List<TransferValidationResult> = emptyList()
+    ): Result<TransferValidationResult>
 }
 
 enum class TransferValidationResult {

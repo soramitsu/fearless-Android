@@ -1,6 +1,5 @@
 package jp.co.soramitsu.wallet.impl.domain
 
-import java.math.BigInteger
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.sumByBigDecimal
 import jp.co.soramitsu.runtime.ext.accountIdOf
@@ -18,6 +17,7 @@ import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
+import java.math.BigInteger
 
 class ValidateTransferUseCaseImpl(
     private val existentialDepositUseCase: ExistentialDepositUseCase,
@@ -59,39 +59,78 @@ class ValidateTransferUseCaseImpl(
 
         val totalRecipientBalanceInPlanks = substrateSource.getTotalBalance(chainAsset, recipientAccountId)
 
-        val result = when {
+        val validationChecks = when {
             chainAsset.type == ChainAssetType.Equilibrium -> {
-                getEquilibriumValidationResult(asset, recipientAccountId, chain, ownAddress, amountInPlanks, fee, tip, confirmedValidations)
+                getEquilibriumValidationChecks(asset, recipientAccountId, chain, ownAddress, amountInPlanks, fee, tip)
             }
             chainAsset.isUtility -> {
                 val resultedBalance = (asset.freeInPlanks ?: transferable) - (amountInPlanks + fee + tip)
 
-                val utilityChecks = mapOf(
+                mapOf(
                     TransferValidationResult.InsufficientBalance to (amountInPlanks + fee + tip > transferable),
                     TransferValidationResult.ExistentialDepositWarning to (resultedBalance < assetExistentialDeposit),
                     TransferValidationResult.DeadRecipient to (totalRecipientBalanceInPlanks + amountInPlanks < assetExistentialDeposit)
                 )
-                performChecks(utilityChecks, confirmedValidations)
             }
             else -> {
                 val utilityAsset = walletInteractor.getCurrentAsset(chainId, chain.utilityAsset.id)
                 val utilityAssetBalance = utilityAsset.transferableInPlanks
                 val utilityAssetExistentialDeposit = existentialDepositUseCase(chain.utilityAsset)
 
-                val ormlChecks = mapOf(
+                mapOf(
                     TransferValidationResult.InsufficientBalance to (amountInPlanks > transferable),
                     TransferValidationResult.InsufficientUtilityAssetBalance to (fee + tip > utilityAssetBalance),
                     TransferValidationResult.ExistentialDepositWarning to (transferable - amountInPlanks < assetExistentialDeposit),
                     TransferValidationResult.UtilityExistentialDepositWarning to (utilityAssetBalance - (fee + tip) < utilityAssetExistentialDeposit),
                     TransferValidationResult.DeadRecipient to (totalRecipientBalanceInPlanks + amountInPlanks < assetExistentialDeposit)
                 )
-                performChecks(ormlChecks, confirmedValidations)
             }
         }
+        val result = performChecks(validationChecks, confirmedValidations)
         return Result.success(result)
     }
 
-    private suspend fun getEquilibriumValidationResult(
+    override suspend fun validateEd(
+        amountInPlanks: BigInteger,
+        asset: Asset,
+        recipientAddress: String,
+        ownAddress: String,
+        fee: BigInteger,
+        confirmedValidations: List<TransferValidationResult>
+    ): Result<TransferValidationResult> = kotlin.runCatching {
+        val chainId = asset.token.configuration.chainId
+        val chain = chainRegistry.getChain(chainId)
+        val chainAsset = asset.token.configuration
+        val transferable = asset.transferableInPlanks
+        val assetExistentialDeposit = existentialDepositUseCase(chainAsset)
+        val tip = if (chainAsset.isUtility) walletConstants.tip(chainId).orZero() else BigInteger.ZERO
+
+        val recipientAccountId = chain.accountIdOf(recipientAddress)
+        val totalRecipientBalanceInPlanks = substrateSource.getTotalBalance(chainAsset, recipientAccountId)
+
+        val validationChecks = when {
+            chainAsset.type == ChainAssetType.Equilibrium -> {
+                getEquilibriumValidationChecks(asset, recipientAccountId, chain, ownAddress, amountInPlanks, fee, tip)
+            }
+            chainAsset.isUtility -> {
+                val resultedBalance = (asset.freeInPlanks ?: transferable) - (amountInPlanks + fee + tip)
+                mapOf(
+                    TransferValidationResult.ExistentialDepositWarning to (resultedBalance < assetExistentialDeposit),
+                    TransferValidationResult.DeadRecipient to (totalRecipientBalanceInPlanks + amountInPlanks < assetExistentialDeposit)
+                )
+            }
+            else -> {
+                mapOf(
+                    TransferValidationResult.ExistentialDepositWarning to (transferable - amountInPlanks < assetExistentialDeposit),
+                    TransferValidationResult.DeadRecipient to (totalRecipientBalanceInPlanks + amountInPlanks < assetExistentialDeposit)
+                )
+            }
+        }
+        val result = performChecks(validationChecks, confirmedValidations)
+        return Result.success(result)
+    }
+
+    private suspend fun getEquilibriumValidationChecks(
         asset: Asset,
         recipientAccountId: ByteArray,
         chain: Chain,
@@ -99,8 +138,7 @@ class ValidateTransferUseCaseImpl(
         amountInPlanks: BigInteger,
         fee: BigInteger,
         tip: BigInteger,
-        confirmedValidations: List<TransferValidationResult>
-    ): TransferValidationResult {
+    ): Map<TransferValidationResult, Boolean> {
         val chainAsset = asset.token.configuration
         val assetExistentialDeposit = existentialDepositUseCase(chainAsset)
 
@@ -114,18 +152,18 @@ class ValidateTransferUseCaseImpl(
             val newAmount = when {
                 chainAsset.isUtility -> {
                     if (eqAssetId == chainAsset.currency) {
-                        if (amount < amountInPlanks + fee + tip) return TransferValidationResult.InsufficientBalance
+                        if (amount < amountInPlanks + fee + tip) return mapOf(TransferValidationResult.InsufficientBalance to true)
                         amount - amountInPlanks - fee - tip
                     } else {
                         amount
                     }
                 }
                 eqAssetId == chainAsset.currency -> {
-                    if (amount < amountInPlanks) return TransferValidationResult.InsufficientBalance
+                    if (amount < amountInPlanks) return mapOf(TransferValidationResult.InsufficientBalance to true)
                     amount - amountInPlanks
                 }
                 eqAssetId == chain.utilityAsset.currency -> {
-                    if (amount < fee + tip) return TransferValidationResult.InsufficientUtilityAssetBalance
+                    if (amount < fee + tip) return mapOf(TransferValidationResult.InsufficientUtilityAssetBalance to true)
                     amount - fee - tip
                 }
                 else -> amount
@@ -150,11 +188,10 @@ class ValidateTransferUseCaseImpl(
         val recipientNewTotalInPlanks = asset.token.configuration.planksFromAmount(recipientNewTotal)
         val ownNewTotalInPlanks = asset.token.configuration.planksFromAmount(ownNewTotal)
 
-        val equilibriumChecks = mapOf(
+        return mapOf(
             TransferValidationResult.ExistentialDepositWarning to (ownNewTotalInPlanks < assetExistentialDeposit),
             TransferValidationResult.DeadRecipient to (recipientNewTotalInPlanks < assetExistentialDeposit)
         )
-        return performChecks(equilibriumChecks, confirmedValidations)
     }
 
     private fun performChecks(
