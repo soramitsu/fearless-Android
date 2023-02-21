@@ -1,7 +1,5 @@
 package jp.co.soramitsu.wallet.impl.domain
 
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.accountId
