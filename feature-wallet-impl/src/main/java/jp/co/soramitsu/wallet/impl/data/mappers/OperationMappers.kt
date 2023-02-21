@@ -177,27 +177,34 @@ fun TxHistoryItem.toOperation(chain: Chain, chainAsset: Chain.Asset, accountAddr
     val isSwapAllowed = filters.contains(TransactionFilter.EXTRINSIC) && method == "swap"
 
     return when {
-        isTransferAllowed -> Operation(
-            id = id,
-            address = accountAddress,
-            time = timeInMillis,
-            chainAsset = chainAsset,
-            type = Operation.Type.Transfer(
-                hash = blockHash,
-                myAddress = data?.firstOrNull { it.paramName == "from" }?.paramValue.orEmpty(),
-                amount = chainAsset.planksFromAmount(data?.firstOrNull { it.paramName == "amount" }?.paramValue?.toBigDecimal().orZero()),
-                receiver = data?.firstOrNull { it.paramName == "to" }?.paramValue.orEmpty(),
-                sender = data?.firstOrNull { it.paramName == "from" }?.paramValue.orEmpty(),
-                status = Operation.Status.fromSuccess(success),
-                fee = chainAsset.planksFromAmount(networkFee.toBigDecimal().orZero())
+        isTransferAllowed -> {
+            val currencyId = data?.firstOrNull { it.paramName == "assetId" }?.paramValue
+            if (currencyId != chainAsset.currencyId) return null
+
+            Operation(
+                id = id,
+                address = accountAddress,
+                time = timeInMillis,
+                chainAsset = chainAsset,
+                type = Operation.Type.Transfer(
+                    hash = blockHash,
+                    myAddress = data?.firstOrNull { it.paramName == "from" }?.paramValue.orEmpty(),
+                    amount = chainAsset.planksFromAmount(data?.firstOrNull { it.paramName == "amount" }?.paramValue?.toBigDecimal().orZero()),
+                    receiver = data?.firstOrNull { it.paramName == "to" }?.paramValue.orEmpty(),
+                    sender = data?.firstOrNull { it.paramName == "from" }?.paramValue.orEmpty(),
+                    status = Operation.Status.fromSuccess(success),
+                    fee = chainAsset.planksFromAmount(networkFee.toBigDecimal().orZero())
+                )
             )
-        )
+        }
         isSwapAllowed -> {
             val baseCurrencyId = data?.firstOrNull { it.paramName == "baseAssetId" }?.paramValue
+            val targetCurrencyId = data?.firstOrNull { it.paramName == "targetAssetId" }?.paramValue
+            if (chainAsset.currencyId !in listOf(baseCurrencyId, targetCurrencyId)) return null
+
             val baseAsset = chain.assets.firstOrNull { it.currencyId == baseCurrencyId } ?: return null
             val baseAssetAmount = data?.firstOrNull { it.paramName == "baseAssetAmount" }?.paramValue?.toBigDecimal().orZero()
 
-            val targetCurrencyId = data?.firstOrNull { it.paramName == "targetAssetId" }?.paramValue
             val targetAsset = chain.assets.firstOrNull { it.currencyId == targetCurrencyId }
             val targetAssetAmount = data?.firstOrNull { it.paramName == "targetAssetAmount" }?.paramValue?.toBigDecimal().orZero()
 

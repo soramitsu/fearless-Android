@@ -1,5 +1,6 @@
 package jp.co.soramitsu.common.compose.component
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -60,11 +61,11 @@ data class AmountInputViewState(
     val allowAssetChoose: Boolean = false
 ) {
     companion object {
-        fun default(resourceManager: ResourceManager): AmountInputViewState {
+        fun default(resourceManager: ResourceManager, @StringRes totalBalanceFormat: Int = R.string.common_balance_format): AmountInputViewState {
             return AmountInputViewState(
                 tokenName = null,
                 tokenImage = null,
-                totalBalance = resourceManager.getString(R.string.common_balance_format, "0"),
+                totalBalance = resourceManager.getString(totalBalanceFormat, "0"),
                 fiatAmount = "$0",
                 tokenAmount = "0"
             )

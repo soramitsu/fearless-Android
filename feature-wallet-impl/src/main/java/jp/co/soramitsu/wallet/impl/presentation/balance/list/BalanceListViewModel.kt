@@ -46,6 +46,7 @@ import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.map
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.common.utils.orZero
+import jp.co.soramitsu.common.utils.sumByBigDecimal
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.addressByteOrNull
 import jp.co.soramitsu.feature_wallet_impl.R
@@ -189,10 +190,11 @@ class BalanceListViewModel @Inject constructor(
         connectingChainIdsFlow
     ) { assets: List<AssetWithStatus>, chains: List<Chain>, selectedChainId: ChainId?, chainConnecting: Set<ChainId> ->
         val assetStates = mutableListOf<AssetListItemViewState>()
-        assets
+        val sortedAndFiltered = assets
             .filter { it.hasAccount || !it.asset.markedNotNeed }
             .filter { selectedChainId == null || selectedChainId == it.asset.token.configuration.chainId }
             .sortedWith(defaultAssetListSort())
+        sortedAndFiltered
             .map { assetWithStatus ->
                 val token = assetWithStatus.asset.token
                 val tokenConfig = token.configuration
@@ -228,6 +230,14 @@ class BalanceListViewModel @Inject constructor(
                     else -> emptyMap()
                 }
 
+                val assetTotalInChains = sortedAndFiltered.sumByBigDecimal {
+                    if (it.asset.token.configuration.symbolToShow == symbolToShow) {
+                        it.asset.total.orZero()
+                    } else {
+                        BigDecimal.ZERO
+                    }
+                }
+
                 val assetListItemViewState = AssetListItemViewState(
                     assetIconUrl = tokenConfig.iconUrl,
                     assetChainName = showChain?.name.orEmpty(),
@@ -235,8 +245,8 @@ class BalanceListViewModel @Inject constructor(
                     displayName = symbolToShow,
                     assetTokenFiat = token.fiatRate?.formatAsCurrency(token.fiatSymbol),
                     assetTokenRate = token.recentRateChange?.formatAsChange(),
-                    assetBalance = assetWithStatus.asset.total.orZero().format(),
-                    assetBalanceFiat = token.fiatRate?.multiply(assetWithStatus.asset.total.orZero())?.formatAsCurrency(token.fiatSymbol),
+                    assetBalance = assetTotalInChains.format(),
+                    assetBalanceFiat = token.fiatRate?.multiply(assetTotalInChains)?.formatAsCurrency(token.fiatSymbol),
                     assetChainUrls = assetChainUrls,
                     chainId = showChain?.id.orEmpty(),
                     chainAssetId = showChainAsset?.id.orEmpty(),
