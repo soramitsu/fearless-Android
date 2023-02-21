@@ -73,7 +73,7 @@ data class SwapTokensContentViewState(
 
         fun default(resourceManager: ResourceManager): SwapTokensContentViewState {
             return SwapTokensContentViewState(
-                fromAmountInputViewState = AmountInputViewState.default(resourceManager),
+                fromAmountInputViewState = AmountInputViewState.default(resourceManager, R.string.common_available_format),
                 toAmountInputViewState = AmountInputViewState.default(resourceManager),
                 selectedMarket = Market.SMART,
                 swapDetailsViewState = null,

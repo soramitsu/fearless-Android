@@ -1,5 +1,6 @@
 package jp.co.soramitsu.polkaswap.impl.presentation.swap_tokens
 
+import androidx.annotation.StringRes
 import androidx.compose.ui.focus.FocusState
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -86,7 +87,7 @@ class SwapTokensViewModel @Inject constructor(
     private val initFromAssetId = savedStateHandle.get<String>(SwapTokensFragment.KEY_SELECTED_ASSET_ID)
     private val initFromChainId = savedStateHandle.get<String>(SwapTokensFragment.KEY_SELECTED_CHAIN_ID)
 
-    private val fromAmountInputViewState = MutableStateFlow(AmountInputViewState.default(resourceManager))
+    private val fromAmountInputViewState = MutableStateFlow(AmountInputViewState.default(resourceManager, R.string.common_available_format))
     private val toAmountInputViewState = MutableStateFlow(AmountInputViewState.default(resourceManager))
 
     private var selectedMarket = MutableStateFlow(Market.SMART)
@@ -265,7 +266,8 @@ class SwapTokensViewModel @Inject constructor(
                 title = resourceManager.getString(R.string.polkaswap_from),
                 enteredAmount = enteredAmount,
                 asset = asset,
-                isFocused = isFromAmountFocused
+                isFocused = isFromAmountFocused,
+                totalFormatRes = R.string.common_available_format
             )
             if (isFromAmountFocused) {
                 desired = WithDesired.INPUT
@@ -347,13 +349,14 @@ class SwapTokensViewModel @Inject constructor(
         title: String,
         enteredAmount: String,
         asset: Asset?,
-        isFocused: Boolean
+        isFocused: Boolean,
+        @StringRes totalFormatRes: Int = R.string.common_balance_format
     ): AmountInputViewState {
         if (asset == null) {
             return AmountInputViewState(
                 tokenName = null,
                 tokenImage = null,
-                totalBalance = resourceManager.getString(R.string.common_balance_format, "0"),
+                totalBalance = resourceManager.getString(totalFormatRes, "0"),
                 fiatAmount = null,
                 tokenAmount = enteredAmount,
                 title = title,
@@ -369,7 +372,7 @@ class SwapTokensViewModel @Inject constructor(
         return AmountInputViewState(
             tokenName = asset.token.configuration.symbolToShow,
             tokenImage = asset.token.configuration.iconUrl,
-            totalBalance = resourceManager.getString(R.string.common_balance_format, tokenBalance),
+            totalBalance = resourceManager.getString(totalFormatRes, tokenBalance),
             fiatAmount = fiatAmount,
             tokenAmount = enteredAmount,
             title = title,
