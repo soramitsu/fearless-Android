@@ -123,6 +123,7 @@ operations\nwill appear here</string>
     <string name="choose_amount_fee">Transfer fee</string>
     <string name="choose_amount_tip">Tip</string>
     <string name="common_continue">Continue</string>
+    <string name="common_preview">Preview</string>
     <string name="common_amount">Amount</string>
     <string name="wallet_send_confirm_transfer">Confirm transfer</string>
     <string name="wallet_search_empty_title">Make sure that the address is
@@ -157,6 +158,7 @@ from the right network</string>
     <string name="wallet_balance_details_existential_deposit">Minimal balance</string>
     <string name="wallet_send_existential_warning_message">Your transfer will remove account from blockstore since it will make total balance lower than minimal balance.</string>
     <string name="common_warning">Warning</string>
+    <string name="common_important">Important</string>
     <string name="common_unknown">Unknown</string>
     <string name="connection_delete_confirm">Delete</string>
     <string name="network_status_connecting">Connecting…</string>
@@ -879,6 +881,7 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="common_action_hide">Hide</string>
     <string name="common_action_show">Show</string>
     <string name="common_action_buy">Buy</string>
+    <string name="common_action_swap">Swap</string>
 
     <string name="common_title_wallet">Wallet</string>
     <string name="common_title_wallet_option">Wallet option</string>
@@ -994,4 +997,60 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="pool_depositor_unstake_polkadot_js_plus_button_text">Polkadot.js Plus</string>
     <string name="pool_create_success_message">Your pool has been successfully created. Now you should choose validators for the pool</string>
     <string name="same_address_transfer_warning_message">You\'re trying to make a transfer to the same account. The operation will charge a fee and doesn\'t make any sense</string>
+
+    <string name="common_min_received">Min received</string>
+    <string name="common_liquidity_provider_fee">Liquidity Provider Fee</string>
+    <string name="common_network_fee">Network Fee</string>
+    <string name="common_route">Route</string>
+
+    <string name="polkaswap_from">From</string>
+    <string name="polkaswap_to">To</string>
+    <string name="polkaswap_market">Market:</string>
+    <string name="polkaswap_market_title">Market</string>
+    <string name="polkaswap_swap_settings_title">Swap settings</string>
+    <string name="polkaswap_slippage_tolerance">Slippage Tolerance</string>
+    <string name="polkaswap_slippage_tolerance_description">Your transaction will revert if the price changes unfavorably by more than this percentage</string>
+    <string name="polkaswap_btn_reset_to_default">Reset to default</string>
+    <string name="polkaswap_btn_save">Save</string>
+    <string name="polkaswap_transaction_may_fail">Your transaction may fail</string>
+    <string name="polkaswap_transaction_may_frontrun">Your transaction may front-run</string>
+    <string name="polkaswap_market_algorithm_title">Market algorithm</string>
+    <string name="polkaswap_market_smart_description">SMART liquidity routing ensures the best price for any transaction by combining only the best price options from all available markets. When available, Token Bonding Curve (TBC) will be used for liquidity as long as the asset price is more affordable than from other sources, upon which the XYK pool is utilized.</string>
+    <string name="polkaswap_market_tbc_description">TBC — buying only from the Token Bonding Curve (Primary Market). There is a possibility that the price can become unfavorable compared to the XYK pool (Secondary Market), but the value received from the vested rewards might turn out to be much more favorable over time.</string>
+    <string name="polkaswap_market_xyk_description">XYK — buying only from the XYK pool (Secondary Market). Traditional XYK pool swap where anyone can buy or sell assets by shifting the market maker’s position on the x*y=k curve.</string>
+    <string name="polkaswap_preview_title">Preview</string>
+    <string name="polkaswap_swap_title">Swap</string>
+    <string name="polkaswap_path_unavailable_message">Unfortunately there is no such pair, but you can choose another one</string>
+    <string name="polkaswap_maximum_sold">Max Sold</string>
+    <string name="polkaswap_insufficient_liqudity">Insufficient liquidity</string>
+    <string name="polkaswap_market_alert_title">Market selection isn\'t available</string>
+    <string name="polkaswap_market_alert_message">You haven\'t completed the swap adjustments. One or both assets haven\'t been chosen, so the market selection isn\'t available.</string>
+    <string name="polkaswap_market_alert_positive_button">Choose asset</string>
+    <string name="polkaswap_maximum_sold_title">Maximum sold</string>
+    <string name="polkaswap_minimum_received_title">Minimum received</string>
+    <string name="polkaswap_maximum_sold_info">Your transaction will revert if there is a large, unfavorable price movement before it is confirmed.</string>
+    <string name="polkaswap_minimum_received_info">Your transaction will revert if there is a large, unfavorable price movement before it is confirmed.</string>
+    <string name="polkaswap_liqudity_fee_title">Liquidity provider fee</string>
+    <string name="polkaswap_liqudity_fee_info">A portion of each trade (0.3%) goes to liquidity providers as a protocol incentive.</string>
+    <string name="polkaswap_network_fee_info">Network fee is used to ensure SORA system\'s growth and stable performance.</string>
+    <string name="all_done_alert_result_stub">Result</string>
+    <string name="all_done_alert_success_stub">Success</string>
+    <string name="polkaswap_confirmation_swap_stub">Swap</string>
+    <string name="polkaswap_confirmation_swapped_stub">Swapped</string>
+    <string name="polkaswap_not_enough_result_to_pay_fee_title">Swap fee error</string>
+    <string name="polkaswap_not_enough_result_to_pay_fee_message">Sorry, you don\'t have enough funds to pay the network fee. We can\'t charge the fee neither from your current balance nor from the swap results. Please add more tokens or adjust the transaction amount to proceed.</string>
+    <string name="common_disclaimer">Disclaimer</string>
+    <string name="polkaswap_disclaimer_message">Please read before continuing to use Polkaswap</string>
+    <string name="common_read">Read</string>
+
+    <string name="polkaswap_info_text_1">Polkaswap is maintained by the SORA community. Before continuing to use Polkaswap, please review the %%Polkaswap FAQ%%  and documentation, which includes a detailed explanation on how Polkaswap works, as well as the %%Polkaswap Memorandum and Terms of Services%%, and %%Privacy Policy%%.\n\nThese documents are crucial to a secure and positive user experience. By using Polkaswap, you acknowledge that you have read and understand these documents.</string>
+    <string name="polkaswap_info_text_2">You also acknowledge the following:</string>
+    <string name="polkaswap_info_text_3">Your sole responsibility for compliance with all laws that may apply to your particular use of Polkaswap in your legal jurisdiction;</string>
+    <string name="polkaswap_info_text_4">Your understanding that the current version of Polkaswap is an alpha version: it has not been fully tested, and some functions may not perform as designed;</string>
+    <string name="polkaswap_info_text_5">Your understanding and voluntary acceptance of the risks involved in using Polkaswap, including, but not limited to, the risk of losing tokens.</string>
+    <string name="polkaswap_info_text_6">Once more, please do not continue without reading the %%Polkaswap FAQ%%, %%Polkaswap Memorandum and Terms of Services%%, and %%Privacy Policy%%!</string>
+    <string name="polkaswap_info_switch_text">I confirm that I have read all of the documents mentioned and pressing \"Continue\" I accept them.</string>
+
+    <string name="polkaswap_disclaimer_settings_item" translatable="false">Polkaswap disclaimer</string>
+
 </resources>

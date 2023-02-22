@@ -176,9 +176,27 @@ fun ManagePoolStakeScreen(
 private fun ManagePoolStakeScreenPreview() {
     val state = ManagePoolStakeViewState(
         total = "10.00003 KSM",
-        NotificationState(R.drawable.ic_status_warning_16, R.string.staking_alert_redeem_title, "0.49191 KSM", R.string.staking_redeem, colorAccent),
-        NotificationState(R.drawable.ic_status_warning_16, R.string.staking_alert_redeem_title, "0.49191 KSM", R.string.staking_redeem, colorAccent),
-        NotificationState(R.drawable.ic_status_warning_16, R.string.staking_alert_redeem_title, "0.49191 KSM", R.string.staking_redeem, colorAccent),
+        NotificationState(
+            R.drawable.ic_status_warning_16,
+            stringResource(R.string.staking_alert_redeem_title),
+            "0.49191 KSM",
+            stringResource(R.string.staking_redeem),
+            colorAccent
+        ),
+        NotificationState(
+            R.drawable.ic_status_warning_16,
+            stringResource(R.string.staking_alert_redeem_title),
+            "0.49191 KSM",
+            stringResource(R.string.staking_redeem),
+            colorAccent
+        ),
+        NotificationState(
+            R.drawable.ic_status_warning_16,
+            stringResource(R.string.staking_alert_redeem_title),
+            "0.49191 KSM",
+            stringResource(R.string.staking_redeem),
+            colorAccent
+        ),
         TitleValueViewState("Available"),
         TitleValueViewState("Unstaking", "1.1000 KSM", "\$1.001"),
         TitleValueViewState("Pool Info", "⚡️Everlight☀️", clickState = TitleValueViewState.ClickState(R.drawable.ic_info_14, 1)),

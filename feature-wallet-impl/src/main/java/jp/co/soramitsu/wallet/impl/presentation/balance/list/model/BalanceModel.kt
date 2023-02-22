@@ -5,6 +5,7 @@ import java.math.RoundingMode
 import jp.co.soramitsu.common.utils.fractionToPercentage
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.percentageToFraction
+import jp.co.soramitsu.common.utils.sumByBigDecimal
 import jp.co.soramitsu.wallet.impl.presentation.model.AssetWithStateModel
 
 class BalanceModel(val assetModels: List<AssetWithStateModel>, val fiatSymbol: String) {
@@ -22,10 +23,8 @@ class BalanceModel(val assetModels: List<AssetWithStateModel>, val fiatSymbol: S
 
     private fun calculateTotalBalance(): BigDecimal? {
         return if (assetModels.filter { it.asset.token.fiatSymbol == fiatSymbol }.any { it.asset.fiatAmount != null }) {
-            assetModels.fold(BigDecimal.ZERO) { acc, current ->
-                val toAdd = current.asset.fiatAmount ?: BigDecimal.ZERO
-
-                acc + toAdd
+            assetModels.sumByBigDecimal {
+                it.asset.fiatAmount.orZero()
             }
         } else {
             null

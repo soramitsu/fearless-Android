@@ -68,3 +68,13 @@ class AmountTooLowToStakeException(resourceManager: ResourceManager, minimumAmou
     resourceManager.getString(R.string.common_error_general_title),
     resourceManager.getString(R.string.staking_setup_amount_too_low, minimumAmount)
 )
+
+class UnableToPayFeeException(resourceManager: ResourceManager) : ValidationException(
+    message = resourceManager.getString(R.string.common_error_general_title),
+    explanation = resourceManager.getString(R.string.common_not_enough_funds_message)
+)
+
+class NotEnoughResultedAmountToPayFeeException(resourceManager: ResourceManager) : ValidationException(
+    message = resourceManager.getString(R.string.polkaswap_not_enough_result_to_pay_fee_title),
+    explanation = resourceManager.getString(R.string.polkaswap_not_enough_result_to_pay_fee_message)
+)

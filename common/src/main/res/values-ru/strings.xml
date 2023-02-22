@@ -119,6 +119,7 @@
     <string name="choose_amount_fee">Комиссия</string>
     <string name="choose_amount_tip">Чаевые</string>
     <string name="common_continue">Продолжить</string>
+    <string name="common_preview">Предварительный просмотр</string>
     <string name="common_amount">Сумма</string>
     <string name="wallet_send_confirm_transfer">Подтвердить</string>
     <string name="wallet_search_empty_title">Убедитесь, что адрес
@@ -153,6 +154,7 @@
     <string name="wallet_balance_details_existential_deposit">Минимальный баланс</string>
     <string name="wallet_send_existential_warning_message">Ваш перевод удалит аккаунт, так как общий баланс станет ниже минимального.</string>
     <string name="common_warning">Предупреждение</string>
+    <string name="common_important">Важно</string>
     <string name="common_unknown">Неизвестно</string>
     <string name="connection_delete_confirm">Удалить</string>
     <string name="network_status_connecting">Подключение…</string>
@@ -798,6 +800,7 @@
     <string name="common_action_hide">Скрыть</string>
     <string name="common_action_show">Показать</string>
     <string name="common_action_buy">Купить</string>
+    <string name="common_action_swap">Обменять</string>
 
     <string name="pool_staking_confirm_join_title">Присоединение к пулу</string>
     <string name="pool_staking_number_of_members">Количество участников</string>
@@ -898,4 +901,56 @@
     <string name="pool_depositor_unstake_polkadot_js_plus_button_text">Polkadot.js Plus</string>
     <string name="pool_create_success_message">Ваш пулл успешно создан. Теперь вы должны выбрать валидаторов для этого пулла</string>
     <string name="same_address_transfer_warning_message">Вы пытаетесь сделать трансфер на свой адрес. За операцию будет списана комиссия и это не несет никакого смысла</string>
+
+    <string name="common_min_received">Мин. покупка</string>
+    <string name="common_liquidity_provider_fee">Комиссия LP</string>
+    <string name="common_network_fee">Комиссия сети</string>
+    <string name="common_route">Направление</string>
+
+    <string name="polkaswap_from">Из</string>
+    <string name="polkaswap_to">На</string>
+    <string name="polkaswap_market">Маркет:</string>
+    <string name="polkaswap_market_title">Маркет</string>
+    <string name="polkaswap_swap_settings_title">Настройки обмена</string>
+    <string name="polkaswap_slippage_tolerance">Допустимое проскальзывание</string>
+    <string name="polkaswap_slippage_tolerance_description">Ваша транзакция будет отменена, если цена неблагоприятно изменится более чем на этот процент</string>
+    <string name="polkaswap_btn_reset_to_default">Сбросить</string>
+    <string name="polkaswap_btn_save">Сохранить</string>
+    <string name="polkaswap_transaction_may_fail">Транзакция может завершиться с ошибкой</string>
+    <string name="polkaswap_transaction_may_frontrun">Возможен фронтран транзакции</string>
+    <string name="polkaswap_market_algorithm_title">Маркет алгоритм</string>
+    <string name="polkaswap_market_smart_description">Маршрутизация ликвидности SMART обеспечивает лучшую цену для любой транзакции, комбинируя только лучшие варианты цены со всех доступных рынков. При наличии TBC будет использоваться для обеспечения ликвидности до тех пор, пока цена актива будет более доступной, чем из других источников, на которых используется пул XYK.</string>
+    <string name="polkaswap_market_tbc_description">TBC(Token Bonding Curve)  — покупка только по кривой связывания токенов (первичный рынок). Есть вероятность того, что цена может стать невыгодной по сравнению с пулом XYK (вторичный рынок), но ценность, полученная от закрепленных вознаграждений, со временем может оказаться гораздо более выгодной.</string>
+    <string name="polkaswap_market_xyk_description">XYK — покупка только из пула XYK (вторичный рынок). Традиционный обмен/свап пула XYK, когда любой может покупать или продавать активы, меняя позицию маркет-мейкера на кривой x*y=k.</string>
+    <string name="polkaswap_preview_title">Предпросмотр</string>
+    <string name="polkaswap_swap_title">Обмен</string>
+    <string name="polkaswap_path_unavailable_message">К сожалению, такой пары нет. Но вы можете выбрать другую</string>
+    <string name="polkaswap_maximum_sold">Макс. продажа</string>
+    <string name="polkaswap_insufficient_liqudity">Недостаточная ликвидность</string>
+    <string name="polkaswap_market_alert_title">Выбор маркета недоступен</string>
+    <string name="polkaswap_market_alert_message">Вы не завершили настройку свапа. Один или оба ассета не выбраны, поэтому выбор маркета недоступен.</string>
+    <string name="polkaswap_market_alert_positive_button">Выбрать ассет</string>
+    <string name="polkaswap_maximum_sold_title">Максимальная продажа</string>
+    <string name="polkaswap_minimum_received_title">Минимальная покупка</string>
+    <string name="polkaswap_maximum_sold_info">Ваша транзакция будет отменена, если произойдет значительное неблагоприятное изменение цены до ее подтверждения.</string>
+    <string name="polkaswap_minimum_received_info">Ваша транзакция будет отменена, если произойдет значительное неблагоприятное изменение цены до ее подтверждения.</string>
+    <string name="polkaswap_liqudity_fee_title">Комиссия провайдера ликвидности</string>
+    <string name="polkaswap_liqudity_fee_info">Часть каждой сделки (0,3%) является награждением для поставщиков ликвидности.</string>
+    <string name="polkaswap_network_fee_info">Плата за сеть используется для обеспечения роста и стабильной работы системы SORA.</string>
+    <string name="all_done_alert_result_stub">Результат</string>
+    <string name="all_done_alert_success_stub">Успешно</string>
+    <string name="polkaswap_confirmation_swapped_stub">Swapped</string>
+    <string name="polkaswap_not_enough_result_to_pay_fee_title">Ошибка комиссии за свап</string>
+    <string name="polkaswap_not_enough_result_to_pay_fee_message">К сожалению, у вас недостаточно средств для оплаты комиссии. Мы не можем взимать комиссию ни с вашего текущего баланса, ни с результатов свопа. Пожалуйста, добавьте больше токенов или измените сумму транзакции, чтобы продолжить.</string>
+    <string name="common_disclaimer">Дисклеймер</string>
+    <string name="polkaswap_disclaimer_message">Пожалйста прочитайте перед использованием polkaswap</string>
+    <string name="common_read">Читать</string>
+
+    <string name="polkaswap_info_text_1">Polkaswap разрабатывается сообществом SORA. Перед тем, как стать контрибьютером Polkaswap, ознакомьтесь с %%Polkaswap FAQ%% и документацией, которая описывает то, как работает Polkaswap, %%Polkaswap Меморандумом и Условиями и положениями%%, и %%Политикой конфиденциальности%%.\n\nЭти документы важны для безопасной и комфортной работы пользователей. Используя Polkaswap вы соглашаетесь, что вы прочли и поняли суть документов.</string>
+    <string name="polkaswap_info_text_2">Вы также осознаете:</string>
+    <string name="polkaswap_info_text_3">Вашу личную ответственность за соблюдение законов, которые могут применяться к использованию Polkaswap в вашей юрисдикции;</string>
+    <string name="polkaswap_info_text_4">Что текущая версия Polkaswap является альфа-версией: она не была полностью протестирована, и некоторые функции могут работать не так, как задумано;</string>
+    <string name="polkaswap_info_text_5">Понимание и добровольное принятие рисков, связанных с использованием Polkaswap, включая, но не ограничиваясь, риском потери токенов.</string>
+    <string name="polkaswap_info_text_6">Не продолжайте, пока не ознакомитесь с %%Polkaswap FAQ%%, %%Polkaswap Меморандумом и Условиями и положениями%%, и %%Политикой конфиденциальности%%!</string>
+    <string name="polkaswap_info_switch_text">Я подтверждаю, что ознакомился со всеми упомянутыми документами и, нажимая «Продолжить», принимаю их.</string>
 </resources>

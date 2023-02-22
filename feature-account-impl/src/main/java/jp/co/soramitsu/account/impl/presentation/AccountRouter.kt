@@ -82,4 +82,6 @@ interface AccountRouter : SecureRouter {
     fun openExperimentalFeatures()
 
     fun openOptionsAddAccount(payload: AddAccountBottomSheet.Payload)
+
+    fun openPolkaswapDisclaimer()
 }

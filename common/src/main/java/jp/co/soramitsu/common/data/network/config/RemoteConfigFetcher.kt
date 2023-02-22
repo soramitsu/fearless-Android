@@ -9,4 +9,7 @@ interface RemoteConfigFetcher {
     suspend fun getAppConfig(
         @Header("Cache-Control") noCache: String = "no-cache"
     ): AppConfigRemote
+
+    @GET(BuildConfig.POLKASWAP_CONFIG_URL)
+    suspend fun getPolkaswapConfig(): PolkaswapRemoteConfig
 }

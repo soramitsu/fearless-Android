@@ -63,8 +63,9 @@ fun SearchAssetsScreen(
             ) {
                 CorneredInput(
                     state = data?.searchQuery,
-                    onInput = callback::onAssetSearchEntered,
-                    borderColor = white30
+                    borderColor = white30,
+                    hintLabel = stringResource(id = R.string.manage_assets_search_hint),
+                    onInput = callback::onAssetSearchEntered
                 )
             }
             Box(
@@ -82,11 +83,17 @@ fun SearchAssetsScreen(
             }
         }
         MarginVertical(margin = 16.dp)
-        if (data?.assets?.isNotEmpty() == true) {
-            AssetsList(data, callback)
-        } else {
-            MarginVertical(margin = 16.dp)
-            EmptyMessage(message = R.string.common_search_assets_alert_description)
+        when {
+            data?.searchQuery.isNullOrEmpty() -> {
+                AssetsList(SearchAssetState(emptyList()), callback)
+            }
+            data?.assets?.isNotEmpty() == true -> {
+                AssetsList(data, callback)
+            }
+            else -> {
+                MarginVertical(margin = 16.dp)
+                EmptyMessage(message = R.string.common_search_assets_alert_description)
+            }
         }
     }
 }

@@ -18,7 +18,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.Divider
-import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -51,7 +50,6 @@ import jp.co.soramitsu.common.compose.component.ShimmerRectangle
 import jp.co.soramitsu.common.compose.component.getImageRequest
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.theme.black3
-import jp.co.soramitsu.common.compose.theme.customColors
 import jp.co.soramitsu.common.compose.theme.gray2
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.utils.formatDateTime
@@ -64,6 +62,8 @@ import jp.co.soramitsu.wallet.impl.presentation.transaction.history.mixin.Transa
 import jp.co.soramitsu.wallet.impl.presentation.transaction.history.model.DayHeader
 
 data class BalanceDetailsState(
+    val actionItems: List<ActionItemType>,
+    val disabledItems: List<ActionItemType>,
     val balance: AssetBalanceViewState,
     val selectedChainId: String,
     val chainAssetId: String,
@@ -73,7 +73,6 @@ data class BalanceDetailsState(
 interface BalanceDetailsScreenInterface {
     fun onAddressClick()
     fun onBalanceClick()
-    fun buyEnabled(): Boolean
     fun actionItemClicked(actionType: ActionItemType, chainId: ChainId, chainAssetId: String)
     fun filterClicked()
     fun transactionClicked(transactionModel: OperationModel)
@@ -187,18 +186,11 @@ private fun ContentBalanceDetailsScreen(
             onBalanceClick = callback::onBalanceClick
         )
         MarginVertical(margin = 24.dp)
+
         ActionBar(
             state = ActionBarViewState(
-                actionItems = mutableListOf(
-                    ActionItemType.SEND,
-                    ActionItemType.RECEIVE,
-                    ActionItemType.BUY
-                ),
-                disabledItems = if (!callback.buyEnabled()) {
-                    listOf(ActionItemType.BUY)
-                } else {
-                    emptyList()
-                },
+                actionItems = data.actionItems,
+                disabledItems = data.disabledItems,
                 chainId = data.selectedChainId,
                 chainAssetId = data.chainAssetId
             ),
@@ -414,15 +406,10 @@ private fun TransactionItem(
         Spacer(modifier = Modifier.weight(1f))
         Column(horizontalAlignment = Alignment.End) {
             Row {
-                val balanceChangeStatusColor = if (item.amount.startsWith("+")) {
-                    MaterialTheme.customColors.greenText
-                } else {
-                    MaterialTheme.customColors.white
-                }
-
                 B1(
                     text = item.amount,
-                    color = balanceChangeStatusColor,
+                    color = item.amountColor,
+                    overflow = TextOverflow.Ellipsis,
                     maxLines = 1
                 )
                 Spacer(modifier = Modifier.width(5.dp))
@@ -462,6 +449,8 @@ private fun PreviewBalanceDetailScreenContent() {
     )
 
     val state = BalanceDetailsState(
+        actionItems = emptyList(),
+        disabledItems = emptyList(),
         balance = assetBalanceViewState,
         selectedChainId = "",
         chainAssetId = "",
@@ -471,9 +460,6 @@ private fun PreviewBalanceDetailScreenContent() {
     val empty = object : BalanceDetailsScreenInterface {
         override fun onAddressClick() {}
         override fun onBalanceClick() {}
-        override fun buyEnabled(): Boolean {
-            return true
-        }
 
         override fun actionItemClicked(actionType: ActionItemType, chainId: ChainId, chainAssetId: String) {}
         override fun filterClicked() {}

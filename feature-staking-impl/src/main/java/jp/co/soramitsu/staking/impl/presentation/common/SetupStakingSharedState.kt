@@ -292,7 +292,7 @@ class SetupStakingSharedState {
     val setupStakingProcess = MutableStateFlow<SetupStakingProcess>(SetupStakingProcess.Initial(StakingType.PARACHAIN))
 
     fun set(newState: SetupStakingProcess) {
-        Log.d("RX", "${setupStakingProcess.value.javaClass.simpleName} -> ${newState.javaClass.simpleName}")
+        Log.d("RX", "${setupStakingProcess.value.javaClass.simpleName} → ${newState.javaClass.simpleName}")
 
         setupStakingProcess.value = newState
     }

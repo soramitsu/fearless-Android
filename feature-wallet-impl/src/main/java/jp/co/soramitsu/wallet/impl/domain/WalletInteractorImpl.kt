@@ -1,7 +1,5 @@
 package jp.co.soramitsu.wallet.impl.domain
 
-import java.math.BigDecimal
-import java.math.BigInteger
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.accountId
@@ -47,6 +45,8 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.withIndex
 import kotlinx.coroutines.withContext
+import java.math.BigDecimal
+import java.math.BigInteger
 
 private const val QR_PREFIX_SUBSTRATE = "substrate"
 private const val PREFS_WALLET_SELECTED_CHAIN_ID = "wallet_selected_chain_id"
@@ -93,6 +93,9 @@ class WalletInteractorImpl(
         .thenBy { it.asset.token.configuration.isTestNet }
         .thenByDescending { it.asset.token.configuration.chainId.isPolkadotOrKusama() }
         .thenBy { it.asset.token.configuration.chainName }
+        .thenBy { it.asset.token.configuration.symbolToShow }
+        .thenByDescending { it.asset.token.configuration.isUtility }
+        .thenByDescending { it.asset.token.configuration.isNative == true }
 
     override suspend fun syncAssetsRates(): Result<Unit> {
         return runCatching {
@@ -313,9 +316,15 @@ class WalletInteractorImpl(
 
     override fun observeAddressBook(chainId: ChainId) = addressBookRepository.observeAddressBook(chainId)
 
-    override fun saveChainId(chainId: ChainId?) = preferences.putString(PREFS_WALLET_SELECTED_CHAIN_ID, chainId)
+    override fun saveChainId(walletId: Long, chainId: ChainId?) {
+        preferences.putString(PREFS_WALLET_SELECTED_CHAIN_ID + walletId, chainId)
+    }
 
-    override fun getSavedChainId(): ChainId? = preferences.getString(PREFS_WALLET_SELECTED_CHAIN_ID)
+    override suspend fun getSavedChainId(walletId: Long): String? {
+        val savedChainId = preferences.getString(PREFS_WALLET_SELECTED_CHAIN_ID + walletId)
+        val existingChain = savedChainId?.let { runCatching { getChain(it) }.getOrNull() }
+        return existingChain?.id
+    }
 
     override suspend fun getEquilibriumAccountInfo(asset: Chain.Asset, accountId: AccountId): EqAccountInfo? =
         walletRepository.getEquilibriumAccountInfo(asset, accountId)

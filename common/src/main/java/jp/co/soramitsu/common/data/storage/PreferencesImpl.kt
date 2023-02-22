@@ -114,4 +114,30 @@ class PreferencesImpl(
             sharedPreferences.unregisterOnSharedPreferenceChangeListener(listener)
         }
     }
+    override fun booleanFlow(
+        field: String,
+        initialValue: Boolean
+    ): Flow<Boolean> = callbackFlow {
+        if (contains(field)) {
+            send(getBoolean(field, initialValue))
+        } else {
+            putBoolean(field, initialValue)
+
+            send(initialValue)
+        }
+
+        val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+            if (key == field) {
+                trySend(getBoolean(field, initialValue))
+            }
+        }
+
+        listeners.add(listener)
+        sharedPreferences.registerOnSharedPreferenceChangeListener(listener)
+
+        awaitClose {
+            listeners.remove(listener)
+            sharedPreferences.unregisterOnSharedPreferenceChangeListener(listener)
+        }
+    }
 }

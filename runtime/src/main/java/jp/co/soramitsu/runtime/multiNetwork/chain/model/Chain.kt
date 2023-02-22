@@ -1,11 +1,14 @@
 package jp.co.soramitsu.runtime.multiNetwork.chain.model
 
+import android.os.Parcelable
 import jp.co.soramitsu.common.data.network.BlockExplorerUrlBuilder
 import jp.co.soramitsu.common.domain.AppVersion
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.DictEnum
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.Struct
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainAssetType
+import kotlinx.parcelize.IgnoredOnParcel
+import kotlinx.parcelize.Parcelize
 
 typealias ChainId = String
 
@@ -50,6 +53,7 @@ data class Chain(
         val overridesCommon: Boolean
     )
 
+    @Parcelize
     data class Asset(
         val id: String,
         val symbol: String,
@@ -67,15 +71,19 @@ data class Chain(
         val isUtility: Boolean,
         val type: ChainAssetType?,
         val currencyId: String?,
-        val existentialDeposit: String?
-    ) {
+        val existentialDeposit: String?,
+        val color: String?,
+        val isNative: Boolean?
+    ) : Parcelable {
 
         enum class StakingType {
             UNSUPPORTED, RELAYCHAIN, PARACHAIN
         }
 
+        @IgnoredOnParcel
         val symbolToShow = displayName ?: symbol
 
+        @IgnoredOnParcel
         val chainToSymbol = chainId to symbol
 
         val orderInStaking: Int
@@ -84,9 +92,13 @@ data class Chain(
                 else -> order
             }
 
+        @IgnoredOnParcel
         private val isSoraUtilityAsset = isUtility && chainId in SORA_WITH_XOR_TRANSFER_PALLET_ASSET
+
+        @IgnoredOnParcel
         val typeExtra = if (isSoraUtilityAsset) ChainAssetType.SoraUtilityAsset else type
 
+        @IgnoredOnParcel
         @Suppress("IMPLICIT_CAST_TO_ANY")
         val currency = when (typeExtra) {
             null, ChainAssetType.Normal -> null
@@ -142,7 +154,9 @@ data class Chain(
     ) {
         data class Section(val type: Type, val url: String) {
             enum class Type {
-                SUBQUERY, GITHUB, UNKNOWN
+                SUBQUERY, SORA, SUBSQUID, GIANTSQUID, GITHUB, UNKNOWN;
+
+                fun isHistory() = this in listOf(SUBQUERY, SORA, SUBSQUID, GIANTSQUID)
             }
         }
     }

@@ -3,7 +3,6 @@ package jp.co.soramitsu.wallet.impl.presentation.balance.chainselector
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.runtime.ext.utilityAsset
@@ -17,9 +16,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @HiltViewModel
 class ChainSelectViewModel @Inject constructor(
@@ -42,10 +41,12 @@ class ChainSelectViewModel @Inject constructor(
 
     private var choiceDone = false
 
-    private val chainsFlow = chainInteractor.getChainsFlow().mapNotNull { chains ->
+    private val chainsFlow = chainInteractor.getChainsFlow().map { chains ->
         when {
             initialSelectedAssetId != null -> {
-                chains.firstOrNull { it.assets.any { it.id == initialSelectedAssetId } }?.let { chainOfTheAsset ->
+                chains.firstOrNull {
+                    initialSelectedChainId in listOf(null, it.id) && it.assets.any { it.id == initialSelectedAssetId }
+                }?.let { chainOfTheAsset ->
                     selectedChainId.value = chainOfTheAsset.id
 
                     val symbolToShow = chainOfTheAsset.assets.firstOrNull { it.id == (initialSelectedAssetId) }?.symbolToShow
@@ -63,15 +64,15 @@ class ChainSelectViewModel @Inject constructor(
     }.map { chains ->
         val meta = accountInteractor.selectedMetaAccount()
         val ethBasedChainAccounts = meta.chainAccounts.filter { it.value.chain?.isEthereumBased == true }
-        val ethBasedChains = chains.filter { it.isEthereumBased }
+        val ethBasedChains = chains?.filter { it.isEthereumBased }.orEmpty()
         val filtered = if (meta.ethereumPublicKey == null && ethBasedChains.size != ethBasedChainAccounts.size) {
             val ethChainsWithNoAccounts = ethBasedChains.filter { it.id !in ethBasedChainAccounts.keys }
-            chains.filter { it !in ethChainsWithNoAccounts }
+            chains?.filter { it !in ethChainsWithNoAccounts }
         } else {
             chains
         }
-        filtered.map { it.toChainItemState() }
-    }
+        filtered?.map { it.toChainItemState() }
+    }.stateIn(this, SharingStarted.Eagerly, null)
 
     private val symbolFlow = chainInteractor.getChainsFlow().map { chains ->
         (initialSelectedAssetId ?: sharedSendState.assetId)?.let {
@@ -88,12 +89,12 @@ class ChainSelectViewModel @Inject constructor(
 
     val state = combine(chainsFlow, selectedChainId, enteredChainQueryFlow) { chainItems, selectedChainId, searchQuery ->
         val chains = chainItems
-            .filter {
+            ?.filter {
                 val condition = it.tokenSymbols.values.any { it.contains(searchQuery, true) }
 
                 searchQuery.isEmpty() || it.title.contains(searchQuery, true) || condition
             }
-            .sortedWith(compareBy<ChainItemState> { it.id.defaultChainSort() }.thenBy { it.title })
+            ?.sortedWith(compareBy<ChainItemState> { it.id.defaultChainSort() }.thenBy { it.title })
 
         ChainSelectScreenViewState(
             chains = chains,
@@ -106,35 +107,40 @@ class ChainSelectViewModel @Inject constructor(
     fun onChainSelected(chainItemState: ChainItemState?) {
         choiceDone = true
         val chainId = chainItemState?.id
-        if (selectedChainId.value != chainId) {
-            selectedChainId.value = chainId
-            walletRouter.setChainSelectorPayload(chainId)
+        if (selectedChainId.value == chainId) {
             if (chooserMode) {
                 walletRouter.back()
-                return
             }
+            return
+        }
 
-            val assetId = chainItemState?.tokenSymbols?.entries?.firstOrNull { it.value == symbolFlow.value }?.key
+        selectedChainId.value = chainId
+        walletRouter.setChainSelectorPayload(chainId)
+        if (chooserMode) {
+            walletRouter.back()
+            return
+        }
 
-            chainId?.let {
-                launch {
-                    val chain = walletInteractor.getChain(it)
-                    if (sharedSendState.assetId == null) {
-                        when {
-                            chain.assets.size == 1 -> {
-                                assetSpecified(assetId = chain.assets[0].id, chainId = chain.id)
-                            }
-                            chain.assets.filter { it.currencyId == tokenCurrencyId }.size == 1 -> {
-                                assetSpecified(assetId = chain.assets.filter { it.currencyId == tokenCurrencyId }[0].id, chainId = chain.id)
-                            }
-                            else -> {
-                                walletRouter.back()
-                                walletRouter.openSelectChainAsset(chain.id)
-                            }
+        val assetId = chainItemState?.tokenSymbols?.entries?.firstOrNull { it.value == symbolFlow.value }?.key
+
+        chainId?.let {
+            launch {
+                val chain = walletInteractor.getChain(it)
+                if (sharedSendState.assetId == null) {
+                    when {
+                        chain.assets.size == 1 -> {
+                            assetSpecified(assetId = chain.assets[0].id, chainId = chain.id)
                         }
-                    } else {
-                        assetSpecified(assetId = assetId ?: chain.utilityAsset.id, chainId = it)
+                        chain.assets.filter { it.currencyId == tokenCurrencyId }.size == 1 -> {
+                            assetSpecified(assetId = chain.assets.filter { it.currencyId == tokenCurrencyId }[0].id, chainId = chain.id)
+                        }
+                        else -> {
+                            walletRouter.back()
+                            walletRouter.openSelectChainAsset(chain.id)
+                        }
                     }
+                } else {
+                    assetSpecified(assetId = assetId ?: chain.utilityAsset.id, chainId = it)
                 }
             }
         }

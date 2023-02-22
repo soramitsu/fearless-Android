@@ -14,9 +14,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.theme.customColors
 import jp.co.soramitsu.common.compose.theme.customTypography
@@ -55,7 +57,7 @@ fun <T : MultiToggleItem> MultiToggleButton(
 
                 BackgroundCornered(
                     modifier = Modifier
-                        .testTag("MultiToggleButton_${toggleState.title}")
+                        .testTag("MultiToggleButton_${stringResource(toggleState.titleResId)}")
                         .weight(1f)
                         .toggleableWithNoIndication(
                             value = isSelected,
@@ -65,7 +67,7 @@ fun <T : MultiToggleItem> MultiToggleButton(
                     backgroundColor = backgroundTint
                 ) {
                     Text(
-                        text = toggleState.title,
+                        text = stringResource(toggleState.titleResId),
                         style = style,
                         color = Color.White,
                         modifier = Modifier
@@ -84,17 +86,17 @@ data class MultiToggleButtonState<T : MultiToggleItem>(
 )
 
 interface MultiToggleItem {
-    val title: String
+    val titleResId: Int
 }
 
 @Preview
 @Composable
 private fun PreviewMultiToggleButton() {
     val currencies = object : MultiToggleItem {
-        override val title = "Currencies"
+        override val titleResId = R.string.сurrencies_stub_text
     }
     val nfts = object : MultiToggleItem {
-        override val title = "NFTs"
+        override val titleResId = R.string.nfts_stub
     }
     FearlessTheme {
         Surface(Modifier.background(Color.Black)) {

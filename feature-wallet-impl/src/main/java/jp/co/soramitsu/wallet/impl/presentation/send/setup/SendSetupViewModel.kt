@@ -33,6 +33,7 @@ import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.runtime.ext.isValidAddress
 import jp.co.soramitsu.runtime.ext.utilityAsset
+import jp.co.soramitsu.wallet.api.domain.TransferValidationResult
 import jp.co.soramitsu.wallet.api.domain.ValidateTransferUseCase
 import jp.co.soramitsu.wallet.api.domain.fromValidationResult
 import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
@@ -88,8 +89,8 @@ class SendSetupViewModel @Inject constructor(
     private val _openScannerEvent = MutableLiveData<Event<Unit>>()
     val openScannerEvent: LiveData<Event<Unit>> = _openScannerEvent
 
-    private val _openValidationWarningEvent = MutableLiveData<Event<ValidationWarning>>()
-    val openValidationWarningEvent: LiveData<Event<ValidationWarning>> = _openValidationWarningEvent
+    private val _openValidationWarningEvent = MutableLiveData<Event<Pair<TransferValidationResult, ValidationWarning>>>()
+    val openValidationWarningEvent: LiveData<Event<Pair<TransferValidationResult, ValidationWarning>>> = _openValidationWarningEvent
 
     val payload: AssetPayload? = savedStateHandle[SendSetupFragment.KEY_PAYLOAD]
     private val initSendToAddress: String? = savedStateHandle[SendSetupFragment.KEY_INITIAL_ADDRESS]
@@ -102,6 +103,7 @@ class SendSetupViewModel @Inject constructor(
     }
 
     private val initialAmount = "0"
+    private val confirmedValidations = mutableListOf<TransferValidationResult>()
 
     private val selectedChain = sharedState.chainIdFlow.map { chainId ->
         chainId?.let { walletInteractor.getChain(it) }
@@ -128,7 +130,7 @@ class SendSetupViewModel @Inject constructor(
     private val defaultAmountInputState = AmountInputViewState(
         tokenName = "...",
         tokenImage = "",
-        totalBalance = resourceManager.getString(R.string.common_balance_format, "..."),
+        totalBalance = resourceManager.getString(R.string.common_available_format, "..."),
         fiatAmount = "",
         tokenAmount = initialAmount,
         allowAssetChoose = false
@@ -199,7 +201,7 @@ class SendSetupViewModel @Inject constructor(
             AmountInputViewState(
                 tokenName = asset.token.configuration.symbolToShow,
                 tokenImage = asset.token.configuration.iconUrl,
-                totalBalance = resourceManager.getString(R.string.common_balance_format, tokenBalance),
+                totalBalance = resourceManager.getString(R.string.common_available_format, tokenBalance),
                 fiatAmount = fiatAmount,
                 tokenAmount = enteredAmount,
                 isActive = true,
@@ -315,6 +317,8 @@ class SendSetupViewModel @Inject constructor(
             else -> walletInteractor.validateSendAddress(chain.id, address)
         }
 
+        confirmedValidations.clear()
+
         SendSetupViewState(
             toolbarState = toolbarViewState,
             addressInputState = AddressInputState(
@@ -395,9 +399,9 @@ class SendSetupViewModel @Inject constructor(
             val recipientAddress = addressInputFlow.value
             val selfAddress = currentAccountAddress(asset.token.configuration.chainId) ?: return@launch
             val fee = feeInPlanksFlow.value
-            val validationProcessResult = validateTransferUseCase(inPlanks, asset, recipientAddress, selfAddress, fee)
+            val validationProcessResult = validateTransferUseCase(inPlanks, asset, recipientAddress, selfAddress, fee, confirmedValidations)
 
-            // error occured inside validation
+            // error occurred inside validation
             validationProcessResult.exceptionOrNull()?.let {
                 showError(it)
                 return@launch
@@ -406,7 +410,7 @@ class SendSetupViewModel @Inject constructor(
 
             ValidationException.fromValidationResult(validationResult, resourceManager)?.let {
                 if (it is ValidationWarning) {
-                    _openValidationWarningEvent.value = Event(it)
+                    _openValidationWarningEvent.value = Event(validationResult to it)
                 } else {
                     showError(it)
                 }
@@ -453,7 +457,7 @@ class SendSetupViewModel @Inject constructor(
 
     override fun onChainClick() {
         sharedState.assetId?.let { assetId ->
-            router.openSelectChain(assetId = assetId, chooserMode = false)
+            router.openSelectChain(assetId = assetId, chainId = sharedState.chainId, chooserMode = false)
         }
     }
 
@@ -536,7 +540,8 @@ class SendSetupViewModel @Inject constructor(
         isWarningExpanded.value = !isWarningExpanded.value
     }
 
-    fun existentialDepositWarningConfirmed() {
-        onNextStep()
+    fun warningConfirmed(validationResult: TransferValidationResult) {
+        confirmedValidations.add(validationResult)
+        onNextClick()
     }
 }

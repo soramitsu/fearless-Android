@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -38,13 +39,17 @@ data class SelectorState(
 @Composable
 fun SelectorWithBorder(
     state: SelectorState,
+    modifier: Modifier = Modifier,
     onClick: () -> Unit = {}
 ) {
+    val shape = FearlessCorneredShape()
     BackgroundCorneredWithBorder(
         backgroundColor = black05,
         borderColor = white24,
-        modifier = Modifier
+        shape = shape,
+        modifier = modifier
             .fillMaxWidth()
+            .clip(shape)
             .clickable { onClick() }
             .height(64.dp)
     ) {

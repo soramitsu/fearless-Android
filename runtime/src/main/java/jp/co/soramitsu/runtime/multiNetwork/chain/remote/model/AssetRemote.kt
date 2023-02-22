@@ -11,8 +11,10 @@ data class AssetRemote(
     val precision: Int?,
     val priceId: String?,
     val icon: String?,
+    val color: String?,
     val transfersEnabled: Boolean?,
     val type: ChainAssetType?,
     val currencyId: String?,
-    val existentialDeposit: String?
+    val existentialDeposit: String?,
+    val isNative: Boolean?
 )

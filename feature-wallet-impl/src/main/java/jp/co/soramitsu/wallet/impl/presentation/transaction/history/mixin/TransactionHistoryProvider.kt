@@ -88,7 +88,7 @@ class TransactionHistoryProvider(
                 is HistoryNotSupportedException -> resourceManager.getString(R.string.wallet_transaction_history_unsupported_message)
                 else -> resourceManager.getString(R.string.wallet_transaction_history_error_message)
             }
-            domainState.emit(State.Empty(domainState.value.filters, message, domainState.value.assetPayload))
+            domainState.emit(State.Empty(domainState.value.filters, message, assetPayload))
         }
     }
 
@@ -113,6 +113,10 @@ class TransactionHistoryProvider(
 
                     is OperationParcelizeModel.Reward -> {
                         router.openRewardDetail(RewardDetailsPayload(operation, assetPayload.chainId))
+                    }
+
+                    is OperationParcelizeModel.Swap -> {
+                        router.openSwapDetail(operation)
                     }
                 }
             }

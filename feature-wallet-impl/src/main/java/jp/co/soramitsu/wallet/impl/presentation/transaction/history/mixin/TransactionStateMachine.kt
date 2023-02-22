@@ -194,17 +194,18 @@ object TransactionStateMachine {
             }
 
             is Action.AssetPayloadChanged -> {
-                if (canUseCache(using = state.filters)) {
-                    sideEffectListener(SideEffect.TriggerCache(state.assetPayload))
-                } else {
-                    sideEffectListener(
-                        SideEffect.LoadPage(
-                            nextCursor = null,
-                            filters = state.filters,
-                            assetPayload = action.assetPayload
-                        )
+                // fixme cache not working properly
+//                if (canUseCache(using = state.filters)) {
+//                    sideEffectListener(SideEffect.TriggerCache(action.assetPayload))
+//                } else {
+                sideEffectListener(
+                    SideEffect.LoadPage(
+                        nextCursor = null,
+                        filters = state.filters,
+                        assetPayload = action.assetPayload
                     )
-                }
+                )
+//                }
 
                 State.EmptyProgress(
                     filters = state.filters,
