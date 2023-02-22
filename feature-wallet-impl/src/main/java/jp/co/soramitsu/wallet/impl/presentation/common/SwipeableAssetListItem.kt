@@ -18,7 +18,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun SwipableAssetListItem(
+fun SwipeableAssetListItem(
     assetState: AssetListItemViewState,
     assetClicked: (AssetListItemViewState) -> Unit,
     actionItemClicked: (actionType: ActionItemType, chainId: ChainId, chainAssetId: String, swipeableState: SwipeableState<SwipeState>) -> Unit

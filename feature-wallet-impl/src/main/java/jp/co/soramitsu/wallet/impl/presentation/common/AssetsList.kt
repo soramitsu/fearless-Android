@@ -51,7 +51,7 @@ fun AssetsList(
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         items(data.visibleAssets, key = { it.key }) { assetState ->
-            SwipableAssetListItem(
+            SwipeableAssetListItem(
                 assetState = assetState,
                 assetClicked = callback::assetClicked,
                 actionItemClicked = callback::actionItemClicked
@@ -66,7 +66,7 @@ fun AssetsList(
             }
             if (isShowHidden.value) {
                 items(data.hiddenAssets, key = { it.key }) { assetState ->
-                    SwipableAssetListItem(
+                    SwipeableAssetListItem(
                         assetState = assetState,
                         assetClicked = callback::assetClicked,
                         actionItemClicked = callback::actionItemClicked
