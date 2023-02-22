@@ -41,7 +41,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.wallet.impl.presentation.balance.assetselector.EmptyResultContent
 
 data class ChainSelectScreenViewState(
-    val chains: List<ChainItemState>,
+    val chains: List<ChainItemState>?,
     val selectedChainId: ChainId?,
     val searchQuery: String? = null,
     val showAllChains: Boolean = true
@@ -71,31 +71,35 @@ fun ChainSelectContent(
         H3(text = stringResource(id = R.string.common_select_network))
         MarginVertical(margin = 16.dp)
         CorneredInput(state = state.searchQuery, onInput = onSearchInput)
-        if (state.chains.isEmpty()) {
-            MarginVertical(margin = 16.dp)
-            Column(
-                horizontalAlignment = CenterHorizontally,
-                modifier = Modifier
-                    .weight(1f)
-                    .align(CenterHorizontally)
-            ) {
-                EmptyResultContent()
+        when {
+            state.chains == null -> {}
+            state.chains.isEmpty() -> {
+                MarginVertical(margin = 16.dp)
+                Column(
+                    horizontalAlignment = CenterHorizontally,
+                    modifier = Modifier
+                        .weight(1f)
+                        .align(CenterHorizontally)
+                ) {
+                    EmptyResultContent()
+                }
             }
-        } else {
-            LazyColumn(modifier = Modifier.weight(1f)) {
-                if (state.showAllChains) {
-                    item {
-                        ChainAllItem(
-                            isSelected = state.selectedChainId == null,
+            else -> {
+                LazyColumn(modifier = Modifier.weight(1f)) {
+                    if (state.showAllChains) {
+                        item {
+                            ChainAllItem(
+                                isSelected = state.selectedChainId == null,
+                                onSelected = onChainSelected
+                            )
+                        }
+                    }
+                    items(state.chains.map { it.copy(isSelected = it.id == state.selectedChainId) }) { chain ->
+                        ChainItem(
+                            state = chain,
                             onSelected = onChainSelected
                         )
                     }
-                }
-                items(state.chains.map { it.copy(isSelected = it.id == state.selectedChainId) }) { chain ->
-                    ChainItem(
-                        state = chain,
-                        onSelected = onChainSelected
-                    )
                 }
             }
         }
