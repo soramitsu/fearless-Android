@@ -137,7 +137,7 @@ class ValidateTransferUseCaseImpl(
         ownAddress: String,
         amountInPlanks: BigInteger,
         fee: BigInteger,
-        tip: BigInteger,
+        tip: BigInteger
     ): Map<TransferValidationResult, Boolean> {
         val chainAsset = asset.token.configuration
         val assetExistentialDeposit = existentialDepositUseCase(chainAsset)
