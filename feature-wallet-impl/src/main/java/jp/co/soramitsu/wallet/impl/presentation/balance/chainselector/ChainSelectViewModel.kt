@@ -16,7 +16,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -42,7 +41,7 @@ class ChainSelectViewModel @Inject constructor(
 
     private var choiceDone = false
 
-    private val chainsFlow = chainInteractor.getChainsFlow().mapNotNull { chains ->
+    private val chainsFlow = chainInteractor.getChainsFlow().map { chains ->
         when {
             initialSelectedAssetId != null -> {
                 chains.firstOrNull {
@@ -65,15 +64,15 @@ class ChainSelectViewModel @Inject constructor(
     }.map { chains ->
         val meta = accountInteractor.selectedMetaAccount()
         val ethBasedChainAccounts = meta.chainAccounts.filter { it.value.chain?.isEthereumBased == true }
-        val ethBasedChains = chains.filter { it.isEthereumBased }
+        val ethBasedChains = chains?.filter { it.isEthereumBased }.orEmpty()
         val filtered = if (meta.ethereumPublicKey == null && ethBasedChains.size != ethBasedChainAccounts.size) {
             val ethChainsWithNoAccounts = ethBasedChains.filter { it.id !in ethBasedChainAccounts.keys }
-            chains.filter { it !in ethChainsWithNoAccounts }
+            chains?.filter { it !in ethChainsWithNoAccounts }
         } else {
             chains
         }
-        filtered.map { it.toChainItemState() }
-    }
+        filtered?.map { it.toChainItemState() }
+    }.stateIn(this, SharingStarted.Eagerly, null)
 
     private val symbolFlow = chainInteractor.getChainsFlow().map { chains ->
         (initialSelectedAssetId ?: sharedSendState.assetId)?.let {
@@ -90,12 +89,12 @@ class ChainSelectViewModel @Inject constructor(
 
     val state = combine(chainsFlow, selectedChainId, enteredChainQueryFlow) { chainItems, selectedChainId, searchQuery ->
         val chains = chainItems
-            .filter {
+            ?.filter {
                 val condition = it.tokenSymbols.values.any { it.contains(searchQuery, true) }
 
                 searchQuery.isEmpty() || it.title.contains(searchQuery, true) || condition
             }
-            .sortedWith(compareBy<ChainItemState> { it.id.defaultChainSort() }.thenBy { it.title })
+            ?.sortedWith(compareBy<ChainItemState> { it.id.defaultChainSort() }.thenBy { it.title })
 
         ChainSelectScreenViewState(
             chains = chains,

@@ -1,27 +1,35 @@
 package jp.co.soramitsu.wallet.impl.presentation.send.confirm
 
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.common.AlertViewState
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.base.errors.ValidationException
+import jp.co.soramitsu.common.base.errors.ValidationWarning
 import jp.co.soramitsu.common.compose.component.ButtonViewState
 import jp.co.soramitsu.common.compose.component.TitleValueViewState
 import jp.co.soramitsu.common.data.network.BlockExplorerUrlBuilder
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.combine
 import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.common.utils.requireException
+import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.runtime.ext.utilityAsset
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
+import jp.co.soramitsu.wallet.api.domain.TransferValidationResult
+import jp.co.soramitsu.wallet.api.domain.ValidateTransferUseCase
+import jp.co.soramitsu.wallet.api.domain.fromValidationResult
 import jp.co.soramitsu.wallet.api.presentation.mixin.TransferValidityChecks
 import jp.co.soramitsu.wallet.impl.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
@@ -47,6 +55,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import javax.inject.Inject
 
 private const val ICON_IN_DP = 24
 
@@ -61,7 +70,8 @@ class ConfirmSendViewModel @Inject constructor(
     private val transferValidityChecks: TransferValidityChecks.Presentation,
     private val savedStateHandle: SavedStateHandle,
     private val resourceManager: ResourceManager,
-    private val currentAccountAddress: CurrentAccountAddressUseCase
+    private val currentAccountAddress: CurrentAccountAddressUseCase,
+    private val validateTransferUseCase: ValidateTransferUseCase
 ) : BaseViewModel(),
     ExternalAccountActions by externalAccountActions,
     TransferValidityChecks by transferValidityChecks,
@@ -69,6 +79,9 @@ class ConfirmSendViewModel @Inject constructor(
 
     private val transferDraft = savedStateHandle.get<TransferDraft>(ConfirmSendFragment.KEY_DRAFT) ?: error("Required data not provided for send confirmation")
     private val phishingType = savedStateHandle.get<PhishingType>(ConfirmSendFragment.KEY_PHISHING_TYPE)
+
+    private val _openValidationWarningEvent = MutableLiveData<Event<Pair<TransferValidationResult, ValidationWarning>>>()
+    val openValidationWarningEvent: LiveData<Event<Pair<TransferValidationResult, ValidationWarning>>> = _openValidationWarningEvent
 
     private val recipientFlow = interactor.observeAddressBook(transferDraft.assetPayload.chainId).map { contacts ->
         val contactName = contacts.firstOrNull { it.address.equals(transferDraft.recipientAddress, ignoreCase = true) }?.name
@@ -83,6 +96,7 @@ class ConfirmSendViewModel @Inject constructor(
     }
 
     private val transferSubmittingFlow = MutableStateFlow(false)
+    private val confirmedValidations = mutableListOf<TransferValidationResult>()
 
     private val defaultButtonState = ButtonViewState(
         resourceManager.getString(R.string.common_confirm),
@@ -97,7 +111,6 @@ class ConfirmSendViewModel @Inject constructor(
     }.stateIn(viewModelScope, SharingStarted.Eagerly, defaultButtonState)
 
     private val assetFlow = interactor.assetFlow(transferDraft.assetPayload.chainId, transferDraft.assetPayload.chainAssetId)
-        .map(::mapAssetToAssetModel)
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val utilityAssetFlow = flowOf {
@@ -131,10 +144,11 @@ class ConfirmSendViewModel @Inject constructor(
             clickState = phishingType?.let { TitleValueViewState.ClickState(R.drawable.ic_alert_16, ConfirmSendViewState.CODE_WARNING_CLICK) }
         )
 
+        val assetModel = mapAssetToAssetModel(asset)
         val amountInfoItem = TitleValueViewState(
             title = resourceManager.getString(R.string.common_amount),
-            value = asset.formatTokenAmount(transferDraft.amount),
-            additionalValue = asset.getAsFiatWithCurrency(transferDraft.amount)
+            value = assetModel.formatTokenAmount(transferDraft.amount),
+            additionalValue = assetModel.getAsFiatWithCurrency(transferDraft.amount)
         )
 
         val tipInfoItem = transferDraft.tip?.let {
@@ -184,7 +198,42 @@ class ConfirmSendViewModel @Inject constructor(
     }
 
     override fun onNextClick() {
-        performTransfer(suppressWarnings = false)
+        launch {
+            val asset = assetFlow.firstOrNull() ?: return@launch
+            val token = asset.token.configuration
+
+            val inPlanks = token.planksFromAmount(transferDraft.amount)
+            val fee = token.planksFromAmount(transferDraft.fee)
+            val recipientAddress = transferDraft.recipientAddress
+            val selfAddress = currentAccountAddress(asset.token.configuration.chainId) ?: return@launch
+
+            val validationProcessResult = validateTransferUseCase.validateEd(
+                amountInPlanks = inPlanks,
+                asset = asset,
+                recipientAddress = recipientAddress,
+                ownAddress = selfAddress,
+                fee = fee,
+                confirmedValidations = confirmedValidations
+            )
+
+            // error occurred inside validation
+            validationProcessResult.exceptionOrNull()?.let {
+                showError(it)
+                return@launch
+            }
+            val validationResult = validationProcessResult.requireValue()
+
+            ValidationException.fromValidationResult(validationResult, resourceManager)?.let {
+                if (it is ValidationWarning) {
+                    _openValidationWarningEvent.value = Event(validationResult to it)
+                } else {
+                    showError(it)
+                }
+                return@launch
+            }
+
+            performTransfer()
+        }
     }
 
     override fun onItemClick(code: Int) {
@@ -224,15 +273,12 @@ class ConfirmSendViewModel @Inject constructor(
         }
     }
 
-    fun warningConfirmed() {
-        performTransfer(suppressWarnings = true)
+    fun warningConfirmed(validationResult: TransferValidationResult) {
+        confirmedValidations.add(validationResult)
+        onNextClick()
     }
 
-    fun errorAcknowledged() {
-        router.back()
-    }
-
-    private fun performTransfer(suppressWarnings: Boolean) {
+    private fun performTransfer() {
         launch {
             val token = assetFlow.firstOrNull()?.token?.configuration ?: return@launch
 
