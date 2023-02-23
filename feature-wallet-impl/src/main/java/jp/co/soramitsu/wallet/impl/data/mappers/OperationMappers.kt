@@ -8,13 +8,13 @@ import jp.co.soramitsu.common.compose.theme.greenText
 import jp.co.soramitsu.common.compose.theme.white
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Modules
+import jp.co.soramitsu.common.utils.formatHistoryAmount
 import jp.co.soramitsu.common.utils.nullIfEmpty
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.coredb.model.OperationLocal
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
-import jp.co.soramitsu.wallet.api.presentation.formatters.tokenAmountFromPlanks
 import jp.co.soramitsu.wallet.impl.data.network.model.response.SubqueryHistoryElementResponse
 import jp.co.soramitsu.wallet.impl.domain.interfaces.TransactionFilter
 import jp.co.soramitsu.wallet.impl.domain.model.Operation
@@ -306,8 +306,8 @@ private fun formatAmount(chainAsset: Chain.Asset, reward: Operation.Type.Reward)
 }
 
 private fun formatSwapInfo(chainAsset: Chain.Asset, swap: Operation.Type.Swap): String {
-    return swap.baseAssetAmount.tokenAmountFromPlanks(chainAsset) +
-        swap.targetAsset?.let { " ➝ " + swap.targetAssetAmount?.tokenAmountFromPlanks(it) }.orEmpty()
+    return "${chainAsset.amountFromPlanks(swap.baseAssetAmount).formatHistoryAmount()} ${chainAsset.symbolToShow.uppercase()}" +
+        swap.targetAsset?.let { " ➝ ${it.amountFromPlanks(swap.targetAssetAmount.orZero()).formatHistoryAmount()} ${it.symbolToShow.uppercase()}" }.orEmpty()
 }
 
 private fun formatFee(chainAsset: Chain.Asset, extrinsic: Operation.Type.Extrinsic): String {
