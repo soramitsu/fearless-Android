@@ -52,8 +52,7 @@ fun TransactionItem(
                 text = item.header,
                 textAlign = TextAlign.Start,
                 maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                //modifier = Modifier.width(100.dp)
+                overflow = TextOverflow.Ellipsis
             )
             B2(
                 text = item.subHeader,
