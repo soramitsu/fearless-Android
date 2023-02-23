@@ -75,11 +75,9 @@ class ChainSelectViewModel @Inject constructor(
     }.stateIn(this, SharingStarted.Eagerly, null)
 
     private val symbolFlow = chainInteractor.getChainsFlow().map { chains ->
-        (initialSelectedAssetId ?: sharedSendState.assetId)?.let {
-            chains.firstOrNull { it.assets.any { it.id == initialSelectedAssetId } }?.let { chainOfTheAsset ->
-                selectedChainId.value = chainOfTheAsset.id
-
-                val symbol = chainOfTheAsset.assets.firstOrNull { it.id == (initialSelectedAssetId) }?.symbolToShow
+        (initialSelectedAssetId ?: sharedSendState.assetId)?.let { chainAssetId ->
+            chains.firstOrNull { it.assets.any { it.id == chainAssetId } }?.let { chainOfTheAsset ->
+                val symbol = chainOfTheAsset.assets.firstOrNull { it.id == (chainAssetId) }?.symbolToShow
                 symbol
             }
         }
