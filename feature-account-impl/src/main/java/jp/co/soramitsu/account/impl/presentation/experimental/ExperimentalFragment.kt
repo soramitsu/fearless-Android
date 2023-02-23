@@ -23,13 +23,14 @@ class ExperimentalFragment : BaseFragment<ExperimentalViewModel>(R.layout.fragme
     }
 
     override fun subscribe(viewModel: ExperimentalViewModel) {
-        viewModel.state.observeState<ExperimentalState> { state ->
-            setBeaconVisibility(state.beaconDapp != null)
-
-            state.beaconDapp?.let {
-                binding.experimentsBeaconDapp.text = it.name
-            }
-        }
+        setBeaconVisibility(false)
+//        viewModel.state.observeState<ExperimentalState> { state ->
+//            setBeaconVisibility(state.beaconDapp != null)
+//
+//            state.beaconDapp?.let {
+//                binding.experimentsBeaconDapp.text = it.name
+//            }
+//        }
 
         viewModel.scanBeaconQrEvent.observeEvent {
             val integrator = IntentIntegrator.forSupportFragment(this).apply {
