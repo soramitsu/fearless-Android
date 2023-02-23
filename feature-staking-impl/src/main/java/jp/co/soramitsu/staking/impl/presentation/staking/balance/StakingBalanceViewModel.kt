@@ -77,18 +77,24 @@ class StakingBalanceViewModel @Inject constructor(
 
     val pendingAction = MutableLiveData(false)
 
-    val shouldBlockActionButtons = stakingBalanceModelLiveData.map {
+    val shouldBlockStakeMore = stakingBalanceModelLiveData.map {
         val isParachain = assetFlow.first().token.configuration.staking == Chain.Asset.StakingType.PARACHAIN
-        (it.redeemable.amount + it.unstaking.amount > BigDecimal.ZERO).and(isParachain)
+        val isUnstakingFullAmount = (it.staked.amount - it.unstaking.amount).compareTo(BigDecimal.ZERO) == 0
+        val stakeIsZero = it.staked.amount.compareTo(BigDecimal.ZERO) == 0
+        val isFullUnstake = isUnstakingFullAmount || stakeIsZero
+
+        isFullUnstake.and(isParachain)
     }.onStart { emit(true) }.asLiveData()
 
     val shouldBlockUnstake = stakingBalanceModelLiveData.map {
         val asset = assetFlow.first()
         val isParachain = asset.token.configuration.staking == Chain.Asset.StakingType.PARACHAIN
-        if (asset.token.planksFromAmount(it.staked.amount) == BigInteger.ZERO) {
+        val stakedAmountIsZero = asset.token.planksFromAmount(it.staked.amount) == BigInteger.ZERO
+        if (stakedAmountIsZero) {
             return@map true
         } else {
-            (it.redeemable.amount + it.unstaking.amount > BigDecimal.ZERO).and(isParachain)
+            val hasPendingUnstake = it.redeemable.amount + it.unstaking.amount > BigDecimal.ZERO
+            hasPendingUnstake.and(isParachain)
         }
     }.onStart { emit(true) }.asLiveData()
 
@@ -114,6 +120,7 @@ class StakingBalanceViewModel @Inject constructor(
     val showRebondActionsEvent: LiveData<Event<Set<RebondKind>>> = _showRebondActionsEvent
 
     fun bondMoreClicked() = requireValidManageAction(stakingScenarioInteractor.getBondMoreValidation()) {
+        pendingAction.value = false
         router.openBondMore(
             SelectBondMorePayload(
                 overrideFinishAction = null,
@@ -124,6 +131,7 @@ class StakingBalanceViewModel @Inject constructor(
     }
 
     fun unbondClicked() = requireValidManageAction(stakingScenarioInteractor.getUnbondingValidation()) {
+        pendingAction.value = false
         router.openSelectUnbond(
             SelectUnbondPayload(
                 collatorAddress = collatorAddress,
@@ -133,6 +141,7 @@ class StakingBalanceViewModel @Inject constructor(
     }
 
     fun redeemClicked() = requireValidManageAction(stakingScenarioInteractor.getRedeemValidation()) {
+        pendingAction.value = false
         router.openRedeem(
             RedeemPayload(
                 overrideFinishAction = null,
@@ -148,6 +157,7 @@ class StakingBalanceViewModel @Inject constructor(
     fun unbondingsMoreClicked() {
         val allowedRebondTypes = stakingScenarioInteractor.getRebondTypes()
         requireValidManageAction(stakingScenarioInteractor.getRebondValidation()) {
+            pendingAction.value = false
             _showRebondActionsEvent.postValue(Event(allowedRebondTypes))
         }
     }
