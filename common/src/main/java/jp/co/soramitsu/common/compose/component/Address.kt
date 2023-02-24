@@ -11,7 +11,6 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -42,7 +41,7 @@ fun Address(
                 .padding(horizontal = 8.dp, vertical = 4.dp)
                 .clickable(onClick = onClick)
         ) {
-            val showAddressParts = remember { address.take(7) + "..." + address.takeLast(5) }
+            val showAddressParts = address.take(7) + "..." + address.takeLast(5)
             Text(
                 text = showAddressParts,
                 style = MaterialTheme.customTypography.body2,

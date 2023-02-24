@@ -18,6 +18,7 @@ import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.theme.black2
 import jp.co.soramitsu.common.compose.theme.bold
 import jp.co.soramitsu.common.compose.theme.customTypography
+import jp.co.soramitsu.common.compose.theme.greenText
 import jp.co.soramitsu.common.utils.clickableWithNoIndication
 
 @Composable
@@ -53,6 +54,7 @@ fun InfoTableItem(state: TitleValueViewState, onClick: (Int) -> Unit = {}) {
                 state.value?.let {
                     Text(
                         text = it,
+                        color = state.valueColor,
                         modifier = Modifier.align(Alignment.End),
                         style = MaterialTheme.customTypography.header5.bold(),
                         maxLines = 1,
@@ -124,6 +126,7 @@ private fun InfoTableItemPreview() {
                     "From",
                     "8484834",
                     null,
+                    greenText,
                     clickState = TitleValueViewState.ClickState(R.drawable.ic_info_14, 1)
                 )
             )

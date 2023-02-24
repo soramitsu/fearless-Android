@@ -1,6 +1,6 @@
 package jp.co.soramitsu.common.base.errors
 
-abstract class ValidationException(
+open class ValidationException(
     override val message: String,
     val explanation: String
 ) : Exception() {

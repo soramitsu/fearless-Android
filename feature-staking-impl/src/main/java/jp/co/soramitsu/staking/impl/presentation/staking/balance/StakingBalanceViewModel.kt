@@ -6,6 +6,7 @@ import androidx.lifecycle.SavedStateHandle
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.math.BigDecimal
 import java.math.BigInteger
+import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -13,6 +14,7 @@ import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.staking.api.domain.model.StakingState
 import jp.co.soramitsu.staking.impl.domain.StakingInteractor
 import jp.co.soramitsu.staking.impl.domain.model.Unbonding
@@ -29,10 +31,9 @@ import jp.co.soramitsu.staking.impl.presentation.staking.rebond.confirm.ConfirmR
 import jp.co.soramitsu.staking.impl.presentation.staking.redeem.RedeemPayload
 import jp.co.soramitsu.staking.impl.presentation.staking.unbond.select.SelectUnbondPayload
 import jp.co.soramitsu.staking.impl.scenarios.StakingScenarioInteractor
+import jp.co.soramitsu.wallet.api.presentation.model.mapAmountToAmountModel
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
-import jp.co.soramitsu.wallet.api.presentation.model.mapAmountToAmountModel
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
@@ -41,7 +42,6 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @HiltViewModel
 class StakingBalanceViewModel @Inject constructor(
@@ -77,25 +77,30 @@ class StakingBalanceViewModel @Inject constructor(
 
     val pendingAction = MutableLiveData(false)
 
-    val shouldBlockActionButtons = stakingBalanceModelLiveData.map {
+    val shouldBlockStakeMore = stakingBalanceModelLiveData.map {
         val isParachain = assetFlow.first().token.configuration.staking == Chain.Asset.StakingType.PARACHAIN
-        (it.redeemable.amount + it.unstaking.amount > BigDecimal.ZERO).and(isParachain)
+        val isUnstakingFullAmount = (it.staked.amount - it.unstaking.amount).compareTo(BigDecimal.ZERO) == 0
+        val stakeIsZero = it.staked.amount.compareTo(BigDecimal.ZERO) == 0
+        val isFullUnstake = isUnstakingFullAmount || stakeIsZero
+
+        isFullUnstake.and(isParachain)
     }.onStart { emit(true) }.asLiveData()
 
     val shouldBlockUnstake = stakingBalanceModelLiveData.map {
         val asset = assetFlow.first()
         val isParachain = asset.token.configuration.staking == Chain.Asset.StakingType.PARACHAIN
-        if (asset.token.planksFromAmount(it.staked.amount) == BigInteger.ZERO) {
+        val stakedAmountIsZero = asset.token.planksFromAmount(it.staked.amount) == BigInteger.ZERO
+        if (stakedAmountIsZero) {
             return@map true
         } else {
-            (it.redeemable.amount + it.unstaking.amount > BigDecimal.ZERO).and(isParachain)
+            val hasPendingUnstake = it.redeemable.amount + it.unstaking.amount > BigDecimal.ZERO
+            hasPendingUnstake.and(isParachain)
         }
     }.onStart { emit(true) }.asLiveData()
 
     val unbondingModelsLiveData = unbondingsFlow
         .combine(assetFlow) { unbondings, asset ->
             unbondings.mapIndexed { index, unbonding ->
-
                 UnbondingModel(
                     index = index,
                     timeLeft = unbonding.timeLeft,
@@ -107,7 +112,7 @@ class StakingBalanceViewModel @Inject constructor(
         .inBackground()
         .asLiveData()
 
-    val unbondingEnabledLiveData = refresh.map {
+    val unbondingEnabledLiveData = combine(unbondingsFlow, refresh) { _, _ ->
         stakingScenarioInteractor.getRebondingUnbondings(collatorAddress).isNotEmpty()
     }.onStart { emit(false) }.share().asLiveData()
 
@@ -115,6 +120,7 @@ class StakingBalanceViewModel @Inject constructor(
     val showRebondActionsEvent: LiveData<Event<Set<RebondKind>>> = _showRebondActionsEvent
 
     fun bondMoreClicked() = requireValidManageAction(stakingScenarioInteractor.getBondMoreValidation()) {
+        pendingAction.value = false
         router.openBondMore(
             SelectBondMorePayload(
                 overrideFinishAction = null,
@@ -125,6 +131,7 @@ class StakingBalanceViewModel @Inject constructor(
     }
 
     fun unbondClicked() = requireValidManageAction(stakingScenarioInteractor.getUnbondingValidation()) {
+        pendingAction.value = false
         router.openSelectUnbond(
             SelectUnbondPayload(
                 collatorAddress = collatorAddress,
@@ -134,6 +141,7 @@ class StakingBalanceViewModel @Inject constructor(
     }
 
     fun redeemClicked() = requireValidManageAction(stakingScenarioInteractor.getRedeemValidation()) {
+        pendingAction.value = false
         router.openRedeem(
             RedeemPayload(
                 overrideFinishAction = null,
@@ -149,6 +157,7 @@ class StakingBalanceViewModel @Inject constructor(
     fun unbondingsMoreClicked() {
         val allowedRebondTypes = stakingScenarioInteractor.getRebondTypes()
         requireValidManageAction(stakingScenarioInteractor.getRebondValidation()) {
+            pendingAction.value = false
             _showRebondActionsEvent.postValue(Event(allowedRebondTypes))
         }
     }

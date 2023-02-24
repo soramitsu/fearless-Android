@@ -2,8 +2,6 @@ package jp.co.soramitsu.wallet.impl.presentation.send.confirm
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -76,9 +74,12 @@ fun ConfirmSendContent(
     callback: ConfirmSendScreenInterface
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
-    FullScreenLoading(isLoading = state.isLoading) {
+    FullScreenLoading(
+        isLoading = state.isLoading,
+        contentAlignment = Alignment.BottomStart
+    ) {
         BottomSheetScreen {
-            Box(Modifier.fillMaxSize()) {
+            Box(Modifier.fillMaxWidth()) {
                 Column(
                     modifier = Modifier
                         .padding(horizontal = 16.dp)
@@ -87,7 +88,7 @@ fun ConfirmSendContent(
                 ) {
                     ToolbarBottomSheet(
                         title = stringResource(id = R.string.preview),
-                        onNavigationClicked = callback::onNavigationClick
+                        onNavigationClick = callback::onNavigationClick
                     )
 
                     MarginVertical(margin = 24.dp)
@@ -120,7 +121,6 @@ fun ConfirmSendContent(
                     )
                     MarginVertical(margin = 24.dp)
                     InfoTable(items = state.tableItems, onItemClick = callback::onItemClick)
-                    Spacer(modifier = Modifier.weight(1f))
                     MarginVertical(margin = 12.dp)
 
                     AccentButton(

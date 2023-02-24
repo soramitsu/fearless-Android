@@ -2,6 +2,7 @@ apply plugin: 'com.android.library'
 apply plugin: 'dagger.hilt.android.plugin'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
+apply plugin: 'kotlin-parcelize'
 
 android {
     compileSdkVersion rootProject.compileSdkVersion
@@ -11,8 +12,8 @@ android {
         targetSdkVersion rootProject.targetSdkVersion
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        buildConfigField "String", "CHAINS_URL", "\"https://raw.githubusercontent.com/soramitsu/fearless-utils/ios/v3-jsonupd/chains/chains_dev.json\""
-        buildConfigField "String", "ASSETS_URL", "\"https://raw.githubusercontent.com/soramitsu/fearless-utils/ios/v3-jsonupd/chains/assets_dev.json\""
+        buildConfigField "String", "CHAINS_URL", "\"https://raw.githubusercontent.com/soramitsu/fearless-utils/v4/chains/chains_dev.json\""
+        buildConfigField "String", "ASSETS_URL", "\"https://raw.githubusercontent.com/soramitsu/fearless-utils/v4/chains/assets_dev.json\""
         buildConfigField "String", "APP_VERSION_NAME", "\"${rootProject.versionName}\""
     }
 
@@ -22,8 +23,8 @@ android {
         }
 
         release {
-            buildConfigField "String", "ASSETS_URL", "\"https://raw.githubusercontent.com/soramitsu/fearless-utils/ios/v3-jsonupd/chains/assets.json\""
-            buildConfigField "String", "CHAINS_URL", "\"https://raw.githubusercontent.com/soramitsu/fearless-utils/ios/v3-jsonupd/chains/chains.json\""
+            buildConfigField "String", "ASSETS_URL", "\"https://raw.githubusercontent.com/soramitsu/fearless-utils/v4/chains/assets.json\""
+            buildConfigField "String", "CHAINS_URL", "\"https://raw.githubusercontent.com/soramitsu/fearless-utils/v4/chains/chains.json\""
         }
     }
 

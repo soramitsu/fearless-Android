@@ -22,6 +22,7 @@ data class TitleValueViewState(
     val title: String,
     val value: String? = null,
     val additionalValue: String? = null,
+    val valueColor: Color = Color.Unspecified,
     val clickState: ClickState? = null
 ) {
     data class ClickState(@DrawableRes val icon: Int, val identifier: Int)

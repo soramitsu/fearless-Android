@@ -33,7 +33,9 @@ class ChainAssetLocal(
     val isUtility: Boolean?,
     val type: String?,
     val currencyId: String?,
-    val existentialDeposit: String?
+    val existentialDeposit: String?,
+    val color: String?,
+    val isNative: Boolean?
 ) {
     @Ignore
     val symbolToShow = displayName ?: symbol

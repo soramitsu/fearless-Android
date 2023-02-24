@@ -11,10 +11,10 @@
         android:id="@+id/background"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
         tools:background="@android:color/black" />
 
     <ImageView
@@ -26,25 +26,26 @@
         android:paddingStart="16dp"
         android:paddingEnd="8dp"
         android:src="@drawable/ic_arrow_back_24dp"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"/>
+        app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
         android:id="@+id/titleTv"
         style="@style/TextAppearance.Soramitsu.Header3"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
+        android:layout_marginStart="44dp"
+        android:layout_marginEnd="44dp"
         android:ellipsize="end"
         android:gravity="center"
         android:maxLines="1"
         android:textColor="@color/white"
         app:layout_constrainedWidth="true"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
         tools:text="Title" />
 
     <androidx.constraintlayout.widget.Barrier
@@ -78,9 +79,9 @@
         android:paddingEnd="@dimen/x2"
         android:textColor="@color/actions_color"
         android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
         tools:text="Action" />
 
     <LinearLayout

@@ -1,3 +1,7 @@
+enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
+
+rootProject.name = "fearlessWallet"
+
 include ':feature-crowdloan-impl'
 include ':feature-crowdloan-api'
 include ':feature-staking-impl'
@@ -10,3 +14,7 @@ include ':app', ':test-shared', ':common', ':feature-splash', 'core-db', 'core-a
 include ':runtime'
 include ':feature-account-api'
 include ':feature-account-impl'
+include ':feature-polkaswap-api'
+include ':feature-polkaswap-impl'
+include ':feature-success-api'
+include ':feature-success-impl'

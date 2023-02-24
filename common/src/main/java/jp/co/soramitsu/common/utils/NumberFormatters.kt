@@ -3,17 +3,17 @@ package jp.co.soramitsu.common.utils
 import android.content.Context
 import android.text.format.DateUtils
 import android.util.Log
+import jp.co.soramitsu.common.R
+import jp.co.soramitsu.common.utils.formatting.CompoundNumberFormatter
+import jp.co.soramitsu.common.utils.formatting.DynamicPrecisionFormatter
+import jp.co.soramitsu.common.utils.formatting.FixedPrecisionFormatter
+import jp.co.soramitsu.common.utils.formatting.NumberAbbreviation
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.text.DecimalFormat
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.concurrent.TimeUnit
-import jp.co.soramitsu.common.R
-import jp.co.soramitsu.common.utils.formatting.CompoundNumberFormatter
-import jp.co.soramitsu.common.utils.formatting.DynamicPrecisionFormatter
-import jp.co.soramitsu.common.utils.formatting.FixedPrecisionFormatter
-import jp.co.soramitsu.common.utils.formatting.NumberAbbreviation
 
 const val DOLLAR_SIGN = "$"
 private const val DECIMAL_PATTERN_BASE = "###,###."
@@ -23,7 +23,9 @@ private const val DECIMAL_SEPARATOR = '.'
 
 private const val FULL_PRECISION = 5
 private const val ABBREVIATED_PRECISION = 2
+private const val HISTORY_AMOUNT_PRECISION = 4
 
+private val historyAmountFormatter = FixedPrecisionFormatter(HISTORY_AMOUNT_PRECISION)
 private val defaultAbbreviationFormatter = FixedPrecisionFormatter(ABBREVIATED_PRECISION)
 private val defaultFullFormatter = FixedPrecisionFormatter(FULL_PRECISION)
 
@@ -64,6 +66,10 @@ fun BigDecimal.formatAsCurrency(symbol: String?): String {
 
 fun BigDecimal.format(): String {
     return defaultNumberFormatter.format(this)
+}
+
+fun BigDecimal.formatHistoryAmount(): String {
+    return historyAmountFormatter.format(this)
 }
 
 fun Int.format(): String {

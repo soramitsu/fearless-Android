@@ -19,7 +19,10 @@ private const val NOMINATION_POOL_OPTION = "poolStaking"
 
 private fun mapSectionTypeRemoteToSectionType(section: String) = when (section) {
     "subquery" -> Chain.ExternalApi.Section.Type.SUBQUERY
+    "subsquid" -> Chain.ExternalApi.Section.Type.SUBSQUID
+    "giantsquid" -> Chain.ExternalApi.Section.Type.GIANTSQUID
     "github" -> Chain.ExternalApi.Section.Type.GITHUB
+    "sora" -> Chain.ExternalApi.Section.Type.SORA
     else -> Chain.ExternalApi.Section.Type.UNKNOWN
 }
 
@@ -114,7 +117,9 @@ private fun ChainRemote.toChain(assetsById: Map<String?, AssetRemote>): Chain {
                 isUtility = chainAsset.isUtility ?: false,
                 type = ChainAssetType.from(chainAsset.type),
                 currencyId = assetRemote?.currencyId,
-                existentialDeposit = assetRemote?.existentialDeposit
+                existentialDeposit = assetRemote?.existentialDeposit,
+                color = assetRemote?.color,
+                isNative = assetRemote?.isNative
             )
         }
     }
@@ -187,7 +192,9 @@ fun mapChainLocalToChain(chainLocal: JoinedChainInfo): Chain {
             isUtility = it.isUtility ?: false,
             type = it.type?.let { ChainAssetType.valueOf(it) },
             currencyId = it.currencyId,
-            existentialDeposit = it.existentialDeposit
+            existentialDeposit = it.existentialDeposit,
+            color = it.color,
+            isNative = it.isNative
         )
     }
 
@@ -260,7 +267,9 @@ fun mapChainToChainLocal(chain: Chain): JoinedChainInfo {
             isUtility = it.isUtility,
             type = it.type?.name,
             currencyId = it.currencyId,
-            existentialDeposit = it.existentialDeposit
+            existentialDeposit = it.existentialDeposit,
+            color = it.color,
+            isNative = it.isNative
         )
     }
 

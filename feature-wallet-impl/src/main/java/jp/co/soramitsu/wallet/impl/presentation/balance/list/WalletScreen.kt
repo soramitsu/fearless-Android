@@ -22,7 +22,6 @@ import jp.co.soramitsu.common.compose.component.MultiToggleButtonState
 import jp.co.soramitsu.common.compose.component.NetworkIssuesBadge
 import jp.co.soramitsu.common.compose.component.NftStub
 import jp.co.soramitsu.common.compose.component.SwipeState
-import jp.co.soramitsu.common.compose.component.emptyClick
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
@@ -31,6 +30,7 @@ import jp.co.soramitsu.wallet.impl.presentation.common.AssetsList
 import jp.co.soramitsu.wallet.impl.presentation.common.AssetsListInterface
 
 interface WalletScreenInterface : AssetsListInterface {
+    fun onAddressClick()
     fun onBalanceClicked()
     fun onNetworkIssuesClicked()
     fun assetTypeChanged(type: AssetType)
@@ -45,10 +45,11 @@ fun WalletScreen(
         MarginVertical(margin = 16.dp)
         AssetBalance(
             state = data.balance,
-            onAddressClick = emptyClick,
+            onAddressClick = callback::onAddressClick,
             onBalanceClick = callback::onBalanceClicked
         )
         if (data.hasNetworkIssues) {
+            MarginVertical(margin = 6.dp)
             NetworkIssuesBadge(onClick = callback::onNetworkIssuesClicked)
         }
         MarginVertical(margin = 24.dp)
@@ -77,6 +78,7 @@ fun WalletScreen(
 private fun PreviewWalletScreen() {
     @OptIn(ExperimentalMaterialApi::class)
     val emptyCallback = object : WalletScreenInterface {
+        override fun onAddressClick() {}
         override fun onBalanceClicked() {}
         override fun onNetworkIssuesClicked() {}
         override fun assetTypeChanged(type: AssetType) {}

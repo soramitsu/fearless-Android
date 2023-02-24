@@ -13,10 +13,13 @@ import jp.co.soramitsu.runtime.multiNetwork.getRuntime
 import jp.co.soramitsu.runtime.network.rpc.RpcCalls
 import jp.co.soramitsu.wallet.api.domain.ExistentialDepositUseCase
 
-class ExistentialDepositUseCaseImpl(private val chainRegistry: ChainRegistry, private val rpcCalls: RpcCalls) : ExistentialDepositUseCase {
+class ExistentialDepositUseCaseImpl(
+    private val chainRegistry: ChainRegistry,
+    private val rpcCalls: RpcCalls
+) : ExistentialDepositUseCase {
     override suspend fun invoke(chainAsset: Chain.Asset): BigInteger {
         val chainAssetExistentialDeposit = chainAsset.existentialDeposit?.toBigInteger()
-        if (chainAssetExistentialDeposit != null) {
+        if (chainAssetExistentialDeposit != null && chainAsset.type != ChainAssetType.Equilibrium) {
             return chainAssetExistentialDeposit
         }
 

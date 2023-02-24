@@ -7,20 +7,21 @@ import jp.co.soramitsu.common.AlertViewState
 import jp.co.soramitsu.common.navigation.DelayedNavigation
 import jp.co.soramitsu.common.navigation.PinRequired
 import jp.co.soramitsu.common.navigation.SecureRouter
-import jp.co.soramitsu.wallet.impl.domain.beacon.SignStatus
 import jp.co.soramitsu.common.navigation.payload.WalletSelectorPayload
 import jp.co.soramitsu.common.presentation.StoryGroupModel
-import jp.co.soramitsu.wallet.impl.presentation.beacon.main.DAppMetadataModel
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.wallet.impl.domain.beacon.SignStatus
 import jp.co.soramitsu.wallet.impl.domain.model.PhishingType
 import jp.co.soramitsu.wallet.impl.presentation.balance.detail.frozen.FrozenAssetPayload
+import jp.co.soramitsu.wallet.impl.presentation.beacon.main.DAppMetadataModel
 import jp.co.soramitsu.wallet.impl.presentation.model.OperationParcelizeModel
 import jp.co.soramitsu.wallet.impl.presentation.send.TransferDraft
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.extrinsic.ExtrinsicDetailsPayload
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.reward.RewardDetailsPayload
 import kotlinx.coroutines.flow.Flow
+import jp.co.soramitsu.wallet.api.presentation.WalletRouter as WalletRouterApi
 
-interface WalletRouter : SecureRouter {
+interface WalletRouter : SecureRouter, WalletRouterApi {
     fun openAssetDetails(assetPayload: AssetPayload)
 
     fun back()
@@ -29,7 +30,9 @@ interface WalletRouter : SecureRouter {
 
     fun openSend(assetPayload: AssetPayload?, initialSendToAddress: String? = null, currencyId: String? = null)
 
-    fun openSelectChain(assetId: String, chooserMode: Boolean = true)
+    fun openSwapTokensScreen(assetPayload: AssetPayload)
+
+    fun openSelectChain(assetId: String, chainId: ChainId? = null, chooserMode: Boolean = true)
 
     fun openSelectChain(
         selectedChainId: ChainId? = null,
@@ -52,6 +55,8 @@ interface WalletRouter : SecureRouter {
     fun finishSendFlow()
 
     fun openTransferDetail(transaction: OperationParcelizeModel.Transfer, assetPayload: AssetPayload)
+
+    fun openSwapDetail(operation: OperationParcelizeModel.Swap)
 
     fun openExtrinsicDetail(payload: ExtrinsicDetailsPayload)
 
@@ -106,7 +111,7 @@ interface WalletRouter : SecureRouter {
 
     fun openAlert(payload: AlertViewState, resultKey: String)
 
-    fun openSearchAssets(chainId: String?)
+    fun openSearchAssets()
 
     fun openOptionsWallet(walletId: Long)
 

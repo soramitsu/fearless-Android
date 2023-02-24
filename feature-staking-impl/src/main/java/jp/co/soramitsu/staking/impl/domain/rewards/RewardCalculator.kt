@@ -1,11 +1,10 @@
 package jp.co.soramitsu.staking.impl.domain.rewards
 
 import android.util.Log
-import java.math.BigDecimal
-import java.math.BigInteger
 import jp.co.soramitsu.common.utils.fractionToPercentage
 import jp.co.soramitsu.common.utils.median
 import jp.co.soramitsu.common.utils.orZero
+import jp.co.soramitsu.common.utils.percentageToFraction
 import jp.co.soramitsu.common.utils.sumByBigInteger
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
@@ -16,11 +15,14 @@ import jp.co.soramitsu.staking.impl.data.network.subquery.StakingApi
 import jp.co.soramitsu.staking.impl.data.network.subquery.request.StakingAllCollatorsApyRequest
 import jp.co.soramitsu.staking.impl.data.network.subquery.request.StakingCollatorsApyRequest
 import jp.co.soramitsu.staking.impl.data.network.subquery.request.StakingLastRoundIdRequest
+import jp.co.soramitsu.staking.impl.data.network.subquery.request.SubsquidCollatorsApyRequest
 import jp.co.soramitsu.staking.impl.scenarios.parachain.StakingParachainScenarioInteractor
-import kotlin.math.pow
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
+import java.math.BigDecimal
+import java.math.BigInteger
+import kotlin.math.pow
 
 private const val PARACHAINS_ENABLED = false
 
@@ -193,10 +195,26 @@ class SubqueryRewardCalculator(
 
     override suspend fun calculateMaxAPY(chainId: ChainId): BigDecimal {
         val chain = stakingParachainScenarioInteractor?.stakingStateFlow?.first()?.chain
-        val stakingUrl = chain?.externalApi?.staking?.url // todo add other urls to utils
-        if (stakingUrl == null || chain.externalApi?.staking?.type != Chain.ExternalApi.Section.Type.SUBQUERY) {
-            throw Exception("Staking for this network is not supported yet")
+        val stakingUrl = chain?.externalApi?.staking?.url
+        val stakingType = chain?.externalApi?.staking?.type
+
+        return when {
+            stakingUrl == null -> throw Exception("Staking for this network is not supported yet")
+            stakingType == Chain.ExternalApi.Section.Type.SUBQUERY -> {
+                calculateSubqueryMaxAPY(stakingUrl)
+            }
+            stakingType == Chain.ExternalApi.Section.Type.SUBSQUID -> {
+                calculateSubsquidMaxAPY(stakingUrl)
+            }
+            else -> throw Exception("Staking for this network is not supported yet")
         }
+    }
+
+    private suspend fun calculateSubsquidMaxAPY(stakingUrl: String): BigDecimal {
+        return getSubsquidRewards(stakingUrl).maxOf { it.value.orZero() }.fractionToPercentage()
+    }
+
+    private suspend fun calculateSubqueryMaxAPY(stakingUrl: String): BigDecimal {
         val roundId =
             kotlin.runCatching { stakingApi.getLastRoundId(stakingUrl, StakingLastRoundIdRequest()).data.rounds.nodes.firstOrNull()?.id?.toIntOrNull() }
                 .getOrNull()
@@ -245,11 +263,49 @@ class SubqueryRewardCalculator(
     suspend fun getApy(selectedCandidates: List<ByteArray>): Map<String, BigDecimal?> {
         val chain = stakingParachainScenarioInteractor?.stakingStateFlow?.first()?.chain
         val stakingUrl = chain?.externalApi?.staking?.url
-        if (stakingUrl == null || chain.externalApi?.staking?.type != Chain.ExternalApi.Section.Type.SUBQUERY) {
-            throw Exception("Staking for this network is not supported yet")
+        val stakingType = chain?.externalApi?.staking?.type
+
+        return when {
+            stakingUrl == null -> throw Exception("Staking for this network is not supported yet")
+            stakingType == Chain.ExternalApi.Section.Type.SUBSQUID -> {
+                getSubsquidRewards(stakingUrl, selectedCandidates)
+            }
+            stakingType == Chain.ExternalApi.Section.Type.SUBQUERY -> {
+                getSubqueryRewards(stakingUrl, selectedCandidates)
+            }
+            else -> throw Exception("Staking for this network is not supported yet")
         }
-        val roundId =
-            runCatching { stakingApi.getLastRoundId(stakingUrl, StakingLastRoundIdRequest()).data.rounds.nodes.firstOrNull()?.id?.toIntOrNull() }.getOrNull()
+    }
+
+    private suspend fun getSubsquidRewards(stakingUrl: String, selectedCandidates: List<ByteArray>? = null): Map<String, BigDecimal?> {
+        val collatorsApyRequest = SubsquidCollatorsApyRequest()
+        val response = runCatching {
+            stakingApi.getCollatorsApy(stakingUrl, collatorsApyRequest)
+        }
+        val collatorApyMap = response.fold({
+            it.data.stakers.mapNotNull { element ->
+                element.stashId?.let { it.fromHex().toHexString(false) to element.apr24h?.percentageToFraction() }
+            }.toMap()
+        }, {
+            Log.e("GetSubsquidRewards", "GetSubsquidRewards::getApy error: ${it.localizedMessage ?: it.message}")
+            emptyMap()
+        })
+
+        return if (selectedCandidates == null) {
+            collatorApyMap
+        } else {
+            val candidateAddresses = selectedCandidates.map { it.toHexString(false) }
+            collatorApyMap.filter { it.key in candidateAddresses }
+        }
+    }
+
+    private suspend fun getSubqueryRewards(
+        stakingUrl: String,
+        selectedCandidates: List<ByteArray>
+    ): Map<String, BigDecimal?> {
+        val roundId = runCatching {
+            stakingApi.getLastRoundId(stakingUrl, StakingLastRoundIdRequest()).data.rounds.nodes.firstOrNull()?.id?.toIntOrNull()
+        }.getOrNull()
         val previousRoundId = roundId?.dec()
         val collatorsApyRequest = StakingCollatorsApyRequest(selectedCandidates, previousRoundId)
         val response = runCatching { stakingApi.getCollatorsApy(stakingUrl, collatorsApyRequest) }

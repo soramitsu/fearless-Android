@@ -45,6 +45,7 @@ import jp.co.soramitsu.common.compose.component.FeeInfoViewState
 import jp.co.soramitsu.common.compose.component.MarginHorizontal
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.component.QuickAmountInput
+import jp.co.soramitsu.common.compose.component.QuickInput
 import jp.co.soramitsu.common.compose.component.SelectorState
 import jp.co.soramitsu.common.compose.component.SelectorWithBorder
 import jp.co.soramitsu.common.compose.component.ToolbarBottomSheet
@@ -100,7 +101,7 @@ fun SendSetupContent(
             ) {
                 ToolbarBottomSheet(
                     title = stringResource(id = R.string.send_fund),
-                    onNavigationClicked = callback::onNavigationClick
+                    onNavigationClick = callback::onNavigationClick
                 )
                 MarginVertical(margin = 20.dp)
                 AddressInput(
@@ -162,7 +163,8 @@ fun SendSetupContent(
                 )
                 MarginVertical(margin = 12.dp)
                 if (showQuickInput) {
-                    QuickAmountInput(
+                    QuickInput(
+                        values = QuickAmountInput.values(),
                         onQuickAmountInput = {
                             keyboardController?.hide()
                             callback.onQuickAmountInput(it)

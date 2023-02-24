@@ -116,6 +116,10 @@ class ProfileViewModel @Inject constructor(
         router.openExperimentalFeatures()
     }
 
+    fun polkaswapDisclaimerClicked() {
+        router.openPolkaswapDisclaimer()
+    }
+
     val hasMissingAccountsFlow = walletInteractor.assetsFlow().map {
         it.any { it.hasAccount.not() }
     }.stateIn(this, SharingStarted.Eagerly, false)

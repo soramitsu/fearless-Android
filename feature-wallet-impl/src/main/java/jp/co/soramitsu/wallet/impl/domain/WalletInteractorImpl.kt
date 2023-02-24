@@ -1,12 +1,12 @@
 package jp.co.soramitsu.wallet.impl.domain
 
-import java.math.BigDecimal
-import java.math.BigInteger
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.accountId
 import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.common.data.model.CursorPage
+import jp.co.soramitsu.common.data.network.runtime.binding.EqAccountInfo
+import jp.co.soramitsu.common.data.network.runtime.binding.EqOraclePricePoint
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.domain.SelectedFiat
 import jp.co.soramitsu.common.interfaces.FileProvider
@@ -14,6 +14,7 @@ import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.coredb.model.AssetUpdateItem
+import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.runtime.ext.isValidAddress
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
@@ -32,7 +33,6 @@ import jp.co.soramitsu.wallet.impl.domain.model.Operation
 import jp.co.soramitsu.wallet.impl.domain.model.OperationsPageChange
 import jp.co.soramitsu.wallet.impl.domain.model.PhishingModel
 import jp.co.soramitsu.wallet.impl.domain.model.Transfer
-import jp.co.soramitsu.wallet.impl.domain.model.TransferValidityStatus
 import jp.co.soramitsu.wallet.impl.domain.model.WalletAccount
 import jp.co.soramitsu.wallet.impl.domain.model.toPhishingModel
 import kotlinx.coroutines.Dispatchers
@@ -45,6 +45,8 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.withIndex
 import kotlinx.coroutines.withContext
+import java.math.BigDecimal
+import java.math.BigInteger
 
 private const val QR_PREFIX_SUBSTRATE = "substrate"
 private const val PREFS_WALLET_SELECTED_CHAIN_ID = "wallet_selected_chain_id"
@@ -91,6 +93,9 @@ class WalletInteractorImpl(
         .thenBy { it.asset.token.configuration.isTestNet }
         .thenByDescending { it.asset.token.configuration.chainId.isPolkadotOrKusama() }
         .thenBy { it.asset.token.configuration.chainName }
+        .thenBy { it.asset.token.configuration.symbolToShow }
+        .thenByDescending { it.asset.token.configuration.isUtility }
+        .thenByDescending { it.asset.token.configuration.isNative == true }
 
     override suspend fun syncAssetsRates(): Result<Unit> {
         return runCatching {
@@ -208,16 +213,6 @@ class WalletInteractorImpl(
         }
     }
 
-    override suspend fun checkTransferValidityStatus(transfer: Transfer): Result<TransferValidityStatus> {
-        return runCatching {
-            val metaAccount = accountRepository.getSelectedMetaAccount()
-            val chain = chainRegistry.getChain(transfer.chainAsset.chainId)
-            val accountId = metaAccount.accountId(chain)!!
-
-            walletRepository.checkTransferValidity(metaAccount.id, accountId, chain, transfer)
-        }
-    }
-
     override suspend fun getQrCodeSharingSoraString(chainId: ChainId, assetId: String): String {
         val metaAccount = accountRepository.getSelectedMetaAccount()
         val chain = chainRegistry.getChain(chainId)
@@ -321,7 +316,19 @@ class WalletInteractorImpl(
 
     override fun observeAddressBook(chainId: ChainId) = addressBookRepository.observeAddressBook(chainId)
 
-    override fun saveChainId(chainId: ChainId?) = preferences.putString(PREFS_WALLET_SELECTED_CHAIN_ID, chainId)
+    override fun saveChainId(walletId: Long, chainId: ChainId?) {
+        preferences.putString(PREFS_WALLET_SELECTED_CHAIN_ID + walletId, chainId)
+    }
 
-    override fun getSavedChainId(): ChainId? = preferences.getString(PREFS_WALLET_SELECTED_CHAIN_ID)
+    override suspend fun getSavedChainId(walletId: Long): String? {
+        val savedChainId = preferences.getString(PREFS_WALLET_SELECTED_CHAIN_ID + walletId)
+        val existingChain = savedChainId?.let { runCatching { getChain(it) }.getOrNull() }
+        return existingChain?.id
+    }
+
+    override suspend fun getEquilibriumAccountInfo(asset: Chain.Asset, accountId: AccountId): EqAccountInfo? =
+        walletRepository.getEquilibriumAccountInfo(asset, accountId)
+
+    override suspend fun getEquilibriumAssetRates(chainAsset: Chain.Asset): Map<BigInteger, EqOraclePricePoint?> =
+        walletRepository.getEquilibriumAssetRates(chainAsset)
 }

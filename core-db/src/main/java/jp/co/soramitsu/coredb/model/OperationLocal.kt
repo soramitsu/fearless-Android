@@ -25,10 +25,14 @@ data class OperationLocal(
     val fee: BigInteger? = null,
     val isReward: Boolean? = null,
     val era: Int? = null,
-    val validator: String? = null
+    val validator: String? = null,
+    val liquidityFee: BigInteger? = null,
+    val market: String? = null,
+    val targetAssetId: String? = null,
+    val targetAmount: BigInteger? = null
 ) {
     enum class Type {
-        EXTRINSIC, TRANSFER, REWARD
+        EXTRINSIC, TRANSFER, REWARD, SWAP
     }
 
     enum class Source {

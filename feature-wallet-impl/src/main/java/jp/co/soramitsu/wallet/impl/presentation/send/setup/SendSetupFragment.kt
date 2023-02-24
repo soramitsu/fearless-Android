@@ -59,13 +59,13 @@ class SendSetupFragment : BaseComposeBottomSheetDialogFragment<SendSetupViewMode
         viewModel.openScannerEvent.observeEvent {
             requestCameraPermission()
         }
-        viewModel.openValidationWarningEvent.observeEvent {
+        viewModel.openValidationWarningEvent.observeEvent { (result, warning) ->
             ErrorDialog(
-                title = it.message,
-                message = it.explanation,
-                positiveButtonText = it.positiveButtonText,
-                negativeButtonText = it.negativeButtonText,
-                positiveClick = viewModel::existentialDepositWarningConfirmed,
+                title = warning.message,
+                message = warning.explanation,
+                positiveButtonText = warning.positiveButtonText,
+                negativeButtonText = warning.negativeButtonText,
+                positiveClick = { viewModel.warningConfirmed(result) },
                 isHideable = false
             ).show(childFragmentManager)
         }

@@ -40,4 +40,6 @@ interface Preferences {
         field: String,
         initialValueProducer: InitialValueProducer<String>? = null
     ): Flow<String?>
+
+    fun booleanFlow(field: String, initialValue: Boolean): Flow<Boolean>
 }

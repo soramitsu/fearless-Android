@@ -39,6 +39,18 @@ data class Operation(
             val status: Status,
             val fee: BigInteger?
         ) : Type()
+
+        data class Swap(
+            val hash: String,
+            val module: String,
+            val baseAssetAmount: BigInteger,
+            val liquidityProviderFee: BigInteger,
+            val selectedMarket: String?,
+            val targetAsset: Chain.Asset?,
+            val targetAssetAmount: BigInteger?,
+            val networkFee: BigInteger,
+            val status: Status
+        ) : Type()
     }
 
     enum class Status {

@@ -27,6 +27,7 @@ import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
 import jp.co.soramitsu.fearless_utils.scale.Schema
 import jp.co.soramitsu.fearless_utils.scale.dataType.DataType
 import jp.co.soramitsu.fearless_utils.scale.dataType.uint32
+import jp.co.soramitsu.fearless_utils.scale.dataType.uint64
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.fearless_utils.wsrpc.mappers.nonNull
 import jp.co.soramitsu.fearless_utils.wsrpc.mappers.pojo
@@ -118,6 +119,12 @@ fun RuntimeMetadata.identity() = module(Modules.SESSION)
 
 fun RuntimeMetadata.nominationPools() = module(Modules.NOMINATION_POOLS)
 
+fun RuntimeMetadata.dexManager() = moduleOrNull(Modules.DEX_MANAGER)
+
+fun RuntimeMetadata.poolXYK() = moduleOrNull(Modules.POOL_XYK)
+
+fun RuntimeMetadata.poolTBC() = moduleOrNull(Modules.POOL_TBC)
+
 fun <T> StorageEntry.storageKeys(runtime: RuntimeSnapshot, singleMapArguments: Collection<T>): Map<String, T> {
     return singleMapArguments.associateBy { storageKey(runtime, it) }
 }
@@ -137,8 +144,10 @@ fun RuntimeMetadata.hasModule(name: String) = moduleOrNull(name) != null
 
 private const val HEX_SYMBOLS_PER_BYTE = 2
 private const val UINT_32_BYTES = 4
+private const val UINT_64_BYTES = 8
 
 fun String.u32ArgumentFromStorageKey() = uint32.fromHex(takeLast(HEX_SYMBOLS_PER_BYTE * UINT_32_BYTES)).toLong().toBigInteger()
+fun String.u64ArgumentFromStorageKey() = uint64.fromHex(takeLast(HEX_SYMBOLS_PER_BYTE * UINT_64_BYTES))
 
 fun ByteArray.decodeToInt() = fromUnsignedBytes().toInt()
 
@@ -164,11 +173,15 @@ object Modules {
     const val SLOTS = "Slots"
     const val SESSION = "Session"
     const val NOMINATION_POOLS = "NominationPools"
+    const val DEX_MANAGER = "DEXManager"
+    const val POOL_XYK = "PoolXYK"
+    const val POOL_TBC = "MulticollateralBondingCurvePool"
     const val TOKENS = "Tokens"
     const val CURRENCIES = "Currencies"
     const val EQBALANCES = "EqBalances"
     const val IDENTITY = "Identity"
     const val ASSETS = "Assets"
+    const val ORACLE = "Oracle"
 }
 
 object Calls {

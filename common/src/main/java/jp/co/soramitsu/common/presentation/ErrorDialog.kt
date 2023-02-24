@@ -1,6 +1,7 @@
 package jp.co.soramitsu.common.presentation
 
 import android.annotation.SuppressLint
+import android.app.Dialog
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -65,6 +66,17 @@ class ErrorDialog(
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setStyle(STYLE_NO_TITLE, R.style.CustomBottomSheetDialogTheme)
+    }
+
+    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+        return object : BottomSheetDialog(requireContext(), theme) {
+            @Deprecated("Deprecated in Java")
+            override fun onBackPressed() {
+                if (isHideable) {
+                    super.onBackPressed()
+                }
+            }
+        }
     }
 
     @Suppress("DEPRECATION")
@@ -154,6 +166,7 @@ class ErrorDialog(
     private fun setupBottomSheet() {
         dialog?.setOnShowListener {
             val bottomSheetDialog = it as BottomSheetDialog
+            bottomSheetDialog.setCanceledOnTouchOutside(isHideable)
             setupBehavior(bottomSheetDialog.behavior)
         }
     }

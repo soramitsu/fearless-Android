@@ -1,5 +1,6 @@
 package jp.co.soramitsu.runtime.multiNetwork.connection
 
+import android.util.Log
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.fearless_utils.wsrpc.networkStateFlow
 import jp.co.soramitsu.fearless_utils.wsrpc.state.SocketStateMachine.State
@@ -101,7 +102,11 @@ class ChainConnection(
             // if current selected node is the last, start from first node
             val nextNodeIndex = (currentNodeIndex + 1).let { newIndex -> if (newIndex >= availableNodes.size) 0 else newIndex }
             val nextNode = availableNodes[nextNodeIndex]
-            socketService.switchUrl(nextNode.url)
+            try {
+                socketService.switchUrl(nextNode.url)
+            } catch (e: Exception) {
+                Log.e("ChainConnection", "Auto balance exception: $e ${e.localizedMessage ?: e.message} chain: ${chain.name}")
+            }
             onSelectedNodeChange(nextNode.url)
         }
     }
