@@ -78,7 +78,7 @@ buildscript {
         activityKtx = '1.1.0'
         fragmentKtx = '1.5.2'
         minifyRelease = true
-        beaconVersion = "3.2.3"
+        beaconVersion = "3.2.4"
 
         coilDep = "io.coil-kt:coil:$coilVersion"
         coilSvg = "io.coil-kt:coil-svg:$coilVersion"
