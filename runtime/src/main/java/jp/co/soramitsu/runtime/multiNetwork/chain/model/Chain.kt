@@ -3,6 +3,8 @@ package jp.co.soramitsu.runtime.multiNetwork.chain.model
 import android.os.Parcelable
 import jp.co.soramitsu.common.data.network.BlockExplorerUrlBuilder
 import jp.co.soramitsu.common.domain.AppVersion
+import jp.co.soramitsu.core.models.ChainNode
+import jp.co.soramitsu.core.models.IChain
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.DictEnum
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.Struct
@@ -27,22 +29,22 @@ private val STAKING_ORDER = arrayOf("DOT", "KSM", "WND", "GLMR", "MOVR", "DEV", 
 private val SORA_WITH_XOR_TRANSFER_PALLET_ASSET = arrayOf(soraMainChainId, soraTestChainId)
 
 data class Chain(
-    val id: ChainId,
+    override val id: ChainId,
     val name: String,
     val minSupportedVersion: String?,
     val assets: List<Asset>,
-    val nodes: List<Node>,
+    val nodes: List<ChainNode>,
     val explorers: List<Explorer>,
     val externalApi: ExternalApi?,
     val icon: String,
-    val addressPrefix: Int,
+    override val addressPrefix: Int,
     val types: Types?,
-    val isEthereumBased: Boolean,
+    override val isEthereumBased: Boolean,
     val isTestNet: Boolean,
     val hasCrowdloans: Boolean,
     val parentId: String?,
     val supportStakingPool: Boolean
-) {
+) : IChain {
     val assetsById = assets.associateBy(Asset::id)
 
     val isSupported: Boolean
@@ -117,33 +119,6 @@ data class Chain(
             }
             ChainAssetType.Equilibrium -> currencyId?.toBigInteger()
             ChainAssetType.Unknown -> error("Token $symbol not supported, chain $chainName")
-        }
-    }
-
-    data class Node(
-        val url: String,
-        val name: String,
-        val isActive: Boolean,
-        val isDefault: Boolean
-    ) {
-        override fun equals(other: Any?): Boolean {
-            if (this === other) return true
-            if (javaClass != other?.javaClass) return false
-
-            other as Node
-
-            if (url != other.url) return false
-            if (name != other.name) return false
-            if (isDefault != other.isDefault) return false
-
-            return true
-        }
-
-        override fun hashCode(): Int {
-            var result = url.hashCode()
-            result = 31 * result + name.hashCode()
-            result = 31 * result + isDefault.hashCode()
-            return result
         }
     }
 

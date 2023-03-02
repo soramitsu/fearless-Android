@@ -1,17 +1,18 @@
 package jp.co.soramitsu.wallet.impl.domain.implementations
 
 import android.util.Log
-import java.math.BigInteger
 import jp.co.soramitsu.common.utils.Modules
 import jp.co.soramitsu.common.utils.balances
 import jp.co.soramitsu.common.utils.numberConstant
+import jp.co.soramitsu.core.rpc.RpcCalls
+import jp.co.soramitsu.core.rpc.calls.getExistentialDeposit
 import jp.co.soramitsu.fearless_utils.runtime.metadata.module
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainAssetType
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.getRuntime
-import jp.co.soramitsu.runtime.network.rpc.RpcCalls
 import jp.co.soramitsu.wallet.api.domain.ExistentialDepositUseCase
+import java.math.BigInteger
 
 class ExistentialDepositUseCaseImpl(
     private val chainRegistry: ChainRegistry,

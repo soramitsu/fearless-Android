@@ -22,7 +22,6 @@ compose-animationGraphics = { module = "androidx.compose.animation:animation-gra
 compose-uiToolingPreview = { module = "androidx.compose.ui:ui-tooling-preview", version.ref = "compose" }
 
 fragmentKtx = { module = "androidx.fragment:fragment-ktx", version.ref = "fragmentKtx" }
-
 material = { module = "com.google.android.material:material", version.ref = "material" }
 
 coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }

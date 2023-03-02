@@ -48,6 +48,9 @@ import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.sumByBigDecimal
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
+import jp.co.soramitsu.core.chain_registry.IChainRegistry
+import jp.co.soramitsu.core.extrinsic.KeyPairProvider
+import jp.co.soramitsu.core.extrinsic.mortality.IChainStateRepository
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.addressByteOrNull
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
@@ -101,7 +104,10 @@ class BalanceListViewModel @Inject constructor(
     private val networkStateMixin: NetworkStateMixin,
     private val resourceManager: ResourceManager,
     private val clipboardManager: ClipboardManager,
-    private val currentAccountAddress: CurrentAccountAddressUseCase
+    private val currentAccountAddress: CurrentAccountAddressUseCase,
+    private val chainRegistry: IChainRegistry,
+    private val keyPairProvider: KeyPairProvider,
+    private val chainStateRepository: IChainStateRepository
 ) : BaseViewModel(), UpdatesProviderUi by updatesMixin, NetworkStateUi by networkStateMixin, WalletScreenInterface {
 
     private val accountAddressToChainIdMap = mutableMapOf<String, ChainId?>()

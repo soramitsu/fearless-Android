@@ -1,7 +1,6 @@
 package jp.co.soramitsu.staking.impl.data.repository
 
-import java.math.BigInteger
-import jp.co.soramitsu.account.api.extrinsic.ExtrinsicService
+import jp.co.soramitsu.core.extrinsic.ExtrinsicService
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.DictEnum
 import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
@@ -20,6 +19,7 @@ import jp.co.soramitsu.staking.impl.data.network.blockhain.calls.withdrawUnbonde
 import jp.co.soramitsu.staking.impl.presentation.common.EditPoolFlowState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.math.BigInteger
 
 class StakingPoolApi(
     private val extrinsicService: ExtrinsicService,

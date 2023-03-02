@@ -1,9 +1,9 @@
 package jp.co.soramitsu.wallet.impl.domain.interfaces
 
+import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import java.io.File
 import java.math.BigDecimal
 import java.math.BigInteger
-import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.common.data.model.CursorPage
 import jp.co.soramitsu.common.data.network.runtime.binding.EqAccountInfo
 import jp.co.soramitsu.common.data.network.runtime.binding.EqOraclePricePoint
