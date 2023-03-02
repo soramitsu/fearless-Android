@@ -4,6 +4,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
@@ -47,7 +48,7 @@ fun TransactionItem(
                 .align(Alignment.CenterVertically)
         )
         Spacer(modifier = Modifier.width(8.dp))
-        Column(horizontalAlignment = Alignment.Start) {
+        Column(horizontalAlignment = Alignment.Start, modifier = Modifier.weight(1f)) {
             B1(
                 text = item.header,
                 textAlign = TextAlign.Start,
@@ -62,20 +63,25 @@ fun TransactionItem(
             )
         }
         MarginHorizontal(margin = 4.dp)
-        Spacer(modifier = Modifier.weight(1f))
-        Column(horizontalAlignment = Alignment.End) {
-            Row {
+
+        Column(horizontalAlignment = Alignment.End, modifier = Modifier.weight(1f)) {
+            Row(modifier = Modifier.fillMaxWidth()) {
                 B1(
+                    modifier = Modifier.fillMaxWidth(),
                     text = item.amount,
                     color = item.amountColor,
                     overflow = TextOverflow.Ellipsis,
-                    maxLines = 1
+                    maxLines = 1,
+                    textAlign = TextAlign.End
                 )
-                Spacer(modifier = Modifier.width(5.dp))
+
                 if (item.statusAppearance != OperationStatusAppearance.COMPLETED) {
+                    Spacer(modifier = Modifier.width(5.dp))
                     Image(
                         res = item.statusAppearance.icon,
-                        modifier = Modifier.align(Alignment.CenterVertically)
+                        modifier = Modifier
+                            .size(14.dp)
+                            .align(Alignment.CenterVertically)
                     )
                 }
             }
@@ -96,11 +102,11 @@ private fun PreviewTransactionItem() {
         item = OperationModel(
             id = "",
             time = System.currentTimeMillis(),
-            header = "Header",
+            header = "HeaderHeaderHeaderHeaderHeaderHeaderHeaderHeaderHeaderHeaderHeaderHeaderHeaderHeaderHeaderHeader",
             statusAppearance = OperationStatusAppearance.COMPLETED,
-            amount = "amount",
+            amount = "amountamountamountamountamountamountamountamountamount",
             operationIcon = null,
-            subHeader = "subHeader"
+            subHeader = "subHeadersubHeadersubHeadersubHeadersubHeadersubHeadersubHeadersubHeadersubHeadersubHeadersubHeadersubHeader"
         ),
         transactionClicked = {}
     )

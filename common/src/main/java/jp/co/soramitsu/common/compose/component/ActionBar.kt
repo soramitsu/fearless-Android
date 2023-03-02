@@ -3,11 +3,14 @@ package jp.co.soramitsu.common.compose.component
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.Divider
 import androidx.compose.runtime.Composable
@@ -82,6 +85,20 @@ fun ActionBar(
     }
 }
 
+@Composable
+fun ActionBarShimmer(items: Int = 4, fillMaxWidth: Boolean = false) {
+    val rowModifier = (if (fillMaxWidth) Modifier.fillMaxWidth() else Modifier).padding(vertical = 8.dp)
+    Row(rowModifier, horizontalArrangement = Arrangement.SpaceAround) {
+        repeat(items) {
+            ShimmerRectangle(
+                Modifier
+                    .size(64.dp)
+                    .align(Alignment.CenterVertically)
+            )
+        }
+    }
+}
+
 @Preview
 @Composable
 private fun ActionBarPreview() {
@@ -99,6 +116,7 @@ private fun ActionBarPreview() {
         ) {
             ActionBar(state = state)
             ActionBar(state = state, fillMaxWidth = true)
+            ActionBarShimmer(fillMaxWidth = true)
         }
     }
 }

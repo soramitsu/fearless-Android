@@ -4,6 +4,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -66,6 +68,27 @@ fun AssetBalance(
     }
 }
 
+@Composable
+fun AssetBalanceShimmer() {
+    Shimmer(
+        Modifier
+            .height(12.dp)
+            .padding(horizontal = 120.dp)
+    )
+    MarginVertical(margin = 10.dp)
+    Shimmer(
+        Modifier
+            .height(26.dp)
+            .padding(horizontal = 93.dp)
+    )
+    MarginVertical(margin = 21.dp)
+    Shimmer(
+        Modifier
+            .height(12.dp)
+            .padding(horizontal = 133.dp)
+    )
+}
+
 @Preview
 @Composable
 private fun PreviewAssetBalance() {
@@ -85,10 +108,14 @@ private fun PreviewAssetBalance() {
     )
 
     FearlessTheme {
-        AssetBalance(
-            state = state,
-            onAddressClick = {},
-            onBalanceClick = {}
-        )
+        Column {
+            AssetBalance(
+                state = state,
+                onAddressClick = {},
+                onBalanceClick = {}
+            )
+            MarginVertical(margin = 16.dp)
+            AssetBalanceShimmer()
+        }
     }
 }

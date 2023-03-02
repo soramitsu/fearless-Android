@@ -5,6 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import jp.co.soramitsu.account.api.presentation.account.AddressDisplayUseCase
 import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.account.api.presentation.exporting.ExportSource
@@ -12,6 +13,7 @@ import jp.co.soramitsu.account.api.presentation.exporting.ExportSourceChooserPay
 import jp.co.soramitsu.account.api.presentation.exporting.buildExportSourceTypes
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.compose.component.ActionBarViewState
 import jp.co.soramitsu.common.compose.component.ActionItemType
 import jp.co.soramitsu.common.compose.component.AssetBalanceViewState
 import jp.co.soramitsu.common.compose.component.ChainSelectorViewState
@@ -57,7 +59,6 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @HiltViewModel
 class BalanceDetailViewModel @Inject constructor(
@@ -85,8 +86,6 @@ class BalanceDetailViewModel @Inject constructor(
 
     private val _showExportSourceChooser = MutableLiveData<Event<ExportSourceChooserPayload>>()
     val showExportSourceChooser: LiveData<Event<ExportSourceChooserPayload>> = _showExportSourceChooser
-
-    val isRefreshing = MutableStateFlow(false)
 
     private val selectedChainId = MutableStateFlow(assetPayloadInitial.chainId)
     private val assetPayload = MutableStateFlow(assetPayloadInitial)
@@ -131,7 +130,7 @@ class BalanceDetailViewModel @Inject constructor(
         )
     }
 
-    private val transactionHistoryMixin = TransactionHistoryProvider(
+    private val transactionHistoryProvider = TransactionHistoryProvider(
         walletInteractor = interactor,
         iconGenerator = addressIconGenerator,
         router = router,
@@ -158,17 +157,19 @@ class BalanceDetailViewModel @Inject constructor(
     }.stateIn(scope = this, started = SharingStarted.Eagerly, initialValue = LoadingState.Loading())
 
     private val transactionHistory: Flow<TransactionHistoryUi.State> =
-        transactionHistoryMixin.state()
+        transactionHistoryProvider.state()
+
+    private val defaultState = BalanceDetailsState(
+        LoadingState.Loading(),
+        LoadingState.Loading(),
+        TransactionHistoryUi.State.EmptyProgress
+    )
 
     val state = combine(
         transactionHistory,
         assetModelFlow
     ) { transactionHistory: TransactionHistoryUi.State,
         balanceModel: Asset ->
-
-        if (transactionHistory is TransactionHistoryUi.State.EmptyProgress) {
-            return@combine LoadingState.Loading()
-        }
 
         val balanceState = AssetBalanceViewState(
             balance = balanceModel.total.orZero().formatTokenAmount(balanceModel.token.configuration.symbolToShow.uppercase()),
@@ -182,17 +183,20 @@ class BalanceDetailViewModel @Inject constructor(
 
         val selectedChainId = balanceModel.token.configuration.chainId
 
-        LoadingState.Loaded(
-            BalanceDetailsState(
+        val actionBarState = LoadingState.Loaded(
+            ActionBarViewState(
+                chainId = selectedChainId,
+                chainAssetId = balanceModel.token.configuration.id,
                 actionItems = getActionItems(selectedChainId),
-                disabledItems = getDisabledItems(),
-                balance = balanceState,
-                transactionHistory = transactionHistory,
-                selectedChainId = selectedChainId,
-                chainAssetId = balanceModel.token.configuration.id
+                disabledItems = getDisabledItems()
             )
         )
-    }.stateIn(scope = this, started = SharingStarted.Eagerly, initialValue = LoadingState.Loading())
+        BalanceDetailsState(
+            actionBarViewState = actionBarState,
+            balance = LoadingState.Loaded(balanceState),
+            transactionHistory = transactionHistory
+        )
+    }.stateIn(scope = this, started = SharingStarted.Eagerly, initialValue = defaultState)
 
     init {
         viewModelScope.launch {
@@ -205,11 +209,11 @@ class BalanceDetailViewModel @Inject constructor(
     override fun onCleared() {
         super.onCleared()
 
-        transactionHistoryMixin.cancel()
+        transactionHistoryProvider.cancel()
     }
 
     override fun transactionsScrolled(index: Int) {
-        transactionHistoryMixin.scrolled(
+        transactionHistoryProvider.scrolled(
             index,
             AssetPayload(
                 chainId = assetPayload.value.chainId,
@@ -224,20 +228,15 @@ class BalanceDetailViewModel @Inject constructor(
 
     override fun sync() {
         viewModelScope.launch {
-            isRefreshing.value = true
-            async {
-                transactionHistoryMixin.syncFirstOperationsPage(
-                    AssetPayload(
-                        chainId = assetPayload.value.chainId,
-                        chainAssetId = assetPayload.value.chainAssetId
-                    )
+            transactionHistoryProvider.syncFirstOperationsPage(
+                AssetPayload(
+                    chainId = assetPayload.value.chainId,
+                    chainAssetId = assetPayload.value.chainAssetId
                 )
-            }.start()
+            )
 
             val deferredAssetSync = async { interactor.syncAssetsRates() }
             deferredAssetSync.await().exceptionOrNull()?.message?.let(::showMessage)
-
-            isRefreshing.value = false
         }
     }
 
@@ -304,7 +303,7 @@ class BalanceDetailViewModel @Inject constructor(
     }
 
     override fun onAddressClick() {
-        (state.value as? LoadingState.Loaded)?.data?.balance?.address?.let { address ->
+        (state.value.balance as? LoadingState.Loaded)?.data?.address?.let { address ->
             copyToClipboard(address)
         }
     }
@@ -386,7 +385,7 @@ class BalanceDetailViewModel @Inject constructor(
     }
 
     override fun transactionClicked(transactionModel: OperationModel) {
-        transactionHistoryMixin.transactionClicked(
+        transactionHistoryProvider.transactionClicked(
             transactionModel,
             AssetPayload(
                 chainId = assetPayload.value.chainId,

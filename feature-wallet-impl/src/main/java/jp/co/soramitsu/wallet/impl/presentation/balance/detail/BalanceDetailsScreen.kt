@@ -5,6 +5,7 @@ import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.rememberScrollableState
 import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
@@ -29,9 +30,11 @@ import androidx.compose.ui.unit.dp
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import jp.co.soramitsu.common.compose.component.ActionBar
+import jp.co.soramitsu.common.compose.component.ActionBarShimmer
 import jp.co.soramitsu.common.compose.component.ActionBarViewState
 import jp.co.soramitsu.common.compose.component.ActionItemType
 import jp.co.soramitsu.common.compose.component.AssetBalance
+import jp.co.soramitsu.common.compose.component.AssetBalanceShimmer
 import jp.co.soramitsu.common.compose.component.AssetBalanceViewState
 import jp.co.soramitsu.common.compose.component.BackgroundCornered
 import jp.co.soramitsu.common.compose.component.CapsTitle2
@@ -41,7 +44,6 @@ import jp.co.soramitsu.common.compose.component.Image
 import jp.co.soramitsu.common.compose.component.MarginHorizontal
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.component.Shimmer
-import jp.co.soramitsu.common.compose.component.ShimmerRectangle
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.theme.black3
 import jp.co.soramitsu.common.compose.theme.gray2
@@ -54,11 +56,8 @@ import jp.co.soramitsu.wallet.impl.presentation.transaction.history.mixin.Transa
 import jp.co.soramitsu.wallet.impl.presentation.transaction.history.model.DayHeader
 
 data class BalanceDetailsState(
-    val actionItems: List<ActionItemType>,
-    val disabledItems: List<ActionItemType>,
-    val balance: AssetBalanceViewState,
-    val selectedChainId: String,
-    val chainAssetId: String,
+    val actionBarViewState: LoadingState<ActionBarViewState>,
+    val balance: LoadingState<AssetBalanceViewState>,
     val transactionHistory: TransactionHistoryUi.State
 )
 
@@ -74,95 +73,7 @@ interface BalanceDetailsScreenInterface {
 
 @Composable
 fun BalanceDetailsScreen(
-    state: LoadingState<BalanceDetailsState>,
-    isRefreshing: Boolean,
-    callback: BalanceDetailsScreenInterface
-) {
-    when (state) {
-        is LoadingState.Loading<BalanceDetailsState> -> {
-            ShimmerBalanceDetailScreen()
-        }
-        is LoadingState.Loaded<BalanceDetailsState> -> {
-            ContentBalanceDetailsScreen(state.data, isRefreshing, callback)
-        }
-    }
-}
-
-@Composable
-private fun ShimmerBalanceDetailScreen() {
-    Column(
-        modifier = Modifier
-            .padding(horizontal = 16.dp)
-            .padding(bottom = 12.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        MarginVertical(margin = 16.dp)
-        Shimmer(
-            Modifier
-                .height(12.dp)
-                .padding(horizontal = 120.dp)
-        )
-        MarginVertical(margin = 10.dp)
-        Shimmer(
-            Modifier
-                .height(26.dp)
-                .padding(horizontal = 93.dp)
-        )
-        MarginVertical(margin = 21.dp)
-        Shimmer(
-            Modifier
-                .height(12.dp)
-                .padding(horizontal = 133.dp)
-        )
-        MarginVertical(margin = 24.dp)
-        Row(
-            horizontalArrangement = Arrangement.Center
-        ) {
-            repeat(4) {
-                ShimmerRectangle(
-                    Modifier.size(64.dp)
-                )
-                MarginHorizontal(margin = 16.dp)
-            }
-        }
-        MarginVertical(margin = 16.dp)
-        BackgroundCornered {
-            Column(
-                modifier = Modifier.padding(all = 12.dp)
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Shimmer(
-                        Modifier
-                            .height(12.dp)
-                            .width(124.dp)
-                    )
-                    Spacer(
-                        modifier = Modifier
-                            .height(1.dp)
-                            .weight(1.0f)
-                    )
-                    Image(res = R.drawable.ic_filter_list_24)
-                }
-                MarginVertical(margin = 12.dp)
-                Divider(
-                    color = black3,
-                    modifier = Modifier
-                        .height(1.dp)
-                        .fillMaxWidth()
-                )
-                MarginVertical(margin = 12.dp)
-                ShimmerTransactionHistory()
-            }
-        }
-    }
-}
-
-@Composable
-private fun ContentBalanceDetailsScreen(
-    data: BalanceDetailsState,
-    isRefreshing: Boolean,
+    state: BalanceDetailsState,
     callback: BalanceDetailsScreenInterface
 ) {
     Column(
@@ -173,26 +84,20 @@ private fun ContentBalanceDetailsScreen(
     ) {
         MarginVertical(margin = 16.dp)
         AssetBalance(
-            state = data.balance,
+            balanceLoadingState = state.balance,
             onAddressClick = callback::onAddressClick,
             onBalanceClick = callback::onBalanceClick
         )
         MarginVertical(margin = 24.dp)
-
         ActionBar(
-            state = ActionBarViewState(
-                actionItems = data.actionItems,
-                disabledItems = data.disabledItems,
-                chainId = data.selectedChainId,
-                chainAssetId = data.chainAssetId
-            ),
-            fillMaxWidth = true,
-            onItemClick = callback::actionItemClicked
+            actionBarLoadingState = state.actionBarViewState,
+            actionItemClicked = callback::actionItemClicked
         )
         MarginVertical(margin = 16.dp)
         BackgroundCornered {
             Column(
-                modifier = Modifier.padding(all = 12.dp)
+                modifier = Modifier
+                    .padding(all = 12.dp)
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically
@@ -217,13 +122,117 @@ private fun ContentBalanceDetailsScreen(
                 )
                 MarginVertical(margin = 12.dp)
                 TransactionHistory(
-                    history = data.transactionHistory,
-                    isRefreshing = isRefreshing,
+                    history = state.transactionHistory,
                     transactionClicked = callback::transactionClicked,
                     onRefresh = callback::sync,
                     transactionsScrolled = callback::transactionsScrolled
                 )
             }
+        }
+    }
+}
+
+@Composable
+private fun AssetBalance(
+    balanceLoadingState: LoadingState<AssetBalanceViewState>,
+    onAddressClick: () -> Unit,
+    onBalanceClick: () -> Unit
+) {
+    when (balanceLoadingState) {
+        is LoadingState.Loading -> {
+            AssetBalanceShimmer()
+        }
+        is LoadingState.Loaded -> {
+            AssetBalance(state = balanceLoadingState.data, onAddressClick = onAddressClick, onBalanceClick = onBalanceClick)
+        }
+    }
+}
+
+@Composable
+private fun ActionBar(actionBarLoadingState: LoadingState<ActionBarViewState>, actionItemClicked: (ActionItemType, String, String) -> Unit) {
+    when (actionBarLoadingState) {
+        is LoadingState.Loading -> {
+            ActionBarShimmer(fillMaxWidth = true)
+        }
+        is LoadingState.Loaded -> {
+            ActionBar(
+                state = actionBarLoadingState.data,
+                fillMaxWidth = true,
+                onItemClick = actionItemClicked
+            )
+        }
+    }
+}
+
+
+@Composable
+private fun TransactionHistory(
+    history: TransactionHistoryUi.State,
+    transactionClicked: (OperationModel) -> Unit,
+    onRefresh: () -> Unit,
+    transactionsScrolled: (index: Int) -> Unit
+) {
+    SwipeRefresh(
+        state = rememberSwipeRefreshState(history is TransactionHistoryUi.State.Refreshing),
+        onRefresh = onRefresh
+    ) {
+        when (history) {
+            is TransactionHistoryUi.State.Data -> {
+                val listState = rememberLazyListState()
+                val transactions = history.items
+                LazyColumn(
+                    state = listState,
+                    verticalArrangement = Arrangement.spacedBy(15.dp),
+                    modifier = Modifier
+                        .scrollable(
+                            orientation = Orientation.Vertical,
+                            state = rememberScrollableState { delta ->
+                                listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index?.let {
+                                    transactionsScrolled(it)
+                                }
+                                delta
+                            }
+                        )
+                ) {
+                    items(transactions) { item ->
+                        when (item) {
+                            is DayHeader -> {
+                                CapsTitle2(
+                                    text = item.daysSinceEpoch
+                                        .formatDaysSinceEpoch(LocalContext.current)
+                                        .orEmpty()
+                                        .uppercase(),
+                                    textAlign = TextAlign.Start
+                                )
+                            }
+                            is OperationModel -> {
+                                TransactionItem(
+                                    item = item,
+                                    transactionClicked = transactionClicked
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+            is TransactionHistoryUi.State.EmptyProgress -> {
+                ShimmerTransactionHistory()
+            }
+            is TransactionHistoryUi.State.Empty -> {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    MarginVertical(margin = 12.dp)
+                    H5(
+                        modifier = Modifier.fillMaxWidth(),
+                        text = stringResource(id = R.string.transfers_empty),
+                        color = gray2,
+                        textAlign = TextAlign.Center
+                    )
+                    MarginVertical(margin = 120.dp)
+                }
+            }
+            else -> Unit
         }
     }
 }
@@ -288,77 +297,6 @@ private fun ShimmerTransactionHistory() {
 }
 
 @Composable
-private fun TransactionHistory(
-    history: TransactionHistoryUi.State,
-    isRefreshing: Boolean,
-    transactionClicked: (OperationModel) -> Unit,
-    onRefresh: () -> Unit,
-    transactionsScrolled: (index: Int) -> Unit
-) {
-    when (history) {
-        is TransactionHistoryUi.State.Data -> {
-            val listState = rememberLazyListState()
-            val transactions = history.items
-
-            SwipeRefresh(
-                state = rememberSwipeRefreshState(isRefreshing),
-                onRefresh = onRefresh
-            ) {
-                LazyColumn(
-                    state = listState,
-                    verticalArrangement = Arrangement.spacedBy(15.dp),
-                    modifier = Modifier
-                        .scrollable(
-                            orientation = Orientation.Vertical,
-                            state = rememberScrollableState { delta ->
-                                listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index?.let {
-                                    transactionsScrolled(it)
-                                }
-                                delta
-                            }
-                        )
-                ) {
-                    items(transactions) { item ->
-                        when (item) {
-                            is DayHeader -> {
-                                CapsTitle2(
-                                    text = item.daysSinceEpoch
-                                        .formatDaysSinceEpoch(LocalContext.current)
-                                        .orEmpty()
-                                        .uppercase(),
-                                    textAlign = TextAlign.Start
-                                )
-                            }
-                            is OperationModel -> {
-                                TransactionItem(
-                                    item = item,
-                                    transactionClicked = transactionClicked
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        is TransactionHistoryUi.State.EmptyProgress -> {
-            ShimmerTransactionHistory()
-        }
-        is TransactionHistoryUi.State.Empty -> {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                MarginVertical(margin = 12.dp)
-                H5(
-                    text = stringResource(id = R.string.transfers_empty),
-                    color = gray2
-                )
-                MarginVertical(margin = 120.dp)
-            }
-        }
-    }
-}
-
-@Composable
 @Preview
 private fun PreviewBalanceDetailScreenContent() {
     val percentChange = "+5.67%"
@@ -377,11 +315,8 @@ private fun PreviewBalanceDetailScreenContent() {
     )
 
     val state = BalanceDetailsState(
-        actionItems = emptyList(),
-        disabledItems = emptyList(),
-        balance = assetBalanceViewState,
-        selectedChainId = "",
-        chainAssetId = "",
+        actionBarViewState = LoadingState.Loaded(ActionBarViewState(chainAssetId = "0x123", chainId = "0x123", actionItems = listOf())),
+        balance = LoadingState.Loaded(assetBalanceViewState),
         transactionHistory = TransactionHistoryUi.State.Empty()
     )
 
@@ -397,6 +332,8 @@ private fun PreviewBalanceDetailScreenContent() {
     }
 
     return FearlessTheme {
-        ContentBalanceDetailsScreen(data = state, isRefreshing = true, callback = empty)
+        Box(modifier = Modifier.height(600.dp)) {
+            BalanceDetailsScreen(state = state, callback = empty)
+        }
     }
 }
