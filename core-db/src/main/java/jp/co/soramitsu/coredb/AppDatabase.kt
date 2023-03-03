@@ -18,6 +18,7 @@ import jp.co.soramitsu.coredb.dao.ChainDao
 import jp.co.soramitsu.coredb.dao.MetaAccountDao
 import jp.co.soramitsu.coredb.dao.OperationDao
 import jp.co.soramitsu.coredb.dao.PhishingDao
+import jp.co.soramitsu.coredb.dao.SoraCardDao
 import jp.co.soramitsu.coredb.dao.StakingTotalRewardDao
 import jp.co.soramitsu.coredb.dao.StorageDao
 import jp.co.soramitsu.coredb.dao.TokenPriceDao
@@ -62,6 +63,7 @@ import jp.co.soramitsu.coredb.model.AddressBookContact
 import jp.co.soramitsu.coredb.model.AssetLocal
 import jp.co.soramitsu.coredb.model.OperationLocal
 import jp.co.soramitsu.coredb.model.PhishingLocal
+import jp.co.soramitsu.coredb.model.SoraCardInfoLocal
 import jp.co.soramitsu.coredb.model.StorageEntryLocal
 import jp.co.soramitsu.coredb.model.TokenPriceLocal
 import jp.co.soramitsu.coredb.model.TotalRewardLocal
@@ -92,7 +94,8 @@ import jp.co.soramitsu.coredb.model.chain.MetaAccountLocal
         ChainRuntimeInfoLocal::class,
         MetaAccountLocal::class,
         ChainAccountLocal::class,
-        ChainExplorerLocal::class
+        ChainExplorerLocal::class,
+        SoraCardInfoLocal::class
     ]
 )
 @TypeConverters(
@@ -169,4 +172,6 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun metaAccountDao(): MetaAccountDao
 
     abstract fun addressBookDao(): AddressBookDao
+
+    abstract fun soraCardDao(): SoraCardDao
 }

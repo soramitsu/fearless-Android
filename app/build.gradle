@@ -146,6 +146,9 @@ dependencies {
     implementation project(':feature-success-api')
     implementation project(':feature-success-impl')
 
+    implementation project(':feature-soracard-api')
+    implementation project(':feature-soracard-impl')
+
     implementation kotlinDep
 
     implementation androidDep

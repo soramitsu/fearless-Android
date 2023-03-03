@@ -358,6 +358,12 @@ class WalletRepositoryImpl(
         )
     }
 
+    override suspend fun getSingleAssetPriceCoingecko(priceId: String, currency: String): BigDecimal? {
+        return apiCall {
+            coingeckoApi.getSingleAssetPrice(priceIds = priceId, currency = currency)
+        }.getOrDefault(priceId, null)?.getOrDefault(currency, null)?.toBigDecimal()
+    }
+
     private suspend fun getAssetPriceCoingecko(vararg priceId: String, currencyId: String): Map<String, Map<String, BigDecimal>> {
         return apiCall { coingeckoApi.getAssetPrice(priceId.joinToString(","), currencyId, true) }
     }
