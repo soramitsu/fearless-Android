@@ -14,8 +14,9 @@ class AddressDisplayUseCase(
     class Identifier(private val addressToName: Map<String, String?>) {
 
         fun nameOrAddress(address: String): String {
-            val shortAddress = "${address.take(5)}...${address.takeLast(5)}"
-            return addressToName[address] ?: shortAddress
+//            val shortAddress = "${address.take(5)}...${address.takeLast(5)}"
+//            return addressToName[address] ?: shortAddress
+            return addressToName[address] ?: address
         }
     }
 

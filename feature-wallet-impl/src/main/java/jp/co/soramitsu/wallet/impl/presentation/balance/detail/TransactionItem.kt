@@ -16,6 +16,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.constraintlayout.compose.ChainStyle
+import androidx.constraintlayout.compose.ConstraintLayout
+import androidx.constraintlayout.compose.Dimension
 import coil.compose.AsyncImage
 import jp.co.soramitsu.common.compose.component.B1
 import jp.co.soramitsu.common.compose.component.B2
@@ -27,7 +30,7 @@ import jp.co.soramitsu.wallet.impl.presentation.model.OperationModel
 import jp.co.soramitsu.wallet.impl.presentation.model.OperationStatusAppearance
 
 @Composable
-fun TransactionItem(
+fun TransactionItem1(
     item: OperationModel,
     transactionClicked: (OperationModel) -> Unit
 ) {
@@ -96,18 +99,136 @@ fun TransactionItem(
 }
 
 @Composable
+fun TransactionItem(
+    item: OperationModel,
+    transactionClicked: (OperationModel) -> Unit
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable {
+                transactionClicked(item)
+            }
+    ) {
+        ConstraintLayout(modifier = Modifier.fillMaxWidth()) {
+            val (image, imageSpacer, header, amount, status, subHeader, time) = createRefs()
+
+            AsyncImage(
+                model = when (item.assetIconUrl) {
+                    null -> item.operationIcon
+                    else -> getImageRequest(LocalContext.current, item.assetIconUrl)
+                },
+                contentDescription = null,
+                modifier = Modifier
+                    .size(32.dp)
+                    .constrainAs(image) {
+                        top.linkTo(parent.top)
+                        bottom.linkTo(parent.bottom)
+                        start.linkTo(parent.start)
+                    }
+            )
+            Spacer(modifier = Modifier
+                .width(8.dp)
+                .constrainAs(imageSpacer) {
+                    start.linkTo(image.end)
+                })
+            B1(
+                text = item.header,
+                textAlign = TextAlign.Start,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.constrainAs(header) {
+                    top.linkTo(parent.top)
+                    start.linkTo(imageSpacer.end, margin = 8.dp)
+                    end.linkTo(amount.start, margin = 4.dp)
+                    width = Dimension.percent(0.2f)
+                }
+            )
+            B1(
+                text = item.amount,
+                color = item.amountColor,
+                overflow = TextOverflow.Ellipsis,
+                maxLines = 1,
+                textAlign = TextAlign.End,
+                modifier = Modifier
+                    .constrainAs(amount) {
+                        end.linkTo(status.start)
+                        top.linkTo(parent.top)
+                        start.linkTo(header.end)
+                        width = Dimension.fillToConstraints
+                    }
+            )
+            if (item.statusAppearance != OperationStatusAppearance.COMPLETED) {
+                Image(
+                    res = item.statusAppearance.icon,
+                    modifier = Modifier
+                        .size(14.dp)
+                        .constrainAs(status) {
+                            end.linkTo(parent.end)
+                            top.linkTo(parent.top)
+                        }
+                )
+            }
+            createHorizontalChain(image, imageSpacer, header, amount, status, chainStyle = ChainStyle.SpreadInside)
+            B2(
+                text = item.subHeader,
+                textAlign = TextAlign.Start,
+                maxLines = 1,
+                color = Color.White.copy(alpha = 0.64f),
+                modifier = Modifier.constrainAs(subHeader) {
+                    top.linkTo(header.bottom)
+                    start.linkTo(imageSpacer.end)
+                    bottom.linkTo(parent.bottom)
+                    end.linkTo(time.start)
+                    width = Dimension.fillToConstraints
+                }
+            )
+
+            B2(
+                text = item.time.formatDateTime(LocalContext.current).toString(),
+                textAlign = TextAlign.End,
+                maxLines = 1,
+                color = Color.White.copy(alpha = 0.64f),
+                modifier = Modifier.constrainAs(time) {
+                    top.linkTo(amount.bottom)
+                    end.linkTo(parent.end)
+                    bottom.linkTo(parent.bottom)
+                    width = Dimension.fillToConstraints
+                }
+            )
+        }
+    }
+}
+
+
+@Composable
 @Preview
 private fun PreviewTransactionItem() {
-    TransactionItem(
-        item = OperationModel(
-            id = "",
-            time = System.currentTimeMillis(),
-            header = "HeaderHeaderHeaderHeaderHeaderHeaderHeaderHeaderHeaderHeaderHeaderHeaderHeaderHeaderHeaderHeader",
-            statusAppearance = OperationStatusAppearance.COMPLETED,
-            amount = "amountamountamountamountamountamountamountamountamount",
-            operationIcon = null,
-            subHeader = "subHeadersubHeadersubHeadersubHeadersubHeadersubHeadersubHeadersubHeadersubHeadersubHeadersubHeadersubHeader"
-        ),
-        transactionClicked = {}
-    )
+    Column {
+        TransactionItem(
+            item = OperationModel(
+                id = "",
+                time = System.currentTimeMillis(),
+                header = "HeaderHeaderHeaderHeaderHeaderHeaderHeaderHeader",
+                statusAppearance = OperationStatusAppearance.COMPLETED,
+                amount = "amountamountamountamountamountamountamountamountamountamountamountamountamountamountamountamountamountamountamountamountamountamountamountamountamountamountamountamountamountamount",
+                operationIcon = null,
+                subHeader = "subHeadersubsubHeadersubsubHeadersubsubHeadersub"
+            ),
+            transactionClicked = {}
+        )
+        TransactionItem1(
+            item = OperationModel(
+                id = "",
+                time = System.currentTimeMillis(),
+                header = "HeaderHeaderHeaderHeaderHeaderHeaderHeaderHeaderHeaderHeaderHeaderHeaderHeaderHeaderHeaderHeaderHeaderHeaderHeaderHeaderHeaderHeaderHeaderHeaderHeaderHeaderHeaderHeaderHeaderHeaderHeaderHeader",
+                statusAppearance = OperationStatusAppearance.COMPLETED,
+                amount = "123123123123123123123123123123123123",
+                operationIcon = null,
+                subHeader = "subHeadersubHeadersubHeadersubHeadersubHeadersubHeadersubHeadersubHeadersubHeadersubHeadersubHeadersubHeader"
+            ),
+            transactionClicked = {}
+        )
+    }
 }

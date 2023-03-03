@@ -117,7 +117,7 @@ class TransactionHistoryProvider(
         val isIndexEnoughToLoadNextPage = currentIndex >= currentPageOffset
         val isNextPageLoaded = pageLoaded > currentPage
         val hasDataToLoad = nextCursor != null
-        hashCode()
+
         if (hasDataToLoad.not() ||
             isIndexEnoughToLoadNextPage.not() ||
             isNextPageLoaded ||
