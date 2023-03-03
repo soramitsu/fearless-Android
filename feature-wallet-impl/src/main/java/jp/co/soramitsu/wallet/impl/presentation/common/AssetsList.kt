@@ -31,7 +31,8 @@ interface AssetsListInterface {
 @Composable
 fun AssetsList(
     data: AssetListState,
-    callback: AssetsListInterface
+    callback: AssetsListInterface,
+    header: (@Composable () -> Unit)? = null
 ) {
     val listState = rememberLazyListState(0)
     val isShowHidden = remember { mutableStateOf(false) }
@@ -50,6 +51,9 @@ fun AssetsList(
         state = listState,
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
+        if (header != null) {
+            item { header() }
+        }
         items(data.visibleAssets, key = { it.key }) { assetState ->
             SwipeableAssetListItem(
                 assetState = assetState,

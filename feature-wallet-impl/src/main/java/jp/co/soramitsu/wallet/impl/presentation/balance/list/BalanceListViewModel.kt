@@ -10,6 +10,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.presentation.actions.AddAccountBottomSheet
 import jp.co.soramitsu.common.AlertViewState
+import jp.co.soramitsu.common.BuildConfig
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.address.createAddressModel
@@ -53,11 +54,17 @@ import jp.co.soramitsu.core.extrinsic.KeyPairProvider
 import jp.co.soramitsu.core.extrinsic.mortality.IChainStateRepository
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.addressByteOrNull
 import jp.co.soramitsu.feature_wallet_impl.R
+import jp.co.soramitsu.oauth.base.sdk.SoraCardEnvironmentType
+import jp.co.soramitsu.oauth.base.sdk.SoraCardInfo
+import jp.co.soramitsu.oauth.base.sdk.signin.SoraCardSignInContractData
+import jp.co.soramitsu.oauth.common.model.KycStatus
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.defaultChainSort
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.getWithToken
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
+import jp.co.soramitsu.soracard.api.domain.SoraCardInteractor
+import jp.co.soramitsu.soracard.impl.presentation.SoraCardItemViewState
 import jp.co.soramitsu.wallet.impl.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.wallet.impl.domain.ChainInteractor
 import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
@@ -88,6 +95,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.math.BigDecimal
+import java.util.Locale
 import javax.inject.Inject
 
 private const val CURRENT_ICON_SIZE = 40
@@ -95,6 +103,7 @@ private const val CURRENT_ICON_SIZE = 40
 @HiltViewModel
 class BalanceListViewModel @Inject constructor(
     private val interactor: WalletInteractor,
+    private val soraCardInteractor: SoraCardInteractor,
     private val chainInteractor: ChainInteractor,
     private val addressIconGenerator: AddressIconGenerator,
     private val router: WalletRouter,
@@ -124,6 +133,9 @@ class BalanceListViewModel @Inject constructor(
 
     private val _openPlayMarket = MutableLiveData<Event<Unit>>()
     val openPlayMarket: LiveData<Event<Unit>> = _openPlayMarket
+
+    private val _launchSoraCardSignIn = MutableLiveData<Event<SoraCardSignInContractData>>()
+    val launchSoraCardSignIn: LiveData<Event<SoraCardSignInContractData>> = _launchSoraCardSignIn
 
     private val connectingChainIdsFlow = networkStateMixin.chainConnectionsLiveData.map {
         it.filter { (_, isConnecting) -> isConnecting }.keys
@@ -321,15 +333,25 @@ class BalanceListViewModel @Inject constructor(
         .thenBy { it.chainId.defaultChainSort() }
         .thenBy { it.chainName }
 
+    private val soraCardState = combine(
+        interactor.observeIsShowSoraCard(),
+        soraCardInteractor.subscribeSoraCardInfo()
+    ) { isShow, soraCardInfo ->
+        val kycStatus = soraCardInfo?.kycStatus?.let(::mapKycStatus)
+        SoraCardItemViewState(kycStatus, soraCardInfo, null, isShow)
+    }
+
     val state = combine(
         assetStates,
         assetTypeSelectorState,
         balanceFlow,
-        selectedChainId
+        selectedChainId,
+        soraCardState
     ) { assetsListItemStates: List<AssetListItemViewState>,
         multiToggleButtonState: MultiToggleButtonState<AssetType>,
         balanceModel: BalanceModel,
-        selectedChainId: ChainId? ->
+        selectedChainId: ChainId?,
+        soraCardState: SoraCardItemViewState ->
 
         val selectedChainAddress = selectedChainId?.let {
             currentAccountAddress(chainId = it)
@@ -349,12 +371,12 @@ class BalanceListViewModel @Inject constructor(
             assets = assetsListItemStates,
             multiToggleButtonState = multiToggleButtonState,
             balance = balanceState,
-            hasNetworkIssues = hasNetworkIssues
+            hasNetworkIssues = hasNetworkIssues,
+            soraCardState = soraCardState
         )
     }.stateIn(scope = this, started = SharingStarted.Eagerly, initialValue = WalletState.default)
 
     val toolbarState = combine(currentAddressModelFlow(), selectedChainItemFlow) { addressModel, chain ->
-        chainsFlow
         LoadingState.Loaded(
             MainToolbarViewState(
                 title = addressModel.nameOrAddress,
@@ -374,6 +396,10 @@ class BalanceListViewModel @Inject constructor(
         interactor.selectedMetaAccountFlow().map { wallet ->
             selectedChainId.value = interactor.getSavedChainId(wallet.id)
         }.launchIn(this)
+
+        if (!interactor.isShowGetSoraCard()) {
+            interactor.decreaseSoraCardHiddenSessions()
+        }
     }
 
     private fun sync() {
@@ -517,6 +543,18 @@ class BalanceListViewModel @Inject constructor(
         }
     }
 
+    override fun soraCardClicked() {
+        if (state.value.soraCardState?.kycStatus == null) {
+            router.openGetSoraCard()
+        } else {
+            onSoraCardStatusClicked()
+        }
+    }
+
+    override fun soraCardClose() {
+        interactor.hideSoraCard()
+    }
+
     fun onFiatSelected(item: FiatCurrency) {
         viewModelScope.launch {
             selectedFiat.set(item.id)
@@ -573,5 +611,54 @@ class BalanceListViewModel @Inject constructor(
 
         val message = resourceManager.getString(R.string.common_copied)
         showMessage(message)
+    }
+
+    private fun mapKycStatus(kycStatus: String): String? {
+        return when (kycStatus) {
+            "Completed" -> resourceManager.getString(R.string.sora_card_verification_in_progress)
+            "Successful" -> resourceManager.getString(R.string.sora_card_verification_successful)
+            "Rejected" -> resourceManager.getString(R.string.sora_card_verification_rejected)
+            "Failed" -> resourceManager.getString(R.string.sora_card_verification_failed)
+            "NoMoreFreeTries" -> resourceManager.getString(R.string.sora_card_no_more_free_tries)
+            else -> null
+        }
+    }
+
+    private fun onSoraCardStatusClicked() {
+        _launchSoraCardSignIn.value = Event(
+            SoraCardSignInContractData(
+                locale = Locale.ENGLISH,
+                apiKey = BuildConfig.SORA_CARD_API_KEY,
+                domain = BuildConfig.SORA_CARD_DOMAIN,
+                environment = when {
+                    BuildConfig.DEBUG -> SoraCardEnvironmentType.TEST
+                    else -> SoraCardEnvironmentType.PRODUCTION
+                },
+                soraCardInfo = state.value.soraCardState?.soraCardInfo?.let {
+                    SoraCardInfo(
+                        accessToken = it.accessToken,
+                        refreshToken = it.refreshToken,
+                        accessTokenExpirationTime = it.accessTokenExpirationTime,
+                        kycStatus = KycStatus.valueOf(it.kycStatus)
+                    )
+                }
+            )
+        )
+    }
+
+    fun updateSoraCardInfo(
+        accessToken: String,
+        refreshToken: String,
+        accessTokenExpirationTime: Long,
+        kycStatus: String
+    ) {
+        launch {
+            soraCardInteractor.updateSoraCardInfo(
+                accessToken,
+                refreshToken,
+                accessTokenExpirationTime,
+                kycStatus
+            )
+        }
     }
 }
