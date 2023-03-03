@@ -14,6 +14,7 @@ import androidx.compose.material.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
@@ -143,6 +144,29 @@ fun ColoredButton(
         modifier = modifier,
         onClick = onClick,
         shape = FearlessCorneredShape(cornerRadius = 4.dp, cornerCutLength = 6.dp),
+        colors = customButtonColors(backgroundColor),
+        border = border,
+        enabled = enabled,
+        contentPadding = contentPadding,
+        content = content
+    )
+}
+
+@Composable
+fun ShapeButton(
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    backgroundColor: Color,
+    border: BorderStroke? = null,
+    shape: Shape = FearlessCorneredShape(cornerRadius = 4.dp, cornerCutLength = 6.dp),
+    contentPadding: PaddingValues = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
+    onClick: () -> Unit,
+    content: @Composable RowScope.() -> Unit
+) {
+    TextButton(
+        modifier = modifier,
+        onClick = onClick,
+        shape = shape,
         colors = customButtonColors(backgroundColor),
         border = border,
         enabled = enabled,

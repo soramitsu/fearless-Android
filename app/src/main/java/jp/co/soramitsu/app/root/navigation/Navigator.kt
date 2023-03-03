@@ -69,6 +69,7 @@ import jp.co.soramitsu.polkaswap.impl.presentation.swap_tokens.SwapTokensFragmen
 import jp.co.soramitsu.polkaswap.impl.presentation.transaction_settings.TransactionSettingsFragment
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.soracard.api.presentation.SoraCardRouter
 import jp.co.soramitsu.splash.SplashRouter
 import jp.co.soramitsu.staking.api.domain.model.PoolInfo
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
@@ -153,7 +154,8 @@ class Navigator :
     StakingRouter,
     CrowdloanRouter,
     PolkaswapRouter,
-    SuccessRouter {
+    SuccessRouter,
+    SoraCardRouter {
 
     private var navController: NavController? = null
     private var activity: AppCompatActivity? = null
@@ -597,10 +599,14 @@ class Navigator :
         navController?.navigate(R.id.sendSetupFragment, bundle)
     }
 
-    override fun openSwapTokensScreen(assetPayload: AssetPayload) {
-        val bundle = SwapTokensFragment.getBundle(assetPayload.chainAssetId, assetPayload.chainId)
+    override fun openSwapTokensScreen(assetId: String, chainId: String) {
+        val bundle = SwapTokensFragment.getBundle(assetId, chainId)
 
         navController?.navigate(R.id.swapTokensFragment, bundle)
+    }
+
+    override fun showBuyCrypto() {
+        navController?.navigate(R.id.buyCryptoFragment)
     }
 
     override fun openSelectChain(assetId: String, chainId: ChainId?, chooserMode: Boolean) {
@@ -989,6 +995,10 @@ class Navigator :
         navController?.navigate(R.id.editPoolConfirmFragment)
     }
 
+    override fun openGetSoraCard() {
+        navController?.navigate(R.id.getSoraCardFragment)
+    }
+
     override val walletSelectorPayloadFlow: Flow<WalletSelectorPayload?>
         get() = navController?.currentBackStackEntry?.savedStateHandle
             ?.getLiveData<WalletSelectorPayload?>(WalletSelectorPayload::class.java.name)
@@ -1052,5 +1062,9 @@ class Navigator :
     override fun openPoolFullUnstakeDepositorAlertFragment(amount: String) {
         val bundle = PoolFullUnstakeDepositorAlertFragment.getBundle(amount)
         navController?.navigate(R.id.poolFullUnstakeDepositorAlertFragment, bundle)
+    }
+
+    override fun openGetMoreXor() {
+        navController?.navigate(R.id.getMoreXorFragment)
     }
 }

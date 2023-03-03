@@ -108,4 +108,6 @@ interface WalletRepository {
     suspend fun getRemoteConfig(): Result<AppConfigRemote>
 
     fun chainRegistrySyncUp()
+
+    suspend fun getSingleAssetPriceCoingecko(priceId: String, currency: String): BigDecimal?
 }
