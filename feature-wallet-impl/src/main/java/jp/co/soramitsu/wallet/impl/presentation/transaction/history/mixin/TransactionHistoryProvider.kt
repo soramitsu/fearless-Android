@@ -104,6 +104,7 @@ class TransactionHistoryProvider(
                 is HistoryNotSupportedException -> resourceManager.getString(R.string.wallet_transaction_history_unsupported_message)
                 else -> resourceManager.getString(R.string.wallet_transaction_history_error_message)
             }
+            _sideEffects.emit(TransactionHistoryUi.SideEffect.Error(throwable.localizedMessage ?: throwable.localizedMessage))
             _state.emit(TransactionHistoryUi.State.Empty(message))
         }
     }
@@ -122,7 +123,9 @@ class TransactionHistoryProvider(
             isIndexEnoughToLoadNextPage.not() ||
             isNextPageLoaded ||
             nextPageLoading
-        ) return
+        ) {
+            return
+        }
 
         launch {
             nextPageLoading = true

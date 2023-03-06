@@ -203,6 +203,11 @@ class BalanceDetailViewModel @Inject constructor(
             router.chainSelectorPayloadFlow.collect { chainId ->
                 chainId?.let { selectedChainId.value = chainId }
             }
+            transactionHistoryProvider.sideEffects().collect {
+                when (it) {
+                    is TransactionHistoryUi.SideEffect.Error -> showError(it.message ?: resourceManager.getString(R.string.common_undefined_error_message))
+                }
+            }
         }
     }
 

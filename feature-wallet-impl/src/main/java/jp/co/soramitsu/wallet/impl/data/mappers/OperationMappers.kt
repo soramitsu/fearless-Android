@@ -355,7 +355,8 @@ suspend fun mapOperationToOperationModel(
                     ),
                     statusAppearance = statusAppearance,
                     operationIcon = resourceManager.getDrawable(R.drawable.ic_staking),
-                    subHeader = resourceManager.getString(R.string.tabbar_staking_title)
+                    subHeader = resourceManager.getString(R.string.tabbar_staking_title),
+                    type = operationType.toModel()
                 )
             }
 
@@ -374,7 +375,8 @@ suspend fun mapOperationToOperationModel(
                     header = nameIdentifier.nameOrAddress(operationType.displayAddress),
                     statusAppearance = statusAppearance,
                     operationIcon = iconGenerator.createAddressIcon(operationType.displayAddress, AddressIconGenerator.SIZE_BIG),
-                    subHeader = resourceManager.getString(R.string.transfer_title)
+                    subHeader = resourceManager.getString(R.string.transfer_title),
+                    type = operationType.toModel()
                 )
             }
 
@@ -388,6 +390,7 @@ suspend fun mapOperationToOperationModel(
                     statusAppearance = statusAppearance,
                     operationIcon = null,
                     subHeader = operationType.formattedAndReplaced()[operationType.module] ?: operationType.module,
+                    type = operationType.toModel(),
                     assetIconUrl = chainAsset.iconUrl
                 )
             }
@@ -404,10 +407,20 @@ suspend fun mapOperationToOperationModel(
                     subHeader = when (operationType.status) {
                         Operation.Status.COMPLETED -> resourceManager.getString(R.string.polkaswap_confirmation_swapped_stub)
                         else -> resourceManager.getString(statusAppearance.labelRes)
-                    }
+                    },
+                    type = operationType.toModel()
                 )
             }
         }
+    }
+}
+
+private fun Operation.Type.toModel(): OperationModel.Type {
+    return when (this) {
+        is Operation.Type.Extrinsic -> OperationModel.Type.Extrinsic
+        is Operation.Type.Reward -> OperationModel.Type.Reward
+        is Operation.Type.Swap -> OperationModel.Type.Swap
+        is Operation.Type.Transfer -> OperationModel.Type.Transfer
     }
 }
 

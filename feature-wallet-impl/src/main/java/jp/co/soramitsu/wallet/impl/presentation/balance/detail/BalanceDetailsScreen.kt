@@ -164,7 +164,6 @@ private fun ActionBar(actionBarLoadingState: LoadingState<ActionBarViewState>, a
     }
 }
 
-
 @Composable
 private fun TransactionHistory(
     history: TransactionHistoryUi.State,
