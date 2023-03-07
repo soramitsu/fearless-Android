@@ -41,12 +41,15 @@ import jp.co.soramitsu.common.compose.component.CapsTitle2
 import jp.co.soramitsu.common.compose.component.ChangeBalanceViewState
 import jp.co.soramitsu.common.compose.component.H5
 import jp.co.soramitsu.common.compose.component.Image
+import jp.co.soramitsu.common.compose.component.InfoTableItem
 import jp.co.soramitsu.common.compose.component.MarginHorizontal
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.component.Shimmer
+import jp.co.soramitsu.common.compose.component.TitleValueViewState
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.theme.black3
 import jp.co.soramitsu.common.compose.theme.gray2
+import jp.co.soramitsu.common.compose.theme.white08
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.utils.formatDaysSinceEpoch
 import jp.co.soramitsu.feature_wallet_impl.R
@@ -58,17 +61,19 @@ import jp.co.soramitsu.wallet.impl.presentation.transaction.history.model.DayHea
 data class BalanceDetailsState(
     val actionBarViewState: LoadingState<ActionBarViewState>,
     val balance: LoadingState<AssetBalanceViewState>,
+    val transferableViewState: TitleValueViewState,
+    val lockedViewState: TitleValueViewState,
     val transactionHistory: TransactionHistoryUi.State
 )
 
 interface BalanceDetailsScreenInterface {
     fun onAddressClick()
-    fun onBalanceClick()
     fun actionItemClicked(actionType: ActionItemType, chainId: ChainId, chainAssetId: String)
     fun filterClicked()
     fun transactionClicked(transactionModel: OperationModel)
     fun sync()
     fun transactionsScrolled(index: Int)
+    fun tableItemClicked(itemId: Int)
 }
 
 @Composable
@@ -85,14 +90,25 @@ fun BalanceDetailsScreen(
         MarginVertical(margin = 16.dp)
         AssetBalance(
             balanceLoadingState = state.balance,
-            onAddressClick = callback::onAddressClick,
-            onBalanceClick = callback::onBalanceClick
+            onAddressClick = callback::onAddressClick
         )
         MarginVertical(margin = 24.dp)
-        ActionBar(
-            actionBarLoadingState = state.actionBarViewState,
-            actionItemClicked = callback::actionItemClicked
-        )
+        BackgroundCornered {
+            Column {
+                InfoTableItem(state = state.transferableViewState)
+                InfoTableItem(state = state.lockedViewState, onClick = callback::tableItemClicked)
+                Divider(
+                    color = white08,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                )
+                ActionBar(
+                    actionBarLoadingState = state.actionBarViewState,
+                    actionItemClicked = callback::actionItemClicked
+                )
+            }
+        }
         MarginVertical(margin = 16.dp)
         BackgroundCornered {
             Column(
@@ -135,15 +151,14 @@ fun BalanceDetailsScreen(
 @Composable
 private fun AssetBalance(
     balanceLoadingState: LoadingState<AssetBalanceViewState>,
-    onAddressClick: () -> Unit,
-    onBalanceClick: () -> Unit
+    onAddressClick: () -> Unit
 ) {
     when (balanceLoadingState) {
         is LoadingState.Loading -> {
             AssetBalanceShimmer()
         }
         is LoadingState.Loaded -> {
-            AssetBalance(state = balanceLoadingState.data, onAddressClick = onAddressClick, onBalanceClick = onBalanceClick)
+            AssetBalance(state = balanceLoadingState.data, onAddressClick = onAddressClick)
         }
     }
 }
@@ -306,7 +321,7 @@ private fun PreviewBalanceDetailScreenContent() {
     val assetBalanceViewState = AssetBalanceViewState(
         balance = assetBalance,
         address = address,
-        isInfoEnabled = true,
+        isInfoEnabled = false,
         changeViewState = ChangeBalanceViewState(
             percentChange = percentChange,
             fiatChange = assetBalanceFiat
@@ -314,20 +329,31 @@ private fun PreviewBalanceDetailScreenContent() {
     )
 
     val state = BalanceDetailsState(
-        actionBarViewState = LoadingState.Loaded(ActionBarViewState(chainAssetId = "0x123", chainId = "0x123", actionItems = listOf())),
+        actionBarViewState = LoadingState.Loaded(
+            ActionBarViewState(
+                chainAssetId = "0x123",
+                chainId = "0x123",
+                actionItems = listOf(ActionItemType.SEND, ActionItemType.RECEIVE, ActionItemType.SWAP)
+            )
+        ),
         balance = LoadingState.Loaded(assetBalanceViewState),
-        transactionHistory = TransactionHistoryUi.State.Empty()
+        transactionHistory = TransactionHistoryUi.State.Empty(),
+        transferableViewState = TitleValueViewState(title = stringResource(R.string.assetdetails_balance_transferable)),
+        lockedViewState = TitleValueViewState(
+            title = stringResource(R.string.assetdetails_balance_locked),
+            clickState = TitleValueViewState.ClickState.Title(R.drawable.ic_info_14, 1)
+        )
     )
 
     val empty = object : BalanceDetailsScreenInterface {
         override fun onAddressClick() {}
-        override fun onBalanceClick() {}
 
         override fun actionItemClicked(actionType: ActionItemType, chainId: ChainId, chainAssetId: String) {}
         override fun filterClicked() {}
         override fun transactionClicked(transactionModel: OperationModel) {}
         override fun sync() {}
         override fun transactionsScrolled(index: Int) {}
+        override fun tableItemClicked(itemId: Int) = Unit
     }
 
     return FearlessTheme {

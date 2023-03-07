@@ -20,9 +20,11 @@ fun InfoTable(
             .fillMaxWidth()
     ) {
         Column {
+            MarginVertical(margin = 6.dp)
             items.forEach {
                 InfoTableItem(it, onClick = onItemClick)
             }
+            MarginVertical(margin = 8.dp)
         }
     }
 }

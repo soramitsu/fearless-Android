@@ -30,7 +30,7 @@ data class AssetBalanceViewState(
 fun AssetBalance(
     state: AssetBalanceViewState,
     onAddressClick: () -> Unit,
-    onBalanceClick: () -> Unit
+    onBalanceClick: () -> Unit = emptyClick
 ) {
     Column(
         verticalArrangement = Arrangement.Center,

@@ -8,11 +8,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.material.Divider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -24,7 +21,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
-import jp.co.soramitsu.common.compose.theme.white16
 
 enum class ActionItemType(
     @DrawableRes val iconId: Int,
@@ -52,35 +48,23 @@ fun ActionBar(
     fillMaxWidth: Boolean = false,
     onItemClick: (ActionItemType, String, String) -> Unit = { _, _, _ -> }
 ) {
-    BackgroundCornered {
-        Row(Modifier.padding(vertical = 4.dp)) {
-            state.actionItems.forEachIndexed { index, actionItem ->
-                val itemClickHandler = remember { { onItemClick(actionItem, state.chainId, state.chainAssetId) } }
-                val icon = painterResource(id = actionItem.iconId)
-                val title = stringResource(id = actionItem.titleId)
-                val actionViewState = remember {
-                    ActionCellViewState(
-                        painter = icon,
-                        title = title,
-                        isEnabled = actionItem !in state.disabledItems
-                    )
-                }
-                ActionCell(
-                    state = actionViewState,
-                    modifier = if (fillMaxWidth) Modifier.weight(1f) else Modifier,
-                    onClick = itemClickHandler
+    Row(Modifier.padding(vertical = 4.dp)) {
+        state.actionItems.forEachIndexed { index, actionItem ->
+            val itemClickHandler = remember { { onItemClick(actionItem, state.chainId, state.chainAssetId) } }
+            val icon = painterResource(id = actionItem.iconId)
+            val title = stringResource(id = actionItem.titleId)
+            val actionViewState = remember {
+                ActionCellViewState(
+                    painter = icon,
+                    title = title,
+                    isEnabled = actionItem !in state.disabledItems
                 )
-
-                if (index < state.actionItems.size - 1) {
-                    Divider(
-                        color = white16,
-                        modifier = Modifier
-                            .height(64.dp)
-                            .width(1.dp)
-                            .align(Alignment.CenterVertically)
-                    )
-                }
             }
+            ActionCell(
+                state = actionViewState,
+                modifier = if (fillMaxWidth) Modifier.weight(1f) else Modifier,
+                onClick = itemClickHandler
+            )
         }
     }
 }

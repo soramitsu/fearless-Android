@@ -19,6 +19,7 @@ import jp.co.soramitsu.common.compose.component.AssetBalanceViewState
 import jp.co.soramitsu.common.compose.component.ChainSelectorViewState
 import jp.co.soramitsu.common.compose.component.ChangeBalanceViewState
 import jp.co.soramitsu.common.compose.component.MainToolbarViewState
+import jp.co.soramitsu.common.compose.component.TitleValueViewState
 import jp.co.soramitsu.common.compose.component.ToolbarHomeIconState
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.resources.ClipboardManager
@@ -78,6 +79,10 @@ class BalanceDetailViewModel @Inject constructor(
     BalanceDetailsScreenInterface,
     ExternalAccountActions by externalAccountActions,
     BuyMixin by buyMixin {
+
+    companion object {
+        private const val LOCKED_BALANCE_INFO_ID = 409
+    }
 
     private val assetPayloadInitial: AssetPayload = savedStateHandle[KEY_ASSET_PAYLOAD] ?: error("No asset specified")
 
@@ -162,6 +167,11 @@ class BalanceDetailViewModel @Inject constructor(
     private val defaultState = BalanceDetailsState(
         LoadingState.Loading(),
         LoadingState.Loading(),
+        TitleValueViewState(title = resourceManager.getString(R.string.assetdetails_balance_transferable)),
+        TitleValueViewState(
+            title = resourceManager.getString(R.string.assetdetails_balance_locked),
+            clickState = TitleValueViewState.ClickState.Title(R.drawable.ic_info_14, LOCKED_BALANCE_INFO_ID)
+        ),
         TransactionHistoryUi.State.EmptyProgress
     )
 
@@ -174,7 +184,7 @@ class BalanceDetailViewModel @Inject constructor(
         val balanceState = AssetBalanceViewState(
             balance = balanceModel.total.orZero().formatTokenAmount(balanceModel.token.configuration.symbolToShow.uppercase()),
             address = currentAccountAddress(chainId = balanceModel.token.configuration.chainId).orEmpty(),
-            isInfoEnabled = true,
+            isInfoEnabled = false,
             changeViewState = ChangeBalanceViewState(
                 percentChange = balanceModel.token.recentRateChange?.formatAsChange().orEmpty(),
                 fiatChange = balanceModel.token.fiatRate?.multiply(balanceModel.total.orZero())?.formatAsCurrency(balanceModel.token.fiatSymbol).orEmpty()
@@ -191,9 +201,20 @@ class BalanceDetailViewModel @Inject constructor(
                 disabledItems = getDisabledItems()
             )
         )
+
+        val transferableFormatted = balanceModel.transferable.formatTokenAmount(balanceModel.token.configuration.symbolToShow.uppercase())
+        val transferableFiat = balanceModel.token.fiatAmount(balanceModel.transferable)?.formatAsCurrency(balanceModel.token.fiatSymbol)
+        val newTransferableState = defaultState.transferableViewState.copy(value = transferableFormatted, additionalValue = transferableFiat)
+
+        val lockedFormatted = balanceModel.locked.formatTokenAmount(balanceModel.token.configuration.symbolToShow.uppercase())
+        val lockedFiat = balanceModel.token.fiatAmount(balanceModel.locked)?.formatAsCurrency(balanceModel.token.fiatSymbol)
+        val newLockedState = defaultState.lockedViewState.copy(value = lockedFormatted, additionalValue = lockedFiat)
+
         BalanceDetailsState(
             actionBarViewState = actionBarState,
             balance = LoadingState.Loaded(balanceState),
+            transferableViewState = newTransferableState,
+            lockedViewState = newLockedState,
             transactionHistory = transactionHistory
         )
     }.stateIn(scope = this, started = SharingStarted.Eagerly, initialValue = defaultState)
@@ -313,20 +334,6 @@ class BalanceDetailViewModel @Inject constructor(
         }
     }
 
-    override fun onBalanceClick() {
-        launch {
-            val assetModel = assetModelFlow.first()
-            router.openFrozenTokens(
-                FrozenAssetPayload(
-                    assetSymbol = assetModel.token.configuration.symbolToShow,
-                    locked = assetModel.locked,
-                    reserved = assetModel.reserved,
-                    redeemable = assetModel.redeemable
-                )
-            )
-        }
-    }
-
     override fun actionItemClicked(actionType: ActionItemType, chainId: ChainId, chainAssetId: String) {
         val payload = AssetPayload(chainId, chainAssetId)
         when (actionType) {
@@ -397,5 +404,25 @@ class BalanceDetailViewModel @Inject constructor(
                 chainAssetId = assetPayload.value.chainAssetId
             )
         )
+    }
+
+    override fun tableItemClicked(itemId: Int) {
+        if (itemId == LOCKED_BALANCE_INFO_ID) {
+            openBalanceDetails()
+        }
+    }
+
+    private fun openBalanceDetails() {
+        launch {
+            val assetModel = assetModelFlow.first()
+            router.openFrozenTokens(
+                FrozenAssetPayload(
+                    assetSymbol = assetModel.token.configuration.symbolToShow,
+                    locked = assetModel.locked,
+                    reserved = assetModel.reserved,
+                    redeemable = assetModel.redeemable
+                )
+            )
+        }
     }
 }
