@@ -45,21 +45,21 @@ android {
         buildConfigField "String", "STAKING_POOL_WIKI", "\"https://wiki.polkadot.network/docs/learn-nomination-pools\""
         buildConfigField "String", "POLKADOT_JS_PLUS_EXTENSION", "\"http://polkadotjs.plus/\""
 
-        buildConfigField "String", "SORA_CARD_API_KEY", readSecret("SORA_CARD_API_KEY")
-        buildConfigField "String", "SORA_CARD_DOMAIN",  readSecret("SORA_CARD_DOMAIN")
-        buildConfigField "String", "SORA_CARD_KYC_ENDPOINT_URL",  readSecret("SORA_CARD_KYC_ENDPOINT_URL")
-        buildConfigField "String", "SORA_CARD_KYC_USERNAME", readSecret("SORA_CARD_KYC_USERNAME")
-        buildConfigField "String", "SORA_CARD_KYC_PASSWORD",  readSecret("SORA_CARD_KYC_PASSWORD")
+        buildConfigField "String", "SORA_CARD_API_KEY", readSecretInQuotes("SORA_CARD_API_KEY")
+        buildConfigField "String", "SORA_CARD_DOMAIN",  readSecretInQuotes("SORA_CARD_DOMAIN")
+        buildConfigField "String", "SORA_CARD_KYC_ENDPOINT_URL",  readSecretInQuotes("SORA_CARD_KYC_ENDPOINT_URL")
+        buildConfigField "String", "SORA_CARD_KYC_USERNAME", readSecretInQuotes("SORA_CARD_KYC_USERNAME")
+        buildConfigField "String", "SORA_CARD_KYC_PASSWORD",  readSecretInQuotes("SORA_CARD_KYC_PASSWORD")
     }
 
     buildTypes {
         debug {
-            buildConfigField "String", "X1_ENDPOINT_URL", readSecret("X1_ENDPOINT_URL_DEBUG")
-            buildConfigField "String", "X1_WIDGET_ID", readSecret("X1_WIDGET_ID_DEBUG")
+            buildConfigField "String", "X1_ENDPOINT_URL", readSecretInQuotes("X1_ENDPOINT_URL_DEBUG")
+            buildConfigField "String", "X1_WIDGET_ID", readSecretInQuotes("X1_WIDGET_ID_DEBUG")
         }
         release {
-            buildConfigField "String", "X1_ENDPOINT_URL", readSecret("X1_ENDPOINT_URL_RELEASE")
-            buildConfigField "String", "X1_WIDGET_ID", readSecret("X1_WIDGET_ID_RELEASE")
+            buildConfigField "String", "X1_ENDPOINT_URL", readSecretInQuotes("X1_ENDPOINT_URL_RELEASE")
+            buildConfigField "String", "X1_WIDGET_ID", readSecretInQuotes("X1_WIDGET_ID_RELEASE")
         }
     }
 

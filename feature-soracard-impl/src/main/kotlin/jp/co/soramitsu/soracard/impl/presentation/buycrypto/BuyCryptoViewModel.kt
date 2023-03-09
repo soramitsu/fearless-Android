@@ -6,8 +6,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import jp.co.soramitsu.common.BuildConfig
 import jp.co.soramitsu.common.base.BaseViewModel
-import jp.co.soramitsu.common.config.BuildConfigWrapper
 import jp.co.soramitsu.soracard.api.domain.BuyCryptoRepository
 import jp.co.soramitsu.soracard.api.domain.SoraCardInteractor
 import jp.co.soramitsu.soracard.api.presentation.SoraCardRouter
@@ -43,10 +43,10 @@ class BuyCryptoViewModel @Inject constructor(
             val payload = UUID.randomUUID().toString()
 
             val unencodedHtml = "<html><body>" +
-                "<div id=\"${BuildConfigWrapper.getX1WidgetId()}\" data-address=\"${address}\" " +
+                "<div id=\"${BuildConfig.X1_WIDGET_ID}\" data-address=\"${address}\" " +
                 "data-from-currency=\"EUR\" data-from-amount=\"100\" data-hide-buy-more-button=\"true\" " +
                 "data-hide-try-again-button=\"true\" data-locale=\"en\" data-payload=\"${payload}\"></div>" +
-                "<script async src=\"${BuildConfigWrapper.getX1EndpointUrl()}\"></script>" +
+                "<script async src=\"${BuildConfig.X1_ENDPOINT_URL}\"></script>" +
                 "</body></html>"
             val encodedHtml = Base64.encodeToString(unencodedHtml.toByteArray(), Base64.NO_PADDING)
 
