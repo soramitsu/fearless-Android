@@ -12,7 +12,7 @@ import jp.co.soramitsu.common.utils.deriveSeed32
 import jp.co.soramitsu.common.utils.ethereumAddressFromPublicKey
 import jp.co.soramitsu.common.utils.map
 import jp.co.soramitsu.common.utils.substrateAccountId
-import jp.co.soramitsu.core.model.CryptoType
+import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.core.model.WithDerivationPath
 import jp.co.soramitsu.core.model.WithMnemonic
 import jp.co.soramitsu.core.model.WithSeed

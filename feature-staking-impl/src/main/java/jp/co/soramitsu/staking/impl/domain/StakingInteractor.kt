@@ -1,7 +1,5 @@
 package jp.co.soramitsu.staking.impl.domain
 
-import java.math.BigDecimal
-import java.math.BigInteger
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.common.address.AddressIconGenerator
@@ -13,6 +11,7 @@ import jp.co.soramitsu.common.data.network.runtime.binding.BlockNumber
 import jp.co.soramitsu.common.utils.balances
 import jp.co.soramitsu.common.utils.combineToPair
 import jp.co.soramitsu.common.utils.numberConstant
+import jp.co.soramitsu.core.extrinsic.mortality.IChainStateRepository
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
@@ -20,7 +19,6 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import jp.co.soramitsu.runtime.multiNetwork.getRuntime
-import jp.co.soramitsu.runtime.repository.ChainStateRepository
 import jp.co.soramitsu.staking.api.data.StakingSharedState
 import jp.co.soramitsu.staking.api.domain.api.StakingRepository
 import jp.co.soramitsu.staking.api.domain.model.StakingAccount
@@ -39,13 +37,15 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.withContext
+import java.math.BigDecimal
+import java.math.BigInteger
 
 class StakingInteractor(
     private val accountRepository: AccountRepository,
     private val stakingRepository: StakingRepository,
     private val stakingRewardsRepository: StakingRewardsRepository,
     private val stakingSharedState: StakingSharedState,
-    private val chainStateRepository: ChainStateRepository,
+    private val chainStateRepository: IChainStateRepository,
     private val chainRegistry: ChainRegistry,
     private val addressIconGenerator: AddressIconGenerator,
     private val walletRepository: WalletRepository

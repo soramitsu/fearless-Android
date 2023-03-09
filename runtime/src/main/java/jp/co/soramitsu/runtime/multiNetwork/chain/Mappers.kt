@@ -2,6 +2,7 @@ package jp.co.soramitsu.runtime.multiNetwork.chain
 
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import jp.co.soramitsu.core.models.ChainNode
 import jp.co.soramitsu.coredb.model.chain.ChainAssetLocal
 import jp.co.soramitsu.coredb.model.chain.ChainExplorerLocal
 import jp.co.soramitsu.coredb.model.chain.ChainLocal
@@ -89,7 +90,7 @@ fun mapChainsRemoteToChains(
 
 private fun ChainRemote.toChain(assetsById: Map<String?, AssetRemote>): Chain {
     val nodes = this.nodes?.mapIndexed { index, node ->
-        Chain.Node(
+        ChainNode(
             url = node.url,
             name = node.name,
             isActive = index == 0,
@@ -164,7 +165,7 @@ private fun ChainRemote.toChain(assetsById: Map<String?, AssetRemote>): Chain {
     )
 }
 
-fun mapNodeLocalToNode(nodeLocal: ChainNodeLocal) = Chain.Node(
+fun mapNodeLocalToNode(nodeLocal: ChainNodeLocal) = ChainNode(
     url = nodeLocal.url,
     name = nodeLocal.name,
     isActive = nodeLocal.isActive,

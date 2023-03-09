@@ -6,12 +6,12 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import dagger.multibindings.IntoSet
+import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.account.api.domain.interfaces.SelectedAccountUseCase
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.account.api.extrinsic.ExtrinsicService
-import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
-import jp.co.soramitsu.account.api.domain.interfaces.SelectedAccountUseCase
+import jp.co.soramitsu.core.extrinsic.ExtrinsicService
 import jp.co.soramitsu.crowdloan.api.data.repository.CrowdloanRepository
 import jp.co.soramitsu.crowdloan.impl.data.network.api.moonbeam.MoonbeamApi
 import jp.co.soramitsu.crowdloan.impl.di.customCrowdloan.CustomContributeFactory

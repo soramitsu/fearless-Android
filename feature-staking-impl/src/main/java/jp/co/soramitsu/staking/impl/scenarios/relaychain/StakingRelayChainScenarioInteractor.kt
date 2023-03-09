@@ -1,8 +1,5 @@
 package jp.co.soramitsu.staking.impl.scenarios.relaychain
 
-import java.math.BigDecimal
-import java.math.BigInteger
-import java.util.Optional
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.accountId
@@ -106,6 +103,9 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.withContext
+import java.math.BigDecimal
+import java.math.BigInteger
+import java.util.Optional
 
 val ERA_OFFSET = 1.toBigInteger()
 const val HOURS_IN_DAY = 24

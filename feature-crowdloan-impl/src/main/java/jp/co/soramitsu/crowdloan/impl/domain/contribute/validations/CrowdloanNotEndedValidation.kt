@@ -2,12 +2,12 @@ package jp.co.soramitsu.crowdloan.impl.domain.contribute.validations
 
 import jp.co.soramitsu.common.validation.DefaultFailureLevel
 import jp.co.soramitsu.common.validation.ValidationStatus
+import jp.co.soramitsu.core.extrinsic.mortality.IChainStateRepository
 import jp.co.soramitsu.crowdloan.api.data.repository.CrowdloanRepository
 import jp.co.soramitsu.crowdloan.impl.domain.common.leaseIndexFromBlock
-import jp.co.soramitsu.runtime.repository.ChainStateRepository
 
 class CrowdloanNotEndedValidation(
-    private val chainStateRepository: ChainStateRepository,
+    private val chainStateRepository: IChainStateRepository,
     private val crowdloanRepository: CrowdloanRepository
 ) : ContributeValidation {
 

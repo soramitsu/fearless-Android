@@ -6,7 +6,7 @@ import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
 import androidx.room.Relation
-import jp.co.soramitsu.core.model.CryptoType
+import jp.co.soramitsu.core.models.CryptoType
 
 @Entity(
     tableName = MetaAccountLocal.TABLE_NAME,

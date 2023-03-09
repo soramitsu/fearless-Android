@@ -80,6 +80,8 @@ buildscript {
         minifyRelease = true
         beaconVersion = "3.2.4"
 
+        sharedFeaturesVersion = "0.0.2"
+
         coilDep = "io.coil-kt:coil:$coilVersion"
         coilSvg = "io.coil-kt:coil-svg:$coilVersion"
 
@@ -193,6 +195,9 @@ buildscript {
         withoutJna = { exclude group: 'net.java.dev.jna' }
         beaconDep = "com.github.airgap-it:beacon-android-sdk:$beaconVersion"
         jnaDep = "net.java.dev.jna:jna:5.9.0@aar"
+
+        sharedFeaturesCoreDep = "jp.co.soramitsu.shared_features:core:$sharedFeaturesVersion"
+        sharedFeaturesXcmDep = "jp.co.soramitsu.shared_features:xcm:$sharedFeaturesVersion"
     }
 
     repositories {
@@ -218,6 +223,7 @@ allprojects {
         maven { url "https://jitpack.io" }
         maven { url "https://nexus.iroha.tech/repository/maven-soramitsu/" }
         mavenCentral()
+        mavenLocal()
     }
 }
 

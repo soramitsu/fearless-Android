@@ -8,6 +8,7 @@ import jp.co.soramitsu.common.compose.component.NetworkIssueType
 import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
 import jp.co.soramitsu.common.mixin.api.NetworkStateUi
 import jp.co.soramitsu.common.utils.Event
+import jp.co.soramitsu.core.chain_registry.ChainConnection
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.runtime.ext.utilityAsset
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
@@ -52,7 +53,8 @@ class ConnectionPool @Inject constructor(
             }
         }
         val connectionIssues = combine(connListFlow) { chains ->
-            val issues = chains.filter { (_, isConnecting) -> isConnecting }.map { (chain, _) ->
+            val issues = chains.filter { (_, isConnecting) -> isConnecting }.mapNotNull { (iChain, _) ->
+                val chain = iChain as? Chain ?: return@mapNotNull null
                 NetworkIssueItemState(
                     iconUrl = chain.icon,
                     title = chain.name,

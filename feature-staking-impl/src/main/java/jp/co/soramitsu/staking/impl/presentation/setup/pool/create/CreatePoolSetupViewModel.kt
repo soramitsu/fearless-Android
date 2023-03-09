@@ -2,10 +2,10 @@ package jp.co.soramitsu.staking.impl.presentation.setup.pool.create
 
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import jp.co.soramitsu.account.api.domain.model.address
 import java.math.BigDecimal
 import java.math.BigInteger
 import javax.inject.Inject
-import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.AmountInputViewState
 import jp.co.soramitsu.common.compose.component.ButtonViewState

@@ -1,7 +1,7 @@
 package jp.co.soramitsu.account.impl.presentation.mnemonic.confirm
 
 import android.os.Parcelable
-import jp.co.soramitsu.core.model.CryptoType
+import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.parcelize.Parcelize
 

@@ -1,7 +1,7 @@
 package jp.co.soramitsu.staking.impl.domain.payout
 
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
-import jp.co.soramitsu.account.api.extrinsic.ExtrinsicService
+import jp.co.soramitsu.core.extrinsic.ExtrinsicService
 import jp.co.soramitsu.staking.api.data.StakingSharedState
 import jp.co.soramitsu.staking.impl.data.model.Payout
 import jp.co.soramitsu.staking.impl.data.network.blockhain.calls.payoutStakers

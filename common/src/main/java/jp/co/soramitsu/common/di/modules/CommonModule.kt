@@ -38,6 +38,10 @@ import jp.co.soramitsu.common.resources.ResourceManagerImpl
 import jp.co.soramitsu.common.utils.QrCodeGenerator
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.common.vibration.DeviceVibrator
+import jp.co.soramitsu.core.extrinsic.ExtrinsicBuilderFactory
+import jp.co.soramitsu.core.extrinsic.ExtrinsicService
+import jp.co.soramitsu.core.extrinsic.KeyPairProvider
+import jp.co.soramitsu.core.rpc.RpcCalls
 import jp.co.soramitsu.fearless_utils.encrypt.Signer
 import jp.co.soramitsu.fearless_utils.icon.IconGenerator
 import java.security.SecureRandom
@@ -66,6 +70,19 @@ class CommonModule {
             add(SvgDecoder.Factory())
         }
         .build()
+
+    @Provides
+    fun provideExtrinsicService(
+        rpcCalls: RpcCalls,
+        keyPairProvider: KeyPairProvider,
+        extrinsicBuilderFactory: ExtrinsicBuilderFactory
+    ): ExtrinsicService {
+        return ExtrinsicService(
+            rpcCalls = rpcCalls,
+            keyPairProvider = keyPairProvider,
+            extrinsicBuilderFactory = extrinsicBuilderFactory
+        )
+    }
 
     @Provides
     @Singleton

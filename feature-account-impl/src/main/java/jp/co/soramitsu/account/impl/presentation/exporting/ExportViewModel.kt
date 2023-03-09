@@ -4,15 +4,15 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.liveData
 import androidx.lifecycle.map
+import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
+import jp.co.soramitsu.account.api.domain.model.cryptoType
+import jp.co.soramitsu.account.api.domain.model.hasChainAccount
+import jp.co.soramitsu.account.api.presentation.exporting.ExportSource
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.sendEvent
 import jp.co.soramitsu.common.utils.switchMap
-import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
-import jp.co.soramitsu.account.api.domain.model.cryptoType
-import jp.co.soramitsu.account.api.domain.model.hasChainAccount
-import jp.co.soramitsu.account.api.presentation.exporting.ExportSource
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 

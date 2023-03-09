@@ -12,12 +12,13 @@ import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
+import jp.co.soramitsu.core.chain_registry.ChainConnection
+import jp.co.soramitsu.core.chain_registry.IChainRegistry
 import jp.co.soramitsu.coredb.dao.ChainDao
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainSyncService
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.ChainFetcher
-import jp.co.soramitsu.runtime.multiNetwork.connection.ChainConnection
 import jp.co.soramitsu.runtime.multiNetwork.connection.ConnectionPool
 import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeFactory
 import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeFilesCache
@@ -120,7 +121,7 @@ class ChainRegistryModule {
         chainSyncService: ChainSyncService,
         runtimeSyncService: RuntimeSyncService,
         updatesMixin: UpdatesMixin
-    ) = ChainRegistry(
+    ): IChainRegistry = ChainRegistry(
         runtimeProviderPool,
         chainConnectionPool,
         runtimeSubscriptionPool,

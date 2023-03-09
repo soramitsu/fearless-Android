@@ -1,12 +1,12 @@
 package jp.co.soramitsu.wallet.impl.domain.model
 
-import java.math.BigInteger
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.common.model.AssetKey
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.runtime.ext.utilityAsset
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import java.math.BigInteger
 
 class Asset(
     val metaId: Long,
