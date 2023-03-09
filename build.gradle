@@ -236,7 +236,7 @@ allprojects {
         mavenLocal()
 
         maven {
-            setUrl("https://maven.pkg.github.com/paywings/integration")
+            url = readSecret("PAY_WINGS_REPOSITORY_URL")
             credentials {
                 username = readSecret("PAY_WINGS_USERNAME")
                 password = readSecret("PAY_WINGS_PASSWORD")
