@@ -114,6 +114,7 @@ class SearchAssetsViewModel @Inject constructor(
                 val assetListItemViewState = AssetListItemViewState(
                     assetIconUrl = tokenConfig.iconUrl,
                     assetChainName = utilityChain?.name.orEmpty(),
+                    assetName = showChainAsset?.name.orEmpty(),
                     assetSymbol = tokenConfig.symbol,
                     displayName = symbolToShow,
                     assetTokenFiat = token.fiatRate?.formatAsCurrency(token.fiatSymbol),
@@ -143,7 +144,7 @@ class SearchAssetsViewModel @Inject constructor(
         val assets = when {
             searchQuery.isEmpty() -> emptyList()
             else -> assetsListItemStates.filter {
-                it.displayName.contains(searchQuery, true) || it.assetChainName.contains(searchQuery, true)
+                it.displayName.contains(searchQuery, true) || it.assetChainName.contains(searchQuery, true) || it.assetName.contains(searchQuery, true)
             }
         }
         SearchAssetState(

@@ -2,6 +2,7 @@ package jp.co.soramitsu.common.compose.viewstate
 
 data class AssetListItemViewState(
     val assetIconUrl: String,
+    val assetName: String,
     val assetChainName: String,
     val assetSymbol: String,
     val displayName: String,

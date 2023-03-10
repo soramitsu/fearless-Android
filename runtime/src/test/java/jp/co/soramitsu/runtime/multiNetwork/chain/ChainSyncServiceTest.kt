@@ -15,8 +15,8 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mock
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.verify
+simport org.mockito.Mockito.`when`
 import org.mockito.junit.MockitoJUnitRunner
 
 @RunWith(MockitoJUnitRunner::class)
@@ -51,6 +51,7 @@ class ChainSyncServiceTest {
 
     private val REMOTE_ASSET = AssetRemote(
         id = "test",
+        name = "test",
         chainId = "0x00",
         precision = 10,
         priceId = "test",
@@ -60,7 +61,9 @@ class ChainSyncServiceTest {
         transfersEnabled = null,
         type = null,
         currencyId = null,
-        existentialDeposit = null
+        existentialDeposit = null,
+        color = null,
+        isNative = null
     )
 
     private val LOCAL_CHAIN = mapChainToChainLocal(mapChainsRemoteToChains(listOf(REMOTE_CHAIN), listOf(REMOTE_ASSET))[0])

@@ -58,6 +58,7 @@ data class Chain(
     @Parcelize
     data class Asset(
         val id: String,
+        val name: String?,
         val symbol: String,
         val displayName: String?,
         val iconUrl: String,

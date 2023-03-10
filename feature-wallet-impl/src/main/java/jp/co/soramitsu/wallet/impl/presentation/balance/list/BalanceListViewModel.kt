@@ -247,6 +247,7 @@ class BalanceListViewModel @Inject constructor(
                 val assetListItemViewState = AssetListItemViewState(
                     assetIconUrl = tokenConfig.iconUrl,
                     assetChainName = showChain?.name.orEmpty(),
+                    assetName = tokenConfig.name.orEmpty(),
                     assetSymbol = tokenConfig.symbol,
                     displayName = symbolToShow,
                     assetTokenFiat = token.fiatRate?.formatAsCurrency(token.fiatSymbol),
@@ -287,6 +288,7 @@ class BalanceListViewModel @Inject constructor(
                 AssetListItemViewState(
                     assetIconUrl = chainAsset.iconUrl,
                     assetChainName = chainAsset.chainName,
+                    assetName = chainAsset.name.orEmpty(),
                     assetSymbol = chainAsset.symbol,
                     displayName = chainAsset.symbolToShow,
                     assetTokenFiat = null,

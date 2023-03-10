@@ -49,7 +49,7 @@ fun AssetListItem(
     val onClickHandler = remember { { onClick(state) } }
     BackgroundCornered(
         modifier = modifier
-            .testTag("AssetListItem_${state.assetSymbol}_${state.assetChainName}")
+            .testTag("AssetListItem_${state.assetSymbol}_${state.assetName}")
             .clickable(onClick = onClickHandler)
     ) {
         val assetRateColor = if (state.assetTokenRate.orEmpty().startsWith("+")) {
@@ -89,7 +89,7 @@ fun AssetListItem(
                     .align(CenterVertically)
             ) {
                 Text(
-                    text = state.assetChainName.uppercase(),
+                    text = state.assetName.uppercase(),
                     style = MaterialTheme.customTypography.capsTitle2,
                     modifier = Modifier
                         .alpha(0.64f)
@@ -290,6 +290,7 @@ fun AssetListItemShimmer(
 private fun PreviewAssetListItem() {
     val assetIconUrl = "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Polkadot.svg"
     val assetChainName = "Karura"
+    val assetName = "Karura asset"
     val assetSymbol = "KSM"
     val assetTokenFiat = "$73.22"
     val assetTokenRate = "+5.67%"
@@ -307,6 +308,7 @@ private fun PreviewAssetListItem() {
 
     val state = AssetListItemViewState(
         assetIconUrl = assetIconUrl,
+        assetName = assetName,
         assetChainName = assetChainName,
         assetSymbol = assetSymbol,
         assetTokenFiat = assetTokenFiat,
