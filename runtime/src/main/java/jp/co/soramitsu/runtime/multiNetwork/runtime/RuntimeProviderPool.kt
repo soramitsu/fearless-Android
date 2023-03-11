@@ -1,12 +1,16 @@
 package jp.co.soramitsu.runtime.multiNetwork.runtime
 
-import java.util.concurrent.ConcurrentHashMap
+import jp.co.soramitsu.core.runtime.RuntimeFactory
+import jp.co.soramitsu.coredb.dao.ChainDao
 import jp.co.soramitsu.runtime.ext.typesUsage
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import java.util.concurrent.ConcurrentHashMap
 
 class RuntimeProviderPool(
     private val runtimeFactory: RuntimeFactory,
-    private val runtimeSyncService: RuntimeSyncService
+    private val runtimeSyncService: RuntimeSyncService,
+    private val runtimeFilesCache: RuntimeFilesCache,
+    private val chainDao: ChainDao
 ) {
 
     private val pool = ConcurrentHashMap<String, RuntimeProvider>()
@@ -17,7 +21,7 @@ class RuntimeProviderPool(
 
     fun setupRuntimeProvider(chain: Chain): RuntimeProvider {
         val provider = pool.getOrPut(chain.id) {
-            RuntimeProvider(runtimeFactory, runtimeSyncService, chain)
+            RuntimeProvider(runtimeFactory, runtimeSyncService, runtimeFilesCache, chainDao, chain)
         }
 
         provider.considerUpdatingTypesUsage(chain.typesUsage)

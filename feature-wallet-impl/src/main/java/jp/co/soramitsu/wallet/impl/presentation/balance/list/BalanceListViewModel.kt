@@ -48,7 +48,7 @@ import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.sumByBigDecimal
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
-import jp.co.soramitsu.core.chain_registry.IChainRegistry
+import jp.co.soramitsu.core.runtime.IChainRegistry
 import jp.co.soramitsu.core.extrinsic.KeyPairProvider
 import jp.co.soramitsu.core.extrinsic.mortality.IChainStateRepository
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.addressByteOrNull

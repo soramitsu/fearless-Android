@@ -55,12 +55,14 @@ class ChainSyncServiceTest {
         precision = 10,
         priceId = "test",
         icon = "test",
+        color = null,
         symbol = "test",
         displayName = null,
         transfersEnabled = null,
         type = null,
         currencyId = null,
-        existentialDeposit = null
+        existentialDeposit = null,
+        isNative = null
     )
 
     private val LOCAL_CHAIN = mapChainToChainLocal(mapChainsRemoteToChains(listOf(REMOTE_CHAIN), listOf(REMOTE_ASSET))[0])

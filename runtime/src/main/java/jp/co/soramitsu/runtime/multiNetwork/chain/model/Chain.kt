@@ -213,7 +213,3 @@ fun ChainId.defaultChainSort() = when (this) {
     kusamaChainId -> 2
     else -> 3
 }
-
-enum class TypesUsage {
-    ON_CHAIN, UNSUPPORTED
-}
