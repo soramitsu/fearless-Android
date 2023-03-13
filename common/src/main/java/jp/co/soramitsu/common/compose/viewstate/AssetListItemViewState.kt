@@ -8,10 +8,6 @@ data class AssetListItemViewState(
     val displayName: String,
     val assetTokenFiat: String?,
     val assetTokenRate: String?,
-    @Deprecated("replaced by Transferable amounts, not used currently")
-    val assetBalance: String?,
-    @Deprecated("replaced by Transferable amounts, not used currently")
-    val assetBalanceFiat: String?,
     val assetTransferableBalance: String?,
     val assetTransferableBalanceFiat: String?,
     val assetChainUrls: Map<String, String>,

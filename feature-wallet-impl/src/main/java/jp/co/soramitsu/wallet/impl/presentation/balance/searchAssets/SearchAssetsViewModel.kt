@@ -108,14 +108,6 @@ class SearchAssetsViewModel @Inject constructor(
 
                 val assetChainUrls = chains.getWithToken(symbolToShow, assetIdsWithBalance).associate { it.id to it.icon }
 
-                val assetTotalInChains = sortedAndFiltered.sumByBigDecimal {
-                    if (it.asset.token.configuration.symbolToShow == symbolToShow) {
-                        it.asset.total.orZero()
-                    } else {
-                        BigDecimal.ZERO
-                    }
-                }
-
                 val assetTransferableInChains = sortedAndFiltered.sumByBigDecimal {
                     if (it.asset.token.configuration.symbolToShow == symbolToShow) {
                         it.asset.transferable
@@ -132,8 +124,6 @@ class SearchAssetsViewModel @Inject constructor(
                     displayName = symbolToShow,
                     assetTokenFiat = token.fiatRate?.formatAsCurrency(token.fiatSymbol),
                     assetTokenRate = token.recentRateChange?.formatAsChange(),
-                    assetBalance = assetTotalInChains.format(),
-                    assetBalanceFiat = token.fiatRate?.multiply(assetTotalInChains)?.formatAsCurrency(token.fiatSymbol),
                     assetTransferableBalance = assetTransferableInChains.format(),
                     assetTransferableBalanceFiat = token.fiatRate?.multiply(assetTransferableInChains)?.formatAsCurrency(token.fiatSymbol),
                     assetChainUrls = assetChainUrls,

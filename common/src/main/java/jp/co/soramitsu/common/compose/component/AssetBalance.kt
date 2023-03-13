@@ -18,7 +18,6 @@ import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.utils.clickableWithNoIndication
 
 data class AssetBalanceViewState(
-    val balance: String,
     val transferableBalance: String,
     val address: String,
     val isInfoEnabled: Boolean = false,
@@ -71,14 +70,11 @@ fun AssetBalance(
 @Composable
 private fun PreviewAssetBalance() {
     val percentChange = "+5.67%"
-    val assetBalance = "44400.3"
-    val assetBalanceFiat = "$2345.32"
     val assetTransferableBalance = "44400.3"
     val assetTransferableBalanceFiat = "$2345.32"
     val address = "0x32141235qwegtf24315reqwerfasdgqwert243rfasdvgergsdf"
 
     val state = AssetBalanceViewState(
-        balance = assetTransferableBalance,
         transferableBalance = assetTransferableBalance,
         address = address,
         isInfoEnabled = true,

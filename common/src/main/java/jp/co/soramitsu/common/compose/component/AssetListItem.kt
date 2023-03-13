@@ -294,8 +294,6 @@ private fun PreviewAssetListItem() {
     val assetSymbol = "KSM"
     val assetTokenFiat = "$73.22"
     val assetTokenRate = "+5.67%"
-    val assetBalance = "444.3"
-    val assetBalanceFiat = "$2345.32"
     val assetTransferableBalance = "444.3"
     val assetTransferableBalanceFiat = "$2345.32"
     val assetChainUrlsMap = mapOf(
@@ -315,8 +313,6 @@ private fun PreviewAssetListItem() {
         assetSymbol = assetSymbol,
         assetTokenFiat = assetTokenFiat,
         assetTokenRate = assetTokenRate,
-        assetBalance = assetBalance,
-        assetBalanceFiat = assetBalanceFiat,
         assetTransferableBalance = assetTransferableBalance,
         assetTransferableBalanceFiat = assetTransferableBalanceFiat,
         assetChainUrls = assetChainUrlsMap,

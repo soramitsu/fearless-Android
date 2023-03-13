@@ -93,7 +93,7 @@ private fun PreviewWalletScreen() {
                     data = WalletState(
                         multiToggleButtonState = MultiToggleButtonState(AssetType.Currencies, listOf(AssetType.Currencies, AssetType.NFTs)),
                         assets = emptyList(),
-                        balance = AssetBalanceViewState("BALANCE", "TRANSFERABLE BALANCE", "ADDRESS", true, ChangeBalanceViewState("+100%", "+50$")),
+                        balance = AssetBalanceViewState("TRANSFERABLE BALANCE", "ADDRESS", true, ChangeBalanceViewState("+100%", "+50$")),
                         hasNetworkIssues = true
                     ),
                     callback = emptyCallback

@@ -240,14 +240,6 @@ class BalanceListViewModel @Inject constructor(
                     else -> emptyMap()
                 }
 
-                val assetTotalInChains = sortedAndFiltered.sumByBigDecimal {
-                    if (it.asset.token.configuration.symbolToShow == symbolToShow) {
-                        it.asset.total.orZero()
-                    } else {
-                        BigDecimal.ZERO
-                    }
-                }
-
                 val assetTransferableInChains = sortedAndFiltered.sumByBigDecimal {
                     if (it.asset.token.configuration.symbolToShow == symbolToShow) {
                         it.asset.transferable
@@ -264,8 +256,6 @@ class BalanceListViewModel @Inject constructor(
                     displayName = symbolToShow,
                     assetTokenFiat = token.fiatRate?.formatAsCurrency(token.fiatSymbol),
                     assetTokenRate = token.recentRateChange?.formatAsChange(),
-                    assetBalance = assetTotalInChains.format(),
-                    assetBalanceFiat = token.fiatRate?.multiply(assetTotalInChains)?.formatAsCurrency(token.fiatSymbol),
                     assetTransferableBalance = assetTransferableInChains.format(),
                     assetTransferableBalanceFiat = token.fiatRate?.multiply(assetTransferableInChains)?.formatAsCurrency(token.fiatSymbol),
                     assetChainUrls = assetChainUrls,
@@ -306,8 +296,6 @@ class BalanceListViewModel @Inject constructor(
                     displayName = chainAsset.symbolToShow,
                     assetTokenFiat = null,
                     assetTokenRate = null,
-                    assetBalance = null,
-                    assetBalanceFiat = null,
                     assetTransferableBalance = null,
                     assetTransferableBalanceFiat = null,
                     assetChainUrls = assetChainUrls,
@@ -348,7 +336,6 @@ class BalanceListViewModel @Inject constructor(
         }.orEmpty()
 
         val balanceState = AssetBalanceViewState(
-            balance = balanceModel.totalBalance?.formatAsCurrency(balanceModel.fiatSymbol).orEmpty(),
             transferableBalance = balanceModel.totalTransferableBalance?.formatAsCurrency(balanceModel.fiatSymbol).orEmpty(),
             address = selectedChainAddress,
             changeViewState = ChangeBalanceViewState(

@@ -171,7 +171,6 @@ class BalanceDetailViewModel @Inject constructor(
         }
 
         val balanceState = AssetBalanceViewState(
-            balance = balanceModel.total.orZero().formatTokenAmount(balanceModel.token.configuration.symbolToShow.uppercase()),
             transferableBalance = balanceModel.transferable.orZero().formatTokenAmount(balanceModel.token.configuration.symbolToShow.uppercase()),
             address = currentAccountAddress(chainId = balanceModel.token.configuration.chainId).orEmpty(),
             isInfoEnabled = true,
