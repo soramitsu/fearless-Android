@@ -17,7 +17,7 @@ data class WalletState(
         val default = WalletState(
             multiToggleButtonState = MultiToggleButtonState(AssetType.Currencies, listOf(AssetType.Currencies, AssetType.NFTs)),
             assets = emptyList(),
-            balance = AssetBalanceViewState("", "", false, ChangeBalanceViewState("", "")),
+            balance = AssetBalanceViewState("", "", "", false, ChangeBalanceViewState("", "")),
             hasNetworkIssues = false
         )
     }

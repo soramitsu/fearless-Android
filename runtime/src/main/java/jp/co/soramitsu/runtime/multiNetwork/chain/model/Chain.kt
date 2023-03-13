@@ -215,6 +215,12 @@ fun ChainId.defaultChainSort() = when (this) {
     else -> 3
 }
 
+fun List<Chain>.getWithToken(symbol: String, filterAssetIds: Collection<String>? = null): List<Chain> = filter { chain ->
+    chain.assets.any {
+        it.symbolToShow == symbol && filterAssetIds?.contains(it.id) == true
+    }
+}
+
 enum class TypesUsage {
     ON_CHAIN, UNSUPPORTED
 }

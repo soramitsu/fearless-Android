@@ -154,7 +154,7 @@ fun AssetListItem(
                     } else {
                         Box(modifier = Modifier.height(16.dp))
                     }
-                    state.assetBalance?.let {
+                    state.assetTransferableBalance?.let {
                         Text(
                             text = it,
                             style = MaterialTheme.customTypography.header3,
@@ -162,7 +162,7 @@ fun AssetListItem(
                                 .padding(vertical = 4.dp)
                                 .padding(start = 4.dp)
                                 .align(Alignment.End)
-                                .testTag("AssetListItem_${state.assetSymbol}_balance")
+                                .testTag("AssetListItem_${state.assetSymbol}_transferable")
                         )
                     } ?: Shimmer(
                         Modifier
@@ -170,13 +170,13 @@ fun AssetListItem(
                             .align(Alignment.End)
                     )
                     Text(
-                        text = state.assetBalanceFiat.orEmpty(),
+                        text = state.assetTransferableBalanceFiat.orEmpty(),
                         style = MaterialTheme.customTypography.body1,
                         modifier = Modifier
                             .alpha(0.64f)
                             .padding(start = 4.dp)
                             .align(Alignment.End)
-                            .testTag("AssetListItem_${state.assetSymbol}_balance_fiat")
+                            .testTag("AssetListItem_${state.assetSymbol}_transferable_fiat")
                     )
                 }
             }
@@ -296,6 +296,8 @@ private fun PreviewAssetListItem() {
     val assetTokenRate = "+5.67%"
     val assetBalance = "444.3"
     val assetBalanceFiat = "$2345.32"
+    val assetTransferableBalance = "444.3"
+    val assetTransferableBalanceFiat = "$2345.32"
     val assetChainUrlsMap = mapOf(
         "" to "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Karura.svg",
         "" to "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/kilt.svg",
@@ -315,6 +317,8 @@ private fun PreviewAssetListItem() {
         assetTokenRate = assetTokenRate,
         assetBalance = assetBalance,
         assetBalanceFiat = assetBalanceFiat,
+        assetTransferableBalance = assetTransferableBalance,
+        assetTransferableBalanceFiat = assetTransferableBalanceFiat,
         assetChainUrls = assetChainUrlsMap,
         chainId = "",
         chainAssetId = "",
