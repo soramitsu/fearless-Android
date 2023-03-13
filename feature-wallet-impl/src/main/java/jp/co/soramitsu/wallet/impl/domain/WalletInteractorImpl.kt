@@ -1,5 +1,7 @@
 package jp.co.soramitsu.wallet.impl.domain
 
+import java.math.BigDecimal
+import java.math.BigInteger
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.accountId
@@ -22,6 +24,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.isPolkadotOrKusama
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import jp.co.soramitsu.runtime.multiNetwork.chainWithAsset
+import jp.co.soramitsu.wallet.impl.data.repository.HistoryRepository
 import jp.co.soramitsu.wallet.impl.domain.interfaces.AddressBookRepository
 import jp.co.soramitsu.wallet.impl.domain.interfaces.TransactionFilter
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
@@ -45,8 +48,6 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.withIndex
 import kotlinx.coroutines.withContext
-import java.math.BigDecimal
-import java.math.BigInteger
 
 private const val QR_PREFIX_SUBSTRATE = "substrate"
 private const val PREFS_WALLET_SELECTED_CHAIN_ID = "wallet_selected_chain_id"
@@ -55,6 +56,7 @@ class WalletInteractorImpl(
     private val walletRepository: WalletRepository,
     private val addressBookRepository: AddressBookRepository,
     private val accountRepository: AccountRepository,
+    private val historyRepository: HistoryRepository,
     private val chainRegistry: ChainRegistry,
     private val fileProvider: FileProvider,
     private val preferences: Preferences,
@@ -126,7 +128,7 @@ class WalletInteractorImpl(
                 val (chain, chainAsset) = chainRegistry.chainWithAsset(chainId, chainAssetId)
                 val accountId = metaAccount.accountId(chain)!!
 
-                walletRepository.operationsFirstPageFlow(accountId, chain, chainAsset).withIndex().map { (index, cursorPage) ->
+                historyRepository.operationsFirstPageFlow(accountId, chain, chainAsset).withIndex().map { (index, cursorPage) ->
                     OperationsPageChange(cursorPage, accountChanged = index == 0)
                 }
             }
@@ -143,7 +145,7 @@ class WalletInteractorImpl(
             val (chain, chainAsset) = chainRegistry.chainWithAsset(chainId, chainAssetId)
             val accountId = metaAccount.accountId(chain)!!
 
-            walletRepository.syncOperationsFirstPage(pageSize, filters, accountId, chain, chainAsset)
+            historyRepository.syncOperationsFirstPage(pageSize, filters, accountId, chain, chainAsset)
         }
     }
 
@@ -159,7 +161,7 @@ class WalletInteractorImpl(
             val (chain, chainAsset) = chainRegistry.chainWithAsset(chainId, chainAssetId)
             val accountId = metaAccount.accountId(chain)!!
 
-            walletRepository.getOperations(
+            historyRepository.getOperations(
                 pageSize,
                 cursor,
                 filters,
@@ -308,7 +310,7 @@ class WalletInteractorImpl(
     override fun getChains(): Flow<List<Chain>> = chainRegistry.currentChains
 
     override fun getOperationAddressWithChainIdFlow(limit: Int?, chainId: ChainId): Flow<Set<String>> =
-        walletRepository.getOperationAddressWithChainIdFlow(limit, chainId)
+        historyRepository.getOperationAddressWithChainIdFlow(limit, chainId)
 
     override suspend fun saveAddress(name: String, address: String, selectedChainId: String) {
         addressBookRepository.saveAddress(name, address, selectedChainId)

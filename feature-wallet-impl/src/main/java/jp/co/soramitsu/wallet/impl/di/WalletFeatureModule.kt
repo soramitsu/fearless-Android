@@ -45,6 +45,7 @@ import jp.co.soramitsu.wallet.api.presentation.mixin.fee.FeeLoaderMixin
 import jp.co.soramitsu.wallet.api.presentation.mixin.fee.FeeLoaderProvider
 import jp.co.soramitsu.wallet.impl.data.buyToken.MoonPayProvider
 import jp.co.soramitsu.wallet.impl.data.buyToken.RampProvider
+import jp.co.soramitsu.wallet.impl.data.historySource.HistorySourceProvider
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.SubstrateRemoteSource
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.WssSubstrateSource
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.updaters.BalancesUpdateSystem
@@ -52,6 +53,7 @@ import jp.co.soramitsu.wallet.impl.data.network.blockchain.updaters.PaymentUpdat
 import jp.co.soramitsu.wallet.impl.data.network.phishing.PhishingApi
 import jp.co.soramitsu.wallet.impl.data.network.subquery.OperationsHistoryApi
 import jp.co.soramitsu.wallet.impl.data.repository.AddressBookRepositoryImpl
+import jp.co.soramitsu.wallet.impl.data.repository.HistoryRepository
 import jp.co.soramitsu.wallet.impl.data.repository.RuntimeWalletConstants
 import jp.co.soramitsu.wallet.impl.data.repository.TokenRepositoryImpl
 import jp.co.soramitsu.wallet.impl.data.repository.WalletRepositoryImpl
@@ -137,39 +139,56 @@ class WalletFeatureModule {
     fun provideWalletRepository(
         substrateSource: SubstrateRemoteSource,
         operationsDao: OperationDao,
-        operationsHistoryApi: OperationsHistoryApi,
         httpExceptionHandler: HttpExceptionHandler,
         phishingApi: PhishingApi,
         phishingDao: PhishingDao,
         walletConstants: WalletConstants,
         assetCache: AssetCache,
         coingeckoApi: CoingeckoApi,
-        cursorStorage: TransferCursorStorage,
         chainRegistry: ChainRegistry,
         availableFiatCurrencies: GetAvailableFiatCurrencies,
         updatesMixin: UpdatesMixin,
-        remoteConfigFetcher: RemoteConfigFetcher,
-        currentAccountAddressUseCase: CurrentAccountAddressUseCase,
-        soramitsuNetworkClient: SoramitsuNetworkClient,
-        soraSubqueryFactory: SubQueryClientForSoraWalletFactory
+        remoteConfigFetcher: RemoteConfigFetcher
     ): WalletRepository = WalletRepositoryImpl(
         substrateSource,
         operationsDao,
-        operationsHistoryApi,
         httpExceptionHandler,
         phishingApi,
         assetCache,
         walletConstants,
         phishingDao,
-        cursorStorage,
         coingeckoApi,
         chainRegistry,
         availableFiatCurrencies,
         updatesMixin,
-        remoteConfigFetcher,
-        currentAccountAddressUseCase,
+        remoteConfigFetcher
+    )
+
+    @Provides
+    @Singleton
+    fun provideHistoryRepository(
+        historySourceProvider: HistorySourceProvider,
+        operationsDao: OperationDao,
+        cursorStorage: TransferCursorStorage,
+        currentAccountAddress: CurrentAccountAddressUseCase
+    ) = HistoryRepository(
+        historySourceProvider,
+        operationsDao,
+        cursorStorage,
+        currentAccountAddress
+    )
+
+    @Provides
+    fun provideHistorySourceProvider(
+        walletOperationsHistoryApi: OperationsHistoryApi,
+        chainRegistry: ChainRegistry,
+        soramitsuNetworkClient: SoramitsuNetworkClient,
+        subQueryClientForSoraWalletFactory: SubQueryClientForSoraWalletFactory
+    ) = HistorySourceProvider(
+        walletOperationsHistoryApi,
+        chainRegistry,
         soramitsuNetworkClient,
-        soraSubqueryFactory
+        subQueryClientForSoraWalletFactory
     )
 
     @Provides
@@ -181,11 +200,13 @@ class WalletFeatureModule {
         fileProvider: FileProvider,
         preferences: Preferences,
         selectedFiat: SelectedFiat,
-        updatesMixin: UpdatesMixin
+        updatesMixin: UpdatesMixin,
+        historyRepository: HistoryRepository
     ): WalletInteractor = WalletInteractorImpl(
         walletRepository,
         addressBookRepository,
         accountRepository,
+        historyRepository,
         chainRegistry,
         fileProvider,
         preferences,

@@ -2,9 +2,9 @@ package jp.co.soramitsu.wallet.impl.presentation.transaction.history.mixin
 
 import jp.co.soramitsu.account.api.presentation.account.AddressDisplayUseCase
 import jp.co.soramitsu.common.address.AddressIconGenerator
+import jp.co.soramitsu.common.data.model.CursorPage
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.daysFromMillis
-import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.wallet.impl.data.mappers.mapOperationToOperationModel
 import jp.co.soramitsu.wallet.impl.data.mappers.mapOperationToParcel
@@ -18,20 +18,17 @@ import jp.co.soramitsu.wallet.impl.presentation.model.OperationParcelizeModel
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.extrinsic.ExtrinsicDetailsPayload
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.reward.RewardDetailsPayload
 import jp.co.soramitsu.wallet.impl.presentation.transaction.filter.HistoryFiltersProvider
-import jp.co.soramitsu.wallet.impl.presentation.transaction.history.mixin.TransactionStateMachine.Action
-import jp.co.soramitsu.wallet.impl.presentation.transaction.history.mixin.TransactionStateMachine.State
 import jp.co.soramitsu.wallet.impl.presentation.transaction.history.model.DayHeader
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -45,59 +42,118 @@ class TransactionHistoryProvider(
     private val assetPayloadStateFlow: MutableStateFlow<AssetPayload>
 ) : TransactionHistoryMixin, CoroutineScope by CoroutineScope(Dispatchers.Default) {
 
-    private val domainState = MutableStateFlow<State>(
-        State.EmptyProgress(
-            filters = historyFiltersProvider.currentFilters(),
-            assetPayload = assetPayloadStateFlow.value
-        )
-    )
-
-    override fun state() = domainState.map(::mapOperationHistoryStateToUi)
-        .inBackground()
-        .shareIn(this, started = SharingStarted.Eagerly, replay = 1)
-
-    private fun getCachedPage(assetPayload: AssetPayload) = walletInteractor.operationsFirstPageFlow(assetPayload.chainId, assetPayload.chainAssetId)
-        .distinctUntilChangedBy { it.cursorPage }
-        .onEach { performTransition(Action.CachePageArrived(it.cursorPage, it.accountChanged)) }
-        .map { it.cursorPage }
-        .inBackground().shareIn(this, SharingStarted.Eagerly, replay = 1)
-
-    init {
-        historyFiltersProvider.filtersFlow()
-            .distinctUntilChanged()
-            .onEach { performTransition(Action.FiltersChanged(it)) }
-            .launchIn(this)
-
-        assetPayloadStateFlow
-            .onEach { performTransition(Action.AssetPayloadChanged(it)) }
-            .launchIn(this)
+    companion object {
+        const val PAGE_SIZE = 100
+        const val NEXT_PAGE_LOADING_OFFSET = PAGE_SIZE / 2
     }
 
-    override fun scrolled(currentIndex: Int, assetPayload: AssetPayload) {
-        launch { performTransition(Action.Scrolled(currentIndex)) }
+    private var nextCursor: String? = null
+
+    private val currentData: MutableSet<Operation> = mutableSetOf()
+
+    private val _state = MutableStateFlow<TransactionHistoryUi.State>(TransactionHistoryUi.State.Refreshing)
+    override fun state(): StateFlow<TransactionHistoryUi.State> = _state
+
+    private val _sideEffects: MutableSharedFlow<TransactionHistoryUi.SideEffect> = MutableSharedFlow()
+    override fun sideEffects() = _sideEffects
+
+    init {
+        launch {
+            assetPayloadStateFlow.onEach {
+                reloadHistory()
+            }.launchIn(this)
+
+            historyFiltersProvider.filtersFlow().onEach {
+                reloadHistory()
+            }.launchIn(this)
+        }
+    }
+
+    private suspend fun reloadHistory() {
+        nextCursor = null
+        currentData.clear()
+        _state.emit(TransactionHistoryUi.State.EmptyProgress)
+
+        syncFirstOperationsPage(assetPayloadStateFlow.value)
+        val cached = awaitOperationsFirstPage(assetPayloadStateFlow.value)
+        nextCursor = cached.nextCursor
+
+        if (cached.items.isEmpty()) {
+            _state.emit(TransactionHistoryUi.State.Empty())
+        } else {
+            currentData.addAll(cached.items)
+            _state.emit(TransactionHistoryUi.State.Data(transformData(cached.items)))
+        }
+    }
+
+    private suspend fun awaitOperationsFirstPage(assetPayload: AssetPayload): CursorPage<Operation> {
+        return walletInteractor.operationsFirstPageFlow(assetPayload.chainId, assetPayload.chainAssetId)
+            .distinctUntilChangedBy { it.cursorPage }
+            .map { it.cursorPage }
+            .first()
     }
 
     override suspend fun syncFirstOperationsPage(assetPayload: AssetPayload): Result<*> {
         return walletInteractor.syncOperationsFirstPage(
             chainId = assetPayload.chainId,
             chainAssetId = assetPayload.chainAssetId,
-            pageSize = TransactionStateMachine.PAGE_SIZE,
-            filters = historyFiltersProvider.allFilters
+            pageSize = PAGE_SIZE,
+            filters = historyFiltersProvider.currentFilters()
         ).onFailure { throwable ->
             val message = when (throwable) {
                 is HistoryNotSupportedException -> resourceManager.getString(R.string.wallet_transaction_history_unsupported_message)
                 else -> resourceManager.getString(R.string.wallet_transaction_history_error_message)
             }
-            domainState.emit(State.Empty(domainState.value.filters, message, assetPayload))
+            _sideEffects.emit(TransactionHistoryUi.SideEffect.Error(throwable.localizedMessage ?: throwable.localizedMessage))
+            _state.emit(TransactionHistoryUi.State.Empty(message))
         }
     }
 
-    override fun transactionClicked(
-        transactionModel: OperationModel,
-        assetPayload: AssetPayload
-    ) {
+    var nextPageLoading = false
+
+    override fun scrolled(currentIndex: Int, assetPayload: AssetPayload) {
+        val pageLoaded = currentData.size / PAGE_SIZE
+        val currentPage = (currentIndex / PAGE_SIZE) + 1
+        val currentPageOffset = (PAGE_SIZE * currentPage) - NEXT_PAGE_LOADING_OFFSET
+        val isIndexEnoughToLoadNextPage = currentIndex >= currentPageOffset
+        val isNextPageLoaded = pageLoaded > currentPage
+        val hasDataToLoad = nextCursor != null
+
+        if (hasDataToLoad.not() ||
+            isIndexEnoughToLoadNextPage.not() ||
+            isNextPageLoaded ||
+            nextPageLoading
+        ) {
+            return
+        }
+
         launch {
-            val operations = (domainState.first() as? State.WithData)?.data ?: return@launch
+            nextPageLoading = true
+            walletInteractor.getOperations(
+                assetPayload.chainId,
+                assetPayload.chainAssetId,
+                PAGE_SIZE,
+                nextCursor,
+                historyFiltersProvider.currentFilters()
+            )
+                .onFailure {
+                    nextPageLoading = false
+                    _sideEffects.emit(TransactionHistoryUi.SideEffect.Error(it.localizedMessage ?: it.localizedMessage))
+                }.onSuccess {
+                    nextCursor = it.nextCursor
+                    if (it.isEmpty()) {
+                        return@onSuccess
+                    }
+                    currentData.addAll(it.items)
+                    _state.emit(TransactionHistoryUi.State.Data(transformData(currentData)))
+                    nextPageLoading = false
+                }
+        }
+    }
+
+    override fun transactionClicked(transactionModel: OperationModel, assetPayload: AssetPayload) {
+        launch {
+            val operations = currentData
 
             val clickedOperation = operations.first { it.id == transactionModel.id }
 
@@ -123,61 +179,7 @@ class TransactionHistoryProvider(
         }
     }
 
-    private suspend fun performTransition(
-        action: Action
-    ) = withContext(Dispatchers.Default) {
-        val newState = TransactionStateMachine.transition(action, domainState.value) { sideEffect ->
-            when (sideEffect) {
-                is TransactionStateMachine.SideEffect.ErrorEvent -> {
-                    // ignore errors here, they are bypassed to client of mixin
-                }
-                is TransactionStateMachine.SideEffect.LoadPage -> loadNewPage(sideEffect)
-                is TransactionStateMachine.SideEffect.TriggerCache -> triggerCache(sideEffect)
-            }
-        }
-        domainState.value = newState
-    }
-
-    private fun triggerCache(
-        sideEffect: TransactionStateMachine.SideEffect.TriggerCache
-    ) {
-        val cached = getCachedPage(sideEffect.assetPayload).replayCache.firstOrNull()
-
-        cached?.let {
-            launch { performTransition(Action.CachePageArrived(it, accountChanged = false)) }
-        }
-    }
-
-    private fun loadNewPage(
-        sideEffect: TransactionStateMachine.SideEffect.LoadPage
-    ) {
-        launch {
-            walletInteractor.getOperations(
-                sideEffect.assetPayload.chainId,
-                sideEffect.assetPayload.chainAssetId,
-                sideEffect.pageSize,
-                sideEffect.nextCursor,
-                sideEffect.filters
-            )
-                .onFailure {
-                    performTransition(Action.PageError(error = it))
-                }.onSuccess {
-                    performTransition(Action.NewPage(newPage = it, loadedWith = sideEffect.filters))
-                }
-        }
-    }
-
-    private suspend fun mapOperationHistoryStateToUi(state: State): TransactionHistoryUi.State {
-        return when (state) {
-            is State.Empty -> TransactionHistoryUi.State.Empty(state.message)
-            is State.EmptyProgress -> TransactionHistoryUi.State.EmptyProgress
-            is State.Data -> TransactionHistoryUi.State.Data(transformData(state.data))
-            is State.FullData -> TransactionHistoryUi.State.Data(transformData(state.data))
-            is State.NewPageProgress -> TransactionHistoryUi.State.Data(transformData(state.data))
-        }
-    }
-
-    private suspend fun transformData(data: List<Operation>): List<Any> {
+    private suspend fun transformData(data: Collection<Operation>): List<Any> {
         val accountIdentifier = addressDisplayUseCase.createIdentifier()
 
         val operations = data.map {
