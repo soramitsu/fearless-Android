@@ -281,7 +281,13 @@ private fun TransactionHistory(
                     state = listState,
                     verticalArrangement = Arrangement.spacedBy(15.dp)
                 ) {
-                    items(transactions) { item ->
+                    items(transactions, key = {
+                        when (it) {
+                            is OperationModel -> it.id
+                            is DayHeader -> it.daysSinceEpoch
+                            else -> it.hashCode()
+                        }
+                    }) { item ->
                         when (item) {
                             is DayHeader -> {
                                 CapsTitle2(

@@ -23,6 +23,7 @@ import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.theme.colorAccentDark
 import jp.co.soramitsu.common.compose.theme.transparent
+import jp.co.soramitsu.common.compose.theme.white
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
@@ -102,15 +103,27 @@ fun GradientIcon(
 ) {
     when (icon) {
         is GradientIconState.Remote -> {
-            val iconColor = Color(android.graphics.Color.parseColor("#" + icon.color))
-            GradientIcon(
-                icon = icon.url,
-                color = iconColor,
-                modifier = modifier,
-                background = background,
-                tintImage = false,
-                contentPadding = contentPadding
-            )
+            val iconColorParsed = icon.color?.takeIf { it.isNotEmpty() }?.let {
+                Color(android.graphics.Color.parseColor("#$it"))
+            } ?: white
+            if (icon.url.isEmpty()) {
+                GradientIcon(
+                    iconRes = R.drawable.ic_about_wiki,
+                    color = iconColorParsed,
+                    modifier = modifier,
+                    background = background,
+                    contentPadding = contentPadding
+                )
+            } else {
+                GradientIcon(
+                    icon = icon.url,
+                    color = iconColorParsed,
+                    modifier = modifier,
+                    background = background,
+                    tintImage = false,
+                    contentPadding = contentPadding
+                )
+            }
         }
         is GradientIconState.Local -> {
             GradientIcon(
