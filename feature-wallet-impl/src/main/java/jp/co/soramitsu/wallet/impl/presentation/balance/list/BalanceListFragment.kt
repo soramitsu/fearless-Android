@@ -67,7 +67,7 @@ class BalanceListFragment : BaseComposeFragment<BalanceListViewModel>() {
                     accessToken = result.accessToken,
                     refreshToken = result.refreshToken,
                     accessTokenExpirationTime = result.accessTokenExpirationTime,
-                    kycStatus = result.kycStatus.toString()
+                    kycStatus = result.status.toString()
                 )
             }
         }

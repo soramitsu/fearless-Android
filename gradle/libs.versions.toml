@@ -6,9 +6,9 @@ composeThemeAdapter = "1.2.1"
 material = "1.6.1"
 coroutines = "1.6.4"
 soraUi = "0.0.60"
-soraCard = "0.0.23"
+soraCard = "0.0.27"
 kotlinxSerializationjson = "1.4.1"
-xNetworking = "0.0.52"
+xNetworking = "0.0.55"
 
 [libraries]
 sora-ui = { module = "jp.co.soramitsu:ui-core", version.ref = "soraUi" }

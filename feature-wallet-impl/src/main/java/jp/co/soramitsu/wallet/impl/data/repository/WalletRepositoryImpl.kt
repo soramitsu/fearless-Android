@@ -12,6 +12,7 @@ import jp.co.soramitsu.common.data.network.config.RemoteConfigFetcher
 import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
+import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.coredb.dao.OperationDao
 import jp.co.soramitsu.coredb.dao.PhishingDao
@@ -32,6 +33,7 @@ import jp.co.soramitsu.wallet.api.data.cache.AssetCache
 import jp.co.soramitsu.wallet.impl.data.mappers.mapAssetLocalToAsset
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.SubstrateRemoteSource
 import jp.co.soramitsu.wallet.impl.data.network.phishing.PhishingApi
+import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletConstants
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
@@ -42,12 +44,19 @@ import jp.co.soramitsu.wallet.impl.domain.model.Transfer
 import jp.co.soramitsu.wallet.impl.domain.model.TransferValidityStatus
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
+import jp.co.soramitsu.xnetworking.networkclient.SoramitsuNetworkClient
+import jp.co.soramitsu.xnetworking.sorawallet.mainconfig.SoraRemoteConfigBuilder
+import jp.co.soramitsu.xnetworking.txhistory.TxHistoryItem
+import jp.co.soramitsu.xnetworking.txhistory.TxHistoryResult
+import jp.co.soramitsu.xnetworking.txhistory.client.sorawallet.SubQueryClientForSoraWalletFactory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.withContext
+import kotlin.math.min
 
 class WalletRepositoryImpl(
     private val substrateSource: SubstrateRemoteSource,
@@ -61,7 +70,9 @@ class WalletRepositoryImpl(
     private val chainRegistry: ChainRegistry,
     private val availableFiatCurrencies: GetAvailableFiatCurrencies,
     private val updatesMixin: UpdatesMixin,
-    private val remoteConfigFetcher: RemoteConfigFetcher
+    private val remoteConfigFetcher: RemoteConfigFetcher,
+    private val currentAccountAddress: CurrentAccountAddressUseCase,
+    private val soraRemoteConfigBuilder: SoraRemoteConfigBuilder
 ) : WalletRepository, UpdatesProviderUi by updatesMixin {
 
     override fun assetsFlow(meta: MetaAccount): Flow<List<AssetWithStatus>> {
@@ -197,6 +208,32 @@ class WalletRepositoryImpl(
         )
 
         assetCache.updateAsset(updateItems)
+    }
+    
+    override fun getOperationAddressWithChainIdFlow(limit: Int?, chainId: ChainId): Flow<Set<String>> {
+        return operationDao.observeOperations(chainId).mapList { operation ->
+            val accountAddress = currentAccountAddress.invoke(chainId)
+            if (operation.address == accountAddress) {
+                val receiver = when (operation.receiver) {
+                    null, accountAddress -> null
+                    else -> operation.receiver
+                }
+                val sender = when (operation.sender) {
+                    null, accountAddress -> null
+                    else -> operation.sender
+                }
+                receiver ?: sender
+            } else {
+                null
+            }
+        }
+            .map {
+                val nonNullList = it.filterNotNull()
+                when {
+                    limit == null || limit < 0 -> nonNullList
+                    else -> nonNullList.subList(0, min(limit, nonNullList.size))
+                }.toSet()
+            }
     }
 
     override suspend fun getTransferFee(
