@@ -24,8 +24,8 @@ buildscript {
         biometricVersion = '1.1.0'
 
         progressButtonsVersion = '2.1.0'
-        xNetworkingVersion = '0.0.46'
-        soraCardVersion = '0.0.23'
+        xNetworkingVersion = '0.0.55'
+        soraCardVersion = '0.0.27'
 
         daggerVersion = '2.45'
         javaxInjectVersion = '1'

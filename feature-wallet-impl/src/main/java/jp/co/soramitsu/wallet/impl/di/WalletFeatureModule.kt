@@ -74,6 +74,8 @@ import jp.co.soramitsu.wallet.impl.presentation.balance.assetActions.buy.BuyMixi
 import jp.co.soramitsu.wallet.impl.presentation.send.SendSharedState
 import jp.co.soramitsu.wallet.impl.presentation.transaction.filter.HistoryFiltersProvider
 import jp.co.soramitsu.xnetworking.networkclient.SoramitsuNetworkClient
+import jp.co.soramitsu.xnetworking.sorawallet.mainconfig.SoraRemoteConfigBuilder
+import jp.co.soramitsu.xnetworking.sorawallet.mainconfig.SoraRemoteConfigProvider
 import jp.co.soramitsu.xnetworking.txhistory.client.sorawallet.SubQueryClientForSoraWalletFactory
 import javax.inject.Named
 import javax.inject.Singleton
@@ -151,7 +153,8 @@ class WalletFeatureModule {
         remoteConfigFetcher: RemoteConfigFetcher,
         currentAccountAddressUseCase: CurrentAccountAddressUseCase,
         soramitsuNetworkClient: SoramitsuNetworkClient,
-        soraSubqueryFactory: SubQueryClientForSoraWalletFactory
+        soraSubqueryFactory: SubQueryClientForSoraWalletFactory,
+        soraRemoteConfigBuilder: SoraRemoteConfigBuilder
     ): WalletRepository = WalletRepositoryImpl(
         substrateSource,
         operationsDao,
@@ -169,7 +172,8 @@ class WalletFeatureModule {
         remoteConfigFetcher,
         currentAccountAddressUseCase,
         soramitsuNetworkClient,
-        soraSubqueryFactory
+        soraSubqueryFactory,
+        soraRemoteConfigBuilder
     )
 
     @Provides
@@ -338,4 +342,18 @@ class WalletFeatureModule {
     fun provideSubQueryClientForSoraWalletFactory(
         @ApplicationContext context: Context
     ): SubQueryClientForSoraWalletFactory = SubQueryClientForSoraWalletFactory(context)
+
+    @Singleton
+    @Provides
+    fun provideSoraRemoteConfigBuilder(
+        client: SoramitsuNetworkClient,
+        @ApplicationContext context: Context
+    ): SoraRemoteConfigBuilder {
+        return SoraRemoteConfigProvider(
+            context = context,
+            client = client,
+            commonUrl = "",
+            mobileUrl = ""
+        ).provide()
+    }
 }

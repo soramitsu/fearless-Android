@@ -63,6 +63,7 @@ import jp.co.soramitsu.wallet.impl.domain.model.TransferValidityStatus
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
 import jp.co.soramitsu.xnetworking.networkclient.SoramitsuNetworkClient
+import jp.co.soramitsu.xnetworking.sorawallet.mainconfig.SoraRemoteConfigBuilder
 import jp.co.soramitsu.xnetworking.txhistory.TxHistoryItem
 import jp.co.soramitsu.xnetworking.txhistory.TxHistoryResult
 import jp.co.soramitsu.xnetworking.txhistory.client.sorawallet.SubQueryClientForSoraWalletFactory
@@ -98,7 +99,8 @@ class WalletRepositoryImpl(
     private val remoteConfigFetcher: RemoteConfigFetcher,
     private val currentAccountAddress: CurrentAccountAddressUseCase,
     private val soramitsuNetworkClient: SoramitsuNetworkClient,
-    private val soraSubqueryFactory: SubQueryClientForSoraWalletFactory
+    private val soraSubqueryFactory: SubQueryClientForSoraWalletFactory,
+    private val soraRemoteConfigBuilder: SoraRemoteConfigBuilder
 ) : WalletRepository, UpdatesProviderUi by updatesMixin {
 
     private val giantsquidDateFormat by lazy { SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSSSSX", Locale.getDefault()) }
@@ -565,16 +567,39 @@ class WalletRepositoryImpl(
         accountAddress: String,
         filters: Set<TransactionFilter>
     ): List<Operation> {
-        val subQueryClientForSora = soraSubqueryFactory.create(soramitsuNetworkClient, historyUrl, pageSize)
+        val subQueryClientForSora = soraSubqueryFactory.create(soramitsuNetworkClient, pageSize, soraRemoteConfigBuilder)
 
-        val soraHistory: TxHistoryResult<TxHistoryItem> = subQueryClientForSora.getTransactionHistoryPaged(
+        val soraAssetId = chainAsset.currencyId
+        val soraFeeAssetId = chain.utilityAsset.currencyId
+
+        val soraHistory: TxHistoryResult<TxHistoryItem>? = subQueryClientForSora.getTransactionHistoryPaged(
             accountAddress,
-            chain.name,
-            page
+            page,
+            soraAssetId?.run {
+                { txHistoryItem ->
+                    filterHistoryItem(txHistoryItem, soraAssetId, soraFeeAssetId)
+                }
+            }
         )
 
-        val soraHistoryItems: List<TxHistoryItem> = soraHistory.items
+        val soraHistoryItems: List<TxHistoryItem> = soraHistory?.items.orEmpty()
         return soraHistoryItems.mapNotNull { it.toOperation(chain, chainAsset, accountAddress, filters) }
+    }
+
+    private fun filterHistoryItem(item: TxHistoryItem, tokenId: String, feeTokenId: String?): Boolean {
+        return (
+            item.data?.find {
+                it.paramValue == tokenId
+            } != null
+            ) || (
+            item.nestedData?.find { nested ->
+                nested.data.find {
+                    it.paramValue == tokenId
+                } != null
+            } != null
+            ) || (
+            feeTokenId == tokenId && item.module.equals("Referrals", true)
+            )
     }
 
     override fun operationsFirstPageFlow(

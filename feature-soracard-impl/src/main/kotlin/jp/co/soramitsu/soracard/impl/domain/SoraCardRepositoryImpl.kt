@@ -15,11 +15,21 @@ class SoraCardRepositoryImpl(
     }
 
     override fun subscribeSoraCardInfo(): Flow<SoraCardInfo?> {
-        return soraCardDao.getSoraCardInfo(SORA_CARD_ID).map {
+        return soraCardDao.observeSoraCardInfo(SORA_CARD_ID).map {
             it?.let {
                 SoraCardInfoMapper.map(it)
             }
         }
+    }
+
+    override suspend fun getSoraCardInfo(): SoraCardInfo? {
+        return soraCardDao.getSoraCardInfo(SORA_CARD_ID)?.let {
+            SoraCardInfoMapper.map(it)
+        }
+    }
+
+    override suspend fun updateSoraCardKycStatus(kycStatus: String) {
+        soraCardDao.updateKycStatus(SORA_CARD_ID, kycStatus)
     }
 
     override suspend fun updateSoraCardInfo(

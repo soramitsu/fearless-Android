@@ -7,6 +7,10 @@ interface SoraCardRepository {
 
     fun subscribeSoraCardInfo(): Flow<SoraCardInfo?>
 
+    suspend fun getSoraCardInfo(): SoraCardInfo?
+
+    suspend fun updateSoraCardKycStatus(kycStatus: String)
+
     suspend fun updateSoraCardInfo(
         accessToken: String,
         refreshToken: String,

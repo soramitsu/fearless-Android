@@ -13,7 +13,6 @@ import jp.co.soramitsu.oauth.base.sdk.SoraCardInfo
 import jp.co.soramitsu.oauth.base.sdk.SoraCardKycCredentials
 import jp.co.soramitsu.oauth.base.sdk.contract.SoraCardContractData
 import jp.co.soramitsu.oauth.base.sdk.signin.SoraCardSignInContractData
-import jp.co.soramitsu.oauth.common.model.KycStatus
 import jp.co.soramitsu.soracard.api.domain.SoraCardInteractor
 import jp.co.soramitsu.soracard.api.presentation.SoraCardRouter
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -126,8 +125,7 @@ class GetSoraCardViewModel @Inject constructor(
                     SoraCardInfo(
                         accessToken = it.accessToken,
                         refreshToken = it.refreshToken,
-                        accessTokenExpirationTime = it.accessTokenExpirationTime,
-                        kycStatus = KycStatus.valueOf(it.kycStatus)
+                        accessTokenExpirationTime = it.accessTokenExpirationTime
                     )
                 }
             )
@@ -148,8 +146,7 @@ class GetSoraCardViewModel @Inject constructor(
                     SoraCardInfo(
                         accessToken = it.accessToken,
                         refreshToken = it.refreshToken,
-                        accessTokenExpirationTime = it.accessTokenExpirationTime,
-                        kycStatus = KycStatus.valueOf(it.kycStatus)
+                        accessTokenExpirationTime = it.accessTokenExpirationTime
                     )
                 }
             )
