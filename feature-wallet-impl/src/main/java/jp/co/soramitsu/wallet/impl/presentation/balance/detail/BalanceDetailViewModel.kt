@@ -176,7 +176,8 @@ class BalanceDetailViewModel @Inject constructor(
             isInfoEnabled = true,
             changeViewState = ChangeBalanceViewState(
                 percentChange = balanceModel.token.recentRateChange?.formatAsChange().orEmpty(),
-                fiatChange = balanceModel.token.fiatRate?.multiply(balanceModel.transferable.orZero())?.formatAsCurrency(balanceModel.token.fiatSymbol).orEmpty()
+                fiatChange = balanceModel.token.fiatRate?.multiply(balanceModel.transferable.orZero())
+                    ?.formatAsCurrency(balanceModel.token.fiatSymbol).orEmpty()
             )
         )
 
