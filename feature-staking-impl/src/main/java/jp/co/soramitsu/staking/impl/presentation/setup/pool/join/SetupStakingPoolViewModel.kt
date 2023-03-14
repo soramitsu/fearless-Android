@@ -166,7 +166,7 @@ class SetupStakingPoolViewModel @Inject constructor(
                     AlertViewState(
                         title = title,
                         message = message,
-                        buttonText = resourceManager.getString(R.string.common_got_it),
+                        buttonText = resourceManager.getString(R.string.common_ok),
                         iconRes = R.drawable.ic_status_warning_16
                     )
                 } ?: AlertViewState(

@@ -49,7 +49,7 @@ fun AssetListItem(
     val onClickHandler = remember { { onClick(state) } }
     BackgroundCornered(
         modifier = modifier
-            .testTag("AssetListItem_${state.assetSymbol}_${state.assetChainName}")
+            .testTag("AssetListItem_${state.assetSymbol}_${state.assetName}")
             .clickable(onClick = onClickHandler)
     ) {
         val assetRateColor = if (state.assetTokenRate.orEmpty().startsWith("+")) {
@@ -89,7 +89,7 @@ fun AssetListItem(
                     .align(CenterVertically)
             ) {
                 Text(
-                    text = state.assetChainName.uppercase(),
+                    text = state.assetName.uppercase(),
                     style = MaterialTheme.customTypography.capsTitle2,
                     modifier = Modifier
                         .alpha(0.64f)
@@ -154,7 +154,7 @@ fun AssetListItem(
                     } else {
                         Box(modifier = Modifier.height(16.dp))
                     }
-                    state.assetBalance?.let {
+                    state.assetTransferableBalance?.let {
                         Text(
                             text = it,
                             style = MaterialTheme.customTypography.header3,
@@ -162,7 +162,7 @@ fun AssetListItem(
                                 .padding(vertical = 4.dp)
                                 .padding(start = 4.dp)
                                 .align(Alignment.End)
-                                .testTag("AssetListItem_${state.assetSymbol}_balance")
+                                .testTag("AssetListItem_${state.assetSymbol}_transferable")
                         )
                     } ?: Shimmer(
                         Modifier
@@ -170,13 +170,13 @@ fun AssetListItem(
                             .align(Alignment.End)
                     )
                     Text(
-                        text = state.assetBalanceFiat.orEmpty(),
+                        text = state.assetTransferableBalanceFiat.orEmpty(),
                         style = MaterialTheme.customTypography.body1,
                         modifier = Modifier
                             .alpha(0.64f)
                             .padding(start = 4.dp)
                             .align(Alignment.End)
-                            .testTag("AssetListItem_${state.assetSymbol}_balance_fiat")
+                            .testTag("AssetListItem_${state.assetSymbol}_transferable_fiat")
                     )
                 }
             }
@@ -290,11 +290,12 @@ fun AssetListItemShimmer(
 private fun PreviewAssetListItem() {
     val assetIconUrl = "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Polkadot.svg"
     val assetChainName = "Karura"
+    val assetName = "Karura asset"
     val assetSymbol = "KSM"
     val assetTokenFiat = "$73.22"
     val assetTokenRate = "+5.67%"
-    val assetBalance = "444.3"
-    val assetBalanceFiat = "$2345.32"
+    val assetTransferableBalance = "444.3"
+    val assetTransferableBalanceFiat = "$2345.32"
     val assetChainUrlsMap = mapOf(
         "" to "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Karura.svg",
         "" to "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/kilt.svg",
@@ -307,12 +308,13 @@ private fun PreviewAssetListItem() {
 
     val state = AssetListItemViewState(
         assetIconUrl = assetIconUrl,
+        assetName = assetName,
         assetChainName = assetChainName,
         assetSymbol = assetSymbol,
         assetTokenFiat = assetTokenFiat,
         assetTokenRate = assetTokenRate,
-        assetBalance = assetBalance,
-        assetBalanceFiat = assetBalanceFiat,
+        assetTransferableBalance = assetTransferableBalance,
+        assetTransferableBalanceFiat = assetTransferableBalanceFiat,
         assetChainUrls = assetChainUrlsMap,
         chainId = "",
         chainAssetId = "",

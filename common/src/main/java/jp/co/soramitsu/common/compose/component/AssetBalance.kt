@@ -18,7 +18,7 @@ import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.utils.clickableWithNoIndication
 
 data class AssetBalanceViewState(
-    val balance: String,
+    val transferableBalance: String,
     val address: String,
     val isInfoEnabled: Boolean = false,
     val changeViewState: ChangeBalanceViewState
@@ -44,7 +44,7 @@ fun AssetBalance(
                 .testTag("balance_fiat")
                 .clickableWithNoIndication(onBalanceClick)
         ) {
-            H1(text = state.balance)
+            H1(text = state.transferableBalance)
             if (state.isInfoEnabled) {
                 MarginHorizontal(margin = 5.dp)
                 Image(
@@ -70,17 +70,17 @@ fun AssetBalance(
 @Composable
 private fun PreviewAssetBalance() {
     val percentChange = "+5.67%"
-    val assetBalance = "44400.3"
-    val assetBalanceFiat = "$2345.32"
+    val assetTransferableBalance = "44400.3"
+    val assetTransferableBalanceFiat = "$2345.32"
     val address = "0x32141235qwegtf24315reqwerfasdgqwert243rfasdvgergsdf"
 
     val state = AssetBalanceViewState(
-        balance = assetBalance,
+        transferableBalance = assetTransferableBalance,
         address = address,
         isInfoEnabled = true,
         changeViewState = ChangeBalanceViewState(
             percentChange = percentChange,
-            fiatChange = assetBalanceFiat
+            fiatChange = assetTransferableBalanceFiat
         )
     )
 

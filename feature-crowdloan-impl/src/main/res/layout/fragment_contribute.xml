@@ -91,6 +91,15 @@
                     tools:text="Your KSM tokens will be returned after the leasing period." />
             </LinearLayout>
 
+            <jp.co.soramitsu.wallet.api.presentation.view.FeeView
+                android:id="@+id/crowdloanContributeFee"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="12dp"
+                android:layout_marginEnd="16dp"
+                app:title="@string/network_fee" />
+
             <jp.co.soramitsu.common.view.TableCellView
                 android:id="@+id/crowdloanContributeLeasingPeriod"
                 android:layout_width="match_parent"
