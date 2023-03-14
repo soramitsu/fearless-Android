@@ -10,7 +10,13 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface SoraCardDao {
     @Query("select * from sora_card where :id = id")
-    fun getSoraCardInfo(id: String): Flow<SoraCardInfoLocal?>
+    fun observeSoraCardInfo(id: String): Flow<SoraCardInfoLocal?>
+
+    @Query("select * from sora_card where :id = id")
+    suspend fun getSoraCardInfo(id: String): SoraCardInfoLocal?
+
+    @Query("update sora_card set kycStatus=:kycStatus where :id = id")
+    suspend fun updateKycStatus(id: String, kycStatus: String)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(soraCardInfoLocal: SoraCardInfoLocal)

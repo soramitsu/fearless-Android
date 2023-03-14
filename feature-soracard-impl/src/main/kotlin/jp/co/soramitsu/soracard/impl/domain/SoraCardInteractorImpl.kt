@@ -41,4 +41,12 @@ class SoraCardInteractorImpl @Inject constructor(
     override suspend fun updateSoraCardInfo(accessToken: String, refreshToken: String, accessTokenExpirationTime: Long, kycStatus: String) {
         soraCardRepository.updateSoraCardInfo(accessToken, refreshToken, accessTokenExpirationTime, kycStatus)
     }
+
+    override suspend fun getSoraCardInfo(): SoraCardInfo? {
+        return soraCardRepository.getSoraCardInfo()
+    }
+
+    override suspend fun updateSoraCardKycStatus(kycStatus: String) {
+        soraCardRepository.updateSoraCardKycStatus(kycStatus)
+    }
 }

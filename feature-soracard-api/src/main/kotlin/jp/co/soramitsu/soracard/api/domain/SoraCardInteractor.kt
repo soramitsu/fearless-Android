@@ -12,6 +12,10 @@ interface SoraCardInteractor {
 
     fun subscribeSoraCardInfo(): Flow<SoraCardInfo?>
 
+    suspend fun getSoraCardInfo(): SoraCardInfo?
+
+    suspend fun updateSoraCardKycStatus(kycStatus: String)
+
     suspend fun getXorPerEurRatio(priceId: String?): BigDecimal?
 
     suspend fun updateSoraCardInfo(

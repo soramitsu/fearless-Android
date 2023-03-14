@@ -76,6 +76,8 @@ import jp.co.soramitsu.wallet.impl.presentation.balance.assetActions.buy.BuyMixi
 import jp.co.soramitsu.wallet.impl.presentation.send.SendSharedState
 import jp.co.soramitsu.wallet.impl.presentation.transaction.filter.HistoryFiltersProvider
 import jp.co.soramitsu.xnetworking.networkclient.SoramitsuNetworkClient
+import jp.co.soramitsu.xnetworking.sorawallet.mainconfig.SoraRemoteConfigBuilder
+import jp.co.soramitsu.xnetworking.sorawallet.mainconfig.SoraRemoteConfigProvider
 import jp.co.soramitsu.xnetworking.txhistory.client.sorawallet.SubQueryClientForSoraWalletFactory
 import javax.inject.Named
 import javax.inject.Singleton
@@ -149,6 +151,7 @@ class WalletFeatureModule {
         availableFiatCurrencies: GetAvailableFiatCurrencies,
         updatesMixin: UpdatesMixin,
         remoteConfigFetcher: RemoteConfigFetcher
+        soraRemoteConfigBuilder: SoraRemoteConfigBuilder
     ): WalletRepository = WalletRepositoryImpl(
         substrateSource,
         operationsDao,
@@ -161,34 +164,8 @@ class WalletFeatureModule {
         chainRegistry,
         availableFiatCurrencies,
         updatesMixin,
-        remoteConfigFetcher
-    )
-
-    @Provides
-    @Singleton
-    fun provideHistoryRepository(
-        historySourceProvider: HistorySourceProvider,
-        operationsDao: OperationDao,
-        cursorStorage: TransferCursorStorage,
-        currentAccountAddress: CurrentAccountAddressUseCase
-    ) = HistoryRepository(
-        historySourceProvider,
-        operationsDao,
-        cursorStorage,
-        currentAccountAddress
-    )
-
-    @Provides
-    fun provideHistorySourceProvider(
-        walletOperationsHistoryApi: OperationsHistoryApi,
-        chainRegistry: ChainRegistry,
-        soramitsuNetworkClient: SoramitsuNetworkClient,
-        subQueryClientForSoraWalletFactory: SubQueryClientForSoraWalletFactory
-    ) = HistorySourceProvider(
-        walletOperationsHistoryApi,
-        chainRegistry,
-        soramitsuNetworkClient,
-        subQueryClientForSoraWalletFactory
+        remoteConfigFetcher,
+        soraRemoteConfigBuilder
     )
 
     @Provides
@@ -200,13 +177,11 @@ class WalletFeatureModule {
         fileProvider: FileProvider,
         preferences: Preferences,
         selectedFiat: SelectedFiat,
-        updatesMixin: UpdatesMixin,
-        historyRepository: HistoryRepository
+        updatesMixin: UpdatesMixin
     ): WalletInteractor = WalletInteractorImpl(
         walletRepository,
         addressBookRepository,
         accountRepository,
-        historyRepository,
         chainRegistry,
         fileProvider,
         preferences,
@@ -359,4 +334,18 @@ class WalletFeatureModule {
     fun provideSubQueryClientForSoraWalletFactory(
         @ApplicationContext context: Context
     ): SubQueryClientForSoraWalletFactory = SubQueryClientForSoraWalletFactory(context)
+
+    @Singleton
+    @Provides
+    fun provideSoraRemoteConfigBuilder(
+        client: SoramitsuNetworkClient,
+        @ApplicationContext context: Context
+    ): SoraRemoteConfigBuilder {
+        return SoraRemoteConfigProvider(
+            context = context,
+            client = client,
+            commonUrl = "",
+            mobileUrl = ""
+        ).provide()
+    }
 }
