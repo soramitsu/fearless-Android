@@ -125,7 +125,7 @@ class StakingPoolInteractor(
                 bondedPool.depositor,
                 bondedPool.root,
                 bondedPool.nominator,
-                bondedPool.stateToggler
+                bondedPool.bouncer
             )
         }.filterNotNull()
     }
@@ -227,7 +227,7 @@ class StakingPoolInteractor(
                 pool.depositor,
                 pool.root,
                 pool.nominator,
-                pool.stateToggler
+                pool.bouncer
             )
         }
     }

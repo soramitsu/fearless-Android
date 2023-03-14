@@ -122,7 +122,7 @@ class PoolInfoViewModel @Inject constructor(
         }
         val stateToggler = poolInfo.stateToggler.roleNameOrAddress(rolesNames)?.let {
             DropDownViewState(
-                hint = resourceManager.getString(R.string.pool_staking_state_toggler),
+                hint = resourceManager.getString(R.string.pool_staking_bouncer),
                 text = it,
                 clickableMode = DropDownViewState.ClickableMode.AlwaysClickable,
                 endIcon = R.drawable.ic_copy_16
@@ -172,7 +172,7 @@ class PoolInfoViewModel @Inject constructor(
                 endIcon = R.drawable.ic_copy_16
             ),
             stateToggler = DropDownViewState(
-                hint = resourceManager.getString(R.string.pool_staking_state_toggler),
+                hint = resourceManager.getString(R.string.pool_staking_bouncer),
                 text = null,
                 clickableMode = DropDownViewState.ClickableMode.AlwaysClickable,
                 endIcon = R.drawable.ic_copy_16

@@ -121,6 +121,10 @@ class ChainRegistry @Inject constructor(
     suspend fun getNode(id: NodeId) = mapNodeLocalToNode(chainDao.getNode(id.chainId, id.nodeUrl))
 
     suspend fun updateNode(id: NodeId, name: String, url: String) = chainDao.updateNode(id.chainId, id.nodeUrl, name, url)
+
+    suspend fun getRemoteRuntimeVersion(chainId: ChainId): Int? {
+        return chainDao.runtimeInfo(chainId)?.remoteVersion
+    }
 }
 
 suspend fun ChainRegistry.chainWithAsset(chainId: ChainId, assetId: String): Pair<Chain, Chain.Asset> {
