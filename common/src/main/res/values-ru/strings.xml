@@ -786,7 +786,7 @@
     <string name="pool_staking_depositor">Вкладчик</string>
     <string name="pool_staking_root">Root</string>
     <string name="pool_staking_nominator">Nominator</string>
-    <string name="pool_staking_state_toggler">State toggler</string>
+    <string name="pool_staking_bouncer">Bouncer</string>
     <string name="pool_staking_title">Pool staking</string>
     <string name="common_watch">Смотреть</string>
     <string name="nft_stub_title">Извините!</string>

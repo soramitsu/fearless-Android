@@ -13,10 +13,18 @@ interface TransactionHistoryUi {
 
         object EmptyProgress : State()
 
+        object Refreshing : State()
+
         class Data(val items: List<Any>) : State()
     }
 
+    sealed class SideEffect {
+        class Error(val message: String?) : SideEffect()
+    }
+
     fun state(): Flow<State>
+
+    fun sideEffects(): Flow<SideEffect>
 
     fun transactionClicked(
         transactionModel: OperationModel,

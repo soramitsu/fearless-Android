@@ -1,7 +1,6 @@
 package jp.co.soramitsu.wallet.impl.domain.interfaces
 
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
-import jp.co.soramitsu.common.data.model.CursorPage
 import jp.co.soramitsu.common.data.network.config.AppConfigRemote
 import jp.co.soramitsu.common.data.network.runtime.binding.EqAccountInfo
 import jp.co.soramitsu.common.data.network.runtime.binding.EqOraclePricePoint
@@ -10,11 +9,9 @@ import jp.co.soramitsu.coredb.model.PhishingLocal
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.AssetWithStatus
 import jp.co.soramitsu.wallet.impl.domain.model.Fee
-import jp.co.soramitsu.wallet.impl.domain.model.Operation
 import jp.co.soramitsu.wallet.impl.domain.model.Transfer
 import jp.co.soramitsu.wallet.impl.domain.model.TransferValidityStatus
 import kotlinx.coroutines.flow.Flow
@@ -39,31 +36,6 @@ interface WalletRepository {
         isHidden: Boolean,
         chainAsset: Chain.Asset
     )
-
-    suspend fun syncOperationsFirstPage(
-        pageSize: Int,
-        filters: Set<TransactionFilter>,
-        accountId: AccountId,
-        chain: Chain,
-        chainAsset: Chain.Asset
-    )
-
-    suspend fun getOperations(
-        pageSize: Int,
-        cursor: String?,
-        filters: Set<TransactionFilter>,
-        accountId: AccountId,
-        chain: Chain,
-        chainAsset: Chain.Asset
-    ): CursorPage<Operation>
-
-    fun operationsFirstPageFlow(
-        accountId: AccountId,
-        chain: Chain,
-        chainAsset: Chain.Asset
-    ): Flow<CursorPage<Operation>>
-
-    fun getOperationAddressWithChainIdFlow(limit: Int?, chainId: ChainId): Flow<Set<String>>
 
     suspend fun getTransferFee(
         chain: Chain,

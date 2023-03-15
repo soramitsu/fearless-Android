@@ -10,6 +10,7 @@ import jp.co.soramitsu.common.compose.component.ActionBar
 import jp.co.soramitsu.common.compose.component.ActionBarViewState
 import jp.co.soramitsu.common.compose.component.ActionItemType
 import jp.co.soramitsu.common.compose.component.AssetListItem
+import jp.co.soramitsu.common.compose.component.BackgroundCornered
 import jp.co.soramitsu.common.compose.component.SwipeBox
 import jp.co.soramitsu.common.compose.component.SwipeBoxViewState
 import jp.co.soramitsu.common.compose.component.SwipeState
@@ -48,16 +49,20 @@ fun SwipeableAssetListItem(
             )
         },
         leftContent = {
-            ActionBar(
-                state = leftBarActionViewState,
-                onItemClick = ::onItemClick
-            )
+            BackgroundCornered {
+                ActionBar(
+                    state = leftBarActionViewState,
+                    onItemClick = ::onItemClick
+                )
+            }
         },
         rightContent = {
-            ActionBar(
-                state = rightBarActionViewState,
-                onItemClick = ::onItemClick
-            )
+            BackgroundCornered {
+                ActionBar(
+                    state = rightBarActionViewState,
+                    onItemClick = ::onItemClick
+                )
+            }
         }
     )
 }

@@ -109,7 +109,7 @@ fun CreatePoolSetupScreen(
                         DropDown(
                             state = DropDownViewState(
                                 state.stateToggler,
-                                stringResource(id = R.string.pool_staking_state_toggler)
+                                stringResource(id = R.string.pool_staking_bouncer)
                             ),
                             onClick = screenInterface::onStateTogglerClick
                         )

@@ -539,10 +539,12 @@ class StakingFeatureModule {
     @Singleton
     fun provideStakingPoolApi(
         extrinsicService: ExtrinsicService,
-        stakingSharedState: StakingSharedState
+        stakingSharedState: StakingSharedState,
+        chainRegistry: ChainRegistry
     ) = StakingPoolApi(
         extrinsicService,
-        stakingSharedState
+        stakingSharedState,
+        chainRegistry
     )
 
     @Provides
