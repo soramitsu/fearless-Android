@@ -14,8 +14,6 @@ import jp.co.soramitsu.account.api.domain.model.cryptoType
 import jp.co.soramitsu.account.api.domain.model.hasChainAccount
 import jp.co.soramitsu.account.impl.data.repository.datasource.AccountDataSource
 import jp.co.soramitsu.common.data.Keypair
-import jp.co.soramitsu.common.data.mappers.mapCryptoTypeToEncryption
-import jp.co.soramitsu.common.data.mappers.mapEncryptionToCryptoType
 import jp.co.soramitsu.common.data.secrets.v2.ChainAccountSecrets
 import jp.co.soramitsu.common.data.secrets.v2.KeyPairSchema
 import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
@@ -26,9 +24,11 @@ import jp.co.soramitsu.common.utils.deriveSeed32
 import jp.co.soramitsu.common.utils.ethereumAddressFromPublicKey
 import jp.co.soramitsu.common.utils.nullIfEmpty
 import jp.co.soramitsu.common.utils.substrateAccountId
-import jp.co.soramitsu.core.model.CryptoType
+import jp.co.soramitsu.core.crypto.mapCryptoTypeToEncryption
+import jp.co.soramitsu.core.crypto.mapEncryptionToCryptoType
 import jp.co.soramitsu.core.model.Language
 import jp.co.soramitsu.core.model.SecuritySource
+import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.coredb.dao.AccountDao
 import jp.co.soramitsu.coredb.dao.MetaAccountDao
 import jp.co.soramitsu.coredb.model.AccountLocal

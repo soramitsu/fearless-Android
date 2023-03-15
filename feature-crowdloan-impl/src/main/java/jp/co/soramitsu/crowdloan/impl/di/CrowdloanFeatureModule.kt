@@ -4,13 +4,12 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import javax.inject.Named
-import javax.inject.Singleton
+import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.account.api.extrinsic.ExtrinsicService
-import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.core.extrinsic.ExtrinsicService
+import jp.co.soramitsu.core.extrinsic.mortality.IChainStateRepository
 import jp.co.soramitsu.crowdloan.api.data.repository.CrowdloanRepository
 import jp.co.soramitsu.crowdloan.impl.data.CrowdloanSharedState
 import jp.co.soramitsu.crowdloan.impl.data.network.api.acala.AcalaApi
@@ -21,20 +20,21 @@ import jp.co.soramitsu.crowdloan.impl.di.customCrowdloan.CustomContributeModule
 import jp.co.soramitsu.crowdloan.impl.domain.contribute.CrowdloanContributeInteractor
 import jp.co.soramitsu.crowdloan.impl.domain.main.CrowdloanInteractor
 import jp.co.soramitsu.crowdloan.impl.storage.CrowdloanStorage
+import jp.co.soramitsu.runtime.di.REMOTE_STORAGE_SOURCE
+import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 import jp.co.soramitsu.wallet.api.domain.AssetUseCase
+import jp.co.soramitsu.wallet.api.presentation.mixin.assetSelector.AssetSelectorFactory
+import jp.co.soramitsu.wallet.api.presentation.mixin.assetSelector.AssetSelectorMixin
+import jp.co.soramitsu.wallet.api.presentation.mixin.fee.FeeLoaderMixin
+import jp.co.soramitsu.wallet.api.presentation.mixin.fee.FeeLoaderProvider
 import jp.co.soramitsu.wallet.impl.domain.TokenUseCase
 import jp.co.soramitsu.wallet.impl.domain.implementations.AssetUseCaseImpl
 import jp.co.soramitsu.wallet.impl.domain.implementations.TokenUseCaseImpl
 import jp.co.soramitsu.wallet.impl.domain.interfaces.TokenRepository
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
-import jp.co.soramitsu.wallet.api.presentation.mixin.assetSelector.AssetSelectorFactory
-import jp.co.soramitsu.wallet.api.presentation.mixin.assetSelector.AssetSelectorMixin
-import jp.co.soramitsu.wallet.api.presentation.mixin.fee.FeeLoaderMixin
-import jp.co.soramitsu.wallet.api.presentation.mixin.fee.FeeLoaderProvider
-import jp.co.soramitsu.runtime.di.REMOTE_STORAGE_SOURCE
-import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
-import jp.co.soramitsu.runtime.repository.ChainStateRepository
-import jp.co.soramitsu.runtime.storage.source.StorageDataSource
+import javax.inject.Named
+import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
 @Module(
@@ -119,7 +119,7 @@ class CrowdloanFeatureModule {
     fun provideCrowdloanInteractor(
         accountRepository: AccountRepository,
         crowdloanRepository: CrowdloanRepository,
-        chainStateRepository: ChainStateRepository
+        chainStateRepository: IChainStateRepository
     ) = CrowdloanInteractor(
         accountRepository,
         crowdloanRepository,
@@ -136,7 +136,7 @@ class CrowdloanFeatureModule {
         extrinsicService: ExtrinsicService,
         accountRepository: AccountRepository,
         chainRegistry: ChainRegistry,
-        chainStateRepository: ChainStateRepository,
+        chainStateRepository: IChainStateRepository,
         sharedState: CrowdloanSharedState,
         crowdloanRepository: CrowdloanRepository,
         walletRepository: WalletRepository,

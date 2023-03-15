@@ -120,4 +120,6 @@ dependencies {
 
     implementation navigationFragmentDep
     implementation navigationUiDep
+
+    implementation sharedFeaturesXcmDep
 }

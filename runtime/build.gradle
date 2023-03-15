@@ -63,4 +63,6 @@ dependencies {
     androidTestImplementation androidTestRunnerDep
     androidTestImplementation androidTestRulesDep
     androidTestImplementation androidJunitDep
+
+    api sharedFeaturesCoreDep
 }

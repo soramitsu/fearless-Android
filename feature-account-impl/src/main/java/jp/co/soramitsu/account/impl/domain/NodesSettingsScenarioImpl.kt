@@ -3,17 +3,17 @@ package jp.co.soramitsu.account.impl.domain
 import android.database.sqlite.SQLiteConstraintException
 import jp.co.soramitsu.account.api.domain.interfaces.NodesSettingsScenario
 import jp.co.soramitsu.account.impl.domain.errors.NodeAlreadyExistsException
+import jp.co.soramitsu.core.models.ChainNode
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.NodeId
 import kotlinx.coroutines.flow.Flow
 
 class NodesSettingsScenarioImpl(private val chainRegistry: ChainRegistry) : NodesSettingsScenario {
 
-    override fun nodesFlow(chainId: ChainId): Flow<List<Chain.Node>> = chainRegistry.nodesFlow(chainId)
+    override fun nodesFlow(chainId: ChainId): Flow<List<ChainNode>> = chainRegistry.nodesFlow(chainId)
 
-    override suspend fun getNode(id: NodeId): Chain.Node = chainRegistry.getNode(id)
+    override suspend fun getNode(id: NodeId): ChainNode = chainRegistry.getNode(id)
 
     override suspend fun selectNode(id: NodeId) = chainRegistry.selectNode(id)
 

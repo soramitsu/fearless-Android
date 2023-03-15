@@ -94,4 +94,6 @@ dependencies {
     testImplementation mockitoDep
 
     implementation gsonDep
+
+    api sharedFeaturesCoreDep
 }

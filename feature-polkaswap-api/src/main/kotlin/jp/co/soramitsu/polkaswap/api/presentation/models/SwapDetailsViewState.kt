@@ -1,12 +1,11 @@
 package jp.co.soramitsu.polkaswap.api.presentation.models
 
 import android.os.Parcelable
-import java.math.BigDecimal
 import jp.co.soramitsu.common.compose.component.GradientIconState
-import jp.co.soramitsu.common.data.network.runtime.model.QuoteResponse
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.common.utils.formatAsCurrency
+import jp.co.soramitsu.core.rpc.models.responses.QuoteResponse
 import jp.co.soramitsu.feature_polkaswap_api.R
 import jp.co.soramitsu.polkaswap.api.domain.models.SwapDetails
 import jp.co.soramitsu.polkaswap.api.models.WithDesired
@@ -15,6 +14,7 @@ import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import kotlinx.parcelize.Parcelize
+import java.math.BigDecimal
 
 @Parcelize
 data class SwapDetailsViewState(

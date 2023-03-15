@@ -1,11 +1,11 @@
 package jp.co.soramitsu.app.root.presentation.main
 
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import jp.co.soramitsu.app.root.domain.RootInteractor
 import jp.co.soramitsu.common.base.BaseViewModel
-import jp.co.soramitsu.runtime.multiNetwork.connection.ChainConnection
+import jp.co.soramitsu.core.chain_registry.ChainConnection
 import kotlinx.coroutines.flow.MutableStateFlow
+import javax.inject.Inject
 
 @HiltViewModel
 class MainViewModel @Inject constructor(

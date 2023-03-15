@@ -393,17 +393,17 @@ private fun ShimmerTransactionHistory() {
 @Preview
 private fun PreviewBalanceDetailScreenContent() {
     val percentChange = "+5.67%"
-    val assetBalance = "44400.3"
-    val assetBalanceFiat = "$2345.32"
+    val transferableBalance = "14400.3"
+    val transferableBalanceFiat = "$1345.32"
     val address = "0x32141235qwegtf24315reqwerfasdgqwert243rfasdvgergsdf"
 
     val assetBalanceViewState = AssetBalanceViewState(
-        balance = assetBalance,
+        transferableBalance = transferableBalance,
         address = address,
         isInfoEnabled = false,
         changeViewState = ChangeBalanceViewState(
             percentChange = percentChange,
-            fiatChange = assetBalanceFiat
+            fiatChange = transferableBalanceFiat
         )
     )
 

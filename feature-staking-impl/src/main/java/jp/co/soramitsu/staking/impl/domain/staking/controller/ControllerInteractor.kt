@@ -1,6 +1,6 @@
 package jp.co.soramitsu.staking.impl.domain.staking.controller
 
-import jp.co.soramitsu.account.api.extrinsic.ExtrinsicService
+import jp.co.soramitsu.core.extrinsic.ExtrinsicService
 import jp.co.soramitsu.staking.api.data.StakingSharedState
 import jp.co.soramitsu.staking.impl.data.network.blockhain.calls.setController
 import jp.co.soramitsu.runtime.ext.accountIdOf

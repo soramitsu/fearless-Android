@@ -1,7 +1,5 @@
 package jp.co.soramitsu.wallet.impl.domain.interfaces
 
-import java.math.BigDecimal
-import java.math.BigInteger
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.common.data.network.config.AppConfigRemote
 import jp.co.soramitsu.common.data.network.runtime.binding.EqAccountInfo
@@ -17,6 +15,8 @@ import jp.co.soramitsu.wallet.impl.domain.model.Fee
 import jp.co.soramitsu.wallet.impl.domain.model.Transfer
 import jp.co.soramitsu.wallet.impl.domain.model.TransferValidityStatus
 import kotlinx.coroutines.flow.Flow
+import java.math.BigDecimal
+import java.math.BigInteger
 
 interface WalletRepository {
 
