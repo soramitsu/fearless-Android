@@ -867,7 +867,7 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="pool_staking_depositor">Depositor</string>
     <string name="pool_staking_root">Root</string>
     <string name="pool_staking_nominator">Nominator</string>
-    <string name="pool_staking_state_toggler">State toggler</string>
+    <string name="pool_staking_bouncer">Bouncer</string>
     <string name="pool_staking_title">Pool staking</string>
     <string name="common_watch">Watch</string>
     <string name="nft_stub_title">Sumimasen!</string>

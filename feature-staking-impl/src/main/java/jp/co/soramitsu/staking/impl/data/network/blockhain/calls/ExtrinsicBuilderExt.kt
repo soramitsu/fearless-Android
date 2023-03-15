@@ -216,7 +216,22 @@ fun ExtrinsicBuilder.joinPool(amount: BigInteger, poolId: BigInteger): Extrinsic
     )
 }
 
-fun ExtrinsicBuilder.createPool(amount: BigInteger, root: MultiAddress, nominator: MultiAddress, stateToggler: MultiAddress): ExtrinsicBuilder {
+// TODO rename to createPool when polkadot runtime upgrades to 9390
+fun ExtrinsicBuilder.createPoolBouncer(amount: BigInteger, root: MultiAddress, nominator: MultiAddress, stateToggler: MultiAddress): ExtrinsicBuilder {
+    return call(
+        "NominationPools",
+        "create",
+        mapOf(
+            "amount" to amount,
+            "root" to bindMultiAddress(root),
+            "nominator" to bindMultiAddress(nominator),
+            "bouncer" to bindMultiAddress(stateToggler)
+        )
+    )
+}
+
+@Deprecated("Replace with createPoolBouncer when polkadot runtime upgrades to 9390", replaceWith = ReplaceWith("ExtrinsicBuilder.createPoolBouncer"))
+fun ExtrinsicBuilder.createPoolStateToggler(amount: BigInteger, root: MultiAddress, nominator: MultiAddress, stateToggler: MultiAddress): ExtrinsicBuilder {
     return call(
         "NominationPools",
         "create",
@@ -225,19 +240,6 @@ fun ExtrinsicBuilder.createPool(amount: BigInteger, root: MultiAddress, nominato
             "root" to bindMultiAddress(root),
             "nominator" to bindMultiAddress(nominator),
             "state_toggler" to bindMultiAddress(stateToggler)
-        )
-    )
-}
-
-fun ExtrinsicBuilder.createPool(amount: BigInteger, root: AccountId, nominator: AccountId, stateToggler: AccountId): ExtrinsicBuilder {
-    return call(
-        "NominationPools",
-        "create",
-        mapOf(
-            "amount" to amount,
-            "root" to root,
-            "nominator" to nominator,
-            "state_toggler" to stateToggler
         )
     )
 }
@@ -322,7 +324,7 @@ fun ExtrinsicBuilder.bondExtra(amount: BigInteger): ExtrinsicBuilder {
     )
 }
 
-fun ExtrinsicBuilder.updateRoles(
+fun ExtrinsicBuilder.updateRolesStateToggler(
     poolId: BigInteger,
     root: DictEnum.Entry<AccountId?>,
     nominator: DictEnum.Entry<AccountId?>,
@@ -336,6 +338,24 @@ fun ExtrinsicBuilder.updateRoles(
             "new_root" to root,
             "new_nominator" to nominator,
             "new_state_toggler" to stateToggler
+        )
+    )
+}
+
+fun ExtrinsicBuilder.updateRolesBouncer(
+    poolId: BigInteger,
+    root: DictEnum.Entry<AccountId?>,
+    nominator: DictEnum.Entry<AccountId?>,
+    stateToggler: DictEnum.Entry<AccountId?>
+): ExtrinsicBuilder {
+    return call(
+        "NominationPools",
+        "update_roles",
+        mapOf(
+            "pool_id" to poolId,
+            "new_root" to root,
+            "new_nominator" to nominator,
+            "new_bouncer" to stateToggler
         )
     )
 }
