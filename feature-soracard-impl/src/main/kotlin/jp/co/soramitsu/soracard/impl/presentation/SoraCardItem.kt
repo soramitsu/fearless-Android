@@ -21,6 +21,7 @@ import androidx.compose.ui.graphics.ShaderBrush
 import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.imageResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.R
@@ -122,21 +123,19 @@ fun SoraCardItem(
             )
         }
 
-        if (state?.kycStatus != null) {
-            FilledButton(
-                modifier = Modifier
-                    .padding(bottom = 6.dp)
-                    .padding(horizontal = 16.dp)
-                    .testTag("sora_card_status")
-                    .align(Alignment.BottomCenter),
-                size = Size.ExtraSmall,
-                order = Order.SECONDARY,
-                onClick = onClick,
-                text = state.kycStatus.uppercase(),
-                elevation = 0.dp,
-                maxLines = 1
-            )
-        }
+        FilledButton(
+            modifier = Modifier
+                .padding(bottom = 6.dp)
+                .padding(horizontal = 16.dp)
+                .testTag("sora_card_status")
+                .align(Alignment.BottomCenter),
+            size = Size.ExtraSmall,
+            order = Order.SECONDARY,
+            onClick = onClick,
+            text = state?.kycStatus ?: stringResource(id = R.string.sora_card_get_sora_card),
+            elevation = 0.dp,
+            maxLines = 1
+        )
     }
 }
 

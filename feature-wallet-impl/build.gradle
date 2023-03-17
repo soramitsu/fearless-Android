@@ -22,8 +22,8 @@ android {
         buildConfigField "String", "MOONPAY_HOST", "\"buy-staging.moonpay.com\""
         buildConfigField "String", "MOONPAY_PUBLIC_KEY", "\"pk_test_DMRuyL6Nf1qc9OzjPBmCFBeCGkFwiZs0\""
 
-        buildConfigField "String", "SORA_CONFIG_COMMON", "\"https://config.polkaswap2.io/dev/common.json\""
-        buildConfigField "String", "SORA_CONFIG_MOBILE", "\"https://config.polkaswap2.io/dev/mobile.json\""
+        buildConfigField "String", "SORA_CONFIG_COMMON", "\"https://config.polkaswap2.io/stage/common.json\""
+        buildConfigField "String", "SORA_CONFIG_MOBILE", "\"https://config.polkaswap2.io/stage/mobile.json\""
     }
 
     buildTypes {
