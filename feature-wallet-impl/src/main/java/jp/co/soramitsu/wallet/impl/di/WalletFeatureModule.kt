@@ -151,7 +151,6 @@ class WalletFeatureModule {
         availableFiatCurrencies: GetAvailableFiatCurrencies,
         updatesMixin: UpdatesMixin,
         remoteConfigFetcher: RemoteConfigFetcher
-        soraRemoteConfigBuilder: SoraRemoteConfigBuilder
     ): WalletRepository = WalletRepositoryImpl(
         substrateSource,
         operationsDao,
@@ -164,7 +163,35 @@ class WalletFeatureModule {
         chainRegistry,
         availableFiatCurrencies,
         updatesMixin,
-        remoteConfigFetcher,
+        remoteConfigFetcher
+    )
+
+    @Provides
+    @Singleton
+    fun provideHistoryRepository(
+        historySourceProvider: HistorySourceProvider,
+        operationsDao: OperationDao,
+        cursorStorage: TransferCursorStorage,
+        currentAccountAddress: CurrentAccountAddressUseCase
+    ) = HistoryRepository(
+        historySourceProvider,
+        operationsDao,
+        cursorStorage,
+        currentAccountAddress
+    )
+
+    @Provides
+    fun provideHistorySourceProvider(
+        walletOperationsHistoryApi: OperationsHistoryApi,
+        chainRegistry: ChainRegistry,
+        soramitsuNetworkClient: SoramitsuNetworkClient,
+        subQueryClientForSoraWalletFactory: SubQueryClientForSoraWalletFactory,
+        soraRemoteConfigBuilder: SoraRemoteConfigBuilder
+    ) = HistorySourceProvider(
+        walletOperationsHistoryApi,
+        chainRegistry,
+        soramitsuNetworkClient,
+        subQueryClientForSoraWalletFactory,
         soraRemoteConfigBuilder
     )
 
@@ -173,6 +200,7 @@ class WalletFeatureModule {
         walletRepository: WalletRepository,
         addressBookRepository: AddressBookRepository,
         accountRepository: AccountRepository,
+        historyRepository: HistoryRepository,
         chainRegistry: ChainRegistry,
         fileProvider: FileProvider,
         preferences: Preferences,
@@ -182,6 +210,7 @@ class WalletFeatureModule {
         walletRepository,
         addressBookRepository,
         accountRepository,
+        historyRepository,
         chainRegistry,
         fileProvider,
         preferences,
@@ -344,8 +373,8 @@ class WalletFeatureModule {
         return SoraRemoteConfigProvider(
             context = context,
             client = client,
-            commonUrl = "",
-            mobileUrl = ""
+            commonUrl = BuildConfig.SORA_CONFIG_COMMON,
+            mobileUrl = BuildConfig.SORA_CONFIG_MOBILE
         ).provide()
     }
 }
