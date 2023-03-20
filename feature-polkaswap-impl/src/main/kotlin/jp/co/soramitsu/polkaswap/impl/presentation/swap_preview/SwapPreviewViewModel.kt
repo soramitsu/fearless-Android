@@ -3,7 +3,6 @@ package jp.co.soramitsu.polkaswap.impl.presentation.swap_preview
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.polkaswap.api.domain.PolkaswapInteractor
@@ -18,6 +17,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import javax.inject.Inject
 
 @HiltViewModel
 class SwapPreviewViewModel @Inject constructor(
@@ -54,7 +54,7 @@ class SwapPreviewViewModel @Inject constructor(
             }
             swapResult.fold(
                 onSuccess = {
-                    polkaswapRouter.returnToAssetDetails()
+                    polkaswapRouter.closeSwap()
                     polkaswapRouter.openOperationSuccess(it, chainId = soraMainChainId)
                 },
                 onFailure = {
