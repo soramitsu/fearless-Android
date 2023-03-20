@@ -1,7 +1,5 @@
 package jp.co.soramitsu.wallet.impl.domain
 
-import java.math.BigDecimal
-import java.math.BigInteger
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.accountId
@@ -48,6 +46,8 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.withIndex
 import kotlinx.coroutines.withContext
+import java.math.BigDecimal
+import java.math.BigInteger
 
 private const val QR_PREFIX_SUBSTRATE = "substrate"
 private const val PREFS_WALLET_SELECTED_CHAIN_ID = "wallet_selected_chain_id"
@@ -121,7 +121,15 @@ class WalletInteractorImpl(
         val metaAccount = accountRepository.getSelectedMetaAccount()
         val (chain, chainAsset) = chainRegistry.chainWithAsset(chainId, chainAssetId)
 
-        return walletRepository.getAsset(metaAccount.id, metaAccount.accountId(chain)!!, chainAsset, chain.minSupportedVersion)!!
+        val accountId = metaAccount.accountId(chain)!!
+        return walletRepository.getAsset(metaAccount.id, accountId, chainAsset, chain.minSupportedVersion)
+            ?: Asset.createEmpty(
+                chainAsset = chainAsset,
+                metaId = metaAccount.id,
+                accountId = accountId,
+                minSupportedVersion = chain.minSupportedVersion,
+                enabled = chain.nodes.isNotEmpty()
+            )
     }
 
     override fun operationsFirstPageFlow(chainId: ChainId, chainAssetId: String): Flow<OperationsPageChange> {
