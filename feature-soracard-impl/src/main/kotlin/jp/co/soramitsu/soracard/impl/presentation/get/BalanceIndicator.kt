@@ -24,7 +24,7 @@ fun BalanceIndicator(
 ) {
     Column(
         modifier = modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.End
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
         LinearProgressIndicator(
             modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(Dimens.x2)),
