@@ -125,7 +125,7 @@ fun bindBondedPool(
     val depositor = roles.get<ByteArray>("depositor") ?: error("Cannot bind BondedPool.depositor")
     val root = roles.get<ByteArray>("root")
     val nominator = roles.get<ByteArray>("nominator")
-    val stateToggler = roles.get<ByteArray>("stateToggler")
+    val stateToggler = roles.get<ByteArray>("stateToggler") ?: roles.get<ByteArray>("bouncer")
 
     return BondedPool(points, state, memberCounter, depositor, root, nominator, stateToggler)
 }

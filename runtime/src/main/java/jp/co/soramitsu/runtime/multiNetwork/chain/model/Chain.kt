@@ -58,6 +58,7 @@ data class Chain(
     @Parcelize
     data class Asset(
         val id: String,
+        val name: String?,
         val symbol: String,
         val displayName: String?,
         val iconUrl: String,
@@ -212,4 +213,14 @@ fun ChainId.defaultChainSort() = when (this) {
     polkadotChainId -> 1
     kusamaChainId -> 2
     else -> 3
+}
+
+fun List<Chain>.getWithToken(symbol: String, filterAssetIds: Collection<String>? = null): List<Chain> = filter { chain ->
+    chain.assets.any {
+        it.symbolToShow == symbol && filterAssetIds?.contains(it.id) == true
+    }
+}
+
+enum class TypesUsage {
+    ON_CHAIN, UNSUPPORTED
 }

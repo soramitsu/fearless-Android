@@ -138,7 +138,7 @@ fun ManagePoolStakeScreen(
                             items = listOf(
                                 state.available,
                                 state.unstaking,
-                                state.poolInfo.copy(clickState = TitleValueViewState.ClickState(R.drawable.ic_chevron_right, POOL_INFO_CLICK_IDENTIFIER)),
+                                state.poolInfo.copy(clickState = TitleValueViewState.ClickState.Value(R.drawable.ic_chevron_right, POOL_INFO_CLICK_IDENTIFIER)),
                                 state.timeBeforeRedeem
                             ),
                             onItemClick = screenInterface::onInfoTableItemSelected
@@ -199,7 +199,7 @@ private fun ManagePoolStakeScreenPreview() {
         ),
         TitleValueViewState("Available"),
         TitleValueViewState("Unstaking", "1.1000 KSM", "\$1.001"),
-        TitleValueViewState("Pool Info", "⚡️Everlight☀️", clickState = TitleValueViewState.ClickState(R.drawable.ic_info_14, 1)),
+        TitleValueViewState("Pool Info", "⚡️Everlight☀️", clickState = TitleValueViewState.ClickState.Value(R.drawable.ic_info_14, 1)),
         TitleValueViewState("Time before redeem", "5 days"),
         false
     )

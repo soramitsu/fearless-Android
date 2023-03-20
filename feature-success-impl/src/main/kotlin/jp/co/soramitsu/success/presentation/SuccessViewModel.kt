@@ -75,7 +75,7 @@ class SuccessViewModel @Inject constructor(
         TitleValueViewState(
             title = resourceManager.getString(R.string.hash),
             value = operationHash?.shorten(),
-            clickState = TitleValueViewState.ClickState(R.drawable.ic_copy_filled_24, SuccessViewState.CODE_HASH_CLICK)
+            clickState = TitleValueViewState.ClickState.Value(R.drawable.ic_copy_filled_24, SuccessViewState.CODE_HASH_CLICK)
         ),
         TitleValueViewState(
             title = resourceManager.getString(R.string.all_done_alert_result_stub),

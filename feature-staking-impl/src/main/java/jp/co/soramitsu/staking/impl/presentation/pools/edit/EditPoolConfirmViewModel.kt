@@ -65,7 +65,7 @@ class EditPoolConfirmViewModel @Inject constructor(
         val stateTogglerState = createRoleState(
             editState.newStateToggler ?: editState.initialStateToggler,
             prefix,
-            resourceManager.getString(R.string.pool_staking_state_toggler)
+            resourceManager.getString(R.string.pool_staking_bouncer)
         )
 
         listOfNotNull(nameState, rootState, nominatorState, stateTogglerState, feeState)
