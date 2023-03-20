@@ -31,8 +31,10 @@ fun BuyCryptoScreen(
                     }
 
                     settings.javaScriptEnabled = true
-                    loadData(state.script, "text/html", "base64")
                 }
+            },
+            update = {
+                it.loadData(state.script, "text/html", "base64")
             }
         )
 
