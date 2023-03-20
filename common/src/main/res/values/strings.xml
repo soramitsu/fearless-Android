@@ -1056,7 +1056,7 @@ Remember to make a backup of your key and keep it in a safe and private place (e
 
     <string name="sora_card_title">Top up SORA Card with fiat or crypto and pay online, in-store or withdraw in ATM</string>
     <string name="sora_card_annual_service_fee">0 € annual service fee</string>
-    <string name="sora_card_description">Get Euro IBAN account and Mastercard Debit Card connected to your SORA Wallet</string>
+    <string name="sora_card_description">Get a Euro IBAN account and Mastercard Debit Card connected to your SORA Wallet</string>
     <string name="sora_card_enable_card_title">Enable card</string>
     <string name="sora_card_free_card_issuance">Free card issuance</string>
     <string name="sora_card_free_card_issuance_conditions_xor">If you hold at least 100 € worth of XOR in your SORA account</string>
