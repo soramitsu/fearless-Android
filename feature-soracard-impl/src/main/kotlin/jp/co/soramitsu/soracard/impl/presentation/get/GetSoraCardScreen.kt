@@ -40,7 +40,6 @@ import jp.co.soramitsu.common.compose.component.ShapeButton
 import jp.co.soramitsu.common.compose.component.Toolbar
 import jp.co.soramitsu.common.compose.component.ToolbarViewState
 import jp.co.soramitsu.common.compose.theme.colorAccentDark
-import jp.co.soramitsu.common.compose.theme.colorAccentSecondary
 import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.feature_soracard_impl.R
 import jp.co.soramitsu.soracard.api.presentation.models.SoraCardInfo
@@ -192,22 +191,22 @@ fun GetSoraCardScreen(
                             style = MaterialTheme.customTypography.headline3
                         )
                     }
-                    MarginVertical(margin = 4.dp)
-                    ShapeButton(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .testTag("IssueCardFor12Eur")
-                            .padding(vertical = Dimens.x2, horizontal = Dimens.x1)
-                            .height(Size.Large),
-                        shape = RoundedCornerShape(12.dp),
-                        onClick = callbacks::onIssueCardFor12Eur,
-                        backgroundColor = colorAccentSecondary
-                    ) {
-                        Text(
-                            text = stringResource(R.string.sora_card_issue_card_for_12_euro).uppercase(),
-                            style = MaterialTheme.customTypography.headline3
-                        )
-                    }
+//                    MarginVertical(margin = 4.dp)
+//                    ShapeButton(
+//                        modifier = Modifier
+//                            .fillMaxWidth()
+//                            .testTag("IssueCardFor12Eur")
+//                            .padding(vertical = Dimens.x2, horizontal = Dimens.x1)
+//                            .height(Size.Large),
+//                        shape = RoundedCornerShape(12.dp),
+//                        onClick = callbacks::onIssueCardFor12Eur,
+//                        backgroundColor = colorAccentSecondary
+//                    ) {
+//                        Text(
+//                            text = stringResource(R.string.sora_card_issue_card_for_12_euro).uppercase(),
+//                            style = MaterialTheme.customTypography.headline3
+//                        )
+//                    }
                 }
 
                 TextButton(
