@@ -485,7 +485,7 @@
     <dialog
         android:id="@+id/getMoreXorFragment"
         android:name="jp.co.soramitsu.soracard.impl.presentation.getmorexor.GetMoreXorFragment"
-        android:label="successSheetFragment" />
+        android:label="getMoreXorFragment" />
 
     <dialog
         android:id="@+id/startStakingPoolFragment"
@@ -876,12 +876,13 @@
         app:popUpTo="@id/mainFragment" />
 
     <action
-        android:id="@+id/back_to_asset_details"
+        android:id="@+id/close_swap"
         app:enterAnim="?android:attr/fragmentCloseEnterAnimation"
         app:exitAnim="?android:attr/fragmentCloseExitAnimation"
         app:popEnterAnim="?android:attr/fragmentOpenEnterAnimation"
         app:popExitAnim="?android:attr/fragmentOpenExitAnimation"
-        app:popUpTo="@id/balanceDetailFragment" />
+        app:popUpTo="@id/swapTokensFragment"
+        app:popUpToInclusive="true" />
 
     <fragment
         android:id="@+id/confirmStakingFragment"

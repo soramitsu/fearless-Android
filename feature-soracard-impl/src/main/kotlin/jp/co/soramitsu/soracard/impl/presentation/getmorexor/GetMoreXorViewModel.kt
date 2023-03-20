@@ -21,6 +21,7 @@ class GetMoreXorViewModel @Inject constructor(
     override fun onSwapForXorClick() {
         launch {
             interactor.xorAssetFlow().firstOrNull()?.let {
+                router.back()
                 router.openSwapTokensScreen(it.token.configuration.id, it.token.configuration.chainId)
             }
         }

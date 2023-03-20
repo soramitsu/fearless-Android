@@ -577,8 +577,8 @@ class Navigator :
         navController?.navigate(R.id.back_to_main)
     }
 
-    override fun returnToAssetDetails() {
-        navController?.navigate(R.id.back_to_asset_details)
+    override fun closeSwap() {
+        navController?.navigate(R.id.close_swap)
     }
 
     override fun openValidatorDetails(validatorDetails: ValidatorDetailsParcelModel) {
