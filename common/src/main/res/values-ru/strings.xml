@@ -959,8 +959,8 @@
     <string name="sora_card_description">Получите счет IBAN в евро и дебетовую карту Mastercard, подключенную к вашему кошельку SORA</string>
     <string name="sora_card_enable_card_title">Aктивировать карту</string>
     <string name="sora_card_free_card_issuance">Бесплатный выпуск карты</string>
-    <string name="sora_card_free_card_issuance_conditions_xor">Если вы держите XOR на сумму не менее 100 € в своей учетной записи SORA</string>
-    <string name="sora_card_you_have_enough_xor">У вас достаточно XOR для БЕСПЛАТНОЙ карты</string>
+    <string name="sora_card_free_card_issuance_conditions_xor">Если вы держите, ставите или предоставляете ликвидность XOR на сумму не менее 100 евро на своем счете SORA.</string>
+    <string name="sora_card_you_have_enough_xor">У вас достаточно XOR</string>
     <string name="sora_card_you_need_xor">You need %s XOR (€%s)</string>
     <string name="sora_card_get_more_xor">Get more XOR</string>
     <string name="sora_card_select_xor_way">Select a way you want to get XOR</string>

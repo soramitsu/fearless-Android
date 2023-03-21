@@ -1059,8 +1059,8 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="sora_card_description">Get a Euro IBAN account and Mastercard Debit Card connected to your SORA Wallet</string>
     <string name="sora_card_enable_card_title">Enable card</string>
     <string name="sora_card_free_card_issuance">Free card issuance</string>
-    <string name="sora_card_free_card_issuance_conditions_xor">If you hold at least 100 € worth of XOR in your SORA account</string>
-    <string name="sora_card_you_have_enough_xor">You have enough XOR for a FREE card</string>
+    <string name="sora_card_free_card_issuance_conditions_xor">If you hold, stake or provide liquidity for at least €100 worth of XOR in your SORA account</string>
+    <string name="sora_card_you_have_enough_xor">You have enough XOR</string>
     <string name="sora_card_you_need_xor">You need %s XOR (€%s)</string>
     <string name="sora_card_get_more_xor">Get more XOR</string>
     <string name="sora_card_select_xor_way">Select a way you want to get XOR</string>
