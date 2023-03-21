@@ -183,7 +183,4 @@ class GetSoraCardViewModel @Inject constructor(
             url = url
         )
     }
-
-    override fun onIssueCardFor12Eur() {
-    }
 }

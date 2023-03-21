@@ -34,12 +34,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import jp.co.soramitsu.common.compose.component.AccentButton
 import jp.co.soramitsu.common.compose.component.MarginHorizontal
 import jp.co.soramitsu.common.compose.component.MarginVertical
-import jp.co.soramitsu.common.compose.component.ShapeButton
 import jp.co.soramitsu.common.compose.component.Toolbar
 import jp.co.soramitsu.common.compose.component.ToolbarViewState
-import jp.co.soramitsu.common.compose.theme.colorAccentDark
+import jp.co.soramitsu.common.compose.theme.errorRed
+import jp.co.soramitsu.common.compose.theme.fearlessMaterialColors
 import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.feature_soracard_impl.R
 import jp.co.soramitsu.soracard.api.presentation.models.SoraCardInfo
@@ -67,7 +68,6 @@ data class GetSoraCardState(
 interface GetSoraCardScreenInterface {
     fun onEnableCard()
     fun onGetMoreXor()
-    fun onIssueCardFor12Eur()
     fun onSeeBlacklist(url: String)
     fun onAlreadyHaveCard()
     fun onNavigationClick()
@@ -158,55 +158,27 @@ fun GetSoraCardScreen(
 
                 FreeCardIssuance(state)
 
-//                BlacklistedCountries(onSeeListClicked = callbacks::onSeeBlacklist)
+                BlacklistedCountries(onSeeListClicked = callbacks::onSeeBlacklist)
 
                 if (state.enoughXor) {
-                    ShapeButton(
+                    AccentButton(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(vertical = Dimens.x2, horizontal = Dimens.x1)
                             .height(Size.Large),
-                        shape = RoundedCornerShape(12.dp),
                         onClick = callbacks::onEnableCard,
-                        backgroundColor = colorAccentDark
-                    ) {
-                        Text(
-                            text = stringResource(R.string.sora_card_issue_card_for_free).uppercase(),
-                            style = MaterialTheme.customTypography.headline3
-                        )
-                    }
+                        text = stringResource(R.string.common_continue)
+                    )
                 } else {
-                    ShapeButton(
+                    AccentButton(
                         modifier = Modifier
                             .fillMaxWidth()
                             .testTag("GetMoreXor")
                             .padding(vertical = Dimens.x2, horizontal = Dimens.x1)
                             .height(Size.Large),
-                        shape = RoundedCornerShape(12.dp),
                         onClick = callbacks::onGetMoreXor,
-                        backgroundColor = colorAccentDark
-                    ) {
-                        Text(
-                            text = stringResource(R.string.sora_card_get_more_xor).uppercase(),
-                            style = MaterialTheme.customTypography.headline3
-                        )
-                    }
-//                    MarginVertical(margin = 4.dp)
-//                    ShapeButton(
-//                        modifier = Modifier
-//                            .fillMaxWidth()
-//                            .testTag("IssueCardFor12Eur")
-//                            .padding(vertical = Dimens.x2, horizontal = Dimens.x1)
-//                            .height(Size.Large),
-//                        shape = RoundedCornerShape(12.dp),
-//                        onClick = callbacks::onIssueCardFor12Eur,
-//                        backgroundColor = colorAccentSecondary
-//                    ) {
-//                        Text(
-//                            text = stringResource(R.string.sora_card_issue_card_for_12_euro).uppercase(),
-//                            style = MaterialTheme.customTypography.headline3
-//                        )
-//                    }
+                        text = stringResource(R.string.sora_card_get_more_xor)
+                    )
                 }
 
                 TextButton(
@@ -228,14 +200,22 @@ fun GetSoraCardScreen(
 private fun BlacklistedCountries(
     onSeeListClicked: (String) -> Unit
 ) {
-    HtmlText(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(start = Dimens.x1, end = Dimens.x1, top = Dimens.x2),
-        text = stringResource(jp.co.soramitsu.common.R.string.sora_card_blacklisted_countires_warning),
-        style = MaterialTheme.customTypography.paragraphXS.copy(textAlign = TextAlign.Center),
-        onUrlClick = onSeeListClicked
-    )
+    MaterialTheme(
+        colors = fearlessMaterialColors
+    ) {
+        HtmlText(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = Dimens.x1, end = Dimens.x1, top = Dimens.x2),
+            text = stringResource(R.string.sora_card_blacklisted_countires_warning),
+            style = MaterialTheme.customTypography.paragraphXS.copy(
+                textAlign = TextAlign.Center,
+                color = Color.White,
+                fontSize = 12.sp
+            ),
+            onUrlClick = onSeeListClicked
+        )
+    }
 }
 
 @Composable
@@ -302,7 +282,7 @@ private fun FreeCardIssuance(
                     tint = if (state.enoughXor) {
                         Color.Unspecified
                     } else {
-                        MaterialTheme.customColors.fgTertiary
+                        errorRed
                     }
                 )
                 MarginHorizontal(margin = 4.dp)
@@ -378,7 +358,6 @@ private fun PreviewGetSoraCardScreen() {
     val empty = object : GetSoraCardScreenInterface {
         override fun onEnableCard() {}
         override fun onGetMoreXor() {}
-        override fun onIssueCardFor12Eur() {}
         override fun onSeeBlacklist(url: String) {}
         override fun onAlreadyHaveCard() {}
         override fun onNavigationClick() {}

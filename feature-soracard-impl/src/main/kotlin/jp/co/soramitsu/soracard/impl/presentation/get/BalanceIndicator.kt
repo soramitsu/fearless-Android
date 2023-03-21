@@ -12,6 +12,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.tooling.preview.Preview
+import jp.co.soramitsu.common.compose.theme.colorAccentDark
 import jp.co.soramitsu.ui_core.resources.Dimens
 import jp.co.soramitsu.ui_core.theme.customColors
 import jp.co.soramitsu.ui_core.theme.customTypography
@@ -24,19 +25,19 @@ fun BalanceIndicator(
 ) {
     Column(
         modifier = modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.End
     ) {
         LinearProgressIndicator(
             modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(Dimens.x2)),
             progress = percent,
-            color = MaterialTheme.customColors.accentPrimary,
+            color = colorAccentDark,
             backgroundColor = MaterialTheme.customColors.bgSurfaceVariant
         )
 
         Text(
             text = label,
             style = MaterialTheme.customTypography.textSBold,
-            color = MaterialTheme.customColors.accentPrimary
+            color = colorAccentDark
         )
     }
 }
