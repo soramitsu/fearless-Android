@@ -1,6 +1,7 @@
 package jp.co.soramitsu.common.compose.component
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.RowScope
@@ -23,6 +24,7 @@ import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.theme.accentButtonColors
 import jp.co.soramitsu.common.compose.theme.colorAccent
+import jp.co.soramitsu.common.compose.theme.colorAccentDark
 import jp.co.soramitsu.common.compose.theme.customButtonColors
 import jp.co.soramitsu.common.compose.theme.customTypography
 import jp.co.soramitsu.common.compose.theme.grayButtonBackground
@@ -46,6 +48,11 @@ fun AccentButton(text: String, enabled: Boolean = true, modifier: Modifier = Mod
 @Composable
 fun GrayButton(text: String, enabled: Boolean = true, modifier: Modifier = Modifier, onClick: () -> Unit) {
     TextButton(text = text, enabled = enabled, colors = customButtonColors(grayButtonBackground), modifier = modifier, onClick = onClick)
+}
+
+@Composable
+fun TransparentButton(text: String, enabled: Boolean = true, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    TextButton(text = text, enabled = enabled, colors = customButtonColors(Color.Unspecified, colorAccentDark), modifier = modifier, onClick = onClick)
 }
 
 @Composable
@@ -179,7 +186,7 @@ fun ShapeButton(
 @Preview
 fun ButtonPreview() {
     FearlessTheme {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(modifier = Modifier.padding(16.dp).background(Color.Black)) {
             AccentButton(
                 "Start staking",
                 modifier = Modifier
@@ -212,6 +219,12 @@ fun ButtonPreview() {
                 modifier = Modifier.height(24.dp),
                 text = stringResource(id = R.string.staking_redeem),
                 colors = customButtonColors(colorAccent),
+                onClick = {}
+            )
+            MarginVertical(margin = 16.dp)
+            TransparentButton(
+                modifier = Modifier.height(52.dp),
+                text = stringResource(id = R.string.staking_redeem),
                 onClick = {}
             )
         }
