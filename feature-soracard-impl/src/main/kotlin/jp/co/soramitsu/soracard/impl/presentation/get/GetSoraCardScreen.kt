@@ -39,14 +39,12 @@ import jp.co.soramitsu.common.compose.component.MarginHorizontal
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.component.Toolbar
 import jp.co.soramitsu.common.compose.component.ToolbarViewState
+import jp.co.soramitsu.common.compose.component.TransparentButton
 import jp.co.soramitsu.common.compose.theme.errorRed
 import jp.co.soramitsu.common.compose.theme.fearlessMaterialColors
 import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.feature_soracard_impl.R
 import jp.co.soramitsu.soracard.api.presentation.models.SoraCardInfo
-import jp.co.soramitsu.ui_core.component.button.TextButton
-import jp.co.soramitsu.ui_core.component.button.properties.Order
-import jp.co.soramitsu.ui_core.component.button.properties.Size
 import jp.co.soramitsu.ui_core.component.text.HtmlText
 import jp.co.soramitsu.ui_core.resources.Dimens
 import jp.co.soramitsu.ui_core.theme.borderRadius
@@ -125,7 +123,7 @@ fun GetSoraCardScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(color = Color(0xFF1D1D1F))
-                    .padding(Dimens.x2)
+                    .padding(16.dp)
             ) {
                 Image(
                     modifier = Modifier
@@ -136,36 +134,42 @@ fun GetSoraCardScreen(
                     contentScale = ContentScale.FillWidth
                 )
 
+                MarginVertical(margin = 16.dp)
                 Text(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = Dimens.x2, start = Dimens.x1, end = Dimens.x1),
+                        .padding(horizontal = 8.dp),
                     text = stringResource(R.string.sora_card_title),
                     style = MaterialTheme.customTypography.headline2,
                     color = Color.White
                 )
 
+                MarginVertical(margin = 16.dp)
                 Text(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = Dimens.x2, start = Dimens.x1, end = Dimens.x1),
+                        .padding(horizontal = 8.dp),
                     text = stringResource(R.string.sora_card_description),
                     style = MaterialTheme.customTypography.paragraphM,
                     color = Color.White
                 )
 
+                MarginVertical(margin = 16.dp)
                 AnnualFee()
 
+                MarginVertical(margin = 16.dp)
                 FreeCardIssuance(state)
 
+                MarginVertical(margin = 16.dp)
                 BlacklistedCountries(onSeeListClicked = callbacks::onSeeBlacklist)
 
+                MarginVertical(margin = 16.dp)
                 if (state.enoughXor) {
                     AccentButton(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = Dimens.x2, horizontal = Dimens.x1)
-                            .height(Size.Large),
+                            .padding(horizontal = 8.dp)
+                            .height(48.dp),
                         onClick = callbacks::onEnableCard,
                         text = stringResource(R.string.common_continue)
                     )
@@ -174,23 +178,25 @@ fun GetSoraCardScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .testTag("GetMoreXor")
-                            .padding(vertical = Dimens.x2, horizontal = Dimens.x1)
-                            .height(Size.Large),
+                            .padding(horizontal = 8.dp)
+                            .height(48.dp),
                         onClick = callbacks::onGetMoreXor,
                         text = stringResource(R.string.sora_card_get_more_xor)
                     )
                 }
 
-                TextButton(
+                MarginVertical(margin = 8.dp)
+                TransparentButton(
                     modifier = Modifier
                         .testTag("AlreadyHaveCard")
                         .fillMaxWidth()
-                        .padding(start = Dimens.x1, end = Dimens.x1, bottom = Dimens.x2),
+                        .padding(horizontal = 8.dp)
+                        .height(48.dp),
                     text = stringResource(R.string.sora_card_already_have_card),
-                    size = Size.Large,
-                    order = Order.PRIMARY,
                     onClick = callbacks::onAlreadyHaveCard
                 )
+
+                MarginVertical(margin = 8.dp)
             }
         }
     }
@@ -206,7 +212,7 @@ private fun BlacklistedCountries(
         HtmlText(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start = Dimens.x1, end = Dimens.x1, top = Dimens.x2),
+                .padding(horizontal = 8.dp),
             text = stringResource(R.string.sora_card_blacklisted_countires_warning),
             style = MaterialTheme.customTypography.paragraphXS.copy(
                 textAlign = TextAlign.Center,
@@ -223,7 +229,7 @@ private fun AnnualFee() {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = Dimens.x2, start = Dimens.x1, end = Dimens.x1),
+            .padding(horizontal = 8.dp),
         cornerRadius = 12.dp,
         backgroundColor = Color(0xFF131313),
         elevation = 0.dp
@@ -260,7 +266,7 @@ private fun FreeCardIssuance(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = Dimens.x2, start = Dimens.x1, end = Dimens.x1),
+            .padding(horizontal = 8.dp),
         cornerRadius = 12.dp,
         backgroundColor = Color(0xFF131313),
         elevation = 0.dp
