@@ -84,4 +84,6 @@ interface AccountRouter : SecureRouter {
     fun openOptionsAddAccount(payload: AddAccountBottomSheet.Payload)
 
     fun openPolkaswapDisclaimer()
+
+    fun openGetSoraCard()
 }
