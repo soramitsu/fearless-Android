@@ -23,7 +23,6 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import jp.co.soramitsu.common.compose.theme.FearlessThemeBlackBg
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState
 import kotlin.math.absoluteValue
 import kotlin.math.roundToInt
@@ -189,18 +188,16 @@ private fun AssetItemSwipeBoxPreview() {
         hasNetworkIssue = false
     )
 
-    FearlessThemeBlackBg {
-        Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-            SwipeBox(
-                state = SwipeBoxViewState(
-                    leftStateWidth = 250.dp,
-                    rightStateWidth = 90.dp
-                ),
-                swipeableState = rememberSwipeableState(SwipeState.INITIAL),
-                leftContent = { ActionBar(leftActionBarViewState) },
-                rightContent = { ActionBar(rightActionBarViewState) },
-                initialContent = { AssetListItem(state = assetListItemViewState, onClick = {}) }
-            )
-        }
+    Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+        SwipeBox(
+            state = SwipeBoxViewState(
+                leftStateWidth = 250.dp,
+                rightStateWidth = 90.dp
+            ),
+            swipeableState = rememberSwipeableState(SwipeState.INITIAL),
+            leftContent = { ActionBar(leftActionBarViewState) },
+            rightContent = { ActionBar(rightActionBarViewState) },
+            initialContent = { AssetListItem(state = assetListItemViewState, onClick = {}) }
+        )
     }
 }
