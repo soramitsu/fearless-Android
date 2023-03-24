@@ -42,7 +42,7 @@ class BuyCryptoViewModel @Inject constructor(
             val address = currentAccountAddress(chainId) ?: return@launch
             val payload = UUID.randomUUID().toString()
 
-            val unencodedHtml = "<html><body>" +
+            val unencodedHtml = "<html><head><meta name=\"color-scheme\" content=\"dark light\"></head><body>" +
                 "<div id=\"${BuildConfig.X1_WIDGET_ID}\" data-address=\"${address}\" " +
                 "data-from-currency=\"EUR\" data-from-amount=\"100\" data-hide-buy-more-button=\"true\" " +
                 "data-hide-try-again-button=\"true\" data-locale=\"en\" data-payload=\"${payload}\"></div>" +
