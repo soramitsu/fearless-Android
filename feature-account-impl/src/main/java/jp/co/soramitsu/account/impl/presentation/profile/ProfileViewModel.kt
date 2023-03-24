@@ -35,8 +35,8 @@ import jp.co.soramitsu.soracard.api.domain.SoraCardInteractor
 import jp.co.soramitsu.soracard.impl.presentation.SoraCardItemViewState
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -148,38 +148,36 @@ class ProfileViewModel @Inject constructor(
 
     fun onSoraCardClicked() {
         launch {
-            soraCardState.collectLatest {
-                if (it.kycStatus == null) {
-                    router.openGetSoraCard()
-                } else {
-                    onSoraCardStatusClicked()
-                }
+            val soraCardState: SoraCardItemViewState? = soraCardState.firstOrNull()
+            if (soraCardState?.kycStatus == null) {
+                router.openGetSoraCard()
+            } else {
+                onSoraCardStatusClicked()
             }
         }
     }
 
     private fun onSoraCardStatusClicked() {
         launch {
-            soraCardState.collectLatest { soraCardState ->
-                _launchSoraCardSignIn.value = Event(
-                    SoraCardSignInContractData(
-                        locale = Locale.ENGLISH,
-                        apiKey = BuildConfig.SORA_CARD_API_KEY,
-                        domain = BuildConfig.SORA_CARD_DOMAIN,
-                        environment = when {
-                            BuildConfig.DEBUG -> SoraCardEnvironmentType.TEST
-                            else -> SoraCardEnvironmentType.PRODUCTION
-                        },
-                        soraCardInfo = soraCardState.soraCardInfo?.let {
-                            SoraCardInfo(
-                                accessToken = it.accessToken,
-                                refreshToken = it.refreshToken,
-                                accessTokenExpirationTime = it.accessTokenExpirationTime
-                            )
-                        }
-                    )
+            val soraCardState = soraCardState.firstOrNull()
+            _launchSoraCardSignIn.value = Event(
+                SoraCardSignInContractData(
+                    locale = Locale.ENGLISH,
+                    apiKey = BuildConfig.SORA_CARD_API_KEY,
+                    domain = BuildConfig.SORA_CARD_DOMAIN,
+                    environment = when {
+                        BuildConfig.DEBUG -> SoraCardEnvironmentType.TEST
+                        else -> SoraCardEnvironmentType.PRODUCTION
+                    },
+                    soraCardInfo = soraCardState?.soraCardInfo?.let {
+                        SoraCardInfo(
+                            accessToken = it.accessToken,
+                            refreshToken = it.refreshToken,
+                            accessTokenExpirationTime = it.accessTokenExpirationTime
+                        )
+                    }
                 )
-            }
+            )
         }
     }
 
