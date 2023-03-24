@@ -1,7 +1,7 @@
 package jp.co.soramitsu.wallet.impl.presentation.model
 
 import android.os.Parcelable
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.Operation
 import kotlinx.parcelize.Parcelize
 import java.math.BigInteger
@@ -51,8 +51,8 @@ sealed class OperationParcelizeModel : Parcelable {
         val hash: String,
         val time: Long,
         val module: String,
-        val chainAsset: Chain.Asset,
-        val targetAsset: Chain.Asset?,
+        val chainAsset: Asset,
+        val targetAsset: Asset?,
         val baseAssetAmount: BigInteger,
         val liquidityProviderFee: BigInteger,
         val selectedMarket: String?,

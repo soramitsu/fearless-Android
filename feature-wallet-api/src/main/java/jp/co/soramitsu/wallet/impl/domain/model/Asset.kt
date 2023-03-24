@@ -5,7 +5,7 @@ import jp.co.soramitsu.common.model.AssetKey
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.runtime.ext.utilityAsset
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.core.models.Asset as CoreAsset
 import java.math.BigInteger
 
 class Asset(
@@ -47,7 +47,7 @@ class Asset(
         }
 
         fun createEmpty(
-            chainAsset: Chain.Asset,
+            chainAsset: CoreAsset,
             metaId: Long,
             accountId: AccountId,
             chainAccountName: String? = null,

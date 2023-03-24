@@ -3,6 +3,7 @@ package jp.co.soramitsu.wallet.api.data.cache
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
+import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.coredb.dao.AssetDao
 import jp.co.soramitsu.coredb.dao.AssetReadOnlyCache
 import jp.co.soramitsu.coredb.dao.TokenPriceDao
@@ -11,7 +12,6 @@ import jp.co.soramitsu.coredb.model.AssetLocal
 import jp.co.soramitsu.coredb.model.AssetUpdateItem
 import jp.co.soramitsu.coredb.model.TokenPriceLocal
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -30,7 +30,7 @@ class AssetCache(
     suspend fun updateAsset(
         metaId: Long,
         accountId: AccountId,
-        chainAsset: Chain.Asset,
+        chainAsset: Asset,
         builder: (local: AssetLocal) -> AssetLocal
     ) = withContext(Dispatchers.IO) {
         val chainId = chainAsset.chainId
@@ -55,7 +55,7 @@ class AssetCache(
 
     suspend fun updateAsset(
         accountId: AccountId,
-        chainAsset: Chain.Asset,
+        chainAsset: Asset,
         builder: (local: AssetLocal) -> AssetLocal
     ) = withContext(Dispatchers.IO) {
         val applicableMetaAccount = accountRepository.findMetaAccount(accountId)

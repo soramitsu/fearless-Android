@@ -1,16 +1,10 @@
 package jp.co.soramitsu.runtime.multiNetwork.chain.model
 
-import android.os.Parcelable
 import jp.co.soramitsu.common.data.network.BlockExplorerUrlBuilder
 import jp.co.soramitsu.common.domain.AppVersion
 import jp.co.soramitsu.core.models.ChainNode
 import jp.co.soramitsu.core.models.IChain
-import jp.co.soramitsu.fearless_utils.extensions.fromHex
-import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.DictEnum
-import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.Struct
-import jp.co.soramitsu.runtime.multiNetwork.chain.ChainAssetType
-import kotlinx.parcelize.IgnoredOnParcel
-import kotlinx.parcelize.Parcelize
+import jp.co.soramitsu.core.models.Asset as CoreAsset
 
 typealias ChainId = String
 
@@ -25,14 +19,11 @@ const val soraMainChainId = "7e4e32d0feafd4f9c9414b0be86373f9a1efa904809b683453a
 
 const val genshiroChainId = "9b8cefc0eb5c568b527998bdd76c184e2b76ae561be76e4667072230217ea243"
 
-private val STAKING_ORDER = arrayOf("DOT", "KSM", "WND", "GLMR", "MOVR", "DEV", "PDEX")
-private val SORA_WITH_XOR_TRANSFER_PALLET_ASSET = arrayOf(soraMainChainId, soraTestChainId)
-
 data class Chain(
     override val id: ChainId,
     val name: String,
     val minSupportedVersion: String?,
-    val assets: List<Asset>,
+    val assets: List<CoreAsset>,
     val nodes: List<ChainNode>,
     val explorers: List<Explorer>,
     val externalApi: ExternalApi?,
@@ -42,10 +33,10 @@ data class Chain(
     override val isEthereumBased: Boolean,
     val isTestNet: Boolean,
     val hasCrowdloans: Boolean,
-    val parentId: String?,
+    override val parentId: String?,
     val supportStakingPool: Boolean
 ) : IChain {
-    val assetsById = assets.associateBy(Asset::id)
+    val assetsById = assets.associateBy(CoreAsset::id)
 
     val isSupported: Boolean
         get() = AppVersion.isSupported(minSupportedVersion)
@@ -54,74 +45,6 @@ data class Chain(
         val url: String,
         val overridesCommon: Boolean
     )
-
-    @Parcelize
-    data class Asset(
-        val id: String,
-        val name: String?,
-        val symbol: String,
-        val displayName: String?,
-        val iconUrl: String,
-        val chainId: ChainId,
-        val chainName: String,
-        val chainIcon: String?,
-        val isTestNet: Boolean?,
-        val priceId: String?,
-        val precision: Int,
-        val staking: StakingType,
-        val priceProviders: List<String>?,
-        val supportStakingPool: Boolean,
-        val isUtility: Boolean,
-        val type: ChainAssetType?,
-        val currencyId: String?,
-        val existentialDeposit: String?,
-        val color: String?,
-        val isNative: Boolean?
-    ) : Parcelable {
-
-        enum class StakingType {
-            UNSUPPORTED, RELAYCHAIN, PARACHAIN
-        }
-
-        @IgnoredOnParcel
-        val symbolToShow = displayName ?: symbol
-
-        @IgnoredOnParcel
-        val chainToSymbol = chainId to symbol
-
-        val orderInStaking: Int
-            get() = when (val order = STAKING_ORDER.indexOfFirst { it.equals(symbolToShow, true) }) {
-                -1 -> STAKING_ORDER.size
-                else -> order
-            }
-
-        @IgnoredOnParcel
-        private val isSoraUtilityAsset = isUtility && chainId in SORA_WITH_XOR_TRANSFER_PALLET_ASSET
-
-        @IgnoredOnParcel
-        val typeExtra = if (isSoraUtilityAsset) ChainAssetType.SoraUtilityAsset else type
-
-        @IgnoredOnParcel
-        @Suppress("IMPLICIT_CAST_TO_ANY")
-        val currency = when (typeExtra) {
-            null, ChainAssetType.Normal -> null
-            ChainAssetType.ForeignAsset -> DictEnum.Entry("ForeignAsset", currencyId?.toBigInteger())
-            ChainAssetType.StableAssetPoolToken -> DictEnum.Entry("StableAssetPoolToken", currencyId?.toBigInteger())
-            ChainAssetType.LiquidCrowdloan -> DictEnum.Entry("LiquidCrowdloan", currencyId?.toBigInteger())
-            ChainAssetType.OrmlChain,
-            ChainAssetType.OrmlAsset -> DictEnum.Entry("Token", DictEnum.Entry(symbol.uppercase(), null))
-            ChainAssetType.VToken -> DictEnum.Entry("VToken", DictEnum.Entry(symbol.uppercase(), null))
-            ChainAssetType.VSToken -> DictEnum.Entry("VSToken", DictEnum.Entry(symbol.uppercase(), null))
-            ChainAssetType.Stable -> DictEnum.Entry("Stable", DictEnum.Entry(symbol.uppercase(), null))
-            ChainAssetType.SoraUtilityAsset,
-            ChainAssetType.SoraAsset -> {
-                val currencyHexList = currencyId?.fromHex()?.toList()?.map { it.toInt().toBigInteger() }.orEmpty()
-                Struct.Instance(mapOf("code" to currencyHexList))
-            }
-            ChainAssetType.Equilibrium -> currencyId?.toBigInteger()
-            ChainAssetType.Unknown -> error("Token $symbol not supported, chain $chainName")
-        }
-    }
 
     data class ExternalApi(
         val staking: Section?,

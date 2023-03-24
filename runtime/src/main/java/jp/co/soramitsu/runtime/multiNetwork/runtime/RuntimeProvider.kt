@@ -96,7 +96,6 @@ class RuntimeProvider(
             invalidateRuntime()
 
             runCatching {
-
                 val runtimeVersion = chainDao.runtimeInfo(chainId)?.syncedVersion ?: return@launch
                 val metadataRaw = runCatching { runtimeFilesCache.getChainMetadata(chainId) }
                     .getOrElse { throw ChainInfoNotInCacheException }

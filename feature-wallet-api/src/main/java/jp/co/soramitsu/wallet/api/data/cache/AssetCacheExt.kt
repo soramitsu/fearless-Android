@@ -6,21 +6,21 @@ import jp.co.soramitsu.common.data.network.runtime.binding.OrmlTokensAccountData
 import jp.co.soramitsu.common.data.network.runtime.binding.bindAccountInfo
 import jp.co.soramitsu.common.data.network.runtime.binding.bindEquilibriumAccountInfo
 import jp.co.soramitsu.common.data.network.runtime.binding.bindOrmlTokensAccountData
+import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.coredb.model.AssetLocal
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 
 suspend fun AssetCache.updateAsset(
     metaId: Long,
     accountId: AccountId,
-    chainAsset: Chain.Asset,
+    chainAsset: Asset,
     accountInfo: AccountInfo
 ) = updateAsset(metaId, accountId, chainAsset, accountInfoUpdater(accountInfo))
 
 suspend fun AssetCache.updateAsset(
     accountId: AccountId,
-    chainAsset: Chain.Asset,
+    chainAsset: Asset,
     accountInfo: AccountInfo
 ) = updateAsset(accountId, chainAsset, accountInfoUpdater(accountInfo))
 

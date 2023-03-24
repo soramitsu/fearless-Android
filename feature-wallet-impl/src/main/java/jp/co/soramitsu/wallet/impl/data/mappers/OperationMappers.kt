@@ -12,6 +12,7 @@ import jp.co.soramitsu.common.utils.Modules
 import jp.co.soramitsu.common.utils.formatHistoryAmount
 import jp.co.soramitsu.common.utils.nullIfEmpty
 import jp.co.soramitsu.common.utils.orZero
+import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.coredb.model.OperationLocal
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
@@ -118,7 +119,7 @@ fun mapOperationToOperationLocalDb(
 
 fun mapOperationLocalToOperation(
     operationLocal: OperationLocal,
-    chainAsset: Chain.Asset,
+    chainAsset: Asset,
     chain: Chain
 ): Operation {
     with(operationLocal) {
@@ -171,7 +172,7 @@ fun mapOperationLocalToOperation(
     }
 }
 
-fun TxHistoryItem.toOperation(chain: Chain, chainAsset: Chain.Asset, accountAddress: String, filters: Set<TransactionFilter>): Operation? {
+fun TxHistoryItem.toOperation(chain: Chain, chainAsset: Asset, accountAddress: String, filters: Set<TransactionFilter>): Operation? {
     val timeInMillis = timestamp.toLongOrNull()?.secondsToMillis() ?: 0
     val isTransferAllowed = filters.contains(TransactionFilter.TRANSFER) && method == "transfer"
     val isSwapAllowed = filters.contains(TransactionFilter.EXTRINSIC) && method == "swap"
@@ -236,7 +237,7 @@ private fun Long.secondsToMillis() = toDuration(DurationUnit.SECONDS).inWholeMil
 
 fun mapNodeToOperation(
     node: SubqueryHistoryElementResponse.Query.HistoryElements.Node,
-    tokenType: Chain.Asset
+    tokenType: Asset
 ): Operation {
     val type: Operation.Type = when {
         node.reward != null -> with(node.reward) {
@@ -282,7 +283,7 @@ fun mapNodeToOperation(
     )
 }
 
-private fun Chain.Asset.formatPlanks(planks: BigInteger, negative: Boolean): String {
+private fun Asset.formatPlanks(planks: BigInteger, negative: Boolean): String {
     val amount = amountFromPlanks(planks)
 
     val withoutSign = amount.formatTokenAmount(this)
@@ -297,20 +298,20 @@ private val Operation.Type.Transfer.isIncome
 private val Operation.Type.Transfer.displayAddress
     get() = if (isIncome) sender else receiver
 
-private fun formatAmount(chainAsset: Chain.Asset, transfer: Operation.Type.Transfer): String {
+private fun formatAmount(chainAsset: Asset, transfer: Operation.Type.Transfer): String {
     return chainAsset.formatPlanks(transfer.amount, negative = !transfer.isIncome)
 }
 
-private fun formatAmount(chainAsset: Chain.Asset, reward: Operation.Type.Reward): String {
+private fun formatAmount(chainAsset: Asset, reward: Operation.Type.Reward): String {
     return chainAsset.formatPlanks(reward.amount, negative = !reward.isReward)
 }
 
-private fun formatSwapInfo(chainAsset: Chain.Asset, swap: Operation.Type.Swap): String {
+private fun formatSwapInfo(chainAsset: Asset, swap: Operation.Type.Swap): String {
     return "${chainAsset.amountFromPlanks(swap.baseAssetAmount).formatHistoryAmount()} ${chainAsset.symbolToShow.uppercase()}" +
         swap.targetAsset?.let { " ➝ ${it.amountFromPlanks(swap.targetAssetAmount.orZero()).formatHistoryAmount()} ${it.symbolToShow.uppercase()}" }.orEmpty()
 }
 
-private fun formatFee(chainAsset: Chain.Asset, extrinsic: Operation.Type.Extrinsic): String {
+private fun formatFee(chainAsset: Asset, extrinsic: Operation.Type.Extrinsic): String {
     return chainAsset.formatPlanks(extrinsic.fee, negative = true)
 }
 

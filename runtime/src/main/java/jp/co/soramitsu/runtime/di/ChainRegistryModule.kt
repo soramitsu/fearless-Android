@@ -89,7 +89,7 @@ class ChainRegistryModule {
         runtimeFactory: RuntimeFactory,
         runtimeSyncService: RuntimeSyncService,
         runtimeFilesCache: RuntimeFilesCache,
-        chainDao: ChainDao,
+        chainDao: ChainDao
     ) = RuntimeProviderPool(runtimeFactory, runtimeSyncService, runtimeFilesCache, chainDao)
 
     @Provides

@@ -1,6 +1,6 @@
 package jp.co.soramitsu.staking.impl.domain.rewards
 
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.staking.api.domain.api.AccountIdMap
 import jp.co.soramitsu.staking.api.domain.api.StakingRepository
@@ -67,11 +67,11 @@ class RewardCalculatorFactory(
         return subqueryCalculator
     }
 
-    suspend fun create(stakingType: Chain.Asset.StakingType, chainId: ChainId): RewardCalculator {
+    suspend fun create(stakingType: Asset.StakingType, chainId: ChainId): RewardCalculator {
         return when (stakingType) {
-            Chain.Asset.StakingType.UNSUPPORTED -> error("wrong staking type")
-            Chain.Asset.StakingType.RELAYCHAIN -> createManual(chainId)
-            Chain.Asset.StakingType.PARACHAIN -> createSubquery()
+            Asset.StakingType.UNSUPPORTED -> error("wrong staking type")
+            Asset.StakingType.RELAYCHAIN -> createManual(chainId)
+            Asset.StakingType.PARACHAIN -> createSubquery()
         }
     }
 }

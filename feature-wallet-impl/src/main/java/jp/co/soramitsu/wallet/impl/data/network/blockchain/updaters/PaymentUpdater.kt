@@ -11,6 +11,8 @@ import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.system
 import jp.co.soramitsu.common.utils.tokens
 import jp.co.soramitsu.core.model.StorageChange
+import jp.co.soramitsu.core.models.Asset
+import jp.co.soramitsu.core.models.ChainAssetType
 import jp.co.soramitsu.core.updater.SubscriptionBuilder
 import jp.co.soramitsu.core.updater.Updater
 import jp.co.soramitsu.coredb.dao.OperationDao
@@ -22,7 +24,6 @@ import jp.co.soramitsu.feature_wallet_impl.BuildConfig
 import jp.co.soramitsu.runtime.ext.addressOf
 import jp.co.soramitsu.runtime.ext.utilityAsset
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
-import jp.co.soramitsu.runtime.multiNetwork.chain.ChainAssetType
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.getRuntime
@@ -120,7 +121,7 @@ class PaymentUpdater(
         metaId: Long,
         chainId: ChainId,
         accountId: ByteArray,
-        asset: Chain.Asset,
+        asset: Asset,
         change: StorageChange
     ) {
         val runtime = chainRegistry.getRuntime(chainId)
@@ -166,7 +167,7 @@ class PaymentUpdater(
 
     private suspend fun constructKey(
         chainId: ChainId,
-        asset: Chain.Asset,
+        asset: Asset,
         accountId: ByteArray
     ): String {
         val runtime = chainRegistry.getRuntime(chainId)

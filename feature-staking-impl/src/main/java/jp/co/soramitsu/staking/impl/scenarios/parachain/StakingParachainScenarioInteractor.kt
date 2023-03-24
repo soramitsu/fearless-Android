@@ -21,7 +21,6 @@ import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.ext.utilityAsset
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import jp.co.soramitsu.runtime.state.SingleAssetSharedState
@@ -105,6 +104,7 @@ import kotlinx.coroutines.flow.onStart
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.util.Optional
+import jp.co.soramitsu.core.models.Asset as CoreAsset
 
 class StakingParachainScenarioInteractor(
     private val stakingInteractor: StakingInteractor,
@@ -222,7 +222,7 @@ class StakingParachainScenarioInteractor(
         return stakingConstantsRepository.maxDelegationsPerDelegator(stakingInteractor.getSelectedChain().id)
     }
 
-    override suspend fun getMinimumStake(chainAsset: Chain.Asset): BigInteger {
+    override suspend fun getMinimumStake(chainAsset: CoreAsset): BigInteger {
         return stakingConstantsRepository.parachainMinimumStaking(chainAsset.chainId)
     }
 

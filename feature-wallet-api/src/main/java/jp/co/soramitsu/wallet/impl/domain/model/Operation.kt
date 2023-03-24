@@ -1,15 +1,15 @@
 package jp.co.soramitsu.wallet.impl.domain.model
 
-import java.math.BigInteger
 import jp.co.soramitsu.common.utils.camelCaseToCapitalizedWords
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.core.models.Asset
+import java.math.BigInteger
 
 data class Operation(
     val id: String,
     val address: String,
     val type: Type,
     val time: Long,
-    val chainAsset: Chain.Asset
+    val chainAsset: Asset
 ) {
 
     sealed class Type {
@@ -46,7 +46,7 @@ data class Operation(
             val baseAssetAmount: BigInteger,
             val liquidityProviderFee: BigInteger,
             val selectedMarket: String?,
-            val targetAsset: Chain.Asset?,
+            val targetAsset: Asset?,
             val targetAssetAmount: BigInteger?,
             val networkFee: BigInteger,
             val status: Status
