@@ -1,18 +1,19 @@
 package jp.co.soramitsu.wallet.impl.data.historySource
 
 import android.os.Build
-import java.math.BigInteger
-import java.text.SimpleDateFormat
-import java.time.Instant
-import java.util.Locale
 import jp.co.soramitsu.common.data.model.CursorPage
 import jp.co.soramitsu.common.utils.orZero
+import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.wallet.impl.data.network.model.request.GiantsquidHistoryRequest
 import jp.co.soramitsu.wallet.impl.data.network.subquery.OperationsHistoryApi
 import jp.co.soramitsu.wallet.impl.domain.interfaces.TransactionFilter
 import jp.co.soramitsu.wallet.impl.domain.model.Operation
+import java.math.BigInteger
+import java.text.SimpleDateFormat
+import java.time.Instant
+import java.util.Locale
 
 class GiantsquidHistorySource(
     private val walletOperationsApi: OperationsHistoryApi,
@@ -32,7 +33,7 @@ class GiantsquidHistorySource(
         filters: Set<TransactionFilter>,
         accountId: AccountId,
         chain: Chain,
-        chainAsset: Chain.Asset,
+        chainAsset: Asset,
         accountAddress: String
     ): CursorPage<Operation> {
         val page = 0

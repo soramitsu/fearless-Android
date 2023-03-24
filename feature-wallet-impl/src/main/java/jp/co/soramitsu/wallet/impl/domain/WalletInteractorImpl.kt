@@ -1,7 +1,5 @@
 package jp.co.soramitsu.wallet.impl.domain
 
-import java.math.BigDecimal
-import java.math.BigInteger
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.accountId
@@ -48,6 +46,9 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.withIndex
 import kotlinx.coroutines.withContext
+import java.math.BigDecimal
+import java.math.BigInteger
+import jp.co.soramitsu.core.models.Asset as CoreAsset
 
 private const val QR_PREFIX_SUBSTRATE = "substrate"
 private const val PREFS_WALLET_SELECTED_CHAIN_ID = "wallet_selected_chain_id"
@@ -328,9 +329,9 @@ class WalletInteractorImpl(
         return existingChain?.id
     }
 
-    override suspend fun getEquilibriumAccountInfo(asset: Chain.Asset, accountId: AccountId): EqAccountInfo? =
+    override suspend fun getEquilibriumAccountInfo(asset: CoreAsset, accountId: AccountId): EqAccountInfo? =
         walletRepository.getEquilibriumAccountInfo(asset, accountId)
 
-    override suspend fun getEquilibriumAssetRates(chainAsset: Chain.Asset): Map<BigInteger, EqOraclePricePoint?> =
+    override suspend fun getEquilibriumAssetRates(chainAsset: CoreAsset): Map<BigInteger, EqOraclePricePoint?> =
         walletRepository.getEquilibriumAssetRates(chainAsset)
 }

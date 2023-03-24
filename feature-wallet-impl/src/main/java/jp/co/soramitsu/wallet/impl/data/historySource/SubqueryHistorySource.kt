@@ -1,6 +1,7 @@
 package jp.co.soramitsu.wallet.impl.data.historySource
 
 import jp.co.soramitsu.common.data.model.CursorPage
+import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.Alias
@@ -26,10 +27,10 @@ class SubqueryHistorySource(
         filters: Set<TransactionFilter>,
         accountId: AccountId,
         chain: Chain,
-        chainAsset: Chain.Asset,
+        chainAsset: Asset,
         accountAddress: String
     ): CursorPage<Operation> {
-        val requestRewards = chainAsset.staking != Chain.Asset.StakingType.UNSUPPORTED
+        val requestRewards = chainAsset.staking != Asset.StakingType.UNSUPPORTED
         val response = walletOperationsApi.getOperationsHistory(
             url = url,
             SubqueryHistoryRequest(

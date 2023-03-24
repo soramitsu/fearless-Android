@@ -1,8 +1,6 @@
 package jp.co.soramitsu.wallet.impl.data.repository
 
 import com.opencsv.CSVReaderHeaderAware
-import java.math.BigDecimal
-import java.math.BigInteger
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.accountId
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
@@ -48,6 +46,9 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.withContext
+import java.math.BigDecimal
+import java.math.BigInteger
+import jp.co.soramitsu.core.models.Asset as CoreAsset
 
 class WalletRepositoryImpl(
     private val substrateSource: SubstrateRemoteSource,
@@ -166,13 +167,13 @@ class WalletRepositoryImpl(
         updatesMixin.finishUpdateTokens(priceIds)
     }
 
-    override fun assetFlow(metaId: Long, accountId: AccountId, chainAsset: Chain.Asset, minSupportedVersion: String?): Flow<Asset> {
+    override fun assetFlow(metaId: Long, accountId: AccountId, chainAsset: CoreAsset, minSupportedVersion: String?): Flow<Asset> {
         return assetCache.observeAsset(metaId, accountId, chainAsset.chainId, chainAsset.id)
             .mapNotNull { it }
             .mapNotNull { mapAssetLocalToAsset(it, chainAsset, minSupportedVersion) }
     }
 
-    override suspend fun getAsset(metaId: Long, accountId: AccountId, chainAsset: Chain.Asset, minSupportedVersion: String?): Asset? {
+    override suspend fun getAsset(metaId: Long, accountId: AccountId, chainAsset: CoreAsset, minSupportedVersion: String?): Asset? {
         val assetLocal = assetCache.getAsset(metaId, accountId, chainAsset.chainId, chainAsset.id)
 
         return assetLocal?.let { mapAssetLocalToAsset(it, chainAsset, minSupportedVersion) }
@@ -182,7 +183,7 @@ class WalletRepositoryImpl(
         metaId: Long,
         accountId: AccountId,
         isHidden: Boolean,
-        chainAsset: Chain.Asset
+        chainAsset: CoreAsset
     ) {
         val updateItems = listOf(
             AssetUpdateItem(
@@ -311,13 +312,13 @@ class WalletRepositoryImpl(
         return phishingDao.getPhishingInfo(address)
     }
 
-    override suspend fun getAccountFreeBalance(chainAsset: Chain.Asset, accountId: AccountId) =
+    override suspend fun getAccountFreeBalance(chainAsset: CoreAsset, accountId: AccountId) =
         substrateSource.getAccountFreeBalance(chainAsset, accountId)
 
-    override suspend fun getEquilibriumAssetRates(chainAsset: Chain.Asset) =
+    override suspend fun getEquilibriumAssetRates(chainAsset: CoreAsset) =
         substrateSource.getEquilibriumAssetRates(chainAsset)
 
-    override suspend fun getEquilibriumAccountInfo(asset: Chain.Asset, accountId: AccountId) =
+    override suspend fun getEquilibriumAccountInfo(asset: CoreAsset, accountId: AccountId) =
         substrateSource.getEquilibriumAccountInfo(asset, accountId)
 
     override suspend fun updateAssets(newItems: List<AssetUpdateItem>) {

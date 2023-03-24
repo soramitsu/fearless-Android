@@ -75,12 +75,14 @@ buildscript {
         recyclerviewVersion = '1.2.1'
         lifecycleVersion = '2.5.1'
 
+        serializationVersion = '1.5.0'
+
         activityKtx = '1.1.0'
         fragmentKtx = '1.5.2'
         minifyRelease = true
         beaconVersion = "3.2.4"
 
-        sharedFeaturesVersion = "0.0.2"
+        sharedFeaturesVersion = "0.0.3"
 
         coilDep = "io.coil-kt:coil:$coilVersion"
         coilSvg = "io.coil-kt:coil-svg:$coilVersion"
@@ -198,6 +200,8 @@ buildscript {
 
         sharedFeaturesCoreDep = "jp.co.soramitsu.shared_features:core:$sharedFeaturesVersion"
         sharedFeaturesXcmDep = "jp.co.soramitsu.shared_features:xcm:$sharedFeaturesVersion"
+
+        serializationDep = "org.jetbrains.kotlinx:kotlinx-serialization-json:$serializationVersion"
     }
 
     repositories {

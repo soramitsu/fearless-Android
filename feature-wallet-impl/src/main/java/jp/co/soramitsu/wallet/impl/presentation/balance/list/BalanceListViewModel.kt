@@ -48,9 +48,10 @@ import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.sumByBigDecimal
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
-import jp.co.soramitsu.core.chain_registry.IChainRegistry
 import jp.co.soramitsu.core.extrinsic.KeyPairProvider
 import jp.co.soramitsu.core.extrinsic.mortality.IChainStateRepository
+import jp.co.soramitsu.core.models.Asset
+import jp.co.soramitsu.core.runtime.IChainRegistry
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.addressByteOrNull
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
@@ -317,7 +318,7 @@ class BalanceListViewModel @Inject constructor(
         .thenBy { it.asset.token.configuration.chainId.defaultChainSort() }
         .thenBy { it.asset.token.configuration.chainName }
 
-    private fun defaultChainAssetListSort() = compareBy<Chain.Asset> { it.isTestNet }
+    private fun defaultChainAssetListSort() = compareBy<Asset> { it.isTestNet }
         .thenBy { it.chainId.defaultChainSort() }
         .thenBy { it.chainName }
 

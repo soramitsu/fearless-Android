@@ -1,12 +1,12 @@
 package jp.co.soramitsu.staking.impl.data.network.blockhain.updaters
 
-import java.math.BigInteger
 import jp.co.soramitsu.account.api.domain.model.accountId
 import jp.co.soramitsu.account.api.domain.updaters.AccountUpdateScope
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
 import jp.co.soramitsu.common.utils.staking
 import jp.co.soramitsu.core.model.StorageChange
+import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.core.storage.StorageCache
 import jp.co.soramitsu.core.updater.SubscriptionBuilder
 import jp.co.soramitsu.core.updater.Updater
@@ -22,7 +22,6 @@ import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.storage.SubscribeSto
 import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.storage.storageChange
 import jp.co.soramitsu.fearless_utils.wsrpc.subscriptionFlow
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.getRuntime
 import jp.co.soramitsu.runtime.network.updaters.insert
 import jp.co.soramitsu.staking.api.data.StakingSharedState
@@ -41,6 +40,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import java.math.BigInteger
 
 class LedgerWithController(
     val ledger: StakingLedger,
@@ -145,7 +145,7 @@ class StakingLedgerUpdater(
 
     private suspend fun updateAssetStaking(
         accountId: AccountId,
-        chainAsset: Chain.Asset,
+        chainAsset: Asset,
         stakingLedger: StakingLedger,
         era: BigInteger
     ) {
@@ -163,7 +163,7 @@ class StakingLedgerUpdater(
 
     private suspend fun updateAssetStakingForEmptyLedger(
         accountId: AccountId,
-        chainAsset: Chain.Asset
+        chainAsset: Asset
     ) {
         assetCache.updateAsset(accountId, chainAsset) { cached ->
             cached.copy(

@@ -9,7 +9,7 @@ import jp.co.soramitsu.core.rpc.models.responses.QuoteResponse
 import jp.co.soramitsu.feature_polkaswap_api.R
 import jp.co.soramitsu.polkaswap.api.domain.models.SwapDetails
 import jp.co.soramitsu.polkaswap.api.models.WithDesired
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.core.models.Asset as CoreAsset
 import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
@@ -47,7 +47,7 @@ data class SwapQuote(
     val fee: BigDecimal
 )
 
-fun QuoteResponse.toModel(chainAsset: Chain.Asset): SwapQuote {
+fun QuoteResponse.toModel(chainAsset: CoreAsset): SwapQuote {
     return SwapQuote(chainAsset.amountFromPlanks(this.amount), chainAsset.amountFromPlanks(this.fee))
 }
 

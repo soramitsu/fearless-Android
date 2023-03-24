@@ -11,8 +11,8 @@ import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomShe
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListSheetAdapter
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.HolderCreator
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.ReferentialEqualityDiffCallBack
+import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.feature_wallet_impl.R
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.wallet.impl.domain.model.BuyTokenRegistry
 
 typealias BuyProvider = BuyTokenRegistry.Provider<*>
@@ -20,7 +20,7 @@ typealias BuyProvider = BuyTokenRegistry.Provider<*>
 class BuyProviderChooserBottomSheet(
     context: Context,
     providers: List<BuyProvider>,
-    private val asset: Chain.Asset,
+    private val asset: Asset,
     onClick: ClickHandler<BuyProvider>
 ) : DynamicListBottomSheet<BuyProvider>(
     context,

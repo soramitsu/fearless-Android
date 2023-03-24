@@ -15,6 +15,7 @@ import jp.co.soramitsu.wallet.impl.domain.model.Fee
 import jp.co.soramitsu.wallet.impl.domain.model.Transfer
 import jp.co.soramitsu.wallet.impl.domain.model.TransferValidityStatus
 import kotlinx.coroutines.flow.Flow
+import jp.co.soramitsu.core.models.Asset as CoreAsset
 import java.math.BigDecimal
 import java.math.BigInteger
 
@@ -26,15 +27,15 @@ interface WalletRepository {
 
     suspend fun syncAssetsRates(currencyId: String)
 
-    fun assetFlow(metaId: Long, accountId: AccountId, chainAsset: Chain.Asset, minSupportedVersion: String?): Flow<Asset>
+    fun assetFlow(metaId: Long, accountId: AccountId, chainAsset: CoreAsset, minSupportedVersion: String?): Flow<Asset>
 
-    suspend fun getAsset(metaId: Long, accountId: AccountId, chainAsset: Chain.Asset, minSupportedVersion: String?): Asset?
+    suspend fun getAsset(metaId: Long, accountId: AccountId, chainAsset: CoreAsset, minSupportedVersion: String?): Asset?
 
     suspend fun updateAssetHidden(
         metaId: Long,
         accountId: AccountId,
         isHidden: Boolean,
-        chainAsset: Chain.Asset
+        chainAsset: CoreAsset
     )
 
     suspend fun getTransferFee(
@@ -69,11 +70,11 @@ interface WalletRepository {
 
     suspend fun getPhishingInfo(address: String): PhishingLocal?
 
-    suspend fun getAccountFreeBalance(chainAsset: Chain.Asset, accountId: AccountId): BigInteger
+    suspend fun getAccountFreeBalance(chainAsset: CoreAsset, accountId: AccountId): BigInteger
 
-    suspend fun getEquilibriumAssetRates(chainAsset: Chain.Asset): Map<BigInteger, EqOraclePricePoint?>
+    suspend fun getEquilibriumAssetRates(chainAsset: CoreAsset): Map<BigInteger, EqOraclePricePoint?>
 
-    suspend fun getEquilibriumAccountInfo(asset: Chain.Asset, accountId: AccountId): EqAccountInfo?
+    suspend fun getEquilibriumAccountInfo(asset: CoreAsset, accountId: AccountId): EqAccountInfo?
 
     suspend fun updateAssets(newItems: List<AssetUpdateItem>)
 

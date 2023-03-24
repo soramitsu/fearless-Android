@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
+import jp.co.soramitsu.core.models.Asset as CoreAsset
 
 enum class StakingType {
     PARACHAIN, RELAYCHAIN, POOL
@@ -102,11 +103,11 @@ class StakingSharedState(
 
         return allChains.map { chain ->
             val staking = chain.assets.filter { chainAsset ->
-                chainAsset.staking != Chain.Asset.StakingType.UNSUPPORTED
+                chainAsset.staking != CoreAsset.StakingType.UNSUPPORTED
             }.map {
                 when (it.staking) {
-                    Chain.Asset.StakingType.PARACHAIN -> StakingAssetSelection.ParachainStaking(chain.id, it.id)
-                    Chain.Asset.StakingType.RELAYCHAIN -> StakingAssetSelection.RelayChainStaking(chain.id, it.id)
+                    CoreAsset.StakingType.PARACHAIN -> StakingAssetSelection.ParachainStaking(chain.id, it.id)
+                    CoreAsset.StakingType.RELAYCHAIN -> StakingAssetSelection.RelayChainStaking(chain.id, it.id)
                     else -> error("StakingSharedState.availableToSelect wrong staking type: ${it.staking}")
                 }
             }

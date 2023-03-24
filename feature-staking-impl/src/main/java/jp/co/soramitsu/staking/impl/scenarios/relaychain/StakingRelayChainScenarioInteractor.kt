@@ -14,7 +14,6 @@ import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.ext.utilityAsset
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.state.SingleAssetSharedState
 import jp.co.soramitsu.staking.api.data.StakingSharedState
@@ -106,6 +105,7 @@ import kotlinx.coroutines.withContext
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.util.Optional
+import jp.co.soramitsu.core.models.Asset as CoreAsset
 
 val ERA_OFFSET = 1.toBigInteger()
 const val HOURS_IN_DAY = 24
@@ -440,7 +440,7 @@ class StakingRelayChainScenarioInteractor(
         HOURS_IN_DAY / stakingRelayChainScenarioRepository.erasPerDay(chainId)
     }
 
-    override suspend fun getMinimumStake(chainAsset: Chain.Asset): BigInteger {
+    override suspend fun getMinimumStake(chainAsset: CoreAsset): BigInteger {
         val exposures = stakingRelayChainScenarioRepository.electedExposuresInActiveEra(chainAsset.chainId).firstOrNull()?.values ?: emptyList()
         val minimumNominatorBond = stakingRelayChainScenarioRepository.minimumNominatorBond(chainAsset)
         return minimumStake(exposures, minimumNominatorBond)

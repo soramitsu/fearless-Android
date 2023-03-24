@@ -6,7 +6,7 @@ import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
 import jp.co.soramitsu.common.utils.md5
 import jp.co.soramitsu.common.utils.newLimitedThreadPoolExecutor
 import jp.co.soramitsu.common.utils.retryUntilDone
-import jp.co.soramitsu.core.chain_registry.ChainConnection
+import jp.co.soramitsu.core.runtime.ChainConnection
 import jp.co.soramitsu.coredb.dao.ChainDao
 import jp.co.soramitsu.coredb.model.chain.ChainRuntimeInfoLocal
 import jp.co.soramitsu.fearless_utils.runtime.metadata.GetMetadataRequest

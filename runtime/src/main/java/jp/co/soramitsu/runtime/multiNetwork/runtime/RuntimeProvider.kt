@@ -1,10 +1,13 @@
 package jp.co.soramitsu.runtime.multiNetwork.runtime
 
-import jp.co.soramitsu.core.chain_registry.IRuntimeProvider
+import jp.co.soramitsu.core.models.TypesUsage
+import jp.co.soramitsu.core.runtime.ConstructedRuntime
+import jp.co.soramitsu.core.runtime.IRuntimeProvider
+import jp.co.soramitsu.core.runtime.RuntimeFactory
+import jp.co.soramitsu.coredb.dao.ChainDao
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.runtime.ext.typesUsage
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.TypesUsage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -21,6 +24,8 @@ import kotlinx.coroutines.launch
 class RuntimeProvider(
     private val runtimeFactory: RuntimeFactory,
     private val runtimeSyncService: RuntimeSyncService,
+    private val runtimeFilesCache: RuntimeFilesCache,
+    private val chainDao: ChainDao,
     chain: Chain
 ) : IRuntimeProvider, CoroutineScope by CoroutineScope(Dispatchers.Default) {
 
@@ -91,9 +96,14 @@ class RuntimeProvider(
             invalidateRuntime()
 
             runCatching {
-                runtimeFactory.constructRuntime(chainId, typesUsage)?.also {
-                    runtimeFlow.emit(it)
-                }
+                val runtimeVersion = chainDao.runtimeInfo(chainId)?.syncedVersion ?: return@launch
+                val metadataRaw = runCatching { runtimeFilesCache.getChainMetadata(chainId) }
+                    .getOrElse { throw ChainInfoNotInCacheException }
+                val ownTypesRaw = runCatching { runtimeFilesCache.getChainTypes(chainId) }
+                    .getOrElse { throw ChainInfoNotInCacheException }
+
+                val runtime = runtimeFactory.constructRuntime(metadataRaw, ownTypesRaw, runtimeVersion, typesUsage)
+                runtimeFlow.emit(runtime)
             }.onFailure {
                 when (it) {
                     ChainInfoNotInCacheException -> runtimeSyncService.cacheNotFound(chainId)

@@ -46,6 +46,7 @@ dependencies {
     implementation project(":core-api")
 
     implementation gsonDep
+    implementation serializationDep
     implementation fearlessLibDep
 
     implementation kotlinDep

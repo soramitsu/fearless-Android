@@ -1,8 +1,11 @@
 package jp.co.soramitsu.runtime.multiNetwork.runtime
 
+import jp.co.soramitsu.core.models.TypesUsage
+import jp.co.soramitsu.core.runtime.ConstructedRuntime
+import jp.co.soramitsu.core.runtime.RuntimeFactory
+import jp.co.soramitsu.coredb.dao.ChainDao
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.TypesUsage
 import jp.co.soramitsu.testshared.any
 import jp.co.soramitsu.testshared.eq
 import jp.co.soramitsu.testshared.thenThrowUnsafe
@@ -40,6 +43,12 @@ class RuntimeProviderTest {
     @Mock
     lateinit var runtimeFactory: RuntimeFactory
 
+    @Mock
+    lateinit var runtimeFilesCache: RuntimeFilesCache
+
+    @Mock
+    lateinit var chainDao: ChainDao
+
     lateinit var runtimeProvider: RuntimeProvider
 
     @Before
@@ -50,7 +59,7 @@ class RuntimeProviderTest {
             chainSyncFlow = MutableSharedFlow()
 
             whenever(constructedRuntime.runtime).thenReturn(runtime)
-            whenever(runtimeFactory.constructRuntime(any(), any())).thenReturn(constructedRuntime)
+            whenever(runtimeFactory.constructRuntime(any(), any(), any(), any())).thenReturn(constructedRuntime)
 
             whenever(runtimeSyncService.syncResultFlow(eq(chain.id))).thenAnswer { chainSyncFlow }
         }
@@ -61,7 +70,7 @@ class RuntimeProviderTest {
         runBlocking {
             initProvider()
 
-            verify(runtimeFactory, times(1)).constructRuntime(eq(chain.id), any())
+            verify(runtimeFactory, times(1)).constructRuntime(eq(chain.id), any(), any(), any())
 
             val returnedRuntime = withTimeout(timeMillis = 10) {
                 runtimeProvider.get()
@@ -131,7 +140,7 @@ class RuntimeProviderTest {
     @Test
     fun `should wait until current job is finished before consider reconstructing runtime on runtime sync event`() {
         runBlocking {
-            whenever(runtimeFactory.constructRuntime(any(), any())).thenAnswer {
+            whenever(runtimeFactory.constructRuntime(any(), any(), any(), any())).thenAnswer {
                 runBlocking { chainSyncFlow.first() }  // ensure runtime wont be returned until chainSyncFlow event
 
                 constructedRuntime
@@ -188,7 +197,7 @@ class RuntimeProviderTest {
     }
 
     private suspend fun withRuntimeFactoryFailing(exception: Exception = ChainInfoNotInCacheException, block: suspend () -> Unit) {
-        whenever(runtimeFactory.constructRuntime(any(), any())).thenThrowUnsafe(exception)
+        whenever(runtimeFactory.constructRuntime(any(), any(), any(), any())).thenThrowUnsafe(exception)
 
         initProvider()
 
@@ -201,7 +210,7 @@ class RuntimeProviderTest {
         delay(10)
 
         // + 1 since it is called once in init (cache)
-        verify(runtimeFactory, times(times + 1)).constructRuntime(eq(chain.id), any())
+        verify(runtimeFactory, times(times + 1)).constructRuntime(eq(chain.id), any(), any(), any())
     }
 
     private fun currentMetadataHash(hash: String?) {
@@ -220,6 +229,6 @@ class RuntimeProviderTest {
 
         whenever(chain.types).thenReturn(types)
 
-        runtimeProvider = RuntimeProvider(runtimeFactory, runtimeSyncService, chain)
+        runtimeProvider = RuntimeProvider(runtimeFactory, runtimeSyncService, runtimeFilesCache, chainDao, chain)
     }
 }

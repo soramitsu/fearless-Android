@@ -5,9 +5,10 @@ import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
 import jp.co.soramitsu.common.utils.diffed
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.mapList
-import jp.co.soramitsu.core.chain_registry.ChainConnection
-import jp.co.soramitsu.core.chain_registry.IChainRegistry
-import jp.co.soramitsu.core.chain_registry.IRuntimeProvider
+import jp.co.soramitsu.core.models.Asset
+import jp.co.soramitsu.core.runtime.ChainConnection
+import jp.co.soramitsu.core.runtime.IChainRegistry
+import jp.co.soramitsu.core.runtime.IRuntimeProvider
 import jp.co.soramitsu.coredb.dao.ChainDao
 import jp.co.soramitsu.coredb.model.chain.ChainNodeLocal
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
@@ -131,7 +132,7 @@ class ChainRegistry @Inject constructor(
     }
 }
 
-suspend fun ChainRegistry.chainWithAsset(chainId: ChainId, assetId: String): Pair<Chain, Chain.Asset> {
+suspend fun ChainRegistry.chainWithAsset(chainId: ChainId, assetId: String): Pair<Chain, Asset> {
     val chain = chainsById.first().getValue(chainId)
 
     return chain to chain.assetsById.getValue(assetId)

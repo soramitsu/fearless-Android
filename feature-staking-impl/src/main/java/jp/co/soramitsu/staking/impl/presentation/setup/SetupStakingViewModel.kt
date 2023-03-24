@@ -5,10 +5,6 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.liveData
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.math.BigDecimal
-import java.math.BigInteger
-import javax.inject.Inject
-import javax.inject.Named
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createEthereumAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -20,7 +16,7 @@ import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.common.validation.progressConsumer
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.staking.api.data.StakingSharedState
 import jp.co.soramitsu.staking.api.domain.model.RewardDestination
 import jp.co.soramitsu.staking.impl.data.mappers.mapRewardDestinationModelToRewardDestination
@@ -50,6 +46,10 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
+import java.math.BigInteger
+import javax.inject.Inject
+import javax.inject.Named
 
 @HiltViewModel
 class SetupStakingViewModel @Inject constructor(
@@ -215,19 +215,19 @@ class SetupStakingViewModel @Inject constructor(
         newAmount: BigDecimal,
         rewardDestination: RewardDestination,
         currentAccountAddress: String,
-        stakingType: Chain.Asset.StakingType
+        stakingType: Asset.StakingType
     ) {
         viewModelScope.launch {
             val payload = when (stakingType) {
-                Chain.Asset.StakingType.PARACHAIN -> SetupStakingProcess.SetupStep.Payload.Parachain(newAmount, currentAccountAddress)
-                Chain.Asset.StakingType.RELAYCHAIN -> SetupStakingProcess.SetupStep.Payload.RelayChain(newAmount, rewardDestination, currentAccountAddress)
+                Asset.StakingType.PARACHAIN -> SetupStakingProcess.SetupStep.Payload.Parachain(newAmount, currentAccountAddress)
+                Asset.StakingType.RELAYCHAIN -> SetupStakingProcess.SetupStep.Payload.RelayChain(newAmount, rewardDestination, currentAccountAddress)
                 else -> error("")
             }
             setupStakingSharedState.set(currentProcessState.next(payload))
 
             when (stakingType) {
-                Chain.Asset.StakingType.PARACHAIN -> router.openStartChangeCollators()
-                Chain.Asset.StakingType.RELAYCHAIN -> router.openStartChangeValidators()
+                Asset.StakingType.PARACHAIN -> router.openStartChangeCollators()
+                Asset.StakingType.RELAYCHAIN -> router.openStartChangeValidators()
                 else -> Unit
             }
         }
