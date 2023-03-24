@@ -1,3 +1,5 @@
+apply from: './scripts/secrets.gradle'
+
 buildscript {
     ext {
         // App version
@@ -22,9 +24,10 @@ buildscript {
         biometricVersion = '1.1.0'
 
         progressButtonsVersion = '2.1.0'
-        xNetworkingVersion = '0.0.46'
+        xNetworkingVersion = '0.0.55'
+        soraCardVersion = '0.0.30'
 
-        daggerVersion = '2.43'
+        daggerVersion = '2.45'
         javaxInjectVersion = '1'
 
         architectureComponentVersion = '2.5.1'
@@ -170,6 +173,8 @@ buildscript {
 
         gifDep = "pl.droidsonroids.gif:android-gif-drawable:$gifVersion"
 
+        withoutBouncycastle = { exclude group: 'org.bouncycastle' }
+        soraCardDep = "jp.co.soramitsu:android-sora-card:$soraCardVersion"
         wsDep = "com.neovisionaries:nv-websocket-client:$wsVersion"
         xNetworkingDep = "jp.co.soramitsu:XNetworking-android:$xNetworkingVersion"
 
@@ -209,10 +214,13 @@ buildscript {
     dependencies {
         classpath 'com.android.tools.build:gradle:7.3.1'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
+        classpath "org.jetbrains.kotlin:kotlin-serialization:$kotlinVersion"
         classpath 'com.google.gms:google-services:4.3.15'
         classpath "com.google.firebase:firebase-appdistribution-gradle:$firebaseAppDistrVersion"
         classpath "com.github.triplet.gradle:play-publisher:$playPublisherVersion"
         classpath "com.google.dagger:hilt-android-gradle-plugin:$daggerVersion"
+        // Add the dependency for the Crashlytics Gradle plugin
+        classpath 'com.google.firebase:firebase-crashlytics-gradle:2.9.4'
     }
 }
 
@@ -224,6 +232,14 @@ allprojects {
         maven { url "https://nexus.iroha.tech/repository/maven-soramitsu/" }
         mavenCentral()
         mavenLocal()
+
+        maven {
+            url = readSecret("PAY_WINGS_REPOSITORY_URL")
+            credentials {
+                username = readSecret("PAY_WINGS_USERNAME")
+                password = readSecret("PAY_WINGS_PASSWORD")
+            }
+        }
     }
 }
 
@@ -238,7 +254,6 @@ task clean(type: Delete) {
 dependencies {
 
     ktlint("com.pinterest:ktlint:$ktlintPinterestVersion") {
-//    ktlint("com.pinterest:ktlint:0.46.1") {
         attributes {
             attribute(Bundling.BUNDLING_ATTRIBUTE, getObjects().named(Bundling, Bundling.EXTERNAL))
         }

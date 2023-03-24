@@ -18,6 +18,7 @@ import jp.co.soramitsu.coredb.dao.ChainDao
 import jp.co.soramitsu.coredb.dao.MetaAccountDao
 import jp.co.soramitsu.coredb.dao.OperationDao
 import jp.co.soramitsu.coredb.dao.PhishingDao
+import jp.co.soramitsu.coredb.dao.SoraCardDao
 import jp.co.soramitsu.coredb.dao.StakingTotalRewardDao
 import jp.co.soramitsu.coredb.dao.StorageDao
 import jp.co.soramitsu.coredb.dao.TokenPriceDao
@@ -52,6 +53,7 @@ import jp.co.soramitsu.coredb.migrations.Migration_46_47
 import jp.co.soramitsu.coredb.migrations.Migration_47_48
 import jp.co.soramitsu.coredb.migrations.Migration_48_49
 import jp.co.soramitsu.coredb.migrations.Migration_49_50
+import jp.co.soramitsu.coredb.migrations.Migration_50_51
 import jp.co.soramitsu.coredb.migrations.RemoveAccountForeignKeyFromAsset_17_18
 import jp.co.soramitsu.coredb.migrations.RemoveLegacyData_35_36
 import jp.co.soramitsu.coredb.migrations.RemoveStakingRewardsTable_22_23
@@ -62,6 +64,7 @@ import jp.co.soramitsu.coredb.model.AddressBookContact
 import jp.co.soramitsu.coredb.model.AssetLocal
 import jp.co.soramitsu.coredb.model.OperationLocal
 import jp.co.soramitsu.coredb.model.PhishingLocal
+import jp.co.soramitsu.coredb.model.SoraCardInfoLocal
 import jp.co.soramitsu.coredb.model.StorageEntryLocal
 import jp.co.soramitsu.coredb.model.TokenPriceLocal
 import jp.co.soramitsu.coredb.model.TotalRewardLocal
@@ -74,7 +77,7 @@ import jp.co.soramitsu.coredb.model.chain.ChainRuntimeInfoLocal
 import jp.co.soramitsu.coredb.model.chain.MetaAccountLocal
 
 @Database(
-    version = 50,
+    version = 51,
     entities = [
         AccountLocal::class,
         AddressBookContact::class,
@@ -92,7 +95,8 @@ import jp.co.soramitsu.coredb.model.chain.MetaAccountLocal
         ChainRuntimeInfoLocal::class,
         MetaAccountLocal::class,
         ChainAccountLocal::class,
-        ChainExplorerLocal::class
+        ChainExplorerLocal::class,
+        SoraCardInfoLocal::class
     ]
 )
 @TypeConverters(
@@ -142,6 +146,7 @@ abstract class AppDatabase : RoomDatabase() {
                     .addMigrations(Migration_47_48)
                     .addMigrations(Migration_48_49)
                     .addMigrations(Migration_49_50)
+                    .addMigrations(Migration_50_51)
                     .build()
             }
             return instance!!
@@ -169,4 +174,6 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun metaAccountDao(): MetaAccountDao
 
     abstract fun addressBookDao(): AddressBookDao
+
+    abstract fun soraCardDao(): SoraCardDao
 }

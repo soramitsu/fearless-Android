@@ -389,6 +389,11 @@
         android:label="TransactionHistoryFilterFragment" />
 
     <fragment
+        android:id="@+id/getSoraCardFragment"
+        android:name="jp.co.soramitsu.soracard.impl.presentation.get.GetSoraCardFragment"
+        android:label="GetSoraCardFragment" />
+
+    <fragment
         android:id="@+id/exportMnemonicFragment"
         android:name="jp.co.soramitsu.account.impl.presentation.exporting.mnemonic.ExportMnemonicFragment"
         android:label="ExportMnemonicFragment"
@@ -454,6 +459,11 @@
         android:name="jp.co.soramitsu.wallet.impl.presentation.balance.searchAssets.SearchAssetsFragment"
         android:label="searchAssetsFragment" />
 
+    <fragment
+        android:id="@+id/buyCryptoFragment"
+        android:name="jp.co.soramitsu.soracard.impl.presentation.buycrypto.BuyCryptoFragment"
+        android:label="buyCryptoFragment" />
+
     <dialog
         android:id="@+id/confirmSendFragment"
         android:name="jp.co.soramitsu.wallet.impl.presentation.send.confirm.ConfirmSendFragment"
@@ -471,6 +481,11 @@
         android:id="@+id/successSheetFragment"
         android:name="jp.co.soramitsu.success.presentation.SuccessFragment"
         android:label="successSheetFragment" />
+
+    <dialog
+        android:id="@+id/getMoreXorFragment"
+        android:name="jp.co.soramitsu.soracard.impl.presentation.getmorexor.GetMoreXorFragment"
+        android:label="getMoreXorFragment" />
 
     <dialog
         android:id="@+id/startStakingPoolFragment"
@@ -861,12 +876,13 @@
         app:popUpTo="@id/mainFragment" />
 
     <action
-        android:id="@+id/back_to_asset_details"
+        android:id="@+id/close_swap"
         app:enterAnim="?android:attr/fragmentCloseEnterAnimation"
         app:exitAnim="?android:attr/fragmentCloseExitAnimation"
         app:popEnterAnim="?android:attr/fragmentOpenEnterAnimation"
         app:popExitAnim="?android:attr/fragmentOpenExitAnimation"
-        app:popUpTo="@id/balanceDetailFragment" />
+        app:popUpTo="@id/swapTokensFragment"
+        app:popUpToInclusive="true" />
 
     <fragment
         android:id="@+id/confirmStakingFragment"

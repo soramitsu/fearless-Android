@@ -9,6 +9,8 @@ apply plugin: 'kotlin-parcelize'
 apply plugin: 'com.google.firebase.appdistribution'
 apply plugin: "com.github.triplet.play"
 apply from: "../scripts/versions.gradle"
+// Add the Crashlytics Gradle plugin
+apply plugin: 'com.google.firebase.crashlytics'
 
 android {
     compileSdkVersion rootProject.compileSdkVersion
@@ -118,6 +120,14 @@ play {
 }
 
 dependencies {
+    // Import the BoM for the Firebase platform
+    implementation platform('com.google.firebase:firebase-bom:31.2.3')
+
+    // Add the dependencies for the Crashlytics and Analytics libraries
+    // When using the BoM, you don't specify versions in Firebase library dependencies
+    implementation 'com.google.firebase:firebase-crashlytics-ktx'
+    implementation 'com.google.firebase:firebase-analytics-ktx'
+
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation project(':core-db')
     implementation project(':common')
@@ -145,6 +155,9 @@ dependencies {
 
     implementation project(':feature-success-api')
     implementation project(':feature-success-impl')
+
+    implementation project(':feature-soracard-api')
+    implementation project(':feature-soracard-impl')
 
     implementation kotlinDep
 
