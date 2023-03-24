@@ -219,6 +219,8 @@ buildscript {
         classpath "com.google.firebase:firebase-appdistribution-gradle:$firebaseAppDistrVersion"
         classpath "com.github.triplet.gradle:play-publisher:$playPublisherVersion"
         classpath "com.google.dagger:hilt-android-gradle-plugin:$daggerVersion"
+        // Add the dependency for the Crashlytics Gradle plugin
+        classpath 'com.google.firebase:firebase-crashlytics-gradle:2.9.4'
     }
 }
 

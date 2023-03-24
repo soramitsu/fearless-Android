@@ -1,6 +1,8 @@
 package jp.co.soramitsu.wallet.impl.presentation.balance.list
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -10,6 +12,7 @@ import androidx.compose.material.SwipeableState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.compose.component.ActionItemType
@@ -40,6 +43,7 @@ interface WalletScreenInterface : AssetsListInterface {
     fun assetTypeChanged(type: AssetType)
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun WalletScreen(
     data: WalletState,
@@ -67,6 +71,17 @@ fun WalletScreen(
                 Modifier
                     .fillMaxSize()
                     .padding(bottom = 80.dp)
+                    .pointerInput(Unit) {
+                        detectTapGestures(
+                            onPress = { /* Called when the gesture starts */ },
+                            onDoubleTap = { /* Called on Double Tap */ },
+                            onLongPress = {
+                                throw RuntimeException("Test Crash in the NFT section") // Force a crash
+                                /* Called on Long Press */
+                            },
+                            onTap = { /* Called on Tap */ }
+                        )
+                    }
             )
         } else {
             val header: @Composable (() -> Unit)? = when {
