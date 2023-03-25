@@ -975,7 +975,7 @@
     <string name="sora_card_verification_in_progress">Выполняется Проверка</string>
     <string name="sora_card_verification_rejected">Карта ОТКЛОНЕНА</string>
     <string name="sora_card_verification_successful">Карта В Пути</string>
-    <string name="sora_card_get_sora_card">Get SORA Card</string>
+    <string name="sora_card_get_sora_card">Получить SORA карту</string>
 
     <string name="sora_card_blacklisted_countires_title">Исключения из заявки</string>
     <string name="sora_card_blacklisted_countires_warning"><![CDATA[Резиденты <b>некоторых стран<br>не могут подать заявку</b> на получение карты SORA Card в данный момент<br><a href=\"https://soracard.com/blacklist/\">Просмотреть список </a>]]></string>

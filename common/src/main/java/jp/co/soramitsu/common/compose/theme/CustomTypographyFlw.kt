@@ -8,7 +8,7 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
 
 @Stable
-data class CustomTypography(
+data class CustomTypographyFlw(
     val header1: TextStyle,
     val header2: TextStyle,
     val header3: TextStyle,
@@ -28,7 +28,7 @@ fun TextStyle.weight(fontWeight: FontWeight) = copy(fontWeight = fontWeight)
 fun TextStyle.bold() = copy(fontWeight = FontWeight.Bold)
 fun TextStyle.fontSize(fontSize: TextUnit) = copy(fontSize = fontSize)
 
-val flwTypography = CustomTypography(
+val flwTypography = CustomTypographyFlw(
     header1 = soraTextStyle().bold().fontSize(30.sp),
     header2 = soraTextStyle().bold().fontSize(22.sp),
     header3 = soraTextStyle().bold().fontSize(18.sp),

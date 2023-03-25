@@ -26,6 +26,7 @@ buildscript {
         progressButtonsVersion = '2.1.0'
         xNetworkingVersion = '0.0.55'
         soraCardVersion = '0.0.30'
+        soraUiCoreVersion = '0.0.63'
 
         daggerVersion = '2.45'
         javaxInjectVersion = '1'
@@ -179,6 +180,7 @@ buildscript {
         soraCardDep = "jp.co.soramitsu:android-sora-card:$soraCardVersion"
         wsDep = "com.neovisionaries:nv-websocket-client:$wsVersion"
         xNetworkingDep = "jp.co.soramitsu:XNetworking-android:$xNetworkingVersion"
+        soraUiCoreDep = "jp.co.soramitsu:ui-core:$soraUiCoreVersion"
 
         shimmerDep = "com.facebook.shimmer:shimmer:$shimmerVersion"
 

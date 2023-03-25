@@ -27,10 +27,10 @@
         <!--text sizes-->
 
         <!--fonts-->
-        <item name="fontSemiBold">@font/soramitsu_semibold</item>
-        <item name="fontBold">@font/soramitsu_bold</item>
-        <item name="fontExtraBold">@font/soramitsu_extrabold</item>
-        <item name="fontRegular">@font/soramitsu_regular</item>
+        <item name="fontSemiBold">@font/sora_semibold</item>
+        <item name="fontBold">@font/sora_bold</item>
+        <item name="fontExtraBold">@font/sora_extrabold</item>
+        <item name="fontRegular">@font/sora_regular</item>
         <!--fonts-->
 
         <item name="colorAccent">@color/colorAccent</item>

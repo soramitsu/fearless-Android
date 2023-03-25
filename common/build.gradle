@@ -130,6 +130,8 @@ dependencies {
     implementation compose
     debugImplementation composeDebug
 
+    implementation soraUiCoreDep
+
     api coilDep
     api coilSvg
 
