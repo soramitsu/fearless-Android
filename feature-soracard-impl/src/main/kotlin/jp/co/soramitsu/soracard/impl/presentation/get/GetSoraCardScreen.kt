@@ -40,8 +40,8 @@ import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.component.Toolbar
 import jp.co.soramitsu.common.compose.component.ToolbarViewState
 import jp.co.soramitsu.common.compose.component.TransparentButton
+import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
 import jp.co.soramitsu.common.compose.theme.errorRed
-import jp.co.soramitsu.common.compose.theme.fearlessMaterialColors
 import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.feature_soracard_impl.R
 import jp.co.soramitsu.soracard.api.presentation.models.SoraCardInfo
@@ -51,6 +51,7 @@ import jp.co.soramitsu.ui_core.theme.borderRadius
 import jp.co.soramitsu.ui_core.theme.customColors
 import jp.co.soramitsu.ui_core.theme.customTypography
 import jp.co.soramitsu.ui_core.theme.elevation
+import java.lang.Integer.max
 import java.math.BigDecimal
 
 data class GetSoraCardState(
@@ -206,22 +207,18 @@ fun GetSoraCardScreen(
 private fun BlacklistedCountries(
     onSeeListClicked: (String) -> Unit
 ) {
-    MaterialTheme(
-        colors = fearlessMaterialColors
-    ) {
-        HtmlText(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 8.dp),
-            text = stringResource(R.string.sora_card_blacklisted_countires_warning),
-            style = MaterialTheme.customTypography.paragraphXS.copy(
-                textAlign = TextAlign.Center,
-                color = Color.White,
-                fontSize = 12.sp
-            ),
-            onUrlClick = onSeeListClicked
-        )
-    }
+    HtmlText(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 8.dp),
+        text = stringResource(R.string.sora_card_blacklisted_countires_warning),
+        style = MaterialTheme.customTypography.paragraphXS.copy(
+            textAlign = TextAlign.Center,
+            color = Color.White,
+            fontSize = 12.sp
+        ),
+        onUrlClick = onSeeListClicked
+    )
 }
 
 @Composable
@@ -292,11 +289,16 @@ private fun FreeCardIssuance(
                     }
                 )
                 MarginHorizontal(margin = 4.dp)
+                val cardIssuancePriceText = stringResource(R.string.sora_card_free_card_issuance)
                 Text(
                     text = AnnotatedString(
-                        text = stringResource(R.string.sora_card_free_card_issuance),
+                        text = cardIssuancePriceText,
                         spanStyles = listOf(
-                            AnnotatedString.Range(SpanStyle(fontWeight = FontWeight.Bold, fontSize = 24.sp), 0, 4)
+                            AnnotatedString.Range(
+                                item = SpanStyle(fontWeight = FontWeight.Bold, fontSize = 24.sp),
+                                start = 0,
+                                end = max(4, cardIssuancePriceText.split(" ").getOrNull(0)?.length ?: 0)
+                            )
                         )
                     ),
                     style = MaterialTheme.customTypography.textL,
@@ -368,9 +370,11 @@ private fun PreviewGetSoraCardScreen() {
         override fun onAlreadyHaveCard() {}
         override fun onNavigationClick() {}
     }
-    GetSoraCardScreenWithToolbar(
-        state = GetSoraCardState(),
-        scrollState = rememberScrollState(),
-        callbacks = empty
-    )
+    FearlessAppTheme(darkTheme = true) {
+        GetSoraCardScreenWithToolbar(
+            state = GetSoraCardState(),
+            scrollState = rememberScrollState(),
+            callbacks = empty
+        )
+    }
 }

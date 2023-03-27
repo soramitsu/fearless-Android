@@ -5,7 +5,6 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.ReadOnlyComposable
-import androidx.compose.ui.graphics.Color
 import jp.co.soramitsu.common.compose.theme.tokens.DayThemeColors
 import jp.co.soramitsu.common.compose.theme.tokens.NightThemeColors
 import jp.co.soramitsu.common.compose.theme.tokens.buttonM
@@ -83,14 +82,6 @@ fun FearlessAppTheme(
         borderRadius = fearlessBorderRadius,
         content = content
     )
-//    AppTheme(
-//        darkTheme = true,
-//        lightColors = fearlessDarkColors,
-//        darkColors = fearlessDarkColors,
-//        typography = fearlessTypography,
-//        borderRadius = fearlessBorderRadius,
-//        content = content
-//    )
 }
 
 private val fearlessLightColors = lightColors(

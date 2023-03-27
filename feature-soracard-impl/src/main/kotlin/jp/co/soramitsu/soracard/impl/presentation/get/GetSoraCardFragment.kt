@@ -12,6 +12,7 @@ import androidx.compose.runtime.getValue
 import androidx.fragment.app.viewModels
 import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.common.base.BaseComposeFragment
+import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
 import jp.co.soramitsu.oauth.base.sdk.contract.SoraCardContract
 import jp.co.soramitsu.oauth.base.sdk.contract.SoraCardResult
 import jp.co.soramitsu.oauth.base.sdk.signin.SoraCardSignInContract
@@ -65,10 +66,12 @@ class GetSoraCardFragment : BaseComposeFragment<GetSoraCardViewModel>() {
     override fun Content(padding: PaddingValues, scrollState: ScrollState, modalBottomSheetState: ModalBottomSheetState) {
         val state by viewModel.state.collectAsState()
 
-        GetSoraCardScreenWithToolbar(
-            state = state,
-            scrollState = scrollState,
-            callbacks = viewModel
-        )
+        FearlessAppTheme {
+            GetSoraCardScreenWithToolbar(
+                state = state,
+                scrollState = scrollState,
+                callbacks = viewModel
+            )
+        }
     }
 }
