@@ -66,9 +66,6 @@ val MaterialTheme.customTypography: CustomTypographyFlw
     @ReadOnlyComposable
     get() = FearlessTypography.current
 
-//@Composable
-//fun FearlessAppTheme(content: @Composable () -> Unit) = FearlessWalletTheme(true, content)
-
 @Composable
 fun FearlessAppTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
