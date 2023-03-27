@@ -6,5 +6,5 @@ import jp.co.soramitsu.common.compose.theme.Sora
 
 internal enum class FontFamilies(val value: FontFamily) {
     HEADLINE(Sora),
-    TEXT(Inter),
+    TEXT(Inter)
 }

@@ -12,7 +12,7 @@ internal val Sora = FontFamily(
     Font(R.font.sora_regular, FontWeight.Normal),
     Font(R.font.sora_light, FontWeight.Light),
     Font(R.font.sora_extralight, FontWeight.ExtraLight),
-    Font(R.font.sora_thin, FontWeight.Thin),
+    Font(R.font.sora_thin, FontWeight.Thin)
 )
 
 internal val Inter = FontFamily(
@@ -22,5 +22,5 @@ internal val Inter = FontFamily(
     Font(R.font.inter_regular, FontWeight.Normal),
     Font(R.font.inter_light, FontWeight.Light),
     Font(R.font.inter_extralight, FontWeight.ExtraLight),
-    Font(R.font.inter_thin, FontWeight.Thin),
+    Font(R.font.inter_thin, FontWeight.Thin)
 )
