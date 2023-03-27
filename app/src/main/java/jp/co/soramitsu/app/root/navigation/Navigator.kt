@@ -2,6 +2,7 @@ package jp.co.soramitsu.app.root.navigation
 
 import android.graphics.drawable.Drawable
 import android.os.Bundle
+import androidx.annotation.IdRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.net.toUri
 import androidx.lifecycle.Lifecycle
@@ -177,7 +178,11 @@ class Navigator :
     override fun openInitialCheckPincode() {
         val action = PinCodeAction.Check(NavComponentDelayedNavigation(R.id.action_open_main), ToolbarConfiguration())
         val bundle = PincodeFragment.getPinCodeBundle(action)
-        navController?.navigate(R.id.action_splash_to_pin, bundle)
+        navController?.navigateSafe(R.id.action_splash_to_pin, bundle)
+    }
+
+    private fun NavController.navigateSafe(@IdRes resId: Int, args: Bundle?) {
+        runCatching { navigate(resId, args) }
     }
 
     override fun openCreateAccountFromOnboarding() {
