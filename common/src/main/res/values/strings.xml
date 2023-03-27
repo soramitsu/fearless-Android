@@ -1053,6 +1053,7 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="polkaswap_info_switch_text">I confirm that I have read all of the documents mentioned and pressing \"Continue\" I accept them.</string>
 
     <string name="polkaswap_disclaimer_settings_item" translatable="false">Polkaswap disclaimer</string>
+    <string name="settings_hide_zero_balances">Hide zero balances</string>
 
     <string name="sora_card_title">Top up SORA Card with fiat or crypto and pay online, in-store or withdraw in ATM</string>
     <string name="sora_card_annual_service_fee">0 € annual service fee</string>

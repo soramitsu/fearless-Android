@@ -34,7 +34,7 @@ data class AssetLocal(
     val redeemableInPlanks: BigInteger? = null,
     val unbondingInPlanks: BigInteger? = null,
     val sortIndex: Int = Int.MAX_VALUE,
-    val enabled: Boolean = true,
+    val enabled: Boolean? = null,
     val markedNotNeed: Boolean = false,
     val chainAccountName: String? = null
 ) {

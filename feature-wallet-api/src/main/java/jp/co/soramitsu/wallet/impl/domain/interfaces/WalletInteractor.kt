@@ -118,4 +118,8 @@ interface WalletInteractor {
     fun observeIsShowSoraCard(): Flow<Boolean>
     fun decreaseSoraCardHiddenSessions()
     fun hideSoraCard()
+
+    fun observeHideZeroBalanceEnabledForCurrentWallet(): Flow<Boolean>
+    suspend fun toggleHideZeroBalancesForCurrentWallet()
+    suspend fun getHideZeroBalancesForCurrentWallet(): Boolean
 }

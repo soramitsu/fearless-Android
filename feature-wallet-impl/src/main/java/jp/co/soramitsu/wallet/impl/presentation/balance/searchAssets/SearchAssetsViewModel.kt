@@ -7,6 +7,8 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.asFlow
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.math.BigDecimal
+import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.presentation.actions.AddAccountBottomSheet
 import jp.co.soramitsu.common.AlertViewState
@@ -39,8 +41,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import java.math.BigDecimal
-import javax.inject.Inject
 
 @HiltViewModel
 class SearchAssetsViewModel @Inject constructor(
@@ -68,8 +68,9 @@ class SearchAssetsViewModel @Inject constructor(
     private val assetStates = combine(
         interactor.assetsFlow(),
         chainInteractor.getChainsFlow(),
-        connectingChainIdsFlow
-    ) { assets: List<AssetWithStatus>, chains: List<Chain>, chainConnectings: Set<ChainId> ->
+        connectingChainIdsFlow,
+        interactor.observeHideZeroBalanceEnabledForCurrentWallet()
+    ) { assets: List<AssetWithStatus>, chains: List<Chain>, chainConnectings: Set<ChainId>, hideZeroBalancesEnabled ->
         val assetStates = mutableListOf<AssetListItemViewState>()
         val sortedAndFiltered = assets.filter { it.hasAccount }
 
@@ -116,6 +117,11 @@ class SearchAssetsViewModel @Inject constructor(
                     }
                 }
 
+                val isZeroBalance =
+                    assetWithStatus.asset.transferable.compareTo(BigDecimal.ZERO) == 0 && assetWithStatus.asset.frozen.compareTo(BigDecimal.ZERO) == 0
+                val assetDisabledByUser = assetWithStatus.asset.enabled == false
+                val isHidden = assetDisabledByUser || (assetWithStatus.asset.enabled == null && isZeroBalance && hideZeroBalancesEnabled)
+
                 val assetListItemViewState = AssetListItemViewState(
                     assetIconUrl = tokenConfig.iconUrl,
                     assetChainName = utilityChain?.name.orEmpty(),
@@ -130,7 +136,7 @@ class SearchAssetsViewModel @Inject constructor(
                     chainId = utilityChain?.id.orEmpty(),
                     chainAssetId = showChainAsset?.id.orEmpty(),
                     isSupported = isSupported,
-                    isHidden = !assetWithStatus.asset.enabled,
+                    isHidden = isHidden,
                     hasAccount = !hasChainWithoutAccount,
                     priceId = tokenConfig.priceId,
                     hasNetworkIssue = hasNetworkIssue

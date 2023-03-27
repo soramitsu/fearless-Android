@@ -75,7 +75,7 @@ fun mapAssetToAssetModel(asset: Asset): AssetModel {
             sortIndex = sortIndex,
             minSupportedVersion = minSupportedVersion,
             chainAccountName = chainAccountName,
-            isHidden = !enabled
+            isHidden = enabled == false
         )
     }
 }

@@ -20,7 +20,7 @@ class Asset(
     val redeemableInPlanks: BigInteger?,
     val unbondingInPlanks: BigInteger?,
     val sortIndex: Int,
-    val enabled: Boolean,
+    val enabled: Boolean?,
     val minSupportedVersion: String?,
     val chainAccountName: String?,
     val markedNotNeed: Boolean
@@ -39,7 +39,7 @@ class Asset(
                 redeemableInPlanks = null,
                 unbondingInPlanks = null,
                 sortIndex = Int.MAX_VALUE,
-                enabled = true,
+                enabled = null,
                 minSupportedVersion = it.minSupportedVersion,
                 chainAccountName = chainAccount.accountName,
                 markedNotNeed = false

@@ -42,6 +42,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.withIndex
@@ -54,6 +55,7 @@ private const val QR_PREFIX_SUBSTRATE = "substrate"
 private const val PREFS_WALLET_SELECTED_CHAIN_ID = "wallet_selected_chain_id"
 private const val PREFS_SORA_CARD_HIDDEN_SESSIONS_COUNT = "prefs_sora_card_hidden_sessions_count"
 private const val SORA_CARD_HIDDEN_SESSIONS_LIMIT = 5
+private const val HIDE_ZERO_BALANCES_PREFS_KEY = "hideZeroBalances"
 
 class WalletInteractorImpl(
     private val walletRepository: WalletRepository,
@@ -66,6 +68,29 @@ class WalletInteractorImpl(
     private val selectedFiat: SelectedFiat,
     private val updatesMixin: UpdatesMixin
 ) : WalletInteractor, UpdatesProviderUi by updatesMixin {
+
+    override suspend fun getHideZeroBalancesForCurrentWallet(): Boolean {
+        val walletId = accountRepository.getSelectedMetaAccount().id
+        val key = getHideZeroBalancesKey(walletId)
+        return preferences.getBoolean(key, false)
+    }
+    override suspend fun toggleHideZeroBalancesForCurrentWallet() {
+        val walletId = accountRepository.getSelectedMetaAccount().id
+        val key = getHideZeroBalancesKey(walletId)
+        val value = preferences.getBoolean(key, false)
+        val newValue = value.not()
+        preferences.putBoolean(key, newValue)
+    }
+
+    override fun observeHideZeroBalanceEnabledForCurrentWallet(): Flow<Boolean> {
+        return accountRepository.selectedMetaAccountFlow().flatMapConcat {
+            preferences.booleanFlow(getHideZeroBalancesKey(it.id), false)
+        }.distinctUntilChanged()
+    }
+
+    private fun getHideZeroBalancesKey(walletId: Long): String {
+        return "${HIDE_ZERO_BALANCES_PREFS_KEY}_$walletId"
+    }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     override fun assetsFlow(): Flow<List<AssetWithStatus>> {

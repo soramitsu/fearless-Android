@@ -1,5 +1,6 @@
 package jp.co.soramitsu.wallet.impl.data.repository
 
+import android.util.Log
 import com.opencsv.CSVReaderHeaderAware
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.accountId
@@ -76,6 +77,16 @@ class WalletRepositoryImpl(
             chainRegistry.chainsById,
             assetCache.observeAssets(meta.id)
         ) { chainsById, assetsLocal ->
+            Log.d("&&&", "${assetsLocal.size}")
+            val enabledAssets = assetsLocal.filter { it.asset.enabled == true }
+            Log.d("&&&", "enabledAssets ${enabledAssets.size}")
+
+            val disabledAssets = assetsLocal.filter { it.asset.enabled == false }
+            Log.d("&&&", " disabledAssets ${disabledAssets.size}")
+
+            val defaultAssets = assetsLocal.filter { it.asset.enabled == null }
+            Log.d("&&&", "defaultAssets ${defaultAssets.size}")
+
             val chainAccounts = meta.chainAccounts.values.toList()
             val updatedAssets = assetsLocal.mapNotNull { asset ->
                 mapAssetLocalToAsset(chainsById, asset)?.let {
@@ -92,7 +103,7 @@ class WalletRepositoryImpl(
                 .flatMap { chain ->
                     chain.assets.map {
                         AssetWithStatus(
-                            asset = createEmpty(
+                            asset = Asset.createEmpty(
                                 chainAsset = it,
                                 metaId = meta.id,
                                 accountId = meta.accountId(chain) ?: emptyAccountIdValue,

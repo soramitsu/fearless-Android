@@ -979,4 +979,6 @@
 
     <string name="sora_card_blacklisted_countires_title">Исключения из заявки</string>
     <string name="sora_card_blacklisted_countires_warning"><![CDATA[Резиденты <b>некоторых стран<br>не могут подать заявку</b> на получение карты SORA Card в данный момент<br><a href=\"https://soracard.com/blacklist/\">Просмотреть список </a>]]></string>
+
+    <string name="settings_hide_zero_balances">Скрыть нулевые балансы</string>
 </resources>
