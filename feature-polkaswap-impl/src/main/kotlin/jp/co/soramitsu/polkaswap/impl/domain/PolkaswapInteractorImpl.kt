@@ -70,7 +70,7 @@ class PolkaswapInteractorImpl @Inject constructor(
         val metaAccount = accountRepository.getSelectedMetaAccount()
         val (chain, chainAsset) = chainRegistry.chainWithAsset(polkaswapChainId, assetId)
 
-        return walletRepository.getAsset(metaAccount.id, metaAccount.accountId(chain)!!, chainAsset, chain.minSupportedVersion)
+        return walletRepository.getAsset(metaAccount.id, metaAccount.accountId(chain)!!, chainAsset, chain.minSupportedVersion)!!
     }
 
     override suspend fun getAvailableDexes(): List<BigInteger> {

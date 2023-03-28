@@ -1,7 +1,6 @@
 package jp.co.soramitsu.wallet.impl.domain.validation
 
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
-import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.validation.DefaultFailureLevel
 import jp.co.soramitsu.common.validation.Validation
 import jp.co.soramitsu.common.validation.ValidationStatus
@@ -41,7 +40,7 @@ fun <P> EnoughToPayFeesValidation.Companion.assetBalanceProducer(
     val accountId = chain.accountIdOf(originAddressExtractor(payload))
     val meta = accountRepository.getSelectedMetaAccount()
 
-    val asset = walletRepository.getAsset(meta.id, accountId, chainAssetExtractor(payload), chain.minSupportedVersion)
+    val asset = walletRepository.getAsset(meta.id, accountId, chainAssetExtractor(payload), chain.minSupportedVersion)!!
 
-    asset?.availableForStaking.orZero()
+    asset.availableForStaking
 }
