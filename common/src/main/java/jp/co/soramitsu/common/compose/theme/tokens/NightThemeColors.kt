@@ -2,7 +2,6 @@ package jp.co.soramitsu.common.compose.theme.tokens
 
 import jp.co.soramitsu.common.compose.theme.tokens.Colors.Green40
 import jp.co.soramitsu.common.compose.theme.tokens.Colors.Green5
-import jp.co.soramitsu.common.compose.theme.tokens.Colors.Green90
 import jp.co.soramitsu.common.compose.theme.tokens.Colors.Grey40
 import jp.co.soramitsu.common.compose.theme.tokens.Colors.Grey5
 import jp.co.soramitsu.common.compose.theme.tokens.Colors.Grey50
@@ -18,7 +17,6 @@ import jp.co.soramitsu.common.compose.theme.tokens.Colors.White40
 import jp.co.soramitsu.common.compose.theme.tokens.Colors.White50
 import jp.co.soramitsu.common.compose.theme.tokens.Colors.Yellow30
 import jp.co.soramitsu.common.compose.theme.tokens.Colors.Yellow5
-import jp.co.soramitsu.common.compose.theme.tokens.Colors.Yellow90
 
 object NightThemeColors {
 
@@ -26,13 +24,11 @@ object NightThemeColors {
 
     val AccentPrimaryContainer = Pink5
 
-    val AccentSecondary = Yellow90
-//    val AccentSecondary = Grey5
+    val AccentSecondary = Grey5
 
     val AccentSecondaryContainer = Grey50
 
-    val AccentTertiary = Green90
-//    val AccentTertiary = Grey5
+    val AccentTertiary = Grey5
 
     val AccentTertiaryContainer = Grey50
 
