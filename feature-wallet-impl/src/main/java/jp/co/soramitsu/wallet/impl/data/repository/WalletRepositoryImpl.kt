@@ -65,6 +65,12 @@ class WalletRepositoryImpl(
     private val remoteConfigFetcher: RemoteConfigFetcher
 ) : WalletRepository, UpdatesProviderUi by updatesMixin {
 
+    companion object {
+        private const val COINGECKO_REQUEST_DELAY_MILLIS = 60 * 1000
+    }
+
+    private val coingeckoCache = mutableMapOf<String, MutableMap<String, Pair<Long, BigDecimal>>>()
+
     override fun assetsFlow(meta: MetaAccount): Flow<List<AssetWithStatus>> {
         return combine(
             chainRegistry.chainsById,
@@ -356,6 +362,25 @@ class WalletRepositoryImpl(
             fiatSymbol = fiatSymbol,
             recentRateChange = change
         )
+    }
+
+    override suspend fun getSingleAssetPriceCoingecko(priceId: String, currency: String): BigDecimal? {
+        coingeckoCache[priceId]?.get(currency)?.let { (cacheUntilMillis, cachedValue) ->
+            if (System.currentTimeMillis() <= cacheUntilMillis) {
+                return cachedValue
+            }
+        }
+        val apiValue = apiCall {
+            coingeckoApi.getSingleAssetPrice(priceIds = priceId, currency = currency)
+        }.getOrDefault(priceId, null)?.getOrDefault(currency, null)?.toBigDecimal()
+
+        apiValue?.let {
+            val currencyMap = coingeckoCache[priceId] ?: mutableMapOf()
+            val cacheUntilMillis = System.currentTimeMillis() + COINGECKO_REQUEST_DELAY_MILLIS
+            currencyMap[currency] = cacheUntilMillis to apiValue
+            coingeckoCache[priceId] = currencyMap
+        }
+        return apiValue
     }
 
     private suspend fun getAssetPriceCoingecko(vararg priceId: String, currencyId: String): Map<String, Map<String, BigDecimal>> {

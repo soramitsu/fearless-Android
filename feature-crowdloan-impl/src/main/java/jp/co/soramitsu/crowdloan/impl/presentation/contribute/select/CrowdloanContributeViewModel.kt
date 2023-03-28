@@ -5,10 +5,6 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.math.BigDecimal
-import java.math.RoundingMode
-import javax.inject.Inject
-import javax.inject.Named
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.mixin.api.Browserable
 import jp.co.soramitsu.common.mixin.api.Validatable
@@ -54,8 +50,7 @@ import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.wallet.api.presentation.mixin.fee.FeeLoaderMixin
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
-import kotlin.time.ExperimentalTime
-import kotlin.time.milliseconds
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
@@ -71,6 +66,11 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
+import java.math.RoundingMode
+import javax.inject.Inject
+import javax.inject.Named
+import kotlin.time.Duration.Companion.milliseconds
 
 private const val DEBOUNCE_DURATION_MILLIS = 500
 
@@ -292,7 +292,7 @@ class CrowdloanContributeViewModel @Inject constructor(
         }
     }
 
-    @OptIn(ExperimentalTime::class)
+    @OptIn(FlowPreview::class)
     private fun listenFee() {
         combine(
             parsedAmountFlow.debounce(DEBOUNCE_DURATION_MILLIS.milliseconds),

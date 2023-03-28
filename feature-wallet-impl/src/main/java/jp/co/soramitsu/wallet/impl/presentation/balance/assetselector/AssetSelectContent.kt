@@ -34,7 +34,6 @@ import jp.co.soramitsu.common.compose.component.Image
 import jp.co.soramitsu.common.compose.component.MarginHorizontal
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.component.getImageRequest
-import jp.co.soramitsu.common.compose.theme.FearlessThemeBlackBg
 import jp.co.soramitsu.common.compose.theme.black2
 import jp.co.soramitsu.common.compose.theme.black4
 import jp.co.soramitsu.common.compose.theme.gray2
@@ -208,17 +207,15 @@ private fun SelectAssetScreenPreview() {
         assets = items,
         searchQuery = null
     )
-    FearlessThemeBlackBg {
-        Column(
-            Modifier.background(black4)
-        ) {
-            AssetSelectContent(
-                state = state,
-                callback = object : AssetSelectContentInterface {
-                    override fun onAssetSelected(assetItemState: AssetItemState) {}
-                    override fun onSearchInput(input: String) {}
-                }
-            )
-        }
+    Column(
+        Modifier.background(black4)
+    ) {
+        AssetSelectContent(
+            state = state,
+            callback = object : AssetSelectContentInterface {
+                override fun onAssetSelected(assetItemState: AssetItemState) {}
+                override fun onSearchInput(input: String) {}
+            }
+        )
     }
 }

@@ -30,7 +30,7 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
 
     fun openSend(assetPayload: AssetPayload?, initialSendToAddress: String? = null, currencyId: String? = null)
 
-    fun openSwapTokensScreen(assetPayload: AssetPayload)
+    fun openSwapTokensScreen(assetId: String, chainId: String)
 
     fun openSelectChain(assetId: String, chainId: ChainId? = null, chooserMode: Boolean = true)
 
@@ -104,6 +104,8 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
     fun openSelectWallet()
 
     fun openNetworkIssues()
+
+    fun openGetSoraCard()
 
     fun openOptionsAddAccount(payload: AddAccountBottomSheet.Payload)
 

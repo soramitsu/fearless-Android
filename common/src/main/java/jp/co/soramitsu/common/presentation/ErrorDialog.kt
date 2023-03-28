@@ -38,7 +38,7 @@ import jp.co.soramitsu.common.compose.component.Grip
 import jp.co.soramitsu.common.compose.component.H3
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.component.emptyClick
-import jp.co.soramitsu.common.compose.component.soraTextStyle
+import jp.co.soramitsu.common.compose.theme.soraTextStyle
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.theme.alertYellow
 import jp.co.soramitsu.common.compose.theme.black2

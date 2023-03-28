@@ -113,4 +113,9 @@ interface WalletInteractor {
 
     suspend fun getEquilibriumAccountInfo(asset: CoreAsset, accountId: AccountId): EqAccountInfo?
     suspend fun getEquilibriumAssetRates(chainAsset: CoreAsset): Map<BigInteger, EqOraclePricePoint?>
+
+    fun isShowGetSoraCard(): Boolean
+    fun observeIsShowSoraCard(): Flow<Boolean>
+    fun decreaseSoraCardHiddenSessions()
+    fun hideSoraCard()
 }

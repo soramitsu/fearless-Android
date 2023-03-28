@@ -2,6 +2,7 @@ package jp.co.soramitsu.app.root.navigation
 
 import android.graphics.drawable.Drawable
 import android.os.Bundle
+import androidx.annotation.IdRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.net.toUri
 import androidx.lifecycle.Lifecycle
@@ -69,6 +70,7 @@ import jp.co.soramitsu.polkaswap.impl.presentation.swap_preview.SwapPreviewFragm
 import jp.co.soramitsu.polkaswap.impl.presentation.swap_tokens.SwapTokensFragment
 import jp.co.soramitsu.polkaswap.impl.presentation.transaction_settings.TransactionSettingsFragment
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.soracard.api.presentation.SoraCardRouter
 import jp.co.soramitsu.splash.SplashRouter
 import jp.co.soramitsu.staking.api.domain.model.PoolInfo
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
@@ -153,7 +155,8 @@ class Navigator :
     StakingRouter,
     CrowdloanRouter,
     PolkaswapRouter,
-    SuccessRouter {
+    SuccessRouter,
+    SoraCardRouter {
 
     private var navController: NavController? = null
     private var activity: AppCompatActivity? = null
@@ -175,7 +178,11 @@ class Navigator :
     override fun openInitialCheckPincode() {
         val action = PinCodeAction.Check(NavComponentDelayedNavigation(R.id.action_open_main), ToolbarConfiguration())
         val bundle = PincodeFragment.getPinCodeBundle(action)
-        navController?.navigate(R.id.action_splash_to_pin, bundle)
+        navController?.navigateSafe(R.id.action_splash_to_pin, bundle)
+    }
+
+    private fun NavController.navigateSafe(@IdRes resId: Int, args: Bundle?) {
+        runCatching { navigate(resId, args) }
     }
 
     override fun openCreateAccountFromOnboarding() {
@@ -508,7 +515,7 @@ class Navigator :
     }
 
     override val currentStackEntryLifecycle: Lifecycle
-        get() = navController!!.currentBackStackEntry!!.lifecycle
+        get() = navController!!.currentBackStackEntry!!.getLifecycle()
 
     override fun openControllerAccount() {
         navController?.navigate(R.id.action_stakingBalanceFragment_to_setControllerAccountFragment)
@@ -575,8 +582,8 @@ class Navigator :
         navController?.navigate(R.id.back_to_main)
     }
 
-    override fun returnToAssetDetails() {
-        navController?.navigate(R.id.back_to_asset_details)
+    override fun closeSwap() {
+        navController?.navigate(R.id.close_swap)
     }
 
     override fun openValidatorDetails(validatorDetails: ValidatorDetailsParcelModel) {
@@ -597,10 +604,14 @@ class Navigator :
         navController?.navigate(R.id.sendSetupFragment, bundle)
     }
 
-    override fun openSwapTokensScreen(assetPayload: AssetPayload) {
-        val bundle = SwapTokensFragment.getBundle(assetPayload.chainAssetId, assetPayload.chainId)
+    override fun openSwapTokensScreen(assetId: String, chainId: String) {
+        val bundle = SwapTokensFragment.getBundle(assetId, chainId)
 
         navController?.navigate(R.id.swapTokensFragment, bundle)
+    }
+
+    override fun showBuyCrypto() {
+        navController?.navigate(R.id.buyCryptoFragment)
     }
 
     override fun openSelectChain(assetId: String, chainId: ChainId?, chooserMode: Boolean) {
@@ -935,7 +946,7 @@ class Navigator :
     override val educationalStoriesCompleted: Flow<Boolean>
         get() {
             return combine(
-                navController?.currentBackStackEntry?.lifecycle?.onResumeObserver() ?: return flowOf(false),
+                navController?.currentBackStackEntry?.getLifecycle()?.onResumeObserver() ?: return flowOf(false),
                 navController?.currentBackStackEntry?.savedStateHandle?.getLiveData<Boolean>(StoryFragment.KEY_STORY) ?: return flowOf(false),
                 combiner = { (isResumed: Boolean, storiesCompleted: Boolean) ->
                     isResumed && storiesCompleted
@@ -989,6 +1000,10 @@ class Navigator :
         navController?.navigate(R.id.editPoolConfirmFragment)
     }
 
+    override fun openGetSoraCard() {
+        navController?.navigate(R.id.getSoraCardFragment)
+    }
+
     override val walletSelectorPayloadFlow: Flow<WalletSelectorPayload?>
         get() = navController?.currentBackStackEntry?.savedStateHandle
             ?.getLiveData<WalletSelectorPayload?>(WalletSelectorPayload::class.java.name)
@@ -1004,7 +1019,7 @@ class Navigator :
 
     override fun alertResultFlow(key: String): Flow<Result<Unit>> {
         val currentEntry = navController?.currentBackStackEntry
-        val onResumeObserver = currentEntry?.lifecycle?.onResumeObserver()
+        val onResumeObserver = currentEntry?.getLifecycle()?.onResumeObserver()
 
         return (onResumeObserver?.asFlow() ?: emptyFlow()).map {
             if (currentEntry?.savedStateHandle?.contains(key) == true) {
@@ -1019,7 +1034,7 @@ class Navigator :
 
     override fun listenAlertResultFlowFromStartSelectValidatorsScreen(key: String): Flow<Result<Unit>> {
         val currentEntry = navController?.getBackStackEntry(R.id.startSelectValidatorsFragment)
-        val onResumeObserver = currentEntry?.lifecycle?.onResumeObserver()
+        val onResumeObserver = currentEntry?.getLifecycle()?.onResumeObserver()
 
         return (onResumeObserver?.asFlow() ?: emptyFlow()).map {
             if (currentEntry?.savedStateHandle?.contains(key) == true) {
@@ -1052,5 +1067,9 @@ class Navigator :
     override fun openPoolFullUnstakeDepositorAlertFragment(amount: String) {
         val bundle = PoolFullUnstakeDepositorAlertFragment.getBundle(amount)
         navController?.navigate(R.id.poolFullUnstakeDepositorAlertFragment, bundle)
+    }
+
+    override fun openGetMoreXor() {
+        navController?.navigate(R.id.getMoreXorFragment)
     }
 }

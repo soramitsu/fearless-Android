@@ -3,6 +3,22 @@ package jp.co.soramitsu.coredb.migrations
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
+val Migration_50_51 = object : Migration(50, 51) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+        database.execSQL(
+            """
+             CREATE TABLE IF NOT EXISTS `sora_card` (
+             `id` TEXT NOT NULL, 
+             `accessToken` TEXT NOT NULL, 
+             `refreshToken` TEXT NOT NULL, 
+             `accessTokenExpirationTime` INTEGER NOT NULL, 
+             `kycStatus` TEXT NOT NULL,
+             PRIMARY KEY(`id`)
+             )
+            """.trimIndent()
+        )
+    }
+}
 val Migration_49_50 = object : Migration(49, 50) {
     override fun migrate(database: SupportSQLiteDatabase) {
         database.execSQL("ALTER TABLE chain_assets ADD COLUMN `name` TEXT DEFAULT NULL")

@@ -17,6 +17,8 @@ import jp.co.soramitsu.common.mixin.impl.observeBrowserEvents
 import jp.co.soramitsu.common.presentation.FiatCurrenciesChooserBottomSheetDialog
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
 import jp.co.soramitsu.feature_account_impl.databinding.FragmentProfileBinding
+import jp.co.soramitsu.oauth.base.sdk.contract.SoraCardResult
+import jp.co.soramitsu.oauth.base.sdk.signin.SoraCardSignInContract
 
 @AndroidEntryPoint
 class ProfileFragment : BaseFragment<ProfileViewModel>() {
@@ -27,6 +29,23 @@ class ProfileFragment : BaseFragment<ProfileViewModel>() {
     private lateinit var binding: FragmentProfileBinding
 
     override val viewModel: ProfileViewModel by viewModels()
+
+    private val soraCardSignIn = registerForActivityResult(
+        SoraCardSignInContract()
+    ) { result ->
+        when (result) {
+            is SoraCardResult.Failure -> {}
+            is SoraCardResult.Canceled -> {}
+            is SoraCardResult.Success -> {
+                viewModel.updateSoraCardInfo(
+                    accessToken = result.accessToken,
+                    refreshToken = result.refreshToken,
+                    accessTokenExpirationTime = result.accessTokenExpirationTime,
+                    kycStatus = result.status.toString()
+                )
+            }
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -49,6 +68,7 @@ class ProfileFragment : BaseFragment<ProfileViewModel>() {
             profileCurrency.setOnClickListener { viewModel.currencyClicked() }
             profileExperimentalFeatures.setOnClickListener { viewModel.onExperimentalClicked() }
             polkaswapDisclaimerTv.setOnClickListener { viewModel.polkaswapDisclaimerClicked() }
+            profileSoraCard.setOnClickListener { viewModel.onSoraCardClicked() }
 
             viewModel.hasMissingAccountsFlow.observe {
                 missingAccountsIcon.isVisible = it
@@ -80,6 +100,10 @@ class ProfileFragment : BaseFragment<ProfileViewModel>() {
         viewModel.showFiatChooser.observeEvent(::showFiatChooser)
 
         viewModel.selectedFiatLiveData.observe(binding.selectedCurrencyTv::setText)
+
+        viewModel.launchSoraCardSignIn.observeEvent { contractData ->
+            soraCardSignIn.launch(contractData)
+        }
     }
 
     private fun showFiatChooser(payload: DynamicListBottomSheet.Payload<FiatCurrency>) {
