@@ -515,7 +515,7 @@ class Navigator :
     }
 
     override val currentStackEntryLifecycle: Lifecycle
-        get() = navController!!.currentBackStackEntry!!.lifecycle
+        get() = navController!!.currentBackStackEntry!!.getLifecycle()
 
     override fun openControllerAccount() {
         navController?.navigate(R.id.action_stakingBalanceFragment_to_setControllerAccountFragment)
@@ -946,7 +946,7 @@ class Navigator :
     override val educationalStoriesCompleted: Flow<Boolean>
         get() {
             return combine(
-                navController?.currentBackStackEntry?.lifecycle?.onResumeObserver() ?: return flowOf(false),
+                navController?.currentBackStackEntry?.getLifecycle()?.onResumeObserver() ?: return flowOf(false),
                 navController?.currentBackStackEntry?.savedStateHandle?.getLiveData<Boolean>(StoryFragment.KEY_STORY) ?: return flowOf(false),
                 combiner = { (isResumed: Boolean, storiesCompleted: Boolean) ->
                     isResumed && storiesCompleted
@@ -1019,7 +1019,7 @@ class Navigator :
 
     override fun alertResultFlow(key: String): Flow<Result<Unit>> {
         val currentEntry = navController?.currentBackStackEntry
-        val onResumeObserver = currentEntry?.lifecycle?.onResumeObserver()
+        val onResumeObserver = currentEntry?.getLifecycle()?.onResumeObserver()
 
         return (onResumeObserver?.asFlow() ?: emptyFlow()).map {
             if (currentEntry?.savedStateHandle?.contains(key) == true) {
@@ -1034,7 +1034,7 @@ class Navigator :
 
     override fun listenAlertResultFlowFromStartSelectValidatorsScreen(key: String): Flow<Result<Unit>> {
         val currentEntry = navController?.getBackStackEntry(R.id.startSelectValidatorsFragment)
-        val onResumeObserver = currentEntry?.lifecycle?.onResumeObserver()
+        val onResumeObserver = currentEntry?.getLifecycle()?.onResumeObserver()
 
         return (onResumeObserver?.asFlow() ?: emptyFlow()).map {
             if (currentEntry?.savedStateHandle?.contains(key) == true) {
