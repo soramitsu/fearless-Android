@@ -35,7 +35,7 @@ fun AssetsList(
     header: (@Composable () -> Unit)? = null
 ) {
     val listState = rememberLazyListState(0)
-    val isShowHidden = remember { mutableStateOf(false) }
+    val isShowHidden = remember { mutableStateOf(data.visibleAssets.isEmpty()) }
     val onHiddenClick = remember { { isShowHidden.value = isShowHidden.value.not() } }
 
     LaunchedEffect(listState, (data as? WalletState)?.balance) {

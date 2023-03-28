@@ -15,7 +15,7 @@ class RuntimeVersionSubscription(
     connection: ChainConnection,
     private val chainDao: ChainDao,
     private val runtimeSyncService: RuntimeSyncService
-) : CoroutineScope by CoroutineScope(Dispatchers.Default) {
+) : CoroutineScope by CoroutineScope(Dispatchers.IO) {
 
     init {
         connection.socketService.subscriptionFlow(SubscribeRuntimeVersionRequest)

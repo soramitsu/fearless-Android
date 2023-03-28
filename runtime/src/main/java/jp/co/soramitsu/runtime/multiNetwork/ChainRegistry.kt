@@ -1,5 +1,6 @@
 package jp.co.soramitsu.runtime.multiNetwork
 
+import javax.inject.Inject
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
 import jp.co.soramitsu.common.utils.diffed
@@ -31,7 +32,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 data class ChainService(
     val runtimeProvider: IRuntimeProvider,
@@ -49,37 +49,9 @@ class ChainRegistry @Inject constructor(
 ) : IChainRegistry, CoroutineScope by CoroutineScope(Dispatchers.Default), UpdatesProviderUi by updatesMixin {
 
     val currentChains = chainDao.joinChainInfoFlow()
-        .mapList(::mapChainLocalToChain)
-        .diffed()
-        .map { (removed, addedOrModified, all) ->
-            removed.forEach {
-                val chainId = it.id
-
-                runtimeProviderPool.removeRuntimeProvider(chainId)
-                runtimeSubscriptionPool.removeSubscription(chainId)
-                runtimeSyncService.unregisterChain(chainId)
-                connectionPool.removeConnection(chainId)
-            }
-
-            updatesMixin.startChainsSyncUp(addedOrModified.filter { !it.nodes.isNullOrEmpty() }.map { it.id })
-            addedOrModified.filter { !it.nodes.isNullOrEmpty() }.forEach { chain ->
-
-                val connection = connectionPool.setupConnection(
-                    chain,
-                    onSelectedNodeChange = { chainId, newNodeUrl ->
-                        launch { selectNode(NodeId(chainId to newNodeUrl)) }
-                    }
-                )
-
-                runtimeProviderPool.setupRuntimeProvider(chain)
-                runtimeSyncService.registerChain(chain, connection)
-                runtimeSubscriptionPool.setupRuntimeSubscription(chain, connection)
-            }
-
-            all
-        }
         .filter { it.isNotEmpty() }
         .distinctUntilChanged()
+        .mapList(::mapChainLocalToChain)
         .inBackground()
         .shareIn(this, SharingStarted.Eagerly, replay = 1)
 
@@ -94,6 +66,29 @@ class ChainRegistry @Inject constructor(
     fun syncUp() {
         launch {
             runCatching { chainSyncService.syncUp() }
+
+            chainDao.joinChainInfoFlow().mapList(::mapChainLocalToChain).diffed()
+                .collect { (removed, addedOrModified, _) ->
+                    removed.forEach {
+                        val chainId = it.id
+                        runtimeProviderPool.removeRuntimeProvider(chainId)
+                        runtimeSubscriptionPool.removeSubscription(chainId)
+                        runtimeSyncService.unregisterChain(chainId)
+                        connectionPool.removeConnection(chainId)
+                    }
+                    updatesMixin.startChainsSyncUp(addedOrModified.filter { !it.nodes.isNullOrEmpty() }.map { it.id })
+                    addedOrModified.filter { !it.nodes.isNullOrEmpty() }.forEach { chain ->
+                        val connection = connectionPool.setupConnection(
+                            chain,
+                            onSelectedNodeChange = { chainId, newNodeUrl ->
+                                launch { selectNode(NodeId(chainId to newNodeUrl)) }
+                            }
+                        )
+                        runtimeProviderPool.setupRuntimeProvider(chain)
+                        runtimeSyncService.registerChain(chain, connection)
+                        runtimeSubscriptionPool.setupRuntimeSubscription(chain, connection)
+                    }
+                }
         }
     }
 

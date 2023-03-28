@@ -3,6 +3,70 @@ package jp.co.soramitsu.coredb.migrations
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
+val Migration_51_52 = object : Migration(51, 52) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+        database.execSQL("ALTER TABLE assets RENAME TO _assets")
+        database.execSQL("DROP TABLE IF EXISTS assets")
+        // new table with nullable enabled field
+        database.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `assets` (
+            `id` TEXT NOT NULL, 
+            `chainId` TEXT NOT NULL, 
+            `accountId` BLOB NOT NULL, 
+            `metaId` INTEGER NOT NULL, 
+            `tokenPriceId` TEXT, 
+            `freeInPlanks` TEXT, 
+            `reservedInPlanks` TEXT, 
+            `miscFrozenInPlanks` TEXT, 
+            `feeFrozenInPlanks` TEXT, 
+            `bondedInPlanks` TEXT, 
+            `redeemableInPlanks` TEXT, 
+            `unbondingInPlanks` TEXT, 
+            `sortIndex` INTEGER NOT NULL DEFAULT 0, 
+            `enabled` INTEGER DEFAULT NULL, 
+            `markedNotNeed` INTEGER NOT NULL DEFAULT 0, 
+            `chainAccountName` TEXT, 
+            PRIMARY KEY(`id`, `chainId`, `accountId`, `metaId`), 
+            FOREIGN KEY(`chainId`) REFERENCES `chains`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE 
+            )
+            """.trimIndent()
+        )
+
+        database.execSQL(
+            """
+            INSERT INTO assets SELECT 
+            a.id,
+            a.chainId,
+            a.accountId,
+            a.metaId,
+            a.tokenPriceId,
+            a.freeInPlanks,
+            a.reservedInPlanks,
+            a.miscFrozenInPlanks,
+            a.feeFrozenInPlanks,
+            a.bondedInPlanks,
+            a.redeemableInPlanks,
+            a.unbondingInPlanks,
+            a.sortIndex,
+            a.enabled,
+            a.markedNotNeed,
+            a.chainAccountName
+            FROM _assets a
+            """.trimIndent()
+        )
+        database.execSQL(
+            """
+            UPDATE assets SET enabled = NULL WHERE enabled = 1
+            """.trimIndent()
+        )
+        database.execSQL("DROP TABLE IF EXISTS _assets")
+
+        database.execSQL("CREATE INDEX IF NOT EXISTS `index_assets_metaId` ON `assets` (`metaId`)")
+        database.execSQL("CREATE INDEX IF NOT EXISTS `index_assets_chainId` ON `assets` (`chainId`)")
+    }
+}
+
 val Migration_50_51 = object : Migration(50, 51) {
     override fun migrate(database: SupportSQLiteDatabase) {
         database.execSQL(
@@ -19,6 +83,7 @@ val Migration_50_51 = object : Migration(50, 51) {
         )
     }
 }
+
 val Migration_49_50 = object : Migration(49, 50) {
     override fun migrate(database: SupportSQLiteDatabase) {
         database.execSQL("ALTER TABLE chain_assets ADD COLUMN `name` TEXT DEFAULT NULL")

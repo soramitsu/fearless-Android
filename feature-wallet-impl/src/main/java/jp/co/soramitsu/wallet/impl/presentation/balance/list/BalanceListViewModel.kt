@@ -4,7 +4,6 @@ import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.SwipeableState
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.asFlow
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
@@ -21,6 +20,7 @@ import jp.co.soramitsu.common.compose.component.ChainSelectorViewState
 import jp.co.soramitsu.common.compose.component.ChangeBalanceViewState
 import jp.co.soramitsu.common.compose.component.MainToolbarViewState
 import jp.co.soramitsu.common.compose.component.MultiToggleButtonState
+import jp.co.soramitsu.common.compose.component.NetworkIssueItemState
 import jp.co.soramitsu.common.compose.component.SwipeState
 import jp.co.soramitsu.common.compose.component.ToolbarHomeIconState
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState
@@ -43,15 +43,11 @@ import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.common.utils.formatAsChange
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.inBackground
-import jp.co.soramitsu.common.utils.map
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.sumByBigDecimal
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
-import jp.co.soramitsu.core.extrinsic.KeyPairProvider
-import jp.co.soramitsu.core.extrinsic.mortality.IChainStateRepository
 import jp.co.soramitsu.core.models.Asset
-import jp.co.soramitsu.core.runtime.IChainRegistry
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.addressByteOrNull
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.oauth.base.sdk.SoraCardEnvironmentType
@@ -117,9 +113,6 @@ class BalanceListViewModel @Inject constructor(
     private val resourceManager: ResourceManager,
     private val clipboardManager: ClipboardManager,
     private val currentAccountAddress: CurrentAccountAddressUseCase,
-    private val chainRegistry: IChainRegistry,
-    private val keyPairProvider: KeyPairProvider,
-    private val chainStateRepository: IChainStateRepository,
     private val kycRepository: KycRepository
 ) : BaseViewModel(), UpdatesProviderUi by updatesMixin, NetworkStateUi by networkStateMixin, WalletScreenInterface {
 
@@ -139,10 +132,6 @@ class BalanceListViewModel @Inject constructor(
 
     private val _launchSoraCardSignIn = MutableLiveData<Event<SoraCardSignInContractData>>()
     val launchSoraCardSignIn: LiveData<Event<SoraCardSignInContractData>> = _launchSoraCardSignIn
-
-    private val connectingChainIdsFlow = networkStateMixin.chainConnectionsLiveData.map {
-        it.filter { (_, isConnecting) -> isConnecting }.keys
-    }.asFlow()
 
     private val assetModelsFlow: Flow<List<AssetModel>> = interactor.assetsFlow()
         .mapList {
@@ -209,8 +198,9 @@ class BalanceListViewModel @Inject constructor(
         interactor.assetsFlow().debounce(200L),
         chainInteractor.getChainsFlow(),
         selectedChainId,
-        connectingChainIdsFlow
-    ) { assets: List<AssetWithStatus>, chains: List<Chain>, selectedChainId: ChainId?, chainConnecting: Set<ChainId> ->
+        networkIssuesFlow,
+        interactor.observeHideZeroBalanceEnabledForCurrentWallet()
+    ) { assets: List<AssetWithStatus>, chains: List<Chain>, selectedChainId: ChainId?, networkIssues: Set<NetworkIssueItemState>, hideZeroBalancesEnabled ->
         val assetStates = mutableListOf<AssetListItemViewState>()
         val sortedAndFiltered = assets
             .filter { it.hasAccount || !it.asset.markedNotNeed }
@@ -244,7 +234,7 @@ class BalanceListViewModel @Inject constructor(
                     else -> AppVersion.isSupported(showChain.minSupportedVersion)
                 }
 
-                val hasNetworkIssue = tokenChains.any { it.id in chainConnecting }
+                val hasNetworkIssue = networkIssues.any { it.assetId == assetWithStatus.asset.token.configuration.id }
 
                 val hasChainWithoutAccount = assets.any { withStatus ->
                     withStatus.asset.token.configuration.symbolToShow == symbolToShow && withStatus.hasAccount.not()
@@ -263,6 +253,11 @@ class BalanceListViewModel @Inject constructor(
                     }
                 }
 
+                val isZeroBalance =
+                    assetWithStatus.asset.transferable.compareTo(BigDecimal.ZERO) == 0 && assetWithStatus.asset.frozen.compareTo(BigDecimal.ZERO) == 0
+                val assetDisabledByUser = assetWithStatus.asset.enabled == false
+                val isHidden = assetDisabledByUser || (assetWithStatus.asset.enabled == null && isZeroBalance && hideZeroBalancesEnabled)
+
                 val assetListItemViewState = AssetListItemViewState(
                     assetIconUrl = tokenConfig.iconUrl,
                     assetChainName = showChain?.name.orEmpty(),
@@ -277,7 +272,7 @@ class BalanceListViewModel @Inject constructor(
                     chainId = showChain?.id.orEmpty(),
                     chainAssetId = showChainAsset?.id.orEmpty(),
                     isSupported = isSupported,
-                    isHidden = !assetWithStatus.asset.enabled,
+                    isHidden = isHidden,
                     hasAccount = !hasChainWithoutAccount,
                     priceId = tokenConfig.priceId,
                     hasNetworkIssue = hasNetworkIssue

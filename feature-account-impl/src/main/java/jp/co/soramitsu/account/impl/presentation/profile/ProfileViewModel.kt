@@ -34,6 +34,7 @@ import jp.co.soramitsu.oauth.base.sdk.signin.SoraCardSignInContractData
 import jp.co.soramitsu.soracard.api.domain.SoraCardInteractor
 import jp.co.soramitsu.soracard.impl.presentation.SoraCardItemViewState
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.firstOrNull
@@ -92,6 +93,8 @@ class ProfileViewModel @Inject constructor(
         val kycStatus = it?.kycStatus?.let(::mapKycStatus)
         SoraCardItemViewState(kycStatus, it, null, true)
     }
+
+    val hideZeroBalancesState: Flow<Boolean> = walletInteractor.observeHideZeroBalanceEnabledForCurrentWallet()
 
     fun aboutClicked() {
         router.openAboutScreen()
@@ -217,6 +220,12 @@ class ProfileViewModel @Inject constructor(
                 accessTokenExpirationTime,
                 kycStatus
             )
+        }
+    }
+
+    fun onHideZeroBalancesClick() {
+        viewModelScope.launch {
+            walletInteractor.toggleHideZeroBalancesForCurrentWallet()
         }
     }
 }

@@ -1,13 +1,18 @@
 package jp.co.soramitsu.wallet.impl.data.repository
 
 import com.opencsv.CSVReaderHeaderAware
+import java.math.BigDecimal
+import java.math.BigInteger
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.accountId
+import jp.co.soramitsu.common.compose.component.NetworkIssueItemState
+import jp.co.soramitsu.common.compose.component.NetworkIssueType
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.coingecko.CoingeckoApi
 import jp.co.soramitsu.common.data.network.config.AppConfigRemote
 import jp.co.soramitsu.common.data.network.config.RemoteConfigFetcher
 import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
+import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
 import jp.co.soramitsu.common.utils.orZero
@@ -46,8 +51,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.withContext
-import java.math.BigDecimal
-import java.math.BigInteger
 import jp.co.soramitsu.core.models.Asset as CoreAsset
 
 class WalletRepositoryImpl(
@@ -62,7 +65,8 @@ class WalletRepositoryImpl(
     private val chainRegistry: ChainRegistry,
     private val availableFiatCurrencies: GetAvailableFiatCurrencies,
     private val updatesMixin: UpdatesMixin,
-    private val remoteConfigFetcher: RemoteConfigFetcher
+    private val remoteConfigFetcher: RemoteConfigFetcher,
+    private val networkStateMixin: NetworkStateMixin
 ) : WalletRepository, UpdatesProviderUi by updatesMixin {
 
     companion object {
@@ -126,8 +130,26 @@ class WalletRepositoryImpl(
                 it.asset.token.configuration.chainToSymbol !in updatedAssets.map { it.asset.token.configuration.chainToSymbol }
             }
 
+            val assetsWithProblems = notUpdatedAssetsByUniqueAccounts + notUpdatedAssets
+            val issues = buildNetworkIssues(assetsWithProblems)
+            networkStateMixin.notifyAssetsProblem(issues)
+
             updatedAssets + notUpdatedAssetsByUniqueAccounts + notUpdatedAssets
         }
+    }
+
+    private fun buildNetworkIssues(items: List<AssetWithStatus>): Set<NetworkIssueItemState> {
+        return items.map {
+            NetworkIssueItemState(
+                iconUrl = it.asset.token.configuration.iconUrl,
+                title = "${it.asset.token.configuration.chainName} ${it.asset.token.configuration.name}",
+                type = NetworkIssueType.Node,
+                chainId = it.asset.token.configuration.chainId,
+                chainName = it.asset.token.configuration.chainName,
+                assetId = it.asset.token.configuration.id,
+                priceId = it.asset.token.configuration.priceId
+            )
+        }.toSet()
     }
 
     override suspend fun getAssets(metaId: Long): List<Asset> = withContext(Dispatchers.Default) {
