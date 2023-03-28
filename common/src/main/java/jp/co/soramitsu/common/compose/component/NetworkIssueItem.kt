@@ -67,21 +67,15 @@ data class NetworkIssueItemState(
 
         other as NetworkIssueItemState
 
-        if (type != other.type) return false
         if (chainId != other.chainId) return false
-        if (chainName != other.chainName) return false
         if (assetId != other.assetId) return false
-        if (priceId != other.priceId) return false
 
         return true
     }
 
     override fun hashCode(): Int {
-        var result = type.hashCode()
-        result = 31 * result + chainId.hashCode()
-        result = 31 * result + chainName.hashCode()
+        var result = chainId.hashCode()
         result = 31 * result + assetId.hashCode()
-        result = 31 * result + (priceId?.hashCode() ?: 0)
         return result
     }
 }

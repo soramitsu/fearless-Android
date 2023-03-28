@@ -67,7 +67,6 @@ val Migration_51_52 = object : Migration(51, 52) {
     }
 }
 
-
 val Migration_50_51 = object : Migration(50, 51) {
     override fun migrate(database: SupportSQLiteDatabase) {
         database.execSQL(

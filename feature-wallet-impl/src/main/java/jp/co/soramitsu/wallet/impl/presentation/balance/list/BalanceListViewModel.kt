@@ -133,10 +133,6 @@ class BalanceListViewModel @Inject constructor(
     private val _launchSoraCardSignIn = MutableLiveData<Event<SoraCardSignInContractData>>()
     val launchSoraCardSignIn: LiveData<Event<SoraCardSignInContractData>> = _launchSoraCardSignIn
 
-    private val connectingChainIdsFlow = networkStateMixin.chainConnectionsLiveData.map {
-        it.filter { (_, isConnecting) -> isConnecting }.keys
-    }.asFlow()
-
     private val assetModelsFlow: Flow<List<AssetModel>> = interactor.assetsFlow()
         .mapList {
             when {
