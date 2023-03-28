@@ -60,7 +60,31 @@ data class NetworkIssueItemState(
     val chainName: String,
     val assetId: String,
     val priceId: String? = null
-)
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as NetworkIssueItemState
+
+        if (type != other.type) return false
+        if (chainId != other.chainId) return false
+        if (chainName != other.chainName) return false
+        if (assetId != other.assetId) return false
+        if (priceId != other.priceId) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = type.hashCode()
+        result = 31 * result + chainId.hashCode()
+        result = 31 * result + chainName.hashCode()
+        result = 31 * result + assetId.hashCode()
+        result = 31 * result + (priceId?.hashCode() ?: 0)
+        return result
+    }
+}
 
 @Composable
 fun NetworkIssueItem(

@@ -5,7 +5,6 @@ import androidx.compose.material.SwipeableState
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
-import androidx.lifecycle.asFlow
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.math.BigDecimal
 import javax.inject.Inject
@@ -24,7 +23,6 @@ import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.common.utils.formatAsChange
 import jp.co.soramitsu.common.utils.formatAsCurrency
-import jp.co.soramitsu.common.utils.map
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.sumByBigDecimal
 import jp.co.soramitsu.feature_wallet_impl.R
@@ -39,6 +37,7 @@ import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -61,9 +60,9 @@ class SearchAssetsViewModel @Inject constructor(
 
     private val enteredAssetQueryFlow = MutableStateFlow("")
 
-    private val connectingChainIdsFlow = networkStateMixin.chainConnectionsLiveData.map {
+    private val connectingChainIdsFlow = networkStateMixin.chainConnectionsFlow.map {
         it.filter { (_, isConnecting) -> isConnecting }.keys
-    }.asFlow()
+    }
 
     private val assetStates = combine(
         interactor.assetsFlow(),

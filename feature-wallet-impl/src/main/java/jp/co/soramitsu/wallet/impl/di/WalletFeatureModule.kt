@@ -81,6 +81,7 @@ import jp.co.soramitsu.xnetworking.sorawallet.mainconfig.SoraRemoteConfigProvide
 import jp.co.soramitsu.xnetworking.txhistory.client.sorawallet.SubQueryClientForSoraWalletFactory
 import javax.inject.Named
 import javax.inject.Singleton
+import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -150,7 +151,8 @@ class WalletFeatureModule {
         chainRegistry: ChainRegistry,
         availableFiatCurrencies: GetAvailableFiatCurrencies,
         updatesMixin: UpdatesMixin,
-        remoteConfigFetcher: RemoteConfigFetcher
+        remoteConfigFetcher: RemoteConfigFetcher,
+        networkStateMixin: NetworkStateMixin
     ): WalletRepository = WalletRepositoryImpl(
         substrateSource,
         operationsDao,
@@ -163,7 +165,8 @@ class WalletFeatureModule {
         chainRegistry,
         availableFiatCurrencies,
         updatesMixin,
-        remoteConfigFetcher
+        remoteConfigFetcher,
+        networkStateMixin
     )
 
     @Provides

@@ -4,7 +4,6 @@ import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.SwipeableState
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.asFlow
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
@@ -21,6 +20,7 @@ import jp.co.soramitsu.common.compose.component.ChainSelectorViewState
 import jp.co.soramitsu.common.compose.component.ChangeBalanceViewState
 import jp.co.soramitsu.common.compose.component.MainToolbarViewState
 import jp.co.soramitsu.common.compose.component.MultiToggleButtonState
+import jp.co.soramitsu.common.compose.component.NetworkIssueItemState
 import jp.co.soramitsu.common.compose.component.SwipeState
 import jp.co.soramitsu.common.compose.component.ToolbarHomeIconState
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState
@@ -43,7 +43,6 @@ import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.common.utils.formatAsChange
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.inBackground
-import jp.co.soramitsu.common.utils.map
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.sumByBigDecimal
@@ -203,9 +202,9 @@ class BalanceListViewModel @Inject constructor(
         interactor.assetsFlow().debounce(200L),
         chainInteractor.getChainsFlow(),
         selectedChainId,
-        connectingChainIdsFlow,
+        networkIssuesFlow,
         interactor.observeHideZeroBalanceEnabledForCurrentWallet()
-    ) { assets: List<AssetWithStatus>, chains: List<Chain>, selectedChainId: ChainId?, chainConnecting: Set<ChainId>, hideZeroBalancesEnabled ->
+    ) { assets: List<AssetWithStatus>, chains: List<Chain>, selectedChainId: ChainId?, networkIssues: Set<NetworkIssueItemState>, hideZeroBalancesEnabled ->
         val assetStates = mutableListOf<AssetListItemViewState>()
         val sortedAndFiltered = assets
             .filter { it.hasAccount || !it.asset.markedNotNeed }
@@ -239,7 +238,7 @@ class BalanceListViewModel @Inject constructor(
                     else -> AppVersion.isSupported(showChain.minSupportedVersion)
                 }
 
-                val hasNetworkIssue = tokenChains.any { it.id in chainConnecting }
+                val hasNetworkIssue = networkIssues.any { it.assetId == assetWithStatus.asset.token.configuration.id }
 
                 val hasChainWithoutAccount = assets.any { withStatus ->
                     withStatus.asset.token.configuration.symbolToShow == symbolToShow && withStatus.hasAccount.not()

@@ -165,7 +165,7 @@ class PaymentUpdater(
         }.onFailure { Log.d("PaymentUpdater", "Failed to handle response for asset ${asset.symbolToShow} (${asset.id}) $it ") }
     }
 
-    private suspend fun constructKey(
+    private fun constructKey(
         runtime: RuntimeSnapshot,
         asset: Asset,
         accountId: ByteArray
