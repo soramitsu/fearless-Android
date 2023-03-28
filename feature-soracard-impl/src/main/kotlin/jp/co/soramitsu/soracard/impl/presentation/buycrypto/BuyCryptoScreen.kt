@@ -8,8 +8,10 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.viewinterop.AndroidView
 import jp.co.soramitsu.common.compose.component.ProgressDialog
+import jp.co.soramitsu.common.compose.theme.white04
 
 @Composable
 fun BuyCryptoScreen(
@@ -17,7 +19,9 @@ fun BuyCryptoScreen(
     onPageFinished: () -> Unit
 ) {
     Box(
-        modifier = Modifier.fillMaxSize().imePadding(),
+        modifier = Modifier
+            .fillMaxSize()
+            .imePadding(),
         contentAlignment = Alignment.Center
     ) {
         AndroidView(
@@ -32,6 +36,7 @@ fun BuyCryptoScreen(
                     }
 
                     settings.javaScriptEnabled = true
+                    setBackgroundColor(white04.toArgb())
                 }
             },
             update = {
