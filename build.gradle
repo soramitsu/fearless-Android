@@ -25,7 +25,7 @@ buildscript {
 
         progressButtonsVersion = '2.1.0'
         xNetworkingVersion = '0.0.55'
-        soraCardVersion = '0.0.30'
+        soraCardVersion = '0.0.32'
         soraUiCoreVersion = '0.0.63'
 
         daggerVersion = '2.45'

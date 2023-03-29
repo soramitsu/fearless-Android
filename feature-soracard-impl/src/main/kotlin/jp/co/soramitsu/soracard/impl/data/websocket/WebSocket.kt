@@ -1,6 +1,5 @@
 package jp.co.soramitsu.soracard.impl.data.websocket
 
-import android.util.Log
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.websocket.DefaultClientWebSocketSession
 import io.ktor.client.plugins.websocket.webSocket
@@ -59,17 +58,15 @@ class WebSocket(
                     frame as Frame.Text
                     val text = frame.readText()
 
-                    log("Response", text)
                     this@WebSocket.listener.onResponse(response = WebSocketResponse(json = text))
                 }
         } catch (e: Exception) {
-            println("Error while receiving: ${e.message}")
+            // Error while receiving
         }
     }
 
     suspend fun disconnect() {
         socketSession?.close()
-        log("Disconnected", url)
     }
 
     suspend fun sendRequest(request: WebSocketRequest) {
@@ -79,20 +76,15 @@ class WebSocket(
                 listener.onConnected()
 
                 launch {
-                    log("Sending", request.json)
                     socketSession?.send(Frame.Text(request.json))
                 }
 
                 listenIncomingMessages()
             } catch (e: Exception) {
-                println("Error while connecting")
+                // Error while connecting
             } finally {
                 listener.onSocketClosed()
             }
         }
-    }
-
-    private fun log(topic: String, message: Any?) {
-        Log.i("\t[SOCKET][${topic.uppercase()}]", message.toString())
     }
 }

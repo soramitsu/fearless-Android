@@ -1,5 +1,6 @@
 package jp.co.soramitsu.soracard.impl.presentation.buycrypto
 
+import android.view.ViewGroup
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.compose.foundation.layout.Box
@@ -28,6 +29,10 @@ fun BuyCryptoScreen(
             modifier = Modifier.fillMaxSize(),
             factory = { context ->
                 WebView(context).apply {
+                    layoutParams = ViewGroup.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                    )
                     webViewClient = object : WebViewClient() {
                         override fun onPageFinished(view: WebView?, url: String?) {
                             super.onPageFinished(view, url)

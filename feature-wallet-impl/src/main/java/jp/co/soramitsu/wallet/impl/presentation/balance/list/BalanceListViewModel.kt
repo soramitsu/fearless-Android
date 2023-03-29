@@ -410,8 +410,9 @@ class BalanceListViewModel @Inject constructor(
                 accessTokenExpirationTime < TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis())
 
             if (!accessTokenExpired) {
-                val kycStatus: SoraCardCommonVerification? = kycRepository.getKycLastFinalStatus(soraCardInfo.accessToken)
-                soraCardInteractor.updateSoraCardKycStatus(kycStatus = kycStatus?.toString().orEmpty())
+                kycRepository.getKycLastFinalStatus(soraCardInfo.accessToken).onSuccess { kycStatus ->
+                    soraCardInteractor.updateSoraCardKycStatus(kycStatus = kycStatus?.toString().orEmpty())
+                }
             }
         }
     }

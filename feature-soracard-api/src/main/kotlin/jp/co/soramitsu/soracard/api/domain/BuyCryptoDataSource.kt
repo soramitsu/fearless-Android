@@ -7,5 +7,5 @@ import kotlinx.coroutines.flow.Flow
 interface BuyCryptoDataSource {
 
     suspend fun requestPaymentOrderStatus(paymentOrder: PaymentOrder)
-    suspend fun subscribePaymentOrderInfo(): Flow<PaymentOrderInfo>
+    fun subscribePaymentOrderInfo(): Flow<PaymentOrderInfo>
 }
