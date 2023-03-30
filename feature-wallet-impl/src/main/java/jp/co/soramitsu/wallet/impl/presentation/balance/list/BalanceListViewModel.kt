@@ -24,6 +24,7 @@ import jp.co.soramitsu.common.compose.component.NetworkIssueItemState
 import jp.co.soramitsu.common.compose.component.SwipeState
 import jp.co.soramitsu.common.compose.component.ToolbarHomeIconState
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState
+import jp.co.soramitsu.common.data.network.OptionsProvider
 import jp.co.soramitsu.common.data.network.coingecko.FiatChooserEvent
 import jp.co.soramitsu.common.data.network.coingecko.FiatCurrency
 import jp.co.soramitsu.common.domain.AppVersion
@@ -52,8 +53,9 @@ import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.addressByteOrNull
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.oauth.base.sdk.SoraCardEnvironmentType
 import jp.co.soramitsu.oauth.base.sdk.SoraCardInfo
+import jp.co.soramitsu.oauth.base.sdk.SoraCardKycCredentials
 import jp.co.soramitsu.oauth.base.sdk.contract.SoraCardCommonVerification
-import jp.co.soramitsu.oauth.base.sdk.signin.SoraCardSignInContractData
+import jp.co.soramitsu.oauth.base.sdk.contract.SoraCardContractData
 import jp.co.soramitsu.oauth.common.domain.KycRepository
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
@@ -130,8 +132,8 @@ class BalanceListViewModel @Inject constructor(
     private val _openPlayMarket = MutableLiveData<Event<Unit>>()
     val openPlayMarket: LiveData<Event<Unit>> = _openPlayMarket
 
-    private val _launchSoraCardSignIn = MutableLiveData<Event<SoraCardSignInContractData>>()
-    val launchSoraCardSignIn: LiveData<Event<SoraCardSignInContractData>> = _launchSoraCardSignIn
+    private val _launchSoraCardSignIn = MutableLiveData<Event<SoraCardContractData>>()
+    val launchSoraCardSignIn: LiveData<Event<SoraCardContractData>> = _launchSoraCardSignIn
 
     private val assetModelsFlow: Flow<List<AssetModel>> = interactor.assetsFlow()
         .mapList {
@@ -653,7 +655,7 @@ class BalanceListViewModel @Inject constructor(
 
     private fun onSoraCardStatusClicked() {
         _launchSoraCardSignIn.value = Event(
-            SoraCardSignInContractData(
+            SoraCardContractData(
                 locale = Locale.ENGLISH,
                 apiKey = BuildConfig.SORA_CARD_API_KEY,
                 domain = BuildConfig.SORA_CARD_DOMAIN,
@@ -667,7 +669,13 @@ class BalanceListViewModel @Inject constructor(
                         refreshToken = it.refreshToken,
                         accessTokenExpirationTime = it.accessTokenExpirationTime
                     )
-                }
+                },
+                kycCredentials = SoraCardKycCredentials(
+                    endpointUrl = BuildConfig.SORA_CARD_KYC_ENDPOINT_URL,
+                    username = BuildConfig.SORA_CARD_KYC_USERNAME,
+                    password = BuildConfig.SORA_CARD_KYC_PASSWORD
+                ),
+                client = OptionsProvider.header
             )
         )
     }
