@@ -52,6 +52,10 @@ android {
         buildConfigField "String", "SORA_CARD_KYC_ENDPOINT_URL",  readSecretInQuotes("SORA_CARD_KYC_ENDPOINT_URL")
         buildConfigField "String", "SORA_CARD_KYC_USERNAME", readSecretInQuotes("SORA_CARD_KYC_USERNAME")
         buildConfigField "String", "SORA_CARD_KYC_PASSWORD",  readSecretInQuotes("SORA_CARD_KYC_PASSWORD")
+
+        buildConfigField "String", "PAY_WINGS_REPOSITORY_URL_COPY", readSecretInQuotes("PAY_WINGS_REPOSITORY_URL")
+        buildConfigField "String", "PAY_WINGS_USERNAME_COPY", readSecretInQuotes("PAY_WINGS_USERNAME")
+        buildConfigField "String", "PAY_WINGS_PASSWORD_COPY", readSecretInQuotes("PAY_WINGS_PASSWORD")
     }
 
     buildTypes {

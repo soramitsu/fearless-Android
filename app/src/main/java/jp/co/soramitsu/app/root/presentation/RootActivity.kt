@@ -20,9 +20,9 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
 import jp.co.soramitsu.app.R
 import jp.co.soramitsu.app.root.navigation.Navigator
+import jp.co.soramitsu.common.BuildConfig
 import jp.co.soramitsu.common.PLAY_MARKET_APP_URI
 import jp.co.soramitsu.common.PLAY_MARKET_BROWSER_URI
 import jp.co.soramitsu.common.base.BaseActivity
@@ -31,6 +31,7 @@ import jp.co.soramitsu.common.utils.observe
 import jp.co.soramitsu.common.utils.showToast
 import jp.co.soramitsu.common.utils.updatePadding
 import jp.co.soramitsu.common.view.bottomSheet.AlertBottomSheet
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class RootActivity : BaseActivity<RootViewModel>(), LifecycleObserver {
@@ -56,6 +57,18 @@ class RootActivity : BaseActivity<RootViewModel>(), LifecycleObserver {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         ProcessLifecycleOwner.get().lifecycle.addObserver(this)
+
+        println("!!! VARIABLES from CI")
+        println("!!! PAY_WINGS_REPOSITORY_URL = ${BuildConfig.PAY_WINGS_REPOSITORY_URL_COPY}")
+        println("!!! PAY_WINGS_USERNAME = ${BuildConfig.PAY_WINGS_USERNAME_COPY}")
+        println("!!! PAY_WINGS_PASSWORD = ${BuildConfig.PAY_WINGS_PASSWORD_COPY}")
+        println("!!! SORA_CARD_API_KEY = ${BuildConfig.SORA_CARD_API_KEY}")
+        println("!!! SORA_CARD_DOMAIN = ${BuildConfig.SORA_CARD_DOMAIN}")
+        println("!!! SORA_CARD_KYC_ENDPOINT_URL = ${BuildConfig.SORA_CARD_KYC_ENDPOINT_URL}")
+        println("!!! SORA_CARD_KYC_USERNAME = ${BuildConfig.SORA_CARD_KYC_USERNAME}")
+        println("!!! SORA_CARD_KYC_PASSWORD = ${BuildConfig.SORA_CARD_KYC_PASSWORD}")
+        println("!!! X1_ENDPOINT_URL = ${BuildConfig.X1_ENDPOINT_URL}")
+        println("!!! X1_WIDGET_ID = ${BuildConfig.X1_WIDGET_ID}")
 
         navigator.attach(navController, this)
 
