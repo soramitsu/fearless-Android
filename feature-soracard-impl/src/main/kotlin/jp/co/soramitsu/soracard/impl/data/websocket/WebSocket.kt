@@ -61,7 +61,7 @@ class WebSocket(
                     this@WebSocket.listener.onResponse(response = WebSocketResponse(json = text))
                 }
         } catch (e: Exception) {
-            // Error while receiving
+            println("Error while receiving: ${e.message}")
         }
     }
 
@@ -81,7 +81,7 @@ class WebSocket(
 
                 listenIncomingMessages()
             } catch (e: Exception) {
-                // Error while connecting
+                println("Error while connecting")
             } finally {
                 listener.onSocketClosed()
             }
