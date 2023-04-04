@@ -323,7 +323,8 @@ private fun PreviewAssetListItem() {
         displayName = assetSymbol,
         hasAccount = true,
         priceId = null,
-        hasNetworkIssue = false
+        hasNetworkIssue = false,
+        ecosystem = "Polkadot"
     )
     FearlessTheme {
         Box(modifier = Modifier.background(Color.Black)) {

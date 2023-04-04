@@ -18,6 +18,7 @@ import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.data.network.OptionsProvider
 import jp.co.soramitsu.common.data.network.coingecko.FiatChooserEvent
 import jp.co.soramitsu.common.data.network.coingecko.FiatCurrency
 import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
@@ -29,8 +30,9 @@ import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomShe
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.oauth.base.sdk.SoraCardEnvironmentType
 import jp.co.soramitsu.oauth.base.sdk.SoraCardInfo
+import jp.co.soramitsu.oauth.base.sdk.SoraCardKycCredentials
 import jp.co.soramitsu.oauth.base.sdk.contract.SoraCardCommonVerification
-import jp.co.soramitsu.oauth.base.sdk.signin.SoraCardSignInContractData
+import jp.co.soramitsu.oauth.base.sdk.contract.SoraCardContractData
 import jp.co.soramitsu.soracard.api.domain.SoraCardInteractor
 import jp.co.soramitsu.soracard.impl.presentation.SoraCardItemViewState
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
@@ -60,8 +62,8 @@ class ProfileViewModel @Inject constructor(
     private val resourceManager: ResourceManager
 ) : BaseViewModel(), ExternalAccountActions by externalAccountActions {
 
-    private val _launchSoraCardSignIn = MutableLiveData<Event<SoraCardSignInContractData>>()
-    val launchSoraCardSignIn: LiveData<Event<SoraCardSignInContractData>> = _launchSoraCardSignIn
+    private val _launchSoraCardSignIn = MutableLiveData<Event<SoraCardContractData>>()
+    val launchSoraCardSignIn: LiveData<Event<SoraCardContractData>> = _launchSoraCardSignIn
 
     val totalBalanceLiveData = combine(getTotalBalance(), selectedFiat.flow()) { balance, fiat ->
         val selectedFiatSymbol = getAvailableFiatCurrencies[fiat]?.symbol
@@ -164,7 +166,7 @@ class ProfileViewModel @Inject constructor(
         launch {
             val soraCardState = soraCardState.firstOrNull()
             _launchSoraCardSignIn.value = Event(
-                SoraCardSignInContractData(
+                SoraCardContractData(
                     locale = Locale.ENGLISH,
                     apiKey = BuildConfig.SORA_CARD_API_KEY,
                     domain = BuildConfig.SORA_CARD_DOMAIN,
@@ -178,7 +180,13 @@ class ProfileViewModel @Inject constructor(
                             refreshToken = it.refreshToken,
                             accessTokenExpirationTime = it.accessTokenExpirationTime
                         )
-                    }
+                    },
+                    kycCredentials = SoraCardKycCredentials(
+                        endpointUrl = BuildConfig.SORA_CARD_KYC_ENDPOINT_URL,
+                        username = BuildConfig.SORA_CARD_KYC_USERNAME,
+                        password = BuildConfig.SORA_CARD_KYC_PASSWORD
+                    ),
+                    client = OptionsProvider.header
                 )
             )
         }

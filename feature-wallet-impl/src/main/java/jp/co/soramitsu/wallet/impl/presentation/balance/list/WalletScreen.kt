@@ -123,7 +123,8 @@ private fun PreviewWalletScreen() {
             isHidden = false,
             hasAccount = true,
             priceId = null,
-            hasNetworkIssue = false
+            hasNetworkIssue = false,
+            ecosystem = "Polkadot"
         )
     )
 

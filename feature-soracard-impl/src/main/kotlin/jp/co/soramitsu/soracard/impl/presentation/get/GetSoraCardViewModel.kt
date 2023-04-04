@@ -6,13 +6,13 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.common.BuildConfig
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.data.network.OptionsProvider
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.oauth.base.sdk.SoraCardEnvironmentType
 import jp.co.soramitsu.oauth.base.sdk.SoraCardInfo
 import jp.co.soramitsu.oauth.base.sdk.SoraCardKycCredentials
 import jp.co.soramitsu.oauth.base.sdk.contract.SoraCardContractData
-import jp.co.soramitsu.oauth.base.sdk.signin.SoraCardSignInContractData
 import jp.co.soramitsu.soracard.api.domain.SoraCardInteractor
 import jp.co.soramitsu.soracard.api.presentation.SoraCardRouter
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -40,8 +40,8 @@ class GetSoraCardViewModel @Inject constructor(
     private val _launchSoraCardRegistration = MutableLiveData<Event<SoraCardContractData>>()
     val launchSoraCardRegistration: LiveData<Event<SoraCardContractData>> = _launchSoraCardRegistration
 
-    private val _launchSoraCardSignIn = MutableLiveData<Event<SoraCardSignInContractData>>()
-    val launchSoraCardSignIn: LiveData<Event<SoraCardSignInContractData>> = _launchSoraCardSignIn
+    private val _launchSoraCardSignIn = MutableLiveData<Event<SoraCardContractData>>()
+    val launchSoraCardSignIn: LiveData<Event<SoraCardContractData>> = _launchSoraCardSignIn
 
     val state = MutableStateFlow(GetSoraCardState())
 
@@ -127,14 +127,15 @@ class GetSoraCardViewModel @Inject constructor(
                         refreshToken = it.refreshToken,
                         accessTokenExpirationTime = it.accessTokenExpirationTime
                     )
-                }
+                },
+                client = OptionsProvider.header
             )
         )
     }
 
     override fun onAlreadyHaveCard() {
         _launchSoraCardSignIn.value = Event(
-            SoraCardSignInContractData(
+            SoraCardContractData(
                 locale = Locale.ENGLISH,
                 apiKey = BuildConfig.SORA_CARD_API_KEY,
                 domain = BuildConfig.SORA_CARD_DOMAIN,
@@ -148,7 +149,13 @@ class GetSoraCardViewModel @Inject constructor(
                         refreshToken = it.refreshToken,
                         accessTokenExpirationTime = it.accessTokenExpirationTime
                     )
-                }
+                },
+                kycCredentials = SoraCardKycCredentials(
+                    endpointUrl = BuildConfig.SORA_CARD_KYC_ENDPOINT_URL,
+                    username = BuildConfig.SORA_CARD_KYC_USERNAME,
+                    password = BuildConfig.SORA_CARD_KYC_PASSWORD
+                ),
+                client = OptionsProvider.header
             )
         )
     }

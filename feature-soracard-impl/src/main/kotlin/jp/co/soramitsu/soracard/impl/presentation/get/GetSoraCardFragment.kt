@@ -15,7 +15,6 @@ import jp.co.soramitsu.common.base.BaseComposeFragment
 import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
 import jp.co.soramitsu.oauth.base.sdk.contract.SoraCardContract
 import jp.co.soramitsu.oauth.base.sdk.contract.SoraCardResult
-import jp.co.soramitsu.oauth.base.sdk.signin.SoraCardSignInContract
 
 @AndroidEntryPoint
 class GetSoraCardFragment : BaseComposeFragment<GetSoraCardViewModel>() {
@@ -29,7 +28,7 @@ class GetSoraCardFragment : BaseComposeFragment<GetSoraCardViewModel>() {
     }
 
     private var soraCardSignIn = registerForActivityResult(
-        SoraCardSignInContract()
+        SoraCardContract()
     ) { result ->
         handleSoraCardResult(result)
     }
