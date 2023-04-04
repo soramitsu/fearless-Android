@@ -1,8 +1,6 @@
 package jp.co.soramitsu.wallet.impl.data.repository
 
 import com.opencsv.CSVReaderHeaderAware
-import java.math.BigDecimal
-import java.math.BigInteger
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.accountId
 import jp.co.soramitsu.common.compose.component.NetworkIssueItemState
@@ -51,6 +49,8 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.withContext
+import java.math.BigDecimal
+import java.math.BigInteger
 import jp.co.soramitsu.core.models.Asset as CoreAsset
 
 class WalletRepositoryImpl(
@@ -109,16 +109,15 @@ class WalletRepositoryImpl(
                     }
                 }
 
-            val assetsByUniqueAccounts = chainAccounts
-                .mapNotNull { chainAccount ->
-                    createEmpty(chainAccount)?.let { asset ->
-                        AssetWithStatus(
-                            asset = asset,
-                            hasAccount = true,
-                            hasChainAccount = false
-                        )
-                    }
+            val assetsByUniqueAccounts = chainAccounts.mapNotNull { chainAccount ->
+                createEmpty(chainAccount)?.let { asset ->
+                    AssetWithStatus(
+                        asset = asset,
+                        hasAccount = true,
+                        hasChainAccount = false
+                    )
                 }
+            }
 
             val notUpdatedAssetsByUniqueAccounts = assetsByUniqueAccounts.filter { unique ->
                 !updatedAssets.any {
