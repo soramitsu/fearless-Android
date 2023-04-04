@@ -3,8 +3,8 @@ apply from: './scripts/secrets.gradle'
 buildscript {
     ext {
         // App version
-        versionName = '2.2.0'
-        versionCode = 88
+        versionName = '2.2.1'
+        versionCode = 89
 
         // SDK and tools
         compileSdkVersion = 33
