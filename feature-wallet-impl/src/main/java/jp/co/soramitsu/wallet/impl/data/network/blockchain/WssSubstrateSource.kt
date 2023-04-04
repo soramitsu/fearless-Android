@@ -18,6 +18,8 @@ import jp.co.soramitsu.common.utils.system
 import jp.co.soramitsu.common.utils.tokens
 import jp.co.soramitsu.common.utils.u64ArgumentFromStorageKey
 import jp.co.soramitsu.core.extrinsic.ExtrinsicService
+import jp.co.soramitsu.core.models.Asset
+import jp.co.soramitsu.core.models.ChainAssetType
 import jp.co.soramitsu.core.rpc.RpcCalls
 import jp.co.soramitsu.core.rpc.calls.getBlock
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
@@ -30,7 +32,6 @@ import jp.co.soramitsu.fearless_utils.runtime.metadata.module
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
 import jp.co.soramitsu.runtime.ext.accountIdOf
-import jp.co.soramitsu.runtime.multiNetwork.chain.ChainAssetType
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
@@ -49,7 +50,7 @@ class WssSubstrateSource(
     private val extrinsicService: ExtrinsicService
 ) : SubstrateRemoteSource {
 
-    override suspend fun getAccountFreeBalance(chainAsset: Chain.Asset, accountId: AccountId): BigInteger {
+    override suspend fun getAccountFreeBalance(chainAsset: Asset, accountId: AccountId): BigInteger {
         return when (val info = getAccountInfo(chainAsset, accountId)) {
             is OrmlTokensAccountData -> info.free
             is AccountInfo -> info.data.free
@@ -58,7 +59,7 @@ class WssSubstrateSource(
         }
     }
 
-    override suspend fun getTotalBalance(chainAsset: Chain.Asset, accountId: AccountId): BigInteger {
+    override suspend fun getTotalBalance(chainAsset: Asset, accountId: AccountId): BigInteger {
         return when (val info = getAccountInfo(chainAsset, accountId)) {
             is OrmlTokensAccountData -> info.totalBalance
             is AccountInfo -> info.totalBalance
@@ -68,7 +69,7 @@ class WssSubstrateSource(
     }
 
     @Suppress("IMPLICIT_CAST_TO_ANY")
-    private suspend fun getAccountInfo(chainAsset: Chain.Asset, accountId: AccountId) = when (chainAsset.type) {
+    private suspend fun getAccountInfo(chainAsset: Asset, accountId: AccountId) = when (chainAsset.type) {
         null, ChainAssetType.Normal,
         ChainAssetType.SoraUtilityAsset -> {
             getDefaultAccountInfo(chainAsset.chainId, accountId)
@@ -106,7 +107,7 @@ class WssSubstrateSource(
     }
 
     override suspend fun getEquilibriumAccountInfo(
-        asset: Chain.Asset,
+        asset: Asset,
         accountId: AccountId
     ): EqAccountInfo? {
         return remoteStorageSource.query(
@@ -120,7 +121,7 @@ class WssSubstrateSource(
         )
     }
 
-    override suspend fun getEquilibriumAssetRates(asset: Chain.Asset): Map<BigInteger, EqOraclePricePoint?> {
+    override suspend fun getEquilibriumAssetRates(asset: Asset): Map<BigInteger, EqOraclePricePoint?> {
         return remoteStorageSource.queryByPrefix(
             chainId = asset.chainId,
             prefixKeyBuilder = { it.metadata.module(Modules.ORACLE).storage("PricePoints").storageKey(it) },
@@ -131,7 +132,7 @@ class WssSubstrateSource(
         )
     }
 
-    private suspend fun getOrmlTokensAccountData(asset: Chain.Asset, accountId: AccountId): OrmlTokensAccountData {
+    private suspend fun getOrmlTokensAccountData(asset: Asset, accountId: AccountId): OrmlTokensAccountData {
         return remoteStorageSource.query(
             chainId = asset.chainId,
             keyBuilder = {

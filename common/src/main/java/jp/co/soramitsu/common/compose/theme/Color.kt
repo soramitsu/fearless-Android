@@ -29,7 +29,7 @@ val red = Color(0xFFF00004)
 val blurColorDark = Color(0xB3000000)
 val blurColor = Color(0x8C000000)
 val blurColorLight = Color(0x66000000)
-val backgroundBlurColor = Color(0xAFFFFFF)
+val backgroundBlurColor = Color(0x0AFFFFFF)
 val selectedGreen = Color(0xFF09C8A1)
 
 val white = Color(0xFFFFFFFF)
@@ -67,6 +67,8 @@ val alertYellow = Color(0xFFEE7700)
 val transparent = Color(0xffffff)
 
 val colorAccentDark = Color(0xFFEE0077)
+val colorAccentSecondary = Color(0xFFD5D5D5)
+val soraRed = Color(0xFFEE2233)
 
 val accentButtonColors = object : ButtonColors {
     @Composable

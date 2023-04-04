@@ -2,6 +2,8 @@ package jp.co.soramitsu.runtime.multiNetwork.chain
 
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import jp.co.soramitsu.core.models.Asset
+import jp.co.soramitsu.core.models.ChainAssetType
 import jp.co.soramitsu.core.models.ChainNode
 import jp.co.soramitsu.coredb.model.chain.ChainAssetLocal
 import jp.co.soramitsu.coredb.model.chain.ChainExplorerLocal
@@ -37,17 +39,17 @@ private fun mapSectionTypeToSectionTypeLocal(sectionType: Chain.ExternalApi.Sect
 private fun mapSectionTypeLocalToSectionType(sectionType: String): Chain.ExternalApi.Section.Type = enumValueOf(sectionType)
 private fun mapExplorerTypeLocalToExplorerType(explorerType: String): Chain.Explorer.Type = enumValueOf(explorerType)
 
-private fun mapStakingStringToStakingType(stakingString: String?): Chain.Asset.StakingType {
+private fun mapStakingStringToStakingType(stakingString: String?): Asset.StakingType {
     return when (stakingString) {
-        null -> Chain.Asset.StakingType.UNSUPPORTED
-        "relaychain" -> Chain.Asset.StakingType.RELAYCHAIN
-        "parachain" -> Chain.Asset.StakingType.PARACHAIN
-        else -> Chain.Asset.StakingType.UNSUPPORTED
+        null -> Asset.StakingType.UNSUPPORTED
+        "relaychain" -> Asset.StakingType.RELAYCHAIN
+        "parachain" -> Asset.StakingType.PARACHAIN
+        else -> Asset.StakingType.UNSUPPORTED
     }
 }
 
-private fun mapStakingTypeToLocal(stakingType: Chain.Asset.StakingType): String = stakingType.name
-private fun mapStakingTypeFromLocal(stakingTypeLocal: String): Chain.Asset.StakingType = enumValueOf(stakingTypeLocal)
+private fun mapStakingTypeToLocal(stakingType: Asset.StakingType): String = stakingType.name
+private fun mapStakingTypeFromLocal(stakingTypeLocal: String): Asset.StakingType = enumValueOf(stakingTypeLocal)
 
 private fun ChainExternalApiRemote.Explorer.toExplorer() = Chain.Explorer(
     type = mapExplorerTypeRemoteToExplorerType(type),
@@ -101,7 +103,7 @@ private fun ChainRemote.toChain(assetsById: Map<String?, AssetRemote>): Chain {
     val assets = this.assets?.mapNotNull { chainAsset ->
         chainAsset.assetId?.let {
             val assetRemote = assetsById[chainAsset.assetId]
-            Chain.Asset(
+            Asset(
                 id = chainAsset.assetId,
                 name = assetRemote?.name,
                 symbol = assetRemote?.symbol.orEmpty(),
@@ -177,7 +179,7 @@ fun mapChainLocalToChain(chainLocal: JoinedChainInfo): Chain {
     val nodes = chainLocal.nodes.map(::mapNodeLocalToNode)
 
     val assets = chainLocal.assets.map {
-        Chain.Asset(
+        Asset(
             id = it.id,
             name = it.name,
             symbol = it.symbol,

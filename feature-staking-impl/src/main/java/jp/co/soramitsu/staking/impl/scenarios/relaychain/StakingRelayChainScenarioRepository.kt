@@ -1,6 +1,5 @@
 package jp.co.soramitsu.staking.impl.scenarios.relaychain
 
-import java.math.BigInteger
 import jp.co.soramitsu.common.data.network.runtime.binding.NonNullBinderWithType
 import jp.co.soramitsu.common.data.network.runtime.binding.incompatible
 import jp.co.soramitsu.common.data.network.runtime.binding.returnType
@@ -16,6 +15,7 @@ import jp.co.soramitsu.common.utils.session
 import jp.co.soramitsu.common.utils.staking
 import jp.co.soramitsu.common.utils.stakingOrNull
 import jp.co.soramitsu.common.utils.storageKeys
+import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.coredb.dao.AccountStakingDao
 import jp.co.soramitsu.coredb.model.AccountStakingLocal
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
@@ -60,10 +60,6 @@ import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindStakingL
 import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindValidatorPrefs
 import jp.co.soramitsu.staking.impl.data.network.blockhain.updaters.activeEraStorageKeyOrNull
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletConstants
-import kotlin.math.floor
-import kotlin.math.max
-import kotlin.time.DurationUnit
-import kotlin.time.toDuration
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -74,6 +70,11 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.withContext
+import java.math.BigInteger
+import kotlin.math.floor
+import kotlin.math.max
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
 
 class StakingRelayChainScenarioRepository(
     private val remoteStorage: StorageDataSource,
@@ -259,7 +260,7 @@ class StakingRelayChainScenarioRepository(
         chainId = stakingState.chain.id
     )
 
-    suspend fun minimumNominatorBond(chainAsset: Chain.Asset): BigInteger {
+    suspend fun minimumNominatorBond(chainAsset: Asset): BigInteger {
         val minBond = queryStorageIfExists(
             storageName = "MinNominatorBond",
             binder = ::bindMinBond,
@@ -301,7 +302,7 @@ class StakingRelayChainScenarioRepository(
 
     suspend fun stakingStateFlow(
         chain: Chain,
-        chainAsset: Chain.Asset,
+        chainAsset: Asset,
         accountId: AccountId
     ): Flow<StakingState> {
         return accountStakingDao.observeDistinct(chain.id, chainAsset.id, accountId)

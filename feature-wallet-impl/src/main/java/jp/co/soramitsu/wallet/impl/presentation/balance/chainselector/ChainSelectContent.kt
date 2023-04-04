@@ -32,7 +32,6 @@ import jp.co.soramitsu.common.compose.component.Image
 import jp.co.soramitsu.common.compose.component.MarginHorizontal
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.component.getImageRequest
-import jp.co.soramitsu.common.compose.theme.FearlessThemeBlackBg
 import jp.co.soramitsu.common.compose.theme.black4
 import jp.co.soramitsu.common.utils.clickableWithNoIndication
 import jp.co.soramitsu.feature_wallet_impl.R
@@ -212,11 +211,9 @@ private fun SelectChainScreenPreview() {
         selectedChainId = null,
         searchQuery = null
     )
-    FearlessThemeBlackBg {
-        Column(
-            Modifier.background(black4)
-        ) {
-            ChainSelectContent(state = state)
-        }
+    Column(
+        Modifier.background(black4)
+    ) {
+        ChainSelectContent(state = state)
     }
 }

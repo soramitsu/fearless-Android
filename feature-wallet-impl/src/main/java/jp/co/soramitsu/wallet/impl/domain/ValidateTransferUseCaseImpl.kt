@@ -2,11 +2,11 @@ package jp.co.soramitsu.wallet.impl.domain
 
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.sumByBigDecimal
+import jp.co.soramitsu.core.models.ChainAssetType
 import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.ext.isValidAddress
 import jp.co.soramitsu.runtime.ext.utilityAsset
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
-import jp.co.soramitsu.runtime.multiNetwork.chain.ChainAssetType
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.wallet.api.domain.ExistentialDepositUseCase
 import jp.co.soramitsu.wallet.api.domain.TransferValidationResult

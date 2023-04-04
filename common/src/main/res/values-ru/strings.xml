@@ -953,4 +953,32 @@
     <string name="polkaswap_info_text_5">Понимание и добровольное принятие рисков, связанных с использованием Polkaswap, включая, но не ограничиваясь, риском потери токенов.</string>
     <string name="polkaswap_info_text_6">Не продолжайте, пока не ознакомитесь с %%Polkaswap FAQ%%, %%Polkaswap Меморандумом и Условиями и положениями%%, и %%Политикой конфиденциальности%%!</string>
     <string name="polkaswap_info_switch_text">Я подтверждаю, что ознакомился со всеми упомянутыми документами и, нажимая «Продолжить», принимаю их.</string>
+
+    <string name="sora_card_title">Пополняйте карту SORA с помощью фиата или криптовалюты и оплачивайте онлайн, в магазине или в банкомате.</string>
+    <string name="sora_card_annual_service_fee">0 € годовой сервисный сбор</string>
+    <string name="sora_card_description">Получите счет IBAN в евро и дебетовую карту Mastercard, подключенную к вашему кошельку SORA</string>
+    <string name="sora_card_enable_card_title">Aктивировать карту</string>
+    <string name="sora_card_free_card_issuance">Бесплатный выпуск карты</string>
+    <string name="sora_card_free_card_issuance_conditions_xor">Если вы держите, ставите или предоставляете ликвидность XOR на сумму не менее 100 евро на своем счете SORA.</string>
+    <string name="sora_card_you_have_enough_xor">У вас достаточно XOR</string>
+    <string name="sora_card_you_need_xor">You need %s XOR (€%s)</string>
+    <string name="sora_card_get_more_xor">Get more XOR</string>
+    <string name="sora_card_select_xor_way">Select a way you want to get XOR</string>
+    <string name="sora_card_already_have_card">I already have a card</string>
+    <string name="sora_card_issue_card_for_free">Issue card for free</string>
+    <string name="sora_card_issue_card_for_12_euro">Issue card for 12 €</string>
+    <string name="sora_card_swap_for_xor">Swap for XOR</string>
+    <string name="sora_card_buy_xor">Buy XOR with fiat</string>
+
+    <string name="sora_card_no_more_free_tries">No more free attempts</string>
+    <string name="sora_card_verification_failed">Ошибка Проверки</string>
+    <string name="sora_card_verification_in_progress">Выполняется Проверка</string>
+    <string name="sora_card_verification_rejected">Карта ОТКЛОНЕНА</string>
+    <string name="sora_card_verification_successful">Карта В Пути</string>
+    <string name="sora_card_get_sora_card">Получить SORA карту</string>
+
+    <string name="sora_card_blacklisted_countires_title">Исключения из заявки</string>
+    <string name="sora_card_blacklisted_countires_warning"><![CDATA[Резиденты <b>некоторых стран<br>не могут подать заявку</b> на получение карты SORA Card в данный момент<br><a href=\"https://soracard.com/blacklist/\">Просмотреть список </a>]]></string>
+
+    <string name="settings_hide_zero_balances">Скрыть нулевые балансы</string>
 </resources>

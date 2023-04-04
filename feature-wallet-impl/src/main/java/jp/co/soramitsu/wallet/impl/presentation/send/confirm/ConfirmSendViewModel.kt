@@ -5,7 +5,6 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.common.AlertViewState
 import jp.co.soramitsu.common.address.AddressIconGenerator
@@ -23,10 +22,10 @@ import jp.co.soramitsu.common.utils.combine
 import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.common.utils.requireException
 import jp.co.soramitsu.common.utils.requireValue
+import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.runtime.ext.utilityAsset
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
 import jp.co.soramitsu.wallet.api.domain.TransferValidationResult
 import jp.co.soramitsu.wallet.api.domain.ValidateTransferUseCase
@@ -56,6 +55,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import javax.inject.Inject
 
 private const val ICON_IN_DP = 24
 
@@ -317,7 +317,7 @@ class ConfirmSendViewModel @Inject constructor(
         return addressIconGenerator.createAddressModel(address, ICON_IN_DP, accountName)
     }
 
-    private fun createTransfer(token: Chain.Asset): Transfer {
+    private fun createTransfer(token: Asset): Transfer {
         return with(transferDraft) {
             Transfer(
                 recipient = recipientAddress,

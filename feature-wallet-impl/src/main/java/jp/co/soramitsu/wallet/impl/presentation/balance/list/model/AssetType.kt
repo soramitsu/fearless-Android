@@ -6,5 +6,5 @@ import jp.co.soramitsu.feature_wallet_impl.R
 
 enum class AssetType(@StringRes override val titleResId: Int) : MultiToggleItem {
     Currencies(R.string.сurrencies_stub_text),
-    NFTs(R.string.nfts_stub);
+    NFTs(R.string.nfts_stub)
 }

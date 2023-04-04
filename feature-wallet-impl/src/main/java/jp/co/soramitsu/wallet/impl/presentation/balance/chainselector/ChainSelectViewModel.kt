@@ -5,7 +5,9 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.runtime.ext.ecosystem
 import jp.co.soramitsu.runtime.ext.utilityAsset
+import jp.co.soramitsu.runtime.multiNetwork.chain.ChainEcosystem
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.defaultChainSort
 import jp.co.soramitsu.wallet.impl.domain.ChainInteractor
@@ -50,7 +52,17 @@ class ChainSelectViewModel @Inject constructor(
                     selectedChainId.value = chainOfTheAsset.id
 
                     val symbolToShow = chainOfTheAsset.assets.firstOrNull { it.id == (initialSelectedAssetId) }?.symbolToShow
-                    val chainsWithAsset = chains.filter { it.assets.any { it.symbolToShow == symbolToShow } }
+                    val chainsWithAsset = chains.filter {
+                        when (val chainEcosystem = it.ecosystem()) {
+                            ChainEcosystem.POLKADOT,
+                            ChainEcosystem.KUSAMA -> {
+                                chainEcosystem == chainOfTheAsset.ecosystem() && it.assets.any { it.symbolToShow == symbolToShow }
+                            }
+                            ChainEcosystem.STANDALONE -> {
+                                it.id == chainOfTheAsset.id
+                            }
+                        }
+                    }
                     chainsWithAsset
                 }
             }

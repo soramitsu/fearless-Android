@@ -1,12 +1,23 @@
 [versions]
-dagger = "2.43"
-compose = "1.2.1"
-fragmentKtx = "1.5.2"
+dagger = "2.45"
+compose = "1.4.0"
+fragmentKtx = "1.5.6"
 composeThemeAdapter = "1.2.1"
-material = "1.6.1"
+material = "1.8.0"
 coroutines = "1.6.4"
+soraUiCore = "0.0.63"
+soraCard = "0.0.34"
+kotlinxSerializationjson = "1.5.0"
+xNetworking = "0.0.55"
 
 [libraries]
+sora-ui = { module = "jp.co.soramitsu:ui-core", version.ref = "soraUiCore" }
+sora-card = { module = "jp.co.soramitsu:android-sora-card", version.ref = "soraCard" }
+
+xnetworking-android = { module = "jp.co.soramitsu:XNetworking-android", version.ref = "xNetworking" }
+
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerializationjson" }
+
 hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "dagger" }
 hilt-compiler = { module = "com.google.dagger:hilt-compiler", version.ref = "dagger" }
 

@@ -6,13 +6,16 @@ import jp.co.soramitsu.common.utils.ethereumAddressFromPublicKey
 import jp.co.soramitsu.common.utils.ethereumAddressToHex
 import jp.co.soramitsu.core.models.IChain
 import jp.co.soramitsu.core.models.MultiAddress
+import jp.co.soramitsu.core.models.TypesUsage
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.addressByte
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAddress
+import jp.co.soramitsu.runtime.multiNetwork.chain.ChainEcosystem
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.TypesUsage
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.kusamaChainId
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 
 val Chain.typesUsage: TypesUsage
     get() = when {
@@ -82,3 +85,9 @@ fun Chain.isValidAddress(address: String): Boolean {
 }
 
 fun Chain.multiAddressOf(address: String): MultiAddress = multiAddressOf(accountIdOf(address))
+
+fun IChain.ecosystem() = when {
+    polkadotChainId in listOf(id, parentId) -> ChainEcosystem.POLKADOT
+    kusamaChainId in listOf(id, parentId) -> ChainEcosystem.KUSAMA
+    else -> ChainEcosystem.STANDALONE
+}

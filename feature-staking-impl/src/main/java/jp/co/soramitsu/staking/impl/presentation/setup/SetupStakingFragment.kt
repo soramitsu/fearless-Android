@@ -6,7 +6,6 @@ import androidx.lifecycle.lifecycleScope
 import coil.ImageLoader
 import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
-import javax.inject.Inject
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.mixin.impl.observeBrowserEvents
@@ -16,12 +15,13 @@ import jp.co.soramitsu.common.utils.bindTo
 import jp.co.soramitsu.common.view.bottomSheet.AlertBottomSheet
 import jp.co.soramitsu.common.view.setProgress
 import jp.co.soramitsu.common.view.viewBinding
+import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.databinding.FragmentSetupStakingBinding
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.staking.impl.presentation.common.rewardDestination.observeRewardDestinationChooser
 import jp.co.soramitsu.wallet.api.presentation.mixin.fee.FeeViews
 import jp.co.soramitsu.wallet.api.presentation.mixin.fee.displayFeeStatus
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class SetupStakingFragment : BaseFragment<SetupStakingViewModel>(R.layout.fragment_setup_staking) {
@@ -108,8 +108,8 @@ class SetupStakingFragment : BaseFragment<SetupStakingViewModel>(R.layout.fragme
         }
 
         viewModel.currentStakingType.observe {
-            binding.setupStakingRewardDestinationChooser.isVisible = it == Chain.Asset.StakingType.RELAYCHAIN
-            binding.setupStakingPayoutViewer.isVisible = it == Chain.Asset.StakingType.PARACHAIN
+            binding.setupStakingRewardDestinationChooser.isVisible = it == Asset.StakingType.RELAYCHAIN
+            binding.setupStakingPayoutViewer.isVisible = it == Asset.StakingType.PARACHAIN
         }
     }
 }

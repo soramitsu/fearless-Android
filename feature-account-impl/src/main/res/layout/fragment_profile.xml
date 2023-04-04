@@ -76,6 +76,46 @@
 
     </LinearLayout>
 
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginStart="@dimen/x2"
+        android:layout_marginEnd="@dimen/x2"
+        android:background="@color/dividerGray" />
+
+    <LinearLayout
+        android:id="@+id/profileSoraCard"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_primary_list_item"
+        android:clickable="true"
+        android:focusable="true"
+        android:orientation="horizontal"
+        android:paddingStart="@dimen/x2"
+        android:paddingTop="@dimen/x1_5"
+        android:paddingEnd="@dimen/x2"
+        android:paddingBottom="@dimen/x1_5">
+
+        <TextView
+            style="@style/TextAppearance.Soramitsu.Body1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:drawableStart="@drawable/ic_card"
+            android:drawablePadding="@dimen/x1_5"
+            android:gravity="center_vertical"
+            android:text="@string/profile_soracard_title"
+            android:textColor="@color/white" />
+
+        <ImageView
+            android:id="@+id/profileSoraCardArrow"
+            style="@style/TextAppearance.Soramitsu.Body1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:src="@drawable/ic_arrow_right_24" />
+
+    </LinearLayout>
 
     <View
         android:layout_width="match_parent"
@@ -160,6 +200,42 @@
             android:gravity="center_vertical"
             android:textColor="@color/white"
             tools:text="English" />
+
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginStart="@dimen/x2"
+        android:layout_marginEnd="@dimen/x2"
+        android:background="@color/dividerGray" />
+
+    <LinearLayout
+        android:id="@+id/hideZeroBalancesContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_primary_list_item"
+        android:clickable="true"
+        android:focusable="true"
+        android:orientation="horizontal"
+        android:paddingStart="@dimen/x2"
+        android:paddingEnd="@dimen/x2">
+
+        <TextView
+            android:id="@+id/hideZeroBalancesLabel"
+            style="@style/TextAppearance.Soramitsu.Body1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:drawableStart="@drawable/ic_eye"
+            android:drawablePadding="@dimen/x1_5"
+            android:text="@string/settings_hide_zero_balances" />
+
+        <com.google.android.material.switchmaterial.SwitchMaterial
+            android:id="@+id/hideZeroBalancesSwitch"
+            android:clickable="false"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
 
     </LinearLayout>
 

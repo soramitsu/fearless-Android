@@ -4,17 +4,14 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.math.BigDecimal
-import java.math.BigInteger
-import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.validation.ValidationExecutor
+import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.staking.api.domain.model.StakingState
 import jp.co.soramitsu.staking.impl.domain.StakingInteractor
 import jp.co.soramitsu.staking.impl.domain.model.Unbonding
@@ -42,6 +39,9 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
+import java.math.BigInteger
+import javax.inject.Inject
 
 @HiltViewModel
 class StakingBalanceViewModel @Inject constructor(
@@ -78,7 +78,7 @@ class StakingBalanceViewModel @Inject constructor(
     val pendingAction = MutableLiveData(false)
 
     val shouldBlockStakeMore = stakingBalanceModelLiveData.map {
-        val isParachain = assetFlow.first().token.configuration.staking == Chain.Asset.StakingType.PARACHAIN
+        val isParachain = assetFlow.first().token.configuration.staking == Asset.StakingType.PARACHAIN
         val isUnstakingFullAmount = (it.staked.amount - it.unstaking.amount).compareTo(BigDecimal.ZERO) == 0
         val stakeIsZero = it.staked.amount.compareTo(BigDecimal.ZERO) == 0
         val isFullUnstake = isUnstakingFullAmount || stakeIsZero
@@ -88,7 +88,7 @@ class StakingBalanceViewModel @Inject constructor(
 
     val shouldBlockUnstake = stakingBalanceModelLiveData.map {
         val asset = assetFlow.first()
-        val isParachain = asset.token.configuration.staking == Chain.Asset.StakingType.PARACHAIN
+        val isParachain = asset.token.configuration.staking == Asset.StakingType.PARACHAIN
         val stakedAmountIsZero = asset.token.planksFromAmount(it.staked.amount) == BigInteger.ZERO
         if (stakedAmountIsZero) {
             return@map true

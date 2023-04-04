@@ -1,9 +1,6 @@
 package jp.co.soramitsu.wallet.impl.domain.interfaces
 
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
-import java.io.File
-import java.math.BigDecimal
-import java.math.BigInteger
 import jp.co.soramitsu.common.data.model.CursorPage
 import jp.co.soramitsu.common.data.network.runtime.binding.EqAccountInfo
 import jp.co.soramitsu.common.data.network.runtime.binding.EqOraclePricePoint
@@ -24,6 +21,10 @@ import jp.co.soramitsu.wallet.impl.domain.model.Transfer
 import jp.co.soramitsu.wallet.impl.domain.model.TransferValidityStatus
 import jp.co.soramitsu.wallet.impl.domain.model.WalletAccount
 import kotlinx.coroutines.flow.Flow
+import java.io.File
+import java.math.BigDecimal
+import java.math.BigInteger
+import jp.co.soramitsu.core.models.Asset as CoreAsset
 
 class NotValidTransferStatus(val status: TransferValidityStatus) : Exception()
 
@@ -110,6 +111,15 @@ interface WalletInteractor {
 
     suspend fun getSavedChainId(walletId: Long): ChainId?
 
-    suspend fun getEquilibriumAccountInfo(asset: Chain.Asset, accountId: AccountId): EqAccountInfo?
-    suspend fun getEquilibriumAssetRates(chainAsset: Chain.Asset): Map<BigInteger, EqOraclePricePoint?>
+    suspend fun getEquilibriumAccountInfo(asset: CoreAsset, accountId: AccountId): EqAccountInfo?
+    suspend fun getEquilibriumAssetRates(chainAsset: CoreAsset): Map<BigInteger, EqOraclePricePoint?>
+
+    fun isShowGetSoraCard(): Boolean
+    fun observeIsShowSoraCard(): Flow<Boolean>
+    fun decreaseSoraCardHiddenSessions()
+    fun hideSoraCard()
+
+    fun observeHideZeroBalanceEnabledForCurrentWallet(): Flow<Boolean>
+    suspend fun toggleHideZeroBalancesForCurrentWallet()
+    suspend fun getHideZeroBalancesForCurrentWallet(): Boolean
 }

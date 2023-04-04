@@ -16,6 +16,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleObserver
 import androidx.lifecycle.OnLifecycleEvent
 import androidx.lifecycle.ProcessLifecycleOwner
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import dagger.hilt.android.AndroidEntryPoint
@@ -26,6 +27,7 @@ import jp.co.soramitsu.common.PLAY_MARKET_APP_URI
 import jp.co.soramitsu.common.PLAY_MARKET_BROWSER_URI
 import jp.co.soramitsu.common.base.BaseActivity
 import jp.co.soramitsu.common.utils.EventObserver
+import jp.co.soramitsu.common.utils.observe
 import jp.co.soramitsu.common.utils.showToast
 import jp.co.soramitsu.common.utils.updatePadding
 import jp.co.soramitsu.common.view.bottomSheet.AlertBottomSheet
@@ -103,7 +105,7 @@ class RootActivity : BaseActivity<RootViewModel>(), LifecycleObserver {
     }
 
     override fun subscribe(viewModel: RootViewModel) {
-        viewModel.showConnectingBarLiveData.observe(this) { show ->
+        viewModel.showConnectingBarFlow.observe(lifecycleScope) { show ->
             when {
                 show -> showBadConnectionView()
                 else -> hideBadConnectionView()

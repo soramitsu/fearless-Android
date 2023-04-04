@@ -23,6 +23,7 @@ Terms and Conditions and Privacy Policy</string>
 operations\nwill appear here</string>
     <string name="profile_settings_title">Settings</string>
     <string name="profile_language_title">Language</string>
+    <string name="profile_soracard_title">SORA Card</string>
     <string name="about_version">App version</string>
     <string name="about_contact_us">Contact Email</string>
     <string name="about_title">About</string>
@@ -1052,5 +1053,31 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="polkaswap_info_switch_text">I confirm that I have read all of the documents mentioned and pressing \"Continue\" I accept them.</string>
 
     <string name="polkaswap_disclaimer_settings_item" translatable="false">Polkaswap disclaimer</string>
+    <string name="settings_hide_zero_balances">Hide zero balances</string>
 
+    <string name="sora_card_title">Top up SORA Card with fiat or crypto and pay online, in-store or withdraw in ATM</string>
+    <string name="sora_card_annual_service_fee">0 € annual service fee</string>
+    <string name="sora_card_description">Get a Euro IBAN account and Mastercard Debit Card connected to your SORA Wallet</string>
+    <string name="sora_card_enable_card_title">Enable card</string>
+    <string name="sora_card_free_card_issuance">Free card issuance</string>
+    <string name="sora_card_free_card_issuance_conditions_xor">If you hold, stake or provide liquidity for at least €100 worth of XOR in your SORA account</string>
+    <string name="sora_card_you_have_enough_xor">You have enough XOR</string>
+    <string name="sora_card_you_need_xor">You need %s XOR (€%s)</string>
+    <string name="sora_card_get_more_xor">Get more XOR</string>
+    <string name="sora_card_select_xor_way">Select a way you want to get XOR</string>
+    <string name="sora_card_already_have_card">I already have a card</string>
+    <string name="sora_card_issue_card_for_free">Issue card for free</string>
+    <string name="sora_card_issue_card_for_12_euro">Issue card for 12 €</string>
+    <string name="sora_card_swap_for_xor">Swap for XOR</string>
+    <string name="sora_card_buy_xor">Buy XOR with fiat</string>
+
+    <string name="sora_card_no_more_free_tries">No more free attempts</string>
+    <string name="sora_card_verification_failed">Verification Failed</string>
+    <string name="sora_card_verification_in_progress">Verification In Progress</string>
+    <string name="sora_card_verification_rejected">Card Is REJECTED</string>
+    <string name="sora_card_verification_successful">Card Is On The Way</string>
+    <string name="sora_card_get_sora_card">Get SORA Card</string>
+
+    <string name="sora_card_blacklisted_countires_title">Excluded of application</string>
+    <string name="sora_card_blacklisted_countires_warning"><![CDATA[Residents from <b>certain countries<br>can not apply</b> for SORA Card at this moment<br><a href=\"https://soracard.com/blacklist/\">See the list</a>]]></string>
 </resources>

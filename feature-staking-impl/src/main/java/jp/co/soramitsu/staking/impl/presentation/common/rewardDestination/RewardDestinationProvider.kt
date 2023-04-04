@@ -1,6 +1,7 @@
 package jp.co.soramitsu.staking.impl.presentation.common.rewardDestination
 
 import androidx.lifecycle.MutableLiveData
+import jp.co.soramitsu.account.api.presentation.account.AddressDisplayUseCase
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.address.createAddressModel
@@ -8,7 +9,7 @@ import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
-import jp.co.soramitsu.account.api.presentation.account.AddressDisplayUseCase
+import jp.co.soramitsu.runtime.ext.addressOf
 import jp.co.soramitsu.staking.api.data.StakingSharedState
 import jp.co.soramitsu.staking.api.domain.model.RewardDestination
 import jp.co.soramitsu.staking.api.domain.model.StakingAccount
@@ -20,8 +21,6 @@ import jp.co.soramitsu.staking.impl.presentation.mappers.RewardSuffix
 import jp.co.soramitsu.staking.impl.presentation.mappers.mapPeriodReturnsToRewardEstimation
 import jp.co.soramitsu.staking.impl.scenarios.StakingScenarioInteractor
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
-import jp.co.soramitsu.runtime.ext.addressOf
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -30,6 +29,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
+import jp.co.soramitsu.core.models.Asset as CoreAsset
 
 class RewardDestinationProvider(
     private val resourceManager: ResourceManager,
@@ -80,9 +80,9 @@ class RewardDestinationProvider(
     override fun learnMoreClicked(scope: CoroutineScope) {
         scope.launch {
             val link = when (sharedState.assetWithChain.first().asset.staking) {
-                Chain.Asset.StakingType.PARACHAIN -> appLinksProvider.moonbeamStakingLearnMore
-                Chain.Asset.StakingType.RELAYCHAIN -> appLinksProvider.payoutsLearnMore
-                Chain.Asset.StakingType.UNSUPPORTED -> ""
+                CoreAsset.StakingType.PARACHAIN -> appLinksProvider.moonbeamStakingLearnMore
+                CoreAsset.StakingType.RELAYCHAIN -> appLinksProvider.payoutsLearnMore
+                CoreAsset.StakingType.UNSUPPORTED -> ""
             }
             openBrowserEvent.value = Event(link)
         }

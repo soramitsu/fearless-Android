@@ -3,7 +3,7 @@ package jp.co.soramitsu.app.root.presentation.main
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.app.root.domain.RootInteractor
 import jp.co.soramitsu.common.base.BaseViewModel
-import jp.co.soramitsu.core.chain_registry.ChainConnection
+import jp.co.soramitsu.core.runtime.ChainConnection
 import kotlinx.coroutines.flow.MutableStateFlow
 import javax.inject.Inject
 

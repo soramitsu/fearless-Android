@@ -10,7 +10,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.R
-import jp.co.soramitsu.common.compose.theme.FearlessThemeBlackBg
 import jp.co.soramitsu.common.compose.theme.black2
 import jp.co.soramitsu.common.compose.theme.white04
 import jp.co.soramitsu.common.compose.theme.white08
@@ -58,10 +57,8 @@ private fun SearchHint(text: String?) {
 @Preview
 @Composable
 private fun PreviewCorneredInput() {
-    FearlessThemeBlackBg {
-        Column() {
-            CorneredInput(state = "", onInput = {})
-            CorneredInput(state = "AAAAAA", onInput = {})
-        }
+    Column() {
+        CorneredInput(state = "", onInput = {})
+        CorneredInput(state = "AAAAAA", onInput = {})
     }
 }

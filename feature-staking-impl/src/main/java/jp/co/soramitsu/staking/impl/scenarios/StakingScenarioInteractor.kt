@@ -1,13 +1,9 @@
 package jp.co.soramitsu.staking.impl.scenarios
 
-import java.math.BigDecimal
-import java.math.BigInteger
-import java.util.Optional
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.validation.ValidationSystem
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.staking.api.domain.model.RewardDestination
 import jp.co.soramitsu.staking.api.domain.model.StakingLedger
@@ -28,13 +24,17 @@ import jp.co.soramitsu.staking.impl.presentation.staking.balance.model.StakingBa
 import jp.co.soramitsu.staking.impl.presentation.staking.balance.rebond.RebondKind
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import kotlinx.coroutines.flow.Flow
+import java.math.BigDecimal
+import java.math.BigInteger
+import java.util.Optional
+import jp.co.soramitsu.core.models.Asset as CoreAsset
 
 interface StakingScenarioInteractor {
 
     suspend fun observeNetworkInfoState(): Flow<NetworkInfo>
 
     val stakingStateFlow: Flow<StakingState>
-    suspend fun getMinimumStake(chainAsset: Chain.Asset): BigInteger
+    suspend fun getMinimumStake(chainAsset: CoreAsset): BigInteger
     suspend fun maxNumberOfStakesIsReached(chainId: ChainId): Boolean
 
     suspend fun currentUnbondingsFlow(collatorAddress: String?): Flow<List<Unbonding>>

@@ -233,6 +233,7 @@ class SendSetupViewModel @Inject constructor(
     }
         .retry(RETRY_TIMES)
         .catch {
+            println("Error: $it")
             emit(null)
         }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)

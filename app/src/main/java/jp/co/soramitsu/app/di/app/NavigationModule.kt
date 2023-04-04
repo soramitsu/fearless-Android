@@ -4,16 +4,17 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import jp.co.soramitsu.app.root.navigation.Navigator
+import javax.inject.Singleton
 import jp.co.soramitsu.account.impl.presentation.AccountRouter
+import jp.co.soramitsu.app.root.navigation.Navigator
 import jp.co.soramitsu.crowdloan.impl.presentation.CrowdloanRouter
 import jp.co.soramitsu.onboarding.impl.OnboardingRouter
 import jp.co.soramitsu.polkaswap.api.presentation.PolkaswapRouter
-import jp.co.soramitsu.staking.impl.presentation.StakingRouter
-import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
+import jp.co.soramitsu.soracard.api.presentation.SoraCardRouter
 import jp.co.soramitsu.splash.SplashRouter
+import jp.co.soramitsu.staking.impl.presentation.StakingRouter
 import jp.co.soramitsu.success.presentation.SuccessRouter
-import javax.inject.Singleton
+import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -54,4 +55,8 @@ class NavigationModule {
     @Singleton
     @Provides
     fun provideCrowdloanRouter(navigator: Navigator): CrowdloanRouter = navigator
+
+    @Singleton
+    @Provides
+    fun provideSoraCardRouter(navigator: Navigator): SoraCardRouter = navigator
 }
