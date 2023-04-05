@@ -663,6 +663,11 @@
         android:label="sendSetupFragment" />
 
     <dialog
+        android:id="@+id/crossChainFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.cross_chain.CrossChainFragment"
+        android:label="crossChainFragment" />
+
+    <dialog
         android:id="@+id/addressHistoryFragment"
         android:name="jp.co.soramitsu.wallet.impl.presentation.history.AddressHistoryFragment"
         android:label="addressHistoryFragment" />

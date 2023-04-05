@@ -121,6 +121,7 @@ import jp.co.soramitsu.wallet.impl.presentation.beacon.main.BeaconFragment
 import jp.co.soramitsu.wallet.impl.presentation.beacon.main.DAppMetadataModel
 import jp.co.soramitsu.wallet.impl.presentation.beacon.sign.SignBeaconTransactionFragment
 import jp.co.soramitsu.wallet.impl.presentation.beacon.sign.TransactionRawDataFragment
+import jp.co.soramitsu.wallet.impl.presentation.cross_chain.CrossChainFragment
 import jp.co.soramitsu.wallet.impl.presentation.history.AddressHistoryFragment
 import jp.co.soramitsu.wallet.impl.presentation.model.OperationParcelizeModel
 import jp.co.soramitsu.wallet.impl.presentation.receive.ReceiveFragment
@@ -416,6 +417,7 @@ class Navigator :
 
     override fun backWithResult(vararg results: Pair<String, Any?>) {
         val savedStateHandle = navController?.previousBackStackEntry?.savedStateHandle
+
         if (savedStateHandle != null) {
             results.forEach { (key, value) ->
                 savedStateHandle[key] = value
@@ -604,6 +606,12 @@ class Navigator :
         navController?.navigate(R.id.sendSetupFragment, bundle)
     }
 
+    override fun openCrossChainSend(assetPayload: AssetPayload?, initialSendToAddress: String?, currencyId: String?) {
+        val bundle = CrossChainFragment.getBundle(assetPayload, initialSendToAddress, currencyId)
+
+        navController?.navigate(R.id.crossChainFragment, bundle)
+    }
+
     override fun openSwapTokensScreen(assetId: String, chainId: String) {
         val bundle = SwapTokensFragment.getBundle(assetId, chainId)
 
@@ -614,13 +622,37 @@ class Navigator :
         navController?.navigate(R.id.buyCryptoFragment)
     }
 
-    override fun openSelectChain(assetId: String, chainId: ChainId?, chooserMode: Boolean) {
-        val bundle = ChainSelectFragment.getBundle(assetId = assetId, chainId = chainId, chooserMode = chooserMode)
+    override fun openSelectChain(
+        assetId: String,
+        chainId: ChainId?,
+        chooserMode: Boolean,
+        isSelectAsset: Boolean
+    ) {
+        val bundle = ChainSelectFragment.getBundle(
+            assetId = assetId,
+            chainId = chainId,
+            chooserMode = chooserMode,
+            isSelectAsset = isSelectAsset
+        )
         navController?.navigate(R.id.chainSelectFragment, bundle)
     }
 
-    override fun openSelectChain(selectedChainId: ChainId?, filterChainIds: List<ChainId>?, chooserMode: Boolean, currencyId: String?, showAllChains: Boolean) {
-        val bundle = ChainSelectFragment.getBundle(selectedChainId, filterChainIds, chooserMode, currencyId, showAllChains)
+    override fun openSelectChain(
+        selectedChainId: ChainId?,
+        filterChainIds: List<ChainId>?,
+        chooserMode: Boolean,
+        currencyId: String?,
+        showAllChains: Boolean,
+        isSelectAsset: Boolean
+    ) {
+        val bundle = ChainSelectFragment.getBundle(
+            selectedChainId,
+            filterChainIds,
+            chooserMode,
+            currencyId,
+            showAllChains,
+            isSelectAsset
+        )
         navController?.navigate(R.id.chainSelectFragment, bundle)
     }
 

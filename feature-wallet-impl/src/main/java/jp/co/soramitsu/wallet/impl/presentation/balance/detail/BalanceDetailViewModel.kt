@@ -11,6 +11,7 @@ import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.account.api.presentation.exporting.ExportSource
 import jp.co.soramitsu.account.api.presentation.exporting.ExportSourceChooserPayload
 import jp.co.soramitsu.account.api.presentation.exporting.buildExportSourceTypes
+import jp.co.soramitsu.common.BuildConfig
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.ActionBarViewState
@@ -275,6 +276,10 @@ class BalanceDetailViewModel @Inject constructor(
         router.openSend(assetPayload)
     }
 
+    private fun sendCrossChainClicked(assetPayload: AssetPayload) {
+        router.openCrossChainSend(assetPayload, initialSendToAddress = null, currencyId = null)
+    }
+
     private fun openSwapTokensScreen(assetPayload: AssetPayload) {
         router.openSwapTokensScreen(assetPayload.chainAssetId, assetPayload.chainId)
     }
@@ -304,6 +309,10 @@ class BalanceDetailViewModel @Inject constructor(
             ActionItemType.RECEIVE,
             ActionItemType.BUY
         )
+        if (BuildConfig.DEBUG) {
+            actionItems -= ActionItemType.BUY
+            actionItems += listOf(ActionItemType.CROSS_CHAIN, ActionItemType.BUY)
+        }
         if (selectedChainId == soraMainChainId || selectedChainId == soraTestChainId) {
             if (!isBuyEnabled()) {
                 actionItems -= ActionItemType.BUY
@@ -346,6 +355,9 @@ class BalanceDetailViewModel @Inject constructor(
             }
             ActionItemType.TELEPORT -> {
                 showMessage("YOU NEED THE BLUE KEY")
+            }
+            ActionItemType.CROSS_CHAIN -> {
+                sendCrossChainClicked(payload)
             }
             ActionItemType.BUY -> {
                 buyClicked(payload)

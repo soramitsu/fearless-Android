@@ -690,6 +690,8 @@
     <string name="import_ethereum_recovery">JSON для восстановления ETH аккаунтов</string>
     <string name="i_dont_need_account">Мне не нужен аккаунт</string>
     <string name="common_network">Сеть</string>
+    <string name="common_original_network">Исходная сеть</string>
+    <string name="common_destination_network">Сеть назначения</string>
 
     <string name="account_import_substrate_raw_seed_placeholder">Substrate сид</string>
     <string name="account_import_ethereum_raw_seed_placeholder">ETH сид</string>
@@ -905,6 +907,8 @@
     <string name="common_min_received">Мин. покупка</string>
     <string name="common_liquidity_provider_fee">Комиссия LP</string>
     <string name="common_network_fee">Комиссия сети</string>
+    <string name="common_original_network_fee">Комиссия исходной сети</string>
+    <string name="common_destination_network_fee">Комиссия сети назначения</string>
     <string name="common_route">Направление</string>
 
     <string name="polkaswap_from">Из</string>

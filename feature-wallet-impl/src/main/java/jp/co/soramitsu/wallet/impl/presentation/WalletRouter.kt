@@ -24,27 +24,29 @@ import jp.co.soramitsu.wallet.api.presentation.WalletRouter as WalletRouterApi
 interface WalletRouter : SecureRouter, WalletRouterApi {
     fun openAssetDetails(assetPayload: AssetPayload)
 
-    fun back()
-
-    fun popOutOfSend()
-
     fun openSend(assetPayload: AssetPayload?, initialSendToAddress: String? = null, currencyId: String? = null)
+
+    fun openCrossChainSend(assetPayload: AssetPayload?, initialSendToAddress: String?, currencyId: String?)
 
     fun openSwapTokensScreen(assetId: String, chainId: String)
 
-    fun openSelectChain(assetId: String, chainId: ChainId? = null, chooserMode: Boolean = true)
+    fun openSelectChain(
+        assetId: String,
+        chainId: ChainId? = null,
+        chooserMode: Boolean = true,
+        isSelectAsset: Boolean = true
+    )
 
     fun openSelectChain(
         selectedChainId: ChainId? = null,
         filterChainIds: List<ChainId>? = null,
         chooserMode: Boolean = true,
         currencyId: String? = null,
-        showAllChains: Boolean = true
+        showAllChains: Boolean = true,
+        isSelectAsset: Boolean = true
     )
 
     fun openSelectAsset(selectedAssetId: String)
-
-    fun openSelectChainAsset(chainId: ChainId)
 
     fun openFilter()
 
@@ -126,6 +128,4 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
     fun openCreateContact(chainId: ChainId?, address: String?)
 
     val chainSelectorPayloadFlow: Flow<ChainId?>
-
-    fun setChainSelectorPayload(chainId: ChainId?)
 }
