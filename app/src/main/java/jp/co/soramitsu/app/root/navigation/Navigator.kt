@@ -604,8 +604,8 @@ class Navigator :
         navController?.navigate(R.id.sendSetupFragment, bundle)
     }
 
-    override fun openSwapTokensScreen(assetId: String, chainId: String) {
-        val bundle = SwapTokensFragment.getBundle(assetId, chainId)
+    override fun openSwapTokensScreen(chainId: String, assetIdFrom: String?, assetIdTo: String?) {
+        val bundle = SwapTokensFragment.getBundle(chainId, assetIdFrom, assetIdTo)
 
         navController?.navigate(R.id.swapTokensFragment, bundle)
     }

@@ -57,7 +57,6 @@ class BalanceModel(val assetModels: List<AssetWithStateModel>, val fiatSymbol: S
         }
     }
 
-
     private fun calculateTotalTransferableBalanceChange(): BigDecimal {
         return assetModels.fold(BigDecimal.ZERO) { acc, current ->
             val toAdd = current.asset.availableFiat?.multiply(current.asset.token.recentRateChange.orZero())?.percentageToFraction().orZero()
