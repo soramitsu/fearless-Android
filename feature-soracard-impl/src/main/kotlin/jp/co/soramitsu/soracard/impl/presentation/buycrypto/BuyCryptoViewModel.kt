@@ -13,6 +13,8 @@ import jp.co.soramitsu.soracard.api.domain.SoraCardInteractor
 import jp.co.soramitsu.soracard.api.presentation.SoraCardRouter
 import jp.co.soramitsu.soracard.api.presentation.models.PaymentOrder
 import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import java.util.UUID
 import javax.inject.Inject
@@ -37,10 +39,10 @@ class BuyCryptoViewModel @Inject constructor(
     }
 
     private fun setUpScript() {
+        val payload = UUID.randomUUID().toString()
         viewModelScope.launch {
             val chainId = soraCardInteractor.soraCardChainId
             val address = currentAccountAddress(chainId) ?: return@launch
-            val payload = UUID.randomUUID().toString()
 
             val unencodedHtml = "<html><head><meta name=\"color-scheme\" content=\"dark light\"></head><body>" +
                 "<div id=\"${BuildConfig.X1_WIDGET_ID}\" data-address=\"${address}\" " +
@@ -52,25 +54,15 @@ class BuyCryptoViewModel @Inject constructor(
 
             state = state.copy(script = encodedHtml)
 
-            subscribePaymentOrderInfo(payload)
-            requestPaymentOrderStatus(payload)
-        }
-    }
-
-    private fun requestPaymentOrderStatus(payload: String) {
-        viewModelScope.launch {
             buyCryptoRepository.requestPaymentOrderStatus(PaymentOrder(paymentId = payload))
         }
-    }
 
-    private fun subscribePaymentOrderInfo(payload: String) {
-        viewModelScope.launch {
-            buyCryptoRepository.subscribePaymentOrderInfo()
-                .collect {
-                    if (it.paymentId == payload && it.depositTransactionStatus == "completed") {
-                        soraCardRouter.back()
-                    }
+        buyCryptoRepository.subscribePaymentOrderInfo()
+            .onEach {
+                if (it.paymentId == payload && it.depositTransactionStatus == "completed") {
+                    soraCardRouter.back()
                 }
-        }
+            }
+            .launchIn(viewModelScope)
     }
 }

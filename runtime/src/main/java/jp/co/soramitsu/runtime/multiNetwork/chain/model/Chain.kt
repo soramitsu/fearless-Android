@@ -2,6 +2,7 @@ package jp.co.soramitsu.runtime.multiNetwork.chain.model
 
 import jp.co.soramitsu.common.data.network.BlockExplorerUrlBuilder
 import jp.co.soramitsu.common.domain.AppVersion
+import jp.co.soramitsu.core.models.ChainId
 import jp.co.soramitsu.core.models.ChainNode
 import jp.co.soramitsu.core.models.IChain
 import jp.co.soramitsu.core.models.Asset as CoreAsset
@@ -129,7 +130,7 @@ fun List<Chain.Explorer>.getSupportedExplorers(type: BlockExplorerUrlBuilder.Typ
     }
 }.toMap()
 
-@Deprecated("Use polkadotKusamaOthers() to get Polkadot at first place", ReplaceWith("defaultChainSort()"))
+@Deprecated("Use defaultChainSort() to get Polkadot at first place", ReplaceWith("defaultChainSort()"))
 fun ChainId.isPolkadotOrKusama() = this in listOf(polkadotChainId, kusamaChainId)
 
 fun ChainId.defaultChainSort() = when (this) {
@@ -138,12 +139,12 @@ fun ChainId.defaultChainSort() = when (this) {
     else -> 3
 }
 
-fun List<Chain>.getWithToken(symbol: String, filterAssetIds: Collection<String>? = null): List<Chain> = filter { chain ->
-    chain.assets.any {
-        it.symbolToShow == symbol && filterAssetIds?.contains(it.id) == true
+fun List<Chain>.getWithToken(symbol: String, filter: Map<ChainId, List<String>>? = null): List<Chain> = filter { chain ->
+    chain.assets.any { asset ->
+        val allowAsset = when (filter) {
+            null -> true
+            else -> filter[chain.id]?.contains(asset.id) ?: false
+        }
+        asset.symbolToShow == symbol && allowAsset
     }
-}
-
-enum class TypesUsage {
-    ON_CHAIN, UNSUPPORTED
 }

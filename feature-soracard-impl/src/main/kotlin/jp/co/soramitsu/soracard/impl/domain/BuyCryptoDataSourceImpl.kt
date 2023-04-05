@@ -45,15 +45,18 @@ class BuyCryptoDataSourceImpl(
         url = BuildConfig.X1_PAYMENT_STATUS_URL,
         listener = webSocketListener,
         json = json,
-        logging = true,
+        logging = false,
         provider = clientProvider
     )
 
     override suspend fun requestPaymentOrderStatus(paymentOrder: PaymentOrder) {
-        paymentOrderWebSocket.sendRequest(
-            request = WebSocketRequest(json = json.encodeToString(paymentOrder))
-        )
+        try {
+            paymentOrderWebSocket.sendRequest(
+                request = WebSocketRequest(json = json.encodeToString(paymentOrder))
+            )
+        } catch (_: Throwable) {
+        }
     }
 
-    override suspend fun subscribePaymentOrderInfo(): Flow<PaymentOrderInfo> = paymentOrderFlow
+    override fun subscribePaymentOrderInfo(): Flow<PaymentOrderInfo> = paymentOrderFlow
 }

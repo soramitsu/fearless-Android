@@ -29,7 +29,7 @@ val red = Color(0xFFF00004)
 val blurColorDark = Color(0xB3000000)
 val blurColor = Color(0x8C000000)
 val blurColorLight = Color(0x66000000)
-val backgroundBlurColor = Color(0xAFFFFFF)
+val backgroundBlurColor = Color(0x0AFFFFFF)
 val selectedGreen = Color(0xFF09C8A1)
 
 val white = Color(0xFFFFFFFF)

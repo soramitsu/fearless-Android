@@ -14,6 +14,6 @@ class BuyCryptoRepositoryImpl(
         buyCryptoDataSource.requestPaymentOrderStatus(paymentOrder)
     }
 
-    override suspend fun subscribePaymentOrderInfo(): Flow<PaymentOrderInfo> =
+    override fun subscribePaymentOrderInfo(): Flow<PaymentOrderInfo> =
         buyCryptoDataSource.subscribePaymentOrderInfo()
 }

@@ -185,7 +185,8 @@ private fun AssetItemSwipeBoxPreview() {
         displayName = assetSymbol,
         hasAccount = true,
         priceId = null,
-        hasNetworkIssue = false
+        hasNetworkIssue = false,
+        ecosystem = "Polkadot"
     )
 
     Column(modifier = Modifier.padding(horizontal = 16.dp)) {

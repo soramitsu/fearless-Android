@@ -3,8 +3,8 @@ apply from: './scripts/secrets.gradle'
 buildscript {
     ext {
         // App version
-        versionName = '2.2.0'
-        versionCode = 88
+        versionName = '2.2.1'
+        versionCode = 89
 
         // SDK and tools
         compileSdkVersion = 33
@@ -25,7 +25,7 @@ buildscript {
 
         progressButtonsVersion = '2.1.0'
         xNetworkingVersion = '0.0.55'
-        soraCardVersion = '0.0.30'
+        soraCardVersion = '0.0.34'
         soraUiCoreVersion = '0.0.63'
 
         daggerVersion = '2.45'
