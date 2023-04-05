@@ -42,7 +42,7 @@ class BalanceModel(val assetModels: List<AssetWithStateModel>, val fiatSymbol: S
     private fun calculateTotalTransferableBalance(): BigDecimal? {
         return if (assetModels.filter { it.asset.token.fiatSymbol == fiatSymbol }.any { it.asset.available != null }) {
             assetModels.sumByBigDecimal {
-                it.asset.available.orZero()
+                it.asset.availableFiat.orZero()
             }
         } else {
             null
@@ -56,6 +56,7 @@ class BalanceModel(val assetModels: List<AssetWithStateModel>, val fiatSymbol: S
             acc + toAdd
         }
     }
+
 
     private fun calculateTotalTransferableBalanceChange(): BigDecimal {
         return assetModels.fold(BigDecimal.ZERO) { acc, current ->
