@@ -42,8 +42,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flatMapMerge
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.withIndex
 import kotlinx.coroutines.withContext
@@ -74,6 +74,7 @@ class WalletInteractorImpl(
         val key = getHideZeroBalancesKey(walletId)
         return preferences.getBoolean(key, false)
     }
+
     override suspend fun toggleHideZeroBalancesForCurrentWallet() {
         val walletId = accountRepository.getSelectedMetaAccount().id
         val key = getHideZeroBalancesKey(walletId)
@@ -83,8 +84,8 @@ class WalletInteractorImpl(
     }
 
     override fun observeHideZeroBalanceEnabledForCurrentWallet(): Flow<Boolean> {
-        return accountRepository.selectedMetaAccountFlow().flatMapConcat {
-            preferences.booleanFlow(getHideZeroBalancesKey(it.id), false)
+        return accountRepository.selectedMetaAccountFlow().flatMapMerge { wallet ->
+            preferences.booleanFlow(getHideZeroBalancesKey(wallet.id), false)
         }.distinctUntilChanged()
     }
 
