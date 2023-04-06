@@ -46,7 +46,7 @@ buildscript {
 
         bouncyCastleVersion = '1.70'
 
-        fearlessLibVersion = '1.0.109'
+        fearlessLibVersion = '1.0.119'
 
         gifVersion = '1.2.25'
 
@@ -86,7 +86,7 @@ buildscript {
         minifyRelease = true
         beaconVersion = "3.2.4"
 
-        sharedFeaturesVersion = "0.0.3"
+        sharedFeaturesVersion = "0.0.4"
 
         coilDep = "io.coil-kt:coil:$coilVersion"
         coilSvg = "io.coil-kt:coil-svg:$coilVersion"
