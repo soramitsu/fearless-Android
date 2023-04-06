@@ -5,7 +5,7 @@ interface SoraCardRouter {
 
     fun openGetMoreXor()
 
-    fun openSwapTokensScreen(assetId: String, chainId: String)
+    fun openSwapTokensScreen(chainId: String, assetIdFrom: String?, assetIdTo: String?)
 
     fun showBuyCrypto()
 

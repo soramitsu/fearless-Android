@@ -7,9 +7,6 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.math.BigDecimal
-import java.math.BigInteger
-import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.base.errors.ValidationException
 import jp.co.soramitsu.common.compose.component.AmountInputViewState
@@ -61,6 +58,9 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
+import java.math.BigInteger
+import javax.inject.Inject
 
 typealias TooltipEvent = Event<Pair<String, String>>
 
@@ -84,7 +84,8 @@ class SwapTokensViewModel @Inject constructor(
     private val isFromAmountFocused = MutableStateFlow(false)
     private val isToAmountFocused = MutableStateFlow(false)
 
-    private val initFromAssetId = savedStateHandle.get<String>(SwapTokensFragment.KEY_SELECTED_ASSET_ID)
+    private val initFromAssetId = savedStateHandle.get<String>(SwapTokensFragment.KEY_SELECTED_ASSET_FROM_ID)
+    private val initToAssetId = savedStateHandle.get<String>(SwapTokensFragment.KEY_SELECTED_ASSET_TO_ID)
     private val initFromChainId = savedStateHandle.get<String>(SwapTokensFragment.KEY_SELECTED_CHAIN_ID)
 
     private val fromAmountInputViewState = MutableStateFlow(AmountInputViewState.default(resourceManager, R.string.common_available_format))
@@ -233,7 +234,7 @@ class SwapTokensViewModel @Inject constructor(
     }.stateIn(viewModelScope, SharingStarted.Eagerly, SwapTokensContentViewState.default(resourceManager))
 
     init {
-        initFromAsset()
+        initAssets()
         subscribeFromAmountInputViewState()
         subscribeToAmountInputViewState()
 
@@ -251,12 +252,11 @@ class SwapTokensViewModel @Inject constructor(
         }
     }
 
-    private fun initFromAsset() {
+    private fun initAssets() {
         viewModelScope.launch {
-            fromAsset.value = initFromAssetId?.let {
-                polkaswapInteractor.setChainId(initFromChainId)
-                polkaswapInteractor.getAsset(it)
-            }
+            polkaswapInteractor.setChainId(initFromChainId)
+            fromAsset.value = initFromAssetId?.let { polkaswapInteractor.getAsset(it) }
+            toAsset.value = initToAssetId?.let { polkaswapInteractor.getAsset(it) }
         }
     }
 
