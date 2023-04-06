@@ -22,7 +22,7 @@ class GetMoreXorViewModel @Inject constructor(
         launch {
             interactor.xorAssetFlow().firstOrNull()?.let {
                 router.back()
-                router.openSwapTokensScreen(it.token.configuration.id, it.token.configuration.chainId)
+                router.openSwapTokensScreen(it.token.configuration.chainId, null, it.token.configuration.id)
             }
         }
     }

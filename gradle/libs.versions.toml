@@ -6,7 +6,7 @@ composeThemeAdapter = "1.2.1"
 material = "1.8.0"
 coroutines = "1.6.4"
 soraUiCore = "0.0.63"
-soraCard = "0.0.34"
+soraCard = "0.0.35"
 kotlinxSerializationjson = "1.5.0"
 xNetworking = "0.0.55"
 

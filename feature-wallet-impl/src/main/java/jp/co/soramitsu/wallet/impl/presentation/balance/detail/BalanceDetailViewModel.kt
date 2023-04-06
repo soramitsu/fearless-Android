@@ -282,7 +282,7 @@ class BalanceDetailViewModel @Inject constructor(
     }
 
     private fun openSwapTokensScreen(assetPayload: AssetPayload) {
-        router.openSwapTokensScreen(assetPayload.chainAssetId, assetPayload.chainId)
+        router.openSwapTokensScreen(assetPayload.chainId, assetPayload.chainAssetId, null)
     }
 
     private fun receiveClicked(assetPayload: AssetPayload) {

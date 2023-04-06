@@ -31,7 +31,7 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
 
     fun openSelectWalletTypeWithResult(): Flow<WalletType>
 
-    fun openSwapTokensScreen(assetId: String, chainId: String)
+    fun openSwapTokensScreen(chainId: String, assetIdFrom: String?, assetIdTo: String?)
 
     fun openSelectChain(
         assetId: String,
