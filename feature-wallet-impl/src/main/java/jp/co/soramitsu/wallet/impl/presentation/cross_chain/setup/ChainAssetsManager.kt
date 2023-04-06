@@ -1,4 +1,4 @@
-package jp.co.soramitsu.wallet.impl.presentation.cross_chain
+package jp.co.soramitsu.wallet.impl.presentation.cross_chain.setup
 
 import jp.co.soramitsu.common.compose.component.SelectorState
 import jp.co.soramitsu.common.resources.ResourceManager

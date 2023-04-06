@@ -1,4 +1,4 @@
-package jp.co.soramitsu.wallet.impl.presentation.cross_chain
+package jp.co.soramitsu.wallet.impl.presentation.cross_chain.setup
 
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
@@ -57,7 +57,7 @@ import jp.co.soramitsu.common.compose.theme.colorAccentDark
 import jp.co.soramitsu.common.compose.theme.white24
 import jp.co.soramitsu.feature_wallet_impl.R
 
-data class CrossChainViewState(
+data class CrossChainSetupViewState(
     val toolbarState: ToolbarViewState,
     val addressInputState: AddressInputState,
     val amountInputState: AmountInputViewState,
@@ -69,7 +69,7 @@ data class CrossChainViewState(
     val buttonState: ButtonViewState
 )
 
-interface CrossChainScreenInterface {
+interface CrossChainSetupScreenInterface {
     fun onNavigationClick()
     fun onAddressInput(input: String)
     fun onAddressInputClear()
@@ -88,9 +88,9 @@ interface CrossChainScreenInterface {
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun CrossChainContent(
-    state: CrossChainViewState,
-    callback: CrossChainScreenInterface
+fun CrossChainSetupContent(
+    state: CrossChainSetupViewState,
+    callback: CrossChainSetupScreenInterface
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
 
@@ -105,17 +105,14 @@ fun CrossChainContent(
                     title = stringResource(id = R.string.common_title_cross_chain),
                     onNavigationClick = callback::onNavigationClick
                 )
-                MarginVertical(margin = 20.dp)
-                AddressInput(
-                    state = state.addressInputState,
-                    onInput = callback::onAddressInput,
-                    onInputClear = callback::onAddressInputClear
-                )
-                MarginVertical(margin = 8.dp)
-
-                AddressActions(callback = callback)
 
                 MarginVertical(margin = 16.dp)
+                SelectorWithBorder(
+                    state = state.originalChainSelectorState,
+                    onClick = callback::onOriginalChainClick
+                )
+
+                MarginVertical(margin = 8.dp)
                 AmountInput(
                     state = state.amountInputState,
                     borderColorFocused = colorAccentDark,
@@ -124,16 +121,21 @@ fun CrossChainContent(
                     onTokenClick = callback::onTokenClick
                 )
 
-                MarginVertical(margin = 12.dp)
-                SelectorWithBorder(
-                    state = state.originalChainSelectorState,
-                    onClick = callback::onOriginalChainClick
-                )
-                MarginVertical(margin = 12.dp)
+                MarginVertical(margin = 8.dp)
                 SelectorWithBorder(
                     state = state.destinationChainSelectorState,
                     onClick = callback::onDestinationChainClick
                 )
+
+                MarginVertical(margin = 8.dp)
+                AddressInput(
+                    state = state.addressInputState,
+                    onInput = callback::onAddressInput,
+                    onInputClear = callback::onAddressInputClear
+                )
+                MarginVertical(margin = 8.dp)
+                AddressActions(callback = callback)
+
                 state.warningInfoState?.let {
                     MarginVertical(margin = 8.dp)
                     WarningInfo(state = it, onClick = callback::onWarningInfoClick)
@@ -184,7 +186,7 @@ fun CrossChainContent(
 
 @Composable
 private fun AddressActions(
-    callback: CrossChainScreenInterface,
+    callback: CrossChainSetupScreenInterface,
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -241,7 +243,7 @@ private fun Badge(
 @Preview
 @Composable
 private fun CrossChainPreview() {
-    val state = CrossChainViewState(
+    val state = CrossChainSetupViewState(
         toolbarState = ToolbarViewState("Send Fund", R.drawable.ic_arrow_left_24),
         addressInputState = AddressInputState("Send to", "", ""),
         amountInputState = AmountInputViewState(
@@ -261,7 +263,7 @@ private fun CrossChainPreview() {
         buttonState = ButtonViewState("Continue", true)
     )
 
-    val emptyCallback = object : CrossChainScreenInterface {
+    val emptyCallback = object : CrossChainSetupScreenInterface {
         override fun onNavigationClick() {}
         override fun onAddressInput(input: String) {}
         override fun onAddressInputClear() {}
@@ -279,7 +281,7 @@ private fun CrossChainPreview() {
     }
 
     FearlessTheme {
-        CrossChainContent(
+        CrossChainSetupContent(
             state = state,
             callback = emptyCallback
         )

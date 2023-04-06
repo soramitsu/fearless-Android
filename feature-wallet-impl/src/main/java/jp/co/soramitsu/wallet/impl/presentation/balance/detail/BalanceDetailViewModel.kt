@@ -5,7 +5,6 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import jp.co.soramitsu.account.api.presentation.account.AddressDisplayUseCase
 import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.account.api.presentation.exporting.ExportSource
@@ -50,6 +49,7 @@ import jp.co.soramitsu.wallet.impl.presentation.model.OperationModel
 import jp.co.soramitsu.wallet.impl.presentation.transaction.filter.HistoryFiltersProvider
 import jp.co.soramitsu.wallet.impl.presentation.transaction.history.mixin.TransactionHistoryProvider
 import jp.co.soramitsu.wallet.impl.presentation.transaction.history.mixin.TransactionHistoryUi
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
@@ -58,9 +58,12 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @HiltViewModel
 class BalanceDetailViewModel @Inject constructor(
@@ -95,6 +98,8 @@ class BalanceDetailViewModel @Inject constructor(
 
     private val selectedChainId = MutableStateFlow(assetPayloadInitial.chainId)
     private val assetPayload = MutableStateFlow(assetPayloadInitial)
+
+    private var walletTypeResultJob: Job? = null
 
     private val chainsFlow = chainInteractor.getChainsFlow().mapList { it.toChainItemState() }
     private val assetModelsFlow: Flow<List<AssetModel>> = interactor.assetsFlow()
@@ -276,10 +281,6 @@ class BalanceDetailViewModel @Inject constructor(
         router.openSend(assetPayload)
     }
 
-    private fun sendCrossChainClicked(assetPayload: AssetPayload) {
-        router.openCrossChainSend(assetPayload, initialSendToAddress = null, currencyId = null)
-    }
-
     private fun openSwapTokensScreen(assetPayload: AssetPayload) {
         router.openSwapTokensScreen(assetPayload.chainAssetId, assetPayload.chainId)
     }
@@ -357,7 +358,7 @@ class BalanceDetailViewModel @Inject constructor(
                 showMessage("YOU NEED THE BLUE KEY")
             }
             ActionItemType.CROSS_CHAIN -> {
-                sendCrossChainClicked(payload)
+                onCrossChainClicked(payload)
             }
             ActionItemType.BUY -> {
                 buyClicked(payload)
@@ -368,6 +369,14 @@ class BalanceDetailViewModel @Inject constructor(
             ActionItemType.HIDE, ActionItemType.SHOW -> {
             }
         }
+    }
+
+    private fun onCrossChainClicked(assetPayload: AssetPayload) {
+        router.openSelectWalletTypeWithResult()
+            .onEach {
+                router.openCrossChainSend(assetPayload, initialSendToAddress = null, currencyId = null)
+            }
+            .launchIn(viewModelScope)
     }
 
     private fun copyToClipboard(text: String) {

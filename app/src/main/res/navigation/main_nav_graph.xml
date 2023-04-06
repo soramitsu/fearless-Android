@@ -664,8 +664,13 @@
 
     <dialog
         android:id="@+id/crossChainFragment"
-        android:name="jp.co.soramitsu.wallet.impl.presentation.cross_chain.CrossChainFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.cross_chain.setup.CrossChainSetupFragment"
         android:label="crossChainFragment" />
+
+    <dialog
+        android:id="@+id/selectWalletTypeFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.cross_chain.wallet_type.SelectWalletTypeFragment"
+        android:label="selectWalletTypeFragment" />
 
     <dialog
         android:id="@+id/addressHistoryFragment"

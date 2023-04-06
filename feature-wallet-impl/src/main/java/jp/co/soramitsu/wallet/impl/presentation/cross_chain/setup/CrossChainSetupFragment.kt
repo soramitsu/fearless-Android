@@ -1,4 +1,4 @@
-package jp.co.soramitsu.wallet.impl.presentation.cross_chain
+package jp.co.soramitsu.wallet.impl.presentation.cross_chain.setup
 
 import android.Manifest
 import android.os.Bundle
@@ -28,7 +28,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
-class CrossChainFragment : BaseComposeBottomSheetDialogFragment<CrossChainViewModel>() {
+class CrossChainSetupFragment : BaseComposeBottomSheetDialogFragment<CrossChainSetupViewModel>() {
 
     companion object {
 
@@ -43,7 +43,7 @@ class CrossChainFragment : BaseComposeBottomSheetDialogFragment<CrossChainViewMo
         )
     }
 
-    override val viewModel: CrossChainViewModel by viewModels()
+    override val viewModel: CrossChainSetupViewModel by viewModels()
 
     private val barcodeLauncher: ActivityResultLauncher<ScanOptions> = registerForActivityResult(ScanTextContract()) { result ->
         result?.let {
@@ -54,7 +54,7 @@ class CrossChainFragment : BaseComposeBottomSheetDialogFragment<CrossChainViewMo
     @Composable
     override fun Content(padding: PaddingValues) {
         val state by viewModel.state.collectAsState()
-        CrossChainContent(
+        CrossChainSetupContent(
             state = state,
             callback = viewModel
         )

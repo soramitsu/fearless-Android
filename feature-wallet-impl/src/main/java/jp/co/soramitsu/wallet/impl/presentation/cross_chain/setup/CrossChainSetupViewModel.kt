@@ -1,4 +1,4 @@
-package jp.co.soramitsu.wallet.impl.presentation.cross_chain
+package jp.co.soramitsu.wallet.impl.presentation.cross_chain.setup
 
 import androidx.compose.ui.focus.FocusState
 import androidx.lifecycle.LiveData
@@ -78,7 +78,7 @@ private const val RETRY_TIMES = 3L
 private const val SLIPPAGE_TOLERANCE = 1.35
 
 @HiltViewModel
-class CrossChainViewModel @Inject constructor(
+class CrossChainSetupViewModel @Inject constructor(
     val savedStateHandle: SavedStateHandle,
     private val resourceManager: ResourceManager,
     private val walletInteractor: WalletInteractor,
@@ -91,7 +91,7 @@ class CrossChainViewModel @Inject constructor(
     private val chainAssetsManager: ChainAssetsManager,
     private val chainRegistry: ChainRegistry,
     private val extrinsicService: ExtrinsicService
-) : BaseViewModel(), CrossChainScreenInterface {
+) : BaseViewModel(), CrossChainSetupScreenInterface {
 
     private val _openScannerEvent = MutableSharedFlow<Unit>()
     val openScannerEvent = _openScannerEvent.asSharedFlow()
@@ -144,7 +144,7 @@ class CrossChainViewModel @Inject constructor(
         R.drawable.ic_arrow_left_24
     )
 
-    private val defaultState = CrossChainViewState(
+    private val defaultState = CrossChainSetupViewState(
         toolbarViewState,
         defaultAddressInputState,
         defaultAmountInputState,
@@ -332,7 +332,7 @@ class CrossChainViewModel @Inject constructor(
 
         confirmedValidations.clear()
 
-        CrossChainViewState(
+        CrossChainSetupViewState(
             toolbarState = toolbarViewState,
             addressInputState = AddressInputState(
                 title = resourceManager.getString(R.string.send_to),
@@ -416,7 +416,6 @@ class CrossChainViewModel @Inject constructor(
 
             // error occurred inside validation
             validationProcessResult.exceptionOrNull()?.let {
-                println("validationProcessResult: $it")
                 showError(it)
                 return@launch
             }
@@ -424,10 +423,8 @@ class CrossChainViewModel @Inject constructor(
 
             ValidationException.fromValidationResult(validationResult, resourceManager)?.let {
                 if (it is ValidationWarning) {
-                    println("ValidationException: ValidationWarning")
                     _openValidationWarningEvent.value = Event(validationResult to it)
                 } else {
-                    println("ValidationException: $it")
                     showError(it)
                 }
                 return@launch
