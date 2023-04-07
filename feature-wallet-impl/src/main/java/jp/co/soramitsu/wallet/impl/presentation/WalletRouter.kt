@@ -14,6 +14,7 @@ import jp.co.soramitsu.wallet.impl.domain.beacon.SignStatus
 import jp.co.soramitsu.wallet.impl.domain.model.PhishingType
 import jp.co.soramitsu.wallet.impl.presentation.balance.detail.frozen.FrozenAssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.beacon.main.DAppMetadataModel
+import jp.co.soramitsu.wallet.impl.presentation.cross_chain.wallet_type.WalletType
 import jp.co.soramitsu.wallet.impl.presentation.model.OperationParcelizeModel
 import jp.co.soramitsu.wallet.impl.presentation.send.TransferDraft
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.extrinsic.ExtrinsicDetailsPayload
@@ -24,27 +25,31 @@ import jp.co.soramitsu.wallet.api.presentation.WalletRouter as WalletRouterApi
 interface WalletRouter : SecureRouter, WalletRouterApi {
     fun openAssetDetails(assetPayload: AssetPayload)
 
-    fun back()
-
-    fun popOutOfSend()
-
     fun openSend(assetPayload: AssetPayload?, initialSendToAddress: String? = null, currencyId: String? = null)
+
+    fun openCrossChainSend(assetPayload: AssetPayload?, initialSendToAddress: String?, currencyId: String?)
+
+    fun openSelectWalletTypeWithResult(): Flow<WalletType>
 
     fun openSwapTokensScreen(chainId: String, assetIdFrom: String?, assetIdTo: String?)
 
-    fun openSelectChain(assetId: String, chainId: ChainId? = null, chooserMode: Boolean = true)
+    fun openSelectChain(
+        assetId: String,
+        chainId: ChainId? = null,
+        chooserMode: Boolean = true,
+        isSelectAsset: Boolean = true
+    )
 
     fun openSelectChain(
         selectedChainId: ChainId? = null,
         filterChainIds: List<ChainId>? = null,
         chooserMode: Boolean = true,
         currencyId: String? = null,
-        showAllChains: Boolean = true
+        showAllChains: Boolean = true,
+        isSelectAsset: Boolean = true
     )
 
     fun openSelectAsset(selectedAssetId: String)
-
-    fun openSelectChainAsset(chainId: ChainId)
 
     fun openFilter()
 
@@ -126,6 +131,4 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
     fun openCreateContact(chainId: ChainId?, address: String?)
 
     val chainSelectorPayloadFlow: Flow<ChainId?>
-
-    fun setChainSelectorPayload(chainId: ChainId?)
 }

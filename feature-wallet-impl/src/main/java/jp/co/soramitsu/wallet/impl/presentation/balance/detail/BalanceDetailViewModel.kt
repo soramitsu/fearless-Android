@@ -10,6 +10,7 @@ import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.account.api.presentation.exporting.ExportSource
 import jp.co.soramitsu.account.api.presentation.exporting.ExportSourceChooserPayload
 import jp.co.soramitsu.account.api.presentation.exporting.buildExportSourceTypes
+import jp.co.soramitsu.common.BuildConfig
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.ActionBarViewState
@@ -48,6 +49,7 @@ import jp.co.soramitsu.wallet.impl.presentation.model.OperationModel
 import jp.co.soramitsu.wallet.impl.presentation.transaction.filter.HistoryFiltersProvider
 import jp.co.soramitsu.wallet.impl.presentation.transaction.history.mixin.TransactionHistoryProvider
 import jp.co.soramitsu.wallet.impl.presentation.transaction.history.mixin.TransactionHistoryUi
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
@@ -56,7 +58,9 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -94,6 +98,8 @@ class BalanceDetailViewModel @Inject constructor(
 
     private val selectedChainId = MutableStateFlow(assetPayloadInitial.chainId)
     private val assetPayload = MutableStateFlow(assetPayloadInitial)
+
+    private var walletTypeResultJob: Job? = null
 
     private val chainsFlow = chainInteractor.getChainsFlow().mapList { it.toChainItemState() }
     private val assetModelsFlow: Flow<List<AssetModel>> = interactor.assetsFlow()
@@ -304,6 +310,10 @@ class BalanceDetailViewModel @Inject constructor(
             ActionItemType.RECEIVE,
             ActionItemType.BUY
         )
+        if (BuildConfig.DEBUG) {
+            actionItems -= ActionItemType.BUY
+            actionItems += listOf(ActionItemType.CROSS_CHAIN, ActionItemType.BUY)
+        }
         if (selectedChainId == soraMainChainId || selectedChainId == soraTestChainId) {
             if (!isBuyEnabled()) {
                 actionItems -= ActionItemType.BUY
@@ -347,6 +357,9 @@ class BalanceDetailViewModel @Inject constructor(
             ActionItemType.TELEPORT -> {
                 showMessage("YOU NEED THE BLUE KEY")
             }
+            ActionItemType.CROSS_CHAIN -> {
+                onCrossChainClicked(payload)
+            }
             ActionItemType.BUY -> {
                 buyClicked(payload)
             }
@@ -356,6 +369,14 @@ class BalanceDetailViewModel @Inject constructor(
             ActionItemType.HIDE, ActionItemType.SHOW -> {
             }
         }
+    }
+
+    private fun onCrossChainClicked(assetPayload: AssetPayload) {
+        router.openSelectWalletTypeWithResult()
+            .onEach {
+                router.openCrossChainSend(assetPayload, initialSendToAddress = null, currencyId = null)
+            }
+            .launchIn(viewModelScope)
     }
 
     private fun copyToClipboard(text: String) {

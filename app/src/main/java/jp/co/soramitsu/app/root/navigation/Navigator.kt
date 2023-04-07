@@ -7,6 +7,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.net.toUri
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.asFlow
+import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import androidx.navigation.NavDeepLinkRequest
 import androidx.navigation.NavOptions
@@ -48,7 +49,6 @@ import jp.co.soramitsu.common.AlertViewState
 import jp.co.soramitsu.common.navigation.DelayedNavigation
 import jp.co.soramitsu.common.navigation.payload.WalletSelectorPayload
 import jp.co.soramitsu.common.presentation.StoryGroupModel
-import jp.co.soramitsu.common.utils.combine
 import jp.co.soramitsu.common.utils.postToUiThread
 import jp.co.soramitsu.common.view.onResumeObserver
 import jp.co.soramitsu.core.models.Asset
@@ -121,6 +121,9 @@ import jp.co.soramitsu.wallet.impl.presentation.beacon.main.BeaconFragment
 import jp.co.soramitsu.wallet.impl.presentation.beacon.main.DAppMetadataModel
 import jp.co.soramitsu.wallet.impl.presentation.beacon.sign.SignBeaconTransactionFragment
 import jp.co.soramitsu.wallet.impl.presentation.beacon.sign.TransactionRawDataFragment
+import jp.co.soramitsu.wallet.impl.presentation.cross_chain.setup.CrossChainSetupFragment
+import jp.co.soramitsu.wallet.impl.presentation.cross_chain.wallet_type.SelectWalletTypeFragment
+import jp.co.soramitsu.wallet.impl.presentation.cross_chain.wallet_type.WalletType
 import jp.co.soramitsu.wallet.impl.presentation.history.AddressHistoryFragment
 import jp.co.soramitsu.wallet.impl.presentation.model.OperationParcelizeModel
 import jp.co.soramitsu.wallet.impl.presentation.receive.ReceiveFragment
@@ -135,13 +138,20 @@ import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.swap.SwapDeta
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.transfer.TransferDetailFragment
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.job
+import jp.co.soramitsu.common.utils.combine as combineLiveData
 import kotlinx.parcelize.Parcelize
+import kotlin.coroutines.coroutineContext
 
 @Parcelize
 class NavComponentDelayedNavigation(val globalActionId: Int, val extras: Bundle? = null) : DelayedNavigation
@@ -416,6 +426,7 @@ class Navigator :
 
     override fun backWithResult(vararg results: Pair<String, Any?>) {
         val savedStateHandle = navController?.previousBackStackEntry?.savedStateHandle
+
         if (savedStateHandle != null) {
             results.forEach { (key, value) ->
                 savedStateHandle[key] = value
@@ -604,6 +615,42 @@ class Navigator :
         navController?.navigate(R.id.sendSetupFragment, bundle)
     }
 
+    override fun openCrossChainSend(assetPayload: AssetPayload?, initialSendToAddress: String?, currencyId: String?) {
+        val bundle = CrossChainSetupFragment.getBundle(assetPayload, initialSendToAddress, currencyId)
+
+        navController?.navigate(R.id.crossChainFragment, bundle)
+    }
+
+    override fun openSelectWalletTypeWithResult(): Flow<WalletType> {
+        return openWithResult(
+            destinationId = R.id.selectWalletTypeFragment,
+            resultKey = SelectWalletTypeFragment.KEY_WALLET_TYPE
+        )
+    }
+
+    private fun <T> openWithResult(
+        @IdRes destinationId: Int,
+        resultKey: String
+    ): Flow<T> {
+        val resultFlow = observeResultInternal<T>(resultKey)
+        val backStackEntryFlow = getCurrentBackStackEntryFlow()
+        return combine(resultFlow, backStackEntryFlow) { result, backStackEntry ->
+            Pair(result, backStackEntry)
+        }
+            .onStart { navController?.navigate(destinationId) }
+            .filter {
+                val (_, backStackEntry) = it
+                backStackEntry.destination.id != destinationId
+            }
+            .onEach { coroutineContext.job.cancel() }
+            .map {
+                val (result, _) = it
+                result
+            }
+            .mapNotNull { it }
+            .onEach { removeSavedStateHandle(resultKey) }
+    }
+
     override fun openSwapTokensScreen(chainId: String, assetIdFrom: String?, assetIdTo: String?) {
         val bundle = SwapTokensFragment.getBundle(chainId, assetIdFrom, assetIdTo)
 
@@ -614,13 +661,37 @@ class Navigator :
         navController?.navigate(R.id.buyCryptoFragment)
     }
 
-    override fun openSelectChain(assetId: String, chainId: ChainId?, chooserMode: Boolean) {
-        val bundle = ChainSelectFragment.getBundle(assetId = assetId, chainId = chainId, chooserMode = chooserMode)
+    override fun openSelectChain(
+        assetId: String,
+        chainId: ChainId?,
+        chooserMode: Boolean,
+        isSelectAsset: Boolean
+    ) {
+        val bundle = ChainSelectFragment.getBundle(
+            assetId = assetId,
+            chainId = chainId,
+            chooserMode = chooserMode,
+            isSelectAsset = isSelectAsset
+        )
         navController?.navigate(R.id.chainSelectFragment, bundle)
     }
 
-    override fun openSelectChain(selectedChainId: ChainId?, filterChainIds: List<ChainId>?, chooserMode: Boolean, currencyId: String?, showAllChains: Boolean) {
-        val bundle = ChainSelectFragment.getBundle(selectedChainId, filterChainIds, chooserMode, currencyId, showAllChains)
+    override fun openSelectChain(
+        selectedChainId: ChainId?,
+        filterChainIds: List<ChainId>?,
+        chooserMode: Boolean,
+        currencyId: String?,
+        showAllChains: Boolean,
+        isSelectAsset: Boolean
+    ) {
+        val bundle = ChainSelectFragment.getBundle(
+            selectedChainId,
+            filterChainIds,
+            chooserMode,
+            currencyId,
+            showAllChains,
+            isSelectAsset
+        )
         navController?.navigate(R.id.chainSelectFragment, bundle)
     }
 
@@ -635,11 +706,23 @@ class Navigator :
     }
 
     override fun <T> observeResult(key: String): Flow<T> {
+        return observeResultInternal<T>(key)
+            .onEach { removeSavedStateHandle(key) }
+            .filter { it != null } as Flow<T>
+    }
+
+    private fun <T> observeResultInternal(key: String): StateFlow<T?> {
         val savedStateHandle = navController?.currentBackStackEntry?.savedStateHandle
-        val resultFlow = savedStateHandle?.getStateFlow<T?>(key, null) ?: MutableStateFlow(null)
-        return resultFlow
-            .filter { it != null }
-            .onEach { savedStateHandle?.set<T>(key, null) } as Flow<T>
+        return savedStateHandle?.getStateFlow<T?>(key, null) ?: MutableStateFlow(null)
+    }
+
+    private fun removeSavedStateHandle(key: String) {
+        val savedStateHandle = navController?.currentBackStackEntry?.savedStateHandle
+        savedStateHandle?.set(key, null)
+    }
+
+    override fun getCurrentBackStackEntryFlow(): Flow<NavBackStackEntry> {
+        return navController!!.currentBackStackEntryFlow
     }
 
     override fun openSelectChainAsset(chainId: ChainId) {
@@ -945,7 +1028,7 @@ class Navigator :
 
     override val educationalStoriesCompleted: Flow<Boolean>
         get() {
-            return combine(
+            return combineLiveData(
                 navController?.currentBackStackEntry?.getLifecycle()?.onResumeObserver() ?: return flowOf(false),
                 navController?.currentBackStackEntry?.savedStateHandle?.getLiveData<Boolean>(StoryFragment.KEY_STORY) ?: return flowOf(false),
                 combiner = { (isResumed: Boolean, storiesCompleted: Boolean) ->
