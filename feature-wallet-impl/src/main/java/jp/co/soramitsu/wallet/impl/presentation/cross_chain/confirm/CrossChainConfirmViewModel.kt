@@ -1,4 +1,4 @@
-package jp.co.soramitsu.wallet.impl.presentation.send.confirm
+package jp.co.soramitsu.wallet.impl.presentation.cross_chain.confirm
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -25,7 +25,6 @@ import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.runtime.ext.utilityAsset
-import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
 import jp.co.soramitsu.wallet.api.domain.TransferValidationResult
 import jp.co.soramitsu.wallet.api.domain.ValidateTransferUseCase
@@ -34,15 +33,14 @@ import jp.co.soramitsu.wallet.api.presentation.mixin.TransferValidityChecks
 import jp.co.soramitsu.wallet.impl.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
 import jp.co.soramitsu.wallet.impl.domain.interfaces.NotValidTransferStatus
-import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletConstants
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
+import jp.co.soramitsu.wallet.impl.domain.model.CrossChainTransfer
 import jp.co.soramitsu.wallet.impl.domain.model.PhishingType
-import jp.co.soramitsu.wallet.impl.domain.model.Transfer
 import jp.co.soramitsu.wallet.impl.domain.model.TransferValidityLevel
 import jp.co.soramitsu.wallet.impl.domain.model.TransferValidityStatus
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
-import jp.co.soramitsu.wallet.impl.presentation.send.TransferDraft
+import jp.co.soramitsu.wallet.impl.presentation.cross_chain.CrossChainTransferDraft
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -52,6 +50,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -60,36 +59,40 @@ import javax.inject.Inject
 private const val ICON_IN_DP = 24
 
 @HiltViewModel
-class ConfirmSendViewModel @Inject constructor(
+class CrossChainConfirmViewModel @Inject constructor(
     private val interactor: WalletInteractor,
     private val router: WalletRouter,
     private val addressIconGenerator: AddressIconGenerator,
-    private val chainRegistry: ChainRegistry,
     private val externalAccountActions: ExternalAccountActions.Presentation,
-    private val walletConstants: WalletConstants,
     private val transferValidityChecks: TransferValidityChecks.Presentation,
-    private val savedStateHandle: SavedStateHandle,
+    savedStateHandle: SavedStateHandle,
     private val resourceManager: ResourceManager,
     private val currentAccountAddress: CurrentAccountAddressUseCase,
     private val validateTransferUseCase: ValidateTransferUseCase
 ) : BaseViewModel(),
     ExternalAccountActions by externalAccountActions,
     TransferValidityChecks by transferValidityChecks,
-    ConfirmSendScreenInterface {
+    CrossChainConfirmScreenInterface {
 
-    private val transferDraft = savedStateHandle.get<TransferDraft>(ConfirmSendFragment.KEY_DRAFT) ?: error("Required data not provided for send confirmation")
-    private val phishingType = savedStateHandle.get<PhishingType>(ConfirmSendFragment.KEY_PHISHING_TYPE)
+    private val transferDraft = savedStateHandle.get<CrossChainTransferDraft>(CrossChainConfirmFragment.KEY_DRAFT)
+        ?: error("Required data not provided for send confirmation")
+    private val phishingType = savedStateHandle.get<PhishingType>(CrossChainConfirmFragment.KEY_PHISHING_TYPE)
 
     private val _openValidationWarningEvent = MutableLiveData<Event<Pair<TransferValidationResult, ValidationWarning>>>()
     val openValidationWarningEvent: LiveData<Event<Pair<TransferValidationResult, ValidationWarning>>> = _openValidationWarningEvent
 
-    private val recipientFlow = interactor.observeAddressBook(transferDraft.assetPayload.chainId).map { contacts ->
+    private val recipientFlow = interactor.observeAddressBook(transferDraft.destinationChainId).map { contacts ->
         val contactName = contacts.firstOrNull { it.address.equals(transferDraft.recipientAddress, ignoreCase = true) }?.name
         getAddressModel(transferDraft.recipientAddress, contactName)
     }
 
+    private val originalNetworkFlow = flowOf { interactor.getChain(transferDraft.originalChainId) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, initialValue = null)
+    private val destinationNetworkFlow = flowOf { interactor.getChain(transferDraft.destinationChainId) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, initialValue = null)
+
     private val senderFlow = flowOf {
-        currentAccountAddress(transferDraft.assetPayload.chainId)?.let { address ->
+        currentAccountAddress(transferDraft.originalChainId)?.let { address ->
             val walletName = interactor.getSelectedMetaAccount().name
             getAddressModel(address, walletName)
         }
@@ -110,25 +113,26 @@ class ConfirmSendViewModel @Inject constructor(
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, defaultButtonState)
 
-    private val assetFlow = interactor.assetFlow(transferDraft.assetPayload.chainId, transferDraft.assetPayload.chainAssetId)
+    private val originalAssetFlow = interactor.assetFlow(transferDraft.originalChainId, transferDraft.chainAssetId)
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val utilityAssetFlow = flowOf {
-        val assetChain = interactor.getChain(transferDraft.assetPayload.chainId)
-        assetChain.utilityAsset.id
+    val utilityAssetFlow = originalNetworkFlow.mapNotNull {
+        it?.utilityAsset?.id
     }.flatMapLatest { assetId ->
-        interactor.assetFlow(transferDraft.assetPayload.chainId, assetId)
+        interactor.assetFlow(transferDraft.originalChainId, assetId)
             .map(::mapAssetToAssetModel)
     }
 
-    val state: StateFlow<ConfirmSendViewState> = combine(
+    val state: StateFlow<CrossChainConfirmViewState> = combine(
         recipientFlow,
+        originalNetworkFlow,
+        destinationNetworkFlow,
         senderFlow,
-        assetFlow,
+        originalAssetFlow,
         utilityAssetFlow,
         buttonStateFlow,
         transferSubmittingFlow
-    ) { recipient, sender, asset, utilityAsset, buttonState, isSubmitting ->
+    ) { recipient, originalNetwork, destinationNetwork, sender, originalAsset, utilityAsset, buttonState, isSubmitting ->
         val isSenderNameSpecified = !sender?.name.isNullOrEmpty()
         val fromInfoItem = TitleValueViewState(
             title = resourceManager.getString(R.string.transaction_details_from),
@@ -141,10 +145,30 @@ class ConfirmSendViewModel @Inject constructor(
             title = resourceManager.getString(R.string.choose_amount_to),
             value = if (isRecipientNameSpecified) recipient.name else recipient.address.shorten(),
             additionalValue = if (isRecipientNameSpecified) recipient.address.shorten() else null,
-            clickState = phishingType?.let { TitleValueViewState.ClickState.Value(R.drawable.ic_alert_16, ConfirmSendViewState.CODE_WARNING_CLICK) }
+            clickState = phishingType?.let { TitleValueViewState.ClickState.Value(R.drawable.ic_alert_16, CrossChainConfirmViewState.CODE_WARNING_CLICK) }
         )
 
-        val assetModel = mapAssetToAssetModel(asset)
+        val originalNetworkName = originalNetwork?.name
+        val originalNetworkItem = if (originalNetworkName != null) {
+            TitleValueViewState(
+                title = resourceManager.getString(R.string.common_original_network),
+                value = originalNetworkName
+            )
+        } else {
+            null
+        }
+
+        val destinationNetworkName = destinationNetwork?.name
+        val destinationNetworkItem = if (destinationNetworkName != null) {
+            TitleValueViewState(
+                title = resourceManager.getString(R.string.common_destination_network),
+                value = destinationNetworkName
+            )
+        } else {
+            null
+        }
+
+        val assetModel = mapAssetToAssetModel(originalAsset)
         val amountInfoItem = TitleValueViewState(
             title = resourceManager.getString(R.string.common_amount),
             value = assetModel.formatTokenAmount(transferDraft.amount),
@@ -159,23 +183,39 @@ class ConfirmSendViewModel @Inject constructor(
             )
         }
 
-        val feeInfoItem = TitleValueViewState(
-            title = resourceManager.getString(R.string.network_fee),
-            value = utilityAsset.formatTokenAmount(transferDraft.fee),
-            additionalValue = utilityAsset.getAsFiatWithCurrency(transferDraft.fee)
+        val originalFeeInfoItem = TitleValueViewState(
+            title = resourceManager.getString(R.string.common_destination_network_fee),
+            value = utilityAsset.formatTokenAmount(transferDraft.originalFee),
+            additionalValue = utilityAsset.getAsFiatWithCurrency(transferDraft.originalFee)
         )
 
-        ConfirmSendViewState(
-            chainIconUrl = asset.token.configuration.chainIcon ?: asset.token.configuration.iconUrl,
+        val destinationFeeInfoItem = TitleValueViewState(
+            title = resourceManager.getString(R.string.common_destination_network_fee),
+            value = utilityAsset.formatTokenAmount(transferDraft.originalFee),
+            additionalValue = utilityAsset.getAsFiatWithCurrency(transferDraft.originalFee)
+        )
+
+        CrossChainConfirmViewState(
+            originalChainIcon = GradientIconData(
+                url = originalNetwork?.icon,
+                color = originalNetwork?.utilityAsset?.color
+            ),
+            destinationChainIcon = GradientIconData(
+                url = destinationNetwork?.icon,
+                color = destinationNetwork?.utilityAsset?.color
+            ),
             fromInfoItem = fromInfoItem,
             toInfoItem = toInfoItem,
+            originalNetworkItem = originalNetworkItem,
+            destinationNetworkItem = destinationNetworkItem,
             amountInfoItem = amountInfoItem,
             tipInfoItem = tipInfoItem,
-            feeInfoItem = feeInfoItem,
+            originalFeeInfoItem = originalFeeInfoItem,
+            destinationFeeInfoItem = destinationFeeInfoItem,
             buttonState = buttonState,
             isLoading = isSubmitting
         )
-    }.stateIn(this, SharingStarted.Eagerly, ConfirmSendViewState.default)
+    }.stateIn(this, SharingStarted.Eagerly, CrossChainConfirmViewState.default)
 
     override fun onNavigationClick() {
         router.back()
@@ -183,12 +223,11 @@ class ConfirmSendViewModel @Inject constructor(
 
     override fun copyRecipientAddressClicked() {
         launch {
-            val chainId = transferDraft.assetPayload.chainId
-            val chain = chainRegistry.getChain(chainId)
+            val chain = destinationNetworkFlow.value ?: return@launch
             val supportedExplorers = chain.explorers.getSupportedExplorers(BlockExplorerUrlBuilder.Type.ACCOUNT, transferDraft.recipientAddress)
             val externalActionsPayload = ExternalAccountActions.Payload(
                 value = transferDraft.recipientAddress,
-                chainId = chainId,
+                chainId = chain.id,
                 chainName = chain.name,
                 explorers = supportedExplorers
             )
@@ -199,11 +238,11 @@ class ConfirmSendViewModel @Inject constructor(
 
     override fun onNextClick() {
         launch {
-            val asset = assetFlow.firstOrNull() ?: return@launch
+            val asset = originalAssetFlow.firstOrNull() ?: return@launch
             val token = asset.token.configuration
 
             val inPlanks = token.planksFromAmount(transferDraft.amount)
-            val fee = token.planksFromAmount(transferDraft.fee)
+            val originalFee = token.planksFromAmount(transferDraft.originalFee)
             val recipientAddress = transferDraft.recipientAddress
             val selfAddress = currentAccountAddress(asset.token.configuration.chainId) ?: return@launch
 
@@ -212,7 +251,7 @@ class ConfirmSendViewModel @Inject constructor(
                 asset = asset,
                 recipientAddress = recipientAddress,
                 ownAddress = selfAddress,
-                fee = fee,
+                fee = originalFee,
                 confirmedValidations = confirmedValidations
             )
 
@@ -238,13 +277,13 @@ class ConfirmSendViewModel @Inject constructor(
 
     override fun onItemClick(code: Int) {
         when (code) {
-            ConfirmSendViewState.CODE_WARNING_CLICK -> openWarningAlert()
+            CrossChainConfirmViewState.CODE_WARNING_CLICK -> openWarningAlert()
         }
     }
 
     private fun openWarningAlert() {
         launch {
-            val symbol = assetFlow.first().token.configuration.symbolToShow
+            val symbol = originalAssetFlow.first().token.configuration.symbolToShow
 
             val payload = AlertViewState(
                 title = getPhishingTitle(phishingType),
@@ -280,13 +319,13 @@ class ConfirmSendViewModel @Inject constructor(
 
     private fun performTransfer() {
         launch {
-            val token = assetFlow.firstOrNull()?.token?.configuration ?: return@launch
+            val token = originalAssetFlow.firstOrNull()?.token?.configuration ?: return@launch
 
             transferSubmittingFlow.value = true
 
             val tipInPlanks = transferDraft.tip?.let { token.planksFromAmount(it) }
             val result = withContext(Dispatchers.Default) {
-                interactor.performTransfer(createTransfer(token), transferDraft.fee, tipInPlanks)
+                interactor.performCrossChainTransfer(createTransfer(token), transferDraft.originalFee, tipInPlanks)
             }
             if (result.isSuccess) {
                 val operationHash = result.getOrNull()
@@ -317,12 +356,14 @@ class ConfirmSendViewModel @Inject constructor(
         return addressIconGenerator.createAddressModel(address, ICON_IN_DP, accountName)
     }
 
-    private fun createTransfer(token: Asset): Transfer {
+    private fun createTransfer(token: Asset): CrossChainTransfer {
         return with(transferDraft) {
-            Transfer(
+            CrossChainTransfer(
                 recipient = recipientAddress,
                 amount = amount,
-                chainAsset = token
+                chainAsset = token,
+                originalChainId = originalChainId,
+                destinationChainId = destinationChainId
             )
         }
     }

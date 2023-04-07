@@ -14,6 +14,7 @@ import jp.co.soramitsu.wallet.impl.domain.beacon.SignStatus
 import jp.co.soramitsu.wallet.impl.domain.model.PhishingType
 import jp.co.soramitsu.wallet.impl.presentation.balance.detail.frozen.FrozenAssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.beacon.main.DAppMetadataModel
+import jp.co.soramitsu.wallet.impl.presentation.cross_chain.CrossChainTransferDraft
 import jp.co.soramitsu.wallet.impl.presentation.cross_chain.wallet_type.WalletType
 import jp.co.soramitsu.wallet.impl.presentation.model.OperationParcelizeModel
 import jp.co.soramitsu.wallet.impl.presentation.send.TransferDraft
@@ -56,6 +57,8 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
     fun openOperationSuccess(operationHash: String?, chainId: ChainId)
 
     fun openSendConfirm(transferDraft: TransferDraft, phishingType: PhishingType?)
+
+    fun openCrossChainSendConfirm(transferDraft: CrossChainTransferDraft, phishingType: PhishingType?)
 
     fun finishSendFlow()
 

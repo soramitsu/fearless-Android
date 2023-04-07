@@ -8,6 +8,7 @@ import jp.co.soramitsu.common.validation.SpendInsufficientBalanceException
 import jp.co.soramitsu.common.validation.TransferAddressNotValidException
 import jp.co.soramitsu.common.validation.TransferToTheSameAddressException
 import jp.co.soramitsu.common.validation.WaitForFeeCalculationException
+import jp.co.soramitsu.core.models.ChainId
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import java.math.BigInteger
 
@@ -15,13 +16,14 @@ interface ValidateTransferUseCase {
     suspend operator fun invoke(
         amountInPlanks: BigInteger,
         asset: Asset,
+        destinationChainId: ChainId,
         recipientAddress: String,
         ownAddress: String,
         fee: BigInteger?,
         confirmedValidations: List<TransferValidationResult> = emptyList()
     ): Result<TransferValidationResult>
 
-    suspend fun validateEd(
+    suspend fun validateExistentialDeposit(
         amountInPlanks: BigInteger,
         asset: Asset,
         recipientAddress: String,

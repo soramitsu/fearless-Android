@@ -873,6 +873,7 @@
     <string name="donation_alert_title">This address has been suspicious.</string>
     <string name="sanction_alert_title">This address has been flagged due to entity related to Russia.</string>
     <string name="sending">Отправка</string>
+    <string name="cross_chain_transfer">Cross-chain перевод</string>
 
     <string name="staking_pool_stake_title">Ваш пулл стейкинг</string>
     <string name="staking_pool_status_active">Активный</string>

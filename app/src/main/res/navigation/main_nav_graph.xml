@@ -478,6 +478,19 @@
     </dialog>
 
     <dialog
+        android:id="@+id/confirmCrossChainSendFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.cross_chain.confirm.CrossChainConfirmFragment"
+        android:label="confirmCrossChainSendFragment">
+        <action
+            android:id="@+id/finish_send_flow"
+            app:enterAnim="?android:attr/fragmentCloseEnterAnimation"
+            app:exitAnim="?android:attr/fragmentCloseExitAnimation"
+            app:popEnterAnim="?android:attr/fragmentOpenEnterAnimation"
+            app:popExitAnim="?android:attr/fragmentOpenExitAnimation"
+            app:popUpTo="@id/mainFragment" />
+    </dialog>
+
+    <dialog
         android:id="@+id/successSheetFragment"
         android:name="jp.co.soramitsu.success.presentation.SuccessFragment"
         android:label="successSheetFragment" />

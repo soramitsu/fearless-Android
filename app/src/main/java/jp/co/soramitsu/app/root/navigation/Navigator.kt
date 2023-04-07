@@ -121,6 +121,8 @@ import jp.co.soramitsu.wallet.impl.presentation.beacon.main.BeaconFragment
 import jp.co.soramitsu.wallet.impl.presentation.beacon.main.DAppMetadataModel
 import jp.co.soramitsu.wallet.impl.presentation.beacon.sign.SignBeaconTransactionFragment
 import jp.co.soramitsu.wallet.impl.presentation.beacon.sign.TransactionRawDataFragment
+import jp.co.soramitsu.wallet.impl.presentation.cross_chain.CrossChainTransferDraft
+import jp.co.soramitsu.wallet.impl.presentation.cross_chain.confirm.CrossChainConfirmFragment
 import jp.co.soramitsu.wallet.impl.presentation.cross_chain.setup.CrossChainSetupFragment
 import jp.co.soramitsu.wallet.impl.presentation.cross_chain.wallet_type.SelectWalletTypeFragment
 import jp.co.soramitsu.wallet.impl.presentation.cross_chain.wallet_type.WalletType
@@ -738,6 +740,12 @@ class Navigator :
         val bundle = ConfirmSendFragment.getBundle(transferDraft, phishingType)
 
         navController?.navigate(R.id.confirmSendFragment, bundle)
+    }
+
+    override fun openCrossChainSendConfirm(transferDraft: CrossChainTransferDraft, phishingType: PhishingType?) {
+        val bundle = CrossChainConfirmFragment.getBundle(transferDraft, phishingType)
+
+        navController?.navigate(R.id.confirmCrossChainSendFragment, bundle)
     }
 
     override fun openOperationSuccess(operationHash: String?, chainId: ChainId) {

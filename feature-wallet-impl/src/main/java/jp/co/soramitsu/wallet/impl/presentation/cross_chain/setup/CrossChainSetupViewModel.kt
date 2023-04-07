@@ -26,13 +26,9 @@ import jp.co.soramitsu.common.utils.combine
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.requireValue
-import jp.co.soramitsu.core.extrinsic.ExtrinsicService
 import jp.co.soramitsu.core.models.ChainId
-import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.feature_wallet_impl.R
-import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.ext.utilityAsset
-import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.wallet.api.domain.TransferValidationResult
 import jp.co.soramitsu.wallet.api.domain.ValidateTransferUseCase
 import jp.co.soramitsu.wallet.api.domain.fromValidationResult
@@ -47,9 +43,8 @@ import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
 import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
-import jp.co.soramitsu.wallet.impl.presentation.send.TransferDraft
+import jp.co.soramitsu.wallet.impl.presentation.cross_chain.CrossChainTransferDraft
 import jp.co.soramitsu.wallet.impl.presentation.send.setup.SendSetupFragment
-import jp.co.soramitsu.xcm_impl.XcmService
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -62,6 +57,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
@@ -88,9 +84,7 @@ class CrossChainSetupViewModel @Inject constructor(
     private val addressIconGenerator: AddressIconGenerator,
     private val currentAccountAddress: CurrentAccountAddressUseCase,
     private val validateTransferUseCase: ValidateTransferUseCase,
-    private val chainAssetsManager: ChainAssetsManager,
-    private val chainRegistry: ChainRegistry,
-    private val extrinsicService: ExtrinsicService
+    private val chainAssetsManager: ChainAssetsManager
 ) : BaseViewModel(), CrossChainSetupScreenInterface {
 
     private val _openScannerEvent = MutableSharedFlow<Unit>()
@@ -227,6 +221,8 @@ class CrossChainSetupViewModel @Inject constructor(
         }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
+    private val destinationFeeAmountFlow = flowOf(BigDecimal.valueOf(0))
+
     private val feeInPlanksFlow = combine(originalFeeAmountFlow, assetFlow) { fee, asset ->
         fee ?: return@combine null
         asset ?: return@combine null
@@ -257,7 +253,7 @@ class CrossChainSetupViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, FeeInfoViewState.default)
 
     private val destinationFeeInfoViewStateFlow: Flow<FeeInfoViewState?> = combine(
-        originalFeeAmountFlow,
+        destinationFeeAmountFlow,
         assetFlow
     ) { feeAmount, asset ->
         if (asset == null) return@combine null
@@ -412,7 +408,8 @@ class CrossChainSetupViewModel @Inject constructor(
             val recipientAddress = addressInputFlow.value
             val selfAddress = currentAccountAddress(asset.token.configuration.chainId) ?: return@launch
             val fee = feeInPlanksFlow.value
-            val validationProcessResult = validateTransferUseCase(inPlanks, asset, recipientAddress, selfAddress, fee, confirmedValidations)
+            val destinationChainId = chainAssetsManager.destinationChainId ?: return@launch
+            val validationProcessResult = validateTransferUseCase(inPlanks, asset, destinationChainId, recipientAddress, selfAddress, fee, confirmedValidations)
 
             // error occurred inside validation
             validationProcessResult.exceptionOrNull()?.let {
@@ -440,31 +437,8 @@ class CrossChainSetupViewModel @Inject constructor(
             val transferDraft = buildTransferDraft() ?: return@launch
             val phishingType = phishingModelFlow.firstOrNull()?.type
 
-            // TODO: OpenSendConfirm insteadOf executing transaction with xcmService here
-            // router.openSendConfirm(transferDraft, phishingType)
-
-            val originalChainId = originalChainId ?: return@launch
-            val destinationChainId = chainAssetsManager.destinationChainId ?: return@launch
-            val fromChain = chainRegistry.getChain(originalChainId)
-            val toChain = chainRegistry.getChain(destinationChainId)
-            val asset = assetFlow.value ?: return@launch
-            val assetConfig = asset.token.configuration
-            // TODO: get receiverAccountPublicKey from addressInputFlow
-            val receiverAccountPublicKey = "0x7634122a398a473a90ee35eed74ea1832a09635ec5d40d7c11dbd0af739d620e".fromHex()
-            val amount = enteredAmountBigDecimalFlow.value.toBigInteger()
-            val selfAddress = currentAccountAddress(originalChainId) ?: return@launch
-            val xcmService = XcmService(
-                chainRegistry = chainRegistry,
-                extrinsicService = extrinsicService
-            )
-            xcmService.transfer(
-                fromChain = fromChain,
-                toChain = toChain,
-                asset = assetConfig,
-                senderAccountId = fromChain.accountIdOf(selfAddress),
-                receiverAccountPublicKey = receiverAccountPublicKey,
-                amount = amount
-            )
+            router.openCrossChainSendConfirm(transferDraft, phishingType)
+            return@launch
         }
     }
 
@@ -475,9 +449,10 @@ class CrossChainSetupViewModel @Inject constructor(
         }
     }
 
-    private suspend fun buildTransferDraft(): TransferDraft? {
+    private suspend fun buildTransferDraft(): CrossChainTransferDraft? {
         val recipientAddress = addressInputFlow.firstOrNull() ?: return null
-        val feeAmount = originalFeeAmountFlow.firstOrNull() ?: return null
+        val originalFeeAmount = originalFeeAmountFlow.firstOrNull() ?: return null
+        val destinationFeeAmount = destinationFeeAmountFlow.firstOrNull() ?: return null
 
         val originalChainId = originalChainId
         val destinationChainId = chainAssetsManager.destinationChainId
@@ -491,10 +466,18 @@ class CrossChainSetupViewModel @Inject constructor(
         }
 
         val amount = enteredAmountBigDecimalFlow.value
-        val payload = AssetPayload(originalChainId, assetId)
         val tip = tipAmountFlow.firstOrNull()
 
-        return TransferDraft(amount, feeAmount, payload, recipientAddress, tip)
+        return CrossChainTransferDraft(
+            amount,
+            originalChainId,
+            destinationChainId,
+            originalFeeAmount,
+            destinationFeeAmount,
+            assetId,
+            recipientAddress,
+            tip
+        )
     }
 
     override fun onOriginalChainClick() {

@@ -15,6 +15,8 @@ import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.coredb.model.AssetUpdateItem
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
+import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
+import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.ext.isValidAddress
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
@@ -29,6 +31,7 @@ import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.AssetWithStatus
+import jp.co.soramitsu.wallet.impl.domain.model.CrossChainTransfer
 import jp.co.soramitsu.wallet.impl.domain.model.Fee
 import jp.co.soramitsu.wallet.impl.domain.model.Operation
 import jp.co.soramitsu.wallet.impl.domain.model.OperationsPageChange
@@ -36,6 +39,7 @@ import jp.co.soramitsu.wallet.impl.domain.model.PhishingModel
 import jp.co.soramitsu.wallet.impl.domain.model.Transfer
 import jp.co.soramitsu.wallet.impl.domain.model.WalletAccount
 import jp.co.soramitsu.wallet.impl.domain.model.toPhishingModel
+import jp.co.soramitsu.xcm_impl.XcmService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -66,7 +70,9 @@ class WalletInteractorImpl(
     private val fileProvider: FileProvider,
     private val preferences: Preferences,
     private val selectedFiat: SelectedFiat,
-    private val updatesMixin: UpdatesMixin
+    private val updatesMixin: UpdatesMixin,
+    private val xcmService: XcmService,
+    private val currentAccountAddress: CurrentAccountAddressUseCase
 ) : WalletInteractor, UpdatesProviderUi by updatesMixin {
 
     override suspend fun getHideZeroBalancesForCurrentWallet(): Boolean {
@@ -241,6 +247,27 @@ class WalletInteractorImpl(
 
         return runCatching {
             walletRepository.performTransfer(accountId, chain, transfer, fee, tipInPlanks)
+        }
+    }
+
+    override suspend fun performCrossChainTransfer(
+        transfer: CrossChainTransfer,
+        fee: BigDecimal,
+        tipInPlanks: BigInteger?
+    ): Result<String> {
+        return runCatching {
+            val originalChain = chainRegistry.getChain(transfer.originalChainId)
+            val destinationChain = chainRegistry.getChain(transfer.destinationChainId)
+            val selfAddress = currentAccountAddress(originalChain.id) ?: throw IllegalStateException("No self address")
+            xcmService.transfer(
+                fromChain = originalChain,
+                toChain = destinationChain,
+                asset = transfer.chainAsset,
+                senderAccountId = originalChain.accountIdOf(selfAddress),
+                receiverAccountPublicKey = transfer.recipient.toAccountId(),
+                amount = transfer.amountInPlanks
+            )
+            return@runCatching "123456" // TODO: Replace by real hex
         }
     }
 
