@@ -13,6 +13,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.AssetWithStatus
+import jp.co.soramitsu.wallet.impl.domain.model.CrossChainTransfer
 import jp.co.soramitsu.wallet.impl.domain.model.Fee
 import jp.co.soramitsu.wallet.impl.domain.model.Operation
 import jp.co.soramitsu.wallet.impl.domain.model.OperationsPageChange
@@ -67,6 +68,12 @@ interface WalletInteractor {
 
     suspend fun performTransfer(
         transfer: Transfer,
+        fee: BigDecimal,
+        tipInPlanks: BigInteger?
+    ): Result<String>
+
+    suspend fun performCrossChainTransfer(
+        transfer: CrossChainTransfer,
         fee: BigDecimal,
         tipInPlanks: BigInteger?
     ): Result<String>

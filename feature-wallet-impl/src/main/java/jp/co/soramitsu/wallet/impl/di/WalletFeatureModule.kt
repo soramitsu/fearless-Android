@@ -18,6 +18,7 @@ import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
 import jp.co.soramitsu.common.domain.SelectedFiat
 import jp.co.soramitsu.common.interfaces.FileProvider
+import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.QrBitmapDecoder
@@ -75,13 +76,13 @@ import jp.co.soramitsu.wallet.impl.presentation.balance.assetActions.buy.BuyMixi
 import jp.co.soramitsu.wallet.impl.presentation.balance.assetActions.buy.BuyMixinProvider
 import jp.co.soramitsu.wallet.impl.presentation.send.SendSharedState
 import jp.co.soramitsu.wallet.impl.presentation.transaction.filter.HistoryFiltersProvider
+import jp.co.soramitsu.xcm_impl.XcmService
 import jp.co.soramitsu.xnetworking.networkclient.SoramitsuNetworkClient
 import jp.co.soramitsu.xnetworking.sorawallet.mainconfig.SoraRemoteConfigBuilder
 import jp.co.soramitsu.xnetworking.sorawallet.mainconfig.SoraRemoteConfigProvider
 import jp.co.soramitsu.xnetworking.txhistory.client.sorawallet.SubQueryClientForSoraWalletFactory
 import javax.inject.Named
 import javax.inject.Singleton
-import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -136,6 +137,17 @@ class WalletFeatureModule {
 
     @Provides
     fun provideCursorStorage(preferences: Preferences) = TransferCursorStorage(preferences)
+
+    @Provides
+    fun provideXcmService(
+        chainRegistry: ChainRegistry,
+        extrinsicService: ExtrinsicService
+    ): XcmService {
+        return XcmService(
+            chainRegistry = chainRegistry,
+            extrinsicService = extrinsicService
+        )
+    }
 
     @Provides
     @Singleton
@@ -208,7 +220,9 @@ class WalletFeatureModule {
         fileProvider: FileProvider,
         preferences: Preferences,
         selectedFiat: SelectedFiat,
-        updatesMixin: UpdatesMixin
+        updatesMixin: UpdatesMixin,
+        xcmService: XcmService,
+        currentAccountAddressUseCase: CurrentAccountAddressUseCase
     ): WalletInteractor = WalletInteractorImpl(
         walletRepository,
         addressBookRepository,
@@ -218,7 +232,9 @@ class WalletFeatureModule {
         fileProvider,
         preferences,
         selectedFiat,
-        updatesMixin
+        updatesMixin,
+        xcmService,
+        currentAccountAddressUseCase
     )
 
     @Provides
