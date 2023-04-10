@@ -105,8 +105,8 @@ android {
     composeOptions {
         kotlinCompilerExtensionVersion composeCompilerVersion
     }
-    lintOptions {
-        disable "Instantiatable"
+    lint {
+        disable 'Instantiatable'
     }
     namespace 'jp.co.soramitsu.app'
 }
