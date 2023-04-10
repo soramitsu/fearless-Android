@@ -267,7 +267,6 @@ class WalletInteractorImpl(
                 receiverAccountPublicKey = transfer.recipient.toAccountId(),
                 amount = transfer.amountInPlanks
             )
-            return@runCatching "123456" // TODO: Replace by real hex
         }
     }
 
