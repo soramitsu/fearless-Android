@@ -9,6 +9,8 @@ soraUiCore = "0.0.63"
 soraCard = "0.0.35"
 kotlinxSerializationjson = "1.5.0"
 xNetworking = "0.0.55"
+retrofit = "2.9.0"
+gson = "2.10.1"
 
 [libraries]
 sora-ui = { module = "jp.co.soramitsu:ui-core", version.ref = "soraUiCore" }
@@ -16,6 +18,8 @@ sora-card = { module = "jp.co.soramitsu:android-sora-card", version.ref = "soraC
 
 xnetworking-android = { module = "jp.co.soramitsu:XNetworking-android", version.ref = "xNetworking" }
 
+retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerializationjson" }
 
 hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "dagger" }

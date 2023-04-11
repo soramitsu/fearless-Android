@@ -50,6 +50,8 @@ dependencies {
     implementation(libs.material)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.xnetworking.android)
+    implementation(libs.retrofit)
+    implementation(libs.gson)
 
     implementation(libs.sora.ui)
     implementation(libs.sora.card)

@@ -53,11 +53,15 @@ class GetSoraCardViewModel @Inject constructor(
     private fun subscribeXorBalance() {
         launch {
             interactor.xorAssetFlow()
-                .distinctUntilChanged()
+                .distinctUntilChanged { old, new ->
+                    old.transferable == new.transferable
+                        && old.token.configuration.priceId == new.token.configuration.priceId
+                        && old.token.configuration.precision == new.token.configuration.precision
+                }
                 .onEach {
                     val transferable = it.transferable
                     try {
-                        val xorEurPrice = interactor.getXorPerEurRatio(it.token.configuration.priceId) ?: error("PriceId not found for XOR")
+                        val xorEurPrice = interactor.getXorEuroPrice(it.token.configuration.priceId) ?: error("XOR price not found")
 
                         val defaultScale = it.token.configuration.precision
                         val xorRequiredBalanceWithBacklash = KYC_REQUIRED_BALANCE_WITH_BACKLASH.divide(xorEurPrice, defaultScale, RoundingMode.HALF_EVEN)
