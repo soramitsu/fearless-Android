@@ -123,9 +123,6 @@ class BalanceListViewModel @Inject constructor(
 
     private val accountAddressToChainIdMap = mutableMapOf<String, ChainId?>()
 
-    private val _hideRefreshEvent = MutableLiveData<Event<Unit>>()
-    val hideRefreshEvent: LiveData<Event<Unit>> = _hideRefreshEvent
-
     private val _showFiatChooser = MutableLiveData<FiatChooserEvent>()
     val showFiatChooser: LiveData<FiatChooserEvent> = _showFiatChooser
 
@@ -432,6 +429,15 @@ class BalanceListViewModel @Inject constructor(
         }
     }
 
+    override fun onRefresh() {
+        updateSoraCardStatus()
+        sync()
+    }
+
+    fun onResume() {
+        updateSoraCardStatus()
+    }
+
     private fun updateSoraCardStatus() {
         viewModelScope.launch {
             val soraCardInfo = soraCardInteractor.getSoraCardInfo() ?: return@launch
@@ -464,7 +470,6 @@ class BalanceListViewModel @Inject constructor(
             }
 
             result.exceptionOrNull()?.let(::showError)
-            _hideRefreshEvent.value = Event(Unit)
         }
     }
 

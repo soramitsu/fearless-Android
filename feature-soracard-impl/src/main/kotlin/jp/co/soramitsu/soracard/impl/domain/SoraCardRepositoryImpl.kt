@@ -58,9 +58,9 @@ class SoraCardRepositoryImpl(
     override suspend fun getXorEuroPrice(): BigDecimal? {
         val (xorEurPrice, cachedTime) = cachedXorEuroPrice
 
-        val cacheIsGood = xorEurPrice != null && cachedTime + XOR_PRICE_REQUEST_DELAY_MILLIS > System.currentTimeMillis()
+        val cacheExpired = cachedTime + XOR_PRICE_REQUEST_DELAY_MILLIS < System.currentTimeMillis()
 
-        return if (cacheIsGood) {
+        return if (xorEurPrice != null && cacheExpired.not()) {
             xorEurPrice
         } else {
             val soraPrice = soraCardApi.getXorEuroPrice()

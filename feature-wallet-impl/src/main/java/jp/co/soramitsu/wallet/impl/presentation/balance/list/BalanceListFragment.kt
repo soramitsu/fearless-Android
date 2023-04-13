@@ -73,12 +73,17 @@ class BalanceListFragment : BaseComposeFragment<BalanceListViewModel>() {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        viewModel.onResume()
+    }
+
     @OptIn(ExperimentalMaterialApi::class)
     @Composable
     override fun Content(padding: PaddingValues, scrollState: ScrollState, modalBottomSheetState: ModalBottomSheetState) {
         val state by viewModel.state.collectAsState()
 
-        WalletScreen(state, viewModel)
+        WalletScreenWithRefresh(state, viewModel)
     }
 
     @ExperimentalMaterialApi
@@ -121,14 +126,6 @@ class BalanceListFragment : BaseComposeFragment<BalanceListViewModel>() {
         viewModel.launchSoraCardSignIn.observeEvent { contractData ->
             soraCardSignIn.launch(contractData)
         }
-    }
-
-    fun initViews() {
-//        with(binding) {
-//            walletContainer.setOnRefreshListener {
-//                viewModel.sync()
-//            }
-//        }
     }
 
     private fun showFiatChooser(payload: DynamicListBottomSheet.Payload<FiatCurrency>) {
