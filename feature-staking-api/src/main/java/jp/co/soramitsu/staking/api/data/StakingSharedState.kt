@@ -7,6 +7,8 @@ import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraTestChainId
 import jp.co.soramitsu.runtime.multiNetwork.chainWithAsset
 import jp.co.soramitsu.runtime.state.SingleAssetSharedState
 import jp.co.soramitsu.wallet.impl.domain.TokenUseCase
@@ -25,6 +27,19 @@ import jp.co.soramitsu.core.models.Asset as CoreAsset
 
 enum class StakingType {
     PARACHAIN, RELAYCHAIN, POOL
+}
+
+enum class SyntheticStakingType {
+    DEFAULT, SORA
+}
+
+fun CoreAsset.syntheticStakingType(): SyntheticStakingType {
+    return when{
+        (chainId == soraMainChainId || chainId == soraTestChainId) &&
+            staking == CoreAsset.StakingType.RELAYCHAIN -> SyntheticStakingType.SORA
+
+        else -> SyntheticStakingType.DEFAULT
+    }
 }
 
 private const val STAKING_SHARED_STATE = "STAKING_CURRENT_ASSET_TYPE"

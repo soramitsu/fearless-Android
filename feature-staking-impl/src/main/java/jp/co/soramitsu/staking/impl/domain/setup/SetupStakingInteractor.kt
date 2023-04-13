@@ -1,25 +1,30 @@
 package jp.co.soramitsu.staking.impl.domain.setup
 
+import java.math.BigDecimal
+import java.math.BigInteger
 import jp.co.soramitsu.core.extrinsic.ExtrinsicService
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
+import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.ext.multiAddressOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.staking.api.data.StakingSharedState
+import jp.co.soramitsu.staking.api.data.SyntheticStakingType
+import jp.co.soramitsu.staking.api.data.syntheticStakingType
 import jp.co.soramitsu.staking.api.domain.model.Collator
 import jp.co.soramitsu.staking.api.domain.model.RewardDestination
 import jp.co.soramitsu.staking.impl.data.network.blockhain.calls.bond
+import jp.co.soramitsu.staking.impl.data.network.blockhain.calls.bondSora
 import jp.co.soramitsu.staking.impl.data.network.blockhain.calls.delegate
 import jp.co.soramitsu.staking.impl.data.network.blockhain.calls.nominate
+import jp.co.soramitsu.staking.impl.data.network.blockhain.calls.nominateSora
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
-import java.math.BigDecimal
-import java.math.BigInteger
 
 class BondPayload(
     val amount: BigDecimal,
@@ -109,15 +114,29 @@ class SetupStakingInteractor(
         bondPayload: BondPayload?
     ) {
         val validatorsIds = validatorAccountIdsHex.map(String::fromHex)
-        val targets = validatorsIds.map(chain::multiAddressOf)
 
-        bondPayload?.let {
-            val amountInPlanks = chainAsset.planksFromAmount(it.amount)
+        when (chainAsset.syntheticStakingType()) {
+            SyntheticStakingType.DEFAULT -> {
+                val targets = validatorsIds.map(chain::multiAddressOf)
 
-            bond(chain.multiAddressOf(controllerAddress), amountInPlanks, it.rewardDestination)
+                bondPayload?.let {
+                    val amountInPlanks = chainAsset.planksFromAmount(it.amount)
+
+                    bond(chain.multiAddressOf(controllerAddress), amountInPlanks, it.rewardDestination)
+                }
+
+                nominate(targets)
+            }
+            SyntheticStakingType.SORA -> {
+                bondPayload?.let {
+                    val amountInPlanks = chainAsset.planksFromAmount(it.amount)
+                    bondSora(controllerAddress.toAccountId(), amountInPlanks, it.rewardDestination)
+                }
+
+                nominateSora(validatorsIds)
+            }
         }
 
-        nominate(targets)
     }
 
     private fun fakeRewardDestination() = RewardDestination.Payout(fakeAccountId())
