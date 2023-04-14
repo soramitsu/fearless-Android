@@ -132,8 +132,8 @@ class StakingPoolViewModel(
         } else {
             id
         }
-        val calculator = rewardCalculatorFactory.createManual(chainId)
         val asset = stakingInteractor.currentAssetFlow().first()
+        val calculator = rewardCalculatorFactory.create(asset.token.configuration)
         val monthly = calculator.calculateReturns(amount, PERIOD_MONTH, true, chainId)
         val yearly = calculator.calculateReturns(amount, PERIOD_YEAR, true, chainId)
 

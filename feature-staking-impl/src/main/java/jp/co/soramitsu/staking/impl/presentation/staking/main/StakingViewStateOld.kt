@@ -2,6 +2,8 @@ package jp.co.soramitsu.staking.impl.presentation.staking.main
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import java.math.BigDecimal
+import java.math.BigInteger
 import jp.co.soramitsu.common.base.TitleAndMessage
 import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.presentation.LoadingState
@@ -33,6 +35,7 @@ import jp.co.soramitsu.staking.impl.domain.model.StashNoneStatus
 import jp.co.soramitsu.staking.impl.domain.model.ValidatorStatus
 import jp.co.soramitsu.staking.impl.domain.rewards.RewardCalculator
 import jp.co.soramitsu.staking.impl.domain.rewards.RewardCalculatorFactory
+import jp.co.soramitsu.staking.impl.domain.rewards.SoraStakingRewardsScenario
 import jp.co.soramitsu.staking.impl.domain.validations.welcome.WelcomeStakingValidationPayload
 import jp.co.soramitsu.staking.impl.domain.validations.welcome.WelcomeStakingValidationSystem
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
@@ -66,21 +69,17 @@ import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import java.math.BigDecimal
-import java.math.BigInteger
 import jp.co.soramitsu.core.models.Asset as CoreAsset
 
 @Deprecated("All ViewStates should be provided and created in staking type aware ViewModels")
 sealed class StakingViewStateOld
-
-// private const val PERIOD_MONTH = 30
-// private const val PERIOD_YEAR = 365
 
 data class ReturnsModel(
     val monthly: RewardEstimation,
@@ -164,6 +163,7 @@ sealed class StakeViewState<S>(
     }
 
     protected fun syncStakingRewards() {
+        hashCode()
         scope.launch {
             val syncResult = stakingInteractor.syncStakingRewards(stakeState.chain.id, stakeState.rewardsAddress)
 
@@ -173,10 +173,9 @@ sealed class StakeViewState<S>(
 
     @ExperimentalCoroutinesApi
     private suspend fun summaryFlow(): Flow<StakeSummaryModel<S>> {
-        return combine(
-            summaryFlowProvider(stakeState),
-            currentAssetFlow
-        ) { summary, asset ->
+        return currentAssetFlow.flatMapLatest { asset ->
+            summaryFlowProvider(stakeState).map { asset to it }
+        }.map { (asset, summary) ->
             val token = asset.token
             val tokenType = token.configuration
 
@@ -377,7 +376,7 @@ sealed class WelcomeViewState(
 }
 
 @Deprecated("All ViewStates should be provided and created in staking type aware ViewModels")
-class RelaychainWelcomeViewState(
+open class RelaychainWelcomeViewState(
     setupStakingSharedState: SetupStakingSharedState,
     rewardCalculatorFactory: RewardCalculatorFactory,
     resourceManager: ResourceManager,
@@ -400,7 +399,7 @@ class RelaychainWelcomeViewState(
 ) {
     val chainId = currentAssetFlow.filter { it.token.configuration.staking == CoreAsset.StakingType.RELAYCHAIN }.map { it.token.configuration.chainId }
 
-    override val rewardCalculator = scope.async { rewardCalculatorFactory.createManual(chainId.first()) }
+    override val rewardCalculator = scope.async { rewardCalculatorFactory.create(currentAssetFlow.first().token.configuration) }
 
     override val returns: Flow<ReturnsModel> = currentAssetFlow.combine(parsedAmountFlow) { asset, amount ->
         val chainId = asset.token.configuration.chainId
@@ -540,7 +539,7 @@ class StakingPoolWelcomeViewState(
 ) {
     val chainId = currentAssetFlow.filter { it.token.configuration.staking == CoreAsset.StakingType.RELAYCHAIN }.map { it.token.configuration.chainId }
 
-    override val rewardCalculator = scope.async { rewardCalculatorFactory.createManual(chainId.first()) }
+    override val rewardCalculator = scope.async { rewardCalculatorFactory.create(currentAssetFlow.first().token.configuration) }
 
     override val returns: Flow<ReturnsModel> = currentAssetFlow.combine(parsedAmountFlow) { asset, amount ->
         val chainId = asset.token.configuration.chainId
@@ -577,6 +576,42 @@ class StakingPoolWelcomeViewState(
             router.openStakingPoolWelcome()
         }
     }
+}
+
+class SoraWelcomeViewState(
+    setupStakingSharedState: SetupStakingSharedState,
+    rewardCalculatorFactory: RewardCalculatorFactory,
+    resourceManager: ResourceManager,
+    router: StakingRouter,
+    currentAssetFlow: Flow<Asset>,
+    scope: CoroutineScope,
+    errorDisplayer: (String) -> Unit,
+    validationSystem: WelcomeStakingValidationSystem,
+    validationExecutor: ValidationExecutor,
+    private val soraStakingRewardsScenario: SoraStakingRewardsScenario
+) : RelaychainWelcomeViewState(
+    setupStakingSharedState,
+    rewardCalculatorFactory,
+    resourceManager,
+    router,
+    currentAssetFlow,
+    scope,
+    errorDisplayer,
+    validationSystem,
+    validationExecutor
+) {
+    override val returns: Flow<ReturnsModel> = currentAssetFlow.combine(parsedAmountFlow) { asset, amount ->
+        val rewardAsset = soraStakingRewardsScenario.getRewardAsset()
+
+        val chainId = asset.token.configuration.chainId
+        val monthly = rewardCalculator().calculateReturns(amount, PERIOD_MONTH, true, chainId)
+        val yearly = rewardCalculator().calculateReturns(amount, PERIOD_YEAR, true, chainId)
+
+        val monthlyEstimation = mapPeriodReturnsToRewardEstimation(monthly, rewardAsset, resourceManager)
+        val yearlyEstimation = mapPeriodReturnsToRewardEstimation(yearly, rewardAsset, resourceManager)
+
+        ReturnsModel(monthlyEstimation, yearlyEstimation)
+    }.cancellable().shareIn(scope, SharingStarted.Eagerly, replay = 1)
 }
 
 @Deprecated("All ViewStates should be provided and created in staking type aware ViewModels")

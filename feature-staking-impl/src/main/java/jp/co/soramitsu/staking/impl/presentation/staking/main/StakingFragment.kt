@@ -23,7 +23,7 @@ import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.compose.component.AccentButton
 import jp.co.soramitsu.common.compose.component.AssetSelector
 import jp.co.soramitsu.common.compose.component.MarginVertical
-import jp.co.soramitsu.common.compose.theme.FearlessTheme
+import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
 import jp.co.soramitsu.common.mixin.impl.observeValidations
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.presentation.StoryGroupModel
@@ -232,7 +232,7 @@ class StakingFragment : BaseFragment<StakingViewModel>(R.layout.fragment_staking
             setContent {
                 val state by viewModel.state.collectAsState()
                 state?.let {
-                    FearlessTheme {
+                    FearlessAppTheme {
                         Column(modifier = Modifier.padding(horizontal = Dp(16f))) {
                             AssetSelector(state = it.selectorState, onClick = { viewModel.assetSelectorMixin.assetSelectorClicked() })
                             MarginVertical(margin = Dp(16f))

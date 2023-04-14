@@ -46,6 +46,32 @@ fun ExtrinsicBuilder.nominate(targets: List<MultiAddress>): ExtrinsicBuilder {
     )
 }
 
+fun ExtrinsicBuilder.bondSora(
+    controllerAddress: AccountId,
+    amount: BigInteger,
+    payee: RewardDestination
+): ExtrinsicBuilder {
+    return call(
+        "Staking",
+        "bond",
+        mapOf(
+            "controller" to controllerAddress,
+            "value" to amount,
+            "payee" to bindRewardDestination(payee)
+        )
+    )
+}
+
+fun ExtrinsicBuilder.nominateSora(targets: List<AccountId>): ExtrinsicBuilder {
+    return call(
+        "Staking",
+        "nominate",
+        mapOf(
+            "targets" to targets
+        )
+    )
+}
+
 fun ExtrinsicBuilder.delegate(
     candidateId: AccountId,
     amountInPlanks: BigInteger,

@@ -67,7 +67,7 @@ class StartStakingPoolViewModel @Inject constructor(
         } else {
             asset.token.configuration.chainId
         }
-        val rewardCalculator = rewardCalculatorFactory.createManual(chainId)
+        val rewardCalculator = rewardCalculatorFactory.create(asset.token.configuration)
         val yearly = rewardCalculator.calculateReturns(BigDecimal.ONE, PERIOD_YEAR, true, chainId)
 
         mapPeriodReturnsToRewardEstimation(yearly, asset.token, resourceManager)

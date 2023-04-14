@@ -63,7 +63,7 @@ class SelectRewardDestinationViewModel @Inject constructor(
     private val chainId = interactor.currentAssetFlow().filter { it.token.configuration.staking == Asset.StakingType.RELAYCHAIN }
         .map { it.token.configuration.chainId }
 
-    private val rewardCalculator = viewModelScope.async { rewardCalculatorFactory.createManual(chainId.first()) }
+    private val rewardCalculator = viewModelScope.async { rewardCalculatorFactory.create(interactor.currentAssetFlow().first().token.configuration) }
 
     private val rewardDestinationFlow = rewardDestinationMixin.rewardDestinationModelFlow
         .map { mapRewardDestinationModelToRewardDestination(it) }
