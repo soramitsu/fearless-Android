@@ -54,9 +54,9 @@ class GetSoraCardViewModel @Inject constructor(
         launch {
             interactor.xorAssetFlow()
                 .distinctUntilChanged { old, new ->
-                    old.transferable == new.transferable
-                        && old.token.configuration.priceId == new.token.configuration.priceId
-                        && old.token.configuration.precision == new.token.configuration.precision
+                    old.transferable == new.transferable &&
+                        old.token.configuration.priceId == new.token.configuration.priceId &&
+                        old.token.configuration.precision == new.token.configuration.precision
                 }
                 .onEach {
                     val transferable = it.transferable
