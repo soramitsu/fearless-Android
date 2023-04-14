@@ -136,7 +136,6 @@ class SetupStakingInteractor(
                 nominateSora(validatorsIds)
             }
         }
-
     }
 
     private fun fakeRewardDestination() = RewardDestination.Payout(fakeAccountId())

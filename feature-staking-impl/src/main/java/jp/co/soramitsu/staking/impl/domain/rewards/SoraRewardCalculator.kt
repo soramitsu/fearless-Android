@@ -16,7 +16,6 @@ class SoraRewardCalculator(
         dailyPercentage: Double,
         isCompound: Boolean
     ): PeriodReturns {
-
         val gainAmount = if (isCompound) {
             calculateCompoundReward(amount, days, dailyPercentage)
         } else {

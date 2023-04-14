@@ -30,4 +30,3 @@ interface RewardCalculator {
         targetIdHex: String
     ): PeriodReturns
 }
-

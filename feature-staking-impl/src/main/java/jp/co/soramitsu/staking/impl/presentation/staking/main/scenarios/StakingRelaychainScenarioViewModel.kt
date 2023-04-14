@@ -36,6 +36,7 @@ import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.map
@@ -70,20 +71,20 @@ class StakingRelaychainScenarioViewModel(
 
     @Deprecated("Don't use this method, use the getStakingViewStateFlow instead")
     override suspend fun getStakingViewStateFlowOld(): Flow<StakingViewStateOld> {
-        return stakingStateFlow.map { stakingState ->
+        return stakingStateFlow.distinctUntilChanged().map { stakingState ->
             when (stakingState) {
                 is StakingState.Stash.Nominator -> stakingViewStateFactory.createNominatorViewState(
                     stakingState,
                     stakingInteractor.currentAssetFlow(),
                     baseViewModel.stakingStateScope,
-                    baseViewModel::showError
+                    ::showE
                 )
 
                 is StakingState.Stash.None -> stakingViewStateFactory.createStashNoneState(
                     stakingInteractor.currentAssetFlow(),
                     stakingState,
                     baseViewModel.stakingStateScope,
-                    baseViewModel::showError
+                    ::showE
                 )
 
                 is StakingState.NonStash -> stakingViewStateFactory.createRelayChainWelcomeViewState(
@@ -97,11 +98,15 @@ class StakingRelaychainScenarioViewModel(
                     stakingState,
                     stakingInteractor.currentAssetFlow(),
                     baseViewModel.stakingStateScope,
-                    baseViewModel::showError
+                    ::showE
                 )
                 else -> error("Wrong state")
             }
         }
+    }
+
+    fun showE(throwable: Throwable) {
+        baseViewModel.showError(throwable)
     }
 
     override suspend fun getStakingViewStateFlow(): Flow<StakingViewState> {

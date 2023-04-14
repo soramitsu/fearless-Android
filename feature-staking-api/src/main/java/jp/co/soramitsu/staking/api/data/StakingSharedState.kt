@@ -34,7 +34,7 @@ enum class SyntheticStakingType {
 }
 
 fun CoreAsset.syntheticStakingType(): SyntheticStakingType {
-    return when{
+    return when {
         (chainId == soraMainChainId || chainId == soraTestChainId) &&
             staking == CoreAsset.StakingType.RELAYCHAIN -> SyntheticStakingType.SORA
 

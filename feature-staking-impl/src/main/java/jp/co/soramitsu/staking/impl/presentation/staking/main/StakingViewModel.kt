@@ -68,6 +68,7 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
@@ -156,7 +157,7 @@ class StakingViewModel @Inject constructor(
     )
 
     private val stakingViewState: SharedFlow<StakingViewState?> = scenarioViewModelFlow
-        .flatMapLatest {
+        .flatMapConcat {
             it.getStakingViewStateFlow()
         }.distinctUntilChanged().stateIn(scope = stakingStateScope, started = SharingStarted.Eagerly, initialValue = null)
 
@@ -213,7 +214,7 @@ class StakingViewModel @Inject constructor(
         .share()
 
     val stories = scenarioViewModelFlow
-        .flatMapLatest { viewModel ->
+        .flatMapConcat { viewModel ->
             viewModel.stakingStoriesFlow().map { it.map(::transformStories) }
         }.distinctUntilChanged().shareIn(stakingStateScope, started = SharingStarted.Eagerly, replay = 1)
 

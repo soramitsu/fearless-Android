@@ -69,6 +69,7 @@ import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
@@ -162,6 +163,7 @@ sealed class StakeViewState<S>(
     }
 
     protected fun syncStakingRewards() {
+        hashCode()
         scope.launch {
             val syncResult = stakingInteractor.syncStakingRewards(stakeState.chain.id, stakeState.rewardsAddress)
 
@@ -171,10 +173,9 @@ sealed class StakeViewState<S>(
 
     @ExperimentalCoroutinesApi
     private suspend fun summaryFlow(): Flow<StakeSummaryModel<S>> {
-        return combine(
-            summaryFlowProvider(stakeState),
-            currentAssetFlow
-        ) { summary, asset ->
+        return currentAssetFlow.flatMapLatest { asset ->
+            summaryFlowProvider(stakeState).map { asset to it }
+        }.map { (asset, summary) ->
             val token = asset.token
             val tokenType = token.configuration
 
