@@ -30,7 +30,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import jp.co.soramitsu.common.compose.component.AccentButton
+import jp.co.soramitsu.common.compose.component.AccentDarkDisabledButton
 import jp.co.soramitsu.common.compose.component.AddressInput
 import jp.co.soramitsu.common.compose.component.AddressInputState
 import jp.co.soramitsu.common.compose.component.AmountInput
@@ -150,7 +150,7 @@ fun SendSetupContent(
                     item { Badge(R.drawable.ic_copy_16, R.string.chip_paste, callback::onPasteClick) }
                 }
                 MarginVertical(margin = 12.dp)
-                AccentButton(
+                AccentDarkDisabledButton(
                     state = state.buttonState,
                     onClick = {
                         keyboardController?.hide()
