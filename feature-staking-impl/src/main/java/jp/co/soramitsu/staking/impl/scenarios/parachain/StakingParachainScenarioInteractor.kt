@@ -315,8 +315,7 @@ class StakingParachainScenarioInteractor(
         amountInPlanks: BigInteger,
         stashState: StakingState,
         currentBondedBalance: BigInteger,
-        candidate: String?,
-        chilled: Boolean
+        candidate: String?
     ) {
         require(stashState is StakingState.Parachain)
         require(candidate != null) {
