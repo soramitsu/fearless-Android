@@ -17,6 +17,7 @@ import jp.co.soramitsu.staking.impl.presentation.staking.main.DelegatorViewState
 import jp.co.soramitsu.staking.impl.presentation.staking.main.NominatorViewState
 import jp.co.soramitsu.staking.impl.presentation.staking.main.ParachainWelcomeViewState
 import jp.co.soramitsu.staking.impl.presentation.staking.main.RelaychainWelcomeViewState
+import jp.co.soramitsu.staking.impl.presentation.staking.main.SoraNominatorViewState
 import jp.co.soramitsu.staking.impl.presentation.staking.main.SoraWelcomeViewState
 import jp.co.soramitsu.staking.impl.presentation.staking.main.StakingPoolWelcomeViewState
 import jp.co.soramitsu.staking.impl.presentation.staking.main.StakingViewStateOld
@@ -111,21 +112,36 @@ class StakingViewStateFactory(
         validationExecutor
     )
 
-    fun createNominatorViewState(
+    suspend fun createNominatorViewState(
         stakingState: StakingState.Stash.Nominator,
         currentAssetFlow: Flow<Asset>,
         scope: CoroutineScope,
         errorDisplayer: (Throwable) -> Unit
-    ) = NominatorViewState(
-        nominatorState = stakingState,
-        stakingInteractor = stakingInteractor,
-        relayChainScenarioInteractor = relayChainScenarioInteractor,
-        currentAssetFlow = currentAssetFlow,
-        scope = scope,
-        router = router,
-        errorDisplayer = errorDisplayer,
-        resourceManager = resourceManager
-    )
+    ): NominatorViewState {
+        return when (currentAssetFlow.first().token.configuration.syntheticStakingType()) {
+            SyntheticStakingType.SORA -> SoraNominatorViewState(
+                nominatorState = stakingState,
+                stakingInteractor = stakingInteractor,
+                relayChainScenarioInteractor = relayChainScenarioInteractor,
+                currentAssetFlow = currentAssetFlow,
+                scope = scope,
+                router = router,
+                errorDisplayer = errorDisplayer,
+                resourceManager = resourceManager,
+                soraStakingRewardsScenario = soraStakingRewardsScenario
+            )
+            SyntheticStakingType.DEFAULT -> NominatorViewState(
+                nominatorState = stakingState,
+                stakingInteractor = stakingInteractor,
+                relayChainScenarioInteractor = relayChainScenarioInteractor,
+                currentAssetFlow = currentAssetFlow,
+                scope = scope,
+                router = router,
+                errorDisplayer = errorDisplayer,
+                resourceManager = resourceManager
+            )
+        }
+    }
 
     fun createDelegatorViewState(
         accountStakingState: StakingState.Parachain.Delegator,
