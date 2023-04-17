@@ -66,8 +66,7 @@ interface StakingScenarioInteractor {
         amountInPlanks: BigInteger,
         stashState: StakingState,
         currentBondedBalance: BigInteger,
-        candidate: String? = null,
-        chilled: Boolean = true
+        candidate: String? = null
     )
 
     suspend fun confirmRevoke(extrinsicBuilder: ExtrinsicBuilder, candidate: String?, stashState: StakingState)

@@ -284,11 +284,10 @@ class StakingRelayChainScenarioInteractor(
         amountInPlanks: BigInteger,
         stashState: StakingState,
         currentBondedBalance: BigInteger,
-        candidate: String?,
-        chilled: Boolean
+        candidate: String?
     ) {
         require(stashState is StakingState.Stash)
-        extrinsicBuilder.constructUnbondExtrinsic(stashState, currentBondedBalance, amountInPlanks, chilled)
+        extrinsicBuilder.constructUnbondExtrinsic(stashState, currentBondedBalance, amountInPlanks)
     }
 
     override suspend fun confirmRevoke(
@@ -592,20 +591,21 @@ class StakingRelayChainScenarioInteractor(
     private suspend fun ExtrinsicBuilder.constructUnbondExtrinsic(
         stashState: StakingState.Stash,
         currentBondedBalance: BigInteger,
-        unbondAmount: BigInteger,
-        chilled: Boolean = true
+        unbondAmount: BigInteger
     ): ExtrinsicBuilder {
         // see https://github.com/paritytech/substrate/blob/master/frame/staking/src/lib.rs#L1614
         // if account is nominating
-        return if (stashState is StakingState.Stash.Nominator &&
+        val resultedBalance = currentBondedBalance.minus(unbondAmount)
+        val minBond = stakingRelayChainScenarioRepository.minimumNominatorBond(stashState.chain.utilityAsset)
+        val needChill = stashState is StakingState.Stash.Nominator &&
             // and resulting bonded balance is less than min bond
-            currentBondedBalance - unbondAmount < stakingRelayChainScenarioRepository.minimumNominatorBond(stashState.chain.utilityAsset) &&
-            chilled.not()
-        ) {
+            resultedBalance.compareTo(minBond) == 0 || resultedBalance.compareTo(minBond) == -1
+
+        if (needChill) {
             chill()
-        } else {
-            unbond(unbondAmount)
         }
+        unbond(unbondAmount)
+        return this
     }
 
     override fun getUnbondValidationSystem() = UnbondValidationSystem(

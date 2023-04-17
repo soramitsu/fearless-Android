@@ -20,6 +20,16 @@ fun ExtrinsicBuilder.setController(controllerAddress: MultiAddress): ExtrinsicBu
     )
 }
 
+fun ExtrinsicBuilder.setControllerSora(controllerAccountId: AccountId): ExtrinsicBuilder {
+    return call(
+        "Staking",
+        "set_controller",
+        mapOf(
+            "controller" to controllerAccountId
+        )
+    )
+}
+
 fun ExtrinsicBuilder.bond(
     controllerAddress: MultiAddress,
     amount: BigInteger,

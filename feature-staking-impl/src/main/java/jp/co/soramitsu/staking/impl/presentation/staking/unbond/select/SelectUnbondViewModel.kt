@@ -189,9 +189,6 @@ class SelectUnbondViewModel @Inject constructor(
                 autoFixPayload = ::unbondPayloadAutoFix,
                 progressConsumer = _showNextProgress.progressConsumer()
             ) { correctPayload ->
-                if (correctPayload.shouldChillBeforeUnbond) {
-                    sendTransaction(correctPayload, false)
-                }
                 _showNextProgress.value = false
 
                 action.invoke(correctPayload)
@@ -209,7 +206,7 @@ class SelectUnbondViewModel @Inject constructor(
         router.openConfirmUnbond(confirmUnbondPayload)
     }
 
-    private fun sendTransaction(validPayload: UnbondValidationPayload, chilled: Boolean = true) = launch {
+    private fun sendTransaction(validPayload: UnbondValidationPayload) = launch {
         val amountInPlanks = validPayload.asset.token.configuration.planksFromAmount(validPayload.amount)
 
         val result = unbondInteractor.unbond(validPayload.stash/*, validPayload.asset.bondedInPlanks.orZero(), amountInPlanks*/) {
@@ -218,15 +215,12 @@ class SelectUnbondViewModel @Inject constructor(
                 amountInPlanks,
                 validPayload.stash,
                 validPayload.asset.bondedInPlanks.orZero(),
-                payload.collatorAddress,
-                chilled
+                payload.collatorAddress
             )
         }
 
         _showNextProgress.value = false
-        if (chilled.not()) {
-            return@launch
-        }
+
         if (result.isSuccess) {
             showMessage(resourceManager.getString(R.string.common_transaction_submitted))
 
