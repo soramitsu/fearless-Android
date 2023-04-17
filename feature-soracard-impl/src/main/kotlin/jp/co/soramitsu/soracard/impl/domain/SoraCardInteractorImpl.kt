@@ -34,7 +34,11 @@ class SoraCardInteractorImpl @Inject constructor(
     override fun subscribeSoraCardInfo(): Flow<SoraCardInfo?> =
         soraCardRepository.subscribeSoraCardInfo()
 
-    override suspend fun getXorPerEurRatio(priceId: String?): BigDecimal? = priceId?.let {
+    override suspend fun getXorEuroPrice(priceId: String?): BigDecimal? {
+        return soraCardRepository.getXorEuroPrice() ?: getCoingeckoXorPerEurRatio(priceId)
+    }
+
+    private suspend fun getCoingeckoXorPerEurRatio(priceId: String?): BigDecimal? = priceId?.let {
         walletRepository.getSingleAssetPriceCoingecko(priceId, "eur")
     }
 

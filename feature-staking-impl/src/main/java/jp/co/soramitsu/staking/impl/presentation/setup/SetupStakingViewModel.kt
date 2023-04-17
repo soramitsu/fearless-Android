@@ -103,7 +103,7 @@ class SetupStakingViewModel @Inject constructor(
 
     private val rewardCalculator = viewModelScope.async {
         val asset = stakingSharedState.assetWithChain.first().asset
-        rewardCalculatorFactory.create(asset.staking, asset.chainId)
+        rewardCalculatorFactory.create(asset)
     }
 
     val currentAccountAddressModel = liveData {

@@ -7,8 +7,8 @@ import jp.co.soramitsu.common.utils.formatAsPercentage
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.staking.impl.domain.rewards.PeriodReturns
 import jp.co.soramitsu.staking.impl.presentation.staking.main.model.RewardEstimation
-import jp.co.soramitsu.wallet.impl.domain.model.Token
 import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
+import jp.co.soramitsu.wallet.impl.domain.model.Token
 
 enum class RewardSuffix(@StringRes val suffixResourceId: Int?) {
     None(null),

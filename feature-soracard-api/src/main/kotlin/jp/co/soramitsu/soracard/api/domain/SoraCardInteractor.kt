@@ -16,7 +16,7 @@ interface SoraCardInteractor {
 
     suspend fun updateSoraCardKycStatus(kycStatus: String)
 
-    suspend fun getXorPerEurRatio(priceId: String?): BigDecimal?
+    suspend fun getXorEuroPrice(priceId: String? = null): BigDecimal?
 
     suspend fun updateSoraCardInfo(
         accessToken: String,

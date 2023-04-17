@@ -1,5 +1,8 @@
 package jp.co.soramitsu.staking.impl.scenarios.relaychain
 
+import java.math.BigDecimal
+import java.math.BigInteger
+import java.util.Optional
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.accountId
@@ -91,6 +94,7 @@ import jp.co.soramitsu.wallet.impl.domain.validation.EnoughToPayFeesValidation
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
@@ -102,9 +106,6 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.withContext
-import java.math.BigDecimal
-import java.math.BigInteger
-import java.util.Optional
 import jp.co.soramitsu.core.models.Asset as CoreAsset
 
 val ERA_OFFSET = 1.toBigInteger()
@@ -126,7 +127,7 @@ class StakingRelayChainScenarioInteractor(
 
     override suspend fun observeNetworkInfoState(): Flow<NetworkInfo> {
         val chain = stakingInteractor.getSelectedChain()
-        val lockupPeriod = getLockupPeriodInHours(chain.id)
+        val lockupPeriod = runCatching { getLockupPeriodInHours(chain.id) }.getOrDefault(0)
 
         return stakingRelayChainScenarioRepository.electedExposuresInActiveEra(chain.id).map { exposuresMap ->
             val exposures = exposuresMap.values
@@ -162,12 +163,9 @@ class StakingRelayChainScenarioInteractor(
         return stakingConstantsRepository.lockupPeriodInEras(chainId).toInt() * stakingRelayChainScenarioRepository.hoursInEra(chainId)
     }
 
-    override val stakingStateFlow = combine(
-        stakingInteractor.selectedChainFlow(),
-        stakingInteractor.currentAssetFlow()
-    ) { chain, asset -> chain to asset }.flatMapConcat { (chain, asset) ->
+    override val stakingStateFlow = stakingSharedState.assetWithChain.distinctUntilChanged().flatMapConcat { (chain, asset) ->
         val accountId = accountRepository.getSelectedMetaAccount().accountId(chain) ?: error("cannot find accountId")
-        stakingRelayChainScenarioRepository.stakingStateFlow(chain, asset.token.configuration, accountId)
+        stakingRelayChainScenarioRepository.stakingStateFlow(chain, asset, accountId)
     }
 
     suspend fun observeStashSummary(
@@ -235,7 +233,6 @@ class StakingRelayChainScenarioInteractor(
             val statusResolutionContext = StatusResolutionContext(eraStakers, activeEraIndex, asset, rewardedNominatorsPerValidator)
 
             val status = statusResolver(statusResolutionContext)
-
             StakeSummary(
                 status = status,
                 totalStaked = totalStaked,

@@ -4,6 +4,8 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import javax.inject.Named
+import javax.inject.Singleton
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.presentation.account.AddressDisplayUseCase
 import jp.co.soramitsu.common.address.AddressIconGenerator
@@ -19,6 +21,7 @@ import jp.co.soramitsu.core.rpc.RpcCalls
 import jp.co.soramitsu.core.storage.StorageCache
 import jp.co.soramitsu.coredb.dao.AccountStakingDao
 import jp.co.soramitsu.coredb.dao.StakingTotalRewardDao
+import jp.co.soramitsu.coredb.dao.TokenPriceDao
 import jp.co.soramitsu.runtime.di.LOCAL_STORAGE_SOURCE
 import jp.co.soramitsu.runtime.di.REMOTE_STORAGE_SOURCE
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
@@ -50,6 +53,7 @@ import jp.co.soramitsu.staking.impl.domain.recommendations.ValidatorRecommendato
 import jp.co.soramitsu.staking.impl.domain.recommendations.settings.RecommendationSettingsProviderFactory
 import jp.co.soramitsu.staking.impl.domain.recommendations.settings.SettingsStorage
 import jp.co.soramitsu.staking.impl.domain.rewards.RewardCalculatorFactory
+import jp.co.soramitsu.staking.impl.domain.rewards.SoraStakingRewardsScenario
 import jp.co.soramitsu.staking.impl.domain.setup.SetupStakingInteractor
 import jp.co.soramitsu.staking.impl.domain.staking.bond.BondMoreInteractor
 import jp.co.soramitsu.staking.impl.domain.staking.controller.ControllerInteractor
@@ -76,8 +80,6 @@ import jp.co.soramitsu.wallet.api.presentation.mixin.fee.FeeLoaderProvider
 import jp.co.soramitsu.wallet.impl.domain.TokenUseCase
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletConstants
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
-import javax.inject.Named
-import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -285,8 +287,9 @@ class StakingFeatureModule {
         stakingRelayChainScenarioRepository: StakingRelayChainScenarioRepository,
         repository: StakingRepository,
         stakingScenarioInteractor: StakingParachainScenarioInteractor,
-        stakingApi: StakingApi
-    ) = RewardCalculatorFactory(stakingRelayChainScenarioRepository, repository, stakingScenarioInteractor, stakingApi)
+        stakingApi: StakingApi,
+        soraStakingRewardsScenario: SoraStakingRewardsScenario
+    ) = RewardCalculatorFactory(stakingRelayChainScenarioRepository, repository, soraStakingRewardsScenario, stakingScenarioInteractor, stakingApi)
 
     @Provides
     @Singleton
@@ -573,4 +576,8 @@ class StakingFeatureModule {
     @Provides
     @Singleton
     fun provideIdentitiesUseCase(identityRepository: IdentityRepository) = GetIdentitiesUseCase(identityRepository)
+
+    @Provides
+    fun soraTokensRateUseCase(rpcCalls: RpcCalls, chainRegistry: ChainRegistry, tokenPriceDao: TokenPriceDao) =
+        SoraStakingRewardsScenario(rpcCalls, chainRegistry, tokenPriceDao)
 }

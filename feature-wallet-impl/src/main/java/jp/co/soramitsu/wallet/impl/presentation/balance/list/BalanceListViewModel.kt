@@ -123,9 +123,6 @@ class BalanceListViewModel @Inject constructor(
 
     private val accountAddressToChainIdMap = mutableMapOf<String, ChainId?>()
 
-    private val _hideRefreshEvent = MutableLiveData<Event<Unit>>()
-    val hideRefreshEvent: LiveData<Event<Unit>> = _hideRefreshEvent
-
     private val _showFiatChooser = MutableLiveData<FiatChooserEvent>()
     val showFiatChooser: LiveData<FiatChooserEvent> = _showFiatChooser
 
@@ -432,16 +429,34 @@ class BalanceListViewModel @Inject constructor(
         }
     }
 
+    override fun onRefresh() {
+        updateSoraCardStatus()
+        sync()
+    }
+
+    fun onResume() {
+        updateSoraCardStatus()
+    }
+
     private fun updateSoraCardStatus() {
         viewModelScope.launch {
             val soraCardInfo = soraCardInteractor.getSoraCardInfo() ?: return@launch
             val accessTokenExpirationTime = soraCardInfo.accessTokenExpirationTime
-            val accessTokenExpired =
-                accessTokenExpirationTime < TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis())
+            val accessTokenExpired = accessTokenExpirationTime < TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis())
 
             if (!accessTokenExpired) {
                 kycRepository.getKycLastFinalStatus(soraCardInfo.accessToken).onSuccess { kycStatus ->
-                    soraCardInteractor.updateSoraCardKycStatus(kycStatus = kycStatus?.toString().orEmpty())
+                    val extendedKycStatus = when (kycStatus) {
+                        SoraCardCommonVerification.Rejected -> {
+                            val hasFreeKycAttempt = kycRepository.hasFreeKycAttempt(soraCardInfo.accessToken).getOrNull()
+                            when (hasFreeKycAttempt) {
+                                false -> SoraCardCommonVerification.NoFreeAttempt
+                                else -> SoraCardCommonVerification.Rejected
+                            }
+                        }
+                        else -> kycStatus
+                    }
+                    soraCardInteractor.updateSoraCardKycStatus(kycStatus = extendedKycStatus?.toString().orEmpty())
                 }
             }
         }
@@ -455,7 +470,6 @@ class BalanceListViewModel @Inject constructor(
             }
 
             result.exceptionOrNull()?.let(::showError)
-            _hideRefreshEvent.value = Event(Unit)
         }
     }
 

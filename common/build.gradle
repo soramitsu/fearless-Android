@@ -46,6 +46,7 @@ android {
         buildConfigField "String", "POLKADOT_JS_PLUS_EXTENSION", "\"http://polkadotjs.plus/\""
 
         buildConfigField "String", "X1_PAYMENT_STATUS_URL", "\"wss://backend.dev.sora-card.tachi.soramitsu.co.jp/ws/x1-payment-status\""
+        buildConfigField "String", "SORA_XOR_EURO_URL",  "\"https://backend.dev.sora-card.tachi.soramitsu.co.jp/prices/xor_euro\""
 
         buildConfigField "String", "SORA_CARD_API_KEY", readSecretInQuotes("SORA_CARD_API_KEY")
         buildConfigField "String", "SORA_CARD_DOMAIN",  readSecretInQuotes("SORA_CARD_DOMAIN")

@@ -4,6 +4,8 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
+import javax.inject.Named
 import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -66,6 +68,7 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
@@ -73,8 +76,6 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import javax.inject.Inject
-import javax.inject.Named
 
 private const val CURRENT_ICON_SIZE = 40
 
@@ -156,7 +157,7 @@ class StakingViewModel @Inject constructor(
     )
 
     private val stakingViewState: SharedFlow<StakingViewState?> = scenarioViewModelFlow
-        .flatMapLatest {
+        .flatMapConcat {
             it.getStakingViewStateFlow()
         }.distinctUntilChanged().stateIn(scope = stakingStateScope, started = SharingStarted.Eagerly, initialValue = null)
 
@@ -213,7 +214,7 @@ class StakingViewModel @Inject constructor(
         .share()
 
     val stories = scenarioViewModelFlow
-        .flatMapLatest { viewModel ->
+        .flatMapConcat { viewModel ->
             viewModel.stakingStoriesFlow().map { it.map(::transformStories) }
         }.distinctUntilChanged().shareIn(stakingStateScope, started = SharingStarted.Eagerly, replay = 1)
 
@@ -308,7 +309,8 @@ class StakingViewModel @Inject constructor(
     fun onEstimatedEarningsInfoClick() {
         launch {
             val chainId = interactor.getSelectedChain().id
-            val rewardCalculator = rewardCalculatorFactory.createManual(chainId)
+            val asset = stakingSharedState.currentAssetFlow().first()
+            val rewardCalculator = rewardCalculatorFactory.create(asset.token.configuration)
 
             val maxAPY = rewardCalculator.calculateMaxAPY(chainId)
             val avgAPY = rewardCalculator.calculateAvgAPY()

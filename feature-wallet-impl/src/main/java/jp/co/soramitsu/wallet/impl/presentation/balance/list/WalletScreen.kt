@@ -38,6 +38,7 @@ interface WalletScreenInterface : AssetsListInterface {
     fun soraCardClose()
     fun onNetworkIssuesClicked()
     fun assetTypeChanged(type: AssetType)
+    fun onRefresh()
 }
 
 @Composable
@@ -90,6 +91,18 @@ fun WalletScreen(
     }
 }
 
+@Composable
+fun WalletScreenWithRefresh(
+    data: WalletState,
+    callback: WalletScreenInterface
+) {
+    PullRefreshBox(
+        onRefresh = callback::onRefresh
+    ) {
+        WalletScreen(data, callback)
+    }
+}
+
 @Preview
 @Composable
 private fun PreviewWalletScreen() {
@@ -103,6 +116,7 @@ private fun PreviewWalletScreen() {
         override fun assetTypeChanged(type: AssetType) {}
         override fun assetClicked(asset: AssetListItemViewState) {}
         override fun actionItemClicked(actionType: ActionItemType, chainId: ChainId, chainAssetId: String, swipeableState: SwipeableState<SwipeState>) {}
+        override fun onRefresh() {}
     }
 
     val assets: List<AssetListItemViewState> = listOf(
