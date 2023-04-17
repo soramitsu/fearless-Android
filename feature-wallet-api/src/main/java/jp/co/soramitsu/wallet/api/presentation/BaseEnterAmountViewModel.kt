@@ -85,7 +85,7 @@ open class BaseEnterAmountViewModel(
             tokenAmount = amount,
             isActive = isInputActive,
             precision = asset.token.configuration.precision,
-            initial = amount
+            initial = initialAmount
         )
     }.stateIn(this, SharingStarted.Eagerly, defaultAmountInputState)
 
