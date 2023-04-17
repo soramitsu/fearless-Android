@@ -27,9 +27,9 @@ import jp.co.soramitsu.common.compose.component.GrayButton
 import jp.co.soramitsu.common.compose.component.H3
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
-import jp.co.soramitsu.common.compose.theme.black2
 import jp.co.soramitsu.common.compose.theme.warningOrange
 import jp.co.soramitsu.common.compose.theme.white
+import jp.co.soramitsu.common.compose.theme.white50
 import jp.co.soramitsu.feature_soracard_impl.R
 
 interface GetMoreXorScreenInterface {
@@ -73,21 +73,21 @@ fun GetMoreXorContent(
                 MarginVertical(margin = 16.dp)
                 H3(
                     text = stringResource(id = R.string.sora_card_get_more_xor),
-                    color = black2,
                     modifier = Modifier.align(Alignment.CenterHorizontally)
                 )
                 MarginVertical(margin = 8.dp)
                 B0(
-                    text = stringResource(id = R.string.sora_card_select_xor_way),
+                    text = stringResource(id = R.string.sora_card_swap_or_buy_xor),
+                    color = white50,
                     modifier = Modifier.align(Alignment.CenterHorizontally)
                 )
                 MarginVertical(margin = 12.dp)
 
                 AccentButton(
-                    text = stringResource(id = R.string.sora_card_swap_for_xor),
+                    text = stringResource(id = R.string.sora_card_buy_xor),
                     onClick = {
                         keyboardController?.hide()
-                        callback.onSwapForXorClick()
+                        callback.onBuyXorClick()
                     },
                     modifier = Modifier
                         .fillMaxWidth()
@@ -96,10 +96,10 @@ fun GetMoreXorContent(
                 MarginVertical(margin = 12.dp)
 
                 GrayButton(
-                    text = stringResource(id = R.string.sora_card_buy_xor),
+                    text = stringResource(id = R.string.sora_card_swap_for_xor),
                     onClick = {
                         keyboardController?.hide()
-                        callback.onBuyXorClick()
+                        callback.onSwapForXorClick()
                     },
                     modifier = Modifier
                         .fillMaxWidth()
