@@ -619,6 +619,7 @@ class SwapTokensViewModel @Inject constructor(
             val amountFrom = result.takeIf { it >= BigDecimal.ZERO }.orZero()
 
             enteredFromAmountFlow.value = amountFrom
+            initFromAmountFlow.value = amountFrom
 
             if (isFeeAsset.not()) return@launch
 
