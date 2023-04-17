@@ -23,7 +23,8 @@ private const val DECIMAL_SEPARATOR = '.'
 
 private const val FULL_PRECISION = 5
 private const val ABBREVIATED_PRECISION = 2
-private const val HISTORY_AMOUNT_PRECISION = 4
+const val DEFAULT_FORMAT_PRECISION = 4
+private const val HISTORY_AMOUNT_PRECISION = DEFAULT_FORMAT_PRECISION
 
 private val historyAmountFormatter = FixedPrecisionFormatter(HISTORY_AMOUNT_PRECISION)
 private val defaultAbbreviationFormatter = FixedPrecisionFormatter(ABBREVIATED_PRECISION)

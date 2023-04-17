@@ -1,6 +1,5 @@
 package jp.co.soramitsu.staking.impl.presentation.staking.main.scenarios
 
-import java.math.BigDecimal
 import jp.co.soramitsu.common.compose.component.AmountInputViewState
 import jp.co.soramitsu.common.compose.component.TitleValueViewState
 import jp.co.soramitsu.common.domain.model.StoryGroup
@@ -44,6 +43,7 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import java.math.BigDecimal
 
 class StakingPoolViewModel(
     private val stakingPoolInteractor: StakingPoolInteractor,
@@ -58,7 +58,8 @@ class StakingPoolViewModel(
         tokenImage = "",
         totalBalance = resourceManager.getString(R.string.common_balance_format, "..."),
         fiatAmount = "",
-        tokenAmount = "10"
+        tokenAmount = BigDecimal.TEN,
+        initial = null
     )
     private val currentAssetFlow = stakingInteractor.currentAssetFlow().filter { it.token.configuration.supportStakingPool }
 
@@ -74,25 +75,24 @@ class StakingPoolViewModel(
         return kotlinx.coroutines.flow.flowOf(Pool)
     }
 
-    override val enteredAmountFlow = MutableStateFlow("10")
+    override val enteredAmountFlow = MutableStateFlow(BigDecimal.TEN)
 
-    private val amountInputViewState: Flow<AmountInputViewState> = combine(enteredAmountFlow, currentAssetFlow) { enteredAmount, asset ->
+    private val amountInputViewState: Flow<AmountInputViewState> = combine(enteredAmountFlow, currentAssetFlow) { amount, asset ->
         val tokenBalance = asset.transferable.formatTokenAmount(asset.token.configuration.symbol)
-        val amount = enteredAmount.toBigDecimalOrNull().orZero()
-        val fiatAmount = amount.applyFiatRate(asset.token.fiatRate)?.formatAsCurrency(asset.token.fiatSymbol)
+        val fiatAmount = amount?.applyFiatRate(asset.token.fiatRate)?.formatAsCurrency(asset.token.fiatSymbol)
 
         AmountInputViewState(
             tokenName = asset.token.configuration.symbol,
             tokenImage = asset.token.configuration.iconUrl,
             totalBalance = resourceManager.getString(R.string.common_balance_format, tokenBalance),
             fiatAmount = fiatAmount,
-            tokenAmount = enteredAmount
+            tokenAmount = amount.orZero(),
+            initial = amount
         )
     }.stateIn(baseViewModel.stakingStateScope, SharingStarted.Eagerly, defaultAmountInputState)
 
-    private val estimatedEarningsViewState = combine(enteredAmountFlow, currentAssetFlow) { enteredAmount, asset ->
-        val amount = enteredAmount.toBigDecimalOrNull().orZero()
-        getReturns(asset.token.configuration.chainId, amount)
+    private val estimatedEarningsViewState = combine(enteredAmountFlow, currentAssetFlow) { amount, asset ->
+        getReturns(asset.token.configuration.chainId, amount.orZero())
     }.stateIn(baseViewModel.stakingStateScope, SharingStarted.Eagerly, ReturnsModel.default)
 
     override suspend fun getStakingViewStateFlow(): Flow<StakingViewState> {

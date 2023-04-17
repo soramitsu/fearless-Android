@@ -41,7 +41,7 @@ interface StakingScenarioViewModel {
     suspend fun getBondMoreValidationSystem(): ValidationSystem<ManageStakingValidationPayload, ManageStakingValidationFailure>
     fun stakingStoriesFlow(): Flow<List<StoryGroup.Staking>>
 
-    val enteredAmountFlow: MutableStateFlow<BigDecimal>
+    val enteredAmountFlow: MutableStateFlow<BigDecimal?>
 }
 
 fun formatAlertTokenAmount(amount: BigDecimal, token: Token): String {

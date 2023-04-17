@@ -40,6 +40,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.map
+import java.math.BigDecimal
 
 class StakingRelaychainScenarioViewModel(
     private val stakingInteractor: StakingInteractor,
@@ -52,7 +53,7 @@ class StakingRelaychainScenarioViewModel(
     stakingSharedState: StakingSharedState
 ) : StakingScenarioViewModel {
 
-    override val enteredAmountFlow = MutableStateFlow("")
+    override val enteredAmountFlow: MutableStateFlow<BigDecimal?> = MutableStateFlow(BigDecimal.ZERO)
 
     private val welcomeStakingValidationSystem = ValidationSystem(
         CompositeValidation(
