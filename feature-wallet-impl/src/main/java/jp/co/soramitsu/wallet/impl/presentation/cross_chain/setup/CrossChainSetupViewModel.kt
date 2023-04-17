@@ -127,7 +127,7 @@ class CrossChainSetupViewModel @Inject constructor(
         fiatAmount = "",
         tokenAmount = initialAmount,
         allowAssetChoose = false,
-        initial = null
+        initial = initialAmount
     )
 
     private val defaultButtonState = ButtonViewState(
@@ -166,12 +166,14 @@ class CrossChainSetupViewModel @Inject constructor(
 
     private val enteredAmountBigDecimalFlow = MutableStateFlow(initialAmount)
     private val visibleAmountFlow = MutableStateFlow(initialAmount)
+    private val initialAmountFlow = MutableStateFlow(initialAmount)
 
     private val amountInputViewState: Flow<AmountInputViewState> = combine(
         visibleAmountFlow,
+        initialAmountFlow,
         assetFlow,
         amountInputFocusFlow
-    ) { amount, asset, isAmountInputFocused ->
+    ) { amount, initialAmount, asset, isAmountInputFocused ->
         if (asset == null) {
             defaultAmountInputState
         } else {
@@ -192,7 +194,7 @@ class CrossChainSetupViewModel @Inject constructor(
                 isFocused = isAmountInputFocused,
                 allowAssetChoose = true,
                 precision = asset.token.configuration.precision,
-                initial = amount
+                initial = initialAmount
             )
         }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, defaultAmountInputState)
@@ -588,10 +590,12 @@ class CrossChainSetupViewModel @Inject constructor(
             if (quickAmountWithoutExtraPays < BigDecimal.ZERO) {
                 return@launch
             }
-            visibleAmountFlow.value = quickAmountWithoutExtraPays.setScale(
+            val scaled = quickAmountWithoutExtraPays.setScale(
                 5,
                 RoundingMode.HALF_DOWN
             )
+            visibleAmountFlow.value = scaled
+            initialAmountFlow.value = scaled
             enteredAmountBigDecimalFlow.value = quickAmountWithoutExtraPays
         }
     }

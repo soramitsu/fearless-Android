@@ -133,7 +133,7 @@ class SendSetupViewModel @Inject constructor(
         fiatAmount = "",
         tokenAmount = initialAmount,
         allowAssetChoose = false,
-        initial = null
+        initial = initialAmount
     )
 
     private val defaultButtonState = ButtonViewState(
@@ -185,12 +185,14 @@ class SendSetupViewModel @Inject constructor(
 
     private val enteredAmountBigDecimalFlow = MutableStateFlow(initialAmount)
     private val visibleAmountFlow = MutableStateFlow(initialAmount)
+    private val initialAmountFlow = MutableStateFlow(initialAmount)
 
     private val amountInputViewState: Flow<AmountInputViewState> = combine(
         visibleAmountFlow,
+        initialAmountFlow,
         assetFlow,
         amountInputFocusFlow
-    ) { amount, asset, isAmountInputFocused ->
+    ) { amount, initialAmount, asset, isAmountInputFocused ->
         if (asset == null) {
             defaultAmountInputState
         } else {
@@ -207,7 +209,7 @@ class SendSetupViewModel @Inject constructor(
                 isFocused = isAmountInputFocused,
                 allowAssetChoose = true,
                 precision = asset.token.configuration.precision,
-                initial = amount
+                initial = initialAmount
             )
         }
     }.stateIn(this, SharingStarted.Eagerly, defaultAmountInputState)
@@ -534,6 +536,7 @@ class SendSetupViewModel @Inject constructor(
                 return@launch
             }
             visibleAmountFlow.value = quickAmountWithoutExtraPays.setScale(5, RoundingMode.HALF_DOWN)
+            initialAmountFlow.value = quickAmountWithoutExtraPays.setScale(5, RoundingMode.HALF_DOWN)
             enteredAmountBigDecimalFlow.value = quickAmountWithoutExtraPays
         }
     }
