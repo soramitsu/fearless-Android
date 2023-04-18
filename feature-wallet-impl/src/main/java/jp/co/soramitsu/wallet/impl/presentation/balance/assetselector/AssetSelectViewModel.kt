@@ -3,7 +3,6 @@ package jp.co.soramitsu.wallet.impl.presentation.balance.assetselector
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.common.utils.mapList
@@ -19,12 +18,13 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import javax.inject.Inject
 import jp.co.soramitsu.wallet.api.presentation.WalletRouter as WalletRouterApi
 
 @HiltViewModel
 class AssetSelectViewModel @Inject constructor(
     private val walletRouter: WalletRouter,
-    private val walletInteractor: WalletInteractor,
+    walletInteractor: WalletInteractor,
     savedStateHandle: SavedStateHandle,
     private val sharedSendState: SendSharedState
 ) : BaseViewModel(), AssetSelectContentInterface {
@@ -32,13 +32,20 @@ class AssetSelectViewModel @Inject constructor(
     private var choiceDone = false
 
     private val filterChainId: String? = savedStateHandle[AssetSelectFragment.KEY_FILTER_CHAIN_ID]
+    private val isFilterXcmAssets: Boolean = savedStateHandle[AssetSelectFragment.KEY_IS_FILTER_XCM_ASSETS] ?: false
 
     private val initialSelectedAssetId: String? = savedStateHandle[AssetSelectFragment.KEY_SELECTED_ASSET_ID]
     private val excludeAssetId: String? = savedStateHandle[AssetSelectFragment.KEY_EXCLUDE_ASSET_ID]
     private val selectedAssetIdFlow = MutableStateFlow(initialSelectedAssetId)
 
     private val assetModelsFlow: Flow<List<AssetModel>> =
-        walletInteractor.assetsFlow()
+        if (isFilterXcmAssets) {
+            walletInteractor.xcmAssetsFlow(
+                originalChainId = filterChainId
+            )
+        } else {
+            walletInteractor.assetsFlow()
+        }
             .mapList {
                 when {
                     it.hasAccount -> it.asset

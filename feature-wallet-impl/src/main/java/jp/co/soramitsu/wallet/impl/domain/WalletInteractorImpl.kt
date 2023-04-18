@@ -12,7 +12,9 @@ import jp.co.soramitsu.common.domain.SelectedFiat
 import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
+import jp.co.soramitsu.common.utils.combineToPair
 import jp.co.soramitsu.common.utils.orZero
+import jp.co.soramitsu.core.models.ChainId
 import jp.co.soramitsu.coredb.model.AssetUpdateItem
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
@@ -20,7 +22,6 @@ import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.ext.isValidAddress
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.isPolkadotOrKusama
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import jp.co.soramitsu.runtime.multiNetwork.chainWithAsset
@@ -40,6 +41,7 @@ import jp.co.soramitsu.wallet.impl.domain.model.Transfer
 import jp.co.soramitsu.wallet.impl.domain.model.WalletAccount
 import jp.co.soramitsu.wallet.impl.domain.model.toPhishingModel
 import jp.co.soramitsu.xcm_impl.XcmService
+import jp.co.soramitsu.xcm_impl.domain.XcmEntitiesFetcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -48,6 +50,7 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flatMapMerge
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.withIndex
 import kotlinx.coroutines.withContext
@@ -72,7 +75,8 @@ class WalletInteractorImpl(
     private val selectedFiat: SelectedFiat,
     private val updatesMixin: UpdatesMixin,
     private val xcmService: XcmService,
-    private val currentAccountAddress: CurrentAccountAddressUseCase
+    private val currentAccountAddress: CurrentAccountAddressUseCase,
+    private val xcmEntitiesFetcher: XcmEntitiesFetcher
 ) : WalletInteractor, UpdatesProviderUi by updatesMixin {
 
     override suspend fun getHideZeroBalancesForCurrentWallet(): Boolean {
@@ -115,6 +119,26 @@ class WalletInteractorImpl(
                         assets.sortedWith(defaultAssetListSort())
                     }
             }
+    }
+
+    override fun xcmAssetsFlow(originalChainId: ChainId?): Flow<List<AssetWithStatus>> {
+        return combineToPair(assetsFlow(), getAvailableXcmAssetSymbolsFlow(originalChainId))
+            .map { (assets, availableXcmAssetSymbols) ->
+                assets.filter {
+                    val assetSymbol = it.asset.token.configuration.symbol.uppercase()
+                    assetSymbol in availableXcmAssetSymbols
+                }
+            }
+    }
+
+    private fun getAvailableXcmAssetSymbolsFlow(originalChainId: ChainId?): Flow<List<String>> {
+        return flow {
+            val availableXcmAssetSymbols = xcmEntitiesFetcher.getAvailableAssets(
+                originalChainId = originalChainId,
+                destinationChainId = null
+            ).map { it.uppercase() }
+            emit(availableXcmAssetSymbols)
+        }
     }
 
     override fun observeAssets(): Flow<List<AssetWithStatus>> {

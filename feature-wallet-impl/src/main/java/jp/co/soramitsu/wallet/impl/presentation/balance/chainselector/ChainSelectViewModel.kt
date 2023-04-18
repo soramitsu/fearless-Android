@@ -12,6 +12,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.defaultChainSort
 import jp.co.soramitsu.wallet.impl.domain.ChainInteractor
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
+import jp.co.soramitsu.wallet.api.domain.model.XcmChainType
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import jp.co.soramitsu.wallet.api.presentation.WalletRouter as WalletRouterApi
 import jp.co.soramitsu.wallet.impl.presentation.send.SendSharedState
@@ -27,7 +28,7 @@ import javax.inject.Inject
 class ChainSelectViewModel @Inject constructor(
     private val walletRouter: WalletRouter,
     private val walletInteractor: WalletInteractor,
-    private val chainInteractor: ChainInteractor,
+    chainInteractor: ChainInteractor,
     savedStateHandle: SavedStateHandle,
     private val sharedSendState: SendSharedState,
     private val accountInteractor: AccountInteractor
@@ -43,9 +44,25 @@ class ChainSelectViewModel @Inject constructor(
     private val tokenCurrencyId: String? = savedStateHandle[ChainSelectFragment.KEY_CURRENCY_ID]
     private val isSelectAsset: Boolean = savedStateHandle[ChainSelectFragment.KEY_SELECT_ASSET] ?: true
 
+    // XCM
+    private val xcmChainType: XcmChainType? =
+        savedStateHandle[ChainSelectFragment.KEY_XCM_CHAIN_TYPE]
+    private val xcmSelectedOriginalChainId: String? =
+        savedStateHandle[ChainSelectFragment.KEY_XCM_SELECTED_ORIGINAL_CHAIN_ID]
+
     private var choiceDone = false
 
-    private val chainsFlow = chainInteractor.getChainsFlow().map { chains ->
+    private val allChainsFlow = if (xcmChainType == null) {
+        chainInteractor.getChainsFlow()
+    } else {
+        chainInteractor.getXcmChainsFlow(
+            type = xcmChainType,
+            originalChainId = xcmSelectedOriginalChainId,
+            assetSymbol = null
+        )
+    }
+
+    private val chainsFlow = allChainsFlow.map { chains ->
         when {
             initialSelectedAssetId != null -> {
                 chains.firstOrNull {
@@ -88,7 +105,7 @@ class ChainSelectViewModel @Inject constructor(
         filtered?.map { it.toChainItemState() }
     }.stateIn(this, SharingStarted.Eagerly, null)
 
-    private val symbolFlow = chainInteractor.getChainsFlow().map { chains ->
+    private val symbolFlow = allChainsFlow.map { chains ->
         (initialSelectedAssetId ?: sharedSendState.assetId)?.let { chainAssetId ->
             chains.firstOrNull { it.assets.any { it.id == chainAssetId } }?.let { chainOfTheAsset ->
                 val symbol = chainOfTheAsset.assets.firstOrNull { it.id == (chainAssetId) }?.symbolToShow

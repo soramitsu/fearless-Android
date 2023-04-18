@@ -46,7 +46,6 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
@@ -114,6 +113,7 @@ class CrossChainConfirmViewModel @Inject constructor(
     }.stateIn(viewModelScope, SharingStarted.Eagerly, defaultButtonState)
 
     private val originalAssetFlow = interactor.assetFlow(transferDraft.originalChainId, transferDraft.chainAssetId)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, initialValue = null)
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val utilityAssetFlow = originalNetworkFlow.mapNotNull {
@@ -168,12 +168,16 @@ class CrossChainConfirmViewModel @Inject constructor(
             null
         }
 
-        val assetModel = mapAssetToAssetModel(originalAsset)
-        val amountInfoItem = TitleValueViewState(
-            title = resourceManager.getString(R.string.common_amount),
-            value = assetModel.formatTokenAmount(transferDraft.amount),
-            additionalValue = assetModel.getAsFiatWithCurrency(transferDraft.amount)
-        )
+        val amountInfoItem = if (originalAsset != null) {
+            val assetModel = mapAssetToAssetModel(originalAsset)
+            TitleValueViewState(
+                title = resourceManager.getString(R.string.common_amount),
+                value = assetModel.formatTokenAmount(transferDraft.amount),
+                additionalValue = assetModel.getAsFiatWithCurrency(transferDraft.amount)
+            )
+        } else {
+            null
+        }
 
         val tipInfoItem = transferDraft.tip?.let {
             TitleValueViewState(
@@ -283,7 +287,8 @@ class CrossChainConfirmViewModel @Inject constructor(
 
     private fun openWarningAlert() {
         launch {
-            val symbol = originalAssetFlow.first().token.configuration.symbolToShow
+            val originalAsset = originalAssetFlow.value ?: return@launch
+            val symbol = originalAsset.token.configuration.symbolToShow
 
             val payload = AlertViewState(
                 title = getPhishingTitle(phishingType),
@@ -319,7 +324,8 @@ class CrossChainConfirmViewModel @Inject constructor(
 
     private fun performTransfer() {
         launch {
-            val token = originalAssetFlow.firstOrNull()?.token?.configuration ?: return@launch
+            val originalAsset = originalAssetFlow.value ?: return@launch
+            val token = originalAsset.token.configuration
 
             transferSubmittingFlow.value = true
 

@@ -13,6 +13,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
 import jp.co.soramitsu.common.compose.component.BottomSheetScreen
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.wallet.api.domain.model.XcmChainType
 
 @AndroidEntryPoint
 class ChainSelectFragment : BaseComposeBottomSheetDialogFragment<ChainSelectViewModel>() {
@@ -24,6 +25,10 @@ class ChainSelectFragment : BaseComposeBottomSheetDialogFragment<ChainSelectView
         const val KEY_CHOOSER_MODE = "KEY_CHOOSER_MODE"
         const val KEY_SELECT_ASSET = "KEY_SELECT_ASSET"
         const val KEY_SHOW_ALL_CHAINS = "KEY_SHOW_ALL_CHAINS"
+
+        // XCM
+        const val KEY_XCM_CHAIN_TYPE = "KEY_XCM_CHAIN_TYPE"
+        const val KEY_XCM_SELECTED_ORIGINAL_CHAIN_ID = "KEY_XCM_SELECTED_ORIGINAL_CHAIN"
 
         fun getBundle(
             assetId: String,
@@ -52,6 +57,19 @@ class ChainSelectFragment : BaseComposeBottomSheetDialogFragment<ChainSelectView
             KEY_CURRENCY_ID to currencyId,
             KEY_SHOW_ALL_CHAINS to showAllChains,
             KEY_SELECT_ASSET to isSelectAsset
+        )
+
+        fun getBundleForXcmChains(
+            selectedChainId: ChainId?,
+            xcmChainType: XcmChainType,
+            xcmSelectedOriginalChainId: String? = null
+        ) = bundleOf(
+            KEY_SELECTED_CHAIN_ID to selectedChainId,
+            KEY_XCM_CHAIN_TYPE to xcmChainType,
+            KEY_XCM_SELECTED_ORIGINAL_CHAIN_ID to xcmSelectedOriginalChainId,
+            KEY_SELECT_ASSET to false,
+            KEY_SHOW_ALL_CHAINS to false,
+            KEY_CHOOSER_MODE to false
         )
     }
 

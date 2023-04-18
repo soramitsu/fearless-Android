@@ -105,6 +105,7 @@ import jp.co.soramitsu.staking.impl.presentation.validators.parcel.CollatorDetai
 import jp.co.soramitsu.staking.impl.presentation.validators.parcel.ValidatorDetailsParcelModel
 import jp.co.soramitsu.success.presentation.SuccessFragment
 import jp.co.soramitsu.success.presentation.SuccessRouter
+import jp.co.soramitsu.wallet.api.domain.model.XcmChainType
 import jp.co.soramitsu.wallet.impl.domain.beacon.SignStatus
 import jp.co.soramitsu.wallet.impl.domain.model.PhishingType
 import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
@@ -148,6 +149,7 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.job
@@ -697,8 +699,26 @@ class Navigator :
         navController?.navigate(R.id.chainSelectFragment, bundle)
     }
 
+    override fun openSelectChainForXcm(
+        selectedChainId: ChainId?,
+        xcmChainType: XcmChainType,
+        selectedOriginalChainId: String?
+    ) {
+        val bundle = ChainSelectFragment.getBundleForXcmChains(
+            selectedChainId = selectedChainId,
+            xcmChainType = xcmChainType,
+            xcmSelectedOriginalChainId = selectedOriginalChainId
+        )
+        navController?.navigate(R.id.chainSelectFragment, bundle)
+    }
+
     override fun openSelectAsset(selectedAssetId: String) {
         val bundle = AssetSelectFragment.getBundle(selectedAssetId)
+        navController?.navigate(R.id.assetSelectFragment, bundle)
+    }
+
+    override fun openSelectAsset(chainId: ChainId, selectedAssetId: String?, isFilterXcmAssets: Boolean) {
+        val bundle = AssetSelectFragment.getBundle(chainId, selectedAssetId, isFilterXcmAssets)
         navController?.navigate(R.id.assetSelectFragment, bundle)
     }
 
@@ -709,7 +729,8 @@ class Navigator :
 
     override fun <T> observeResult(key: String): Flow<T> {
         return observeResultInternal<T>(key)
-            .onEach { removeSavedStateHandle(key) }
+            .onStart { removeSavedStateHandle(key) }
+            .onCompletion { removeSavedStateHandle(key) }
             .filter { it != null } as Flow<T>
     }
 

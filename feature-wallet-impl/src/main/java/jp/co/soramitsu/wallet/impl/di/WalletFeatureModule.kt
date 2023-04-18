@@ -77,6 +77,7 @@ import jp.co.soramitsu.wallet.impl.presentation.balance.assetActions.buy.BuyMixi
 import jp.co.soramitsu.wallet.impl.presentation.send.SendSharedState
 import jp.co.soramitsu.wallet.impl.presentation.transaction.filter.HistoryFiltersProvider
 import jp.co.soramitsu.xcm_impl.XcmService
+import jp.co.soramitsu.xcm_impl.domain.XcmEntitiesFetcher
 import jp.co.soramitsu.xnetworking.networkclient.SoramitsuNetworkClient
 import jp.co.soramitsu.xnetworking.sorawallet.mainconfig.SoraRemoteConfigBuilder
 import jp.co.soramitsu.xnetworking.sorawallet.mainconfig.SoraRemoteConfigProvider
@@ -222,7 +223,8 @@ class WalletFeatureModule {
         selectedFiat: SelectedFiat,
         updatesMixin: UpdatesMixin,
         xcmService: XcmService,
-        currentAccountAddressUseCase: CurrentAccountAddressUseCase
+        currentAccountAddressUseCase: CurrentAccountAddressUseCase,
+        xcmEntitiesFetcher: XcmEntitiesFetcher
     ): WalletInteractor = WalletInteractorImpl(
         walletRepository,
         addressBookRepository,
@@ -234,7 +236,8 @@ class WalletFeatureModule {
         selectedFiat,
         updatesMixin,
         xcmService,
-        currentAccountAddressUseCase
+        currentAccountAddressUseCase,
+        xcmEntitiesFetcher
     )
 
     @Provides
@@ -260,8 +263,14 @@ class WalletFeatureModule {
 
     @Provides
     fun provideChainInteractor(
-        chainDao: ChainDao
-    ): ChainInteractor = ChainInteractor(chainDao)
+        chainDao: ChainDao,
+        xcmEntitiesFetcher: XcmEntitiesFetcher
+    ): ChainInteractor = ChainInteractor(chainDao, xcmEntitiesFetcher)
+
+    @Provides
+    fun provideXcmEntitiesFetcher(chainRegistry: ChainRegistry): XcmEntitiesFetcher {
+        return XcmEntitiesFetcher(chainRegistry)
+    }
 
     @Provides
     fun provideBuyTokenIntegration(): BuyTokenRegistry {
