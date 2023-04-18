@@ -172,7 +172,7 @@ sealed class StakeViewState<S>(
     }
 
     @ExperimentalCoroutinesApi
-    private suspend fun summaryFlow(): Flow<StakeSummaryModel<S>> {
+    protected open suspend fun summaryFlow(): Flow<StakeSummaryModel<S>> {
         return currentAssetFlow.flatMapLatest { asset ->
             summaryFlowProvider(stakeState).map { asset to it }
         }.map { (asset, summary) ->
@@ -268,7 +268,7 @@ private fun getStashStatusTitleAndMessage(
 }
 
 @Deprecated("All ViewStates should be provided and created in staking type aware ViewModels")
-class NominatorViewState(
+open class NominatorViewState(
     nominatorState: StakingState.Stash.Nominator,
     currentAssetFlow: Flow<Asset>,
     stakingInteractor: StakingInteractor,
@@ -286,6 +286,39 @@ class NominatorViewState(
 ) {
     init {
         syncStakingRewards()
+    }
+}
+
+@Deprecated("All ViewStates should be provided and created in staking type aware ViewModels")
+class SoraNominatorViewState(
+    private val nominatorState: StakingState.Stash.Nominator,
+    currentAssetFlow: Flow<Asset>,
+    stakingInteractor: StakingInteractor,
+    relayChainScenarioInteractor: StakingRelayChainScenarioInteractor,
+    private val soraStakingRewardsScenario: SoraStakingRewardsScenario,
+    resourceManager: ResourceManager,
+    scope: CoroutineScope,
+    router: StakingRouter,
+    errorDisplayer: (Throwable) -> Unit
+) : NominatorViewState(nominatorState, currentAssetFlow, stakingInteractor, relayChainScenarioInteractor, resourceManager, scope, router, errorDisplayer) {
+    @ExperimentalCoroutinesApi
+    override suspend fun summaryFlow(): Flow<StakeSummaryModel<NominatorStatus>> {
+        return currentAssetFlow.flatMapLatest { asset ->
+            summaryFlowProvider(nominatorState).map { asset to it }
+        }.map { (asset, summary) ->
+            val token = asset.token
+            val rewardToken = soraStakingRewardsScenario.getRewardAsset()
+            val tokenType = token.configuration
+
+            StakeSummaryModel(
+                status = summary.status,
+                totalStaked = summary.totalStaked.formatTokenAmount(tokenType),
+                totalStakedFiat = token.fiatAmount(summary.totalStaked)?.formatAsCurrency(token.fiatSymbol),
+                totalRewards = summary.totalReward.formatTokenAmount(rewardToken.configuration),
+                totalRewardsFiat = rewardToken.fiatAmount(summary.totalReward)?.formatAsCurrency(rewardToken.fiatSymbol),
+                currentEraDisplay = resourceManager.getString(R.string.staking_era_title, summary.currentEra)
+            )
+        }
     }
 }
 

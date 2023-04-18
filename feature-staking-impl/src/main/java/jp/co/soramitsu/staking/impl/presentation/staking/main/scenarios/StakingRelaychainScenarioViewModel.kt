@@ -77,14 +77,14 @@ class StakingRelaychainScenarioViewModel(
                     stakingState,
                     stakingInteractor.currentAssetFlow(),
                     baseViewModel.stakingStateScope,
-                    ::showE
+                    baseViewModel::showError
                 )
 
                 is StakingState.Stash.None -> stakingViewStateFactory.createStashNoneState(
                     stakingInteractor.currentAssetFlow(),
                     stakingState,
                     baseViewModel.stakingStateScope,
-                    ::showE
+                    baseViewModel::showError
                 )
 
                 is StakingState.NonStash -> stakingViewStateFactory.createRelayChainWelcomeViewState(
@@ -98,15 +98,11 @@ class StakingRelaychainScenarioViewModel(
                     stakingState,
                     stakingInteractor.currentAssetFlow(),
                     baseViewModel.stakingStateScope,
-                    ::showE
+                    baseViewModel::showError
                 )
                 else -> error("Wrong state")
             }
         }
-    }
-
-    fun showE(throwable: Throwable) {
-        baseViewModel.showError(throwable)
     }
 
     override suspend fun getStakingViewStateFlow(): Flow<StakingViewState> {
