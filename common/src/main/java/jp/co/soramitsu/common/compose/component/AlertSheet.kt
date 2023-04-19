@@ -36,7 +36,6 @@ fun AlertSheet(
     onTopUpClicked: () -> Unit
 ) {
     BottomSheetScreen {
-        Grip(Modifier.align(Alignment.CenterHorizontally))
         Column(
             modifier = Modifier
                 .padding(horizontal = 16.dp)

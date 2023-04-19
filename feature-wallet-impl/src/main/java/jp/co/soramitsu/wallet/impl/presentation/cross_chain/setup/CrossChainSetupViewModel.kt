@@ -264,7 +264,7 @@ class CrossChainSetupViewModel @Inject constructor(
             ?.formatAsCurrency(asset.token.fiatSymbol)
 
         FeeInfoViewState(
-            caption = resourceManager.getString(R.string.common_destination_network),
+            caption = resourceManager.getString(R.string.common_destination_network_fee),
             feeAmount = feeFormatted,
             feeAmountFiat = feeFiat
         )

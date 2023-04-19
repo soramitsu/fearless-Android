@@ -32,7 +32,6 @@ import jp.co.soramitsu.common.compose.component.AccentButton
 import jp.co.soramitsu.common.compose.component.B0
 import jp.co.soramitsu.common.compose.component.BottomSheetScreen
 import jp.co.soramitsu.common.compose.component.GrayButton
-import jp.co.soramitsu.common.compose.component.Grip
 import jp.co.soramitsu.common.compose.component.H2
 import jp.co.soramitsu.common.compose.component.H3
 import jp.co.soramitsu.common.compose.component.MarginHorizontal
@@ -84,9 +83,7 @@ private fun ReceiveContent(
             .fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        MarginVertical(margin = 2.dp)
-        Grip(Modifier.align(Alignment.CenterHorizontally))
-        MarginVertical(margin = 13.dp)
+        MarginVertical(margin = 4.dp)
         H3(
             text = stringResource(id = R.string.wallet_asset_receive_template, state.assetSymbol),
             textAlign = TextAlign.Start,

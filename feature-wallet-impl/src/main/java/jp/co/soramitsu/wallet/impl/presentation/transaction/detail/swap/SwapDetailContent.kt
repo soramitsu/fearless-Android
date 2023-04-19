@@ -17,7 +17,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.compose.component.AccentButton
 import jp.co.soramitsu.common.compose.component.GradientIconState
-import jp.co.soramitsu.common.compose.component.Grip
 import jp.co.soramitsu.common.compose.component.InfoTable
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.component.SwapHeader
@@ -62,10 +61,6 @@ fun SwapPreviewContent(
             .imePadding(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        MarginVertical(margin = 2.dp)
-        Grip(Modifier.align(Alignment.CenterHorizontally))
-        MarginVertical(margin = 8.dp)
-
         ToolbarBottomSheet(
             modifier = Modifier.padding(horizontal = 16.dp),
             title = stringResource(R.string.polkaswap_preview_title),

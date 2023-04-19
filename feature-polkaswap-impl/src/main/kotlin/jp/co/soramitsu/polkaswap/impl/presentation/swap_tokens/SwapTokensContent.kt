@@ -39,7 +39,6 @@ import jp.co.soramitsu.common.compose.component.AmountInputViewState
 import jp.co.soramitsu.common.compose.component.FeeInfo
 import jp.co.soramitsu.common.compose.component.FeeInfoViewState
 import jp.co.soramitsu.common.compose.component.FullScreenLoading
-import jp.co.soramitsu.common.compose.component.Grip
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.component.NavigationIconButton
 import jp.co.soramitsu.common.compose.component.Notification
@@ -140,10 +139,6 @@ fun SwapTokensContent(
             .navigationBarsPadding()
             .imePadding()
     ) {
-        MarginVertical(margin = 2.dp)
-        Grip(Modifier.align(Alignment.CenterHorizontally))
-        MarginVertical(margin = 8.dp)
-
         Row(
             modifier = Modifier.padding(bottom = 12.dp),
             verticalAlignment = Alignment.CenterVertically

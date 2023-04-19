@@ -23,13 +23,18 @@ import jp.co.soramitsu.common.compose.theme.black1
 import jp.co.soramitsu.common.compose.theme.black72
 
 @Composable
-fun BottomSheetScreen(modifier: Modifier = Modifier, Content: @Composable ColumnScope.() -> Unit) {
+fun BottomSheetScreen(
+    modifier: Modifier = Modifier,
+    Content: @Composable ColumnScope.() -> Unit
+) {
     Column {
         MarginVertical(margin = 12.dp)
         Column(
             modifier = modifier.background(backgroundBlack, RoundedCornerShape(topEnd = 24.dp, topStart = 24.dp))
         ) {
-            MarginVertical(margin = 12.dp)
+            MarginVertical(margin = 2.dp)
+            Grip(Modifier.align(Alignment.CenterHorizontally))
+            MarginVertical(margin = 8.dp)
             Content()
         }
     }
