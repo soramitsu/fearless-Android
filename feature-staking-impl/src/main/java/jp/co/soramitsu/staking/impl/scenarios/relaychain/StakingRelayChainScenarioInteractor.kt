@@ -599,7 +599,7 @@ class StakingRelayChainScenarioInteractor(
         val minBond = stakingRelayChainScenarioRepository.minimumNominatorBond(stashState.chain.utilityAsset)
         val needChill = stashState is StakingState.Stash.Nominator &&
             // and resulting bonded balance is less than min bond
-            resultedBalance.compareTo(minBond) == 0 || resultedBalance.compareTo(minBond) == -1
+            resultedBalance.compareTo(minBond) == -1
 
         if (needChill) {
             chill()
