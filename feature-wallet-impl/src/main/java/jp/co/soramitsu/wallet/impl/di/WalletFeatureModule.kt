@@ -202,13 +202,15 @@ class WalletFeatureModule {
         chainRegistry: ChainRegistry,
         soramitsuNetworkClient: SoramitsuNetworkClient,
         subQueryClientForSoraWalletFactory: SubQueryClientForSoraWalletFactory,
-        soraRemoteConfigBuilder: SoraRemoteConfigBuilder
+        @Named("prod") soraProdRemoteConfigBuilder: SoraRemoteConfigBuilder,
+        @Named("stage") soraStageRemoteConfigBuilder: SoraRemoteConfigBuilder
     ) = HistorySourceProvider(
         walletOperationsHistoryApi,
         chainRegistry,
         soramitsuNetworkClient,
         subQueryClientForSoraWalletFactory,
-        soraRemoteConfigBuilder
+        soraProdRemoteConfigBuilder,
+        soraStageRemoteConfigBuilder
     )
 
     @Provides
@@ -394,15 +396,31 @@ class WalletFeatureModule {
 
     @Singleton
     @Provides
-    fun provideSoraRemoteConfigBuilder(
+    @Named("prod")
+    fun provideProdSoraRemoteConfigBuilder(
         client: SoramitsuNetworkClient,
         @ApplicationContext context: Context
     ): SoraRemoteConfigBuilder {
         return SoraRemoteConfigProvider(
             context = context,
             client = client,
-            commonUrl = BuildConfig.SORA_CONFIG_COMMON,
-            mobileUrl = BuildConfig.SORA_CONFIG_MOBILE
+            commonUrl = BuildConfig.SORA_CONFIG_COMMON_PROD,
+            mobileUrl = BuildConfig.SORA_CONFIG_MOBILE_PROD
+        ).provide()
+    }
+
+    @Singleton
+    @Provides
+    @Named("stage")
+    fun provideStageSoraRemoteConfigBuilder(
+        client: SoramitsuNetworkClient,
+        @ApplicationContext context: Context
+    ): SoraRemoteConfigBuilder {
+        return SoraRemoteConfigProvider(
+            context = context,
+            client = client,
+            commonUrl = BuildConfig.SORA_CONFIG_COMMON_STAGE,
+            mobileUrl = BuildConfig.SORA_CONFIG_MOBILE_STAGE
         ).provide()
     }
 }

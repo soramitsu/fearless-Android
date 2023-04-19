@@ -329,6 +329,17 @@ private fun MainToolbarPreview() {
                 ),
                 onNavigationClick = {}
             )
+            MarginVertical(margin = 16.dp)
+            Toolbar(
+                state = ToolbarViewState(
+                    "Pool staking",
+                    null,
+                    listOf(
+                        MenuIconItem(icon = R.drawable.ic_cross_24, {})
+                    )
+                ),
+                onNavigationClick = {}
+            )
         }
     }
 }
