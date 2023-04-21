@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.theme.accentButtonColors
+import jp.co.soramitsu.common.compose.theme.accentDarkDisabledButtonColors
 import jp.co.soramitsu.common.compose.theme.colorAccent
 import jp.co.soramitsu.common.compose.theme.colorAccentDark
 import jp.co.soramitsu.common.compose.theme.customButtonColors
@@ -43,6 +44,11 @@ fun AccentButton(state: ButtonViewState, modifier: Modifier = Modifier, onClick:
 @Composable
 fun AccentButton(text: String, enabled: Boolean = true, modifier: Modifier = Modifier, onClick: () -> Unit) {
     TextButton(text = text, enabled = enabled, colors = accentButtonColors, modifier = modifier, onClick = onClick)
+}
+
+@Composable
+fun AccentDarkDisabledButton(state: ButtonViewState, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    TextButton(text = state.text, enabled = state.enabled, colors = accentDarkDisabledButtonColors, modifier = modifier, onClick = onClick)
 }
 
 @Composable

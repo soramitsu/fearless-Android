@@ -23,11 +23,12 @@ import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.focus.FocusState
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
@@ -58,6 +59,7 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_polkaswap_impl.R
 import jp.co.soramitsu.polkaswap.api.models.Market
 import jp.co.soramitsu.polkaswap.api.presentation.models.SwapDetailsViewState
+import java.math.BigDecimal
 
 data class SwapTokensContentViewState(
     val fromAmountInputViewState: AmountInputViewState,
@@ -92,9 +94,9 @@ interface SwapTokensCallbacks {
 
     fun onPreviewClick()
 
-    fun onFromAmountChange(amount: String)
+    fun onFromAmountChange(amount: BigDecimal?)
 
-    fun onToAmountChange(amount: String)
+    fun onToAmountChange(amount: BigDecimal?)
 
     fun onMarketSettingsClick()
 
@@ -102,9 +104,9 @@ interface SwapTokensCallbacks {
 
     fun onToTokenSelect()
 
-    fun onFromAmountFocusChange(focusState: FocusState)
+    fun onFromAmountFocusChange(isFocused: Boolean)
 
-    fun onToAmountFocusChange(focusState: FocusState)
+    fun onToAmountFocusChange(isFocused: Boolean)
 
     fun minMaxToolTopClick()
 
@@ -129,6 +131,23 @@ fun SwapTokensContent(
         keyboardController?.hide()
         block()
     }
+
+    val fromFocusRequester = remember { FocusRequester() }
+    val toFocusRequester = remember { FocusRequester() }
+
+    fun onChangeTokensClick() {
+        when {
+            state.fromAmountInputViewState.isFocused -> {
+                toFocusRequester.requestFocus()
+            }
+            state.toAmountInputViewState.isFocused -> {
+                fromFocusRequester.requestFocus()
+            }
+        }
+
+        callbacks.onChangeTokensClick()
+    }
+
     val isSoftKeyboardOpen = WindowInsets.ime.getBottom(LocalDensity.current) > 0
 
     val isFromFocused = state.fromAmountInputViewState.isFocused && !state.fromAmountInputViewState.tokenName.isNullOrEmpty()
@@ -185,8 +204,9 @@ fun SwapTokensContent(
                                 state = state.fromAmountInputViewState,
                                 borderColorFocused = colorAccentDark,
                                 onInput = callbacks::onFromAmountChange,
+                                onInputFocusChange = callbacks::onFromAmountFocusChange,
                                 onTokenClick = { runCallback(callbacks::onFromTokenSelect) },
-                                onInputFocusChange = callbacks::onFromAmountFocusChange
+                                focusRequester = fromFocusRequester
                             )
 
                             MarginVertical(margin = 8.dp)
@@ -195,8 +215,9 @@ fun SwapTokensContent(
                                 state = state.toAmountInputViewState,
                                 borderColorFocused = colorAccentDark,
                                 onInput = callbacks::onToAmountChange,
+                                onInputFocusChange = callbacks::onToAmountFocusChange,
                                 onTokenClick = { runCallback(callbacks::onToTokenSelect) },
-                                onInputFocusChange = callbacks::onToAmountFocusChange
+                                focusRequester = toFocusRequester
                             )
                         }
 
@@ -205,7 +226,7 @@ fun SwapTokensContent(
                                 .clip(CircleShape)
                                 .background(grayButtonBackground)
                                 .border(width = 1.dp, color = white08, shape = CircleShape)
-                                .clickable { runCallback(callbacks::onChangeTokensClick) }
+                                .clickable { runCallback(::onChangeTokensClick) }
                                 .padding(8.dp),
                             painter = painterResource(R.drawable.ic_exchange),
                             contentDescription = null,

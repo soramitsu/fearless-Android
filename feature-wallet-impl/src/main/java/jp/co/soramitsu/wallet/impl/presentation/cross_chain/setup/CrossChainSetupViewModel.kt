@@ -101,7 +101,7 @@ class CrossChainSetupViewModel @Inject constructor(
 
     private val addressFlow: MutableStateFlow<String?> = MutableStateFlow(initSendToAddress)
 
-    private val initialAmount = "0"
+    private val initialAmount = BigDecimal.ZERO
     private val confirmedValidations = mutableListOf<TransferValidationResult>()
 
     private val assetIdFlow: StateFlow<String?> = chainAssetsManager.assetIdFlow
@@ -126,7 +126,8 @@ class CrossChainSetupViewModel @Inject constructor(
         totalBalance = resourceManager.getString(R.string.common_available_format, "..."),
         fiatAmount = "",
         tokenAmount = initialAmount,
-        allowAssetChoose = false
+        allowAssetChoose = false,
+        initial = initialAmount
     )
 
     private val defaultButtonState = ButtonViewState(
@@ -163,19 +164,20 @@ class CrossChainSetupViewModel @Inject constructor(
         }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
-    private val enteredAmountBigDecimalFlow = MutableStateFlow(BigDecimal(initialAmount))
+    private val enteredAmountBigDecimalFlow = MutableStateFlow(initialAmount)
     private val visibleAmountFlow = MutableStateFlow(initialAmount)
+    private val initialAmountFlow = MutableStateFlow(initialAmount)
 
     private val amountInputViewState: Flow<AmountInputViewState> = combine(
         visibleAmountFlow,
+        initialAmountFlow,
         assetFlow,
         amountInputFocusFlow
-    ) { enteredAmount, asset, isAmountInputFocused ->
+    ) { amount, initialAmount, asset, isAmountInputFocused ->
         if (asset == null) {
             defaultAmountInputState
         } else {
             val tokenBalance = asset.transferable.formatTokenAmount(asset.token.configuration)
-            val amount = enteredAmount.toBigDecimalOrNull().orZero()
             val fiatAmount =
                 amount.applyFiatRate(asset.token.fiatRate)?.formatAsCurrency(asset.token.fiatSymbol)
 
@@ -187,10 +189,12 @@ class CrossChainSetupViewModel @Inject constructor(
                     tokenBalance
                 ),
                 fiatAmount = fiatAmount,
-                tokenAmount = enteredAmount,
+                tokenAmount = amount,
                 isActive = true,
                 isFocused = isAmountInputFocused,
-                allowAssetChoose = true
+                allowAssetChoose = true,
+                precision = asset.token.configuration.precision,
+                initial = initialAmount
             )
         }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, defaultAmountInputState)
@@ -298,8 +302,7 @@ class CrossChainSetupViewModel @Inject constructor(
         assetFlow,
         chainAssetsManager.originalChainIdFlow,
         chainAssetsManager.destinationChainIdFlow
-    ) { enteredAmount, asset, originalChainId, destinationChainId ->
-        val amount = enteredAmount.toBigDecimalOrNull().orZero()
+    ) { amount, asset, originalChainId, destinationChainId ->
         val amountInPlanks = asset?.token?.planksFromAmount(amount).orZero()
         val isAllChainsSelected = originalChainId != null && destinationChainId != null
         ButtonViewState(
@@ -387,9 +390,9 @@ class CrossChainSetupViewModel @Inject constructor(
         }
     }
 
-    override fun onAmountInput(input: String) {
-        visibleAmountFlow.value = input
-        enteredAmountBigDecimalFlow.value = input.toBigDecimalOrNull().orZero()
+    override fun onAmountInput(input: BigDecimal?) {
+        visibleAmountFlow.value = input.orZero()
+        enteredAmountBigDecimalFlow.value = input.orZero()
     }
 
     override fun onAddressInput(input: String) {
@@ -587,10 +590,12 @@ class CrossChainSetupViewModel @Inject constructor(
             if (quickAmountWithoutExtraPays < BigDecimal.ZERO) {
                 return@launch
             }
-            visibleAmountFlow.value = quickAmountWithoutExtraPays.setScale(
+            val scaled = quickAmountWithoutExtraPays.setScale(
                 5,
                 RoundingMode.HALF_DOWN
-            ).toString().replace(',', '.')
+            )
+            visibleAmountFlow.value = scaled
+            initialAmountFlow.value = scaled
             enteredAmountBigDecimalFlow.value = quickAmountWithoutExtraPays
         }
     }

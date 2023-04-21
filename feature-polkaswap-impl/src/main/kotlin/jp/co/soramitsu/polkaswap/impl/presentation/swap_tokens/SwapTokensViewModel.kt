@@ -1,7 +1,6 @@
 package jp.co.soramitsu.polkaswap.impl.presentation.swap_tokens
 
 import androidx.annotation.StringRes
-import androidx.compose.ui.focus.FocusState
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
@@ -18,7 +17,6 @@ import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.applyFiatRate
 import jp.co.soramitsu.common.utils.combine
 import jp.co.soramitsu.common.utils.flowOf
-import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.validation.NotEnoughResultedAmountToPayFeeException
@@ -78,8 +76,11 @@ class SwapTokensViewModel @Inject constructor(
     private val _showTooltipEvent = MutableLiveData<TooltipEvent>()
     val showTooltipEvent: LiveData<TooltipEvent> = _showTooltipEvent
 
-    private val enteredFromAmountFlow = MutableStateFlow("0")
-    private val enteredToAmountFlow = MutableStateFlow("0")
+    private val enteredFromAmountFlow = MutableStateFlow(BigDecimal.ZERO)
+    private val enteredToAmountFlow = MutableStateFlow(BigDecimal.ZERO)
+
+    private val initFromAmountFlow = MutableStateFlow<BigDecimal?>(null)
+    private val initToAmountFlow = MutableStateFlow<BigDecimal?>(null)
 
     private val isFromAmountFocused = MutableStateFlow(false)
     private val isToAmountFocused = MutableStateFlow(false)
@@ -122,8 +123,8 @@ class SwapTokensViewModel @Inject constructor(
 
     private val amountInput = combine(enteredFromAmountFlow, enteredToAmountFlow) { fromInput, toInput ->
         when (desired) {
-            WithDesired.INPUT -> fromInput.toBigDecimal()
-            WithDesired.OUTPUT -> toInput.toBigDecimal()
+            WithDesired.INPUT -> fromInput
+            WithDesired.OUTPUT -> toInput
             null -> BigDecimal.ZERO
         }
     }
@@ -261,28 +262,30 @@ class SwapTokensViewModel @Inject constructor(
     }
 
     private fun subscribeFromAmountInputViewState() {
-        combine(enteredFromAmountFlow, fromAsset, isFromAmountFocused) { enteredAmount, asset, isFromAmountFocused ->
-            fromAmountInputViewState.value = getAmountInputViewState(
-                title = resourceManager.getString(R.string.polkaswap_from),
-                enteredAmount = enteredAmount,
-                asset = asset,
-                isFocused = isFromAmountFocused,
-                totalFormatRes = R.string.common_available_format
-            )
+        combine(initFromAmountFlow, enteredFromAmountFlow, fromAsset, isFromAmountFocused) { initAmount, enteredAmount, asset, isFromAmountFocused ->
             if (isFromAmountFocused) {
                 desired = WithDesired.INPUT
             }
+            fromAmountInputViewState.value = getAmountInputViewState(
+                title = resourceManager.getString(R.string.polkaswap_from),
+                amount = enteredAmount,
+                asset = asset,
+                isFocused = isFromAmountFocused,
+                totalFormatRes = R.string.common_available_format,
+                initialAmount = initAmount
+            )
         }
             .launchIn(viewModelScope)
     }
 
     private fun subscribeToAmountInputViewState() {
-        combine(enteredToAmountFlow, toAsset, isToAmountFocused) { enteredAmount, asset, isToAmountFocused ->
+        combine(initToAmountFlow, enteredToAmountFlow, toAsset, isToAmountFocused) { initialAmount, enteredAmount, asset, isToAmountFocused ->
             toAmountInputViewState.value = getAmountInputViewState(
                 title = resourceManager.getString(R.string.polkaswap_to),
-                enteredAmount = enteredAmount,
+                amount = enteredAmount,
                 asset = asset,
-                isFocused = isToAmountFocused
+                isFocused = isToAmountFocused,
+                initialAmount = initialAmount
             )
             if (isToAmountFocused) {
                 desired = WithDesired.OUTPUT
@@ -336,10 +339,12 @@ class SwapTokensViewModel @Inject constructor(
     private fun fillSecondInputField(amount: BigDecimal) {
         when (desired) {
             WithDesired.INPUT -> {
-                enteredToAmountFlow.value = amount.format()
+                enteredToAmountFlow.value = amount
+                initToAmountFlow.value = amount
             }
             WithDesired.OUTPUT -> {
-                enteredFromAmountFlow.value = amount.format()
+                enteredFromAmountFlow.value = amount
+                initFromAmountFlow.value = amount
             }
             else -> Unit
         }
@@ -347,10 +352,11 @@ class SwapTokensViewModel @Inject constructor(
 
     private fun getAmountInputViewState(
         title: String,
-        enteredAmount: String,
+        amount: BigDecimal,
         asset: Asset?,
         isFocused: Boolean,
-        @StringRes totalFormatRes: Int = R.string.common_balance_format
+        @StringRes totalFormatRes: Int = R.string.common_balance_format,
+        initialAmount: BigDecimal?
     ): AmountInputViewState {
         if (asset == null) {
             return AmountInputViewState(
@@ -358,15 +364,15 @@ class SwapTokensViewModel @Inject constructor(
                 tokenImage = null,
                 totalBalance = resourceManager.getString(totalFormatRes, "0"),
                 fiatAmount = null,
-                tokenAmount = enteredAmount,
+                tokenAmount = amount,
                 title = title,
+                isFocused = isFocused,
                 allowAssetChoose = true,
-                isFocused = isFocused
+                initial = initialAmount
             )
         }
 
         val tokenBalance = asset.transferable.formatTokenAmount(asset.token.configuration)
-        val amount = enteredAmount.toBigDecimalOrNull().orZero()
         val fiatAmount = amount.applyFiatRate(asset.token.fiatRate)?.formatAsCurrency(asset.token.fiatSymbol)
 
         return AmountInputViewState(
@@ -374,14 +380,19 @@ class SwapTokensViewModel @Inject constructor(
             tokenImage = asset.token.configuration.iconUrl,
             totalBalance = resourceManager.getString(totalFormatRes, tokenBalance),
             fiatAmount = fiatAmount,
-            tokenAmount = enteredAmount,
+            tokenAmount = amount,
             title = title,
+            isFocused = isFocused,
             allowAssetChoose = true,
-            isFocused = isFocused
+            precision = asset.token.configuration.precision,
+            initial = initialAmount
         )
     }
 
     override fun onChangeTokensClick() {
+        val newDesired = if (desired == WithDesired.INPUT) WithDesired.OUTPUT else WithDesired.INPUT
+        desired = newDesired
+
         val fromAssetModel = fromAsset.value
         val toAssetModel = toAsset.value
         toAsset.value = null
@@ -389,9 +400,14 @@ class SwapTokensViewModel @Inject constructor(
         fromAsset.value = toAssetModel
         toAsset.value = fromAssetModel
 
-        val enteredFromAmountModel = enteredFromAmountFlow.value
-        enteredFromAmountFlow.value = enteredToAmountFlow.value
-        enteredToAmountFlow.value = enteredFromAmountModel
+        val enteredRawFromAmountModel = enteredFromAmountFlow.value
+        val enteredRawToAmountModel = enteredToAmountFlow.value
+
+        enteredFromAmountFlow.value = enteredRawToAmountModel
+        initFromAmountFlow.value = enteredRawToAmountModel
+
+        enteredToAmountFlow.value = enteredRawFromAmountModel
+        initToAmountFlow.value = enteredRawFromAmountModel
     }
 
     override fun onPreviewClick() {
@@ -424,11 +440,11 @@ class SwapTokensViewModel @Inject constructor(
 
             when (desired) {
                 WithDesired.INPUT -> {
-                    amountInPlanks = fromAsset.value?.token?.planksFromAmount(enteredFromAmountFlow.value.toBigDecimal()).orZero()
+                    amountInPlanks = fromAsset.value?.token?.planksFromAmount(enteredFromAmountFlow.value).orZero()
                     minMaxInPlanks = toAsset.value?.token?.planksFromAmount(swapDetails.minMax.orZero())
                 }
                 WithDesired.OUTPUT -> {
-                    amountInPlanks = toAsset.value?.token?.planksFromAmount(enteredToAmountFlow.value.toBigDecimal()).orZero()
+                    amountInPlanks = toAsset.value?.token?.planksFromAmount(enteredToAmountFlow.value).orZero()
                     minMaxInPlanks = fromAsset.value?.token?.planksFromAmount(swapDetails.minMax.orZero())
                 }
                 else -> return@launch
@@ -449,8 +465,8 @@ class SwapTokensViewModel @Inject constructor(
 
     private suspend fun validate(swapDetails: SwapDetails): Throwable? {
         val feeAsset = requireNotNull(polkaswapInteractor.getFeeAsset())
-        val amountToSwap = enteredFromAmountFlow.value.toBigDecimal()
-        val toTokenAmount = enteredToAmountFlow.value.toBigDecimal()
+        val amountToSwap = enteredFromAmountFlow.value
+        val toTokenAmount = enteredToAmountFlow.value
         val available = requireNotNull(fromAsset.value?.transferable)
         val networkFee = requireNotNull(networkFeeFlow.value.dataOrNull())
         val fee = networkFee + swapDetails.liquidityProviderFee
@@ -478,12 +494,12 @@ class SwapTokensViewModel @Inject constructor(
         polkaswapRouter.back()
     }
 
-    override fun onFromAmountChange(amount: String) {
-        enteredFromAmountFlow.value = amount.replace(',', '.')
+    override fun onFromAmountChange(amount: BigDecimal?) {
+        enteredFromAmountFlow.value = amount.orZero()
     }
 
-    override fun onToAmountChange(amount: String) {
-        enteredToAmountFlow.value = amount.replace(',', '.')
+    override fun onToAmountChange(amount: BigDecimal?) {
+        enteredToAmountFlow.value = amount.orZero()
     }
 
     override fun onMarketSettingsClick() {
@@ -509,12 +525,12 @@ class SwapTokensViewModel @Inject constructor(
         )
     }
 
-    override fun onFromAmountFocusChange(focusState: FocusState) {
-        isFromAmountFocused.value = focusState.hasFocus
+    override fun onFromAmountFocusChange(isFocused: Boolean) {
+        isFromAmountFocused.value = isFocused
     }
 
-    override fun onToAmountFocusChange(focusState: FocusState) {
-        isToAmountFocused.value = focusState.hasFocus
+    override fun onToAmountFocusChange(isFocused: Boolean) {
+        isToAmountFocused.value = isFocused
     }
 
     override fun minMaxToolTopClick() {
@@ -600,9 +616,10 @@ class SwapTokensViewModel @Inject constructor(
                 networkFee + details.liquidityProviderFee
             }
             val result = if (isFeeAsset) amount.minus(fee) else amount
-            val formattedAmount = result.takeIf { it >= BigDecimal.ZERO }.orZero().format()
+            val amountFrom = result.takeIf { it >= BigDecimal.ZERO }.orZero()
 
-            enteredFromAmountFlow.value = formattedAmount
+            enteredFromAmountFlow.value = amountFrom
+            initFromAmountFlow.value = amountFrom
 
             if (isFeeAsset.not()) return@launch
 
@@ -613,10 +630,11 @@ class SwapTokensViewModel @Inject constructor(
                     val newNetworkFee = networkFeeLoadingState.dataOrNull() ?: return@collectLatest
 
                     val newResult = amount.minus(newNetworkFee).minus(newDetails.liquidityProviderFee).takeIf { it >= BigDecimal.ZERO }.orZero()
-                    enteredFromAmountFlow.value = newResult.format()
+                    enteredFromAmountFlow.value = newResult
                     awaitNewFeeJob?.cancel()
                 }
             }
+            awaitNewFeeJob?.start()
         }
     }
 

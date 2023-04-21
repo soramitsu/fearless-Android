@@ -56,6 +56,7 @@ import jp.co.soramitsu.common.compose.theme.black05
 import jp.co.soramitsu.common.compose.theme.colorAccentDark
 import jp.co.soramitsu.common.compose.theme.white24
 import jp.co.soramitsu.feature_wallet_impl.R
+import java.math.BigDecimal
 
 data class CrossChainSetupViewState(
     val toolbarState: ToolbarViewState,
@@ -73,7 +74,7 @@ interface CrossChainSetupScreenInterface {
     fun onNavigationClick()
     fun onAddressInput(input: String)
     fun onAddressInputClear()
-    fun onAmountInput(input: String)
+    fun onAmountInput(input: BigDecimal?)
     fun onOriginalChainClick()
     fun onDestinationChainClick()
     fun onTokenClick()
@@ -116,8 +117,6 @@ fun CrossChainSetupContent(
                 AmountInput(
                     state = state.amountInputState,
                     borderColorFocused = colorAccentDark,
-                    onInput = callback::onAmountInput,
-                    onInputFocusChange = callback::onAmountFocusChanged,
                     onTokenClick = callback::onTokenClick
                 )
 
@@ -251,9 +250,10 @@ private fun CrossChainPreview() {
             "",
             "1003 KSM",
             "$170000",
-            "0,980",
+            BigDecimal("0.980"),
             "Amount",
-            allowAssetChoose = true
+            allowAssetChoose = true,
+            initial = null
         ),
         originalChainSelectorState = SelectorState("Original network", null, null),
         destinationChainSelectorState = SelectorState("Destination network", null, null),
@@ -267,7 +267,7 @@ private fun CrossChainPreview() {
         override fun onNavigationClick() {}
         override fun onAddressInput(input: String) {}
         override fun onAddressInputClear() {}
-        override fun onAmountInput(input: String) {}
+        override fun onAmountInput(input: BigDecimal?) {}
         override fun onOriginalChainClick() {}
         override fun onDestinationChainClick() {}
         override fun onTokenClick() {}
