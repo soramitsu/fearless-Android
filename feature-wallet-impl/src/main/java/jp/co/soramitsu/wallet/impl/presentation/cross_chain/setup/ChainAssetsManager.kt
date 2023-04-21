@@ -9,6 +9,7 @@ import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.ChainItemState
+import jp.co.soramitsu.xcm_impl.domain.XcmEntitiesFetcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
@@ -25,26 +26,24 @@ import jp.co.soramitsu.wallet.api.presentation.WalletRouter as WalletRouterApi
 class ChainAssetsManager @Inject constructor(
     private val walletInteractor: WalletInteractor,
     resourceManager: ResourceManager,
-    private val router: WalletRouter
+    private val router: WalletRouter,
+    private val xcmEntitiesFetcher: XcmEntitiesFetcher
 ) {
     private var chainAssetResultJob: Job? = null
-    private val assetIdToOriginalChainIdFlow = MutableStateFlow<Pair<String, ChainId>?>(null)
+    val assetIdFlow = MutableStateFlow<String?>(null)
+    val originalChainIdFlow = MutableStateFlow<ChainId?>(null)
 
-    val assetIdFlow: Flow<String?> = assetIdToOriginalChainIdFlow.map { it?.first }
-    val originalChainIdFlow: Flow<ChainId?> = assetIdToOriginalChainIdFlow.map { it?.second }
     val destinationChainIdFlow = MutableStateFlow<ChainId?>(value = null)
 
-    val assetFlow: Flow<Asset?> =
-        assetIdToOriginalChainIdFlow.map {
-            it?.let { (assetId, chainId) ->
-                try {
-                    walletInteractor.getCurrentAsset(chainId, assetId)
-                } catch (e: Exception) {
-                    println("Exception: ${e.message}")
-                    null
-                }
-            }
-        }
+    private var lastAsset: Asset? = null
+    val assetFlow: Flow<Asset?> = combine(originalChainIdFlow, assetIdFlow) { chainId, assetId ->
+        if (chainId == null || assetId == null) return@combine null
+
+        runCatching { walletInteractor.getCurrentAsset(chainId, assetId) }
+            .onFailure { println("Exception: ${it.message}") }
+            .getOrNull()
+    }
+        .onEach { lastAsset = it }
 
     val destinationChainId: String? get() = destinationChainIdFlow.value
 
@@ -96,36 +95,66 @@ class ChainAssetsManager @Inject constructor(
         )
     }
 
-    private fun updateAssetId(assetId: String) {
-        val chainId = assetIdToOriginalChainIdFlow.value?.second
-        chainId?.let {
-            assetIdToOriginalChainIdFlow.value = assetId to chainId
-        }
+    private fun updateAssetId(assetId: String?) {
+        assetIdFlow.value = assetId
     }
 
-    private fun updateOriginalChainId(chainId: String) {
-        val assetId = assetIdToOriginalChainIdFlow.value?.first
-        assetId?.let {
-            assetIdToOriginalChainIdFlow.value = assetId to chainId
-        }
-    }
+    private suspend fun updateOriginalChainId(chainId: ChainId) {
+        if (originalChainIdFlow.value == chainId) return
 
-    fun setInitialChainsAndAssetIds(chainId: ChainId, assetId: String) {
-        updateOriginalChainIdAndAsset(
-            chainId = chainId,
-            assetId = assetId
+        assetIdFlow.value = getActualAssetId(
+            originalChainId = chainId,
+            assetId = assetIdFlow.value
         )
-        updateDestinationChainId(
-            chainId = chainId
+        originalChainIdFlow.value = chainId
+        destinationChainIdFlow.value = getActualDestinationChainId(
+            originalChainId = chainId,
+            asset = lastAsset,
+            destinationChainId = destinationChainId
         )
     }
 
-    private fun updateDestinationChainId(chainId: String) {
+    private suspend fun getActualAssetId(originalChainId: ChainId, assetId: String?): String? {
+        val supportedXcmAssetSymbols = xcmEntitiesFetcher.getAvailableAssets(
+            originalChainId = originalChainId,
+            destinationChainId = null
+        ).map { it.uppercase() }
+
+        val xcmAssets = walletInteractor.assetsFlow().first()
+            .map { it.asset.token.configuration }
+            .filter { it.chainId == originalChainId && it.symbol.uppercase() in supportedXcmAssetSymbols }
+        val xcmAssetIds = xcmAssets.map { it.id }
+        val utilityXcmAssetId = xcmAssets.firstOrNull { it.isUtility }?.id
+
+        return if (assetId in xcmAssetIds) {
+            assetId
+        } else {
+            utilityXcmAssetId
+        }
+    }
+
+    private suspend fun getActualDestinationChainId(
+        originalChainId: ChainId,
+        asset: Asset?,
+        destinationChainId: ChainId?
+    ): ChainId? {
+        val availableDestinationChainIds = xcmEntitiesFetcher.getAvailableDestinationChains(
+            originalChainId = originalChainId,
+            assetSymbol = asset?.token?.configuration?.symbol?.uppercase()
+        ).map { it.id }
+
+        return destinationChainId.takeIf {
+            destinationChainId in availableDestinationChainIds
+        } ?: availableDestinationChainIds.firstOrNull()
+    }
+
+    suspend fun setInitialChainsAndAssetIds(chainId: ChainId, assetId: String) {
+        updateOriginalChainId(chainId)
+        updateAssetId(assetId)
+    }
+
+    private fun updateDestinationChainId(chainId: String?) {
         destinationChainIdFlow.value = chainId
-    }
-
-    private fun updateOriginalChainIdAndAsset(chainId: ChainId, assetId: String) {
-        assetIdToOriginalChainIdFlow.value = assetId to chainId
     }
 
     private fun observeAssetIdResult(): Flow<String> {

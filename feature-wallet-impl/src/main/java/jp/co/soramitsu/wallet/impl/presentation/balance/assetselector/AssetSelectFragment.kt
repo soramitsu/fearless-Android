@@ -21,6 +21,7 @@ class AssetSelectFragment : BaseComposeBottomSheetDialogFragment<AssetSelectView
         const val KEY_SELECTED_ASSET_ID = "KEY_SELECTED_ASSET_ID"
         const val KEY_EXCLUDE_ASSET_ID = "KEY_EXCLUDE_ASSET_ID"
         const val KEY_FILTER_CHAIN_ID = "KEY_FILTER_CHAIN_ID"
+        const val KEY_IS_FILTER_XCM_ASSETS = "KEY_IS_FILTER_XCM_ASSETS"
 
         fun getBundle(assetId: String) = bundleOf(KEY_SELECTED_ASSET_ID to assetId)
 
@@ -34,6 +35,16 @@ class AssetSelectFragment : BaseComposeBottomSheetDialogFragment<AssetSelectView
             KEY_FILTER_CHAIN_ID to chainId,
             KEY_SELECTED_ASSET_ID to assetId,
             KEY_EXCLUDE_ASSET_ID to excludeAssetId
+        )
+
+        fun getBundle(
+            chainId: ChainId,
+            assetId: String?,
+            isFilterXcmAssets: Boolean
+        ) = bundleOf(
+            KEY_FILTER_CHAIN_ID to chainId,
+            KEY_SELECTED_ASSET_ID to assetId,
+            KEY_IS_FILTER_XCM_ASSETS to isFilterXcmAssets
         )
     }
 

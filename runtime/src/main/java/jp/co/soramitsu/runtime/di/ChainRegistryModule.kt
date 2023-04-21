@@ -9,9 +9,9 @@ import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
+import jp.co.soramitsu.core.network.JsonFactory
 import jp.co.soramitsu.core.runtime.ChainConnection
 import jp.co.soramitsu.core.runtime.IChainRegistry
-import jp.co.soramitsu.core.runtime.JsonFactory
 import jp.co.soramitsu.core.runtime.RuntimeFactory
 import jp.co.soramitsu.coredb.dao.ChainDao
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService

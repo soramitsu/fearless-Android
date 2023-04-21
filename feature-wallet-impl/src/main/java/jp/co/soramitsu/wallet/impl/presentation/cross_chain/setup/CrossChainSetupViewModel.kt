@@ -32,6 +32,7 @@ import jp.co.soramitsu.runtime.ext.utilityAsset
 import jp.co.soramitsu.wallet.api.domain.TransferValidationResult
 import jp.co.soramitsu.wallet.api.domain.ValidateTransferUseCase
 import jp.co.soramitsu.wallet.api.domain.fromValidationResult
+import jp.co.soramitsu.wallet.api.domain.model.XcmChainType
 import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletConstants
@@ -263,7 +264,7 @@ class CrossChainSetupViewModel @Inject constructor(
             ?.formatAsCurrency(asset.token.fiatSymbol)
 
         FeeInfoViewState(
-            caption = resourceManager.getString(R.string.common_destination_network),
+            caption = resourceManager.getString(R.string.common_destination_network_fee),
             feeAmount = feeFormatted,
             feeAmountFiat = feeFiat
         )
@@ -358,15 +359,15 @@ class CrossChainSetupViewModel @Inject constructor(
     }
 
     private fun setInitialChainsAndAssetIds() {
-        if (payload == null) {
-            viewModelScope.launch {
+        viewModelScope.launch {
+            if (payload == null) {
                 chainAssetsManager.findChainsForAddress(initSendToAddress, tokenCurrencyId)
+            } else {
+                chainAssetsManager.setInitialChainsAndAssetIds(
+                    chainId = payload.chainId,
+                    assetId = payload.chainAssetId
+                )
             }
-        } else {
-            chainAssetsManager.setInitialChainsAndAssetIds(
-                chainId = payload.chainId,
-                assetId = payload.chainAssetId
-            )
         }
     }
 
@@ -481,46 +482,45 @@ class CrossChainSetupViewModel @Inject constructor(
     }
 
     override fun onOriginalChainClick() {
-        val assetId = assetId ?: return
-
         chainAssetsManager.observeChainIdAndAssetIdResult(
             scope = viewModelScope,
             chainTypes = arrayOf(ChainType.Original),
             onError = { showError(it) }
         )
-        router.openSelectChain(
-            assetId = assetId,
-            chainId = originalChainId,
-            chooserMode = false,
-            isSelectAsset = true
+        router.openSelectChainForXcm(
+            selectedChainId = originalChainId,
+            xcmChainType = XcmChainType.Original
         )
     }
 
     override fun onDestinationChainClick() {
-        val assetId = assetId ?: return
-
         chainAssetsManager.observeChainIdAndAssetIdResult(
             scope = viewModelScope,
             chainTypes = arrayOf(ChainType.Destination),
             onError = { showError(it) }
         )
-        router.openSelectChain(
-            assetId = assetId,
-            chainId = chainAssetsManager.destinationChainId,
-            chooserMode = false,
-            isSelectAsset = false
+
+        router.openSelectChainForXcm(
+            selectedChainId = chainAssetsManager.destinationChainId,
+            xcmChainType = XcmChainType.Destination,
+            selectedOriginalChainId = originalChainId
         )
     }
 
     override fun onTokenClick() {
         val assetId = assetId ?: return
+        val originalChainId = originalChainId ?: return
 
         chainAssetsManager.observeChainIdAndAssetIdResult(
             scope = viewModelScope,
             chainTypes = arrayOf(ChainType.Original, ChainType.Destination),
             onError = { showError(it) }
         )
-        router.openSelectAsset(assetId)
+        router.openSelectAsset(
+            chainId = originalChainId,
+            selectedAssetId = assetId,
+            isFilterXcmAssets = true
+        )
     }
 
     override fun onNavigationClick() {

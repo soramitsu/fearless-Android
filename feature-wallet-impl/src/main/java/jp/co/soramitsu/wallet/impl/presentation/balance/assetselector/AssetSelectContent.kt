@@ -27,7 +27,6 @@ import coil.compose.AsyncImage
 import jp.co.soramitsu.common.compose.component.B0
 import jp.co.soramitsu.common.compose.component.B1
 import jp.co.soramitsu.common.compose.component.CorneredInput
-import jp.co.soramitsu.common.compose.component.Grip
 import jp.co.soramitsu.common.compose.component.H3
 import jp.co.soramitsu.common.compose.component.H5
 import jp.co.soramitsu.common.compose.component.Image
@@ -67,9 +66,6 @@ fun AssetSelectContent(
             .padding(horizontal = 16.dp)
             .fillMaxWidth()
     ) {
-        MarginVertical(margin = 2.dp)
-        Grip(Modifier.align(CenterHorizontally))
-        MarginVertical(margin = 8.dp)
         H3(text = stringResource(id = R.string.common_select_asset))
         MarginVertical(margin = 16.dp)
         CorneredInput(state = state.searchQuery, onInput = callback::onSearchInput, hintLabel = stringResource(id = R.string.assets_search_hint))

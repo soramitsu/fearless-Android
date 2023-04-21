@@ -10,6 +10,7 @@ import jp.co.soramitsu.common.navigation.SecureRouter
 import jp.co.soramitsu.common.navigation.payload.WalletSelectorPayload
 import jp.co.soramitsu.common.presentation.StoryGroupModel
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.wallet.api.domain.model.XcmChainType
 import jp.co.soramitsu.wallet.impl.domain.beacon.SignStatus
 import jp.co.soramitsu.wallet.impl.domain.model.PhishingType
 import jp.co.soramitsu.wallet.impl.presentation.balance.detail.frozen.FrozenAssetPayload
@@ -50,7 +51,15 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
         isSelectAsset: Boolean = true
     )
 
+    fun openSelectChainForXcm(
+        selectedChainId: ChainId?,
+        xcmChainType: XcmChainType,
+        selectedOriginalChainId: String? = null
+    )
+
     fun openSelectAsset(selectedAssetId: String)
+
+    fun openSelectAsset(chainId: ChainId, selectedAssetId: String?, isFilterXcmAssets: Boolean)
 
     fun openFilter()
 
