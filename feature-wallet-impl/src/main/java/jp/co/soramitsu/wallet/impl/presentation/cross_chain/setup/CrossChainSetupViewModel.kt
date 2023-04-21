@@ -45,7 +45,6 @@ import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
 import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.presentation.cross_chain.CrossChainTransferDraft
-import jp.co.soramitsu.wallet.impl.presentation.send.setup.SendSetupFragment
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -95,11 +94,9 @@ class CrossChainSetupViewModel @Inject constructor(
         MutableLiveData<Event<Pair<TransferValidationResult, ValidationWarning>>>()
     val openValidationWarningEvent: LiveData<Event<Pair<TransferValidationResult, ValidationWarning>>> = _openValidationWarningEvent
 
-    private val payload: AssetPayload? = savedStateHandle[SendSetupFragment.KEY_PAYLOAD]
-    private val initSendToAddress: String? = savedStateHandle[SendSetupFragment.KEY_INITIAL_ADDRESS]
-    private val tokenCurrencyId: String? = savedStateHandle[SendSetupFragment.KEY_TOKEN_ID]
+    private val payload: AssetPayload? = savedStateHandle[CrossChainSetupFragment.KEY_PAYLOAD]
 
-    private val addressFlow: MutableStateFlow<String?> = MutableStateFlow(initSendToAddress)
+    private val addressFlow: MutableStateFlow<String?> = MutableStateFlow(null)
 
     private val initialAmount = "0"
     private val confirmedValidations = mutableListOf<TransferValidationResult>()
@@ -152,7 +149,7 @@ class CrossChainSetupViewModel @Inject constructor(
     )
 
     private val amountInputFocusFlow = MutableStateFlow(false)
-    private val addressInputFlow = MutableStateFlow(initSendToAddress.orEmpty())
+    private val addressInputFlow = MutableStateFlow("")
     private val isInputAddressValidFlow = combine(
         addressInputFlow,
         chainAssetsManager.originalChainIdFlow
@@ -246,7 +243,7 @@ class CrossChainSetupViewModel @Inject constructor(
             ?.formatAsCurrency(utilityAsset.token.fiatSymbol)
 
         FeeInfoViewState(
-            caption = resourceManager.getString(R.string.common_original_network_fee),
+            caption = resourceManager.getString(R.string.common_origin_network_fee),
             feeAmount = feeFormatted,
             feeAmountFiat = feeFiat
         )
@@ -359,15 +356,12 @@ class CrossChainSetupViewModel @Inject constructor(
     }
 
     private fun setInitialChainsAndAssetIds() {
+        if (payload == null) return
         viewModelScope.launch {
-            if (payload == null) {
-                chainAssetsManager.findChainsForAddress(initSendToAddress, tokenCurrencyId)
-            } else {
-                chainAssetsManager.setInitialChainsAndAssetIds(
-                    chainId = payload.chainId,
-                    assetId = payload.chainAssetId
-                )
-            }
+            chainAssetsManager.setInitialChainsAndAssetIds(
+                chainId = payload.chainId,
+                assetId = payload.chainAssetId
+            )
         }
     }
 
@@ -481,22 +475,10 @@ class CrossChainSetupViewModel @Inject constructor(
         )
     }
 
-    override fun onOriginalChainClick() {
-        chainAssetsManager.observeChainIdAndAssetIdResult(
-            scope = viewModelScope,
-            chainTypes = arrayOf(ChainType.Original),
-            onError = { showError(it) }
-        )
-        router.openSelectChainForXcm(
-            selectedChainId = originalChainId,
-            xcmChainType = XcmChainType.Original
-        )
-    }
-
     override fun onDestinationChainClick() {
         chainAssetsManager.observeChainIdAndAssetIdResult(
             scope = viewModelScope,
-            chainTypes = arrayOf(ChainType.Destination),
+            chainType = ChainType.Destination,
             onError = { showError(it) }
         )
 
@@ -507,13 +489,13 @@ class CrossChainSetupViewModel @Inject constructor(
         )
     }
 
-    override fun onTokenClick() {
+    override fun onAssetClick() {
         val assetId = assetId ?: return
         val originalChainId = originalChainId ?: return
 
         chainAssetsManager.observeChainIdAndAssetIdResult(
             scope = viewModelScope,
-            chainTypes = arrayOf(ChainType.Original, ChainType.Destination),
+            chainType = ChainType.Original,
             onError = { showError(it) }
         )
         router.openSelectAsset(
@@ -528,12 +510,18 @@ class CrossChainSetupViewModel @Inject constructor(
     }
 
     override fun onQrClick() {
-        _openScannerEvent.tryEmit(Unit)
+        viewModelScope.launch {
+            _openScannerEvent.emit(Unit)
+        }
     }
 
     override fun onHistoryClick() {
         originalChainId?.let {
-            router.openAddressHistory(it)
+            router.openAddressHistoryWithResult(it)
+                .onEach { address ->
+                    addressInputFlow.value = address
+                }
+                .launchIn(viewModelScope)
         }
     }
 
@@ -549,6 +537,7 @@ class CrossChainSetupViewModel @Inject constructor(
 
     fun qrCodeScanned(content: String) {
         viewModelScope.launch {
+            println("qrCodeScanned: $content")
             val result = walletInteractor.tryReadAddressFromSoraFormat(content) ?: content
 
             addressInputFlow.value = result

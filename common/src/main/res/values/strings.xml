@@ -328,7 +328,7 @@ Derivation path: %s</string>
     <string name="wallet_filters_extrinsics">Other transactions</string>
     <string name="wallet_filters_header">Show</string>
     <string name="transfer_title">Transfer</string>
-    <string name="common_available_format">Available: %s</string>
+    <string name="common_available_format">Transferable: %s</string>
     <string name="staking_rewards_learn_more">Learn more about rewards</string>
     <plurals name="staking_payouts_days_left">
         <item quantity="one">%d day left</item>
@@ -750,7 +750,7 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="import_substrate_recovery">Restore JSON for Substrate accounts</string>
     <string name="import_ethereum_recovery">Restore JSON for ETH-based accounts</string>
     <string name="common_network">Network</string>
-    <string name="common_original_network">Original network</string>
+    <string name="common_original_network">Origin network</string>
     <string name="common_destination_network">Destination network</string>
 
     <string name="account_import_substrate_raw_seed_placeholder">Substrate accounts raw seed (64 hex symbols)</string>
@@ -973,7 +973,6 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="donation_alert_title">This address has been suspicious.</string>
     <string name="sanction_alert_title">This address has been flagged due to entity related to Russia.</string>
     <string name="sending">Sending</string>
-    <string name="cross_chain_transfer">Cross-chain transfer</string>
 
     <string name="staking_pool_stake_title">Your Pool Staking</string>
     <string name="staking_pool_status_active">Active</string>
@@ -1007,7 +1006,7 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="common_min_received">Min received</string>
     <string name="common_liquidity_provider_fee">Liquidity Provider Fee</string>
     <string name="common_network_fee">Network Fee</string>
-    <string name="common_original_network_fee">Original Network Fee</string>
+    <string name="common_origin_network_fee">Origin Network Fee</string>
     <string name="common_destination_network_fee">Destination Network Fee</string>
     <string name="common_route">Route</string>
 

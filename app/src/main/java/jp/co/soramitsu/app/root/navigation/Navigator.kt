@@ -125,8 +125,6 @@ import jp.co.soramitsu.wallet.impl.presentation.beacon.sign.TransactionRawDataFr
 import jp.co.soramitsu.wallet.impl.presentation.cross_chain.CrossChainTransferDraft
 import jp.co.soramitsu.wallet.impl.presentation.cross_chain.confirm.CrossChainConfirmFragment
 import jp.co.soramitsu.wallet.impl.presentation.cross_chain.setup.CrossChainSetupFragment
-import jp.co.soramitsu.wallet.impl.presentation.cross_chain.wallet_type.SelectWalletTypeFragment
-import jp.co.soramitsu.wallet.impl.presentation.cross_chain.wallet_type.WalletType
 import jp.co.soramitsu.wallet.impl.presentation.history.AddressHistoryFragment
 import jp.co.soramitsu.wallet.impl.presentation.model.OperationParcelizeModel
 import jp.co.soramitsu.wallet.impl.presentation.receive.ReceiveFragment
@@ -153,9 +151,9 @@ import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.job
-import jp.co.soramitsu.common.utils.combine as combineLiveData
 import kotlinx.parcelize.Parcelize
 import kotlin.coroutines.coroutineContext
+import jp.co.soramitsu.common.utils.combine as combineLiveData
 
 @Parcelize
 class NavComponentDelayedNavigation(val globalActionId: Int, val extras: Bundle? = null) : DelayedNavigation
@@ -619,29 +617,22 @@ class Navigator :
         navController?.navigate(R.id.sendSetupFragment, bundle)
     }
 
-    override fun openCrossChainSend(assetPayload: AssetPayload?, initialSendToAddress: String?, currencyId: String?) {
-        val bundle = CrossChainSetupFragment.getBundle(assetPayload, initialSendToAddress, currencyId)
-
+    override fun openCrossChainSend(assetPayload: AssetPayload?) {
+        val bundle = CrossChainSetupFragment.getBundle(assetPayload)
         navController?.navigate(R.id.crossChainFragment, bundle)
-    }
-
-    override fun openSelectWalletTypeWithResult(): Flow<WalletType> {
-        return openWithResult(
-            destinationId = R.id.selectWalletTypeFragment,
-            resultKey = SelectWalletTypeFragment.KEY_WALLET_TYPE
-        )
     }
 
     private fun <T> openWithResult(
         @IdRes destinationId: Int,
-        resultKey: String
+        resultKey: String,
+        bundle: Bundle? = null
     ): Flow<T> {
         val resultFlow = observeResultInternal<T>(resultKey)
         val backStackEntryFlow = getCurrentBackStackEntryFlow()
         return combine(resultFlow, backStackEntryFlow) { result, backStackEntry ->
             Pair(result, backStackEntry)
         }
-            .onStart { navController?.navigate(destinationId) }
+            .onStart { navController?.navigate(destinationId, bundle) }
             .filter {
                 val (_, backStackEntry) = it
                 backStackEntry.destination.id != destinationId
@@ -901,6 +892,15 @@ class Navigator :
         val bundle = AddressHistoryFragment.getBundle(chainId)
 
         navController?.navigate(R.id.addressHistoryFragment, bundle)
+    }
+
+    override fun openAddressHistoryWithResult(chainId: ChainId): Flow<String> {
+        val bundle = AddressHistoryFragment.getBundle(chainId)
+        return openWithResult(
+            destinationId = R.id.addressHistoryFragment,
+            bundle = bundle,
+            resultKey = AddressHistoryFragment.RESULT_ADDRESS
+        )
     }
 
     override fun openCreateContact(chainId: ChainId?, address: String?) {

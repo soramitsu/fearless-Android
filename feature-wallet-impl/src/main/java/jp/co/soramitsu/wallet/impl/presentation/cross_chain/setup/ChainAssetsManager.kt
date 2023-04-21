@@ -4,7 +4,6 @@ import jp.co.soramitsu.common.compose.component.SelectorState
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.core.models.ChainId
 import jp.co.soramitsu.feature_wallet_impl.R
-import jp.co.soramitsu.runtime.ext.isValidAddress
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
@@ -83,7 +82,9 @@ class ChainAssetsManager @Inject constructor(
         SelectorState(
             title = resourceManager.getString(R.string.common_original_network),
             subTitle = it?.title,
-            iconUrl = it?.imageUrl
+            iconUrl = it?.imageUrl,
+            actionIcon = null,
+            clickable = false
         )
     }
 
@@ -162,13 +163,15 @@ class ChainAssetsManager @Inject constructor(
             .onEach(::updateAssetId)
     }
 
-    private fun observeChainIdResult(chainTypes: Array<out ChainType>): Flow<String> {
+    private fun observeChainIdResult(chainType: ChainType): Flow<String> {
         return router.observeResult<String>(WalletRouterApi.KEY_CHAIN_ID)
             .onEach { chainId ->
-                chainTypes.forEach { chainType ->
-                    when (chainType) {
-                        ChainType.Original -> updateOriginalChainId(chainId)
-                        ChainType.Destination -> updateDestinationChainId(chainId)
+                when (chainType) {
+                    ChainType.Original -> {
+                        updateOriginalChainId(chainId)
+                    }
+                    ChainType.Destination -> {
+                        updateDestinationChainId(chainId)
                     }
                 }
             }
@@ -176,10 +179,10 @@ class ChainAssetsManager @Inject constructor(
 
     fun observeChainIdAndAssetIdResult(
         scope: CoroutineScope,
-        vararg chainTypes: ChainType,
+        chainType: ChainType,
         onError: (throwable: Throwable) -> Unit
     ) {
-        val chainIdResultFlow = observeChainIdResult(chainTypes)
+        val chainIdResultFlow = observeChainIdResult(chainType)
         val assetIdResultFlow = observeAssetIdResult()
 
         chainAssetResultJob?.cancel()
@@ -188,36 +191,5 @@ class ChainAssetsManager @Inject constructor(
         }
             .catch { onError(it) }
             .launchIn(scope)
-    }
-
-    suspend fun findChainsForAddress(address: String?, tokenCurrencyId: String?) {
-        if (address.isNullOrEmpty()) return
-
-        val chains = walletInteractor.getChains().first()
-        val addressChains = chains.filter {
-            it.isValidAddress(address)
-        }
-        when (addressChains.size) {
-            1 -> {
-                val chain = addressChains[0]
-                val assets = chain.assets
-                when (assets.size) {
-                    1 -> {
-                        setInitialChainsAndAssetIds(chain.id, assets[0].id)
-                    }
-                    else -> {
-                        router.openSelectChainAsset(chain.id)
-                    }
-                }
-            }
-            else -> {
-                router.openSelectChain(
-                    filterChainIds = addressChains.map { it.id },
-                    chooserMode = false,
-                    currencyId = tokenCurrencyId,
-                    showAllChains = false
-                )
-            }
-        }
     }
 }

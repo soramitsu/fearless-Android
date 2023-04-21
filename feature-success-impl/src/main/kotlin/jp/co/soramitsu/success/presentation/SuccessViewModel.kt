@@ -31,7 +31,7 @@ import javax.inject.Inject
 class SuccessViewModel @Inject constructor(
     private val router: SuccessRouter,
     private val chainRegistry: ChainRegistry,
-    private val savedStateHandle: SavedStateHandle,
+    savedStateHandle: SavedStateHandle,
     private val resourceManager: ResourceManager,
     private val clipboardManager: ClipboardManager,
     private val externalAccountActions: ExternalAccountActions.Presentation
@@ -43,6 +43,7 @@ class SuccessViewModel @Inject constructor(
     val operationHash = savedStateHandle.get<String>(SuccessFragment.KEY_OPERATION_HASH)
     val chainId = savedStateHandle.get<ChainId>(SuccessFragment.KEY_CHAIN_ID)
     private val customMessage: String? = savedStateHandle[SuccessFragment.KEY_CUSTOM_MESSAGE]
+    private val hasSuccessResult: Boolean = savedStateHandle[SuccessFragment.KEY_HAS_SUCCESS_RESULT] ?: true
 
     private val _showHashActions = MutableLiveData<Event<Unit>>()
     val showHashActions: LiveData<Event<Unit>> = _showHashActions

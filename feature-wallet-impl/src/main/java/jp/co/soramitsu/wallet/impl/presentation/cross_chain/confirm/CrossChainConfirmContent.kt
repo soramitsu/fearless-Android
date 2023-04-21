@@ -32,7 +32,6 @@ import jp.co.soramitsu.feature_wallet_impl.R
 data class CrossChainConfirmViewState(
     val originalChainIcon: GradientIconData?,
     val destinationChainIcon: GradientIconData?,
-    val fromInfoItem: TitleValueViewState? = null,
     val toInfoItem: TitleValueViewState? = null,
     val originalNetworkItem: TitleValueViewState? = null,
     val destinationNetworkItem: TitleValueViewState? = null,
@@ -54,11 +53,9 @@ data class CrossChainConfirmViewState(
     }
 
     val tableItems = listOf(
-        fromInfoItem,
         toInfoItem,
         originalNetworkItem,
         destinationNetworkItem,
-        amountInfoItem,
         tipInfoItem,
         originalFeeInfoItem,
         destinationFeeInfoItem
@@ -106,11 +103,11 @@ fun CrossChainConfirmContent(
                     }
                     MarginVertical(margin = 16.dp)
                     H2(
-                        text = stringResource(id = R.string.cross_chain_transfer),
+                        text = stringResource(id = R.string.sending),
                         color = black2,
                         modifier = Modifier.align(Alignment.CenterHorizontally)
                     )
-                    MarginVertical(margin = 8.dp)
+                    MarginVertical(margin = 4.dp)
                     H1(
                         text = state.amountInfoItem?.value.orEmpty(),
                         modifier = Modifier.align(Alignment.CenterHorizontally)

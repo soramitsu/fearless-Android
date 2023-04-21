@@ -16,7 +16,6 @@ import jp.co.soramitsu.wallet.impl.domain.model.PhishingType
 import jp.co.soramitsu.wallet.impl.presentation.balance.detail.frozen.FrozenAssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.beacon.main.DAppMetadataModel
 import jp.co.soramitsu.wallet.impl.presentation.cross_chain.CrossChainTransferDraft
-import jp.co.soramitsu.wallet.impl.presentation.cross_chain.wallet_type.WalletType
 import jp.co.soramitsu.wallet.impl.presentation.model.OperationParcelizeModel
 import jp.co.soramitsu.wallet.impl.presentation.send.TransferDraft
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.extrinsic.ExtrinsicDetailsPayload
@@ -29,9 +28,7 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
 
     fun openSend(assetPayload: AssetPayload?, initialSendToAddress: String? = null, currencyId: String? = null)
 
-    fun openCrossChainSend(assetPayload: AssetPayload?, initialSendToAddress: String?, currencyId: String?)
-
-    fun openSelectWalletTypeWithResult(): Flow<WalletType>
+    fun openCrossChainSend(assetPayload: AssetPayload?)
 
     fun openSwapTokensScreen(chainId: String, assetIdFrom: String?, assetIdTo: String?)
 
@@ -139,6 +136,8 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
     fun openFrozenTokens(payload: FrozenAssetPayload)
 
     fun openAddressHistory(chainId: ChainId)
+
+    fun openAddressHistoryWithResult(chainId: ChainId): Flow<String>
 
     fun openCreateContact(chainId: ChainId?, address: String?)
 

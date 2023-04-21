@@ -68,7 +68,7 @@ class AssetSelectViewModel @Inject constructor(
             .filter { it.token.configuration.id != excludeAssetId }
             .sortedWith(compareByDescending<AssetModel> { it.fiatAmount.orZero() }.thenBy { it.token.configuration.chainName })
             .map {
-                it.toAssetItemState()
+                it.toAssetItemState(isChainNameVisible = !isFilterXcmAssets)
             }
 
         AssetSelectScreenViewState(
@@ -79,10 +79,10 @@ class AssetSelectViewModel @Inject constructor(
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, AssetSelectScreenViewState.default)
 
-    private fun AssetModel.toAssetItemState() = AssetItemState(
+    private fun AssetModel.toAssetItemState(isChainNameVisible: Boolean) = AssetItemState(
         id = token.configuration.id,
         imageUrl = token.configuration.iconUrl,
-        chainName = token.configuration.chainName,
+        chainName = token.configuration.chainName.takeIf { isChainNameVisible },
         symbol = token.configuration.symbolToShow.uppercase(),
         amount = total.orZero().format(),
         fiatAmount = getAsFiatWithCurrency(total) ?: "${token.fiatSymbol.orEmpty()}0",

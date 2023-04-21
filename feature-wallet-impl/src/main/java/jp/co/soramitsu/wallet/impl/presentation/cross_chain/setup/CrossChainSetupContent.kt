@@ -74,9 +74,8 @@ interface CrossChainSetupScreenInterface {
     fun onAddressInput(input: String)
     fun onAddressInputClear()
     fun onAmountInput(input: String)
-    fun onOriginalChainClick()
     fun onDestinationChainClick()
-    fun onTokenClick()
+    fun onAssetClick()
     fun onNextClick()
     fun onQrClick()
     fun onHistoryClick()
@@ -108,8 +107,7 @@ fun CrossChainSetupContent(
 
                 MarginVertical(margin = 16.dp)
                 SelectorWithBorder(
-                    state = state.originalChainSelectorState,
-                    onClick = callback::onOriginalChainClick
+                    state = state.originalChainSelectorState
                 )
 
                 MarginVertical(margin = 8.dp)
@@ -118,7 +116,7 @@ fun CrossChainSetupContent(
                     borderColorFocused = colorAccentDark,
                     onInput = callback::onAmountInput,
                     onInputFocusChange = callback::onAmountFocusChanged,
-                    onTokenClick = callback::onTokenClick
+                    onTokenClick = callback::onAssetClick
                 )
 
                 MarginVertical(margin = 8.dp)
@@ -255,7 +253,7 @@ private fun CrossChainPreview() {
             "Amount",
             allowAssetChoose = true
         ),
-        originalChainSelectorState = SelectorState("Original network", null, null),
+        originalChainSelectorState = SelectorState("Origin network", null, null),
         destinationChainSelectorState = SelectorState("Destination network", null, null),
         originalFeeInfoState = FeeInfoViewState.default,
         destinationFeeInfoState = FeeInfoViewState.default,
@@ -268,9 +266,8 @@ private fun CrossChainPreview() {
         override fun onAddressInput(input: String) {}
         override fun onAddressInputClear() {}
         override fun onAmountInput(input: String) {}
-        override fun onOriginalChainClick() {}
         override fun onDestinationChainClick() {}
-        override fun onTokenClick() {}
+        override fun onAssetClick() {}
         override fun onNextClick() {}
         override fun onQrClick() {}
         override fun onHistoryClick() {}

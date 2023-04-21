@@ -33,19 +33,16 @@ class CrossChainSetupFragment : BaseComposeBottomSheetDialogFragment<CrossChainS
     companion object {
 
         const val KEY_PAYLOAD = "payload"
-        const val KEY_INITIAL_ADDRESS = "KEY_INITIAL_ADDRESS"
-        const val KEY_TOKEN_ID = "KEY_TOKEN_ID"
 
-        fun getBundle(payload: AssetPayload?, initSendToAddress: String?, currencyId: String?) = bundleOf(
-            KEY_PAYLOAD to payload,
-            KEY_INITIAL_ADDRESS to initSendToAddress,
-            KEY_TOKEN_ID to currencyId
+        fun getBundle(payload: AssetPayload?) = bundleOf(
+            KEY_PAYLOAD to payload
         )
     }
 
     override val viewModel: CrossChainSetupViewModel by viewModels()
 
     private val barcodeLauncher: ActivityResultLauncher<ScanOptions> = registerForActivityResult(ScanTextContract()) { result ->
+        println("barcodeLauncher: $result")
         result?.let {
             viewModel.qrCodeScanned(it)
         }
@@ -86,6 +83,7 @@ class CrossChainSetupFragment : BaseComposeBottomSheetDialogFragment<CrossChainS
         viewLifecycleOwner.lifecycleScope.launch {
             val result = askPermissionsSafely(Manifest.permission.CAMERA)
 
+            println("requestCameraPermission: $result")
             if (result.isSuccess) {
                 initiateCameraScanner()
             }
@@ -104,5 +102,6 @@ class CrossChainSetupFragment : BaseComposeBottomSheetDialogFragment<CrossChainS
     override fun setupBehavior(behavior: BottomSheetBehavior<FrameLayout>) {
         behavior.state = BottomSheetBehavior.STATE_EXPANDED
         behavior.isHideable = true
+        behavior.skipCollapsed = true
     }
 }
