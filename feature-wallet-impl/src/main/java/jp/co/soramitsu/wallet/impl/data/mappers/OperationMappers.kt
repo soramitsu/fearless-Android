@@ -1,6 +1,5 @@
 package jp.co.soramitsu.wallet.impl.data.mappers
 
-import java.math.BigInteger
 import jp.co.soramitsu.account.api.presentation.account.AddressDisplayUseCase
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressIcon
@@ -26,6 +25,7 @@ import jp.co.soramitsu.wallet.impl.presentation.model.OperationModel
 import jp.co.soramitsu.wallet.impl.presentation.model.OperationParcelizeModel
 import jp.co.soramitsu.wallet.impl.presentation.model.OperationStatusAppearance
 import jp.co.soramitsu.xnetworking.txhistory.TxHistoryItem
+import java.math.BigInteger
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 
@@ -217,7 +217,7 @@ fun TxHistoryItem.toOperation(chain: Chain, chainAsset: Asset, accountAddress: S
                 time = timeInMillis,
                 chainAsset = baseAsset,
                 type = Operation.Type.Swap(
-                    hash = blockHash,
+                    hash = id,
                     module = module,
                     baseAssetAmount = baseAsset.planksFromAmount(baseAssetAmount),
                     liquidityProviderFee = chainAsset.planksFromAmount(liquidityProviderFee),
