@@ -17,6 +17,7 @@ class AddressHistoryFragment : BaseComposeBottomSheetDialogFragment<AddressHisto
 
     companion object {
         const val KEY_PAYLOAD = "payload"
+        const val RESULT_ADDRESS = "RESULT_ADDRESS"
 
         fun getBundle(chainId: ChainId) = bundleOf(
             KEY_PAYLOAD to chainId

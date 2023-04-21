@@ -133,16 +133,9 @@ class CrossChainConfirmViewModel @Inject constructor(
         buttonStateFlow,
         transferSubmittingFlow
     ) { recipient, originalNetwork, destinationNetwork, sender, originalAsset, utilityAsset, buttonState, isSubmitting ->
-        val isSenderNameSpecified = !sender?.name.isNullOrEmpty()
-        val fromInfoItem = TitleValueViewState(
-            title = resourceManager.getString(R.string.transaction_details_from),
-            value = if (isSenderNameSpecified) sender?.name else sender?.address?.shorten(),
-            additionalValue = if (isSenderNameSpecified) sender?.address?.shorten() else null
-        )
-
         val isRecipientNameSpecified = !recipient.name.isNullOrEmpty()
         val toInfoItem = TitleValueViewState(
-            title = resourceManager.getString(R.string.choose_amount_to),
+            title = resourceManager.getString(R.string.send_to),
             value = if (isRecipientNameSpecified) recipient.name else recipient.address.shorten(),
             additionalValue = if (isRecipientNameSpecified) recipient.address.shorten() else null,
             clickState = phishingType?.let { TitleValueViewState.ClickState.Value(R.drawable.ic_alert_16, CrossChainConfirmViewState.CODE_WARNING_CLICK) }
@@ -188,7 +181,7 @@ class CrossChainConfirmViewModel @Inject constructor(
         }
 
         val originalFeeInfoItem = TitleValueViewState(
-            title = resourceManager.getString(R.string.common_destination_network_fee),
+            title = resourceManager.getString(R.string.common_origin_network_fee),
             value = utilityAsset.formatTokenAmount(transferDraft.originalFee),
             additionalValue = utilityAsset.getAsFiatWithCurrency(transferDraft.originalFee)
         )
@@ -208,7 +201,6 @@ class CrossChainConfirmViewModel @Inject constructor(
                 url = destinationNetwork?.icon,
                 color = destinationNetwork?.utilityAsset?.color
             ),
-            fromInfoItem = fromInfoItem,
             toInfoItem = toInfoItem,
             originalNetworkItem = originalNetworkItem,
             destinationNetworkItem = destinationNetworkItem,

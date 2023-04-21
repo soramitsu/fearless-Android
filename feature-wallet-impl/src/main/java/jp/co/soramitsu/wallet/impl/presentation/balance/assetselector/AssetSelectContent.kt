@@ -66,7 +66,10 @@ fun AssetSelectContent(
             .padding(horizontal = 16.dp)
             .fillMaxWidth()
     ) {
-        H3(text = stringResource(id = R.string.common_select_asset))
+        H3(
+            text = stringResource(id = R.string.common_select_asset),
+            modifier = Modifier.align(CenterHorizontally)
+        )
         MarginVertical(margin = 16.dp)
         CorneredInput(state = state.searchQuery, onInput = callback::onSearchInput, hintLabel = stringResource(id = R.string.assets_search_hint))
         if (state.assets.isEmpty()) {
@@ -115,7 +118,7 @@ fun EmptyResultContent() {
 data class AssetItemState(
     val id: String,
     val imageUrl: String?,
-    val chainName: String,
+    val chainName: String?,
     val symbol: String,
     val amount: String,
     val fiatAmount: String,
@@ -145,18 +148,21 @@ fun AssetItem(
                 contentDescription = null,
                 modifier = Modifier
                     .testTag("AssetItem_image_${state.id}")
-                    .size(24.dp)
+                    .size(32.dp)
             )
             MarginHorizontal(margin = 10.dp)
-            Column {
-                Row {
-                    H5(text = state.chainName, color = black2)
-                    Spacer(modifier = Modifier.weight(1f))
-                    B1(text = state.fiatAmount, color = black2)
-                }
-                Row {
+            Row(
+                verticalAlignment = CenterVertically
+            ) {
+                Column {
+                    if (state.chainName != null) {
+                        H5(text = state.chainName, color = black2)
+                    }
                     B1(text = state.symbol)
-                    Spacer(modifier = Modifier.weight(1f))
+                }
+                Spacer(modifier = Modifier.weight(1f))
+                Column {
+                    B1(text = state.fiatAmount, color = black2)
                     H5(text = state.amount)
                 }
             }

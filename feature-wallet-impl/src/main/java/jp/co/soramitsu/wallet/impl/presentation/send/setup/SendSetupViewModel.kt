@@ -129,7 +129,7 @@ class SendSetupViewModel @Inject constructor(
     private val defaultAmountInputState = AmountInputViewState(
         tokenName = "...",
         tokenImage = "",
-        totalBalance = resourceManager.getString(R.string.common_available_format, "..."),
+        totalBalance = resourceManager.getString(R.string.common_transferable_format, "..."),
         fiatAmount = "",
         tokenAmount = initialAmount,
         allowAssetChoose = false,
@@ -202,7 +202,7 @@ class SendSetupViewModel @Inject constructor(
             AmountInputViewState(
                 tokenName = asset.token.configuration.symbolToShow,
                 tokenImage = asset.token.configuration.iconUrl,
-                totalBalance = resourceManager.getString(R.string.common_available_format, tokenBalance),
+                totalBalance = resourceManager.getString(R.string.common_transferable_format, tokenBalance),
                 fiatAmount = fiatAmount,
                 tokenAmount = amount,
                 isActive = true,
