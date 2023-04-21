@@ -319,6 +319,7 @@
     <string name="wallet_filters_extrinsics">Прочие транзакции</string>
     <string name="wallet_filters_header">Показывать</string>
     <string name="common_available_format">Доступно: %s</string>
+    <string name="common_transferable_format">Доступно: %s</string>
     <string name="staking_rewards_learn_more">Подробнее о вознаграждениях</string>
     <plurals name="staking_payouts_days_left">
         <item quantity="one">%d день</item>

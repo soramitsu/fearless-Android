@@ -149,7 +149,7 @@ class ChainAssetsManager @Inject constructor(
         } ?: availableDestinationChainIds.firstOrNull()
     }
 
-    suspend fun setInitialChainsAndAssetIds(chainId: ChainId, assetId: String) {
+    suspend fun setInitialIds(chainId: ChainId, assetId: String) {
         updateOriginalChainId(chainId)
         updateAssetId(assetId)
     }

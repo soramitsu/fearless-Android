@@ -120,7 +120,7 @@ class CrossChainSetupViewModel @Inject constructor(
     private val defaultAmountInputState = AmountInputViewState(
         tokenName = "...",
         tokenImage = "",
-        totalBalance = resourceManager.getString(R.string.common_available_format, "..."),
+        totalBalance = resourceManager.getString(R.string.common_transferable_format, "..."),
         fiatAmount = "",
         tokenAmount = initialAmount,
         allowAssetChoose = false,
@@ -182,7 +182,7 @@ class CrossChainSetupViewModel @Inject constructor(
                 tokenName = asset.token.configuration.symbolToShow,
                 tokenImage = asset.token.configuration.iconUrl,
                 totalBalance = resourceManager.getString(
-                    R.string.common_available_format,
+                    R.string.common_transferable_format,
                     tokenBalance
                 ),
                 fiatAmount = fiatAmount,
@@ -361,7 +361,7 @@ class CrossChainSetupViewModel @Inject constructor(
     private fun setInitialChainsAndAssetIds() {
         if (payload == null) return
         viewModelScope.launch {
-            chainAssetsManager.setInitialChainsAndAssetIds(
+            chainAssetsManager.setInitialIds(
                 chainId = payload.chainId,
                 assetId = payload.chainAssetId
             )
@@ -540,7 +540,6 @@ class CrossChainSetupViewModel @Inject constructor(
 
     fun qrCodeScanned(content: String) {
         viewModelScope.launch {
-            println("qrCodeScanned: $content")
             val result = walletInteractor.tryReadAddressFromSoraFormat(content) ?: content
 
             addressInputFlow.value = result

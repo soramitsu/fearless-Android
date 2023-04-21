@@ -328,7 +328,8 @@ Derivation path: %s</string>
     <string name="wallet_filters_extrinsics">Other transactions</string>
     <string name="wallet_filters_header">Show</string>
     <string name="transfer_title">Transfer</string>
-    <string name="common_available_format">Transferable: %s</string>
+    <string name="common_available_format">Available: %s</string>
+    <string name="common_transferable_format">Transferable: %s</string>
     <string name="staking_rewards_learn_more">Learn more about rewards</string>
     <plurals name="staking_payouts_days_left">
         <item quantity="one">%d day left</item>
