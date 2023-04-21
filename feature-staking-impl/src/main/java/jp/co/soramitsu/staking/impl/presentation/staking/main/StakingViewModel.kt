@@ -4,8 +4,6 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
-import javax.inject.Named
 import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -20,7 +18,6 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.childScope
 import jp.co.soramitsu.common.utils.formatAsPercentage
-import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.withLoading
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.core.updater.UpdateSystem
@@ -76,6 +73,9 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
+import javax.inject.Inject
+import javax.inject.Named
 
 private const val CURRENT_ICON_SIZE = 40
 
@@ -326,9 +326,9 @@ class StakingViewModel @Inject constructor(
         }
     }
 
-    fun onPoolsAmountInput(amount: String) {
+    fun onPoolsAmountInput(amount: BigDecimal?) {
         viewModelScope.launch {
-            scenarioViewModelFlow.first().enteredAmountFlow.emit(amount.replace(',', '.'))
+            scenarioViewModelFlow.first().enteredAmountFlow.emit(amount)
         }
     }
 
@@ -338,10 +338,9 @@ class StakingViewModel @Inject constructor(
         val meta = interactor.getCurrentMetaAccount()
         val address = requireNotNull(meta.address(chain))
         val amount = scenarioViewModelFlow.first().enteredAmountFlow.value
-        val amountDecimal = amount.toBigDecimalOrNull().orZero()
 
         stakingPoolSharedStateProvider.mainState.mutate {
-            StakingPoolState(asset = asset, chain = chain, chainAsset = chainAsset, address = address, amount = amountDecimal)
+            StakingPoolState(asset = asset, chain = chain, chainAsset = chainAsset, address = address, amount = amount)
         }
     }
 

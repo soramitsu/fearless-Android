@@ -1,15 +1,10 @@
 package jp.co.soramitsu.wallet.impl.presentation.send.setup
 
-import androidx.compose.ui.focus.FocusState
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.math.BigDecimal
-import java.math.BigInteger
-import java.math.RoundingMode
-import javax.inject.Inject
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressIcon
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -66,6 +61,10 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.retry
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
+import java.math.BigInteger
+import java.math.RoundingMode
+import javax.inject.Inject
 
 private const val RETRY_TIMES = 3L
 
@@ -102,7 +101,7 @@ class SendSetupViewModel @Inject constructor(
         true
     }
 
-    private val initialAmount = "0"
+    private val initialAmount = BigDecimal.ZERO
     private val confirmedValidations = mutableListOf<TransferValidationResult>()
 
     private val selectedChain = sharedState.chainIdFlow.map { chainId ->
@@ -133,7 +132,8 @@ class SendSetupViewModel @Inject constructor(
         totalBalance = resourceManager.getString(R.string.common_available_format, "..."),
         fiatAmount = "",
         tokenAmount = initialAmount,
-        allowAssetChoose = false
+        allowAssetChoose = false,
+        initial = initialAmount
     )
 
     private val defaultButtonState = ButtonViewState(
@@ -183,19 +183,20 @@ class SendSetupViewModel @Inject constructor(
         )
     }.stateIn(this, SharingStarted.Eagerly, SelectorState.default)
 
-    private val enteredAmountBigDecimalFlow = MutableStateFlow(BigDecimal(initialAmount))
+    private val enteredAmountBigDecimalFlow = MutableStateFlow(initialAmount)
     private val visibleAmountFlow = MutableStateFlow(initialAmount)
+    private val initialAmountFlow = MutableStateFlow(initialAmount)
 
     private val amountInputViewState: Flow<AmountInputViewState> = combine(
         visibleAmountFlow,
+        initialAmountFlow,
         assetFlow,
         amountInputFocusFlow
-    ) { enteredAmount, asset, isAmountInputFocused ->
+    ) { amount, initialAmount, asset, isAmountInputFocused ->
         if (asset == null) {
             defaultAmountInputState
         } else {
             val tokenBalance = asset.transferable.formatTokenAmount(asset.token.configuration)
-            val amount = enteredAmount.toBigDecimalOrNull().orZero()
             val fiatAmount = amount.applyFiatRate(asset.token.fiatRate)?.formatAsCurrency(asset.token.fiatSymbol)
 
             AmountInputViewState(
@@ -203,10 +204,12 @@ class SendSetupViewModel @Inject constructor(
                 tokenImage = asset.token.configuration.iconUrl,
                 totalBalance = resourceManager.getString(R.string.common_available_format, tokenBalance),
                 fiatAmount = fiatAmount,
-                tokenAmount = enteredAmount,
+                tokenAmount = amount,
                 isActive = true,
                 isFocused = isAmountInputFocused,
-                allowAssetChoose = true
+                allowAssetChoose = true,
+                precision = asset.token.configuration.precision,
+                initial = initialAmount
             )
         }
     }.stateIn(this, SharingStarted.Eagerly, defaultAmountInputState)
@@ -295,8 +298,7 @@ class SendSetupViewModel @Inject constructor(
     private val buttonStateFlow = combine(
         visibleAmountFlow,
         assetFlow
-    ) { enteredAmount, asset ->
-        val amount = enteredAmount.toBigDecimalOrNull().orZero()
+    ) { amount, asset ->
         val amountInPlanks = asset?.token?.planksFromAmount(amount).orZero()
         ButtonViewState(
             text = resourceManager.getString(R.string.common_continue),
@@ -377,9 +379,9 @@ class SendSetupViewModel @Inject constructor(
         }
     }
 
-    override fun onAmountInput(input: String) {
-        visibleAmountFlow.value = input
-        enteredAmountBigDecimalFlow.value = input.toBigDecimalOrNull().orZero()
+    override fun onAmountInput(input: BigDecimal?) {
+        visibleAmountFlow.value = input.orZero()
+        enteredAmountBigDecimalFlow.value = input.orZero()
     }
 
     override fun onAddressInput(input: String) {
@@ -489,8 +491,8 @@ class SendSetupViewModel @Inject constructor(
         }
     }
 
-    override fun onAmountFocusChanged(focusState: FocusState) {
-        amountInputFocusFlow.value = focusState.isFocused
+    override fun onAmountFocusChanged(isFocused: Boolean) {
+        amountInputFocusFlow.value = isFocused
     }
 
     fun qrCodeScanned(content: String) {
@@ -533,7 +535,8 @@ class SendSetupViewModel @Inject constructor(
             if (quickAmountWithoutExtraPays < BigDecimal.ZERO) {
                 return@launch
             }
-            visibleAmountFlow.value = quickAmountWithoutExtraPays.setScale(5, RoundingMode.HALF_DOWN).toString().replace(',', '.')
+            visibleAmountFlow.value = quickAmountWithoutExtraPays.setScale(5, RoundingMode.HALF_DOWN)
+            initialAmountFlow.value = quickAmountWithoutExtraPays.setScale(5, RoundingMode.HALF_DOWN)
             enteredAmountBigDecimalFlow.value = quickAmountWithoutExtraPays
         }
     }

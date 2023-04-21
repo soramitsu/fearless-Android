@@ -133,7 +133,6 @@ fun SoraCardItem(
             order = Order.SECONDARY,
             onClick = onClick,
             text = state?.kycStatus ?: stringResource(id = R.string.sora_card_get_sora_card),
-            elevation = 0.dp,
             maxLines = 1
         )
     }

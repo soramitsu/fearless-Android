@@ -12,12 +12,15 @@ class HistorySourceProvider(
     private val chainRegistry: ChainRegistry,
     private val soramitsuNetworkClient: SoramitsuNetworkClient,
     private val soraSubqueryFactory: SubQueryClientForSoraWalletFactory,
-    private val soraRemoteConfigBuilder: SoraRemoteConfigBuilder
+    private val soraProdRemoteConfigBuilder: SoraRemoteConfigBuilder,
+    private val soraStageRemoteConfigBuilder: SoraRemoteConfigBuilder
 ) {
     operator fun invoke(historyUrl: String, historyType: Chain.ExternalApi.Section.Type): HistorySource? {
         return when (historyType) {
             Chain.ExternalApi.Section.Type.SUBQUERY -> SubqueryHistorySource(walletOperationsApi, chainRegistry, historyUrl)
-            Chain.ExternalApi.Section.Type.SORA -> SoraHistorySource(soramitsuNetworkClient, soraSubqueryFactory, soraRemoteConfigBuilder)
+            Chain.ExternalApi.Section.Type.SORA -> {
+                SoraHistorySource(soramitsuNetworkClient, soraSubqueryFactory, soraProdRemoteConfigBuilder, soraStageRemoteConfigBuilder)
+            }
             Chain.ExternalApi.Section.Type.SUBSQUID -> SubsquidHistorySource(walletOperationsApi, historyUrl)
             Chain.ExternalApi.Section.Type.GIANTSQUID -> GiantsquidHistorySource(walletOperationsApi, historyUrl)
             else -> null

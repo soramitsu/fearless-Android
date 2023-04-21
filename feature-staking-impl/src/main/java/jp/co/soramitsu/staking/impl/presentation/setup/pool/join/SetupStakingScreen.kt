@@ -30,6 +30,7 @@ import jp.co.soramitsu.common.compose.component.Toolbar
 import jp.co.soramitsu.common.compose.component.ToolbarViewState
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.feature_staking_impl.R
+import java.math.BigDecimal
 
 data class SetupStakingScreenViewState(
     val toolbarViewState: ToolbarViewState,
@@ -44,7 +45,7 @@ data class SetupStakingScreenViewState(
 fun SetupStakingScreen(
     state: SetupStakingScreenViewState,
     onNavigationClick: () -> Unit,
-    onAmountInput: (String) -> Unit,
+    onAmountInput: (BigDecimal?) -> Unit,
     onNextClick: () -> Unit
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -98,7 +99,8 @@ private fun SetupStakingScreenPreview() {
             tokenImage = "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Karura.svg",
             totalBalance = "Balance: 20.0",
             fiatAmount = "$120.0",
-            tokenAmount = "0.1"
+            tokenAmount = BigDecimal.ONE,
+            initial = null
         ),
         FeeInfoViewState(
             feeAmount = "0.0051 KSM",

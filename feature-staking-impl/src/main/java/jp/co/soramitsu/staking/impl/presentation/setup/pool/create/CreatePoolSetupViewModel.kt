@@ -3,9 +3,6 @@ package jp.co.soramitsu.staking.impl.presentation.setup.pool.create
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.account.api.domain.model.address
-import java.math.BigDecimal
-import java.math.BigInteger
-import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.AmountInputViewState
 import jp.co.soramitsu.common.compose.component.ButtonViewState
@@ -15,12 +12,11 @@ import jp.co.soramitsu.common.navigation.payload.WalletSelectorPayload
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.applyFiatRate
 import jp.co.soramitsu.common.utils.flowOf
-import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.orZero
-import jp.co.soramitsu.common.validation.StakeInsufficientBalanceException
 import jp.co.soramitsu.common.validation.MinPoolCreationThresholdException
+import jp.co.soramitsu.common.validation.StakeInsufficientBalanceException
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
@@ -40,6 +36,9 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
+import java.math.BigInteger
+import javax.inject.Inject
 
 @HiltViewModel
 class CreatePoolSetupViewModel @Inject constructor(
@@ -59,7 +58,7 @@ class CreatePoolSetupViewModel @Inject constructor(
     private val address: String
     private val accountId: AccountId
     private val chain: Chain
-    private val initialAmount: String
+    private val initialAmount: BigDecimal
 
     init {
         val mainState = stakingPoolSharedStateProvider.requireMainState
@@ -68,7 +67,7 @@ class CreatePoolSetupViewModel @Inject constructor(
         address = mainState.requireAddress
         accountId = mainState.accountId
         chain = mainState.requireChain
-        initialAmount = mainState.requireAmount.format()
+        initialAmount = mainState.requireAmount
     }
 
     private val defaultPoolNameInputState = TextInputViewState("", resourceManager.getString(R.string.pool_staking_pool_name))
@@ -78,7 +77,8 @@ class CreatePoolSetupViewModel @Inject constructor(
         tokenImage = "",
         totalBalance = resourceManager.getString(R.string.common_balance_format, "..."),
         fiatAmount = "",
-        tokenAmount = initialAmount
+        tokenAmount = initialAmount,
+        initial = null
     )
 
     private val defaultScreenState = CreatePoolSetupViewState(
@@ -95,9 +95,8 @@ class CreatePoolSetupViewModel @Inject constructor(
 
     private val enteredAmountFlow = MutableStateFlow(initialAmount)
 
-    private val amountInputViewState: Flow<AmountInputViewState> = enteredAmountFlow.map { enteredAmount ->
+    private val amountInputViewState: Flow<AmountInputViewState> = enteredAmountFlow.map { amount ->
         val tokenBalance = asset.transferable.formatTokenAmount(asset.token.configuration)
-        val amount = enteredAmount.toBigDecimalOrNull().orZero()
         val fiatAmount = amount.applyFiatRate(asset.token.fiatRate)?.formatAsCurrency(asset.token.fiatSymbol)
 
         AmountInputViewState(
@@ -105,7 +104,9 @@ class CreatePoolSetupViewModel @Inject constructor(
             tokenImage = asset.token.configuration.iconUrl,
             totalBalance = resourceManager.getString(R.string.common_balance_format, tokenBalance),
             fiatAmount = fiatAmount,
-            tokenAmount = enteredAmount
+            tokenAmount = amount,
+            precision = asset.token.configuration.precision,
+            initial = amount
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, defaultAmountInputState)
 
@@ -143,8 +144,7 @@ class CreatePoolSetupViewModel @Inject constructor(
         selectedNominatorFlow,
         selectedStateTogglerFlow
     ) { poolId, poolName, enteredAmount, selectedNominator, selectedStateToggler ->
-        val amountInDecimal = enteredAmount.toBigDecimalOrNull() ?: BigDecimal.ZERO
-        val amountInPlanks = asset.token.planksFromAmount(amountInDecimal)
+        val amountInPlanks = asset.token.planksFromAmount(enteredAmount)
         val feeInPlanks = poolInteractor.estimateCreateFee(poolId.toBigInteger(), poolName, amountInPlanks, address, selectedNominator, selectedStateToggler)
         feeInPlanksFlow.value = feeInPlanks
         val fee = asset.token.amountFromPlanks(feeInPlanks)
@@ -164,7 +164,7 @@ class CreatePoolSetupViewModel @Inject constructor(
         stateTogglerDisplayFlow
     ) { amountInputState, poolId, poolNameInput, currentAddressDisplay, feeInfo, selectedNominator, selectedStateToggler ->
         val isButtonEnabled =
-            poolNameInput.text.isNotEmpty() && amountInputState.tokenAmount.toBigDecimalOrNull() != null &&
+            poolNameInput.text.isNotEmpty() && amountInputState.tokenAmount > BigDecimal.ZERO &&
                 feeInfo.feeAmount.isNullOrEmpty().not()
 
         CreatePoolSetupViewState(
@@ -196,8 +196,8 @@ class CreatePoolSetupViewModel @Inject constructor(
         enteredPoolNameFlow.value = text
     }
 
-    override fun onTokenAmountInput(text: String) {
-        enteredAmountFlow.value = text
+    override fun onTokenAmountInput(value: BigDecimal?) {
+        enteredAmountFlow.value = value.orZero()
     }
 
     override fun onNominatorClick() {
@@ -210,7 +210,7 @@ class CreatePoolSetupViewModel @Inject constructor(
 
     override fun onCreateClick() {
         viewModelScope.launch {
-            val amount = enteredAmountFlow.value.toBigDecimalOrNull().orZero()
+            val amount = enteredAmountFlow.value
             val amountInPlanks = asset.token.planksFromAmount(amount)
 
             val existentialDeposit = stakingInteractor.existentialDeposit(chain.id)

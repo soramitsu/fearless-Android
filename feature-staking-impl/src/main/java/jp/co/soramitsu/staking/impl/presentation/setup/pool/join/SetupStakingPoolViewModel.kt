@@ -15,7 +15,6 @@ import jp.co.soramitsu.common.compose.component.FeeInfoViewState
 import jp.co.soramitsu.common.compose.component.ToolbarViewState
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.applyFiatRate
-import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.orZero
@@ -60,14 +59,14 @@ class SetupStakingPoolViewModel @Inject constructor(
 
     private val chain: Chain
     private val asset: Asset
-    private val initialAmount: String
+    private val initialAmount: BigDecimal
 
     init {
         val mainState = stakingPoolSharedStateProvider.requireMainState
 
         chain = requireNotNull(mainState.chain)
         asset = requireNotNull(mainState.asset)
-        initialAmount = mainState.requireAmount.format()
+        initialAmount = mainState.requireAmount
     }
 
     private val toolbarViewState = ToolbarViewState(resourceManager.getString(R.string.pool_staking_join_title), R.drawable.ic_arrow_back_24dp)
@@ -91,9 +90,8 @@ class SetupStakingPoolViewModel @Inject constructor(
 
     private val enteredAmountFlow = MutableStateFlow(initialAmount)
 
-    private val amountInputViewState: Flow<AmountInputViewState> = enteredAmountFlow.map { enteredAmount ->
+    private val amountInputViewState: Flow<AmountInputViewState> = enteredAmountFlow.map { amount ->
         val tokenBalance = asset.transferable.formatTokenAmount(asset.token.configuration)
-        val amount = enteredAmount.toBigDecimalOrNull().orZero()
         val fiatAmount = amount.applyFiatRate(asset.token.fiatRate)?.formatAsCurrency(asset.token.fiatSymbol)
 
         AmountInputViewState(
@@ -101,12 +99,12 @@ class SetupStakingPoolViewModel @Inject constructor(
             tokenImage = asset.token.configuration.iconUrl,
             totalBalance = resourceManager.getString(R.string.common_balance_format, tokenBalance),
             fiatAmount = fiatAmount,
-            tokenAmount = enteredAmount
+            tokenAmount = amount,
+            initial = amount
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, defaultAmountInputState)
 
-    private val feeInPlanksFlow = enteredAmountFlow.map { enteredAmount ->
-        val amount = enteredAmount.toBigDecimalOrNull().orZero()
+    private val feeInPlanksFlow = enteredAmountFlow.map { amount ->
         val inPlanks = asset.token.planksFromAmount(amount)
         stakingPoolInteractor.estimateJoinFee(inPlanks)
     }.inBackground().stateIn(viewModelScope, SharingStarted.Eagerly, null)
@@ -119,8 +117,7 @@ class SetupStakingPoolViewModel @Inject constructor(
         FeeInfoViewState(feeAmount = feeFormatted, feeAmountFiat = feeFiat)
     }.stateIn(viewModelScope, SharingStarted.Eagerly, FeeInfoViewState.default)
 
-    private val buttonStateFlow = enteredAmountFlow.map { enteredAmount ->
-        val amount = enteredAmount.toBigDecimalOrNull().orZero()
+    private val buttonStateFlow = enteredAmountFlow.map { amount ->
         val amountInPlanks = asset.token.planksFromAmount(amount)
         ButtonViewState(
             resourceManager.getString(R.string.pool_staking_join_button_title),
@@ -147,13 +144,13 @@ class SetupStakingPoolViewModel @Inject constructor(
         router.back()
     }
 
-    fun onAmountEntered(amount: String) {
-        enteredAmountFlow.value = amount.replace(',', '.')
+    fun onAmountEntered(amount: BigDecimal?) {
+        enteredAmountFlow.value = amount.orZero()
     }
 
     fun onNextClick() {
         val setupFlow = stakingPoolSharedStateProvider.requireJoinState
-        val amount = enteredAmountFlow.value.toBigDecimalOrNull().orZero()
+        val amount = enteredAmountFlow.value
 
         viewModelScope.launch {
             isValid(amount).fold({
@@ -211,7 +208,8 @@ class SetupStakingPoolViewModel @Inject constructor(
             tokenImage = "",
             totalBalance = resourceManager.getString(R.string.common_balance_format, "..."),
             fiatAmount = "",
-            tokenAmount = initialAmount
+            tokenAmount = initialAmount,
+            initial = null
         )
 
     private val defaultAccountInfoState

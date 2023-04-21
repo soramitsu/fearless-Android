@@ -1,6 +1,5 @@
 package jp.co.soramitsu.staking.impl.presentation.staking.main.scenarios
 
-import java.math.BigDecimal
 import jp.co.soramitsu.common.domain.model.StoryGroup
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -35,6 +34,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import java.math.BigDecimal
 
 class StakingParachainScenarioViewModel(
     private val stakingInteractor: StakingInteractor,
@@ -45,7 +45,7 @@ class StakingParachainScenarioViewModel(
     private val storiesDataSourceImpl: ParachainStakingStoriesDataSourceImpl
 ) : StakingScenarioViewModel {
 
-    override val enteredAmountFlow = MutableStateFlow("")
+    override val enteredAmountFlow = MutableStateFlow<BigDecimal?>(null)
 
     override val stakingStateFlow: Flow<StakingState> = scenarioInteractor.stakingStateFlow
 

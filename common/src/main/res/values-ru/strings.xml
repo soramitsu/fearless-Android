@@ -967,12 +967,12 @@
     <string name="sora_card_you_have_enough_xor">У вас достаточно XOR</string>
     <string name="sora_card_you_need_xor">You need %s XOR (€%s)</string>
     <string name="sora_card_get_more_xor">Get more XOR</string>
-    <string name="sora_card_select_xor_way">Select a way you want to get XOR</string>
+    <string name="sora_card_swap_or_buy_xor">You can swap for XOR or buy with Euro</string>
     <string name="sora_card_already_have_card">I already have a card</string>
     <string name="sora_card_issue_card_for_free">Issue card for free</string>
     <string name="sora_card_issue_card_for_12_euro">Issue card for 12 €</string>
-    <string name="sora_card_swap_for_xor">Swap for XOR</string>
-    <string name="sora_card_buy_xor">Buy XOR with fiat</string>
+    <string name="sora_card_swap_for_xor">Swap crypto for XOR</string>
+    <string name="sora_card_buy_xor">Buy XOR with EUR</string>
 
     <string name="sora_card_no_more_free_tries">No more free attempts</string>
     <string name="sora_card_verification_failed">Ошибка Проверки</string>
