@@ -24,7 +24,7 @@ import jp.co.soramitsu.common.utils.requireException
 import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.feature_wallet_impl.R
-import jp.co.soramitsu.runtime.ext.utilityAsset
+import jp.co.soramitsu.core.models.utilityAsset
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
 import jp.co.soramitsu.wallet.api.domain.TransferValidationResult

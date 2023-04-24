@@ -10,7 +10,7 @@ import jp.co.soramitsu.common.mixin.api.NetworkStateUi
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.core.runtime.ChainConnection
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
-import jp.co.soramitsu.runtime.ext.utilityAsset
+import jp.co.soramitsu.core.models.utilityAsset
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.storage.NodesSettingsStorage

@@ -30,12 +30,11 @@ class ChainAssetsManager @Inject constructor(
 ) {
     private var chainAssetResultJob: Job? = null
     val assetIdFlow = MutableStateFlow<String?>(null)
-    val originalChainIdFlow = MutableStateFlow<ChainId?>(null)
-
-    val destinationChainIdFlow = MutableStateFlow<ChainId?>(value = null)
+    val originChainIdFlow = MutableStateFlow<ChainId?>(null)
+    val destinationChainIdFlow = MutableStateFlow<ChainId?>(null)
 
     private var lastAsset: Asset? = null
-    val assetFlow: Flow<Asset?> = combine(originalChainIdFlow, assetIdFlow) { chainId, assetId ->
+    val assetFlow: Flow<Asset?> = combine(originChainIdFlow, assetIdFlow) { chainId, assetId ->
         if (chainId == null || assetId == null) return@combine null
 
         runCatching { walletInteractor.getCurrentAsset(chainId, assetId) }
@@ -46,7 +45,7 @@ class ChainAssetsManager @Inject constructor(
 
     val destinationChainId: String? get() = destinationChainIdFlow.value
 
-    val originalSelectedChain = originalChainIdFlow.map { chainId ->
+    val originalSelectedChain = originChainIdFlow.map { chainId ->
         chainId?.let { walletInteractor.getChain(it) }
     }
 
@@ -101,13 +100,13 @@ class ChainAssetsManager @Inject constructor(
     }
 
     private suspend fun updateOriginalChainId(chainId: ChainId) {
-        if (originalChainIdFlow.value == chainId) return
+        if (originChainIdFlow.value == chainId) return
 
         assetIdFlow.value = getActualAssetId(
             originalChainId = chainId,
             assetId = assetIdFlow.value
         )
-        originalChainIdFlow.value = chainId
+        originChainIdFlow.value = chainId
         destinationChainIdFlow.value = getActualDestinationChainId(
             originalChainId = chainId,
             asset = lastAsset,

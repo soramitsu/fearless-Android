@@ -123,6 +123,16 @@ interface WalletInteractor {
     suspend fun getEquilibriumAccountInfo(asset: CoreAsset, accountId: AccountId): EqAccountInfo?
     suspend fun getEquilibriumAssetRates(chainAsset: CoreAsset): Map<BigInteger, EqOraclePricePoint?>
 
+    suspend fun getXcmDestFee(destinationChainId: ChainId): BigDecimal?
+
+    suspend fun getXcmOrigFee(
+        originNetworkId: ChainId,
+        destinationNetworkId: ChainId,
+        asset: CoreAsset,
+        address: String,
+        amount: BigDecimal
+    ): BigDecimal?
+
     fun isShowGetSoraCard(): Boolean
     fun observeIsShowSoraCard(): Flow<Boolean>
     fun decreaseSoraCardHiddenSessions()

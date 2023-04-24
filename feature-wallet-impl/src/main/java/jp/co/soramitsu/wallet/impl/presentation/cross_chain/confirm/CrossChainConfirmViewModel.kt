@@ -24,7 +24,7 @@ import jp.co.soramitsu.common.utils.requireException
 import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.feature_wallet_impl.R
-import jp.co.soramitsu.runtime.ext.utilityAsset
+import jp.co.soramitsu.core.models.utilityAsset
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
 import jp.co.soramitsu.wallet.api.domain.TransferValidationResult
 import jp.co.soramitsu.wallet.api.domain.ValidateTransferUseCase
@@ -188,8 +188,8 @@ class CrossChainConfirmViewModel @Inject constructor(
 
         val destinationFeeInfoItem = TitleValueViewState(
             title = resourceManager.getString(R.string.common_destination_network_fee),
-            value = utilityAsset.formatTokenAmount(transferDraft.originalFee),
-            additionalValue = utilityAsset.getAsFiatWithCurrency(transferDraft.originalFee)
+            value = utilityAsset.formatTokenAmount(transferDraft.destinationFee),
+            additionalValue = utilityAsset.getAsFiatWithCurrency(transferDraft.destinationFee)
         )
 
         CrossChainConfirmViewState(

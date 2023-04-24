@@ -16,7 +16,7 @@ import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.runtime.ext.accountIdOf
-import jp.co.soramitsu.runtime.ext.utilityAsset
+import jp.co.soramitsu.core.models.utilityAsset
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.state.SingleAssetSharedState
 import jp.co.soramitsu.staking.api.data.StakingSharedState
