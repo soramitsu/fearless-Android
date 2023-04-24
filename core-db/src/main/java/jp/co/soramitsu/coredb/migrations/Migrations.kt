@@ -3,6 +3,20 @@ package jp.co.soramitsu.coredb.migrations
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
+val Migration_52_53 = object : Migration(52, 53) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+        database.execSQL(
+            """
+             CREATE TABLE IF NOT EXISTS `chain_types` (
+             `chainId` TEXT NOT NULL, 
+             `typesConfig` TEXT NOT NULL,
+             PRIMARY KEY(`chainId`)
+             )
+            """.trimIndent()
+        )
+    }
+}
+
 val Migration_51_52 = object : Migration(51, 52) {
     override fun migrate(database: SupportSQLiteDatabase) {
         database.execSQL("ALTER TABLE assets RENAME TO _assets")
