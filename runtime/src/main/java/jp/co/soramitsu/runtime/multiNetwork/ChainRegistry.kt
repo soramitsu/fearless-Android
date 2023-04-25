@@ -67,6 +67,8 @@ class ChainRegistry @Inject constructor(
         launch {
             runCatching { chainSyncService.syncUp() }
 
+            runtimeSyncService.syncTypes()
+
             chainDao.joinChainInfoFlow().mapList(::mapChainLocalToChain).diffed()
                 .collect { (removed, addedOrModified, _) ->
                     removed.forEach {
@@ -85,7 +87,7 @@ class ChainRegistry @Inject constructor(
                             }
                         )
                         runtimeProviderPool.setupRuntimeProvider(chain)
-                        runtimeSyncService.registerChain(chain, connection)
+                        runtimeSyncService.registerChain(chain)
                         runtimeSubscriptionPool.setupRuntimeSubscription(chain, connection)
                     }
                 }
