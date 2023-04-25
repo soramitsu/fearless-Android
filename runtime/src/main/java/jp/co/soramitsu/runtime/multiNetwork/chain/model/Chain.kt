@@ -83,7 +83,6 @@ data class Chain(
         if (externalApi != other.externalApi) return false
         if (icon != other.icon) return false
         if (addressPrefix != other.addressPrefix) return false
-        if (types != other.types) return false
         if (isEthereumBased != other.isEthereumBased) return false
         if (isTestNet != other.isTestNet) return false
         if (hasCrowdloans != other.hasCrowdloans) return false
@@ -110,7 +109,6 @@ data class Chain(
         result = 31 * result + (externalApi?.hashCode() ?: 0)
         result = 31 * result + icon.hashCode()
         result = 31 * result + addressPrefix
-        result = 31 * result + (types?.hashCode() ?: 0)
         result = 31 * result + isEthereumBased.hashCode()
         result = 31 * result + isTestNet.hashCode()
         result = 31 * result + hasCrowdloans.hashCode()

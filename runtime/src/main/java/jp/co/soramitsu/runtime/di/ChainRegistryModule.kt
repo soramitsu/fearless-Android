@@ -4,6 +4,8 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import javax.inject.Provider
+import javax.inject.Singleton
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.interfaces.FileProvider
@@ -27,8 +29,6 @@ import jp.co.soramitsu.runtime.multiNetwork.runtime.types.TypesFetcher
 import jp.co.soramitsu.runtime.storage.NodesSettingsStorage
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.serialization.json.Json
-import javax.inject.Provider
-import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -75,12 +75,14 @@ class ChainRegistryModule {
         typesFetcher: TypesFetcher,
         runtimeFilesCache: RuntimeFilesCache,
         chainDao: ChainDao,
-        updatesMixin: UpdatesMixin
+        updatesMixin: UpdatesMixin,
+        connectionPool: ConnectionPool
     ) = RuntimeSyncService(
         typesFetcher = typesFetcher,
         runtimeFilesCache = runtimeFilesCache,
         chainDao = chainDao,
-        updatesMixin = updatesMixin
+        updatesMixin = updatesMixin,
+        connectionPool = connectionPool
     )
 
     @Provides
