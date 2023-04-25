@@ -14,6 +14,7 @@ android {
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField "String", "CHAINS_URL", "\"https://raw.githubusercontent.com/soramitsu/fearless-utils/v4-new-staking/chains/chains_dev.json\""
         buildConfigField "String", "ASSETS_URL", "\"https://raw.githubusercontent.com/soramitsu/fearless-utils/v4-new-staking/chains/assets_dev.json\""
+        buildConfigField "String", "TYPES_URL", "\"https://raw.githubusercontent.com/soramitsu/fearless-utils/v4/type_registry/all_chains_types_android.json\""
         buildConfigField "String", "APP_VERSION_NAME", "\"${rootProject.versionName}\""
     }
 
