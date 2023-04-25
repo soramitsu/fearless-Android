@@ -68,7 +68,6 @@ import java.math.BigInteger
 import java.math.RoundingMode
 import javax.inject.Inject
 
-private const val RETRY_TIMES = 3L
 private const val SLIPPAGE_TOLERANCE = 1.35
 
 @HiltViewModel
@@ -194,7 +193,7 @@ class CrossChainSetupViewModel @Inject constructor(
         }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, defaultAmountInputState)
 
-    private val hasOriginFeeAmount = MutableStateFlow(false)
+    private val hasOriginFeeAmountFlow = MutableStateFlow(false)
     private val originFeeAmountFlow = combine(
         chainAssetsManager.originChainIdFlow,
         chainAssetsManager.destinationChainIdFlow,
@@ -203,7 +202,7 @@ class CrossChainSetupViewModel @Inject constructor(
         enteredAmountBigDecimalFlow,
         assetFlow.mapNotNull { it }
     ) { nullableOriginChainId, nullableDestinationChainId, address, isAddressValid, amount, asset ->
-        hasOriginFeeAmount.value = false
+        hasOriginFeeAmountFlow.value = false
         val originChainId = nullableOriginChainId ?: return@combine null
         val destinationChainId = nullableDestinationChainId ?: return@combine null
 
@@ -224,12 +223,12 @@ class CrossChainSetupViewModel @Inject constructor(
             println("Error: $it")
             emit(null)
         }
-        .onEach { fee -> hasOriginFeeAmount.value = fee != null }
+        .onEach { fee -> hasOriginFeeAmountFlow.value = fee != null }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    private val hasDestinationFeeAmount = MutableStateFlow(false)
+    private val hasDestinationFeeAmountFlow = MutableStateFlow(false)
     private val destinationFeeAmountFlow = chainAssetsManager.destinationChainIdFlow.map { _destinationChainId ->
-        hasDestinationFeeAmount.value = false
+        hasDestinationFeeAmountFlow.value = false
         val destinationChainId = _destinationChainId ?: return@map null
 
         val fee = walletInteractor.getXcmDestFee(
@@ -241,7 +240,7 @@ class CrossChainSetupViewModel @Inject constructor(
             println("Error: $it")
             emit(null)
         }
-        .onEach { fee -> hasDestinationFeeAmount.value = fee != null }
+        .onEach { fee -> hasDestinationFeeAmountFlow.value = fee != null }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val originFeeInPlanksFlow = combine(originFeeAmountFlow, assetFlow) { fee, asset ->
@@ -258,12 +257,15 @@ class CrossChainSetupViewModel @Inject constructor(
         }
 
     private val originalFeeInfoViewStateFlow: Flow<FeeInfoViewState> = combine(
+        hasOriginFeeAmountFlow,
         originFeeAmountFlow,
         utilityAssetFlow
-    ) { feeAmount, utilityAsset ->
+    ) { hasOriginFeeAmount, feeAmount, utilityAsset ->
         val feeFormatted = feeAmount?.formatTokenAmount(utilityAsset.token.configuration)
+            ?.takeIf { hasOriginFeeAmount }
         val feeFiat = feeAmount?.applyFiatRate(utilityAsset.token.fiatRate)
             ?.formatAsCurrency(utilityAsset.token.fiatSymbol)
+            ?.takeIf { hasOriginFeeAmount }
 
         FeeInfoViewState(
             caption = resourceManager.getString(R.string.common_origin_network_fee),
@@ -274,14 +276,17 @@ class CrossChainSetupViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, FeeInfoViewState.default)
 
     private val destinationFeeInfoViewStateFlow: Flow<FeeInfoViewState?> = combine(
+        hasDestinationFeeAmountFlow,
         destinationFeeAmountFlow,
         assetFlow
-    ) { feeAmount, asset ->
+    ) { hasDestinationFeeAmount, feeAmount, asset ->
         if (asset == null) return@combine null
 
         val feeFormatted = feeAmount?.formatTokenAmount(asset.token.configuration)
+            ?.takeIf { hasDestinationFeeAmount }
         val feeFiat = feeAmount?.applyFiatRate(asset.token.fiatRate)
             ?.formatAsCurrency(asset.token.fiatSymbol)
+            ?.takeIf { hasDestinationFeeAmount }
 
         FeeInfoViewState(
             caption = resourceManager.getString(R.string.common_destination_network_fee),
@@ -317,13 +322,16 @@ class CrossChainSetupViewModel @Inject constructor(
         visibleAmountFlow,
         assetFlow,
         chainAssetsManager.originChainIdFlow,
-        chainAssetsManager.destinationChainIdFlow
-    ) { amount, asset, originalChainId, destinationChainId ->
+        chainAssetsManager.destinationChainIdFlow,
+        hasOriginFeeAmountFlow,
+        hasDestinationFeeAmountFlow,
+    ) { amount, asset, originalChainId, destinationChainId, hasOriginFeeAmount, hasDestinationFeeAmount ->
         val amountInPlanks = asset?.token?.planksFromAmount(amount).orZero()
         val isAllChainsSelected = originalChainId != null && destinationChainId != null
+        val isAllFeesCalculated = hasOriginFeeAmount && hasDestinationFeeAmount
         ButtonViewState(
             text = resourceManager.getString(R.string.common_continue),
-            enabled = amountInPlanks.compareTo(BigInteger.ZERO) != 0 && isAllChainsSelected
+            enabled = amountInPlanks.compareTo(BigInteger.ZERO) != 0 && isAllChainsSelected && isAllFeesCalculated
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, defaultButtonState)
 
@@ -474,6 +482,7 @@ class CrossChainSetupViewModel @Inject constructor(
         val originalChainId = originChainId ?: return null
         val destinationChainId = chainAssetsManager.destinationChainId ?: return null
         val assetId = assetId ?: return null
+        val asset = assetFlow.value?.token?.configuration ?: return null
 
         val amount = enteredAmountBigDecimalFlow.value
         val tip = tipAmountFlow.firstOrNull()
@@ -486,7 +495,8 @@ class CrossChainSetupViewModel @Inject constructor(
             destinationFeeAmount,
             assetId,
             recipientAddress,
-            tip
+            tip,
+            asset.symbol
         )
     }
 
@@ -500,7 +510,8 @@ class CrossChainSetupViewModel @Inject constructor(
         router.openSelectChainForXcm(
             selectedChainId = chainAssetsManager.destinationChainId,
             xcmChainType = XcmChainType.Destination,
-            selectedOriginalChainId = originChainId
+            selectedOriginalChainId = originChainId,
+            xcmAssetSymbol = chainAssetsManager.assetSymbol
         )
     }
 

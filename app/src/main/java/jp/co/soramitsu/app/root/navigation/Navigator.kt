@@ -693,12 +693,14 @@ class Navigator :
     override fun openSelectChainForXcm(
         selectedChainId: ChainId?,
         xcmChainType: XcmChainType,
-        selectedOriginalChainId: String?
+        selectedOriginalChainId: String?,
+        xcmAssetSymbol: String?
     ) {
         val bundle = ChainSelectFragment.getBundleForXcmChains(
             selectedChainId = selectedChainId,
             xcmChainType = xcmChainType,
-            xcmSelectedOriginalChainId = selectedOriginalChainId
+            xcmSelectedOriginalChainId = selectedOriginalChainId,
+            xcmAssetSymbol = xcmAssetSymbol
         )
         navController?.navigate(R.id.chainSelectFragment, bundle)
     }

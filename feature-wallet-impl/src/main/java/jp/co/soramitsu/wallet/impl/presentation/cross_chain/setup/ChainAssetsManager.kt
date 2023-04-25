@@ -42,6 +42,17 @@ class ChainAssetsManager @Inject constructor(
             .getOrNull()
     }
         .onEach { lastAsset = it }
+        .onEach {
+            val asset = it ?: return@onEach
+            val originalChainId = originChainIdFlow.value ?: return@onEach
+            val actualDestinationChainId = getActualDestinationChainId(
+                originalChainId = originalChainId,
+                asset = asset,
+                destinationChainId = null
+            )
+            updateDestinationChainId(actualDestinationChainId)
+        }
+    val assetSymbol: String? get() = lastAsset?.token?.configuration?.symbol
 
     val destinationChainId: String? get() = destinationChainIdFlow.value
 

@@ -123,6 +123,14 @@ class CrossChainConfirmViewModel @Inject constructor(
             .map(::mapAssetToAssetModel)
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val transferableAssetFlow = originalNetworkFlow.mapNotNull {
+        it?.assets?.firstOrNull { it.symbol == transferDraft.transferableTokenSymbol }?.id
+    }.flatMapLatest { assetId ->
+        interactor.assetFlow(transferDraft.originalChainId, assetId)
+            .map(::mapAssetToAssetModel)
+    }
+
     val state: StateFlow<CrossChainConfirmViewState> = combine(
         recipientFlow,
         originalNetworkFlow,
@@ -130,9 +138,10 @@ class CrossChainConfirmViewModel @Inject constructor(
         senderFlow,
         originalAssetFlow,
         utilityAssetFlow,
+        transferableAssetFlow,
         buttonStateFlow,
         transferSubmittingFlow
-    ) { recipient, originalNetwork, destinationNetwork, sender, originalAsset, utilityAsset, buttonState, isSubmitting ->
+    ) { recipient, originalNetwork, destinationNetwork, sender, originalAsset, utilityAsset, transferableAsset, buttonState, isSubmitting ->
         val isRecipientNameSpecified = !recipient.name.isNullOrEmpty()
         val toInfoItem = TitleValueViewState(
             title = resourceManager.getString(R.string.send_to),
@@ -188,8 +197,8 @@ class CrossChainConfirmViewModel @Inject constructor(
 
         val destinationFeeInfoItem = TitleValueViewState(
             title = resourceManager.getString(R.string.common_destination_network_fee),
-            value = utilityAsset.formatTokenAmount(transferDraft.destinationFee),
-            additionalValue = utilityAsset.getAsFiatWithCurrency(transferDraft.destinationFee)
+            value = transferableAsset.formatTokenAmount(transferDraft.destinationFee),
+            additionalValue = transferableAsset.getAsFiatWithCurrency(transferDraft.destinationFee)
         )
 
         CrossChainConfirmViewState(

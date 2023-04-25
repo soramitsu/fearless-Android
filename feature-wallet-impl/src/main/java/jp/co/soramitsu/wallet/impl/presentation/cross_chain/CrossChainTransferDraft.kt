@@ -15,7 +15,8 @@ class CrossChainTransferDraft(
     val destinationFee: BigDecimal,
     val chainAssetId: String,
     val recipientAddress: String,
-    val tip: BigDecimal?
+    val tip: BigDecimal?,
+    val transferableTokenSymbol: String
 ) : Parcelable {
     @IgnoredOnParcel
     val totalTransaction = amount + originalFee + destinationFee + tip.orZero()
