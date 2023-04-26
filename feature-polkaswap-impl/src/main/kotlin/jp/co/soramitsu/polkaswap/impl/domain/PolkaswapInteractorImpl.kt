@@ -15,7 +15,7 @@ import jp.co.soramitsu.polkaswap.api.models.WithDesired
 import jp.co.soramitsu.polkaswap.api.models.backStrings
 import jp.co.soramitsu.polkaswap.api.models.toFilters
 import jp.co.soramitsu.polkaswap.api.presentation.models.toModel
-import jp.co.soramitsu.runtime.ext.utilityAsset
+import jp.co.soramitsu.core.models.utilityAsset
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId

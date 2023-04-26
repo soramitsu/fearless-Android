@@ -9,7 +9,6 @@ import jp.co.soramitsu.core.models.MultiAddress
 import jp.co.soramitsu.core.models.TypesUsage
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
-import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.addressByte
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAddress
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainEcosystem
@@ -22,9 +21,6 @@ val Chain.typesUsage: TypesUsage
         types?.overridesCommon == true -> TypesUsage.ON_CHAIN
         else -> TypesUsage.UNSUPPORTED
     }
-
-val Chain.utilityAsset
-    get() = assets.first { it.chainId == this.id }
 
 val Chain.genesisHash: String
     get() = id
@@ -70,18 +66,6 @@ fun Chain.addressFromPublicKey(publicKey: ByteArray): String {
     } else {
         publicKey.toAddress(addressPrefix.toShort())
     }
-}
-
-fun Chain.isValidAddress(address: String): Boolean {
-    return runCatching {
-        val tryDecodeAddress = accountIdOf(address)
-
-        if (isEthereumBased) {
-            address.fromHex().size == 20
-        } else {
-            address.addressByte() == addressPrefix.toShort()
-        }
-    }.getOrDefault(false)
 }
 
 fun Chain.multiAddressOf(address: String): MultiAddress = multiAddressOf(accountIdOf(address))

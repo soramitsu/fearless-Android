@@ -12,7 +12,7 @@ import jp.co.soramitsu.common.utils.fractionToPercentage
 import jp.co.soramitsu.common.utils.toggle
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.fearless_utils.extensions.requireHexPrefix
-import jp.co.soramitsu.runtime.ext.isValidAddress
+import jp.co.soramitsu.core.models.isValidAddress
 import jp.co.soramitsu.staking.api.data.StakingSharedState
 import jp.co.soramitsu.staking.api.domain.model.Collator
 import jp.co.soramitsu.staking.api.domain.model.Validator

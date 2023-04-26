@@ -26,8 +26,8 @@ import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.feature_wallet_impl.R
-import jp.co.soramitsu.runtime.ext.isValidAddress
-import jp.co.soramitsu.runtime.ext.utilityAsset
+import jp.co.soramitsu.core.models.isValidAddress
+import jp.co.soramitsu.core.models.utilityAsset
 import jp.co.soramitsu.wallet.api.domain.TransferValidationResult
 import jp.co.soramitsu.wallet.api.domain.ValidateTransferUseCase
 import jp.co.soramitsu.wallet.api.domain.fromValidationResult

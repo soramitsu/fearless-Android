@@ -15,11 +15,10 @@ import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
 import jp.co.soramitsu.common.utils.combineToPair
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.core.models.ChainId
+import jp.co.soramitsu.core.models.isValidAddress
 import jp.co.soramitsu.coredb.model.AssetUpdateItem
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
-import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.runtime.ext.accountIdOf
-import jp.co.soramitsu.runtime.ext.isValidAddress
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.isPolkadotOrKusama
@@ -39,6 +38,7 @@ import jp.co.soramitsu.wallet.impl.domain.model.OperationsPageChange
 import jp.co.soramitsu.wallet.impl.domain.model.PhishingModel
 import jp.co.soramitsu.wallet.impl.domain.model.Transfer
 import jp.co.soramitsu.wallet.impl.domain.model.WalletAccount
+import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
 import jp.co.soramitsu.wallet.impl.domain.model.toPhishingModel
 import jp.co.soramitsu.xcm_impl.XcmService
 import jp.co.soramitsu.xcm_impl.domain.XcmEntitiesFetcher
@@ -288,7 +288,7 @@ class WalletInteractorImpl(
                 toChain = destinationChain,
                 asset = transfer.chainAsset,
                 senderAccountId = originalChain.accountIdOf(selfAddress),
-                receiverAccountPublicKey = transfer.recipient.toAccountId(),
+                address = transfer.recipient,
                 amount = transfer.amountInPlanks
             )
         }
@@ -431,4 +431,28 @@ class WalletInteractorImpl(
 
     override suspend fun getEquilibriumAssetRates(chainAsset: CoreAsset): Map<BigInteger, EqOraclePricePoint?> =
         walletRepository.getEquilibriumAssetRates(chainAsset)
+
+    override suspend fun getXcmDestFee(destinationChainId: ChainId): BigDecimal? {
+        return runCatching {
+            xcmService.getXcmDestFee(toChainId = destinationChainId)
+        }.getOrNull()
+    }
+
+    override suspend fun getXcmOrigFee(
+        originNetworkId: ChainId,
+        destinationNetworkId: ChainId,
+        asset: CoreAsset,
+        address: String,
+        amount: BigDecimal
+    ): BigDecimal? {
+        return runCatching {
+            xcmService.getXcmOrigFee(
+                fromChainId = originNetworkId,
+                toChainId = destinationNetworkId,
+                asset = asset,
+                address = address,
+                amount = asset.planksFromAmount(amount)
+            )
+        }.getOrNull()
+    }
 }

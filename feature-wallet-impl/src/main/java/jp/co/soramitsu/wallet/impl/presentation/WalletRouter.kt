@@ -51,7 +51,8 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
     fun openSelectChainForXcm(
         selectedChainId: ChainId?,
         xcmChainType: XcmChainType,
-        selectedOriginalChainId: String? = null
+        selectedOriginalChainId: String? = null,
+        xcmAssetSymbol: String? = null
     )
 
     fun openSelectAsset(selectedAssetId: String)

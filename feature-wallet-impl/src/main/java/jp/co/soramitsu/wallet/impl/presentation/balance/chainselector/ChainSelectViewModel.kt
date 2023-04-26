@@ -6,7 +6,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.runtime.ext.ecosystem
-import jp.co.soramitsu.runtime.ext.utilityAsset
+import jp.co.soramitsu.core.models.utilityAsset
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainEcosystem
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.defaultChainSort
@@ -49,6 +49,8 @@ class ChainSelectViewModel @Inject constructor(
         savedStateHandle[ChainSelectFragment.KEY_XCM_CHAIN_TYPE]
     private val xcmSelectedOriginalChainId: String? =
         savedStateHandle[ChainSelectFragment.KEY_XCM_SELECTED_ORIGINAL_CHAIN_ID]
+    private val xcmAssetSymbol: String? =
+        savedStateHandle[ChainSelectFragment.KEY_XCM_ASSET_SYMBOL]
 
     private var choiceDone = false
 
@@ -58,7 +60,7 @@ class ChainSelectViewModel @Inject constructor(
         chainInteractor.getXcmChainsFlow(
             type = xcmChainType,
             originalChainId = xcmSelectedOriginalChainId,
-            assetSymbol = null
+            assetSymbol = xcmAssetSymbol
         )
     }
 

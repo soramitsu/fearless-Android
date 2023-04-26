@@ -115,7 +115,8 @@ fun CrossChainSetupContent(
                 AmountInput(
                     state = state.amountInputState,
                     borderColorFocused = colorAccentDark,
-                    onTokenClick = callback::onAssetClick
+                    onTokenClick = callback::onAssetClick,
+                    onInput = callback::onAmountInput
                 )
 
                 MarginVertical(margin = 8.dp)
