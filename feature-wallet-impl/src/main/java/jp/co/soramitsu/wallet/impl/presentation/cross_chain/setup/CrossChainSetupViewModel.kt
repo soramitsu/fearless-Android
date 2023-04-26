@@ -324,7 +324,7 @@ class CrossChainSetupViewModel @Inject constructor(
         chainAssetsManager.originChainIdFlow,
         chainAssetsManager.destinationChainIdFlow,
         hasOriginFeeAmountFlow,
-        hasDestinationFeeAmountFlow,
+        hasDestinationFeeAmountFlow
     ) { amount, asset, originalChainId, destinationChainId, hasOriginFeeAmount, hasDestinationFeeAmount ->
         val amountInPlanks = asset?.token?.planksFromAmount(amount).orZero()
         val isAllChainsSelected = originalChainId != null && destinationChainId != null
