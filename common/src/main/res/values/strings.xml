@@ -1079,10 +1079,10 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="sora_card_buy_xor">Buy XOR with EUR</string>
 
     <string name="sora_card_no_more_free_tries">No more free attempts</string>
-    <string name="sora_card_verification_failed">Verification Failed</string>
-    <string name="sora_card_verification_in_progress">Verification In Progress</string>
-    <string name="sora_card_verification_rejected">Card Is REJECTED</string>
-    <string name="sora_card_verification_successful">Card Is On The Way</string>
+    <string name="sora_card_verification_failed">Verification failed</string>
+    <string name="sora_card_verification_in_progress">Verification in progress</string>
+    <string name="sora_card_verification_rejected">Verification rejected</string>
+    <string name="sora_card_verification_successful">Your card is on the way</string>
     <string name="sora_card_get_sora_card">Get SORA Card</string>
 
     <string name="sora_card_blacklisted_countires_title">Excluded of application</string>
