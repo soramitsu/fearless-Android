@@ -22,20 +22,20 @@ import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.core.models.ChainAssetType
 import jp.co.soramitsu.core.rpc.RpcCalls
 import jp.co.soramitsu.core.rpc.calls.getBlock
-import jp.co.soramitsu.fearless_utils.runtime.AccountId
-import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
-import jp.co.soramitsu.fearless_utils.runtime.definitions.registry.TypeRegistry
-import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.DictEnum
-import jp.co.soramitsu.fearless_utils.runtime.definitions.types.primitives.FixedByteArray
-import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
-import jp.co.soramitsu.fearless_utils.runtime.metadata.module
-import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
-import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
 import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 import jp.co.soramitsu.runtime.storage.source.queryNonNull
+import jp.co.soramitsu.shared_utils.runtime.AccountId
+import jp.co.soramitsu.shared_utils.runtime.RuntimeSnapshot
+import jp.co.soramitsu.shared_utils.runtime.definitions.registry.TypeRegistry
+import jp.co.soramitsu.shared_utils.runtime.definitions.types.composite.DictEnum
+import jp.co.soramitsu.shared_utils.runtime.definitions.types.primitives.FixedByteArray
+import jp.co.soramitsu.shared_utils.runtime.extrinsic.ExtrinsicBuilder
+import jp.co.soramitsu.shared_utils.runtime.metadata.module
+import jp.co.soramitsu.shared_utils.runtime.metadata.storage
+import jp.co.soramitsu.shared_utils.runtime.metadata.storageKey
 import jp.co.soramitsu.wallet.api.data.cache.bindAccountInfoOrDefault
 import jp.co.soramitsu.wallet.api.data.cache.bindEquilibriumAccountData
 import jp.co.soramitsu.wallet.api.data.cache.bindOrmlTokensAccountDataOrDefault
@@ -74,6 +74,7 @@ class WssSubstrateSource(
         ChainAssetType.SoraUtilityAsset -> {
             getDefaultAccountInfo(chainAsset.chainId, accountId)
         }
+
         ChainAssetType.OrmlChain,
         ChainAssetType.OrmlAsset,
         ChainAssetType.ForeignAsset,
@@ -85,9 +86,11 @@ class WssSubstrateSource(
         ChainAssetType.Stable -> {
             getOrmlTokensAccountData(chainAsset, accountId)
         }
+
         ChainAssetType.Equilibrium -> {
             getEquilibriumAccountInfo(chainAsset, accountId)
         }
+
         ChainAssetType.Unknown -> null
     }
 

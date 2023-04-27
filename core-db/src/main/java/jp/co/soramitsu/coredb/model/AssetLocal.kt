@@ -3,10 +3,10 @@ package jp.co.soramitsu.coredb.model
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
-import java.math.BigInteger
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.coredb.model.chain.ChainLocal
-import jp.co.soramitsu.fearless_utils.runtime.AccountId
+import jp.co.soramitsu.shared_utils.runtime.AccountId
+import java.math.BigInteger
 
 @Entity(
     tableName = "assets",

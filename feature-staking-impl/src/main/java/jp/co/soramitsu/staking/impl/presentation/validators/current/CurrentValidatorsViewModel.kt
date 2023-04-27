@@ -1,7 +1,6 @@
 package jp.co.soramitsu.staking.impl.presentation.validators.current
 
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -11,10 +10,10 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.toHexAccountId
 import jp.co.soramitsu.common.utils.withLoading
-import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.runtime.ext.addressOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.shared_utils.extensions.fromHex
 import jp.co.soramitsu.staking.api.domain.model.NominatedValidator
 import jp.co.soramitsu.staking.api.domain.model.StakingState
 import jp.co.soramitsu.staking.impl.domain.StakingInteractor
@@ -40,6 +39,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import javax.inject.Inject
 
 @HiltViewModel
 class CurrentValidatorsViewModel @Inject constructor(

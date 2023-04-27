@@ -1,6 +1,5 @@
 package jp.co.soramitsu.staking.impl.data.network.blockhain.bindings
 
-import java.math.BigInteger
 import jp.co.soramitsu.common.data.network.runtime.binding.UseCaseBinding
 import jp.co.soramitsu.common.data.network.runtime.binding.bindNumber
 import jp.co.soramitsu.common.data.network.runtime.binding.bindString
@@ -12,16 +11,17 @@ import jp.co.soramitsu.common.data.network.runtime.binding.returnType
 import jp.co.soramitsu.common.data.network.runtime.binding.storageReturnType
 import jp.co.soramitsu.common.utils.nominationPools
 import jp.co.soramitsu.common.utils.second
-import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
-import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.DictEnum
-import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.Struct
-import jp.co.soramitsu.fearless_utils.runtime.definitions.types.fromHexOrNull
-import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
+import jp.co.soramitsu.shared_utils.runtime.RuntimeSnapshot
+import jp.co.soramitsu.shared_utils.runtime.definitions.types.composite.DictEnum
+import jp.co.soramitsu.shared_utils.runtime.definitions.types.composite.Struct
+import jp.co.soramitsu.shared_utils.runtime.definitions.types.fromHexOrNull
+import jp.co.soramitsu.shared_utils.runtime.metadata.storage
 import jp.co.soramitsu.staking.impl.data.model.BondedPool
 import jp.co.soramitsu.staking.impl.data.model.BondedPoolState
 import jp.co.soramitsu.staking.impl.data.model.PoolMember
 import jp.co.soramitsu.staking.impl.data.model.PoolRewards
 import jp.co.soramitsu.staking.impl.data.model.PoolUnbonding
+import java.math.BigInteger
 
 @UseCaseBinding
 fun bindMinJoinBond(

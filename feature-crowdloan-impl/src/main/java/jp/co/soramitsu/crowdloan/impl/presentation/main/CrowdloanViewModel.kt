@@ -3,9 +3,6 @@ package jp.co.soramitsu.crowdloan.impl.presentation.main
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.math.BigDecimal
-import javax.inject.Inject
-import javax.inject.Named
 import jp.co.soramitsu.account.api.domain.interfaces.SelectedAccountUseCase
 import jp.co.soramitsu.common.BuildConfig
 import jp.co.soramitsu.common.address.AddressIconGenerator
@@ -39,21 +36,20 @@ import jp.co.soramitsu.crowdloan.impl.presentation.contribute.select.parcel.getS
 import jp.co.soramitsu.crowdloan.impl.presentation.contribute.select.parcel.mapParachainMetadataToParcel
 import jp.co.soramitsu.crowdloan.impl.presentation.main.model.CrowdloanModel
 import jp.co.soramitsu.crowdloan.impl.presentation.main.model.CrowdloanStatusModel
-import jp.co.soramitsu.fearless_utils.extensions.toHexString
-import jp.co.soramitsu.fearless_utils.hash.Hasher.blake2b256
 import jp.co.soramitsu.feature_crowdloan_impl.R
 import jp.co.soramitsu.runtime.ext.addressOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.state.chain
 import jp.co.soramitsu.runtime.state.selectedChainFlow
+import jp.co.soramitsu.shared_utils.extensions.toHexString
+import jp.co.soramitsu.shared_utils.hash.Hasher.blake2b256
 import jp.co.soramitsu.wallet.api.domain.AssetUseCase
 import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.wallet.api.presentation.mixin.assetSelector.AssetSelectorMixin
 import jp.co.soramitsu.wallet.api.presentation.mixin.assetSelector.WithAssetSelector
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
-import kotlin.reflect.KClass
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
@@ -61,6 +57,10 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
+import javax.inject.Inject
+import javax.inject.Named
+import kotlin.reflect.KClass
 
 private const val ICON_SIZE_DP = 40
 

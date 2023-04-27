@@ -1,6 +1,5 @@
 package jp.co.soramitsu.runtime.multiNetwork
 
-import javax.inject.Inject
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
 import jp.co.soramitsu.common.utils.diffed
@@ -12,7 +11,6 @@ import jp.co.soramitsu.core.runtime.IChainRegistry
 import jp.co.soramitsu.core.runtime.IRuntimeProvider
 import jp.co.soramitsu.coredb.dao.ChainDao
 import jp.co.soramitsu.coredb.model.chain.ChainNodeLocal
-import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainSyncService
 import jp.co.soramitsu.runtime.multiNetwork.chain.mapChainLocalToChain
 import jp.co.soramitsu.runtime.multiNetwork.chain.mapNodeLocalToNode
@@ -23,6 +21,7 @@ import jp.co.soramitsu.runtime.multiNetwork.connection.ConnectionPool
 import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeProviderPool
 import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeSubscriptionPool
 import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeSyncService
+import jp.co.soramitsu.shared_utils.runtime.RuntimeSnapshot
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
@@ -32,6 +31,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 data class ChainService(
     val runtimeProvider: IRuntimeProvider,

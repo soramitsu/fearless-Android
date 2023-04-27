@@ -5,11 +5,11 @@ import jp.co.soramitsu.common.data.network.rpc.queryKey
 import jp.co.soramitsu.common.data.network.rpc.retrieveAllValues
 import jp.co.soramitsu.common.data.network.runtime.binding.BlockHash
 import jp.co.soramitsu.core.rpc.models.requests.GetChildStateRequest
-import jp.co.soramitsu.fearless_utils.wsrpc.executeAsync
-import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.storage.SubscribeStorageRequest
-import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.storage.storageChange
-import jp.co.soramitsu.fearless_utils.wsrpc.subscriptionFlow
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.shared_utils.wsrpc.executeAsync
+import jp.co.soramitsu.shared_utils.wsrpc.request.runtime.storage.SubscribeStorageRequest
+import jp.co.soramitsu.shared_utils.wsrpc.request.runtime.storage.storageChange
+import jp.co.soramitsu.shared_utils.wsrpc.subscriptionFlow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 

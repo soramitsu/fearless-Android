@@ -2,9 +2,9 @@ package jp.co.soramitsu.staking.impl.scenarios
 
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.validation.ValidationSystem
-import jp.co.soramitsu.fearless_utils.runtime.AccountId
-import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.shared_utils.runtime.AccountId
+import jp.co.soramitsu.shared_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.staking.api.domain.model.RewardDestination
 import jp.co.soramitsu.staking.api.domain.model.StakingLedger
 import jp.co.soramitsu.staking.api.domain.model.StakingState

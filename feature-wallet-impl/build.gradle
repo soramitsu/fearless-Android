@@ -102,8 +102,6 @@ dependencies {
     testImplementation jUnitDep
     testImplementation mockitoDep
 
-    implementation fearlessLibDep
-
     implementation gsonDep
     implementation retrofitDep
 

@@ -14,10 +14,10 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.combine
 import jp.co.soramitsu.common.utils.requireException
 import jp.co.soramitsu.common.view.ButtonState
-import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
-import jp.co.soramitsu.fearless_utils.wsrpc.executeAsync
-import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.chain.RuntimeVersionRequest
 import jp.co.soramitsu.feature_account_impl.R
+import jp.co.soramitsu.shared_utils.wsrpc.SocketService
+import jp.co.soramitsu.shared_utils.wsrpc.executeAsync
+import jp.co.soramitsu.shared_utils.wsrpc.request.runtime.chain.RuntimeVersionRequest
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout

@@ -163,8 +163,6 @@ dependencies {
 
     implementation roomDep
 
-    implementation fearlessLibDep
-
     implementation daggerDep
     kapt daggerKapt
 

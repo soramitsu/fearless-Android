@@ -5,10 +5,10 @@ import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.coredb.dao.OperationDao
 import jp.co.soramitsu.coredb.model.OperationLocal
-import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.runtime.ext.addressOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.shared_utils.runtime.AccountId
 import jp.co.soramitsu.wallet.impl.data.historySource.HistorySourceProvider
 import jp.co.soramitsu.wallet.impl.data.mappers.mapOperationLocalToOperation
 import jp.co.soramitsu.wallet.impl.data.mappers.mapOperationToOperationLocalDb

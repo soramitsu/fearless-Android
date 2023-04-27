@@ -1,11 +1,11 @@
 package jp.co.soramitsu.polkaswap.impl.data.network.blockchain
 
-import java.math.BigInteger
-import jp.co.soramitsu.fearless_utils.extensions.fromHex
-import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.DictEnum
-import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.Struct
-import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.polkaswap.api.models.WithDesired
+import jp.co.soramitsu.shared_utils.extensions.fromHex
+import jp.co.soramitsu.shared_utils.runtime.definitions.types.composite.DictEnum
+import jp.co.soramitsu.shared_utils.runtime.definitions.types.composite.Struct
+import jp.co.soramitsu.shared_utils.runtime.extrinsic.ExtrinsicBuilder
+import java.math.BigInteger
 
 fun ExtrinsicBuilder.swap(
     dexId: Int,

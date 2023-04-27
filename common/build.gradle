@@ -103,8 +103,6 @@ dependencies {
 
     implementation bouncyCastleDep
 
-    implementation fearlessLibDep
-
     implementation coroutinesDep
     implementation liveDataKtxDep
     implementation lifeCycleKtxDep

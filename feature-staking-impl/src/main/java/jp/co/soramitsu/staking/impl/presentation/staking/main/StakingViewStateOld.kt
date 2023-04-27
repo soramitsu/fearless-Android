@@ -2,8 +2,6 @@ package jp.co.soramitsu.staking.impl.presentation.staking.main
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import java.math.BigDecimal
-import java.math.BigInteger
 import jp.co.soramitsu.common.base.TitleAndMessage
 import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.presentation.LoadingState
@@ -17,10 +15,10 @@ import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.withLoading
 import jp.co.soramitsu.common.validation.ValidationExecutor
-import jp.co.soramitsu.fearless_utils.extensions.toHexString
-import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.runtime.ext.accountFromMapKey
+import jp.co.soramitsu.shared_utils.extensions.toHexString
+import jp.co.soramitsu.shared_utils.runtime.AccountId
 import jp.co.soramitsu.staking.api.domain.model.CandidateInfo
 import jp.co.soramitsu.staking.api.domain.model.CandidateInfoStatus
 import jp.co.soramitsu.staking.api.domain.model.Round
@@ -76,6 +74,8 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
+import java.math.BigInteger
 import jp.co.soramitsu.core.models.Asset as CoreAsset
 
 @Deprecated("All ViewStates should be provided and created in staking type aware ViewModels")

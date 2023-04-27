@@ -2,7 +2,6 @@ package jp.co.soramitsu.runtime.multiNetwork.runtime
 
 import android.util.Log
 import io.ktor.util.collections.ConcurrentSet
-import java.util.concurrent.ConcurrentHashMap
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
 import jp.co.soramitsu.common.utils.md5
@@ -10,14 +9,14 @@ import jp.co.soramitsu.common.utils.newLimitedThreadPoolExecutor
 import jp.co.soramitsu.coredb.dao.ChainDao
 import jp.co.soramitsu.coredb.model.chain.ChainRuntimeInfoLocal
 import jp.co.soramitsu.coredb.model.chain.ChainTypesLocal
-import jp.co.soramitsu.fearless_utils.runtime.metadata.GetMetadataRequest
-import jp.co.soramitsu.fearless_utils.wsrpc.executeAsync
-import jp.co.soramitsu.fearless_utils.wsrpc.mappers.nonNull
-import jp.co.soramitsu.fearless_utils.wsrpc.mappers.pojo
 import jp.co.soramitsu.runtime.BuildConfig
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.connection.ConnectionPool
 import jp.co.soramitsu.runtime.multiNetwork.runtime.types.TypesFetcher
+import jp.co.soramitsu.shared_utils.runtime.metadata.GetMetadataRequest
+import jp.co.soramitsu.shared_utils.wsrpc.executeAsync
+import jp.co.soramitsu.shared_utils.wsrpc.mappers.nonNull
+import jp.co.soramitsu.shared_utils.wsrpc.mappers.pojo
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -31,6 +30,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import java.util.concurrent.ConcurrentHashMap
 
 class SyncResult(
     val chainId: String,

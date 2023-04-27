@@ -17,9 +17,9 @@ import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.validation.MinPoolCreationThresholdException
 import jp.co.soramitsu.common.validation.StakeInsufficientBalanceException
-import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.shared_utils.runtime.AccountId
 import jp.co.soramitsu.staking.impl.domain.StakingInteractor
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
 import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSharedStateProvider

@@ -1,7 +1,7 @@
 package jp.co.soramitsu.common.data.network.runtime.binding
 
 import jp.co.soramitsu.core.models.MultiAddress
-import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.DictEnum
+import jp.co.soramitsu.shared_utils.runtime.definitions.types.composite.DictEnum
 
 fun bindMultiAddress(dynamicInstance: DictEnum.Entry<*>): MultiAddress {
     return when (dynamicInstance.name) {

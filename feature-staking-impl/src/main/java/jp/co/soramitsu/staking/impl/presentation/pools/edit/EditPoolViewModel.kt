@@ -5,7 +5,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.account.api.domain.model.accountId
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.navigation.payload.WalletSelectorPayload
-import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAddress
+import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.toAddress
 import jp.co.soramitsu.staking.impl.domain.StakingInteractor
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
 import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSharedStateProvider

@@ -4,8 +4,8 @@ import jp.co.soramitsu.core.models.TypesUsage
 import jp.co.soramitsu.core.runtime.ConstructedRuntime
 import jp.co.soramitsu.core.runtime.RuntimeFactory
 import jp.co.soramitsu.coredb.dao.ChainDao
-import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.shared_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.testshared.any
 import jp.co.soramitsu.testshared.eq
 import jp.co.soramitsu.testshared.thenThrowUnsafe
@@ -131,7 +131,7 @@ class RuntimeProviderTest {
             currentChainTypesHash("Hash")
             currentMetadataHash("Hash")
 
-            chainSyncFlow.emit(SyncResult(chain.id, metadataHash =  null, typesHash = null))
+            chainSyncFlow.emit(SyncResult(chain.id, metadataHash = null, typesHash = null))
 
             verifyReconstructionNotStarted()
         }
@@ -151,7 +151,7 @@ class RuntimeProviderTest {
             currentChainTypesHash("Hash")
             currentMetadataHash("Hash")
 
-            chainSyncFlow.emit(SyncResult(chain.id, metadataHash =  null, typesHash = null))
+            chainSyncFlow.emit(SyncResult(chain.id, metadataHash = null, typesHash = null))
 
             verifyReconstructionNotStarted()
         }

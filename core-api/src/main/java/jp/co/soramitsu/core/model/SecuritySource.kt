@@ -1,6 +1,6 @@
 package jp.co.soramitsu.core.model
 
-import jp.co.soramitsu.fearless_utils.encrypt.keypair.Keypair
+import jp.co.soramitsu.shared_utils.encrypt.keypair.Keypair
 
 sealed class SecuritySource(
     val keypair: Keypair

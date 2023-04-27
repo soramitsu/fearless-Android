@@ -40,8 +40,6 @@ dependencies {
 
     implementation daggerDep
 
-    implementation fearlessLibDep
-
     implementation androidDep
     implementation constraintDep
 

@@ -1,7 +1,7 @@
 package jp.co.soramitsu.staking.impl.data.model
 
+import jp.co.soramitsu.shared_utils.runtime.AccountId
 import java.math.BigInteger
-import jp.co.soramitsu.fearless_utils.runtime.AccountId
 
 data class BondedPool(
     val points: BigInteger,

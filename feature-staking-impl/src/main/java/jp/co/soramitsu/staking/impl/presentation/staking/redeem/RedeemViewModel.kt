@@ -5,7 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.math.BigDecimal
+import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressModel
@@ -20,8 +20,9 @@ import jp.co.soramitsu.common.utils.requireException
 import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.common.validation.progressConsumer
-import jp.co.soramitsu.fearless_utils.extensions.fromHex
-import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
+import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
+import jp.co.soramitsu.shared_utils.extensions.fromHex
 import jp.co.soramitsu.staking.api.domain.model.StakingState
 import jp.co.soramitsu.staking.impl.domain.StakingInteractor
 import jp.co.soramitsu.staking.impl.domain.staking.redeem.RedeemInteractor
@@ -30,10 +31,6 @@ import jp.co.soramitsu.staking.impl.presentation.StakingRouter
 import jp.co.soramitsu.staking.impl.scenarios.StakingScenarioInteractor
 import jp.co.soramitsu.wallet.api.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.wallet.api.presentation.mixin.fee.FeeLoaderMixin
-import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
-import kotlin.time.DurationUnit
-import kotlin.time.toDuration
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.combine
@@ -45,8 +42,11 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
 import javax.inject.Inject
 import javax.inject.Named
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
 
 private const val DEBOUNCE_DURATION_MILLIS = 500
 

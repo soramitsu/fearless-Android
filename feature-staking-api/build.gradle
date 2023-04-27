@@ -29,7 +29,6 @@ android {
 dependencies {
     implementation coroutinesDep
 
-    implementation fearlessLibDep
     implementation daggerDep
 
     implementation project(':runtime')

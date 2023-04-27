@@ -7,10 +7,10 @@ import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.withLoading
 import jp.co.soramitsu.common.validation.CompositeValidation
 import jp.co.soramitsu.common.validation.ValidationSystem
-import jp.co.soramitsu.fearless_utils.extensions.fromHex
-import jp.co.soramitsu.fearless_utils.extensions.requireHexPrefix
-import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.feature_staking_impl.R
+import jp.co.soramitsu.shared_utils.extensions.fromHex
+import jp.co.soramitsu.shared_utils.extensions.requireHexPrefix
+import jp.co.soramitsu.shared_utils.extensions.toHexString
 import jp.co.soramitsu.staking.api.domain.model.DelegatorStateStatus
 import jp.co.soramitsu.staking.api.domain.model.StakingState
 import jp.co.soramitsu.staking.impl.data.repository.datasource.ParachainStakingStoriesDataSourceImpl
