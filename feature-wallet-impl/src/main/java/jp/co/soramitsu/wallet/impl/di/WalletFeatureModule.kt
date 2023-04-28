@@ -270,8 +270,8 @@ class WalletFeatureModule {
     ): ChainInteractor = ChainInteractor(chainDao, xcmEntitiesFetcher)
 
     @Provides
-    fun provideXcmEntitiesFetcher(chainRegistry: ChainRegistry): XcmEntitiesFetcher {
-        return XcmEntitiesFetcher(chainRegistry)
+    fun provideXcmEntitiesFetcher(): XcmEntitiesFetcher {
+        return XcmEntitiesFetcher()
     }
 
     @Provides

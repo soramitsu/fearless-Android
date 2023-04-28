@@ -1,6 +1,7 @@
 package jp.co.soramitsu.wallet.impl.domain
 
 import jp.co.soramitsu.common.utils.mapList
+import jp.co.soramitsu.core.models.ChainId
 import jp.co.soramitsu.coredb.dao.ChainDao
 import jp.co.soramitsu.runtime.multiNetwork.chain.mapChainLocalToChain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
@@ -19,13 +20,13 @@ class ChainInteractor(
         it.sortedWith(chainDefaultSort())
     }
 
-    fun getXcmChainsFlow(
+    fun getXcmChainIdsFlow(
         type: XcmChainType,
         originalChainId: String? = null,
         assetSymbol: String? = null
-    ): Flow<List<Chain>> {
+    ): Flow<List<ChainId>> {
         return flow {
-            val chains = when (type) {
+            val chainIds = when (type) {
                 XcmChainType.Original -> {
                     xcmEntitiesFetcher.getAvailableOriginalChains(
                         assetSymbol = null,
@@ -38,8 +39,8 @@ class ChainInteractor(
                         originalChainId = originalChainId
                     )
                 }
-            }.map { it as Chain }
-            emit(chains)
+            }
+            emit(chainIds)
         }
     }
 

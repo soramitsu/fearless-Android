@@ -152,7 +152,7 @@ class ChainAssetsManager @Inject constructor(
         val availableDestinationChainIds = xcmEntitiesFetcher.getAvailableDestinationChains(
             originalChainId = originalChainId,
             assetSymbol = asset?.token?.configuration?.symbol?.uppercase()
-        ).map { it.id }
+        )
 
         return destinationChainId.takeIf {
             destinationChainId in availableDestinationChainIds

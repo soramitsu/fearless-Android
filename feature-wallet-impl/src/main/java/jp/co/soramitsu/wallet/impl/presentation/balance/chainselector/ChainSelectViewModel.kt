@@ -5,16 +5,15 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.common.base.BaseViewModel
-import jp.co.soramitsu.runtime.ext.ecosystem
 import jp.co.soramitsu.core.models.utilityAsset
+import jp.co.soramitsu.runtime.ext.ecosystem
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainEcosystem
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.defaultChainSort
+import jp.co.soramitsu.wallet.api.domain.model.XcmChainType
 import jp.co.soramitsu.wallet.impl.domain.ChainInteractor
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
-import jp.co.soramitsu.wallet.api.domain.model.XcmChainType
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
-import jp.co.soramitsu.wallet.api.presentation.WalletRouter as WalletRouterApi
 import jp.co.soramitsu.wallet.impl.presentation.send.SendSharedState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -23,6 +22,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import jp.co.soramitsu.wallet.api.presentation.WalletRouter as WalletRouterApi
 
 @HiltViewModel
 class ChainSelectViewModel @Inject constructor(
@@ -57,11 +57,18 @@ class ChainSelectViewModel @Inject constructor(
     private val allChainsFlow = if (xcmChainType == null) {
         chainInteractor.getChainsFlow()
     } else {
-        chainInteractor.getXcmChainsFlow(
-            type = xcmChainType,
-            originalChainId = xcmSelectedOriginalChainId,
-            assetSymbol = xcmAssetSymbol
-        )
+        combine(
+            chainInteractor.getChainsFlow(),
+            chainInteractor.getXcmChainIdsFlow(
+                type = xcmChainType,
+                originalChainId = xcmSelectedOriginalChainId,
+                assetSymbol = xcmAssetSymbol
+            )
+        ) { chains, xsmChainIds ->
+            chains.filter {
+                it.id in xsmChainIds
+            }
+        }
     }
 
     private val chainsFlow = allChainsFlow.map { chains ->
