@@ -48,7 +48,6 @@ import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.sumByBigDecimal
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
 import jp.co.soramitsu.core.models.Asset
-import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.addressByteOrNull
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.oauth.base.sdk.SoraCardEnvironmentType
 import jp.co.soramitsu.oauth.base.sdk.SoraCardInfo
@@ -63,6 +62,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.defaultChainSort
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.getWithToken
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
+import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.addressByteOrNull
 import jp.co.soramitsu.soracard.api.domain.SoraCardInteractor
 import jp.co.soramitsu.soracard.impl.presentation.SoraCardItemViewState
 import jp.co.soramitsu.wallet.impl.data.mappers.mapAssetToAssetModel

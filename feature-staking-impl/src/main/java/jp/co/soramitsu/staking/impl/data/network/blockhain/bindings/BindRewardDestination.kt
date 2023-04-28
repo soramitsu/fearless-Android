@@ -4,11 +4,11 @@ import jp.co.soramitsu.common.data.network.runtime.binding.cast
 import jp.co.soramitsu.common.data.network.runtime.binding.incompatible
 import jp.co.soramitsu.common.data.network.runtime.binding.returnType
 import jp.co.soramitsu.common.utils.staking
-import jp.co.soramitsu.fearless_utils.runtime.AccountId
-import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
-import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.DictEnum
-import jp.co.soramitsu.fearless_utils.runtime.definitions.types.fromHexOrNull
-import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
+import jp.co.soramitsu.shared_utils.runtime.AccountId
+import jp.co.soramitsu.shared_utils.runtime.RuntimeSnapshot
+import jp.co.soramitsu.shared_utils.runtime.definitions.types.composite.DictEnum
+import jp.co.soramitsu.shared_utils.runtime.definitions.types.fromHexOrNull
+import jp.co.soramitsu.shared_utils.runtime.metadata.storage
 import jp.co.soramitsu.staking.api.domain.model.RewardDestination
 
 private const val TYPE_STAKED = "Staked"

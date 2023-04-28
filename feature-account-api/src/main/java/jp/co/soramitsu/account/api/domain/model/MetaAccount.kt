@@ -3,10 +3,10 @@ package jp.co.soramitsu.account.api.domain.model
 import jp.co.soramitsu.common.utils.ethereumAddressToHex
 import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.core.models.IChain
-import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAddress
 import jp.co.soramitsu.runtime.ext.addressOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.toAddress
 
 class MetaAccountOrdering(
     val id: Long,

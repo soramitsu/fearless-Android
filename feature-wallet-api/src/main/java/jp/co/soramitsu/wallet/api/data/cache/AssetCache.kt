@@ -11,7 +11,7 @@ import jp.co.soramitsu.coredb.dao.emptyAccountIdValue
 import jp.co.soramitsu.coredb.model.AssetLocal
 import jp.co.soramitsu.coredb.model.AssetUpdateItem
 import jp.co.soramitsu.coredb.model.TokenPriceLocal
-import jp.co.soramitsu.fearless_utils.runtime.AccountId
+import jp.co.soramitsu.shared_utils.runtime.AccountId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock

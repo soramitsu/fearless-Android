@@ -12,11 +12,11 @@ import jp.co.soramitsu.crowdloan.impl.data.network.api.moonbeam.RemarkStoreReque
 import jp.co.soramitsu.crowdloan.impl.data.network.api.moonbeam.RemarkVerifyRequest
 import jp.co.soramitsu.crowdloan.impl.data.network.api.moonbeam.SignatureRequest
 import jp.co.soramitsu.crowdloan.impl.data.network.blockhain.extrinsic.addMemo
-import jp.co.soramitsu.fearless_utils.extensions.fromHex
-import jp.co.soramitsu.fearless_utils.extensions.toHexString
-import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.shared_utils.extensions.fromHex
+import jp.co.soramitsu.shared_utils.extensions.toHexString
+import jp.co.soramitsu.shared_utils.runtime.extrinsic.ExtrinsicBuilder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext

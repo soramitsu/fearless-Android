@@ -1,7 +1,7 @@
 package jp.co.soramitsu.common.mixin.api
 
 import jp.co.soramitsu.common.model.AssetKey
-import jp.co.soramitsu.fearless_utils.runtime.AccountId
+import jp.co.soramitsu.shared_utils.runtime.AccountId
 import kotlinx.coroutines.flow.Flow
 
 interface UpdatesMixin : UpdatesProviderUi

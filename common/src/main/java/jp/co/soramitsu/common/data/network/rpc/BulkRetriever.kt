@@ -1,11 +1,11 @@
 package jp.co.soramitsu.common.data.network.rpc
 
 import jp.co.soramitsu.common.data.network.runtime.binding.BlockHash
-import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
-import jp.co.soramitsu.fearless_utils.wsrpc.executeAsync
-import jp.co.soramitsu.fearless_utils.wsrpc.mappers.nonNull
-import jp.co.soramitsu.fearless_utils.wsrpc.mappers.pojoList
-import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.RuntimeRequest
+import jp.co.soramitsu.shared_utils.wsrpc.SocketService
+import jp.co.soramitsu.shared_utils.wsrpc.executeAsync
+import jp.co.soramitsu.shared_utils.wsrpc.mappers.nonNull
+import jp.co.soramitsu.shared_utils.wsrpc.mappers.pojoList
+import jp.co.soramitsu.shared_utils.wsrpc.request.runtime.RuntimeRequest
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext

@@ -1,7 +1,6 @@
 package jp.co.soramitsu.staking.impl.presentation.validators.change.custom.search
 
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import jp.co.soramitsu.common.address.AddressIconGenerator.Companion.SIZE_MEDIUM
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.presentation.LoadingState
@@ -10,10 +9,10 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.invoke
 import jp.co.soramitsu.common.utils.withLoadingSingle
-import jp.co.soramitsu.fearless_utils.extensions.fromHex
-import jp.co.soramitsu.fearless_utils.extensions.requireHexPrefix
-import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.feature_staking_impl.R
+import jp.co.soramitsu.shared_utils.extensions.fromHex
+import jp.co.soramitsu.shared_utils.extensions.requireHexPrefix
+import jp.co.soramitsu.shared_utils.extensions.toHexString
 import jp.co.soramitsu.staking.impl.domain.validators.current.search.BlockedValidatorException
 import jp.co.soramitsu.staking.impl.domain.validators.current.search.SearchCustomBlockProducerInteractor
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
@@ -30,6 +29,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 import javax.inject.Named
 
 sealed class SearchBlockProducersState {

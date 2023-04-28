@@ -3,10 +3,10 @@ package jp.co.soramitsu.wallet.impl.domain.model
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.common.model.AssetKey
 import jp.co.soramitsu.common.utils.orZero
-import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.core.models.utilityAsset
-import jp.co.soramitsu.core.models.Asset as CoreAsset
+import jp.co.soramitsu.shared_utils.runtime.AccountId
 import java.math.BigInteger
+import jp.co.soramitsu.core.models.Asset as CoreAsset
 
 class Asset(
     val metaId: Long,

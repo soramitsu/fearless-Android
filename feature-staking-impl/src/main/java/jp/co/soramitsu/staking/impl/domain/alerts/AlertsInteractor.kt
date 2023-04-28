@@ -2,7 +2,7 @@ package jp.co.soramitsu.staking.impl.domain.alerts
 
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.common.utils.orZero
-import jp.co.soramitsu.fearless_utils.runtime.AccountId
+import jp.co.soramitsu.shared_utils.runtime.AccountId
 import jp.co.soramitsu.staking.api.data.StakingSharedState
 import jp.co.soramitsu.staking.api.domain.model.Exposure
 import jp.co.soramitsu.staking.api.domain.model.StakingState

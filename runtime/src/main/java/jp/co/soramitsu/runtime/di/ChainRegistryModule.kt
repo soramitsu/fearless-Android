@@ -4,8 +4,6 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import javax.inject.Provider
-import javax.inject.Singleton
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.interfaces.FileProvider
@@ -16,7 +14,6 @@ import jp.co.soramitsu.core.runtime.ChainConnection
 import jp.co.soramitsu.core.runtime.IChainRegistry
 import jp.co.soramitsu.core.runtime.RuntimeFactory
 import jp.co.soramitsu.coredb.dao.ChainDao
-import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainSyncService
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.ChainFetcher
@@ -27,8 +24,11 @@ import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeSubscriptionPool
 import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeSyncService
 import jp.co.soramitsu.runtime.multiNetwork.runtime.types.TypesFetcher
 import jp.co.soramitsu.runtime.storage.NodesSettingsStorage
+import jp.co.soramitsu.shared_utils.wsrpc.SocketService
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.serialization.json.Json
+import javax.inject.Provider
+import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
 @Module

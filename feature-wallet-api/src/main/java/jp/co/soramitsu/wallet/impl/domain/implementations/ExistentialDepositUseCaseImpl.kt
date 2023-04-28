@@ -8,9 +8,9 @@ import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.core.models.ChainAssetType
 import jp.co.soramitsu.core.rpc.RpcCalls
 import jp.co.soramitsu.core.rpc.calls.getExistentialDeposit
-import jp.co.soramitsu.fearless_utils.runtime.metadata.module
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.getRuntime
+import jp.co.soramitsu.shared_utils.runtime.metadata.module
 import jp.co.soramitsu.wallet.api.domain.ExistentialDepositUseCase
 import java.math.BigInteger
 

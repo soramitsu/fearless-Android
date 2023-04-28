@@ -8,8 +8,8 @@ import jp.co.soramitsu.account.api.domain.model.MetaAccountOrdering
 import jp.co.soramitsu.common.data.secrets.v1.SecretStoreV1
 import jp.co.soramitsu.core.model.Language
 import jp.co.soramitsu.core.models.CryptoType
-import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.shared_utils.runtime.AccountId
 import kotlinx.coroutines.flow.Flow
 
 interface AccountDataSource : SecretStoreV1 {

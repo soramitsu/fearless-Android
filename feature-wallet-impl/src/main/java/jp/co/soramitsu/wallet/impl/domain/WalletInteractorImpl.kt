@@ -17,13 +17,13 @@ import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.core.models.ChainId
 import jp.co.soramitsu.core.models.isValidAddress
 import jp.co.soramitsu.coredb.model.AssetUpdateItem
-import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.isPolkadotOrKusama
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import jp.co.soramitsu.runtime.multiNetwork.chainWithAsset
+import jp.co.soramitsu.shared_utils.runtime.AccountId
 import jp.co.soramitsu.wallet.impl.data.repository.HistoryRepository
 import jp.co.soramitsu.wallet.impl.domain.interfaces.AddressBookRepository
 import jp.co.soramitsu.wallet.impl.domain.interfaces.TransactionFilter

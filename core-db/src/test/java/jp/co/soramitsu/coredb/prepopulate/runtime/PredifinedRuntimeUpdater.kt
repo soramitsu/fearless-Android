@@ -1,9 +1,9 @@
 package jp.co.soramitsu.coredb.prepopulate.runtime
 
-import jp.co.soramitsu.fearless_utils.runtime.metadata.GetMetadataRequest
-import jp.co.soramitsu.fearless_utils.wsrpc.executeAsync
-import jp.co.soramitsu.fearless_utils.wsrpc.mappers.nonNull
-import jp.co.soramitsu.fearless_utils.wsrpc.mappers.pojo
+import jp.co.soramitsu.shared_utils.runtime.metadata.GetMetadataRequest
+import jp.co.soramitsu.shared_utils.wsrpc.executeAsync
+import jp.co.soramitsu.shared_utils.wsrpc.mappers.nonNull
+import jp.co.soramitsu.shared_utils.wsrpc.mappers.pojo
 import jp.co.soramitsu.testshared.createTestSocket
 import kotlinx.coroutines.runBlocking
 import org.junit.Ignore

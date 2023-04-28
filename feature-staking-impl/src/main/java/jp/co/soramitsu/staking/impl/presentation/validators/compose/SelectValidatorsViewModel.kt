@@ -5,8 +5,6 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.math.BigInteger
-import javax.inject.Inject
 import jp.co.soramitsu.common.AlertViewState
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.theme.black1
@@ -21,10 +19,10 @@ import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.invoke
 import jp.co.soramitsu.common.utils.lazyAsync
 import jp.co.soramitsu.common.utils.orZero
-import jp.co.soramitsu.fearless_utils.extensions.fromHex
-import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.shared_utils.extensions.fromHex
+import jp.co.soramitsu.shared_utils.extensions.toHexString
 import jp.co.soramitsu.staking.api.domain.model.Validator
 import jp.co.soramitsu.staking.impl.domain.recommendations.ValidatorRecommendatorFactory
 import jp.co.soramitsu.staking.impl.domain.recommendations.settings.RecommendationSettings
@@ -50,6 +48,8 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.math.BigInteger
+import javax.inject.Inject
 
 private val filtersSet = setOf(Filters.HavingOnChainIdentity, Filters.NotSlashedFilter, Filters.NotOverSubscribed)
 private val sortingSet = setOf(Sorting.EstimatedRewards, Sorting.TotalStake, Sorting.ValidatorsOwnStake)

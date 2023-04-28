@@ -2,8 +2,9 @@ package jp.co.soramitsu.runtime.multiNetwork.runtime
 
 import jp.co.soramitsu.core.runtime.ChainConnection
 import jp.co.soramitsu.coredb.dao.ChainDao
-import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.chain.runtimeVersionChange
-import jp.co.soramitsu.fearless_utils.wsrpc.subscriptionFlow
+import jp.co.soramitsu.shared_utils.wsrpc.request.runtime.chain.SubscribeRuntimeVersionRequest
+import jp.co.soramitsu.shared_utils.wsrpc.request.runtime.chain.runtimeVersionChange
+import jp.co.soramitsu.shared_utils.wsrpc.subscriptionFlow
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.launchIn

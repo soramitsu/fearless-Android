@@ -1,16 +1,17 @@
 package jp.co.soramitsu.common.data.network.runtime.binding
 
-import java.math.BigInteger
 import jp.co.soramitsu.common.utils.Modules
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.system
-import jp.co.soramitsu.fearless_utils.runtime.AccountId
-import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
-import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.DictEnum
-import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.Struct
-import jp.co.soramitsu.fearless_utils.runtime.definitions.types.fromHexOrNull
-import jp.co.soramitsu.fearless_utils.runtime.metadata.module
-import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
+import jp.co.soramitsu.core.rpc.storage.returnType
+import jp.co.soramitsu.shared_utils.runtime.AccountId
+import jp.co.soramitsu.shared_utils.runtime.RuntimeSnapshot
+import jp.co.soramitsu.shared_utils.runtime.definitions.types.composite.DictEnum
+import jp.co.soramitsu.shared_utils.runtime.definitions.types.composite.Struct
+import jp.co.soramitsu.shared_utils.runtime.definitions.types.fromHexOrNull
+import jp.co.soramitsu.shared_utils.runtime.metadata.module
+import jp.co.soramitsu.shared_utils.runtime.metadata.storage
+import java.math.BigInteger
 
 class AccountData(
     val free: BigInteger,
@@ -120,6 +121,7 @@ fun bindEquilibriumAssetRates(scale: String?, runtime: RuntimeSnapshot): EqOracl
         dataPoints = dataPoints
     )
 }
+
 fun bindEquilibriumAccountData(dynamicInstance: Struct.Instance?): EqAccountData {
     val balanceList: List<List<Any>>? = dynamicInstance?.getList("balance")?.cast()
     val balances = balanceList?.mapNotNull {

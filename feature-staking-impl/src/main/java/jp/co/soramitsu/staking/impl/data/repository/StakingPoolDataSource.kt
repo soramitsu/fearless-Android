@@ -5,13 +5,13 @@ import jp.co.soramitsu.common.utils.u32ArgumentFromStorageKey
 import jp.co.soramitsu.core.rpc.RpcCalls
 import jp.co.soramitsu.core.rpc.RuntimeCall
 import jp.co.soramitsu.core.rpc.calls.executeRuntimeCall
-import jp.co.soramitsu.fearless_utils.runtime.AccountId
-import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
-import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 import jp.co.soramitsu.runtime.storage.source.queryNonNull
+import jp.co.soramitsu.shared_utils.runtime.AccountId
+import jp.co.soramitsu.shared_utils.runtime.metadata.storage
+import jp.co.soramitsu.shared_utils.runtime.metadata.storageKey
 import jp.co.soramitsu.staking.impl.data.model.BondedPool
 import jp.co.soramitsu.staking.impl.data.model.PoolMember
 import jp.co.soramitsu.staking.impl.data.model.PoolRewards

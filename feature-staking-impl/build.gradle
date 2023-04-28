@@ -85,7 +85,6 @@ dependencies {
     testImplementation jUnitDep
     testImplementation mockitoDep
 
-    implementation fearlessLibDep
     compileOnly wsDep
 
     implementation gsonDep

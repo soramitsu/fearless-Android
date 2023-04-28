@@ -1,15 +1,13 @@
 package jp.co.soramitsu.staking.impl.domain.rewards
 
 import android.util.Log
-import java.math.BigDecimal
-import java.math.BigInteger
 import jp.co.soramitsu.common.utils.fractionToPercentage
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.percentageToFraction
-import jp.co.soramitsu.fearless_utils.extensions.fromHex
-import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.shared_utils.extensions.fromHex
+import jp.co.soramitsu.shared_utils.extensions.toHexString
 import jp.co.soramitsu.staking.api.domain.api.StakingRepository
 import jp.co.soramitsu.staking.impl.data.network.subquery.StakingApi
 import jp.co.soramitsu.staking.impl.data.network.subquery.request.StakingAllCollatorsApyRequest
@@ -18,6 +16,8 @@ import jp.co.soramitsu.staking.impl.data.network.subquery.request.StakingLastRou
 import jp.co.soramitsu.staking.impl.data.network.subquery.request.SubsquidCollatorsApyRequest
 import jp.co.soramitsu.staking.impl.scenarios.parachain.StakingParachainScenarioInteractor
 import kotlinx.coroutines.flow.first
+import java.math.BigDecimal
+import java.math.BigInteger
 
 class SubqueryRewardCalculator(
     private val stakingRepository: StakingRepository,

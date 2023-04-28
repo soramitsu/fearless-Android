@@ -3,7 +3,6 @@ package jp.co.soramitsu.staking.impl.presentation.pools
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.DropDownViewState
 import jp.co.soramitsu.common.compose.component.TitleValueViewState
@@ -12,13 +11,13 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.applyFiatRate
 import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.common.utils.formatAsCurrency
-import jp.co.soramitsu.fearless_utils.extensions.toHexString
-import jp.co.soramitsu.fearless_utils.runtime.AccountId
-import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAddress
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.runtime.ext.accountFromMapKey
 import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.shared_utils.extensions.toHexString
+import jp.co.soramitsu.shared_utils.runtime.AccountId
+import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.toAddress
 import jp.co.soramitsu.staking.api.domain.model.NominationPoolState
 import jp.co.soramitsu.staking.api.domain.model.PoolInfo
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
@@ -35,6 +34,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import javax.inject.Inject
 
 @HiltViewModel
 class PoolInfoViewModel @Inject constructor(

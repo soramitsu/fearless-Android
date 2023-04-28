@@ -48,7 +48,6 @@ dependencies {
 
     implementation gsonDep
     implementation serializationDep
-    implementation fearlessLibDep
 
     implementation kotlinDep
 

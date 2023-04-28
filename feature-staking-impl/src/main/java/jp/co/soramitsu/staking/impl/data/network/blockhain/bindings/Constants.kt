@@ -2,8 +2,8 @@ package jp.co.soramitsu.staking.impl.data.network.blockhain.bindings
 
 import jp.co.soramitsu.common.data.network.runtime.binding.UseCaseBinding
 import jp.co.soramitsu.common.data.network.runtime.binding.bindNumberConstant
-import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
-import jp.co.soramitsu.fearless_utils.runtime.metadata.module.Constant
+import jp.co.soramitsu.shared_utils.runtime.RuntimeSnapshot
+import jp.co.soramitsu.shared_utils.runtime.metadata.module.Constant
 import java.math.BigInteger
 
 /*

@@ -1,16 +1,14 @@
 package jp.co.soramitsu.staking.impl.domain.setup
 
-import java.math.BigDecimal
-import java.math.BigInteger
 import jp.co.soramitsu.core.extrinsic.ExtrinsicService
 import jp.co.soramitsu.core.models.Asset
-import jp.co.soramitsu.fearless_utils.extensions.fromHex
-import jp.co.soramitsu.fearless_utils.extensions.toHexString
-import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
-import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.ext.multiAddressOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.shared_utils.extensions.fromHex
+import jp.co.soramitsu.shared_utils.extensions.toHexString
+import jp.co.soramitsu.shared_utils.runtime.extrinsic.ExtrinsicBuilder
+import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.staking.api.data.StakingSharedState
 import jp.co.soramitsu.staking.api.data.SyntheticStakingType
 import jp.co.soramitsu.staking.api.data.syntheticStakingType
@@ -25,6 +23,8 @@ import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
+import java.math.BigDecimal
+import java.math.BigInteger
 
 class BondPayload(
     val amount: BigDecimal,

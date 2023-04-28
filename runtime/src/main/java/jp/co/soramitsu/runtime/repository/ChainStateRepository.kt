@@ -7,9 +7,6 @@ import jp.co.soramitsu.common.utils.numberConstant
 import jp.co.soramitsu.common.utils.optionalNumberConstant
 import jp.co.soramitsu.common.utils.system
 import jp.co.soramitsu.core.extrinsic.mortality.IChainStateRepository
-import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
-import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
-import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
 import jp.co.soramitsu.runtime.di.LOCAL_STORAGE_SOURCE
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
@@ -17,6 +14,9 @@ import jp.co.soramitsu.runtime.multiNetwork.getRuntime
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 import jp.co.soramitsu.runtime.storage.source.observeNonNull
 import jp.co.soramitsu.runtime.storage.source.queryNonNull
+import jp.co.soramitsu.shared_utils.runtime.RuntimeSnapshot
+import jp.co.soramitsu.shared_utils.runtime.metadata.storage
+import jp.co.soramitsu.shared_utils.runtime.metadata.storageKey
 import kotlinx.coroutines.flow.Flow
 import java.math.BigInteger
 import javax.inject.Inject

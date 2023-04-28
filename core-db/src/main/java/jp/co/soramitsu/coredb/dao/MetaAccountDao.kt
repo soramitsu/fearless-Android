@@ -10,7 +10,7 @@ import jp.co.soramitsu.coredb.model.chain.ChainAccountLocal
 import jp.co.soramitsu.coredb.model.chain.MetaAccountLocal
 import jp.co.soramitsu.coredb.model.chain.MetaAccountPositionUpdate
 import jp.co.soramitsu.coredb.model.chain.RelationJoinedMetaAccountInfo
-import jp.co.soramitsu.fearless_utils.runtime.AccountId
+import jp.co.soramitsu.shared_utils.runtime.AccountId
 import kotlinx.coroutines.flow.Flow
 
 /**

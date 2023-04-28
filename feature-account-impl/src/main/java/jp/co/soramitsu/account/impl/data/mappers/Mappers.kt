@@ -12,11 +12,11 @@ import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.coredb.model.chain.ChainAccountLocal
 import jp.co.soramitsu.coredb.model.chain.JoinedMetaAccountInfo
 import jp.co.soramitsu.coredb.model.chain.MetaAccountLocal
-import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.runtime.ext.hexAccountIdOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.shared_utils.extensions.toHexString
 
 fun mapCryptoTypeToCryptoTypeModel(
     resourceManager: ResourceManager,

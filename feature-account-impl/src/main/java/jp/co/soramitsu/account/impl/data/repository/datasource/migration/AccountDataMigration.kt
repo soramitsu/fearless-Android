@@ -7,9 +7,9 @@ import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.core.model.SecuritySource
 import jp.co.soramitsu.coredb.dao.AccountDao
 import jp.co.soramitsu.coredb.model.AccountLocal
-import jp.co.soramitsu.fearless_utils.encrypt.mnemonic.MnemonicCreator
-import jp.co.soramitsu.fearless_utils.scale.Schema
-import jp.co.soramitsu.fearless_utils.scale.byteArray
+import jp.co.soramitsu.shared_utils.encrypt.mnemonic.MnemonicCreator
+import jp.co.soramitsu.shared_utils.scale.Schema
+import jp.co.soramitsu.shared_utils.scale.byteArray
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.bouncycastle.util.encoders.Hex

@@ -2,14 +2,14 @@ package jp.co.soramitsu.wallet.impl.data.historySource
 
 import jp.co.soramitsu.common.data.model.CursorPage
 import jp.co.soramitsu.core.models.Asset
-import jp.co.soramitsu.fearless_utils.extensions.toHexString
-import jp.co.soramitsu.fearless_utils.runtime.AccountId
-import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.Alias
-import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.DictEnum
-import jp.co.soramitsu.fearless_utils.runtime.definitions.types.useScaleWriter
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.getRuntime
+import jp.co.soramitsu.shared_utils.extensions.toHexString
+import jp.co.soramitsu.shared_utils.runtime.AccountId
+import jp.co.soramitsu.shared_utils.runtime.definitions.types.composite.Alias
+import jp.co.soramitsu.shared_utils.runtime.definitions.types.composite.DictEnum
+import jp.co.soramitsu.shared_utils.runtime.definitions.types.useScaleWriter
 import jp.co.soramitsu.wallet.impl.data.mappers.mapNodeToOperation
 import jp.co.soramitsu.wallet.impl.data.network.model.request.SubqueryHistoryRequest
 import jp.co.soramitsu.wallet.impl.data.network.subquery.OperationsHistoryApi

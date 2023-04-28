@@ -13,11 +13,11 @@ import jp.co.soramitsu.common.list.GroupedList
 import jp.co.soramitsu.common.model.AssetKey
 import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.coredb.dao.emptyAccountIdValue
-import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.defaultChainSort
+import jp.co.soramitsu.shared_utils.scale.EncodableStruct
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
