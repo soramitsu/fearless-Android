@@ -68,6 +68,18 @@ fun Chain.addressFromPublicKey(publicKey: ByteArray): String {
     }
 }
 
+fun IChain.fakeAddress(): String {
+    return if (isEthereumBased) {
+        fakeEthereumAddress().ethereumAddressToHex()
+    } else {
+        fakeAccountId().toAddress(addressPrefix.toShort())
+    }
+}
+
+private fun fakeAccountId() = ByteArray(32)
+
+private fun fakeEthereumAddress() = ByteArray(20)
+
 fun Chain.multiAddressOf(address: String): MultiAddress = multiAddressOf(accountIdOf(address))
 
 fun IChain.ecosystem() = when {

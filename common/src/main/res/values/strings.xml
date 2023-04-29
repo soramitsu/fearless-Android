@@ -1088,8 +1088,4 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="sora_card_blacklisted_countires_title">Excluded of application</string>
     <string name="sora_card_blacklisted_countires_warning"><![CDATA[Residents from <b>certain countries<br>can not apply</b> for SORA Card at this moment<br><a href=\"https://soracard.com/blacklist/\">See the list</a>]]></string>
 
-    <string name="cross_chain_wallet_title">Cross-chain transfer to a wallet</string>
-    <string name="cross_chain_wallet_my">My wallet</string>
-    <string name="cross_chain_wallet_external">External wallet</string>
-
 </resources>

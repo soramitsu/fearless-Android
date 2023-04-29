@@ -197,25 +197,18 @@ class CrossChainSetupViewModel @Inject constructor(
     private val originFeeAmountFlow = combine(
         chainAssetsManager.originChainIdFlow,
         chainAssetsManager.destinationChainIdFlow,
-        addressInputFlow,
         isInputAddressValidFlow,
         enteredAmountBigDecimalFlow,
         assetFlow.mapNotNull { it }
-    ) { nullableOriginChainId, nullableDestinationChainId, address, isAddressValid, amount, asset ->
+    ) { nullableOriginChainId, nullableDestinationChainId, isAddressValid, amount, asset ->
         hasOriginFeeAmountFlow.value = false
         val originChainId = nullableOriginChainId ?: return@combine null
         val destinationChainId = nullableDestinationChainId ?: return@combine null
-
-        val feeRequestAddress = when {
-            isAddressValid -> address
-            else -> currentAccountAddress(asset.token.configuration.chainId) ?: return@combine null
-        }
 
         walletInteractor.getXcmOrigFee(
             originNetworkId = originChainId,
             destinationNetworkId = destinationChainId,
             asset = asset.token.configuration,
-            address = feeRequestAddress,
             amount = amount
         )
     }

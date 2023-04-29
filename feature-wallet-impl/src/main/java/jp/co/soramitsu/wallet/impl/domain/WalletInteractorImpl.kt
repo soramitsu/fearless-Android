@@ -18,6 +18,7 @@ import jp.co.soramitsu.core.models.ChainId
 import jp.co.soramitsu.core.models.isValidAddress
 import jp.co.soramitsu.coredb.model.AssetUpdateItem
 import jp.co.soramitsu.runtime.ext.accountIdOf
+import jp.co.soramitsu.runtime.ext.fakeAddress
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.isPolkadotOrKusama
@@ -442,17 +443,26 @@ class WalletInteractorImpl(
         originNetworkId: ChainId,
         destinationNetworkId: ChainId,
         asset: CoreAsset,
-        address: String,
         amount: BigDecimal
     ): BigDecimal? {
         return runCatching {
+            val chain = chainRegistry.getChain(originNetworkId)
             xcmService.getXcmOrigFee(
                 fromChainId = originNetworkId,
                 toChainId = destinationNetworkId,
                 asset = asset,
-                address = address,
-                amount = asset.planksFromAmount(amount)
+                address = chain.fakeAddress(),
+                amount = asset.getPlanksFromAmountForXcmOrigFee(amount)
             )
         }.getOrNull()
+    }
+
+    private fun CoreAsset.getPlanksFromAmountForXcmOrigFee(amount: BigDecimal): BigInteger {
+        val rawAmountInPlanks = planksFromAmount(amount)
+        if (rawAmountInPlanks == BigInteger.ZERO) {
+            return BigInteger.ONE
+        }
+
+        return rawAmountInPlanks
     }
 }
