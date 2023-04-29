@@ -1,11 +1,8 @@
 package jp.co.soramitsu.wallet.impl.presentation.cross_chain.setup
 
-import androidx.annotation.DrawableRes
-import androidx.annotation.StringRes
-import androidx.compose.foundation.BorderStroke
+import android.graphics.drawable.Drawable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -16,17 +13,14 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.material.Icon
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusState
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -35,10 +29,9 @@ import jp.co.soramitsu.common.compose.component.AddressInput
 import jp.co.soramitsu.common.compose.component.AddressInputState
 import jp.co.soramitsu.common.compose.component.AmountInput
 import jp.co.soramitsu.common.compose.component.AmountInputViewState
+import jp.co.soramitsu.common.compose.component.Badge
 import jp.co.soramitsu.common.compose.component.BottomSheetScreen
 import jp.co.soramitsu.common.compose.component.ButtonViewState
-import jp.co.soramitsu.common.compose.component.CapsTitle
-import jp.co.soramitsu.common.compose.component.ColoredButton
 import jp.co.soramitsu.common.compose.component.FeeInfo
 import jp.co.soramitsu.common.compose.component.FeeInfoViewState
 import jp.co.soramitsu.common.compose.component.MarginHorizontal
@@ -52,9 +45,7 @@ import jp.co.soramitsu.common.compose.component.ToolbarViewState
 import jp.co.soramitsu.common.compose.component.WarningInfo
 import jp.co.soramitsu.common.compose.component.WarningInfoState
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
-import jp.co.soramitsu.common.compose.theme.black05
 import jp.co.soramitsu.common.compose.theme.colorAccentDark
-import jp.co.soramitsu.common.compose.theme.white24
 import jp.co.soramitsu.feature_wallet_impl.R
 import java.math.BigDecimal
 
@@ -67,7 +58,8 @@ data class CrossChainSetupViewState(
     val originalFeeInfoState: FeeInfoViewState,
     val destinationFeeInfoState: FeeInfoViewState?,
     val warningInfoState: WarningInfoState?,
-    val buttonState: ButtonViewState
+    val buttonState: ButtonViewState,
+    val walletIcon: Drawable?
 )
 
 interface CrossChainSetupScreenInterface {
@@ -81,6 +73,7 @@ interface CrossChainSetupScreenInterface {
     fun onQrClick()
     fun onHistoryClick()
     fun onPasteClick()
+    fun onMyWalletsClick()
     fun onAmountFocusChanged(focusState: FocusState)
     fun onQuickAmountInput(input: Double)
     fun onWarningInfoClick()
@@ -129,10 +122,14 @@ fun CrossChainSetupContent(
                 AddressInput(
                     state = state.addressInputState,
                     onInput = callback::onAddressInput,
-                    onInputClear = callback::onAddressInputClear
+                    onInputClear = callback::onAddressInputClear,
+                    onPaste = callback::onPasteClick
                 )
                 MarginVertical(margin = 8.dp)
-                AddressActions(callback = callback)
+                AddressActions(
+                    walletIcon = state.walletIcon,
+                    callback = callback
+                )
 
                 state.warningInfoState?.let {
                     MarginVertical(margin = 8.dp)
@@ -184,6 +181,7 @@ fun CrossChainSetupContent(
 
 @Composable
 private fun AddressActions(
+    walletIcon: Drawable?,
     callback: CrossChainSetupScreenInterface,
     modifier: Modifier = Modifier
 ) {
@@ -191,50 +189,27 @@ private fun AddressActions(
         modifier = modifier.fillMaxWidth()
     ) {
         Badge(
-            modifier = Modifier.weight(1f),
             iconResId = R.drawable.ic_scan,
             labelResId = R.string.chip_qr,
             onClick = callback::onQrClick
         )
         MarginHorizontal(12.dp)
         Badge(
-            modifier = Modifier.weight(1f),
             iconResId = R.drawable.ic_history_16,
             labelResId = R.string.chip_history,
             onClick = callback::onHistoryClick
         )
-        MarginHorizontal(12.dp)
-        Badge(
-            modifier = Modifier.weight(1f),
-            iconResId = R.drawable.ic_copy_16,
-            labelResId = R.string.chip_paste,
-            onClick = callback::onPasteClick
+        Spacer(
+            modifier = Modifier.weight(1f)
+                .widthIn(min = 12.dp)
         )
-    }
-}
-
-@Composable
-private fun Badge(
-    @DrawableRes iconResId: Int,
-    @StringRes labelResId: Int,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    ColoredButton(
-        modifier = modifier,
-        backgroundColor = black05,
-        border = BorderStroke(1.dp, white24),
-        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
-        onClick = onClick
-    ) {
-        Icon(
-            painter = painterResource(id = iconResId),
-            tint = Color.White,
-            contentDescription = null,
-            modifier = Modifier.size(16.dp)
-        )
-        MarginHorizontal(margin = 4.dp)
-        CapsTitle(text = stringResource(id = labelResId))
+        if (walletIcon != null) {
+            Badge(
+                icon = walletIcon,
+                labelResId = R.string.chip_my_wallets,
+                onClick = callback::onMyWalletsClick
+            )
+        }
     }
 }
 
@@ -259,7 +234,8 @@ private fun CrossChainPreview() {
         originalFeeInfoState = FeeInfoViewState.default,
         destinationFeeInfoState = FeeInfoViewState.default,
         warningInfoState = null,
-        buttonState = ButtonViewState("Continue", true)
+        buttonState = ButtonViewState("Continue", true),
+        walletIcon = null
     )
 
     val emptyCallback = object : CrossChainSetupScreenInterface {
@@ -273,6 +249,7 @@ private fun CrossChainPreview() {
         override fun onQrClick() {}
         override fun onHistoryClick() {}
         override fun onPasteClick() {}
+        override fun onMyWalletsClick() {}
         override fun onAmountFocusChanged(focusState: FocusState) {}
         override fun onQuickAmountInput(input: Double) {}
         override fun onWarningInfoClick() {}

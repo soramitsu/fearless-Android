@@ -6,8 +6,12 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
+import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.common.address.AddressIconGenerator
+import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.address.createAddressIcon
+import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.base.errors.ValidationException
 import jp.co.soramitsu.common.base.errors.ValidationWarning
@@ -29,6 +33,7 @@ import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.core.models.ChainId
 import jp.co.soramitsu.core.models.utilityAsset
 import jp.co.soramitsu.feature_wallet_impl.R
+import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.addressByteOrNull
 import jp.co.soramitsu.wallet.api.domain.TransferValidationResult
 import jp.co.soramitsu.wallet.api.domain.ValidateTransferUseCase
 import jp.co.soramitsu.wallet.api.domain.fromValidationResult
@@ -40,12 +45,14 @@ import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.PhishingType
 import jp.co.soramitsu.wallet.impl.domain.model.Transfer
+import jp.co.soramitsu.wallet.impl.domain.model.WalletAccount
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
 import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.presentation.cross_chain.CrossChainTransferDraft
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -56,7 +63,9 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
@@ -69,10 +78,12 @@ import java.math.RoundingMode
 import javax.inject.Inject
 
 private const val SLIPPAGE_TOLERANCE = 1.35
+private const val CURRENT_ICON_SIZE = 16
 
 @HiltViewModel
 class CrossChainSetupViewModel @Inject constructor(
     val savedStateHandle: SavedStateHandle,
+    private val accountInteractor: AccountInteractor,
     private val resourceManager: ResourceManager,
     private val walletInteractor: WalletInteractor,
     private val walletConstants: WalletConstants,
@@ -93,8 +104,6 @@ class CrossChainSetupViewModel @Inject constructor(
 
     private val payload: AssetPayload? = savedStateHandle[CrossChainSetupFragment.KEY_PAYLOAD]
 
-    private val addressFlow: MutableStateFlow<String?> = MutableStateFlow(null)
-
     private val initialAmount = BigDecimal.ZERO
     private val confirmedValidations = mutableListOf<TransferValidationResult>()
 
@@ -103,6 +112,16 @@ class CrossChainSetupViewModel @Inject constructor(
     private val assetFlow: StateFlow<Asset?> = chainAssetsManager.assetFlow
         .stateIn(viewModelScope, SharingStarted.Eagerly, initialValue = null)
     private val originChainIdFlow: StateFlow<ChainId?> = chainAssetsManager.originChainIdFlow
+        .stateIn(viewModelScope, SharingStarted.Eagerly, initialValue = null)
+
+    @OptIn(FlowPreview::class)
+    private val walletIconFlow = originChainIdFlow.flatMapConcat { chainId ->
+        if (chainId == null) return@flatMapConcat flowOf(null)
+
+        walletInteractor.selectedAccountFlow(chainId)
+            .map { generateAddressModel(it, CURRENT_ICON_SIZE) }
+    }
+        .map { it?.image }
         .stateIn(viewModelScope, SharingStarted.Eagerly, initialValue = null)
 
     private val assetId: String? get() = assetIdFlow.value
@@ -143,7 +162,8 @@ class CrossChainSetupViewModel @Inject constructor(
         FeeInfoViewState.default,
         destinationFeeInfoState = null,
         warningInfoState = null,
-        defaultButtonState
+        defaultButtonState,
+        walletIcon = null
     )
 
     private val amountInputFocusFlow = MutableStateFlow(false)
@@ -337,11 +357,12 @@ class CrossChainSetupViewModel @Inject constructor(
         originalFeeInfoViewStateFlow,
         destinationFeeInfoViewStateFlow,
         warningInfoStateFlow,
-        buttonStateFlow
+        buttonStateFlow,
+        walletIconFlow
     ) { chain, address, originalChainSelectorState,
         destinationChainSelectorState, amountInputState,
         originalFeeInfoState, destinationFeeInfoState,
-        warningInfoState, buttonState ->
+        warningInfoState, buttonState, walletIcon ->
         val isAddressValid = when (chain) {
             null -> false
             else -> walletInteractor.validateSendAddress(chain.id, address)
@@ -369,13 +390,14 @@ class CrossChainSetupViewModel @Inject constructor(
             originalFeeInfoState = originalFeeInfoState,
             destinationFeeInfoState = destinationFeeInfoState,
             warningInfoState = warningInfoState,
-            buttonState = buttonState
+            buttonState = buttonState,
+            walletIcon = walletIcon
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, defaultState)
 
     init {
         setInitialChainsAndAssetIds()
-        observeAddressFlow()
+        observeDestinationChainFlow()
     }
 
     private fun setInitialChainsAndAssetIds() {
@@ -388,9 +410,14 @@ class CrossChainSetupViewModel @Inject constructor(
         }
     }
 
-    private fun observeAddressFlow() {
-        addressFlow
-            .onEach { addressInputFlow.value = it.orEmpty() }
+    private fun observeDestinationChainFlow() {
+        chainAssetsManager.destinationSelectedChainFlow
+            .onEach { chain ->
+                val address = addressInputFlow.value.addressByteOrNull()?.toInt()
+                if (chain?.addressPrefix != address) {
+                    addressInputFlow.value = ""
+                }
+            }
             .launchIn(viewModelScope)
     }
 
@@ -404,6 +431,10 @@ class CrossChainSetupViewModel @Inject constructor(
         }
     }
 
+    private suspend fun generateAddressModel(account: WalletAccount, sizeInDp: Int): AddressModel {
+        return addressIconGenerator.createAddressModel(account.address, sizeInDp, account.name)
+    }
+
     override fun onAmountInput(input: BigDecimal?) {
         visibleAmountFlow.value = input.orZero()
         enteredAmountBigDecimalFlow.value = input.orZero()
@@ -414,7 +445,7 @@ class CrossChainSetupViewModel @Inject constructor(
     }
 
     override fun onAddressInputClear() {
-        addressFlow.value = null
+        addressInputFlow.value = ""
     }
 
     override fun onNextClick() {
@@ -601,6 +632,22 @@ class CrossChainSetupViewModel @Inject constructor(
             visibleAmountFlow.value = scaled
             initialAmountFlow.value = scaled
             enteredAmountBigDecimalFlow.value = quickAmountWithoutExtraPays
+        }
+    }
+
+    override fun onMyWalletsClick() {
+        router.openWalletSelectorForResult()
+            .onEach(::setAddressByMetaAccountId)
+            .launchIn(viewModelScope)
+    }
+
+    private fun setAddressByMetaAccountId(metaId: Long) {
+        viewModelScope.launch {
+            val metaAccount = accountInteractor.getMetaAccount(metaId)
+            val destinationChainId = chainAssetsManager.destinationChainId ?: return@launch
+            val destinationChain = walletInteractor.getChain(destinationChainId)
+            val address = metaAccount.address(destinationChain) ?: return@launch
+            addressInputFlow.value = address
         }
     }
 

@@ -72,11 +72,11 @@ class ChainAssetsManager @Inject constructor(
         }
     }
 
-    private val destinationSelectedChain = destinationChainIdFlow.map { chainId ->
+    val destinationSelectedChainFlow = destinationChainIdFlow.map { chainId ->
         chainId?.let { walletInteractor.getChain(it) }
     }
 
-    private val destinationSelectedChainItem = destinationSelectedChain.map { chain ->
+    private val destinationSelectedChainItem = destinationSelectedChainFlow.map { chain ->
         chain?.let {
             ChainItemState(
                 id = chain.id,

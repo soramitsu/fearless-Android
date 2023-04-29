@@ -36,7 +36,8 @@ data class AddressInputState(
 fun AddressInput(
     state: AddressInputState,
     onInput: (String) -> Unit = {},
-    onInputClear: () -> Unit = {}
+    onInputClear: () -> Unit = {},
+    onPaste: (() -> Unit)? = null
 ) {
     val isFocused = remember { mutableStateOf(false) }
 
@@ -81,6 +82,13 @@ fun AddressInput(
                             B1(text = "Public address", color = black1)
                         }
                     }
+                )
+            }
+            if (state.input.isEmpty() && onPaste != null) {
+                Badge(
+                    iconResId = R.drawable.ic_copy_16,
+                    labelResId = R.string.chip_paste,
+                    onClick = onPaste
                 )
             }
             if (state.input.isNotEmpty()) {

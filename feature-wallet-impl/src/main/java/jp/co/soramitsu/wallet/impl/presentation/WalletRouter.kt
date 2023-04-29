@@ -138,6 +138,8 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
 
     fun openAddressHistory(chainId: ChainId)
 
+    fun openWalletSelectorForResult(): Flow<Long>
+
     fun openAddressHistoryWithResult(chainId: ChainId): Flow<String>
 
     fun openCreateContact(chainId: ChainId?, address: String?)

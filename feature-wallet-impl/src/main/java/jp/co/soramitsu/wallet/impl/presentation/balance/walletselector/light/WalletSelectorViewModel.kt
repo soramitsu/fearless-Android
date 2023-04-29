@@ -3,7 +3,6 @@ package jp.co.soramitsu.wallet.impl.presentation.balance.walletselector.light
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.GetTotalBalanceUseCase
 import jp.co.soramitsu.account.impl.presentation.account.mixin.api.AccountListingMixin
 import jp.co.soramitsu.common.address.AddressIconGenerator
@@ -25,6 +24,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @HiltViewModel
 class WalletSelectorViewModel @Inject constructor(
@@ -77,7 +77,7 @@ class WalletSelectorViewModel @Inject constructor(
         viewModelScope.launch {
             selectedWalletItem.value = item
             router.setWalletSelectorPayload(WalletSelectorPayload(tag, item.id))
-            router.back()
+            router.backWithResult(WalletSelectorFragment.RESULT_ADDRESS to item.id)
         }
     }
 
