@@ -36,7 +36,7 @@ import jp.co.soramitsu.common.compose.theme.black2
 import jp.co.soramitsu.common.compose.theme.white
 import jp.co.soramitsu.common.compose.theme.white24
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.common.utils.CRYPTO_DETAIL_PRECISION
+import jp.co.soramitsu.common.utils.MAX_DECIMALS_8
 import jp.co.soramitsu.ui_core.component.input.number.BasicNumberInput
 import jp.co.soramitsu.ui_core.theme.customColors
 import jp.co.soramitsu.ui_core.theme.customTypography
@@ -52,7 +52,7 @@ data class AmountInputViewState(
     val isActive: Boolean = true,
     val isFocused: Boolean = false,
     val allowAssetChoose: Boolean = false,
-    val precision: Int = CRYPTO_DETAIL_PRECISION,
+    val precision: Int = MAX_DECIMALS_8,
     val initial: BigDecimal?
 ) {
     companion object {
