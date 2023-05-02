@@ -3,8 +3,8 @@ package jp.co.soramitsu.staking.impl.presentation.staking.main.scenarios
 import jp.co.soramitsu.common.domain.model.StoryGroup
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.common.utils.format
-import jp.co.soramitsu.common.utils.formatAsCurrency
+import jp.co.soramitsu.common.utils.formatCryptoDetail
+import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.common.utils.withLoading
 import jp.co.soramitsu.common.validation.CompositeValidation
@@ -31,7 +31,6 @@ import jp.co.soramitsu.staking.impl.presentation.staking.main.scenarios.StakingS
 import jp.co.soramitsu.staking.impl.presentation.staking.main.scenarios.StakingScenarioViewModel.Companion.WARNING_ICON
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.HOURS_IN_DAY
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenarioInteractor
-import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -116,9 +115,9 @@ class StakingRelaychainScenarioViewModel(
             stakingInteractor.currentAssetFlow()
         ) { networkInfo, asset ->
             val minimumStake = asset.token.amountFromPlanks(networkInfo.minimumStake)
-            val minimumStakeFormatted = minimumStake.formatTokenAmount(asset.token.configuration)
+            val minimumStakeFormatted = minimumStake.formatCryptoDetail(asset.token.configuration.symbolToShow)
 
-            val minimumStakeFiat = asset.token.fiatAmount(minimumStake)?.formatAsCurrency(asset.token.fiatSymbol)
+            val minimumStakeFiat = asset.token.fiatAmount(minimumStake)?.formatFiat(asset.token.fiatSymbol)
 
             val lockupPeriod = if (networkInfo.lockupPeriodInHours > HOURS_IN_DAY) {
                 val inDays = networkInfo.lockupPeriodInHours / HOURS_IN_DAY
@@ -127,9 +126,9 @@ class StakingRelaychainScenarioViewModel(
                 resourceManager.getQuantityString(R.plurals.common_hours_format, networkInfo.lockupPeriodInHours, networkInfo.lockupPeriodInHours)
             }
             val totalStake = asset.token.amountFromPlanks(networkInfo.totalStake)
-            val totalStakeFormatted = totalStake.formatTokenAmount(asset.token.configuration)
+            val totalStakeFormatted = totalStake.formatCryptoDetail(asset.token.configuration.symbolToShow)
 
-            val totalStakeFiat = asset.token.fiatAmount(totalStake)?.formatAsCurrency(asset.token.fiatSymbol)
+            val totalStakeFiat = asset.token.fiatAmount(totalStake)?.formatFiat(asset.token.fiatSymbol)
 
             StakingNetworkInfoModel.RelayChain(
                 lockupPeriod,
@@ -137,7 +136,7 @@ class StakingRelaychainScenarioViewModel(
                 minimumStakeFiat,
                 totalStakeFormatted,
                 totalStakeFiat,
-                networkInfo.nominatorsCount.format()
+                networkInfo.nominatorsCount.toString()
             )
         }.withLoading()
     }

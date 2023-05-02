@@ -5,6 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.data.network.AppLinksProvider
@@ -12,11 +13,13 @@ import jp.co.soramitsu.common.data.network.BlockExplorerUrlBuilder
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.flowOf
-import jp.co.soramitsu.common.utils.formatAsCurrency
+import jp.co.soramitsu.common.utils.formatCryptoDetail
+import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.sumByBigInteger
 import jp.co.soramitsu.feature_staking_impl.R
-import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
+import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
 import jp.co.soramitsu.staking.impl.domain.StakingInteractor
 import jp.co.soramitsu.staking.impl.domain.getSelectedChain
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
@@ -29,9 +32,6 @@ import jp.co.soramitsu.staking.impl.presentation.validators.parcel.ValidatorStak
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenarioInteractor
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
-import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
-import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
@@ -95,17 +95,17 @@ class ValidatorDetailsViewModel @Inject constructor(
         require(validatorStake is ValidatorStakeParcelModel.Active)
 
         val ownStake = asset.token.amountFromPlanks(validatorStake.ownStake)
-        val ownStakeFormatted = ownStake.formatTokenAmount(asset.token.configuration)
-        val ownStakeFiatFormatted = asset.token.fiatAmount(ownStake)?.formatAsCurrency(asset.token.fiatSymbol)
+        val ownStakeFormatted = ownStake.formatCryptoDetail(asset.token.configuration.symbolToShow)
+        val ownStakeFiatFormatted = asset.token.fiatAmount(ownStake)?.formatFiat(asset.token.fiatSymbol)
 
         val nominatorsStakeValue = validatorStake.nominators.sumByBigInteger(NominatorParcelModel::value)
         val nominatorsStake = asset.token.amountFromPlanks(nominatorsStakeValue)
-        val nominatorsStakeFormatted = nominatorsStake.formatTokenAmount(asset.token.configuration)
-        val nominatorsStakeFiatFormatted = asset.token.fiatAmount(nominatorsStake)?.formatAsCurrency(asset.token.fiatSymbol)
+        val nominatorsStakeFormatted = nominatorsStake.formatCryptoDetail(asset.token.configuration.symbolToShow)
+        val nominatorsStakeFiatFormatted = asset.token.fiatAmount(nominatorsStake)?.formatFiat(asset.token.fiatSymbol)
 
         val totalStake = asset.token.amountFromPlanks(validatorStake.totalStake)
-        val totalStakeFormatted = totalStake.formatTokenAmount(asset.token.configuration)
-        val totalStakeFiatFormatted = asset.token.fiatAmount(totalStake)?.formatAsCurrency(asset.token.fiatSymbol)
+        val totalStakeFormatted = totalStake.formatCryptoDetail(asset.token.configuration.symbolToShow)
+        val totalStakeFiatFormatted = asset.token.fiatAmount(totalStake)?.formatFiat(asset.token.fiatSymbol)
 
         ValidatorStakeBottomSheet.Payload(
             resourceManager.getString(R.string.staking_validator_own_stake),

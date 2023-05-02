@@ -2,13 +2,13 @@ package jp.co.soramitsu.staking.impl.presentation.payouts.list
 
 import androidx.lifecycle.MutableLiveData
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.mixin.api.Retriable
 import jp.co.soramitsu.common.mixin.api.RetryPayload
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
-import jp.co.soramitsu.common.utils.formatAsCurrency
+import jp.co.soramitsu.common.utils.formatCrypto
+import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.requireException
 import jp.co.soramitsu.common.utils.requireValue
@@ -24,13 +24,13 @@ import jp.co.soramitsu.staking.impl.presentation.payouts.list.model.PendingPayou
 import jp.co.soramitsu.staking.impl.presentation.payouts.list.model.PendingPayoutsStatisticsModel
 import jp.co.soramitsu.staking.impl.presentation.payouts.model.PendingPayoutParcelable
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenarioInteractor
+import jp.co.soramitsu.wallet.api.presentation.formatters.formatSigned
 import jp.co.soramitsu.wallet.impl.domain.model.Token
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
-import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
-import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenChange
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @HiltViewModel
 class PayoutsListViewModel @Inject constructor(
@@ -106,7 +106,7 @@ class PayoutsListViewModel @Inject constructor(
         statistics: PendingPayoutsStatistics
     ): PendingPayoutsStatisticsModel {
         val token = interactor.currentAssetFlow().first().token
-        val totalAmount = token.amountFromPlanks(statistics.totalAmountInPlanks).formatTokenAmount(token.configuration)
+        val totalAmount = token.amountFromPlanks(statistics.totalAmountInPlanks).formatCrypto(token.configuration.symbolToShow)
 
         val payouts = statistics.payouts.map { mapPayoutToPayoutModel(token, it) }
 
@@ -126,8 +126,8 @@ class PayoutsListViewModel @Inject constructor(
                 timeLeft = timeLeft,
                 createdAt = createdAt,
                 daysLeftColor = if (closeToExpire) R.color.error_red else R.color.white_64,
-                amount = amount.formatTokenChange(token.configuration, isIncome = true),
-                amountFiat = token.fiatAmount(amount)?.formatAsCurrency(token.fiatSymbol)
+                amount = amount.formatCrypto(token.configuration.symbolToShow).formatSigned(true),
+                amountFiat = token.fiatAmount(amount)?.formatFiat(token.fiatSymbol)
             )
         }
     }

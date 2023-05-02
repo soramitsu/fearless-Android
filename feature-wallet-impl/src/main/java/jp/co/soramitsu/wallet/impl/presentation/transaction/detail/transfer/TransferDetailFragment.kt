@@ -4,6 +4,9 @@ import androidx.annotation.StringRes
 import androidx.core.os.bundleOf
 import androidx.fragment.app.viewModels
 import dagger.hilt.android.AndroidEntryPoint
+import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
+import jp.co.soramitsu.account.api.presentation.actions.ExternalActionsSheet
+import jp.co.soramitsu.account.api.presentation.actions.ExternalViewCallback
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.data.network.BlockExplorerUrlBuilder
 import jp.co.soramitsu.common.utils.formatDateTime
@@ -13,15 +16,12 @@ import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.common.utils.setTextColorRes
 import jp.co.soramitsu.common.utils.showBrowser
 import jp.co.soramitsu.common.view.viewBinding
-import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
-import jp.co.soramitsu.account.api.presentation.actions.ExternalActionsSheet
-import jp.co.soramitsu.account.api.presentation.actions.ExternalViewCallback
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.databinding.FragmentTransferDetailsBinding
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.model.OperationParcelizeModel
 import jp.co.soramitsu.wallet.impl.presentation.model.OperationStatusAppearance
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 
 const val KEY_TRANSACTION = "KEY_DRAFT"
 const val KEY_ASSET_PAYLOAD = "KEY_ASSET_PAYLOAD"

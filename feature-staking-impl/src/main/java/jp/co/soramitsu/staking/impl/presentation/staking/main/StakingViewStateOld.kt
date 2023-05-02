@@ -9,8 +9,9 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.applyFiatRate
 import jp.co.soramitsu.common.utils.asLiveData
-import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.formatAsPercentage
+import jp.co.soramitsu.common.utils.formatCryptoDetail
+import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.withLoading
@@ -49,7 +50,6 @@ import jp.co.soramitsu.staking.impl.presentation.validators.parcel.IdentityParce
 import jp.co.soramitsu.staking.impl.scenarios.parachain.StakingParachainScenarioInteractor
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenarioInteractor
 import jp.co.soramitsu.wallet.api.data.mappers.mapAssetToAssetModel
-import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import kotlinx.coroutines.CoroutineScope
@@ -181,10 +181,10 @@ sealed class StakeViewState<S>(
 
             StakeSummaryModel(
                 status = summary.status,
-                totalStaked = summary.totalStaked.formatTokenAmount(tokenType),
-                totalStakedFiat = token.fiatAmount(summary.totalStaked)?.formatAsCurrency(token.fiatSymbol),
-                totalRewards = summary.totalReward.formatTokenAmount(tokenType),
-                totalRewardsFiat = token.fiatAmount(summary.totalReward)?.formatAsCurrency(token.fiatSymbol),
+                totalStaked = summary.totalStaked.formatCryptoDetail(tokenType.symbolToShow),
+                totalStakedFiat = token.fiatAmount(summary.totalStaked)?.formatFiat(token.fiatSymbol),
+                totalRewards = summary.totalReward.formatCryptoDetail(tokenType.symbolToShow),
+                totalRewardsFiat = token.fiatAmount(summary.totalReward)?.formatFiat(token.fiatSymbol),
                 currentEraDisplay = resourceManager.getString(R.string.staking_era_title, summary.currentEra)
             )
         }
@@ -312,10 +312,10 @@ class SoraNominatorViewState(
 
             StakeSummaryModel(
                 status = summary.status,
-                totalStaked = summary.totalStaked.formatTokenAmount(tokenType),
-                totalStakedFiat = token.fiatAmount(summary.totalStaked)?.formatAsCurrency(token.fiatSymbol),
-                totalRewards = summary.totalReward.formatTokenAmount(rewardToken.configuration),
-                totalRewardsFiat = rewardToken.fiatAmount(summary.totalReward)?.formatAsCurrency(rewardToken.fiatSymbol),
+                totalStaked = summary.totalStaked.formatCryptoDetail(tokenType.symbolToShow),
+                totalStakedFiat = token.fiatAmount(summary.totalStaked)?.formatFiat(token.fiatSymbol),
+                totalRewards = summary.totalReward.formatCryptoDetail(rewardToken.configuration.symbolToShow),
+                totalRewardsFiat = rewardToken.fiatAmount(summary.totalReward)?.formatFiat(rewardToken.fiatSymbol),
                 currentEraDisplay = resourceManager.getString(R.string.staking_era_title, summary.currentEra)
             )
         }
@@ -396,7 +396,7 @@ sealed class WelcomeViewState(
 
     val assetLiveData = currentAssetFlow.map { mapAssetToAssetModel(it, resourceManager) }.asLiveData(scope)
 
-    val amountFiat = parsedAmountFlow.combine(currentAssetFlow) { amount, asset -> asset.token.fiatAmount(amount)?.formatAsCurrency(asset.token.fiatSymbol) }
+    val amountFiat = parsedAmountFlow.combine(currentAssetFlow) { amount, asset -> asset.token.fiatAmount(amount)?.formatFiat(asset.token.fiatSymbol) }
         .asLiveData(scope)
 
     init {
@@ -708,10 +708,10 @@ class DelegatorViewState(
                 collatorId = collator.collatorId,
                 collatorAddress = collator.collatorId.toHexString(true),
                 collatorName = identity?.display ?: collatorIdHex,
-                staked = staked.formatTokenAmount(asset.token.configuration),
-                stakedFiat = staked.applyFiatRate(asset.fiatAmount)?.formatAsCurrency(asset.token.fiatSymbol),
+                staked = staked.formatCryptoDetail(asset.token.configuration.symbolToShow),
+                stakedFiat = staked.applyFiatRate(asset.fiatAmount)?.formatFiat(asset.token.fiatSymbol),
                 rewardApy = rewardApy.formatAsPercentage(),
-                rewardedFiat = rewarded.applyFiatRate(asset.fiatAmount)?.formatAsCurrency(asset.token.fiatSymbol),
+                rewardedFiat = rewarded.applyFiatRate(asset.fiatAmount)?.formatFiat(asset.token.fiatSymbol),
                 status = candidateInfo.toModelStatus(millisecondsTillTheEndOfRound, millisecondsTillCandidateWillLeave, isReadyToUnlock),
                 candidateInfo
             )

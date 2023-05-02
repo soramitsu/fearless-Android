@@ -23,8 +23,8 @@ import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.common.utils.requireException
 import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.core.models.Asset
-import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.core.models.utilityAsset
+import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
 import jp.co.soramitsu.wallet.api.domain.TransferValidationResult
 import jp.co.soramitsu.wallet.api.domain.ValidateTransferUseCase
@@ -174,7 +174,7 @@ class CrossChainConfirmViewModel @Inject constructor(
             val assetModel = mapAssetToAssetModel(originalAsset)
             TitleValueViewState(
                 title = resourceManager.getString(R.string.common_amount),
-                value = assetModel.formatTokenAmount(transferDraft.amount),
+                value = assetModel.formatCrypto(transferDraft.amount),
                 additionalValue = assetModel.getAsFiatWithCurrency(transferDraft.amount)
             )
         } else {
@@ -184,20 +184,20 @@ class CrossChainConfirmViewModel @Inject constructor(
         val tipInfoItem = transferDraft.tip?.let {
             TitleValueViewState(
                 title = resourceManager.getString(R.string.choose_amount_tip),
-                value = utilityAsset.formatTokenAmount(transferDraft.tip),
+                value = utilityAsset.formatCrypto(transferDraft.tip),
                 additionalValue = utilityAsset.getAsFiatWithCurrency(transferDraft.tip)
             )
         }
 
         val originalFeeInfoItem = TitleValueViewState(
             title = resourceManager.getString(R.string.common_origin_network_fee),
-            value = utilityAsset.formatTokenAmount(transferDraft.originalFee),
+            value = utilityAsset.formatCrypto(transferDraft.originalFee),
             additionalValue = utilityAsset.getAsFiatWithCurrency(transferDraft.originalFee)
         )
 
         val destinationFeeInfoItem = TitleValueViewState(
             title = resourceManager.getString(R.string.common_destination_network_fee),
-            value = transferableAsset.formatTokenAmount(transferDraft.destinationFee),
+            value = transferableAsset.formatCrypto(transferDraft.destinationFee),
             additionalValue = transferableAsset.getAsFiatWithCurrency(transferDraft.destinationFee)
         )
 

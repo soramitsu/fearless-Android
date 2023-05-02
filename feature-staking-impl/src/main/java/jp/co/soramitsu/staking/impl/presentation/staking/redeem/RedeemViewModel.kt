@@ -13,8 +13,8 @@ import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.data.network.BlockExplorerUrlBuilder
 import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.common.utils.format
-import jp.co.soramitsu.common.utils.formatAsCurrency
+import jp.co.soramitsu.common.utils.formatCryptoFull
+import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.requireException
 import jp.co.soramitsu.common.utils.requireValue
@@ -76,7 +76,7 @@ class RedeemViewModel @Inject constructor(
     val stakingUnlockAmount = MutableSharedFlow<String>().apply {
         launch {
             stakingScenarioInteractor.getStakingBalanceFlow(payload.collatorAddress?.fromHex()).onEach {
-                emit(it.redeemable.amount.format())
+                emit(it.redeemable.amount.formatCryptoFull())
             }.share()
         }
     }
@@ -92,7 +92,7 @@ class RedeemViewModel @Inject constructor(
     }
 
     val enteredFiatAmountFlow = assetFlow.combine(parsedAmountFlow) { asset, amount ->
-        asset.token.fiatAmount(amount)?.formatAsCurrency(asset.token.fiatSymbol)
+        asset.token.fiatAmount(amount)?.formatFiat(asset.token.fiatSymbol)
     }
         .inBackground()
         .asLiveData()

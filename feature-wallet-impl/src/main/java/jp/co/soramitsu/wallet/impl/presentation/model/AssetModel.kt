@@ -1,13 +1,13 @@
 package jp.co.soramitsu.wallet.impl.presentation.model
 
-import java.math.BigDecimal
 import jp.co.soramitsu.common.domain.AppVersion
 import jp.co.soramitsu.common.model.AssetKey
 import jp.co.soramitsu.common.utils.applyFiatRate
-import jp.co.soramitsu.common.utils.formatAsCurrency
+import jp.co.soramitsu.common.utils.formatCrypto
+import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.coredb.dao.emptyAccountIdValue
-import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
+import java.math.BigDecimal
 
 data class AssetModel(
     val metaId: Long,
@@ -42,9 +42,9 @@ data class AssetModel(
         chainId = token.configuration.chainId
     )
 
-    fun formatTokenAmount(value: BigDecimal?) =
-        value.orZero().formatTokenAmount(token.configuration)
+    fun formatCrypto(value: BigDecimal?) =
+        value.orZero().formatCrypto(token.configuration.symbolToShow)
 
     fun getAsFiatWithCurrency(value: BigDecimal?) =
-        token.fiatRate?.let { value?.applyFiatRate(it).orZero().formatAsCurrency(token.fiatSymbol) }
+        token.fiatRate?.let { value?.applyFiatRate(it).orZero().formatFiat(token.fiatSymbol) }
 }

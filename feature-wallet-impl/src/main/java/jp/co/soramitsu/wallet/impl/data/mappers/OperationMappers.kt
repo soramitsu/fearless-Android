@@ -1,6 +1,5 @@
 package jp.co.soramitsu.wallet.impl.data.mappers
 
-import java.math.BigInteger
 import jp.co.soramitsu.account.api.presentation.account.AddressDisplayUseCase
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressIcon
@@ -9,23 +8,24 @@ import jp.co.soramitsu.common.compose.theme.greenText
 import jp.co.soramitsu.common.compose.theme.white
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Modules
-import jp.co.soramitsu.common.utils.formatHistoryAmount
 import jp.co.soramitsu.common.utils.nullIfEmpty
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.coredb.model.OperationLocal
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
-import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
+import jp.co.soramitsu.wallet.api.presentation.formatters.formatCryptoDetailFromPlanks
+import jp.co.soramitsu.wallet.api.presentation.formatters.formatCryptoFromPlanks
+import jp.co.soramitsu.wallet.api.presentation.formatters.formatSigned
 import jp.co.soramitsu.wallet.impl.data.network.model.response.SubqueryHistoryElementResponse
 import jp.co.soramitsu.wallet.impl.domain.interfaces.TransactionFilter
 import jp.co.soramitsu.wallet.impl.domain.model.Operation
-import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
 import jp.co.soramitsu.wallet.impl.presentation.model.OperationModel
 import jp.co.soramitsu.wallet.impl.presentation.model.OperationParcelizeModel
 import jp.co.soramitsu.wallet.impl.presentation.model.OperationStatusAppearance
 import jp.co.soramitsu.xnetworking.txhistory.TxHistoryItem
+import java.math.BigInteger
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 
@@ -217,7 +217,7 @@ fun TxHistoryItem.toOperation(chain: Chain, chainAsset: Asset, accountAddress: S
                 time = timeInMillis,
                 chainAsset = baseAsset,
                 type = Operation.Type.Swap(
-                    hash = blockHash,
+                    hash = id,
                     module = module,
                     baseAssetAmount = baseAsset.planksFromAmount(baseAssetAmount),
                     liquidityProviderFee = chainAsset.planksFromAmount(liquidityProviderFee),
@@ -283,15 +283,6 @@ fun mapNodeToOperation(
     )
 }
 
-private fun Asset.formatPlanks(planks: BigInteger, negative: Boolean): String {
-    val amount = amountFromPlanks(planks)
-
-    val withoutSign = amount.formatTokenAmount(this)
-    val sign = if (negative) '-' else '+'
-
-    return sign + withoutSign
-}
-
 private val Operation.Type.Transfer.isIncome
     get() = myAddress == receiver
 
@@ -299,20 +290,28 @@ private val Operation.Type.Transfer.displayAddress
     get() = if (isIncome) sender else receiver
 
 private fun formatAmount(chainAsset: Asset, transfer: Operation.Type.Transfer): String {
-    return chainAsset.formatPlanks(transfer.amount, negative = !transfer.isIncome)
+    return transfer.amount.formatCryptoFromPlanks(chainAsset).formatSigned(transfer.isIncome)
+}
+
+private fun formatDetailsAmount(chainAsset: Asset, transfer: Operation.Type.Transfer): String {
+    return transfer.amount.formatCryptoDetailFromPlanks(chainAsset).formatSigned(transfer.isIncome)
 }
 
 private fun formatAmount(chainAsset: Asset, reward: Operation.Type.Reward): String {
-    return chainAsset.formatPlanks(reward.amount, negative = !reward.isReward)
+    return reward.amount.formatCryptoFromPlanks(chainAsset).formatSigned(reward.isReward)
+}
+private fun formatDetailsAmount(chainAsset: Asset, reward: Operation.Type.Reward): String {
+    return reward.amount.formatCryptoDetailFromPlanks(chainAsset).formatSigned(reward.isReward)
 }
 
 private fun formatSwapInfo(chainAsset: Asset, swap: Operation.Type.Swap): String {
-    return "${chainAsset.amountFromPlanks(swap.baseAssetAmount).formatHistoryAmount()} ${chainAsset.symbolToShow.uppercase()}" +
-        swap.targetAsset?.let { " ➝ ${it.amountFromPlanks(swap.targetAssetAmount.orZero()).formatHistoryAmount()} ${it.symbolToShow.uppercase()}" }.orEmpty()
+    val baseAmountFormatted = swap.baseAssetAmount.formatCryptoFromPlanks(chainAsset)
+    val targetAmountFormatted = swap.targetAsset?.let { swap.targetAssetAmount.orZero().formatCryptoFromPlanks(it) }
+    return baseAmountFormatted + swap.targetAsset?.let { " ➝ $targetAmountFormatted" }.orEmpty()
 }
 
-private fun formatFee(chainAsset: Asset, extrinsic: Operation.Type.Extrinsic): String {
-    return chainAsset.formatPlanks(extrinsic.fee, negative = true)
+private fun BigInteger.formatFee(chainAsset: Asset): String {
+    return formatCryptoDetailFromPlanks(chainAsset).formatSigned(false)
 }
 
 private fun mapStatusToStatusAppearance(status: Operation.Status): OperationStatusAppearance {
@@ -385,7 +384,7 @@ suspend fun mapOperationToOperationModel(
                 OperationModel(
                     id = id,
                     time = time,
-                    amount = formatFee(chainAsset, operationType),
+                    amount = operationType.fee.formatFee(chainAsset),
                     amountColor = if (operationType.status == Operation.Status.FAILED) gray2 else white,
                     header = operationType.formattedAndReplaced()[operationType.call] ?: operationType.call,
                     statusAppearance = statusAppearance,
@@ -433,10 +432,7 @@ fun mapOperationToParcel(
         return when (val operationType = operation.type) {
             is Operation.Type.Transfer -> {
                 val feeOrZero = operationType.fee ?: BigInteger.ZERO
-
-                val feeFormatted = operationType.fee?.let {
-                    chainAsset.formatPlanks(it, negative = true)
-                } ?: resourceManager.getString(R.string.common_unknown)
+                val feeFormatted = operationType.fee?.formatFee(chainAsset) ?: resourceManager.getString(R.string.common_unknown)
 
                 val total = operationType.amount + feeOrZero
 
@@ -444,12 +440,12 @@ fun mapOperationToParcel(
                     time = time,
                     address = address,
                     hash = operationType.hash,
-                    amount = formatAmount(operation.chainAsset, operationType),
+                    amount = formatDetailsAmount(operation.chainAsset, operationType),
                     receiver = operationType.receiver,
                     sender = operationType.sender,
                     fee = feeFormatted,
                     isIncome = operationType.isIncome,
-                    total = chainAsset.formatPlanks(total, negative = !operationType.isIncome),
+                    total = total.formatCryptoDetailFromPlanks(chainAsset).formatSigned(operationType.isIncome),
                     statusAppearance = mapStatusToStatusAppearance(operationType.operationStatus)
                 )
             }
@@ -459,7 +455,7 @@ fun mapOperationToParcel(
                     eventId = id,
                     address = address,
                     time = time,
-                    amount = formatAmount(chainAsset, operationType),
+                    amount = formatDetailsAmount(chainAsset, operationType),
                     isReward = operationType.isReward,
                     era = operationType.era,
                     validator = operationType.validator
@@ -473,7 +469,7 @@ fun mapOperationToParcel(
                     hash = operationType.hash,
                     module = operationType.formattedAndReplaced()[operationType.module] ?: operationType.module,
                     call = operationType.formattedAndReplaced()[operationType.call] ?: operationType.call,
-                    fee = formatFee(chainAsset, operationType),
+                    fee = operationType.fee.formatFee(chainAsset),
                     statusAppearance = mapStatusToStatusAppearance(operationType.operationStatus)
                 )
             }

@@ -14,7 +14,7 @@ import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
 import jp.co.soramitsu.common.navigation.payload.WalletSelectorPayload
 import jp.co.soramitsu.common.utils.formatAsChange
-import jp.co.soramitsu.common.utils.formatAsCurrency
+import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
@@ -45,10 +45,10 @@ class WalletSelectorViewModel @Inject constructor(
             title = it.name,
             isSelected = it.isSelected,
             walletIcon = it.picture.value,
-            balance = balanceModel.balance.formatAsCurrency(balanceModel.fiatSymbol),
+            balance = balanceModel.balance.formatFiat(balanceModel.fiatSymbol),
             changeBalanceViewState = ChangeBalanceViewState(
                 percentChange = balanceModel.rateChange?.formatAsChange().orEmpty(),
-                fiatChange = balanceModel.balanceChange.abs().formatAsCurrency(balanceModel.fiatSymbol)
+                fiatChange = balanceModel.balanceChange.abs().formatFiat(balanceModel.fiatSymbol)
             )
         )
     }

@@ -14,14 +14,15 @@ import jp.co.soramitsu.common.mixin.api.Browserable
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
-import jp.co.soramitsu.common.utils.format
+import jp.co.soramitsu.common.utils.formatCryptoDetail
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.polkaswap.api.models.Market
 import jp.co.soramitsu.polkaswap.api.models.toMarkets
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
-import jp.co.soramitsu.wallet.api.presentation.formatters.tokenAmountFromPlanks
+import jp.co.soramitsu.wallet.api.presentation.formatters.formatCryptoDetailFromPlanks
+import jp.co.soramitsu.wallet.api.presentation.formatters.formatCryptoFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.Operation
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
@@ -71,16 +72,16 @@ class SwapDetailViewModel @Inject constructor(
     private val initialState = SwapDetailState(
         fromTokenImage = GradientIconState.Remote(swap.chainAsset.iconUrl, swap.chainAsset.color),
         toTokenImage = GradientIconState.Remote(swap.targetAsset?.iconUrl.orEmpty(), swap.targetAsset?.color.orEmpty()),
-        fromTokenAmount = swap.baseAssetAmount.tokenAmountFromPlanks(swap.chainAsset).format(),
-        toTokenAmount = swap.targetAsset?.let { swap.targetAssetAmount?.tokenAmountFromPlanks(it) }?.format().orEmpty().ifEmpty { "???" },
+        fromTokenAmount = swap.baseAssetAmount.formatCryptoFromPlanks(swap.chainAsset),
+        toTokenAmount = swap.targetAsset?.let { swap.targetAssetAmount?.formatCryptoFromPlanks(it) } ?: "???",
         fromTokenName = swap.chainAsset.symbolToShow.uppercase(),
-        toTokenName = swap.targetAsset?.symbolToShow?.uppercase().orEmpty().ifEmpty { "???" },
+        toTokenName = swap.targetAsset?.symbolToShow?.uppercase() ?: "???",
         statusAppearance = swap.status.mapToStatusAppearance(),
         address = swap.address,
         hash = swap.hash,
-        fromTokenOnToToken = swapRate.format(),
-        liquidityProviderFee = swap.liquidityProviderFee.tokenAmountFromPlanks(swap.chainAsset),
-        networkFee = swap.networkFee.tokenAmountFromPlanks(swap.chainAsset),
+        fromTokenOnToToken = swapRate.formatCryptoDetail(),
+        liquidityProviderFee = swap.liquidityProviderFee.formatCryptoDetailFromPlanks(swap.chainAsset),
+        networkFee = swap.networkFee.formatCryptoDetailFromPlanks(swap.chainAsset),
         time = swap.time,
         market = swap.selectedMarket?.let { listOf(it).toMarkets().firstOrNull() } ?: Market.SMART,
         isShowSubscanButtons = false

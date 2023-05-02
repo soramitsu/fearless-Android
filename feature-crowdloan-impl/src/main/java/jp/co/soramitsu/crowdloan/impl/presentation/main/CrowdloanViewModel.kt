@@ -17,7 +17,6 @@ import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.resources.formatTimeLeft
 import jp.co.soramitsu.common.utils.Event
-import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.withLoading
 import jp.co.soramitsu.core.updater.UpdateSystem
@@ -45,11 +44,11 @@ import jp.co.soramitsu.runtime.state.selectedChainFlow
 import jp.co.soramitsu.shared_utils.extensions.toHexString
 import jp.co.soramitsu.shared_utils.hash.Hasher.blake2b256
 import jp.co.soramitsu.wallet.api.domain.AssetUseCase
-import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
+import jp.co.soramitsu.wallet.api.presentation.formatters.formatCryptoDetailFromPlanks
+import jp.co.soramitsu.wallet.api.presentation.formatters.formatCryptoFromPlanks
 import jp.co.soramitsu.wallet.api.presentation.mixin.assetSelector.AssetSelectorMixin
 import jp.co.soramitsu.wallet.api.presentation.mixin.assetSelector.WithAssetSelector
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
-import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
@@ -151,8 +150,8 @@ class CrowdloanViewModel @Inject constructor(
     ): CrowdloanModel {
         val token = asset.token
 
-        val raisedDisplay = token.amountFromPlanks(crowdloan.fundInfo.raised).format()
-        val capDisplay = token.amountFromPlanks(crowdloan.fundInfo.cap).formatTokenAmount(token.configuration)
+        val raisedDisplay = crowdloan.fundInfo.raised.formatCryptoDetailFromPlanks(token.configuration, false)
+        val capDisplay = crowdloan.fundInfo.cap.formatCryptoDetailFromPlanks(token.configuration)
 
         val depositorAddress = chain.addressOf(crowdloan.fundInfo.depositor)
 
@@ -173,7 +172,7 @@ class CrowdloanViewModel @Inject constructor(
         }
 
         val myContributionDisplay = crowdloan.myContribution?.let {
-            val myContributionFormatted = token.amountFromPlanks(it.amount).formatTokenAmount(token.configuration)
+            val myContributionFormatted = it.amount.formatCryptoFromPlanks(token.configuration)
 
             resourceManager.getString(R.string.crowdloan_contribution_format, myContributionFormatted)
         }

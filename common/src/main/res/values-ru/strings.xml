@@ -863,7 +863,7 @@
     <string name="preview">Предпросмотр</string>
     <string name="hash">Хэш</string>
     <string name="all_done">Все готово</string>
-    <string name="send_success_message">Теперь Вы можете вернуться в приложение к своим активностям</string>
+    <string name="return_to_app_message">Вы можете вернуться в приложение</string>
     <string name="scam_warning_message">This address has been flagged due to evidence of a scam. We strongly recommend that you don\'t send DOT to this account.</string>
     <string name="exchange_warning_message">This address is marked as an exchange be careful the deposit and withdrawal addresses may different.</string>
     <string name="donation_warning_message">This address has been suspicious. We strongly recommend that you don\'t send DOT to this account.</string>
@@ -979,10 +979,10 @@
     <string name="sora_card_buy_xor">Buy XOR with EUR</string>
 
     <string name="sora_card_no_more_free_tries">No more free attempts</string>
-    <string name="sora_card_verification_failed">Ошибка Проверки</string>
-    <string name="sora_card_verification_in_progress">Выполняется Проверка</string>
-    <string name="sora_card_verification_rejected">Карта ОТКЛОНЕНА</string>
-    <string name="sora_card_verification_successful">Карта В Пути</string>
+    <string name="sora_card_verification_failed">Ошибка проверки</string>
+    <string name="sora_card_verification_in_progress">Выполняется проверка</string>
+    <string name="sora_card_verification_rejected">Проверка отклонена</string>
+    <string name="sora_card_verification_successful">Карта в пути</string>
     <string name="sora_card_get_sora_card">Получить SORA карту</string>
 
     <string name="sora_card_blacklisted_countires_title">Исключения из заявки</string>

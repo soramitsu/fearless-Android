@@ -28,9 +28,8 @@ import jp.co.soramitsu.staking.impl.presentation.validators.current.model.Nomina
 import jp.co.soramitsu.staking.impl.presentation.validators.current.model.NominatedValidatorStatusModel
 import jp.co.soramitsu.staking.impl.presentation.validators.current.model.NominatedValidatorStatusModel.TitleConfig
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenarioInteractor
-import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
+import jp.co.soramitsu.wallet.api.presentation.formatters.formatCryptoFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.Token
-import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterIsInstance
@@ -94,7 +93,7 @@ class CurrentValidatorsViewModel @Inject constructor(
         val validator = nominatedValidator.validator
 
         val nominationFormatted = (nominatedValidator.status as? NominatedValidator.Status.Active)?.let { activeStatus ->
-            val amountFormatted = token.configuration.amountFromPlanks(activeStatus.nomination).formatTokenAmount(token.configuration)
+            val amountFormatted = activeStatus.nomination.formatCryptoFromPlanks(token.configuration)
 
             resourceManager.getString(R.string.staking_your_nominated_format, amountFormatted)
         }

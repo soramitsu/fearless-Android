@@ -25,7 +25,7 @@ import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
 import jp.co.soramitsu.common.domain.SelectedFiat
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
-import jp.co.soramitsu.common.utils.formatAsCurrency
+import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.oauth.base.sdk.SoraCardEnvironmentType
@@ -67,7 +67,7 @@ class ProfileViewModel @Inject constructor(
 
     val totalBalanceLiveData = combine(getTotalBalance(), selectedFiat.flow()) { balance, fiat ->
         val selectedFiatSymbol = getAvailableFiatCurrencies[fiat]?.symbol
-        balance.balance.formatAsCurrency(selectedFiatSymbol ?: balance.fiatSymbol)
+        balance.balance.formatFiat(selectedFiatSymbol ?: balance.fiatSymbol)
     }.asLiveData()
 
     val selectedAccountLiveData: LiveData<MetaAccount> = interactor.selectedMetaAccountFlow().asLiveData()

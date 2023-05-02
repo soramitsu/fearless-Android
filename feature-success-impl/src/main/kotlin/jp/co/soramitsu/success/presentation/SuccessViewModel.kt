@@ -66,7 +66,7 @@ class SuccessViewModel @Inject constructor(
 
     val state: StateFlow<SuccessViewState> = subscanUrlFlow.map { url ->
         SuccessViewState(
-            message = customMessage ?: resourceManager.getString(R.string.send_success_message),
+            message = customMessage ?: resourceManager.getString(R.string.return_to_app_message),
             tableItems = getInfoTableItems(),
             isShowSubscanButtons = url.isNullOrEmpty().not()
         )

@@ -13,9 +13,9 @@ import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.data.network.BlockExplorerUrlBuilder
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
-import jp.co.soramitsu.common.utils.format
-import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.formatAsPercentage
+import jp.co.soramitsu.common.utils.formatCryptoDetail
+import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
@@ -30,7 +30,7 @@ import jp.co.soramitsu.staking.impl.presentation.validators.details.model.Collat
 import jp.co.soramitsu.staking.impl.presentation.validators.details.model.IdentityModel
 import jp.co.soramitsu.staking.impl.presentation.validators.parcel.CollatorDetailsParcelModel
 import jp.co.soramitsu.staking.impl.presentation.validators.parcel.CollatorStakeParcelModel
-import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
+import jp.co.soramitsu.wallet.api.presentation.formatters.formatCryptoDetailFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import kotlinx.coroutines.Dispatchers
@@ -82,14 +82,13 @@ class CollatorDetailsViewModel @Inject constructor(
             },
             statusText = resourceManager.getString(statusText),
             statusColor = statusColor,
-            delegations = collator.stake.delegations.format(),
+            delegations = collator.stake.delegations.toString(),
             estimatedRewardsApr = rewardApr.formatAsPercentage(),
-            totalStake = totalStake.formatTokenAmount(asset.token.configuration),
-            totalStakeFiat = totalStake.let { asset.token.fiatAmount(it)?.formatAsCurrency(asset.token.fiatSymbol) },
-            minBond = asset.token.amountFromPlanks(collator.stake.minBond).formatTokenAmount(asset.token.configuration),
-            selfBonded = asset.token.amountFromPlanks(collator.stake.selfBonded).formatTokenAmount(asset.token.configuration),
-            effectiveAmountBonded = asset.token.amountFromPlanks(collator.stake.totalStake - collator.stake.selfBonded)
-                .formatTokenAmount(asset.token.configuration)
+            totalStake = totalStake.formatCryptoDetail(asset.token.configuration.symbolToShow),
+            totalStakeFiat = totalStake.let { asset.token.fiatAmount(it)?.formatFiat(asset.token.fiatSymbol) },
+            minBond = collator.stake.minBond.formatCryptoDetailFromPlanks(asset.token.configuration),
+            selfBonded = collator.stake.selfBonded.formatCryptoDetailFromPlanks(asset.token.configuration),
+            effectiveAmountBonded = (collator.stake.totalStake - collator.stake.selfBonded).formatCryptoDetailFromPlanks(asset.token.configuration)
         )
     }
         .inBackground()
@@ -128,17 +127,17 @@ class CollatorDetailsViewModel @Inject constructor(
 
     private suspend fun calculatePayload(asset: Asset, validatorStake: CollatorStakeParcelModel) = withContext(Dispatchers.Default) {
         val ownStake = asset.token.amountFromPlanks(validatorStake.selfBonded)
-        val ownStakeFormatted = ownStake.formatTokenAmount(asset.token.configuration)
-        val ownStakeFiatFormatted = asset.token.fiatAmount(ownStake)?.formatAsCurrency(asset.token.fiatSymbol)
+        val ownStakeFormatted = ownStake.formatCryptoDetail(asset.token.configuration.symbolToShow)
+        val ownStakeFiatFormatted = asset.token.fiatAmount(ownStake)?.formatFiat(asset.token.fiatSymbol)
 
         val nominatorsStakeValue = validatorStake.totalStake - validatorStake.selfBonded
         val nominatorsStake = asset.token.amountFromPlanks(nominatorsStakeValue)
-        val nominatorsStakeFormatted = nominatorsStake.formatTokenAmount(asset.token.configuration)
-        val nominatorsStakeFiatFormatted = asset.token.fiatAmount(nominatorsStake)?.formatAsCurrency(asset.token.fiatSymbol)
+        val nominatorsStakeFormatted = nominatorsStake.formatCryptoDetail(asset.token.configuration.symbolToShow)
+        val nominatorsStakeFiatFormatted = asset.token.fiatAmount(nominatorsStake)?.formatFiat(asset.token.fiatSymbol)
 
         val totalStake = asset.token.amountFromPlanks(validatorStake.totalStake)
-        val totalStakeFormatted = totalStake.formatTokenAmount(asset.token.configuration)
-        val totalStakeFiatFormatted = asset.token.fiatAmount(totalStake)?.formatAsCurrency(asset.token.fiatSymbol)
+        val totalStakeFormatted = totalStake.formatCryptoDetail(asset.token.configuration.symbolToShow)
+        val totalStakeFiatFormatted = asset.token.fiatAmount(totalStake)?.formatFiat(asset.token.fiatSymbol)
 
         ValidatorStakeBottomSheet.Payload(
             resourceManager.getString(R.string.staking_validator_own_stake),

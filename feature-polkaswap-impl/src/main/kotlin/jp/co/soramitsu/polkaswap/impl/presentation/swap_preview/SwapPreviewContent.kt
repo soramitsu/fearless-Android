@@ -168,8 +168,8 @@ fun SwapPreviewContentPreview() {
                     tokenName = "XOR",
                     fiatAmount = "\$ 0.32"
                 ),
-                fromTokenOnToToken = "0",
-                toTokenOnFromToken = "0",
+                fromTokenOnToToken = "0.1234",
+                toTokenOnFromToken = "12345,0",
                 minmaxTitle = stringResource(id = R.string.common_min_received)
             ),
             networkFee = SwapDetailsViewState.NetworkFee(

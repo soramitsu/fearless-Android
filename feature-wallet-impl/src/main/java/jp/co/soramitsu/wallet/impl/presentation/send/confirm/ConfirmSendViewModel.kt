@@ -23,8 +23,8 @@ import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.common.utils.requireException
 import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.core.models.Asset
-import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.core.models.utilityAsset
+import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
 import jp.co.soramitsu.wallet.api.domain.TransferValidationResult
@@ -147,21 +147,21 @@ class ConfirmSendViewModel @Inject constructor(
         val assetModel = mapAssetToAssetModel(asset)
         val amountInfoItem = TitleValueViewState(
             title = resourceManager.getString(R.string.common_amount),
-            value = assetModel.formatTokenAmount(transferDraft.amount),
+            value = assetModel.formatCrypto(transferDraft.amount),
             additionalValue = assetModel.getAsFiatWithCurrency(transferDraft.amount)
         )
 
         val tipInfoItem = transferDraft.tip?.let {
             TitleValueViewState(
                 title = resourceManager.getString(R.string.choose_amount_tip),
-                value = utilityAsset.formatTokenAmount(transferDraft.tip),
+                value = utilityAsset.formatCrypto(transferDraft.tip),
                 additionalValue = utilityAsset.getAsFiatWithCurrency(transferDraft.tip)
             )
         }
 
         val feeInfoItem = TitleValueViewState(
             title = resourceManager.getString(R.string.network_fee),
-            value = utilityAsset.formatTokenAmount(transferDraft.fee),
+            value = utilityAsset.formatCrypto(transferDraft.fee),
             additionalValue = utilityAsset.getAsFiatWithCurrency(transferDraft.fee)
         )
 
