@@ -10,7 +10,8 @@ import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.applyFiatRate
 import jp.co.soramitsu.common.utils.flowOf
-import jp.co.soramitsu.common.utils.formatAsCurrency
+import jp.co.soramitsu.common.utils.formatCryptoDetail
+import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.runtime.ext.accountFromMapKey
 import jp.co.soramitsu.runtime.ext.accountIdOf
@@ -27,7 +28,6 @@ import jp.co.soramitsu.staking.impl.presentation.pools.compose.PoolInfoScreenInt
 import jp.co.soramitsu.staking.impl.presentation.pools.compose.PoolInfoScreenViewState
 import jp.co.soramitsu.staking.impl.presentation.pools.compose.PoolStatusViewState
 import jp.co.soramitsu.staking.impl.scenarios.StakingPoolInteractor
-import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import kotlinx.coroutines.flow.SharingStarted
@@ -63,8 +63,8 @@ class PoolInfoViewModel @Inject constructor(
         canChangeRoles = poolInfo.root.contentEquals(currentUserAccountId)
 
         val stakedAmount = asset.token.amountFromPlanks(poolInfo.stakedInPlanks)
-        staked = stakedAmount.formatTokenAmount(asset.token.configuration)
-        stakedFiat = stakedAmount.applyFiatRate(asset.token.fiatRate)?.formatAsCurrency(asset.token.fiatSymbol)
+        staked = stakedAmount.formatCryptoDetail(asset.token.configuration.symbolToShow)
+        stakedFiat = stakedAmount.applyFiatRate(asset.token.fiatRate)?.formatFiat(asset.token.fiatSymbol)
 
         setupSelectedValidatorsSharedState()
     }

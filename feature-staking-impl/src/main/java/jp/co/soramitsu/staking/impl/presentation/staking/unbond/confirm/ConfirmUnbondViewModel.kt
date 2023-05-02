@@ -4,20 +4,22 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import dagger.hilt.android.lifecycle.HiltViewModel
+import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.data.network.BlockExplorerUrlBuilder
 import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.common.utils.formatAsCurrency
+import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.requireException
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.common.validation.progressConsumer
 import jp.co.soramitsu.feature_staking_impl.R
-import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
+import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
 import jp.co.soramitsu.staking.impl.domain.StakingInteractor
 import jp.co.soramitsu.staking.impl.domain.staking.unbond.UnbondInteractor
 import jp.co.soramitsu.staking.impl.domain.validations.unbond.UnbondValidationPayload
@@ -27,11 +29,9 @@ import jp.co.soramitsu.staking.impl.presentation.staking.unbond.unbondValidation
 import jp.co.soramitsu.staking.impl.scenarios.StakingScenarioInteractor
 import jp.co.soramitsu.wallet.api.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.wallet.api.data.mappers.mapFeeToFeeModel
+import jp.co.soramitsu.wallet.api.presentation.mixin.fee.FeeStatus
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
-import jp.co.soramitsu.wallet.api.presentation.mixin.fee.FeeStatus
-import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -70,7 +70,7 @@ class ConfirmUnbondViewModel @Inject constructor(
         .asLiveData()
 
     val amountFiatFLow = assetFlow.map { asset ->
-        asset.token.fiatAmount(payload.amount)?.formatAsCurrency(asset.token.fiatSymbol)
+        asset.token.fiatAmount(payload.amount)?.formatFiat(asset.token.fiatSymbol)
     }
         .inBackground()
         .asLiveData()

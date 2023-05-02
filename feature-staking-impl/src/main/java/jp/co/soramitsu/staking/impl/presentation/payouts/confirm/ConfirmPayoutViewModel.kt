@@ -14,7 +14,8 @@ import jp.co.soramitsu.common.base.TitleAndMessage
 import jp.co.soramitsu.common.data.network.BlockExplorerUrlBuilder
 import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.common.utils.formatAsCurrency
+import jp.co.soramitsu.common.utils.formatCryptoDetail
+import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.requireException
 import jp.co.soramitsu.common.validation.ValidationExecutor
@@ -35,7 +36,6 @@ import jp.co.soramitsu.staking.impl.domain.validations.payout.PayoutValidationFa
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
 import jp.co.soramitsu.staking.impl.presentation.payouts.confirm.model.ConfirmPayoutPayload
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenarioInteractor
-import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.wallet.api.presentation.mixin.fee.FeeLoaderMixin
 import jp.co.soramitsu.wallet.api.presentation.mixin.fee.requireFee
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
@@ -81,8 +81,8 @@ class ConfirmPayoutViewModel @Inject constructor(
     val totalRewardDisplay = assetFlow.map {
         val token = it.token
         val totalReward = token.amountFromPlanks(payload.totalRewardInPlanks)
-        val inToken = totalReward.formatTokenAmount(token.configuration)
-        val inFiat = token.fiatAmount(totalReward)?.formatAsCurrency(token.fiatSymbol)
+        val inToken = totalReward.formatCryptoDetail(token.configuration.symbolToShow)
+        val inFiat = token.fiatAmount(totalReward)?.formatFiat(token.fiatSymbol)
 
         inToken to inFiat
     }

@@ -19,7 +19,7 @@ import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
-import jp.co.soramitsu.common.utils.format
+import jp.co.soramitsu.common.utils.formatCryptoDetail
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.wallet.impl.domain.beacon.BeaconInteractor
@@ -70,7 +70,7 @@ class BeaconViewModel @Inject constructor(
     }.inBackground()
         .share()
 
-    val totalBalanceLiveData = totalBalance().map { it.balance.format() }.asLiveData()
+    val totalBalanceLiveData = totalBalance().map { it.balance.formatCryptoDetail() }.asLiveData()
 
     private val _scanBeaconQrEvent = MutableLiveData<Event<Unit>>()
     val scanBeaconQrEvent: LiveData<Event<Unit>> = _scanBeaconQrEvent

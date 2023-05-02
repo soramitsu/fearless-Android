@@ -26,14 +26,14 @@ import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.formatAsChange
-import jp.co.soramitsu.common.utils.formatAsCurrency
+import jp.co.soramitsu.common.utils.formatCryptoDetail
+import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraTestChainId
-import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.wallet.impl.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.wallet.impl.domain.ChainInteractor
 import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
@@ -186,13 +186,13 @@ class BalanceDetailViewModel @Inject constructor(
         balanceModel: Asset ->
 
         val balanceState = AssetBalanceViewState(
-            transferableBalance = balanceModel.transferable.orZero().formatTokenAmount(balanceModel.token.configuration.symbolToShow.uppercase()),
+            transferableBalance = balanceModel.transferable.orZero().formatCryptoDetail(balanceModel.token.configuration.symbolToShow),
             address = currentAccountAddress(chainId = balanceModel.token.configuration.chainId).orEmpty(),
             isInfoEnabled = false,
             changeViewState = ChangeBalanceViewState(
                 percentChange = balanceModel.token.recentRateChange?.formatAsChange().orEmpty(),
                 fiatChange = balanceModel.token.fiatRate?.multiply(balanceModel.transferable.orZero())
-                    ?.formatAsCurrency(balanceModel.token.fiatSymbol).orEmpty()
+                    ?.formatFiat(balanceModel.token.fiatSymbol).orEmpty()
             )
         )
 
@@ -207,12 +207,12 @@ class BalanceDetailViewModel @Inject constructor(
             )
         )
 
-        val transferableFormatted = balanceModel.transferable.formatTokenAmount(balanceModel.token.configuration.symbolToShow.uppercase())
-        val transferableFiat = balanceModel.token.fiatAmount(balanceModel.transferable)?.formatAsCurrency(balanceModel.token.fiatSymbol)
+        val transferableFormatted = balanceModel.transferable.formatCryptoDetail(balanceModel.token.configuration.symbolToShow)
+        val transferableFiat = balanceModel.token.fiatAmount(balanceModel.transferable)?.formatFiat(balanceModel.token.fiatSymbol)
         val newTransferableState = defaultState.transferableViewState.copy(value = transferableFormatted, additionalValue = transferableFiat)
 
-        val lockedFormatted = balanceModel.locked.formatTokenAmount(balanceModel.token.configuration.symbolToShow.uppercase())
-        val lockedFiat = balanceModel.token.fiatAmount(balanceModel.locked)?.formatAsCurrency(balanceModel.token.fiatSymbol)
+        val lockedFormatted = balanceModel.locked.formatCryptoDetail(balanceModel.token.configuration.symbolToShow)
+        val lockedFiat = balanceModel.token.fiatAmount(balanceModel.locked)?.formatFiat(balanceModel.token.fiatSymbol)
         val newLockedState = defaultState.lockedViewState.copy(value = lockedFormatted, additionalValue = lockedFiat)
 
         BalanceDetailsState(

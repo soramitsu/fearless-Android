@@ -9,7 +9,8 @@ import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.flowOf
-import jp.co.soramitsu.common.utils.formatAsCurrency
+import jp.co.soramitsu.common.utils.formatCrypto
+import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.requireException
 import jp.co.soramitsu.common.validation.ValidationExecutor
@@ -23,7 +24,6 @@ import jp.co.soramitsu.staking.impl.presentation.staking.bond.bondMoreValidation
 import jp.co.soramitsu.staking.impl.presentation.staking.bond.confirm.ConfirmBondMorePayload
 import jp.co.soramitsu.staking.impl.scenarios.StakingScenarioInteractor
 import jp.co.soramitsu.wallet.api.data.mappers.mapAssetToAssetModel
-import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.wallet.api.presentation.mixin.fee.FeeLoaderMixin
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
 import kotlinx.coroutines.FlowPreview
@@ -75,7 +75,7 @@ class SelectBondMoreViewModel @Inject constructor(
     val stakeCreatorBalanceFlow = flowOf {
         val balance = stakingScenarioInteractor.getAvailableForBondMoreBalance()
         val asset = assetFlow.first()
-        val balanceAmount = balance.formatTokenAmount(asset.token.configuration)
+        val balanceAmount = balance.formatCrypto(asset.token.configuration.symbolToShow)
         resourceManager.getString(R.string.common_available_format, balanceAmount)
     }.inBackground().share()
 
@@ -97,7 +97,7 @@ class SelectBondMoreViewModel @Inject constructor(
         .asLiveData()
 
     val enteredFiatAmountFlow = assetFlow.combine(parsedAmountFlow) { asset, amount ->
-        asset.token.fiatAmount(amount)?.formatAsCurrency(asset.token.fiatSymbol)
+        asset.token.fiatAmount(amount)?.formatFiat(asset.token.fiatSymbol)
     }
         .inBackground()
         .asLiveData()

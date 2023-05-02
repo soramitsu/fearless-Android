@@ -41,7 +41,7 @@ import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.formatAsChange
-import jp.co.soramitsu.common.utils.formatAsCurrency
+import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.common.utils.orZero
@@ -383,11 +383,11 @@ class BalanceListViewModel @Inject constructor(
         }.orEmpty()
 
         val balanceState = AssetBalanceViewState(
-            transferableBalance = balanceModel.totalTransferableBalance?.formatAsCurrency(balanceModel.fiatSymbol).orEmpty(),
+            transferableBalance = balanceModel.totalTransferableBalance?.formatFiat(balanceModel.fiatSymbol).orEmpty(),
             address = selectedChainAddress,
             changeViewState = ChangeBalanceViewState(
                 percentChange = balanceModel.transferableRate?.formatAsChange().orEmpty(),
-                fiatChange = balanceModel.totalTransferableBalanceChange.abs().formatAsCurrency(balanceModel.fiatSymbol)
+                fiatChange = balanceModel.totalTransferableBalanceChange.abs().formatFiat(balanceModel.fiatSymbol)
             )
         )
 

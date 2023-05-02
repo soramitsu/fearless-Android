@@ -4,7 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.common.base.BaseViewModel
-import jp.co.soramitsu.common.utils.format
+import jp.co.soramitsu.common.utils.formatCrypto
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.wallet.impl.data.mappers.mapAssetToAssetModel
@@ -84,7 +84,7 @@ class AssetSelectViewModel @Inject constructor(
         imageUrl = token.configuration.iconUrl,
         chainName = token.configuration.chainName.takeIf { isChainNameVisible },
         symbol = token.configuration.symbolToShow.uppercase(),
-        amount = total.orZero().format(),
+        amount = total.orZero().formatCrypto(),
         fiatAmount = getAsFiatWithCurrency(total) ?: "${token.fiatSymbol.orEmpty()}0",
         isSelected = false,
         chainId = token.configuration.chainId

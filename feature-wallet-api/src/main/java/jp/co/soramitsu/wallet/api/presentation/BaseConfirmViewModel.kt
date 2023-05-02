@@ -3,7 +3,6 @@ package jp.co.soramitsu.wallet.api.presentation
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.lifecycle.viewModelScope
-import java.math.BigInteger
 import jp.co.soramitsu.common.AlertViewState
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.base.errors.ValidationException
@@ -14,14 +13,14 @@ import jp.co.soramitsu.common.compose.component.ToolbarViewState
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.applyFiatRate
 import jp.co.soramitsu.common.utils.flowOf
-import jp.co.soramitsu.common.utils.formatAsCurrency
+import jp.co.soramitsu.common.utils.formatCryptoDetail
+import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.validation.FeeInsufficientBalanceException
 import jp.co.soramitsu.common.validation.WaitForFeeCalculationException
 import jp.co.soramitsu.feature_wallet_api.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.wallet.api.domain.ExistentialDepositUseCase
-import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
@@ -33,6 +32,7 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.math.BigInteger
 
 abstract class BaseConfirmViewModel(
     private val existentialDepositUseCase: ExistentialDepositUseCase,
@@ -52,8 +52,8 @@ abstract class BaseConfirmViewModel(
 ) : BaseViewModel() {
 
     private val amount = amountInPlanks?.let { asset.token.amountFromPlanks(it) }
-    private val amountFormatted = amount?.formatTokenAmount(asset.token.configuration)
-    private val amountFiat = amount?.applyFiatRate(asset.token.fiatRate)?.formatAsCurrency(asset.token.fiatSymbol)
+    private val amountFormatted = amount?.formatCryptoDetail(asset.token.configuration.symbolToShow)
+    private val amountFiat = amount?.applyFiatRate(asset.token.fiatRate)?.formatFiat(asset.token.fiatSymbol)
 
     private val toolbarViewState = ToolbarViewState(
         resourceManager.getString(R.string.common_confirm),
@@ -91,8 +91,8 @@ abstract class BaseConfirmViewModel(
 
     val feeViewStateFlow = feeInPlanksFlow.filterNotNull().map { feeInPlanks ->
         val fee = asset.token.amountFromPlanks(feeInPlanks)
-        val feeFormatted = fee.formatTokenAmount(asset.token.configuration)
-        val feeFiat = fee.formatAsCurrency(asset.token.fiatSymbol)
+        val feeFormatted = fee.formatCryptoDetail(asset.token.configuration.symbolToShow)
+        val feeFiat = fee.formatFiat(asset.token.fiatSymbol)
         TitleValueViewState(
             resourceManager.getString(R.string.network_fee),
             feeFormatted,

@@ -12,7 +12,8 @@ import jp.co.soramitsu.common.mixin.api.Retriable
 import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
-import jp.co.soramitsu.common.utils.formatAsCurrency
+import jp.co.soramitsu.common.utils.formatCryptoDetail
+import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.common.validation.progressConsumer
@@ -31,7 +32,6 @@ import jp.co.soramitsu.staking.impl.presentation.common.rewardDestination.Reward
 import jp.co.soramitsu.staking.impl.presentation.common.validation.stakingValidationFailure
 import jp.co.soramitsu.staking.impl.scenarios.StakingScenarioInteractor
 import jp.co.soramitsu.wallet.api.data.mappers.mapAssetToAssetModel
-import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.wallet.api.presentation.mixin.fee.FeeLoaderMixin
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import kotlinx.coroutines.Dispatchers
@@ -96,7 +96,7 @@ class SetupStakingViewModel @Inject constructor(
 
     val enteredFiatAmountFlow = assetFlow.combine(parsedAmountFlow) { asset, amount ->
 
-        asset.token.fiatAmount(amount)?.formatAsCurrency(asset.token.fiatSymbol)
+        asset.token.fiatAmount(amount)?.formatFiat(asset.token.fiatSymbol)
     }
         .flowOn(Dispatchers.Default)
         .asLiveData()
@@ -203,7 +203,7 @@ class SetupStakingViewModel @Inject constructor(
 
                 val minimumStakeAmount = payload.asset.token.configuration.amountFromPlanks(minimumStake)
                 if (amount < minimumStakeAmount) {
-                    _showMinimumStakeAlert.value = Event(minimumStakeAmount.formatTokenAmount(payload.asset.token.configuration))
+                    _showMinimumStakeAlert.value = Event(minimumStakeAmount.formatCryptoDetail(payload.asset.token.configuration.symbolToShow))
                 } else {
                     goToNextStep(amount, rewardDestination, currentAccountAddress, asset.token.configuration.staking)
                 }

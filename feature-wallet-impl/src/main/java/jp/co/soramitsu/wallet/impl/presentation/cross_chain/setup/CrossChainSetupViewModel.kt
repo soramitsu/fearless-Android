@@ -23,7 +23,9 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.applyFiatRate
 import jp.co.soramitsu.common.utils.combine
-import jp.co.soramitsu.common.utils.formatAsCurrency
+import jp.co.soramitsu.common.utils.formatCrypto
+import jp.co.soramitsu.common.utils.formatCryptoDetail
+import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.core.models.ChainId
@@ -33,7 +35,6 @@ import jp.co.soramitsu.wallet.api.domain.TransferValidationResult
 import jp.co.soramitsu.wallet.api.domain.ValidateTransferUseCase
 import jp.co.soramitsu.wallet.api.domain.fromValidationResult
 import jp.co.soramitsu.wallet.api.domain.model.XcmChainType
-import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletConstants
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
@@ -171,9 +172,8 @@ class CrossChainSetupViewModel @Inject constructor(
         if (asset == null) {
             defaultAmountInputState
         } else {
-            val tokenBalance = asset.transferable.formatTokenAmount(asset.token.configuration)
-            val fiatAmount =
-                amount.applyFiatRate(asset.token.fiatRate)?.formatAsCurrency(asset.token.fiatSymbol)
+            val tokenBalance = asset.transferable.formatCrypto(asset.token.configuration.symbolToShow)
+            val fiatAmount = amount.applyFiatRate(asset.token.fiatRate)?.formatFiat(asset.token.fiatSymbol)
 
             AmountInputViewState(
                 tokenName = asset.token.configuration.symbolToShow,
@@ -261,10 +261,10 @@ class CrossChainSetupViewModel @Inject constructor(
         originFeeAmountFlow,
         utilityAssetFlow
     ) { hasOriginFeeAmount, feeAmount, utilityAsset ->
-        val feeFormatted = feeAmount?.formatTokenAmount(utilityAsset.token.configuration)
+        val feeFormatted = feeAmount?.formatCryptoDetail(utilityAsset.token.configuration.symbolToShow)
             ?.takeIf { hasOriginFeeAmount }
         val feeFiat = feeAmount?.applyFiatRate(utilityAsset.token.fiatRate)
-            ?.formatAsCurrency(utilityAsset.token.fiatSymbol)
+            ?.formatFiat(utilityAsset.token.fiatSymbol)
             ?.takeIf { hasOriginFeeAmount }
 
         FeeInfoViewState(
@@ -282,10 +282,10 @@ class CrossChainSetupViewModel @Inject constructor(
     ) { hasDestinationFeeAmount, feeAmount, asset ->
         if (asset == null) return@combine null
 
-        val feeFormatted = feeAmount?.formatTokenAmount(asset.token.configuration)
+        val feeFormatted = feeAmount?.formatCryptoDetail(asset.token.configuration.symbolToShow)
             ?.takeIf { hasDestinationFeeAmount }
         val feeFiat = feeAmount?.applyFiatRate(asset.token.fiatRate)
-            ?.formatAsCurrency(asset.token.fiatSymbol)
+            ?.formatFiat(asset.token.fiatSymbol)
             ?.takeIf { hasDestinationFeeAmount }
 
         FeeInfoViewState(
