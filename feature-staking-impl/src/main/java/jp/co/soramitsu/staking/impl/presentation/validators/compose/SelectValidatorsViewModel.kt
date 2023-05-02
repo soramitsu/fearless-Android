@@ -37,7 +37,7 @@ import jp.co.soramitsu.staking.impl.presentation.common.SelectValidatorFlowState
 import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSharedStateProvider
 import jp.co.soramitsu.staking.impl.presentation.mappers.mapValidatorToValidatorDetailsParcelModel
 import jp.co.soramitsu.staking.impl.presentation.pools.compose.SelectableListItemState
-import jp.co.soramitsu.wallet.api.presentation.formatters.tokenAmountFromPlanks
+import jp.co.soramitsu.wallet.api.presentation.formatters.formatCryptoFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -220,8 +220,8 @@ fun Validator.toModel(
     asset: Asset,
     resourceManager: ResourceManager
 ): SelectableListItemState<String> {
-    val totalStake = electedInfo?.totalStake.orZero().tokenAmountFromPlanks(asset)
-    val ownStake = electedInfo?.ownStake.orZero().tokenAmountFromPlanks(asset)
+    val totalStake = electedInfo?.totalStake.orZero().formatCryptoFromPlanks(asset.token.configuration)
+    val ownStake = electedInfo?.ownStake.orZero().formatCryptoFromPlanks(asset.token.configuration)
 
     val captionHeader = when (sortingCaption) {
         BlockProducersSorting.ValidatorSorting.ValidatorOwnStakeSorting -> resourceManager.getString(R.string.staking_filter_title_own_stake)

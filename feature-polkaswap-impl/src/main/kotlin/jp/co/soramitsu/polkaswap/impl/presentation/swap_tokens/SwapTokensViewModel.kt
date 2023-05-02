@@ -17,7 +17,9 @@ import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.applyFiatRate
 import jp.co.soramitsu.common.utils.combine
 import jp.co.soramitsu.common.utils.flowOf
-import jp.co.soramitsu.common.utils.formatAsCurrency
+import jp.co.soramitsu.common.utils.formatCryptoDetail
+import jp.co.soramitsu.common.utils.formatCrypto
+import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.validation.NotEnoughResultedAmountToPayFeeException
 import jp.co.soramitsu.common.validation.SpendInsufficientBalanceException
@@ -37,7 +39,6 @@ import jp.co.soramitsu.polkaswap.api.presentation.models.TransactionSettingsMode
 import jp.co.soramitsu.polkaswap.api.presentation.models.detailsToViewState
 import jp.co.soramitsu.polkaswap.impl.presentation.transaction_settings.TransactionSettingsFragment
 import jp.co.soramitsu.wallet.api.presentation.WalletRouter
-import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
@@ -176,8 +177,8 @@ class SwapTokensViewModel @Inject constructor(
                 val feeAsset = swapDetails.value.getOrNull()?.feeAsset ?: return@let null
                 SwapDetailsViewState.NetworkFee(
                     feeAsset.token.configuration.symbolToShow.uppercase(),
-                    feeAmount.formatTokenAmount(feeAsset.token.configuration),
-                    feeAsset.token.fiatAmount(feeAmount)?.formatAsCurrency(feeAsset.token.fiatSymbol)
+                    feeAmount.formatCryptoDetail(feeAsset.token.configuration.symbolToShow),
+                    feeAsset.token.fiatAmount(feeAmount)?.formatFiat(feeAsset.token.fiatSymbol)
                 )
             }
         }
@@ -372,8 +373,8 @@ class SwapTokensViewModel @Inject constructor(
             )
         }
 
-        val tokenBalance = asset.transferable.formatTokenAmount(asset.token.configuration)
-        val fiatAmount = amount.applyFiatRate(asset.token.fiatRate)?.formatAsCurrency(asset.token.fiatSymbol)
+        val tokenBalance = asset.transferable.formatCrypto(asset.token.configuration.symbolToShow)
+        val fiatAmount = amount.applyFiatRate(asset.token.fiatRate)?.formatFiat(asset.token.fiatSymbol)
 
         return AmountInputViewState(
             tokenName = asset.token.configuration.symbolToShow,

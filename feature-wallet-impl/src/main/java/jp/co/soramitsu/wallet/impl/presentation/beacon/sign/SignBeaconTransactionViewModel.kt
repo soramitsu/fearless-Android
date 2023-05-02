@@ -5,14 +5,13 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.GetTotalBalanceUseCase
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.flowOf
-import jp.co.soramitsu.common.utils.format
+import jp.co.soramitsu.common.utils.formatCryptoDetail
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import jp.co.soramitsu.wallet.api.data.mappers.mapFeeToFeeModel
@@ -38,6 +37,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 sealed class SignableOperationModel {
     data class Success(
@@ -77,7 +77,7 @@ class SignBeaconTransactionViewModel @Inject constructor(
         .inBackground()
         .share()
 
-    val totalBalanceLiveData = totalBalance().map { it.balance.format() }.asLiveData()
+    val totalBalanceLiveData = totalBalance().map { it.balance.formatCryptoDetail() }.asLiveData()
 
     private val decodedOperation = flow {
         val result = when {

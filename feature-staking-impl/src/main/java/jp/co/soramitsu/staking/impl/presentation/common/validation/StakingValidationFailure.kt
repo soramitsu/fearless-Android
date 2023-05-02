@@ -2,10 +2,10 @@ package jp.co.soramitsu.staking.impl.presentation.common.validation
 
 import jp.co.soramitsu.common.base.TitleAndMessage
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.utils.formatCryptoDetail
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.staking.impl.domain.validations.setup.SetupStakingPayload
 import jp.co.soramitsu.staking.impl.domain.validations.setup.SetupStakingValidationFailure
-import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
 
 fun stakingValidationFailure(
     payload: SetupStakingPayload,
@@ -19,7 +19,7 @@ fun stakingValidationFailure(
             }
 
             is SetupStakingValidationFailure.TooSmallAmount -> {
-                val formattedThreshold = reason.threshold.formatTokenAmount(payload.asset.token.configuration)
+                val formattedThreshold = reason.threshold.formatCryptoDetail(payload.asset.token.configuration.symbolToShow)
 
                 getString(R.string.common_amount_low) to getString(R.string.staking_setup_amount_too_low, formattedThreshold)
             }

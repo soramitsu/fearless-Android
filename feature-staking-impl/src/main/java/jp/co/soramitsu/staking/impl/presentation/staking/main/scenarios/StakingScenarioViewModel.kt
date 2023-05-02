@@ -2,7 +2,8 @@ package jp.co.soramitsu.staking.impl.presentation.staking.main.scenarios
 
 import jp.co.soramitsu.common.domain.model.StoryGroup
 import jp.co.soramitsu.common.presentation.LoadingState
-import jp.co.soramitsu.common.utils.formatAsCurrency
+import jp.co.soramitsu.common.utils.formatCryptoDetail
+import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.validation.ValidationSystem
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.staking.api.domain.model.StakingState
@@ -12,7 +13,6 @@ import jp.co.soramitsu.staking.impl.presentation.staking.alerts.model.AlertModel
 import jp.co.soramitsu.staking.impl.presentation.staking.main.StakingViewState
 import jp.co.soramitsu.staking.impl.presentation.staking.main.StakingViewStateOld
 import jp.co.soramitsu.staking.impl.presentation.staking.main.model.StakingNetworkInfoModel
-import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.wallet.impl.domain.model.Token
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -45,8 +45,8 @@ interface StakingScenarioViewModel {
 }
 
 fun formatAlertTokenAmount(amount: BigDecimal, token: Token): String {
-    val formattedFiat = token.fiatAmount(amount)?.formatAsCurrency(token.fiatSymbol)
-    val formattedAmount = amount.formatTokenAmount(token.configuration)
+    val formattedFiat = token.fiatAmount(amount)?.formatFiat(token.fiatSymbol)
+    val formattedAmount = amount.formatCryptoDetail(token.configuration.symbolToShow)
 
     return buildString {
         append(formattedAmount)

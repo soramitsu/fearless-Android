@@ -22,7 +22,9 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.applyFiatRate
 import jp.co.soramitsu.common.utils.combine
-import jp.co.soramitsu.common.utils.formatAsCurrency
+import jp.co.soramitsu.common.utils.formatCrypto
+import jp.co.soramitsu.common.utils.formatCryptoDetail
+import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.core.models.isValidAddress
@@ -31,7 +33,6 @@ import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.wallet.api.domain.TransferValidationResult
 import jp.co.soramitsu.wallet.api.domain.ValidateTransferUseCase
 import jp.co.soramitsu.wallet.api.domain.fromValidationResult
-import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletConstants
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
@@ -51,7 +52,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
@@ -197,8 +197,8 @@ class SendSetupViewModel @Inject constructor(
         if (asset == null) {
             defaultAmountInputState
         } else {
-            val tokenBalance = asset.transferable.formatTokenAmount(asset.token.configuration)
-            val fiatAmount = amount.applyFiatRate(asset.token.fiatRate)?.formatAsCurrency(asset.token.fiatSymbol)
+            val tokenBalance = asset.transferable.formatCrypto(asset.token.configuration.symbolToShow)
+            val fiatAmount = amount.applyFiatRate(asset.token.fiatRate)?.formatFiat(asset.token.fiatSymbol)
 
             AmountInputViewState(
                 tokenName = asset.token.configuration.symbolToShow,
@@ -255,10 +255,10 @@ class SendSetupViewModel @Inject constructor(
 
     private val feeInfoViewStateFlow: Flow<FeeInfoViewState> = combine(
         feeAmountFlow,
-        utilityAssetFlow.map { it.token }.distinctUntilChanged()
-    ) { feeAmount, utilityToken ->
-        val feeFormatted = feeAmount?.formatTokenAmount(utilityToken.configuration)
-        val feeFiat = feeAmount?.applyFiatRate(utilityToken.fiatRate)?.formatAsCurrency(utilityToken.fiatSymbol)
+        utilityAssetFlow
+    ) { feeAmount, utilityAsset ->
+        val feeFormatted = feeAmount?.formatCryptoDetail(utilityAsset.token.configuration.symbolToShow)
+        val feeFiat = feeAmount?.applyFiatRate(utilityAsset.token.fiatRate)?.formatFiat(utilityAsset.token.fiatSymbol)
 
         FeeInfoViewState(feeAmount = feeFormatted, feeAmountFiat = feeFiat)
     }

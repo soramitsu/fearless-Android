@@ -13,9 +13,10 @@ import jp.co.soramitsu.common.compose.component.FeeInfoViewState
 import jp.co.soramitsu.common.compose.component.ToolbarViewState
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.applyFiatRate
-import jp.co.soramitsu.common.utils.formatAsCurrency
+import jp.co.soramitsu.common.utils.formatCrypto
+import jp.co.soramitsu.common.utils.formatCryptoDetail
+import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.orZero
-import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
@@ -74,8 +75,8 @@ open class BaseEnterAmountViewModel(
     private val enteredAmountFlow = MutableStateFlow(initialAmount)
 
     private val amountInputViewState: Flow<AmountInputViewState> = enteredAmountFlow.map { amount ->
-        val tokenBalance = availableAmountForOperation(asset).formatTokenAmount(asset.token.configuration)
-        val fiatAmount = amount.applyFiatRate(asset.token.fiatRate)?.formatAsCurrency(asset.token.fiatSymbol)
+        val tokenBalance = availableAmountForOperation(asset).formatCrypto(asset.token.configuration.symbolToShow)
+        val fiatAmount = amount.applyFiatRate(asset.token.fiatRate)?.formatFiat(asset.token.fiatSymbol)
 
         AmountInputViewState(
             tokenName = asset.token.configuration.symbolToShow,
@@ -93,8 +94,8 @@ open class BaseEnterAmountViewModel(
         val inPlanks = asset.token.planksFromAmount(amount)
         val feeInPlanks = feeEstimator(inPlanks)
         val fee = asset.token.amountFromPlanks(feeInPlanks)
-        val feeFormatted = fee.formatTokenAmount(asset.token.configuration)
-        val feeFiat = fee.applyFiatRate(asset.token.fiatRate)?.formatAsCurrency(asset.token.fiatSymbol)
+        val feeFormatted = fee.formatCryptoDetail(asset.token.configuration.symbolToShow)
+        val feeFiat = fee.applyFiatRate(asset.token.fiatRate)?.formatFiat(asset.token.fiatSymbol)
 
         FeeInfoViewState(feeAmount = feeFormatted, feeAmountFiat = feeFiat)
     }.stateIn(viewModelScope, SharingStarted.Eagerly, FeeInfoViewState.default)

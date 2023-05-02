@@ -45,12 +45,11 @@ fun SwapHeader(
         )
 
         Row(
-            modifier = Modifier.padding(top = 8.dp),
+            modifier = Modifier.padding(top = 8.dp).fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {
             Text(
-                modifier = Modifier.weight(1f),
                 text = fromTokenAmount,
                 style = MaterialTheme.customTypography.header3,
                 maxLines = 1,
@@ -58,7 +57,7 @@ fun SwapHeader(
                 textAlign = TextAlign.End
             )
 
-            MarginHorizontal(margin = 16.dp)
+            MarginHorizontal(margin = 8.dp)
 
             Icon(
                 painter = painterResource(R.drawable.ic_arrow_right_24),
@@ -66,10 +65,9 @@ fun SwapHeader(
                 tint = MaterialTheme.customColors.white
             )
 
-            MarginHorizontal(margin = 16.dp)
+            MarginHorizontal(margin = 8.dp)
 
             Text(
-                modifier = Modifier.weight(1f),
                 text = toTokenAmount,
                 style = MaterialTheme.customTypography.header3,
                 maxLines = 1,
@@ -89,7 +87,7 @@ private fun SwapHeaderPreview() {
                 fromTokenImage = GradientIconState.Remote("", "ffffff"),
                 toTokenImage = GradientIconState.Remote("", "ffffff"),
                 fromTokenAmount = "15 XTSUD",
-                toTokenAmount = "665 BTC"
+                toTokenAmount = "3,940.362 PSWAP"
             )
         }
     }

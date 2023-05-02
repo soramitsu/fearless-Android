@@ -3,11 +3,11 @@ package jp.co.soramitsu.staking.impl.presentation.common
 import androidx.lifecycle.MutableLiveData
 import androidx.recyclerview.widget.DiffUtil
 import jp.co.soramitsu.common.utils.Event
+import jp.co.soramitsu.common.utils.formatCrypto
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
 import jp.co.soramitsu.staking.api.data.StakingAssetSelection
 import jp.co.soramitsu.staking.api.data.StakingSharedState
 import jp.co.soramitsu.staking.api.data.StakingType
-import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -38,7 +38,7 @@ class StakingAssetSelector(
                 it,
                 asset.token.configuration.iconUrl,
                 asset.token.configuration.chainName,
-                assetBalance.formatTokenAmount(asset.token.configuration)
+                assetBalance.formatCrypto(asset.token.configuration.symbolToShow)
             )
         }
         .shareIn(this, SharingStarted.Eagerly, replay = 1)
@@ -59,7 +59,7 @@ class StakingAssetSelector(
                     selection,
                     asset.token.configuration.iconUrl,
                     asset.token.configuration.chainName,
-                    assetBalance.formatTokenAmount(asset.token.configuration)
+                    assetBalance.formatCrypto(asset.token.configuration.symbolToShow)
                 )
             }
 

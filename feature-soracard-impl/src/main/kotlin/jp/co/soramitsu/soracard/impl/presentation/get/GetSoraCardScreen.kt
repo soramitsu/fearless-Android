@@ -42,7 +42,8 @@ import jp.co.soramitsu.common.compose.component.ToolbarViewState
 import jp.co.soramitsu.common.compose.component.TransparentButton
 import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
 import jp.co.soramitsu.common.compose.theme.errorRed
-import jp.co.soramitsu.common.utils.format
+import jp.co.soramitsu.common.utils.formatCryptoDetail
+import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.feature_soracard_impl.R
 import jp.co.soramitsu.soracard.api.presentation.models.SoraCardInfo
 import jp.co.soramitsu.ui_core.component.text.HtmlText
@@ -328,8 +329,8 @@ private fun FreeCardIssuance(
                     else -> {
                         stringResource(
                             R.string.sora_card_you_need_xor,
-                            state.needInXor.format(),
-                            state.needInEur.format()
+                            state.needInXor.formatCryptoDetail(),
+                            state.needInEur.formatFiat()
                         )
                     }
                 }

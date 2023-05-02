@@ -10,9 +10,10 @@ import jp.co.soramitsu.common.mixin.api.Browserable
 import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
-import jp.co.soramitsu.common.utils.format
-import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.formatAsPercentage
+import jp.co.soramitsu.common.utils.formatCrypto
+import jp.co.soramitsu.common.utils.formatCryptoDetail
+import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.fractionToPercentage
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.validation.ValidationExecutor
@@ -46,7 +47,7 @@ import jp.co.soramitsu.crowdloan.impl.presentation.contribute.select.parcel.mapP
 import jp.co.soramitsu.feature_crowdloan_impl.R
 import jp.co.soramitsu.wallet.api.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.wallet.api.domain.AssetUseCase
-import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
+import jp.co.soramitsu.wallet.api.presentation.formatters.formatCryptoDetailFromPlanks
 import jp.co.soramitsu.wallet.api.presentation.mixin.fee.FeeLoaderMixin
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
@@ -175,7 +176,7 @@ class CrowdloanContributeViewModel @Inject constructor(
                     else -> {
                         val bonus = contributionState.payload.calculateBonus(amount)
 
-                        bonus?.formatTokenAmount(contributionState.tokenName)
+                        bonus?.formatCryptoDetail(contributionState.tokenName)
                     }
                 }
             }
@@ -195,7 +196,7 @@ class CrowdloanContributeViewModel @Inject constructor(
         .share()
 
     val enteredFiatAmountFlow = assetFlow.combine(parsedAmountFlow) { asset, amount ->
-        asset.token.fiatAmount(amount)?.formatAsCurrency(asset.token.fiatSymbol)
+        asset.token.fiatAmount(amount)?.formatFiat(asset.token.fiatSymbol)
     }
         .inBackground()
         .asLiveData()
@@ -235,7 +236,7 @@ class CrowdloanContributeViewModel @Inject constructor(
                 metadata.isAcala -> null
                 else -> {
                     val estimatedReward = rewardRate?.let { amount * it }
-                    estimatedReward?.formatTokenAmount(metadata.token)
+                    estimatedReward?.formatCrypto(metadata.token)
                 }
             }
         }
@@ -247,8 +248,8 @@ class CrowdloanContributeViewModel @Inject constructor(
     val crowdloanDetailModelFlow = crowdloanFlow.combine(assetFlow) { crowdloan, asset ->
         val token = asset.token
 
-        val raisedDisplay = token.amountFromPlanks(crowdloan.fundInfo.raised).format()
-        val capDisplay = token.amountFromPlanks(crowdloan.fundInfo.cap).formatTokenAmount(token.configuration)
+        val raisedDisplay = crowdloan.fundInfo.raised.formatCryptoDetailFromPlanks(token.configuration, false)
+        val capDisplay = crowdloan.fundInfo.cap.formatCryptoDetailFromPlanks(token.configuration)
 
         val timeLeft = when (val state = crowdloan.state) {
             Crowdloan.State.Finished -> resourceManager.getString(R.string.transaction_status_completed)

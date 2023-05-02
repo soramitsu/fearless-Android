@@ -1,9 +1,9 @@
 package jp.co.soramitsu.wallet.impl.presentation.balance.list.model
 
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState
-import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.common.utils.formatAsChange
-import jp.co.soramitsu.common.utils.formatAsCurrency
+import jp.co.soramitsu.common.utils.formatCrypto
+import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainEcosystem
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
@@ -31,10 +31,10 @@ fun BalanceListItemModel.toAssetState() = AssetListItemViewState(
     assetChainName = chain?.name.orEmpty(),
     assetSymbol = asset.symbol,
     displayName = asset.symbol,
-    assetTokenFiat = token.fiatRate?.formatAsCurrency(token.fiatSymbol),
+    assetTokenFiat = token.fiatRate?.formatFiat(token.fiatSymbol),
     assetTokenRate = token.recentRateChange?.formatAsChange(),
-    assetTransferableBalance = transferable.format(),
-    assetTransferableBalanceFiat = token.fiatRate?.multiply(transferable)?.formatAsCurrency(token.fiatSymbol),
+    assetTransferableBalance = transferable.formatCrypto(),
+    assetTransferableBalanceFiat = token.fiatRate?.multiply(transferable)?.formatFiat(token.fiatSymbol),
     assetChainUrls = chainUrls,
     chainId = chain?.id.orEmpty(),
     chainAssetId = asset.id,
