@@ -91,8 +91,8 @@ fun SwapPreviewContent(
                     SwapHeader(
                         fromTokenImage = state.swapDetailsViewState.fromTokenImage!!,
                         toTokenImage = state.swapDetailsViewState.toTokenImage!!,
-                        fromTokenAmount = state.swapDetailsViewState.fromTokenAmount.format(),
-                        toTokenAmount = state.swapDetailsViewState.toTokenAmount.format()
+                        fromTokenAmount = state.swapDetailsViewState.fromTokenAmount,
+                        toTokenAmount = state.swapDetailsViewState.toTokenAmount
                     )
 
                     val fromTokenName = state.swapDetailsViewState.fromTokenName
