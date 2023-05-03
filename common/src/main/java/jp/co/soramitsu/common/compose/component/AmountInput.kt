@@ -13,7 +13,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
-import androidx.compose.material.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
@@ -33,12 +32,12 @@ import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.theme.black05
 import jp.co.soramitsu.common.compose.theme.black2
+import jp.co.soramitsu.common.compose.theme.colorAccentDark
 import jp.co.soramitsu.common.compose.theme.white
 import jp.co.soramitsu.common.compose.theme.white24
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.MAX_DECIMALS_8
 import jp.co.soramitsu.ui_core.component.input.number.BasicNumberInput
-import jp.co.soramitsu.ui_core.theme.customColors
 import jp.co.soramitsu.ui_core.theme.customTypography
 import java.math.BigDecimal
 
@@ -166,14 +165,7 @@ fun AmountInput(
                     initial = state.initial,
                     onValueChanged = onInput,
                     focusRequester = focusRequester,
-                    textFieldColors = TextFieldDefaults.textFieldColors(
-                        textColor = MaterialTheme.customColors.fgPrimary,
-                        placeholderColor = MaterialTheme.customColors.fgSecondary,
-                        cursorColor = MaterialTheme.customColors.fgPrimary,
-                        focusedIndicatorColor = MaterialTheme.customColors.fgSecondary,
-                        unfocusedIndicatorColor = MaterialTheme.customColors.fgSecondary,
-                        backgroundColor = Color.Transparent
-                    ),
+                    cursorColor = colorAccentDark,
                     placeholder = {
                         Text(
                             modifier = Modifier
@@ -182,7 +174,7 @@ fun AmountInput(
                             text = "0",
                             style = MaterialTheme.customTypography.displayS,
                             textAlign = TextAlign.End,
-                            color = MaterialTheme.customColors.fgSecondary
+                            color = black2
                         )
                     }
                 )
