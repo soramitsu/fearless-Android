@@ -4,7 +4,6 @@ import android.os.Parcelable
 import jp.co.soramitsu.common.compose.component.GradientIconState
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.formatCryptoDetail
-import jp.co.soramitsu.common.utils.formatCryptoFull
 import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.core.rpc.models.responses.QuoteResponse
 import jp.co.soramitsu.feature_polkaswap_api.R
@@ -67,16 +66,16 @@ fun detailsToViewState(
 
     when (desired) {
         WithDesired.INPUT -> {
-            fromAmount = amount.formatCryptoFull()
-            toAmount = details.amount.formatCryptoFull()
+            fromAmount = amount.formatCryptoDetail(fromAsset.token.configuration.symbolToShow)
+            toAmount = details.amount.formatCryptoDetail(toAsset.token.configuration.symbolToShow)
 
             minMaxTitle = resourceManager.getString(R.string.common_min_received)
             minMaxAmount = details.minMax.formatCryptoDetail(toAsset.token.configuration.symbolToShow)
             minMaxFiat = toAsset.token.fiatAmount(details.minMax)?.formatFiat(toAsset.token.fiatSymbol)
         }
         WithDesired.OUTPUT -> {
-            fromAmount = details.amount.formatCryptoFull()
-            toAmount = amount.formatCryptoFull()
+            fromAmount = details.amount.formatCryptoDetail(fromAsset.token.configuration.symbolToShow)
+            toAmount = amount.formatCryptoDetail(toAsset.token.configuration.symbolToShow)
 
             minMaxTitle = resourceManager.getString(R.string.polkaswap_maximum_sold)
             minMaxAmount = details.minMax.formatCryptoDetail(fromAsset.token.configuration.symbolToShow)

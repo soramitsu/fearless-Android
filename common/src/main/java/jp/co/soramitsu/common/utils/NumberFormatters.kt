@@ -19,14 +19,14 @@ import java.util.concurrent.TimeUnit
 const val DOLLAR_SIGN = "$"
 private const val DECIMAL_PATTERN_BASE = "#,##0"
 
-private const val CRYPTO_DETAIL_PRECISION = 8
-private const val CRYPTO_LISTS_PRECISION = 3
-private const val PERCENT_PRECISION = 2
+private const val MAX_DECIMALS_2 = 2
+private const val MAX_DECIMALS_3 = 3
+const val MAX_DECIMALS_8 = 8
 
 private val fiatAmountFormatter = FiatFormatter()
-private val percentAmountFormatter = FixedPrecisionFormatter(PERCENT_PRECISION)
-private val cryptoAmountShortFormatter = FixedPrecisionFormatter(CRYPTO_LISTS_PRECISION)
-private val cryptoAmountDetailFormatter = FixedPrecisionFormatter(CRYPTO_DETAIL_PRECISION)
+private val percentAmountFormatter = FixedPrecisionFormatter(MAX_DECIMALS_2)
+private val cryptoAmountShortFormatter = FixedPrecisionFormatter(MAX_DECIMALS_3)
+private val cryptoAmountDetailFormatter = FixedPrecisionFormatter(MAX_DECIMALS_8)
 
 private val fiatAbbreviatedFormatter = fiatAbbreviatedFormatter()
 private val cryptoShortAbbreviatedFormatter = cryptoShortAbbreviatedFormatter()
@@ -47,13 +47,15 @@ fun BigDecimal.formatPercent() = percentAmountFormatter.format(this)
 
 fun BigDecimal.formatCryptoFull() = fullPrecisionFormatter.format(this)
 fun BigDecimal.formatCrypto(symbol: String? = null): String {
-    return cryptoShortAbbreviatedFormatter.format(this).also {
-        symbol?.formatWithTokenSymbol(symbol)
+    return when (symbol) {
+        null -> cryptoShortAbbreviatedFormatter.format(this)
+        else -> cryptoShortAbbreviatedFormatter.format(this).formatWithTokenSymbol(symbol)
     }
 }
 fun BigDecimal.formatCryptoDetail(symbol: String? = null): String {
-    return cryptoDetailAbbreviatedFormatter.format(this).also {
-        symbol?.formatWithTokenSymbol(symbol)
+    return when (symbol) {
+        null -> cryptoDetailAbbreviatedFormatter.format(this)
+        else -> cryptoDetailAbbreviatedFormatter.format(this).formatWithTokenSymbol(symbol)
     }
 }
 
