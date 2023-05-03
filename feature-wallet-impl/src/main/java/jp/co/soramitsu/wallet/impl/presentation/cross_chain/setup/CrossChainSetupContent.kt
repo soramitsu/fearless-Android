@@ -1,21 +1,20 @@
 package jp.co.soramitsu.wallet.impl.presentation.cross_chain.setup
 
 import android.graphics.drawable.Drawable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.defaultMinSize
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusState
@@ -88,11 +87,18 @@ fun CrossChainSetupContent(
     val keyboardController = LocalSoftwareKeyboardController.current
 
     BottomSheetScreen {
-        Box(Modifier.fillMaxSize()) {
+        val isSoftKeyboardOpen = WindowInsets.ime.getBottom(LocalDensity.current) > 0
+        val showQuickInput = state.amountInputState.isFocused && isSoftKeyboardOpen
+        Column(
+            modifier = Modifier
+                .imePadding()
+        ) {
             Column(
                 modifier = Modifier
                     .padding(horizontal = 16.dp)
                     .fillMaxWidth()
+                    .weight(1f)
+                    .verticalScroll(rememberScrollState())
             ) {
                 ToolbarBottomSheet(
                     title = stringResource(id = R.string.common_title_cross_chain),
@@ -104,7 +110,7 @@ fun CrossChainSetupContent(
                     state = state.originalChainSelectorState
                 )
 
-                MarginVertical(margin = 8.dp)
+                MarginVertical(margin = 12.dp)
                 AmountInput(
                     state = state.amountInputState,
                     borderColorFocused = colorAccentDark,
@@ -112,13 +118,13 @@ fun CrossChainSetupContent(
                     onInput = callback::onAmountInput
                 )
 
-                MarginVertical(margin = 8.dp)
+                MarginVertical(margin = 12.dp)
                 SelectorWithBorder(
                     state = state.destinationChainSelectorState,
                     onClick = callback::onDestinationChainClick
                 )
 
-                MarginVertical(margin = 8.dp)
+                MarginVertical(margin = 12.dp)
                 AddressInput(
                     state = state.addressInputState,
                     onInput = callback::onAddressInput,
@@ -132,25 +138,18 @@ fun CrossChainSetupContent(
                 )
 
                 state.warningInfoState?.let {
-                    MarginVertical(margin = 8.dp)
+                    MarginVertical(margin = 12.dp)
                     WarningInfo(state = it, onClick = callback::onWarningInfoClick)
                 }
-                MarginVertical(margin = 8.dp)
+                MarginVertical(margin = 12.dp)
                 FeeInfo(state = state.originalFeeInfoState, modifier = Modifier.defaultMinSize(minHeight = 52.dp))
                 if (state.destinationFeeInfoState != null) {
-                    MarginVertical(margin = 8.dp)
                     FeeInfo(state = state.destinationFeeInfoState, modifier = Modifier.defaultMinSize(minHeight = 52.dp))
                 }
-
-                Spacer(modifier = Modifier.weight(1f))
             }
 
-            val isSoftKeyboardOpen = WindowInsets.ime.getBottom(LocalDensity.current) > 0
-            val showQuickInput = state.amountInputState.isFocused && isSoftKeyboardOpen
             Column(
                 modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .imePadding()
             ) {
                 MarginVertical(margin = 12.dp)
                 AccentButton(

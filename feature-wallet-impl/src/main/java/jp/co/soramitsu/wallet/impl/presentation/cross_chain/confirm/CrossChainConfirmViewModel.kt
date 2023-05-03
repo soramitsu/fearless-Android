@@ -40,6 +40,7 @@ import jp.co.soramitsu.wallet.impl.domain.model.TransferValidityLevel
 import jp.co.soramitsu.wallet.impl.domain.model.TransferValidityStatus
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
+import jp.co.soramitsu.common.address.shorten
 import jp.co.soramitsu.wallet.impl.presentation.cross_chain.CrossChainTransferDraft
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -246,13 +247,14 @@ class CrossChainConfirmViewModel @Inject constructor(
             val asset = originalAssetFlow.firstOrNull() ?: return@launch
             val token = asset.token.configuration
 
-            val inPlanks = token.planksFromAmount(transferDraft.amount)
+            val rawAmountInPlanks = token.planksFromAmount(transferDraft.amount)
+            val destinationFeeInPlanks = token.planksFromAmount(transferDraft.destinationFee)
             val originalFee = token.planksFromAmount(transferDraft.originalFee)
             val recipientAddress = transferDraft.recipientAddress
             val selfAddress = currentAccountAddress(asset.token.configuration.chainId) ?: return@launch
 
             val validationProcessResult = validateTransferUseCase.validateExistentialDeposit(
-                amountInPlanks = inPlanks,
+                amountInPlanks = rawAmountInPlanks + destinationFeeInPlanks,
                 asset = asset,
                 recipientAddress = recipientAddress,
                 ownAddress = selfAddress,
@@ -370,13 +372,9 @@ class CrossChainConfirmViewModel @Inject constructor(
                 amount = amount,
                 chainAsset = token,
                 originalChainId = originalChainId,
-                destinationChainId = destinationChainId
+                destinationChainId = destinationChainId,
+                destinationFee = destinationFee
             )
         }
     }
-}
-
-private fun String.shorten() = when {
-    length < 20 -> this
-    else -> "${take(5)}...${takeLast(5)}"
 }

@@ -290,7 +290,7 @@ class WalletInteractorImpl(
                 asset = transfer.chainAsset,
                 senderAccountId = originalChain.accountIdOf(selfAddress),
                 address = transfer.recipient,
-                amount = transfer.amountInPlanks
+                amount = transfer.fullAmountInPlanks
             )
         }
     }

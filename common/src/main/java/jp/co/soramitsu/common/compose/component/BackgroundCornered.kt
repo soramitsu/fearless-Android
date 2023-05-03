@@ -9,10 +9,12 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.compose.theme.black05
+import jp.co.soramitsu.common.compose.theme.borderGradientColors
 import jp.co.soramitsu.common.compose.theme.customColors
 import jp.co.soramitsu.common.compose.theme.white24
 
@@ -44,6 +46,31 @@ fun BackgroundCorneredWithBorder(
         modifier = modifier
             .wrapContentSize()
             .border(1.dp, color = borderColor, shape = shape),
+        shape = shape,
+        color = backgroundColor
+    ) {
+        Box {
+            content()
+        }
+    }
+}
+
+@Composable
+fun BackgroundCorneredWithGradientBorder(
+    modifier: Modifier = Modifier,
+    backgroundColor: Color = black05,
+    borderColors: List<Color> = borderGradientColors,
+    shape: Shape = FearlessCorneredShape(),
+    content: @Composable BoxScope.() -> Unit
+) {
+    Surface(
+        modifier = modifier
+            .wrapContentSize()
+            .border(
+                1.dp,
+                brush = Brush.horizontalGradient(colors = borderColors),
+                shape = shape
+            ),
         shape = FearlessCorneredShape(),
         color = backgroundColor
     ) {

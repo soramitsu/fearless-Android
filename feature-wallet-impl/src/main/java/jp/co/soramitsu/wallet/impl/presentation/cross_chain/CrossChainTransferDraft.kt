@@ -1,8 +1,6 @@
 package jp.co.soramitsu.wallet.impl.presentation.cross_chain
 
 import android.os.Parcelable
-import jp.co.soramitsu.common.utils.orZero
-import kotlinx.parcelize.IgnoredOnParcel
 import kotlinx.parcelize.Parcelize
 import java.math.BigDecimal
 
@@ -17,9 +15,4 @@ class CrossChainTransferDraft(
     val recipientAddress: String,
     val tip: BigDecimal?,
     val transferableTokenSymbol: String
-) : Parcelable {
-    @IgnoredOnParcel
-    val totalTransaction = amount + originalFee + destinationFee + tip.orZero()
-
-    fun totalAfterTransfer(currentTotal: BigDecimal) = currentTotal - totalTransaction
-}
+) : Parcelable

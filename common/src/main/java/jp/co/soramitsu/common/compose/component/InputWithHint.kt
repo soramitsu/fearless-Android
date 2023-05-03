@@ -23,6 +23,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import jp.co.soramitsu.common.address.shorten
 import jp.co.soramitsu.common.compose.theme.colorAccentDark
 import jp.co.soramitsu.common.compose.theme.customTypography
 import jp.co.soramitsu.common.compose.theme.white
@@ -34,6 +35,7 @@ fun InputWithHint(
     modifier: Modifier = Modifier,
     cursorBrush: Brush = SolidColor(white),
     inputFieldModifier: Modifier = Modifier,
+    editable: Boolean = true,
     onInput: (String) -> Unit,
     Hint: @Composable () -> Unit
 ) {
@@ -45,11 +47,17 @@ fun InputWithHint(
             }
         }
 
+        val value = state.orEmpty()
         BasicTextField(
-            value = state.orEmpty(),
+            value = if (editable) {
+                value
+            } else {
+                value.shorten()
+            },
             onValueChange = onInput,
             textStyle = MaterialTheme.customTypography.body1.copy(textAlign = TextAlign.Start, background = Color.Unspecified),
             singleLine = true,
+            enabled = editable,
             keyboardOptions = KeyboardOptions(autoCorrect = false, keyboardType = KeyboardType.Text, imeAction = ImeAction.None),
             modifier = inputFieldModifier
                 .fillMaxWidth()

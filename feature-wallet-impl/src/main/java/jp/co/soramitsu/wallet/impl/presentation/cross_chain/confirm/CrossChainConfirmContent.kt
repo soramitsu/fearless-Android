@@ -1,7 +1,8 @@
 package jp.co.soramitsu.wallet.impl.presentation.cross_chain.confirm
 
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -81,7 +82,7 @@ fun CrossChainConfirmContent(
         contentAlignment = Alignment.BottomStart
     ) {
         BottomSheetScreen {
-            Box(Modifier.fillMaxWidth()) {
+            Column(Modifier.fillMaxSize()) {
                 Column(
                     modifier = Modifier
                         .padding(horizontal = 16.dp)
@@ -115,7 +116,11 @@ fun CrossChainConfirmContent(
                     MarginVertical(margin = 24.dp)
                     InfoTable(items = state.tableItems, onItemClick = callback::onItemClick)
                     MarginVertical(margin = 12.dp)
+                }
 
+                Spacer(modifier = Modifier.weight(1f))
+
+                Column {
                     AccentButton(
                         state = state.buttonState,
                         onClick = {
@@ -124,6 +129,7 @@ fun CrossChainConfirmContent(
                         },
                         modifier = Modifier
                             .fillMaxWidth()
+                            .padding(horizontal = 16.dp)
                             .height(48.dp)
                     )
 

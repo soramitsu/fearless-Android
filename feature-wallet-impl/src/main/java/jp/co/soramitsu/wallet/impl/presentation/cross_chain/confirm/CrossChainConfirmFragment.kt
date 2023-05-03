@@ -2,12 +2,14 @@ package jp.co.soramitsu.wallet.impl.presentation.cross_chain.confirm
 
 import android.os.Bundle
 import android.view.View
+import android.widget.FrameLayout
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.core.os.bundleOf
 import androidx.fragment.app.viewModels
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.account.api.presentation.actions.setupExternalActions
 import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
@@ -55,5 +57,12 @@ class CrossChainConfirmFragment : BaseComposeBottomSheetDialogFragment<CrossChai
             state = state,
             callback = viewModel
         )
+    }
+
+    override fun setupBehavior(behavior: BottomSheetBehavior<FrameLayout>) {
+        behavior.state = BottomSheetBehavior.STATE_EXPANDED
+        behavior.isHideable = false
+        behavior.isDraggable = false
+        behavior.skipCollapsed = true
     }
 }

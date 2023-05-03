@@ -11,10 +11,11 @@ class CrossChainTransfer(
     val destinationChainId: ChainId,
     val recipient: String,
     val amount: BigDecimal,
+    destinationFee: BigDecimal,
     val chainAsset: Asset
 ) {
 
-    val amountInPlanks: BigInteger = chainAsset.planksFromAmount(amount)
+    val fullAmountInPlanks: BigInteger = chainAsset.planksFromAmount(amount) + chainAsset.planksFromAmount(destinationFee)
 
     fun validityStatus(
         senderTransferable: BigDecimal,

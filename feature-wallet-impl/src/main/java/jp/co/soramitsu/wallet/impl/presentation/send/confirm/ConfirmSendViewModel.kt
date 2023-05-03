@@ -10,6 +10,7 @@ import jp.co.soramitsu.common.AlertViewState
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.address.createAddressModel
+import jp.co.soramitsu.common.address.shorten
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.base.errors.ValidationException
 import jp.co.soramitsu.common.base.errors.ValidationWarning
@@ -326,9 +327,4 @@ class ConfirmSendViewModel @Inject constructor(
             )
         }
     }
-}
-
-private fun String.shorten() = when {
-    length < 20 -> this
-    else -> "${take(5)}...${takeLast(5)}"
 }

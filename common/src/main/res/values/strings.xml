@@ -1009,8 +1009,8 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="common_min_received">Min received</string>
     <string name="common_liquidity_provider_fee">Liquidity Provider Fee</string>
     <string name="common_network_fee">Network Fee</string>
-    <string name="common_origin_network_fee">Origin Network Fee</string>
-    <string name="common_destination_network_fee">Destination Network Fee</string>
+    <string name="common_origin_network_fee">Origin network fee</string>
+    <string name="common_destination_network_fee">Destination network fee</string>
     <string name="common_route">Route</string>
 
     <string name="polkaswap_from">From</string>

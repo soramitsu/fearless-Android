@@ -127,7 +127,4 @@ class SuccessViewModel @Inject constructor(
     }
 }
 
-private fun String.shorten() = when {
-    length < 20 -> this
-    else -> "${take(5)}...${takeLast(5)}"
-}
+private fun String.shorten() = "${take(5)}...${takeLast(5)}"
