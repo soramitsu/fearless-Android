@@ -77,7 +77,7 @@ class WalletSelectorViewModel @Inject constructor(
         viewModelScope.launch {
             selectedWalletItem.value = item
             router.setWalletSelectorPayload(WalletSelectorPayload(tag, item.id))
-            router.back()
+            router.backWithResult(WalletSelectorFragment.RESULT_ADDRESS to item.id)
         }
     }
 

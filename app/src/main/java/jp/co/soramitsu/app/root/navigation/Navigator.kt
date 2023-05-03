@@ -369,6 +369,15 @@ class Navigator :
         navController?.navigate(R.id.walletSelectorFragment, WalletSelectorFragment.buildArguments(tag))
     }
 
+    override fun openWalletSelectorForResult(): Flow<Long> {
+        val bundle = WalletSelectorFragment.buildArguments(tag = "")
+        return openWithResult(
+            destinationId = R.id.walletSelectorFragment,
+            bundle = bundle,
+            resultKey = WalletSelectorFragment.RESULT_ADDRESS
+        )
+    }
+
     override fun openSelectUnbond(payload: SelectUnbondPayload) {
         navController?.navigate(R.id.action_stakingBalanceFragment_to_selectUnbondFragment, SelectUnbondFragment.getBundle(payload))
     }

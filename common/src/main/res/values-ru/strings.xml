@@ -805,6 +805,8 @@
     <string name="common_action_buy">Купить</string>
     <string name="common_action_swap">Обменять</string>
 
+    <string name="common_title_select_wallet">Выберите кошелек</string>
+
     <string name="pool_staking_confirm_join_title">Присоединение к пулу</string>
     <string name="pool_staking_number_of_members">Количество участников</string>
     <string name="pool_staking_pool_info">Информация о пуле</string>
@@ -854,6 +856,7 @@
     <string name="chip_qr">QR код</string>
     <string name="chip_history">История</string>
     <string name="chip_paste">Из буфера</string>
+    <string name="chip_my_wallets">Мои счета</string>
     <string name="address_not_valid_error_title">Не адрес сети</string>
     <string name="address_not_valid_error_message">Неверный формат адреса.\nУбедитесь, что адрес\nсоответствует сети</string>
     <string name="transfer_address_not_valid_error_message">According to the address provided you\'re trying to make a transfer on the wrong network.</string>

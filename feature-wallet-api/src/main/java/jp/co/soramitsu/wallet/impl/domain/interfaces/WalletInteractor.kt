@@ -129,7 +129,6 @@ interface WalletInteractor {
         originNetworkId: ChainId,
         destinationNetworkId: ChainId,
         asset: CoreAsset,
-        address: String,
         amount: BigDecimal
     ): BigDecimal?
 

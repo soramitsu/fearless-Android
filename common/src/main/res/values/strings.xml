@@ -890,6 +890,7 @@ Remember to make a backup of your key and keep it in a safe and private place (e
 
     <string name="common_title_cross_chain" translatable="false">Cross-chain</string>
     <string name="common_title_wallet">Wallet</string>
+    <string name="common_title_select_wallet">Select your wallet</string>
     <string name="common_title_wallet_option">Wallet option</string>
     <string name="common_add_new_wallet">Add New Wallet</string>
     <string name="common_import_wallet">Import Wallet</string>
@@ -951,9 +952,10 @@ Remember to make a backup of your key and keep it in a safe and private place (e
 
     <string name="send_fund">Send Fund</string>
     <string name="send_to">Send to</string>
-    <string name="chip_qr">QR сode</string>
+    <string name="chip_qr">Scan QR</string>
     <string name="chip_history">History</string>
     <string name="chip_paste">Paste</string>
+    <string name="chip_my_wallets">My wallets</string>
     <string name="address_not_valid_error_title">Is not network address</string>
     <string name="address_not_valid_error_message">The address format is invalid.\nMake sure that address\nbelongs to the right network</string>
     <string name="transfer_address_not_valid_error_message">According to the address provided you\'re trying to make a transfer on the wrong network.</string>
@@ -1087,9 +1089,5 @@ Remember to make a backup of your key and keep it in a safe and private place (e
 
     <string name="sora_card_blacklisted_countires_title">Excluded of application</string>
     <string name="sora_card_blacklisted_countires_warning"><![CDATA[Residents from <b>certain countries<br>can not apply</b> for SORA Card at this moment<br><a href=\"https://soracard.com/blacklist/\">See the list</a>]]></string>
-
-    <string name="cross_chain_wallet_title">Cross-chain transfer to a wallet</string>
-    <string name="cross_chain_wallet_my">My wallet</string>
-    <string name="cross_chain_wallet_external">External wallet</string>
 
 </resources>
