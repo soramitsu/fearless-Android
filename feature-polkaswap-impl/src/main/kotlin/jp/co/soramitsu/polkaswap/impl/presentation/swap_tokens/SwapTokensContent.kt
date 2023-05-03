@@ -313,7 +313,7 @@ private fun TransactionDescription(
         FeeInfo(
             state = FeeInfoViewState(
                 caption = "${swapDetailsViewState.fromTokenName} / ${swapDetailsViewState.toTokenName}",
-                feeAmount = swapDetailsViewState.fromTokenOnToToken.format(),
+                feeAmount = swapDetailsViewState.fromTokenOnToToken,
                 feeAmountFiat = null
             )
         )
@@ -321,7 +321,7 @@ private fun TransactionDescription(
         FeeInfo(
             state = FeeInfoViewState(
                 caption = "${swapDetailsViewState.toTokenName} / ${swapDetailsViewState.fromTokenName}",
-                feeAmount = swapDetailsViewState.toTokenOnFromToken.format(),
+                feeAmount = swapDetailsViewState.toTokenOnFromToken,
                 feeAmountFiat = null
             )
         )

@@ -20,6 +20,7 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.combine
 import jp.co.soramitsu.common.utils.flowOf
+import jp.co.soramitsu.common.utils.formatCryptoDetail
 import jp.co.soramitsu.common.utils.requireException
 import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.core.models.Asset
@@ -175,7 +176,7 @@ class CrossChainConfirmViewModel @Inject constructor(
             val assetModel = mapAssetToAssetModel(originAsset)
             TitleValueViewState(
                 title = resourceManager.getString(R.string.common_amount),
-                value = assetModel.formatCrypto(transferDraft.amount),
+                value = transferDraft.amount.formatCryptoDetail(assetModel.token.configuration.symbolToShow),
                 additionalValue = assetModel.getAsFiatWithCurrency(transferDraft.amount)
             )
         } else {
@@ -185,20 +186,20 @@ class CrossChainConfirmViewModel @Inject constructor(
         val tipInfoItem = transferDraft.tip?.let {
             TitleValueViewState(
                 title = resourceManager.getString(R.string.choose_amount_tip),
-                value = utilityAsset.formatCrypto(transferDraft.tip),
+                value = transferDraft.tip.formatCryptoDetail(utilityAsset.token.configuration.symbolToShow),
                 additionalValue = utilityAsset.getAsFiatWithCurrency(transferDraft.tip)
             )
         }
 
         val originFeeInfoItem = TitleValueViewState(
             title = resourceManager.getString(R.string.common_origin_network_fee),
-            value = utilityAsset.formatCrypto(transferDraft.originFee),
+            value = transferDraft.originFee.formatCryptoDetail(utilityAsset.token.configuration.symbolToShow),
             additionalValue = utilityAsset.getAsFiatWithCurrency(transferDraft.originFee)
         )
 
         val destinationFeeInfoItem = TitleValueViewState(
             title = resourceManager.getString(R.string.common_destination_network_fee),
-            value = transferableAsset.formatCrypto(transferDraft.destinationFee),
+            value = transferDraft.destinationFee.formatCryptoDetail(transferableAsset.token.configuration.symbolToShow),
             additionalValue = transferableAsset.getAsFiatWithCurrency(transferDraft.destinationFee)
         )
 
