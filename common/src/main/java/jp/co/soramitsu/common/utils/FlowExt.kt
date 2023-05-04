@@ -36,7 +36,10 @@ inline fun <T, R> Flow<List<T>>.mapList(crossinline mapper: suspend (T) -> R) = 
  */
 fun <T> Flow<T>.withLoading(): Flow<LoadingState<T>> {
     return map<T, LoadingState<T>> { LoadingState.Loaded(it) }
-        .onStart { emit(LoadingState.Loading()) }
+        .onStart {
+            println("withLoading")
+            emit(LoadingState.Loading())
+        }
 }
 
 fun <T1, T2> combineToPair(flow1: Flow<T1>, flow2: Flow<T2>): Flow<Pair<T1, T2>> = combine(flow1, flow2, ::Pair)

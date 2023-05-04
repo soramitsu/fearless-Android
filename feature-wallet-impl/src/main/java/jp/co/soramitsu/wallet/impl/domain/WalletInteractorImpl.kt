@@ -442,7 +442,11 @@ class WalletInteractorImpl(
                 toChainId = destinationChainId,
                 tokenSymbol = tokenSymbol
             )
-        }.getOrNull()
+        }
+            .onFailure {
+                it.printStackTrace()
+            }
+            .getOrNull()
     }
 
     override suspend fun getXcmOrigFee(

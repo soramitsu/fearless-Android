@@ -22,6 +22,8 @@ import jp.co.soramitsu.common.compose.component.FeeInfoViewState
 import jp.co.soramitsu.common.compose.component.SelectorState
 import jp.co.soramitsu.common.compose.component.ToolbarViewState
 import jp.co.soramitsu.common.compose.component.WarningInfoState
+import jp.co.soramitsu.common.presentation.LoadingState
+import jp.co.soramitsu.common.presentation.dataOrNull
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
@@ -32,6 +34,7 @@ import jp.co.soramitsu.common.utils.formatCryptoDetail
 import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.requireValue
+import jp.co.soramitsu.common.utils.withLoading
 import jp.co.soramitsu.core.models.ChainId
 import jp.co.soramitsu.core.models.utilityAsset
 import jp.co.soramitsu.feature_wallet_impl.R
@@ -236,7 +239,6 @@ class CrossChainSetupViewModel @Inject constructor(
         .onEach { fee -> hasDestinationFeeAmountFlow.value = fee != null }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    private val hasOriginFeeAmountFlow = MutableStateFlow(false)
     private val originFeeAmountFlow = combine(
         chainAssetsManager.originChainIdFlow,
         chainAssetsManager.destinationChainIdFlow,
@@ -244,10 +246,11 @@ class CrossChainSetupViewModel @Inject constructor(
         enteredAmountBigDecimalFlow,
         assetFlow.mapNotNull { it }
     ) { nullableOriginChainId, nullableDestinationChainId, nullableDestinationFeeAmount, amount, asset ->
-        hasOriginFeeAmountFlow.value = false
         val originChainId = nullableOriginChainId ?: return@combine null
         val destinationChainId = nullableDestinationChainId ?: return@combine null
         val destinationAmount = nullableDestinationFeeAmount ?: BigDecimal.ZERO
+
+        println("getXcmOrigFee")
 
         walletInteractor.getXcmOrigFee(
             originNetworkId = originChainId,
@@ -260,13 +263,13 @@ class CrossChainSetupViewModel @Inject constructor(
             println("Error: $it")
             emit(null)
         }
-        .onEach { fee -> hasOriginFeeAmountFlow.value = fee != null }
+        .withLoading()
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    private val originFeeInPlanksFlow = combine(originFeeAmountFlow, assetFlow) { fee, asset ->
-        fee ?: return@combine null
+    private val originFeeInPlanksFlow = combine(originFeeAmountFlow, assetFlow) { _originFee, asset ->
+        val originFee = _originFee?.dataOrNull() ?: return@combine null
         asset ?: return@combine null
-        asset.token.planksFromAmount(fee)
+        asset.token.planksFromAmount(originFee)
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -277,15 +280,12 @@ class CrossChainSetupViewModel @Inject constructor(
         }
 
     private val originFeeInfoViewStateFlow: Flow<FeeInfoViewState> = combine(
-        hasOriginFeeAmountFlow,
         originFeeAmountFlow,
         utilityAssetFlow
-    ) { hasOriginFeeAmount, feeAmount, utilityAsset ->
-        val feeFormatted = feeAmount?.formatCryptoDetail(utilityAsset.token.configuration.symbolToShow)
-            ?.takeIf { hasOriginFeeAmount }
-        val feeFiat = feeAmount?.applyFiatRate(utilityAsset.token.fiatRate)
+    ) { originFeeAmount, utilityAsset ->
+        val feeFormatted = originFeeAmount?.dataOrNull()?.formatCryptoDetail(utilityAsset.token.configuration.symbolToShow)
+        val feeFiat = originFeeAmount?.dataOrNull()?.applyFiatRate(utilityAsset.token.fiatRate)
             ?.formatFiat(utilityAsset.token.fiatSymbol)
-            ?.takeIf { hasOriginFeeAmount }
 
         FeeInfoViewState(
             caption = resourceManager.getString(R.string.common_origin_network_fee),
@@ -343,12 +343,12 @@ class CrossChainSetupViewModel @Inject constructor(
         assetFlow,
         chainAssetsManager.originChainIdFlow,
         chainAssetsManager.destinationChainIdFlow,
-        hasOriginFeeAmountFlow,
+        originFeeAmountFlow,
         hasDestinationFeeAmountFlow
-    ) { amount, asset, originChainId, destinationChainId, hasOriginFeeAmount, hasDestinationFeeAmount ->
+    ) { amount, asset, originChainId, destinationChainId, originFeeAmount, hasDestinationFeeAmount ->
         val amountInPlanks = asset?.token?.planksFromAmount(amount).orZero()
         val isAllChainsSelected = originChainId != null && destinationChainId != null
-        val isAllFeesCalculated = hasOriginFeeAmount && hasDestinationFeeAmount
+        val isAllFeesCalculated = originFeeAmount is LoadingState.Loaded && hasDestinationFeeAmount
         ButtonViewState(
             text = resourceManager.getString(R.string.common_continue),
             enabled = amountInPlanks.compareTo(BigInteger.ZERO) != 0 && isAllChainsSelected && isAllFeesCalculated
@@ -516,7 +516,7 @@ class CrossChainSetupViewModel @Inject constructor(
 
     private suspend fun buildTransferDraft(): CrossChainTransferDraft? {
         val recipientAddress = addressInputFlow.value
-        val originFeeAmount = originFeeAmountFlow.value ?: return null
+        val originFeeAmount = originFeeAmountFlow.value?.dataOrNull() ?: return null
         val destinationFeeAmount = destinationFeeAmountFlow.value ?: BigDecimal.ZERO
 
         val originChainId = originChainId ?: return null
