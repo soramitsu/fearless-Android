@@ -23,7 +23,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import jp.co.soramitsu.common.address.shorten
+import jp.co.soramitsu.common.utils.formatting.shortenAddress
 import jp.co.soramitsu.common.compose.theme.colorAccentDark
 import jp.co.soramitsu.common.compose.theme.customTypography
 import jp.co.soramitsu.common.compose.theme.white
@@ -52,7 +52,7 @@ fun InputWithHint(
             value = if (editable) {
                 value
             } else {
-                value.shorten()
+                value.shortenAddress()
             },
             onValueChange = onInput,
             textStyle = MaterialTheme.customTypography.body1.copy(textAlign = TextAlign.Start, background = Color.Unspecified),

@@ -22,7 +22,7 @@ class ChainInteractor(
 
     fun getXcmChainIdsFlow(
         type: XcmChainType,
-        originalChainId: String? = null,
+        originChainId: String? = null,
         assetSymbol: String? = null
     ): Flow<List<ChainId>> {
         return flow {
@@ -36,7 +36,7 @@ class ChainInteractor(
                 XcmChainType.Destination -> {
                     xcmEntitiesFetcher.getAvailableDestinationChains(
                         assetSymbol = assetSymbol,
-                        originalChainId = originalChainId
+                        originalChainId = originChainId
                     )
                 }
             }

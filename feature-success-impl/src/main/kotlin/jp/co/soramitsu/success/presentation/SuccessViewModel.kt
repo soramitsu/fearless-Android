@@ -14,6 +14,7 @@ import jp.co.soramitsu.common.mixin.api.Browserable
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
+import jp.co.soramitsu.common.utils.formatting.shortenHash
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
@@ -75,7 +76,7 @@ class SuccessViewModel @Inject constructor(
     private fun getInfoTableItems() = listOf(
         TitleValueViewState(
             title = resourceManager.getString(R.string.hash),
-            value = operationHash?.shorten(),
+            value = operationHash?.shortenHash(),
             clickState = TitleValueViewState.ClickState.Value(R.drawable.ic_copy_filled_24, SuccessViewState.CODE_HASH_CLICK)
         ),
         TitleValueViewState(
@@ -126,5 +127,3 @@ class SuccessViewModel @Inject constructor(
         openBrowserEvent.value = Event(url)
     }
 }
-
-private fun String.shorten() = "${take(5)}...${takeLast(5)}"

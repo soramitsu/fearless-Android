@@ -10,7 +10,7 @@ import jp.co.soramitsu.common.AlertViewState
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.address.createAddressModel
-import jp.co.soramitsu.common.address.shorten
+import jp.co.soramitsu.common.utils.formatting.shortenAddress
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.base.errors.ValidationException
 import jp.co.soramitsu.common.base.errors.ValidationWarning
@@ -133,15 +133,15 @@ class ConfirmSendViewModel @Inject constructor(
         val isSenderNameSpecified = !sender?.name.isNullOrEmpty()
         val fromInfoItem = TitleValueViewState(
             title = resourceManager.getString(R.string.transaction_details_from),
-            value = if (isSenderNameSpecified) sender?.name else sender?.address?.shorten(),
-            additionalValue = if (isSenderNameSpecified) sender?.address?.shorten() else null
+            value = if (isSenderNameSpecified) sender?.name else sender?.address?.shortenAddress(),
+            additionalValue = if (isSenderNameSpecified) sender?.address?.shortenAddress() else null
         )
 
         val isRecipientNameSpecified = !recipient.name.isNullOrEmpty()
         val toInfoItem = TitleValueViewState(
             title = resourceManager.getString(R.string.choose_amount_to),
-            value = if (isRecipientNameSpecified) recipient.name else recipient.address.shorten(),
-            additionalValue = if (isRecipientNameSpecified) recipient.address.shorten() else null,
+            value = if (isRecipientNameSpecified) recipient.name else recipient.address.shortenAddress(),
+            additionalValue = if (isRecipientNameSpecified) recipient.address.shortenAddress() else null,
             clickState = phishingType?.let { TitleValueViewState.ClickState.Value(R.drawable.ic_alert_16, ConfirmSendViewState.CODE_WARNING_CLICK) }
         )
 

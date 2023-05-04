@@ -40,7 +40,7 @@ import jp.co.soramitsu.wallet.impl.domain.model.TransferValidityLevel
 import jp.co.soramitsu.wallet.impl.domain.model.TransferValidityStatus
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
-import jp.co.soramitsu.common.address.shorten
+import jp.co.soramitsu.common.utils.formatting.shortenAddress
 import jp.co.soramitsu.wallet.impl.presentation.cross_chain.CrossChainTransferDraft
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -86,13 +86,13 @@ class CrossChainConfirmViewModel @Inject constructor(
         getAddressModel(transferDraft.recipientAddress, contactName)
     }
 
-    private val originalNetworkFlow = flowOf { interactor.getChain(transferDraft.originalChainId) }
+    private val originNetworkFlow = flowOf { interactor.getChain(transferDraft.originChainId) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, initialValue = null)
     private val destinationNetworkFlow = flowOf { interactor.getChain(transferDraft.destinationChainId) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, initialValue = null)
 
     private val senderFlow = flowOf {
-        currentAccountAddress(transferDraft.originalChainId)?.let { address ->
+        currentAccountAddress(transferDraft.originChainId)?.let { address ->
             val walletName = interactor.getSelectedMetaAccount().name
             getAddressModel(address, walletName)
         }
@@ -113,49 +113,49 @@ class CrossChainConfirmViewModel @Inject constructor(
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, defaultButtonState)
 
-    private val originalAssetFlow = interactor.assetFlow(transferDraft.originalChainId, transferDraft.chainAssetId)
+    private val originAssetFlow = interactor.assetFlow(transferDraft.originChainId, transferDraft.chainAssetId)
         .stateIn(viewModelScope, SharingStarted.Eagerly, initialValue = null)
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val utilityAssetFlow = originalNetworkFlow.mapNotNull {
+    val utilityAssetFlow = originNetworkFlow.mapNotNull {
         it?.utilityAsset?.id
     }.flatMapLatest { assetId ->
-        interactor.assetFlow(transferDraft.originalChainId, assetId)
+        interactor.assetFlow(transferDraft.originChainId, assetId)
             .map(::mapAssetToAssetModel)
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val transferableAssetFlow = originalNetworkFlow.mapNotNull {
+    val transferableAssetFlow = originNetworkFlow.mapNotNull {
         it?.assets?.firstOrNull { it.symbol == transferDraft.transferableTokenSymbol }?.id
     }.flatMapLatest { assetId ->
-        interactor.assetFlow(transferDraft.originalChainId, assetId)
+        interactor.assetFlow(transferDraft.originChainId, assetId)
             .map(::mapAssetToAssetModel)
     }
 
     val state: StateFlow<CrossChainConfirmViewState> = combine(
         recipientFlow,
-        originalNetworkFlow,
+        originNetworkFlow,
         destinationNetworkFlow,
         senderFlow,
-        originalAssetFlow,
+        originAssetFlow,
         utilityAssetFlow,
         transferableAssetFlow,
         buttonStateFlow,
         transferSubmittingFlow
-    ) { recipient, originalNetwork, destinationNetwork, sender, originalAsset, utilityAsset, transferableAsset, buttonState, isSubmitting ->
+    ) { recipient, originNetwork, destinationNetwork, sender, originAsset, utilityAsset, transferableAsset, buttonState, isSubmitting ->
         val isRecipientNameSpecified = !recipient.name.isNullOrEmpty()
         val toInfoItem = TitleValueViewState(
             title = resourceManager.getString(R.string.send_to),
-            value = if (isRecipientNameSpecified) recipient.name else recipient.address.shorten(),
-            additionalValue = if (isRecipientNameSpecified) recipient.address.shorten() else null,
+            value = if (isRecipientNameSpecified) recipient.name else recipient.address.shortenAddress(),
+            additionalValue = if (isRecipientNameSpecified) recipient.address.shortenAddress() else null,
             clickState = phishingType?.let { TitleValueViewState.ClickState.Value(R.drawable.ic_alert_16, CrossChainConfirmViewState.CODE_WARNING_CLICK) }
         )
 
-        val originalNetworkName = originalNetwork?.name
-        val originalNetworkItem = if (originalNetworkName != null) {
+        val originNetworkName = originNetwork?.name
+        val originNetworkItem = if (originNetworkName != null) {
             TitleValueViewState(
-                title = resourceManager.getString(R.string.common_original_network),
-                value = originalNetworkName
+                title = resourceManager.getString(R.string.common_origin_network),
+                value = originNetworkName
             )
         } else {
             null
@@ -171,8 +171,8 @@ class CrossChainConfirmViewModel @Inject constructor(
             null
         }
 
-        val amountInfoItem = if (originalAsset != null) {
-            val assetModel = mapAssetToAssetModel(originalAsset)
+        val amountInfoItem = if (originAsset != null) {
+            val assetModel = mapAssetToAssetModel(originAsset)
             TitleValueViewState(
                 title = resourceManager.getString(R.string.common_amount),
                 value = assetModel.formatCrypto(transferDraft.amount),
@@ -190,10 +190,10 @@ class CrossChainConfirmViewModel @Inject constructor(
             )
         }
 
-        val originalFeeInfoItem = TitleValueViewState(
+        val originFeeInfoItem = TitleValueViewState(
             title = resourceManager.getString(R.string.common_origin_network_fee),
-            value = utilityAsset.formatCrypto(transferDraft.originalFee),
-            additionalValue = utilityAsset.getAsFiatWithCurrency(transferDraft.originalFee)
+            value = utilityAsset.formatCrypto(transferDraft.originFee),
+            additionalValue = utilityAsset.getAsFiatWithCurrency(transferDraft.originFee)
         )
 
         val destinationFeeInfoItem = TitleValueViewState(
@@ -203,20 +203,20 @@ class CrossChainConfirmViewModel @Inject constructor(
         )
 
         CrossChainConfirmViewState(
-            originalChainIcon = GradientIconData(
-                url = originalNetwork?.icon,
-                color = originalNetwork?.utilityAsset?.color
+            originChainIcon = GradientIconData(
+                url = originNetwork?.icon,
+                color = originNetwork?.utilityAsset?.color
             ),
             destinationChainIcon = GradientIconData(
                 url = destinationNetwork?.icon,
                 color = destinationNetwork?.utilityAsset?.color
             ),
             toInfoItem = toInfoItem,
-            originalNetworkItem = originalNetworkItem,
+            originNetworkItem = originNetworkItem,
             destinationNetworkItem = destinationNetworkItem,
             amountInfoItem = amountInfoItem,
             tipInfoItem = tipInfoItem,
-            originalFeeInfoItem = originalFeeInfoItem,
+            originFeeInfoItem = originFeeInfoItem,
             destinationFeeInfoItem = destinationFeeInfoItem,
             buttonState = buttonState,
             isLoading = isSubmitting
@@ -244,12 +244,12 @@ class CrossChainConfirmViewModel @Inject constructor(
 
     override fun onNextClick() {
         launch {
-            val asset = originalAssetFlow.firstOrNull() ?: return@launch
+            val asset = originAssetFlow.firstOrNull() ?: return@launch
             val token = asset.token.configuration
 
             val rawAmountInPlanks = token.planksFromAmount(transferDraft.amount)
             val destinationFeeInPlanks = token.planksFromAmount(transferDraft.destinationFee)
-            val originalFee = token.planksFromAmount(transferDraft.originalFee)
+            val originFee = token.planksFromAmount(transferDraft.originFee)
             val recipientAddress = transferDraft.recipientAddress
             val selfAddress = currentAccountAddress(asset.token.configuration.chainId) ?: return@launch
 
@@ -258,7 +258,7 @@ class CrossChainConfirmViewModel @Inject constructor(
                 asset = asset,
                 recipientAddress = recipientAddress,
                 ownAddress = selfAddress,
-                fee = originalFee,
+                fee = originFee,
                 confirmedValidations = confirmedValidations
             )
 
@@ -290,8 +290,8 @@ class CrossChainConfirmViewModel @Inject constructor(
 
     private fun openWarningAlert() {
         launch {
-            val originalAsset = originalAssetFlow.value ?: return@launch
-            val symbol = originalAsset.token.configuration.symbolToShow
+            val originAsset = originAssetFlow.value ?: return@launch
+            val symbol = originAsset.token.configuration.symbolToShow
 
             val payload = AlertViewState(
                 title = getPhishingTitle(phishingType),
@@ -327,14 +327,14 @@ class CrossChainConfirmViewModel @Inject constructor(
 
     private fun performTransfer() {
         launch {
-            val originalAsset = originalAssetFlow.value ?: return@launch
-            val token = originalAsset.token.configuration
+            val originAsset = originAssetFlow.value ?: return@launch
+            val token = originAsset.token.configuration
 
             transferSubmittingFlow.value = true
 
             val tipInPlanks = transferDraft.tip?.let { token.planksFromAmount(it) }
             val result = withContext(Dispatchers.Default) {
-                interactor.performCrossChainTransfer(createTransfer(token), transferDraft.originalFee, tipInPlanks)
+                interactor.performCrossChainTransfer(createTransfer(token), transferDraft.originFee, tipInPlanks)
             }
             if (result.isSuccess) {
                 val operationHash = result.getOrNull()
@@ -371,7 +371,7 @@ class CrossChainConfirmViewModel @Inject constructor(
                 recipient = recipientAddress,
                 amount = amount,
                 chainAsset = token,
-                originalChainId = originalChainId,
+                originChainId = originChainId,
                 destinationChainId = destinationChainId,
                 destinationFee = destinationFee
             )

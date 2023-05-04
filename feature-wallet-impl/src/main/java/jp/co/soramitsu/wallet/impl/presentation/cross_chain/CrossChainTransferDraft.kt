@@ -7,9 +7,9 @@ import java.math.BigDecimal
 @Parcelize
 class CrossChainTransferDraft(
     val amount: BigDecimal,
-    val originalChainId: String,
+    val originChainId: String,
     val destinationChainId: String,
-    val originalFee: BigDecimal,
+    val originFee: BigDecimal,
     val destinationFee: BigDecimal,
     val chainAssetId: String,
     val recipientAddress: String,

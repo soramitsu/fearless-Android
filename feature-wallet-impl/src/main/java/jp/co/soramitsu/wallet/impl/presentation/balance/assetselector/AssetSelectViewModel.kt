@@ -41,7 +41,7 @@ class AssetSelectViewModel @Inject constructor(
     private val assetModelsFlow: Flow<List<AssetModel>> =
         if (isFilterXcmAssets) {
             walletInteractor.xcmAssetsFlow(
-                originalChainId = filterChainId
+                originChainId = filterChainId
             )
         } else {
             walletInteractor.assetsFlow()

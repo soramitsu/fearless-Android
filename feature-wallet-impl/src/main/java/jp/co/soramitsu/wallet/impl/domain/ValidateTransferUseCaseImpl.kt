@@ -39,7 +39,7 @@ class ValidateTransferUseCaseImpl(
     ): Result<TransferValidationResult> = kotlin.runCatching {
         fee ?: return Result.success(TransferValidationResult.WaitForFee)
         val chainId = asset.token.configuration.chainId
-        val originalChain = chainRegistry.getChain(chainId)
+        val originChain = chainRegistry.getChain(chainId)
         val destinationChain = chainRegistry.getChain(destinationChainId)
         val chainAsset = asset.token.configuration
         val transferable = asset.transferableInPlanks
@@ -64,7 +64,7 @@ class ValidateTransferUseCaseImpl(
 
         val validationChecks = when {
             chainAsset.type == ChainAssetType.Equilibrium -> {
-                getEquilibriumValidationChecks(asset, recipientAccountId, originalChain, ownAddress, amountInPlanks, fee, tip)
+                getEquilibriumValidationChecks(asset, recipientAccountId, originChain, ownAddress, amountInPlanks, fee, tip)
             }
             chainAsset.isUtility -> {
                 val resultedBalance = (asset.freeInPlanks ?: transferable) - (amountInPlanks + fee + tip)
@@ -76,9 +76,9 @@ class ValidateTransferUseCaseImpl(
                 )
             }
             else -> {
-                val utilityAsset = walletInteractor.getCurrentAsset(chainId, originalChain.utilityAsset.id)
+                val utilityAsset = walletInteractor.getCurrentAsset(chainId, originChain.utilityAsset.id)
                 val utilityAssetBalance = utilityAsset.transferableInPlanks
-                val utilityAssetExistentialDeposit = existentialDepositUseCase(originalChain.utilityAsset)
+                val utilityAssetExistentialDeposit = existentialDepositUseCase(originChain.utilityAsset)
 
                 mapOf(
                     TransferValidationResult.InsufficientBalance to (amountInPlanks > transferable),

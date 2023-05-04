@@ -52,9 +52,9 @@ data class CrossChainSetupViewState(
     val toolbarState: ToolbarViewState,
     val addressInputState: AddressInputState,
     val amountInputState: AmountInputViewState,
-    val originalChainSelectorState: SelectorState,
+    val originChainSelectorState: SelectorState,
     val destinationChainSelectorState: SelectorState,
-    val originalFeeInfoState: FeeInfoViewState,
+    val originFeeInfoState: FeeInfoViewState,
     val destinationFeeInfoState: FeeInfoViewState?,
     val warningInfoState: WarningInfoState?,
     val buttonState: ButtonViewState,
@@ -107,7 +107,7 @@ fun CrossChainSetupContent(
 
                 MarginVertical(margin = 16.dp)
                 SelectorWithBorder(
-                    state = state.originalChainSelectorState
+                    state = state.originChainSelectorState
                 )
 
                 MarginVertical(margin = 12.dp)
@@ -142,7 +142,7 @@ fun CrossChainSetupContent(
                     WarningInfo(state = it, onClick = callback::onWarningInfoClick)
                 }
                 MarginVertical(margin = 12.dp)
-                FeeInfo(state = state.originalFeeInfoState, modifier = Modifier.defaultMinSize(minHeight = 52.dp))
+                FeeInfo(state = state.originFeeInfoState, modifier = Modifier.defaultMinSize(minHeight = 52.dp))
                 if (state.destinationFeeInfoState != null) {
                     FeeInfo(state = state.destinationFeeInfoState, modifier = Modifier.defaultMinSize(minHeight = 52.dp))
                 }
@@ -228,9 +228,9 @@ private fun CrossChainPreview() {
             allowAssetChoose = true,
             initial = null
         ),
-        originalChainSelectorState = SelectorState("Origin network", null, null),
+        originChainSelectorState = SelectorState("Origin network", null, null),
         destinationChainSelectorState = SelectorState("Destination network", null, null),
-        originalFeeInfoState = FeeInfoViewState.default,
+        originFeeInfoState = FeeInfoViewState.default,
         destinationFeeInfoState = FeeInfoViewState.default,
         warningInfoState = null,
         buttonState = ButtonViewState("Continue", true),

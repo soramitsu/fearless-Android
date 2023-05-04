@@ -7,7 +7,7 @@ import java.math.BigDecimal
 import java.math.BigInteger
 
 class CrossChainTransfer(
-    val originalChainId: ChainId,
+    val originChainId: ChainId,
     val destinationChainId: ChainId,
     val recipient: String,
     val amount: BigDecimal,
