@@ -239,7 +239,7 @@ class CrossChainSetupViewModel @Inject constructor(
         .onEach { fee -> hasDestinationFeeAmountFlow.value = fee != null }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    private val originFeeAmountFlow = combine(
+    private val originFeeAmountFlow: StateFlow<LoadingState<BigDecimal?>> = combine(
         chainAssetsManager.originChainIdFlow,
         chainAssetsManager.destinationChainIdFlow,
         destinationFeeAmountFlow,
@@ -250,21 +250,31 @@ class CrossChainSetupViewModel @Inject constructor(
         val destinationChainId = nullableDestinationChainId ?: return@combine null
         val destinationAmount = nullableDestinationFeeAmount ?: BigDecimal.ZERO
 
-        println("getXcmOrigFee")
-
-        walletInteractor.getXcmOrigFee(
-            originNetworkId = originChainId,
-            destinationNetworkId = destinationChainId,
-            asset = asset.token.configuration,
-            amount = amount + destinationAmount
-        )
+        listOf(originChainId, destinationChainId, destinationAmount, amount, asset)
     }
+        .flatMapLatest { list ->
+            if (list == null) return@flatMapLatest flowOf(LoadingState.Loading())
+            val originChainId = list[0] as ChainId
+            val destinationChainId = list[1] as ChainId
+            val destinationAmount = list[2] as BigDecimal
+            val amount = list[3] as BigDecimal
+            val asset = list[4] as Asset
+
+            println("getXcmOrigFee")
+            flowOf(
+                walletInteractor.getXcmOrigFee(
+                    originNetworkId = originChainId,
+                    destinationNetworkId = destinationChainId,
+                    asset = asset.token.configuration,
+                    amount = amount + destinationAmount
+                )
+            ).withLoading()
+        }
         .catch {
             println("Error: $it")
-            emit(null)
+            emit(LoadingState.Loading())
         }
-        .withLoading()
-        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, LoadingState.Loading())
 
     private val originFeeInPlanksFlow = combine(originFeeAmountFlow, assetFlow) { _originFee, asset ->
         val originFee = _originFee?.dataOrNull() ?: return@combine null
