@@ -16,6 +16,7 @@ import jp.co.soramitsu.common.utils.formatCrypto
 import jp.co.soramitsu.common.utils.formatCryptoDetail
 import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.inBackground
+import jp.co.soramitsu.common.utils.isNotZero
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.validation.MinPoolCreationThresholdException
 import jp.co.soramitsu.common.validation.StakeInsufficientBalanceException
@@ -80,7 +81,7 @@ class CreatePoolSetupViewModel @Inject constructor(
         totalBalance = resourceManager.getString(R.string.common_balance_format, "..."),
         fiatAmount = "",
         tokenAmount = initialAmount,
-        initial = null
+        initial = initialAmount.takeIf { it.isNotZero() }
     )
 
     private val defaultScreenState = CreatePoolSetupViewState(
@@ -108,7 +109,7 @@ class CreatePoolSetupViewModel @Inject constructor(
             fiatAmount = fiatAmount,
             tokenAmount = amount,
             precision = asset.token.configuration.precision,
-            initial = amount
+            initial = initialAmount.takeIf { it.isNotZero() }
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, defaultAmountInputState)
 

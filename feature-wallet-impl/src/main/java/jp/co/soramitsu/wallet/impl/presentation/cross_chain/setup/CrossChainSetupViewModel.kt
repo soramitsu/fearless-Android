@@ -30,6 +30,7 @@ import jp.co.soramitsu.common.utils.combine
 import jp.co.soramitsu.common.utils.formatCrypto
 import jp.co.soramitsu.common.utils.formatCryptoDetail
 import jp.co.soramitsu.common.utils.formatFiat
+import jp.co.soramitsu.common.utils.isNotZero
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.core.models.ChainId
@@ -142,7 +143,7 @@ class CrossChainSetupViewModel @Inject constructor(
         fiatAmount = "",
         tokenAmount = initialAmount,
         allowAssetChoose = false,
-        initial = initialAmount
+        initial = initialAmount.takeIf { it.isNotZero() }
     )
 
     private val defaultButtonState = ButtonViewState(
@@ -182,7 +183,7 @@ class CrossChainSetupViewModel @Inject constructor(
 
     private val enteredAmountBigDecimalFlow = MutableStateFlow(initialAmount)
     private val visibleAmountFlow = MutableStateFlow(initialAmount)
-    private val initialAmountFlow = MutableStateFlow(initialAmount)
+    private val initialAmountFlow = MutableStateFlow(initialAmount.takeIf { it.isNotZero() })
 
     private val amountInputViewState: Flow<AmountInputViewState> = combine(
         visibleAmountFlow,

@@ -19,6 +19,7 @@ import jp.co.soramitsu.common.utils.formatCrypto
 import jp.co.soramitsu.common.utils.formatCryptoDetail
 import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.inBackground
+import jp.co.soramitsu.common.utils.isNotZero
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.validation.AmountTooLowToStakeException
 import jp.co.soramitsu.common.validation.ExistentialDepositCrossedException
@@ -102,7 +103,7 @@ class SetupStakingPoolViewModel @Inject constructor(
             totalBalance = resourceManager.getString(R.string.common_balance_format, tokenBalance),
             fiatAmount = fiatAmount,
             tokenAmount = amount,
-            initial = amount
+            initial = initialAmount.takeIf { it.isNotZero() }
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, defaultAmountInputState)
 
