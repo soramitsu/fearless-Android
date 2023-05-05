@@ -231,7 +231,7 @@ class StakingViewModel @Inject constructor(
     }
 
     fun avatarClicked() {
-        router.openChangeAccountFromStaking()
+        router.openSelectWallet()
     }
 
     override fun openCurrentValidators() {

@@ -8,7 +8,7 @@ import jp.co.soramitsu.shared_utils.runtime.AccountId
 import java.math.BigInteger
 import jp.co.soramitsu.core.models.Asset as CoreAsset
 
-class Asset(
+data class Asset(
     val metaId: Long,
     val token: Token,
     val accountId: AccountId,

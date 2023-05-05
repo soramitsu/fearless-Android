@@ -616,7 +616,6 @@
     <string name="assetdetails_balance_title">Баланс</string>
     <string name="wallet_send_navigation_title">Перевести %s</string>
     <string name="profile_wallets_title">Кошельки</string>
-    <string name="settings_add_wallet">Добавить кошелёк</string>
     <string name="onboarding_create_wallet">Создать кошелёк</string>
     <string name="onboarding_restore_wallet">У меня уже есть кошелек</string>
     <string name="import_wallet">Импорт кошелька</string>

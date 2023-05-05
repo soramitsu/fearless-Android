@@ -19,8 +19,6 @@ import jp.co.soramitsu.account.impl.presentation.AccountRouter
 import jp.co.soramitsu.account.impl.presentation.account.details.AccountDetailsFragment
 import jp.co.soramitsu.account.impl.presentation.account.export.WalletExportFragment
 import jp.co.soramitsu.account.impl.presentation.account.exportaccounts.AccountsForExportFragment
-import jp.co.soramitsu.account.impl.presentation.account.list.AccountChosenNavDirection
-import jp.co.soramitsu.account.impl.presentation.account.list.AccountListFragment
 import jp.co.soramitsu.account.impl.presentation.experimental.SuccessfulFragment
 import jp.co.soramitsu.account.impl.presentation.exporting.json.confirm.ExportJsonConfirmFragment
 import jp.co.soramitsu.account.impl.presentation.exporting.json.confirm.ExportJsonConfirmPayload
@@ -813,28 +811,12 @@ class Navigator :
         navController?.navigate(R.id.swapDetailFragment, bundle)
     }
 
-    override fun openWallets(accountChosenNavDirection: AccountChosenNavDirection) {
-        navController?.navigate(R.id.action_open_accounts, AccountListFragment.getBundle(accountChosenNavDirection))
-    }
-
     override fun openNodes(chainId: ChainId) {
         navController?.navigate(R.id.action_open_nodesFragment, NodesFragment.getBundle(chainId))
     }
 
     override fun openLanguages() {
         navController?.navigate(R.id.action_mainFragment_to_languagesFragment)
-    }
-
-    override fun openAddAccount() {
-        navController?.navigate(R.id.action_open_onboarding, WelcomeFragment.getBundle(true))
-    }
-
-    override fun openChangeAccountFromWallet() {
-        openWallets(AccountChosenNavDirection.BACK)
-    }
-
-    override fun openChangeAccountFromStaking() {
-        openWallets(AccountChosenNavDirection.BACK)
     }
 
     override fun openReceive(assetPayload: AssetPayload) {
@@ -879,14 +861,6 @@ class Navigator :
         val extras = AccountsForExportFragment.getBundle(metaId, from)
 
         navController?.navigate(R.id.action_open_accountsForExportFragment, extras)
-    }
-
-    override fun openEditAccounts() {
-        navController?.navigate(R.id.action_accountsFragment_to_editAccountsFragment)
-    }
-
-    override fun backToMainScreen() {
-        navController?.navigate(R.id.action_editAccountsFragment_to_mainFragment)
     }
 
     override fun openNodeDetails(payload: NodeDetailsPayload) {
