@@ -45,6 +45,13 @@ val white50 = Color(0x80FFFFFF)
 val white60 = Color(0xA6FFFFFF)
 val white64 = Color(0xA3FFFFFF)
 
+val borderGradientColors = listOf(
+    Color(0xFFEE0077),
+    Color(0xFFEE7700),
+    Color(0xFF7700EE),
+    Color(0xFFC800EE)
+)
+
 val black1 = gray1
 val black2 = gray2
 val black3 = gray3

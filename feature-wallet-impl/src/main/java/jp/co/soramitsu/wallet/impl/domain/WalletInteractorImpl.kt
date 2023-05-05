@@ -122,8 +122,8 @@ class WalletInteractorImpl(
             }
     }
 
-    override fun xcmAssetsFlow(originalChainId: ChainId?): Flow<List<AssetWithStatus>> {
-        return combineToPair(assetsFlow(), getAvailableXcmAssetSymbolsFlow(originalChainId))
+    override fun xcmAssetsFlow(originChainId: ChainId?): Flow<List<AssetWithStatus>> {
+        return combineToPair(assetsFlow(), getAvailableXcmAssetSymbolsFlow(originChainId))
             .map { (assets, availableXcmAssetSymbols) ->
                 assets.filter {
                     val assetSymbol = it.asset.token.configuration.symbol.uppercase()
@@ -132,10 +132,10 @@ class WalletInteractorImpl(
             }
     }
 
-    private fun getAvailableXcmAssetSymbolsFlow(originalChainId: ChainId?): Flow<List<String>> {
+    private fun getAvailableXcmAssetSymbolsFlow(originChainId: ChainId?): Flow<List<String>> {
         return flow {
             val availableXcmAssetSymbols = xcmEntitiesFetcher.getAvailableAssets(
-                originalChainId = originalChainId,
+                originalChainId = originChainId,
                 destinationChainId = null
             ).map { it.uppercase() }
             emit(availableXcmAssetSymbols)
@@ -281,16 +281,16 @@ class WalletInteractorImpl(
         tipInPlanks: BigInteger?
     ): Result<String> {
         return runCatching {
-            val originalChain = chainRegistry.getChain(transfer.originalChainId)
+            val originChain = chainRegistry.getChain(transfer.originChainId)
             val destinationChain = chainRegistry.getChain(transfer.destinationChainId)
-            val selfAddress = currentAccountAddress(originalChain.id) ?: throw IllegalStateException("No self address")
+            val selfAddress = currentAccountAddress(originChain.id) ?: throw IllegalStateException("No self address")
             xcmService.transfer(
-                fromChain = originalChain,
+                fromChain = originChain,
                 toChain = destinationChain,
                 asset = transfer.chainAsset,
-                senderAccountId = originalChain.accountIdOf(selfAddress),
+                senderAccountId = originChain.accountIdOf(selfAddress),
                 address = transfer.recipient,
-                amount = transfer.amountInPlanks
+                amount = transfer.fullAmountInPlanks
             )
         }
     }
@@ -433,9 +433,15 @@ class WalletInteractorImpl(
     override suspend fun getEquilibriumAssetRates(chainAsset: CoreAsset): Map<BigInteger, EqOraclePricePoint?> =
         walletRepository.getEquilibriumAssetRates(chainAsset)
 
-    override suspend fun getXcmDestFee(destinationChainId: ChainId): BigDecimal? {
+    override suspend fun getXcmDestFee(
+        destinationChainId: ChainId,
+        tokenSymbol: String
+    ): BigDecimal? {
         return runCatching {
-            xcmService.getXcmDestFee(toChainId = destinationChainId)
+            xcmService.getXcmDestFee(
+                toChainId = destinationChainId,
+                tokenSymbol = tokenSymbol
+            )
         }.getOrNull()
     }
 

@@ -1,7 +1,8 @@
 package jp.co.soramitsu.wallet.impl.presentation.cross_chain.confirm
 
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -30,14 +31,14 @@ import jp.co.soramitsu.common.compose.theme.black2
 import jp.co.soramitsu.feature_wallet_impl.R
 
 data class CrossChainConfirmViewState(
-    val originalChainIcon: GradientIconData?,
+    val originChainIcon: GradientIconData?,
     val destinationChainIcon: GradientIconData?,
     val toInfoItem: TitleValueViewState? = null,
-    val originalNetworkItem: TitleValueViewState? = null,
+    val originNetworkItem: TitleValueViewState? = null,
     val destinationNetworkItem: TitleValueViewState? = null,
     val amountInfoItem: TitleValueViewState? = null,
     val tipInfoItem: TitleValueViewState? = null,
-    val originalFeeInfoItem: TitleValueViewState? = null,
+    val originFeeInfoItem: TitleValueViewState? = null,
     val destinationFeeInfoItem: TitleValueViewState? = null,
     val buttonState: ButtonViewState,
     val isLoading: Boolean = false
@@ -46,7 +47,7 @@ data class CrossChainConfirmViewState(
         const val CODE_WARNING_CLICK = 3
 
         val default = CrossChainConfirmViewState(
-            originalChainIcon = null,
+            originChainIcon = null,
             destinationChainIcon = null,
             buttonState = ButtonViewState("", false)
         )
@@ -54,10 +55,10 @@ data class CrossChainConfirmViewState(
 
     val tableItems = listOf(
         toInfoItem,
-        originalNetworkItem,
+        originNetworkItem,
         destinationNetworkItem,
         tipInfoItem,
-        originalFeeInfoItem,
+        originFeeInfoItem,
         destinationFeeInfoItem
     ).mapNotNull { it }
 }
@@ -81,7 +82,7 @@ fun CrossChainConfirmContent(
         contentAlignment = Alignment.BottomStart
     ) {
         BottomSheetScreen {
-            Box(Modifier.fillMaxWidth()) {
+            Column(Modifier.fillMaxSize()) {
                 Column(
                     modifier = Modifier
                         .padding(horizontal = 16.dp)
@@ -95,9 +96,9 @@ fun CrossChainConfirmContent(
 
                     MarginVertical(margin = 24.dp)
 
-                    if (state.originalChainIcon != null && state.destinationChainIcon != null) {
+                    if (state.originChainIcon != null && state.destinationChainIcon != null) {
                         DoubleGradientIcon(
-                            leftImage = provideGradientIconState(state.originalChainIcon),
+                            leftImage = provideGradientIconState(state.originChainIcon),
                             rightImage = provideGradientIconState(state.destinationChainIcon)
                         )
                     }
@@ -115,7 +116,11 @@ fun CrossChainConfirmContent(
                     MarginVertical(margin = 24.dp)
                     InfoTable(items = state.tableItems, onItemClick = callback::onItemClick)
                     MarginVertical(margin = 12.dp)
+                }
 
+                Spacer(modifier = Modifier.weight(1f))
+
+                Column {
                     AccentButton(
                         state = state.buttonState,
                         onClick = {
@@ -124,6 +129,7 @@ fun CrossChainConfirmContent(
                         },
                         modifier = Modifier
                             .fillMaxWidth()
+                            .padding(horizontal = 16.dp)
                             .height(48.dp)
                     )
 

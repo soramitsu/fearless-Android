@@ -61,7 +61,7 @@ class ChainSelectViewModel @Inject constructor(
             chainInteractor.getChainsFlow(),
             chainInteractor.getXcmChainIdsFlow(
                 type = xcmChainType,
-                originalChainId = xcmSelectedOriginalChainId,
+                originChainId = xcmSelectedOriginalChainId,
                 assetSymbol = xcmAssetSymbol
             )
         ) { chains, xsmChainIds ->

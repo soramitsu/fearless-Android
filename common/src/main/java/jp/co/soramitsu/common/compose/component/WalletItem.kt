@@ -21,7 +21,7 @@ import coil.compose.rememberAsyncImagePainter
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.theme.black05
-import jp.co.soramitsu.common.compose.theme.colorAccent
+import jp.co.soramitsu.common.compose.theme.borderGradientColors
 import jp.co.soramitsu.common.compose.theme.gray2
 import jp.co.soramitsu.common.compose.theme.white24
 import jp.co.soramitsu.common.utils.clickableWithNoIndication
@@ -44,16 +44,16 @@ fun WalletItem(
     onSelected: (WalletItemViewState) -> Unit
 ) {
     val borderColor = if (state.isSelected) {
-        colorAccent
+        borderGradientColors
     } else {
-        white24
+        listOf(white24)
     }
 
-    BackgroundCorneredWithBorder(
+    BackgroundCorneredWithGradientBorder(
         modifier = Modifier
             .fillMaxWidth()
             .clickableWithNoIndication { onSelected(state) },
-        borderColor = borderColor,
+        borderColors = borderColor,
         backgroundColor = black05
     ) {
         Row(

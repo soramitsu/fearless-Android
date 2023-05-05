@@ -7,14 +7,15 @@ import java.math.BigDecimal
 import java.math.BigInteger
 
 class CrossChainTransfer(
-    val originalChainId: ChainId,
+    val originChainId: ChainId,
     val destinationChainId: ChainId,
     val recipient: String,
     val amount: BigDecimal,
+    destinationFee: BigDecimal,
     val chainAsset: Asset
 ) {
 
-    val amountInPlanks: BigInteger = chainAsset.planksFromAmount(amount)
+    val fullAmountInPlanks: BigInteger = chainAsset.planksFromAmount(amount) + chainAsset.planksFromAmount(destinationFee)
 
     fun validityStatus(
         senderTransferable: BigDecimal,

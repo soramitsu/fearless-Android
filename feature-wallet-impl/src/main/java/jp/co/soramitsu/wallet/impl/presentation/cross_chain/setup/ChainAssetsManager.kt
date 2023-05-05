@@ -44,9 +44,9 @@ class ChainAssetsManager @Inject constructor(
         .onEach { lastAsset = it }
         .onEach {
             val asset = it ?: return@onEach
-            val originalChainId = originChainIdFlow.value ?: return@onEach
+            val originChainId = originChainIdFlow.value ?: return@onEach
             val actualDestinationChainId = getActualDestinationChainId(
-                originalChainId = originalChainId,
+                originChainId = originChainId,
                 asset = asset,
                 destinationChainId = null
             )
@@ -56,11 +56,11 @@ class ChainAssetsManager @Inject constructor(
 
     val destinationChainId: String? get() = destinationChainIdFlow.value
 
-    val originalSelectedChain = originChainIdFlow.map { chainId ->
+    val originSelectedChain = originChainIdFlow.map { chainId ->
         chainId?.let { walletInteractor.getChain(it) }
     }
 
-    private val originalSelectedChainItem = originalSelectedChain.map { chain ->
+    private val originSelectedChainItem = originSelectedChain.map { chain ->
         chain?.let {
             ChainItemState(
                 id = chain.id,
@@ -88,9 +88,9 @@ class ChainAssetsManager @Inject constructor(
         }
     }
 
-    val originalChainSelectorStateFlow = originalSelectedChainItem.map {
+    val originChainSelectorStateFlow = originSelectedChainItem.map {
         SelectorState(
-            title = resourceManager.getString(R.string.common_original_network),
+            title = resourceManager.getString(R.string.common_origin_network),
             subTitle = it?.title,
             iconUrl = it?.imageUrl,
             actionIcon = null,
@@ -114,26 +114,26 @@ class ChainAssetsManager @Inject constructor(
         if (originChainIdFlow.value == chainId) return
 
         assetIdFlow.value = getActualAssetId(
-            originalChainId = chainId,
+            originChainId = chainId,
             assetId = assetIdFlow.value
         )
         originChainIdFlow.value = chainId
         destinationChainIdFlow.value = getActualDestinationChainId(
-            originalChainId = chainId,
+            originChainId = chainId,
             asset = lastAsset,
             destinationChainId = destinationChainId
         )
     }
 
-    private suspend fun getActualAssetId(originalChainId: ChainId, assetId: String?): String? {
+    private suspend fun getActualAssetId(originChainId: ChainId, assetId: String?): String? {
         val supportedXcmAssetSymbols = xcmEntitiesFetcher.getAvailableAssets(
-            originalChainId = originalChainId,
+            originalChainId = originChainId,
             destinationChainId = null
         ).map { it.uppercase() }
 
         val xcmAssets = walletInteractor.assetsFlow().first()
             .map { it.asset.token.configuration }
-            .filter { it.chainId == originalChainId && it.symbol.uppercase() in supportedXcmAssetSymbols }
+            .filter { it.chainId == originChainId && it.symbol.uppercase() in supportedXcmAssetSymbols }
         val xcmAssetIds = xcmAssets.map { it.id }
         val utilityXcmAssetId = xcmAssets.firstOrNull { it.isUtility }?.id
 
@@ -145,12 +145,12 @@ class ChainAssetsManager @Inject constructor(
     }
 
     private suspend fun getActualDestinationChainId(
-        originalChainId: ChainId,
+        originChainId: ChainId,
         asset: Asset?,
         destinationChainId: ChainId?
     ): ChainId? {
         val availableDestinationChainIds = xcmEntitiesFetcher.getAvailableDestinationChains(
-            originalChainId = originalChainId,
+            originalChainId = originChainId,
             assetSymbol = asset?.token?.configuration?.symbol?.uppercase()
         )
 

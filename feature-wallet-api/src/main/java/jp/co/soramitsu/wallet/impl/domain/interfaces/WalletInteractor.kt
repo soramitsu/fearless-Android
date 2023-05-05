@@ -33,7 +33,7 @@ interface WalletInteractor {
 
     fun assetsFlow(): Flow<List<AssetWithStatus>>
 
-    fun xcmAssetsFlow(originalChainId: ChainId?): Flow<List<AssetWithStatus>>
+    fun xcmAssetsFlow(originChainId: ChainId?): Flow<List<AssetWithStatus>>
 
     suspend fun syncAssetsRates(): Result<Unit>
 
@@ -123,7 +123,10 @@ interface WalletInteractor {
     suspend fun getEquilibriumAccountInfo(asset: CoreAsset, accountId: AccountId): EqAccountInfo?
     suspend fun getEquilibriumAssetRates(chainAsset: CoreAsset): Map<BigInteger, EqOraclePricePoint?>
 
-    suspend fun getXcmDestFee(destinationChainId: ChainId): BigDecimal?
+    suspend fun getXcmDestFee(
+        destinationChainId: ChainId,
+        tokenSymbol: String
+    ): BigDecimal?
 
     suspend fun getXcmOrigFee(
         originNetworkId: ChainId,
