@@ -431,28 +431,12 @@
     <dialog
         android:id="@+id/confirmSendFragment"
         android:name="jp.co.soramitsu.wallet.impl.presentation.send.confirm.ConfirmSendFragment"
-        android:label="confirmSendFragment">
-        <action
-            android:id="@+id/finish_send_flow"
-            app:enterAnim="?android:attr/fragmentCloseEnterAnimation"
-            app:exitAnim="?android:attr/fragmentCloseExitAnimation"
-            app:popEnterAnim="?android:attr/fragmentOpenEnterAnimation"
-            app:popExitAnim="?android:attr/fragmentOpenExitAnimation"
-            app:popUpTo="@id/mainFragment" />
-    </dialog>
+        android:label="confirmSendFragment" />
 
     <dialog
         android:id="@+id/confirmCrossChainSendFragment"
         android:name="jp.co.soramitsu.wallet.impl.presentation.cross_chain.confirm.CrossChainConfirmFragment"
-        android:label="confirmCrossChainSendFragment">
-        <action
-            android:id="@+id/finish_send_flow"
-            app:enterAnim="?android:attr/fragmentCloseEnterAnimation"
-            app:exitAnim="?android:attr/fragmentCloseExitAnimation"
-            app:popEnterAnim="?android:attr/fragmentOpenEnterAnimation"
-            app:popExitAnim="?android:attr/fragmentOpenExitAnimation"
-            app:popUpTo="@id/mainFragment" />
-    </dialog>
+        android:label="confirmCrossChainSendFragment" />
 
     <dialog
         android:id="@+id/successSheetFragment"

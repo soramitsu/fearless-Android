@@ -784,7 +784,8 @@ class Navigator :
     }
 
     override fun finishSendFlow() {
-        navController?.navigate(R.id.finish_send_flow)
+        navController?.popBackStack()
+        navController?.popBackStack()
     }
 
     override fun openTransferDetail(transaction: OperationParcelizeModel.Transfer, assetPayload: AssetPayload) {
