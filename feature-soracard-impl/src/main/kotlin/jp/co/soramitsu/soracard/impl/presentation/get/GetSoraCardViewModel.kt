@@ -9,6 +9,7 @@ import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.data.network.OptionsProvider
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
+import jp.co.soramitsu.common.utils.greaterThen
 import jp.co.soramitsu.oauth.base.sdk.SoraCardEnvironmentType
 import jp.co.soramitsu.oauth.base.sdk.SoraCardInfo
 import jp.co.soramitsu.oauth.base.sdk.SoraCardKycCredentials
@@ -68,13 +69,13 @@ class GetSoraCardViewModel @Inject constructor(
                         val xorRealRequiredBalance = KYC_REAL_REQUIRED_BALANCE.divide(xorEurPrice, defaultScale, RoundingMode.HALF_EVEN)
                         val xorBalanceInEur = transferable.multiply(xorEurPrice)
 
-                        val needInXor = if (transferable.compareTo(xorRealRequiredBalance) == 1) {
+                        val needInXor = if (transferable.greaterThen(xorRealRequiredBalance)) {
                             BigDecimal.ZERO
                         } else {
                             xorRequiredBalanceWithBacklash.minus(transferable)
                         }
 
-                        val needInEur = if (xorBalanceInEur.compareTo(KYC_REAL_REQUIRED_BALANCE) == 1) {
+                        val needInEur = if (xorBalanceInEur.greaterThen(KYC_REAL_REQUIRED_BALANCE)) {
                             BigDecimal.ZERO
                         } else {
                             KYC_REQUIRED_BALANCE_WITH_BACKLASH.minus(xorBalanceInEur)
@@ -82,7 +83,7 @@ class GetSoraCardViewModel @Inject constructor(
 
                         state.value = state.value.copy(
                             xorBalance = transferable,
-                            enoughXor = transferable.compareTo(xorRealRequiredBalance) == 1,
+                            enoughXor = transferable.greaterThen(xorRealRequiredBalance),
                             percent = transferable.divide(xorRealRequiredBalance, defaultScale, RoundingMode.HALF_EVEN),
                             needInXor = needInXor,
                             needInEur = needInEur,

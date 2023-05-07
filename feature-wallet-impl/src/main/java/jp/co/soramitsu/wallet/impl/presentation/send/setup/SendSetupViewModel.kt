@@ -304,7 +304,7 @@ class SendSetupViewModel @Inject constructor(
         val amountInPlanks = asset?.token?.planksFromAmount(amount).orZero()
         ButtonViewState(
             text = resourceManager.getString(R.string.common_continue),
-            enabled = amountInPlanks.compareTo(BigInteger.ZERO) != 0
+            enabled = amountInPlanks.isNotZero()
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, defaultButtonState)
 

@@ -352,7 +352,7 @@ class CrossChainSetupViewModel @Inject constructor(
         val isAllFeesCalculated = hasOriginFeeAmount && hasDestinationFeeAmount
         ButtonViewState(
             text = resourceManager.getString(R.string.common_continue),
-            enabled = amountInPlanks.compareTo(BigInteger.ZERO) != 0 && isAllChainsSelected && isAllFeesCalculated
+            enabled = amountInPlanks.isNotZero() && isAllChainsSelected && isAllFeesCalculated
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, defaultButtonState)
 

@@ -97,3 +97,8 @@ fun BigDecimal?.orZero(): BigDecimal = when (this) {
 
 fun BigDecimal?.isZero(): Boolean = this?.compareTo(BigDecimal.ZERO) == 0
 fun BigDecimal?.isNotZero(): Boolean = !isZero()
+
+fun BigDecimal.greaterThen(other: BigDecimal): Boolean = this.compareTo(other) == 1
+
+fun BigInteger?.isZero(): Boolean = this?.compareTo(BigInteger.ZERO) == 0
+fun BigInteger?.isNotZero(): Boolean = !isZero()

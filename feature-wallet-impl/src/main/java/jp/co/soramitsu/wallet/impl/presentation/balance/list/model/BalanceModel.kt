@@ -1,6 +1,7 @@
 package jp.co.soramitsu.wallet.impl.presentation.balance.list.model
 
 import jp.co.soramitsu.common.utils.fractionToPercentage
+import jp.co.soramitsu.common.utils.isZero
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.percentageToFraction
 import jp.co.soramitsu.common.utils.sumByBigDecimal
@@ -19,13 +20,13 @@ class BalanceModel(val assetModels: List<AssetWithStateModel>, val fiatSymbol: S
 
     val rate = when {
         totalBalance == null -> null
-        totalBalance.compareTo(BigDecimal.ZERO) == 0 -> BigDecimal.ZERO
+        totalBalance.isZero() -> BigDecimal.ZERO
         else -> totalBalanceChange.divide(totalBalance, RoundingMode.HALF_UP).fractionToPercentage()
     }
 
     val transferableRate = when {
         totalTransferableBalance == null -> null
-        totalTransferableBalance.compareTo(BigDecimal.ZERO) == 0 -> BigDecimal.ZERO
+        totalTransferableBalance.isZero() -> BigDecimal.ZERO
         else -> totalTransferableBalanceChange.divide(totalTransferableBalance, RoundingMode.HALF_UP).fractionToPercentage()
     }
 

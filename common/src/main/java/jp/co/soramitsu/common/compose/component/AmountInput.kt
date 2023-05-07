@@ -37,6 +37,7 @@ import jp.co.soramitsu.common.compose.theme.white
 import jp.co.soramitsu.common.compose.theme.white24
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.MAX_DECIMALS_8
+import jp.co.soramitsu.common.utils.isZero
 import jp.co.soramitsu.ui_core.component.input.number.BasicNumberInput
 import jp.co.soramitsu.ui_core.theme.customTypography
 import java.math.BigDecimal
@@ -81,7 +82,7 @@ fun AmountInput(
     onTokenClick: () -> Unit = {}
 ) {
     val textColorState = when {
-        state.tokenAmount.compareTo(BigDecimal.ZERO) == 0 -> {
+        state.tokenAmount.isZero() -> {
             black2
         }
         state.isActive -> {

@@ -20,6 +20,7 @@ import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.common.utils.formatCrypto
 import jp.co.soramitsu.common.utils.formatCryptoDetail
 import jp.co.soramitsu.common.utils.formatFiat
+import jp.co.soramitsu.common.utils.isZero
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.validation.NotEnoughResultedAmountToPayFeeException
 import jp.co.soramitsu.common.validation.SpendInsufficientBalanceException
@@ -331,7 +332,7 @@ class SwapTokensViewModel @Inject constructor(
         desired ?: return emptyResult
         if (availableDexPaths == null) return emptyResult
         if (availableDexPaths.isEmpty()) return emptyResult
-        if (amount.compareTo(BigDecimal.ZERO) == 0) return emptyResult
+        if (amount.isZero()) return emptyResult
         if (selectedMarket !in polkaswapInteractor.availableMarkets.values.flatten().toSet()) return emptyResult
 
         return polkaswapInteractor.calcDetails(availableDexPaths, fromAsset.value!!, toAsset.value!!, amount, desired!!, slippageTolerance, selectedMarket)
