@@ -20,6 +20,7 @@ import jp.co.soramitsu.common.compose.theme.bold
 import jp.co.soramitsu.common.compose.theme.customTypography
 import jp.co.soramitsu.common.compose.theme.greenText
 import jp.co.soramitsu.common.utils.clickableWithNoIndication
+import jp.co.soramitsu.common.utils.formatting.shortenAddress
 
 @Composable
 fun InfoTableItem(state: TitleValueViewState, onClick: (Int) -> Unit = {}) {
@@ -87,13 +88,8 @@ fun InfoTableItem(state: TitleValueViewState, onClick: (Int) -> Unit = {}) {
                 )
 
                 state.additionalValue?.let {
-                    val text = if (it.length > 20) {
-                        "${it.take(5)}...${it.takeLast(5)}"
-                    } else {
-                        it
-                    }
                     B1(
-                        text = text,
+                        text = it.shortenAddress(),
                         color = black2,
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.align(Alignment.End),

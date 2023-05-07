@@ -38,6 +38,7 @@ import jp.co.soramitsu.common.compose.component.MarginHorizontal
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.theme.customTypography
 import jp.co.soramitsu.common.presentation.LoadingState
+import jp.co.soramitsu.common.utils.formatting.shortenAddress
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.wallet.impl.domain.model.WalletAccount
 
@@ -108,11 +109,7 @@ private fun ReceiveContent(
         H2(text = state.account.name.orEmpty())
         MarginVertical(margin = 8.dp)
         B0(
-            text = stringResource(
-                id = R.string.common_middle_dots,
-                state.account.address.take(10),
-                state.account.address.takeLast(10)
-            ),
+            text = state.account.address.shortenAddress(),
             maxLines = 1,
             color = Color.White.copy(alpha = 0.5f)
         )

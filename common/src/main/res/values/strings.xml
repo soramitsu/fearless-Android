@@ -923,7 +923,6 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="pool_your_total_stake">Your total stake</string>
     <string name="pool_account_for_join">Account for join</string>
     <string name="common_note">Note: </string>
-    <string name="common_middle_dots">%1$s…%2$s</string>
     <string name="pool_staking_unstake_alert">Your pending reward will be payment automatically</string>
     <string name="pool_staking_unstake_error">No redeemable tokens found</string>
     <string name="common_claimable">Claimable</string>
