@@ -1,7 +1,6 @@
 package jp.co.soramitsu.wallet.impl.domain.model
 
 import androidx.annotation.DrawableRes
-import java.util.Locale
 import jp.co.soramitsu.core.models.Asset as CoreAsset
 
 class BuyTokenRegistry(val availableProviders: List<Provider<*>>) {
@@ -16,7 +15,7 @@ class BuyTokenRegistry(val availableProviders: List<Provider<*>>) {
         @get:DrawableRes
         val icon: Int
 
-        fun isTokenSupported(chainAsset: CoreAsset) = name.toLowerCase(Locale.ROOT) in chainAsset.priceProviders.orEmpty()
+        fun isTokenSupported(chainAsset: CoreAsset) = name.lowercase() in chainAsset.priceProviders.orEmpty()
 
         fun createIntegrator(chainAsset: CoreAsset, address: String): I
     }

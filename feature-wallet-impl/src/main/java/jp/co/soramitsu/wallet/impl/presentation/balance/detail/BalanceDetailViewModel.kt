@@ -305,17 +305,15 @@ class BalanceDetailViewModel @Inject constructor(
     private fun getActionItems(selectedChainId: String): List<ActionItemType> {
         val actionItems = mutableListOf(
             ActionItemType.SEND,
-            ActionItemType.RECEIVE,
-            ActionItemType.BUY
+            ActionItemType.RECEIVE
         )
         if (BuildConfig.DEBUG) {
-            actionItems -= ActionItemType.BUY
-            actionItems += listOf(ActionItemType.CROSS_CHAIN, ActionItemType.BUY)
+            actionItems += ActionItemType.CROSS_CHAIN
         }
-        if (selectedChainId == soraMainChainId || selectedChainId == soraTestChainId) {
-            if (!isBuyEnabled()) {
-                actionItems -= ActionItemType.BUY
-            }
+        if (isBuyEnabled()) {
+            actionItems += ActionItemType.BUY
+        }
+        if (selectedChainId in listOf(soraMainChainId, soraTestChainId)) {
             actionItems += ActionItemType.SWAP
         }
         return actionItems
