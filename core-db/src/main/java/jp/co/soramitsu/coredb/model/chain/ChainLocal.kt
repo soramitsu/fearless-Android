@@ -23,8 +23,7 @@ class ChainLocal(
 ) {
 
     class TypesConfig(
-        val url: String,
-        val overridesCommon: Boolean
+        val url: String
     )
 
     class ExternalApi(

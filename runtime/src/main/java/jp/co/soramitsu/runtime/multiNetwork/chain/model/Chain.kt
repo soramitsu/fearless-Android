@@ -43,8 +43,7 @@ data class Chain(
         get() = AppVersion.isSupported(minSupportedVersion)
 
     data class Types(
-        val url: String,
-        val overridesCommon: Boolean
+        val url: String
     )
 
     data class ExternalApi(

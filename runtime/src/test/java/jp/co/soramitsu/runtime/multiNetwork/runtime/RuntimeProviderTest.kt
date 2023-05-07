@@ -223,7 +223,7 @@ class RuntimeProviderTest {
 
     private fun initProvider(typesUsage: TypesUsage? = null) {
         val types = when (typesUsage) {
-            TypesUsage.ON_CHAIN -> Chain.Types(url = "url", overridesCommon = true)
+            TypesUsage.ON_CHAIN -> Chain.Types(url = "url")
             else -> null
         }
 

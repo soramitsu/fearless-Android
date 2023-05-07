@@ -130,8 +130,7 @@ private fun ChainRemote.toChain(assetsById: Map<String?, AssetRemote>): Chain {
 
     val types = this.types?.let {
         Chain.Types(
-            url = it.androidUrl,
-            overridesCommon = it.overridesCommon
+            url = it.androidUrl
         )
     }
 
@@ -205,8 +204,7 @@ fun mapChainLocalToChain(chainLocal: JoinedChainInfo): Chain {
 
     val types = chainLocal.chain.types?.let {
         Chain.Types(
-            url = it.url,
-            overridesCommon = it.overridesCommon
+            url = it.url
         )
     }
 
@@ -281,8 +279,7 @@ fun mapChainToChainLocal(chain: Chain): JoinedChainInfo {
 
     val types = chain.types?.let {
         ChainLocal.TypesConfig(
-            url = it.url,
-            overridesCommon = it.overridesCommon
+            url = it.url
         )
     }
 
