@@ -3,6 +3,7 @@ package jp.co.soramitsu.common.compose.component
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.MaterialTheme
@@ -27,6 +28,7 @@ fun InfoTableItem(state: TitleValueViewState, onClick: (Int) -> Unit = {}) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .heightIn(min = 55.dp)
             .padding(vertical = 6.dp, horizontal = 16.dp)
     ) {
         val titleClickModifier = if (state.value != null && (state.clickState as? TitleValueViewState.ClickState.Title) != null) {
