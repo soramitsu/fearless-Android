@@ -94,7 +94,8 @@
         android:paddingStart="@dimen/x2"
         android:paddingTop="@dimen/x1_5"
         android:paddingEnd="@dimen/x2"
-        android:paddingBottom="@dimen/x1_5">
+        android:paddingBottom="@dimen/x1_5"
+        android:visibility="gone">
 
         <TextView
             style="@style/TextAppearance.Soramitsu.Body1"

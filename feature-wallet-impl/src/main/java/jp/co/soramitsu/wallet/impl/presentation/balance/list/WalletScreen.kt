@@ -85,7 +85,7 @@ fun WalletScreen(
             AssetsList(
                 data = data,
                 callback = callback,
-                header = header
+                header = null
             )
         }
     }

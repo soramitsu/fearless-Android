@@ -90,6 +90,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -359,13 +360,14 @@ class BalanceListViewModel @Inject constructor(
         .thenBy { it.chainId.defaultChainSort() }
         .thenBy { it.chainName }
 
-    private val soraCardState = combine(
-        interactor.observeIsShowSoraCard(),
-        soraCardInteractor.subscribeSoraCardInfo()
-    ) { isShow, soraCardInfo ->
-        val kycStatus = soraCardInfo?.kycStatus?.let(::mapKycStatus)
-        SoraCardItemViewState(kycStatus, soraCardInfo, null, isShow)
-    }
+//    private val soraCardState = combine(
+//        interactor.observeIsShowSoraCard(),
+//        soraCardInteractor.subscribeSoraCardInfo()
+//    ) { isShow, soraCardInfo ->
+//        val kycStatus = soraCardInfo?.kycStatus?.let(::mapKycStatus)
+//        SoraCardItemViewState(kycStatus, soraCardInfo, null, isShow)
+//    }
+    private val soraCardState = flowOf(SoraCardItemViewState())
 
     val state = combine(
         assetStates,

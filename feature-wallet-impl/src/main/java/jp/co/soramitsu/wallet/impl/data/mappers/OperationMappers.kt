@@ -289,17 +289,10 @@ private val Operation.Type.Transfer.isIncome
 private val Operation.Type.Transfer.displayAddress
     get() = if (isIncome) sender else receiver
 
-private fun formatAmount(chainAsset: Asset, transfer: Operation.Type.Transfer): String {
-    return transfer.amount.formatCryptoFromPlanks(chainAsset).formatSigned(transfer.isIncome)
-}
-
 private fun formatDetailsAmount(chainAsset: Asset, transfer: Operation.Type.Transfer): String {
     return transfer.amount.formatCryptoDetailFromPlanks(chainAsset).formatSigned(transfer.isIncome)
 }
 
-private fun formatAmount(chainAsset: Asset, reward: Operation.Type.Reward): String {
-    return reward.amount.formatCryptoFromPlanks(chainAsset).formatSigned(reward.isReward)
-}
 private fun formatDetailsAmount(chainAsset: Asset, reward: Operation.Type.Reward): String {
     return reward.amount.formatCryptoDetailFromPlanks(chainAsset).formatSigned(reward.isReward)
 }
@@ -348,7 +341,7 @@ suspend fun mapOperationToOperationModel(
                 OperationModel(
                     id = id,
                     time = time,
-                    amount = formatAmount(chainAsset, operationType),
+                    amount = formatDetailsAmount(chainAsset, operationType),
                     amountColor = if (operationType.isReward) greenText else white,
                     header = resourceManager.getString(
                         if (operationType.isReward) R.string.staking_reward else R.string.staking_slash
@@ -370,7 +363,7 @@ suspend fun mapOperationToOperationModel(
                 OperationModel(
                     id = id,
                     time = time,
-                    amount = formatAmount(chainAsset, operationType),
+                    amount = formatDetailsAmount(chainAsset, operationType),
                     amountColor = amountColor,
                     header = nameIdentifier.nameOrAddress(operationType.displayAddress),
                     statusAppearance = statusAppearance,
