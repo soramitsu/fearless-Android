@@ -63,12 +63,19 @@ fun BackgroundCorneredWithGradientBorder(
     shape: Shape = FearlessCorneredShape(),
     content: @Composable BoxScope.() -> Unit
 ) {
+    val brushColors = if (borderColors.size < 2) {
+        val useColor = borderColors.getOrNull(0) ?: white24
+        listOf(useColor, useColor)
+    } else {
+        borderColors
+    }
+
     Surface(
         modifier = modifier
             .wrapContentSize()
             .border(
                 1.dp,
-                brush = Brush.horizontalGradient(colors = borderColors),
+                brush = Brush.horizontalGradient(colors = brushColors),
                 shape = shape
             ),
         shape = FearlessCorneredShape(),
