@@ -19,7 +19,6 @@ val Migration_53_54 = object : Migration(53, 54) {
             `isTestNet` INTEGER NOT NULL,
             `hasCrowdloans` INTEGER NOT NULL,
             `supportStakingPool` INTEGER NOT NULL,
-            `url` TEXT,
             `staking_url` TEXT,
             `staking_type` TEXT,
             `history_url` TEXT,
@@ -43,7 +42,6 @@ val Migration_53_54 = object : Migration(53, 54) {
             c.isTestNet,
             c.hasCrowdloans,
             0 as `supportStakingPool`,
-            c.url,
             c.staking_url,
             c.staking_type,
             c.history_url,
@@ -68,7 +66,6 @@ val Migration_53_54 = object : Migration(53, 54) {
             `isTestNet` INTEGER NOT NULL,
             `hasCrowdloans` INTEGER NOT NULL,
             `supportStakingPool` INTEGER NOT NULL,
-            `url` TEXT,
             `staking_url` TEXT,
             `staking_type` TEXT,
             `history_url` TEXT,
@@ -93,7 +90,6 @@ val Migration_53_54 = object : Migration(53, 54) {
             c.isTestNet,
             c.hasCrowdloans,
             0 as `supportStakingPool`,
-            c.url,
             c.staking_url,
             c.staking_type,
             c.history_url,
@@ -472,7 +468,6 @@ val Migration_53_54 = object : Migration(53, 54) {
         )
         database.execSQL("DROP TABLE IF EXISTS _chain_assets")
         database.execSQL("CREATE INDEX IF NOT EXISTS `index_chain_assets_chainId` ON `chain_assets` (`chainId`)")
-
     }
 }
 

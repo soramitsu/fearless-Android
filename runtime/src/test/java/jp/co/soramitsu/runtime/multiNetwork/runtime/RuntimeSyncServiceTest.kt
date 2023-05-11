@@ -117,7 +117,6 @@ class RuntimeSyncServiceTest {
 
             val newChain = Mockito.mock(Chain::class.java)
             whenever(newChain.id).thenAnswer { testChain.id }
-            whenever(newChain.types).thenReturn(Chain.Types(url = "Changed"))
 
             service.registerChain(chain = testChain)
             service.applyRuntimeVersion(testChain.id)
@@ -145,8 +144,6 @@ class RuntimeSyncServiceTest {
     fun `should sync types when url is not null`() {
         runBlocking {
             chainDaoReturnsSyncedRuntimeInfo()
-
-            whenever(testChain.types).thenReturn(Chain.Types("Stub"))
 
             service.registerChain(chain = testChain)
             service.applyRuntimeVersion(testChain.id)
@@ -192,7 +189,6 @@ class RuntimeSyncServiceTest {
         runBlocking {
             chainDaoReturnsUnsyncedRuntimeInfo()
 
-            whenever(testChain.types).thenReturn(Chain.Types("testUrl"))
             service.registerChain(chain = testChain)
             service.applyRuntimeVersion(testChain.id)
 
@@ -207,7 +203,6 @@ class RuntimeSyncServiceTest {
         runBlocking {
             chainDaoReturnsUnsyncedRuntimeInfo()
 
-            whenever(testChain.types).thenReturn(Chain.Types("testUrl"))
             service.registerChain(chain = testChain)
             service.applyRuntimeVersion(testChain.id)
 
@@ -222,7 +217,6 @@ class RuntimeSyncServiceTest {
         runBlocking {
             chainDaoReturnsSyncedRuntimeInfo()
 
-            whenever(testChain.types).thenReturn(Chain.Types("testUrl"))
             service.registerChain(chain = testChain)
             service.applyRuntimeVersion(testChain.id)
 
