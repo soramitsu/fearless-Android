@@ -30,7 +30,6 @@ data class Chain(
     val externalApi: ExternalApi?,
     val icon: String,
     override val addressPrefix: Int,
-    val types: Types?,
     override val isEthereumBased: Boolean,
     val isTestNet: Boolean,
     val hasCrowdloans: Boolean,
@@ -41,11 +40,6 @@ data class Chain(
 
     val isSupported: Boolean
         get() = AppVersion.isSupported(minSupportedVersion)
-
-    data class Types(
-        val url: String,
-        val overridesCommon: Boolean
-    )
 
     data class ExternalApi(
         val staking: Section?,

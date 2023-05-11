@@ -86,14 +86,6 @@
         app:destination="@id/exportJsonPasswordFragment" />
 
     <action
-        android:id="@+id/action_open_accounts"
-        app:destination="@id/accountsFragment"
-        app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
-        app:exitAnim="?android:attr/fragmentOpenExitAnimation"
-        app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
-        app:popExitAnim="?android:attr/fragmentCloseExitAnimation" />
-
-    <action
         android:id="@+id/action_open_accountDetailsFragment"
         app:destination="@id/accountDetailsFragment"
         app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
@@ -249,18 +241,6 @@
         android:label="fragment_about" />
 
     <fragment
-        android:id="@+id/accountsFragment"
-        android:name="jp.co.soramitsu.account.impl.presentation.account.list.AccountListFragment"
-        android:label="AccountsFragment"
-        tools:layout="@layout/fragment_accounts">
-
-        <action
-            android:id="@+id/action_accountsFragment_to_editAccountsFragment"
-            app:destination="@id/editAccountsFragment" />
-
-    </fragment>
-
-    <fragment
         android:id="@+id/nodesFragment"
         android:name="jp.co.soramitsu.account.impl.presentation.node.list.NodesFragment"
         android:label="NodesFragment"
@@ -335,22 +315,6 @@
         app:exitAnim="?android:attr/fragmentCloseExitAnimation"
         app:popEnterAnim="?android:attr/fragmentOpenEnterAnimation"
         app:popExitAnim="?android:attr/fragmentOpenExitAnimation" />
-
-    <fragment
-        android:id="@+id/editAccountsFragment"
-        android:name="jp.co.soramitsu.account.impl.presentation.account.edit.AccountEditFragment"
-        android:label="EditAccountsFragment"
-        tools:layout="@layout/fragment_edit_accounts">
-
-        <action
-            android:id="@+id/action_editAccountsFragment_to_mainFragment"
-            app:enterAnim="?android:attr/fragmentCloseEnterAnimation"
-            app:exitAnim="?android:attr/fragmentCloseExitAnimation"
-            app:popEnterAnim="?android:attr/fragmentOpenEnterAnimation"
-            app:popExitAnim="?android:attr/fragmentOpenExitAnimation"
-            app:popUpTo="@id/mainFragment" />
-
-    </fragment>
 
     <fragment
         android:id="@+id/balanceDetailFragment"
@@ -467,28 +431,12 @@
     <dialog
         android:id="@+id/confirmSendFragment"
         android:name="jp.co.soramitsu.wallet.impl.presentation.send.confirm.ConfirmSendFragment"
-        android:label="confirmSendFragment">
-        <action
-            android:id="@+id/finish_send_flow"
-            app:enterAnim="?android:attr/fragmentCloseEnterAnimation"
-            app:exitAnim="?android:attr/fragmentCloseExitAnimation"
-            app:popEnterAnim="?android:attr/fragmentOpenEnterAnimation"
-            app:popExitAnim="?android:attr/fragmentOpenExitAnimation"
-            app:popUpTo="@id/mainFragment" />
-    </dialog>
+        android:label="confirmSendFragment" />
 
     <dialog
         android:id="@+id/confirmCrossChainSendFragment"
         android:name="jp.co.soramitsu.wallet.impl.presentation.cross_chain.confirm.CrossChainConfirmFragment"
-        android:label="confirmCrossChainSendFragment">
-        <action
-            android:id="@+id/finish_send_flow"
-            app:enterAnim="?android:attr/fragmentCloseEnterAnimation"
-            app:exitAnim="?android:attr/fragmentCloseExitAnimation"
-            app:popEnterAnim="?android:attr/fragmentOpenEnterAnimation"
-            app:popExitAnim="?android:attr/fragmentOpenExitAnimation"
-            app:popUpTo="@id/mainFragment" />
-    </dialog>
+        android:label="confirmCrossChainSendFragment" />
 
     <dialog
         android:id="@+id/successSheetFragment"
@@ -679,11 +627,6 @@
         android:id="@+id/crossChainFragment"
         android:name="jp.co.soramitsu.wallet.impl.presentation.cross_chain.setup.CrossChainSetupFragment"
         android:label="crossChainFragment" />
-
-    <dialog
-        android:id="@+id/selectWalletTypeFragment"
-        android:name="jp.co.soramitsu.wallet.impl.presentation.cross_chain.wallet_type.SelectWalletTypeFragment"
-        android:label="selectWalletTypeFragment" />
 
     <dialog
         android:id="@+id/addressHistoryFragment"

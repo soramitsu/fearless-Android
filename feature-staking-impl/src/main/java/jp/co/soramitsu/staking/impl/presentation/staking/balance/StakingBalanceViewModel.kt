@@ -9,6 +9,7 @@ import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.inBackground
+import jp.co.soramitsu.common.utils.isZero
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.shared_utils.extensions.fromHex
@@ -79,8 +80,8 @@ class StakingBalanceViewModel @Inject constructor(
 
     val shouldBlockStakeMore = stakingBalanceModelLiveData.map {
         val isParachain = assetFlow.first().token.configuration.staking == Asset.StakingType.PARACHAIN
-        val isUnstakingFullAmount = (it.staked.amount - it.unstaking.amount).compareTo(BigDecimal.ZERO) == 0
-        val stakeIsZero = it.staked.amount.compareTo(BigDecimal.ZERO) == 0
+        val isUnstakingFullAmount = (it.staked.amount - it.unstaking.amount).isZero()
+        val stakeIsZero = it.staked.amount.isZero()
         val isFullUnstake = isUnstakingFullAmount || stakeIsZero
 
         isFullUnstake.and(isParachain)

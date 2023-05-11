@@ -4,7 +4,7 @@ import jp.co.soramitsu.core.models.Asset
 import java.math.BigDecimal
 import java.math.BigInteger
 
-class Token(
+data class Token(
     val configuration: Asset,
     val fiatRate: BigDecimal?,
     val fiatSymbol: String?,

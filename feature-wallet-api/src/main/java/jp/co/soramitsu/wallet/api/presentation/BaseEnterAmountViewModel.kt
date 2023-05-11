@@ -34,7 +34,7 @@ open class BaseEnterAmountViewModel(
     @StringRes private val nextButtonTextRes: Int = R.string.common_continue,
     @StringRes private val toolbarTextRes: Int = R.string.staking_bond_more_v1_9_0,
     @StringRes private val balanceHintRes: Int,
-    initialAmount: BigDecimal = BigDecimal.ZERO,
+    initialAmount: BigDecimal? = null,
     isInputActive: Boolean = true,
     protected val asset: Asset,
     private val resourceManager: ResourceManager,
@@ -51,8 +51,8 @@ open class BaseEnterAmountViewModel(
         tokenImage = "",
         totalBalance = resourceManager.getString(balanceHintRes, "..."),
         fiatAmount = "",
-        tokenAmount = initialAmount,
-        initial = null
+        tokenAmount = initialAmount.orZero(),
+        initial = initialAmount
     )
 
     private val defaultButtonState = ButtonViewState(
@@ -72,7 +72,7 @@ open class BaseEnterAmountViewModel(
         defaultButtonState
     )
 
-    private val enteredAmountFlow = MutableStateFlow(initialAmount)
+    private val enteredAmountFlow = MutableStateFlow(initialAmount.orZero())
 
     private val amountInputViewState: Flow<AmountInputViewState> = enteredAmountFlow.map { amount ->
         val tokenBalance = availableAmountForOperation(asset).formatCrypto(asset.token.configuration.symbolToShow)

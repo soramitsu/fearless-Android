@@ -1,12 +1,12 @@
 package jp.co.soramitsu.common.utils
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.async
 import java.io.InputStream
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.util.concurrent.TimeUnit
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.async
 
 private val PERCENTAGE_MULTIPLIER = 100.toBigDecimal()
 
@@ -94,3 +94,11 @@ fun BigDecimal?.orZero(): BigDecimal = when (this) {
     null -> BigDecimal.ZERO
     else -> this
 }
+
+fun BigDecimal?.isZero(): Boolean = this?.compareTo(BigDecimal.ZERO) == 0
+fun BigDecimal?.isNotZero(): Boolean = !isZero()
+
+fun BigDecimal.greaterThen(other: BigDecimal): Boolean = this.compareTo(other) == 1
+
+fun BigInteger?.isZero(): Boolean = this?.compareTo(BigInteger.ZERO) == 0
+fun BigInteger?.isNotZero(): Boolean = !isZero()

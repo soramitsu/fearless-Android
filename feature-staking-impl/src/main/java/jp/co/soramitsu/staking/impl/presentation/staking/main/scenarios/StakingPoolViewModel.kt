@@ -7,8 +7,8 @@ import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.applyFiatRate
 import jp.co.soramitsu.common.utils.flowOf
-import jp.co.soramitsu.common.utils.formatCryptoDetail
 import jp.co.soramitsu.common.utils.formatCrypto
+import jp.co.soramitsu.common.utils.formatCryptoDetail
 import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.nullIfEmpty
 import jp.co.soramitsu.common.utils.orZero
@@ -54,13 +54,14 @@ class StakingPoolViewModel(
     baseViewModel: BaseStakingViewModel
 ) : StakingScenarioViewModel {
 
+    private val initialValue = BigDecimal.TEN
     private val defaultAmountInputState = AmountInputViewState(
         tokenName = "...",
         tokenImage = "",
         totalBalance = resourceManager.getString(R.string.common_balance_format, "..."),
         fiatAmount = "",
-        tokenAmount = BigDecimal.TEN,
-        initial = null
+        tokenAmount = initialValue,
+        initial = initialValue
     )
     private val currentAssetFlow = stakingInteractor.currentAssetFlow().filter { it.token.configuration.supportStakingPool }
 
@@ -76,7 +77,7 @@ class StakingPoolViewModel(
         return kotlinx.coroutines.flow.flowOf(Pool)
     }
 
-    override val enteredAmountFlow = MutableStateFlow(BigDecimal.TEN)
+    override val enteredAmountFlow = MutableStateFlow(initialValue)
 
     private val amountInputViewState: Flow<AmountInputViewState> = combine(enteredAmountFlow, currentAssetFlow) { amount, asset ->
         val tokenBalance = asset.transferable.formatCrypto(asset.token.configuration.symbolToShow)
@@ -88,7 +89,7 @@ class StakingPoolViewModel(
             totalBalance = resourceManager.getString(R.string.common_balance_format, tokenBalance),
             fiatAmount = fiatAmount,
             tokenAmount = amount.orZero(),
-            initial = amount
+            initial = initialValue
         )
     }.stateIn(baseViewModel.stakingStateScope, SharingStarted.Eagerly, defaultAmountInputState)
 

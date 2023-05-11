@@ -50,9 +50,9 @@ class ValidatorInfoView @JvmOverloads constructor(
     fun setNominatorsCount(count: String, maxNominations: String?) {
         binding.validatorNominatorsView.setBody(
             if (maxNominations == null) {
-                count.format()
+                count
             } else {
-                context.getString(R.string.staking_max_format, count.format(), maxNominations.format())
+                context.getString(R.string.staking_max_format, count, maxNominations)
             }
         )
     }

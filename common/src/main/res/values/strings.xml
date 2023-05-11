@@ -633,7 +633,6 @@ Please note that this signing transaction will be subject to transaction fees on
     <string name="assetdetails_balance_title">Your balance</string>
     <string name="wallet_send_navigation_title">Send %s</string>
     <string name="profile_wallets_title">Wallets</string>
-    <string name="settings_add_wallet">Add wallet</string>
     <string name="onboarding_create_wallet">Create wallet</string>
     <string name="onboarding_restore_wallet">I already have a wallet</string>
     <string name="import_wallet">Import wallet</string>
@@ -924,7 +923,6 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="pool_your_total_stake">Your total stake</string>
     <string name="pool_account_for_join">Account for join</string>
     <string name="common_note">Note: </string>
-    <string name="common_middle_dots">%1$s…%2$s</string>
     <string name="pool_staking_unstake_alert">Your pending reward will be payment automatically</string>
     <string name="pool_staking_unstake_error">No redeemable tokens found</string>
     <string name="common_claimable">Claimable</string>

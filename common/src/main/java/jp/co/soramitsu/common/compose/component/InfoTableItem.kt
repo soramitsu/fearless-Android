@@ -3,6 +3,7 @@ package jp.co.soramitsu.common.compose.component
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.MaterialTheme
@@ -20,12 +21,14 @@ import jp.co.soramitsu.common.compose.theme.bold
 import jp.co.soramitsu.common.compose.theme.customTypography
 import jp.co.soramitsu.common.compose.theme.greenText
 import jp.co.soramitsu.common.utils.clickableWithNoIndication
+import jp.co.soramitsu.common.utils.formatting.shortenAddress
 
 @Composable
 fun InfoTableItem(state: TitleValueViewState, onClick: (Int) -> Unit = {}) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .heightIn(min = 55.dp)
             .padding(vertical = 6.dp, horizontal = 16.dp)
     ) {
         val titleClickModifier = if (state.value != null && (state.clickState as? TitleValueViewState.ClickState.Title) != null) {
@@ -87,13 +90,8 @@ fun InfoTableItem(state: TitleValueViewState, onClick: (Int) -> Unit = {}) {
                 )
 
                 state.additionalValue?.let {
-                    val text = if (it.length > 20) {
-                        "${it.take(5)}...${it.takeLast(5)}"
-                    } else {
-                        it
-                    }
                     B1(
-                        text = text,
+                        text = it.shortenAddress(),
                         color = black2,
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.align(Alignment.End),

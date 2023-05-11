@@ -11,8 +11,8 @@ import jp.co.soramitsu.staking.api.data.StakingType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 
@@ -26,21 +26,22 @@ class StakingAssetSelector(
     val selectedItem = stakingSharedState.selectionItem
         .shareIn(this, SharingStarted.Eagerly, replay = 1)
 
-    val selectedAssetModelFlow: SharedFlow<StakingAssetSelectorModel> = selectedItem
-        .map {
-            val asset = stakingSharedState.currentAssetFlow().first()
-            val assetBalance = if (it.type == StakingType.POOL) {
-                asset.transferable
-            } else {
-                asset.availableForStaking
-            }
-            StakingAssetSelectorModel(
-                it,
-                asset.token.configuration.iconUrl,
-                asset.token.configuration.chainName,
-                assetBalance.formatCrypto(asset.token.configuration.symbolToShow)
-            )
+    val selectedAssetModelFlow: SharedFlow<StakingAssetSelectorModel> = combine(
+        selectedItem,
+        stakingSharedState.currentAssetFlow()
+    ) { selectedItem, asset ->
+        val assetBalance = if (selectedItem.type == StakingType.POOL) {
+            asset.transferable
+        } else {
+            asset.availableForStaking
         }
+        StakingAssetSelectorModel(
+            selectedItem,
+            asset.token.configuration.iconUrl,
+            asset.token.configuration.chainName,
+            assetBalance.formatCrypto(asset.token.configuration.symbolToShow)
+        )
+    }
         .shareIn(this, SharingStarted.Eagerly, replay = 1)
 
     fun assetSelectorClicked() {

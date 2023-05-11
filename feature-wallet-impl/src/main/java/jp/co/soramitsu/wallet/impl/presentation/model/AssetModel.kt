@@ -3,7 +3,6 @@ package jp.co.soramitsu.wallet.impl.presentation.model
 import jp.co.soramitsu.common.domain.AppVersion
 import jp.co.soramitsu.common.model.AssetKey
 import jp.co.soramitsu.common.utils.applyFiatRate
-import jp.co.soramitsu.common.utils.formatCrypto
 import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.coredb.dao.emptyAccountIdValue
@@ -41,9 +40,6 @@ data class AssetModel(
         accountId = emptyAccountIdValue,
         chainId = token.configuration.chainId
     )
-
-    fun formatCrypto(value: BigDecimal?) =
-        value.orZero().formatCrypto(token.configuration.symbolToShow)
 
     fun getAsFiatWithCurrency(value: BigDecimal?) =
         token.fiatRate?.let { value?.applyFiatRate(it).orZero().formatFiat(token.fiatSymbol) }

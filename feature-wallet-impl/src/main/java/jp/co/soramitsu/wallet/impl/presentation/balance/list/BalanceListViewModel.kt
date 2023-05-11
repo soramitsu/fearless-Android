@@ -43,6 +43,7 @@ import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.formatAsChange
 import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.inBackground
+import jp.co.soramitsu.common.utils.isZero
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.sumByBigDecimal
@@ -281,7 +282,7 @@ class BalanceListViewModel @Inject constructor(
             val assetTotal = symbolAssets.sumByBigDecimal { it.asset.total.orZero() }
             val assetTotalFiat = symbolAssets.sumByBigDecimal { it.asset.fiatAmount.orZero() }
 
-            val isZeroBalance = assetTotal.compareTo(BigDecimal.ZERO) == 0
+            val isZeroBalance = assetTotal.isZero()
 
             val assetDisabledByUser = symbolAssets.any { it.asset.enabled == false }
             val assetManagedByUser = symbolAssets.any { it.asset.enabled != null }

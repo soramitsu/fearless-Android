@@ -26,7 +26,7 @@ buildscript {
         progressButtonsVersion = '2.1.0'
         xNetworkingVersion = '0.0.55'
         soraCardVersion = '0.0.36'
-        soraUiCoreVersion = '0.0.66'
+        soraUiCoreVersion = '0.0.67'
 
         daggerVersion = '2.45'
         javaxInjectVersion = '1'
@@ -84,7 +84,7 @@ buildscript {
         minifyRelease = true
         beaconVersion = "3.2.4"
 
-        sharedFeaturesVersion = "0.0.15"
+        sharedFeaturesVersion = "0.0.18"
 
         coilDep = "io.coil-kt:coil:$coilVersion"
         coilSvg = "io.coil-kt:coil-svg:$coilVersion"

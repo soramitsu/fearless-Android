@@ -87,8 +87,6 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
 
     fun openImportAccountScreenFromWallet(blockChainType: Int)
 
-    fun openChangeAccountFromWallet()
-
     fun openReceive(assetPayload: AssetPayload)
 
     fun openSignBeaconTransaction(payload: SubstrateSignerPayload, dAppMetadata: DAppMetadataModel)

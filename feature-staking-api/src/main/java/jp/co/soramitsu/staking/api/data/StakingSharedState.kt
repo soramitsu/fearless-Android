@@ -16,6 +16,7 @@ import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.Token
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
@@ -80,13 +81,15 @@ class StakingSharedState(
         SingleAssetSharedState.AssetWithChain(chain, asset)
     }
 
-    fun currentAssetFlow() = assetWithChain
-        .map { chainAndAsset ->
-            val meta = accountRepository.getSelectedMetaAccount()
-            meta.accountId(chainAndAsset.chain)?.let {
-                Pair(meta, chainAndAsset)
-            }
-        }.mapNotNull { it }
+    fun currentAssetFlow() = combine(
+        assetWithChain,
+        accountRepository.selectedMetaAccountFlow()
+    ) { chainAndAsset, meta ->
+        meta.accountId(chainAndAsset.chain)?.let {
+            Pair(meta, chainAndAsset)
+        }
+    }
+        .mapNotNull { it }
         .flatMapLatest { (selectedMetaAccount, chainAndAsset) ->
             val (chain, chainAsset) = chainAndAsset
 

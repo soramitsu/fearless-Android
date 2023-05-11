@@ -8,8 +8,12 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.updaters.AccountUpdateScope
+import jp.co.soramitsu.account.impl.presentation.account.mixin.api.AccountListingMixin
+import jp.co.soramitsu.account.impl.presentation.account.mixin.impl.AccountListingProvider
+import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.network.coingecko.CoingeckoApi
@@ -423,4 +427,10 @@ class WalletFeatureModule {
             mobileUrl = BuildConfig.SORA_CONFIG_MOBILE_STAGE
         ).provide()
     }
+
+    @Provides
+    fun provideAccountListingMixin(
+        interactor: AccountInteractor,
+        addressIconGenerator: AddressIconGenerator
+    ): AccountListingMixin = AccountListingProvider(interactor, addressIconGenerator)
 }

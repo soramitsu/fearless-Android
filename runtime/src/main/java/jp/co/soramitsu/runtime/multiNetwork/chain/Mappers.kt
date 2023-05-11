@@ -128,13 +128,6 @@ private fun ChainRemote.toChain(assetsById: Map<String?, AssetRemote>): Chain {
         }
     }
 
-    val types = this.types?.let {
-        Chain.Types(
-            url = it.androidUrl,
-            overridesCommon = it.overridesCommon
-        )
-    }
-
     val externalApi = this.externalApi?.let { externalApi ->
         (externalApi.history ?: externalApi.staking ?: externalApi.crowdloans)?.let {
             Chain.ExternalApi(
@@ -155,7 +148,6 @@ private fun ChainRemote.toChain(assetsById: Map<String?, AssetRemote>): Chain {
         name = this.name,
         minSupportedVersion = this.minSupportedVersion,
         assets = assets.orEmpty(),
-        types = types,
         nodes = nodes.orEmpty(),
         explorers = explorers.orEmpty(),
         icon = this.icon.orEmpty(),
@@ -203,13 +195,6 @@ fun mapChainLocalToChain(chainLocal: JoinedChainInfo): Chain {
         )
     }
 
-    val types = chainLocal.chain.types?.let {
-        Chain.Types(
-            url = it.url,
-            overridesCommon = it.overridesCommon
-        )
-    }
-
     val externalApi = chainLocal.chain.externalApi?.let { externalApi ->
         Chain.ExternalApi(
             staking = mapSectionLocalToSection(externalApi.staking),
@@ -233,7 +218,6 @@ fun mapChainLocalToChain(chainLocal: JoinedChainInfo): Chain {
             name = name,
             minSupportedVersion = minSupportedVersion,
             assets = assets,
-            types = types,
             nodes = nodes,
             explorers = explorers,
             icon = icon,
@@ -279,13 +263,6 @@ fun mapChainToChainLocal(chain: Chain): JoinedChainInfo {
         )
     }
 
-    val types = chain.types?.let {
-        ChainLocal.TypesConfig(
-            url = it.url,
-            overridesCommon = it.overridesCommon
-        )
-    }
-
     val externalApi = chain.externalApi?.let { externalApi ->
         ChainLocal.ExternalApi(
             staking = mapSectionToSectionLocal(externalApi.staking),
@@ -309,7 +286,6 @@ fun mapChainToChainLocal(chain: Chain): JoinedChainInfo {
             parentId = parentId,
             name = name,
             minSupportedVersion = minSupportedVersion,
-            types = types,
             icon = icon,
             prefix = addressPrefix,
             externalApi = externalApi,

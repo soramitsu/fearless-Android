@@ -3,6 +3,474 @@ package jp.co.soramitsu.coredb.migrations
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
+val Migration_53_54 = object : Migration(53, 54) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+        database.execSQL("DROP TABLE IF EXISTS _chains")
+        database.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `_chains` (
+            `id` TEXT NOT NULL,
+            `parentId` TEXT,
+            `name` TEXT NOT NULL,
+            `minSupportedVersion` TEXT,
+            `icon` TEXT NOT NULL,
+            `prefix` INTEGER NOT NULL,
+            `isEthereumBased` INTEGER NOT NULL,
+            `isTestNet` INTEGER NOT NULL,
+            `hasCrowdloans` INTEGER NOT NULL,
+            `supportStakingPool` INTEGER NOT NULL,
+            `staking_url` TEXT,
+            `staking_type` TEXT,
+            `history_url` TEXT,
+            `history_type` TEXT,
+            `crowdloans_url` TEXT,
+            `crowdloans_type` TEXT,
+            
+            PRIMARY KEY(`id`))
+            """.trimIndent()
+        )
+        database.execSQL(
+            """
+            INSERT INTO _chains SELECT 
+            c.id,
+            c.parentId,
+            c.name,
+            c.minSupportedVersion,
+            c.icon,
+            c.prefix,
+            c.isEthereumBased,
+            c.isTestNet,
+            c.hasCrowdloans,
+            0 as `supportStakingPool`,
+            c.staking_url,
+            c.staking_type,
+            c.history_url,
+            c.history_type,
+            c.crowdloans_url,
+            c.crowdloans_type
+            FROM chains c
+            """.trimIndent()
+        )
+
+        database.execSQL("DROP TABLE IF EXISTS chains")
+        database.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `chains` (
+            `id` TEXT NOT NULL,
+            `parentId` TEXT,
+            `name` TEXT NOT NULL,
+            `minSupportedVersion` TEXT,
+            `icon` TEXT NOT NULL,
+            `prefix` INTEGER NOT NULL,
+            `isEthereumBased` INTEGER NOT NULL,
+            `isTestNet` INTEGER NOT NULL,
+            `hasCrowdloans` INTEGER NOT NULL,
+            `supportStakingPool` INTEGER NOT NULL,
+            `staking_url` TEXT,
+            `staking_type` TEXT,
+            `history_url` TEXT,
+            `history_type` TEXT,
+            `crowdloans_url` TEXT,
+            `crowdloans_type` TEXT,
+            
+            PRIMARY KEY(`id`))
+            """.trimIndent()
+        )
+
+        database.execSQL(
+            """
+            INSERT INTO chains SELECT 
+            c.id,
+            c.parentId,
+            c.name,
+            c.minSupportedVersion,
+            c.icon,
+            c.prefix,
+            c.isEthereumBased,
+            c.isTestNet,
+            c.hasCrowdloans,
+            0 as `supportStakingPool`,
+            c.staking_url,
+            c.staking_type,
+            c.history_url,
+            c.history_type,
+            c.crowdloans_url,
+            c.crowdloans_type
+            FROM _chains c
+            """.trimIndent()
+        )
+        database.execSQL("DROP TABLE IF EXISTS _chains")
+
+        // to be sure that foreign keys to Chain table is correct we recreate them
+
+        // chain_nodes
+        database.execSQL("DROP TABLE IF EXISTS _chain_nodes")
+        database.execSQL(
+            """
+             CREATE TABLE IF NOT EXISTS `_chain_nodes` (
+             `chainId` TEXT NOT NULL, 
+             `url` TEXT NOT NULL, 
+             `name` TEXT NOT NULL, 
+             `isActive` INTEGER NOT NULL, 
+             `isDefault` INTEGER NOT NULL, 
+             PRIMARY KEY(`chainId`, `url`)
+             )
+            """.trimIndent()
+        )
+
+        database.execSQL(
+            """
+            INSERT INTO _chain_nodes SELECT 
+            cn.chainId,
+            cn.url,
+            cn.name,
+            cn.isActive,
+            cn.isDefault
+            FROM chain_nodes cn
+            """.trimIndent()
+        )
+
+        database.execSQL("DROP TABLE IF EXISTS chain_nodes")
+        database.execSQL(
+            """
+             CREATE TABLE IF NOT EXISTS `chain_nodes` (
+             `chainId` TEXT NOT NULL, 
+             `url` TEXT NOT NULL, 
+             `name` TEXT NOT NULL, 
+             `isActive` INTEGER NOT NULL, 
+             `isDefault` INTEGER NOT NULL, 
+             PRIMARY KEY(`chainId`, `url`), 
+             FOREIGN KEY(`chainId`) REFERENCES `chains`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE 
+             )
+            """.trimIndent()
+        )
+        database.execSQL(
+            """
+            INSERT INTO chain_nodes SELECT 
+            cn.chainId,
+            cn.url,
+            cn.name,
+            cn.isActive,
+            cn.isDefault
+            FROM _chain_nodes cn
+            """.trimIndent()
+        )
+        database.execSQL("DROP TABLE IF EXISTS _chain_nodes")
+
+        database.execSQL("CREATE INDEX IF NOT EXISTS `index_chain_nodes_chainId` ON `chain_nodes` (`chainId`)")
+
+        // assets
+        database.execSQL("DROP TABLE IF EXISTS _assets")
+        database.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `_assets` (
+            `id` TEXT NOT NULL, 
+            `chainId` TEXT NOT NULL, 
+            `accountId` BLOB NOT NULL, 
+            `metaId` INTEGER NOT NULL, 
+            `tokenPriceId` TEXT, 
+            `freeInPlanks` TEXT, 
+            `reservedInPlanks` TEXT, 
+            `miscFrozenInPlanks` TEXT, 
+            `feeFrozenInPlanks` TEXT, 
+            `bondedInPlanks` TEXT, 
+            `redeemableInPlanks` TEXT, 
+            `unbondingInPlanks` TEXT, 
+            `sortIndex` INTEGER NOT NULL DEFAULT 0, 
+            `enabled` INTEGER DEFAULT NULL, 
+            `markedNotNeed` INTEGER NOT NULL DEFAULT 0, 
+            `chainAccountName` TEXT, 
+            PRIMARY KEY(`id`, `chainId`, `accountId`, `metaId`)
+            )
+            """.trimIndent()
+        )
+        database.execSQL(
+            """
+            INSERT INTO _assets SELECT 
+            a.id,
+            a.chainId,
+            a.accountId,
+            a.metaId,
+            a.tokenPriceId,
+            a.freeInPlanks,
+            a.reservedInPlanks,
+            a.miscFrozenInPlanks,
+            a.feeFrozenInPlanks,
+            a.bondedInPlanks,
+            a.redeemableInPlanks,
+            a.unbondingInPlanks,
+            a.sortIndex,
+            a.enabled,
+            a.markedNotNeed,
+            a.chainAccountName
+            FROM assets a
+            """.trimIndent()
+        )
+
+        database.execSQL("DROP TABLE IF EXISTS assets")
+        database.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `assets` (
+            `id` TEXT NOT NULL, 
+            `chainId` TEXT NOT NULL, 
+            `accountId` BLOB NOT NULL, 
+            `metaId` INTEGER NOT NULL, 
+            `tokenPriceId` TEXT, 
+            `freeInPlanks` TEXT, 
+            `reservedInPlanks` TEXT, 
+            `miscFrozenInPlanks` TEXT, 
+            `feeFrozenInPlanks` TEXT, 
+            `bondedInPlanks` TEXT, 
+            `redeemableInPlanks` TEXT, 
+            `unbondingInPlanks` TEXT, 
+            `sortIndex` INTEGER NOT NULL DEFAULT 0, 
+            `enabled` INTEGER DEFAULT NULL, 
+            `markedNotNeed` INTEGER NOT NULL DEFAULT 0, 
+            `chainAccountName` TEXT, 
+            PRIMARY KEY(`id`, `chainId`, `accountId`, `metaId`), 
+            FOREIGN KEY(`chainId`) REFERENCES `chains`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE 
+            )
+            """.trimIndent()
+        )
+
+        database.execSQL(
+            """
+            INSERT INTO assets SELECT 
+            a.id,
+            a.chainId,
+            a.accountId,
+            a.metaId,
+            a.tokenPriceId,
+            a.freeInPlanks,
+            a.reservedInPlanks,
+            a.miscFrozenInPlanks,
+            a.feeFrozenInPlanks,
+            a.bondedInPlanks,
+            a.redeemableInPlanks,
+            a.unbondingInPlanks,
+            a.sortIndex,
+            a.enabled,
+            a.markedNotNeed,
+            a.chainAccountName
+            FROM _assets a
+            """.trimIndent()
+        )
+        database.execSQL("DROP TABLE IF EXISTS _assets")
+
+        database.execSQL("CREATE INDEX IF NOT EXISTS `index_assets_metaId` ON `assets` (`metaId`)")
+        database.execSQL("CREATE INDEX IF NOT EXISTS `index_assets_chainId` ON `assets` (`chainId`)")
+
+        // chain_explorers
+        database.execSQL("DROP TABLE IF EXISTS _chain_explorers")
+        database.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `_chain_explorers` (
+            `chainId` TEXT NOT NULL,
+            `type` TEXT NOT NULL,
+            `types` TEXT NOT NULL,
+            `url` TEXT NOT NULL,
+            PRIMARY KEY(`chainId`, `type`)
+            )
+            """.trimIndent()
+        )
+        database.execSQL(
+            """
+            INSERT INTO _chain_explorers SELECT 
+            ce.chainId,
+            ce.type,
+            ce.types,
+            ce.url
+            FROM chain_explorers ce
+            """.trimIndent()
+        )
+
+        database.execSQL("DROP TABLE IF EXISTS chain_explorers")
+        database.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `chain_explorers` (
+            `chainId` TEXT NOT NULL,
+            `type` TEXT NOT NULL,
+            `types` TEXT NOT NULL,
+            `url` TEXT NOT NULL,
+            PRIMARY KEY(`chainId`, `type`),
+            FOREIGN KEY(`chainId`) REFERENCES `chains`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )
+            """.trimIndent()
+        )
+        database.execSQL(
+            """
+            INSERT INTO chain_explorers SELECT 
+            ce.chainId,
+            ce.type,
+            ce.types,
+            ce.url
+            FROM _chain_explorers ce
+            """.trimIndent()
+        )
+        database.execSQL("DROP TABLE IF EXISTS _chain_explorers")
+        database.execSQL("CREATE INDEX IF NOT EXISTS `index_chain_explorers_chainId` ON `chain_explorers` (`chainId`)")
+
+        // chain_accounts
+        database.execSQL("DROP TABLE IF EXISTS _chain_accounts")
+        database.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `_chain_accounts` (
+            `metaId` INTEGER NOT NULL,
+            `chainId` TEXT NOT NULL,
+            `publicKey` BLOB NOT NULL,
+            `accountId` BLOB NOT NULL,
+            `cryptoType` TEXT NOT NULL,
+            `name` TEXT NOT NULL,
+            PRIMARY KEY(`metaId`, `chainId`)
+            )
+            """.trimIndent()
+        )
+        database.execSQL(
+            """
+            INSERT INTO _chain_accounts SELECT 
+            ca.metaId,
+            ca.chainId,
+            ca.publicKey,
+            ca.accountId,
+            ca.cryptoType,
+            ca.name
+            FROM chain_accounts ca
+            """.trimIndent()
+        )
+
+        database.execSQL("DROP TABLE IF EXISTS chain_accounts")
+        database.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `chain_accounts` (
+            `metaId` INTEGER NOT NULL,
+            `chainId` TEXT NOT NULL,
+            `publicKey` BLOB NOT NULL,
+            `accountId` BLOB NOT NULL,
+            `cryptoType` TEXT NOT NULL,
+            `name` TEXT NOT NULL,
+            PRIMARY KEY(`metaId`, `chainId`),
+            FOREIGN KEY(`chainId`) REFERENCES `chains`(`id`) ON UPDATE NO ACTION ON DELETE NO ACTION  DEFERRABLE INITIALLY DEFERRED,
+            FOREIGN KEY(`metaId`) REFERENCES `meta_accounts`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE 
+            )
+            """.trimIndent()
+        )
+
+        database.execSQL(
+            """
+            INSERT INTO chain_accounts SELECT 
+            ca.metaId,
+            ca.chainId,
+            ca.publicKey,
+            ca.accountId,
+            ca.cryptoType,
+            ca.name
+            FROM _chain_accounts ca
+            """.trimIndent()
+        )
+        database.execSQL("DROP TABLE IF EXISTS _chain_accounts")
+
+        database.execSQL("CREATE INDEX IF NOT EXISTS `index_chain_accounts_chainId` ON `chain_accounts` (`chainId`)")
+        database.execSQL("CREATE INDEX IF NOT EXISTS `index_chain_accounts_metaId` ON `chain_accounts` (`metaId`)")
+        database.execSQL("CREATE INDEX IF NOT EXISTS `index_chain_accounts_accountId` ON `chain_accounts` (`accountId`)")
+
+        // chain_assets
+        database.execSQL("DROP TABLE IF EXISTS _chain_assets")
+        database.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `_chain_assets` (
+            `id` TEXT NOT NULL,
+            `name` TEXT, 
+            `symbol` TEXT NOT NULL, 
+            `displayName` TEXT, 
+            `chainId` TEXT NOT NULL, 
+            `icon` TEXT NOT NULL, 
+            `priceId` TEXT, 
+            `staking` TEXT NOT NULL, 
+            `precision` INTEGER NOT NULL, 
+            `priceProviders` TEXT, 
+            `isUtility` INTEGER, 
+            `type` TEXT, 
+            `currencyId` TEXT, 
+            `existentialDeposit` TEXT, 
+            `color` TEXT, 
+            `isNative` INTEGER, 
+            PRIMARY KEY(`chainId`, `id`)
+            )
+            """.trimIndent()
+        )
+        database.execSQL(
+            """
+            INSERT INTO _chain_assets SELECT 
+            ca.id,
+            ca.name,
+            ca.symbol,
+            ca.displayName,
+            ca.chainId,
+            ca.icon,
+            ca.priceId,
+            ca.staking,
+            ca.precision,
+            ca.priceProviders,
+            ca.isUtility,
+            ca.type,
+            ca.currencyId,
+            ca.existentialDeposit,
+            ca.color,
+            ca.isNative
+            FROM chain_assets ca
+            """.trimIndent()
+        )
+
+        database.execSQL("DROP TABLE IF EXISTS chain_assets")
+        database.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `chain_assets` (
+            `id` TEXT NOT NULL,
+            `name` TEXT, 
+            `symbol` TEXT NOT NULL, 
+            `displayName` TEXT, 
+            `chainId` TEXT NOT NULL, 
+            `icon` TEXT NOT NULL, 
+            `priceId` TEXT, 
+            `staking` TEXT NOT NULL, 
+            `precision` INTEGER NOT NULL, 
+            `priceProviders` TEXT, 
+            `isUtility` INTEGER, 
+            `type` TEXT, 
+            `currencyId` TEXT, 
+            `existentialDeposit` TEXT, 
+            `color` TEXT, 
+            `isNative` INTEGER, 
+            PRIMARY KEY(`chainId`, `id`), 
+            FOREIGN KEY(`chainId`) REFERENCES `chains`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )
+            """.trimIndent()
+        )
+        database.execSQL(
+            """
+            INSERT INTO chain_assets SELECT 
+            ca.id,
+            ca.name,
+            ca.symbol,
+            ca.displayName,
+            ca.chainId,
+            ca.icon,
+            ca.priceId,
+            ca.staking,
+            ca.precision,
+            ca.priceProviders,
+            ca.isUtility,
+            ca.type,
+            ca.currencyId,
+            ca.existentialDeposit,
+            ca.color,
+            ca.isNative
+            FROM _chain_assets ca
+            """.trimIndent()
+        )
+        database.execSQL("DROP TABLE IF EXISTS _chain_assets")
+        database.execSQL("CREATE INDEX IF NOT EXISTS `index_chain_assets_chainId` ON `chain_assets` (`chainId`)")
+    }
+}
+
 val Migration_52_53 = object : Migration(52, 53) {
     override fun migrate(database: SupportSQLiteDatabase) {
         database.execSQL(

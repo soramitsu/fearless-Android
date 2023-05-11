@@ -11,7 +11,6 @@ import jp.co.soramitsu.account.api.domain.interfaces.GetTotalBalanceUseCase
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.account.impl.presentation.AccountRouter
-import jp.co.soramitsu.account.impl.presentation.account.list.AccountChosenNavDirection
 import jp.co.soramitsu.account.impl.presentation.language.mapper.mapLanguageToLanguageModel
 import jp.co.soramitsu.common.BuildConfig
 import jp.co.soramitsu.common.address.AddressIconGenerator
@@ -103,7 +102,7 @@ class ProfileViewModel @Inject constructor(
     }
 
     fun walletsClicked() {
-        router.openWallets(AccountChosenNavDirection.MAIN)
+        router.openSelectWallet()
     }
 
     fun languagesClicked() {
