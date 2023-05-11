@@ -39,6 +39,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -90,10 +91,11 @@ class ProfileViewModel @Inject constructor(
         it.any { it.hasAccount.not() }
     }.stateIn(this, SharingStarted.Eagerly, false)
 
-    private val soraCardState = soraCardInteractor.subscribeSoraCardInfo().map {
-        val kycStatus = it?.kycStatus?.let(::mapKycStatus)
-        SoraCardItemViewState(kycStatus, it, null, true)
-    }
+//    private val soraCardState = soraCardInteractor.subscribeSoraCardInfo().map {
+//        val kycStatus = it?.kycStatus?.let(::mapKycStatus)
+//        SoraCardItemViewState(kycStatus, it, null, true)
+//    }
+    private val soraCardState = flowOf(SoraCardItemViewState())
 
     val hideZeroBalancesState: Flow<Boolean> = walletInteractor.observeHideZeroBalanceEnabledForCurrentWallet()
 
