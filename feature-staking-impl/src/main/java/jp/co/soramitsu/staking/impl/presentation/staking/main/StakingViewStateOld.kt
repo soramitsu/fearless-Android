@@ -314,7 +314,7 @@ class SoraNominatorViewState(
                 status = summary.status,
                 totalStaked = summary.totalStaked.formatCryptoDetail(tokenType.symbolToShow),
                 totalStakedFiat = token.fiatAmount(summary.totalStaked)?.formatFiat(token.fiatSymbol),
-                totalRewards = summary.totalReward.formatCryptoDetail(rewardToken.configuration.symbolToShow),
+                totalRewards = "N/A",
                 totalRewardsFiat = rewardToken.fiatAmount(summary.totalReward)?.formatFiat(rewardToken.fiatSymbol),
                 currentEraDisplay = resourceManager.getString(R.string.staking_era_title, summary.currentEra)
             )
