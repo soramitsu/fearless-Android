@@ -6,6 +6,10 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.math.BigDecimal
+import java.math.BigInteger
+import java.math.RoundingMode
+import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.common.address.AddressIconGenerator
@@ -41,6 +45,7 @@ import jp.co.soramitsu.wallet.api.domain.ValidateTransferUseCase
 import jp.co.soramitsu.wallet.api.domain.fromValidationResult
 import jp.co.soramitsu.wallet.api.domain.model.XcmChainType
 import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
+import jp.co.soramitsu.wallet.impl.domain.XcmInteractor
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletConstants
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
@@ -73,10 +78,6 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import java.math.BigDecimal
-import java.math.BigInteger
-import java.math.RoundingMode
-import javax.inject.Inject
 
 private const val SLIPPAGE_TOLERANCE = 1.35
 private const val CURRENT_ICON_SIZE = 16
@@ -93,7 +94,8 @@ class CrossChainSetupViewModel @Inject constructor(
     private val addressIconGenerator: AddressIconGenerator,
     private val currentAccountAddress: CurrentAccountAddressUseCase,
     private val validateTransferUseCase: ValidateTransferUseCase,
-    private val chainAssetsManager: ChainAssetsManager
+    private val chainAssetsManager: ChainAssetsManager,
+    private val xcmInteractor: XcmInteractor
 ) : BaseViewModel(), CrossChainSetupScreenInterface {
 
     private val _openScannerEvent = MutableSharedFlow<Unit>()
@@ -224,7 +226,7 @@ class CrossChainSetupViewModel @Inject constructor(
         val destinationChainId = _destinationChainId ?: return@combine null
         val tokenConfiguration = _asset?.token?.configuration ?: return@combine null
 
-        val fee = walletInteractor.getXcmDestFee(
+        val fee = xcmInteractor.getXcmDestFee(
             destinationChainId = destinationChainId,
             tokenSymbol = tokenConfiguration.symbol
         )
@@ -250,7 +252,7 @@ class CrossChainSetupViewModel @Inject constructor(
         val destinationChainId = nullableDestinationChainId ?: return@combine null
         val destinationAmount = nullableDestinationFeeAmount ?: BigDecimal.ZERO
 
-        walletInteractor.getXcmOrigFee(
+        xcmInteractor.getXcmOrigFee(
             originNetworkId = originChainId,
             destinationNetworkId = destinationChainId,
             asset = asset.token.configuration,
@@ -411,6 +413,10 @@ class CrossChainSetupViewModel @Inject constructor(
     init {
         setInitialChainsAndAssetIds()
         observeDestinationChainFlow()
+
+        chainAssetsManager.destinationChainIdFlow.filterNotNull().onEach {
+            xcmInteractor.initXcmService(payload!!.chainId, it)
+        }.launchIn(viewModelScope)
     }
 
     private fun setInitialChainsAndAssetIds() {
