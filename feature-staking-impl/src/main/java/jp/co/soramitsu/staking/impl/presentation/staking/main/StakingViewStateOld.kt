@@ -10,6 +10,7 @@ import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.applyFiatRate
 import jp.co.soramitsu.common.utils.asLiveData
 import jp.co.soramitsu.common.utils.formatAsPercentage
+import jp.co.soramitsu.common.utils.formatCrypto
 import jp.co.soramitsu.common.utils.formatCryptoDetail
 import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.inBackground
@@ -181,7 +182,7 @@ sealed class StakeViewState<S>(
 
             StakeSummaryModel(
                 status = summary.status,
-                totalStaked = summary.totalStaked.formatCryptoDetail(tokenType.symbolToShow),
+                totalStaked = summary.totalStaked.formatCrypto(tokenType.symbolToShow),
                 totalStakedFiat = token.fiatAmount(summary.totalStaked)?.formatFiat(token.fiatSymbol),
                 totalRewards = summary.totalReward.formatCryptoDetail(tokenType.symbolToShow),
                 totalRewardsFiat = token.fiatAmount(summary.totalReward)?.formatFiat(token.fiatSymbol),
@@ -312,7 +313,7 @@ class SoraNominatorViewState(
 
             StakeSummaryModel(
                 status = summary.status,
-                totalStaked = summary.totalStaked.formatCryptoDetail(tokenType.symbolToShow),
+                totalStaked = summary.totalStaked.formatCrypto(tokenType.symbolToShow),
                 totalStakedFiat = token.fiatAmount(summary.totalStaked)?.formatFiat(token.fiatSymbol),
                 totalRewards = "N/A",
                 totalRewardsFiat = rewardToken.fiatAmount(summary.totalReward)?.formatFiat(rewardToken.fiatSymbol),
