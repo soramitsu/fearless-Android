@@ -8,7 +8,6 @@ import jp.co.soramitsu.common.compose.component.TitleValueViewState
 import jp.co.soramitsu.common.compose.theme.colorAccent
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.applyFiatRate
-import jp.co.soramitsu.common.utils.formatCrypto
 import jp.co.soramitsu.common.utils.formatCryptoDetail
 import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.orZero
@@ -115,7 +114,7 @@ class ManagePoolStakeViewModel @Inject constructor(
         val totalFormatted = total.formatCryptoDetail(asset.token.configuration.symbolToShow)
 
         val hasRewardsForClaim = pool.pendingRewards > BigInteger.ZERO
-        val claimable = asset.token.amountFromPlanks(pool.pendingRewards).formatCrypto(asset.token.configuration.symbolToShow)
+        val claimable = asset.token.amountFromPlanks(pool.pendingRewards).formatCryptoDetail(asset.token.configuration.symbolToShow)
         val claimNotification = if (hasRewardsForClaim) {
             NotificationState(
                 R.drawable.ic_status_warning_16,
@@ -128,7 +127,7 @@ class ManagePoolStakeViewModel @Inject constructor(
             null
         }
         val redeemableNotification = pool.redeemable.takeIf { it > BigInteger.ZERO }?.let { redeemable ->
-            val redeemableFormatted = asset.token.amountFromPlanks(redeemable).formatCrypto(asset.token.configuration.symbolToShow)
+            val redeemableFormatted = asset.token.amountFromPlanks(redeemable).formatCryptoDetail(asset.token.configuration.symbolToShow)
             NotificationState(
                 R.drawable.ic_status_warning_16,
                 resourceManager.getString(R.string.pool_redeem),
@@ -151,12 +150,12 @@ class ManagePoolStakeViewModel @Inject constructor(
             null
         }
 
-        val available = asset.transferable.formatCrypto(asset.token.configuration.symbolToShow)
+        val available = asset.transferable.formatCryptoDetail(asset.token.configuration.symbolToShow)
         val availableFiat = asset.transferable.applyFiatRate(asset.token.fiatRate)?.formatFiat(asset.token.fiatSymbol)
         val availableState = defaultAvailableState.copy(value = available, additionalValue = availableFiat)
 
         val unstaking = asset.token.amountFromPlanks(pool.unbonding)
-        val unstakingFormatted = unstaking.formatCrypto(asset.token.configuration.symbolToShow)
+        val unstakingFormatted = unstaking.formatCryptoDetail(asset.token.configuration.symbolToShow)
         val unstakingFiat = unstaking.applyFiatRate(asset.token.fiatRate)?.formatFiat(asset.token.fiatSymbol)
         val unstakingState = defaultUnstakingState.copy(value = unstakingFormatted, additionalValue = unstakingFiat)
 
