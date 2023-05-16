@@ -56,16 +56,23 @@ class StakingSharedState(
         private const val DELIMITER = ":"
     }
 
-    val selectionItem: Flow<StakingAssetSelection> = preferences.stringFlow(
-        field = STAKING_SHARED_STATE,
-        initialValueProducer = {
-            val defaultAsset = availableToSelect().first()
+    val selectionItem: Flow<StakingAssetSelection> = combine(
+        accountRepository.selectedMetaAccountFlow().map { it.id },
+        preferences.stringFlow(
+            field = STAKING_SHARED_STATE,
+            initialValueProducer = {
+                val defaultAsset = availableToSelect().first()
 
-            encode(defaultAsset)
-        }
+                encode(defaultAsset)
+            }
+        ),
+        ::Pair
     )
         .distinctUntilChanged()
         .debounce(100)
+        .map { (walletId, encoded) ->
+            encoded
+        }
         .filterNotNull()
         .map { encoded ->
             decode(encoded)
