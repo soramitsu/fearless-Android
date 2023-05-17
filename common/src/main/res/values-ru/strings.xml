@@ -441,6 +441,7 @@
     <string name="staking_selected_validators_count_v1.9.1" formatted="false">выбрано %d (макс. %d)</string>
     <string name="staking_start_change_validators_recommended_subtitle">Алгоритм Fearless Wallet составил список рекомендованных валидаторов, основываясь на критериях:</string>
     <string name="common_not_enough_funds_message">К сожалению, у вас недостаточно средств для оплаты сетевого сбора.</string>
+    <string name="common_not_enough_funds_controller_message">К сожалению, у контроллер аккаунта недостаточно средств для оплаты сетевого сбора.</string>
     <string name="choose_amount_error_too_big">К сожалению, у вас недостаточно средств для совершения данной операции</string>
     <string name="staking_alert_change_validators_message">Стейкинг неактивен. Ни один из ваших валидаторов не был выбран сетью.</string>
     <string name="staking_custom_validators_list_title">Выберите валидаторов</string>

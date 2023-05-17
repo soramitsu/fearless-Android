@@ -21,6 +21,11 @@ fun unbondValidationFailure(
                 resourceManager.getString(R.string.common_not_enough_funds_message)
         }
 
+        UnbondValidationFailure.ControllerCantPayFees -> {
+            resourceManager.getString(R.string.common_not_enough_funds_title) to
+                resourceManager.getString(R.string.common_not_enough_funds_controller_message)
+        }
+
         UnbondValidationFailure.NotEnoughBonded -> {
             resourceManager.getString(R.string.common_not_enough_funds_title) to
                 resourceManager.getString(R.string.staking_rebond_insufficient_bondings)
@@ -43,5 +48,6 @@ fun unbondPayloadAutoFix(payload: UnbondValidationPayload, reason: UnbondValidat
         amount = reason.willBeUnbonded,
         shouldChillBeforeUnbond = payload.collatorAddress == null
     )
+
     else -> payload
 }

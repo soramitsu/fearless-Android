@@ -453,6 +453,7 @@ Derivation path: %s</string>
     <string name="staking_start_change_validators_recommended_subtitle">Fearless algorithm has select a list of recommended validators based on the criteria:</string>
     <string name="staking_start_change_collators_suggested_subtitle">FEARLESS algorithm has made a list of suggested collators based on the following criteria:</string>
     <string name="common_not_enough_funds_message">Sorry, you don\'t have enough funds to pay the network fee.</string>
+    <string name="common_not_enough_funds_controller_message">Sorry, controller account don\'t have enough funds to pay the network fee.</string>
     <string name="choose_amount_error_too_big">Sorry, you don\'t have enough funds to spend specified amount</string>
     <string name="staking_alert_change_validators_message">Staking is inactive. None of your validators were elected by network.</string>
     <string name="staking_custom_validators_list_title">Select validators</string>

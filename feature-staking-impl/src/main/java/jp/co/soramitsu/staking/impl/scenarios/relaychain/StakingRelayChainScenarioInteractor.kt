@@ -1,5 +1,8 @@
 package jp.co.soramitsu.staking.impl.scenarios.relaychain
 
+import java.math.BigDecimal
+import java.math.BigInteger
+import java.util.Optional
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.accountId
@@ -71,6 +74,7 @@ import jp.co.soramitsu.staking.impl.domain.validations.setup.MinimumAmountValida
 import jp.co.soramitsu.staking.impl.domain.validations.setup.SetupStakingMaximumNominatorsValidation
 import jp.co.soramitsu.staking.impl.domain.validations.setup.SetupStakingPayload
 import jp.co.soramitsu.staking.impl.domain.validations.setup.SetupStakingValidationFailure
+import jp.co.soramitsu.staking.impl.domain.validations.unbond.ControllerCanPayFeeValidation
 import jp.co.soramitsu.staking.impl.domain.validations.unbond.CrossExistentialValidation
 import jp.co.soramitsu.staking.impl.domain.validations.unbond.EnoughToUnbondValidation
 import jp.co.soramitsu.staking.impl.domain.validations.unbond.NotZeroUnbondValidation
@@ -103,9 +107,6 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.withContext
-import java.math.BigDecimal
-import java.math.BigInteger
-import java.util.Optional
 import jp.co.soramitsu.core.models.Asset as CoreAsset
 
 val ERA_OFFSET = 1.toBigInteger()
@@ -626,7 +627,20 @@ class StakingRelayChainScenarioInteractor(
                     errorProducer = UnbondValidationFailure::UnbondLimitReached
                 ),
                 EnoughToUnbondValidation(this),
-                CrossExistentialValidation(this)
+                CrossExistentialValidation(this),
+                ControllerCanPayFeeValidation(
+                    feeExtractor = { it.fee },
+                    availableControllerBalanceProducer = {
+                        require(it.stash is StakingState.Stash)
+
+                        val controllerId = it.stash.controllerId
+                        val meta = accountRepository.findMetaAccount(controllerId) ?: return@ControllerCanPayFeeValidation BigDecimal.ZERO
+
+                        val controllerAsset = walletRepository.getAsset(meta.id, controllerId, it.asset.token.configuration, null)
+                        controllerAsset?.availableForStaking.orZero()
+                    },
+                    errorProducer = { UnbondValidationFailure.ControllerCantPayFees }
+                )
             )
         )
     )
