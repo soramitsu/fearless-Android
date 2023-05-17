@@ -69,7 +69,7 @@ class SubqueryRewardCalculator(
         })
     }
 
-    override fun calculateAvgAPY(): BigDecimal {
+    override suspend fun calculateAvgAPY(): BigDecimal {
         return avgApr.fractionToPercentage()
     }
 

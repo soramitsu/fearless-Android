@@ -71,7 +71,7 @@ open class ManualRewardCalculator(
         }
     }
 
-    private val maxAPY = apyByValidator.values.maxOrNull() ?: 0.0
+    protected val maxAPY = apyByValidator.values.maxOrNull() ?: 0.0
 
     override suspend fun calculateMaxAPY(chainId: ChainId) = calculateReturns(
         amount = BigDecimal.ONE,
@@ -80,7 +80,7 @@ open class ManualRewardCalculator(
         chainId = chainId
     ).gainPercentage
 
-    override fun calculateAvgAPY() = expectedAPY.toBigDecimal().fractionToPercentage()
+    override suspend fun calculateAvgAPY() = expectedAPY.toBigDecimal().fractionToPercentage()
 
     override suspend fun getApyFor(targetId: ByteArray): BigDecimal {
         val apy = apyByValidator[targetId.toHexString()] ?: expectedAPY

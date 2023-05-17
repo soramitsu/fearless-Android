@@ -31,4 +31,9 @@ class SoraRewardCalculator(
             gainPercentage = gainPercentage
         )
     }
+
+    override suspend fun calculateAvgAPY(): BigDecimal {
+        val dailyPercentage = maxAPY / DAYS_IN_YEAR
+        return calculateReward(1.0, DAYS_IN_YEAR, dailyPercentage, false).gainPercentage
+    }
 }
