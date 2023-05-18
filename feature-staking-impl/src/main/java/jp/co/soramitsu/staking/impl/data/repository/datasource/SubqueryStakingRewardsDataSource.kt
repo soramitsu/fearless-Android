@@ -1,5 +1,6 @@
 package jp.co.soramitsu.staking.impl.data.repository.datasource
 
+import jp.co.soramitsu.common.base.errors.RewardsNotSupportedWarning
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.sumByBigInteger
 import jp.co.soramitsu.coredb.dao.StakingTotalRewardDao
@@ -39,7 +40,7 @@ class SubqueryStakingRewardsDataSource(
         val stakingType = chain.externalApi?.staking?.type
 
         return when {
-            stakingUrl == null -> throw Exception("Pending rewards for this network is not supported yet")
+            stakingUrl == null -> throw RewardsNotSupportedWarning()
             stakingType == Chain.ExternalApi.Section.Type.SUBQUERY -> {
                 syncSubquery(stakingUrl, accountAddress)
             }
@@ -56,7 +57,7 @@ class SubqueryStakingRewardsDataSource(
                 syncGiantsquidRelay(stakingUrl, accountAddress)
             }
 
-            else -> throw Exception("Pending rewards for this network is not supported yet")
+            else -> throw RewardsNotSupportedWarning()
         }
     }
 
