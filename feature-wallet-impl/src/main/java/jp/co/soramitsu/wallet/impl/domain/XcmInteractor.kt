@@ -1,7 +1,5 @@
 package jp.co.soramitsu.wallet.impl.domain
 
-import java.math.BigDecimal
-import java.math.BigInteger
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.common.data.secrets.v2.KeyPairSchema
 import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
@@ -26,6 +24,8 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
+import java.math.BigDecimal
+import java.math.BigInteger
 import jp.co.soramitsu.core.models.Asset as CoreAsset
 
 class XcmInteractor(
@@ -61,7 +61,6 @@ class XcmInteractor(
             keypair = BaseKeypair(private, public)
         )
     }
-
 
     fun xcmAssetsFlow(originChainId: ChainId?): Flow<List<AssetWithStatus>> {
         return combineToPair(walletInteractor.assetsFlow(), getAvailableXcmAssetSymbolsFlow(originChainId))

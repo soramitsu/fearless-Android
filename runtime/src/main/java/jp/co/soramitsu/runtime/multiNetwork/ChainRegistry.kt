@@ -95,6 +95,7 @@ class ChainRegistry @Inject constructor(
     }
 
     override fun getConnection(chainId: String) = connectionPool.getConnection(chainId)
+
     override suspend fun getRuntime(chainId: ChainId): RuntimeSnapshot {
         return getRuntimeProvider(chainId).get()
     }
