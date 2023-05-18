@@ -13,7 +13,6 @@ import jp.co.soramitsu.shared_utils.runtime.AccountId
 import jp.co.soramitsu.shared_utils.scale.EncodableStruct
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.AssetWithStatus
-import jp.co.soramitsu.wallet.impl.domain.model.CrossChainTransfer
 import jp.co.soramitsu.wallet.impl.domain.model.Fee
 import jp.co.soramitsu.wallet.impl.domain.model.Operation
 import jp.co.soramitsu.wallet.impl.domain.model.OperationsPageChange
@@ -74,12 +73,6 @@ interface WalletInteractor {
         tipInPlanks: BigInteger?
     ): Result<String>
 
-    suspend fun performCrossChainTransfer(
-        transfer: CrossChainTransfer,
-        fee: BigDecimal,
-        tipInPlanks: BigInteger?
-    ): Result<String>
-
     suspend fun getQrCodeSharingSoraString(chainId: ChainId, assetId: String): String
 
     suspend fun createFileInTempStorageAndRetrieveAsset(fileName: String): Result<File>
@@ -122,18 +115,6 @@ interface WalletInteractor {
 
     suspend fun getEquilibriumAccountInfo(asset: CoreAsset, accountId: AccountId): EqAccountInfo?
     suspend fun getEquilibriumAssetRates(chainAsset: CoreAsset): Map<BigInteger, EqOraclePricePoint?>
-
-    suspend fun getXcmDestFee(
-        destinationChainId: ChainId,
-        tokenSymbol: String
-    ): BigDecimal?
-
-    suspend fun getXcmOrigFee(
-        originNetworkId: ChainId,
-        destinationNetworkId: ChainId,
-        asset: CoreAsset,
-        amount: BigDecimal
-    ): BigDecimal?
 
     fun isShowGetSoraCard(): Boolean
     fun observeIsShowSoraCard(): Flow<Boolean>

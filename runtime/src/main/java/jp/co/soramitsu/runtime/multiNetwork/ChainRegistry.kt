@@ -1,5 +1,6 @@
 package jp.co.soramitsu.runtime.multiNetwork
 
+import javax.inject.Inject
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
 import jp.co.soramitsu.common.utils.diffed
@@ -31,7 +32,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 data class ChainService(
     val runtimeProvider: IRuntimeProvider,
@@ -96,9 +96,13 @@ class ChainRegistry @Inject constructor(
 
     override fun getConnection(chainId: String) = connectionPool.getConnection(chainId)
 
+    override suspend fun getRuntime(chainId: ChainId): RuntimeSnapshot {
+        return getRuntimeProvider(chainId).get()
+    }
+
     fun getConnectionOrNull(chainId: String) = connectionPool.getConnectionOrNull(chainId)
 
-    override fun getRuntimeProvider(chainId: String): IRuntimeProvider {
+    fun getRuntimeProvider(chainId: String): IRuntimeProvider {
         return runtimeProviderPool.getRuntimeProvider(chainId)
     }
 
@@ -106,7 +110,7 @@ class ChainRegistry @Inject constructor(
         it.id == chainAssetId
     }
 
-    override suspend fun getChain(chainId: String): Chain {
+    override suspend fun getChain(chainId: ChainId): Chain {
         return chainsById.first().getValue(chainId)
     }
 
@@ -127,6 +131,10 @@ class ChainRegistry @Inject constructor(
     suspend fun getRemoteRuntimeVersion(chainId: ChainId): Int? {
         return chainDao.runtimeInfo(chainId)?.remoteVersion
     }
+}
+
+suspend fun ChainRegistry.getChain(chainId: ChainId): Chain {
+    return getChain(chainId) as Chain
 }
 
 suspend fun ChainRegistry.chainWithAsset(chainId: ChainId, assetId: String): Pair<Chain, Asset> {

@@ -56,6 +56,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
+import jp.co.soramitsu.wallet.impl.domain.XcmInteractor
 
 private const val ICON_IN_DP = 24
 
@@ -69,7 +70,8 @@ class CrossChainConfirmViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val resourceManager: ResourceManager,
     private val currentAccountAddress: CurrentAccountAddressUseCase,
-    private val validateTransferUseCase: ValidateTransferUseCase
+    private val validateTransferUseCase: ValidateTransferUseCase,
+    private val xcmInteractor: XcmInteractor
 ) : BaseViewModel(),
     ExternalAccountActions by externalAccountActions,
     TransferValidityChecks by transferValidityChecks,
@@ -335,7 +337,7 @@ class CrossChainConfirmViewModel @Inject constructor(
 
             val tipInPlanks = transferDraft.tip?.let { token.planksFromAmount(it) }
             val result = withContext(Dispatchers.Default) {
-                interactor.performCrossChainTransfer(createTransfer(token), transferDraft.originFee, tipInPlanks)
+                xcmInteractor.performCrossChainTransfer(createTransfer(token), transferDraft.originFee, tipInPlanks)
             }
             if (result.isSuccess) {
                 val operationHash = result.getOrNull()

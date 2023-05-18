@@ -1,5 +1,7 @@
 package jp.co.soramitsu.wallet.impl.domain
 
+import java.math.BigDecimal
+import java.math.BigInteger
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.accountId
@@ -17,8 +19,6 @@ import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.core.models.ChainId
 import jp.co.soramitsu.core.models.isValidAddress
 import jp.co.soramitsu.coredb.model.AssetUpdateItem
-import jp.co.soramitsu.runtime.ext.accountIdOf
-import jp.co.soramitsu.runtime.ext.fakeAddress
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.isPolkadotOrKusama
@@ -32,16 +32,13 @@ import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.AssetWithStatus
-import jp.co.soramitsu.wallet.impl.domain.model.CrossChainTransfer
 import jp.co.soramitsu.wallet.impl.domain.model.Fee
 import jp.co.soramitsu.wallet.impl.domain.model.Operation
 import jp.co.soramitsu.wallet.impl.domain.model.OperationsPageChange
 import jp.co.soramitsu.wallet.impl.domain.model.PhishingModel
 import jp.co.soramitsu.wallet.impl.domain.model.Transfer
 import jp.co.soramitsu.wallet.impl.domain.model.WalletAccount
-import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
 import jp.co.soramitsu.wallet.impl.domain.model.toPhishingModel
-import jp.co.soramitsu.xcm_impl.XcmService
 import jp.co.soramitsu.xcm_impl.domain.XcmEntitiesFetcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -55,8 +52,6 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.withIndex
 import kotlinx.coroutines.withContext
-import java.math.BigDecimal
-import java.math.BigInteger
 import jp.co.soramitsu.core.models.Asset as CoreAsset
 
 private const val QR_PREFIX_SUBSTRATE = "substrate"
@@ -75,8 +70,6 @@ class WalletInteractorImpl(
     private val preferences: Preferences,
     private val selectedFiat: SelectedFiat,
     private val updatesMixin: UpdatesMixin,
-    private val xcmService: XcmService,
-    private val currentAccountAddress: CurrentAccountAddressUseCase,
     private val xcmEntitiesFetcher: XcmEntitiesFetcher
 ) : WalletInteractor, UpdatesProviderUi by updatesMixin {
 
@@ -275,26 +268,6 @@ class WalletInteractorImpl(
         }
     }
 
-    override suspend fun performCrossChainTransfer(
-        transfer: CrossChainTransfer,
-        fee: BigDecimal,
-        tipInPlanks: BigInteger?
-    ): Result<String> {
-        return runCatching {
-            val originChain = chainRegistry.getChain(transfer.originChainId)
-            val destinationChain = chainRegistry.getChain(transfer.destinationChainId)
-            val selfAddress = currentAccountAddress(originChain.id) ?: throw IllegalStateException("No self address")
-            xcmService.transfer(
-                fromChain = originChain,
-                toChain = destinationChain,
-                asset = transfer.chainAsset,
-                senderAccountId = originChain.accountIdOf(selfAddress),
-                address = transfer.recipient,
-                amount = transfer.fullAmountInPlanks
-            )
-        }
-    }
-
     override suspend fun getQrCodeSharingSoraString(chainId: ChainId, assetId: String): String {
         val metaAccount = accountRepository.getSelectedMetaAccount()
         val chain = chainRegistry.getChain(chainId)
@@ -432,43 +405,4 @@ class WalletInteractorImpl(
 
     override suspend fun getEquilibriumAssetRates(chainAsset: CoreAsset): Map<BigInteger, EqOraclePricePoint?> =
         walletRepository.getEquilibriumAssetRates(chainAsset)
-
-    override suspend fun getXcmDestFee(
-        destinationChainId: ChainId,
-        tokenSymbol: String
-    ): BigDecimal? {
-        return runCatching {
-            xcmService.getXcmDestFee(
-                toChainId = destinationChainId,
-                tokenSymbol = tokenSymbol
-            )
-        }.getOrNull()
-    }
-
-    override suspend fun getXcmOrigFee(
-        originNetworkId: ChainId,
-        destinationNetworkId: ChainId,
-        asset: CoreAsset,
-        amount: BigDecimal
-    ): BigDecimal? {
-        return runCatching {
-            val chain = chainRegistry.getChain(originNetworkId)
-            xcmService.getXcmOrigFee(
-                fromChainId = originNetworkId,
-                toChainId = destinationNetworkId,
-                asset = asset,
-                address = chain.fakeAddress(),
-                amount = asset.getPlanksFromAmountForXcmOrigFee(amount)
-            )
-        }.getOrNull()
-    }
-
-    private fun CoreAsset.getPlanksFromAmountForXcmOrigFee(amount: BigDecimal): BigInteger {
-        val rawAmountInPlanks = planksFromAmount(amount)
-        if (rawAmountInPlanks == BigInteger.ZERO) {
-            return BigInteger.ONE
-        }
-
-        return rawAmountInPlanks
-    }
 }

@@ -4,7 +4,6 @@ import jp.co.soramitsu.common.utils.accountIdFromMapKey
 import jp.co.soramitsu.common.utils.ethereumAddressFromMapKey
 import jp.co.soramitsu.common.utils.ethereumAddressFromPublicKey
 import jp.co.soramitsu.common.utils.ethereumAddressToHex
-import jp.co.soramitsu.core.models.IChain
 import jp.co.soramitsu.core.models.MultiAddress
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainEcosystem
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
@@ -18,7 +17,7 @@ import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.toAddress
 val Chain.genesisHash: String
     get() = id
 
-fun IChain.addressOf(accountId: ByteArray): String {
+fun Chain.addressOf(accountId: ByteArray): String {
     return if (isEthereumBased) {
         accountId.ethereumAddressToHex()
     } else {
@@ -61,7 +60,7 @@ fun Chain.addressFromPublicKey(publicKey: ByteArray): String {
     }
 }
 
-fun IChain.fakeAddress(): String {
+fun Chain.fakeAddress(): String {
     return if (isEthereumBased) {
         fakeEthereumAddress().ethereumAddressToHex()
     } else {
@@ -75,7 +74,7 @@ private fun fakeEthereumAddress() = ByteArray(20)
 
 fun Chain.multiAddressOf(address: String): MultiAddress = multiAddressOf(accountIdOf(address))
 
-fun IChain.ecosystem() = when {
+fun Chain.ecosystem() = when {
     polkadotChainId in listOf(id, parentId) -> ChainEcosystem.POLKADOT
     kusamaChainId in listOf(id, parentId) -> ChainEcosystem.KUSAMA
     else -> ChainEcosystem.STANDALONE

@@ -8,6 +8,8 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import javax.inject.Named
+import javax.inject.Singleton
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.updaters.AccountUpdateScope
@@ -38,6 +40,7 @@ import jp.co.soramitsu.coredb.dao.TokenPriceDao
 import jp.co.soramitsu.feature_wallet_impl.BuildConfig
 import jp.co.soramitsu.runtime.di.REMOTE_STORAGE_SOURCE
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeFilesCache
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 import jp.co.soramitsu.wallet.api.data.cache.AssetCache
 import jp.co.soramitsu.wallet.api.domain.ExistentialDepositUseCase
@@ -66,6 +69,7 @@ import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
 import jp.co.soramitsu.wallet.impl.domain.TokenUseCase
 import jp.co.soramitsu.wallet.impl.domain.ValidateTransferUseCaseImpl
 import jp.co.soramitsu.wallet.impl.domain.WalletInteractorImpl
+import jp.co.soramitsu.wallet.impl.domain.XcmInteractor
 import jp.co.soramitsu.wallet.impl.domain.beacon.BeaconInteractor
 import jp.co.soramitsu.wallet.impl.domain.beacon.BeaconSharedState
 import jp.co.soramitsu.wallet.impl.domain.implementations.ExistentialDepositUseCaseImpl
@@ -80,14 +84,11 @@ import jp.co.soramitsu.wallet.impl.presentation.balance.assetActions.buy.BuyMixi
 import jp.co.soramitsu.wallet.impl.presentation.balance.assetActions.buy.BuyMixinProvider
 import jp.co.soramitsu.wallet.impl.presentation.send.SendSharedState
 import jp.co.soramitsu.wallet.impl.presentation.transaction.filter.HistoryFiltersProvider
-import jp.co.soramitsu.xcm_impl.XcmService
 import jp.co.soramitsu.xcm_impl.domain.XcmEntitiesFetcher
 import jp.co.soramitsu.xnetworking.networkclient.SoramitsuNetworkClient
 import jp.co.soramitsu.xnetworking.sorawallet.mainconfig.SoraRemoteConfigBuilder
 import jp.co.soramitsu.xnetworking.sorawallet.mainconfig.SoraRemoteConfigProvider
 import jp.co.soramitsu.xnetworking.txhistory.client.sorawallet.SubQueryClientForSoraWalletFactory
-import javax.inject.Named
-import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -142,17 +143,6 @@ class WalletFeatureModule {
 
     @Provides
     fun provideCursorStorage(preferences: Preferences) = TransferCursorStorage(preferences)
-
-    @Provides
-    fun provideXcmService(
-        chainRegistry: ChainRegistry,
-        extrinsicService: ExtrinsicService
-    ): XcmService {
-        return XcmService(
-            chainRegistry = chainRegistry,
-            extrinsicService = extrinsicService
-        )
-    }
 
     @Provides
     @Singleton
@@ -228,8 +218,6 @@ class WalletFeatureModule {
         preferences: Preferences,
         selectedFiat: SelectedFiat,
         updatesMixin: UpdatesMixin,
-        xcmService: XcmService,
-        currentAccountAddressUseCase: CurrentAccountAddressUseCase,
         xcmEntitiesFetcher: XcmEntitiesFetcher
     ): WalletInteractor = WalletInteractorImpl(
         walletRepository,
@@ -241,9 +229,25 @@ class WalletFeatureModule {
         preferences,
         selectedFiat,
         updatesMixin,
-        xcmService,
-        currentAccountAddressUseCase,
         xcmEntitiesFetcher
+    )
+
+    @Provides
+    @Singleton
+    fun provideXcmInteractor(
+        walletInteractor: WalletInteractor,
+        chainRegistry: ChainRegistry,
+        currentAccountAddress: CurrentAccountAddressUseCase,
+        xcmEntitiesFetcher: XcmEntitiesFetcher,
+        accountInteractor: AccountInteractor,
+        runtimeFilesCache: RuntimeFilesCache
+    ) = XcmInteractor(
+        walletInteractor,
+        chainRegistry,
+        currentAccountAddress,
+        xcmEntitiesFetcher,
+        accountInteractor,
+        runtimeFilesCache
     )
 
     @Provides

@@ -76,7 +76,7 @@ fun MetaAccount.cryptoType(chain: IChain): CryptoType {
     }
 }
 
-fun MetaAccount.address(chain: IChain): String? {
+fun MetaAccount.address(chain: Chain): String? {
     return when {
         hasChainAccount(chain.id) -> chain.addressOf(chainAccounts.getValue(chain.id).accountId)
         chain.isEthereumBased -> ethereumAddress?.ethereumAddressToHex()

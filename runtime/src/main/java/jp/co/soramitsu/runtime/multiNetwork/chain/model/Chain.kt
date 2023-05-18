@@ -25,7 +25,7 @@ data class Chain(
     val name: String,
     val minSupportedVersion: String?,
     override val assets: List<CoreAsset>,
-    val nodes: List<ChainNode>,
+    override val nodes: List<ChainNode>,
     val explorers: List<Explorer>,
     val externalApi: ExternalApi?,
     val icon: String,
