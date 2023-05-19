@@ -476,7 +476,7 @@ class SwapTokensViewModel @Inject constructor(
         val isToFeeAsset = toAsset.value?.token?.configuration?.id == feeAsset.token.configuration.id
 
         return when {
-            amountToSwap >= available -> {
+            amountToSwap > available -> {
                 SpendInsufficientBalanceException(resourceManager)
             }
             isToFeeAsset.not() && feeAsset.transferable <= fee -> {
