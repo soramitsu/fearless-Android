@@ -12,5 +12,10 @@ class OperationModel(
     val statusAppearance: OperationStatusAppearance,
     val operationIcon: Drawable?,
     val subHeader: String,
+    val type: Type,
     val assetIconUrl: String? = null
-)
+) {
+    enum class Type {
+        Extrinsic, Reward, Transfer, Swap
+    }
+}

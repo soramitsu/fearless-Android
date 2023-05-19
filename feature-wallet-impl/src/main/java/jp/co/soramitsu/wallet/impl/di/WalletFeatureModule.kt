@@ -8,11 +8,8 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import javax.inject.Named
-import javax.inject.Singleton
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.updaters.AccountUpdateScope
-import jp.co.soramitsu.account.api.extrinsic.ExtrinsicService
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.network.coingecko.CoingeckoApi
@@ -24,6 +21,8 @@ import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.QrBitmapDecoder
+import jp.co.soramitsu.core.extrinsic.ExtrinsicService
+import jp.co.soramitsu.core.rpc.RpcCalls
 import jp.co.soramitsu.core.updater.UpdateSystem
 import jp.co.soramitsu.coredb.dao.AddressBookDao
 import jp.co.soramitsu.coredb.dao.AssetDao
@@ -34,7 +33,6 @@ import jp.co.soramitsu.coredb.dao.TokenPriceDao
 import jp.co.soramitsu.feature_wallet_impl.BuildConfig
 import jp.co.soramitsu.runtime.di.REMOTE_STORAGE_SOURCE
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
-import jp.co.soramitsu.runtime.network.rpc.RpcCalls
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 import jp.co.soramitsu.wallet.api.data.cache.AssetCache
 import jp.co.soramitsu.wallet.api.domain.ExistentialDepositUseCase
@@ -45,6 +43,7 @@ import jp.co.soramitsu.wallet.api.presentation.mixin.fee.FeeLoaderMixin
 import jp.co.soramitsu.wallet.api.presentation.mixin.fee.FeeLoaderProvider
 import jp.co.soramitsu.wallet.impl.data.buyToken.MoonPayProvider
 import jp.co.soramitsu.wallet.impl.data.buyToken.RampProvider
+import jp.co.soramitsu.wallet.impl.data.historySource.HistorySourceProvider
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.SubstrateRemoteSource
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.WssSubstrateSource
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.updaters.BalancesUpdateSystem
@@ -52,6 +51,7 @@ import jp.co.soramitsu.wallet.impl.data.network.blockchain.updaters.PaymentUpdat
 import jp.co.soramitsu.wallet.impl.data.network.phishing.PhishingApi
 import jp.co.soramitsu.wallet.impl.data.network.subquery.OperationsHistoryApi
 import jp.co.soramitsu.wallet.impl.data.repository.AddressBookRepositoryImpl
+import jp.co.soramitsu.wallet.impl.data.repository.HistoryRepository
 import jp.co.soramitsu.wallet.impl.data.repository.RuntimeWalletConstants
 import jp.co.soramitsu.wallet.impl.data.repository.TokenRepositoryImpl
 import jp.co.soramitsu.wallet.impl.data.repository.WalletRepositoryImpl
@@ -77,6 +77,8 @@ import jp.co.soramitsu.wallet.impl.presentation.send.SendSharedState
 import jp.co.soramitsu.wallet.impl.presentation.transaction.filter.HistoryFiltersProvider
 import jp.co.soramitsu.xnetworking.networkclient.SoramitsuNetworkClient
 import jp.co.soramitsu.xnetworking.txhistory.client.sorawallet.SubQueryClientForSoraWalletFactory
+import javax.inject.Named
+import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -137,39 +139,56 @@ class WalletFeatureModule {
     fun provideWalletRepository(
         substrateSource: SubstrateRemoteSource,
         operationsDao: OperationDao,
-        operationsHistoryApi: OperationsHistoryApi,
         httpExceptionHandler: HttpExceptionHandler,
         phishingApi: PhishingApi,
         phishingDao: PhishingDao,
         walletConstants: WalletConstants,
         assetCache: AssetCache,
         coingeckoApi: CoingeckoApi,
-        cursorStorage: TransferCursorStorage,
         chainRegistry: ChainRegistry,
         availableFiatCurrencies: GetAvailableFiatCurrencies,
         updatesMixin: UpdatesMixin,
-        remoteConfigFetcher: RemoteConfigFetcher,
-        currentAccountAddressUseCase: CurrentAccountAddressUseCase,
-        soramitsuNetworkClient: SoramitsuNetworkClient,
-        soraSubqueryFactory: SubQueryClientForSoraWalletFactory
+        remoteConfigFetcher: RemoteConfigFetcher
     ): WalletRepository = WalletRepositoryImpl(
         substrateSource,
         operationsDao,
-        operationsHistoryApi,
         httpExceptionHandler,
         phishingApi,
         assetCache,
         walletConstants,
         phishingDao,
-        cursorStorage,
         coingeckoApi,
         chainRegistry,
         availableFiatCurrencies,
         updatesMixin,
-        remoteConfigFetcher,
-        currentAccountAddressUseCase,
+        remoteConfigFetcher
+    )
+
+    @Provides
+    @Singleton
+    fun provideHistoryRepository(
+        historySourceProvider: HistorySourceProvider,
+        operationsDao: OperationDao,
+        cursorStorage: TransferCursorStorage,
+        currentAccountAddress: CurrentAccountAddressUseCase
+    ) = HistoryRepository(
+        historySourceProvider,
+        operationsDao,
+        cursorStorage,
+        currentAccountAddress
+    )
+
+    @Provides
+    fun provideHistorySourceProvider(
+        walletOperationsHistoryApi: OperationsHistoryApi,
+        chainRegistry: ChainRegistry,
+        soramitsuNetworkClient: SoramitsuNetworkClient,
+        subQueryClientForSoraWalletFactory: SubQueryClientForSoraWalletFactory
+    ) = HistorySourceProvider(
+        walletOperationsHistoryApi,
+        chainRegistry,
         soramitsuNetworkClient,
-        soraSubqueryFactory
+        subQueryClientForSoraWalletFactory
     )
 
     @Provides
@@ -181,11 +200,13 @@ class WalletFeatureModule {
         fileProvider: FileProvider,
         preferences: Preferences,
         selectedFiat: SelectedFiat,
-        updatesMixin: UpdatesMixin
+        updatesMixin: UpdatesMixin,
+        historyRepository: HistoryRepository
     ): WalletInteractor = WalletInteractorImpl(
         walletRepository,
         addressBookRepository,
         accountRepository,
+        historyRepository,
         chainRegistry,
         fileProvider,
         preferences,

@@ -12,7 +12,6 @@ import it.airgap.beaconsdk.blockchain.substrate.message.request.PermissionSubstr
 import it.airgap.beaconsdk.blockchain.substrate.message.request.SignPayloadSubstrateRequest
 import it.airgap.beaconsdk.core.data.P2pPeer
 import it.airgap.beaconsdk.core.message.BeaconRequest
-import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.GetTotalBalanceUseCase
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.common.address.AddressIconGenerator
@@ -37,6 +36,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
+import javax.inject.Inject
 
 @Parcelize
 class DAppMetadataModel(

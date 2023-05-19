@@ -10,7 +10,7 @@ data class BondedPool(
     val depositor: AccountId,
     val root: AccountId?,
     val nominator: AccountId?,
-    val stateToggler: AccountId?
+    val bouncer: AccountId?
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -24,7 +24,7 @@ data class BondedPool(
         if (!depositor.contentEquals(other.depositor)) return false
         if (!root.contentEquals(other.root)) return false
         if (!nominator.contentEquals(other.nominator)) return false
-        if (!stateToggler.contentEquals(other.stateToggler)) return false
+        if (!bouncer.contentEquals(other.bouncer)) return false
 
         return true
     }
@@ -36,7 +36,7 @@ data class BondedPool(
         result = 31 * result + depositor.contentHashCode()
         result = 31 * result + root.contentHashCode()
         result = 31 * result + nominator.contentHashCode()
-        result = 31 * result + stateToggler.contentHashCode()
+        result = 31 * result + bouncer.contentHashCode()
         return result
     }
 }

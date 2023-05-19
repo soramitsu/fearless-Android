@@ -1,11 +1,13 @@
 package jp.co.soramitsu.runtime.multiNetwork
 
-import javax.inject.Inject
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
 import jp.co.soramitsu.common.utils.diffed
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.mapList
+import jp.co.soramitsu.core.chain_registry.ChainConnection
+import jp.co.soramitsu.core.chain_registry.IChainRegistry
+import jp.co.soramitsu.core.chain_registry.IRuntimeProvider
 import jp.co.soramitsu.coredb.dao.ChainDao
 import jp.co.soramitsu.coredb.model.chain.ChainNodeLocal
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
@@ -15,9 +17,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.mapNodeLocalToNode
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.NodeId
-import jp.co.soramitsu.runtime.multiNetwork.connection.ChainConnection
 import jp.co.soramitsu.runtime.multiNetwork.connection.ConnectionPool
-import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeProvider
 import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeProviderPool
 import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeSubscriptionPool
 import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeSyncService
@@ -30,9 +30,10 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 data class ChainService(
-    val runtimeProvider: RuntimeProvider,
+    val runtimeProvider: IRuntimeProvider,
     val connection: ChainConnection
 )
 
@@ -44,7 +45,7 @@ class ChainRegistry @Inject constructor(
     private val chainSyncService: ChainSyncService,
     private val runtimeSyncService: RuntimeSyncService,
     private val updatesMixin: UpdatesMixin
-) : CoroutineScope by CoroutineScope(Dispatchers.Default), UpdatesProviderUi by updatesMixin {
+) : IChainRegistry, CoroutineScope by CoroutineScope(Dispatchers.Default), UpdatesProviderUi by updatesMixin {
 
     val currentChains = chainDao.joinChainInfoFlow()
         .mapList(::mapChainLocalToChain)
@@ -95,10 +96,11 @@ class ChainRegistry @Inject constructor(
         }
     }
 
-    fun getConnection(chainId: String) = connectionPool.getConnection(chainId)
+    override fun getConnection(chainId: String) = connectionPool.getConnection(chainId)
+
     fun getConnectionOrNull(chainId: String) = connectionPool.getConnectionOrNull(chainId)
 
-    fun getRuntimeProvider(chainId: String): RuntimeProvider {
+    override fun getRuntimeProvider(chainId: String): IRuntimeProvider {
         return runtimeProviderPool.getRuntimeProvider(chainId)
     }
 
@@ -106,7 +108,9 @@ class ChainRegistry @Inject constructor(
         it.id == chainAssetId
     }
 
-    suspend fun getChain(chainId: ChainId) = chainsById.first().getValue(chainId)
+    override suspend fun getChain(chainId: String): Chain {
+        return chainsById.first().getValue(chainId)
+    }
 
     fun nodesFlow(chainId: String) = chainDao.nodesFlow(chainId)
         .mapList(::mapNodeLocalToNode)
@@ -121,6 +125,10 @@ class ChainRegistry @Inject constructor(
     suspend fun getNode(id: NodeId) = mapNodeLocalToNode(chainDao.getNode(id.chainId, id.nodeUrl))
 
     suspend fun updateNode(id: NodeId, name: String, url: String) = chainDao.updateNode(id.chainId, id.nodeUrl, name, url)
+
+    suspend fun getRemoteRuntimeVersion(chainId: ChainId): Int? {
+        return chainDao.runtimeInfo(chainId)?.remoteVersion
+    }
 }
 
 suspend fun ChainRegistry.chainWithAsset(chainId: ChainId, assetId: String): Pair<Chain, Chain.Asset> {

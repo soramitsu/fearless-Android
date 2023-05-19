@@ -1,29 +1,33 @@
 package jp.co.soramitsu.staking.impl.data.repository
 
-import java.math.BigInteger
-import jp.co.soramitsu.account.api.extrinsic.ExtrinsicService
+import jp.co.soramitsu.core.extrinsic.ExtrinsicService
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.DictEnum
 import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.ext.multiAddressOf
+import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.staking.api.data.StakingSharedState
 import jp.co.soramitsu.staking.impl.data.network.blockhain.calls.bondExtra
 import jp.co.soramitsu.staking.impl.data.network.blockhain.calls.claimPayout
-import jp.co.soramitsu.staking.impl.data.network.blockhain.calls.createPool
+import jp.co.soramitsu.staking.impl.data.network.blockhain.calls.createPoolBouncer
+import jp.co.soramitsu.staking.impl.data.network.blockhain.calls.createPoolStateToggler
 import jp.co.soramitsu.staking.impl.data.network.blockhain.calls.joinPool
 import jp.co.soramitsu.staking.impl.data.network.blockhain.calls.nominatePool
 import jp.co.soramitsu.staking.impl.data.network.blockhain.calls.setPoolMetadata
 import jp.co.soramitsu.staking.impl.data.network.blockhain.calls.unbondFromPool
-import jp.co.soramitsu.staking.impl.data.network.blockhain.calls.updateRoles
+import jp.co.soramitsu.staking.impl.data.network.blockhain.calls.updateRolesBouncer
+import jp.co.soramitsu.staking.impl.data.network.blockhain.calls.updateRolesStateToggler
 import jp.co.soramitsu.staking.impl.data.network.blockhain.calls.withdrawUnbondedFromPool
 import jp.co.soramitsu.staking.impl.presentation.common.EditPoolFlowState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.math.BigInteger
 
 class StakingPoolApi(
     private val extrinsicService: ExtrinsicService,
-    private val stakingSharedState: StakingSharedState
+    private val stakingSharedState: StakingSharedState,
+    private val chainRegistry: ChainRegistry
 ) {
     suspend fun estimateJoinFee(
         amountInPlanks: BigInteger,
@@ -64,17 +68,16 @@ class StakingPoolApi(
             val rootMultiAddress = chain.multiAddressOf(rootAddress)
             val nominatorMultiAddress = chain.multiAddressOf(nominatorAddress)
             val stateTogglerMultiAddress = chain.multiAddressOf(stateTogglerAddress)
-            try {
+            val version = chainRegistry.getRemoteRuntimeVersion(chain.id)!!
+
+            if (version < 9390) {
                 extrinsicService.estimateFee(chain, useBatchAll = true) {
-                    createPool(amountInPlanks, rootMultiAddress, nominatorMultiAddress, stateTogglerMultiAddress)
+                    createPoolStateToggler(amountInPlanks, rootMultiAddress, nominatorMultiAddress, stateTogglerMultiAddress)
                     setPoolMetadata(poolId, name.encodeToByteArray())
                 }
-            } catch (e: Exception) {
-                val rootAccountId = chain.accountIdOf(rootAddress)
-                val nominatorAccountId = chain.accountIdOf(nominatorAddress)
-                val stateTogglerAccountId = chain.accountIdOf(stateTogglerAddress)
+            } else {
                 extrinsicService.estimateFee(chain, useBatchAll = true) {
-                    createPool(amountInPlanks, rootAccountId, nominatorAccountId, stateTogglerAccountId)
+                    createPoolBouncer(amountInPlanks, rootMultiAddress, nominatorMultiAddress, stateTogglerMultiAddress)
                     setPoolMetadata(poolId, name.encodeToByteArray())
                 }
             }
@@ -96,10 +99,18 @@ class StakingPoolApi(
             val rootMultiAddress = chain.multiAddressOf(rootAddress)
             val nominatorMultiAddress = chain.multiAddressOf(nominatorAddress)
             val stateTogglerMultiAddress = chain.multiAddressOf(stateTogglerAddress)
+            val version = chainRegistry.getRemoteRuntimeVersion(chain.id)!!
 
-            extrinsicService.submitExtrinsic(chain, root, useBatchAll = true) {
-                createPool(amountInPlanks, rootMultiAddress, nominatorMultiAddress, stateTogglerMultiAddress)
-                setPoolMetadata(poolId, name.encodeToByteArray())
+            if (version < 9390) {
+                extrinsicService.submitExtrinsic(chain, root, useBatchAll = true) {
+                    createPoolStateToggler(amountInPlanks, rootMultiAddress, nominatorMultiAddress, stateTogglerMultiAddress)
+                    setPoolMetadata(poolId, name.encodeToByteArray())
+                }
+            } else {
+                extrinsicService.submitExtrinsic(chain, root, useBatchAll = true) {
+                    createPoolBouncer(amountInPlanks, rootMultiAddress, nominatorMultiAddress, stateTogglerMultiAddress)
+                    setPoolMetadata(poolId, name.encodeToByteArray())
+                }
             }
         }
     }
@@ -264,9 +275,17 @@ class StakingPoolApi(
             val poolId = state.poolId
             val chain = stakingSharedState.chain()
 
-            extrinsicService.estimateFee(chain) {
-                state.newPoolName?.let { setPoolMetadata(poolId, it.encodeToByteArray()) }
-                updateRoles(state)
+            val version = chainRegistry.getRemoteRuntimeVersion(chain.id)!!
+            if (version < 9390) {
+                extrinsicService.estimateFee(chain) {
+                    state.newPoolName?.let { setPoolMetadata(poolId, it.encodeToByteArray()) }
+                    updateRolesStateToggler(state)
+                }
+            } else {
+                extrinsicService.estimateFee(chain) {
+                    state.newPoolName?.let { setPoolMetadata(poolId, it.encodeToByteArray()) }
+                    updateRolesBouncer(state)
+                }
             }
         }
     }
@@ -276,16 +295,24 @@ class StakingPoolApi(
             val poolId = state.poolId
             val chain = stakingSharedState.chain()
             val accountId = chain.accountIdOf(address)
+            val version = chainRegistry.getRemoteRuntimeVersion(chain.id)!!
 
-            extrinsicService.submitExtrinsic(chain, accountId) {
-                state.newPoolName?.let { setPoolMetadata(poolId, it.encodeToByteArray()) }
-                updateRoles(state)
+            if (version < 9390) {
+                extrinsicService.submitExtrinsic(chain, accountId) {
+                    state.newPoolName?.let { setPoolMetadata(poolId, it.encodeToByteArray()) }
+                    updateRolesStateToggler(state)
+                }
+            } else {
+                extrinsicService.submitExtrinsic(chain, accountId) {
+                    state.newPoolName?.let { setPoolMetadata(poolId, it.encodeToByteArray()) }
+                    updateRolesBouncer(state)
+                }
             }
         }
     }
 }
 
-private fun ExtrinsicBuilder.updateRoles(state: EditPoolFlowState) {
+private fun ExtrinsicBuilder.updateRolesStateToggler(state: EditPoolFlowState) {
     val poolId = state.poolId
     val rootChanged = !state.initialRoot.contentEquals(state.newRoot)
     val nominatorChanged = !state.initialNominator.contentEquals(state.newNominator)
@@ -293,7 +320,24 @@ private fun ExtrinsicBuilder.updateRoles(state: EditPoolFlowState) {
 
     val rolesChanged = rootChanged || nominatorChanged || stateTogglerChanged
     if (rolesChanged) {
-        updateRoles(
+        this@updateRolesStateToggler.updateRolesStateToggler(
+            poolId,
+            state.newRoot.toRoleUpdateEntry(rootChanged),
+            state.newNominator.toRoleUpdateEntry(nominatorChanged),
+            state.newStateToggler.toRoleUpdateEntry(stateTogglerChanged)
+        )
+    }
+}
+
+private fun ExtrinsicBuilder.updateRolesBouncer(state: EditPoolFlowState) {
+    val poolId = state.poolId
+    val rootChanged = !state.initialRoot.contentEquals(state.newRoot)
+    val nominatorChanged = !state.initialNominator.contentEquals(state.newNominator)
+    val stateTogglerChanged = !state.initialStateToggler.contentEquals(state.newStateToggler)
+
+    val rolesChanged = rootChanged || nominatorChanged || stateTogglerChanged
+    if (rolesChanged) {
+        this.updateRolesBouncer(
             poolId,
             state.newRoot.toRoleUpdateEntry(rootChanged),
             state.newNominator.toRoleUpdateEntry(nominatorChanged),

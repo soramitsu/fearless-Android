@@ -1,10 +1,11 @@
 package jp.co.soramitsu.runtime.ext
 
-import jp.co.soramitsu.common.data.network.runtime.binding.MultiAddress
 import jp.co.soramitsu.common.utils.accountIdFromMapKey
 import jp.co.soramitsu.common.utils.ethereumAddressFromMapKey
 import jp.co.soramitsu.common.utils.ethereumAddressFromPublicKey
 import jp.co.soramitsu.common.utils.ethereumAddressToHex
+import jp.co.soramitsu.core.models.IChain
+import jp.co.soramitsu.core.models.MultiAddress
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.addressByte
@@ -25,7 +26,7 @@ val Chain.utilityAsset
 val Chain.genesisHash: String
     get() = id
 
-fun Chain.addressOf(accountId: ByteArray): String {
+fun IChain.addressOf(accountId: ByteArray): String {
     return if (isEthereumBased) {
         accountId.ethereumAddressToHex()
     } else {

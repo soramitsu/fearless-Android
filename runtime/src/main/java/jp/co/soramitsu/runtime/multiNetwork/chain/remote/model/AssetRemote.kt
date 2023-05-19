@@ -4,6 +4,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.ChainAssetType
 
 data class AssetRemote(
     val id: String?,
+    val name: String?,
     val symbol: String?,
     @Deprecated("Tobe removed in favor of isUtility param of Chain.Asset")
     val chainId: String?,

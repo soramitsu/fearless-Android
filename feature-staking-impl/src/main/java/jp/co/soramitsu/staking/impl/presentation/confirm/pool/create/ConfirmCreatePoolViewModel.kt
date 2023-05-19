@@ -80,7 +80,7 @@ class ConfirmCreatePoolViewModel @Inject constructor(
         val depositor = TitleValueViewState(resourceManager.getString(R.string.pool_staking_depositor), addressDisplay)
         val root = TitleValueViewState(resourceManager.getString(R.string.pool_staking_root), addressDisplay)
         val nominator = TitleValueViewState(resourceManager.getString(R.string.pool_staking_nominator), nominatorDisplay)
-        val stateToggler = TitleValueViewState(resourceManager.getString(R.string.pool_staking_state_toggler), stateTogglerDisplay)
+        val stateToggler = TitleValueViewState(resourceManager.getString(R.string.pool_staking_bouncer), stateTogglerDisplay)
         listOf(addressState, amountViewState, poolId, depositor, root, nominator, stateToggler, feeViewState)
     }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 

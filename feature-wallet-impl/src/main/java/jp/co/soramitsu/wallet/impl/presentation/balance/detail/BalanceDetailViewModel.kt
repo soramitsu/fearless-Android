@@ -5,6 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import jp.co.soramitsu.account.api.presentation.account.AddressDisplayUseCase
 import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.account.api.presentation.exporting.ExportSource
@@ -12,11 +13,13 @@ import jp.co.soramitsu.account.api.presentation.exporting.ExportSourceChooserPay
 import jp.co.soramitsu.account.api.presentation.exporting.buildExportSourceTypes
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.compose.component.ActionBarViewState
 import jp.co.soramitsu.common.compose.component.ActionItemType
 import jp.co.soramitsu.common.compose.component.AssetBalanceViewState
 import jp.co.soramitsu.common.compose.component.ChainSelectorViewState
 import jp.co.soramitsu.common.compose.component.ChangeBalanceViewState
 import jp.co.soramitsu.common.compose.component.MainToolbarViewState
+import jp.co.soramitsu.common.compose.component.TitleValueViewState
 import jp.co.soramitsu.common.compose.component.ToolbarHomeIconState
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.resources.ClipboardManager
@@ -57,7 +60,6 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @HiltViewModel
 class BalanceDetailViewModel @Inject constructor(
@@ -78,6 +80,10 @@ class BalanceDetailViewModel @Inject constructor(
     ExternalAccountActions by externalAccountActions,
     BuyMixin by buyMixin {
 
+    companion object {
+        private const val LOCKED_BALANCE_INFO_ID = 409
+    }
+
     private val assetPayloadInitial: AssetPayload = savedStateHandle[KEY_ASSET_PAYLOAD] ?: error("No asset specified")
 
     private val _showAccountOptions = MutableLiveData<Event<String>>()
@@ -85,8 +91,6 @@ class BalanceDetailViewModel @Inject constructor(
 
     private val _showExportSourceChooser = MutableLiveData<Event<ExportSourceChooserPayload>>()
     val showExportSourceChooser: LiveData<Event<ExportSourceChooserPayload>> = _showExportSourceChooser
-
-    val isRefreshing = MutableStateFlow(false)
 
     private val selectedChainId = MutableStateFlow(assetPayloadInitial.chainId)
     private val assetPayload = MutableStateFlow(assetPayloadInitial)
@@ -131,7 +135,7 @@ class BalanceDetailViewModel @Inject constructor(
         )
     }
 
-    private val transactionHistoryMixin = TransactionHistoryProvider(
+    private val transactionHistoryProvider = TransactionHistoryProvider(
         walletInteractor = interactor,
         iconGenerator = addressIconGenerator,
         router = router,
@@ -158,7 +162,18 @@ class BalanceDetailViewModel @Inject constructor(
     }.stateIn(scope = this, started = SharingStarted.Eagerly, initialValue = LoadingState.Loading())
 
     private val transactionHistory: Flow<TransactionHistoryUi.State> =
-        transactionHistoryMixin.state()
+        transactionHistoryProvider.state()
+
+    private val defaultState = BalanceDetailsState(
+        LoadingState.Loading(),
+        LoadingState.Loading(),
+        TitleValueViewState(title = resourceManager.getString(R.string.assetdetails_balance_transferable)),
+        TitleValueViewState(
+            title = resourceManager.getString(R.string.assetdetails_balance_locked),
+            clickState = TitleValueViewState.ClickState.Title(R.drawable.ic_info_14, LOCKED_BALANCE_INFO_ID)
+        ),
+        TransactionHistoryUi.State.EmptyProgress
+    )
 
     val state = combine(
         transactionHistory,
@@ -166,38 +181,54 @@ class BalanceDetailViewModel @Inject constructor(
     ) { transactionHistory: TransactionHistoryUi.State,
         balanceModel: Asset ->
 
-        if (transactionHistory is TransactionHistoryUi.State.EmptyProgress) {
-            return@combine LoadingState.Loading()
-        }
-
         val balanceState = AssetBalanceViewState(
-            balance = balanceModel.total.orZero().formatTokenAmount(balanceModel.token.configuration.symbolToShow.uppercase()),
+            transferableBalance = balanceModel.transferable.orZero().formatTokenAmount(balanceModel.token.configuration.symbolToShow.uppercase()),
             address = currentAccountAddress(chainId = balanceModel.token.configuration.chainId).orEmpty(),
-            isInfoEnabled = true,
+            isInfoEnabled = false,
             changeViewState = ChangeBalanceViewState(
                 percentChange = balanceModel.token.recentRateChange?.formatAsChange().orEmpty(),
-                fiatChange = balanceModel.token.fiatRate?.multiply(balanceModel.total.orZero())?.formatAsCurrency(balanceModel.token.fiatSymbol).orEmpty()
+                fiatChange = balanceModel.token.fiatRate?.multiply(balanceModel.transferable.orZero())
+                    ?.formatAsCurrency(balanceModel.token.fiatSymbol).orEmpty()
             )
         )
 
         val selectedChainId = balanceModel.token.configuration.chainId
 
-        LoadingState.Loaded(
-            BalanceDetailsState(
+        val actionBarState = LoadingState.Loaded(
+            ActionBarViewState(
+                chainId = selectedChainId,
+                chainAssetId = balanceModel.token.configuration.id,
                 actionItems = getActionItems(selectedChainId),
-                disabledItems = getDisabledItems(),
-                balance = balanceState,
-                transactionHistory = transactionHistory,
-                selectedChainId = selectedChainId,
-                chainAssetId = balanceModel.token.configuration.id
+                disabledItems = getDisabledItems()
             )
         )
-    }.stateIn(scope = this, started = SharingStarted.Eagerly, initialValue = LoadingState.Loading())
+
+        val transferableFormatted = balanceModel.transferable.formatTokenAmount(balanceModel.token.configuration.symbolToShow.uppercase())
+        val transferableFiat = balanceModel.token.fiatAmount(balanceModel.transferable)?.formatAsCurrency(balanceModel.token.fiatSymbol)
+        val newTransferableState = defaultState.transferableViewState.copy(value = transferableFormatted, additionalValue = transferableFiat)
+
+        val lockedFormatted = balanceModel.locked.formatTokenAmount(balanceModel.token.configuration.symbolToShow.uppercase())
+        val lockedFiat = balanceModel.token.fiatAmount(balanceModel.locked)?.formatAsCurrency(balanceModel.token.fiatSymbol)
+        val newLockedState = defaultState.lockedViewState.copy(value = lockedFormatted, additionalValue = lockedFiat)
+
+        BalanceDetailsState(
+            actionBarViewState = actionBarState,
+            balance = LoadingState.Loaded(balanceState),
+            transferableViewState = newTransferableState,
+            lockedViewState = newLockedState,
+            transactionHistory = transactionHistory
+        )
+    }.stateIn(scope = this, started = SharingStarted.Eagerly, initialValue = defaultState)
 
     init {
         viewModelScope.launch {
             router.chainSelectorPayloadFlow.collect { chainId ->
                 chainId?.let { selectedChainId.value = chainId }
+            }
+            transactionHistoryProvider.sideEffects().collect {
+                when (it) {
+                    is TransactionHistoryUi.SideEffect.Error -> showError(it.message ?: resourceManager.getString(R.string.common_undefined_error_message))
+                }
             }
         }
     }
@@ -205,11 +236,11 @@ class BalanceDetailViewModel @Inject constructor(
     override fun onCleared() {
         super.onCleared()
 
-        transactionHistoryMixin.cancel()
+        transactionHistoryProvider.cancel()
     }
 
     override fun transactionsScrolled(index: Int) {
-        transactionHistoryMixin.scrolled(
+        transactionHistoryProvider.scrolled(
             index,
             AssetPayload(
                 chainId = assetPayload.value.chainId,
@@ -224,20 +255,15 @@ class BalanceDetailViewModel @Inject constructor(
 
     override fun sync() {
         viewModelScope.launch {
-            isRefreshing.value = true
-            async {
-                transactionHistoryMixin.syncFirstOperationsPage(
-                    AssetPayload(
-                        chainId = assetPayload.value.chainId,
-                        chainAssetId = assetPayload.value.chainAssetId
-                    )
+            transactionHistoryProvider.syncFirstOperationsPage(
+                AssetPayload(
+                    chainId = assetPayload.value.chainId,
+                    chainAssetId = assetPayload.value.chainAssetId
                 )
-            }.start()
+            )
 
             val deferredAssetSync = async { interactor.syncAssetsRates() }
             deferredAssetSync.await().exceptionOrNull()?.message?.let(::showMessage)
-
-            isRefreshing.value = false
         }
     }
 
@@ -304,22 +330,8 @@ class BalanceDetailViewModel @Inject constructor(
     }
 
     override fun onAddressClick() {
-        (state.value as? LoadingState.Loaded)?.data?.balance?.address?.let { address ->
+        (state.value.balance as? LoadingState.Loaded)?.data?.address?.let { address ->
             copyToClipboard(address)
-        }
-    }
-
-    override fun onBalanceClick() {
-        launch {
-            val assetModel = assetModelFlow.first()
-            router.openFrozenTokens(
-                FrozenAssetPayload(
-                    assetSymbol = assetModel.token.configuration.symbolToShow,
-                    locked = assetModel.locked,
-                    reserved = assetModel.reserved,
-                    redeemable = assetModel.redeemable
-                )
-            )
         }
     }
 
@@ -386,12 +398,32 @@ class BalanceDetailViewModel @Inject constructor(
     }
 
     override fun transactionClicked(transactionModel: OperationModel) {
-        transactionHistoryMixin.transactionClicked(
+        transactionHistoryProvider.transactionClicked(
             transactionModel,
             AssetPayload(
                 chainId = assetPayload.value.chainId,
                 chainAssetId = assetPayload.value.chainAssetId
             )
         )
+    }
+
+    override fun tableItemClicked(itemId: Int) {
+        if (itemId == LOCKED_BALANCE_INFO_ID) {
+            openBalanceDetails()
+        }
+    }
+
+    private fun openBalanceDetails() {
+        launch {
+            val assetModel = assetModelFlow.first()
+            router.openFrozenTokens(
+                FrozenAssetPayload(
+                    assetSymbol = assetModel.token.configuration.symbolToShow,
+                    locked = assetModel.locked,
+                    reserved = assetModel.reserved,
+                    redeemable = assetModel.redeemable
+                )
+            )
+        }
     }
 }

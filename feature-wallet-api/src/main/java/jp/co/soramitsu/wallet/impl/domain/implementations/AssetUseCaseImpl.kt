@@ -2,10 +2,10 @@ package jp.co.soramitsu.wallet.impl.domain.implementations
 
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.accountId
+import jp.co.soramitsu.runtime.state.SingleAssetSharedState
 import jp.co.soramitsu.wallet.api.domain.AssetUseCase
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
-import jp.co.soramitsu.runtime.state.SingleAssetSharedState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map

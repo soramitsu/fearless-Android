@@ -1,15 +1,13 @@
 package jp.co.soramitsu.crowdloan.impl.domain.contribute
 
-import java.io.IOException
-import java.math.BigDecimal
-import java.net.HttpURLConnection
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.accountId
-import jp.co.soramitsu.account.api.extrinsic.ExtrinsicService
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.base.BaseException
-import jp.co.soramitsu.common.data.mappers.mapCryptoTypeToEncryption
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.core.crypto.mapCryptoTypeToEncryption
+import jp.co.soramitsu.core.extrinsic.ExtrinsicService
+import jp.co.soramitsu.core.extrinsic.mortality.IChainStateRepository
 import jp.co.soramitsu.crowdloan.api.data.network.blockhain.binding.ParaId
 import jp.co.soramitsu.crowdloan.api.data.repository.CrowdloanRepository
 import jp.co.soramitsu.crowdloan.api.data.repository.ParachainMetadata
@@ -21,7 +19,6 @@ import jp.co.soramitsu.crowdloan.impl.data.network.blockhain.extrinsic.contribut
 import jp.co.soramitsu.crowdloan.impl.domain.main.Crowdloan
 import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
-import jp.co.soramitsu.runtime.repository.ChainStateRepository
 import jp.co.soramitsu.runtime.state.chainAndAsset
 import jp.co.soramitsu.wallet.impl.domain.interfaces.NotValidTransferStatus
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
@@ -34,6 +31,9 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.withContext
 import retrofit2.HttpException
+import java.io.IOException
+import java.math.BigDecimal
+import java.net.HttpURLConnection
 
 typealias AdditionalOnChainSubmission = suspend ExtrinsicBuilder.() -> Unit
 
@@ -41,7 +41,7 @@ class CrowdloanContributeInteractor(
     private val extrinsicService: ExtrinsicService,
     private val accountRepository: AccountRepository,
     private val chainRegistry: ChainRegistry,
-    private val chainStateRepository: ChainStateRepository,
+    private val chainStateRepository: IChainStateRepository,
     private val crowdloanSharedState: CrowdloanSharedState,
     private val crowdloanRepository: CrowdloanRepository,
     private val walletRepository: WalletRepository,

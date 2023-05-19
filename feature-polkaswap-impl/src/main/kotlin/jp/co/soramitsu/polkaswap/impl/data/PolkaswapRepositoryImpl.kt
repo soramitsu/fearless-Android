@@ -1,16 +1,18 @@
 package jp.co.soramitsu.polkaswap.impl.data
 
-import java.math.BigInteger
-import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
-import jp.co.soramitsu.account.api.extrinsic.ExtrinsicService
 import jp.co.soramitsu.common.data.network.config.PolkaswapRemoteConfig
 import jp.co.soramitsu.common.data.network.config.RemoteConfigFetcher
-import jp.co.soramitsu.common.data.network.runtime.model.QuoteResponse
 import jp.co.soramitsu.common.utils.dexManager
 import jp.co.soramitsu.common.utils.poolTBC
 import jp.co.soramitsu.common.utils.poolXYK
 import jp.co.soramitsu.common.utils.u32ArgumentFromStorageKey
+import jp.co.soramitsu.core.extrinsic.ExtrinsicService
+import jp.co.soramitsu.core.rpc.RpcCalls
+import jp.co.soramitsu.core.rpc.calls.liquidityProxyIsPathAvailable
+import jp.co.soramitsu.core.rpc.calls.liquidityProxyListEnabledSourcesForPath
+import jp.co.soramitsu.core.rpc.calls.liquidityProxyQuote
+import jp.co.soramitsu.core.rpc.models.responses.QuoteResponse
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.Struct
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
@@ -25,9 +27,10 @@ import jp.co.soramitsu.polkaswap.impl.data.network.blockchain.bindings.bindDexIn
 import jp.co.soramitsu.polkaswap.impl.data.network.blockchain.swap
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
-import jp.co.soramitsu.runtime.network.rpc.RpcCalls
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 import kotlinx.coroutines.flow.Flow
+import java.math.BigInteger
+import javax.inject.Inject
 
 class PolkaswapRepositoryImpl @Inject constructor(
     private val remoteConfigFetcher: RemoteConfigFetcher,

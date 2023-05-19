@@ -4,7 +4,10 @@ import androidx.annotation.StringRes
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.SavedStateHandle
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.math.BigDecimal
+import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.compose.component.GradientIconState
 import jp.co.soramitsu.common.compose.theme.greenText
 import jp.co.soramitsu.common.compose.theme.white
 import jp.co.soramitsu.common.utils.format
@@ -18,8 +21,6 @@ import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.presentation.model.OperationParcelizeModel
 import kotlinx.coroutines.flow.MutableStateFlow
-import javax.inject.Inject
-import jp.co.soramitsu.common.compose.component.GradientIconState
 
 @HiltViewModel
 class SwapDetailViewModel @Inject constructor(
@@ -29,16 +30,18 @@ class SwapDetailViewModel @Inject constructor(
 
     private val swap = savedStateHandle.get<OperationParcelizeModel.Swap>(SwapDetailFragment.KEY_SWAP) ?: error("Swap detail not specified")
 
-    private val swapRate = swap.targetAsset?.amountFromPlanks(swap.targetAssetAmount.orZero()).orZero() / swap.chainAsset.amountFromPlanks(swap.baseAssetAmount)
+    private val swapRate = kotlin.runCatching {
+        swap.targetAsset?.amountFromPlanks(swap.targetAssetAmount.orZero()).orZero().divide(swap.chainAsset.amountFromPlanks(swap.baseAssetAmount))
+    }.getOrNull() ?: BigDecimal.ZERO
 
     val state = MutableStateFlow(
         SwapDetailState(
             fromTokenImage = GradientIconState.Remote(swap.chainAsset.iconUrl, swap.chainAsset.color),
             toTokenImage = GradientIconState.Remote(swap.targetAsset?.iconUrl.orEmpty(), swap.targetAsset?.color.orEmpty()),
             fromTokenAmount = swap.baseAssetAmount.tokenAmountFromPlanks(swap.chainAsset).format(),
-            toTokenAmount = swap.targetAsset?.let { swap.targetAssetAmount?.tokenAmountFromPlanks(it) }?.format().orEmpty(),
+            toTokenAmount = swap.targetAsset?.let { swap.targetAssetAmount?.tokenAmountFromPlanks(it) }?.format().orEmpty().ifEmpty { "???" },
             fromTokenName = swap.chainAsset.symbolToShow.uppercase(),
-            toTokenName = swap.targetAsset?.symbolToShow?.uppercase().orEmpty(),
+            toTokenName = swap.targetAsset?.symbolToShow?.uppercase().orEmpty().ifEmpty { "???" },
             statusAppearance = swap.status.mapToStatusAppearance(),
             address = swap.address,
             fromTokenOnToToken = swapRate.format(),

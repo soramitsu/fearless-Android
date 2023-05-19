@@ -116,11 +116,8 @@ class BalanceDetailFragment : BaseComposeFragment<BalanceDetailViewModel>() {
     @Composable
     override fun Content(padding: PaddingValues, scrollState: ScrollState, modalBottomSheetState: ModalBottomSheetState) {
         val state by viewModel.state.collectAsState()
-        val isRefreshing by viewModel.isRefreshing.collectAsState()
-
         BalanceDetailsScreen(
             state = state,
-            isRefreshing = isRefreshing,
             callback = viewModel
         )
     }

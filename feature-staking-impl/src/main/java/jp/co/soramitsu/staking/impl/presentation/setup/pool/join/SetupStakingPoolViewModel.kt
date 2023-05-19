@@ -2,9 +2,6 @@ package jp.co.soramitsu.staking.impl.presentation.setup.pool.join
 
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.math.BigDecimal
-import java.math.BigInteger
-import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.common.AlertViewState
 import jp.co.soramitsu.common.address.AddressIconGenerator
@@ -46,6 +43,9 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
+import java.math.BigInteger
+import javax.inject.Inject
 
 @HiltViewModel
 class SetupStakingPoolViewModel @Inject constructor(
@@ -166,7 +166,7 @@ class SetupStakingPoolViewModel @Inject constructor(
                     AlertViewState(
                         title = title,
                         message = message,
-                        buttonText = resourceManager.getString(R.string.common_got_it),
+                        buttonText = resourceManager.getString(R.string.common_ok),
                         iconRes = R.drawable.ic_status_warning_16
                     )
                 } ?: AlertViewState(

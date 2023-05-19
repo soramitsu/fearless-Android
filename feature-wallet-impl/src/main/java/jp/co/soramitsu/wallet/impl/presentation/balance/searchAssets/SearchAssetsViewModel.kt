@@ -28,6 +28,7 @@ import jp.co.soramitsu.common.utils.sumByBigDecimal
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.getWithToken
 import jp.co.soramitsu.wallet.impl.domain.ChainInteractor
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.domain.model.AssetWithStatus
@@ -71,6 +72,10 @@ class SearchAssetsViewModel @Inject constructor(
     ) { assets: List<AssetWithStatus>, chains: List<Chain>, chainConnectings: Set<ChainId> ->
         val assetStates = mutableListOf<AssetListItemViewState>()
         val sortedAndFiltered = assets.filter { it.hasAccount }
+
+        val assetIdsWithBalance = sortedAndFiltered.associate { it.asset.token.configuration.id to it.asset.total }
+            .filter { it.value.orZero() > BigDecimal.ZERO }.keys
+
         sortedAndFiltered
             .map { assetWithStatus ->
                 val token = assetWithStatus.asset.token
@@ -101,11 +106,11 @@ class SearchAssetsViewModel @Inject constructor(
                     withStatus.asset.token.configuration.symbolToShow == symbolToShow && withStatus.hasAccount.not()
                 }
 
-                val assetChainUrls = tokenChains.associate { it.id to it.icon }
+                val assetChainUrls = chains.getWithToken(symbolToShow, assetIdsWithBalance).associate { it.id to it.icon }
 
-                val assetTotalInChains = sortedAndFiltered.sumByBigDecimal {
+                val assetTransferableInChains = sortedAndFiltered.sumByBigDecimal {
                     if (it.asset.token.configuration.symbolToShow == symbolToShow) {
-                        it.asset.total.orZero()
+                        it.asset.transferable
                     } else {
                         BigDecimal.ZERO
                     }
@@ -114,12 +119,13 @@ class SearchAssetsViewModel @Inject constructor(
                 val assetListItemViewState = AssetListItemViewState(
                     assetIconUrl = tokenConfig.iconUrl,
                     assetChainName = utilityChain?.name.orEmpty(),
+                    assetName = showChainAsset?.name.orEmpty(),
                     assetSymbol = tokenConfig.symbol,
                     displayName = symbolToShow,
                     assetTokenFiat = token.fiatRate?.formatAsCurrency(token.fiatSymbol),
                     assetTokenRate = token.recentRateChange?.formatAsChange(),
-                    assetBalance = assetTotalInChains.format(),
-                    assetBalanceFiat = token.fiatRate?.multiply(assetTotalInChains)?.formatAsCurrency(token.fiatSymbol),
+                    assetTransferableBalance = assetTransferableInChains.format(),
+                    assetTransferableBalanceFiat = token.fiatRate?.multiply(assetTransferableInChains)?.formatAsCurrency(token.fiatSymbol),
                     assetChainUrls = assetChainUrls,
                     chainId = utilityChain?.id.orEmpty(),
                     chainAssetId = showChainAsset?.id.orEmpty(),
@@ -143,7 +149,7 @@ class SearchAssetsViewModel @Inject constructor(
         val assets = when {
             searchQuery.isEmpty() -> emptyList()
             else -> assetsListItemStates.filter {
-                it.displayName.contains(searchQuery, true) || it.assetChainName.contains(searchQuery, true)
+                it.displayName.contains(searchQuery, true) || it.assetChainName.contains(searchQuery, true) || it.assetName.contains(searchQuery, true)
             }
         }
         SearchAssetState(

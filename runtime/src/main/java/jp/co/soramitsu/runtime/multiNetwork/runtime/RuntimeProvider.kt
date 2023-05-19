@@ -1,5 +1,6 @@
 package jp.co.soramitsu.runtime.multiNetwork.runtime
 
+import jp.co.soramitsu.core.chain_registry.IRuntimeProvider
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.runtime.ext.typesUsage
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
@@ -21,7 +22,7 @@ class RuntimeProvider(
     private val runtimeFactory: RuntimeFactory,
     private val runtimeSyncService: RuntimeSyncService,
     chain: Chain
-) : CoroutineScope by CoroutineScope(Dispatchers.Default) {
+) : IRuntimeProvider, CoroutineScope by CoroutineScope(Dispatchers.Default) {
 
     private val chainId = chain.id
 
@@ -31,7 +32,7 @@ class RuntimeProvider(
 
     private var currentConstructionJob: Job? = null
 
-    suspend fun get(): RuntimeSnapshot {
+    override suspend fun get(): RuntimeSnapshot {
         val runtime = runtimeFlow.first()
 
         return runtime.runtime

@@ -48,11 +48,15 @@ import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.sumByBigDecimal
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
+import jp.co.soramitsu.core.chain_registry.IChainRegistry
+import jp.co.soramitsu.core.extrinsic.KeyPairProvider
+import jp.co.soramitsu.core.extrinsic.mortality.IChainStateRepository
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.addressByteOrNull
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.defaultChainSort
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.getWithToken
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import jp.co.soramitsu.wallet.impl.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.wallet.impl.domain.ChainInteractor
@@ -101,7 +105,10 @@ class BalanceListViewModel @Inject constructor(
     private val networkStateMixin: NetworkStateMixin,
     private val resourceManager: ResourceManager,
     private val clipboardManager: ClipboardManager,
-    private val currentAccountAddress: CurrentAccountAddressUseCase
+    private val currentAccountAddress: CurrentAccountAddressUseCase,
+    private val chainRegistry: IChainRegistry,
+    private val keyPairProvider: KeyPairProvider,
+    private val chainStateRepository: IChainStateRepository
 ) : BaseViewModel(), UpdatesProviderUi by updatesMixin, NetworkStateUi by networkStateMixin, WalletScreenInterface {
 
     private val accountAddressToChainIdMap = mutableMapOf<String, ChainId?>()
@@ -194,6 +201,10 @@ class BalanceListViewModel @Inject constructor(
             .filter { it.hasAccount || !it.asset.markedNotNeed }
             .filter { selectedChainId == null || selectedChainId == it.asset.token.configuration.chainId }
             .sortedWith(defaultAssetListSort())
+
+        val assetIdsWithBalance = sortedAndFiltered.associate { it.asset.token.configuration.id to it.asset.total }
+            .filter { it.value.orZero() > BigDecimal.ZERO }.keys
+
         sortedAndFiltered
             .map { assetWithStatus ->
                 val token = assetWithStatus.asset.token
@@ -225,14 +236,13 @@ class BalanceListViewModel @Inject constructor(
                 }
 
                 val assetChainUrls = when (selectedChainId) {
-                    null -> chains.filter { it.assets.any { it.symbolToShow == symbolToShow } }
-                        .associate { it.id to it.icon }
+                    null -> chains.getWithToken(symbolToShow, assetIdsWithBalance).associate { it.id to it.icon }
                     else -> emptyMap()
                 }
 
-                val assetTotalInChains = sortedAndFiltered.sumByBigDecimal {
+                val assetTransferableInChains = sortedAndFiltered.sumByBigDecimal {
                     if (it.asset.token.configuration.symbolToShow == symbolToShow) {
-                        it.asset.total.orZero()
+                        it.asset.transferable
                     } else {
                         BigDecimal.ZERO
                     }
@@ -241,12 +251,13 @@ class BalanceListViewModel @Inject constructor(
                 val assetListItemViewState = AssetListItemViewState(
                     assetIconUrl = tokenConfig.iconUrl,
                     assetChainName = showChain?.name.orEmpty(),
+                    assetName = tokenConfig.name.orEmpty(),
                     assetSymbol = tokenConfig.symbol,
                     displayName = symbolToShow,
                     assetTokenFiat = token.fiatRate?.formatAsCurrency(token.fiatSymbol),
                     assetTokenRate = token.recentRateChange?.formatAsChange(),
-                    assetBalance = assetTotalInChains.format(),
-                    assetBalanceFiat = token.fiatRate?.multiply(assetTotalInChains)?.formatAsCurrency(token.fiatSymbol),
+                    assetTransferableBalance = assetTransferableInChains.format(),
+                    assetTransferableBalanceFiat = token.fiatRate?.multiply(assetTransferableInChains)?.formatAsCurrency(token.fiatSymbol),
                     assetChainUrls = assetChainUrls,
                     chainId = showChain?.id.orEmpty(),
                     chainAssetId = showChainAsset?.id.orEmpty(),
@@ -270,8 +281,7 @@ class BalanceListViewModel @Inject constructor(
             chainAssets.map { chainAsset ->
                 val chain = requireNotNull(chains.find { it.id == chainAsset.chainId })
 
-                val assetChainUrls = chains.filter { it.assets.any { it.symbolToShow == chainAsset.symbolToShow } }
-                    .associate { it.id to it.icon }
+                val assetChainUrls = chains.getWithToken(chainAsset.symbolToShow).associate { it.id to it.icon }
 
                 val isSupported: Boolean = when (chain.minSupportedVersion) {
                     null -> true
@@ -281,12 +291,13 @@ class BalanceListViewModel @Inject constructor(
                 AssetListItemViewState(
                     assetIconUrl = chainAsset.iconUrl,
                     assetChainName = chainAsset.chainName,
+                    assetName = chainAsset.name.orEmpty(),
                     assetSymbol = chainAsset.symbol,
                     displayName = chainAsset.symbolToShow,
                     assetTokenFiat = null,
                     assetTokenRate = null,
-                    assetBalance = null,
-                    assetBalanceFiat = null,
+                    assetTransferableBalance = null,
+                    assetTransferableBalanceFiat = null,
                     assetChainUrls = assetChainUrls,
                     chainId = chainAsset.chainId,
                     chainAssetId = chainAsset.id,
@@ -325,11 +336,11 @@ class BalanceListViewModel @Inject constructor(
         }.orEmpty()
 
         val balanceState = AssetBalanceViewState(
-            balance = balanceModel.totalBalance?.formatAsCurrency(balanceModel.fiatSymbol).orEmpty(),
+            transferableBalance = balanceModel.totalTransferableBalance?.formatAsCurrency(balanceModel.fiatSymbol).orEmpty(),
             address = selectedChainAddress,
             changeViewState = ChangeBalanceViewState(
-                percentChange = balanceModel.rate?.formatAsChange().orEmpty(),
-                fiatChange = balanceModel.totalBalanceChange.abs().formatAsCurrency(balanceModel.fiatSymbol)
+                percentChange = balanceModel.transferableRate?.formatAsChange().orEmpty(),
+                fiatChange = balanceModel.totalTransferableBalanceChange.abs().formatAsCurrency(balanceModel.fiatSymbol)
             )
         )
 
