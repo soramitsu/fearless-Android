@@ -43,8 +43,6 @@ dependencies {
     implementation compose
     debugImplementation composeDebug
 
-    api fearlessLibDep
-
     api project(':core-api')
 
     api sharedFeaturesCoreDep

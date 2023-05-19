@@ -1,5 +1,6 @@
 package jp.co.soramitsu.staking.impl.data.network.subquery
 
+import jp.co.soramitsu.common.base.errors.RewardsNotSupportedWarning
 import jp.co.soramitsu.common.data.network.subquery.EraValidatorInfoQueryResponse.EraValidatorInfo.Nodes.Node
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
@@ -23,14 +24,14 @@ class SubQueryValidatorSetFetcher(
         val stakingType = chain.externalApi?.staking?.type
 
         return when {
-            stakingUrl == null -> throw Exception("Pending rewards for this network is not supported yet")
+            stakingUrl == null -> throw RewardsNotSupportedWarning()
             stakingType == Chain.ExternalApi.Section.Type.SUBQUERY -> {
                 getSubqueryValidators(stakingUrl, stashAccountAddress, historicalRange)
             }
             stakingType == Chain.ExternalApi.Section.Type.SUBSQUID -> {
                 getSubsquidCollators(stakingUrl, stashAccountAddress, historicalRange)
             }
-            else -> throw Exception("Pending rewards for this network is not supported yet")
+            else -> throw RewardsNotSupportedWarning()
         }
     }
 

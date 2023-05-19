@@ -25,6 +25,7 @@ import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.theme.alertYellow
 import jp.co.soramitsu.common.compose.theme.black2
 import jp.co.soramitsu.common.compose.theme.fontSize
+import jp.co.soramitsu.common.compose.theme.soraTextStyle
 import jp.co.soramitsu.common.compose.theme.weight
 import jp.co.soramitsu.common.compose.theme.white
 
@@ -35,7 +36,6 @@ fun AlertSheet(
     onTopUpClicked: () -> Unit
 ) {
     BottomSheetScreen {
-        Grip(Modifier.align(Alignment.CenterHorizontally))
         Column(
             modifier = Modifier
                 .padding(horizontal = 16.dp)

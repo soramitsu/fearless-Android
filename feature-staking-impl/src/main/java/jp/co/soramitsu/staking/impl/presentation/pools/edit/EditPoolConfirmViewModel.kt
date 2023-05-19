@@ -2,12 +2,11 @@ package jp.co.soramitsu.staking.impl.presentation.pools.edit
 
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import jp.co.soramitsu.common.compose.component.TitleValueViewState
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.fearless_utils.runtime.AccountId
-import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAddress
 import jp.co.soramitsu.feature_staking_impl.R
+import jp.co.soramitsu.shared_utils.runtime.AccountId
+import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.toAddress
 import jp.co.soramitsu.staking.impl.presentation.StakingConfirmViewModel
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
 import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSharedStateProvider
@@ -17,6 +16,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import javax.inject.Inject
 
 @HiltViewModel
 class EditPoolConfirmViewModel @Inject constructor(

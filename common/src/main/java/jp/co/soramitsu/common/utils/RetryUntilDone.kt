@@ -1,7 +1,7 @@
 package jp.co.soramitsu.common.utils
 
-import jp.co.soramitsu.fearless_utils.wsrpc.recovery.LinearReconnectStrategy
-import jp.co.soramitsu.fearless_utils.wsrpc.recovery.ReconnectStrategy
+import jp.co.soramitsu.shared_utils.wsrpc.recovery.LinearReconnectStrategy
+import jp.co.soramitsu.shared_utils.wsrpc.recovery.ReconnectStrategy
 import kotlinx.coroutines.delay
 
 suspend inline fun <T> retryUntilDone(

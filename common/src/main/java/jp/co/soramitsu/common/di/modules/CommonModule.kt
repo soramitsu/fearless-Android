@@ -42,8 +42,8 @@ import jp.co.soramitsu.core.extrinsic.ExtrinsicBuilderFactory
 import jp.co.soramitsu.core.extrinsic.ExtrinsicService
 import jp.co.soramitsu.core.extrinsic.KeyPairProvider
 import jp.co.soramitsu.core.rpc.RpcCalls
-import jp.co.soramitsu.fearless_utils.encrypt.Signer
-import jp.co.soramitsu.fearless_utils.icon.IconGenerator
+import jp.co.soramitsu.shared_utils.encrypt.Signer
+import jp.co.soramitsu.shared_utils.icon.IconGenerator
 import java.security.SecureRandom
 import java.util.Random
 import javax.inject.Qualifier

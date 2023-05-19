@@ -27,14 +27,12 @@ import coil.compose.AsyncImage
 import jp.co.soramitsu.common.compose.component.B0
 import jp.co.soramitsu.common.compose.component.B1
 import jp.co.soramitsu.common.compose.component.CorneredInput
-import jp.co.soramitsu.common.compose.component.Grip
 import jp.co.soramitsu.common.compose.component.H3
 import jp.co.soramitsu.common.compose.component.H5
 import jp.co.soramitsu.common.compose.component.Image
 import jp.co.soramitsu.common.compose.component.MarginHorizontal
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.component.getImageRequest
-import jp.co.soramitsu.common.compose.theme.FearlessThemeBlackBg
 import jp.co.soramitsu.common.compose.theme.black2
 import jp.co.soramitsu.common.compose.theme.black4
 import jp.co.soramitsu.common.compose.theme.gray2
@@ -68,10 +66,10 @@ fun AssetSelectContent(
             .padding(horizontal = 16.dp)
             .fillMaxWidth()
     ) {
-        MarginVertical(margin = 2.dp)
-        Grip(Modifier.align(CenterHorizontally))
-        MarginVertical(margin = 8.dp)
-        H3(text = stringResource(id = R.string.common_select_asset))
+        H3(
+            text = stringResource(id = R.string.common_select_asset),
+            modifier = Modifier.align(CenterHorizontally)
+        )
         MarginVertical(margin = 16.dp)
         CorneredInput(state = state.searchQuery, onInput = callback::onSearchInput, hintLabel = stringResource(id = R.string.assets_search_hint))
         if (state.assets.isEmpty()) {
@@ -120,7 +118,7 @@ fun EmptyResultContent() {
 data class AssetItemState(
     val id: String,
     val imageUrl: String?,
-    val chainName: String,
+    val chainName: String?,
     val symbol: String,
     val amount: String,
     val fiatAmount: String,
@@ -150,18 +148,21 @@ fun AssetItem(
                 contentDescription = null,
                 modifier = Modifier
                     .testTag("AssetItem_image_${state.id}")
-                    .size(24.dp)
+                    .size(32.dp)
             )
             MarginHorizontal(margin = 10.dp)
-            Column {
-                Row {
-                    H5(text = state.chainName, color = black2)
-                    Spacer(modifier = Modifier.weight(1f))
-                    B1(text = state.fiatAmount, color = black2)
-                }
-                Row {
+            Row(
+                verticalAlignment = CenterVertically
+            ) {
+                Column {
+                    if (state.chainName != null) {
+                        H5(text = state.chainName, color = black2)
+                    }
                     B1(text = state.symbol)
-                    Spacer(modifier = Modifier.weight(1f))
+                }
+                Spacer(modifier = Modifier.weight(1f))
+                Column {
+                    B1(text = state.fiatAmount, color = black2)
                     H5(text = state.amount)
                 }
             }
@@ -208,17 +209,15 @@ private fun SelectAssetScreenPreview() {
         assets = items,
         searchQuery = null
     )
-    FearlessThemeBlackBg {
-        Column(
-            Modifier.background(black4)
-        ) {
-            AssetSelectContent(
-                state = state,
-                callback = object : AssetSelectContentInterface {
-                    override fun onAssetSelected(assetItemState: AssetItemState) {}
-                    override fun onSearchInput(input: String) {}
-                }
-            )
-        }
+    Column(
+        Modifier.background(black4)
+    ) {
+        AssetSelectContent(
+            state = state,
+            callback = object : AssetSelectContentInterface {
+                override fun onAssetSelected(assetItemState: AssetItemState) {}
+                override fun onSearchInput(input: String) {}
+            }
+        )
     }
 }

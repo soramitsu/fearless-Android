@@ -35,7 +35,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.compose.component.AccentButton
 import jp.co.soramitsu.common.compose.component.GrayButton
-import jp.co.soramitsu.common.compose.component.Grip
 import jp.co.soramitsu.common.compose.component.MarginHorizontal
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.component.NavigationIconButton
@@ -119,10 +118,6 @@ fun TransactionSettingsContent(
             .navigationBarsPadding()
             .fillMaxHeight()
     ) {
-        MarginVertical(margin = 2.dp)
-        Grip(Modifier.align(Alignment.CenterHorizontally))
-        MarginVertical(margin = 8.dp)
-
         Row(
             modifier = Modifier
                 .fillMaxWidth()

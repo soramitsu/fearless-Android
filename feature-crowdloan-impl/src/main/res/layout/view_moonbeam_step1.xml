@@ -21,7 +21,7 @@
                 style="@style/TextAppearance.Soramitsu.Body1"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:fontFamily="@font/soramitsu_semibold"
+                android:fontFamily="@font/sora_semibold"
                 android:text="@string/moonbeam_crowdloan_terms"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />

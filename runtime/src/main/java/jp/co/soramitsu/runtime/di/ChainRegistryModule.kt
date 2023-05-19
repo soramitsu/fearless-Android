@@ -1,33 +1,34 @@
 package jp.co.soramitsu.runtime.di
 
-import com.google.gson.Gson
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import javax.inject.Provider
-import javax.inject.Singleton
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
-import jp.co.soramitsu.core.chain_registry.ChainConnection
-import jp.co.soramitsu.core.chain_registry.IChainRegistry
+import jp.co.soramitsu.core.network.JsonFactory
+import jp.co.soramitsu.core.runtime.ChainConnection
+import jp.co.soramitsu.core.runtime.IChainRegistry
+import jp.co.soramitsu.core.runtime.RuntimeFactory
 import jp.co.soramitsu.coredb.dao.ChainDao
-import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainSyncService
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.ChainFetcher
 import jp.co.soramitsu.runtime.multiNetwork.connection.ConnectionPool
-import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeFactory
 import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeFilesCache
 import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeProviderPool
 import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeSubscriptionPool
 import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeSyncService
 import jp.co.soramitsu.runtime.multiNetwork.runtime.types.TypesFetcher
 import jp.co.soramitsu.runtime.storage.NodesSettingsStorage
+import jp.co.soramitsu.shared_utils.wsrpc.SocketService
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.serialization.json.Json
+import javax.inject.Provider
+import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -46,12 +47,14 @@ class ChainRegistryModule {
 
     @Provides
     @Singleton
-    fun provideRuntimeFactory(
-        runtimeFilesCache: RuntimeFilesCache,
-        chainDao: ChainDao,
-        gson: Gson
-    ): RuntimeFactory {
-        return RuntimeFactory(runtimeFilesCache, chainDao, gson)
+    fun provideJson(): Json {
+        return JsonFactory.create()
+    }
+
+    @Provides
+    @Singleton
+    fun provideRuntimeFactory(json: Json): RuntimeFactory {
+        return RuntimeFactory(json)
     }
 
     @Provides
@@ -72,20 +75,24 @@ class ChainRegistryModule {
         typesFetcher: TypesFetcher,
         runtimeFilesCache: RuntimeFilesCache,
         chainDao: ChainDao,
-        updatesMixin: UpdatesMixin
+        updatesMixin: UpdatesMixin,
+        connectionPool: ConnectionPool
     ) = RuntimeSyncService(
         typesFetcher = typesFetcher,
         runtimeFilesCache = runtimeFilesCache,
         chainDao = chainDao,
-        updatesMixin = updatesMixin
+        updatesMixin = updatesMixin,
+        connectionPool = connectionPool
     )
 
     @Provides
     @Singleton
     fun provideRuntimeProviderPool(
         runtimeFactory: RuntimeFactory,
-        runtimeSyncService: RuntimeSyncService
-    ) = RuntimeProviderPool(runtimeFactory, runtimeSyncService)
+        runtimeSyncService: RuntimeSyncService,
+        runtimeFilesCache: RuntimeFilesCache,
+        chainDao: ChainDao
+    ) = RuntimeProviderPool(runtimeFactory, runtimeSyncService, runtimeFilesCache, chainDao)
 
     @Provides
     @Singleton

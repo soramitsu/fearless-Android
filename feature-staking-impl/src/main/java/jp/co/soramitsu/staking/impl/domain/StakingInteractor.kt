@@ -12,13 +12,14 @@ import jp.co.soramitsu.common.utils.balances
 import jp.co.soramitsu.common.utils.combineToPair
 import jp.co.soramitsu.common.utils.numberConstant
 import jp.co.soramitsu.core.extrinsic.mortality.IChainStateRepository
-import jp.co.soramitsu.fearless_utils.runtime.AccountId
+import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import jp.co.soramitsu.runtime.multiNetwork.getRuntime
+import jp.co.soramitsu.shared_utils.runtime.AccountId
 import jp.co.soramitsu.staking.api.data.StakingSharedState
 import jp.co.soramitsu.staking.api.domain.api.StakingRepository
 import jp.co.soramitsu.staking.api.domain.model.StakingAccount
@@ -150,7 +151,7 @@ class StakingInteractor(
         return stakingRepository.getAccountInfo(chainId, accountId)
     }
 
-    suspend fun getStashBalance(stashId: AccountId, configuration: Chain.Asset): BigDecimal {
+    suspend fun getStashBalance(stashId: AccountId, configuration: Asset): BigDecimal {
         val stashMetaAccount = accountRepository.findMetaAccount(stashId)
         val cachedBalance = stashMetaAccount?.let { walletRepository.getAsset(stashMetaAccount.id, stashId, configuration, null)?.availableForStaking }
         return if (cachedBalance == null) {

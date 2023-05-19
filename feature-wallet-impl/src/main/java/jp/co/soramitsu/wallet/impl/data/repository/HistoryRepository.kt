@@ -2,12 +2,13 @@ package jp.co.soramitsu.wallet.impl.data.repository
 
 import jp.co.soramitsu.common.data.model.CursorPage
 import jp.co.soramitsu.common.utils.mapList
+import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.coredb.dao.OperationDao
 import jp.co.soramitsu.coredb.model.OperationLocal
-import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.runtime.ext.addressOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.shared_utils.runtime.AccountId
 import jp.co.soramitsu.wallet.impl.data.historySource.HistorySourceProvider
 import jp.co.soramitsu.wallet.impl.data.mappers.mapOperationLocalToOperation
 import jp.co.soramitsu.wallet.impl.data.mappers.mapOperationToOperationLocalDb
@@ -34,7 +35,7 @@ class HistoryRepository(
         filters: Set<TransactionFilter>,
         accountId: AccountId,
         chain: Chain,
-        chainAsset: Chain.Asset
+        chainAsset: Asset
     ): CursorPage<Operation> {
         return withContext(Dispatchers.Default) {
             val historyUrl = chain.externalApi?.history?.url
@@ -63,7 +64,7 @@ class HistoryRepository(
         filters: Set<TransactionFilter>,
         accountId: AccountId,
         chain: Chain,
-        chainAsset: Chain.Asset
+        chainAsset: Asset
     ) {
         val accountAddress = chain.addressOf(accountId)
         val page = kotlin.runCatching {
@@ -79,7 +80,7 @@ class HistoryRepository(
     fun operationsFirstPageFlow(
         accountId: AccountId,
         chain: Chain,
-        chainAsset: Chain.Asset
+        chainAsset: Asset
     ): Flow<CursorPage<Operation>> {
         val accountAddress = chain.addressOf(accountId)
 

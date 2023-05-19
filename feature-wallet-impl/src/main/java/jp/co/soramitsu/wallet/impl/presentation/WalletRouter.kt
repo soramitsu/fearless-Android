@@ -10,10 +10,12 @@ import jp.co.soramitsu.common.navigation.SecureRouter
 import jp.co.soramitsu.common.navigation.payload.WalletSelectorPayload
 import jp.co.soramitsu.common.presentation.StoryGroupModel
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.wallet.api.domain.model.XcmChainType
 import jp.co.soramitsu.wallet.impl.domain.beacon.SignStatus
 import jp.co.soramitsu.wallet.impl.domain.model.PhishingType
 import jp.co.soramitsu.wallet.impl.presentation.balance.detail.frozen.FrozenAssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.beacon.main.DAppMetadataModel
+import jp.co.soramitsu.wallet.impl.presentation.cross_chain.CrossChainTransferDraft
 import jp.co.soramitsu.wallet.impl.presentation.model.OperationParcelizeModel
 import jp.co.soramitsu.wallet.impl.presentation.send.TransferDraft
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.extrinsic.ExtrinsicDetailsPayload
@@ -24,33 +26,46 @@ import jp.co.soramitsu.wallet.api.presentation.WalletRouter as WalletRouterApi
 interface WalletRouter : SecureRouter, WalletRouterApi {
     fun openAssetDetails(assetPayload: AssetPayload)
 
-    fun back()
-
-    fun popOutOfSend()
-
     fun openSend(assetPayload: AssetPayload?, initialSendToAddress: String? = null, currencyId: String? = null)
 
-    fun openSwapTokensScreen(assetPayload: AssetPayload)
+    fun openCrossChainSend(assetPayload: AssetPayload?)
 
-    fun openSelectChain(assetId: String, chainId: ChainId? = null, chooserMode: Boolean = true)
+    fun openSwapTokensScreen(chainId: String, assetIdFrom: String?, assetIdTo: String?)
+
+    fun openSelectChain(
+        assetId: String,
+        chainId: ChainId? = null,
+        chooserMode: Boolean = true,
+        isSelectAsset: Boolean = true
+    )
 
     fun openSelectChain(
         selectedChainId: ChainId? = null,
         filterChainIds: List<ChainId>? = null,
         chooserMode: Boolean = true,
         currencyId: String? = null,
-        showAllChains: Boolean = true
+        showAllChains: Boolean = true,
+        isSelectAsset: Boolean = true
+    )
+
+    fun openSelectChainForXcm(
+        selectedChainId: ChainId?,
+        xcmChainType: XcmChainType,
+        selectedOriginalChainId: String? = null,
+        xcmAssetSymbol: String? = null
     )
 
     fun openSelectAsset(selectedAssetId: String)
 
-    fun openSelectChainAsset(chainId: ChainId)
+    fun openSelectAsset(chainId: ChainId, selectedAssetId: String?, isFilterXcmAssets: Boolean)
 
     fun openFilter()
 
     fun openOperationSuccess(operationHash: String?, chainId: ChainId)
 
     fun openSendConfirm(transferDraft: TransferDraft, phishingType: PhishingType?)
+
+    fun openCrossChainSendConfirm(transferDraft: CrossChainTransferDraft, phishingType: PhishingType?)
 
     fun finishSendFlow()
 
@@ -71,8 +86,6 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
     fun openImportAccountScreen(blockChainType: Int)
 
     fun openImportAccountScreenFromWallet(blockChainType: Int)
-
-    fun openChangeAccountFromWallet()
 
     fun openReceive(assetPayload: AssetPayload)
 
@@ -105,6 +118,8 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
 
     fun openNetworkIssues()
 
+    fun openGetSoraCard()
+
     fun openOptionsAddAccount(payload: AddAccountBottomSheet.Payload)
 
     fun openAlert(payload: AlertViewState)
@@ -121,9 +136,11 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
 
     fun openAddressHistory(chainId: ChainId)
 
+    fun openWalletSelectorForResult(): Flow<Long>
+
+    fun openAddressHistoryWithResult(chainId: ChainId): Flow<String>
+
     fun openCreateContact(chainId: ChainId?, address: String?)
 
     val chainSelectorPayloadFlow: Flow<ChainId?>
-
-    fun setChainSelectorPayload(chainId: ChainId?)
 }

@@ -14,10 +14,10 @@ import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.network.rpc.SocketSingleRequestExecutor
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
-import jp.co.soramitsu.fearless_utils.wsrpc.logging.Logger
-import jp.co.soramitsu.fearless_utils.wsrpc.recovery.Reconnector
-import jp.co.soramitsu.fearless_utils.wsrpc.request.RequestExecutor
+import jp.co.soramitsu.shared_utils.wsrpc.SocketService
+import jp.co.soramitsu.shared_utils.wsrpc.logging.Logger
+import jp.co.soramitsu.shared_utils.wsrpc.recovery.Reconnector
+import jp.co.soramitsu.shared_utils.wsrpc.request.RequestExecutor
 import okhttp3.Cache
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor

@@ -13,10 +13,6 @@ import jp.co.soramitsu.core.rpc.calls.liquidityProxyIsPathAvailable
 import jp.co.soramitsu.core.rpc.calls.liquidityProxyListEnabledSourcesForPath
 import jp.co.soramitsu.core.rpc.calls.liquidityProxyQuote
 import jp.co.soramitsu.core.rpc.models.responses.QuoteResponse
-import jp.co.soramitsu.fearless_utils.extensions.fromHex
-import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.Struct
-import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
-import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
 import jp.co.soramitsu.polkaswap.api.data.PolkaswapRepository
 import jp.co.soramitsu.polkaswap.api.models.Market
 import jp.co.soramitsu.polkaswap.api.models.WithDesired
@@ -28,6 +24,10 @@ import jp.co.soramitsu.polkaswap.impl.data.network.blockchain.swap
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
+import jp.co.soramitsu.shared_utils.extensions.fromHex
+import jp.co.soramitsu.shared_utils.runtime.definitions.types.composite.Struct
+import jp.co.soramitsu.shared_utils.runtime.metadata.storage
+import jp.co.soramitsu.shared_utils.runtime.metadata.storageKey
 import kotlinx.coroutines.flow.Flow
 import java.math.BigInteger
 import javax.inject.Inject

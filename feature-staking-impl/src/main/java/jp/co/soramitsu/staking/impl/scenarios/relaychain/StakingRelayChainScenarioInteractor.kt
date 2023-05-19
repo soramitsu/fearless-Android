@@ -1,5 +1,8 @@
 package jp.co.soramitsu.staking.impl.scenarios.relaychain
 
+import java.math.BigDecimal
+import java.math.BigInteger
+import java.util.Optional
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.accountId
@@ -8,15 +11,14 @@ import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.sumByBigInteger
 import jp.co.soramitsu.common.validation.CompositeValidation
 import jp.co.soramitsu.common.validation.ValidationSystem
-import jp.co.soramitsu.fearless_utils.extensions.toHexString
-import jp.co.soramitsu.fearless_utils.runtime.AccountId
-import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
+import jp.co.soramitsu.core.models.utilityAsset
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.runtime.ext.accountIdOf
-import jp.co.soramitsu.runtime.ext.utilityAsset
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.state.SingleAssetSharedState
+import jp.co.soramitsu.shared_utils.extensions.toHexString
+import jp.co.soramitsu.shared_utils.runtime.AccountId
+import jp.co.soramitsu.shared_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.staking.api.data.StakingSharedState
 import jp.co.soramitsu.staking.api.domain.api.AccountIdMap
 import jp.co.soramitsu.staking.api.domain.api.IdentityRepository
@@ -72,6 +74,7 @@ import jp.co.soramitsu.staking.impl.domain.validations.setup.MinimumAmountValida
 import jp.co.soramitsu.staking.impl.domain.validations.setup.SetupStakingMaximumNominatorsValidation
 import jp.co.soramitsu.staking.impl.domain.validations.setup.SetupStakingPayload
 import jp.co.soramitsu.staking.impl.domain.validations.setup.SetupStakingValidationFailure
+import jp.co.soramitsu.staking.impl.domain.validations.unbond.ControllerCanPayFeeValidation
 import jp.co.soramitsu.staking.impl.domain.validations.unbond.CrossExistentialValidation
 import jp.co.soramitsu.staking.impl.domain.validations.unbond.EnoughToUnbondValidation
 import jp.co.soramitsu.staking.impl.domain.validations.unbond.NotZeroUnbondValidation
@@ -92,6 +95,7 @@ import jp.co.soramitsu.wallet.impl.domain.validation.EnoughToPayFeesValidation
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
@@ -103,9 +107,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.withContext
-import java.math.BigDecimal
-import java.math.BigInteger
-import java.util.Optional
+import jp.co.soramitsu.core.models.Asset as CoreAsset
 
 val ERA_OFFSET = 1.toBigInteger()
 const val HOURS_IN_DAY = 24
@@ -126,7 +128,7 @@ class StakingRelayChainScenarioInteractor(
 
     override suspend fun observeNetworkInfoState(): Flow<NetworkInfo> {
         val chain = stakingInteractor.getSelectedChain()
-        val lockupPeriod = getLockupPeriodInHours(chain.id)
+        val lockupPeriod = runCatching { getLockupPeriodInHours(chain.id) }.getOrDefault(0)
 
         return stakingRelayChainScenarioRepository.electedExposuresInActiveEra(chain.id).map { exposuresMap ->
             val exposures = exposuresMap.values
@@ -162,12 +164,9 @@ class StakingRelayChainScenarioInteractor(
         return stakingConstantsRepository.lockupPeriodInEras(chainId).toInt() * stakingRelayChainScenarioRepository.hoursInEra(chainId)
     }
 
-    override val stakingStateFlow = combine(
-        stakingInteractor.selectedChainFlow(),
-        stakingInteractor.currentAssetFlow()
-    ) { chain, asset -> chain to asset }.flatMapConcat { (chain, asset) ->
+    override val stakingStateFlow = stakingSharedState.assetWithChain.distinctUntilChanged().flatMapConcat { (chain, asset) ->
         val accountId = accountRepository.getSelectedMetaAccount().accountId(chain) ?: error("cannot find accountId")
-        stakingRelayChainScenarioRepository.stakingStateFlow(chain, asset.token.configuration, accountId)
+        stakingRelayChainScenarioRepository.stakingStateFlow(chain, asset, accountId)
     }
 
     suspend fun observeStashSummary(
@@ -235,7 +234,6 @@ class StakingRelayChainScenarioInteractor(
             val statusResolutionContext = StatusResolutionContext(eraStakers, activeEraIndex, asset, rewardedNominatorsPerValidator)
 
             val status = statusResolver(statusResolutionContext)
-
             StakeSummary(
                 status = status,
                 totalStaked = totalStaked,
@@ -287,11 +285,10 @@ class StakingRelayChainScenarioInteractor(
         amountInPlanks: BigInteger,
         stashState: StakingState,
         currentBondedBalance: BigInteger,
-        candidate: String?,
-        chilled: Boolean
+        candidate: String?
     ) {
         require(stashState is StakingState.Stash)
-        extrinsicBuilder.constructUnbondExtrinsic(stashState, currentBondedBalance, amountInPlanks, chilled)
+        extrinsicBuilder.constructUnbondExtrinsic(stashState, currentBondedBalance, amountInPlanks)
     }
 
     override suspend fun confirmRevoke(
@@ -440,7 +437,7 @@ class StakingRelayChainScenarioInteractor(
         HOURS_IN_DAY / stakingRelayChainScenarioRepository.erasPerDay(chainId)
     }
 
-    override suspend fun getMinimumStake(chainAsset: Chain.Asset): BigInteger {
+    override suspend fun getMinimumStake(chainAsset: CoreAsset): BigInteger {
         val exposures = stakingRelayChainScenarioRepository.electedExposuresInActiveEra(chainAsset.chainId).firstOrNull()?.values ?: emptyList()
         val minimumNominatorBond = stakingRelayChainScenarioRepository.minimumNominatorBond(chainAsset)
         return minimumStake(exposures, minimumNominatorBond)
@@ -595,20 +592,22 @@ class StakingRelayChainScenarioInteractor(
     private suspend fun ExtrinsicBuilder.constructUnbondExtrinsic(
         stashState: StakingState.Stash,
         currentBondedBalance: BigInteger,
-        unbondAmount: BigInteger,
-        chilled: Boolean = true
+        unbondAmount: BigInteger
     ): ExtrinsicBuilder {
         // see https://github.com/paritytech/substrate/blob/master/frame/staking/src/lib.rs#L1614
         // if account is nominating
-        return if (stashState is StakingState.Stash.Nominator &&
+        val resultedBalance = currentBondedBalance.minus(unbondAmount)
+        val minBond = stakingRelayChainScenarioRepository.minimumNominatorBond(stashState.chain.utilityAsset)
+        val isFullUnbond = resultedBalance.compareTo(BigInteger.ZERO) == 0
+        val needChill = stashState is StakingState.Stash.Nominator &&
             // and resulting bonded balance is less than min bond
-            currentBondedBalance - unbondAmount < stakingRelayChainScenarioRepository.minimumNominatorBond(stashState.chain.utilityAsset) &&
-            chilled.not()
-        ) {
+            (resultedBalance.compareTo(minBond) == -1 || isFullUnbond)
+
+        if (needChill) {
             chill()
-        } else {
-            unbond(unbondAmount)
         }
+        unbond(unbondAmount)
+        return this
     }
 
     override fun getUnbondValidationSystem() = UnbondValidationSystem(
@@ -628,7 +627,20 @@ class StakingRelayChainScenarioInteractor(
                     errorProducer = UnbondValidationFailure::UnbondLimitReached
                 ),
                 EnoughToUnbondValidation(this),
-                CrossExistentialValidation(this)
+                CrossExistentialValidation(this),
+                ControllerCanPayFeeValidation(
+                    feeExtractor = { it.fee },
+                    availableControllerBalanceProducer = {
+                        require(it.stash is StakingState.Stash)
+
+                        val controllerId = it.stash.controllerId
+                        val meta = accountRepository.findMetaAccount(controllerId) ?: return@ControllerCanPayFeeValidation BigDecimal.ZERO
+
+                        val controllerAsset = walletRepository.getAsset(meta.id, controllerId, it.asset.token.configuration, null)
+                        controllerAsset?.availableForStaking.orZero()
+                    },
+                    errorProducer = { UnbondValidationFailure.ControllerCantPayFees }
+                )
             )
         )
     )

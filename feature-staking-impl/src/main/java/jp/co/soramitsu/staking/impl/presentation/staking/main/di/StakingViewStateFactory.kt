@@ -4,9 +4,12 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.validation.CompositeValidation
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.common.validation.ValidationSystem
+import jp.co.soramitsu.staking.api.data.SyntheticStakingType
+import jp.co.soramitsu.staking.api.data.syntheticStakingType
 import jp.co.soramitsu.staking.api.domain.model.StakingState
 import jp.co.soramitsu.staking.impl.domain.StakingInteractor
 import jp.co.soramitsu.staking.impl.domain.rewards.RewardCalculatorFactory
+import jp.co.soramitsu.staking.impl.domain.rewards.SoraStakingRewardsScenario
 import jp.co.soramitsu.staking.impl.domain.validations.welcome.WelcomeStakingValidationSystem
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
 import jp.co.soramitsu.staking.impl.presentation.common.SetupStakingSharedState
@@ -14,6 +17,8 @@ import jp.co.soramitsu.staking.impl.presentation.staking.main.DelegatorViewState
 import jp.co.soramitsu.staking.impl.presentation.staking.main.NominatorViewState
 import jp.co.soramitsu.staking.impl.presentation.staking.main.ParachainWelcomeViewState
 import jp.co.soramitsu.staking.impl.presentation.staking.main.RelaychainWelcomeViewState
+import jp.co.soramitsu.staking.impl.presentation.staking.main.SoraNominatorViewState
+import jp.co.soramitsu.staking.impl.presentation.staking.main.SoraWelcomeViewState
 import jp.co.soramitsu.staking.impl.presentation.staking.main.StakingPoolWelcomeViewState
 import jp.co.soramitsu.staking.impl.presentation.staking.main.StakingViewStateOld
 import jp.co.soramitsu.staking.impl.presentation.staking.main.StashNoneViewState
@@ -23,6 +28,7 @@ import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenar
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 
 class StakingViewStateFactory(
     private val stakingInteractor: StakingInteractor,
@@ -32,7 +38,8 @@ class StakingViewStateFactory(
     private val rewardCalculatorFactory: RewardCalculatorFactory,
     private val validationExecutor: ValidationExecutor,
     private val relayChainScenarioInteractor: StakingRelayChainScenarioInteractor,
-    private val parachainScenarioInteractor: StakingParachainScenarioInteractor
+    private val parachainScenarioInteractor: StakingParachainScenarioInteractor,
+    private val soraStakingRewardsScenario: SoraStakingRewardsScenario
 ) {
 
     fun createValidatorViewState(
@@ -67,22 +74,27 @@ class StakingViewStateFactory(
         errorDisplayer = errorDisplayer
     )
 
-    fun createRelayChainWelcomeViewState(
+    suspend fun createRelayChainWelcomeViewState(
         currentAssetFlow: Flow<Asset>,
         scope: CoroutineScope,
         welcomeStakingValidationSystem: WelcomeStakingValidationSystem,
         errorDisplayer: (String) -> Unit
-    ) = RelaychainWelcomeViewState(
-        setupStakingSharedState,
-        rewardCalculatorFactory,
-        resourceManager,
-        router,
-        currentAssetFlow,
-        scope,
-        errorDisplayer,
-        welcomeStakingValidationSystem,
-        validationExecutor
-    )
+    ): RelaychainWelcomeViewState {
+        return when (currentAssetFlow.first().token.configuration.syntheticStakingType()) {
+            SyntheticStakingType.SORA -> createSoraWelcomeViewState(currentAssetFlow, scope, welcomeStakingValidationSystem, errorDisplayer)
+            SyntheticStakingType.DEFAULT -> RelaychainWelcomeViewState(
+                setupStakingSharedState,
+                rewardCalculatorFactory,
+                resourceManager,
+                router,
+                currentAssetFlow,
+                scope,
+                errorDisplayer,
+                welcomeStakingValidationSystem,
+                validationExecutor
+            )
+        }
+    }
 
     fun createParachainWelcomeViewState(
         currentAssetFlow: Flow<Asset>,
@@ -100,21 +112,36 @@ class StakingViewStateFactory(
         validationExecutor
     )
 
-    fun createNominatorViewState(
+    suspend fun createNominatorViewState(
         stakingState: StakingState.Stash.Nominator,
         currentAssetFlow: Flow<Asset>,
         scope: CoroutineScope,
         errorDisplayer: (Throwable) -> Unit
-    ) = NominatorViewState(
-        nominatorState = stakingState,
-        stakingInteractor = stakingInteractor,
-        relayChainScenarioInteractor = relayChainScenarioInteractor,
-        currentAssetFlow = currentAssetFlow,
-        scope = scope,
-        router = router,
-        errorDisplayer = errorDisplayer,
-        resourceManager = resourceManager
-    )
+    ): NominatorViewState {
+        return when (currentAssetFlow.first().token.configuration.syntheticStakingType()) {
+            SyntheticStakingType.SORA -> SoraNominatorViewState(
+                nominatorState = stakingState,
+                stakingInteractor = stakingInteractor,
+                relayChainScenarioInteractor = relayChainScenarioInteractor,
+                currentAssetFlow = currentAssetFlow,
+                scope = scope,
+                router = router,
+                errorDisplayer = errorDisplayer,
+                resourceManager = resourceManager,
+                soraStakingRewardsScenario = soraStakingRewardsScenario
+            )
+            SyntheticStakingType.DEFAULT -> NominatorViewState(
+                nominatorState = stakingState,
+                stakingInteractor = stakingInteractor,
+                relayChainScenarioInteractor = relayChainScenarioInteractor,
+                currentAssetFlow = currentAssetFlow,
+                scope = scope,
+                router = router,
+                errorDisplayer = errorDisplayer,
+                resourceManager = resourceManager
+            )
+        }
+    }
 
     fun createDelegatorViewState(
         accountStakingState: StakingState.Parachain.Delegator,
@@ -154,4 +181,24 @@ class StakingViewStateFactory(
         ValidationSystem(CompositeValidation(validations = listOf())),
         validationExecutor
     )
+
+    private fun createSoraWelcomeViewState(
+        currentAssetFlow: Flow<Asset>,
+        scope: CoroutineScope,
+        welcomeStakingValidationSystem: WelcomeStakingValidationSystem,
+        errorDisplayer: (String) -> Unit
+    ): SoraWelcomeViewState {
+        return SoraWelcomeViewState(
+            setupStakingSharedState,
+            rewardCalculatorFactory,
+            resourceManager,
+            router,
+            currentAssetFlow,
+            scope,
+            errorDisplayer,
+            welcomeStakingValidationSystem,
+            validationExecutor,
+            soraStakingRewardsScenario
+        )
+    }
 }

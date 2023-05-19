@@ -3,8 +3,6 @@ package jp.co.soramitsu.staking.impl.domain.validators.current.search
 import android.annotation.SuppressLint
 import android.graphics.drawable.PictureDrawable
 import androidx.lifecycle.Lifecycle
-import java.math.BigDecimal
-import java.util.Locale
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressIcon
 import jp.co.soramitsu.common.address.createEthereumAddressIcon
@@ -12,7 +10,9 @@ import jp.co.soramitsu.common.data.memory.ComputationalCache
 import jp.co.soramitsu.common.utils.formatAsPercentage
 import jp.co.soramitsu.common.utils.fractionToPercentage
 import jp.co.soramitsu.common.utils.toggle
-import jp.co.soramitsu.fearless_utils.extensions.requireHexPrefix
+import jp.co.soramitsu.core.models.Asset
+import jp.co.soramitsu.core.models.isValidAddress
+import jp.co.soramitsu.shared_utils.extensions.requireHexPrefix
 import jp.co.soramitsu.staking.api.data.StakingSharedState
 import jp.co.soramitsu.staking.api.domain.model.Collator
 import jp.co.soramitsu.staking.api.domain.model.Validator
@@ -23,12 +23,11 @@ import jp.co.soramitsu.staking.impl.presentation.common.SetupStakingProcess
 import jp.co.soramitsu.staking.impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.staking.impl.presentation.validators.change.setCustomCollators
 import jp.co.soramitsu.staking.impl.presentation.validators.change.setCustomValidators
-import jp.co.soramitsu.runtime.ext.isValidAddress
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
-import jp.co.soramitsu.runtime.state.chain
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
+import java.math.BigDecimal
+import java.util.Locale
 
 private const val ELECTED_COLLATORS_CACHE = "ELECTED_COLLATORS_CACHE"
 private const val ELECTED_VALIDATORS_CACHE = "ELECTED_VALIDATORS_CACHE"
@@ -52,8 +51,8 @@ class SearchCustomBlockProducerInteractor(
     suspend fun getBlockProducers(lifecycle: Lifecycle): List<BlockProducer> {
         val asset = sharedState.assetWithChain.first().asset
         return when (asset.staking) {
-            Chain.Asset.StakingType.UNSUPPORTED -> error("Wrong staking type")
-            Chain.Asset.StakingType.RELAYCHAIN -> {
+            Asset.StakingType.UNSUPPORTED -> error("Wrong staking type")
+            Asset.StakingType.RELAYCHAIN -> {
                 getValidators(lifecycle).map {
                     BlockProducer(
                         it.identity?.display ?: it.address,
@@ -62,7 +61,7 @@ class SearchCustomBlockProducerInteractor(
                     )
                 }
             }
-            Chain.Asset.StakingType.PARACHAIN -> {
+            Asset.StakingType.PARACHAIN -> {
                 getCollators(lifecycle).map { (_, collator) ->
                     BlockProducer(
                         collator.identity?.display ?: collator.address,
@@ -91,8 +90,8 @@ class SearchCustomBlockProducerInteractor(
 
         if (chain.isValidAddress(query)) {
             when (asset.staking) {
-                Chain.Asset.StakingType.UNSUPPORTED -> error("Wrong staking type")
-                Chain.Asset.StakingType.RELAYCHAIN -> {
+                Asset.StakingType.UNSUPPORTED -> error("Wrong staking type")
+                Asset.StakingType.RELAYCHAIN -> {
                     val validator = validatorProvider.getValidatorWithoutElectedInfo(chain, query)
                     if (validator.prefs != null) {
                         listOf(
@@ -106,7 +105,7 @@ class SearchCustomBlockProducerInteractor(
                         emptyList()
                     }
                 }
-                Chain.Asset.StakingType.PARACHAIN -> {
+                Asset.StakingType.PARACHAIN -> {
                     val collator = collatorProvider.getCollators(chain)[query.requireHexPrefix()]
                     collator?.let {
                         listOf(
@@ -127,8 +126,8 @@ class SearchCustomBlockProducerInteractor(
     suspend fun blockProducerSelected(address: String, setupStakingProcess: SetupStakingSharedState, lifecycle: Lifecycle): Result<Unit> {
         val asset = sharedState.assetWithChain.first().asset
         when (asset.staking) {
-            Chain.Asset.StakingType.UNSUPPORTED -> error("Wrong staking type")
-            Chain.Asset.StakingType.RELAYCHAIN -> {
+            Asset.StakingType.UNSUPPORTED -> error("Wrong staking type")
+            Asset.StakingType.RELAYCHAIN -> {
                 val validators = getValidators(lifecycle)
                 val selectedValidator = validators.find { it.address == address } ?: error("cannot find validator")
                 if (selectedValidator.prefs?.blocked == true) return Result.failure(BlockedValidatorException)
@@ -137,7 +136,7 @@ class SearchCustomBlockProducerInteractor(
                 setupStakingProcess.setCustomValidators(selectedValidators.toList())
                 return Result.success(Unit)
             }
-            Chain.Asset.StakingType.PARACHAIN -> {
+            Asset.StakingType.PARACHAIN -> {
                 val collators = getCollators(lifecycle)
                 val selectedCollators = collators[address]?.let { listOf(it) } ?: emptyList()
                 setupStakingProcess.setCustomCollators(selectedCollators)
@@ -154,13 +153,13 @@ class SearchCustomBlockProducerInteractor(
     ) {
         val asset = sharedState.assetWithChain.first().asset
         when (asset.staking) {
-            Chain.Asset.StakingType.UNSUPPORTED -> error("Wrong staking type")
-            Chain.Asset.StakingType.RELAYCHAIN -> {
+            Asset.StakingType.UNSUPPORTED -> error("Wrong staking type")
+            Asset.StakingType.RELAYCHAIN -> {
                 val validators = getValidators(lifecycle)
                 val validator = validators.find { it.address == address } ?: error("cannot find validator")
                 openValidatorInfo(validator)
             }
-            Chain.Asset.StakingType.PARACHAIN -> {
+            Asset.StakingType.PARACHAIN -> {
                 val collators = getCollators(lifecycle)
                 val collator = collators[address] ?: error("cannot find collator")
                 openCollatorInfo(collator)
@@ -171,11 +170,11 @@ class SearchCustomBlockProducerInteractor(
     suspend fun getIcon(address: String, sizeInDp: Int): PictureDrawable {
         val asset = sharedState.assetWithChain.first().asset
         return when (asset.staking) {
-            Chain.Asset.StakingType.UNSUPPORTED -> error("Wrong staking type")
-            Chain.Asset.StakingType.RELAYCHAIN -> {
+            Asset.StakingType.UNSUPPORTED -> error("Wrong staking type")
+            Asset.StakingType.RELAYCHAIN -> {
                 addressIconGenerator.createAddressIcon(address, sizeInDp)
             }
-            Chain.Asset.StakingType.PARACHAIN -> {
+            Asset.StakingType.PARACHAIN -> {
                 addressIconGenerator.createEthereumAddressIcon(address.requireHexPrefix(), sizeInDp)
             }
         }

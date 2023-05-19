@@ -19,9 +19,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
 import jp.co.soramitsu.common.R
-import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.theme.black05
-import jp.co.soramitsu.common.compose.theme.colorAccent
+import jp.co.soramitsu.common.compose.theme.borderGradientColors
 import jp.co.soramitsu.common.compose.theme.gray2
 import jp.co.soramitsu.common.compose.theme.white24
 import jp.co.soramitsu.common.utils.clickableWithNoIndication
@@ -44,16 +43,16 @@ fun WalletItem(
     onSelected: (WalletItemViewState) -> Unit
 ) {
     val borderColor = if (state.isSelected) {
-        colorAccent
+        borderGradientColors
     } else {
-        white24
+        listOf(white24)
     }
 
-    BackgroundCorneredWithBorder(
+    BackgroundCorneredWithGradientBorder(
         modifier = Modifier
             .fillMaxWidth()
             .clickableWithNoIndication { onSelected(state) },
-        borderColor = borderColor,
+        borderColors = borderColor,
         backgroundColor = black05
     ) {
         Row(
@@ -141,9 +140,14 @@ private fun WalletItemPreview() {
         changeBalanceViewState = changeBalanceViewState
     )
 
-    FearlessTheme {
+    Column {
         WalletItem(
             state = state,
+            onOptionsClick = {},
+            onSelected = {}
+        )
+        WalletItem(
+            state = state.copy(isSelected = false),
             onOptionsClick = {},
             onSelected = {}
         )

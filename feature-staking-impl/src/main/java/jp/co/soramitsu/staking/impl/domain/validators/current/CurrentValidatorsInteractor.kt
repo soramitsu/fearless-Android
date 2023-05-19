@@ -2,9 +2,9 @@ package jp.co.soramitsu.staking.impl.domain.validators.current
 
 import jp.co.soramitsu.common.list.GroupedList
 import jp.co.soramitsu.common.list.emptyGroupedList
-import jp.co.soramitsu.fearless_utils.extensions.toHexString
-import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.shared_utils.extensions.toHexString
+import jp.co.soramitsu.shared_utils.runtime.AccountId
 import jp.co.soramitsu.staking.api.domain.model.IndividualExposure
 import jp.co.soramitsu.staking.api.domain.model.NominatedValidator
 import jp.co.soramitsu.staking.api.domain.model.NominatedValidator.Status
@@ -16,10 +16,10 @@ import jp.co.soramitsu.staking.impl.domain.validators.ValidatorProvider
 import jp.co.soramitsu.staking.impl.domain.validators.ValidatorSource
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenarioRepository
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.getActiveElectedValidatorsExposures
-import kotlin.reflect.KClass
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlin.reflect.KClass
 
 class CurrentValidatorsInteractor(
     private val stakingRepository: StakingRelayChainScenarioRepository,

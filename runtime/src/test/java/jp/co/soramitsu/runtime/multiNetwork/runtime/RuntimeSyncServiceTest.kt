@@ -3,15 +3,16 @@ package jp.co.soramitsu.runtime.multiNetwork.runtime
 import com.google.gson.Gson
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.utils.md5
+import jp.co.soramitsu.core.runtime.ChainConnection
 import jp.co.soramitsu.coredb.dao.ChainDao
 import jp.co.soramitsu.coredb.model.chain.ChainRuntimeInfoLocal
-import jp.co.soramitsu.fearless_utils.runtime.metadata.GetMetadataRequest
-import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
-import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.RuntimeRequest
-import jp.co.soramitsu.fearless_utils.wsrpc.response.RpcResponse
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
-import jp.co.soramitsu.runtime.multiNetwork.connection.ChainConnection
+import jp.co.soramitsu.runtime.multiNetwork.connection.ConnectionPool
 import jp.co.soramitsu.runtime.multiNetwork.runtime.types.TypesFetcher
+import jp.co.soramitsu.shared_utils.runtime.metadata.GetMetadataRequest
+import jp.co.soramitsu.shared_utils.wsrpc.SocketService
+import jp.co.soramitsu.shared_utils.wsrpc.request.runtime.RuntimeRequest
+import jp.co.soramitsu.shared_utils.wsrpc.response.RpcResponse
 import jp.co.soramitsu.testshared.any
 import jp.co.soramitsu.testshared.eq
 import jp.co.soramitsu.testshared.whenever
@@ -45,6 +46,9 @@ class RuntimeSyncServiceTest {
     private lateinit var socket: SocketService
 
     @Mock
+    private lateinit var connectionPool: ConnectionPool
+
+    @Mock
     private lateinit var testConnection: ChainConnection
 
     @Mock
@@ -69,19 +73,19 @@ class RuntimeSyncServiceTest {
         socketAnswersRequest(GetMetadataRequest, "Stub")
 
 
-        service = RuntimeSyncService(typesFetcher, runtimeFilesCache, chainDao, 15, updatesMixin)
+        service = RuntimeSyncService(typesFetcher, runtimeFilesCache, chainDao, 15, updatesMixin, connectionPool)
     }
 
     @Test
     fun `should not start syncing new chain`() {
-        service.registerChain(chain = testChain, connection = testConnection)
+        service.registerChain(chain = testChain)
 
         assertFalse(service.isSyncing(testChain.id))
     }
 
     @Test
     fun `should start syncing on runtime version apply`() {
-        service.registerChain(chain = testChain, connection = testConnection)
+        service.registerChain(chain = testChain)
 
         service.applyRuntimeVersion(testChain.id)
 
@@ -93,14 +97,14 @@ class RuntimeSyncServiceTest {
         runBlocking {
             chainDaoReturnsUnsyncedRuntimeInfo()
 
-            service.registerChain(chain = testChain, connection = testConnection)
+            service.registerChain(chain = testChain)
             service.applyRuntimeVersion(testChain.id)
 
             service.awaitSync(testChain.id)
 
             assertFalse("isSyncing returns false after sync is finished", service.isSyncing(testChain.id))
 
-            service.registerChain(chain = testChain, connection = testConnection)
+            service.registerChain(chain = testChain)
 
             assertFalse(service.isSyncing(testChain.id))
         }
@@ -113,9 +117,8 @@ class RuntimeSyncServiceTest {
 
             val newChain = Mockito.mock(Chain::class.java)
             whenever(newChain.id).thenAnswer { testChain.id }
-            whenever(newChain.types).thenReturn(Chain.Types(url = "Changed", overridesCommon = false))
 
-            service.registerChain(chain = testChain, connection = testConnection)
+            service.registerChain(chain = testChain)
             service.applyRuntimeVersion(testChain.id)
 
             service.awaitSync(testChain.id)
@@ -127,7 +130,7 @@ class RuntimeSyncServiceTest {
             val syncResultFlow = service.syncResultFlow(testChain.id)
                 .shareIn(GlobalScope, started = SharingStarted.Eagerly, replay = 1)
 
-            service.registerChain(chain = newChain, connection = testConnection)
+            service.registerChain(chain = newChain)
 
             assertTrue(service.isSyncing(testChain.id))
 
@@ -142,9 +145,7 @@ class RuntimeSyncServiceTest {
         runBlocking {
             chainDaoReturnsSyncedRuntimeInfo()
 
-            whenever(testChain.types).thenReturn(Chain.Types("Stub", overridesCommon = false))
-
-            service.registerChain(chain = testChain, connection = testConnection)
+            service.registerChain(chain = testChain)
             service.applyRuntimeVersion(testChain.id)
 
             val result = service.awaitSync(testChain.id)
@@ -158,7 +159,7 @@ class RuntimeSyncServiceTest {
         runBlocking {
             chainDaoReturnsUnsyncedRuntimeInfo()
 
-            service.registerChain(chain = testChain, connection = testConnection)
+            service.registerChain(chain = testChain)
             service.applyRuntimeVersion(testChain.id)
 
             val result = service.awaitSync(testChain.id)
@@ -172,7 +173,7 @@ class RuntimeSyncServiceTest {
         runBlocking {
             chainDaoReturnsUnsyncedRuntimeInfo()
 
-            service.registerChain(chain = testChain, connection = testConnection)
+            service.registerChain(chain = testChain)
             service.applyRuntimeVersion(testChain.id)
 
             assertTrue(service.isSyncing(testChain.id))
@@ -188,8 +189,7 @@ class RuntimeSyncServiceTest {
         runBlocking {
             chainDaoReturnsUnsyncedRuntimeInfo()
 
-            whenever(testChain.types).thenReturn(Chain.Types("testUrl", overridesCommon = false))
-            service.registerChain(chain = testChain, connection = testConnection)
+            service.registerChain(chain = testChain)
             service.applyRuntimeVersion(testChain.id)
 
             val result = service.awaitSync(testChain.id)
@@ -203,8 +203,7 @@ class RuntimeSyncServiceTest {
         runBlocking {
             chainDaoReturnsUnsyncedRuntimeInfo()
 
-            whenever(testChain.types).thenReturn(Chain.Types("testUrl", overridesCommon = false))
-            service.registerChain(chain = testChain, connection = testConnection)
+            service.registerChain(chain = testChain)
             service.applyRuntimeVersion(testChain.id)
 
             val syncResult = service.awaitSync(testChain.id)
@@ -218,8 +217,7 @@ class RuntimeSyncServiceTest {
         runBlocking {
             chainDaoReturnsSyncedRuntimeInfo()
 
-            whenever(testChain.types).thenReturn(Chain.Types("testUrl", overridesCommon = false))
-            service.registerChain(chain = testChain, connection = testConnection)
+            service.registerChain(chain = testChain)
             service.applyRuntimeVersion(testChain.id)
 
             val syncResult = service.awaitSync(testChain.id)

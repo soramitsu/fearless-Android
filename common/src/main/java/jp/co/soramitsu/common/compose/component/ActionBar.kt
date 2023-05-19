@@ -31,6 +31,7 @@ enum class ActionItemType(
     TELEPORT(R.drawable.ic_common_teleport, R.string.common_action_teleport),
     HIDE(R.drawable.ic_common_hide, R.string.common_action_hide),
     SHOW(R.drawable.ic_common_hide, R.string.common_action_show),
+    CROSS_CHAIN(R.drawable.ic_common_cross_chain, R.string.common_action_cross_chain),
     BUY(R.drawable.ic_common_buy, R.string.common_action_buy),
     SWAP(R.drawable.ic_exchange, R.string.common_action_swap)
 }

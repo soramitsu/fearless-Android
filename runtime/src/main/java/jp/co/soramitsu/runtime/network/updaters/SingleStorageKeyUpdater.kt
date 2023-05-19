@@ -7,9 +7,9 @@ import jp.co.soramitsu.core.storage.StorageCache
 import jp.co.soramitsu.core.updater.SubscriptionBuilder
 import jp.co.soramitsu.core.updater.UpdateScope
 import jp.co.soramitsu.core.updater.Updater
-import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.getRuntime
+import jp.co.soramitsu.shared_utils.runtime.RuntimeSnapshot
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.map

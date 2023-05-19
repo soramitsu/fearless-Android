@@ -23,7 +23,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusState
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -31,7 +30,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import jp.co.soramitsu.common.compose.component.AccentButton
+import jp.co.soramitsu.common.compose.component.AccentDarkDisabledButton
 import jp.co.soramitsu.common.compose.component.AddressInput
 import jp.co.soramitsu.common.compose.component.AddressInputState
 import jp.co.soramitsu.common.compose.component.AmountInput
@@ -57,6 +56,7 @@ import jp.co.soramitsu.common.compose.theme.black05
 import jp.co.soramitsu.common.compose.theme.colorAccentDark
 import jp.co.soramitsu.common.compose.theme.white24
 import jp.co.soramitsu.feature_wallet_impl.R
+import java.math.BigDecimal
 
 data class SendSetupViewState(
     val toolbarState: ToolbarViewState,
@@ -72,14 +72,14 @@ interface SendSetupScreenInterface {
     fun onNavigationClick()
     fun onAddressInput(input: String)
     fun onAddressInputClear()
-    fun onAmountInput(input: String)
+    fun onAmountInput(input: BigDecimal?)
     fun onChainClick()
     fun onTokenClick()
     fun onNextClick()
     fun onQrClick()
     fun onHistoryClick()
     fun onPasteClick()
-    fun onAmountFocusChanged(focusState: FocusState)
+    fun onAmountFocusChanged(isFocused: Boolean)
     fun onQuickAmountInput(input: Double)
     fun onWarningInfoClick()
 }
@@ -150,7 +150,7 @@ fun SendSetupContent(
                     item { Badge(R.drawable.ic_copy_16, R.string.chip_paste, callback::onPasteClick) }
                 }
                 MarginVertical(margin = 12.dp)
-                AccentButton(
+                AccentDarkDisabledButton(
                     state = state.buttonState,
                     onClick = {
                         keyboardController?.hide()
@@ -210,9 +210,10 @@ private fun SendSetupPreview() {
             "",
             "1003 KSM",
             "$170000",
-            "0,980",
+            BigDecimal("0.980"),
             "Amount",
-            allowAssetChoose = true
+            allowAssetChoose = true,
+            initial = null
         ),
         chainSelectorState = SelectorState("Network", null, null),
         feeInfoState = FeeInfoViewState.default,
@@ -224,14 +225,14 @@ private fun SendSetupPreview() {
         override fun onNavigationClick() {}
         override fun onAddressInput(input: String) {}
         override fun onAddressInputClear() {}
-        override fun onAmountInput(input: String) {}
+        override fun onAmountInput(input: BigDecimal?) {}
         override fun onChainClick() {}
         override fun onTokenClick() {}
         override fun onNextClick() {}
         override fun onQrClick() {}
         override fun onHistoryClick() {}
         override fun onPasteClick() {}
-        override fun onAmountFocusChanged(focusState: FocusState) {}
+        override fun onAmountFocusChanged(isFocused: Boolean) {}
         override fun onQuickAmountInput(input: Double) {}
         override fun onWarningInfoClick() {}
     }

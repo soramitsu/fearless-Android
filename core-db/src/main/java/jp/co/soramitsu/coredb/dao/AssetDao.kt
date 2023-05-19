@@ -8,7 +8,7 @@ import androidx.room.Update
 import jp.co.soramitsu.coredb.model.AssetLocal
 import jp.co.soramitsu.coredb.model.AssetUpdateItem
 import jp.co.soramitsu.coredb.model.AssetWithToken
-import jp.co.soramitsu.fearless_utils.runtime.AccountId
+import jp.co.soramitsu.shared_utils.runtime.AccountId
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull

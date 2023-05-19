@@ -6,7 +6,7 @@ import jp.co.soramitsu.core.model.SecuritySource
 import jp.co.soramitsu.core.model.WithDerivationPath
 import jp.co.soramitsu.core.model.WithMnemonic
 import jp.co.soramitsu.core.model.WithSeed
-import jp.co.soramitsu.fearless_utils.encrypt.keypair.substrate.Sr25519Keypair
+import jp.co.soramitsu.shared_utils.encrypt.keypair.substrate.Sr25519Keypair
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 

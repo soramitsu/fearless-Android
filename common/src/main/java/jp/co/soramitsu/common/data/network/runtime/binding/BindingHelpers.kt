@@ -1,13 +1,13 @@
 package jp.co.soramitsu.common.data.network.runtime.binding
 
-import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
-import jp.co.soramitsu.fearless_utils.runtime.definitions.types.Type
-import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.Struct
-import jp.co.soramitsu.fearless_utils.runtime.definitions.types.fromHexOrNull
-import jp.co.soramitsu.fearless_utils.runtime.metadata.RuntimeMetadata
-import jp.co.soramitsu.fearless_utils.runtime.metadata.module
-import jp.co.soramitsu.fearless_utils.runtime.metadata.module.StorageEntry
-import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
+import jp.co.soramitsu.shared_utils.runtime.RuntimeSnapshot
+import jp.co.soramitsu.shared_utils.runtime.definitions.types.Type
+import jp.co.soramitsu.shared_utils.runtime.definitions.types.composite.Struct
+import jp.co.soramitsu.shared_utils.runtime.definitions.types.fromHexOrNull
+import jp.co.soramitsu.shared_utils.runtime.metadata.RuntimeMetadata
+import jp.co.soramitsu.shared_utils.runtime.metadata.module
+import jp.co.soramitsu.shared_utils.runtime.metadata.module.StorageEntry
+import jp.co.soramitsu.shared_utils.runtime.metadata.storage
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
 

@@ -51,6 +51,8 @@ dependencies {
     implementation project(':feature-account-api')
     implementation project(':feature-staking-api')
     implementation project(':feature-wallet-api')
+    implementation project(':feature-soracard-api')
+    implementation project(':feature-soracard-impl')
     implementation kotlinDep
 
     implementation androidDep
@@ -65,8 +67,6 @@ dependencies {
     implementation zXingEmbeddedDep
 
     implementation bouncyCastleDep
-
-    implementation fearlessLibDep
 
     implementation coroutinesDep
     implementation coroutinesAndroidDep
@@ -94,6 +94,8 @@ dependencies {
     testImplementation mockitoDep
 
     implementation gsonDep
+
+    implementation soraCardDep, withoutBouncycastle
 
     api sharedFeaturesCoreDep
 }

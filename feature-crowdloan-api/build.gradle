@@ -32,8 +32,6 @@ dependencies {
 
     implementation daggerDep
 
-    implementation fearlessLibDep
-
     implementation androidDep
 
     api project(':core-api')

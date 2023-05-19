@@ -18,12 +18,44 @@ Track features development: [board link](https://soramitsucoltd.aha.io/shared/34
 
 To build Fearless Wallet Android project, you need to provide several keys either in enviroment variables or in `local.properties` file:
 
-``` properties
+### Moonpay properties
+``` 
 MOONPAY_TEST_SECRET=stub
 MOONPAY_PRODUCTION_SECRET=stub
 ```
-
 Note, that with stub keys buy via moonpay will not work correctly. However, other parts of application will not be affected.
+
+### Sora CARD SDK
+
+For starting Sora CARD SDK initial data have to be provided via gradle properties due to security purpose.
+
+````
+// PayWings repo credentials properties for getting artifacts
+PAY_WINGS_REPOSITORY_URL
+PAY_WINGS_USERNAME
+PAY_WINGS_PASSWORD
+
+// Sora CARD API key
+SORA_CARD_API_KEY
+SORA_CARD_DOMAIN
+
+// Sora CARD KYC credentials
+SORA_CARD_KYC_ENDPOINT_URL
+SORA_CARD_KYC_USERNAME
+SORA_CARD_KYC_PASSWORD
+````
+
+### X1 plugin
+
+X1 is a plugin which is embedded into webView. It requires url and id for launching.
+
+````
+X1_ENDPOINT_URL_RELEASE
+X1_WIDGET_ID_RELEASE
+
+X1_ENDPOINT_URL_DEBUG
+X1_WIDGET_ID_DEBUG
+````
 
 ## License
 Fearless Wallet Android is available under the Apache 2.0 license. See the LICENSE file for more info.

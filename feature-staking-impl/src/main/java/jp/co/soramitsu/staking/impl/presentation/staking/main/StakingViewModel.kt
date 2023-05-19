@@ -18,7 +18,6 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.childScope
 import jp.co.soramitsu.common.utils.formatAsPercentage
-import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.withLoading
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.core.updater.UpdateSystem
@@ -66,6 +65,7 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
@@ -73,6 +73,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
 import javax.inject.Inject
 import javax.inject.Named
 
@@ -156,7 +157,7 @@ class StakingViewModel @Inject constructor(
     )
 
     private val stakingViewState: SharedFlow<StakingViewState?> = scenarioViewModelFlow
-        .flatMapLatest {
+        .flatMapConcat {
             it.getStakingViewStateFlow()
         }.distinctUntilChanged().stateIn(scope = stakingStateScope, started = SharingStarted.Eagerly, initialValue = null)
 
@@ -213,7 +214,7 @@ class StakingViewModel @Inject constructor(
         .share()
 
     val stories = scenarioViewModelFlow
-        .flatMapLatest { viewModel ->
+        .flatMapConcat { viewModel ->
             viewModel.stakingStoriesFlow().map { it.map(::transformStories) }
         }.distinctUntilChanged().shareIn(stakingStateScope, started = SharingStarted.Eagerly, replay = 1)
 
@@ -230,7 +231,7 @@ class StakingViewModel @Inject constructor(
     }
 
     fun avatarClicked() {
-        router.openChangeAccountFromStaking()
+        router.openSelectWallet()
     }
 
     override fun openCurrentValidators() {
@@ -308,7 +309,8 @@ class StakingViewModel @Inject constructor(
     fun onEstimatedEarningsInfoClick() {
         launch {
             val chainId = interactor.getSelectedChain().id
-            val rewardCalculator = rewardCalculatorFactory.createManual(chainId)
+            val asset = stakingSharedState.currentAssetFlow().first()
+            val rewardCalculator = rewardCalculatorFactory.create(asset.token.configuration)
 
             val maxAPY = rewardCalculator.calculateMaxAPY(chainId)
             val avgAPY = rewardCalculator.calculateAvgAPY()
@@ -324,9 +326,9 @@ class StakingViewModel @Inject constructor(
         }
     }
 
-    fun onPoolsAmountInput(amount: String) {
+    fun onPoolsAmountInput(amount: BigDecimal?) {
         viewModelScope.launch {
-            scenarioViewModelFlow.first().enteredAmountFlow.emit(amount.replace(',', '.'))
+            scenarioViewModelFlow.first().enteredAmountFlow.emit(amount)
         }
     }
 
@@ -336,10 +338,9 @@ class StakingViewModel @Inject constructor(
         val meta = interactor.getCurrentMetaAccount()
         val address = requireNotNull(meta.address(chain))
         val amount = scenarioViewModelFlow.first().enteredAmountFlow.value
-        val amountDecimal = amount.toBigDecimalOrNull().orZero()
 
         stakingPoolSharedStateProvider.mainState.mutate {
-            StakingPoolState(asset = asset, chain = chain, chainAsset = chainAsset, address = address, amount = amountDecimal)
+            StakingPoolState(asset = asset, chain = chain, chainAsset = chainAsset, address = address, amount = amount)
         }
     }
 

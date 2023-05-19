@@ -110,7 +110,7 @@ fun SuccessContent(
                     onItemClick = callback::onItemClick
                 )
                 if (state.isShowSubscanButtons) {
-                    MarginVertical(margin = 24.dp)
+                    MarginVertical(margin = 16.dp)
                     Row {
                         GrayButton(
                             text = Chain.Explorer.Type.SUBSCAN.capitalizedName,
