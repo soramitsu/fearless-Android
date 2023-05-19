@@ -3,7 +3,7 @@ apply from: './scripts/secrets.gradle'
 buildscript {
     ext {
         // App version
-        versionName = '2.2.1'
+        versionName = '2.2.3'
         versionCode = 89
 
         // SDK and tools
