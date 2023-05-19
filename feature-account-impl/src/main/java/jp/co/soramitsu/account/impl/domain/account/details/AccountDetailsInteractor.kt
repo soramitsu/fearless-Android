@@ -13,11 +13,11 @@ import jp.co.soramitsu.common.list.GroupedList
 import jp.co.soramitsu.common.model.AssetKey
 import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.coredb.dao.emptyAccountIdValue
-import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.isPolkadotOrKusama
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.defaultChainSort
+import jp.co.soramitsu.shared_utils.scale.EncodableStruct
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
@@ -50,6 +50,7 @@ class AccountDetailsInteractor(
                     createAccountInChain(metaAccount, chain, markedNotNeed)
                 }
             }
+                .distinctBy { it.from to it.chain.id to it.projection?.address }
                 .groupBy(AccountInChain::from)
                 .toSortedMap(compareBy { it.name })
         }
@@ -86,6 +87,6 @@ class AccountDetailsInteractor(
         return accountRepository.getChainAccountSecrets(metaId, chainId)
     }
 
-    private fun chainSort() = compareByDescending<Chain> { it.id.isPolkadotOrKusama() }
+    private fun chainSort() = compareBy<Chain> { it.id.defaultChainSort() }
         .thenBy { it.name }
 }

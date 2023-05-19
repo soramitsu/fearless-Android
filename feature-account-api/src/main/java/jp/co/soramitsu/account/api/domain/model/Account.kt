@@ -1,7 +1,7 @@
 package jp.co.soramitsu.account.api.domain.model
 
-import jp.co.soramitsu.core.model.CryptoType
-import jp.co.soramitsu.fearless_utils.extensions.fromHex
+import jp.co.soramitsu.core.models.CryptoType
+import jp.co.soramitsu.shared_utils.extensions.fromHex
 
 data class Account(
     val address: String,

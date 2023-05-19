@@ -3,6 +3,7 @@ package jp.co.soramitsu.common.compose.component
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.MaterialTheme
@@ -20,22 +21,44 @@ import jp.co.soramitsu.common.compose.theme.bold
 import jp.co.soramitsu.common.compose.theme.customTypography
 import jp.co.soramitsu.common.compose.theme.greenText
 import jp.co.soramitsu.common.utils.clickableWithNoIndication
+import jp.co.soramitsu.common.utils.formatting.shortenAddress
 
 @Composable
 fun InfoTableItem(state: TitleValueViewState, onClick: (Int) -> Unit = {}) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(12.dp)
+            .heightIn(min = 55.dp)
+            .padding(vertical = 6.dp, horizontal = 16.dp)
     ) {
-        H5(
-            text = state.title,
+        val titleClickModifier = if (state.value != null && (state.clickState as? TitleValueViewState.ClickState.Title) != null) {
+            Modifier.clickableWithNoIndication { onClick(state.clickState.identifier) }
+        } else {
+            Modifier
+        }
+        Row(
             modifier = Modifier
                 .align(Alignment.CenterVertically)
-                .weight(1f),
-            color = black2
-        )
-        val clickModifier = if (state.value != null && state.clickState != null) {
+                .weight(1f)
+                .then(titleClickModifier)
+        ) {
+            H5(
+                text = state.title,
+                modifier = Modifier.align(Alignment.CenterVertically),
+                color = black2
+            )
+            (state.clickState as? TitleValueViewState.ClickState.Title)?.let {
+                Image(
+                    res = it.icon,
+                    modifier = Modifier
+                        .padding(vertical = 8.dp)
+                        .padding(start = 8.dp)
+                        .align(Alignment.CenterVertically)
+                        .clickableWithNoIndication { onClick(state.clickState.identifier) }
+                )
+            }
+        }
+        val valueClickModifier = if (state.value != null && (state.clickState as? TitleValueViewState.ClickState.Value) != null) {
             Modifier.clickableWithNoIndication { onClick(state.clickState.identifier) }
         } else {
             Modifier
@@ -44,7 +67,7 @@ fun InfoTableItem(state: TitleValueViewState, onClick: (Int) -> Unit = {}) {
             modifier = Modifier
                 .weight(1f)
                 .align(Alignment.CenterVertically)
-                .then(clickModifier)
+                .then(valueClickModifier)
         ) {
             Column(
                 modifier = Modifier
@@ -67,13 +90,8 @@ fun InfoTableItem(state: TitleValueViewState, onClick: (Int) -> Unit = {}) {
                 )
 
                 state.additionalValue?.let {
-                    val text = if (it.length > 20) {
-                        "${it.take(5)}...${it.takeLast(5)}"
-                    } else {
-                        it
-                    }
                     B1(
-                        text = text,
+                        text = it.shortenAddress(),
                         color = black2,
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.align(Alignment.End),
@@ -82,7 +100,7 @@ fun InfoTableItem(state: TitleValueViewState, onClick: (Int) -> Unit = {}) {
                 }
             }
         }
-        state.clickState?.let {
+        (state.clickState as? TitleValueViewState.ClickState.Value)?.let {
             Image(
                 res = it.icon,
                 modifier = Modifier
@@ -118,7 +136,7 @@ private fun InfoTableItemPreview() {
                     "From",
                     null,
                     null,
-                    clickState = TitleValueViewState.ClickState(R.drawable.ic_info_14, 1)
+                    clickState = TitleValueViewState.ClickState.Value(R.drawable.ic_info_14, 1)
                 )
             )
             InfoTableItem(
@@ -127,7 +145,7 @@ private fun InfoTableItemPreview() {
                     "8484834",
                     null,
                     greenText,
-                    clickState = TitleValueViewState.ClickState(R.drawable.ic_info_14, 1)
+                    clickState = TitleValueViewState.ClickState.Value(R.drawable.ic_info_14, 1)
                 )
             )
             InfoTableItem(
@@ -135,7 +153,7 @@ private fun InfoTableItemPreview() {
                     "From",
                     "8484834",
                     "sd434f34f3wf434f34f34f34f34f",
-                    clickState = TitleValueViewState.ClickState(R.drawable.ic_info_14, 1)
+                    clickState = TitleValueViewState.ClickState.Title(R.drawable.ic_info_14, 1)
                 )
             )
             InfoTableItem(
@@ -143,7 +161,7 @@ private fun InfoTableItemPreview() {
                     "From",
                     "84848348484834848483484848348484834848483484848348484834848483484848348484834848483484848348484834",
                     "sd434f34f3wf434f34f34f34f34f",
-                    clickState = TitleValueViewState.ClickState(R.drawable.ic_info_14, 1)
+                    clickState = TitleValueViewState.ClickState.Value(R.drawable.ic_info_14, 1)
                 )
             )
         }

@@ -1,14 +1,14 @@
 package jp.co.soramitsu.staking.impl.data.network.blockhain.calls
 
-import java.math.BigInteger
-import jp.co.soramitsu.common.data.network.runtime.binding.MultiAddress
-import jp.co.soramitsu.common.data.network.runtime.binding.bindMultiAddress
-import jp.co.soramitsu.fearless_utils.extensions.fromHex
-import jp.co.soramitsu.fearless_utils.runtime.AccountId
-import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.DictEnum
-import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
+import jp.co.soramitsu.core.models.MultiAddress
+import jp.co.soramitsu.core.models.bindMultiAddress
+import jp.co.soramitsu.shared_utils.extensions.fromHex
+import jp.co.soramitsu.shared_utils.runtime.AccountId
+import jp.co.soramitsu.shared_utils.runtime.definitions.types.composite.DictEnum
+import jp.co.soramitsu.shared_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.staking.api.domain.model.RewardDestination
 import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindRewardDestination
+import java.math.BigInteger
 
 fun ExtrinsicBuilder.setController(controllerAddress: MultiAddress): ExtrinsicBuilder {
     return call(
@@ -16,6 +16,16 @@ fun ExtrinsicBuilder.setController(controllerAddress: MultiAddress): ExtrinsicBu
         "set_controller",
         mapOf(
             "controller" to bindMultiAddress(controllerAddress)
+        )
+    )
+}
+
+fun ExtrinsicBuilder.setControllerSora(controllerAccountId: AccountId): ExtrinsicBuilder {
+    return call(
+        "Staking",
+        "set_controller",
+        mapOf(
+            "controller" to controllerAccountId
         )
     )
 }
@@ -42,6 +52,32 @@ fun ExtrinsicBuilder.nominate(targets: List<MultiAddress>): ExtrinsicBuilder {
         "nominate",
         mapOf(
             "targets" to targets.map(::bindMultiAddress)
+        )
+    )
+}
+
+fun ExtrinsicBuilder.bondSora(
+    controllerAddress: AccountId,
+    amount: BigInteger,
+    payee: RewardDestination
+): ExtrinsicBuilder {
+    return call(
+        "Staking",
+        "bond",
+        mapOf(
+            "controller" to controllerAddress,
+            "value" to amount,
+            "payee" to bindRewardDestination(payee)
+        )
+    )
+}
+
+fun ExtrinsicBuilder.nominateSora(targets: List<AccountId>): ExtrinsicBuilder {
+    return call(
+        "Staking",
+        "nominate",
+        mapOf(
+            "targets" to targets
         )
     )
 }
@@ -216,7 +252,22 @@ fun ExtrinsicBuilder.joinPool(amount: BigInteger, poolId: BigInteger): Extrinsic
     )
 }
 
-fun ExtrinsicBuilder.createPool(amount: BigInteger, root: MultiAddress, nominator: MultiAddress, stateToggler: MultiAddress): ExtrinsicBuilder {
+// TODO rename to createPool when polkadot runtime upgrades to 9390
+fun ExtrinsicBuilder.createPoolBouncer(amount: BigInteger, root: MultiAddress, nominator: MultiAddress, stateToggler: MultiAddress): ExtrinsicBuilder {
+    return call(
+        "NominationPools",
+        "create",
+        mapOf(
+            "amount" to amount,
+            "root" to bindMultiAddress(root),
+            "nominator" to bindMultiAddress(nominator),
+            "bouncer" to bindMultiAddress(stateToggler)
+        )
+    )
+}
+
+@Deprecated("Replace with createPoolBouncer when polkadot runtime upgrades to 9390", replaceWith = ReplaceWith("ExtrinsicBuilder.createPoolBouncer"))
+fun ExtrinsicBuilder.createPoolStateToggler(amount: BigInteger, root: MultiAddress, nominator: MultiAddress, stateToggler: MultiAddress): ExtrinsicBuilder {
     return call(
         "NominationPools",
         "create",
@@ -225,19 +276,6 @@ fun ExtrinsicBuilder.createPool(amount: BigInteger, root: MultiAddress, nominato
             "root" to bindMultiAddress(root),
             "nominator" to bindMultiAddress(nominator),
             "state_toggler" to bindMultiAddress(stateToggler)
-        )
-    )
-}
-
-fun ExtrinsicBuilder.createPool(amount: BigInteger, root: AccountId, nominator: AccountId, stateToggler: AccountId): ExtrinsicBuilder {
-    return call(
-        "NominationPools",
-        "create",
-        mapOf(
-            "amount" to amount,
-            "root" to root,
-            "nominator" to nominator,
-            "state_toggler" to stateToggler
         )
     )
 }
@@ -322,7 +360,7 @@ fun ExtrinsicBuilder.bondExtra(amount: BigInteger): ExtrinsicBuilder {
     )
 }
 
-fun ExtrinsicBuilder.updateRoles(
+fun ExtrinsicBuilder.updateRolesStateToggler(
     poolId: BigInteger,
     root: DictEnum.Entry<AccountId?>,
     nominator: DictEnum.Entry<AccountId?>,
@@ -336,6 +374,24 @@ fun ExtrinsicBuilder.updateRoles(
             "new_root" to root,
             "new_nominator" to nominator,
             "new_state_toggler" to stateToggler
+        )
+    )
+}
+
+fun ExtrinsicBuilder.updateRolesBouncer(
+    poolId: BigInteger,
+    root: DictEnum.Entry<AccountId?>,
+    nominator: DictEnum.Entry<AccountId?>,
+    stateToggler: DictEnum.Entry<AccountId?>
+): ExtrinsicBuilder {
+    return call(
+        "NominationPools",
+        "update_roles",
+        mapOf(
+            "pool_id" to poolId,
+            "new_root" to root,
+            "new_nominator" to nominator,
+            "new_bouncer" to stateToggler
         )
     )
 }

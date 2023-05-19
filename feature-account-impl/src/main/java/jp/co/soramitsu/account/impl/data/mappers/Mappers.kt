@@ -1,21 +1,22 @@
 package jp.co.soramitsu.account.impl.data.mappers
 
-import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.core.model.CryptoType
-import jp.co.soramitsu.coredb.model.chain.ChainAccountLocal
-import jp.co.soramitsu.coredb.model.chain.JoinedMetaAccountInfo
-import jp.co.soramitsu.coredb.model.chain.MetaAccountLocal
-import jp.co.soramitsu.fearless_utils.extensions.toHexString
-import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.account.api.domain.model.Account
 import jp.co.soramitsu.account.api.domain.model.LightMetaAccount
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.account.impl.presentation.node.model.NodeModel
 import jp.co.soramitsu.account.impl.presentation.view.advanced.encryption.model.CryptoTypeModel
+import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.core.models.ChainNode
+import jp.co.soramitsu.core.models.CryptoType
+import jp.co.soramitsu.coredb.model.chain.ChainAccountLocal
+import jp.co.soramitsu.coredb.model.chain.JoinedMetaAccountInfo
+import jp.co.soramitsu.coredb.model.chain.MetaAccountLocal
+import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.runtime.ext.hexAccountIdOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.shared_utils.extensions.toHexString
 
 fun mapCryptoTypeToCryptoTypeModel(
     resourceManager: ResourceManager,
@@ -23,26 +24,26 @@ fun mapCryptoTypeToCryptoTypeModel(
 ): CryptoTypeModel {
     val name = when (encryptionType) {
         CryptoType.SR25519 -> "${resourceManager.getString(R.string.sr25519_selection_title)} ${
-        resourceManager.getString(
-            R.string.sr25519_selection_subtitle
-        )
+            resourceManager.getString(
+                R.string.sr25519_selection_subtitle
+            )
         }"
         CryptoType.ED25519 -> "${resourceManager.getString(R.string.ed25519_selection_title)} ${
-        resourceManager.getString(
-            R.string.ed25519_selection_subtitle
-        )
+            resourceManager.getString(
+                R.string.ed25519_selection_subtitle
+            )
         }"
         CryptoType.ECDSA -> "${resourceManager.getString(R.string.ecdsa_selection_title)} ${
-        resourceManager.getString(
-            R.string.ecdsa_selection_subtitle
-        )
+            resourceManager.getString(
+                R.string.ecdsa_selection_subtitle
+            )
         }"
     }
 
     return CryptoTypeModel(name, encryptionType)
 }
 
-fun mapNodeToNodeModel(node: Chain.Node): NodeModel {
+fun mapNodeToNodeModel(node: ChainNode): NodeModel {
     return with(node) {
         NodeModel(
             name = name,

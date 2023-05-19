@@ -4,10 +4,6 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.util.Date
-import java.util.Timer
-import java.util.TimerTask
-import javax.inject.Inject
 import jp.co.soramitsu.app.R
 import jp.co.soramitsu.app.root.domain.RootInteractor
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -15,22 +11,26 @@ import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
 import jp.co.soramitsu.common.mixin.api.NetworkStateUi
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
+import jp.co.soramitsu.core.runtime.ChainConnection
 import jp.co.soramitsu.core.updater.Updater
-import jp.co.soramitsu.runtime.multiNetwork.connection.ChainConnection.ExternalRequirement
-import kotlin.concurrent.timerTask
-import kotlin.time.DurationUnit
-import kotlin.time.toDuration
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import java.util.Date
+import java.util.Timer
+import java.util.TimerTask
+import javax.inject.Inject
+import kotlin.concurrent.timerTask
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
 
 @HiltViewModel
 class RootViewModel @Inject constructor(
     private val interactor: RootInteractor,
     private val rootRouter: RootRouter,
-    private val externalConnectionRequirementFlow: MutableStateFlow<ExternalRequirement>,
+    private val externalConnectionRequirementFlow: MutableStateFlow<ChainConnection.ExternalRequirement>,
     private val resourceManager: ResourceManager,
     private val networkStateMixin: NetworkStateMixin
 ) : BaseViewModel(), NetworkStateUi by networkStateMixin {
@@ -105,19 +105,19 @@ class RootViewModel @Inject constructor(
     override fun onCleared() {
         super.onCleared()
 
-        externalConnectionRequirementFlow.value = ExternalRequirement.FORBIDDEN
+        externalConnectionRequirementFlow.value = ChainConnection.ExternalRequirement.FORBIDDEN
     }
 
     fun noticeInBackground() {
         if (!willBeClearedForLanguageChange) {
-            externalConnectionRequirementFlow.value = ExternalRequirement.STOPPED
+            externalConnectionRequirementFlow.value = ChainConnection.ExternalRequirement.STOPPED
         }
         timeInBackground = Date()
     }
 
     fun noticeInForeground() {
-        if (externalConnectionRequirementFlow.value == ExternalRequirement.STOPPED) {
-            externalConnectionRequirementFlow.value = ExternalRequirement.ALLOWED
+        if (externalConnectionRequirementFlow.value == ChainConnection.ExternalRequirement.STOPPED) {
+            externalConnectionRequirementFlow.value = ChainConnection.ExternalRequirement.ALLOWED
         }
         timeInBackground?.let {
             if (idleTimePassedFrom(it)) {

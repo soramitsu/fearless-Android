@@ -23,6 +23,7 @@ Terms and Conditions and Privacy Policy</string>
 operations\nwill appear here</string>
     <string name="profile_settings_title">Settings</string>
     <string name="profile_language_title">Language</string>
+    <string name="profile_soracard_title">SORA Card</string>
     <string name="about_version">App version</string>
     <string name="about_contact_us">Contact Email</string>
     <string name="about_title">About</string>
@@ -88,7 +89,7 @@ operations\nwill appear here</string>
     <string name="social_media">Social Media</string>
     <string name="support_and_feedback">Support &amp; Feedback</string>
     <string name="about_website">Official Website</string>
-    <string name="about_github">Github Source Code</string>
+    <string name="about_github">GitHub Source Code</string>
     <string name="about_telegram">Join on Telegram</string>
     <string name="common_email_chooser_title">Select email app</string>
     <string name="common_skip_process">Skip process</string>
@@ -328,6 +329,7 @@ Derivation path: %s</string>
     <string name="wallet_filters_header">Show</string>
     <string name="transfer_title">Transfer</string>
     <string name="common_available_format">Available: %s</string>
+    <string name="common_transferable_format">Transferable: %s</string>
     <string name="staking_rewards_learn_more">Learn more about rewards</string>
     <plurals name="staking_payouts_days_left">
         <item quantity="one">%d day left</item>
@@ -451,6 +453,7 @@ Derivation path: %s</string>
     <string name="staking_start_change_validators_recommended_subtitle">Fearless algorithm has select a list of recommended validators based on the criteria:</string>
     <string name="staking_start_change_collators_suggested_subtitle">FEARLESS algorithm has made a list of suggested collators based on the following criteria:</string>
     <string name="common_not_enough_funds_message">Sorry, you don\'t have enough funds to pay the network fee.</string>
+    <string name="common_not_enough_funds_controller_message">Sorry, controller account don\'t have enough funds to pay the network fee.</string>
     <string name="choose_amount_error_too_big">Sorry, you don\'t have enough funds to spend specified amount</string>
     <string name="staking_alert_change_validators_message">Staking is inactive. None of your validators were elected by network.</string>
     <string name="staking_custom_validators_list_title">Select validators</string>
@@ -631,7 +634,6 @@ Please note that this signing transaction will be subject to transaction fees on
     <string name="assetdetails_balance_title">Your balance</string>
     <string name="wallet_send_navigation_title">Send %s</string>
     <string name="profile_wallets_title">Wallets</string>
-    <string name="settings_add_wallet">Add wallet</string>
     <string name="onboarding_create_wallet">Create wallet</string>
     <string name="onboarding_restore_wallet">I already have a wallet</string>
     <string name="import_wallet">Import wallet</string>
@@ -749,6 +751,8 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="import_substrate_recovery">Restore JSON for Substrate accounts</string>
     <string name="import_ethereum_recovery">Restore JSON for ETH-based accounts</string>
     <string name="common_network">Network</string>
+    <string name="common_origin_network">Origin network</string>
+    <string name="common_destination_network">Destination network</string>
 
     <string name="account_import_substrate_raw_seed_placeholder">Substrate accounts raw seed (64 hex symbols)</string>
     <string name="account_import_ethereum_raw_seed_placeholder">ETH accounts raw seed (64 hex symbols)</string>
@@ -867,7 +871,7 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="pool_staking_depositor">Depositor</string>
     <string name="pool_staking_root">Root</string>
     <string name="pool_staking_nominator">Nominator</string>
-    <string name="pool_staking_state_toggler">State toggler</string>
+    <string name="pool_staking_bouncer">Bouncer</string>
     <string name="pool_staking_title">Pool staking</string>
     <string name="common_watch">Watch</string>
     <string name="nft_stub_title">Sumimasen!</string>
@@ -881,9 +885,12 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="common_action_hide">Hide</string>
     <string name="common_action_show">Show</string>
     <string name="common_action_buy">Buy</string>
+    <string name="common_action_cross_chain" translatable="false">Cross-Chain</string>
     <string name="common_action_swap">Swap</string>
 
+    <string name="common_title_cross_chain" translatable="false">Cross-chain</string>
     <string name="common_title_wallet">Wallet</string>
+    <string name="common_title_select_wallet">Select your wallet</string>
     <string name="common_title_wallet_option">Wallet option</string>
     <string name="common_add_new_wallet">Add New Wallet</string>
     <string name="common_import_wallet">Import Wallet</string>
@@ -917,7 +924,6 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="pool_your_total_stake">Your total stake</string>
     <string name="pool_account_for_join">Account for join</string>
     <string name="common_note">Note: </string>
-    <string name="common_middle_dots">%1$s…%2$s</string>
     <string name="pool_staking_unstake_alert">Your pending reward will be payment automatically</string>
     <string name="pool_staking_unstake_error">No redeemable tokens found</string>
     <string name="common_claimable">Claimable</string>
@@ -945,16 +951,17 @@ Remember to make a backup of your key and keep it in a safe and private place (e
 
     <string name="send_fund">Send Fund</string>
     <string name="send_to">Send to</string>
-    <string name="chip_qr">QR сode</string>
+    <string name="chip_qr">Scan QR</string>
     <string name="chip_history">History</string>
     <string name="chip_paste">Paste</string>
+    <string name="chip_my_wallets">My wallets</string>
     <string name="address_not_valid_error_title">Is not network address</string>
     <string name="address_not_valid_error_message">The address format is invalid.\nMake sure that address\nbelongs to the right network</string>
     <string name="transfer_address_not_valid_error_message">According to the address provided you\'re trying to make a transfer on the wrong network.</string>
     <string name="preview">Preview</string>
     <string name="hash">Hash</string>
     <string name="all_done">All Done</string>
-    <string name="send_success_message">You can get back to your activities within the app</string>
+    <string name="return_to_app_message">You can return to the app</string>
     <string name="scam_warning_message">This address has been flagged due to evidence of a scam. We strongly recommend that you don\'t send DOT to this account.</string>
     <string name="exchange_warning_message">This address is marked as an exchange be careful the deposit and withdrawal addresses may different.</string>
     <string name="donation_warning_message">This address has been suspicious. We strongly recommend that you don\'t send DOT to this account.</string>
@@ -1001,6 +1008,8 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="common_min_received">Min received</string>
     <string name="common_liquidity_provider_fee">Liquidity Provider Fee</string>
     <string name="common_network_fee">Network Fee</string>
+    <string name="common_origin_network_fee">Origin network fee</string>
+    <string name="common_destination_network_fee">Destination network fee</string>
     <string name="common_route">Route</string>
 
     <string name="polkaswap_from">From</string>
@@ -1052,5 +1061,32 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="polkaswap_info_switch_text">I confirm that I have read all of the documents mentioned and pressing \"Continue\" I accept them.</string>
 
     <string name="polkaswap_disclaimer_settings_item" translatable="false">Polkaswap disclaimer</string>
+    <string name="settings_hide_zero_balances">Hide zero balances</string>
+
+    <string name="sora_card_title">Top up SORA Card with fiat or crypto and pay online, in-store or withdraw in ATM</string>
+    <string name="sora_card_annual_service_fee">0 € annual service fee</string>
+    <string name="sora_card_description">Get a Euro IBAN account and Mastercard Debit Card connected to your SORA Wallet</string>
+    <string name="sora_card_enable_card_title">Enable card</string>
+    <string name="sora_card_free_card_issuance">Free card issuance</string>
+    <string name="sora_card_free_card_issuance_conditions_xor">If you hold, stake or provide liquidity for at least €100 worth of XOR in your SORA account</string>
+    <string name="sora_card_you_have_enough_xor">You have enough XOR</string>
+    <string name="sora_card_you_need_xor">You need %s XOR (€%s)</string>
+    <string name="sora_card_get_more_xor">Get more XOR</string>
+    <string name="sora_card_swap_or_buy_xor">You can swap for XOR or buy with Euro</string>
+    <string name="sora_card_already_have_card">I already have a card</string>
+    <string name="sora_card_issue_card_for_free">Issue card for free</string>
+    <string name="sora_card_issue_card_for_12_euro">Issue card for 12 €</string>
+    <string name="sora_card_swap_for_xor">Swap crypto for XOR</string>
+    <string name="sora_card_buy_xor">Buy XOR with EUR</string>
+
+    <string name="sora_card_no_more_free_tries">No more free attempts</string>
+    <string name="sora_card_verification_failed">Verification failed</string>
+    <string name="sora_card_verification_in_progress">Verification in progress</string>
+    <string name="sora_card_verification_rejected">Verification rejected</string>
+    <string name="sora_card_verification_successful">Your card is on the way</string>
+    <string name="sora_card_get_sora_card">Get SORA Card</string>
+
+    <string name="sora_card_blacklisted_countires_title">Excluded of application</string>
+    <string name="sora_card_blacklisted_countires_warning"><![CDATA[Residents from <b>certain countries<br>can not apply</b> for SORA Card at this moment<br><a href=\"https://soracard.com/blacklist/\">See the list</a>]]></string>
 
 </resources>

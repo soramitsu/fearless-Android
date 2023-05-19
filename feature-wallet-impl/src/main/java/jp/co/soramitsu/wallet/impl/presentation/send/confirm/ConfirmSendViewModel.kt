@@ -10,6 +10,7 @@ import jp.co.soramitsu.common.AlertViewState
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.address.createAddressModel
+import jp.co.soramitsu.common.utils.formatting.shortenAddress
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.base.errors.ValidationException
 import jp.co.soramitsu.common.base.errors.ValidationWarning
@@ -20,12 +21,13 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.combine
 import jp.co.soramitsu.common.utils.flowOf
+import jp.co.soramitsu.common.utils.formatCryptoDetail
 import jp.co.soramitsu.common.utils.requireException
 import jp.co.soramitsu.common.utils.requireValue
+import jp.co.soramitsu.core.models.Asset
+import jp.co.soramitsu.core.models.utilityAsset
 import jp.co.soramitsu.feature_wallet_impl.R
-import jp.co.soramitsu.runtime.ext.utilityAsset
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
 import jp.co.soramitsu.wallet.api.domain.TransferValidationResult
 import jp.co.soramitsu.wallet.api.domain.ValidateTransferUseCase
@@ -132,36 +134,36 @@ class ConfirmSendViewModel @Inject constructor(
         val isSenderNameSpecified = !sender?.name.isNullOrEmpty()
         val fromInfoItem = TitleValueViewState(
             title = resourceManager.getString(R.string.transaction_details_from),
-            value = if (isSenderNameSpecified) sender?.name else sender?.address?.shorten(),
-            additionalValue = if (isSenderNameSpecified) sender?.address?.shorten() else null
+            value = if (isSenderNameSpecified) sender?.name else sender?.address?.shortenAddress(),
+            additionalValue = if (isSenderNameSpecified) sender?.address?.shortenAddress() else null
         )
 
         val isRecipientNameSpecified = !recipient.name.isNullOrEmpty()
         val toInfoItem = TitleValueViewState(
             title = resourceManager.getString(R.string.choose_amount_to),
-            value = if (isRecipientNameSpecified) recipient.name else recipient.address.shorten(),
-            additionalValue = if (isRecipientNameSpecified) recipient.address.shorten() else null,
-            clickState = phishingType?.let { TitleValueViewState.ClickState(R.drawable.ic_alert_16, ConfirmSendViewState.CODE_WARNING_CLICK) }
+            value = if (isRecipientNameSpecified) recipient.name else recipient.address.shortenAddress(),
+            additionalValue = if (isRecipientNameSpecified) recipient.address.shortenAddress() else null,
+            clickState = phishingType?.let { TitleValueViewState.ClickState.Value(R.drawable.ic_alert_16, ConfirmSendViewState.CODE_WARNING_CLICK) }
         )
 
         val assetModel = mapAssetToAssetModel(asset)
         val amountInfoItem = TitleValueViewState(
             title = resourceManager.getString(R.string.common_amount),
-            value = assetModel.formatTokenAmount(transferDraft.amount),
+            value = transferDraft.amount.formatCryptoDetail(assetModel.token.configuration.symbolToShow),
             additionalValue = assetModel.getAsFiatWithCurrency(transferDraft.amount)
         )
 
         val tipInfoItem = transferDraft.tip?.let {
             TitleValueViewState(
                 title = resourceManager.getString(R.string.choose_amount_tip),
-                value = utilityAsset.formatTokenAmount(transferDraft.tip),
+                value = transferDraft.tip.formatCryptoDetail(utilityAsset.token.configuration.symbolToShow),
                 additionalValue = utilityAsset.getAsFiatWithCurrency(transferDraft.tip)
             )
         }
 
         val feeInfoItem = TitleValueViewState(
             title = resourceManager.getString(R.string.network_fee),
-            value = utilityAsset.formatTokenAmount(transferDraft.fee),
+            value = transferDraft.fee.formatCryptoDetail(utilityAsset.token.configuration.symbolToShow),
             additionalValue = utilityAsset.getAsFiatWithCurrency(transferDraft.fee)
         )
 
@@ -207,7 +209,7 @@ class ConfirmSendViewModel @Inject constructor(
             val recipientAddress = transferDraft.recipientAddress
             val selfAddress = currentAccountAddress(asset.token.configuration.chainId) ?: return@launch
 
-            val validationProcessResult = validateTransferUseCase.validateEd(
+            val validationProcessResult = validateTransferUseCase.validateExistentialDeposit(
                 amountInPlanks = inPlanks,
                 asset = asset,
                 recipientAddress = recipientAddress,
@@ -317,7 +319,7 @@ class ConfirmSendViewModel @Inject constructor(
         return addressIconGenerator.createAddressModel(address, ICON_IN_DP, accountName)
     }
 
-    private fun createTransfer(token: Chain.Asset): Transfer {
+    private fun createTransfer(token: Asset): Transfer {
         return with(transferDraft) {
             Transfer(
                 recipient = recipientAddress,
@@ -326,9 +328,4 @@ class ConfirmSendViewModel @Inject constructor(
             )
         }
     }
-}
-
-private fun String.shorten() = when {
-    length < 20 -> this
-    else -> "${take(5)}...${takeLast(5)}"
 }

@@ -1,21 +1,25 @@
 package jp.co.soramitsu.staking.impl.data.repository
 
-import java.math.BigInteger
 import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
 import jp.co.soramitsu.common.data.network.runtime.binding.BinderWithType
 import jp.co.soramitsu.common.data.network.runtime.binding.returnType
 import jp.co.soramitsu.common.utils.mapValuesNotNull
 import jp.co.soramitsu.common.utils.staking
 import jp.co.soramitsu.core.storage.StorageCache
-import jp.co.soramitsu.fearless_utils.extensions.fromHex
-import jp.co.soramitsu.fearless_utils.extensions.toHexString
-import jp.co.soramitsu.fearless_utils.runtime.AccountId
-import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
-import jp.co.soramitsu.fearless_utils.runtime.metadata.module.StorageEntry
-import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
-import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
-import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
-import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
+import jp.co.soramitsu.runtime.ext.accountIdOf
+import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.runtime.multiNetwork.getService
+import jp.co.soramitsu.shared_utils.extensions.fromHex
+import jp.co.soramitsu.shared_utils.extensions.toHexString
+import jp.co.soramitsu.shared_utils.runtime.AccountId
+import jp.co.soramitsu.shared_utils.runtime.RuntimeSnapshot
+import jp.co.soramitsu.shared_utils.runtime.metadata.module.StorageEntry
+import jp.co.soramitsu.shared_utils.runtime.metadata.storage
+import jp.co.soramitsu.shared_utils.runtime.metadata.storageKey
+import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.toAccountId
+import jp.co.soramitsu.shared_utils.wsrpc.SocketService
 import jp.co.soramitsu.staking.api.domain.model.Exposure
 import jp.co.soramitsu.staking.api.domain.model.StakingLedger
 import jp.co.soramitsu.staking.api.domain.model.StakingState
@@ -30,11 +34,7 @@ import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindValidato
 import jp.co.soramitsu.staking.impl.data.network.subquery.SubQueryValidatorSetFetcher
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenarioRepository
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.historicalEras
-import jp.co.soramitsu.runtime.ext.accountIdOf
-import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
-import jp.co.soramitsu.runtime.multiNetwork.getService
+import java.math.BigInteger
 
 typealias HistoricalMapping<T> = Map<BigInteger, T> // EraIndex -> T
 
@@ -76,11 +76,13 @@ class PayoutRepository(
                     calculateNominatorReward(stakingState.stashId, it)
                 }
             )
+
             is StakingState.Stash.Validator -> calculateUnpaidPayouts(
                 chain = stakingState.chain,
                 retrieveValidatorAddresses = { listOf(stakingState.stashAddress) },
                 calculatePayoutReward = ::calculateValidatorReward
             )
+
             else -> throw IllegalStateException("Cannot calculate payouts for ${stakingState::class.simpleName} state")
         }
     }

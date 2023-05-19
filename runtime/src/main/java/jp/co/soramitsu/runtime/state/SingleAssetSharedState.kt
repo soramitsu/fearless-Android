@@ -2,6 +2,7 @@ package jp.co.soramitsu.runtime.state
 
 import jp.co.soramitsu.common.data.holders.ChainIdHolder
 import jp.co.soramitsu.common.data.storage.Preferences
+import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
@@ -18,13 +19,13 @@ private const val DELIMITER = ":"
 abstract class SingleAssetSharedState(
     private val preferencesKey: String,
     private val chainRegistry: ChainRegistry,
-    private val filter: (Chain, Chain.Asset) -> Boolean,
+    private val filter: (Chain, Asset) -> Boolean,
     private val preferences: Preferences
 ) : ChainIdHolder {
 
     data class AssetWithChain(
         val chain: Chain,
-        val asset: Chain.Asset
+        val asset: Asset
     )
 
     open val assetWithChain: Flow<AssetWithChain> = preferences.stringFlow(
@@ -52,7 +53,7 @@ abstract class SingleAssetSharedState(
             AssetWithChain(chain, chainAsset)
         }
 
-    suspend fun availableToSelect(): List<Chain.Asset> {
+    suspend fun availableToSelect(): List<Asset> {
         val allChains = chainRegistry.currentChains.first()
 
         return allChains.map { chain ->

@@ -4,10 +4,6 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.common.utils.combine
-import jp.co.soramitsu.common.utils.requireValue
-import jp.co.soramitsu.common.view.ButtonState
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.model.hasChainAccount
 import jp.co.soramitsu.account.api.presentation.exporting.ExportSource
@@ -15,6 +11,10 @@ import jp.co.soramitsu.account.impl.presentation.AccountRouter
 import jp.co.soramitsu.account.impl.presentation.exporting.ExportViewModel
 import jp.co.soramitsu.account.impl.presentation.exporting.json.confirm.ExportJsonConfirmPayload
 import jp.co.soramitsu.account.impl.presentation.exporting.json.password.ExportJsonPasswordFragment.Companion.PAYLOAD_KEY
+import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.utils.combine
+import jp.co.soramitsu.common.utils.requireValue
+import jp.co.soramitsu.common.view.ButtonState
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId

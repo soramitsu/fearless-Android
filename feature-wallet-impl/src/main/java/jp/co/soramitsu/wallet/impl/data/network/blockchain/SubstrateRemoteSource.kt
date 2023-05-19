@@ -1,15 +1,16 @@
 package jp.co.soramitsu.wallet.impl.data.network.blockchain
 
-import java.math.BigInteger
 import jp.co.soramitsu.common.data.network.runtime.binding.EqAccountInfo
 import jp.co.soramitsu.common.data.network.runtime.binding.EqOraclePricePoint
 import jp.co.soramitsu.common.data.network.runtime.binding.ExtrinsicStatusEvent
-import jp.co.soramitsu.fearless_utils.runtime.AccountId
-import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
+import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.shared_utils.runtime.AccountId
+import jp.co.soramitsu.shared_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.bindings.TransferExtrinsic
 import jp.co.soramitsu.wallet.impl.domain.model.Transfer
+import java.math.BigInteger
 
 class TransferExtrinsicWithStatus(
     val extrinsic: TransferExtrinsic,
@@ -17,8 +18,8 @@ class TransferExtrinsicWithStatus(
 )
 
 interface SubstrateRemoteSource {
-    suspend fun getTotalBalance(chainAsset: Chain.Asset, accountId: AccountId): BigInteger
-    suspend fun getAccountFreeBalance(chainAsset: Chain.Asset, accountId: AccountId): BigInteger
+    suspend fun getTotalBalance(chainAsset: Asset, accountId: AccountId): BigInteger
+    suspend fun getAccountFreeBalance(chainAsset: Asset, accountId: AccountId): BigInteger
 
     suspend fun getTransferFee(
         chain: Chain,
@@ -42,6 +43,6 @@ interface SubstrateRemoteSource {
         accountId: ByteArray
     ): Result<List<TransferExtrinsicWithStatus>>
 
-    suspend fun getEquilibriumAssetRates(asset: Chain.Asset): Map<BigInteger, EqOraclePricePoint?>
-    suspend fun getEquilibriumAccountInfo(asset: Chain.Asset, accountId: AccountId): EqAccountInfo?
+    suspend fun getEquilibriumAssetRates(asset: Asset): Map<BigInteger, EqOraclePricePoint?>
+    suspend fun getEquilibriumAccountInfo(asset: Asset, accountId: AccountId): EqAccountInfo?
 }

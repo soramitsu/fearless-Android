@@ -12,8 +12,6 @@ class ChainLocal(
     val minSupportedVersion: String?,
     val icon: String,
     @Embedded
-    val types: TypesConfig?,
-    @Embedded
     val externalApi: ExternalApi?,
     val prefix: Int,
     val isEthereumBased: Boolean,
@@ -21,11 +19,6 @@ class ChainLocal(
     val hasCrowdloans: Boolean,
     val supportStakingPool: Boolean
 ) {
-
-    class TypesConfig(
-        val url: String,
-        val overridesCommon: Boolean
-    )
 
     class ExternalApi(
         @Embedded(prefix = "staking_")

@@ -5,9 +5,6 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.math.BigDecimal
-import javax.inject.Inject
-import javax.inject.Named
 import jp.co.soramitsu.account.api.domain.interfaces.SelectedAccountUseCase
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressModel
@@ -16,8 +13,8 @@ import jp.co.soramitsu.common.mixin.api.Browserable
 import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
-import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.common.utils.formatAsPercentage
+import jp.co.soramitsu.common.utils.formatCryptoDetail
 import jp.co.soramitsu.common.utils.fractionToPercentage
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.map
@@ -54,11 +51,10 @@ import jp.co.soramitsu.crowdloan.impl.presentation.contribute.select.parcel.mapP
 import jp.co.soramitsu.feature_crowdloan_impl.R
 import jp.co.soramitsu.wallet.api.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.wallet.api.domain.AssetUseCase
-import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
+import jp.co.soramitsu.wallet.api.presentation.formatters.formatCryptoDetailFromPlanks
 import jp.co.soramitsu.wallet.api.presentation.mixin.fee.FeeLoaderMixin
 import jp.co.soramitsu.wallet.api.presentation.mixin.fee.FeeStatus
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
-import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
 import jp.co.soramitsu.wallet.impl.domain.validation.EnoughToPayFeesValidation
 import kotlinx.coroutines.flow.Flow
@@ -73,6 +69,9 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
+import javax.inject.Inject
+import javax.inject.Named
 
 @HiltViewModel
 class CustomContributeViewModel @Inject constructor(
@@ -141,8 +140,8 @@ class CustomContributeViewModel @Inject constructor(
     val crowdloanDetailModelFlow = crowdloanFlow.combine(assetFlow) { crowdloan, asset ->
         val token = asset.token
 
-        val raisedDisplay = token.amountFromPlanks(crowdloan.fundInfo.raised).format()
-        val capDisplay = token.amountFromPlanks(crowdloan.fundInfo.cap).formatTokenAmount(token.configuration)
+        val raisedDisplay = crowdloan.fundInfo.raised.formatCryptoDetailFromPlanks(token.configuration, false)
+        val capDisplay = crowdloan.fundInfo.cap.formatCryptoDetailFromPlanks(token.configuration)
 
         val timeLeft = when (val state = crowdloan.state) {
             Crowdloan.State.Finished -> resourceManager.getString(R.string.transaction_status_completed)
@@ -168,7 +167,7 @@ class CustomContributeViewModel @Inject constructor(
         payload.parachainMetadata.let { metadata ->
             val estimatedReward = metadata.rewardRate?.let { amount * it }
 
-            estimatedReward?.formatTokenAmount(metadata.token)
+            estimatedReward?.formatCryptoDetail(metadata.token)
         }
     }.share()
 

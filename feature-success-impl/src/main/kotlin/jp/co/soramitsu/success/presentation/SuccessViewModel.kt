@@ -14,6 +14,7 @@ import jp.co.soramitsu.common.mixin.api.Browserable
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
+import jp.co.soramitsu.common.utils.formatting.shortenHash
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
@@ -31,7 +32,7 @@ import javax.inject.Inject
 class SuccessViewModel @Inject constructor(
     private val router: SuccessRouter,
     private val chainRegistry: ChainRegistry,
-    private val savedStateHandle: SavedStateHandle,
+    savedStateHandle: SavedStateHandle,
     private val resourceManager: ResourceManager,
     private val clipboardManager: ClipboardManager,
     private val externalAccountActions: ExternalAccountActions.Presentation
@@ -43,6 +44,7 @@ class SuccessViewModel @Inject constructor(
     val operationHash = savedStateHandle.get<String>(SuccessFragment.KEY_OPERATION_HASH)
     val chainId = savedStateHandle.get<ChainId>(SuccessFragment.KEY_CHAIN_ID)
     private val customMessage: String? = savedStateHandle[SuccessFragment.KEY_CUSTOM_MESSAGE]
+    private val hasSuccessResult: Boolean = savedStateHandle[SuccessFragment.KEY_HAS_SUCCESS_RESULT] ?: true
 
     private val _showHashActions = MutableLiveData<Event<Unit>>()
     val showHashActions: LiveData<Event<Unit>> = _showHashActions
@@ -65,7 +67,7 @@ class SuccessViewModel @Inject constructor(
 
     val state: StateFlow<SuccessViewState> = subscanUrlFlow.map { url ->
         SuccessViewState(
-            message = customMessage ?: resourceManager.getString(R.string.send_success_message),
+            message = customMessage ?: resourceManager.getString(R.string.return_to_app_message),
             tableItems = getInfoTableItems(),
             isShowSubscanButtons = url.isNullOrEmpty().not()
         )
@@ -74,8 +76,8 @@ class SuccessViewModel @Inject constructor(
     private fun getInfoTableItems() = listOf(
         TitleValueViewState(
             title = resourceManager.getString(R.string.hash),
-            value = operationHash?.shorten(),
-            clickState = TitleValueViewState.ClickState(R.drawable.ic_copy_filled_24, SuccessViewState.CODE_HASH_CLICK)
+            value = operationHash?.shortenHash(),
+            clickState = TitleValueViewState.ClickState.Value(R.drawable.ic_copy_filled_24, SuccessViewState.CODE_HASH_CLICK)
         ),
         TitleValueViewState(
             title = resourceManager.getString(R.string.all_done_alert_result_stub),
@@ -124,9 +126,4 @@ class SuccessViewModel @Inject constructor(
     fun openUrl(url: String) {
         openBrowserEvent.value = Event(url)
     }
-}
-
-private fun String.shorten() = when {
-    length < 20 -> this
-    else -> "${take(5)}...${takeLast(5)}"
 }

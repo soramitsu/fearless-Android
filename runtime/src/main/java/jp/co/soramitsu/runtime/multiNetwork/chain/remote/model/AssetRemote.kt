@@ -1,11 +1,12 @@
 package jp.co.soramitsu.runtime.multiNetwork.chain.remote.model
 
-import jp.co.soramitsu.runtime.multiNetwork.chain.ChainAssetType
+import jp.co.soramitsu.core.models.ChainAssetType
 
 data class AssetRemote(
     val id: String?,
+    val name: String?,
     val symbol: String?,
-    @Deprecated("Tobe removed in favor of isUtility param of Chain.Asset")
+    @Deprecated("Tobe removed in favor of isUtility param of Asset")
     val chainId: String?,
     val displayName: String?,
     val precision: Int?,

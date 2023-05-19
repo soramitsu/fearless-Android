@@ -5,24 +5,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 private const val METADATA_FILE_MASK = "metadata_%s"
-private const val TYPE_DEFINITIONS_FILE_MASK = "definitions_%s"
 
 class RuntimeFilesCache(
     private val fileProvider: FileProvider
 ) {
 
-    suspend fun getChainTypes(chainId: String): String {
-        return readCacheFile(TYPE_DEFINITIONS_FILE_MASK.format(chainId))
-    }
-
     suspend fun getChainMetadata(chainId: String): String {
         return readCacheFile(METADATA_FILE_MASK.format(chainId))
-    }
-
-    suspend fun saveChainTypes(chainId: String, types: String) {
-        val fileName = TYPE_DEFINITIONS_FILE_MASK.format(chainId)
-
-        writeToCacheFile(fileName, types)
     }
 
     suspend fun saveChainMetadata(chainId: String, metadata: String) {

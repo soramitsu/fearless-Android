@@ -2,7 +2,6 @@ package jp.co.soramitsu.wallet.impl.presentation.history
 
 import androidx.lifecycle.SavedStateHandle
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressIcon
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -17,6 +16,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import javax.inject.Inject
 
 @HiltViewModel
 class AddressHistoryViewModel @Inject constructor(
@@ -81,7 +81,7 @@ class AddressHistoryViewModel @Inject constructor(
 
     override fun onAddressClick(address: Address) {
         sharedState.updateAddress(address.address)
-        router.back()
+        router.backWithResult(AddressHistoryFragment.RESULT_ADDRESS to address.address)
     }
 
     override fun onNavigationClick() {

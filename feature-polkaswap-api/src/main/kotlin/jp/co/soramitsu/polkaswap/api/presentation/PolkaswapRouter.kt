@@ -20,7 +20,7 @@ interface PolkaswapRouter {
 
     fun back()
 
-    fun returnToAssetDetails()
+    fun closeSwap()
 
     fun openTransactionSettingsDialog(initialSettings: TransactionSettingsModel)
 

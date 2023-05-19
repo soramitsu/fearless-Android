@@ -1,14 +1,14 @@
 package jp.co.soramitsu.wallet.impl.domain.model
 
+import jp.co.soramitsu.common.utils.orZero
+import jp.co.soramitsu.core.models.Asset
 import java.math.BigDecimal
 import java.math.BigInteger
-import jp.co.soramitsu.common.utils.orZero
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 
 class Transfer(
     val recipient: String,
     val amount: BigDecimal,
-    val chainAsset: Chain.Asset
+    val chainAsset: Asset
 ) {
 
     val amountInPlanks: BigInteger = chainAsset.planksFromAmount(amount)

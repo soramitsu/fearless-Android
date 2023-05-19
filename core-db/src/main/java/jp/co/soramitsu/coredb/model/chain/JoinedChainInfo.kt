@@ -3,7 +3,7 @@ package jp.co.soramitsu.coredb.model.chain
 import androidx.room.Embedded
 import androidx.room.Relation
 
-class JoinedChainInfo(
+data class JoinedChainInfo(
     @Embedded
     val chain: ChainLocal,
 

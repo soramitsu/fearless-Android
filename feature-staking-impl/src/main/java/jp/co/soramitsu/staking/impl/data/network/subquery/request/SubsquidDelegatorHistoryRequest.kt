@@ -1,6 +1,6 @@
 package jp.co.soramitsu.staking.impl.data.network.subquery.request
 
-import jp.co.soramitsu.fearless_utils.extensions.requireHexPrefix
+import jp.co.soramitsu.shared_utils.extensions.requireHexPrefix
 
 class SubsquidDelegatorHistoryRequest(delegatorAddress: String, collatorAddress: String) {
     val query = """

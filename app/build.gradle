@@ -30,6 +30,8 @@ android {
     }
     buildTypes {
         debug {
+            minifyEnabled minifyRelease
+            proguardFiles 'proguard-rules.pro'
             applicationIdSuffix '.debug'
             versionNameSuffix '-debug'
         }
@@ -105,8 +107,8 @@ android {
     composeOptions {
         kotlinCompilerExtensionVersion composeCompilerVersion
     }
-    lintOptions {
-        disable "Instantiatable"
+    lint {
+        disable 'Instantiatable'
     }
     namespace 'jp.co.soramitsu.app'
 }
@@ -146,6 +148,9 @@ dependencies {
     implementation project(':feature-success-api')
     implementation project(':feature-success-impl')
 
+    implementation project(':feature-soracard-api')
+    implementation project(':feature-soracard-impl')
+
     implementation kotlinDep
 
     implementation androidDep
@@ -157,8 +162,6 @@ dependencies {
     implementation navigationUiDep
 
     implementation roomDep
-
-    implementation fearlessLibDep
 
     implementation daggerDep
     kapt daggerKapt

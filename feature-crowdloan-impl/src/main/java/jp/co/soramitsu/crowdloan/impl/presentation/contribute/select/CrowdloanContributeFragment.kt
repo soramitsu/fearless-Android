@@ -20,10 +20,10 @@ import jp.co.soramitsu.common.utils.createSpannable
 import jp.co.soramitsu.common.utils.setVisible
 import jp.co.soramitsu.common.view.ButtonState
 import jp.co.soramitsu.common.view.viewBinding
-import jp.co.soramitsu.feature_crowdloan_impl.R
-import jp.co.soramitsu.feature_crowdloan_impl.databinding.FragmentContributeBinding
 import jp.co.soramitsu.crowdloan.impl.presentation.contribute.custom.ApplyActionState
 import jp.co.soramitsu.crowdloan.impl.presentation.contribute.select.parcel.ContributePayload
+import jp.co.soramitsu.feature_crowdloan_impl.R
+import jp.co.soramitsu.feature_crowdloan_impl.databinding.FragmentContributeBinding
 import javax.inject.Inject
 
 const val KEY_PAYLOAD = "KEY_PAYLOAD"
@@ -113,6 +113,8 @@ class CrowdloanContributeFragment : BaseFragment<CrowdloanContributeViewModel>(R
         viewModel.enteredFiatAmountFlow.observe {
             it?.let(binding.crowdloanContributeAmount::setAssetBalanceFiatAmount)
         }
+
+        viewModel.feeLiveData.observe(binding.crowdloanContributeFee::setFeeStatus)
 
         viewModel.estimatedRewardFlow.observe { reward ->
             binding.crowdloanContributeReward.setVisible(reward != null)

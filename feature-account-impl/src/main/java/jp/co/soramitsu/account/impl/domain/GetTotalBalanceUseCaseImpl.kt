@@ -1,13 +1,12 @@
 package jp.co.soramitsu.account.impl.domain
 
-import java.math.BigDecimal
-import java.math.RoundingMode
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.interfaces.GetTotalBalanceUseCase
 import jp.co.soramitsu.account.api.domain.model.TotalBalance
 import jp.co.soramitsu.common.utils.DOLLAR_SIGN
 import jp.co.soramitsu.common.utils.applyFiatRate
 import jp.co.soramitsu.common.utils.fractionToPercentage
+import jp.co.soramitsu.common.utils.isZero
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.percentageToFraction
 import jp.co.soramitsu.coredb.dao.AssetDao
@@ -19,6 +18,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
+import java.math.BigDecimal
+import java.math.RoundingMode
 
 class GetTotalBalanceUseCaseImpl(
     private val accountRepository: AccountRepository,
@@ -50,7 +51,7 @@ class GetTotalBalanceUseCaseImpl(
                     val balance = acc.balance + totalBalanceToAdd
                     val balanceChange = acc.balanceChange + balanceChangeToAdd
                     val rate = when {
-                        balance.compareTo(BigDecimal.ZERO) == 0 -> BigDecimal.ZERO
+                        balance.isZero() -> BigDecimal.ZERO
                         else -> balanceChange.divide(balance, RoundingMode.HALF_UP).fractionToPercentage()
                     }
 

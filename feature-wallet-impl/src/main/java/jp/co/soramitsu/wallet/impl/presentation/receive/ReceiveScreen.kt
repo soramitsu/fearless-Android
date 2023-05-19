@@ -32,13 +32,13 @@ import jp.co.soramitsu.common.compose.component.AccentButton
 import jp.co.soramitsu.common.compose.component.B0
 import jp.co.soramitsu.common.compose.component.BottomSheetScreen
 import jp.co.soramitsu.common.compose.component.GrayButton
-import jp.co.soramitsu.common.compose.component.Grip
 import jp.co.soramitsu.common.compose.component.H2
 import jp.co.soramitsu.common.compose.component.H3
 import jp.co.soramitsu.common.compose.component.MarginHorizontal
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.theme.customTypography
 import jp.co.soramitsu.common.presentation.LoadingState
+import jp.co.soramitsu.common.utils.formatting.shortenAddress
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.wallet.impl.domain.model.WalletAccount
 
@@ -84,9 +84,7 @@ private fun ReceiveContent(
             .fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        MarginVertical(margin = 2.dp)
-        Grip(Modifier.align(Alignment.CenterHorizontally))
-        MarginVertical(margin = 13.dp)
+        MarginVertical(margin = 4.dp)
         H3(
             text = stringResource(id = R.string.wallet_asset_receive_template, state.assetSymbol),
             textAlign = TextAlign.Start,
@@ -111,11 +109,7 @@ private fun ReceiveContent(
         H2(text = state.account.name.orEmpty())
         MarginVertical(margin = 8.dp)
         B0(
-            text = stringResource(
-                id = R.string.common_middle_dots,
-                state.account.address.take(10),
-                state.account.address.takeLast(10)
-            ),
+            text = state.account.address.shortenAddress(),
             maxLines = 1,
             color = Color.White.copy(alpha = 0.5f)
         )

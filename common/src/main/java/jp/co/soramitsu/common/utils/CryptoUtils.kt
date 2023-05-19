@@ -1,9 +1,9 @@
 package jp.co.soramitsu.common.utils
 
 import android.util.Base64
-import jp.co.soramitsu.fearless_utils.encrypt.keypair.ECDSAUtils
-import jp.co.soramitsu.fearless_utils.extensions.toHexString
-import jp.co.soramitsu.fearless_utils.hash.Hasher.blake2b256
+import jp.co.soramitsu.shared_utils.encrypt.keypair.ECDSAUtils
+import jp.co.soramitsu.shared_utils.extensions.toHexString
+import jp.co.soramitsu.shared_utils.hash.Hasher.blake2b256
 import org.bouncycastle.jcajce.provider.digest.Keccak
 import java.security.MessageDigest
 import javax.crypto.Mac

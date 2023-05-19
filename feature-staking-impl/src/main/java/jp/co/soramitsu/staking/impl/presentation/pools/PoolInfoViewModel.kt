@@ -3,7 +3,6 @@ package jp.co.soramitsu.staking.impl.presentation.pools
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.DropDownViewState
 import jp.co.soramitsu.common.compose.component.TitleValueViewState
@@ -11,14 +10,15 @@ import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.applyFiatRate
 import jp.co.soramitsu.common.utils.flowOf
-import jp.co.soramitsu.common.utils.formatAsCurrency
-import jp.co.soramitsu.fearless_utils.extensions.toHexString
-import jp.co.soramitsu.fearless_utils.runtime.AccountId
-import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAddress
+import jp.co.soramitsu.common.utils.formatCryptoDetail
+import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.runtime.ext.accountFromMapKey
 import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.shared_utils.extensions.toHexString
+import jp.co.soramitsu.shared_utils.runtime.AccountId
+import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.toAddress
 import jp.co.soramitsu.staking.api.domain.model.NominationPoolState
 import jp.co.soramitsu.staking.api.domain.model.PoolInfo
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
@@ -28,13 +28,13 @@ import jp.co.soramitsu.staking.impl.presentation.pools.compose.PoolInfoScreenInt
 import jp.co.soramitsu.staking.impl.presentation.pools.compose.PoolInfoScreenViewState
 import jp.co.soramitsu.staking.impl.presentation.pools.compose.PoolStatusViewState
 import jp.co.soramitsu.staking.impl.scenarios.StakingPoolInteractor
-import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import javax.inject.Inject
 
 @HiltViewModel
 class PoolInfoViewModel @Inject constructor(
@@ -63,8 +63,8 @@ class PoolInfoViewModel @Inject constructor(
         canChangeRoles = poolInfo.root.contentEquals(currentUserAccountId)
 
         val stakedAmount = asset.token.amountFromPlanks(poolInfo.stakedInPlanks)
-        staked = stakedAmount.formatTokenAmount(asset.token.configuration)
-        stakedFiat = stakedAmount.applyFiatRate(asset.token.fiatRate)?.formatAsCurrency(asset.token.fiatSymbol)
+        staked = stakedAmount.formatCryptoDetail(asset.token.configuration.symbolToShow)
+        stakedFiat = stakedAmount.applyFiatRate(asset.token.fiatRate)?.formatFiat(asset.token.fiatSymbol)
 
         setupSelectedValidatorsSharedState()
     }
@@ -122,7 +122,7 @@ class PoolInfoViewModel @Inject constructor(
         }
         val stateToggler = poolInfo.stateToggler.roleNameOrAddress(rolesNames)?.let {
             DropDownViewState(
-                hint = resourceManager.getString(R.string.pool_staking_state_toggler),
+                hint = resourceManager.getString(R.string.pool_staking_bouncer),
                 text = it,
                 clickableMode = DropDownViewState.ClickableMode.AlwaysClickable,
                 endIcon = R.drawable.ic_copy_16
@@ -172,7 +172,7 @@ class PoolInfoViewModel @Inject constructor(
                 endIcon = R.drawable.ic_copy_16
             ),
             stateToggler = DropDownViewState(
-                hint = resourceManager.getString(R.string.pool_staking_state_toggler),
+                hint = resourceManager.getString(R.string.pool_staking_bouncer),
                 text = null,
                 clickableMode = DropDownViewState.ClickableMode.AlwaysClickable,
                 endIcon = R.drawable.ic_copy_16

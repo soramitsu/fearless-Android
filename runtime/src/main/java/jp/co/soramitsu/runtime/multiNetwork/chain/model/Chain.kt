@@ -1,14 +1,11 @@
 package jp.co.soramitsu.runtime.multiNetwork.chain.model
 
-import android.os.Parcelable
 import jp.co.soramitsu.common.data.network.BlockExplorerUrlBuilder
 import jp.co.soramitsu.common.domain.AppVersion
-import jp.co.soramitsu.fearless_utils.extensions.fromHex
-import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.DictEnum
-import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.Struct
-import jp.co.soramitsu.runtime.multiNetwork.chain.ChainAssetType
-import kotlinx.parcelize.IgnoredOnParcel
-import kotlinx.parcelize.Parcelize
+import jp.co.soramitsu.core.models.ChainId
+import jp.co.soramitsu.core.models.ChainNode
+import jp.co.soramitsu.core.models.IChain
+import jp.co.soramitsu.core.models.Asset as CoreAsset
 
 typealias ChainId = String
 
@@ -23,129 +20,26 @@ const val soraMainChainId = "7e4e32d0feafd4f9c9414b0be86373f9a1efa904809b683453a
 
 const val genshiroChainId = "9b8cefc0eb5c568b527998bdd76c184e2b76ae561be76e4667072230217ea243"
 
-private val STAKING_ORDER = arrayOf("DOT", "KSM", "WND", "GLMR", "MOVR", "DEV", "PDEX")
-private val SORA_WITH_XOR_TRANSFER_PALLET_ASSET = arrayOf(soraMainChainId, soraTestChainId)
-
 data class Chain(
-    val id: ChainId,
+    override val id: ChainId,
     val name: String,
     val minSupportedVersion: String?,
-    val assets: List<Asset>,
-    val nodes: List<Node>,
+    override val assets: List<CoreAsset>,
+    override val nodes: List<ChainNode>,
     val explorers: List<Explorer>,
     val externalApi: ExternalApi?,
     val icon: String,
-    val addressPrefix: Int,
-    val types: Types?,
-    val isEthereumBased: Boolean,
+    override val addressPrefix: Int,
+    override val isEthereumBased: Boolean,
     val isTestNet: Boolean,
     val hasCrowdloans: Boolean,
-    val parentId: String?,
+    override val parentId: String?,
     val supportStakingPool: Boolean
-) {
-    val assetsById = assets.associateBy(Asset::id)
+) : IChain {
+    val assetsById = assets.associateBy(CoreAsset::id)
 
     val isSupported: Boolean
         get() = AppVersion.isSupported(minSupportedVersion)
-
-    data class Types(
-        val url: String,
-        val overridesCommon: Boolean
-    )
-
-    @Parcelize
-    data class Asset(
-        val id: String,
-        val symbol: String,
-        val displayName: String?,
-        val iconUrl: String,
-        val chainId: ChainId,
-        val chainName: String,
-        val chainIcon: String?,
-        val isTestNet: Boolean?,
-        val priceId: String?,
-        val precision: Int,
-        val staking: StakingType,
-        val priceProviders: List<String>?,
-        val supportStakingPool: Boolean,
-        val isUtility: Boolean,
-        val type: ChainAssetType?,
-        val currencyId: String?,
-        val existentialDeposit: String?,
-        val color: String?,
-        val isNative: Boolean?
-    ) : Parcelable {
-
-        enum class StakingType {
-            UNSUPPORTED, RELAYCHAIN, PARACHAIN
-        }
-
-        @IgnoredOnParcel
-        val symbolToShow = displayName ?: symbol
-
-        @IgnoredOnParcel
-        val chainToSymbol = chainId to symbol
-
-        val orderInStaking: Int
-            get() = when (val order = STAKING_ORDER.indexOfFirst { it.equals(symbolToShow, true) }) {
-                -1 -> STAKING_ORDER.size
-                else -> order
-            }
-
-        @IgnoredOnParcel
-        private val isSoraUtilityAsset = isUtility && chainId in SORA_WITH_XOR_TRANSFER_PALLET_ASSET
-
-        @IgnoredOnParcel
-        val typeExtra = if (isSoraUtilityAsset) ChainAssetType.SoraUtilityAsset else type
-
-        @IgnoredOnParcel
-        @Suppress("IMPLICIT_CAST_TO_ANY")
-        val currency = when (typeExtra) {
-            null, ChainAssetType.Normal -> null
-            ChainAssetType.ForeignAsset -> DictEnum.Entry("ForeignAsset", currencyId?.toBigInteger())
-            ChainAssetType.StableAssetPoolToken -> DictEnum.Entry("StableAssetPoolToken", currencyId?.toBigInteger())
-            ChainAssetType.LiquidCrowdloan -> DictEnum.Entry("LiquidCrowdloan", currencyId?.toBigInteger())
-            ChainAssetType.OrmlChain,
-            ChainAssetType.OrmlAsset -> DictEnum.Entry("Token", DictEnum.Entry(symbol.uppercase(), null))
-            ChainAssetType.VToken -> DictEnum.Entry("VToken", DictEnum.Entry(symbol.uppercase(), null))
-            ChainAssetType.VSToken -> DictEnum.Entry("VSToken", DictEnum.Entry(symbol.uppercase(), null))
-            ChainAssetType.Stable -> DictEnum.Entry("Stable", DictEnum.Entry(symbol.uppercase(), null))
-            ChainAssetType.SoraUtilityAsset,
-            ChainAssetType.SoraAsset -> {
-                val currencyHexList = currencyId?.fromHex()?.toList()?.map { it.toInt().toBigInteger() }.orEmpty()
-                Struct.Instance(mapOf("code" to currencyHexList))
-            }
-            ChainAssetType.Equilibrium -> currencyId?.toBigInteger()
-            ChainAssetType.Unknown -> error("Token $symbol not supported, chain $chainName")
-        }
-    }
-
-    data class Node(
-        val url: String,
-        val name: String,
-        val isActive: Boolean,
-        val isDefault: Boolean
-    ) {
-        override fun equals(other: Any?): Boolean {
-            if (this === other) return true
-            if (javaClass != other?.javaClass) return false
-
-            other as Node
-
-            if (url != other.url) return false
-            if (name != other.name) return false
-            if (isDefault != other.isDefault) return false
-
-            return true
-        }
-
-        override fun hashCode(): Int {
-            var result = url.hashCode()
-            result = 31 * result + name.hashCode()
-            result = 31 * result + isDefault.hashCode()
-            return result
-        }
-    }
 
     data class ExternalApi(
         val staking: Section?,
@@ -183,7 +77,6 @@ data class Chain(
         if (externalApi != other.externalApi) return false
         if (icon != other.icon) return false
         if (addressPrefix != other.addressPrefix) return false
-        if (types != other.types) return false
         if (isEthereumBased != other.isEthereumBased) return false
         if (isTestNet != other.isTestNet) return false
         if (hasCrowdloans != other.hasCrowdloans) return false
@@ -210,7 +103,6 @@ data class Chain(
         result = 31 * result + (externalApi?.hashCode() ?: 0)
         result = 31 * result + icon.hashCode()
         result = 31 * result + addressPrefix
-        result = 31 * result + (types?.hashCode() ?: 0)
         result = 31 * result + isEthereumBased.hashCode()
         result = 31 * result + isTestNet.hashCode()
         result = 31 * result + hasCrowdloans.hashCode()
@@ -230,7 +122,7 @@ fun List<Chain.Explorer>.getSupportedExplorers(type: BlockExplorerUrlBuilder.Typ
     }
 }.toMap()
 
-@Deprecated("Use polkadotKusamaOthers() to get Polkadot at first place", ReplaceWith("defaultChainSort()"))
+@Deprecated("Use defaultChainSort() to get Polkadot at first place", ReplaceWith("defaultChainSort()"))
 fun ChainId.isPolkadotOrKusama() = this in listOf(polkadotChainId, kusamaChainId)
 
 fun ChainId.defaultChainSort() = when (this) {
@@ -239,6 +131,12 @@ fun ChainId.defaultChainSort() = when (this) {
     else -> 3
 }
 
-enum class TypesUsage {
-    ON_CHAIN, UNSUPPORTED
+fun List<Chain>.getWithToken(symbol: String, filter: Map<ChainId, List<String>>? = null): List<Chain> = filter { chain ->
+    chain.assets.any { asset ->
+        val allowAsset = when (filter) {
+            null -> true
+            else -> filter[chain.id]?.contains(asset.id) ?: false
+        }
+        asset.symbolToShow == symbol && allowAsset
+    }
 }

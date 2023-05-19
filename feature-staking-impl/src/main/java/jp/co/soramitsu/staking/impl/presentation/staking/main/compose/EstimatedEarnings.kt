@@ -24,6 +24,7 @@ import jp.co.soramitsu.common.compose.theme.black2
 import jp.co.soramitsu.common.compose.theme.blurColorLight
 import jp.co.soramitsu.common.utils.clickableWithNoIndication
 import jp.co.soramitsu.feature_staking_impl.R
+import java.math.BigDecimal
 
 data class EstimatedEarningsViewState(
     val monthlyChange: TitleValueViewState?,
@@ -35,7 +36,7 @@ data class EstimatedEarningsViewState(
 fun EstimatedEarnings(
     state: EstimatedEarningsViewState,
     onInfoClick: () -> Unit,
-    onAmountInput: (String) -> Unit
+    onAmountInput: (BigDecimal?) -> Unit
 ) {
     BackgroundCornered(
         backgroundColor = blurColorLight,
@@ -85,7 +86,7 @@ private fun EstimatedEarningsPreview() {
     val state = EstimatedEarningsViewState(
         TitleValueViewState("1.43% monthly", "0.164 KSM", "$24.92"),
         null,
-        AmountInputViewState("KSM", "", "44.32334", "$12000", "10")
+        AmountInputViewState("KSM", "", "44.32334", "$12000", BigDecimal.TEN, null, initial = null)
     )
     FearlessTheme {
         EstimatedEarnings(state, {}, {})

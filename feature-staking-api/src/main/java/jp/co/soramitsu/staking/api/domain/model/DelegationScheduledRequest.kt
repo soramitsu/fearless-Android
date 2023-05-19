@@ -1,8 +1,8 @@
 package jp.co.soramitsu.staking.api.domain.model
 
 import androidx.annotation.StringRes
-import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.feature_staking_api.R
+import jp.co.soramitsu.shared_utils.runtime.AccountId
 import java.math.BigInteger
 
 data class DelegationScheduledRequest(

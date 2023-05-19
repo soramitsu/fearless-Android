@@ -3,7 +3,6 @@ package jp.co.soramitsu.wallet.impl.presentation.balance.walletselector.light
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.GetTotalBalanceUseCase
 import jp.co.soramitsu.account.impl.presentation.account.mixin.api.AccountListingMixin
 import jp.co.soramitsu.common.address.AddressIconGenerator
@@ -15,7 +14,7 @@ import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
 import jp.co.soramitsu.common.navigation.payload.WalletSelectorPayload
 import jp.co.soramitsu.common.utils.formatAsChange
-import jp.co.soramitsu.common.utils.formatAsCurrency
+import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
@@ -25,6 +24,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @HiltViewModel
 class WalletSelectorViewModel @Inject constructor(
@@ -45,10 +45,10 @@ class WalletSelectorViewModel @Inject constructor(
             title = it.name,
             isSelected = it.isSelected,
             walletIcon = it.picture.value,
-            balance = balanceModel.balance.formatAsCurrency(balanceModel.fiatSymbol),
+            balance = balanceModel.balance.formatFiat(balanceModel.fiatSymbol),
             changeBalanceViewState = ChangeBalanceViewState(
                 percentChange = balanceModel.rateChange?.formatAsChange().orEmpty(),
-                fiatChange = balanceModel.balanceChange.abs().formatAsCurrency(balanceModel.fiatSymbol)
+                fiatChange = balanceModel.balanceChange.abs().formatFiat(balanceModel.fiatSymbol)
             )
         )
     }
@@ -77,7 +77,7 @@ class WalletSelectorViewModel @Inject constructor(
         viewModelScope.launch {
             selectedWalletItem.value = item
             router.setWalletSelectorPayload(WalletSelectorPayload(tag, item.id))
-            router.back()
+            router.backWithResult(WalletSelectorFragment.RESULT_ADDRESS to item.id)
         }
     }
 

@@ -1,13 +1,13 @@
 package jp.co.soramitsu.wallet.api.presentation.model
 
 import androidx.annotation.StringRes
-import java.math.BigDecimal
-import java.math.BigInteger
-import jp.co.soramitsu.common.utils.formatAsCurrency
+import jp.co.soramitsu.common.utils.formatCrypto
+import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
-import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
+import java.math.BigDecimal
+import java.math.BigInteger
 
 data class AmountModel(
     val amount: BigDecimal,
@@ -37,8 +37,8 @@ fun mapAmountToAmountModel(
 
     return AmountModel(
         amount = amount,
-        token = amount.formatTokenAmount(token.configuration),
-        fiat = fiatAmount?.formatAsCurrency(token.fiatSymbol),
+        token = amount.formatCrypto(token.configuration.symbolToShow),
+        fiat = fiatAmount?.formatFiat(token.fiatSymbol),
         titleResId = titleResId
     )
 }

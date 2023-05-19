@@ -18,9 +18,14 @@ android {
         buildConfigField "String", "RAMP_TOKEN", "\"4bk3yhfrg99fer764bo7egrqmxbfene7gbrpwmp3\""
         buildConfigField "String", "RAMP_HOST", "\"ri-widget-staging.firebaseapp.com\""
 
-        buildConfigField "String", "MOONPAY_PRIVATE_KEY", readSecret("MOONPAY_TEST_SECRET")
+        buildConfigField "String", "MOONPAY_PRIVATE_KEY", readSecretInQuotes("MOONPAY_TEST_SECRET")
         buildConfigField "String", "MOONPAY_HOST", "\"buy-staging.moonpay.com\""
         buildConfigField "String", "MOONPAY_PUBLIC_KEY", "\"pk_test_DMRuyL6Nf1qc9OzjPBmCFBeCGkFwiZs0\""
+
+        buildConfigField "String", "SORA_CONFIG_COMMON_STAGE", "\"https://config.polkaswap2.io/stage/common.json\""
+        buildConfigField "String", "SORA_CONFIG_MOBILE_STAGE", "\"https://config.polkaswap2.io/stage/mobile.json\""
+        buildConfigField "String", "SORA_CONFIG_COMMON_PROD", "\"https://config.polkaswap2.io/prod/common.json\""
+        buildConfigField "String", "SORA_CONFIG_MOBILE_PROD", "\"https://config.polkaswap2.io/prod/mobile.json\""
     }
 
     buildTypes {
@@ -28,7 +33,7 @@ android {
             buildConfigField "String", "RAMP_TOKEN", "\"3quzr4e6wdyccndec8jzjebzar5kxxzfy2f3us5k\""
             buildConfigField "String", "RAMP_HOST", "\"buy.ramp.network\""
 
-            buildConfigField "String", "MOONPAY_PRIVATE_KEY", readSecret("MOONPAY_PRODUCTION_SECRET")
+            buildConfigField "String", "MOONPAY_PRIVATE_KEY", readSecretInQuotes("MOONPAY_PRODUCTION_SECRET")
             buildConfigField "String", "MOONPAY_PUBLIC_KEY", "\"pk_live_Boi6Rl107p7XuJWBL8GJRzGWlmUSoxbz\""
             buildConfigField "String", "MOONPAY_HOST", "\"buy.moonpay.com\""
         }
@@ -63,6 +68,8 @@ dependencies {
     implementation project(':feature-account-api')
     implementation project(':feature-account-impl')
     implementation project(':runtime')
+    implementation project(':feature-soracard-api')
+    implementation project(':feature-soracard-impl')
 
     implementation kotlinDep
 
@@ -95,8 +102,6 @@ dependencies {
     testImplementation jUnitDep
     testImplementation mockitoDep
 
-    implementation fearlessLibDep
-
     implementation gsonDep
     implementation retrofitDep
 
@@ -111,6 +116,8 @@ dependencies {
     implementation jnaDep
     implementation beaconDep, withoutJna
 
+    implementation soraCardDep, withoutBouncycastle
+
     implementation shimmerDep
 
     implementation compose
@@ -120,4 +127,6 @@ dependencies {
 
     implementation navigationFragmentDep
     implementation navigationUiDep
+
+    implementation sharedFeaturesXcmDep
 }

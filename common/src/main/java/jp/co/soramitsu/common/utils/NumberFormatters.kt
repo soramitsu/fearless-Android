@@ -5,8 +5,9 @@ import android.text.format.DateUtils
 import android.util.Log
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.utils.formatting.CompoundNumberFormatter
-import jp.co.soramitsu.common.utils.formatting.DynamicPrecisionFormatter
+import jp.co.soramitsu.common.utils.formatting.FiatFormatter
 import jp.co.soramitsu.common.utils.formatting.FixedPrecisionFormatter
+import jp.co.soramitsu.common.utils.formatting.FullPrecisionFormatter
 import jp.co.soramitsu.common.utils.formatting.NumberAbbreviation
 import java.math.BigDecimal
 import java.math.RoundingMode
@@ -16,74 +17,58 @@ import java.util.Date
 import java.util.concurrent.TimeUnit
 
 const val DOLLAR_SIGN = "$"
-private const val DECIMAL_PATTERN_BASE = "###,###."
+private const val DECIMAL_PATTERN_BASE = "#,##0"
 
-private const val GROUPING_SEPARATOR = ','
-private const val DECIMAL_SEPARATOR = '.'
+private const val MAX_DECIMALS_2 = 2
+private const val MAX_DECIMALS_3 = 3
+const val MAX_DECIMALS_8 = 8
 
-private const val FULL_PRECISION = 5
-private const val ABBREVIATED_PRECISION = 2
-private const val HISTORY_AMOUNT_PRECISION = 4
+private val fiatAmountFormatter = FiatFormatter()
+private val percentAmountFormatter = FixedPrecisionFormatter(MAX_DECIMALS_2)
+private val cryptoAmountShortFormatter = FixedPrecisionFormatter(MAX_DECIMALS_3)
+private val cryptoAmountDetailFormatter = FixedPrecisionFormatter(MAX_DECIMALS_8)
 
-private val historyAmountFormatter = FixedPrecisionFormatter(HISTORY_AMOUNT_PRECISION)
-private val defaultAbbreviationFormatter = FixedPrecisionFormatter(ABBREVIATED_PRECISION)
-private val defaultFullFormatter = FixedPrecisionFormatter(FULL_PRECISION)
+private val fiatAbbreviatedFormatter = fiatAbbreviatedFormatter()
+private val cryptoShortAbbreviatedFormatter = cryptoShortAbbreviatedFormatter()
+private val cryptoDetailAbbreviatedFormatter = cryptoDetailAbbreviatedFormatter()
+private val fullPrecisionFormatter = FullPrecisionFormatter()
 
-private val thousandAbbreviation = NumberAbbreviation(
-    threshold = BigDecimal("1E+3"),
-    divisor = BigDecimal.ONE,
-    suffix = "",
-    formatter = defaultAbbreviationFormatter
-)
-
-private val millionAbbreviation = NumberAbbreviation(
-    threshold = BigDecimal("1E+6"),
-    divisor = BigDecimal("1E+6"),
-    suffix = "M",
-    formatter = defaultAbbreviationFormatter
-)
-
-private val billionAbbreviation = NumberAbbreviation(
-    threshold = BigDecimal("1E+9"),
-    divisor = BigDecimal("1E+9"),
-    suffix = "B",
-    formatter = defaultAbbreviationFormatter
-)
-
-private val trillionAbbreviation = NumberAbbreviation(
-    threshold = BigDecimal("1E+12"),
-    divisor = BigDecimal("1E+12"),
-    suffix = "T",
-    formatter = defaultAbbreviationFormatter
-)
-
-private val defaultNumberFormatter = defaultNumberFormatter()
-private val currencyFormatter = currencyFormatter()
-
-fun BigDecimal.formatAsCurrency(symbol: String?): String {
-    return (symbol ?: DOLLAR_SIGN) + currencyFormatter.format(this)
+fun patternWith(precision: Int): String {
+    return if (precision > 0) {
+        "$DECIMAL_PATTERN_BASE.${"#".repeat(precision)}"
+    } else {
+        DECIMAL_PATTERN_BASE
+    }
 }
 
-fun BigDecimal.format(): String {
-    return defaultNumberFormatter.format(this)
+fun BigDecimal.formatFiat() = fiatAbbreviatedFormatter.format(this)
+fun BigDecimal.formatFiat(fiatSymbol: String?) = (fiatSymbol ?: DOLLAR_SIGN) + formatFiat()
+fun BigDecimal.formatPercent() = percentAmountFormatter.format(this)
+
+fun BigDecimal.formatCryptoFull() = fullPrecisionFormatter.format(this)
+fun BigDecimal.formatCrypto(symbol: String? = null): String {
+    return when (symbol) {
+        null -> cryptoShortAbbreviatedFormatter.format(this)
+        else -> cryptoShortAbbreviatedFormatter.format(this).formatWithTokenSymbol(symbol)
+    }
+}
+fun BigDecimal.formatCryptoDetail(symbol: String? = null): String {
+    return when (symbol) {
+        null -> cryptoDetailAbbreviatedFormatter.format(this)
+        else -> cryptoDetailAbbreviatedFormatter.format(this).formatWithTokenSymbol(symbol)
+    }
 }
 
-fun BigDecimal.formatHistoryAmount(): String {
-    return historyAmountFormatter.format(this)
-}
+private fun String.formatWithTokenSymbol(symbol: String) = "$this ${symbol.uppercase()}"
 
-fun Int.format(): String {
-    return defaultNumberFormatter.format(BigDecimal(this))
+fun BigDecimal.formatAsPercentage(): String {
+    return formatPercent() + "%"
 }
 
 fun BigDecimal.formatAsChange(): String {
     val prefix = if (isNonNegative) "+" else ""
 
     return prefix + formatAsPercentage()
-}
-
-fun BigDecimal.formatAsPercentage(): String {
-    return defaultAbbreviationFormatter.format(this) + "%"
 }
 
 fun Long.formatDaysSinceEpoch(context: Context): String? {
@@ -114,60 +99,40 @@ fun Long.formatDateTime(context: Context) = DateUtils.getRelativeDateTimeString(
 
 fun Long.formatDateTime() = SimpleDateFormat.getDateInstance().format(Date(this))
 
-fun decimalFormatterFor(pattern: String): DecimalFormat {
-    return DecimalFormat(pattern).apply {
-        val symbols = decimalFormatSymbols
-
-        symbols.groupingSeparator = GROUPING_SEPARATOR
-        symbols.decimalSeparator = DECIMAL_SEPARATOR
-
-        decimalFormatSymbols = symbols
-
-        roundingMode = RoundingMode.FLOOR
-        decimalFormatSymbols = decimalFormatSymbols
-    }
+fun decimalFormatterFor(pattern: String) = DecimalFormat(pattern).apply {
+    roundingMode = RoundingMode.FLOOR
 }
 
-fun patternWith(precision: Int) = "$DECIMAL_PATTERN_BASE${"#".repeat(precision)}"
-
-fun defaultNumberFormatter() = CompoundNumberFormatter(
+fun fiatAbbreviatedFormatter() = CompoundNumberFormatter(
     abbreviations = listOf(
-        NumberAbbreviation(
-            threshold = BigDecimal.ZERO,
-            divisor = BigDecimal.ONE,
-            suffix = "",
-            formatter = DynamicPrecisionFormatter(minPrecision = FULL_PRECISION)
-        ),
-        NumberAbbreviation(
-            threshold = BigDecimal.ONE,
-            divisor = BigDecimal.ONE,
-            suffix = "",
-            formatter = defaultFullFormatter
-        ),
-        thousandAbbreviation,
-        millionAbbreviation,
-        billionAbbreviation,
-        trillionAbbreviation
+        NumberAbbreviation(BigDecimal.ZERO, BigDecimal.ONE, "", fiatAmountFormatter),
+        NumberAbbreviation(BigDecimal.ONE, BigDecimal.ONE, "", fiatAmountFormatter),
+        NumberAbbreviation(BigDecimal("1E+3"), BigDecimal.ONE, "", fiatAmountFormatter),
+        NumberAbbreviation(BigDecimal("1E+6"), BigDecimal("1E+6"), "M", fiatAmountFormatter),
+        NumberAbbreviation(BigDecimal("1E+9"), BigDecimal("1E+9"), "B", fiatAmountFormatter),
+        NumberAbbreviation(BigDecimal("1E+12"), BigDecimal("1E+12"), "T", fiatAmountFormatter)
     )
 )
 
-fun currencyFormatter() = CompoundNumberFormatter(
+fun cryptoDetailAbbreviatedFormatter() = CompoundNumberFormatter(
     abbreviations = listOf(
-        NumberAbbreviation(
-            threshold = BigDecimal.ZERO,
-            divisor = BigDecimal.ONE,
-            suffix = "",
-            formatter = DynamicPrecisionFormatter(minPrecision = ABBREVIATED_PRECISION)
-        ),
-        NumberAbbreviation(
-            threshold = BigDecimal.ONE,
-            divisor = BigDecimal.ONE,
-            suffix = "",
-            formatter = defaultAbbreviationFormatter
-        ),
-        thousandAbbreviation,
-        millionAbbreviation,
-        billionAbbreviation,
-        trillionAbbreviation
+        NumberAbbreviation(BigDecimal.ZERO, BigDecimal.ONE, "", cryptoAmountDetailFormatter),
+        NumberAbbreviation(BigDecimal.ONE, BigDecimal.ONE, "", cryptoAmountDetailFormatter),
+        NumberAbbreviation(BigDecimal("1E+3"), BigDecimal.ONE, "", cryptoAmountShortFormatter),
+        NumberAbbreviation(BigDecimal("1E+6"), BigDecimal("1E+6"), "M", cryptoAmountShortFormatter),
+        NumberAbbreviation(BigDecimal("1E+9"), BigDecimal("1E+9"), "B", cryptoAmountShortFormatter),
+        NumberAbbreviation(BigDecimal("1E+12"), BigDecimal("1E+12"), "T", cryptoAmountShortFormatter),
+        NumberAbbreviation(BigDecimal("1E+15"), BigDecimal("1E+12"), "T", cryptoAmountShortFormatter)
+    )
+)
+
+fun cryptoShortAbbreviatedFormatter() = CompoundNumberFormatter(
+    abbreviations = listOf(
+        NumberAbbreviation(BigDecimal.ZERO, BigDecimal.ONE, "", cryptoAmountShortFormatter),
+        NumberAbbreviation(BigDecimal.ONE, BigDecimal.ONE, "", cryptoAmountShortFormatter),
+        NumberAbbreviation(BigDecimal("1E+3"), BigDecimal.ONE, "", cryptoAmountShortFormatter),
+        NumberAbbreviation(BigDecimal("1E+6"), BigDecimal("1E+6"), "M", cryptoAmountShortFormatter),
+        NumberAbbreviation(BigDecimal("1E+9"), BigDecimal("1E+9"), "B", cryptoAmountShortFormatter),
+        NumberAbbreviation(BigDecimal("1E+12"), BigDecimal("1E+12"), "T", cryptoAmountShortFormatter)
     )
 )

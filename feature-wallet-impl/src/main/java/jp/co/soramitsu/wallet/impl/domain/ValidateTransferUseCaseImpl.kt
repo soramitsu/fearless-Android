@@ -2,11 +2,12 @@ package jp.co.soramitsu.wallet.impl.domain
 
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.sumByBigDecimal
+import jp.co.soramitsu.core.models.ChainAssetType
+import jp.co.soramitsu.core.models.ChainId
 import jp.co.soramitsu.runtime.ext.accountIdOf
-import jp.co.soramitsu.runtime.ext.isValidAddress
-import jp.co.soramitsu.runtime.ext.utilityAsset
+import jp.co.soramitsu.core.models.isValidAddress
+import jp.co.soramitsu.core.models.utilityAsset
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
-import jp.co.soramitsu.runtime.multiNetwork.chain.ChainAssetType
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.wallet.api.domain.ExistentialDepositUseCase
 import jp.co.soramitsu.wallet.api.domain.TransferValidationResult
@@ -30,6 +31,7 @@ class ValidateTransferUseCaseImpl(
     override suspend fun invoke(
         amountInPlanks: BigInteger,
         asset: Asset,
+        destinationChainId: ChainId,
         recipientAddress: String,
         ownAddress: String,
         fee: BigInteger?,
@@ -37,13 +39,14 @@ class ValidateTransferUseCaseImpl(
     ): Result<TransferValidationResult> = kotlin.runCatching {
         fee ?: return Result.success(TransferValidationResult.WaitForFee)
         val chainId = asset.token.configuration.chainId
-        val chain = chainRegistry.getChain(chainId)
+        val originChain = chainRegistry.getChain(chainId)
+        val destinationChain = chainRegistry.getChain(destinationChainId)
         val chainAsset = asset.token.configuration
         val transferable = asset.transferableInPlanks
         val assetExistentialDeposit = existentialDepositUseCase(chainAsset)
         val tip = if (chainAsset.isUtility) walletConstants.tip(chainId).orZero() else BigInteger.ZERO
 
-        val validateAddressResult = kotlin.runCatching { chain.isValidAddress(recipientAddress) }
+        val validateAddressResult = kotlin.runCatching { destinationChain.isValidAddress(recipientAddress) }
 
         val initialChecks = mapOf(
             TransferValidationResult.InvalidAddress to (validateAddressResult.getOrNull() in listOf(null, false)),
@@ -55,13 +58,13 @@ class ValidateTransferUseCaseImpl(
             return Result.success(initialCheck)
         }
 
-        val recipientAccountId = chain.accountIdOf(recipientAddress)
+        val recipientAccountId = destinationChain.accountIdOf(recipientAddress)
 
         val totalRecipientBalanceInPlanks = substrateSource.getTotalBalance(chainAsset, recipientAccountId)
 
         val validationChecks = when {
             chainAsset.type == ChainAssetType.Equilibrium -> {
-                getEquilibriumValidationChecks(asset, recipientAccountId, chain, ownAddress, amountInPlanks, fee, tip)
+                getEquilibriumValidationChecks(asset, recipientAccountId, originChain, ownAddress, amountInPlanks, fee, tip)
             }
             chainAsset.isUtility -> {
                 val resultedBalance = (asset.freeInPlanks ?: transferable) - (amountInPlanks + fee + tip)
@@ -73,9 +76,9 @@ class ValidateTransferUseCaseImpl(
                 )
             }
             else -> {
-                val utilityAsset = walletInteractor.getCurrentAsset(chainId, chain.utilityAsset.id)
+                val utilityAsset = walletInteractor.getCurrentAsset(chainId, originChain.utilityAsset.id)
                 val utilityAssetBalance = utilityAsset.transferableInPlanks
-                val utilityAssetExistentialDeposit = existentialDepositUseCase(chain.utilityAsset)
+                val utilityAssetExistentialDeposit = existentialDepositUseCase(originChain.utilityAsset)
 
                 mapOf(
                     TransferValidationResult.InsufficientBalance to (amountInPlanks > transferable),
@@ -90,7 +93,7 @@ class ValidateTransferUseCaseImpl(
         return Result.success(result)
     }
 
-    override suspend fun validateEd(
+    override suspend fun validateExistentialDeposit(
         amountInPlanks: BigInteger,
         asset: Asset,
         recipientAddress: String,

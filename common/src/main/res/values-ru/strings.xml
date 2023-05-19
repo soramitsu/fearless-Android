@@ -84,7 +84,7 @@
     <string name="social_media">Social Media</string>
     <string name="support_and_feedback">Поддержка и Обратная связь</string>
     <string name="about_website">Официальный сайт</string>
-    <string name="about_github">Исходный код на Github</string>
+    <string name="about_github">Исходный код на GitHub</string>
     <string name="about_telegram">Присоединяйтесь к группе Telegram</string>
     <string name="common_email_chooser_title">Выберите приложение для работы с почтой</string>
     <string name="common_skip_process">Пропустить</string>
@@ -319,6 +319,7 @@
     <string name="wallet_filters_extrinsics">Прочие транзакции</string>
     <string name="wallet_filters_header">Показывать</string>
     <string name="common_available_format">Доступно: %s</string>
+    <string name="common_transferable_format">Доступно: %s</string>
     <string name="staking_rewards_learn_more">Подробнее о вознаграждениях</string>
     <plurals name="staking_payouts_days_left">
         <item quantity="one">%d день</item>
@@ -440,6 +441,7 @@
     <string name="staking_selected_validators_count_v1.9.1" formatted="false">выбрано %d (макс. %d)</string>
     <string name="staking_start_change_validators_recommended_subtitle">Алгоритм Fearless Wallet составил список рекомендованных валидаторов, основываясь на критериях:</string>
     <string name="common_not_enough_funds_message">К сожалению, у вас недостаточно средств для оплаты сетевого сбора.</string>
+    <string name="common_not_enough_funds_controller_message">К сожалению, у контроллер аккаунта недостаточно средств для оплаты сетевого сбора.</string>
     <string name="choose_amount_error_too_big">К сожалению, у вас недостаточно средств для совершения данной операции</string>
     <string name="staking_alert_change_validators_message">Стейкинг неактивен. Ни один из ваших валидаторов не был выбран сетью.</string>
     <string name="staking_custom_validators_list_title">Выберите валидаторов</string>
@@ -615,7 +617,6 @@
     <string name="assetdetails_balance_title">Баланс</string>
     <string name="wallet_send_navigation_title">Перевести %s</string>
     <string name="profile_wallets_title">Кошельки</string>
-    <string name="settings_add_wallet">Добавить кошелёк</string>
     <string name="onboarding_create_wallet">Создать кошелёк</string>
     <string name="onboarding_restore_wallet">У меня уже есть кошелек</string>
     <string name="import_wallet">Импорт кошелька</string>
@@ -690,6 +691,8 @@
     <string name="import_ethereum_recovery">JSON для восстановления ETH аккаунтов</string>
     <string name="i_dont_need_account">Мне не нужен аккаунт</string>
     <string name="common_network">Сеть</string>
+    <string name="common_origin_network">Исходная сеть</string>
+    <string name="common_destination_network">Сеть назначения</string>
 
     <string name="account_import_substrate_raw_seed_placeholder">Substrate сид</string>
     <string name="account_import_ethereum_raw_seed_placeholder">ETH сид</string>
@@ -786,7 +789,7 @@
     <string name="pool_staking_depositor">Вкладчик</string>
     <string name="pool_staking_root">Root</string>
     <string name="pool_staking_nominator">Nominator</string>
-    <string name="pool_staking_state_toggler">State toggler</string>
+    <string name="pool_staking_bouncer">Bouncer</string>
     <string name="pool_staking_title">Pool staking</string>
     <string name="common_watch">Смотреть</string>
     <string name="nft_stub_title">Извините!</string>
@@ -801,6 +804,8 @@
     <string name="common_action_show">Показать</string>
     <string name="common_action_buy">Купить</string>
     <string name="common_action_swap">Обменять</string>
+
+    <string name="common_title_select_wallet">Выберите кошелек</string>
 
     <string name="pool_staking_confirm_join_title">Присоединение к пулу</string>
     <string name="pool_staking_number_of_members">Количество участников</string>
@@ -851,13 +856,14 @@
     <string name="chip_qr">QR код</string>
     <string name="chip_history">История</string>
     <string name="chip_paste">Из буфера</string>
+    <string name="chip_my_wallets">Мои счета</string>
     <string name="address_not_valid_error_title">Не адрес сети</string>
     <string name="address_not_valid_error_message">Неверный формат адреса.\nУбедитесь, что адрес\nсоответствует сети</string>
     <string name="transfer_address_not_valid_error_message">According to the address provided you\'re trying to make a transfer on the wrong network.</string>
     <string name="preview">Предпросмотр</string>
     <string name="hash">Хэш</string>
     <string name="all_done">Все готово</string>
-    <string name="send_success_message">Теперь Вы можете вернуться в приложение к своим активностям</string>
+    <string name="return_to_app_message">Вы можете вернуться в приложение</string>
     <string name="scam_warning_message">This address has been flagged due to evidence of a scam. We strongly recommend that you don\'t send DOT to this account.</string>
     <string name="exchange_warning_message">This address is marked as an exchange be careful the deposit and withdrawal addresses may different.</string>
     <string name="donation_warning_message">This address has been suspicious. We strongly recommend that you don\'t send DOT to this account.</string>
@@ -905,6 +911,8 @@
     <string name="common_min_received">Мин. покупка</string>
     <string name="common_liquidity_provider_fee">Комиссия LP</string>
     <string name="common_network_fee">Комиссия сети</string>
+    <string name="common_origin_network_fee">Комиссия исходной сети</string>
+    <string name="common_destination_network_fee">Комиссия сети назначения</string>
     <string name="common_route">Направление</string>
 
     <string name="polkaswap_from">Из</string>
@@ -953,4 +961,37 @@
     <string name="polkaswap_info_text_5">Понимание и добровольное принятие рисков, связанных с использованием Polkaswap, включая, но не ограничиваясь, риском потери токенов.</string>
     <string name="polkaswap_info_text_6">Не продолжайте, пока не ознакомитесь с %%Polkaswap FAQ%%, %%Polkaswap Меморандумом и Условиями и положениями%%, и %%Политикой конфиденциальности%%!</string>
     <string name="polkaswap_info_switch_text">Я подтверждаю, что ознакомился со всеми упомянутыми документами и, нажимая «Продолжить», принимаю их.</string>
+
+    <string name="sora_card_title">Пополняйте карту SORA с помощью фиата или криптовалюты и оплачивайте онлайн, в магазине или в банкомате.</string>
+    <string name="sora_card_annual_service_fee">0 € годовой сервисный сбор</string>
+    <string name="sora_card_description">Получите счет IBAN в евро и дебетовую карту Mastercard, подключенную к вашему кошельку SORA</string>
+    <string name="sora_card_enable_card_title">Aктивировать карту</string>
+    <string name="sora_card_free_card_issuance">Бесплатный выпуск карты</string>
+    <string name="sora_card_free_card_issuance_conditions_xor">Если вы держите, ставите или предоставляете ликвидность XOR на сумму не менее 100 евро на своем счете SORA.</string>
+    <string name="sora_card_you_have_enough_xor">У вас достаточно XOR</string>
+    <string name="sora_card_you_need_xor">You need %s XOR (€%s)</string>
+    <string name="sora_card_get_more_xor">Get more XOR</string>
+    <string name="sora_card_swap_or_buy_xor">You can swap for XOR or buy with Euro</string>
+    <string name="sora_card_already_have_card">I already have a card</string>
+    <string name="sora_card_issue_card_for_free">Issue card for free</string>
+    <string name="sora_card_issue_card_for_12_euro">Issue card for 12 €</string>
+    <string name="sora_card_swap_for_xor">Swap crypto for XOR</string>
+    <string name="sora_card_buy_xor">Buy XOR with EUR</string>
+
+    <string name="sora_card_no_more_free_tries">No more free attempts</string>
+    <string name="sora_card_verification_failed">Ошибка проверки</string>
+    <string name="sora_card_verification_in_progress">Выполняется проверка</string>
+    <string name="sora_card_verification_rejected">Проверка отклонена</string>
+    <string name="sora_card_verification_successful">Карта в пути</string>
+    <string name="sora_card_get_sora_card">Получить SORA карту</string>
+
+    <string name="sora_card_blacklisted_countires_title">Исключения из заявки</string>
+    <string name="sora_card_blacklisted_countires_warning"><![CDATA[Резиденты <b>некоторых стран<br>не могут подать заявку</b> на получение карты SORA Card в данный момент<br><a href=\"https://soracard.com/blacklist/\">Просмотреть список </a>]]></string>
+
+    <string name="settings_hide_zero_balances">Скрыть нулевые балансы</string>
+
+    <string name="cross_chain_wallet_title">Cross-chain перевод на кошелек</string>
+    <string name="cross_chain_wallet_my">Мой кошелек</string>
+    <string name="cross_chain_wallet_external">Внешний кошелек</string>
+
 </resources>

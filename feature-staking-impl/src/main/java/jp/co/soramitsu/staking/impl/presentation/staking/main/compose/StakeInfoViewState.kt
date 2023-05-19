@@ -3,11 +3,11 @@ package jp.co.soramitsu.staking.impl.presentation.staking.main.compose
 import jp.co.soramitsu.common.compose.component.TitleValueViewState
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.applyFiatRate
-import jp.co.soramitsu.common.utils.formatAsCurrency
+import jp.co.soramitsu.common.utils.formatCryptoDetail
+import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.feature_staking_impl.R
-import jp.co.soramitsu.staking.api.domain.model.OwnPool
 import jp.co.soramitsu.staking.api.domain.model.NominationPoolState
-import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
+import jp.co.soramitsu.staking.api.domain.model.OwnPool
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 
@@ -58,22 +58,22 @@ fun StakeInfoViewState.PoolStakeInfoViewState.Companion.default(resourceManager:
 
 fun OwnPool.toViewState(asset: Asset, resourceManager: ResourceManager): StakeInfoViewState.PoolStakeInfoViewState {
     val staked = asset.token.amountFromPlanks(myStakeInPlanks)
-    val stakedFormatted = staked.formatTokenAmount(asset.token.configuration)
-    val stakedFiat = staked.applyFiatRate(asset.token.fiatRate)?.formatAsCurrency(asset.token.fiatSymbol)
+    val stakedFormatted = staked.formatCryptoDetail(asset.token.configuration.symbolToShow)
+    val stakedFiat = staked.applyFiatRate(asset.token.fiatRate)?.formatFiat(asset.token.fiatSymbol)
 
     val rewardedInPlanks = pendingRewards
     val rewarded = asset.token.amountFromPlanks(rewardedInPlanks)
-    val rewardedFormatted = rewarded.formatTokenAmount(asset.token.configuration)
-    val rewardedFiat = rewarded.applyFiatRate(asset.token.fiatRate)?.formatAsCurrency(asset.token.fiatSymbol)
+    val rewardedFormatted = rewarded.formatCryptoDetail(asset.token.configuration.symbolToShow)
+    val rewardedFiat = rewarded.applyFiatRate(asset.token.fiatRate)?.formatFiat(asset.token.fiatSymbol)
 
     val redeemableInPlanks = redeemable
     val redeemable = asset.token.amountFromPlanks(redeemableInPlanks)
-    val redeemableFormatted = redeemable.formatTokenAmount(asset.token.configuration)
-    val redeemableFiat = redeemable.applyFiatRate(asset.token.fiatRate)?.formatAsCurrency(asset.token.fiatSymbol)
+    val redeemableFormatted = redeemable.formatCryptoDetail(asset.token.configuration.symbolToShow)
+    val redeemableFiat = redeemable.applyFiatRate(asset.token.fiatRate)?.formatFiat(asset.token.fiatSymbol)
 
     val unstaking = asset.token.amountFromPlanks(unbonding)
-    val unstakingFormatted = unstaking.formatTokenAmount(asset.token.configuration)
-    val unstakingFiat = unstaking.applyFiatRate(asset.token.fiatRate)?.formatAsCurrency(asset.token.fiatSymbol)
+    val unstakingFormatted = unstaking.formatCryptoDetail(asset.token.configuration.symbolToShow)
+    val unstakingFiat = unstaking.applyFiatRate(asset.token.fiatRate)?.formatFiat(asset.token.fiatSymbol)
 
     val status = when (state) {
         NominationPoolState.Open -> StakeStatus.PoolActive(10000L, false)

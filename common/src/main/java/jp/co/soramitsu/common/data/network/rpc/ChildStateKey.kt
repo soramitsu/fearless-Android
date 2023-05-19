@@ -1,7 +1,7 @@
 package jp.co.soramitsu.common.data.network.rpc
 
+import jp.co.soramitsu.shared_utils.extensions.toHexString
 import java.io.ByteArrayOutputStream
-import jp.co.soramitsu.fearless_utils.extensions.toHexString
 
 private const val CHILD_KEY_DEFAULT = ":child_storage:default:"
 

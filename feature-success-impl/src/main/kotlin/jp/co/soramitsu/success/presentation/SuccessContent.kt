@@ -110,7 +110,7 @@ fun SuccessContent(
                     onItemClick = callback::onItemClick
                 )
                 if (state.isShowSubscanButtons) {
-                    MarginVertical(margin = 24.dp)
+                    MarginVertical(margin = 16.dp)
                     Row {
                         GrayButton(
                             text = Chain.Explorer.Type.SUBSCAN.capitalizedName,
@@ -140,7 +140,7 @@ private fun SuccessPreview() {
             TitleValueViewState(
                 title = "Hash",
                 value = "EBN4KURhvkEBN4KURhvkEBN4KURhvkEBN4KURhvk",
-                clickState = TitleValueViewState.ClickState(R.drawable.ic_copy_filled_24, 1)
+                clickState = TitleValueViewState.ClickState.Value(R.drawable.ic_copy_filled_24, 1)
             ),
             TitleValueViewState(
                 title = "Result",

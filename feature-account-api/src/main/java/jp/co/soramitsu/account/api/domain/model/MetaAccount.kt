@@ -1,11 +1,12 @@
 package jp.co.soramitsu.account.api.domain.model
 
 import jp.co.soramitsu.common.utils.ethereumAddressToHex
-import jp.co.soramitsu.core.model.CryptoType
-import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAddress
+import jp.co.soramitsu.core.models.CryptoType
+import jp.co.soramitsu.core.models.IChain
 import jp.co.soramitsu.runtime.ext.addressOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.toAddress
 
 class MetaAccountOrdering(
     val id: Long,
@@ -67,7 +68,7 @@ class MetaAccount(
 
 fun MetaAccount.hasChainAccount(chainId: ChainId) = chainId in chainAccounts
 
-fun MetaAccount.cryptoType(chain: Chain): CryptoType {
+fun MetaAccount.cryptoType(chain: IChain): CryptoType {
     return when {
         hasChainAccount(chain.id) -> chainAccounts.getValue(chain.id).cryptoType
         chain.isEthereumBased -> CryptoType.ECDSA
@@ -90,7 +91,7 @@ fun MetaAccount.chainAddress(chain: Chain): String? {
     }
 }
 
-fun MetaAccount.accountId(chain: Chain): ByteArray? {
+fun MetaAccount.accountId(chain: IChain): ByteArray? {
     return when {
         hasChainAccount(chain.id) -> chainAccounts.getValue(chain.id).accountId
         chain.isEthereumBased -> ethereumAddress

@@ -25,14 +25,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import jp.co.soramitsu.common.compose.component.CorneredInput
-import jp.co.soramitsu.common.compose.component.Grip
 import jp.co.soramitsu.common.compose.component.H3
 import jp.co.soramitsu.common.compose.component.H4
 import jp.co.soramitsu.common.compose.component.Image
 import jp.co.soramitsu.common.compose.component.MarginHorizontal
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.component.getImageRequest
-import jp.co.soramitsu.common.compose.theme.FearlessThemeBlackBg
 import jp.co.soramitsu.common.compose.theme.black4
 import jp.co.soramitsu.common.utils.clickableWithNoIndication
 import jp.co.soramitsu.feature_wallet_impl.R
@@ -65,9 +63,6 @@ fun ChainSelectContent(
             .fillMaxWidth()
             .imePadding()
     ) {
-        MarginVertical(margin = 2.dp)
-        Grip(Modifier.align(CenterHorizontally))
-        MarginVertical(margin = 8.dp)
         H3(text = stringResource(id = R.string.common_select_network))
         MarginVertical(margin = 16.dp)
         CorneredInput(state = state.searchQuery, onInput = onSearchInput)
@@ -212,11 +207,9 @@ private fun SelectChainScreenPreview() {
         selectedChainId = null,
         searchQuery = null
     )
-    FearlessThemeBlackBg {
-        Column(
-            Modifier.background(black4)
-        ) {
-            ChainSelectContent(state = state)
-        }
+    Column(
+        Modifier.background(black4)
+    ) {
+        ChainSelectContent(state = state)
     }
 }

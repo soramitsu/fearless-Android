@@ -2,8 +2,8 @@ package jp.co.soramitsu.wallet.impl.presentation.balance.assetActions.buy
 
 import androidx.lifecycle.MutableLiveData
 import jp.co.soramitsu.common.utils.Event
+import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.wallet.impl.domain.model.BuyTokenRegistry
 import jp.co.soramitsu.wallet.impl.presentation.balance.assetActions.buy.BuyMixin.IntegrationPayload
@@ -27,7 +27,7 @@ class BuyMixinProvider(
 
     override fun providerChosen(
         provider: BuyTokenRegistry.Provider<*>,
-        chainAsset: Chain.Asset,
+        chainAsset: Asset,
         accountAddress: String
     ) {
         val payload = IntegrationPayload(

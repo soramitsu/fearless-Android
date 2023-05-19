@@ -1,15 +1,13 @@
 package jp.co.soramitsu.polkaswap.impl.domain
 
-import java.math.BigDecimal
-import java.math.BigInteger
-import java.math.RoundingMode
-import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.accountId
-import jp.co.soramitsu.common.data.network.runtime.model.QuoteResponse
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.presentation.LoadingState
+import jp.co.soramitsu.common.utils.isZero
 import jp.co.soramitsu.common.utils.orZero
+import jp.co.soramitsu.core.models.utilityAsset
+import jp.co.soramitsu.core.rpc.models.responses.QuoteResponse
 import jp.co.soramitsu.polkaswap.api.data.PolkaswapRepository
 import jp.co.soramitsu.polkaswap.api.domain.InsufficientLiquidityException
 import jp.co.soramitsu.polkaswap.api.domain.PolkaswapInteractor
@@ -19,7 +17,6 @@ import jp.co.soramitsu.polkaswap.api.models.WithDesired
 import jp.co.soramitsu.polkaswap.api.models.backStrings
 import jp.co.soramitsu.polkaswap.api.models.toFilters
 import jp.co.soramitsu.polkaswap.api.presentation.models.toModel
-import jp.co.soramitsu.runtime.ext.utilityAsset
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId
@@ -29,12 +26,16 @@ import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
-import kotlin.math.max
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.merge
+import java.math.BigDecimal
+import java.math.BigInteger
+import java.math.RoundingMode
+import javax.inject.Inject
+import kotlin.math.max
 
 class PolkaswapInteractorImpl @Inject constructor(
     private val chainRegistry: ChainRegistry,
@@ -131,7 +132,7 @@ class PolkaswapInteractorImpl @Inject constructor(
         }
         bestDexIdFlow.emit(LoadingState.Loaded(bestDex))
 
-        if (swapQuote.amount.compareTo(BigDecimal.ZERO) == 0) return Result.success(null)
+        if (swapQuote.amount.isZero()) return Result.success(null)
 
         val minMax =
             (swapQuote.amount * BigDecimal.valueOf(slippageTolerance / 100)).let {
@@ -144,7 +145,7 @@ class PolkaswapInteractorImpl @Inject constructor(
 
         val scale = max(swapQuote.amount.scale(), amount.scale())
 
-        if (swapQuote.amount.compareTo(BigDecimal.ZERO) == 0) return Result.success(null)
+        if (swapQuote.amount.isZero()) return Result.success(null)
         val per1 = amount.divide(swapQuote.amount, scale, RoundingMode.HALF_EVEN)
         val per2 = swapQuote.amount.divide(amount, scale, RoundingMode.HALF_EVEN)
         val liquidityFee = swapQuote.fee

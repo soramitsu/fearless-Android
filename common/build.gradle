@@ -3,6 +3,8 @@ apply plugin: 'dagger.hilt.android.plugin'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
 apply plugin: 'kotlin-parcelize'
+apply plugin: 'kotlinx-serialization'
+apply from: '../scripts/secrets.gradle'
 
 android {
     compileSdkVersion rootProject.compileSdkVersion
@@ -42,14 +44,25 @@ android {
         buildConfigField "String", "MOONBEAM_STAKING_LEARN_MORE", "\"https://docs.moonbeam.network/learn/features/staking/#reward-distribution(\""
         buildConfigField "String", "STAKING_POOL_WIKI", "\"https://wiki.polkadot.network/docs/learn-nomination-pools\""
         buildConfigField "String", "POLKADOT_JS_PLUS_EXTENSION", "\"http://polkadotjs.plus/\""
+
+        buildConfigField "String", "X1_PAYMENT_STATUS_URL", "\"wss://backend.dev.sora-card.tachi.soramitsu.co.jp/ws/x1-payment-status\""
+        buildConfigField "String", "SORA_XOR_EURO_URL",  "\"https://backend.dev.sora-card.tachi.soramitsu.co.jp/prices/xor_euro\""
+
+        buildConfigField "String", "SORA_CARD_API_KEY", readSecretInQuotes("SORA_CARD_API_KEY")
+        buildConfigField "String", "SORA_CARD_DOMAIN",  readSecretInQuotes("SORA_CARD_DOMAIN")
+        buildConfigField "String", "SORA_CARD_KYC_ENDPOINT_URL",  readSecretInQuotes("SORA_CARD_KYC_ENDPOINT_URL")
+        buildConfigField "String", "SORA_CARD_KYC_USERNAME", readSecretInQuotes("SORA_CARD_KYC_USERNAME")
+        buildConfigField "String", "SORA_CARD_KYC_PASSWORD",  readSecretInQuotes("SORA_CARD_KYC_PASSWORD")
     }
 
     buildTypes {
         debug {
-
+            buildConfigField "String", "X1_ENDPOINT_URL", readSecretInQuotes("X1_ENDPOINT_URL_DEBUG")
+            buildConfigField "String", "X1_WIDGET_ID", readSecretInQuotes("X1_WIDGET_ID_DEBUG")
         }
         release {
-
+            buildConfigField "String", "X1_ENDPOINT_URL", readSecretInQuotes("X1_ENDPOINT_URL_RELEASE")
+            buildConfigField "String", "X1_WIDGET_ID", readSecretInQuotes("X1_WIDGET_ID_RELEASE")
         }
     }
 
@@ -90,8 +103,6 @@ dependencies {
 
     implementation bouncyCastleDep
 
-    implementation fearlessLibDep
-
     implementation coroutinesDep
     implementation liveDataKtxDep
     implementation lifeCycleKtxDep
@@ -120,10 +131,14 @@ dependencies {
     implementation compose
     debugImplementation composeDebug
 
+    implementation soraUiCoreDep
+
     api coilDep
     api coilSvg
 
     testImplementation jUnitDep
     testImplementation mockitoDep
     testImplementation project(':test-shared')
+
+    api sharedFeaturesCoreDep
 }

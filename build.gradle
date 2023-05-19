@@ -1,19 +1,21 @@
+apply from: './scripts/secrets.gradle'
+
 buildscript {
     ext {
         // App version
-        versionName = '2.2.2'
-        versionCode = 90
+        versionName = '2.2.3'
+        versionCode = 91
 
         // SDK and tools
         compileSdkVersion = 33
         minSdkVersion = 24
         targetSdkVersion = 33
 
-        kotlinVersion = '1.7.10'
+        kotlinVersion = '1.8.10'
 
-        ktlintPinterestVersion = '0.47.1'
+        ktlintPinterestVersion = '0.48.2'
 
-        supportVersion = '1.6.1'
+        materialVersion = '1.8.0'
         cardViewVersion = '1.0.0'
         constraintVersion = '2.1.4'
 
@@ -22,37 +24,37 @@ buildscript {
         biometricVersion = '1.1.0'
 
         progressButtonsVersion = '2.1.0'
-        xNetworkingVersion = '0.0.46'
+        xNetworkingVersion = '0.0.55'
+        soraCardVersion = '0.0.36'
+        soraUiCoreVersion = '0.0.67'
 
-        daggerVersion = '2.43'
+        daggerVersion = '2.45'
         javaxInjectVersion = '1'
 
-        architectureComponentVersion = '2.5.1'
-        roomVersion = '2.4.3'
+        architectureComponentVersion = '2.6.1'
+        roomVersion = '2.5.1'
 
         retrofitVersion = '2.9.0'
-        okhttpVersion = '5.0.0-alpha.8'
-        gsonVersion = '2.9.1'
+        okhttpVersion = '5.0.0-alpha.11'
+        gsonVersion = '2.10.1'
 
-        navControllerVersion = '2.5.1'
+        navControllerVersion = '2.5.3'
 
         junitVersion = '4.13.2'
-        mockitoVersion = '4.6.1'
-        robolectricVersion = '4.1'
+        mockitoVersion = '5.2.0'
+        robolectricVersion = '4.9.2'
 
         bouncyCastleVersion = '1.70'
 
-        fearlessLibVersion = '1.0.109'
-
-        gifVersion = '1.2.24'
+        gifVersion = '1.2.25'
 
         zXingVersion = '3.5.1'
         zXingEmbeddedVersion = '4.3.0'
 
         biometricDep = "androidx.biometric:biometric:$biometricVersion"
 
-        firebaseAppDistrVersion = '2.1.1'
-        playPublisherVersion = '3.7.0'
+        firebaseAppDistrVersion = '4.0.0'
+        playPublisherVersion = '3.8.1'
 
         wsVersion = '2.14'
 
@@ -64,21 +66,25 @@ buildscript {
 
         storiesVersion = '3.0.0'
 
-        coilVersion = '2.1.0'
+        coilVersion = '2.2.2'
 
-        androidxCoreVersion = '1.8.0'
+        androidxCoreVersion = '1.9.0'
 
-        composeVersion = '1.2.1'
-        composeCompilerVersion = '1.3.0'
+        composeVersion = '1.3.1'
+        composeCompilerVersion = '1.4.4'
 
-        appcompatVersion = '1.5.0'
-        recyclerviewVersion = '1.2.1'
-        lifecycleVersion = '2.5.1'
+        appcompatVersion = '1.6.1'
+        recyclerviewVersion = '1.3.0'
+        lifecycleVersion = '2.6.1'
 
-        activityKtx = '1.1.0'
-        fragmentKtx = '1.5.2'
+        serializationVersion = '1.5.0'
+
+        activityKtx = '1.7.0'
+        fragmentKtx = '1.5.6'
         minifyRelease = true
         beaconVersion = "3.2.4"
+
+        sharedFeaturesVersion = "0.0.24"
 
         coilDep = "io.coil-kt:coil:$coilVersion"
         coilSvg = "io.coil-kt:coil-svg:$coilVersion"
@@ -91,7 +97,7 @@ buildscript {
         cardViewDep = "androidx.cardview:cardview:$cardViewVersion"
         recyclerViewDep = "androidx.recyclerview:recyclerview:$recyclerviewVersion"
         constraintDep = "androidx.constraintlayout:constraintlayout:$constraintVersion"
-        materialDep = "com.google.android.material:material:$supportVersion"
+        materialDep = "com.google.android.material:material:$materialVersion"
         androidxCoreDep = "androidx.core:core-ktx:$androidxCoreVersion"
         activityKtxDep = "androidx.activity:activity-ktx:$activityKtx"
         fragmentKtxDep = "androidx.fragment:fragment-ktx:$fragmentKtx"
@@ -106,16 +112,16 @@ buildscript {
                 "androidx.compose.compiler:compiler:$composeCompilerVersion",
                 "androidx.compose.foundation:foundation:$composeVersion",
                 "androidx.compose.material:material:$composeVersion",
-                "com.google.android.material:compose-theme-adapter:1.1.1",
+                "com.google.android.material:compose-theme-adapter:1.2.1",
                 "androidx.compose.animation:animation:$composeVersion",
                 "androidx.compose.animation:animation-graphics:$composeVersion",
                 "androidx.compose.ui:ui-tooling-preview:$composeVersion",
-                "androidx.activity:activity-compose:1.5.1",
-                "androidx.lifecycle:lifecycle-viewmodel-compose:2.5.1",
-                "com.valentinilk.shimmer:compose-shimmer:1.0.3",
+                "androidx.activity:activity-compose:1.7.0",
+                "androidx.lifecycle:lifecycle-viewmodel-compose:2.6.1",
+                "com.valentinilk.shimmer:compose-shimmer:1.0.4",
                 "androidx.constraintlayout:constraintlayout-compose:1.0.1",
-                "com.google.accompanist:accompanist-swiperefresh:0.26.5-rc",
-                "com.google.accompanist:accompanist-webview:0.27.1",
+                "com.google.accompanist:accompanist-swiperefresh:0.28.0",
+                "com.google.accompanist:accompanist-webview:0.28.0",
                 "io.coil-kt:coil-compose:$coilVersion",
                 "androidx.navigation:navigation-compose:$navControllerVersion",
                 "androidx.hilt:hilt-navigation-compose:1.0.0"
@@ -123,7 +129,7 @@ buildscript {
         composeDebug = [
                 "androidx.compose.ui:ui-tooling:$composeVersion",
                 //fix compose preview https://stackoverflow.com/a/71830120
-                "androidx.customview:customview:1.2.0-alpha01",
+                "androidx.customview:customview:1.2.0-alpha02",
                 "androidx.customview:customview-poolingcontainer:1.0.0"
         ]
 
@@ -164,12 +170,13 @@ buildscript {
         zXingCoreDep = "com.google.zxing:core:$zXingVersion"
         zXingEmbeddedDep = "com.journeyapps:zxing-android-embedded:$zXingEmbeddedVersion"
 
-        fearlessLibDep = "jp.co.soramitsu.fearless-utils:fearless-utils:$fearlessLibVersion"
-
         gifDep = "pl.droidsonroids.gif:android-gif-drawable:$gifVersion"
 
+        withoutBouncycastle = { exclude group: 'org.bouncycastle' }
+        soraCardDep = "jp.co.soramitsu:android-sora-card:$soraCardVersion"
         wsDep = "com.neovisionaries:nv-websocket-client:$wsVersion"
         xNetworkingDep = "jp.co.soramitsu:XNetworking-android:$xNetworkingVersion"
+        soraUiCoreDep = "jp.co.soramitsu:ui-core:$soraUiCoreVersion"
 
         shimmerDep = "com.facebook.shimmer:shimmer:$shimmerVersion"
 
@@ -184,15 +191,20 @@ buildscript {
 
         progressButtonDep = "com.github.razir.progressbutton:progressbutton:$progressButtonsVersion"
 
-        androidTestRunnerDep = 'androidx.test:runner:1.4.0'
-        androidTestRulesDep = 'androidx.test:rules:1.4.0'
-        androidJunitDep = 'androidx.test.ext:junit:1.1.3'
+        androidTestRunnerDep = 'androidx.test:runner:1.5.2'
+        androidTestRulesDep = 'androidx.test:rules:1.5.0'
+        androidJunitDep = 'androidx.test.ext:junit:1.1.5'
 
         roomTestsDep = "androidx.room:room-testing:$roomVersion"
 
         withoutJna = { exclude group: 'net.java.dev.jna' }
         beaconDep = "com.github.airgap-it:beacon-android-sdk:$beaconVersion"
         jnaDep = "net.java.dev.jna:jna:5.9.0@aar"
+
+        sharedFeaturesCoreDep = "jp.co.soramitsu.shared_features:core:$sharedFeaturesVersion"
+        sharedFeaturesXcmDep = "jp.co.soramitsu.shared_features:xcm:$sharedFeaturesVersion"
+
+        serializationDep = "org.jetbrains.kotlinx:kotlinx-serialization-json:$serializationVersion"
     }
 
     repositories {
@@ -202,8 +214,9 @@ buildscript {
         maven { url 'https://maven.google.com' }
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:7.3.1'
+        classpath 'com.android.tools.build:gradle:7.4.2'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
+        classpath "org.jetbrains.kotlin:kotlin-serialization:$kotlinVersion"
         classpath 'com.google.gms:google-services:4.3.15'
         classpath "com.google.firebase:firebase-appdistribution-gradle:$firebaseAppDistrVersion"
         classpath "com.github.triplet.gradle:play-publisher:$playPublisherVersion"
@@ -218,6 +231,15 @@ allprojects {
         maven { url "https://jitpack.io" }
         maven { url "https://nexus.iroha.tech/repository/maven-soramitsu/" }
         mavenCentral()
+        mavenLocal()
+
+        maven {
+            url = readSecret("PAY_WINGS_REPOSITORY_URL")
+            credentials {
+                username = readSecret("PAY_WINGS_USERNAME")
+                password = readSecret("PAY_WINGS_PASSWORD")
+            }
+        }
     }
 }
 
@@ -232,7 +254,6 @@ task clean(type: Delete) {
 dependencies {
 
     ktlint("com.pinterest:ktlint:$ktlintPinterestVersion") {
-//    ktlint("com.pinterest:ktlint:0.46.1") {
         attributes {
             attribute(Bundling.BUNDLING_ATTRIBUTE, getObjects().named(Bundling, Bundling.EXTERNAL))
         }

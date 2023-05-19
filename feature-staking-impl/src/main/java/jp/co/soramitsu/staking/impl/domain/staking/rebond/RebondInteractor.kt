@@ -1,13 +1,12 @@
 package jp.co.soramitsu.staking.impl.domain.staking.rebond
 
-import java.math.BigInteger
-import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
-import jp.co.soramitsu.account.api.extrinsic.ExtrinsicService
+import jp.co.soramitsu.core.extrinsic.ExtrinsicService
+import jp.co.soramitsu.shared_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.staking.api.data.StakingSharedState
 import jp.co.soramitsu.staking.api.domain.model.StakingState
-import jp.co.soramitsu.runtime.state.chain
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.math.BigInteger
 
 class RebondInteractor(
     private val extrinsicService: ExtrinsicService,

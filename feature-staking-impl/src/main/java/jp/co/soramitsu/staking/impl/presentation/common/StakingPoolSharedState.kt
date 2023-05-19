@@ -1,14 +1,15 @@
 package jp.co.soramitsu.staking.impl.presentation.common
 
-import java.math.BigDecimal
-import java.math.BigInteger
-import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.shared_utils.runtime.AccountId
 import jp.co.soramitsu.staking.api.domain.model.PoolInfo
 import jp.co.soramitsu.staking.api.domain.model.RoleInPool
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import kotlinx.coroutines.flow.MutableStateFlow
+import java.math.BigDecimal
+import java.math.BigInteger
+import jp.co.soramitsu.core.models.Asset as CoreAsset
 
 data class StakingPoolJoinFlowState(
     val amount: BigDecimal? = null,
@@ -45,7 +46,7 @@ data class StakingPoolManageFlowState(
 data class StakingPoolState(
     val chain: Chain? = null,
     val asset: Asset? = null,
-    val chainAsset: Chain.Asset? = null,
+    val chainAsset: CoreAsset? = null,
     val address: String? = null,
     val amount: BigDecimal? = null
 ) {

@@ -5,10 +5,10 @@ import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.common.data.network.StorageSubscriptionBuilder
 import jp.co.soramitsu.core.updater.UpdateSystem
 import jp.co.soramitsu.core.updater.Updater
-import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.storage.subscribeUsing
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.getSocketOrNull
+import jp.co.soramitsu.shared_utils.wsrpc.request.runtime.storage.subscribeUsing
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.emitAll

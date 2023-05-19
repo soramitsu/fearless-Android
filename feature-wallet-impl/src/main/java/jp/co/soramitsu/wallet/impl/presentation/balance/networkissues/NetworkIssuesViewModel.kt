@@ -1,11 +1,11 @@
 package jp.co.soramitsu.wallet.impl.presentation.balance.networkissues
 
-import androidx.lifecycle.asFlow
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.presentation.actions.AddAccountBottomSheet
+import jp.co.soramitsu.common.AlertViewState
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.NetworkIssueItemState
 import jp.co.soramitsu.common.compose.component.NetworkIssueType
@@ -16,7 +16,6 @@ import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
-import jp.co.soramitsu.common.AlertViewState
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -36,7 +35,7 @@ class NetworkIssuesViewModel @Inject constructor(
 ) : BaseViewModel(), UpdatesProviderUi by updatesMixin, NetworkStateUi by networkStateMixin {
 
     val state = combine(
-        networkStateMixin.networkIssuesLiveData.asFlow(),
+        networkStateMixin.networkIssuesFlow.stateIn(viewModelScope, SharingStarted.Eagerly, emptySet()),
         walletInteractor.assetsFlow().map {
             it.filter { !it.hasAccount && !it.asset.markedNotNeed }.map {
                 NetworkIssueItemState(
@@ -50,9 +49,9 @@ class NetworkIssuesViewModel @Inject constructor(
             }
         }
     ) { networkIssues, assetsWoAccount ->
-        networkIssues.plus(assetsWoAccount)
+        networkIssues.plus(assetsWoAccount.toSet())
     }.map {
-        NetworkIssuesState(it)
+        NetworkIssuesState(it.toList())
     }
         .stateIn(
             viewModelScope,

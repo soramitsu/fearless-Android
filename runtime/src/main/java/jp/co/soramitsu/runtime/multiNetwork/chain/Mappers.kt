@@ -2,6 +2,9 @@ package jp.co.soramitsu.runtime.multiNetwork.chain
 
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import jp.co.soramitsu.core.models.Asset
+import jp.co.soramitsu.core.models.ChainAssetType
+import jp.co.soramitsu.core.models.ChainNode
 import jp.co.soramitsu.coredb.model.chain.ChainAssetLocal
 import jp.co.soramitsu.coredb.model.chain.ChainExplorerLocal
 import jp.co.soramitsu.coredb.model.chain.ChainLocal
@@ -36,17 +39,17 @@ private fun mapSectionTypeToSectionTypeLocal(sectionType: Chain.ExternalApi.Sect
 private fun mapSectionTypeLocalToSectionType(sectionType: String): Chain.ExternalApi.Section.Type = enumValueOf(sectionType)
 private fun mapExplorerTypeLocalToExplorerType(explorerType: String): Chain.Explorer.Type = enumValueOf(explorerType)
 
-private fun mapStakingStringToStakingType(stakingString: String?): Chain.Asset.StakingType {
+private fun mapStakingStringToStakingType(stakingString: String?): Asset.StakingType {
     return when (stakingString) {
-        null -> Chain.Asset.StakingType.UNSUPPORTED
-        "relaychain" -> Chain.Asset.StakingType.RELAYCHAIN
-        "parachain" -> Chain.Asset.StakingType.PARACHAIN
-        else -> Chain.Asset.StakingType.UNSUPPORTED
+        null -> Asset.StakingType.UNSUPPORTED
+        "relaychain" -> Asset.StakingType.RELAYCHAIN
+        "parachain" -> Asset.StakingType.PARACHAIN
+        else -> Asset.StakingType.UNSUPPORTED
     }
 }
 
-private fun mapStakingTypeToLocal(stakingType: Chain.Asset.StakingType): String = stakingType.name
-private fun mapStakingTypeFromLocal(stakingTypeLocal: String): Chain.Asset.StakingType = enumValueOf(stakingTypeLocal)
+private fun mapStakingTypeToLocal(stakingType: Asset.StakingType): String = stakingType.name
+private fun mapStakingTypeFromLocal(stakingTypeLocal: String): Asset.StakingType = enumValueOf(stakingTypeLocal)
 
 private fun ChainExternalApiRemote.Explorer.toExplorer() = Chain.Explorer(
     type = mapExplorerTypeRemoteToExplorerType(type),
@@ -89,7 +92,7 @@ fun mapChainsRemoteToChains(
 
 private fun ChainRemote.toChain(assetsById: Map<String?, AssetRemote>): Chain {
     val nodes = this.nodes?.mapIndexed { index, node ->
-        Chain.Node(
+        ChainNode(
             url = node.url,
             name = node.name,
             isActive = index == 0,
@@ -100,8 +103,9 @@ private fun ChainRemote.toChain(assetsById: Map<String?, AssetRemote>): Chain {
     val assets = this.assets?.mapNotNull { chainAsset ->
         chainAsset.assetId?.let {
             val assetRemote = assetsById[chainAsset.assetId]
-            Chain.Asset(
+            Asset(
                 id = chainAsset.assetId,
+                name = assetRemote?.name,
                 symbol = assetRemote?.symbol.orEmpty(),
                 displayName = assetRemote?.displayName,
                 iconUrl = assetRemote?.icon.orEmpty(),
@@ -124,13 +128,6 @@ private fun ChainRemote.toChain(assetsById: Map<String?, AssetRemote>): Chain {
         }
     }
 
-    val types = this.types?.let {
-        Chain.Types(
-            url = it.androidUrl,
-            overridesCommon = it.overridesCommon
-        )
-    }
-
     val externalApi = this.externalApi?.let { externalApi ->
         (externalApi.history ?: externalApi.staking ?: externalApi.crowdloans)?.let {
             Chain.ExternalApi(
@@ -151,7 +148,6 @@ private fun ChainRemote.toChain(assetsById: Map<String?, AssetRemote>): Chain {
         name = this.name,
         minSupportedVersion = this.minSupportedVersion,
         assets = assets.orEmpty(),
-        types = types,
         nodes = nodes.orEmpty(),
         explorers = explorers.orEmpty(),
         icon = this.icon.orEmpty(),
@@ -164,7 +160,7 @@ private fun ChainRemote.toChain(assetsById: Map<String?, AssetRemote>): Chain {
     )
 }
 
-fun mapNodeLocalToNode(nodeLocal: ChainNodeLocal) = Chain.Node(
+fun mapNodeLocalToNode(nodeLocal: ChainNodeLocal) = ChainNode(
     url = nodeLocal.url,
     name = nodeLocal.name,
     isActive = nodeLocal.isActive,
@@ -175,8 +171,9 @@ fun mapChainLocalToChain(chainLocal: JoinedChainInfo): Chain {
     val nodes = chainLocal.nodes.map(::mapNodeLocalToNode)
 
     val assets = chainLocal.assets.map {
-        Chain.Asset(
+        Asset(
             id = it.id,
+            name = it.name,
             symbol = it.symbol,
             displayName = it.displayName,
             iconUrl = it.icon,
@@ -195,13 +192,6 @@ fun mapChainLocalToChain(chainLocal: JoinedChainInfo): Chain {
             existentialDeposit = it.existentialDeposit,
             color = it.color,
             isNative = it.isNative
-        )
-    }
-
-    val types = chainLocal.chain.types?.let {
-        Chain.Types(
-            url = it.url,
-            overridesCommon = it.overridesCommon
         )
     }
 
@@ -228,7 +218,6 @@ fun mapChainLocalToChain(chainLocal: JoinedChainInfo): Chain {
             name = name,
             minSupportedVersion = minSupportedVersion,
             assets = assets,
-            types = types,
             nodes = nodes,
             explorers = explorers,
             icon = icon,
@@ -256,6 +245,7 @@ fun mapChainToChainLocal(chain: Chain): JoinedChainInfo {
     val assets = chain.assets.map {
         ChainAssetLocal(
             id = it.id,
+            name = it.name,
             symbol = it.symbol,
             displayName = it.displayName,
             icon = it.iconUrl,
@@ -270,13 +260,6 @@ fun mapChainToChainLocal(chain: Chain): JoinedChainInfo {
             existentialDeposit = it.existentialDeposit,
             color = it.color,
             isNative = it.isNative
-        )
-    }
-
-    val types = chain.types?.let {
-        ChainLocal.TypesConfig(
-            url = it.url,
-            overridesCommon = it.overridesCommon
         )
     }
 
@@ -303,7 +286,6 @@ fun mapChainToChainLocal(chain: Chain): JoinedChainInfo {
             parentId = parentId,
             name = name,
             minSupportedVersion = minSupportedVersion,
-            types = types,
             icon = icon,
             prefix = addressPrefix,
             externalApi = externalApi,

@@ -5,7 +5,6 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.theme.black1
 import jp.co.soramitsu.common.compose.theme.greenText
@@ -13,6 +12,7 @@ import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.presentation.map
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.flowOf
+import jp.co.soramitsu.common.utils.formatCrypto
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.staking.api.domain.model.NominationPoolState
@@ -23,7 +23,6 @@ import jp.co.soramitsu.staking.impl.presentation.pools.compose.PoolSorting
 import jp.co.soramitsu.staking.impl.presentation.pools.compose.SelectableListItemState
 import jp.co.soramitsu.staking.impl.presentation.pools.compose.SingleSelectListItemViewState
 import jp.co.soramitsu.staking.impl.scenarios.StakingPoolInteractor
-import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import kotlinx.coroutines.flow.Flow
@@ -32,6 +31,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.stateIn
+import javax.inject.Inject
 
 @HiltViewModel
 class SelectPoolViewModel @Inject constructor(
@@ -87,7 +87,7 @@ class SelectPoolViewModel @Inject constructor(
 
     private fun PoolInfo.toState(asset: Asset, isSelected: Boolean): SelectableListItemState<Int> {
         val staked = asset.token.amountFromPlanks(stakedInPlanks)
-        val stakedFormatted = staked.formatTokenAmount(asset.token.configuration)
+        val stakedFormatted = staked.formatCrypto(asset.token.configuration.symbolToShow)
         val id = poolId.toInt()
         val stakedText = buildAnnotatedString {
             withStyle(style = SpanStyle(color = black1)) {

@@ -21,7 +21,6 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.R
-import jp.co.soramitsu.common.compose.theme.FearlessThemeBlackBg
 import jp.co.soramitsu.common.compose.theme.backgroundBlurColor
 import jp.co.soramitsu.common.compose.theme.colorAccent
 import jp.co.soramitsu.common.compose.theme.customTypography
@@ -72,14 +71,12 @@ fun ChainSelector(
 @Preview
 @Composable
 private fun ChainSelectorPreview() {
-    FearlessThemeBlackBg {
-        ChainSelector(
-            selectorViewState = ChainSelectorViewState(
-                selectedChainId = "id",
-                selectedChainName = "Kusama",
-                selectedChainStatusColor = colorAccent
-            ),
-            onChangeChainClick = {}
-        )
-    }
+    ChainSelector(
+        selectorViewState = ChainSelectorViewState(
+            selectedChainId = "id",
+            selectedChainName = "Kusama",
+            selectedChainStatusColor = colorAccent
+        ),
+        onChangeChainClick = {}
+    )
 }

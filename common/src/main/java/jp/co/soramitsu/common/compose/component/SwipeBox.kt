@@ -23,7 +23,6 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import jp.co.soramitsu.common.compose.theme.FearlessThemeBlackBg
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState
 import kotlin.math.absoluteValue
 import kotlin.math.roundToInt
@@ -152,12 +151,13 @@ private fun AssetItemSwipeBoxPreview() {
     )
 
     val assetIconUrl = "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Polkadot.svg"
+    val assetName = "Karura asset"
     val assetChainName = "Karura"
     val assetSymbol = "KSM"
     val assetTokenFiat = "$73.22"
     val assetTokenRate = "+5.67%"
-    val assetBalance = "444.3"
-    val assetBalanceFiat = "$2345.32"
+    val assetTransferableBalance = "444.3"
+    val assetTransferableBalanceFiat = "$2345.32"
     val assetChainUrlsMap = mapOf(
         "" to "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Karura.svg",
         "" to "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/kilt.svg",
@@ -171,11 +171,12 @@ private fun AssetItemSwipeBoxPreview() {
     val assetListItemViewState = AssetListItemViewState(
         assetIconUrl = assetIconUrl,
         assetChainName = assetChainName,
+        assetName = assetName,
         assetSymbol = assetSymbol,
         assetTokenFiat = assetTokenFiat,
         assetTokenRate = assetTokenRate,
-        assetBalance = assetBalance,
-        assetBalanceFiat = assetBalanceFiat,
+        assetTransferableBalance = assetTransferableBalance,
+        assetTransferableBalanceFiat = assetTransferableBalanceFiat,
         assetChainUrls = assetChainUrlsMap,
         chainId = "",
         chainAssetId = "",
@@ -184,21 +185,20 @@ private fun AssetItemSwipeBoxPreview() {
         displayName = assetSymbol,
         hasAccount = true,
         priceId = null,
-        hasNetworkIssue = false
+        hasNetworkIssue = false,
+        ecosystem = "Polkadot"
     )
 
-    FearlessThemeBlackBg {
-        Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-            SwipeBox(
-                state = SwipeBoxViewState(
-                    leftStateWidth = 250.dp,
-                    rightStateWidth = 90.dp
-                ),
-                swipeableState = rememberSwipeableState(SwipeState.INITIAL),
-                leftContent = { ActionBar(leftActionBarViewState) },
-                rightContent = { ActionBar(rightActionBarViewState) },
-                initialContent = { AssetListItem(state = assetListItemViewState, onClick = {}) }
-            )
-        }
+    Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+        SwipeBox(
+            state = SwipeBoxViewState(
+                leftStateWidth = 250.dp,
+                rightStateWidth = 90.dp
+            ),
+            swipeableState = rememberSwipeableState(SwipeState.INITIAL),
+            leftContent = { ActionBar(leftActionBarViewState) },
+            rightContent = { ActionBar(rightActionBarViewState) },
+            initialContent = { AssetListItem(state = assetListItemViewState, onClick = {}) }
+        )
     }
 }

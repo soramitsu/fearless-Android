@@ -1,11 +1,11 @@
 package jp.co.soramitsu.polkaswap.api.data
 
-import java.math.BigInteger
-import jp.co.soramitsu.common.data.network.runtime.model.QuoteResponse
+import jp.co.soramitsu.core.rpc.models.responses.QuoteResponse
 import jp.co.soramitsu.polkaswap.api.models.Market
 import jp.co.soramitsu.polkaswap.api.models.WithDesired
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.coroutines.flow.Flow
+import java.math.BigInteger
 
 interface PolkaswapRepository {
     suspend fun getAvailableDexes(chainId: ChainId): List<BigInteger>

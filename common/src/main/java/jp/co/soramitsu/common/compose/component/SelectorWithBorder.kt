@@ -29,7 +29,8 @@ data class SelectorState(
     val title: String,
     val subTitle: String?,
     val iconUrl: String?,
-    val actionIcon: Int? = R.drawable.ic_arrow_down
+    val actionIcon: Int? = R.drawable.ic_arrow_down,
+    val clickable: Boolean = true
 ) {
     companion object {
         val default = SelectorState("Network", null, null)
@@ -50,7 +51,7 @@ fun SelectorWithBorder(
         modifier = modifier
             .fillMaxWidth()
             .clip(shape)
-            .clickable { onClick() }
+            .clickable(enabled = state.clickable) { onClick() }
             .height(64.dp)
     ) {
         Row(

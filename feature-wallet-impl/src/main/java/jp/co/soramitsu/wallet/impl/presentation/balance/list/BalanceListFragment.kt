@@ -19,7 +19,6 @@ import androidx.lifecycle.lifecycleScope
 import coil.ImageLoader
 import com.journeyapps.barcodescanner.ScanOptions
 import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
 import jp.co.soramitsu.common.PLAY_MARKET_APP_URI
 import jp.co.soramitsu.common.PLAY_MARKET_BROWSER_URI
 import jp.co.soramitsu.common.base.BaseComposeFragment
@@ -37,8 +36,11 @@ import jp.co.soramitsu.common.utils.hideKeyboard
 import jp.co.soramitsu.common.view.bottomSheet.AlertBottomSheet
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
 import jp.co.soramitsu.feature_wallet_impl.R
+import jp.co.soramitsu.oauth.base.sdk.contract.SoraCardResult
+import jp.co.soramitsu.oauth.base.sdk.signin.SoraCardSignInContract
 import jp.co.soramitsu.wallet.impl.presentation.common.askPermissionsSafely
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class BalanceListFragment : BaseComposeFragment<BalanceListViewModel>() {
@@ -54,12 +56,34 @@ class BalanceListFragment : BaseComposeFragment<BalanceListViewModel>() {
         }
     }
 
+    private val soraCardSignIn = registerForActivityResult(
+        SoraCardSignInContract()
+    ) { result ->
+        when (result) {
+            is SoraCardResult.Failure -> {}
+            is SoraCardResult.Canceled -> {}
+            is SoraCardResult.Success -> {
+                viewModel.updateSoraCardInfo(
+                    accessToken = result.accessToken,
+                    refreshToken = result.refreshToken,
+                    accessTokenExpirationTime = result.accessTokenExpirationTime,
+                    kycStatus = result.status.toString()
+                )
+            }
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        viewModel.onResume()
+    }
+
     @OptIn(ExperimentalMaterialApi::class)
     @Composable
     override fun Content(padding: PaddingValues, scrollState: ScrollState, modalBottomSheetState: ModalBottomSheetState) {
         val state by viewModel.state.collectAsState()
 
-        WalletScreen(state, viewModel)
+        WalletScreenWithRefresh(state, viewModel)
     }
 
     @ExperimentalMaterialApi
@@ -99,14 +123,9 @@ class BalanceListFragment : BaseComposeFragment<BalanceListViewModel>() {
         viewModel.showFiatChooser.observeEvent(::showFiatChooser)
         viewModel.showUnsupportedChainAlert.observeEvent { showUnsupportedChainAlert() }
         viewModel.openPlayMarket.observeEvent { openPlayMarket() }
-    }
-
-    fun initViews() {
-//        with(binding) {
-//            walletContainer.setOnRefreshListener {
-//                viewModel.sync()
-//            }
-//        }
+        viewModel.launchSoraCardSignIn.observeEvent { contractData ->
+            soraCardSignIn.launch(contractData)
+        }
     }
 
     private fun showFiatChooser(payload: DynamicListBottomSheet.Payload<FiatCurrency>) {

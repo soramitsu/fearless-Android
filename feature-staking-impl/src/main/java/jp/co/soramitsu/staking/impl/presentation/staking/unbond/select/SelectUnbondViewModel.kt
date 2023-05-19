@@ -5,18 +5,17 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.math.BigDecimal
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.common.utils.formatAsCurrency
+import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.requireException
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.common.validation.progressConsumer
-import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.feature_staking_impl.R
+import jp.co.soramitsu.shared_utils.extensions.fromHex
 import jp.co.soramitsu.staking.impl.domain.StakingInteractor
 import jp.co.soramitsu.staking.impl.domain.staking.unbond.UnbondInteractor
 import jp.co.soramitsu.staking.impl.domain.validations.unbond.UnbondValidationPayload
@@ -25,11 +24,10 @@ import jp.co.soramitsu.staking.impl.presentation.staking.unbond.confirm.ConfirmU
 import jp.co.soramitsu.staking.impl.presentation.staking.unbond.unbondPayloadAutoFix
 import jp.co.soramitsu.staking.impl.presentation.staking.unbond.unbondValidationFailure
 import jp.co.soramitsu.staking.impl.scenarios.StakingScenarioInteractor
+import jp.co.soramitsu.staking.impl.scenarios.relaychain.HOURS_IN_DAY
 import jp.co.soramitsu.wallet.api.data.mappers.mapAssetToAssetModel
-import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
 import jp.co.soramitsu.wallet.api.presentation.mixin.fee.FeeLoaderMixin
-import kotlin.time.DurationUnit
-import kotlin.time.toDuration
+import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
@@ -40,9 +38,11 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
 import javax.inject.Inject
 import javax.inject.Named
-import jp.co.soramitsu.staking.impl.scenarios.relaychain.HOURS_IN_DAY
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
 
 private const val DEFAULT_AMOUNT = 1
 private const val DEBOUNCE_DURATION_MILLIS = 500
@@ -99,7 +99,7 @@ class SelectUnbondViewModel @Inject constructor(
     private val parsedAmountFlow = enteredAmountFlow.mapNotNull { it.toBigDecimalOrNull() }
 
     val enteredFiatAmountFlow = assetFlow.combine(parsedAmountFlow) { asset, amount ->
-        asset.token.fiatAmount(amount)?.formatAsCurrency(asset.token.fiatSymbol)
+        asset.token.fiatAmount(amount)?.formatFiat(asset.token.fiatSymbol)
     }
         .inBackground()
         .asLiveData()
@@ -189,9 +189,6 @@ class SelectUnbondViewModel @Inject constructor(
                 autoFixPayload = ::unbondPayloadAutoFix,
                 progressConsumer = _showNextProgress.progressConsumer()
             ) { correctPayload ->
-                if (correctPayload.shouldChillBeforeUnbond) {
-                    sendTransaction(correctPayload, false)
-                }
                 _showNextProgress.value = false
 
                 action.invoke(correctPayload)
@@ -209,7 +206,7 @@ class SelectUnbondViewModel @Inject constructor(
         router.openConfirmUnbond(confirmUnbondPayload)
     }
 
-    private fun sendTransaction(validPayload: UnbondValidationPayload, chilled: Boolean = true) = launch {
+    private fun sendTransaction(validPayload: UnbondValidationPayload) = launch {
         val amountInPlanks = validPayload.asset.token.configuration.planksFromAmount(validPayload.amount)
 
         val result = unbondInteractor.unbond(validPayload.stash/*, validPayload.asset.bondedInPlanks.orZero(), amountInPlanks*/) {
@@ -218,15 +215,12 @@ class SelectUnbondViewModel @Inject constructor(
                 amountInPlanks,
                 validPayload.stash,
                 validPayload.asset.bondedInPlanks.orZero(),
-                payload.collatorAddress,
-                chilled
+                payload.collatorAddress
             )
         }
 
         _showNextProgress.value = false
-        if (chilled.not()) {
-            return@launch
-        }
+
         if (result.isSuccess) {
             showMessage(resourceManager.getString(R.string.common_transaction_submitted))
 

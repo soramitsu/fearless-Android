@@ -1,25 +1,23 @@
 package jp.co.soramitsu.wallet.impl.domain.interfaces
 
-import java.math.BigDecimal
-import java.math.BigInteger
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
-import jp.co.soramitsu.common.data.model.CursorPage
 import jp.co.soramitsu.common.data.network.config.AppConfigRemote
 import jp.co.soramitsu.common.data.network.runtime.binding.EqAccountInfo
 import jp.co.soramitsu.common.data.network.runtime.binding.EqOraclePricePoint
 import jp.co.soramitsu.coredb.model.AssetUpdateItem
 import jp.co.soramitsu.coredb.model.PhishingLocal
-import jp.co.soramitsu.fearless_utils.runtime.AccountId
-import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.shared_utils.runtime.AccountId
+import jp.co.soramitsu.shared_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.AssetWithStatus
 import jp.co.soramitsu.wallet.impl.domain.model.Fee
-import jp.co.soramitsu.wallet.impl.domain.model.Operation
 import jp.co.soramitsu.wallet.impl.domain.model.Transfer
 import jp.co.soramitsu.wallet.impl.domain.model.TransferValidityStatus
 import kotlinx.coroutines.flow.Flow
+import java.math.BigDecimal
+import java.math.BigInteger
+import jp.co.soramitsu.core.models.Asset as CoreAsset
 
 interface WalletRepository {
 
@@ -29,41 +27,16 @@ interface WalletRepository {
 
     suspend fun syncAssetsRates(currencyId: String)
 
-    fun assetFlow(metaId: Long, accountId: AccountId, chainAsset: Chain.Asset, minSupportedVersion: String?): Flow<Asset>
+    fun assetFlow(metaId: Long, accountId: AccountId, chainAsset: CoreAsset, minSupportedVersion: String?): Flow<Asset>
 
-    suspend fun getAsset(metaId: Long, accountId: AccountId, chainAsset: Chain.Asset, minSupportedVersion: String?): Asset?
+    suspend fun getAsset(metaId: Long, accountId: AccountId, chainAsset: CoreAsset, minSupportedVersion: String?): Asset?
 
     suspend fun updateAssetHidden(
         metaId: Long,
         accountId: AccountId,
         isHidden: Boolean,
-        chainAsset: Chain.Asset
+        chainAsset: CoreAsset
     )
-
-    suspend fun syncOperationsFirstPage(
-        pageSize: Int,
-        filters: Set<TransactionFilter>,
-        accountId: AccountId,
-        chain: Chain,
-        chainAsset: Chain.Asset
-    )
-
-    suspend fun getOperations(
-        pageSize: Int,
-        cursor: String?,
-        filters: Set<TransactionFilter>,
-        accountId: AccountId,
-        chain: Chain,
-        chainAsset: Chain.Asset
-    ): CursorPage<Operation>
-
-    fun operationsFirstPageFlow(
-        accountId: AccountId,
-        chain: Chain,
-        chainAsset: Chain.Asset
-    ): Flow<CursorPage<Operation>>
-
-    fun getOperationAddressWithChainIdFlow(limit: Int?, chainId: ChainId): Flow<Set<String>>
 
     suspend fun getTransferFee(
         chain: Chain,
@@ -97,15 +70,17 @@ interface WalletRepository {
 
     suspend fun getPhishingInfo(address: String): PhishingLocal?
 
-    suspend fun getAccountFreeBalance(chainAsset: Chain.Asset, accountId: AccountId): BigInteger
+    suspend fun getAccountFreeBalance(chainAsset: CoreAsset, accountId: AccountId): BigInteger
 
-    suspend fun getEquilibriumAssetRates(chainAsset: Chain.Asset): Map<BigInteger, EqOraclePricePoint?>
+    suspend fun getEquilibriumAssetRates(chainAsset: CoreAsset): Map<BigInteger, EqOraclePricePoint?>
 
-    suspend fun getEquilibriumAccountInfo(asset: Chain.Asset, accountId: AccountId): EqAccountInfo?
+    suspend fun getEquilibriumAccountInfo(asset: CoreAsset, accountId: AccountId): EqAccountInfo?
 
     suspend fun updateAssets(newItems: List<AssetUpdateItem>)
 
     suspend fun getRemoteConfig(): Result<AppConfigRemote>
 
     fun chainRegistrySyncUp()
+
+    suspend fun getSingleAssetPriceCoingecko(priceId: String, currency: String): BigDecimal?
 }

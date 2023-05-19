@@ -12,7 +12,6 @@ import it.airgap.beaconsdk.blockchain.substrate.message.request.PermissionSubstr
 import it.airgap.beaconsdk.blockchain.substrate.message.request.SignPayloadSubstrateRequest
 import it.airgap.beaconsdk.core.data.P2pPeer
 import it.airgap.beaconsdk.core.message.BeaconRequest
-import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.GetTotalBalanceUseCase
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.common.address.AddressIconGenerator
@@ -20,7 +19,7 @@ import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
-import jp.co.soramitsu.common.utils.format
+import jp.co.soramitsu.common.utils.formatCryptoDetail
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.wallet.impl.domain.beacon.BeaconInteractor
@@ -37,6 +36,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
+import javax.inject.Inject
 
 @Parcelize
 class DAppMetadataModel(
@@ -70,7 +70,7 @@ class BeaconViewModel @Inject constructor(
     }.inBackground()
         .share()
 
-    val totalBalanceLiveData = totalBalance().map { it.balance.format() }.asLiveData()
+    val totalBalanceLiveData = totalBalance().map { it.balance.formatCryptoDetail() }.asLiveData()
 
     private val _scanBeaconQrEvent = MutableLiveData<Event<Unit>>()
     val scanBeaconQrEvent: LiveData<Event<Unit>> = _scanBeaconQrEvent
