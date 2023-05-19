@@ -19,7 +19,9 @@ class BuyCryptoFragment : BaseComposeFragment<BuyCryptoViewModel>() {
     override fun Content(padding: PaddingValues, scrollState: ScrollState, modalBottomSheetState: ModalBottomSheetState) {
         BuyCryptoScreen(
             state = viewModel.state,
-            onPageFinished = viewModel::onPageFinished
+            onPageFinished = viewModel::onPageFinished,
+            onReceivedError = viewModel::onReceivedError,
+            onAlertCloseClick = viewModel::onAlertCloseClick
         )
     }
 }
