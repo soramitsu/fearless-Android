@@ -5,6 +5,7 @@ import androidx.annotation.StringRes
 import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.AlertViewState
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.base.errors.TitledException
 import jp.co.soramitsu.common.base.errors.ValidationException
 import jp.co.soramitsu.common.compose.component.ConfirmScreenViewState
 import jp.co.soramitsu.common.compose.component.GradientIconState
@@ -160,19 +161,35 @@ abstract class BaseConfirmViewModel(
     override fun showError(throwable: Throwable) {
         val message =
             throwable.localizedMessage ?: throwable.message ?: resourceManager.getString(R.string.common_undefined_error_message)
-        val errorAlertViewState = (throwable as? ValidationException)?.let { (title, message) ->
-            AlertViewState(
-                title = title,
-                message = message,
-                buttonText = resourceManager.getString(R.string.common_got_it),
-                iconRes = R.drawable.ic_status_warning_16
-            )
-        } ?: AlertViewState(
-            title = resourceManager.getString(R.string.common_error_general_title),
-            message = message,
-            buttonText = resourceManager.getString(R.string.common_got_it),
-            iconRes = R.drawable.ic_status_warning_16
-        )
+        val errorAlertViewState = when (throwable) {
+            is ValidationException -> {
+                val (title, message) = throwable
+                AlertViewState(
+                    title = title,
+                    message = message,
+                    buttonText = resourceManager.getString(R.string.common_got_it),
+                    iconRes = R.drawable.ic_status_warning_16
+                )
+            }
+
+            is TitledException -> {
+                AlertViewState(
+                    title = throwable.title,
+                    message = message,
+                    buttonText = resourceManager.getString(R.string.common_got_it),
+                    iconRes = R.drawable.ic_status_warning_16
+                )
+            }
+
+            else -> {
+                AlertViewState(
+                    title = resourceManager.getString(R.string.common_error_general_title),
+                    message = message,
+                    buttonText = resourceManager.getString(R.string.common_got_it),
+                    iconRes = R.drawable.ic_status_warning_16
+                )
+            }
+        }
         errorAlertPresenter(errorAlertViewState)
     }
 
