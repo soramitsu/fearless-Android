@@ -21,7 +21,6 @@ import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.compose.component.AccentButton
 import jp.co.soramitsu.common.compose.component.FullScreenLoading
 import jp.co.soramitsu.common.compose.component.GradientIconState
-import jp.co.soramitsu.common.compose.component.Grip
 import jp.co.soramitsu.common.compose.component.InfoTable
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.component.NavigationIconButton
@@ -57,10 +56,6 @@ fun SwapPreviewContent(
             .imePadding(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        MarginVertical(margin = 2.dp)
-        Grip(Modifier.align(Alignment.CenterHorizontally))
-        MarginVertical(margin = 8.dp)
-
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
@@ -96,8 +91,8 @@ fun SwapPreviewContent(
                     SwapHeader(
                         fromTokenImage = state.swapDetailsViewState.fromTokenImage!!,
                         toTokenImage = state.swapDetailsViewState.toTokenImage!!,
-                        fromTokenAmount = state.swapDetailsViewState.fromTokenAmount.format(),
-                        toTokenAmount = state.swapDetailsViewState.toTokenAmount.format()
+                        fromTokenAmount = state.swapDetailsViewState.fromTokenAmount,
+                        toTokenAmount = state.swapDetailsViewState.toTokenAmount
                     )
 
                     val fromTokenName = state.swapDetailsViewState.fromTokenName
@@ -173,8 +168,8 @@ fun SwapPreviewContentPreview() {
                     tokenName = "XOR",
                     fiatAmount = "\$ 0.32"
                 ),
-                fromTokenOnToToken = "0",
-                toTokenOnFromToken = "0",
+                fromTokenOnToToken = "0.1234",
+                toTokenOnFromToken = "12345,0",
                 minmaxTitle = stringResource(id = R.string.common_min_received)
             ),
             networkFee = SwapDetailsViewState.NetworkFee(

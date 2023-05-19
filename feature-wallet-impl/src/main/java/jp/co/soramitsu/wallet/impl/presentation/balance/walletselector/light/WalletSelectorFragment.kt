@@ -17,6 +17,7 @@ class WalletSelectorFragment : BaseComposeBottomSheetDialogFragment<WalletSelect
 
     companion object {
         const val TAG_ARGUMENT_KEY = "tag"
+        const val RESULT_ADDRESS = "RESULT_ADDRESS"
         fun buildArguments(tag: String) = bundleOf(TAG_ARGUMENT_KEY to tag)
     }
 

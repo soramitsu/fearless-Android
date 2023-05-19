@@ -1,13 +1,12 @@
 package jp.co.soramitsu.staking.impl.domain.staking.bond
 
-import java.math.BigInteger
-import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.core.extrinsic.ExtrinsicService
-import jp.co.soramitsu.staking.api.data.StakingSharedState
 import jp.co.soramitsu.runtime.ext.accountIdOf
-import jp.co.soramitsu.runtime.state.chain
+import jp.co.soramitsu.shared_utils.runtime.extrinsic.ExtrinsicBuilder
+import jp.co.soramitsu.staking.api.data.StakingSharedState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.math.BigInteger
 
 class BondMoreInteractor(
     private val extrinsicService: ExtrinsicService,

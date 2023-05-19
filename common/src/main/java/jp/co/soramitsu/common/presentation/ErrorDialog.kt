@@ -34,15 +34,14 @@ import jp.co.soramitsu.common.compose.component.AccentButton
 import jp.co.soramitsu.common.compose.component.BottomSheetScreen
 import jp.co.soramitsu.common.compose.component.GradientIcon
 import jp.co.soramitsu.common.compose.component.GrayButton
-import jp.co.soramitsu.common.compose.component.Grip
 import jp.co.soramitsu.common.compose.component.H3
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.component.emptyClick
-import jp.co.soramitsu.common.compose.component.soraTextStyle
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.theme.alertYellow
 import jp.co.soramitsu.common.compose.theme.black2
 import jp.co.soramitsu.common.compose.theme.fontSize
+import jp.co.soramitsu.common.compose.theme.soraTextStyle
 import jp.co.soramitsu.common.compose.theme.weight
 import jp.co.soramitsu.common.compose.theme.white
 
@@ -91,7 +90,6 @@ class ErrorDialog(
             setContent {
                 FearlessTheme {
                     BottomSheetScreen {
-                        Grip(Modifier.align(Alignment.CenterHorizontally))
                         Column(
                             modifier = Modifier
                                 .padding(horizontal = 16.dp)

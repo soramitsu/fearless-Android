@@ -189,7 +189,7 @@
     <!--   Bottom Navigation -->
     <style name="BottomNavigationView" parent="@style/TextAppearance.AppCompat.Caption">
         <item name="android:textSize">10sp</item>
-        <item name="android:fontFamily">@font/soramitsu_semibold</item>
+        <item name="android:fontFamily">@font/sora_semibold</item>
     </style>
 
     <!-- Chip -->

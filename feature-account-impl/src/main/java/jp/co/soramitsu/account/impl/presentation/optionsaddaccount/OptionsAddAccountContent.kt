@@ -5,14 +5,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.compose.component.BottomSheetScreen
 import jp.co.soramitsu.common.compose.component.GrayButton
-import jp.co.soramitsu.common.compose.component.Grip
 import jp.co.soramitsu.common.compose.component.H3
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.component.TextButton
@@ -45,9 +43,6 @@ fun OptionsAddAccountContent(
                 .padding(horizontal = 16.dp)
                 .fillMaxWidth()
         ) {
-            MarginVertical(margin = 2.dp)
-            Grip(Modifier.align(Alignment.CenterHorizontally))
-            MarginVertical(margin = 8.dp)
             H3(text = stringResource(id = R.string.recovery_source_type))
             MarginVertical(margin = 28.dp)
             GrayButton(

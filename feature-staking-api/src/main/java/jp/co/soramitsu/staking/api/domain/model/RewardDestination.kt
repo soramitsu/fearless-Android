@@ -1,6 +1,6 @@
 package jp.co.soramitsu.staking.api.domain.model
 
-import jp.co.soramitsu.fearless_utils.runtime.AccountId
+import jp.co.soramitsu.shared_utils.runtime.AccountId
 
 sealed class RewardDestination {
 

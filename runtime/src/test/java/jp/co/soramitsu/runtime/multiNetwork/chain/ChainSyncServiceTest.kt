@@ -16,7 +16,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.Mockito.verify
-simport org.mockito.Mockito.`when`
+import org.mockito.Mockito.`when`
 import org.mockito.junit.MockitoJUnitRunner
 
 @RunWith(MockitoJUnitRunner::class)
@@ -42,7 +42,6 @@ class ChainSyncServiceTest {
         ),
         icon = "test",
         addressPrefix = 0,
-        types = null,
         options = emptyList(),
         parentId = null,
         externalApi = null,

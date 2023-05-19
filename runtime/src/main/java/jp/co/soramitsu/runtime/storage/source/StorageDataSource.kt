@@ -1,12 +1,12 @@
 package jp.co.soramitsu.runtime.storage.source
 
-import java.io.OutputStream
 import jp.co.soramitsu.common.data.network.runtime.binding.Binder
 import jp.co.soramitsu.common.data.network.runtime.binding.BinderWithKey
 import jp.co.soramitsu.common.data.network.runtime.binding.BlockHash
 import jp.co.soramitsu.common.data.network.runtime.binding.NonNullBinder
-import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
+import jp.co.soramitsu.shared_utils.runtime.RuntimeSnapshot
 import kotlinx.coroutines.flow.Flow
+import java.io.OutputStream
 
 typealias StorageKey = String
 typealias ChildKeyBuilder = suspend OutputStream.(RuntimeSnapshot) -> Unit

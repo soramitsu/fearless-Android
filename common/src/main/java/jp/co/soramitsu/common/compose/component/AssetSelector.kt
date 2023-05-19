@@ -1,8 +1,13 @@
 package jp.co.soramitsu.common.compose.component
 
+import android.graphics.drawable.Drawable
+import androidx.annotation.DrawableRes
+import androidx.annotation.StringRes
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,21 +16,30 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.graphics.drawable.toBitmap
 import coil.compose.AsyncImage
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
+import jp.co.soramitsu.common.compose.theme.black05
 import jp.co.soramitsu.common.compose.theme.blurColorLight
 import jp.co.soramitsu.common.compose.theme.customTypography
 import jp.co.soramitsu.common.compose.theme.white16
+import jp.co.soramitsu.common.compose.theme.white24
+import androidx.compose.foundation.Image as ComposeImage
 
 data class AssetSelectorState(
     val title: String,
@@ -94,6 +108,57 @@ fun Badge(text: String, modifier: Modifier = Modifier) {
             style = MaterialTheme.customTypography.capsTitle2
         )
         MarginHorizontal(margin = 6.dp)
+    }
+}
+
+@Composable
+fun Badge(
+    @DrawableRes iconResId: Int,
+    @StringRes labelResId: Int,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    ColoredButton(
+        modifier = modifier,
+        backgroundColor = black05,
+        border = BorderStroke(1.dp, white24),
+        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
+        onClick = onClick
+    ) {
+        Icon(
+            painter = painterResource(id = iconResId),
+            tint = Color.White,
+            contentDescription = null,
+            modifier = Modifier.size(16.dp)
+        )
+        MarginHorizontal(margin = 4.dp)
+        CapsTitle(text = stringResource(id = labelResId))
+    }
+}
+
+@Composable
+fun Badge(
+    icon: Drawable?,
+    @StringRes labelResId: Int,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    ColoredButton(
+        modifier = modifier,
+        backgroundColor = black05,
+        border = BorderStroke(1.dp, white24),
+        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
+        onClick = onClick
+    ) {
+        icon?.let {
+            ComposeImage(
+                bitmap = icon.toBitmap().asImageBitmap(),
+                contentDescription = null,
+                modifier = Modifier.size(16.dp)
+            )
+        }
+        MarginHorizontal(margin = 4.dp)
+        CapsTitle(text = stringResource(id = labelResId))
     }
 }
 

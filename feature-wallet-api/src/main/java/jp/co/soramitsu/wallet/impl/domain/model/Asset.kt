@@ -3,12 +3,12 @@ package jp.co.soramitsu.wallet.impl.domain.model
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.common.model.AssetKey
 import jp.co.soramitsu.common.utils.orZero
-import jp.co.soramitsu.fearless_utils.runtime.AccountId
-import jp.co.soramitsu.runtime.ext.utilityAsset
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.core.models.utilityAsset
+import jp.co.soramitsu.shared_utils.runtime.AccountId
 import java.math.BigInteger
+import jp.co.soramitsu.core.models.Asset as CoreAsset
 
-class Asset(
+data class Asset(
     val metaId: Long,
     val token: Token,
     val accountId: AccountId,
@@ -20,7 +20,7 @@ class Asset(
     val redeemableInPlanks: BigInteger?,
     val unbondingInPlanks: BigInteger?,
     val sortIndex: Int,
-    val enabled: Boolean,
+    val enabled: Boolean?,
     val minSupportedVersion: String?,
     val chainAccountName: String?,
     val markedNotNeed: Boolean
@@ -39,7 +39,7 @@ class Asset(
                 redeemableInPlanks = null,
                 unbondingInPlanks = null,
                 sortIndex = Int.MAX_VALUE,
-                enabled = true,
+                enabled = null,
                 minSupportedVersion = it.minSupportedVersion,
                 chainAccountName = chainAccount.accountName,
                 markedNotNeed = false
@@ -47,7 +47,7 @@ class Asset(
         }
 
         fun createEmpty(
-            chainAsset: Chain.Asset,
+            chainAsset: CoreAsset,
             metaId: Long,
             accountId: AccountId,
             chainAccountName: String? = null,

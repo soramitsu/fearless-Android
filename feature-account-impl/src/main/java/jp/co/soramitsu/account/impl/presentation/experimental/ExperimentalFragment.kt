@@ -23,7 +23,6 @@ class ExperimentalFragment : BaseFragment<ExperimentalViewModel>(R.layout.fragme
     }
 
     override fun subscribe(viewModel: ExperimentalViewModel) {
-        setBeaconVisibility(false)
         viewModel.state.observeState<ExperimentalState> { state ->
             setBeaconVisibility(state.beaconDapp != null)
 

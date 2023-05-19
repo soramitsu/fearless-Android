@@ -11,6 +11,7 @@ import jp.co.soramitsu.coredb.model.chain.ChainExplorerLocal
 import jp.co.soramitsu.coredb.model.chain.ChainLocal
 import jp.co.soramitsu.coredb.model.chain.ChainNodeLocal
 import jp.co.soramitsu.coredb.model.chain.ChainRuntimeInfoLocal
+import jp.co.soramitsu.coredb.model.chain.ChainTypesLocal
 import jp.co.soramitsu.coredb.model.chain.JoinedChainInfo
 import kotlinx.coroutines.flow.Flow
 
@@ -115,4 +116,10 @@ abstract class ChainDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     protected abstract suspend fun insertRuntimeInfo(runtimeInfoLocal: ChainRuntimeInfoLocal)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    abstract suspend fun insertTypes(types: List<ChainTypesLocal>)
+
+    @Query("SELECT typesConfig FROM chain_types WHERE chainId = :chainId")
+    abstract suspend fun getTypes(chainId: String): String
 }

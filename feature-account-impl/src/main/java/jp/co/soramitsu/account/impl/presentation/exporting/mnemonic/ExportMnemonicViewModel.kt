@@ -3,6 +3,12 @@ package jp.co.soramitsu.account.impl.presentation.exporting.mnemonic
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.SavedStateHandle
 import dagger.hilt.android.lifecycle.HiltViewModel
+import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
+import jp.co.soramitsu.account.api.presentation.exporting.ExportSource
+import jp.co.soramitsu.account.impl.presentation.AccountRouter
+import jp.co.soramitsu.account.impl.presentation.exporting.ExportViewModel
+import jp.co.soramitsu.account.impl.presentation.exporting.mnemonic.ExportMnemonicFragment.Companion.PAYLOAD_KEY
+import jp.co.soramitsu.account.impl.presentation.view.mnemonic.mapMnemonicToMnemonicWords
 import jp.co.soramitsu.common.data.secrets.v2.ChainAccountSecrets
 import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -11,16 +17,10 @@ import jp.co.soramitsu.common.utils.DEFAULT_DERIVATION_PATH
 import jp.co.soramitsu.common.utils.map
 import jp.co.soramitsu.common.utils.mediateWith
 import jp.co.soramitsu.common.utils.switchMap
-import jp.co.soramitsu.fearless_utils.encrypt.junction.BIP32JunctionDecoder
-import jp.co.soramitsu.fearless_utils.encrypt.mnemonic.Mnemonic
-import jp.co.soramitsu.fearless_utils.encrypt.mnemonic.MnemonicCreator
-import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
-import jp.co.soramitsu.account.api.presentation.exporting.ExportSource
-import jp.co.soramitsu.account.impl.presentation.AccountRouter
-import jp.co.soramitsu.account.impl.presentation.exporting.ExportViewModel
-import jp.co.soramitsu.account.impl.presentation.exporting.mnemonic.ExportMnemonicFragment.Companion.PAYLOAD_KEY
-import jp.co.soramitsu.account.impl.presentation.view.mnemonic.mapMnemonicToMnemonicWords
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.shared_utils.encrypt.junction.BIP32JunctionDecoder
+import jp.co.soramitsu.shared_utils.encrypt.mnemonic.Mnemonic
+import jp.co.soramitsu.shared_utils.encrypt.mnemonic.MnemonicCreator
 import javax.inject.Inject
 
 @HiltViewModel

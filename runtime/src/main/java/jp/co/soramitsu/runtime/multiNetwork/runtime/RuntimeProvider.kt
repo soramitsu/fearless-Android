@@ -1,10 +1,11 @@
 package jp.co.soramitsu.runtime.multiNetwork.runtime
 
-import jp.co.soramitsu.core.chain_registry.IRuntimeProvider
-import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
-import jp.co.soramitsu.runtime.ext.typesUsage
+import jp.co.soramitsu.core.runtime.ConstructedRuntime
+import jp.co.soramitsu.core.runtime.IRuntimeProvider
+import jp.co.soramitsu.core.runtime.RuntimeFactory
+import jp.co.soramitsu.coredb.dao.ChainDao
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.TypesUsage
+import jp.co.soramitsu.shared_utils.runtime.RuntimeSnapshot
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -21,12 +22,12 @@ import kotlinx.coroutines.launch
 class RuntimeProvider(
     private val runtimeFactory: RuntimeFactory,
     private val runtimeSyncService: RuntimeSyncService,
+    private val runtimeFilesCache: RuntimeFilesCache,
+    private val chainDao: ChainDao,
     chain: Chain
 ) : IRuntimeProvider, CoroutineScope by CoroutineScope(Dispatchers.Default) {
 
     private val chainId = chain.id
-
-    private var typesUsage = chain.typesUsage
 
     private val runtimeFlow = MutableSharedFlow<ConstructedRuntime>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 
@@ -54,16 +55,8 @@ class RuntimeProvider(
         cancel()
     }
 
-    fun considerUpdatingTypesUsage(newTypesUsage: TypesUsage) {
-        if (typesUsage != newTypesUsage) {
-            typesUsage = newTypesUsage
-
-            constructNewRuntime(typesUsage)
-        }
-    }
-
     private fun tryLoadFromCache() {
-        constructNewRuntime(typesUsage)
+        constructNewRuntime()
     }
 
     private fun considerReconstructingRuntime(runtimeSyncResult: SyncResult) {
@@ -79,21 +72,26 @@ class RuntimeProvider(
                 // types were synced and new hash is different from current one
                 (runtimeSyncResult.typesHash != null && currentVersion.ownTypesHash != runtimeSyncResult.typesHash)
             ) {
-                constructNewRuntime(typesUsage)
+                constructNewRuntime()
             }
         }
     }
 
-    private fun constructNewRuntime(typesUsage: TypesUsage) {
+    private fun constructNewRuntime() {
         currentConstructionJob?.cancel()
 
         currentConstructionJob = launch {
             invalidateRuntime()
 
             runCatching {
-                runtimeFactory.constructRuntime(chainId, typesUsage)?.also {
-                    runtimeFlow.emit(it)
-                }
+                val runtimeVersion = chainDao.runtimeInfo(chainId)?.syncedVersion ?: return@launch
+                val metadataRaw = runCatching { runtimeFilesCache.getChainMetadata(chainId) }
+                    .getOrElse { throw ChainInfoNotInCacheException }
+                val ownTypesRaw = runCatching { chainDao.getTypes(chainId) }
+                    .getOrElse { throw ChainInfoNotInCacheException }
+
+                val runtime = runtimeFactory.constructRuntime(metadataRaw, ownTypesRaw, runtimeVersion)
+                runtimeFlow.emit(runtime)
             }.onFailure {
                 when (it) {
                     ChainInfoNotInCacheException -> runtimeSyncService.cacheNotFound(chainId)

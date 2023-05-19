@@ -1,6 +1,7 @@
 package jp.co.soramitsu.staking.impl.data.network.subquery
 
 import jp.co.soramitsu.common.data.network.subquery.EraValidatorInfoQueryResponse
+import jp.co.soramitsu.common.data.network.subquery.GiantsquidRewardAmountResponse
 import jp.co.soramitsu.common.data.network.subquery.StakingCollatorsApyResponse
 import jp.co.soramitsu.common.data.network.subquery.StakingHistoryRemote
 import jp.co.soramitsu.common.data.network.subquery.StakingLastRoundId
@@ -12,6 +13,7 @@ import jp.co.soramitsu.common.data.network.subquery.SubsquidRelayRewardAmountRes
 import jp.co.soramitsu.common.data.network.subquery.SubsquidResponse
 import jp.co.soramitsu.common.data.network.subquery.SubsquidRewardResponse
 import jp.co.soramitsu.common.data.network.subquery.TransactionHistoryRemote
+import jp.co.soramitsu.staking.impl.data.network.subquery.request.GiantsquidRewardAmountRequest
 import jp.co.soramitsu.staking.impl.data.network.subquery.request.StakingAllCollatorsApyRequest
 import jp.co.soramitsu.staking.impl.data.network.subquery.request.StakingCollatorsApyRequest
 import jp.co.soramitsu.staking.impl.data.network.subquery.request.StakingDelegatorHistoryRequest
@@ -82,6 +84,12 @@ interface StakingApi {
         @Url url: String,
         @Body body: SubsquidRelayRewardAmountRequest
     ): SubsquidResponse<SubsquidRelayRewardAmountResponse>
+
+    @POST
+    suspend fun getRelayRewardAmounts(
+        @Url url: String,
+        @Body body: GiantsquidRewardAmountRequest
+    ): SubsquidResponse<GiantsquidRewardAmountResponse>
 
     @POST
     suspend fun getCollatorsApy(

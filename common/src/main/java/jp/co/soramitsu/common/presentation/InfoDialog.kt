@@ -29,7 +29,6 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.compose.component.B0
 import jp.co.soramitsu.common.compose.component.BottomSheetScreen
-import jp.co.soramitsu.common.compose.component.Grip
 import jp.co.soramitsu.common.compose.component.H3
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
@@ -91,7 +90,6 @@ class InfoDialog(
 @Composable
 private fun InfoDialogContent(title: String, message: String) {
     Box {
-        Grip(Modifier.align(Alignment.TopCenter))
         Column(
             modifier = Modifier
                 .padding(horizontal = 16.dp)

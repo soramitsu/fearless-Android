@@ -1,7 +1,9 @@
 package jp.co.soramitsu.staking.impl.domain.rewards
 
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.core.models.Asset
+import jp.co.soramitsu.core.models.ChainId
+import jp.co.soramitsu.staking.api.data.SyntheticStakingType
+import jp.co.soramitsu.staking.api.data.syntheticStakingType
 import jp.co.soramitsu.staking.api.domain.api.AccountIdMap
 import jp.co.soramitsu.staking.api.domain.api.StakingRepository
 import jp.co.soramitsu.staking.api.domain.model.Exposure
@@ -11,12 +13,14 @@ import jp.co.soramitsu.staking.impl.domain.error.accountIdNotFound
 import jp.co.soramitsu.staking.impl.scenarios.parachain.StakingParachainScenarioInteractor
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenarioRepository
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.getActiveElectedValidatorsExposures
+import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 class RewardCalculatorFactory(
     private val relayChainRepository: StakingRelayChainScenarioRepository,
     private val stakingRepository: StakingRepository,
+    private val soraStakingRewardsScenario: SoraStakingRewardsScenario,
     stakingScenarioInteractor: StakingParachainScenarioInteractor,
     stakingApi: StakingApi
 ) {
@@ -50,7 +54,7 @@ class RewardCalculatorFactory(
         )
     }
 
-    suspend fun createManual(chainId: ChainId): RewardCalculator = withContext(Dispatchers.Default) {
+    private suspend fun createManual(chainId: ChainId): RewardCalculator = withContext(Dispatchers.Default) {
         val cached = calculators[chainId]
         if (cached != null) {
             return@withContext cached as ManualRewardCalculator
@@ -67,11 +71,57 @@ class RewardCalculatorFactory(
         return subqueryCalculator
     }
 
-    suspend fun create(stakingType: Chain.Asset.StakingType, chainId: ChainId): RewardCalculator {
-        return when (stakingType) {
-            Chain.Asset.StakingType.UNSUPPORTED -> error("wrong staking type")
-            Chain.Asset.StakingType.RELAYCHAIN -> createManual(chainId)
-            Chain.Asset.StakingType.PARACHAIN -> createSubquery()
+    private suspend fun createSora(asset: Asset): RewardCalculator {
+        val chainId = asset.chainId
+
+        val cached = calculators[chainId]
+        if (cached != null) {
+            return cached as ManualRewardCalculator
+        }
+        val exposures = relayChainRepository.getActiveElectedValidatorsExposures(chainId)
+        val validatorsPrefs = relayChainRepository.getValidatorPrefs(chainId, exposures.keys.toList())
+
+        val totalIssuance = stakingRepository.getTotalIssuance(chainId)
+
+        val validators = exposures.keys.mapNotNull { accountIdHex ->
+            val exposure = exposures[accountIdHex] ?: accountIdNotFound(accountIdHex)
+            val validatorPrefs = validatorsPrefs[accountIdHex] ?: return@mapNotNull null
+
+            RewardCalculationTarget(
+                accountIdHex = accountIdHex,
+                totalStake = exposure.total,
+                nominatorStakes = exposure.others,
+                ownStake = exposure.own,
+                commission = validatorPrefs.commission
+            )
+        }
+
+        val rateInPlanks = soraStakingRewardsScenario.mainAssetToRewardAssetRate()
+        val rate = asset.amountFromPlanks(rateInPlanks)
+        val calculator = SoraRewardCalculator(
+            validators = validators,
+            totalIssuance = totalIssuance,
+            xorValRate = rate
+        )
+
+        calculators[chainId] = calculator
+
+        return calculator
+    }
+
+    suspend fun create(asset: Asset): RewardCalculator {
+        val stakingType = asset.staking
+        val chainId = asset.chainId
+        val syntheticType = asset.syntheticStakingType()
+
+        hashCode()
+        return when {
+            syntheticType == SyntheticStakingType.SORA -> createSora(asset)
+            stakingType == Asset.StakingType.RELAYCHAIN -> createManual(chainId)
+            stakingType == Asset.StakingType.PARACHAIN -> createSubquery()
+
+            stakingType == Asset.StakingType.UNSUPPORTED -> error("wrong staking type")
+            else -> error("wrong staking type")
         }
     }
 }

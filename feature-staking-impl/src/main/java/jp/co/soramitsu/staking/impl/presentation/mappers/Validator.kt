@@ -1,17 +1,17 @@
 package jp.co.soramitsu.staking.impl.presentation.mappers
 
-import java.math.BigDecimal
-import java.math.BigInteger
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.common.utils.format
-import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.formatAsPercentage
+import jp.co.soramitsu.common.utils.formatCryptoDetail
+import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.fractionToPercentage
-import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.feature_staking_impl.R
+import jp.co.soramitsu.runtime.ext.addressOf
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.shared_utils.extensions.fromHex
 import jp.co.soramitsu.staking.api.domain.model.NominatedValidator
 import jp.co.soramitsu.staking.api.domain.model.Validator
 import jp.co.soramitsu.staking.impl.domain.recommendations.settings.sortings.BlockProducersSorting
@@ -26,9 +26,8 @@ import jp.co.soramitsu.staking.impl.presentation.validators.parcel.ValidatorStak
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.Token
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
-import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
-import jp.co.soramitsu.runtime.ext.addressOf
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import java.math.BigDecimal
+import java.math.BigInteger
 
 val PERCENT_MULTIPLIER = 100.toBigDecimal()
 
@@ -166,8 +165,8 @@ suspend fun mapValidatorDetailsParcelToValidatorDetailsModel(
 
             is ValidatorStakeParcelModel.Active -> {
                 val totalStake = token.amountFromPlanks(stake.totalStake)
-                val totalStakeFormatted = totalStake.formatTokenAmount(asset.token.configuration)
-                val totalStakeFiatFormatted = token.fiatAmount(totalStake)?.formatAsCurrency(token.fiatSymbol)
+                val totalStakeFormatted = totalStake.formatCryptoDetail(asset.token.configuration.symbolToShow)
+                val totalStakeFiatFormatted = token.fiatAmount(totalStake)?.formatFiat(token.fiatSymbol)
                 val nominatorsCount = stake.nominators.size
                 val apyPercentageFormatted = (PERCENT_MULTIPLIER * stake.apy).formatAsPercentage()
 
@@ -177,9 +176,9 @@ suspend fun mapValidatorDetailsParcelToValidatorDetailsModel(
                     activeStakeModel = ActiveStakeModel(
                         totalStake = totalStakeFormatted,
                         totalStakeFiat = totalStakeFiatFormatted,
-                        nominatorsCount = nominatorsCount.format(),
+                        nominatorsCount = nominatorsCount.toString(),
                         apy = apyPercentageFormatted,
-                        maxNominations = maxNominators.format()
+                        maxNominations = maxNominators.toString()
                     )
                 )
             }
@@ -203,15 +202,15 @@ fun BlockProducersSorting<Validator>.toScoring(validator: Validator, token: Toke
         BlockProducersSorting.ValidatorSorting.TotalStakeSorting -> {
             val totalCountedFormatted = token.amountFromPlanks(validator.electedInfo?.totalStake ?: BigInteger.ZERO)
             ValidatorModel.Scoring.TwoFields(
-                totalCountedFormatted.formatTokenAmount(token.configuration),
-                token.fiatAmount(totalCountedFormatted)?.formatAsCurrency(token.fiatSymbol)
+                totalCountedFormatted.formatCryptoDetail(token.configuration.symbolToShow),
+                token.fiatAmount(totalCountedFormatted)?.formatFiat(token.fiatSymbol)
             )
         }
         BlockProducersSorting.ValidatorSorting.ValidatorOwnStakeSorting -> {
             val totalCountedFormatted = token.amountFromPlanks(validator.electedInfo?.ownStake ?: BigInteger.ZERO)
             ValidatorModel.Scoring.TwoFields(
-                totalCountedFormatted.formatTokenAmount(token.configuration),
-                token.fiatAmount(totalCountedFormatted)?.formatAsCurrency(token.fiatSymbol)
+                totalCountedFormatted.formatCryptoDetail(token.configuration.symbolToShow),
+                token.fiatAmount(totalCountedFormatted)?.formatFiat(token.fiatSymbol)
             )
         }
         else -> error("Wrong sorting type")

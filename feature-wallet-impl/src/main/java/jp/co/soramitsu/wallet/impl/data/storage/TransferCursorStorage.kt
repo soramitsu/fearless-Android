@@ -1,8 +1,8 @@
 package jp.co.soramitsu.wallet.impl.data.storage
 
 import jp.co.soramitsu.common.data.storage.Preferences
-import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.shared_utils.runtime.AccountId
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map

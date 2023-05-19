@@ -1,17 +1,17 @@
 package jp.co.soramitsu.staking.impl.presentation.staking.main.scenarios
 
-import java.math.BigDecimal
 import jp.co.soramitsu.common.domain.model.StoryGroup
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.common.utils.formatAsCurrency
+import jp.co.soramitsu.common.utils.formatCryptoDetail
+import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.withLoading
 import jp.co.soramitsu.common.validation.CompositeValidation
 import jp.co.soramitsu.common.validation.ValidationSystem
-import jp.co.soramitsu.fearless_utils.extensions.fromHex
-import jp.co.soramitsu.fearless_utils.extensions.requireHexPrefix
-import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.feature_staking_impl.R
+import jp.co.soramitsu.shared_utils.extensions.fromHex
+import jp.co.soramitsu.shared_utils.extensions.requireHexPrefix
+import jp.co.soramitsu.shared_utils.extensions.toHexString
 import jp.co.soramitsu.staking.api.domain.model.DelegatorStateStatus
 import jp.co.soramitsu.staking.api.domain.model.StakingState
 import jp.co.soramitsu.staking.impl.data.repository.datasource.ParachainStakingStoriesDataSourceImpl
@@ -27,7 +27,6 @@ import jp.co.soramitsu.staking.impl.presentation.staking.main.di.StakingViewStat
 import jp.co.soramitsu.staking.impl.presentation.staking.main.model.StakingNetworkInfoModel
 import jp.co.soramitsu.staking.impl.scenarios.parachain.StakingParachainScenarioInteractor
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.HOURS_IN_DAY
-import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -35,6 +34,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import java.math.BigDecimal
 
 class StakingParachainScenarioViewModel(
     private val stakingInteractor: StakingInteractor,
@@ -45,7 +45,7 @@ class StakingParachainScenarioViewModel(
     private val storiesDataSourceImpl: ParachainStakingStoriesDataSourceImpl
 ) : StakingScenarioViewModel {
 
-    override val enteredAmountFlow = MutableStateFlow("")
+    override val enteredAmountFlow = MutableStateFlow<BigDecimal?>(null)
 
     override val stakingStateFlow: Flow<StakingState> = scenarioInteractor.stakingStateFlow
 
@@ -83,9 +83,9 @@ class StakingParachainScenarioViewModel(
             stakingInteractor.currentAssetFlow()
         ) { networkInfo, asset ->
             val minimumStake = asset.token.amountFromPlanks(networkInfo.minimumStake)
-            val minimumStakeFormatted = minimumStake.formatTokenAmount(asset.token.configuration)
+            val minimumStakeFormatted = minimumStake.formatCryptoDetail(asset.token.configuration.symbolToShow)
 
-            val minimumStakeFiat = asset.token.fiatAmount(minimumStake)?.formatAsCurrency(asset.token.fiatSymbol)
+            val minimumStakeFiat = asset.token.fiatAmount(minimumStake)?.formatFiat(asset.token.fiatSymbol)
 
             val lockupPeriod = if (networkInfo.lockupPeriodInHours > HOURS_IN_DAY) {
                 val inDays = networkInfo.lockupPeriodInHours / HOURS_IN_DAY
@@ -129,7 +129,7 @@ class StakingParachainScenarioViewModel(
             val candidateInfo = scenarioInteractor.getCollator(collatorIdHex.requireHexPrefix().fromHex())
             val amountToStakeMoreInPlanks = (candidateInfo.lowestTopDelegationAmount - delegation.amount)
             val token = stakingInteractor.currentAssetFlow().first().token
-            val amountToStakeMore = (token.amountFromPlanks(amountToStakeMoreInPlanks) * BigDecimal(1.1)).formatTokenAmount(token.configuration)
+            val amountToStakeMore = (token.amountFromPlanks(amountToStakeMoreInPlanks) * BigDecimal(1.1)).formatCryptoDetail(token.configuration.symbolToShow)
             Alert.ChangeCollators(collatorIdHex.requireHexPrefix(), amountToStakeMore)
         }
     }

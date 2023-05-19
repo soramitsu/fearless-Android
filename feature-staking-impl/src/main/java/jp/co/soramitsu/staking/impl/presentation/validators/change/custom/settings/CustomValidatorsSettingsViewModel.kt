@@ -4,10 +4,10 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.math.BigInteger
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.utils.invoke
 import jp.co.soramitsu.common.utils.lazyAsync
+import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.staking.impl.domain.recommendations.settings.RecommendationSettingsProviderFactory
 import jp.co.soramitsu.staking.impl.domain.recommendations.settings.SettingsStorage
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
@@ -15,13 +15,13 @@ import jp.co.soramitsu.staking.impl.presentation.common.SetupStakingProcess
 import jp.co.soramitsu.staking.impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.wallet.impl.domain.TokenUseCase
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import java.math.BigInteger
 import javax.inject.Inject
 import javax.inject.Named
 
@@ -35,7 +35,7 @@ class CustomValidatorsSettingsViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle
 ) : BaseViewModel() {
 
-    private val stakingType = savedStateHandle.get<Chain.Asset.StakingType>(CustomValidatorsSettingsFragment.STAKING_TYPE_KEY)!!
+    private val stakingType = savedStateHandle.get<Asset.StakingType>(CustomValidatorsSettingsFragment.STAKING_TYPE_KEY)!!
 
     private val recommendationSettingsProvider by lazyAsync {
         recommendationSettingsProviderFactory.create(router.currentStackEntryLifecycle, stakingType)

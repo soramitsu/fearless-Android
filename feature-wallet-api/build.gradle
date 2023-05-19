@@ -1,6 +1,7 @@
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
+apply plugin: 'kotlin-parcelize'
 
 android {
     compileSdkVersion rootProject.compileSdkVersion
@@ -38,8 +39,6 @@ dependencies {
     implementation materialDep
 
     implementation daggerDep
-
-    implementation fearlessLibDep
 
     implementation androidDep
     implementation constraintDep

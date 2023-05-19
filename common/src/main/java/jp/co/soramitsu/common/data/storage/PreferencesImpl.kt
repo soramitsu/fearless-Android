@@ -114,6 +114,33 @@ class PreferencesImpl(
             sharedPreferences.unregisterOnSharedPreferenceChangeListener(listener)
         }
     }
+
+    override fun intFlow(
+        field: String,
+        initialValue: Int
+    ): Flow<Int> = callbackFlow {
+        if (contains(field)) {
+            send(getInt(field, 0))
+        } else {
+            putInt(field, initialValue)
+            send(initialValue)
+        }
+
+        val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+            if (key == field) {
+                trySend(getInt(field, initialValue))
+            }
+        }
+
+        listeners.add(listener)
+        sharedPreferences.registerOnSharedPreferenceChangeListener(listener)
+
+        awaitClose {
+            listeners.remove(listener)
+            sharedPreferences.unregisterOnSharedPreferenceChangeListener(listener)
+        }
+    }
+
     override fun booleanFlow(
         field: String,
         initialValue: Boolean

@@ -51,7 +51,6 @@ dependencies {
     implementation project(':feature-staking-api')
     implementation project(':feature-account-api')
     implementation project(':feature-wallet-api')
-    implementation project(':feature-staking-api')
     implementation project(':runtime')
 
     implementation kotlinDep
@@ -86,7 +85,6 @@ dependencies {
     testImplementation jUnitDep
     testImplementation mockitoDep
 
-    implementation fearlessLibDep
     compileOnly wsDep
 
     implementation gsonDep

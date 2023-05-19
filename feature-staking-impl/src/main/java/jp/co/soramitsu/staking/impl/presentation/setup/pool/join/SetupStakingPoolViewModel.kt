@@ -15,9 +15,11 @@ import jp.co.soramitsu.common.compose.component.FeeInfoViewState
 import jp.co.soramitsu.common.compose.component.ToolbarViewState
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.applyFiatRate
-import jp.co.soramitsu.common.utils.format
-import jp.co.soramitsu.common.utils.formatAsCurrency
+import jp.co.soramitsu.common.utils.formatCrypto
+import jp.co.soramitsu.common.utils.formatCryptoDetail
+import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.inBackground
+import jp.co.soramitsu.common.utils.isNotZero
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.validation.AmountTooLowToStakeException
 import jp.co.soramitsu.common.validation.ExistentialDepositCrossedException
@@ -30,7 +32,7 @@ import jp.co.soramitsu.staking.impl.presentation.StakingRouter
 import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSharedStateProvider
 import jp.co.soramitsu.staking.impl.scenarios.StakingPoolInteractor
 import jp.co.soramitsu.wallet.api.domain.ExistentialDepositUseCase
-import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
+import jp.co.soramitsu.wallet.api.presentation.formatters.formatCryptoDetailFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
@@ -60,14 +62,14 @@ class SetupStakingPoolViewModel @Inject constructor(
 
     private val chain: Chain
     private val asset: Asset
-    private val initialAmount: String
+    private val initialAmount: BigDecimal
 
     init {
         val mainState = stakingPoolSharedStateProvider.requireMainState
 
         chain = requireNotNull(mainState.chain)
         asset = requireNotNull(mainState.asset)
-        initialAmount = mainState.requireAmount.format()
+        initialAmount = mainState.requireAmount
     }
 
     private val toolbarViewState = ToolbarViewState(resourceManager.getString(R.string.pool_staking_join_title), R.drawable.ic_arrow_back_24dp)
@@ -91,36 +93,34 @@ class SetupStakingPoolViewModel @Inject constructor(
 
     private val enteredAmountFlow = MutableStateFlow(initialAmount)
 
-    private val amountInputViewState: Flow<AmountInputViewState> = enteredAmountFlow.map { enteredAmount ->
-        val tokenBalance = asset.transferable.formatTokenAmount(asset.token.configuration)
-        val amount = enteredAmount.toBigDecimalOrNull().orZero()
-        val fiatAmount = amount.applyFiatRate(asset.token.fiatRate)?.formatAsCurrency(asset.token.fiatSymbol)
+    private val amountInputViewState: Flow<AmountInputViewState> = enteredAmountFlow.map { amount ->
+        val tokenBalance = asset.transferable.formatCrypto(asset.token.configuration.symbolToShow)
+        val fiatAmount = amount.applyFiatRate(asset.token.fiatRate)?.formatFiat(asset.token.fiatSymbol)
 
         AmountInputViewState(
             tokenName = asset.token.configuration.symbol,
             tokenImage = asset.token.configuration.iconUrl,
             totalBalance = resourceManager.getString(R.string.common_balance_format, tokenBalance),
             fiatAmount = fiatAmount,
-            tokenAmount = enteredAmount
+            tokenAmount = amount,
+            initial = initialAmount.takeIf { it.isNotZero() }
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, defaultAmountInputState)
 
-    private val feeInPlanksFlow = enteredAmountFlow.map { enteredAmount ->
-        val amount = enteredAmount.toBigDecimalOrNull().orZero()
+    private val feeInPlanksFlow = enteredAmountFlow.map { amount ->
         val inPlanks = asset.token.planksFromAmount(amount)
         stakingPoolInteractor.estimateJoinFee(inPlanks)
     }.inBackground().stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val feeInfoViewStateFlow: Flow<FeeInfoViewState> = feeInPlanksFlow.filterNotNull().map { feeInPlanks ->
         val fee = asset.token.amountFromPlanks(feeInPlanks)
-        val feeFormatted = fee.formatTokenAmount(asset.token.configuration)
-        val feeFiat = fee.applyFiatRate(asset.token.fiatRate)?.formatAsCurrency(asset.token.fiatSymbol)
+        val feeFormatted = fee.formatCryptoDetail(asset.token.configuration.symbolToShow)
+        val feeFiat = fee.applyFiatRate(asset.token.fiatRate)?.formatFiat(asset.token.fiatSymbol)
 
         FeeInfoViewState(feeAmount = feeFormatted, feeAmountFiat = feeFiat)
     }.stateIn(viewModelScope, SharingStarted.Eagerly, FeeInfoViewState.default)
 
-    private val buttonStateFlow = enteredAmountFlow.map { enteredAmount ->
-        val amount = enteredAmount.toBigDecimalOrNull().orZero()
+    private val buttonStateFlow = enteredAmountFlow.map { amount ->
         val amountInPlanks = asset.token.planksFromAmount(amount)
         ButtonViewState(
             resourceManager.getString(R.string.pool_staking_join_button_title),
@@ -147,13 +147,13 @@ class SetupStakingPoolViewModel @Inject constructor(
         router.back()
     }
 
-    fun onAmountEntered(amount: String) {
-        enteredAmountFlow.value = amount.replace(',', '.')
+    fun onAmountEntered(amount: BigDecimal?) {
+        enteredAmountFlow.value = amount.orZero()
     }
 
     fun onNextClick() {
         val setupFlow = stakingPoolSharedStateProvider.requireJoinState
-        val amount = enteredAmountFlow.value.toBigDecimalOrNull().orZero()
+        val amount = enteredAmountFlow.value
 
         viewModelScope.launch {
             isValid(amount).fold({
@@ -184,7 +184,7 @@ class SetupStakingPoolViewModel @Inject constructor(
         val amountInPlanks = asset.token.planksFromAmount(amount)
         val transferableInPlanks = asset.token.planksFromAmount(asset.transferable)
         val minToJoinInPlanks = stakingPoolInteractor.getMinToJoinPool(chain.id)
-        val minToJoinFormatted = asset.token.amountFromPlanks(minToJoinInPlanks).formatTokenAmount(asset.token.configuration)
+        val minToJoinFormatted = minToJoinInPlanks.formatCryptoDetailFromPlanks(asset.token.configuration)
         val existentialDeposit = existentialDepositUseCase(asset.token.configuration)
         val feeInPlanks = feeInPlanksFlow.value ?: return Result.failure(WaitForFeeCalculationException(resourceManager))
 
@@ -211,7 +211,8 @@ class SetupStakingPoolViewModel @Inject constructor(
             tokenImage = "",
             totalBalance = resourceManager.getString(R.string.common_balance_format, "..."),
             fiatAmount = "",
-            tokenAmount = initialAmount
+            tokenAmount = initialAmount,
+            initial = null
         )
 
     private val defaultAccountInfoState

@@ -2,21 +2,19 @@ package jp.co.soramitsu.staking.impl.presentation.confirm.pool.join
 
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.math.BigDecimal
-import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.GradientIconState
 import jp.co.soramitsu.common.compose.component.TitleValueViewState
 import jp.co.soramitsu.common.compose.component.ToolbarViewState
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.common.utils.formatAsCurrency
+import jp.co.soramitsu.common.utils.formatCryptoDetail
+import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.staking.api.domain.model.PoolInfo
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
 import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSharedStateProvider
 import jp.co.soramitsu.staking.impl.scenarios.StakingPoolInteractor
-import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
@@ -25,6 +23,8 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
+import javax.inject.Inject
 
 @HiltViewModel
 class ConfirmJoinPoolViewModel @Inject constructor(
@@ -70,8 +70,8 @@ class ConfirmJoinPoolViewModel @Inject constructor(
         val amountInPlanks = asset.token.planksFromAmount(amount)
         val feeInPlanks = poolInteractor.estimateJoinFee(amountInPlanks, selectedPool.poolId)
         val fee = asset.token.amountFromPlanks(feeInPlanks)
-        val feeFormatted = fee.formatTokenAmount(asset.token.configuration)
-        val feeFiat = fee.formatAsCurrency(asset.token.fiatSymbol)
+        val feeFormatted = fee.formatCryptoDetail(asset.token.configuration.symbolToShow)
+        val feeFiat = fee.formatFiat(asset.token.fiatSymbol)
         TitleValueViewState(
             resourceManager.getString(R.string.network_fee),
             feeFormatted,
@@ -86,7 +86,7 @@ class ConfirmJoinPoolViewModel @Inject constructor(
     private val isLoadingViewState = MutableStateFlow(false)
 
     val viewState = combine(feeViewStateFlow, isLoadingViewState) { feeViewState, isLoading ->
-        val amount = this.amount.formatTokenAmount(asset.token.configuration)
+        val amount = this.amount.formatCryptoDetail(asset.token.configuration.symbolToShow)
         val validators = poolInteractor.getValidatorsIds(chain, selectedPool.poolId)
 
         val additionalMessage = if (validators.isEmpty()) {

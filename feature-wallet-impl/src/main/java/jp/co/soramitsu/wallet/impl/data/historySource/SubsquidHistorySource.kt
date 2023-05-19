@@ -2,8 +2,9 @@ package jp.co.soramitsu.wallet.impl.data.historySource
 
 import jp.co.soramitsu.common.data.model.CursorPage
 import jp.co.soramitsu.common.utils.orZero
-import jp.co.soramitsu.fearless_utils.runtime.AccountId
+import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.shared_utils.runtime.AccountId
 import jp.co.soramitsu.wallet.impl.data.network.model.request.SubsquidHistoryRequest
 import jp.co.soramitsu.wallet.impl.data.network.subquery.OperationsHistoryApi
 import jp.co.soramitsu.wallet.impl.domain.interfaces.TransactionFilter
@@ -19,7 +20,7 @@ class SubsquidHistorySource(
         filters: Set<TransactionFilter>,
         accountId: AccountId,
         chain: Chain,
-        chainAsset: Chain.Asset,
+        chainAsset: Asset,
         accountAddress: String
     ): CursorPage<Operation> {
         val page = cursor?.toIntOrNull() ?: 0

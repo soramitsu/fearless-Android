@@ -2,8 +2,6 @@ package jp.co.soramitsu.wallet.api.presentation
 
 import androidx.annotation.StringRes
 import androidx.lifecycle.viewModelScope
-import java.math.BigDecimal
-import java.math.BigInteger
 import jp.co.soramitsu.common.AlertViewState
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -15,9 +13,10 @@ import jp.co.soramitsu.common.compose.component.FeeInfoViewState
 import jp.co.soramitsu.common.compose.component.ToolbarViewState
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.applyFiatRate
-import jp.co.soramitsu.common.utils.formatAsCurrency
+import jp.co.soramitsu.common.utils.formatCrypto
+import jp.co.soramitsu.common.utils.formatCryptoDetail
+import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.orZero
-import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
@@ -28,12 +27,14 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
+import java.math.BigInteger
 
 open class BaseEnterAmountViewModel(
     @StringRes private val nextButtonTextRes: Int = R.string.common_continue,
     @StringRes private val toolbarTextRes: Int = R.string.staking_bond_more_v1_9_0,
     @StringRes private val balanceHintRes: Int,
-    initialAmount: String = "0",
+    initialAmount: BigDecimal? = null,
     isInputActive: Boolean = true,
     protected val asset: Asset,
     private val resourceManager: ResourceManager,
@@ -50,7 +51,8 @@ open class BaseEnterAmountViewModel(
         tokenImage = "",
         totalBalance = resourceManager.getString(balanceHintRes, "..."),
         fiatAmount = "",
-        tokenAmount = initialAmount
+        tokenAmount = initialAmount.orZero(),
+        initial = initialAmount
     )
 
     private val defaultButtonState = ButtonViewState(
@@ -70,36 +72,35 @@ open class BaseEnterAmountViewModel(
         defaultButtonState
     )
 
-    private val enteredAmountFlow = MutableStateFlow(initialAmount)
+    private val enteredAmountFlow = MutableStateFlow(initialAmount.orZero())
 
-    private val amountInputViewState: Flow<AmountInputViewState> = enteredAmountFlow.map { enteredAmount ->
-        val tokenBalance = availableAmountForOperation(asset).formatTokenAmount(asset.token.configuration)
-        val amount = enteredAmount.toBigDecimalOrNull().orZero()
-        val fiatAmount = amount.applyFiatRate(asset.token.fiatRate)?.formatAsCurrency(asset.token.fiatSymbol)
+    private val amountInputViewState: Flow<AmountInputViewState> = enteredAmountFlow.map { amount ->
+        val tokenBalance = availableAmountForOperation(asset).formatCrypto(asset.token.configuration.symbolToShow)
+        val fiatAmount = amount.applyFiatRate(asset.token.fiatRate)?.formatFiat(asset.token.fiatSymbol)
 
         AmountInputViewState(
             tokenName = asset.token.configuration.symbolToShow,
             tokenImage = asset.token.configuration.iconUrl,
             totalBalance = resourceManager.getString(balanceHintRes, tokenBalance),
             fiatAmount = fiatAmount,
-            tokenAmount = enteredAmount,
-            isActive = isInputActive
+            tokenAmount = amount,
+            isActive = isInputActive,
+            precision = asset.token.configuration.precision,
+            initial = initialAmount
         )
     }.stateIn(this, SharingStarted.Eagerly, defaultAmountInputState)
 
-    private val feeInfoViewStateFlow: Flow<FeeInfoViewState> = enteredAmountFlow.map { enteredAmount ->
-        val amount = enteredAmount.toBigDecimalOrNull().orZero()
+    private val feeInfoViewStateFlow: Flow<FeeInfoViewState> = enteredAmountFlow.map { amount ->
         val inPlanks = asset.token.planksFromAmount(amount)
         val feeInPlanks = feeEstimator(inPlanks)
         val fee = asset.token.amountFromPlanks(feeInPlanks)
-        val feeFormatted = fee.formatTokenAmount(asset.token.configuration)
-        val feeFiat = fee.applyFiatRate(asset.token.fiatRate)?.formatAsCurrency(asset.token.fiatSymbol)
+        val feeFormatted = fee.formatCryptoDetail(asset.token.configuration.symbolToShow)
+        val feeFiat = fee.applyFiatRate(asset.token.fiatRate)?.formatFiat(asset.token.fiatSymbol)
 
         FeeInfoViewState(feeAmount = feeFormatted, feeAmountFiat = feeFiat)
     }.stateIn(viewModelScope, SharingStarted.Eagerly, FeeInfoViewState.default)
 
-    private val buttonStateFlow = enteredAmountFlow.map { enteredAmount ->
-        val amount = enteredAmount.toBigDecimalOrNull().orZero()
+    private val buttonStateFlow = enteredAmountFlow.map { amount ->
         val amountInPlanks = asset.token.planksFromAmount(amount)
         ButtonViewState(
             resourceManager.getString(nextButtonTextRes),
@@ -120,13 +121,13 @@ open class BaseEnterAmountViewModel(
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, defaultState)
 
-    fun onAmountInput(amount: String) {
-        enteredAmountFlow.value = amount.replace(',', '.')
+    fun onAmountInput(amount: BigDecimal?) {
+        enteredAmountFlow.value = amount.orZero()
     }
 
     fun onNextClick() {
         viewModelScope.launch {
-            val amount = enteredAmountFlow.value.toBigDecimalOrNull().orZero()
+            val amount = enteredAmountFlow.value
             val inPlanks = asset.token.planksFromAmount(amount)
             isValid(amount).fold({
                 onNextStep(inPlanks)

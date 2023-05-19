@@ -5,10 +5,10 @@ import android.os.Parcelable
 import android.util.AttributeSet
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.lifecycle.LifecycleCoroutineScope
-import java.math.BigDecimal
-import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.crowdloan.impl.presentation.contribute.select.parcel.ParachainMetadataParcelModel
+import jp.co.soramitsu.shared_utils.runtime.extrinsic.ExtrinsicBuilder
 import kotlinx.coroutines.flow.Flow
+import java.math.BigDecimal
 
 sealed class ApplyActionState {
     object Available : ApplyActionState()
