@@ -12,7 +12,7 @@ interface RewardCalculator {
 
     suspend fun calculateMaxAPY(chainId: ChainId): BigDecimal
 
-    fun calculateAvgAPY(): BigDecimal
+    suspend fun calculateAvgAPY(): BigDecimal
 
     suspend fun getApyFor(targetId: ByteArray): BigDecimal
 
