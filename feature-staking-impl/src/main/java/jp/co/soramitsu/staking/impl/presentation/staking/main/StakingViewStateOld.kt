@@ -2,6 +2,8 @@ package jp.co.soramitsu.staking.impl.presentation.staking.main
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import java.math.BigDecimal
+import java.math.BigInteger
 import jp.co.soramitsu.common.base.TitleAndMessage
 import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.presentation.LoadingState
@@ -19,6 +21,7 @@ import jp.co.soramitsu.common.utils.withLoading
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.runtime.ext.accountFromMapKey
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.shared_utils.extensions.toHexString
 import jp.co.soramitsu.shared_utils.runtime.AccountId
 import jp.co.soramitsu.staking.api.domain.model.CandidateInfo
@@ -75,8 +78,6 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import java.math.BigDecimal
-import java.math.BigInteger
 import jp.co.soramitsu.core.models.Asset as CoreAsset
 
 @Deprecated("All ViewStates should be provided and created in staking type aware ViewModels")
@@ -123,16 +124,18 @@ sealed class StakeViewState<S>(
     protected val errorDisplayer: (Throwable) -> Unit,
     protected val summaryFlowProvider: suspend (StakingState) -> Flow<StakeSummary<S>>,
     protected val statusMessageProvider: (S) -> TitleAndMessage,
-    private val availableManageActions: Set<ManageStakeAction>
+    initialManageActions: Set<ManageStakeAction>
 ) : StakingViewStateOld() {
 
-    val manageStakingActionsButtonVisible = availableManageActions.isNotEmpty()
+    val manageStakingActionsButtonVisible = initialManageActions.isNotEmpty()
 
     private val _showManageActionsEvent = MutableLiveData<Event<ManageStakingBottomSheet.Payload>>()
     val showManageActionsEvent: LiveData<Event<ManageStakingBottomSheet.Payload>> = _showManageActionsEvent
 
+    private val availableManageActionsFlow = MutableStateFlow(initialManageActions)
+
     fun manageActionChosen(action: ManageStakeAction) {
-        if (action !in availableManageActions) return
+        if (action !in availableManageActionsFlow.value) return
 
         when (action) {
             ManageStakeAction.PAYOUTS -> router.openPayouts()
@@ -143,8 +146,21 @@ sealed class StakeViewState<S>(
         }
     }
 
+    init {
+        scope.launch {
+            currentAssetFlow.collect {
+                val supportedValidatorsLoadingBlockExplorerTypes = setOf(Chain.ExternalApi.Section.Type.SUBQUERY, Chain.ExternalApi.Section.Type.SUBSQUID)
+                if (stakeState.chain.externalApi?.staking?.type !in supportedValidatorsLoadingBlockExplorerTypes) {
+                    availableManageActionsFlow.value = initialManageActions.toMutableSet().apply { remove(ManageStakeAction.PAYOUTS) }
+                } else {
+                    availableManageActionsFlow.value = initialManageActions.toMutableSet().apply { add(ManageStakeAction.PAYOUTS) }
+                }
+            }
+        }
+    }
+
     fun moreActionsClicked() {
-        _showManageActionsEvent.value = Event(ManageStakingBottomSheet.Payload(availableManageActions))
+        _showManageActionsEvent.value = Event(ManageStakingBottomSheet.Payload(availableManageActionsFlow.value))
     }
 
     val stakeSummaryFlow = flow { emitAll(summaryFlow()) }
@@ -214,7 +230,7 @@ class ValidatorViewState(
     resourceManager, scope, router, errorDisplayer,
     summaryFlowProvider = { relayChainScenarioInteractor.observeValidatorSummary(validatorState).shareIn(scope, SharingStarted.Eagerly, replay = 1) },
     statusMessageProvider = { getValidatorStatusTitleAndMessage(resourceManager, it) },
-    availableManageActions = ManageStakeAction.values().toSet() - ManageStakeAction.VALIDATORS
+    initialManageActions = ManageStakeAction.values().toSet() - ManageStakeAction.VALIDATORS
 ) {
     init {
         syncStakingRewards()
@@ -249,7 +265,7 @@ class StashNoneViewState(
     resourceManager, scope, router, errorDisplayer,
     summaryFlowProvider = { relayChainScenarioInteractor.observeStashSummary(stashState).shareIn(scope, SharingStarted.Eagerly, replay = 1) },
     statusMessageProvider = { getStashStatusTitleAndMessage(resourceManager, it) },
-    availableManageActions = ManageStakeAction.values().toSet() - ManageStakeAction.PAYOUTS
+    initialManageActions = ManageStakeAction.values().toSet() - ManageStakeAction.PAYOUTS
 ) {
     init {
         syncStakingRewards()
@@ -283,7 +299,7 @@ open class NominatorViewState(
     resourceManager, scope, router, errorDisplayer,
     summaryFlowProvider = { relayChainScenarioInteractor.observeNominatorSummary(nominatorState).shareIn(scope, SharingStarted.Eagerly, replay = 1) },
     statusMessageProvider = { getNominatorStatusTitleAndMessage(resourceManager, it) },
-    availableManageActions = ManageStakeAction.values().toSet()
+    initialManageActions = ManageStakeAction.values().toSet()
 ) {
     init {
         syncStakingRewards()
@@ -353,6 +369,7 @@ private fun getDelegatorStatusTitleAndMessage(
         is DelegatorStatus.Inactive -> when (status.reason) {
             DelegatorStatus.Inactive.Reason.MIN_STAKE ->
                 R.string.staking_nominator_status_alert_inactive_title to R.string.staking_nominator_status_alert_low_stake
+
             DelegatorStatus.Inactive.Reason.NO_ACTIVE_VALIDATOR ->
                 R.string.staking_nominator_status_alert_inactive_title to R.string.staking_nominator_status_alert_no_validators
         }
@@ -665,7 +682,7 @@ class DelegatorViewState(
     resourceManager, scope, router, errorDisplayer,
     summaryFlowProvider = { emptyFlow() },
     statusMessageProvider = { getDelegatorStatusTitleAndMessage(resourceManager, it) },
-    availableManageActions = ManageStakeAction.values().toSet()
+    initialManageActions = ManageStakeAction.values().toSet()
 ) {
 
     val delegations = currentAssetFlow.filter { it.token.configuration.staking == CoreAsset.StakingType.PARACHAIN }.map { asset ->
