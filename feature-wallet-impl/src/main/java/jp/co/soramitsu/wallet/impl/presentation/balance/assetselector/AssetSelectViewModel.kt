@@ -8,6 +8,7 @@ import jp.co.soramitsu.common.utils.formatCrypto
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.wallet.impl.data.mappers.mapAssetToAssetModel
+import jp.co.soramitsu.wallet.impl.domain.XcmInteractor
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.presentation.model.AssetModel
@@ -25,6 +26,7 @@ import jp.co.soramitsu.wallet.api.presentation.WalletRouter as WalletRouterApi
 class AssetSelectViewModel @Inject constructor(
     private val walletRouter: WalletRouter,
     walletInteractor: WalletInteractor,
+    xcmInteractor: XcmInteractor,
     savedStateHandle: SavedStateHandle,
     private val sharedSendState: SendSharedState
 ) : BaseViewModel(), AssetSelectContentInterface {
@@ -40,9 +42,7 @@ class AssetSelectViewModel @Inject constructor(
 
     private val assetModelsFlow: Flow<List<AssetModel>> =
         if (isFilterXcmAssets) {
-            walletInteractor.xcmAssetsFlow(
-                originChainId = filterChainId
-            )
+            xcmInteractor.getAvailableAssetsFlow(originChainId = filterChainId)
         } else {
             walletInteractor.assetsFlow()
         }

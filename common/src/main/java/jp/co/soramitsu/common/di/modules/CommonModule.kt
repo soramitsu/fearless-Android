@@ -40,7 +40,7 @@ import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.common.vibration.DeviceVibrator
 import jp.co.soramitsu.core.extrinsic.ExtrinsicBuilderFactory
 import jp.co.soramitsu.core.extrinsic.ExtrinsicService
-import jp.co.soramitsu.core.extrinsic.KeyPairProvider
+import jp.co.soramitsu.core.extrinsic.keypair_provider.KeypairProvider
 import jp.co.soramitsu.core.rpc.RpcCalls
 import jp.co.soramitsu.shared_utils.encrypt.Signer
 import jp.co.soramitsu.shared_utils.icon.IconGenerator
@@ -74,12 +74,12 @@ class CommonModule {
     @Provides
     fun provideExtrinsicService(
         rpcCalls: RpcCalls,
-        keyPairProvider: KeyPairProvider,
+        keypairProvider: KeypairProvider,
         extrinsicBuilderFactory: ExtrinsicBuilderFactory
     ): ExtrinsicService {
         return ExtrinsicService(
             rpcCalls = rpcCalls,
-            keyPairProvider = keyPairProvider,
+            keypairProvider = keypairProvider,
             extrinsicBuilderFactory = extrinsicBuilderFactory
         )
     }

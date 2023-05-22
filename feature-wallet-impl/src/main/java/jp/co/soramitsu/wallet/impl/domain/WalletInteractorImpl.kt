@@ -1,7 +1,5 @@
 package jp.co.soramitsu.wallet.impl.domain
 
-import java.math.BigDecimal
-import java.math.BigInteger
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.accountId
@@ -14,7 +12,6 @@ import jp.co.soramitsu.common.domain.SelectedFiat
 import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
-import jp.co.soramitsu.common.utils.combineToPair
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.core.models.ChainId
 import jp.co.soramitsu.core.models.isValidAddress
@@ -48,10 +45,11 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flatMapMerge
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.withIndex
 import kotlinx.coroutines.withContext
+import java.math.BigDecimal
+import java.math.BigInteger
 import jp.co.soramitsu.core.models.Asset as CoreAsset
 
 private const val QR_PREFIX_SUBSTRATE = "substrate"
@@ -113,26 +111,6 @@ class WalletInteractorImpl(
                         assets.sortedWith(defaultAssetListSort())
                     }
             }
-    }
-
-    override fun xcmAssetsFlow(originChainId: ChainId?): Flow<List<AssetWithStatus>> {
-        return combineToPair(assetsFlow(), getAvailableXcmAssetSymbolsFlow(originChainId))
-            .map { (assets, availableXcmAssetSymbols) ->
-                assets.filter {
-                    val assetSymbol = it.asset.token.configuration.symbol.uppercase()
-                    assetSymbol in availableXcmAssetSymbols
-                }
-            }
-    }
-
-    private fun getAvailableXcmAssetSymbolsFlow(originChainId: ChainId?): Flow<List<String>> {
-        return flow {
-            val availableXcmAssetSymbols = xcmEntitiesFetcher.getAvailableAssets(
-                originalChainId = originChainId,
-                destinationChainId = null
-            ).map { it.uppercase() }
-            emit(availableXcmAssetSymbols)
-        }
     }
 
     override fun observeAssets(): Flow<List<AssetWithStatus>> {
