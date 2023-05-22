@@ -1,12 +1,12 @@
 package jp.co.soramitsu.staking.impl.presentation.validators.change.custom.review
 
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.common.utils.inBackground
+import jp.co.soramitsu.common.view.ButtonState
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.staking.api.domain.model.Validator
 import jp.co.soramitsu.staking.impl.domain.StakingInteractor
@@ -27,6 +27,7 @@ import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 import javax.inject.Named
 
 @HiltViewModel
@@ -55,10 +56,13 @@ class ReviewCustomValidatorsViewModel @Inject constructor(
         stakingRelayChainScenarioInteractor.maxValidatorsPerNominator()
     }.share()
 
+    val isInEditMode = MutableStateFlow(false)
+
     val selectionStateFlow = combine(
         selectedValidators,
-        maxValidatorsPerNominatorFlow
-    ) { validators, maxValidatorsPerNominator ->
+        maxValidatorsPerNominatorFlow,
+        isInEditMode
+    ) { validators, maxValidatorsPerNominator, isInEditMode ->
         val isOverflow = validators.size > maxValidatorsPerNominator
 
         ValidatorsSelectionState(
@@ -68,7 +72,8 @@ class ReviewCustomValidatorsViewModel @Inject constructor(
                 resourceManager.getString(R.string.staking_custom_proceed_button_disabled_title, maxValidatorsPerNominator)
             } else {
                 resourceManager.getString(R.string.common_continue)
-            }
+            },
+            buttonState = if (isOverflow || isInEditMode) ButtonState.DISABLED else ButtonState.NORMAL
         )
     }
 
@@ -84,8 +89,6 @@ class ReviewCustomValidatorsViewModel @Inject constructor(
     }
         .inBackground()
         .share()
-
-    val isInEditMode = MutableStateFlow(false)
 
     fun deleteClicked(validatorModel: ValidatorModel) {
         launch {
