@@ -2,6 +2,7 @@ package jp.co.soramitsu.soracard.impl.domain
 
 import jp.co.soramitsu.coredb.dao.SoraCardDao
 import jp.co.soramitsu.coredb.model.SoraCardInfoLocal
+import jp.co.soramitsu.oauth.feature.session.domain.UserSessionRepository
 import jp.co.soramitsu.soracard.api.domain.SoraCardRepository
 import jp.co.soramitsu.soracard.api.presentation.models.SoraCardInfo
 import jp.co.soramitsu.soracard.impl.data.SoraCardApi
@@ -11,7 +12,8 @@ import java.math.BigDecimal
 
 class SoraCardRepositoryImpl(
     private val soraCardDao: SoraCardDao,
-    private val soraCardApi: SoraCardApi
+    private val soraCardApi: SoraCardApi,
+    private val userSessionRepository: UserSessionRepository,
 ) : SoraCardRepository {
     private companion object {
         const val SORA_CARD_ID = "soraCardId"
@@ -69,5 +71,9 @@ class SoraCardRepositoryImpl(
 
             newValue
         }
+    }
+
+    suspend fun logout() {
+        userSessionRepository.logOutUser()
     }
 }

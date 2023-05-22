@@ -10,7 +10,6 @@ import javax.inject.Inject
 import jp.co.soramitsu.common.BuildConfig
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.base.BaseViewModel
-import jp.co.soramitsu.common.data.network.OptionsProvider
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.greaterThen
@@ -19,6 +18,7 @@ import jp.co.soramitsu.oauth.base.sdk.SoraCardKycCredentials
 import jp.co.soramitsu.oauth.base.sdk.contract.SoraCardContractData
 import jp.co.soramitsu.soracard.api.domain.SoraCardInteractor
 import jp.co.soramitsu.soracard.api.presentation.SoraCardRouter
+import jp.co.soramitsu.soracard.impl.presentation.createSoraCardContract
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -86,13 +86,13 @@ class GetSoraCardViewModel @Inject constructor(
                             percent = transferable.divide(xorRealRequiredBalance, defaultScale, RoundingMode.HALF_EVEN),
                             needInXor = needInXor,
                             needInEur = needInEur,
-                            xorRatioUnavailable = false
+                            xorRatioAvailable = true
                         )
                     } catch (e: Exception) {
                         state.value = state.value.copy(
                             xorBalance = transferable,
                             enoughXor = false,
-                            xorRatioUnavailable = true
+                            xorRatioAvailable = false
                         )
                     }
                 }

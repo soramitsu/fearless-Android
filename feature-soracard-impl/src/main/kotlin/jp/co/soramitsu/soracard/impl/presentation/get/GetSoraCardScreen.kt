@@ -66,7 +66,7 @@ data class GetSoraCardState(
     val percent: BigDecimal = BigDecimal.ZERO,
     val needInXor: BigDecimal = BigDecimal.ZERO,
     val needInEur: BigDecimal = BigDecimal.ZERO,
-    val xorRatioUnavailable: Boolean = false,
+    val xorRatioAvailable: Boolean = false,
     val soraCardInfo: SoraCardInfo? = null
 )
 
@@ -121,10 +121,9 @@ fun GetSoraCardScreen(
             .padding(horizontal = Dimens.x2)
             .padding(bottom = Dimens.x5)
     ) {
-        Card(
+        ContentCard(
             modifier = Modifier.fillMaxSize(),
-            cornerRadius = 12.dp,
-            elevation = 0.dp
+            cornerRadius = 12.dp
         ) {
             Column(
                 modifier = Modifier
@@ -136,7 +135,7 @@ fun GetSoraCardScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .wrapContentHeight(),
-                    painter = painterResource(R.drawable.ic_sora_card),
+                    painter = painterResource(R.drawable.sora_card),
                     contentDescription = null,
                     contentScale = ContentScale.FillWidth
                 )
@@ -192,7 +191,7 @@ fun GetSoraCardScreen(
                         textDecoration = TextDecoration.Underline,
                         fontSize = 12.sp
                     ),
-                    color = MaterialTheme.customColors.statusError,
+                    color = MaterialTheme.customColors.accentPrimary,
                 )
 
                 MarginVertical(margin = 16.dp)
@@ -236,13 +235,12 @@ fun GetSoraCardScreen(
 
 @Composable
 private fun AnnualFee() {
-    Card(
+    ContentCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 8.dp),
         cornerRadius = 12.dp,
-        backgroundColor = backgroundBlack,
-        elevation = 0.dp
+        backgroundColor = backgroundBlack
     ) {
         Row(
             modifier = Modifier
@@ -273,13 +271,12 @@ private fun AnnualFee() {
 private fun FreeCardIssuance(
     state: GetSoraCardState
 ) {
-    Card(
+    ContentCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 8.dp),
         cornerRadius = 12.dp,
-        backgroundColor = backgroundBlack,
-        elevation = 0.dp
+        backgroundColor = backgroundBlack
     ) {
         Column(
             modifier = Modifier
@@ -332,7 +329,7 @@ private fun FreeCardIssuance(
                     .padding(top = Dimens.x3, bottom = Dimens.x1),
                 percent = state.percent.toFloat(),
                 label = when {
-                    state.xorRatioUnavailable -> {
+                    !state.xorRatioAvailable -> {
                         stringResource(R.string.common_error_general_title)
                     }
                     state.enoughXor -> {
@@ -352,21 +349,22 @@ private fun FreeCardIssuance(
 }
 
 @Composable
-fun Card(
+fun ContentCard(
     modifier: Modifier = Modifier,
-    elevation: Dp = MaterialTheme.elevation.l,
-    cornerRadius: Dp = MaterialTheme.borderRadius.xl,
+    cornerRadius: Dp = MaterialTheme.borderRadius.s,
     backgroundColor: Color = MaterialTheme.customColors.bgSurface,
     content: @Composable () -> Unit
 ) {
     androidx.compose.material.Card(
-        modifier = modifier.shadow(
-            elevation = elevation,
-            ambientColor = MaterialTheme.customColors.elevation,
-            spotColor = MaterialTheme.customColors.elevation,
-            shape = RoundedCornerShape(cornerRadius)
-        ),
+        modifier = modifier
+            .shadow(
+                elevation = 24.dp,
+                ambientColor = MaterialTheme.customColors.elevation,
+                spotColor = MaterialTheme.customColors.elevation,
+                shape = RoundedCornerShape(cornerRadius)
+            ),
         shape = RoundedCornerShape(cornerRadius),
+        elevation = 0.dp,
         backgroundColor = backgroundColor
     ) {
         content()
