@@ -9,7 +9,6 @@ import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.core.runtime.ChainConnection
 import jp.co.soramitsu.core.runtime.IChainRegistry
-import jp.co.soramitsu.core.runtime.IRuntimeProvider
 import jp.co.soramitsu.coredb.dao.ChainDao
 import jp.co.soramitsu.coredb.model.chain.ChainNodeLocal
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainSyncService
@@ -19,6 +18,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.NodeId
 import jp.co.soramitsu.runtime.multiNetwork.connection.ConnectionPool
+import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeProvider
 import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeProviderPool
 import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeSubscriptionPool
 import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeSyncService
@@ -34,7 +34,7 @@ import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 
 data class ChainService(
-    val runtimeProvider: IRuntimeProvider,
+    val runtimeProvider: RuntimeProvider,
     val connection: ChainConnection
 )
 
@@ -102,7 +102,7 @@ class ChainRegistry @Inject constructor(
 
     fun getConnectionOrNull(chainId: String) = connectionPool.getConnectionOrNull(chainId)
 
-    fun getRuntimeProvider(chainId: String): IRuntimeProvider {
+    fun getRuntimeProvider(chainId: String): RuntimeProvider {
         return runtimeProviderPool.getRuntimeProvider(chainId)
     }
 

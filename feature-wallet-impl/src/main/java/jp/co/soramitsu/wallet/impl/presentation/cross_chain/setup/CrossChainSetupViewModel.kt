@@ -226,7 +226,7 @@ class CrossChainSetupViewModel @Inject constructor(
         val destinationChainId = _destinationChainId ?: return@combine null
         val tokenConfiguration = _asset?.token?.configuration ?: return@combine null
 
-        val fee = xcmInteractor.getXcmDestFee(
+        val fee = xcmInteractor.getDestinationFee(
             destinationChainId = destinationChainId,
             tokenSymbol = tokenConfiguration.symbol
         )
@@ -252,7 +252,7 @@ class CrossChainSetupViewModel @Inject constructor(
         val destinationChainId = nullableDestinationChainId ?: return@combine null
         val destinationAmount = nullableDestinationFeeAmount ?: BigDecimal.ZERO
 
-        xcmInteractor.getXcmOrigFee(
+        xcmInteractor.getOriginFee(
             originNetworkId = originChainId,
             destinationNetworkId = destinationChainId,
             asset = asset.token.configuration,
@@ -414,9 +414,11 @@ class CrossChainSetupViewModel @Inject constructor(
         setInitialChainsAndAssetIds()
         observeDestinationChainFlow()
 
-        chainAssetsManager.destinationChainIdFlow.filterNotNull().onEach {
-            xcmInteractor.initXcmService(payload!!.chainId, it)
-        }.launchIn(viewModelScope)
+        chainAssetsManager.destinationChainIdFlow.filterNotNull()
+            .onEach {
+                xcmInteractor.prepareDataForChains(payload!!.chainId, it)
+            }
+            .launchIn(viewModelScope)
     }
 
     private fun setInitialChainsAndAssetIds() {

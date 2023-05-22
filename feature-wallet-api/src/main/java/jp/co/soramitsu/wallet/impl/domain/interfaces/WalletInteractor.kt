@@ -32,8 +32,6 @@ interface WalletInteractor {
 
     fun assetsFlow(): Flow<List<AssetWithStatus>>
 
-    fun xcmAssetsFlow(originChainId: ChainId?): Flow<List<AssetWithStatus>>
-
     suspend fun syncAssetsRates(): Result<Unit>
 
     fun assetFlow(chainId: ChainId, chainAssetId: String): Flow<Asset>
