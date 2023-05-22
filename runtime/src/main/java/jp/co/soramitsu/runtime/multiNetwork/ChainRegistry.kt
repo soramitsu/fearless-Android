@@ -65,9 +65,10 @@ class ChainRegistry @Inject constructor(
 
     fun syncUp() {
         launch {
-            runCatching { chainSyncService.syncUp() }
-
-            runtimeSyncService.syncTypes()
+            runCatching {
+                chainSyncService.syncUp()
+                runtimeSyncService.syncTypes()
+            }
 
             chainDao.joinChainInfoFlow().mapList(::mapChainLocalToChain).diffed()
                 .collect { (removed, addedOrModified, _) ->
