@@ -20,7 +20,8 @@ interface ValidateTransferUseCase {
         recipientAddress: String,
         ownAddress: String,
         fee: BigInteger?,
-        confirmedValidations: List<TransferValidationResult> = emptyList()
+        confirmedValidations: List<TransferValidationResult> = emptyList(),
+        transferMyselfAvailable: Boolean
     ): Result<TransferValidationResult>
 
     suspend fun validateExistentialDeposit(
