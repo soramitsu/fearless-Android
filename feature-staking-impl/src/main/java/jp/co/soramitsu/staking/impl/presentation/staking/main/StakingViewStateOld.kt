@@ -2,8 +2,6 @@ package jp.co.soramitsu.staking.impl.presentation.staking.main
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import java.math.BigDecimal
-import java.math.BigInteger
 import jp.co.soramitsu.common.base.TitleAndMessage
 import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.presentation.LoadingState
@@ -78,6 +76,8 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
+import java.math.BigInteger
 import jp.co.soramitsu.core.models.Asset as CoreAsset
 
 @Deprecated("All ViewStates should be provided and created in staking type aware ViewModels")
@@ -727,9 +727,9 @@ class DelegatorViewState(
                 collatorAddress = collator.collatorId.toHexString(true),
                 collatorName = identity?.display ?: collatorIdHex,
                 staked = staked.formatCryptoDetail(asset.token.configuration.symbolToShow),
-                stakedFiat = staked.applyFiatRate(asset.fiatAmount)?.formatFiat(asset.token.fiatSymbol),
+                stakedFiat = staked.applyFiatRate(asset.token.fiatRate)?.formatFiat(asset.token.fiatSymbol),
                 rewardApy = rewardApy.formatAsPercentage(),
-                rewardedFiat = rewarded.applyFiatRate(asset.fiatAmount)?.formatFiat(asset.token.fiatSymbol),
+                rewardedFiat = rewarded.applyFiatRate(asset.token.fiatRate)?.formatFiat(asset.token.fiatSymbol),
                 status = candidateInfo.toModelStatus(millisecondsTillTheEndOfRound, millisecondsTillCandidateWillLeave, isReadyToUnlock),
                 candidateInfo
             )
