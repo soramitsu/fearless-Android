@@ -41,7 +41,7 @@ import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.LanguagesHolder
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.core.extrinsic.KeyPairProvider
+import jp.co.soramitsu.core.extrinsic.keypair_provider.KeypairProvider
 import jp.co.soramitsu.coredb.dao.AccountDao
 import jp.co.soramitsu.coredb.dao.AssetDao
 import jp.co.soramitsu.coredb.dao.MetaAccountDao
@@ -96,7 +96,7 @@ class AccountFeatureModule {
     fun provideKeyPairRepository(
         secretStoreV2: SecretStoreV2,
         accountRepository: AccountRepository
-    ): KeyPairProvider {
+    ): KeypairProvider {
         return KeyPairRepository(secretStoreV2, accountRepository)
     }
 

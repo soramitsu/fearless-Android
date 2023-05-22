@@ -84,6 +84,7 @@ import jp.co.soramitsu.wallet.impl.presentation.balance.assetActions.buy.BuyMixi
 import jp.co.soramitsu.wallet.impl.presentation.balance.assetActions.buy.BuyMixinProvider
 import jp.co.soramitsu.wallet.impl.presentation.send.SendSharedState
 import jp.co.soramitsu.wallet.impl.presentation.transaction.filter.HistoryFiltersProvider
+import jp.co.soramitsu.xcm_impl.XcmService
 import jp.co.soramitsu.xcm_impl.domain.XcmEntitiesFetcher
 import jp.co.soramitsu.xnetworking.networkclient.SoramitsuNetworkClient
 import jp.co.soramitsu.xnetworking.sorawallet.mainconfig.SoraRemoteConfigBuilder
@@ -233,22 +234,31 @@ class WalletFeatureModule {
     )
 
     @Provides
-    @Singleton
     fun provideXcmInteractor(
         walletInteractor: WalletInteractor,
         chainRegistry: ChainRegistry,
         currentAccountAddress: CurrentAccountAddressUseCase,
         xcmEntitiesFetcher: XcmEntitiesFetcher,
         accountInteractor: AccountInteractor,
-        runtimeFilesCache: RuntimeFilesCache
-    ) = XcmInteractor(
-        walletInteractor,
-        chainRegistry,
-        currentAccountAddress,
-        xcmEntitiesFetcher,
-        accountInteractor,
-        runtimeFilesCache
-    )
+        runtimeFilesCache: RuntimeFilesCache,
+        xcmService: XcmService
+    ): XcmInteractor {
+        return XcmInteractor(
+            walletInteractor,
+            chainRegistry,
+            currentAccountAddress,
+            xcmEntitiesFetcher,
+            accountInteractor,
+            runtimeFilesCache,
+            xcmService
+        )
+    }
+
+    @Provides
+    @Singleton
+    fun provideXcmService(): XcmService {
+        return XcmService()
+    }
 
     @Provides
     fun provideExistentialDepositUseCase(

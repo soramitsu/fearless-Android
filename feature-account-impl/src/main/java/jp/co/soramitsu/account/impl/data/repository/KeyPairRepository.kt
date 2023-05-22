@@ -6,7 +6,7 @@ import jp.co.soramitsu.account.api.domain.model.cryptoType
 import jp.co.soramitsu.common.data.secrets.v2.SecretStoreV2
 import jp.co.soramitsu.common.data.secrets.v2.getChainAccountKeypair
 import jp.co.soramitsu.common.data.secrets.v2.getMetaAccountKeypair
-import jp.co.soramitsu.core.extrinsic.KeyPairProvider
+import jp.co.soramitsu.core.extrinsic.keypair_provider.KeypairProvider
 import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.core.models.IChain
 import jp.co.soramitsu.shared_utils.encrypt.keypair.Keypair
@@ -15,7 +15,7 @@ import jp.co.soramitsu.shared_utils.extensions.toHexString
 class KeyPairRepository(
     private val secretStoreV2: SecretStoreV2,
     private val accountRepository: AccountRepository
-) : KeyPairProvider {
+) : KeypairProvider {
 
     override suspend fun getCryptoTypeFor(chain: IChain, accountId: ByteArray): CryptoType {
         val metaAccount = accountRepository.findMetaAccount(accountId)
