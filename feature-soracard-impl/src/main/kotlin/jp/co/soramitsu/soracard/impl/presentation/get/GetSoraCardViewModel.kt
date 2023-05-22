@@ -182,10 +182,10 @@ class GetSoraCardViewModel @Inject constructor(
         router.openGetMoreXor()
     }
 
-    override fun onSeeBlacklist(url: String) {
+    override fun onSeeBlacklist() {
         router.openWebViewer(
             title = resourceManager.getString(R.string.sora_card_blacklisted_countires_title),
-            url = url
+            url = BuildConfig.SORA_CARD_BLACKLIST
         )
     }
 }

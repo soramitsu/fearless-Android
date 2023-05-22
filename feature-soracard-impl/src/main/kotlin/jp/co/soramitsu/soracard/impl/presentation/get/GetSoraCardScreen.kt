@@ -3,6 +3,7 @@ package jp.co.soramitsu.soracard.impl.presentation.get
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -30,6 +32,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -48,8 +51,8 @@ import jp.co.soramitsu.common.compose.theme.errorRed
 import jp.co.soramitsu.common.utils.formatCryptoDetail
 import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.feature_soracard_impl.R
+import jp.co.soramitsu.oauth.base.extension.testTagAsId
 import jp.co.soramitsu.soracard.api.presentation.models.SoraCardInfo
-import jp.co.soramitsu.ui_core.component.text.HtmlText
 import jp.co.soramitsu.ui_core.resources.Dimens
 import jp.co.soramitsu.ui_core.theme.borderRadius
 import jp.co.soramitsu.ui_core.theme.customColors
@@ -70,7 +73,7 @@ data class GetSoraCardState(
 interface GetSoraCardScreenInterface {
     fun onEnableCard()
     fun onGetMoreXor()
-    fun onSeeBlacklist(url: String)
+    fun onSeeBlacklist()
     fun onAlreadyHaveCard()
     fun onNavigationClick()
 }
@@ -165,7 +168,32 @@ fun GetSoraCardScreen(
                 FreeCardIssuance(state)
 
                 MarginVertical(margin = 16.dp)
-                BlacklistedCountries(onSeeListClicked = callbacks::onSeeBlacklist)
+                Text(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = Dimens.x1),
+                    text = stringResource(SoraCardR.string.unsupported_countries_disclaimer),
+                    style = MaterialTheme.customTypography.paragraphXS.copy(
+                        textAlign = TextAlign.Center,
+                        color = Color.White,
+                        fontSize = 12.sp
+                    )
+                )
+                Text(
+                    modifier = Modifier
+                        .wrapContentWidth()
+                        .align(Alignment.CenterHorizontally)
+                        .testTagAsId("SoraCardResidents")
+                        .padding(horizontal = Dimens.x1)
+                        .clickable(onClick = callbacks::onSeeBlacklist),
+                    text = stringResource(SoraCardR.string.unsupported_countries_link),
+                    style = MaterialTheme.customTypography.paragraphXS.copy(
+                        textAlign = TextAlign.Center,
+                        textDecoration = TextDecoration.Underline,
+                        fontSize = 12.sp
+                    ),
+                    color = MaterialTheme.customColors.statusError,
+                )
 
                 MarginVertical(margin = 16.dp)
                 if (state.enoughXor) {
@@ -204,24 +232,6 @@ fun GetSoraCardScreen(
             }
         }
     }
-}
-
-@Composable
-private fun BlacklistedCountries(
-    onSeeListClicked: (String) -> Unit
-) {
-    HtmlText(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 8.dp),
-        text = stringResource(R.string.sora_card_blacklisted_countires_warning),
-        style = MaterialTheme.customTypography.paragraphXS.copy(
-            textAlign = TextAlign.Center,
-            color = Color.White,
-            fontSize = 12.sp
-        ),
-        onUrlClick = onSeeListClicked
-    )
 }
 
 @Composable
@@ -369,7 +379,7 @@ private fun PreviewGetSoraCardScreen() {
     val empty = object : GetSoraCardScreenInterface {
         override fun onEnableCard() {}
         override fun onGetMoreXor() {}
-        override fun onSeeBlacklist(url: String) {}
+        override fun onSeeBlacklist() {}
         override fun onAlreadyHaveCard() {}
         override fun onNavigationClick() {}
     }
