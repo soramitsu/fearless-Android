@@ -35,7 +35,8 @@ class ValidateTransferUseCaseImpl(
         recipientAddress: String,
         ownAddress: String,
         fee: BigInteger?,
-        confirmedValidations: List<TransferValidationResult>
+        confirmedValidations: List<TransferValidationResult>,
+        transferMyselfAvailable: Boolean
     ): Result<TransferValidationResult> = kotlin.runCatching {
         fee ?: return Result.success(TransferValidationResult.WaitForFee)
         val chainId = asset.token.configuration.chainId
@@ -50,7 +51,7 @@ class ValidateTransferUseCaseImpl(
 
         val initialChecks = mapOf(
             TransferValidationResult.InvalidAddress to (validateAddressResult.getOrNull() in listOf(null, false)),
-            TransferValidationResult.TransferToTheSameAddress to (recipientAddress == ownAddress)
+            TransferValidationResult.TransferToTheSameAddress to (!transferMyselfAvailable && recipientAddress == ownAddress)
         )
 
         val initialCheck = performChecks(initialChecks, confirmedValidations)
