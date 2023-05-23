@@ -56,6 +56,7 @@ import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
 import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
+import jp.co.soramitsu.wallet.impl.presentation.balance.walletselector.light.WalletSelectionMode
 import jp.co.soramitsu.wallet.impl.presentation.cross_chain.CrossChainTransferDraft
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
@@ -674,7 +675,10 @@ class CrossChainSetupViewModel @Inject constructor(
     }
 
     override fun onMyWalletsClick() {
-        router.openWalletSelectorForResult()
+        router.openWalletSelectorForResult(
+            selectedWalletId = selectedWalletIdFlow.value,
+            walletSelectionMode = WalletSelectionMode.ExternalSelectedWallet
+        )
             .onEach(::setAddressByMetaAccountId)
             .launchIn(viewModelScope)
     }

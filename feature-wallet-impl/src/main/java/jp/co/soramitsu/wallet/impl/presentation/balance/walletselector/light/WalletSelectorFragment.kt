@@ -1,5 +1,6 @@
 package jp.co.soramitsu.wallet.impl.presentation.balance.walletselector.light
 
+import android.os.Bundle
 import android.widget.FrameLayout
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
@@ -17,8 +18,21 @@ class WalletSelectorFragment : BaseComposeBottomSheetDialogFragment<WalletSelect
 
     companion object {
         const val TAG_ARGUMENT_KEY = "tag"
+        const val SELECTED_WALLET_ID = "SELECTED_WALLET_ID"
+        const val WALLET_SELECTION_MODE = "WALLET_SELECTION_MODE"
         const val RESULT_ADDRESS = "RESULT_ADDRESS"
-        fun buildArguments(tag: String) = bundleOf(TAG_ARGUMENT_KEY to tag)
+
+        fun buildArguments(
+            tag: String,
+            selectedWalletId: Long? = null,
+            walletSelectionMode: WalletSelectionMode? = null
+        ): Bundle {
+            return bundleOf(
+                TAG_ARGUMENT_KEY to tag,
+                SELECTED_WALLET_ID to selectedWalletId,
+                WALLET_SELECTION_MODE to walletSelectionMode
+            )
+        }
     }
 
     override val viewModel: WalletSelectorViewModel by viewModels()

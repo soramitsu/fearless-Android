@@ -115,6 +115,7 @@ import jp.co.soramitsu.wallet.impl.presentation.balance.detail.BalanceDetailFrag
 import jp.co.soramitsu.wallet.impl.presentation.balance.detail.frozen.FrozenAssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.balance.detail.frozen.FrozenTokensFragment
 import jp.co.soramitsu.wallet.impl.presentation.balance.optionswallet.OptionsWalletFragment
+import jp.co.soramitsu.wallet.impl.presentation.balance.walletselector.light.WalletSelectionMode
 import jp.co.soramitsu.wallet.impl.presentation.balance.walletselector.light.WalletSelectorFragment
 import jp.co.soramitsu.wallet.impl.presentation.beacon.main.BeaconFragment
 import jp.co.soramitsu.wallet.impl.presentation.beacon.main.DAppMetadataModel
@@ -367,8 +368,15 @@ class Navigator :
         navController?.navigate(R.id.walletSelectorFragment, WalletSelectorFragment.buildArguments(tag))
     }
 
-    override fun openWalletSelectorForResult(): Flow<Long> {
-        val bundle = WalletSelectorFragment.buildArguments(tag = "")
+    override fun openWalletSelectorForResult(
+        selectedWalletId: Long?,
+        walletSelectionMode: WalletSelectionMode
+    ): Flow<Long> {
+        val bundle = WalletSelectorFragment.buildArguments(
+            tag = "",
+            selectedWalletId = selectedWalletId,
+            walletSelectionMode = walletSelectionMode
+        )
         return openWithResult(
             destinationId = R.id.walletSelectorFragment,
             bundle = bundle,
