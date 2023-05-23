@@ -138,7 +138,8 @@ private fun PreviewWalletScreen() {
             hasAccount = true,
             priceId = null,
             hasNetworkIssue = false,
-            ecosystem = "Polkadot"
+            ecosystem = "Polkadot",
+            isTestnet = false
         )
     )
 
