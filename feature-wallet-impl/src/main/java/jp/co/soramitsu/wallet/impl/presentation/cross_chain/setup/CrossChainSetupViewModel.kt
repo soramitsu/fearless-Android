@@ -347,14 +347,16 @@ class CrossChainSetupViewModel @Inject constructor(
         chainAssetsManager.originChainIdFlow,
         chainAssetsManager.destinationChainIdFlow,
         hasOriginFeeAmountFlow,
-        hasDestinationFeeAmountFlow
-    ) { amount, asset, originChainId, destinationChainId, hasOriginFeeAmount, hasDestinationFeeAmount ->
+        hasDestinationFeeAmountFlow,
+        addressInputFlow
+    ) { amount, asset, originChainId, destinationChainId, hasOriginFeeAmount, hasDestinationFeeAmount, addressInput ->
         val amountInPlanks = asset?.token?.planksFromAmount(amount).orZero()
         val isAllChainsSelected = originChainId != null && destinationChainId != null
         val isAllFeesCalculated = hasOriginFeeAmount && hasDestinationFeeAmount
+        val isAddressExists = addressInput.isNotBlank()
         ButtonViewState(
             text = resourceManager.getString(R.string.common_continue),
-            enabled = amountInPlanks.isNotZero() && isAllChainsSelected && isAllFeesCalculated
+            enabled = amountInPlanks.isNotZero() && isAllChainsSelected && isAllFeesCalculated && isAddressExists
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, defaultButtonState)
 
@@ -369,12 +371,11 @@ class CrossChainSetupViewModel @Inject constructor(
         destinationFeeInfoViewStateFlow,
         warningInfoStateFlow,
         buttonStateFlow,
-        walletIconFlow,
-        selectedWalletIdFlow
+        walletIconFlow
     ) { originSelectedChain, destinationSelectedChain, address, originChainSelectorState,
         destinationChainSelectorState, amountInputState,
         originFeeInfoState, destinationFeeInfoState,
-        warningInfoState, buttonState, walletIcon, selectedWalletId ->
+        warningInfoState, buttonState, walletIcon ->
         val isAddressValid = if (destinationSelectedChain == null) {
             false
         } else {
@@ -397,7 +398,7 @@ class CrossChainSetupViewModel @Inject constructor(
                 } else {
                     R.drawable.ic_address_placeholder
                 },
-                editable = selectedWalletId == null
+                editable = false
             ),
             originChainSelectorState = originChainSelectorState,
             destinationChainSelectorState = destinationChainSelectorState,
