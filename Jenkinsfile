@@ -1,4 +1,4 @@
-@Library('jenkins-library')
+@Library('jenkins-library@feature/DOPS-2406-limit-the-execution-time')
 
 // Job properties
 def jobParams = [
