@@ -1,5 +1,6 @@
 package jp.co.soramitsu.wallet.impl.data.network.blockchain
 
+import java.math.BigInteger
 import jp.co.soramitsu.common.data.network.runtime.binding.EqAccountInfo
 import jp.co.soramitsu.common.data.network.runtime.binding.EqOraclePricePoint
 import jp.co.soramitsu.common.data.network.runtime.binding.ExtrinsicStatusEvent
@@ -10,7 +11,6 @@ import jp.co.soramitsu.shared_utils.runtime.AccountId
 import jp.co.soramitsu.shared_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.bindings.TransferExtrinsic
 import jp.co.soramitsu.wallet.impl.domain.model.Transfer
-import java.math.BigInteger
 
 class TransferExtrinsicWithStatus(
     val extrinsic: TransferExtrinsic,
@@ -25,7 +25,8 @@ interface SubstrateRemoteSource {
         chain: Chain,
         transfer: Transfer,
         additional: (suspend ExtrinsicBuilder.() -> Unit)?,
-        batchAll: Boolean
+        batchAll: Boolean,
+        allowDeath: Boolean = false
     ): BigInteger
 
     suspend fun performTransfer(
@@ -34,7 +35,8 @@ interface SubstrateRemoteSource {
         transfer: Transfer,
         tip: BigInteger?,
         additional: (suspend ExtrinsicBuilder.() -> Unit)?,
-        batchAll: Boolean
+        batchAll: Boolean,
+        allowDeath: Boolean = false
     ): String
 
     suspend fun fetchAccountTransfersInBlock(
