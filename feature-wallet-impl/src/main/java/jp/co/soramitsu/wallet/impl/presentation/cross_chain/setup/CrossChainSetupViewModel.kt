@@ -570,7 +570,7 @@ class CrossChainSetupViewModel @Inject constructor(
         router.openSelectChainForXcm(
             selectedChainId = chainAssetsManager.destinationChainId,
             xcmChainType = XcmChainType.Destination,
-            selectedOriginalChainId = originChainId,
+            selectedOriginChainId = originChainId,
             xcmAssetSymbol = chainAssetsManager.assetSymbol
         )
     }
@@ -581,7 +581,7 @@ class CrossChainSetupViewModel @Inject constructor(
 
         chainAssetsManager.observeChainIdAndAssetIdResult(
             scope = viewModelScope,
-            chainType = ChainType.Original,
+            chainType = ChainType.Origin,
             onError = { showError(it) }
         )
         router.openSelectAsset(

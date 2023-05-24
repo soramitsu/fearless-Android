@@ -110,7 +110,7 @@ class ChainAssetsManager @Inject constructor(
         assetIdFlow.value = assetId
     }
 
-    private suspend fun updateOriginalChainId(chainId: ChainId) {
+    private suspend fun updateOriginChainId(chainId: ChainId) {
         if (originChainIdFlow.value == chainId) return
 
         assetIdFlow.value = getActualAssetId(
@@ -160,7 +160,7 @@ class ChainAssetsManager @Inject constructor(
     }
 
     suspend fun setInitialIds(chainId: ChainId, assetId: String) {
-        updateOriginalChainId(chainId)
+        updateOriginChainId(chainId)
         updateAssetId(assetId)
     }
 
@@ -177,8 +177,8 @@ class ChainAssetsManager @Inject constructor(
         return router.observeResult<String>(WalletRouterApi.KEY_CHAIN_ID)
             .onEach { chainId ->
                 when (chainType) {
-                    ChainType.Original -> {
-                        updateOriginalChainId(chainId)
+                    ChainType.Origin -> {
+                        updateOriginChainId(chainId)
                     }
                     ChainType.Destination -> {
                         updateDestinationChainId(chainId)
