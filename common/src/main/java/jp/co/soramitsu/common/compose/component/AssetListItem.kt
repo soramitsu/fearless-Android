@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.material.Card
 import androidx.compose.material.Divider
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
@@ -26,6 +27,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
@@ -33,9 +35,11 @@ import com.valentinilk.shimmer.shimmer
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.theme.alertYellow
+import jp.co.soramitsu.common.compose.theme.bold
 import jp.co.soramitsu.common.compose.theme.customColors
 import jp.co.soramitsu.common.compose.theme.customTypography
 import jp.co.soramitsu.common.compose.theme.white16
+import jp.co.soramitsu.common.compose.theme.white64
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemShimmerViewState
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState
 
@@ -88,13 +92,19 @@ fun AssetListItem(
                     .padding(vertical = 8.dp)
                     .align(CenterVertically)
             ) {
-                Text(
-                    text = state.assetName.uppercase(),
-                    style = MaterialTheme.customTypography.capsTitle2,
-                    modifier = Modifier
-                        .alpha(0.64f)
-                        .testTag("AssetListItem_${state.assetSymbol}_chain_name")
-                )
+                Row {
+                    Text(
+                        text = state.assetName.uppercase(),
+                        style = MaterialTheme.customTypography.capsTitle2,
+                        modifier = Modifier
+                            .alpha(0.64f)
+                            .testTag("AssetListItem_${state.assetSymbol}_chain_name")
+                    )
+                    if (state.isTestnet) {
+                        MarginHorizontal(margin = 4.dp)
+                        TestnetBadge()
+                    }
+                }
                 Text(
                     text = state.displayName.uppercase(),
                     style = MaterialTheme.customTypography.header3,
@@ -180,6 +190,31 @@ fun AssetListItem(
                     )
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun TestnetBadge() {
+    Card(backgroundColor = white16) {
+        Row(
+            modifier = Modifier
+                .padding(bottom = 2.dp, start = 2.dp, end = 4.dp),
+            verticalAlignment = CenterVertically
+        ) {
+            Icon(
+                modifier = Modifier
+                    .width(16.dp)
+                    .padding(top = 1.dp),
+                painter = painterResource(R.drawable.ic_token_testnet),
+                tint = white64,
+                contentDescription = null
+            )
+            MarginHorizontal(margin = 4.dp)
+            Text(
+                text = stringResource(id = R.string.label_testnet).uppercase(),
+                style = MaterialTheme.customTypography.body3.bold().copy(color = white64)
+            )
         }
     }
 }
@@ -324,13 +359,14 @@ private fun PreviewAssetListItem() {
         hasAccount = true,
         priceId = null,
         hasNetworkIssue = false,
-        ecosystem = "Polkadot"
+        ecosystem = "Polkadot",
+        isTestnet = false
     )
     FearlessTheme {
         Box(modifier = Modifier.background(Color.Black)) {
             Column {
                 AssetListItem(state) {}
-                AssetListItem(state.copy(hasAccount = false)) {}
+                AssetListItem(state.copy(hasAccount = false, isTestnet = true)) {}
                 AssetListItemShimmer(
                     state = AssetListItemShimmerViewState(assetIconUrl, assetChainUrlsMap.values.toList())
                 )

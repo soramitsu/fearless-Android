@@ -22,12 +22,12 @@ import jp.co.soramitsu.coredb.model.OperationLocal
 import jp.co.soramitsu.runtime.ext.addressOf
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
-import jp.co.soramitsu.runtime.multiNetwork.getRuntime
 import jp.co.soramitsu.shared_utils.runtime.AccountId
 import jp.co.soramitsu.shared_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.shared_utils.runtime.metadata.storage
 import jp.co.soramitsu.shared_utils.runtime.metadata.storageKey
 import jp.co.soramitsu.wallet.api.data.cache.AssetCache
+import jp.co.soramitsu.wallet.api.data.cache.bind9420AccountInfo
 import jp.co.soramitsu.wallet.api.data.cache.bindAccountInfoOrDefault
 import jp.co.soramitsu.wallet.api.data.cache.bindEquilibriumAccountData
 import jp.co.soramitsu.wallet.api.data.cache.bindOrmlTokensAccountDataOrDefault
@@ -128,7 +128,12 @@ class PaymentUpdater(
             when (asset.typeExtra) {
                 null, ChainAssetType.Normal,
                 ChainAssetType.SoraUtilityAsset -> {
-                    val newAccountInfo = bindAccountInfoOrDefault(change.value, runtime)
+                    val runtimeVersion = chainRegistry.getRemoteRuntimeVersion(chain.id) ?: 0
+                    val newAccountInfo = if (runtimeVersion >= 9420) {
+                        bind9420AccountInfo(change.value, runtime)
+                    } else {
+                        bindAccountInfoOrDefault(change.value, runtime)
+                    }
                     assetCache.updateAsset(metaId, accountId, asset, newAccountInfo)
                 }
 

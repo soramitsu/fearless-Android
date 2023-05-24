@@ -1,5 +1,6 @@
 package jp.co.soramitsu.wallet.impl.domain.model
 
+import java.math.BigDecimal
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.common.model.AssetKey
 import jp.co.soramitsu.common.utils.orZero
@@ -72,12 +73,12 @@ data class Asset(
         )
     }
 
-    val free = token.amountFromPlanks(freeInPlanks.orZero())
+    private val free = token.amountFromPlanks(freeInPlanks.orZero())
     val reserved = token.amountFromPlanks(reservedInPlanks.orZero())
-    val miscFrozen = token.amountFromPlanks(miscFrozenInPlanks.orZero())
-    val feeFrozen = token.amountFromPlanks(feeFrozenInPlanks.orZero())
+    private val miscFrozen = token.amountFromPlanks(miscFrozenInPlanks.orZero())
+    private val feeFrozen = token.amountFromPlanks(feeFrozenInPlanks.orZero())
 
-    val locked = miscFrozen.max(feeFrozen)
+    val locked: BigDecimal = miscFrozen.max(feeFrozen)
     val frozen = locked + reserved
 
     val total = calculateTotalBalance(freeInPlanks, reservedInPlanks)?.let { token.amountFromPlanks(it) }

@@ -43,5 +43,6 @@ fun BalanceListItemModel.toAssetState() = AssetListItemViewState(
     hasAccount = !hasChainWithoutAccount,
     priceId = asset.priceId,
     hasNetworkIssue = hasNetworkIssue,
-    ecosystem = ecosystem.name
+    ecosystem = ecosystem.name,
+    isTestnet = chain?.isTestNet == true
 )
