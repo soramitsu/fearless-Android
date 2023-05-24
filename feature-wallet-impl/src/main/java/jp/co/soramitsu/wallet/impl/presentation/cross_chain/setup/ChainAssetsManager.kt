@@ -127,7 +127,7 @@ class ChainAssetsManager @Inject constructor(
 
     private suspend fun getActualAssetId(originChainId: ChainId, assetId: String?): String? {
         val supportedXcmAssetSymbols = xcmEntitiesFetcher.getAvailableAssets(
-            originalChainId = originChainId,
+            originChainId = originChainId,
             destinationChainId = null
         ).map { it.uppercase() }
 
@@ -150,7 +150,7 @@ class ChainAssetsManager @Inject constructor(
         destinationChainId: ChainId?
     ): ChainId? {
         val availableDestinationChainIds = xcmEntitiesFetcher.getAvailableDestinationChains(
-            originalChainId = originChainId,
+            originChainId = originChainId,
             assetSymbol = asset?.token?.configuration?.symbol?.uppercase()
         )
 
