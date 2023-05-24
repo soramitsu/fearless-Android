@@ -602,7 +602,7 @@ class CrossChainSetupViewModel @Inject constructor(
     }
 
     override fun onHistoryClick() {
-        destinationChainId?.let {
+        originChainId?.let {
             router.openAddressHistoryWithResult(it)
                 .onEach { address ->
                     selectedWalletIdFlow.value = null
