@@ -5,10 +5,11 @@ import androidx.fragment.app.viewModels
 import coil.ImageLoader
 import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
-import javax.inject.Inject
+import jp.co.soramitsu.account.api.presentation.actions.setupExternalActions
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.mixin.impl.observeRetries
 import jp.co.soramitsu.common.mixin.impl.observeValidations
+import jp.co.soramitsu.common.utils.formatCrypto
 import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.common.utils.setVisible
@@ -16,9 +17,9 @@ import jp.co.soramitsu.common.view.setProgress
 import jp.co.soramitsu.common.view.viewBinding
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.databinding.FragmentConfirmStakeBinding
-import jp.co.soramitsu.account.api.presentation.actions.setupExternalActions
 import jp.co.soramitsu.wallet.api.presentation.mixin.fee.FeeViews
 import jp.co.soramitsu.wallet.api.presentation.mixin.fee.displayFeeStatus
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class ConfirmStakingFragment : BaseFragment<ConfirmStakingViewModel>(R.layout.fragment_confirm_stake) {
@@ -101,7 +102,7 @@ class ConfirmStakingFragment : BaseFragment<ConfirmStakingViewModel>(R.layout.fr
         viewModel.displayAmountLiveData.observe { bondedAmount ->
             binding.confirmStakeAmount.setVisible(bondedAmount != null)
 
-            bondedAmount?.let { binding.confirmStakeAmount.amountInput.setText(it.toString()) }
+            bondedAmount?.let { binding.confirmStakeAmount.amountInput.setText(it.formatCrypto()) }
         }
 
         viewModel.unstakingTime.observe {
