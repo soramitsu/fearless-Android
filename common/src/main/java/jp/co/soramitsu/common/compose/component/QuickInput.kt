@@ -39,7 +39,8 @@ enum class QuickAmountInput(
 fun QuickInput(
     values: Array<out QuickInput>,
     modifier: Modifier = Modifier,
-    onQuickAmountInput: (amount: Double) -> Unit = {}
+    onQuickAmountInput: (amount: Double) -> Unit = {},
+    onDoneClick: () -> Unit = {}
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
     Row(
@@ -71,6 +72,7 @@ fun QuickInput(
                 .fillMaxHeight()
                 .clickable {
                     keyboardController?.hide()
+                    onDoneClick()
                 }
         ) {
             H5(

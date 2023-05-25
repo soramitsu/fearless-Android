@@ -1,5 +1,13 @@
 package jp.co.soramitsu.staking.impl.presentation.staking.unbond.select
 
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.core.os.bundleOf
 import androidx.core.view.isGone
 import androidx.core.view.isVisible
@@ -9,9 +17,13 @@ import coil.ImageLoader
 import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
 import jp.co.soramitsu.common.base.BaseFragment
+import jp.co.soramitsu.common.compose.component.QuickAmountInput
+import jp.co.soramitsu.common.compose.component.QuickInput
+import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
 import jp.co.soramitsu.common.mixin.impl.observeRetries
 import jp.co.soramitsu.common.mixin.impl.observeValidations
 import jp.co.soramitsu.common.utils.bindTo
+import jp.co.soramitsu.common.utils.hideSoftKeyboard
 import jp.co.soramitsu.common.view.setProgress
 import jp.co.soramitsu.common.view.viewBinding
 import jp.co.soramitsu.feature_staking_impl.R
@@ -55,6 +67,7 @@ class SelectUnbondFragment : BaseFragment<SelectUnbondViewModel>(R.layout.fragme
     override fun subscribe(viewModel: SelectUnbondViewModel) {
         observeRetries(viewModel)
         observeValidations(viewModel)
+        setupComposeViews()
 
         viewModel.showNextProgress.observe(binding.unbondContinue::setProgress)
         viewModel.showNextProgress.observe(binding.unbondConfirm::setProgress)
@@ -66,6 +79,9 @@ class SelectUnbondFragment : BaseFragment<SelectUnbondViewModel>(R.layout.fragme
         }
 
         binding.unbondAmount.amountInput.bindTo(viewModel.enteredAmountFlow, lifecycleScope)
+        binding.unbondAmount.amountInput.setOnFocusChangeListener { v, hasFocus ->
+            viewModel.onAmountInputFocusChanged(hasFocus)
+        }
 
         viewModel.enteredFiatAmountFlow.observe {
             it?.let(binding.unbondAmount::setAssetBalanceFiatAmount)
@@ -107,6 +123,36 @@ class SelectUnbondFragment : BaseFragment<SelectUnbondViewModel>(R.layout.fragme
             binding.unbondPeriod.isGone = showConfirm
             binding.unbondFee.isGone = showConfirm
             binding.unbondContinue.isGone = showConfirm
+        }
+    }
+
+    private fun setupComposeViews() {
+        binding.quickInput.apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+            setContent {
+
+                val isInputFocused by viewModel.isInputFocused.collectAsState()
+                val bottom = WindowInsets.ime.getBottom(LocalDensity.current)
+
+                val isSoftKeyboardOpen = bottom > 0
+
+                val isShowQuickInput = isInputFocused && isSoftKeyboardOpen
+
+                FearlessAppTheme {
+                    if (isShowQuickInput) {
+                        QuickInput(
+                            modifier = Modifier
+                                .imePadding(),
+                            values = QuickAmountInput.values(),
+                            onQuickAmountInput = {
+                                hideSoftKeyboard()
+                                viewModel.onQuickAmountInput(it)
+                            },
+                            onDoneClick = ::hideSoftKeyboard
+                        )
+                    }
+                }
+            }
         }
     }
 }

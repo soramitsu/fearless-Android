@@ -8,6 +8,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.utils.formatCrypto
 import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.orZero
@@ -70,6 +71,8 @@ class SelectUnbondViewModel @Inject constructor(
             stakingScenarioInteractor.overrideUnbondHint()?.let { postValue(it) }
         }
     }
+
+    val isInputFocused = MutableStateFlow(false)
 
     private val _showNextProgress = MutableLiveData(false)
     val showNextProgress: LiveData<Boolean> = _showNextProgress
@@ -227,6 +230,22 @@ class SelectUnbondViewModel @Inject constructor(
             router.returnToStakingBalance()
         } else {
             showError(result.requireException())
+        }
+    }
+
+    fun onAmountInputFocusChanged(hasFocus: Boolean) {
+        launch {
+            isInputFocused.emit(hasFocus)
+        }
+    }
+
+    fun onQuickAmountInput(input: Double) {
+        launch {
+            val asset = assetFlow.first()
+            val retrieveAmount = stakingScenarioInteractor.getUnstakeAvailableAmount(asset, payload.collatorAddress?.fromHex())
+
+            val value = (retrieveAmount * input.toBigDecimal()).formatCrypto()
+            enteredAmountFlow.emit(value)
         }
     }
 }
