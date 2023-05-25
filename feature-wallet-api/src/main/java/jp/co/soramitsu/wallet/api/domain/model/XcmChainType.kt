@@ -5,5 +5,5 @@ import kotlinx.parcelize.Parcelize
 
 @Parcelize
 enum class XcmChainType : Parcelable {
-    Original, Destination
+    Origin, Destination
 }

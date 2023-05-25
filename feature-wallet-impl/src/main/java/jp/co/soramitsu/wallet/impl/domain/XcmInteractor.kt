@@ -51,16 +51,15 @@ class XcmInteractor(
                 cryptoType = metaAccount.substrateCryptoType
             )
         )
-        xcmService.addPreloadedMetadata(
-            fromChainMetadata = ChainIdWithMetadata(
-                chainId = originChainId,
-                metadata = runtimeFilesCache.getChainMetadata(originChainId)
-            ),
-            toChainMetadata = ChainIdWithMetadata(
-                chainId = destinationChainId,
-                metadata = runtimeFilesCache.getChainMetadata(destinationChainId)
-            )
+        val fromChainMetadata = ChainIdWithMetadata(
+            chainId = originChainId,
+            metadata = runtimeFilesCache.getChainMetadata(originChainId)
         )
+        val toChainMetadata = ChainIdWithMetadata(
+            chainId = destinationChainId,
+            metadata = runtimeFilesCache.getChainMetadata(destinationChainId)
+        )
+        xcmService.addPreloadedMetadata(fromChainMetadata, toChainMetadata)
     }
 
     fun getAvailableAssetsFlow(originChainId: ChainId?): Flow<List<AssetWithStatus>> {
@@ -76,7 +75,7 @@ class XcmInteractor(
     private fun getAvailableAssetSymbolsFlow(originChainId: ChainId?): Flow<List<String>> {
         return flow {
             val availableXcmAssetSymbols = xcmEntitiesFetcher.getAvailableAssets(
-                originalChainId = originChainId,
+                originChainId = originChainId,
                 destinationChainId = null
             ).map { it.uppercase() }
             emit(availableXcmAssetSymbols)

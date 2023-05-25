@@ -103,10 +103,7 @@ fun AssetSelector(
 fun Badge(text: String, modifier: Modifier = Modifier) {
     Row(modifier = modifier.background(color = white16, shape = RoundedCornerShape(size = 3.dp))) {
         MarginHorizontal(margin = 6.dp)
-        Text(
-            text = text.uppercase(),
-            style = MaterialTheme.customTypography.capsTitle2
-        )
+        H6(text = text)
         MarginHorizontal(margin = 6.dp)
     }
 }
@@ -132,7 +129,7 @@ fun Badge(
             modifier = Modifier.size(16.dp)
         )
         MarginHorizontal(margin = 4.dp)
-        CapsTitle(text = stringResource(id = labelResId))
+        H6(text = stringResource(id = labelResId))
     }
 }
 
@@ -158,7 +155,7 @@ fun Badge(
             )
         }
         MarginHorizontal(margin = 4.dp)
-        CapsTitle(text = stringResource(id = labelResId))
+        H6(text = stringResource(id = labelResId))
     }
 }
 
