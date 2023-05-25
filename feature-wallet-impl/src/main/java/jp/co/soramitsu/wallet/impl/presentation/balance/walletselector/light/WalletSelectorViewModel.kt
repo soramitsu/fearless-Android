@@ -18,10 +18,10 @@ import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -36,6 +36,8 @@ class WalletSelectorViewModel @Inject constructor(
 ) : BaseViewModel(), UpdatesProviderUi by updatesMixin {
 
     private val tag = savedStateHandle.get<String>(WalletSelectorFragment.TAG_ARGUMENT_KEY)!!
+    private val selectedWalletId = savedStateHandle.get<Long?>(WalletSelectorFragment.SELECTED_WALLET_ID)
+    private val walletSelectionMode = savedStateHandle[WalletSelectorFragment.WALLET_SELECTION_MODE] ?: WalletSelectionMode.CurrentWallet
 
     private val walletItemsFlow = accountListingMixin.accountsFlow(AddressIconGenerator.SIZE_BIG).mapList {
         val balanceModel = getTotalBalanceUseCase.invoke(it.id).first()
@@ -54,7 +56,9 @@ class WalletSelectorViewModel @Inject constructor(
     }
         .inBackground()
         .share()
-    private val selectedWalletItem = MutableStateFlow<WalletItemViewState?>(null)
+    private val selectedWalletItem = walletItemsFlow
+        .map { it.firstOrNull { it.id == selectedWalletId } }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val state = combine(
         walletItemsFlow,
@@ -62,7 +66,16 @@ class WalletSelectorViewModel @Inject constructor(
     ) { walletItems, selectedWallet ->
         WalletSelectorViewState(
             wallets = walletItems,
-            selectedWallet = selectedWallet ?: walletItems.first { it.isSelected }
+            selectedWallet = when (walletSelectionMode) {
+                WalletSelectionMode.CurrentWallet -> {
+                    selectedWallet ?: walletItems.first { it.isSelected }
+                }
+                WalletSelectionMode.ExternalSelectedWallet -> {
+                    selectedWallet ?: selectedWalletId?.let {
+                        walletItems.firstOrNull { it.id == selectedWalletId }
+                    }
+                }
+            }
         )
     }.stateIn(
         viewModelScope,
@@ -75,7 +88,6 @@ class WalletSelectorViewModel @Inject constructor(
 
     fun onWalletSelected(item: WalletItemViewState) {
         viewModelScope.launch {
-            selectedWalletItem.value = item
             router.setWalletSelectorPayload(WalletSelectorPayload(tag, item.id))
             router.backWithResult(WalletSelectorFragment.RESULT_ADDRESS to item.id)
         }

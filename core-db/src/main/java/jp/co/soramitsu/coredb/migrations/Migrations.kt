@@ -3,6 +3,21 @@ package jp.co.soramitsu.coredb.migrations
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
+val Migration_54_55 = object : Migration(54, 55) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+        database.execSQL("DROP TABLE IF EXISTS `_address_book`")
+        database.execSQL("CREATE TABLE `_address_book` AS SELECT * FROM `address_book`")
+        database.execSQL("DELETE FROM `address_book` where `id` NOT IN (SELECT `id` FROM `_address_book` GROUP BY `address`, `chainId`)")
+        database.execSQL("DROP TABLE IF EXISTS `_address_book`")
+
+        database.execSQL(
+            """
+            CREATE UNIQUE INDEX IF NOT EXISTS `index_address_book_address_chainId` ON `address_book` (`address`, `chainId`)
+            """.trimIndent()
+        )
+    }
+}
+
 val Migration_53_54 = object : Migration(53, 54) {
     override fun migrate(database: SupportSQLiteDatabase) {
         database.execSQL("DROP TABLE IF EXISTS _chains")

@@ -47,8 +47,8 @@ class ChainSelectViewModel @Inject constructor(
     // XCM
     private val xcmChainType: XcmChainType? =
         savedStateHandle[ChainSelectFragment.KEY_XCM_CHAIN_TYPE]
-    private val xcmSelectedOriginalChainId: String? =
-        savedStateHandle[ChainSelectFragment.KEY_XCM_SELECTED_ORIGINAL_CHAIN_ID]
+    private val xcmSelectedOriginChainId: String? =
+        savedStateHandle[ChainSelectFragment.KEY_XCM_SELECTED_ORIGIN_CHAIN_ID]
     private val xcmAssetSymbol: String? =
         savedStateHandle[ChainSelectFragment.KEY_XCM_ASSET_SYMBOL]
 
@@ -61,7 +61,7 @@ class ChainSelectViewModel @Inject constructor(
             chainInteractor.getChainsFlow(),
             chainInteractor.getXcmChainIdsFlow(
                 type = xcmChainType,
-                originChainId = xcmSelectedOriginalChainId,
+                originChainId = xcmSelectedOriginChainId,
                 assetSymbol = xcmAssetSymbol
             )
         ) { chains, xsmChainIds ->

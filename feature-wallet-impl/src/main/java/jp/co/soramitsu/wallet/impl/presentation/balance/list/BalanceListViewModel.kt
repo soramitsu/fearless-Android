@@ -344,7 +344,8 @@ class BalanceListViewModel @Inject constructor(
                     hasAccount = true,
                     priceId = chainAsset.priceId,
                     hasNetworkIssue = false,
-                    ecosystem = ChainEcosystem.POLKADOT.name
+                    ecosystem = ChainEcosystem.POLKADOT.name,
+                    isTestnet = chain.isTestNet
                 )
             }.filter { selectedChainId.value == null || selectedChainId.value == it.chainId }
         }

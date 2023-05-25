@@ -56,6 +56,7 @@ import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
 import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
+import jp.co.soramitsu.wallet.impl.presentation.balance.walletselector.light.WalletSelectionMode
 import jp.co.soramitsu.wallet.impl.presentation.cross_chain.CrossChainTransferDraft
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
@@ -226,7 +227,7 @@ class CrossChainSetupViewModel @Inject constructor(
         val destinationChainId = _destinationChainId ?: return@combine null
         val tokenConfiguration = _asset?.token?.configuration ?: return@combine null
 
-        val fee = xcmInteractor.getXcmDestFee(
+        val fee = xcmInteractor.getDestinationFee(
             destinationChainId = destinationChainId,
             tokenSymbol = tokenConfiguration.symbol
         )
@@ -252,7 +253,7 @@ class CrossChainSetupViewModel @Inject constructor(
         val destinationChainId = nullableDestinationChainId ?: return@combine null
         val destinationAmount = nullableDestinationFeeAmount ?: BigDecimal.ZERO
 
-        xcmInteractor.getXcmOrigFee(
+        xcmInteractor.getOriginFee(
             originNetworkId = originChainId,
             destinationNetworkId = destinationChainId,
             asset = asset.token.configuration,
@@ -347,14 +348,16 @@ class CrossChainSetupViewModel @Inject constructor(
         chainAssetsManager.originChainIdFlow,
         chainAssetsManager.destinationChainIdFlow,
         hasOriginFeeAmountFlow,
-        hasDestinationFeeAmountFlow
-    ) { amount, asset, originChainId, destinationChainId, hasOriginFeeAmount, hasDestinationFeeAmount ->
+        hasDestinationFeeAmountFlow,
+        addressInputFlow
+    ) { amount, asset, originChainId, destinationChainId, hasOriginFeeAmount, hasDestinationFeeAmount, addressInput ->
         val amountInPlanks = asset?.token?.planksFromAmount(amount).orZero()
         val isAllChainsSelected = originChainId != null && destinationChainId != null
         val isAllFeesCalculated = hasOriginFeeAmount && hasDestinationFeeAmount
+        val isAddressExists = addressInput.isNotBlank()
         ButtonViewState(
             text = resourceManager.getString(R.string.common_continue),
-            enabled = amountInPlanks.isNotZero() && isAllChainsSelected && isAllFeesCalculated
+            enabled = amountInPlanks.isNotZero() && isAllChainsSelected && isAllFeesCalculated && isAddressExists
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, defaultButtonState)
 
@@ -369,12 +372,11 @@ class CrossChainSetupViewModel @Inject constructor(
         destinationFeeInfoViewStateFlow,
         warningInfoStateFlow,
         buttonStateFlow,
-        walletIconFlow,
-        selectedWalletIdFlow
+        walletIconFlow
     ) { originSelectedChain, destinationSelectedChain, address, originChainSelectorState,
         destinationChainSelectorState, amountInputState,
         originFeeInfoState, destinationFeeInfoState,
-        warningInfoState, buttonState, walletIcon, selectedWalletId ->
+        warningInfoState, buttonState, walletIcon ->
         val isAddressValid = if (destinationSelectedChain == null) {
             false
         } else {
@@ -397,7 +399,7 @@ class CrossChainSetupViewModel @Inject constructor(
                 } else {
                     R.drawable.ic_address_placeholder
                 },
-                editable = selectedWalletId == null
+                editable = false
             ),
             originChainSelectorState = originChainSelectorState,
             destinationChainSelectorState = destinationChainSelectorState,
@@ -414,9 +416,11 @@ class CrossChainSetupViewModel @Inject constructor(
         setInitialChainsAndAssetIds()
         observeDestinationChainFlow()
 
-        chainAssetsManager.destinationChainIdFlow.filterNotNull().onEach {
-            xcmInteractor.initXcmService(payload!!.chainId, it)
-        }.launchIn(viewModelScope)
+        chainAssetsManager.destinationChainIdFlow.filterNotNull()
+            .onEach {
+                xcmInteractor.prepareDataForChains(payload!!.chainId, it)
+            }
+            .launchIn(viewModelScope)
     }
 
     private fun setInitialChainsAndAssetIds() {
@@ -481,7 +485,16 @@ class CrossChainSetupViewModel @Inject constructor(
             val selfAddress = currentAccountAddress(asset.token.configuration.chainId) ?: return@launch
             val fee = originFeeInPlanksFlow.value
             val destinationChainId = chainAssetsManager.destinationChainId ?: return@launch
-            val validationProcessResult = validateTransferUseCase(inPlanks, asset, destinationChainId, recipientAddress, selfAddress, fee, confirmedValidations)
+            val validationProcessResult = validateTransferUseCase(
+                amountInPlanks = inPlanks,
+                asset = asset,
+                destinationChainId = destinationChainId,
+                recipientAddress = recipientAddress,
+                ownAddress = selfAddress,
+                fee = fee,
+                confirmedValidations = confirmedValidations,
+                transferMyselfAvailable = true
+            )
 
             // error occurred inside validation
             validationProcessResult.exceptionOrNull()?.let {
@@ -557,7 +570,7 @@ class CrossChainSetupViewModel @Inject constructor(
         router.openSelectChainForXcm(
             selectedChainId = chainAssetsManager.destinationChainId,
             xcmChainType = XcmChainType.Destination,
-            selectedOriginalChainId = originChainId,
+            selectedOriginChainId = originChainId,
             xcmAssetSymbol = chainAssetsManager.assetSymbol
         )
     }
@@ -568,7 +581,7 @@ class CrossChainSetupViewModel @Inject constructor(
 
         chainAssetsManager.observeChainIdAndAssetIdResult(
             scope = viewModelScope,
-            chainType = ChainType.Original,
+            chainType = ChainType.Origin,
             onError = { showError(it) }
         )
         router.openSelectAsset(
@@ -589,7 +602,7 @@ class CrossChainSetupViewModel @Inject constructor(
     }
 
     override fun onHistoryClick() {
-        destinationChainId?.let {
+        originChainId?.let {
             router.openAddressHistoryWithResult(it)
                 .onEach { address ->
                     selectedWalletIdFlow.value = null
@@ -662,7 +675,10 @@ class CrossChainSetupViewModel @Inject constructor(
     }
 
     override fun onMyWalletsClick() {
-        router.openWalletSelectorForResult()
+        router.openWalletSelectorForResult(
+            selectedWalletId = selectedWalletIdFlow.value,
+            walletSelectionMode = WalletSelectionMode.ExternalSelectedWallet
+        )
             .onEach(::setAddressByMetaAccountId)
             .launchIn(viewModelScope)
     }

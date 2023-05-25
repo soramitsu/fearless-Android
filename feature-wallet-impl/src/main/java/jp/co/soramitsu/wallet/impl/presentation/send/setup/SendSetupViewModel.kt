@@ -405,7 +405,16 @@ class SendSetupViewModel @Inject constructor(
             val selfAddress = currentAccountAddress(asset.token.configuration.chainId) ?: return@launch
             val fee = feeInPlanksFlow.value
             val destinationChainId = asset.token.configuration.chainId
-            val validationProcessResult = validateTransferUseCase(inPlanks, asset, destinationChainId, recipientAddress, selfAddress, fee, confirmedValidations)
+            val validationProcessResult = validateTransferUseCase(
+                amountInPlanks = inPlanks,
+                asset = asset,
+                destinationChainId = destinationChainId,
+                recipientAddress = recipientAddress,
+                ownAddress = selfAddress,
+                fee = fee,
+                confirmedValidations = confirmedValidations,
+                transferMyselfAvailable = false
+            )
 
             // error occurred inside validation
             validationProcessResult.exceptionOrNull()?.let {

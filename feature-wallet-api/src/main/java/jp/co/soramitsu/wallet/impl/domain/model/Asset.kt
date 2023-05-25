@@ -5,6 +5,7 @@ import jp.co.soramitsu.common.model.AssetKey
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.core.models.utilityAsset
 import jp.co.soramitsu.shared_utils.runtime.AccountId
+import java.math.BigDecimal
 import java.math.BigInteger
 import jp.co.soramitsu.core.models.Asset as CoreAsset
 
@@ -72,16 +73,16 @@ data class Asset(
         )
     }
 
-    val free = token.amountFromPlanks(freeInPlanks.orZero())
+    private val free = token.amountFromPlanks(freeInPlanks.orZero())
     val reserved = token.amountFromPlanks(reservedInPlanks.orZero())
-    val miscFrozen = token.amountFromPlanks(miscFrozenInPlanks.orZero())
-    val feeFrozen = token.amountFromPlanks(feeFrozenInPlanks.orZero())
+    private val miscFrozen = token.amountFromPlanks(miscFrozenInPlanks.orZero())
+    private val feeFrozen = token.amountFromPlanks(feeFrozenInPlanks.orZero())
 
-    val locked = miscFrozen.max(feeFrozen)
+    val locked: BigDecimal = miscFrozen.max(feeFrozen)
     val frozen = locked + reserved
 
     val total = calculateTotalBalance(freeInPlanks, reservedInPlanks)?.let { token.amountFromPlanks(it) }
-    val availableForStaking = free - feeFrozen
+    val availableForStaking = free - frozen
 
     val transferable = free - locked
     val transferableInPlanks = freeInPlanks?.let { it - miscFrozenInPlanks.orZero().max(feeFrozenInPlanks.orZero()) }.orZero()

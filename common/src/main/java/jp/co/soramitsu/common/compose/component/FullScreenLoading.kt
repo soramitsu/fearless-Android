@@ -63,20 +63,14 @@ fun FullScreenLoading(
                         .border(4.dp, white08, shape = CircleShape)
                         .background(transparent, shape = CircleShape)
                 )
-                Box(
+                CircularProgressIndicator(
                     modifier = Modifier
                         .fillMaxSize()
-                        .blur(1.dp)
                         .padding(8.dp)
-                ) {
-                    CircularProgressIndicator(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .align(Alignment.Center),
-                        color = colorAccentDark,
-                        strokeWidth = 4.dp
-                    )
-                }
+                        .align(Alignment.Center),
+                    color = colorAccentDark,
+                    strokeWidth = 4.dp
+                )
                 Image(
                     res = R.drawable.ic_fearless_logo,
                     tint = colorAccentDark,

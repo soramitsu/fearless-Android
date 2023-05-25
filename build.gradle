@@ -3,8 +3,8 @@ apply from: './scripts/secrets.gradle'
 buildscript {
     ext {
         // App version
-        versionName = '2.2.3'
-        versionCode = 92
+        versionName = '2.2.4'
+        versionCode = 93
 
         // SDK and tools
         compileSdkVersion = 33
@@ -84,7 +84,7 @@ buildscript {
         minifyRelease = true
         beaconVersion = "3.2.4"
 
-        sharedFeaturesVersion = "0.0.24"
+        sharedFeaturesVersion = "0.0.26_snapshot2"
 
         coilDep = "io.coil-kt:coil:$coilVersion"
         coilSvg = "io.coil-kt:coil-svg:$coilVersion"

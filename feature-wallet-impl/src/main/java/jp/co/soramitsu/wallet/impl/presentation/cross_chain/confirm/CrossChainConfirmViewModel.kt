@@ -21,6 +21,7 @@ import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.combine
 import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.common.utils.formatCryptoDetail
+import jp.co.soramitsu.common.utils.formatting.shortenAddress
 import jp.co.soramitsu.common.utils.requireException
 import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.core.models.Asset
@@ -33,6 +34,7 @@ import jp.co.soramitsu.wallet.api.domain.fromValidationResult
 import jp.co.soramitsu.wallet.api.presentation.mixin.TransferValidityChecks
 import jp.co.soramitsu.wallet.impl.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
+import jp.co.soramitsu.wallet.impl.domain.XcmInteractor
 import jp.co.soramitsu.wallet.impl.domain.interfaces.NotValidTransferStatus
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.domain.model.CrossChainTransfer
@@ -41,7 +43,6 @@ import jp.co.soramitsu.wallet.impl.domain.model.TransferValidityLevel
 import jp.co.soramitsu.wallet.impl.domain.model.TransferValidityStatus
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
-import jp.co.soramitsu.common.utils.formatting.shortenAddress
 import jp.co.soramitsu.wallet.impl.presentation.cross_chain.CrossChainTransferDraft
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -56,7 +57,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
-import jp.co.soramitsu.wallet.impl.domain.XcmInteractor
 
 private const val ICON_IN_DP = 24
 
@@ -335,9 +335,8 @@ class CrossChainConfirmViewModel @Inject constructor(
 
             transferSubmittingFlow.value = true
 
-            val tipInPlanks = transferDraft.tip?.let { token.planksFromAmount(it) }
             val result = withContext(Dispatchers.Default) {
-                xcmInteractor.performCrossChainTransfer(createTransfer(token), transferDraft.originFee, tipInPlanks)
+                xcmInteractor.performCrossChainTransfer(createTransfer(token))
             }
             if (result.isSuccess) {
                 val operationHash = result.getOrNull()
