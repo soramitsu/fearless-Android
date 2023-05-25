@@ -1,15 +1,15 @@
 package jp.co.soramitsu.staking.impl.domain.rewards
 
+import java.math.BigDecimal
+import java.math.BigInteger
 import jp.co.soramitsu.common.utils.fractionToPercentage
 import jp.co.soramitsu.common.utils.median
 import jp.co.soramitsu.common.utils.sumByBigInteger
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.shared_utils.extensions.toHexString
+import kotlin.math.pow
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.math.BigDecimal
-import java.math.BigInteger
-import kotlin.math.pow
 
 private const val PARACHAINS_ENABLED = false
 
@@ -71,7 +71,7 @@ open class ManualRewardCalculator(
         }
     }
 
-    protected val maxAPY = apyByValidator.values.maxOrNull() ?: 0.0
+    private val maxAPY = apyByValidator.values.maxOrNull() ?: 0.0
 
     override suspend fun calculateMaxAPY(chainId: ChainId) = calculateReturns(
         amount = BigDecimal.ONE,
@@ -136,11 +136,11 @@ open class ManualRewardCalculator(
         )
     }
 
-    protected fun calculateSimpleReward(amount: Double, days: Int, dailyPercentage: Double): BigDecimal {
+    private fun calculateSimpleReward(amount: Double, days: Int, dailyPercentage: Double): BigDecimal {
         return amount.toBigDecimal() * dailyPercentage.toBigDecimal() * days.toBigDecimal()
     }
 
-    protected fun calculateCompoundReward(amount: Double, days: Int, dailyPercentage: Double): BigDecimal {
+    private fun calculateCompoundReward(amount: Double, days: Int, dailyPercentage: Double): BigDecimal {
         return amount.toBigDecimal() * ((1 + dailyPercentage).toBigDecimal().pow(days)) - amount.toBigDecimal()
     }
 }

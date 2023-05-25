@@ -1,5 +1,6 @@
 package jp.co.soramitsu.staking.impl.scenarios.relaychain
 
+import java.math.BigInteger
 import jp.co.soramitsu.common.data.network.runtime.binding.NonNullBinderWithType
 import jp.co.soramitsu.common.data.network.runtime.binding.incompatible
 import jp.co.soramitsu.common.data.network.runtime.binding.returnType
@@ -15,13 +16,13 @@ import jp.co.soramitsu.common.utils.session
 import jp.co.soramitsu.common.utils.staking
 import jp.co.soramitsu.common.utils.stakingOrNull
 import jp.co.soramitsu.common.utils.storageKeys
+import jp.co.soramitsu.common.utils.u32ArgumentFromStorageKey
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.coredb.dao.AccountStakingDao
 import jp.co.soramitsu.coredb.model.AccountStakingLocal
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
-import jp.co.soramitsu.runtime.multiNetwork.getRuntime
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 import jp.co.soramitsu.runtime.storage.source.observeNonNull
 import jp.co.soramitsu.runtime.storage.source.queryNonNull
@@ -29,6 +30,7 @@ import jp.co.soramitsu.shared_utils.extensions.fromHex
 import jp.co.soramitsu.shared_utils.extensions.toHexString
 import jp.co.soramitsu.shared_utils.runtime.AccountId
 import jp.co.soramitsu.shared_utils.runtime.definitions.types.fromByteArrayOrNull
+import jp.co.soramitsu.shared_utils.runtime.definitions.types.fromHex
 import jp.co.soramitsu.shared_utils.runtime.metadata.moduleOrNull
 import jp.co.soramitsu.shared_utils.runtime.metadata.storage
 import jp.co.soramitsu.shared_utils.runtime.metadata.storageKey
@@ -60,6 +62,10 @@ import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindStakingL
 import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindValidatorPrefs
 import jp.co.soramitsu.staking.impl.data.network.blockhain.updaters.activeEraStorageKeyOrNull
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletConstants
+import kotlin.math.floor
+import kotlin.math.max
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -70,11 +76,6 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.withContext
-import java.math.BigInteger
-import kotlin.math.floor
-import kotlin.math.max
-import kotlin.time.DurationUnit
-import kotlin.time.toDuration
 
 class StakingRelayChainScenarioRepository(
     private val remoteStorage: StorageDataSource,
@@ -387,6 +388,15 @@ class StakingRelayChainScenarioRepository(
     )
 
     private suspend fun runtimeFor(chainId: String) = chainRegistry.getRuntime(chainId)
+
+    suspend fun getErasValidatorRewards(chainId: ChainId): Map<BigInteger, BigInteger?> {
+        return remoteStorage.queryByPrefix(chainId = chainId, prefixKeyBuilder = {
+            it.metadata.staking().storage("ErasValidatorReward").storageKey()
+        }, keyExtractor = { it.u32ArgumentFromStorageKey() }) { scale, runtime, _ ->
+            val type = runtime.metadata.staking().storage("ErasValidatorReward").returnType()
+            scale?.let { type.fromHex(runtime, it) as BigInteger }
+        }
+    }
 }
 
 suspend fun StakingRelayChainScenarioRepository.historicalEras(chainId: ChainId): List<BigInteger> {

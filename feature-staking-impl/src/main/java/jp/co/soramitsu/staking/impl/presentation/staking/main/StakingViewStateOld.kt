@@ -180,7 +180,6 @@ sealed class StakeViewState<S>(
     }
 
     protected fun syncStakingRewards() {
-        hashCode()
         scope.launch {
             val syncResult = stakingInteractor.syncStakingRewards(stakeState.chain.id, stakeState.rewardsAddress)
 
