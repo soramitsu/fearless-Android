@@ -54,6 +54,48 @@ class RewardCalculatorFactory(
         )
     }
 
+    suspend fun createSoraWithCustomValidatorsSettings(
+        exposures: AccountIdMap<Exposure>,
+        validatorsPrefs: AccountIdMap<ValidatorPrefs?>,
+        asset: Asset
+    ): RewardCalculator = withContext(Dispatchers.Default) {
+        val chainId = asset.chainId
+
+        val cached = calculators[chainId]
+        if (cached != null) {
+            return@withContext cached
+        }
+
+        val validatorsPayouts = relayChainRepository.getErasValidatorRewards(chainId).values.filterNotNull().map { asset.amountFromPlanks(it).toDouble() }
+        val averageValidatorPayout: Double = validatorsPayouts.average()
+
+        val validators = exposures.keys.mapNotNull { accountIdHex ->
+            val exposure = exposures[accountIdHex] ?: accountIdNotFound(accountIdHex)
+            val validatorPrefs = validatorsPrefs[accountIdHex] ?: return@mapNotNull null
+
+            RewardCalculationTarget(
+                accountIdHex = accountIdHex,
+                totalStake = exposure.total,
+                nominatorStakes = exposure.others,
+                ownStake = exposure.own,
+                commission = validatorPrefs.commission
+            )
+        }
+
+        val rateInPlanks = soraStakingRewardsScenario.mainAssetToRewardAssetRate()
+        val rate = asset.amountFromPlanks(rateInPlanks).toDouble()
+        val calculator = SoraRewardCalculator(
+            validators = validators,
+            xorValRate = rate,
+            averageValidatorPayout = averageValidatorPayout,
+            asset = asset
+        )
+
+        calculators[chainId] = calculator
+
+        return@withContext calculator
+    }
+
     private suspend fun createManual(chainId: ChainId): RewardCalculator = withContext(Dispatchers.Default) {
         val cached = calculators[chainId]
         if (cached != null) {
@@ -76,12 +118,14 @@ class RewardCalculatorFactory(
 
         val cached = calculators[chainId]
         if (cached != null) {
-            return cached as ManualRewardCalculator
+            return cached
         }
+
+        val validatorsPayouts = relayChainRepository.getErasValidatorRewards(chainId).values.filterNotNull().map { asset.amountFromPlanks(it).toDouble() }
+        val averageValidatorPayout: Double = validatorsPayouts.average()
+
         val exposures = relayChainRepository.getActiveElectedValidatorsExposures(chainId)
         val validatorsPrefs = relayChainRepository.getValidatorPrefs(chainId, exposures.keys.toList())
-
-        val totalIssuance = stakingRepository.getTotalIssuance(chainId)
 
         val validators = exposures.keys.mapNotNull { accountIdHex ->
             val exposure = exposures[accountIdHex] ?: accountIdNotFound(accountIdHex)
@@ -97,11 +141,12 @@ class RewardCalculatorFactory(
         }
 
         val rateInPlanks = soraStakingRewardsScenario.mainAssetToRewardAssetRate()
-        val rate = asset.amountFromPlanks(rateInPlanks)
+        val rate = asset.amountFromPlanks(rateInPlanks).toDouble()
         val calculator = SoraRewardCalculator(
             validators = validators,
-            totalIssuance = totalIssuance,
-            xorValRate = rate
+            xorValRate = rate,
+            averageValidatorPayout = averageValidatorPayout,
+            asset = asset
         )
 
         calculators[chainId] = calculator
@@ -114,7 +159,6 @@ class RewardCalculatorFactory(
         val chainId = asset.chainId
         val syntheticType = asset.syntheticStakingType()
 
-        hashCode()
         return when {
             syntheticType == SyntheticStakingType.SORA -> createSora(asset)
             stakingType == Asset.StakingType.RELAYCHAIN -> createManual(chainId)

@@ -1,6 +1,7 @@
 package jp.co.soramitsu.staking.impl.presentation.common.rewardDestination
 
 import androidx.lifecycle.MutableLiveData
+import java.math.BigDecimal
 import jp.co.soramitsu.account.api.presentation.account.AddressDisplayUseCase
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
@@ -17,6 +18,8 @@ import jp.co.soramitsu.staking.api.domain.model.StakingState
 import jp.co.soramitsu.staking.impl.domain.StakingInteractor
 import jp.co.soramitsu.staking.impl.domain.rewards.DAYS_IN_YEAR
 import jp.co.soramitsu.staking.impl.domain.rewards.RewardCalculator
+import jp.co.soramitsu.staking.impl.domain.rewards.SoraRewardCalculator
+import jp.co.soramitsu.staking.impl.domain.rewards.SoraStakingRewardsScenario
 import jp.co.soramitsu.staking.impl.presentation.mappers.RewardSuffix
 import jp.co.soramitsu.staking.impl.presentation.mappers.mapPeriodReturnsToRewardEstimation
 import jp.co.soramitsu.staking.impl.scenarios.StakingScenarioInteractor
@@ -28,7 +31,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
-import java.math.BigDecimal
 import jp.co.soramitsu.core.models.Asset as CoreAsset
 
 class RewardDestinationProvider(
@@ -38,7 +40,8 @@ class RewardDestinationProvider(
     private val addressIconGenerator: AddressIconGenerator,
     private val appLinksProvider: AppLinksProvider,
     private val sharedState: StakingSharedState,
-    private val accountDisplayUseCase: AddressDisplayUseCase
+    private val accountDisplayUseCase: AddressDisplayUseCase,
+    private val soraStakingRewardsScenario: SoraStakingRewardsScenario
 ) : RewardDestinationMixin.Presentation {
 
     override val rewardReturnsLiveData = MutableLiveData<RewardDestinationEstimations>()
@@ -107,9 +110,13 @@ class RewardDestinationProvider(
         val restakeReturns = rewardCalculator.calculateReturns(amount, DAYS_IN_YEAR, true, chainId)
 
         val payoutReturns = rewardCalculator.calculateReturns(amount, DAYS_IN_YEAR, false, chainId)
-
-        val restakeEstimations = mapPeriodReturnsToRewardEstimation(restakeReturns, asset.token, resourceManager, RewardSuffix.APY)
-        val payoutEstimations = mapPeriodReturnsToRewardEstimation(payoutReturns, asset.token, resourceManager, RewardSuffix.APR)
+        val rewardAsset = if (rewardCalculator is SoraRewardCalculator) {
+            soraStakingRewardsScenario.getRewardAsset()
+        } else {
+            asset.token
+        }
+        val restakeEstimations = mapPeriodReturnsToRewardEstimation(restakeReturns, rewardAsset, resourceManager, RewardSuffix.APY)
+        val payoutEstimations = mapPeriodReturnsToRewardEstimation(payoutReturns, rewardAsset, resourceManager, RewardSuffix.APR)
 
         rewardReturnsLiveData.value = RewardDestinationEstimations(restakeEstimations, payoutEstimations)
     }
