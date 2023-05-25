@@ -49,7 +49,7 @@ import jp.co.soramitsu.wallet.impl.presentation.model.OperationModel
 import jp.co.soramitsu.wallet.impl.presentation.transaction.filter.HistoryFiltersProvider
 import jp.co.soramitsu.wallet.impl.presentation.transaction.history.mixin.TransactionHistoryProvider
 import jp.co.soramitsu.wallet.impl.presentation.transaction.history.mixin.TransactionHistoryUi
-import kotlinx.coroutines.Job
+import jp.co.soramitsu.xcm_impl.XcmService
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
@@ -76,7 +76,8 @@ class BalanceDetailViewModel @Inject constructor(
     private val resourceManager: ResourceManager,
     private val clipboardManager: ClipboardManager,
     addressDisplayUseCase: AddressDisplayUseCase,
-    private val currentAccountAddress: CurrentAccountAddressUseCase
+    private val currentAccountAddress: CurrentAccountAddressUseCase,
+    private val xcmService: XcmService
 ) : BaseViewModel(),
     BalanceDetailsScreenInterface,
     ExternalAccountActions by externalAccountActions,
@@ -96,8 +97,6 @@ class BalanceDetailViewModel @Inject constructor(
 
     private val selectedChainId = MutableStateFlow(assetPayloadInitial.chainId)
     private val assetPayload = MutableStateFlow(assetPayloadInitial)
-
-    private var walletTypeResultJob: Job? = null
 
     private val chainsFlow = chainInteractor.getChainsFlow().mapList { it.toChainItemState() }
     private val assetModelsFlow: Flow<List<AssetModel>> = interactor.assetsFlow()
@@ -202,7 +201,7 @@ class BalanceDetailViewModel @Inject constructor(
             ActionBarViewState(
                 chainId = selectedChainId,
                 chainAssetId = balanceModel.token.configuration.id,
-                actionItems = getActionItems(selectedChainId),
+                actionItems = getActionItems(selectedChainId, balanceModel),
                 disabledItems = getDisabledItems()
             )
         )
@@ -302,12 +301,20 @@ class BalanceDetailViewModel @Inject constructor(
         }
     }
 
-    private fun getActionItems(selectedChainId: String): List<ActionItemType> {
+    private suspend fun getActionItems(
+        selectedChainId: String,
+        asset: Asset
+    ): List<ActionItemType> {
         val actionItems = mutableListOf(
             ActionItemType.SEND,
             ActionItemType.RECEIVE
         )
-        if (BuildConfig.DEBUG) {
+        val isXcmSupportAsset = xcmService.isXcmSupportAsset(
+            originChainId = selectedChainId,
+            assetSymbol = asset.token.configuration.symbol
+        )
+
+        if (BuildConfig.DEBUG && isXcmSupportAsset) {
             actionItems += ActionItemType.CROSS_CHAIN
         }
         if (isBuyEnabled()) {

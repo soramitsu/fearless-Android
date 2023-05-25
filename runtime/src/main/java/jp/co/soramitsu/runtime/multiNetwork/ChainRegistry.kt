@@ -7,6 +7,7 @@ import jp.co.soramitsu.common.utils.diffed
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.core.models.Asset
+import jp.co.soramitsu.core.models.IChain
 import jp.co.soramitsu.core.runtime.ChainConnection
 import jp.co.soramitsu.core.runtime.IChainRegistry
 import jp.co.soramitsu.coredb.dao.ChainDao
@@ -65,9 +66,10 @@ class ChainRegistry @Inject constructor(
 
     fun syncUp() {
         launch {
-            runCatching { chainSyncService.syncUp() }
-
-            runtimeSyncService.syncTypes()
+            runCatching {
+                chainSyncService.syncUp()
+                runtimeSyncService.syncTypes()
+            }
 
             chainDao.joinChainInfoFlow().mapList(::mapChainLocalToChain).diffed()
                 .collect { (removed, addedOrModified, _) ->
@@ -112,6 +114,10 @@ class ChainRegistry @Inject constructor(
 
     override suspend fun getChain(chainId: ChainId): Chain {
         return chainsById.first().getValue(chainId)
+    }
+
+    override suspend fun getChains(): List<IChain> {
+        return chainsById.first().values.toList()
     }
 
     fun nodesFlow(chainId: String) = chainDao.nodesFlow(chainId)

@@ -1,6 +1,8 @@
 package jp.co.soramitsu.wallet.impl.data.repository
 
 import com.opencsv.CSVReaderHeaderAware
+import java.math.BigDecimal
+import java.math.BigInteger
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.accountId
 import jp.co.soramitsu.common.compose.component.NetworkIssueItemState
@@ -50,8 +52,6 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.withContext
-import java.math.BigDecimal
-import java.math.BigInteger
 import jp.co.soramitsu.core.models.Asset as CoreAsset
 
 class WalletRepositoryImpl(
@@ -235,7 +235,9 @@ class WalletRepositoryImpl(
         additional: (suspend ExtrinsicBuilder.() -> Unit)?,
         batchAll: Boolean
     ): Fee {
-        val fee = substrateSource.getTransferFee(chain, transfer, additional, batchAll)
+        val runtimeVersion = chainRegistry.getRemoteRuntimeVersion(chain.id) ?: 0
+        val allowDeath = runtimeVersion >= 9420
+        val fee = substrateSource.getTransferFee(chain, transfer, additional, batchAll, allowDeath)
 
         return Fee(
             transferAmount = transfer.amount,
@@ -252,7 +254,9 @@ class WalletRepositoryImpl(
         additional: (suspend ExtrinsicBuilder.() -> Unit)?,
         batchAll: Boolean
     ): String {
-        val operationHash = substrateSource.performTransfer(accountId, chain, transfer, tip, additional, batchAll)
+        val runtimeVersion = chainRegistry.getRemoteRuntimeVersion(chain.id) ?: 0
+        val allowDeath = runtimeVersion >= 9420
+        val operationHash = substrateSource.performTransfer(accountId, chain, transfer, tip, additional, batchAll, allowDeath)
         val accountAddress = chain.addressOf(accountId)
 
         val operation = createOperation(

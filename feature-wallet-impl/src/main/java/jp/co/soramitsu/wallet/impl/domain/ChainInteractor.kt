@@ -27,8 +27,8 @@ class ChainInteractor(
     ): Flow<List<ChainId>> {
         return flow {
             val chainIds = when (type) {
-                XcmChainType.Original -> {
-                    xcmEntitiesFetcher.getAvailableOriginalChains(
+                XcmChainType.Origin -> {
+                    xcmEntitiesFetcher.getAvailableOriginChains(
                         assetSymbol = null,
                         destinationChainId = null
                     )
@@ -36,7 +36,7 @@ class ChainInteractor(
                 XcmChainType.Destination -> {
                     xcmEntitiesFetcher.getAvailableDestinationChains(
                         assetSymbol = assetSymbol,
-                        originalChainId = originChainId
+                        originChainId = originChainId
                     )
                 }
             }

@@ -51,7 +51,9 @@ fun ActionBar(
 ) {
     Row(Modifier.padding(vertical = 4.dp)) {
         state.actionItems.forEachIndexed { index, actionItem ->
-            val itemClickHandler = remember { { onItemClick(actionItem, state.chainId, state.chainAssetId) } }
+            val itemClickHandler = remember(actionItem, state.chainId, state.chainAssetId) {
+                { onItemClick(actionItem, state.chainId, state.chainAssetId) }
+            }
             val icon = painterResource(id = actionItem.iconId)
             val title = stringResource(id = actionItem.titleId)
             val actionViewState = remember {

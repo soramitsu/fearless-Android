@@ -14,6 +14,7 @@ import jp.co.soramitsu.wallet.api.domain.model.XcmChainType
 import jp.co.soramitsu.wallet.impl.domain.beacon.SignStatus
 import jp.co.soramitsu.wallet.impl.domain.model.PhishingType
 import jp.co.soramitsu.wallet.impl.presentation.balance.detail.frozen.FrozenAssetPayload
+import jp.co.soramitsu.wallet.impl.presentation.balance.walletselector.light.WalletSelectionMode
 import jp.co.soramitsu.wallet.impl.presentation.beacon.main.DAppMetadataModel
 import jp.co.soramitsu.wallet.impl.presentation.cross_chain.CrossChainTransferDraft
 import jp.co.soramitsu.wallet.impl.presentation.model.OperationParcelizeModel
@@ -51,7 +52,7 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
     fun openSelectChainForXcm(
         selectedChainId: ChainId?,
         xcmChainType: XcmChainType,
-        selectedOriginalChainId: String? = null,
+        selectedOriginChainId: String? = null,
         xcmAssetSymbol: String? = null
     )
 
@@ -136,7 +137,10 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
 
     fun openAddressHistory(chainId: ChainId)
 
-    fun openWalletSelectorForResult(): Flow<Long>
+    fun openWalletSelectorForResult(
+        selectedWalletId: Long?,
+        walletSelectionMode: WalletSelectionMode
+    ): Flow<Long>
 
     fun openAddressHistoryWithResult(chainId: ChainId): Flow<String>
 
