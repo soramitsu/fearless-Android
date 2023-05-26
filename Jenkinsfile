@@ -14,6 +14,6 @@ def pipeline = new org.android.AppPipeline(
     publishCmd:       'publishReleaseApk',
     jobParams: jobParams,
     appPushNoti: true,
-    timeoutOption:     '3'
+    timeoutOption:     '2'
 )
 pipeline.runPipeline('fearless')
