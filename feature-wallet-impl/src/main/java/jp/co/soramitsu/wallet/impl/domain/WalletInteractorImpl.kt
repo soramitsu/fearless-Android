@@ -16,7 +16,9 @@ import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.core.models.ChainId
 import jp.co.soramitsu.core.models.isValidAddress
 import jp.co.soramitsu.coredb.model.AssetUpdateItem
+import jp.co.soramitsu.runtime.ext.ecosystem
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.multiNetwork.chain.ChainEcosystem
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.isPolkadotOrKusama
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
@@ -307,16 +309,23 @@ class WalletInteractorImpl(
         val accountId = metaAccount.accountId(chain)
         val chainAsset = chain.assetsById[chainAssetId] ?: return
 
-        val tokenChains = chainRegistry.currentChains.first().filter {
-            it.assets.any { it.symbolToShow == chainAsset.symbolToShow }
+        val chainsWithAsset = chainRegistry.currentChains.first().filter { chainItem ->
+            val isChainItemFromSameEcosystem = if (chain.ecosystem() == ChainEcosystem.STANDALONE) {
+                chainItem.id == chainId
+            } else {
+                chainItem.ecosystem() == chain.ecosystem()
+            }
+            isChainItemFromSameEcosystem && chainItem.assets.any {
+                it.symbolToShow == chainAsset.symbolToShow
+            }
         }
 
-        val tokenChainAssets = tokenChains.map {
+        val assetsToManage = chainsWithAsset.map {
             it.assets.filter { it.symbolToShow == chainAsset.symbolToShow }
         }.flatten()
 
         accountId?.let {
-            tokenChainAssets.forEach {
+            assetsToManage.forEach {
                 walletRepository.updateAssetHidden(
                     chainAsset = it,
                     metaId = metaAccount.id,

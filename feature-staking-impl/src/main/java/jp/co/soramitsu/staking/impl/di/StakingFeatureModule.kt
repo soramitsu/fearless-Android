@@ -378,7 +378,8 @@ class StakingFeatureModule {
         stakingRelayChainScenarioInteractor: StakingRelayChainScenarioInteractor,
         iconGenerator: AddressIconGenerator,
         accountDisplayUseCase: AddressDisplayUseCase,
-        sharedState: StakingSharedState
+        sharedState: StakingSharedState,
+        soraStakingRewardsScenario: SoraStakingRewardsScenario
     ): RewardDestinationMixin.Presentation = RewardDestinationProvider(
         resourceManager,
         stakingInteractor,
@@ -386,7 +387,8 @@ class StakingFeatureModule {
         iconGenerator,
         appLinksProvider,
         sharedState,
-        accountDisplayUseCase
+        accountDisplayUseCase,
+        soraStakingRewardsScenario
     )
 
     @Provides

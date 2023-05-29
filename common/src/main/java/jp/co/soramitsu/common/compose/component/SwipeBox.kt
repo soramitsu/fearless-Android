@@ -186,7 +186,8 @@ private fun AssetItemSwipeBoxPreview() {
         hasAccount = true,
         priceId = null,
         hasNetworkIssue = false,
-        ecosystem = "Polkadot"
+        ecosystem = "Polkadot",
+        isTestnet = false
     )
 
     Column(modifier = Modifier.padding(horizontal = 16.dp)) {

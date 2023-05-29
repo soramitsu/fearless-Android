@@ -16,9 +16,8 @@ import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.emitAll
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import java.math.BigDecimal
 import java.math.BigInteger
 import jp.co.soramitsu.core.models.Asset as CoreAsset
@@ -116,12 +115,9 @@ class AlertsInteractor(
         ::produceSetValidatorsAlert
     )
 
-    fun getAlertsFlow(stakingState: StakingState): Flow<List<Alert>> = flow {
-        val (chain, chainAsset) = sharedState.assetWithChain.first()
-
+    fun getAlertsFlow(stakingState: StakingState): Flow<List<Alert>> = sharedState.assetWithChain.flatMapLatest { (chain, chainAsset) ->
         if (chainAsset.staking != CoreAsset.StakingType.RELAYCHAIN) {
-            emit(emptyList())
-            return@flow
+            return@flatMapLatest flowOf(emptyList())
         }
 
         val maxRewardedNominatorsPerValidator = stakingConstantsRepository.maxRewardedNominatorPerValidator(chain.id)
@@ -146,7 +142,7 @@ class AlertsInteractor(
             alertProducers.mapNotNull { it.invoke(context) }
         }
 
-        emitAll(alertsFlow)
+        alertsFlow
     }
 
     private inline fun <reified T : StakingState, R> requireState(

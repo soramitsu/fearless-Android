@@ -2,6 +2,7 @@
 
 package jp.co.soramitsu.wallet.impl.data.network.blockchain
 
+import java.math.BigInteger
 import jp.co.soramitsu.common.data.network.runtime.binding.AccountInfo
 import jp.co.soramitsu.common.data.network.runtime.binding.EqAccountInfo
 import jp.co.soramitsu.common.data.network.runtime.binding.EqOraclePricePoint
@@ -42,7 +43,6 @@ import jp.co.soramitsu.wallet.api.data.cache.bindOrmlTokensAccountDataOrDefault
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.bindings.bindTransferExtrinsic
 import jp.co.soramitsu.wallet.impl.data.repository.totalBalance
 import jp.co.soramitsu.wallet.impl.domain.model.Transfer
-import java.math.BigInteger
 
 class WssSubstrateSource(
     private val rpcCalls: RpcCalls,
@@ -151,13 +151,14 @@ class WssSubstrateSource(
         chain: Chain,
         transfer: Transfer,
         additional: (suspend ExtrinsicBuilder.() -> Unit)?,
-        batchAll: Boolean
+        batchAll: Boolean,
+        allowDeath: Boolean
     ): BigInteger {
         return extrinsicService.estimateFee(
             chain = chain,
             useBatchAll = batchAll,
             formExtrinsic = {
-                transfer(chain, transfer, this.runtime.typeRegistry)
+                transfer(chain, transfer, this.runtime.typeRegistry, allowDeath)
                 additional?.invoke(this)
             }
         )
@@ -169,7 +170,8 @@ class WssSubstrateSource(
         transfer: Transfer,
         tip: BigInteger?,
         additional: (suspend ExtrinsicBuilder.() -> Unit)?,
-        batchAll: Boolean
+        batchAll: Boolean,
+        allowDeath: Boolean
     ): String {
         return extrinsicService.submitExtrinsic(
             chain = chain,
@@ -177,7 +179,7 @@ class WssSubstrateSource(
             useBatchAll = batchAll,
             tip = tip,
             formExtrinsic = {
-                transfer(chain, transfer, this.runtime.typeRegistry)
+                transfer(chain, transfer, this.runtime.typeRegistry, allowDeath)
                 additional?.invoke(this)
             }
         ).getOrThrow()
@@ -226,29 +228,34 @@ class WssSubstrateSource(
         }.filterNotNull()
     }
 
-    private fun ExtrinsicBuilder.transfer(chain: Chain, transfer: Transfer, typeRegistry: TypeRegistry): ExtrinsicBuilder {
+    private fun ExtrinsicBuilder.transfer(chain: Chain, transfer: Transfer, typeRegistry: TypeRegistry, allowDeath: Boolean): ExtrinsicBuilder {
         val accountId = chain.accountIdOf(transfer.recipient)
-        return if (transfer.chainAsset.currency == null) {
-            defaultTransfer(accountId, transfer, typeRegistry)
-        } else {
-            when (transfer.chainAsset.typeExtra) {
-                null, ChainAssetType.Normal -> defaultTransfer(accountId, transfer, typeRegistry)
-                ChainAssetType.OrmlChain -> ormlChainTransfer(accountId, transfer)
-
-                ChainAssetType.SoraAsset,
-                ChainAssetType.SoraUtilityAsset -> soraAssetTransfer(accountId, transfer)
-
-                ChainAssetType.OrmlAsset,
-                ChainAssetType.ForeignAsset,
-                ChainAssetType.StableAssetPoolToken,
-                ChainAssetType.LiquidCrowdloan,
-                ChainAssetType.VToken,
-                ChainAssetType.VSToken,
-                ChainAssetType.Stable -> ormlAssetTransfer(accountId, transfer)
-
-                ChainAssetType.Equilibrium -> equilibriumAssetTransfer(accountId, transfer)
-                ChainAssetType.Unknown -> error("Token ${transfer.chainAsset.symbolToShow} not supported, chain ${chain.name}")
+        val useDefaultTransfer =
+            transfer.chainAsset.currency == null || transfer.chainAsset.typeExtra == null || transfer.chainAsset.typeExtra == ChainAssetType.Normal
+        if (useDefaultTransfer) {
+            return if (allowDeath) {
+                defaultTransferAllowDeath(accountId, transfer, typeRegistry)
+            } else {
+                defaultTransfer(accountId, transfer, typeRegistry)
             }
+        }
+        return when (transfer.chainAsset.typeExtra) {
+            ChainAssetType.OrmlChain -> ormlChainTransfer(accountId, transfer)
+
+            ChainAssetType.SoraAsset,
+            ChainAssetType.SoraUtilityAsset -> soraAssetTransfer(accountId, transfer)
+
+            ChainAssetType.OrmlAsset,
+            ChainAssetType.ForeignAsset,
+            ChainAssetType.StableAssetPoolToken,
+            ChainAssetType.LiquidCrowdloan,
+            ChainAssetType.VToken,
+            ChainAssetType.VSToken,
+            ChainAssetType.Stable -> ormlAssetTransfer(accountId, transfer)
+
+            ChainAssetType.Equilibrium -> equilibriumAssetTransfer(accountId, transfer)
+            ChainAssetType.Unknown -> error("Token ${transfer.chainAsset.symbolToShow} not supported, chain ${chain.name}")
+            else -> error("Token ${transfer.chainAsset.symbolToShow} not supported, chain ${chain.name}")
         }
     }
 
@@ -320,6 +327,29 @@ class WssSubstrateSource(
         return call(
             moduleName = Modules.BALANCES,
             callName = "transfer",
+            arguments = mapOf(
+                "dest" to dest,
+                "value" to transfer.amountInPlanks
+            )
+        )
+    }
+
+    private fun ExtrinsicBuilder.defaultTransferAllowDeath(
+        accountId: AccountId,
+        transfer: Transfer,
+        typeRegistry: TypeRegistry
+    ): ExtrinsicBuilder {
+        @Suppress("IMPLICIT_CAST_TO_ANY")
+        val dest = when (typeRegistry["Address"]) { // this logic was added to support Moonbeam/Moonriver chains; todo separate assets in json like orml
+            is FixedByteArray -> accountId
+            else -> DictEnum.Entry(
+                name = "Id",
+                value = accountId
+            )
+        }
+        return call(
+            moduleName = Modules.BALANCES,
+            callName = "transfer_allow_death",
             arguments = mapOf(
                 "dest" to dest,
                 "value" to transfer.amountInPlanks
