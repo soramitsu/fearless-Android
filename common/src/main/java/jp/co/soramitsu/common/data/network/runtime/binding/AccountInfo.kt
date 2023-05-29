@@ -3,6 +3,7 @@ package jp.co.soramitsu.common.data.network.runtime.binding
 import jp.co.soramitsu.common.utils.Modules
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.system
+import jp.co.soramitsu.core.runtime.storage.returnType
 import jp.co.soramitsu.shared_utils.runtime.AccountId
 import jp.co.soramitsu.shared_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.shared_utils.runtime.definitions.types.composite.DictEnum

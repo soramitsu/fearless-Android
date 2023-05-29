@@ -3,10 +3,10 @@ package jp.co.soramitsu.staking.impl.scenarios.parachain
 import jp.co.soramitsu.common.data.network.runtime.binding.getList
 import jp.co.soramitsu.common.data.network.runtime.binding.incompatible
 import jp.co.soramitsu.common.data.network.runtime.binding.requireType
-import jp.co.soramitsu.common.data.network.runtime.binding.returnType
 import jp.co.soramitsu.common.utils.parachainStaking
 import jp.co.soramitsu.common.utils.parachainStakingOrNull
 import jp.co.soramitsu.common.utils.storageKeys
+import jp.co.soramitsu.core.runtime.storage.returnType
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource

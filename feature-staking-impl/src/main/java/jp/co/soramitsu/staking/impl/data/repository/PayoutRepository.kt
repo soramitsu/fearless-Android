@@ -2,9 +2,9 @@ package jp.co.soramitsu.staking.impl.data.repository
 
 import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
 import jp.co.soramitsu.common.data.network.runtime.binding.BinderWithType
-import jp.co.soramitsu.common.data.network.runtime.binding.returnType
 import jp.co.soramitsu.common.utils.mapValuesNotNull
 import jp.co.soramitsu.common.utils.staking
+import jp.co.soramitsu.core.runtime.storage.returnType
 import jp.co.soramitsu.core.storage.StorageCache
 import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry

@@ -5,8 +5,8 @@ import jp.co.soramitsu.common.data.network.runtime.binding.bindAccountId
 import jp.co.soramitsu.common.data.network.runtime.binding.bindNumber
 import jp.co.soramitsu.common.data.network.runtime.binding.cast
 import jp.co.soramitsu.common.data.network.runtime.binding.fromHexOrIncompatible
-import jp.co.soramitsu.common.data.network.runtime.binding.returnType
 import jp.co.soramitsu.common.utils.slots
+import jp.co.soramitsu.core.runtime.storage.returnType
 import jp.co.soramitsu.shared_utils.runtime.AccountId
 import jp.co.soramitsu.shared_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.shared_utils.runtime.metadata.storage

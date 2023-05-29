@@ -7,10 +7,10 @@ import jp.co.soramitsu.common.data.network.runtime.binding.fromHexOrIncompatible
 import jp.co.soramitsu.common.data.network.runtime.binding.getTyped
 import jp.co.soramitsu.common.data.network.runtime.binding.incompatible
 import jp.co.soramitsu.common.data.network.runtime.binding.requireType
-import jp.co.soramitsu.common.data.network.runtime.binding.returnType
 import jp.co.soramitsu.common.data.network.runtime.binding.storageReturnType
 import jp.co.soramitsu.common.utils.nominationPools
 import jp.co.soramitsu.common.utils.second
+import jp.co.soramitsu.core.runtime.storage.returnType
 import jp.co.soramitsu.shared_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.shared_utils.runtime.definitions.types.composite.DictEnum
 import jp.co.soramitsu.shared_utils.runtime.definitions.types.composite.Struct
