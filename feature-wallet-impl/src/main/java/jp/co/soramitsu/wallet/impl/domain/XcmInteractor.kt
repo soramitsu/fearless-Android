@@ -88,8 +88,8 @@ class XcmInteractor(
             val destinationChain = chainRegistry.getChain(transfer.destinationChainId)
             val selfAddress = currentAccountAddress(originChain.id) ?: throw IllegalStateException("No self address")
             xcmService.transfer(
-                fromChain = originChain,
-                toChain = destinationChain,
+                originChain = originChain,
+                destinationChain = destinationChain,
                 asset = transfer.chainAsset,
                 senderAccountId = originChain.accountIdOf(selfAddress),
                 address = transfer.recipient,
@@ -103,8 +103,8 @@ class XcmInteractor(
         tokenSymbol: String
     ): BigDecimal? {
         return runCatching {
-            xcmService.getXcmDestFee(
-                toChainId = destinationChainId,
+            xcmService.getXcmDestinationFee(
+                destinationChainId = destinationChainId,
                 tokenSymbol = tokenSymbol
             )
         }.getOrNull()
@@ -118,9 +118,9 @@ class XcmInteractor(
     ): BigDecimal? {
         return runCatching {
             val chain = chainRegistry.getChain(originNetworkId)
-            xcmService.getXcmOrigFee(
-                fromChainId = originNetworkId,
-                toChainId = destinationNetworkId,
+            xcmService.getXcmOriginFee(
+                originChainId = originNetworkId,
+                destinationChainId = destinationNetworkId,
                 asset = asset,
                 address = chain.fakeAddress(),
                 amount = asset.getPlanksFromAmountForOriginFee(amount)
