@@ -13,7 +13,7 @@ import jp.co.soramitsu.common.data.network.runtime.binding.cast
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.system
 import jp.co.soramitsu.core.models.Asset
-import jp.co.soramitsu.core.rpc.storage.returnType
+import jp.co.soramitsu.core.runtime.storage.returnType
 import jp.co.soramitsu.coredb.model.AssetLocal
 import jp.co.soramitsu.shared_utils.runtime.AccountId
 import jp.co.soramitsu.shared_utils.runtime.RuntimeSnapshot

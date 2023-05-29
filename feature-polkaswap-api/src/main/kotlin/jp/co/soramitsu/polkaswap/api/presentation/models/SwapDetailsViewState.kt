@@ -5,7 +5,7 @@ import jp.co.soramitsu.common.compose.component.GradientIconState
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.formatCryptoDetail
 import jp.co.soramitsu.common.utils.formatFiat
-import jp.co.soramitsu.core.rpc.models.responses.QuoteResponse
+import jp.co.soramitsu.core.runtime.models.responses.QuoteResponse
 import jp.co.soramitsu.feature_polkaswap_api.R
 import jp.co.soramitsu.polkaswap.api.domain.models.SwapDetails
 import jp.co.soramitsu.polkaswap.api.models.WithDesired

@@ -12,7 +12,7 @@ import jp.co.soramitsu.core.rpc.RpcCalls
 import jp.co.soramitsu.core.rpc.calls.liquidityProxyIsPathAvailable
 import jp.co.soramitsu.core.rpc.calls.liquidityProxyListEnabledSourcesForPath
 import jp.co.soramitsu.core.rpc.calls.liquidityProxyQuote
-import jp.co.soramitsu.core.rpc.models.responses.QuoteResponse
+import jp.co.soramitsu.core.runtime.models.responses.QuoteResponse
 import jp.co.soramitsu.polkaswap.api.data.PolkaswapRepository
 import jp.co.soramitsu.polkaswap.api.models.Market
 import jp.co.soramitsu.polkaswap.api.models.WithDesired
