@@ -2,6 +2,7 @@ package jp.co.soramitsu.wallet.impl.presentation
 
 import android.graphics.drawable.Drawable
 import it.airgap.beaconsdk.blockchain.substrate.data.SubstrateSignerPayload
+import jp.co.soramitsu.account.api.domain.model.ImportMode
 import jp.co.soramitsu.account.api.presentation.actions.AddAccountBottomSheet
 import jp.co.soramitsu.common.AlertViewState
 import jp.co.soramitsu.common.navigation.DelayedNavigation
@@ -84,7 +85,7 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
 
     fun openExportWallet(metaAccountId: Long)
 
-    fun openImportAccountScreen(blockChainType: Int)
+    fun openImportAccountScreen(blockChainType: Int, importMode: ImportMode)
 
     fun openImportAccountScreenFromWallet(blockChainType: Int)
 

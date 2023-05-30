@@ -60,6 +60,15 @@
 
     </fragment>
 
+    <dialog
+        android:id="@+id/selectImportModeDialog"
+        android:name="jp.co.soramitsu.onboarding.impl.welcome.select_import_mode.SelectImportModeDialog"
+        android:label="select_import_mode_dialog"/>
+
+    <dialog
+        android:id="@+id/importRemoteAccountDialog"
+        android:name="jp.co.soramitsu.account.impl.presentation.importing.remote_backup.ImportRemoteAccountDialog"
+        android:label="importRemoteAccountDialog" />
 
     <fragment
         android:id="@+id/importAccountFragment"
@@ -71,6 +80,7 @@
             android:name="BLOCKCHAIN_TYPE_KEY"
             android:defaultValue="0"
             app:argType="integer"/>
+
         <deepLink
             app:uri="fearless://onboarding/importAccountFragment/{BLOCKCHAIN_TYPE_KEY}" />
 

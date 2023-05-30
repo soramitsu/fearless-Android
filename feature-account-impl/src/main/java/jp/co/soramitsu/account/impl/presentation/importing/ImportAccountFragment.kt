@@ -13,6 +13,7 @@ import jp.co.soramitsu.account.api.presentation.account.create.ChainAccountCreat
 import jp.co.soramitsu.account.api.presentation.accountSource.SourceTypeChooserBottomSheetDialog
 import jp.co.soramitsu.account.api.presentation.importing.ImportAccountType
 import jp.co.soramitsu.account.impl.presentation.importing.source.model.FileRequester
+import jp.co.soramitsu.account.api.domain.model.ImportMode
 import jp.co.soramitsu.account.impl.presentation.importing.source.model.ImportSource
 import jp.co.soramitsu.account.impl.presentation.importing.source.model.JsonImportSource
 import jp.co.soramitsu.account.impl.presentation.importing.source.model.MnemonicImportSource
@@ -38,10 +39,21 @@ import jp.co.soramitsu.feature_account_impl.databinding.FragmentImportAccountBin
 @AndroidEntryPoint
 class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
     companion object {
+
         const val BLOCKCHAIN_TYPE_KEY = "BLOCKCHAIN_TYPE_KEY"
+        const val IMPORT_MODE_KEY = "IMPORT_MODE_KEY"
         const val PAYLOAD_KEY = "PAYLOAD_KEY"
 
-        fun getBundle(blockChainType: Int = 0) = bundleOf(BLOCKCHAIN_TYPE_KEY to blockChainType)
+        fun getBundle(
+            blockChainType: Int = 0,
+            importMode: ImportMode = ImportMode.MnemonicPhrase
+        ): Bundle {
+            return bundleOf(
+                BLOCKCHAIN_TYPE_KEY to blockChainType,
+                IMPORT_MODE_KEY to importMode
+            )
+        }
+
         fun getBundle(chainAccountData: ChainAccountCreatePayload) = bundleOf(PAYLOAD_KEY to chainAccountData)
     }
 
