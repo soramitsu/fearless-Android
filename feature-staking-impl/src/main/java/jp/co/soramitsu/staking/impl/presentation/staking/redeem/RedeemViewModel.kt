@@ -5,6 +5,9 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.math.BigDecimal
+import javax.inject.Inject
+import javax.inject.Named
 import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.address.AddressIconGenerator
@@ -31,24 +34,14 @@ import jp.co.soramitsu.staking.impl.presentation.StakingRouter
 import jp.co.soramitsu.staking.impl.scenarios.StakingScenarioInteractor
 import jp.co.soramitsu.wallet.api.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.wallet.api.presentation.mixin.fee.FeeLoaderMixin
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import java.math.BigDecimal
-import javax.inject.Inject
-import javax.inject.Named
-import kotlin.time.DurationUnit
-import kotlin.time.toDuration
-
-private const val DEBOUNCE_DURATION_MILLIS = 500
 
 @HiltViewModel
 class RedeemViewModel @Inject constructor(
@@ -127,7 +120,7 @@ class RedeemViewModel @Inject constructor(
     }.asLiveData()
 
     init {
-        listenFee()
+        loadFee()
     }
 
     fun confirmClicked() {
@@ -138,30 +131,24 @@ class RedeemViewModel @Inject constructor(
         router.back()
     }
 
-    @OptIn(FlowPreview::class)
-    private fun listenFee() {
-        parsedAmountFlow
-            .debounce(DEBOUNCE_DURATION_MILLIS.toDuration(DurationUnit.MILLISECONDS))
-            .onEach { loadFee(it) }
-            .launchIn(viewModelScope)
-    }
+    private fun loadFee() {
+        launch {
+            feeLoaderMixin.loadFee(
+                coroutineScope = viewModelScope,
+                feeConstructor = {
+                    val stashState = accountStakingFlow.first()
 
-    private fun loadFee(amount: BigDecimal) {
-        feeLoaderMixin.loadFee(
-            coroutineScope = viewModelScope,
-            feeConstructor = { token ->
-                val stashState = accountStakingFlow.first()
-
-                redeemInteractor.estimateFee(stashState) {
-                    stakingScenarioInteractor.confirmRevoke(
-                        this,
-                        candidate = payload.collatorAddress,
-                        stashState = stashState
-                    )
-                }
-            },
-            onRetryCancelled = ::backClicked
-        )
+                    redeemInteractor.estimateFee(stashState) {
+                        stakingScenarioInteractor.confirmRevoke(
+                            this,
+                            candidate = payload.collatorAddress,
+                            stashState = stashState
+                        )
+                    }
+                },
+                onRetryCancelled = ::backClicked
+            )
+        }
     }
 
     fun originAccountClicked() = launch {
