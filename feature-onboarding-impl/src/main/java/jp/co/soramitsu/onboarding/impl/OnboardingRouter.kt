@@ -15,7 +15,7 @@ interface OnboardingRouter {
 
     fun openImportAccountSkipWelcome(payload: ChainAccountCreatePayload)
 
-    fun openImportRemoteAccountDialog()
+    fun openImportRemoteWalletDialog()
 
     fun back()
 
