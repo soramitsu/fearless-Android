@@ -1,11 +1,15 @@
 package jp.co.soramitsu.onboarding.impl.welcome
 
+import android.app.Activity
 import android.graphics.Color
 import android.os.Bundle
 import android.text.method.LinkMovementMethod
 import android.view.View
+import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.os.bundleOf
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.mixin.impl.observeBrowserEvents
@@ -14,6 +18,8 @@ import jp.co.soramitsu.common.view.viewBinding
 import jp.co.soramitsu.feature_onboarding_impl.R
 import jp.co.soramitsu.feature_onboarding_impl.databinding.FragmentWelcomeBinding
 import jp.co.soramitsu.account.api.presentation.account.create.ChainAccountCreatePayload
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 
 @AndroidEntryPoint
 class WelcomeFragment : BaseFragment<WelcomeViewModel>(R.layout.fragment_welcome) {
@@ -42,6 +48,10 @@ class WelcomeFragment : BaseFragment<WelcomeViewModel>(R.layout.fragment_welcome
             getString(R.string.onboarding_privacy_policy)
         )
 
+        viewModel.events
+            .onEach(::handleEvents)
+            .launchIn(viewLifecycleOwner.lifecycleScope)
+
         with(binding) {
             termsTv.movementMethod = LinkMovementMethod.getInstance()
             termsTv.highlightColor = Color.TRANSPARENT
@@ -52,6 +62,27 @@ class WelcomeFragment : BaseFragment<WelcomeViewModel>(R.layout.fragment_welcome
 
             back.setOnClickListener { viewModel.backClicked() }
         }
+    }
+
+    private fun handleEvents(event: WelcomeEvent) {
+        when (event) {
+            WelcomeEvent.AuthorizeGoogle -> handleAuthorizeGoogleEvent()
+        }
+    }
+
+    private fun handleAuthorizeGoogleEvent() {
+        val activity = requireActivity()
+        val launcher = activity.registerForActivityResult(
+            ActivityResultContracts.StartActivityForResult()
+        ) { result ->
+            if (result.resultCode != Activity.RESULT_OK) {
+                Toast.makeText(context, "Google signin failed", Toast.LENGTH_SHORT).show()
+            }
+        }
+        viewModel.authorizeGoogle(
+            activity = activity,
+            launcher = launcher
+        )
     }
 
     private fun configureTermsAndPrivacy(sourceText: String, terms: String, privacy: String) {

@@ -994,4 +994,7 @@
     <string name="cross_chain_wallet_my">Мой кошелек</string>
     <string name="cross_chain_wallet_external">Внешний кошелек</string>
 
+    <string name="select_import_mode_btn_mnemonic">Мнемоническая фраза</string>
+    <string name="select_import_mode_title">Выберите источник для импорта</string>
+
 </resources>

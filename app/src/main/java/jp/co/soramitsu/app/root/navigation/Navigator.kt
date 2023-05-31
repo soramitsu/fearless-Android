@@ -12,6 +12,7 @@ import androidx.navigation.NavController
 import androidx.navigation.NavDeepLinkRequest
 import androidx.navigation.NavOptions
 import it.airgap.beaconsdk.blockchain.substrate.data.SubstrateSignerPayload
+import jp.co.soramitsu.account.api.domain.model.ImportMode
 import jp.co.soramitsu.account.api.presentation.account.create.ChainAccountCreatePayload
 import jp.co.soramitsu.account.api.presentation.actions.AddAccountBottomSheet
 import jp.co.soramitsu.account.impl.domain.account.details.AccountInChain
@@ -26,6 +27,7 @@ import jp.co.soramitsu.account.impl.presentation.exporting.json.password.ExportJ
 import jp.co.soramitsu.account.impl.presentation.exporting.mnemonic.ExportMnemonicFragment
 import jp.co.soramitsu.account.impl.presentation.exporting.seed.ExportSeedFragment
 import jp.co.soramitsu.account.impl.presentation.importing.ImportAccountFragment
+import jp.co.soramitsu.account.impl.presentation.importing.remote_backup.ImportRemoteAccountDialog
 import jp.co.soramitsu.account.impl.presentation.mnemonic.backup.BackupMnemonicFragment
 import jp.co.soramitsu.account.impl.presentation.mnemonic.confirm.ConfirmMnemonicFragment
 import jp.co.soramitsu.account.impl.presentation.mnemonic.confirm.ConfirmMnemonicPayload
@@ -60,6 +62,7 @@ import jp.co.soramitsu.crowdloan.impl.presentation.contribute.select.CrowdloanCo
 import jp.co.soramitsu.crowdloan.impl.presentation.contribute.select.parcel.ContributePayload
 import jp.co.soramitsu.onboarding.impl.OnboardingRouter
 import jp.co.soramitsu.onboarding.impl.welcome.WelcomeFragment
+import jp.co.soramitsu.onboarding.impl.welcome.select_import_mode.SelectImportModeDialog
 import jp.co.soramitsu.polkaswap.api.presentation.PolkaswapRouter
 import jp.co.soramitsu.polkaswap.api.presentation.models.SwapDetailsParcelModel
 import jp.co.soramitsu.polkaswap.api.presentation.models.SwapDetailsViewState
@@ -228,6 +231,11 @@ class Navigator :
         )
     }
 
+    override fun openImportRemoteAccountDialog() {
+        val bundle = ImportRemoteAccountDialog.getBundle()
+        navController?.navigate(R.id.importRemoteAccountDialog, bundle)
+    }
+
     override fun popOutOfSend() {
         navController?.popBackStack(R.id.sendSetupFragment, true)
     }
@@ -285,9 +293,12 @@ class Navigator :
         navController?.navigate(R.id.action_profileFragment_to_aboutFragment)
     }
 
-    override fun openImportAccountScreen(blockChainType: Int) {
-        val arguments = ImportAccountFragment.getBundle(blockChainType)
-        navController?.navigate(R.id.importAction, arguments)
+    override fun openImportAccountScreen(
+        blockChainType: Int,
+        importMode: ImportMode
+    ) {
+        val arguments = ImportAccountFragment.getBundle(blockChainType, importMode)
+        navController?.navigate(R.id.importAccountFragment, arguments)
     }
 
     override fun openMnemonicScreen(accountName: String, payload: ChainAccountCreatePayload?) {
@@ -450,6 +461,15 @@ class Navigator :
             }
         }
         back()
+    }
+
+    override fun openSelectImportModeForResult(): Flow<ImportMode> {
+        val bundle = SelectImportModeDialog.getBundle()
+        return openWithResult(
+            destinationId = R.id.selectImportModeDialog,
+            bundle = bundle,
+            resultKey = SelectImportModeDialog.RESULT_IMPORT_MODE
+        )
     }
 
     override fun openTransactionSettingsDialog(initialSettings: TransactionSettingsModel) {

@@ -14,7 +14,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
@@ -49,7 +48,6 @@ data class ChainSelectScreenViewState(
     }
 }
 
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun ChainSelectContent(
     state: ChainSelectScreenViewState,

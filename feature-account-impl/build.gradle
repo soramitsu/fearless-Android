@@ -98,4 +98,6 @@ dependencies {
     implementation soraCardDep, withoutBouncycastle
 
     api sharedFeaturesCoreDep
+
+    implementation sharedFeaturesBackupDep
 }

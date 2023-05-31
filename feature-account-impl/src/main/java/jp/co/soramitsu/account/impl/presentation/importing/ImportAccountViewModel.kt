@@ -6,6 +6,26 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import jp.co.soramitsu.account.api.domain.interfaces.AccountAlreadyExistsException
+import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
+import jp.co.soramitsu.account.api.domain.model.ImportMode.Google
+import jp.co.soramitsu.account.api.domain.model.ImportMode.Json
+import jp.co.soramitsu.account.api.domain.model.ImportMode.MnemonicPhrase
+import jp.co.soramitsu.account.api.domain.model.ImportMode.RawSeed
+import jp.co.soramitsu.account.api.presentation.account.create.ChainAccountCreatePayload
+import jp.co.soramitsu.account.api.presentation.importing.ImportAccountType
+import jp.co.soramitsu.account.api.presentation.importing.importAccountType
+import jp.co.soramitsu.account.impl.presentation.AccountRouter
+import jp.co.soramitsu.account.impl.presentation.common.mixin.api.CryptoTypeChooserMixin
+import jp.co.soramitsu.account.impl.presentation.importing.ImportAccountFragment.Companion.BLOCKCHAIN_TYPE_KEY
+import jp.co.soramitsu.account.impl.presentation.importing.ImportAccountFragment.Companion.IMPORT_MODE_KEY
+import jp.co.soramitsu.account.impl.presentation.importing.ImportAccountFragment.Companion.PAYLOAD_KEY
+import jp.co.soramitsu.account.impl.presentation.importing.source.model.FileRequester
+import jp.co.soramitsu.account.impl.presentation.importing.source.model.ImportError
+import jp.co.soramitsu.account.impl.presentation.importing.source.model.ImportSource
+import jp.co.soramitsu.account.impl.presentation.importing.source.model.JsonImportSource
+import jp.co.soramitsu.account.impl.presentation.importing.source.model.MnemonicImportSource
+import jp.co.soramitsu.account.impl.presentation.importing.source.model.RawSeedImportSource
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -17,21 +37,6 @@ import jp.co.soramitsu.common.view.ButtonState
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet.Payload
 import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.feature_account_impl.R
-import jp.co.soramitsu.account.api.domain.interfaces.AccountAlreadyExistsException
-import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
-import jp.co.soramitsu.account.api.presentation.account.create.ChainAccountCreatePayload
-import jp.co.soramitsu.account.api.presentation.importing.ImportAccountType
-import jp.co.soramitsu.account.api.presentation.importing.importAccountType
-import jp.co.soramitsu.account.impl.presentation.AccountRouter
-import jp.co.soramitsu.account.impl.presentation.common.mixin.api.CryptoTypeChooserMixin
-import jp.co.soramitsu.account.impl.presentation.importing.ImportAccountFragment.Companion.BLOCKCHAIN_TYPE_KEY
-import jp.co.soramitsu.account.impl.presentation.importing.ImportAccountFragment.Companion.PAYLOAD_KEY
-import jp.co.soramitsu.account.impl.presentation.importing.source.model.FileRequester
-import jp.co.soramitsu.account.impl.presentation.importing.source.model.ImportError
-import jp.co.soramitsu.account.impl.presentation.importing.source.model.ImportSource
-import jp.co.soramitsu.account.impl.presentation.importing.source.model.JsonImportSource
-import jp.co.soramitsu.account.impl.presentation.importing.source.model.MnemonicImportSource
-import jp.co.soramitsu.account.impl.presentation.importing.source.model.RawSeedImportSource
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -43,11 +48,12 @@ class ImportAccountViewModel @Inject constructor(
     private val cryptoTypeChooserMixin: CryptoTypeChooserMixin,
     private val clipboardManager: ClipboardManager,
     private val fileReader: FileReader,
-    private val savedStateHandle: SavedStateHandle
+    savedStateHandle: SavedStateHandle
 ) : BaseViewModel(),
     CryptoTypeChooserMixin by cryptoTypeChooserMixin {
 
     private val initialBlockchainType = savedStateHandle.getLiveData<Int>(BLOCKCHAIN_TYPE_KEY)
+    private val initialImportMode = savedStateHandle.get(IMPORT_MODE_KEY) ?: MnemonicPhrase
     private val chainCreateAccountData = savedStateHandle.getLiveData<ChainAccountCreatePayload>(PAYLOAD_KEY)
 
     val isChainAccount = chainCreateAccountData.value != null
@@ -76,7 +82,16 @@ class ImportAccountViewModel @Inject constructor(
     private val substrateDerivationPathRegex = Regex("(//?[^/]+)*(///[^/]+)?")
 
     val sourceTypes = provideSourceType()
-    private val _selectedSourceTypeLiveData = MutableLiveData(sourceTypes.first())
+    val initialSelectedSourceType: ImportSource
+        get() {
+            return when (initialImportMode) {
+                MnemonicPhrase -> sourceTypes.firstOrNull { it is MnemonicImportSource }
+                RawSeed -> sourceTypes.firstOrNull { it is RawSeedImportSource }
+                Json -> sourceTypes.firstOrNull { it is JsonImportSource }
+                Google -> null
+            } ?: sourceTypes.first()
+        }
+    private val _selectedSourceTypeLiveData = MutableLiveData(initialSelectedSourceType)
     val selectedSourceLiveData: LiveData<ImportSource> = _selectedSourceTypeLiveData
 
     private val sourceTypeValid = _selectedSourceTypeLiveData.switchMap(ImportSource::validationLiveData)

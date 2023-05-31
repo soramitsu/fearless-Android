@@ -1089,4 +1089,10 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="sora_card_blacklisted_countires_title">Excluded of application</string>
     <string name="sora_card_blacklisted_countires_warning"><![CDATA[Residents from <b>certain countries<br>can not apply</b> for SORA Card at this moment<br><a href=\"https://soracard.com/blacklist/\">See the list</a>]]></string>
 
+    <string name="select_import_mode_btn_google" translatable="false">Google</string>
+    <string name="select_import_mode_btn_mnemonic">Mnemonic phrase</string>
+    <string name="select_import_mode_btn_raw_seed" translatable="false">Raw Seed</string>
+    <string name="select_import_mode_btn_json" translatable="false">JSON</string>
+    <string name="select_import_mode_title">Select source for import</string>
+
 </resources>

@@ -84,7 +84,7 @@ buildscript {
         minifyRelease = true
         beaconVersion = "3.2.4"
 
-        sharedFeaturesVersion = "0.0.26_snapshot7"
+        sharedFeaturesVersion = "0.0.26_snapshot8"
 
         coilDep = "io.coil-kt:coil:$coilVersion"
         coilSvg = "io.coil-kt:coil-svg:$coilVersion"
@@ -203,6 +203,7 @@ buildscript {
 
         sharedFeaturesCoreDep = "jp.co.soramitsu.shared_features:core:$sharedFeaturesVersion"
         sharedFeaturesXcmDep = "jp.co.soramitsu.shared_features:xcm:$sharedFeaturesVersion"
+        sharedFeaturesBackupDep = "jp.co.soramitsu.shared_features:backup:$sharedFeaturesVersion"
 
         serializationDep = "org.jetbrains.kotlinx:kotlinx-serialization-json:$serializationVersion"
     }
