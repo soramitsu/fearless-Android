@@ -66,9 +66,9 @@
         android:label="select_import_mode_dialog"/>
 
     <dialog
-        android:id="@+id/importRemoteAccountDialog"
-        android:name="jp.co.soramitsu.account.impl.presentation.importing.remote_backup.ImportRemoteAccountDialog"
-        android:label="importRemoteAccountDialog" />
+        android:id="@+id/importRemoteWalletDialog"
+        android:name="jp.co.soramitsu.account.impl.presentation.importing.remote_backup.ImportRemoteWalletDialog"
+        android:label="importRemoteWalletDialog" />
 
     <fragment
         android:id="@+id/importAccountFragment"

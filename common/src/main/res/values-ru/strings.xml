@@ -997,4 +997,7 @@
     <string name="select_import_mode_btn_mnemonic">Мнемоническая фраза</string>
     <string name="select_import_mode_title">Выберите источник для импорта</string>
 
+    <string name="import_remote_wallet_title">Выбрать счёт для импорта</string>
+    <string name="import_remote_wallet_btn_create_wallet">Создать новый счёт</string>
+
 </resources>

@@ -1095,4 +1095,7 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="select_import_mode_btn_json" translatable="false">JSON</string>
     <string name="select_import_mode_title">Select source for import</string>
 
+    <string name="import_remote_wallet_title">Select account to import</string>
+    <string name="import_remote_wallet_btn_create_wallet">Create new account</string>
+
 </resources>

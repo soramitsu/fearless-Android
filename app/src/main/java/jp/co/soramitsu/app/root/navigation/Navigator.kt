@@ -27,7 +27,7 @@ import jp.co.soramitsu.account.impl.presentation.exporting.json.password.ExportJ
 import jp.co.soramitsu.account.impl.presentation.exporting.mnemonic.ExportMnemonicFragment
 import jp.co.soramitsu.account.impl.presentation.exporting.seed.ExportSeedFragment
 import jp.co.soramitsu.account.impl.presentation.importing.ImportAccountFragment
-import jp.co.soramitsu.account.impl.presentation.importing.remote_backup.ImportRemoteAccountDialog
+import jp.co.soramitsu.account.impl.presentation.importing.remote_backup.ImportRemoteWalletDialog
 import jp.co.soramitsu.account.impl.presentation.mnemonic.backup.BackupMnemonicFragment
 import jp.co.soramitsu.account.impl.presentation.mnemonic.confirm.ConfirmMnemonicFragment
 import jp.co.soramitsu.account.impl.presentation.mnemonic.confirm.ConfirmMnemonicPayload
@@ -231,9 +231,9 @@ class Navigator :
         )
     }
 
-    override fun openImportRemoteAccountDialog() {
-        val bundle = ImportRemoteAccountDialog.getBundle()
-        navController?.navigate(R.id.importRemoteAccountDialog, bundle)
+    override fun openImportRemoteWalletDialog() {
+        val bundle = ImportRemoteWalletDialog.getBundle()
+        navController?.navigate(R.id.importRemoteWalletDialog, bundle)
     }
 
     override fun popOutOfSend() {
