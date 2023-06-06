@@ -197,9 +197,11 @@ fun ShapeButton(
 @Preview
 fun ButtonPreview() {
     FearlessTheme {
-        Column(modifier = Modifier
-            .padding(16.dp)
-            .background(Color.Black)) {
+        Column(
+            modifier = Modifier
+                .padding(16.dp)
+                .background(Color.Black)
+        ) {
             AccentButton(
                 "Start staking Start staking Start staking ",
                 modifier = Modifier

@@ -16,6 +16,7 @@ import androidx.lifecycle.lifecycleScope
 import coil.ImageLoader
 import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
+import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.compose.component.QuickAmountInput
 import jp.co.soramitsu.common.compose.component.QuickInput
@@ -28,7 +29,6 @@ import jp.co.soramitsu.common.view.setProgress
 import jp.co.soramitsu.common.view.viewBinding
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.databinding.FragmentSelectUnbondBinding
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class SelectUnbondFragment : BaseFragment<SelectUnbondViewModel>(R.layout.fragment_select_unbond) {
@@ -130,7 +130,6 @@ class SelectUnbondFragment : BaseFragment<SelectUnbondViewModel>(R.layout.fragme
         binding.quickInput.apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
-
                 val isInputFocused by viewModel.isInputFocused.collectAsState()
                 val bottom = WindowInsets.ime.getBottom(LocalDensity.current)
 
