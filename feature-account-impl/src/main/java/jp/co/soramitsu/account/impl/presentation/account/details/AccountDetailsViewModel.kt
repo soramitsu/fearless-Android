@@ -25,7 +25,7 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.feature_account_impl.R
-import jp.co.soramitsu.core.models.utilityAsset
+import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers

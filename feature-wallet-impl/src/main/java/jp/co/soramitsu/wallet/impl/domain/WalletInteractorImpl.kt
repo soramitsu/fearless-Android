@@ -14,7 +14,7 @@ import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.core.models.ChainId
-import jp.co.soramitsu.core.models.isValidAddress
+import jp.co.soramitsu.core.utils.isValidAddress
 import jp.co.soramitsu.coredb.model.AssetUpdateItem
 import jp.co.soramitsu.runtime.ext.ecosystem
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry

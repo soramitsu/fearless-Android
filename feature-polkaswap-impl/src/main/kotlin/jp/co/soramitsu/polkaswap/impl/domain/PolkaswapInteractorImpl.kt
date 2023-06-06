@@ -6,7 +6,7 @@ import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.utils.isZero
 import jp.co.soramitsu.common.utils.orZero
-import jp.co.soramitsu.core.models.utilityAsset
+import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.core.runtime.models.responses.QuoteResponse
 import jp.co.soramitsu.polkaswap.api.data.PolkaswapRepository
 import jp.co.soramitsu.polkaswap.api.domain.InsufficientLiquidityException

@@ -1,7 +1,7 @@
 package jp.co.soramitsu.crowdloan.impl.data
 
 import jp.co.soramitsu.common.data.storage.Preferences
-import jp.co.soramitsu.core.models.utilityAsset
+import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.state.SingleAssetSharedState
 

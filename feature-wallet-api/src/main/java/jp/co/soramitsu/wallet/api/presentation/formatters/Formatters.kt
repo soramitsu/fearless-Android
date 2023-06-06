@@ -2,7 +2,7 @@ package jp.co.soramitsu.wallet.api.presentation.formatters
 
 import jp.co.soramitsu.common.utils.formatCrypto
 import jp.co.soramitsu.common.utils.formatCryptoDetail
-import jp.co.soramitsu.core.models.amountFromPlanks
+import jp.co.soramitsu.core.utils.amountFromPlanks
 import java.math.BigInteger
 import jp.co.soramitsu.core.models.Asset as CoreAsset
 
