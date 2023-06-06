@@ -1,7 +1,7 @@
 package jp.co.soramitsu.staking.impl.domain.validators.current.search
 
 import android.annotation.SuppressLint
-import jp.co.soramitsu.core.models.isValidAddress
+import jp.co.soramitsu.core.utils.isValidAddress
 import jp.co.soramitsu.staking.api.data.StakingSharedState
 import jp.co.soramitsu.staking.api.domain.model.Validator
 import jp.co.soramitsu.staking.impl.domain.validators.ValidatorProvider

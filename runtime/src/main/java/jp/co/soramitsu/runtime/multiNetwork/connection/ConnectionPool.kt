@@ -5,7 +5,6 @@ import jp.co.soramitsu.common.compose.component.NetworkIssueType
 import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
 import jp.co.soramitsu.common.mixin.api.NetworkStateUi
 import jp.co.soramitsu.common.utils.Event
-import jp.co.soramitsu.core.models.utilityAsset
 import jp.co.soramitsu.core.runtime.ChainConnection
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
@@ -23,6 +22,7 @@ import kotlinx.coroutines.flow.onEach
 import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import javax.inject.Provider
+import jp.co.soramitsu.core.utils.utilityAsset
 
 class ConnectionPool @Inject constructor(
     private val socketServiceProvider: Provider<SocketService>,

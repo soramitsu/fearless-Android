@@ -15,7 +15,7 @@ class NodesSettingsScenarioImpl(private val chainRegistry: ChainRegistry) : Node
 
     override suspend fun getNode(id: NodeId): ChainNode = chainRegistry.getNode(id)
 
-    override suspend fun selectNode(id: NodeId) = chainRegistry.selectNode(id)
+    override suspend fun selectNode(id: NodeId) = chainRegistry.switchNode(id)
 
     override suspend fun addNode(chainId: ChainId, nodeName: String, nodeHost: String) =
         try {

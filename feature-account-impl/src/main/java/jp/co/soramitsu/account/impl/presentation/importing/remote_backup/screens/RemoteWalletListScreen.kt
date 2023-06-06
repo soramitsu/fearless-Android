@@ -47,7 +47,7 @@ internal fun RemoteWalletListScreen(
         Toolbar(
             modifier = Modifier.padding(bottom = 12.dp),
             state = ToolbarViewState(
-                title = stringResource(R.string.import_remote_wallet_title),
+                title = stringResource(R.string.import_remote_wallet_title_wallets),
                 navigationIcon = R.drawable.ic_arrow_back_24dp
             ),
             onNavigationClick = callback::onBackClick

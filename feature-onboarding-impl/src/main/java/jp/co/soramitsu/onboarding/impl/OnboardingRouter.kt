@@ -17,6 +17,10 @@ interface OnboardingRouter {
 
     fun openImportRemoteWalletDialog()
 
+    fun openCreateBackupPasswordDialog()
+
+    fun openMnemonicAgreementsDialog()
+
     fun back()
 
     fun backWithResult(vararg results: Pair<String, Any?>)

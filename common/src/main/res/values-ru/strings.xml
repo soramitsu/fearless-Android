@@ -997,7 +997,26 @@
     <string name="select_import_mode_btn_mnemonic">Мнемоническая фраза</string>
     <string name="select_import_mode_title">Выберите источник для импорта</string>
 
-    <string name="import_remote_wallet_title">Выбрать счёт для импорта</string>
+    <string name="import_remote_wallet_title_wallets">Выбрать счёт для импорта</string>
+    <string name="import_remote_wallet_title_password">Ввести резервный пароль</string>
+    <string name="import_remote_wallet_title_imported">Кошелек импортирован</string>
+    <string name="import_remote_wallet_hint_enter_password">Введите пароль</string>
+    <string name="import_remote_wallet_subtitle_password">Введите резервный пароль для выбранного кошелька для импорта</string>
     <string name="import_remote_wallet_btn_create_wallet">Создать новый счёт</string>
+    <string name="import_remote_wallet_btn_import_more">Добавить ещё</string>
+
+    <string name="create_backup_password_btn_set">Сохранить резервный пароль</string>
+    <string name="create_backup_password_title">Создать резервный пароль</string>
+    <string name="create_backup_password_subtitle">Установка пароля приведет к шифрованию вашей резервной копии Google. Вам нужно будет ввести его при восстановлении вашего кошелька</string>
+    <string name="create_backup_password_agreements">Я понимаю, что если я забуду свой пароль, то восстановить его будет невозможно</string>
+    <string name="create_backup_password_matched">Пароль совпал</string>
+    <string name="create_backup_password_not_matched">Пароль не совпал</string>
+
+    <string name="mnemonic_agreements_title">Создайте резервную копию</string>
+    <string name="mnemonic_agreements_subtitle">Ваша мнемоническая фраза - это ключ к вашему кошельку. Создайте резервную копию, чтобы вы могли восстановить свой кошелек, если потеряете или повредите свое устройство.</string>
+    <string name="mnemonic_agreements_ageement_1">Если я потеряю свою мнемоническую фразу, мои средства будут потеряны навсегда</string>
+    <string name="mnemonic_agreements_ageement_2">Если я раскрою или поделюсь своей мнемонической фразой с кем-либо, мои средства могут быть украдены</string>
+    <string name="mnemonic_agreements_ageement_3">Я несу полную ответственность за сохранность моей мнемонической фразы</string>
+    <string name="mnemonic_agreements_btn_text">Показать мнемоническую фразу</string>
 
 </resources>

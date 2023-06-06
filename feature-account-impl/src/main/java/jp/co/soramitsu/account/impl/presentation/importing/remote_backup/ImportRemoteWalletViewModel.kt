@@ -8,6 +8,7 @@ import jp.co.soramitsu.account.impl.presentation.importing.remote_backup.screens
 import jp.co.soramitsu.account.impl.presentation.importing.remote_backup.screens.WalletImportedState
 import jp.co.soramitsu.backup.domain.models.EncryptedBackupAccount
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.compose.component.TextInputViewState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -41,8 +42,25 @@ class ImportRemoteWalletViewModel @Inject constructor(
     private val walletImportedState = selectedWallet.map { selectedWallet ->
         WalletImportedState(selectedWallet)
     }
-    private val enterBackupPasswordState = selectedWallet.map { selectedWallet ->
-        EnterBackupPasswordState(selectedWallet)
+
+    private val defaultTextInputViewState = TextInputViewState(
+        text = "",
+        hint = "Enter password",
+        placeholder = "************",
+        endIcon = null,
+        isActive = true,
+        mode = TextInputViewState.Mode.Password
+    )
+    private val passwordInputViewState = MutableStateFlow(defaultTextInputViewState)
+
+    private val enterBackupPasswordState = combine(
+        selectedWallet,
+        passwordInputViewState
+    ) { selectedWallet, passwordInputViewState ->
+        EnterBackupPasswordState(
+            wallet = selectedWallet,
+            passwordInputViewState = passwordInputViewState
+        )
     }
     private val remoteWalletListState = remoteWallets.map { wallets ->
         RemoteWalletListState(wallets = wallets)
@@ -104,5 +122,33 @@ class ImportRemoteWalletViewModel @Inject constructor(
     }
 
     override fun onContinueClick() {
+        when (currentStep.value) {
+            ImportRemoteWalletStep.WalletList -> {
+                /* ignore */
+            }
+            ImportRemoteWalletStep.EnterBackupPassword -> {
+                decryptWalletByPassword()
+            }
+            ImportRemoteWalletStep.WalletImported -> {
+                openMainScreen()
+            }
+        }
+    }
+
+    private fun decryptWalletByPassword() {
+        // TODO Decrypt wallet
+        nextStep()
+    }
+
+    private fun openMainScreen() {
+    }
+
+    override fun onPasswordChanged(password: String) {
+        passwordInputViewState.value = passwordInputViewState.value.copy(
+            text = password
+        )
+    }
+
+    override fun onImportMore() {
     }
 }

@@ -1,7 +1,7 @@
 package jp.co.soramitsu.staking.impl.domain.validators
 
 import jp.co.soramitsu.common.utils.toHexAccountId
-import jp.co.soramitsu.core.models.utilityAsset
+import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.runtime.ext.addressOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId

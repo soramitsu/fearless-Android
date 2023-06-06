@@ -66,7 +66,6 @@ class RuntimeSyncService(
 
     fun registerChain(chain: Chain) {
         knownChains.add(chain.id)
-        launchSync(chain.id)
     }
 
     fun unregisterChain(chainId: String) {
