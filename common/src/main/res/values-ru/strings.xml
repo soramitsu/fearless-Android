@@ -655,7 +655,7 @@
     <string name="wallet_manage_assets">Управление активами</string>
     <string name="moonbeam_ethereum_address_incorrect">Формат адреса Moonbeam Ethereum неверен, попробуйте еще раз</string>
     <string name="moonbeam_ethereum_reward">Вознаграждения будут выплачиваться на этот адрес. Вы можете использовать существующий адрес Ethereum. ПОЖАЛУЙСТА, УБЕДИТЕСЬ, ЧТО У ВАС ЕСТЬ ПРИВАТНЫЕ КЛЮЧИ ДЛЯ ЭТОГО АДРЕСА.</string>
-    <string name="manage_assets_search_hint">Поиск по токену или сети</string>
+    <string name="manage_assets_search_hint">Поиск по активу</string>
     <string name="assets_search_hint">Поиск по токену</string>
     <string name="crowdloan_email_hint">Адрес электронной почты</string>
     <string name="crowdloan_referral_code_hint">Реферальный код</string>
@@ -1000,4 +1000,9 @@
     <string name="import_remote_wallet_title">Выбрать счёт для импорта</string>
     <string name="import_remote_wallet_btn_create_wallet">Создать новый счёт</string>
 
+    <string name="specify_network">Specify Network</string>
+    <string name="specify_network_description">The address prefix matches several networks please specify the network</string>
+    <string name="select_another_network_description">The address doesn\'t match the destination network. You should select another network</string>
+    <string name="select_network_template">Select %s network</string>
+    <string name="input_address_unrecognised">Input doesn\'t match known network\'s address</string>
 </resources>
