@@ -1,5 +1,7 @@
 package jp.co.soramitsu.wallet.impl.domain
 
+import java.math.BigDecimal
+import java.math.BigInteger
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.accountId
@@ -50,8 +52,6 @@ import kotlinx.coroutines.flow.flatMapMerge
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.withIndex
 import kotlinx.coroutines.withContext
-import java.math.BigDecimal
-import java.math.BigInteger
 import jp.co.soramitsu.core.models.Asset as CoreAsset
 
 private const val QR_PREFIX_SUBSTRATE = "substrate"
@@ -103,15 +103,14 @@ class WalletInteractorImpl(
             it.isNotEmpty()
         }
             .distinctUntilChanged()
-            .flatMapLatest { ratesUpdating ->
+            .flatMapLatest {
                 accountRepository.selectedMetaAccountFlow()
-                    .flatMapLatest {
-                        walletRepository.assetsFlow(it)
-                    }
-                    .filter { it.isNotEmpty() }
-                    .map { assets ->
-                        assets.sortedWith(defaultAssetListSort())
-                    }
+            }.flatMapLatest {
+                walletRepository.assetsFlow(it)
+            }
+            .filter { it.isNotEmpty() }
+            .map { assets ->
+                assets.sortedWith(defaultAssetListSort())
             }
     }
 
