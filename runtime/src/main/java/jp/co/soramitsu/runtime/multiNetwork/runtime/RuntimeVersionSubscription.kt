@@ -8,6 +8,7 @@ import jp.co.soramitsu.shared_utils.wsrpc.request.runtime.chain.runtimeVersionCh
 import jp.co.soramitsu.shared_utils.wsrpc.subscriptionFlow
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
@@ -18,7 +19,7 @@ class RuntimeVersionSubscription(
     connection: ChainConnection,
     private val chainDao: ChainDao,
     private val runtimeSyncService: RuntimeSyncService
-) : CoroutineScope by CoroutineScope(Dispatchers.IO) {
+) : CoroutineScope by CoroutineScope(Dispatchers.IO + SupervisorJob()) {
 
     init {
         connection.socketService.subscriptionFlow(SubscribeRuntimeVersionRequest)
