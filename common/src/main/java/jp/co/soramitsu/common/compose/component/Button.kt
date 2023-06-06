@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.ButtonColors
+import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.material.TextButton
@@ -18,7 +19,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
@@ -113,12 +116,14 @@ fun FearlessButton(
         onClick = onClick,
         shape = FearlessCorneredShape(),
         colors = colors,
-        enabled = enabled
+        enabled = enabled,
+        contentPadding = PaddingValues(vertical = 0.dp, horizontal = ButtonDefaults.TextButtonContentPadding.calculateLeftPadding(LayoutDirection.Ltr))
     ) {
         Text(
             text = text,
             style = textStyle,
-            color = colors.contentColor(enabled = enabled).value
+            color = colors.contentColor(enabled = enabled).value,
+            textAlign = TextAlign.Center
         )
     }
 }
@@ -192,9 +197,11 @@ fun ShapeButton(
 @Preview
 fun ButtonPreview() {
     FearlessTheme {
-        Column(modifier = Modifier.padding(16.dp).background(Color.Black)) {
+        Column(modifier = Modifier
+            .padding(16.dp)
+            .background(Color.Black)) {
             AccentButton(
-                "Start staking",
+                "Start staking Start staking Start staking ",
                 modifier = Modifier
                     .width(200.dp)
                     .height(52.dp)
