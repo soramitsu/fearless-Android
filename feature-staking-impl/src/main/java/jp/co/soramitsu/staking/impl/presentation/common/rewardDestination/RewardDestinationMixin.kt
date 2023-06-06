@@ -42,4 +42,6 @@ interface RewardDestinationMixin : Browserable {
             amount: BigDecimal
         )
     }
+
+    val canRestake: Flow<Boolean>
 }

@@ -5,6 +5,10 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.liveData
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.math.BigDecimal
+import java.math.BigInteger
+import javax.inject.Inject
+import javax.inject.Named
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createEthereumAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -46,10 +50,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import java.math.BigDecimal
-import java.math.BigInteger
-import javax.inject.Inject
-import javax.inject.Named
 
 @HiltViewModel
 class SetupStakingViewModel @Inject constructor(
@@ -157,6 +157,7 @@ class SetupStakingViewModel @Inject constructor(
                             setupStakingInteractor.estimateMaxSetupStakingFee(address)
                         }.orZero()
                     }
+
                     is SetupStakingProcess.SetupStep.Parachain -> {
                         setupStakingInteractor.estimateParachainFee()
                     }
