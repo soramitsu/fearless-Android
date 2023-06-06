@@ -70,7 +70,6 @@ class ChainRegistry @Inject constructor(
                 chainSyncService.syncUp()
                 runtimeSyncService.syncTypes()
             }
-
             chainDao.joinChainInfoFlow().mapList(::mapChainLocalToChain).diffed()
                 .collect { (removed, addedOrModified, _) ->
                     removed.forEach {
@@ -80,17 +79,17 @@ class ChainRegistry @Inject constructor(
                         runtimeSyncService.unregisterChain(chainId)
                         connectionPool.removeConnection(chainId)
                     }
-                    updatesMixin.startChainsSyncUp(addedOrModified.filter { !it.nodes.isNullOrEmpty() }.map { it.id })
-                    addedOrModified.filter { !it.nodes.isNullOrEmpty() }.forEach { chain ->
+                    updatesMixin.startChainsSyncUp(addedOrModified.filter { it.nodes.isNotEmpty() }.map { it.id })
+                    addedOrModified.filter { it.nodes.isNotEmpty() }.forEach { chain ->
                         val connection = connectionPool.setupConnection(
                             chain,
                             onSelectedNodeChange = { chainId, newNodeUrl ->
-                                launch { selectNode(NodeId(chainId to newNodeUrl)) }
+                                launch { notifyNodeSwitched(NodeId(chainId to newNodeUrl)) }
                             }
                         )
-                        runtimeProviderPool.setupRuntimeProvider(chain)
-                        runtimeSyncService.registerChain(chain)
                         runtimeSubscriptionPool.setupRuntimeSubscription(chain, connection)
+                        runtimeSyncService.registerChain(chain)
+                        runtimeProviderPool.setupRuntimeProvider(chain)
                     }
                 }
         }
@@ -123,7 +122,14 @@ class ChainRegistry @Inject constructor(
     fun nodesFlow(chainId: String) = chainDao.nodesFlow(chainId)
         .mapList(::mapNodeLocalToNode)
 
-    suspend fun selectNode(id: NodeId) = chainDao.selectNode(id.chainId, id.nodeUrl)
+    suspend fun switchNode(id: NodeId) {
+        connectionPool.getConnection(id.chainId).socketService.switchUrl(id.nodeUrl)
+        notifyNodeSwitched(id)
+    }
+
+    private suspend fun notifyNodeSwitched(id: NodeId) {
+        chainDao.selectNode(id.chainId, id.nodeUrl)
+    }
 
     suspend fun addNode(chainId: ChainId, nodeName: String, nodeUrl: String) =
         chainDao.insertChainNode(ChainNodeLocal(chainId, nodeUrl, nodeName, isActive = false, isDefault = false))
