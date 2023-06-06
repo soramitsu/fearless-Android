@@ -74,7 +74,11 @@ class WelcomeViewModel @Inject constructor(
 
     private fun handleSelectedImportMode(importMode: ImportMode) {
         if (importMode == ImportMode.Google) {
-            _events.tryEmit(WelcomeEvent.AuthorizeGoogle)
+            // TODO: Implement Google Auth later
+            _events.trySend(WelcomeEvent.AuthorizeGoogle)
+            // router.openImportRemoteWalletDialog()
+            // router.openCreateBackupPasswordDialog()
+            // router.openMnemonicAgreementsDialog()
         } else {
             router.openImportAccountScreen(
                 blockChainType = SUBSTRATE_BLOCKCHAIN_TYPE,

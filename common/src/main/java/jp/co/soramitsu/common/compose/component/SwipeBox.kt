@@ -150,14 +150,6 @@ private fun AssetItemSwipeBoxPreview() {
         )
     )
 
-    val assetIconUrl = "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Polkadot.svg"
-    val assetName = "Karura asset"
-    val assetChainName = "Karura"
-    val assetSymbol = "KSM"
-    val assetTokenFiat = "$73.22"
-    val assetTokenRate = "+5.67%"
-    val assetTransferableBalance = "444.3"
-    val assetTransferableBalanceFiat = "$2345.32"
     val assetChainUrlsMap = mapOf(
         "" to "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Karura.svg",
         "" to "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/kilt.svg",
@@ -169,20 +161,20 @@ private fun AssetItemSwipeBoxPreview() {
     )
 
     val assetListItemViewState = AssetListItemViewState(
-        assetIconUrl = assetIconUrl,
-        assetChainName = assetChainName,
-        assetName = assetName,
-        assetSymbol = assetSymbol,
-        assetTokenFiat = assetTokenFiat,
-        assetTokenRate = assetTokenRate,
-        assetTransferableBalance = assetTransferableBalance,
-        assetTransferableBalanceFiat = assetTransferableBalanceFiat,
+        assetIconUrl = "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Polkadot.svg",
+        assetChainName = "Karura",
+        assetName = "Karura asset",
+        assetSymbol = "KSM",
+        assetTokenFiat = "$73.22",
+        assetTokenRate = "+5.67%",
+        assetTransferableBalance = "444.3",
+        assetTransferableBalanceFiat = "$2345.32",
         assetChainUrls = assetChainUrlsMap,
         chainId = "",
         chainAssetId = "",
         isSupported = true,
         isHidden = false,
-        displayName = assetSymbol,
+        displayName = "KSM",
         hasAccount = true,
         priceId = null,
         hasNetworkIssue = false,
