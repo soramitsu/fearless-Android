@@ -28,8 +28,8 @@ import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.isNotZero
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.requireValue
-import jp.co.soramitsu.core.models.isValidAddress
-import jp.co.soramitsu.core.models.utilityAsset
+import jp.co.soramitsu.core.utils.isValidAddress
+import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.wallet.api.domain.TransferValidationResult
 import jp.co.soramitsu.wallet.api.domain.ValidateTransferUseCase

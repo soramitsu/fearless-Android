@@ -5,7 +5,7 @@ import jp.co.soramitsu.account.api.domain.model.accountId
 import jp.co.soramitsu.common.list.GroupedList
 import jp.co.soramitsu.common.list.emptyGroupedList
 import jp.co.soramitsu.common.utils.orZero
-import jp.co.soramitsu.core.models.utilityAsset
+import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.runtime.ext.accountFromMapKey
 import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain

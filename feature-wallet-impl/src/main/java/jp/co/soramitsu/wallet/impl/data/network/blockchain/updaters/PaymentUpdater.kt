@@ -14,7 +14,7 @@ import jp.co.soramitsu.common.utils.tokens
 import jp.co.soramitsu.core.model.StorageChange
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.core.models.ChainAssetType
-import jp.co.soramitsu.core.models.utilityAsset
+import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.core.updater.SubscriptionBuilder
 import jp.co.soramitsu.core.updater.Updater
 import jp.co.soramitsu.coredb.dao.OperationDao
