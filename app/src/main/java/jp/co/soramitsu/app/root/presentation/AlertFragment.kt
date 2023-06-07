@@ -19,7 +19,6 @@ import jp.co.soramitsu.common.AlertViewState
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.compose.component.AlertSheet
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
-import kotlin.coroutines.cancellation.CancellationException
 
 const val emptyResultKey = ""
 
@@ -86,7 +85,7 @@ class AlertFragment : BottomSheetDialogFragment() {
         dialog?.setOnCancelListener {
             val resultKey = requireNotNull(requireArguments().getString(KEY_RESULT))
             val resultDestinationId = requireNotNull(requireArguments().getInt(KEY_RESULT_DESTINATION))
-            navigator.setAlertResult(resultKey, Result.failure<Unit>(CancellationException()), resultDestinationId)
+            navigator.setAlertResult(resultKey, Result.failure<Unit>(Exception()), resultDestinationId)
         }
     }
 
