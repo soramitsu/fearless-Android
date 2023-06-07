@@ -6,6 +6,10 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.math.BigDecimal
+import java.util.Locale
+import java.util.concurrent.TimeUnit
+import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.presentation.actions.AddAccountBottomSheet
 import jp.co.soramitsu.common.AlertViewState
@@ -98,10 +102,6 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.math.BigDecimal
-import java.util.Locale
-import java.util.concurrent.TimeUnit
-import javax.inject.Inject
 
 private const val CURRENT_ICON_SIZE = 40
 
@@ -137,7 +137,9 @@ class BalanceListViewModel @Inject constructor(
     private val _launchSoraCardSignIn = MutableLiveData<Event<SoraCardContractData>>()
     val launchSoraCardSignIn: LiveData<Event<SoraCardContractData>> = _launchSoraCardSignIn
 
-    private val assetModelsFlow: Flow<List<AssetModel>> = interactor.assetsFlow()
+    private val rawAssets = interactor.assetsFlow()
+
+    private val assetModelsFlow: Flow<List<AssetModel>> = rawAssets
         .mapList {
             when {
                 it.hasAccount -> it.asset
@@ -199,7 +201,7 @@ class BalanceListViewModel @Inject constructor(
 
     @OptIn(FlowPreview::class)
     private val assetStates = combine(
-        interactor.assetsFlow().debounce(200L),
+        interactor.assetsFlow().debounce(100L),
         chainInteractor.getChainsFlow(),
         selectedChainId,
         networkIssuesFlow,
@@ -361,7 +363,7 @@ class BalanceListViewModel @Inject constructor(
         .thenBy { it.chainId.defaultChainSort() }
         .thenBy { it.chainName }
 
-//    private val soraCardState = combine(
+    //    private val soraCardState = combine(
 //        interactor.observeIsShowSoraCard(),
 //        soraCardInteractor.subscribeSoraCardInfo()
 //    ) { isShow, soraCardInfo ->
@@ -458,6 +460,7 @@ class BalanceListViewModel @Inject constructor(
                                 else -> SoraCardCommonVerification.Rejected
                             }
                         }
+
                         else -> kycStatus
                     }
                     soraCardInteractor.updateSoraCardKycStatus(kycStatus = extendedKycStatus?.toString().orEmpty())
@@ -487,18 +490,23 @@ class BalanceListViewModel @Inject constructor(
             ActionItemType.SEND -> {
                 sendClicked(payload)
             }
+
             ActionItemType.RECEIVE -> {
                 receiveClicked(payload)
             }
+
             ActionItemType.TELEPORT -> {
                 showMessage("YOU NEED THE BLUE KEY")
             }
+
             ActionItemType.HIDE -> {
                 launch { hideAsset(chainId, chainAssetId) }
             }
+
             ActionItemType.SHOW -> {
                 launch { showAsset(chainId, chainAssetId) }
             }
+
             else -> {}
         }
     }
@@ -681,18 +689,23 @@ class BalanceListViewModel @Inject constructor(
             SoraCardCommonVerification.Pending -> {
                 resourceManager.getString(R.string.sora_card_verification_in_progress)
             }
+
             SoraCardCommonVerification.Successful -> {
                 resourceManager.getString(R.string.sora_card_verification_successful)
             }
+
             SoraCardCommonVerification.Rejected -> {
                 resourceManager.getString(R.string.sora_card_verification_rejected)
             }
+
             SoraCardCommonVerification.Failed -> {
                 resourceManager.getString(R.string.sora_card_verification_failed)
             }
+
             SoraCardCommonVerification.NoFreeAttempt -> {
                 resourceManager.getString(R.string.sora_card_no_more_free_tries)
             }
+
             else -> {
                 null
             }

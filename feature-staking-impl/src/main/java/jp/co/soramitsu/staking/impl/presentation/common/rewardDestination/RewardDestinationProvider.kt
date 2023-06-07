@@ -12,6 +12,8 @@ import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
 import jp.co.soramitsu.runtime.ext.addressOf
 import jp.co.soramitsu.staking.api.data.StakingSharedState
+import jp.co.soramitsu.staking.api.data.SyntheticStakingType
+import jp.co.soramitsu.staking.api.data.syntheticStakingType
 import jp.co.soramitsu.staking.api.domain.model.RewardDestination
 import jp.co.soramitsu.staking.api.domain.model.StakingAccount
 import jp.co.soramitsu.staking.api.domain.model.StakingState
@@ -29,6 +31,8 @@ import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import jp.co.soramitsu.core.models.Asset as CoreAsset
@@ -59,11 +63,23 @@ class RewardDestinationProvider(
         initial != current
     }.onStart { emit(false) }
 
+    override val canRestake = sharedState.assetWithChain.map {
+        it.asset.syntheticStakingType() != SyntheticStakingType.SORA
+    }.onEach {
+        if (!it) {
+            selectPayout()
+        }
+    }
+
     override fun payoutClicked(scope: CoroutineScope) {
         scope.launch {
-            interactor.getSelectedAccountProjection()?.let { currentAccount ->
-                rewardDestinationModelFlow.emit(RewardDestinationModel.Payout(generateDestinationModel(currentAccount)))
-            }
+            selectPayout()
+        }
+    }
+
+    private suspend fun selectPayout() {
+        interactor.getSelectedAccountProjection()?.let { currentAccount ->
+            rewardDestinationModelFlow.emit(RewardDestinationModel.Payout(generateDestinationModel(currentAccount)))
         }
     }
 

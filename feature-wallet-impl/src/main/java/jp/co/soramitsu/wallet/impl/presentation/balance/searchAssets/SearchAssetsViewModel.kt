@@ -6,6 +6,8 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.math.BigDecimal
+import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.presentation.actions.AddAccountBottomSheet
 import jp.co.soramitsu.common.AlertViewState
@@ -40,8 +42,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import java.math.BigDecimal
-import javax.inject.Inject
 
 @HiltViewModel
 class SearchAssetsViewModel @Inject constructor(
@@ -109,12 +109,11 @@ class SearchAssetsViewModel @Inject constructor(
     ) { assetsListItemStates: List<AssetListItemViewState>,
         searchQuery ->
 
-        val assets = when {
-            searchQuery.isEmpty() -> emptyList()
-            else -> assetsListItemStates.filter {
-                it.displayName.contains(searchQuery, true) || it.assetChainName.contains(searchQuery, true) || it.assetName.contains(searchQuery, true)
+        val assets = assetsListItemStates
+            .filter {
+                searchQuery.isEmpty() || it.displayName.contains(searchQuery, true) || it.assetChainName.contains(searchQuery, true)
             }
-        }
+
         SearchAssetState(
             assets = assets,
             searchQuery = searchQuery

@@ -696,7 +696,7 @@ Please note that this signing transaction will be subject to transaction fees on
     <string name="wallet_manage_assets">Manage assets</string>
     <string name="moonbeam_ethereum_address_incorrect">Moonbeam Ethereum address format is incorrect, please try again</string>
     <string name="moonbeam_ethereum_reward">Rewards will be paid out to this address. You can use an existing Ethereum address. PLEASE ENSURE YOU HAVE THE PRIVATE KEYS FOR THIS ADDRESS.</string>
-    <string name="manage_assets_search_hint">Search by token or network</string>
+    <string name="manage_assets_search_hint">Search by asset</string>
     <string name="assets_search_hint">Search by token</string>
     <string name="crowdloan_email_hint">Email address</string>
     <string name="crowdloan_referral_code_hint">Referral code</string>
@@ -1089,4 +1089,9 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="sora_card_blacklisted_countires_title">Excluded of application</string>
     <string name="sora_card_blacklisted_countires_warning"><![CDATA[Residents from <b>certain countries<br>can not apply</b> for SORA Card at this moment<br><a href=\"https://soracard.com/blacklist/\">See the list</a>]]></string>
 
+    <string name="specify_network">Specify Network</string>
+    <string name="specify_network_description">The address prefix matches several networks please specify the network</string>
+    <string name="select_another_network_description">The address doesn\'t match the destination network. You should select another network</string>
+    <string name="select_network_template">Select %s network</string>
+    <string name="input_address_unrecognised">Input doesn\'t match known network\'s address</string>
 </resources>
