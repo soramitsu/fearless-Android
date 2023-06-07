@@ -131,4 +131,8 @@ dependencies {
 
     implementation sharedFeaturesXcmDep
     implementation sharedFeaturesBackupDep
+
+    implementation("org.web3j:core:4.8.7-android") {
+        exclude group: 'org.java-websocket', module: 'Java-WebSocket'
+    }
 }
