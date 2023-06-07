@@ -1095,8 +1095,27 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="select_import_mode_btn_json" translatable="false">JSON</string>
     <string name="select_import_mode_title">Select source for import</string>
 
-    <string name="import_remote_wallet_title">Select account to import</string>
+    <string name="import_remote_wallet_title_wallets">Select account to import</string>
+    <string name="import_remote_wallet_title_password">Enter backup password</string>
+    <string name="import_remote_wallet_title_imported">Wallet imported</string>
+    <string name="import_remote_wallet_hint_enter_password">Enter password</string>
+    <string name="import_remote_wallet_subtitle_password">Enter backup password for the selected wallet to import</string>
     <string name="import_remote_wallet_btn_create_wallet">Create new account</string>
+    <string name="import_remote_wallet_btn_import_more">Import more</string>
+
+    <string name="create_backup_password_btn_set">Set backup password</string>
+    <string name="create_backup_password_title">Create backup password</string>
+    <string name="create_backup_password_subtitle">Setting a password will encrypt your Google backup. You’ll need to enter this when restoring your wallet</string>
+    <string name="create_backup_password_agreements">I understand that if I forget my password there is no way to retrieve it</string>
+    <string name="create_backup_password_matched">Password matched</string>
+    <string name="create_backup_password_not_matched">Password didn’t match</string>
+
+    <string name="mnemonic_agreements_title">Back up your mnemonic</string>
+    <string name="mnemonic_agreements_subtitle">Your mnemonic phrase is the key to your wallet. Back it up so you can restore your wallet if you lose or damage your device.</string>
+    <string name="mnemonic_agreements_ageement_1">If I lose my mnemonic phrase, my funds will be lost forever</string>
+    <string name="mnemonic_agreements_ageement_2">If  I expose or share my mnemonic phrase to anybody, my funds can get stolen</string>
+    <string name="mnemonic_agreements_ageement_3">It is my full responsibility to keep my mnemonic phrase secure</string>
+    <string name="mnemonic_agreements_btn_text">Show mnemonic phrase</string>
 
     <string name="specify_network">Specify Network</string>
     <string name="specify_network_description">The address prefix matches several networks please specify the network</string>

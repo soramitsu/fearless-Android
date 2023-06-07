@@ -20,6 +20,7 @@ import jp.co.soramitsu.account.impl.presentation.AccountRouter
 import jp.co.soramitsu.account.impl.presentation.account.details.AccountDetailsFragment
 import jp.co.soramitsu.account.impl.presentation.account.export.WalletExportFragment
 import jp.co.soramitsu.account.impl.presentation.account.exportaccounts.AccountsForExportFragment
+import jp.co.soramitsu.account.impl.presentation.create_backup_password.CreateBackupPasswordDialog
 import jp.co.soramitsu.account.impl.presentation.experimental.SuccessfulFragment
 import jp.co.soramitsu.account.impl.presentation.exporting.json.confirm.ExportJsonConfirmFragment
 import jp.co.soramitsu.account.impl.presentation.exporting.json.confirm.ExportJsonConfirmPayload
@@ -31,6 +32,7 @@ import jp.co.soramitsu.account.impl.presentation.importing.remote_backup.ImportR
 import jp.co.soramitsu.account.impl.presentation.mnemonic.backup.BackupMnemonicFragment
 import jp.co.soramitsu.account.impl.presentation.mnemonic.confirm.ConfirmMnemonicFragment
 import jp.co.soramitsu.account.impl.presentation.mnemonic.confirm.ConfirmMnemonicPayload
+import jp.co.soramitsu.account.impl.presentation.mnemonic_agreements.MnemonicAgreementsDialog
 import jp.co.soramitsu.account.impl.presentation.node.add.AddNodeFragment
 import jp.co.soramitsu.account.impl.presentation.node.details.NodeDetailsFragment
 import jp.co.soramitsu.account.impl.presentation.node.details.NodeDetailsPayload
@@ -234,6 +236,16 @@ class Navigator :
     override fun openImportRemoteWalletDialog() {
         val bundle = ImportRemoteWalletDialog.getBundle()
         navController?.navigate(R.id.importRemoteWalletDialog, bundle)
+    }
+
+    override fun openCreateBackupPasswordDialog() {
+        val bundle = CreateBackupPasswordDialog.getBundle()
+        navController?.navigate(R.id.createBackupPasswordDialog, bundle)
+    }
+
+    override fun openMnemonicAgreementsDialog() {
+        val bundle = MnemonicAgreementsDialog.getBundle()
+        navController?.navigate(R.id.mnemonicAgreementsDialog, bundle)
     }
 
     override fun popOutOfSend() {

@@ -11,13 +11,13 @@ import androidx.core.os.bundleOf
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
+import jp.co.soramitsu.account.api.presentation.account.create.ChainAccountCreatePayload
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.mixin.impl.observeBrowserEvents
 import jp.co.soramitsu.common.utils.createSpannable
 import jp.co.soramitsu.common.view.viewBinding
 import jp.co.soramitsu.feature_onboarding_impl.R
 import jp.co.soramitsu.feature_onboarding_impl.databinding.FragmentWelcomeBinding
-import jp.co.soramitsu.account.api.presentation.account.create.ChainAccountCreatePayload
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
@@ -38,6 +38,15 @@ class WelcomeFragment : BaseFragment<WelcomeViewModel>(R.layout.fragment_welcome
     }
 
     override val viewModel: WelcomeViewModel by viewModels()
+    private val launcher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode != Activity.RESULT_OK) {
+            Toast.makeText(context, "Google signin failed", Toast.LENGTH_SHORT).show()
+        } else {
+            Toast.makeText(context, "Google signin success", Toast.LENGTH_SHORT).show()
+        }
+    }
 
     private val binding by viewBinding(FragmentWelcomeBinding::bind)
 
@@ -71,16 +80,8 @@ class WelcomeFragment : BaseFragment<WelcomeViewModel>(R.layout.fragment_welcome
     }
 
     private fun handleAuthorizeGoogleEvent() {
-        val activity = requireActivity()
-        val launcher = activity.registerForActivityResult(
-            ActivityResultContracts.StartActivityForResult()
-        ) { result ->
-            if (result.resultCode != Activity.RESULT_OK) {
-                Toast.makeText(context, "Google signin failed", Toast.LENGTH_SHORT).show()
-            }
-        }
         viewModel.authorizeGoogle(
-            activity = activity,
+            activity = requireActivity(),
             launcher = launcher
         )
     }

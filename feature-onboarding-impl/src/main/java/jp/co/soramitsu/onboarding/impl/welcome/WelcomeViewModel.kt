@@ -17,10 +17,11 @@ import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.feature_onboarding_impl.BuildConfig
 import jp.co.soramitsu.onboarding.impl.OnboardingRouter
 import jp.co.soramitsu.onboarding.impl.welcome.WelcomeFragment.Companion.KEY_PAYLOAD
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.receiveAsFlow
 import javax.inject.Inject
 
 private const val SUBSTRATE_BLOCKCHAIN_TYPE = 0
@@ -37,8 +38,11 @@ class WelcomeViewModel @Inject constructor(
 
     val shouldShowBackLiveData: LiveData<Boolean> = MutableLiveData(payload.displayBack)
 
-    private val _events = MutableSharedFlow<WelcomeEvent>()
-    val events = _events.asSharedFlow()
+    private val _events = Channel<WelcomeEvent>(
+        capacity = Int.MAX_VALUE,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST
+    )
+    val events = _events.receiveAsFlow()
 
     override val openBrowserEvent = MutableLiveData<Event<String>>()
 
@@ -70,7 +74,11 @@ class WelcomeViewModel @Inject constructor(
 
     private fun handleSelectedImportMode(importMode: ImportMode) {
         if (importMode == ImportMode.Google) {
-            _events.tryEmit(WelcomeEvent.AuthorizeGoogle)
+            // TODO: Implement Google Auth later
+            _events.trySend(WelcomeEvent.AuthorizeGoogle)
+            // router.openImportRemoteWalletDialog()
+            // router.openCreateBackupPasswordDialog()
+            // router.openMnemonicAgreementsDialog()
         } else {
             router.openImportAccountScreen(
                 blockChainType = SUBSTRATE_BLOCKCHAIN_TYPE,

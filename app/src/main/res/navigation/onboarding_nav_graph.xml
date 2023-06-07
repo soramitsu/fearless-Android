@@ -70,6 +70,16 @@
         android:name="jp.co.soramitsu.account.impl.presentation.importing.remote_backup.ImportRemoteWalletDialog"
         android:label="importRemoteWalletDialog" />
 
+    <dialog
+        android:id="@+id/createBackupPasswordDialog"
+        android:name="jp.co.soramitsu.account.impl.presentation.create_backup_password.CreateBackupPasswordDialog"
+        android:label="createBackupPasswordDialog"/>
+
+    <dialog
+        android:id="@+id/mnemonicAgreementsDialog"
+        android:name="jp.co.soramitsu.account.impl.presentation.mnemonic_agreements.MnemonicAgreementsDialog"
+        android:label="mnemonicAgreementsDialog"/>
+
     <fragment
         android:id="@+id/importAccountFragment"
         android:name="jp.co.soramitsu.account.impl.presentation.importing.ImportAccountFragment"
