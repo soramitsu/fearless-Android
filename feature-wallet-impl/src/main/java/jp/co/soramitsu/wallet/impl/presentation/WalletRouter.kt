@@ -148,6 +148,4 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
     fun openCreateContact(chainId: ChainId?, address: String?)
 
     val chainSelectorPayloadFlow: Flow<ChainId?>
-
-    fun alertResultFlow(key: String): Flow<Result<Unit>>
 }
