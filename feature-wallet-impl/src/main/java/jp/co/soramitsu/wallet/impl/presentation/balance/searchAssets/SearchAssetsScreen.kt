@@ -83,17 +83,11 @@ fun SearchAssetsScreen(
             }
         }
         MarginVertical(margin = 16.dp)
-        when {
-            data?.searchQuery.isNullOrEmpty() -> {
-                AssetsList(SearchAssetState(emptyList()), callback)
-            }
-            data?.assets?.isNotEmpty() == true -> {
-                AssetsList(data, callback)
-            }
-            else -> {
-                MarginVertical(margin = 16.dp)
-                EmptyMessage(message = R.string.common_search_assets_alert_description)
-            }
+        if (data?.assets?.isNotEmpty() == true) {
+            AssetsList(data, callback)
+        } else {
+            MarginVertical(margin = 16.dp)
+            EmptyMessage(message = R.string.common_search_assets_alert_description)
         }
     }
 }

@@ -6,6 +6,7 @@ import androidx.lifecycle.lifecycleScope
 import coil.ImageLoader
 import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
+import javax.inject.Inject
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.mixin.impl.observeBrowserEvents
@@ -21,7 +22,6 @@ import jp.co.soramitsu.feature_staking_impl.databinding.FragmentSetupStakingBind
 import jp.co.soramitsu.staking.impl.presentation.common.rewardDestination.observeRewardDestinationChooser
 import jp.co.soramitsu.wallet.api.presentation.mixin.fee.FeeViews
 import jp.co.soramitsu.wallet.api.presentation.mixin.fee.displayFeeStatus
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class SetupStakingFragment : BaseFragment<SetupStakingViewModel>(R.layout.fragment_setup_staking) {

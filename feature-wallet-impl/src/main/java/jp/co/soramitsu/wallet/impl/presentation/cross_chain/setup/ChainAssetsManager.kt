@@ -1,5 +1,6 @@
 package jp.co.soramitsu.wallet.impl.presentation.cross_chain.setup
 
+import javax.inject.Inject
 import jp.co.soramitsu.common.compose.component.SelectorState
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.core.models.ChainId
@@ -19,7 +20,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
-import javax.inject.Inject
 import jp.co.soramitsu.wallet.api.presentation.WalletRouter as WalletRouterApi
 
 class ChainAssetsManager @Inject constructor(

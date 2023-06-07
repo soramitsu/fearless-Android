@@ -1,5 +1,6 @@
 package jp.co.soramitsu.staking.impl.presentation.common.rewardDestination
 
+import androidx.core.view.isVisible
 import jp.co.soramitsu.common.address.AddressChooserBottomSheetDialog
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -53,4 +54,8 @@ fun <V> BaseFragment<V>.observeRewardDestinationChooser(
     chooser.destinationRestake.setOnClickListener { viewModel.restakeClicked(viewModel) }
     chooser.payoutTarget.setWholeClickListener { viewModel.payoutTargetClicked(viewModel) }
     chooser.learnMore.setOnClickListener { viewModel.learnMoreClicked(viewModel) }
+
+    viewModel.canRestake.observe {
+        chooser.destinationRestake.isVisible = it
+    }
 }
