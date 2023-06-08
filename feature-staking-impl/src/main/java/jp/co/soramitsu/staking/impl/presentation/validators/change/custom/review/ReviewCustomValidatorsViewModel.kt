@@ -1,6 +1,9 @@
 package jp.co.soramitsu.staking.impl.presentation.validators.change.custom.review
 
+import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
+import javax.inject.Named
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -27,8 +30,6 @@ import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import javax.inject.Inject
-import javax.inject.Named
 
 @HiltViewModel
 class ReviewCustomValidatorsViewModel @Inject constructor(
@@ -113,6 +114,13 @@ class ReviewCustomValidatorsViewModel @Inject constructor(
     }
 
     fun nextClicked() {
-        router.openConfirmStaking()
+        viewModelScope.launch {
+            val validators = selectedValidators.first()
+            sharedStateSetup.mutate {
+                (it as? SetupStakingProcess.SelectBlockProducersStep.Validators)?.next(validators, SetupStakingProcess.ReadyToSubmit.SelectionMethod.CUSTOM)
+                    ?: it
+            }
+            router.openConfirmStaking()
+        }
     }
 }
