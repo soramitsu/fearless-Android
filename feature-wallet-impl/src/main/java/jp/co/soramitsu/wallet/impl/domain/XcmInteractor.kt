@@ -117,7 +117,7 @@ class XcmInteractor(
         amount: BigDecimal
     ): BigDecimal? {
         return runCatching {
-            val chain = chainRegistry.getChain(originNetworkId)
+            val chain = chainRegistry.getChain(destinationNetworkId)
             xcmService.getXcmOriginFee(
                 originChainId = originNetworkId,
                 destinationChainId = destinationNetworkId,
