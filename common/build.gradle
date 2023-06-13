@@ -53,6 +53,8 @@ android {
         buildConfigField "String", "SORA_CARD_KYC_ENDPOINT_URL",  readSecretInQuotes("SORA_CARD_KYC_ENDPOINT_URL")
         buildConfigField "String", "SORA_CARD_KYC_USERNAME", readSecretInQuotes("SORA_CARD_KYC_USERNAME")
         buildConfigField "String", "SORA_CARD_KYC_PASSWORD",  readSecretInQuotes("SORA_CARD_KYC_PASSWORD")
+
+        buildConfigField "String", "WEB_CLIENT_ID", readSecretInQuotes("WEB_CLIENT_ID")
     }
 
     buildTypes {
