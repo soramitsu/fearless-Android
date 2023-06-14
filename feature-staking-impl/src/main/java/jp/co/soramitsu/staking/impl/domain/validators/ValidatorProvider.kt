@@ -5,6 +5,7 @@ import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.runtime.ext.addressOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ternoaChainId
 import jp.co.soramitsu.shared_utils.extensions.fromHex
 import jp.co.soramitsu.staking.api.domain.api.AccountIdMap
 import jp.co.soramitsu.staking.api.domain.api.IdentityRepository
@@ -50,10 +51,18 @@ class ValidatorProvider(
         val identities = identityRepository.getIdentitiesFromIds(chain, requestedValidatorIds)
         val slashes = stakingRepository.getSlashes(chainId, requestedValidatorIds)
 
-        val rewardCalculator = if (chainId == soraMainChainId) {
-            rewardCalculatorFactory.createSoraWithCustomValidatorsSettings(electedValidatorExposures, validatorPrefs, chain.utilityAsset)
-        } else {
-            rewardCalculatorFactory.createManual(electedValidatorExposures, validatorPrefs, chainId)
+        val rewardCalculator = when (chainId) {
+            soraMainChainId -> {
+                rewardCalculatorFactory.createSoraWithCustomValidatorsSettings(electedValidatorExposures, validatorPrefs, chain.utilityAsset)
+            }
+
+            ternoaChainId -> {
+                rewardCalculatorFactory.createTernoaWithCustomValidatorsSettings(electedValidatorExposures, validatorPrefs, chain.utilityAsset)
+            }
+
+            else -> {
+                rewardCalculatorFactory.createManual(electedValidatorExposures, validatorPrefs, chainId)
+            }
         }
 
         val maxNominators = stakingConstantsRepository.maxRewardedNominatorPerValidator(chainId)
