@@ -108,7 +108,7 @@ fun bindEquilibriumAccountInfo(scale: String, runtime: RuntimeSnapshot): EqAccou
 }
 
 @UseCaseBinding
-fun bindAssetsAccountInfo(scale: String, runtime: RuntimeSnapshot): AssetsAccountInfo? { //AssetsAccountInfo {
+fun bindAssetsAccountInfo(scale: String, runtime: RuntimeSnapshot): AssetsAccountInfo? {
     val type = runtime.metadata.module(Modules.ASSETS).storage("Account").returnType()
 
     val dynamicInstance = type.fromHexOrNull(runtime, scale)?.cast<Struct.Instance>()

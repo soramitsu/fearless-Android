@@ -93,7 +93,6 @@ class ExistentialDepositUseCaseImpl(
                 minBalance
             }
         )
-
     }
 
     private fun getExistentialDepositRpcArgument(asset: Asset): Pair<String, Any>? {

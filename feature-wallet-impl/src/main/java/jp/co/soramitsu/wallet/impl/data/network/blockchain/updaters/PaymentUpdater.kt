@@ -211,7 +211,9 @@ class PaymentUpdater(
                     ChainAssetType.SoraAsset,
                     ChainAssetType.AssetId,
                     ChainAssetType.Token2,
-                    ChainAssetType.LiquidCrowdloan -> runtime.metadata.tokens().storage("Accounts").storageKey(runtime, accountId, currency)
+                    ChainAssetType.LiquidCrowdloan -> {
+                        runtime.metadata.tokens().storage("Accounts").storageKey(runtime, accountId, currency)
+                    }
 
                     ChainAssetType.Assets -> {
                         val storageKey = runtime.metadata.module(Modules.ASSETS).storage("Account").storageKey(runtime, currency, accountId)

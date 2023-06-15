@@ -63,7 +63,9 @@ class AssetSelectViewModel @Inject constructor(
                 filterChainId == null || it.token.configuration.chainId == filterChainId
             }
             .filter {
-                searchQuery.isEmpty() || it.token.configuration.symbol.contains(searchQuery, true) || it.token.configuration.name.orEmpty().contains(searchQuery, true)
+                searchQuery.isEmpty() ||
+                    it.token.configuration.symbol.contains(searchQuery, true) ||
+                    it.token.configuration.name.orEmpty().contains(searchQuery, true)
             }
             .filter { it.token.configuration.id != excludeAssetId }
             .sortedWith(compareByDescending<AssetModel> { it.fiatAmount.orZero() }.thenBy { it.token.configuration.chainName })

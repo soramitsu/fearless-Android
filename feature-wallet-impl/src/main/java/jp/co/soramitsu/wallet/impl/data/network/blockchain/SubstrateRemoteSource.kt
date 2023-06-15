@@ -49,5 +49,5 @@ interface SubstrateRemoteSource {
     suspend fun getEquilibriumAssetRates(asset: Asset): Map<BigInteger, EqOraclePricePoint?>
     suspend fun getEquilibriumAccountInfo(asset: Asset, accountId: AccountId): EqAccountInfo?
 
-    suspend fun getAssetsAccountInfo(asset: Asset, accountId: AccountId): AssetsAccountInfo? //EqAccountInfo?
+    suspend fun getAssetsAccountInfo(asset: Asset, accountId: AccountId): AssetsAccountInfo?
 }
