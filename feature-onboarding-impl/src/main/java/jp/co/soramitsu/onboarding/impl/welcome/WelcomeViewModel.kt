@@ -8,6 +8,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.model.ImportMode
 import jp.co.soramitsu.backup.BackupService
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -22,7 +23,6 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
-import javax.inject.Inject
 
 private const val SUBSTRATE_BLOCKCHAIN_TYPE = 0
 
