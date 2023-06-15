@@ -133,7 +133,7 @@ class StakingRelayChainScenarioInteractor(
         return stakingRelayChainScenarioRepository.electedExposuresInActiveEra(chain.id).map { exposuresMap ->
             val exposures = exposuresMap.values
 
-            val minimumNominatorBond = stakingRelayChainScenarioRepository.minimumNominatorBond(chain.utilityAsset)
+            val minimumNominatorBond = chain.utilityAsset?.let { stakingRelayChainScenarioRepository.minimumNominatorBond(it) }.orZero()
 
             NetworkInfo.RelayChain(
                 lockupPeriodInHours = lockupPeriod,
@@ -198,10 +198,11 @@ class StakingRelayChainScenarioInteractor(
             )
 
             else -> {
+                val utilityAsset = nominatorState.chain.utilityAsset
                 val inactiveReason = when {
-                    it.asset.bondedInPlanks.orZero() < minimumStake(
+                    utilityAsset != null && it.asset.bondedInPlanks.orZero() < minimumStake(
                         eraStakers,
-                        stakingRelayChainScenarioRepository.minimumNominatorBond(nominatorState.chain.utilityAsset)
+                        stakingRelayChainScenarioRepository.minimumNominatorBond(utilityAsset)
                     ) -> {
                         NominatorStatus.Inactive.Reason.MIN_STAKE
                     }
@@ -597,7 +598,7 @@ class StakingRelayChainScenarioInteractor(
         // see https://github.com/paritytech/substrate/blob/master/frame/staking/src/lib.rs#L1614
         // if account is nominating
         val resultedBalance = currentBondedBalance.minus(unbondAmount)
-        val minBond = stakingRelayChainScenarioRepository.minimumNominatorBond(stashState.chain.utilityAsset)
+        val minBond = stashState.chain.utilityAsset?.let { stakingRelayChainScenarioRepository.minimumNominatorBond(it) }.orZero()
         val isFullUnbond = resultedBalance.compareTo(BigInteger.ZERO) == 0
         val needChill = stashState is StakingState.Stash.Nominator &&
             // and resulting bonded balance is less than min bond

@@ -1,12 +1,13 @@
 package jp.co.soramitsu.wallet.impl.domain
 
+import java.math.BigInteger
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.sumByBigDecimal
 import jp.co.soramitsu.core.models.ChainAssetType
 import jp.co.soramitsu.core.models.ChainId
-import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.core.utils.isValidAddress
 import jp.co.soramitsu.core.utils.utilityAsset
+import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.wallet.api.domain.ExistentialDepositUseCase
@@ -18,7 +19,6 @@ import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
-import java.math.BigInteger
 
 class ValidateTransferUseCaseImpl(
     private val existentialDepositUseCase: ExistentialDepositUseCase,
@@ -77,9 +77,9 @@ class ValidateTransferUseCaseImpl(
                 )
             }
             else -> {
-                val utilityAsset = walletInteractor.getCurrentAsset(chainId, originChain.utilityAsset.id)
-                val utilityAssetBalance = utilityAsset.transferableInPlanks
-                val utilityAssetExistentialDeposit = existentialDepositUseCase(originChain.utilityAsset)
+                val utilityAsset = originChain.utilityAsset?.id?.let { walletInteractor.getCurrentAsset(chainId, it) }
+                val utilityAssetBalance = utilityAsset?.transferableInPlanks.orZero()
+                val utilityAssetExistentialDeposit = originChain.utilityAsset?.let { existentialDepositUseCase(it) }.orZero()
 
                 mapOf(
                     TransferValidationResult.InsufficientBalance to (amountInPlanks > transferable),
@@ -166,7 +166,7 @@ class ValidateTransferUseCaseImpl(
                     if (amount < amountInPlanks) return mapOf(TransferValidationResult.InsufficientBalance to true)
                     amount - amountInPlanks
                 }
-                eqAssetId == chain.utilityAsset.currency -> {
+                eqAssetId == chain.utilityAsset?.currency -> {
                     if (amount < fee + tip) return mapOf(TransferValidationResult.InsufficientUtilityAssetBalance to true)
                     amount - fee - tip
                 }

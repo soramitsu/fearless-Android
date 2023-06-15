@@ -32,7 +32,7 @@ fun contributeValidationFailure(
 
         is ContributeValidationFailure.CapExceeded.FromAmount -> {
             val formattedAmount = with(reason) {
-                maxAllowedContribution.formatCryptoDetail(chainAsset.symbolToShow)
+                maxAllowedContribution.formatCryptoDetail(chainAsset.symbol)
             }
 
             resourceManager.getString(R.string.crowdloan_cap_reached_title) to
@@ -41,7 +41,7 @@ fun contributeValidationFailure(
 
         is ContributeValidationFailure.LessThanMinContribution -> {
             val formattedAmount = with(reason) {
-                minContribution.formatCryptoDetail(chainAsset.symbolToShow)
+                minContribution.formatCryptoDetail(chainAsset.symbol)
             }
 
             resourceManager.getString(R.string.crowdloan_too_small_contribution_title) to

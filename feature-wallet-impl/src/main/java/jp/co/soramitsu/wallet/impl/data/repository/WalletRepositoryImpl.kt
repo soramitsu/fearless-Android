@@ -241,7 +241,7 @@ class WalletRepositoryImpl(
 
         return Fee(
             transferAmount = transfer.amount,
-            feeAmount = chain.utilityAsset.amountFromPlanks(fee)
+            feeAmount = chain.utilityAsset?.amountFromPlanks(fee).orZero()
         )
     }
 
@@ -293,14 +293,14 @@ class WalletRepositoryImpl(
         val existentialDepositInPlanks = walletConstants.existentialDeposit(chainAsset).orZero()
         val existentialDeposit = chainAsset.amountFromPlanks(existentialDepositInPlanks)
 
-        val utilityAssetLocal = assetCache.getAsset(metaId, accountId, chainAsset.chainId, chain.utilityAsset.id)!!
-        val utilityAsset = mapAssetLocalToAsset(utilityAssetLocal, chain.utilityAsset, chain.minSupportedVersion)
+        val utilityAssetLocal = assetCache.getAsset(metaId, accountId, chainAsset.chainId, chain.utilityAsset?.id.orEmpty())!!
+        val utilityAsset = chain.utilityAsset?.let { mapAssetLocalToAsset(utilityAssetLocal, it, chain.minSupportedVersion) }
 
-        val utilityExistentialDepositInPlanks = walletConstants.existentialDeposit(chain.utilityAsset).orZero()
-        val utilityExistentialDeposit = chain.utilityAsset.amountFromPlanks(utilityExistentialDepositInPlanks)
+        val utilityExistentialDepositInPlanks = chain.utilityAsset?.let { walletConstants.existentialDeposit(it) }.orZero()
+        val utilityExistentialDeposit = chain.utilityAsset?.amountFromPlanks(utilityExistentialDepositInPlanks).orZero()
 
         val tipInPlanks = kotlin.runCatching { walletConstants.tip(chain.id) }.getOrNull()
-        val tip = tipInPlanks?.let { chain.utilityAsset.amountFromPlanks(it) }
+        val tip = tipInPlanks?.let { chain.utilityAsset?.amountFromPlanks(it) }
 
         return transfer.validityStatus(
             senderTransferable = asset.transferable,
@@ -309,7 +309,7 @@ class WalletRepositoryImpl(
             recipientBalance = totalRecipientBalance,
             existentialDeposit = existentialDeposit,
             isUtilityToken = chainAsset.isUtility,
-            senderUtilityBalance = utilityAsset.total.orZero(),
+            senderUtilityBalance = utilityAsset?.total.orZero(),
             utilityExistentialDeposit = utilityExistentialDeposit,
             tip = tip
         )

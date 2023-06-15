@@ -5,6 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.liveData
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressModel
@@ -35,7 +36,6 @@ import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @HiltViewModel
 class ConfirmBondMoreViewModel @Inject constructor(
@@ -85,7 +85,7 @@ class ConfirmBondMoreViewModel @Inject constructor(
     val stakeCreatorBalanceFlow = flowOf {
         val balance = stakingScenarioInteractor.getAvailableForBondMoreBalance()
         val asset = assetFlow.first()
-        balance.formatCryptoDetail(asset.token.configuration.symbolToShow)
+        balance.formatCryptoDetail(asset.token.configuration.symbol)
     }.inBackground().share()
 
     val originAddressModelLiveData = liveData {

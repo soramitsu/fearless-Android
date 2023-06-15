@@ -1,6 +1,7 @@
 package jp.co.soramitsu.wallet.impl.data.network.blockchain
 
 import java.math.BigInteger
+import jp.co.soramitsu.common.data.network.runtime.binding.AssetsAccountInfo
 import jp.co.soramitsu.common.data.network.runtime.binding.EqAccountInfo
 import jp.co.soramitsu.common.data.network.runtime.binding.EqOraclePricePoint
 import jp.co.soramitsu.common.data.network.runtime.binding.ExtrinsicStatusEvent
@@ -47,4 +48,6 @@ interface SubstrateRemoteSource {
 
     suspend fun getEquilibriumAssetRates(asset: Asset): Map<BigInteger, EqOraclePricePoint?>
     suspend fun getEquilibriumAccountInfo(asset: Asset, accountId: AccountId): EqAccountInfo?
+
+    suspend fun getAssetsAccountInfo(asset: Asset, accountId: AccountId): AssetsAccountInfo? //EqAccountInfo?
 }

@@ -13,6 +13,6 @@ class CrowdloanSharedState(
 ) : SingleAssetSharedState(
     preferences = preferences,
     chainRegistry = chainRegistry,
-    filter = { chain, chainAsset -> chain.hasCrowdloans and (chain.utilityAsset.id == chainAsset.id) },
+    filter = { chain, chainAsset -> chain.hasCrowdloans and (chain.utilityAsset?.id == chainAsset.id) },
     preferencesKey = CROWDLOAN_SHARED_STATE
 )

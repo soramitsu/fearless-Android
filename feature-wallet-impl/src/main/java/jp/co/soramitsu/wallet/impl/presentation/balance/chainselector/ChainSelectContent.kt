@@ -113,7 +113,7 @@ fun Chain.toChainItemState() = ChainItemState(
     imageUrl = icon,
     title = name,
     isSelected = false,
-    tokenSymbols = assets.associate { it.id to it.symbolToShow }
+    tokenSymbols = assets.associate { it.id to it.symbol }
 )
 
 @Composable

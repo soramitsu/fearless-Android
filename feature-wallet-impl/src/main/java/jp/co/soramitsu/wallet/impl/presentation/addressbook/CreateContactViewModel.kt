@@ -46,7 +46,7 @@ class CreateContactViewModel @Inject constructor(
                 imageUrl = chain.icon,
                 title = chain.name,
                 isSelected = false,
-                tokenSymbols = chain.assets.associate { it.id to it.symbolToShow }
+                tokenSymbols = chain.assets.associate { it.id to it.symbol }
             )
         }
     }

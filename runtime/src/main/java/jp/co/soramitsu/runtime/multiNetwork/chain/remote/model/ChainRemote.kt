@@ -10,5 +10,6 @@ data class ChainRemote(
     val icon: String?,
     val addressPrefix: Int,
     val options: List<String>?,
-    val parentId: String?
+    val parentId: String?,
+    val disabled: Boolean = false
 )

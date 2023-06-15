@@ -263,8 +263,10 @@ class WalletFeatureModule {
     @Provides
     fun provideExistentialDepositUseCase(
         chainRegistry: ChainRegistry,
-        rpcCalls: RpcCalls
-    ): ExistentialDepositUseCase = ExistentialDepositUseCaseImpl(chainRegistry, rpcCalls)
+        rpcCalls: RpcCalls,
+        @Named(REMOTE_STORAGE_SOURCE)
+        remoteStorageSource: StorageDataSource
+    ): ExistentialDepositUseCase = ExistentialDepositUseCaseImpl(chainRegistry, rpcCalls, remoteStorageSource)
 
     @Provides
     fun provideValidateTransferUseCase(

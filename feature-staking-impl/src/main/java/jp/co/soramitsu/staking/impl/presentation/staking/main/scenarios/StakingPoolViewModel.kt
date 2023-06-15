@@ -1,5 +1,6 @@
 package jp.co.soramitsu.staking.impl.presentation.staking.main.scenarios
 
+import java.math.BigDecimal
 import jp.co.soramitsu.common.compose.component.AmountInputViewState
 import jp.co.soramitsu.common.compose.component.TitleValueViewState
 import jp.co.soramitsu.common.domain.model.StoryGroup
@@ -44,7 +45,6 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import java.math.BigDecimal
 
 class StakingPoolViewModel(
     private val stakingPoolInteractor: StakingPoolInteractor,
@@ -80,11 +80,11 @@ class StakingPoolViewModel(
     override val enteredAmountFlow = MutableStateFlow(initialValue)
 
     private val amountInputViewState: Flow<AmountInputViewState> = combine(enteredAmountFlow, currentAssetFlow) { amount, asset ->
-        val tokenBalance = asset.transferable.formatCrypto(asset.token.configuration.symbolToShow)
+        val tokenBalance = asset.transferable.formatCrypto(asset.token.configuration.symbol)
         val fiatAmount = amount?.applyFiatRate(asset.token.fiatRate)?.formatFiat(asset.token.fiatSymbol)
 
         AmountInputViewState(
-            tokenName = asset.token.configuration.symbolToShow,
+            tokenName = asset.token.configuration.symbol,
             tokenImage = asset.token.configuration.iconUrl,
             totalBalance = resourceManager.getString(R.string.common_balance_format, tokenBalance),
             fiatAmount = fiatAmount,
@@ -152,12 +152,12 @@ class StakingPoolViewModel(
 
             val minToJoinPoolInPlanks = stakingPoolInteractor.getMinToJoinPool(chainId)
             val minToJoinPool = asset.token.configuration.amountFromPlanks(minToJoinPoolInPlanks)
-            val minToJoinPoolFormatted = minToJoinPool.formatCryptoDetail(config.symbolToShow)
+            val minToJoinPoolFormatted = minToJoinPool.formatCryptoDetail(config.symbol)
             val minToJoinPoolFiat = asset.token.fiatAmount(minToJoinPool)?.formatFiat(asset.token.fiatSymbol)
 
             val minToCreatePoolInPlanks = stakingPoolInteractor.getMinToCreate(chainId)
             val minToCreatePool = asset.token.configuration.amountFromPlanks(minToCreatePoolInPlanks)
-            val minToCreatePoolFormatted = minToCreatePool.formatCryptoDetail(config.symbolToShow)
+            val minToCreatePoolFormatted = minToCreatePool.formatCryptoDetail(config.symbol)
             val minToCreatePoolFiat = asset.token.fiatAmount(minToCreatePool)?.formatFiat(asset.token.fiatSymbol)
 
             val existingPools = stakingPoolInteractor.getExistingPools(chainId).toString()

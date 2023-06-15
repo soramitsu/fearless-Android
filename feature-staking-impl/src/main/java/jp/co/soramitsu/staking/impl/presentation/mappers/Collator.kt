@@ -1,5 +1,6 @@
 package jp.co.soramitsu.staking.impl.presentation.mappers
 
+import java.math.BigDecimal
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.address.createEthereumAddressModel
@@ -13,7 +14,6 @@ import jp.co.soramitsu.staking.impl.domain.recommendations.settings.sortings.Blo
 import jp.co.soramitsu.staking.impl.presentation.validators.change.CollatorModel
 import jp.co.soramitsu.wallet.impl.domain.model.Token
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
-import java.math.BigDecimal
 
 suspend fun mapCollatorToCollatorModel(
     collator: Collator,
@@ -79,7 +79,7 @@ fun BlockProducersSorting<Collator>.toScoring(collator: Collator, token: Token):
         BlockProducersSorting.CollatorSorting.CollatorsOwnStakeSorting -> {
             val amount = token.amountFromPlanks(collator.bond)
             CollatorModel.Scoring.TwoFields(
-                amount.formatCrypto(token.configuration.symbolToShow),
+                amount.formatCrypto(token.configuration.symbol),
                 token.fiatAmount(amount)?.formatFiat(token.fiatSymbol)
             )
         }
@@ -89,14 +89,14 @@ fun BlockProducersSorting<Collator>.toScoring(collator: Collator, token: Token):
         BlockProducersSorting.CollatorSorting.EffectiveAmountBondedSorting -> {
             val amount = token.amountFromPlanks(collator.totalCounted)
             CollatorModel.Scoring.TwoFields(
-                amount.formatCrypto(token.configuration.symbolToShow),
+                amount.formatCrypto(token.configuration.symbol),
                 token.fiatAmount(amount)?.formatFiat(token.fiatSymbol)
             )
         }
         BlockProducersSorting.CollatorSorting.MinimumBondSorting -> {
             val amount = token.amountFromPlanks(collator.lowestTopDelegationAmount)
             CollatorModel.Scoring.TwoFields(
-                amount.formatCrypto(token.configuration.symbolToShow),
+                amount.formatCrypto(token.configuration.symbol),
                 token.fiatAmount(amount)?.formatFiat(token.fiatSymbol)
             )
         }

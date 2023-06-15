@@ -106,7 +106,7 @@ fun AssetListItem(
                     }
                 }
                 Text(
-                    text = state.displayName.uppercase(),
+                    text = state.assetSymbol.uppercase(),
                     style = MaterialTheme.customTypography.header3,
                     modifier = Modifier
                         .padding(vertical = 4.dp)
@@ -348,7 +348,6 @@ private fun PreviewAssetListItem() {
         chainAssetId = "",
         isSupported = true,
         isHidden = false,
-        displayName = "KSM",
         hasAccount = true,
         priceId = null,
         hasNetworkIssue = false,

@@ -5,6 +5,10 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.math.BigDecimal
+import java.math.BigInteger
+import java.math.RoundingMode
+import javax.inject.Inject
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressIcon
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -63,10 +67,6 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.retry
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import java.math.BigDecimal
-import java.math.BigInteger
-import java.math.RoundingMode
-import javax.inject.Inject
 
 private const val RETRY_TIMES = 3L
 
@@ -117,7 +117,7 @@ class SendSetupViewModel @Inject constructor(
                 imageUrl = chain.icon,
                 title = chain.name,
                 isSelected = false,
-                tokenSymbols = chain.assets.associate { it.id to it.symbolToShow }
+                tokenSymbols = chain.assets.associate { it.id to it.symbol }
             )
         }
     }
@@ -198,11 +198,11 @@ class SendSetupViewModel @Inject constructor(
         if (asset == null) {
             defaultAmountInputState
         } else {
-            val tokenBalance = asset.transferable.formatCrypto(asset.token.configuration.symbolToShow)
+            val tokenBalance = asset.transferable.formatCrypto(asset.token.configuration.symbol)
             val fiatAmount = amount.applyFiatRate(asset.token.fiatRate)?.formatFiat(asset.token.fiatSymbol)
 
             AmountInputViewState(
-                tokenName = asset.token.configuration.symbolToShow,
+                tokenName = asset.token.configuration.symbol,
                 tokenImage = asset.token.configuration.iconUrl,
                 totalBalance = resourceManager.getString(R.string.common_transferable_format, tokenBalance),
                 fiatAmount = fiatAmount,
@@ -251,14 +251,14 @@ class SendSetupViewModel @Inject constructor(
 
     private val utilityAssetFlow = assetFlow.mapNotNull { it }.flatMapLatest { asset ->
         val chain = walletInteractor.getChain(asset.token.configuration.chainId)
-        walletInteractor.assetFlow(chain.id, chain.utilityAsset.id)
+        walletInteractor.assetFlow(chain.id, chain.utilityAsset?.id.orEmpty())
     }
 
     private val feeInfoViewStateFlow: Flow<FeeInfoViewState> = combine(
         feeAmountFlow,
         utilityAssetFlow
     ) { feeAmount, utilityAsset ->
-        val feeFormatted = feeAmount?.formatCryptoDetail(utilityAsset.token.configuration.symbolToShow)
+        val feeFormatted = feeAmount?.formatCryptoDetail(utilityAsset.token.configuration.symbol)
         val feeFiat = feeAmount?.applyFiatRate(utilityAsset.token.fiatRate)?.formatFiat(utilityAsset.token.fiatSymbol)
 
         FeeInfoViewState(feeAmount = feeFormatted, feeAmountFiat = feeFiat)

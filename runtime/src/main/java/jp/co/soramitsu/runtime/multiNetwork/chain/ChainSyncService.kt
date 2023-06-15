@@ -16,10 +16,14 @@ class ChainSyncService(
     suspend fun syncUp() = withContext(Dispatchers.Default) {
         val localChainsJoinedInfo = dao.getJoinChainInfo()
 
-        val chains = chainFetcher.getChains().filter { it.chainId != genshiroChainId } // genshiro has metadata v12 - not supported
-        val assets = chainFetcher.getAssets()
-
-        val remoteChains = mapChainsRemoteToChains(chains, assets)
+        val remoteChains = chainFetcher.getChains()
+            .filter {
+                !it.disabled && (it.assets?.isNotEmpty() == true)
+                    && it.chainId != genshiroChainId //todo add genshiro type to json
+            }
+            .map {
+                it.toChain()
+            }
 
         val localChains = localChainsJoinedInfo.map(::mapChainLocalToChain)
 

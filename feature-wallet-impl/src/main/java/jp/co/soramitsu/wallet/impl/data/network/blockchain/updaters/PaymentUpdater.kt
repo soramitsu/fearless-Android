@@ -14,9 +14,9 @@ import jp.co.soramitsu.common.utils.tokens
 import jp.co.soramitsu.core.model.StorageChange
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.core.models.ChainAssetType
-import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.core.updater.SubscriptionBuilder
 import jp.co.soramitsu.core.updater.Updater
+import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.coredb.dao.OperationDao
 import jp.co.soramitsu.coredb.model.OperationLocal
 import jp.co.soramitsu.runtime.ext.addressOf
@@ -24,11 +24,13 @@ import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.shared_utils.runtime.AccountId
 import jp.co.soramitsu.shared_utils.runtime.RuntimeSnapshot
+import jp.co.soramitsu.shared_utils.runtime.metadata.module
 import jp.co.soramitsu.shared_utils.runtime.metadata.storage
 import jp.co.soramitsu.shared_utils.runtime.metadata.storageKey
 import jp.co.soramitsu.wallet.api.data.cache.AssetCache
 import jp.co.soramitsu.wallet.api.data.cache.bind9420AccountInfo
 import jp.co.soramitsu.wallet.api.data.cache.bindAccountInfoOrDefault
+import jp.co.soramitsu.wallet.api.data.cache.bindAssetsAccountData
 import jp.co.soramitsu.wallet.api.data.cache.bindEquilibriumAccountData
 import jp.co.soramitsu.wallet.api.data.cache.bindOrmlTokensAccountDataOrDefault
 import jp.co.soramitsu.wallet.api.data.cache.updateAsset
@@ -100,7 +102,7 @@ class PaymentUpdater(
                 val keyResult = runCatching {
                     constructKey(runtime, asset, accountId)
                 }.onFailure {
-                    Log.d("PaymentUpdater", "Failed to construct storage key for asset ${asset.symbolToShow} (${asset.id}) $it ")
+                    Log.d("PaymentUpdater", "Failed to construct storage key for asset ${asset.symbol} (${asset.id}) $it ")
                 }
 
                 keyResult.getOrNull()?.let { key ->
@@ -145,6 +147,8 @@ class PaymentUpdater(
                 ChainAssetType.VToken,
                 ChainAssetType.SoraAsset,
                 ChainAssetType.VSToken,
+                ChainAssetType.AssetId,
+                ChainAssetType.Token2,
                 ChainAssetType.Stable -> {
                     val ormlTokensAccountData = bindOrmlTokensAccountDataOrDefault(change.value, runtime)
 
@@ -168,9 +172,18 @@ class PaymentUpdater(
                     }
                 }
 
+                ChainAssetType.Assets -> {
+                    val assetsAccountInfo = bindAssetsAccountData(change.value, runtime)
+                    assetCache.updateAsset(metaId, accountId, asset) {
+                        it.copy(
+                            accountId = accountId,
+                            freeInPlanks = assetsAccountInfo?.balance.orZero()
+                        )
+                    }
+                }
                 ChainAssetType.Unknown -> Unit
             }
-        }.onFailure { Log.d("PaymentUpdater", "Failed to handle response for asset ${asset.symbolToShow} (${asset.id}) $it ") }
+        }.onFailure { Log.d("PaymentUpdater", "Failed to handle response for asset ${asset.symbol} (${asset.id}) $it ") }
     }
 
     private fun constructKey(
@@ -196,9 +209,16 @@ class PaymentUpdater(
                     ChainAssetType.ForeignAsset,
                     ChainAssetType.StableAssetPoolToken,
                     ChainAssetType.SoraAsset,
+                    ChainAssetType.AssetId,
+                    ChainAssetType.Token2,
                     ChainAssetType.LiquidCrowdloan -> runtime.metadata.tokens().storage("Accounts").storageKey(runtime, accountId, currency)
 
-                    ChainAssetType.Unknown -> error("Not supported type for token ${asset.symbolToShow} in ${chain.name}")
+                    ChainAssetType.Assets -> {
+                        val storageKey = runtime.metadata.module(Modules.ASSETS).storage("Account").storageKey(runtime, currency, accountId)
+                        storageKey
+                    }
+
+                    ChainAssetType.Unknown -> error("Not supported type for token ${asset.symbol} in ${chain.name}")
                 }
             }
         }
@@ -242,7 +262,7 @@ class PaymentUpdater(
             hash = extrinsic.hash,
             chainId = chain.id,
             address = chain.addressOf(accountId),
-            chainAssetId = chain.utilityAsset.id, // TODO do not hardcode chain asset id
+            chainAssetId = chain.utilityAsset?.id.orEmpty(), // TODO do not hardcode chain asset id
             amount = extrinsic.amountInPlanks,
             senderAddress = senderAddress,
             receiverAddress = recipientAddress,

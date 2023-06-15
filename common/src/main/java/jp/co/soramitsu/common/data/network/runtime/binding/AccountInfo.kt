@@ -1,5 +1,6 @@
 package jp.co.soramitsu.common.data.network.runtime.binding
 
+import java.math.BigInteger
 import jp.co.soramitsu.common.utils.Modules
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.system
@@ -11,7 +12,6 @@ import jp.co.soramitsu.shared_utils.runtime.definitions.types.composite.Struct
 import jp.co.soramitsu.shared_utils.runtime.definitions.types.fromHexOrNull
 import jp.co.soramitsu.shared_utils.runtime.metadata.module
 import jp.co.soramitsu.shared_utils.runtime.metadata.storage
-import java.math.BigInteger
 
 class AccountData(
     val free: BigInteger,
@@ -21,6 +21,11 @@ class AccountData(
 )
 
 class EqAccountData(
+    val lock: BigInteger,
+    val balances: Map<BigInteger, BigInteger>
+)
+
+class AssetsAccountData(
     val lock: BigInteger,
     val balances: Map<BigInteger, BigInteger>
 )
@@ -42,6 +47,10 @@ class OrmlTokensAccountData(
 class EqAccountInfo(
     val nonce: BigInteger,
     val data: EqAccountData
+)
+
+class AssetsAccountInfo(
+    val balance: BigInteger
 )
 
 class AccountInfo(
@@ -96,6 +105,19 @@ fun bindEquilibriumAccountInfo(scale: String, runtime: RuntimeSnapshot): EqAccou
         nonce = bindNonce(dynamicInstance["nonce"]),
         data = bindEquilibriumAccountData(data?.value)
     )
+}
+
+@UseCaseBinding
+fun bindAssetsAccountInfo(scale: String, runtime: RuntimeSnapshot): AssetsAccountInfo? { //AssetsAccountInfo {
+    val type = runtime.metadata.module(Modules.ASSETS).storage("Account").returnType()
+
+    val dynamicInstance = type.fromHexOrNull(runtime, scale)?.cast<Struct.Instance>()
+
+    return dynamicInstance?.let {
+        AssetsAccountInfo(
+            balance = bindNumber(dynamicInstance["balance"])
+        )
+    }
 }
 
 @UseCaseBinding

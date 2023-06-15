@@ -12,8 +12,7 @@ android {
         targetSdkVersion rootProject.targetSdkVersion
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        buildConfigField "String", "CHAINS_URL", "\"https://raw.githubusercontent.com/soramitsu/fearless-utils/v5/chains/chains_dev.json\""
-        buildConfigField "String", "ASSETS_URL", "\"https://raw.githubusercontent.com/soramitsu/fearless-utils/v5/chains/assets_dev.json\""
+        buildConfigField "String", "CHAINS_URL", "\"https://raw.githubusercontent.com/soramitsu/shared-features-utils/new-assets/chains/chains_dev.json\""
         buildConfigField "String", "TYPES_URL", "\"https://raw.githubusercontent.com/soramitsu/fearless-utils/v5/type_registry/all_chains_types_android.json\""
         buildConfigField "String", "APP_VERSION_NAME", "\"${rootProject.versionName}\""
     }
@@ -24,8 +23,7 @@ android {
         }
 
         release {
-            buildConfigField "String", "ASSETS_URL", "\"https://raw.githubusercontent.com/soramitsu/fearless-utils/v5/chains/assets.json\""
-            buildConfigField "String", "CHAINS_URL", "\"https://raw.githubusercontent.com/soramitsu/fearless-utils/v5/chains/chains.json\""
+            buildConfigField "String", "CHAINS_URL", "\"https://raw.githubusercontent.com/soramitsu/shared-features-utils/new-assets/chains/chains.json\""
         }
     }
 
