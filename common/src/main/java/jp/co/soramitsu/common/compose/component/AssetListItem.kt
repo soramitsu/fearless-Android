@@ -20,6 +20,8 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Alignment.Companion.CenterEnd
+import androidx.compose.ui.Alignment.Companion.CenterStart
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -28,6 +30,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
@@ -87,110 +90,119 @@ fun AssetListItem(
                     .align(CenterVertically)
             )
             MarginHorizontal(margin = 8.dp)
-            Column(
-                Modifier
-                    .padding(vertical = 8.dp)
-                    .align(CenterVertically)
+            Box(
+                Modifier.fillMaxWidth()
             ) {
-                Row {
-                    Text(
-                        text = state.assetName.uppercase(),
-                        style = MaterialTheme.customTypography.capsTitle2,
-                        modifier = Modifier
-                            .alpha(0.64f)
-                            .testTag("AssetListItem_${state.assetSymbol}_chain_name")
-                    )
-                    if (state.isTestnet) {
-                        MarginHorizontal(margin = 4.dp)
-                        TestnetBadge()
-                    }
-                }
-                Text(
-                    text = state.assetSymbol.uppercase(),
-                    style = MaterialTheme.customTypography.header3,
-                    modifier = Modifier
-                        .padding(vertical = 4.dp)
-                        .testTag("AssetListItem_${state.assetSymbol}_symbol")
-                )
-                Row {
-                    Text(
-                        text = state.assetTokenFiat.orEmpty(),
-                        style = MaterialTheme.customTypography.body1,
-                        modifier = Modifier
-                            .alpha(0.64f)
-                            .testTag("AssetListItem_${state.assetSymbol}_change_fiat")
-                    )
-                    Text(
-                        text = state.assetTokenRate.orEmpty(),
-                        style = MaterialTheme.customTypography.body1.copy(
-                            color = assetRateColor
-                        ),
-                        modifier = Modifier
-                            .padding(start = 4.dp)
-                            .testTag("AssetListItem_${state.assetSymbol}_change_percent")
-                    )
-                }
-            }
-            Spacer(
-                modifier = Modifier
-                    .height(1.dp)
-                    .weight(1.0f)
-            )
-
-            if (hasIssues) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_alert_16),
-                    tint = alertYellow,
-                    modifier = Modifier
-                        .padding(vertical = 8.dp)
-                        .size(24.dp)
-                        .align(CenterVertically)
-                        .testTag("AssetListItem_${state.assetSymbol}_alert_icon"),
-                    contentDescription = null
-                )
-            } else {
                 Column(
                     Modifier
                         .padding(vertical = 8.dp)
-                        .align(CenterVertically)
+                        .align(CenterStart)
                 ) {
-                    if (state.assetChainUrls.size > 1) {
-                        AssetChainsBadge(
-                            urls = state.assetChainUrls.values.toList(),
-                            modifier = Modifier
-                                .align(Alignment.End)
-                                .testTag("AssetListItem_${state.assetSymbol}_chains")
-                        )
-                    } else {
-                        Box(modifier = Modifier.height(16.dp))
-                    }
-                    state.assetTransferableBalance?.let {
+                    Row {
                         Text(
-                            text = it,
+                            text = state.assetName.uppercase(),
+                            style = MaterialTheme.customTypography.capsTitle2,
+                            modifier = Modifier
+                                .alpha(0.64f)
+                                .testTag("AssetListItem_${state.assetSymbol}_chain_name")
+                        )
+                        if (state.isTestnet) {
+                            MarginHorizontal(margin = 4.dp)
+                            TestnetBadge()
+                        }
+                        if (hasIssues.not()) {
+                            Spacer(
+                                modifier = Modifier
+                                    .height(1.dp)
+                                    .weight(1.0f)
+                            )
+                            if (state.assetChainUrls.size > 1) {
+                                AssetChainsBadge(
+                                    urls = state.assetChainUrls.values.toList(),
+                                    modifier = Modifier
+                                        .testTag("AssetListItem_${state.assetSymbol}_chains")
+                                )
+                            }
+                        }
+                    }
+                    Row {
+                        Text(
+                            text = state.assetSymbol.uppercase(),
                             style = MaterialTheme.customTypography.header3,
                             modifier = Modifier
                                 .padding(vertical = 4.dp)
-                                .padding(start = 4.dp)
-                                .align(Alignment.End)
-                                .testTag("AssetListItem_${state.assetSymbol}_transferable")
+                                .align(CenterVertically)
+                                .testTag("AssetListItem_${state.assetSymbol}_symbol")
                         )
-                    } ?: Shimmer(
-                        Modifier
-                            .padding(
-                                top = 8.dp,
-                                bottom = 4.dp
+                        if (hasIssues.not()) {
+                            Spacer(
+                                modifier = Modifier
+                                    .height(1.dp)
+                                    .weight(1.0f)
                             )
-                            .size(height = 16.dp, width = 54.dp)
-                            .align(Alignment.End)
-                    )
-                    Text(
-                        text = state.assetTransferableBalanceFiat.orEmpty(),
-                        style = MaterialTheme.customTypography.body1,
+                            if (state.assetTransferableBalance == null) {
+                                Shimmer(
+                                    Modifier
+                                        .padding(top = 8.dp, bottom = 4.dp)
+                                        .size(height = 16.dp, width = 54.dp)
+                                )
+                            } else {
+                                Text(
+                                    text = state.assetTransferableBalance,
+                                    style = MaterialTheme.customTypography.header3.copy(textAlign = TextAlign.End),
+                                    modifier = Modifier
+                                        .padding(vertical = 4.dp)
+                                        .padding(start = 4.dp)
+                                        .testTag("AssetListItem_${state.assetSymbol}_transferable")
+                                )
+                            }
+                        }
+                    }
+                    Row {
+                        Text(
+                            text = state.assetTokenFiat.orEmpty(),
+                            style = MaterialTheme.customTypography.body1,
+                            modifier = Modifier
+                                .alpha(0.64f)
+                                .testTag("AssetListItem_${state.assetSymbol}_change_fiat")
+                        )
+                        Text(
+                            text = state.assetTokenRate.orEmpty(),
+                            style = MaterialTheme.customTypography.body1.copy(
+                                color = assetRateColor
+                            ),
+                            modifier = Modifier
+                                .padding(start = 4.dp)
+                                .testTag("AssetListItem_${state.assetSymbol}_change_percent")
+                        )
+                        if (hasIssues.not()) {
+                            Spacer(
+                                modifier = Modifier
+                                    .height(1.dp)
+                                    .weight(1.0f)
+                            )
+                            Text(
+                                text = state.assetTransferableBalanceFiat.orEmpty(),
+                                style = MaterialTheme.customTypography.body1,
+                                modifier = Modifier
+                                    .alpha(0.64f)
+                                    .padding(start = 4.dp)
+                                    .testTag("AssetListItem_${state.assetSymbol}_transferable_fiat")
+                            )
+                        }
+                    }
+                }
+
+                if (hasIssues) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_alert_16),
+                        tint = alertYellow,
                         modifier = Modifier
-                            .alpha(0.64f)
-                            .padding(start = 4.dp)
-                            .align(Alignment.End)
-                            .testTag("AssetListItem_${state.assetSymbol}_transferable_fiat")
+                            .padding(vertical = 8.dp)
+                            .size(24.dp)
+                            .align(CenterEnd)
+                            .testTag("AssetListItem_${state.assetSymbol}_alert_icon"),
+                        contentDescription = null
                     )
                 }
             }
@@ -362,6 +374,7 @@ private fun PreviewAssetListItem() {
         Box(modifier = Modifier.background(Color.Black)) {
             Column {
                 AssetListItem(state) {}
+                AssetListItem(state.copy(isTestnet = true, assetTransferableBalance = "123,456,123,456,123,456,789,456,789.01234")) {}
                 AssetListItem(state.copy(hasAccount = false, isTestnet = true)) {}
                 AssetListItemShimmer(
                     state = AssetListItemShimmerViewState(assetIconUrl, assetChainUrlsMap.values.toList())
