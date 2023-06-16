@@ -1,272 +1,795 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
-    <string name="common_next">Далее</string>
+    <string name="ECDSA_crypto_type">ECDSA | BTC/ETH совместимый</string>
+
+    <string name="about_announcement">Следить за новостями в Telegram</string>
+    <string name="about_contact_us">Свяжитесь с нами</string>
+    <string name="about_crowdloans">Узнайте больше о Crowdloans</string>
+    <string name="about_github">Исходный код на GitHub</string>
+    <string name="about_instagram">Поставьте лайк в Instagram</string>
+    <string name="about_medium">Читать на Medium</string>
+    <string name="about_privacy">Политика конфиденциальности</string>
+    <string name="about_support">Обратиться за поддержкой</string>
+    <string name="about_telegram">Присоединяйтесь к группе Telegram</string>
+    <string name="about_terms">Условия использования</string>
+    <string name="about_title">О приложении</string>
+    <string name="about_twitter">Следить за новостями в Twitter</string>
+    <string name="about_version">Версия</string>
+    <string name="about_website">Официальный сайт</string>
+    <string name="about_wiki">Узнать в Wiki</string>
+    <string name="about_youtube">Подписаться на YouTube</string>
+
+    <string name="account_add_already_exists_message">Аккаунт уже существует. Пожалуйста, попробуйте другой.</string>
+    <string name="account_address">Адрес аккаунта</string>
+    <string name="account_confirmation_details">Выберите слова в правильном порядке</string>
+    <string name="account_confirmation_title">Подтверждение</string>
+    <string name="account_create_details">Используйте нецифровой носитель для сохранения, например, выпишите слова на бумагу.</string>
+    <string name="account_create_title">Мнемоника</string>
+    <string name="account_creation_info">Мнемоническая фраза используется для восстановления доступа к аккаунту. Запишите ее, мы не сможем восстановить доступ к аккаунту без нее!</string>
+    <string name="account_custom_secret">Аккаунты с измененным секретом</string>
+    <string name="account_delete_confirm">Забыть</string>
+    <string name="account_delete_confirmation_description">Прежде чем продолжить, убедитесь, что вы создали резервную копию своей учетной записи.</string>
+    <string name="account_delete_confirmation_title">Забыть аккаунт?</string>
+    <string name="account_error_try_another_one">Пожалуйста, попробуйте другой.</string>
+    <string name="account_export">Экспорт аккаунта</string>
+    <string name="account_export_action">Экспортировать</string>
+    <string name="account_export_ethereum_action">Экспорт ethereum</string>
+    <string name="account_export_password_change">Сменить пароль</string>
+    <string name="account_export_substrate_action">Экспорт substrate</string>
+    <string name="account_export_warning_message">Передача или копирование вашего секрета - операция с высоким риском, не отправляйте ее никому. Хотите продолжить процесс обмена / копирования?</string>
+    <string name="account_export_warning_title">Будьте осторожны</string>
+    <string name="account_import_ethereum_raw_seed_placeholder">ETH сид</string>
+    <string name="account_import_invalid_keystore">Неверный формат данных восстановления. Пожалуйста, удостоверьтесь, что данные соответствуют json формату.</string>
+    <string name="account_import_invalid_seed">Seed неверный. Пожалуйста, убедитесь, что введенные данные содержат 64 hex символа.</string>
+    <string name="account_import_json_no_network">JSON не содержит информации о сети. Пожалуйста, укажите её в блоке дополнительных ниже.</string>
+    <string name="account_import_password_placeholder">Пароль</string>
+    <string name="account_import_substrate_raw_seed_placeholder">Substrate сид</string>
+    <string formatted="false" name="account_import_wrong_network">Сеть в JSON - это %s , а не такая, как у выбранной %s . Выбранная сеть будет использоваться для импорта аккаунта.</string>
+    <string name="account_info_title">Аккаунт</string>
+    <string name="account_needed_message">У вас нет учетной записи в этой сети, вы можете создать или импортировать учетную запись.</string>
+    <string name="account_needed_title">Необходим аккаунт</string>
+    <string name="account_no_chain_projection">Аккаунт не найден</string>
+    <string name="account_shared_secret">Аккаунты с общим секретом</string>
+    <string name="account_template">%s аккаунт</string>
+
+    <string name="accounts_add_account">Добавить аккаунт</string>
+    <string name="accounts_for_export">Аккаунты для экспорта</string>
+    <string name="accounts_with_changed_key">Аккаунты с измененным ключом</string>
+    <string name="accounts_with_one_key">Аккаунты с одним ключом</string>
+
+    <string name="add_node_button_title">Добавить ноду</string>
+
+    <string name="additional">Дополнительно</string>
+
+    <string name="address_history_empty_message">Нет истории транзакций</string>
+    <string name="address_not_valid_error_message">Неверный формат адреса.\nУбедитесь, что адрес\nсоответствует сети</string>
+    <string name="address_not_valid_error_title">Не адрес сети</string>
+
+    <string name="alert_add_ethereum_message">Добавить аккаунты Moonbeam и Moonriver?</string>
+    <string name="alert_add_ethereum_title">ETH аккаунты</string>
+    <string name="alert_oversubscribed_alert_message">Вы не будете получать награды от этого валидатора в этой эре</string>
+    <string name="alert_oversubscribed_alert_title">Превышен лимит номинаторов для валидатора</string>
+    <string name="alert_suggested_validators">Предложения алгоритмических валидаторов не являются финансовыми консультациями или советами. Стейкинг - это деятельность с высоким риском, и предложения алгоритмических валидаторов не обязательно снижают этот риск. Валидатор, предложенный алгоритмом, все равно может быть слэширован. Валидатор, предложенный алгоритмом, также может изменить свои параметры (например, размер комиссии и т.д.) в любое время после того, как он был предложен и/или выбран. Вы можете потерять токены или вознаграждения по этим или другим причинам. Ставьте токены и используйте предложения валидаторов только по своему усмотрению, после проведения должной проверки и тщательного рассмотрения сопутствующих рисков.</string>
+
+    <string name="all_done">Все готово</string>
+    <string name="all_done_alert_result_stub">Результат</string>
+    <string name="all_done_alert_success_stub">Успешно</string>
+
+    <string name="already_have_account">У меня уже есть аккаунт</string>
+
+    <string name="app_version_unsupported_text">Текущая версия приложения больше не поддерживается. Требуется обновление</string>
+
+    <string name="applied_fearless_wallet_bonus">Бонус кошелька Fearless применен</string>
+
+    <string name="apply_fearless_referal_wallet">Нажмите, чтобы применить бонус кошелька Fearless</string>
+    <string name="apply_fearless_wallet_bonus">Нажмите, чтобы применить бонус кошелька Fearless</string>
+
+    <string name="assetdetails_balance_locked">Заблокировано</string>
+    <string name="assetdetails_balance_title">Баланс</string>
+    <string name="assetdetails_balance_total">Всего</string>
+    <string name="assetdetails_balance_transferable">Доступно</string>
+
+    <string name="assets_search_hint">Поиск по токену</string>
+
+    <string name="beacon_connect_warning">Внимание: Нажимая «Подключиться», вы разрешаете этому dapp просматривать ваш публичный адрес. Это важный шаг для защиты ваших данных от потенциальных рисков фишинга.</string>
+    <string name="beacon_connected_to">Подключено к</string>
+    <string name="beacon_exit_message">Вы хотите закрыть это подключение?</string>
+    <string name="beacon_transaction_warning">Внимание: Убедитесь, что вы доверяете этому сайту. Взаимодействуя с этим сайтом, вы даете доступ к своим средствам.</string>
+
+    <string name="buy_completed">Покупка совершена! Ожидайте до 60 минут. Вы можете отслеживать статус по электронной почте.</string>
+
+    <string name="chain_selection_all_networks">Все сети</string>
+    <string name="chain_unsupported_text">Эта сеть недоступна в текущей версии приложения. Пожалуйста, обновите приложение до последней версии</string>
+
+    <string name="chip_history">История</string>
+    <string name="chip_my_wallets">Мои счета</string>
+    <string name="chip_paste">Из буфера</string>
+    <string name="chip_qr">QR код</string>
+
+    <string name="choose_amount_asset">Токен</string>
+    <string name="choose_amount_checking">Проверка…</string>
+    <string name="choose_amount_error_balance">К сожалению, запрос проверки баланса не выполнен. Пожалуйста, попробуйте позже.</string>
+    <string name="choose_amount_error_fee">Извините, сервис переводов недоступен. Пожалуйста, попробуйте позже.</string>
+    <string name="choose_amount_error_too_big">К сожалению, у вас недостаточно средств для совершения данной операции</string>
+    <string name="choose_amount_fee">Комиссия</string>
+    <string name="choose_amount_network_error">Сеть недоступна</string>
+    <string name="choose_amount_tip">Чаевые</string>
+    <string name="choose_amount_to">Кому</string>
+
+    <string name="collator">Коллатор</string>
+    <string name="collator_details_delegators">Делегаторы</string>
+
+    <string name="coming_soon">Скоро будет…</string>
+    <string name="coming_soon_dev_status">Статус разработки</string>
+
+    <string name="comming_soon_roadmap">План разработки</string>
+
+    <string name="common_account">Счет</string>
+    <string name="common_action_buy">Купить</string>
+    <string name="common_action_hide">Скрыть</string>
+    <string name="common_action_receive">Получить</string>
+    <string name="common_action_send">Перевести</string>
+    <string name="common_action_show">Показать</string>
+    <string name="common_action_swap">Обменять</string>
+    <string name="common_action_teleport">Телепорт</string>
+    <string name="common_active_with_count">Активные (%s)</string>
+    <string name="common_add">Добавить</string>
+    <string name="common_address">Адрес</string>
+    <string name="common_advanced">Продвинутый</string>
+    <string name="common_amount">Сумма</string>
+    <string name="common_amount_low">Сумма слишком мала</string>
+    <string name="common_applied">Применено</string>
+    <string name="common_apply">Применить</string>
+    <string name="common_are_you_sure">Вы уверены?</string>
+    <string name="common_available_format">Доступно: %s</string>
+    <string name="common_balance">Баланс</string>
+    <string name="common_balance_format">Баланс: %s</string>
+    <string name="common_block">Заблокировать</string>
+    <string name="common_bonus">Бонус</string>
+    <string name="common_call">Вызов</string>
     <string name="common_cancel">Отмена</string>
-    <string name="common_skip">Пропустить</string>
-    <string name="common_use">Использовать</string>
-    <string name="common_error_general_title">Ошибка</string>
+    <string name="common_change">Изменить</string>
+    <string name="common_choose_file">Загрузить файл</string>
+    <string name="common_choose_network">Выберите сеть</string>
+    <string name="common_claim">Получить</string>
+    <string name="common_claimable">Claimable</string>
+    <string name="common_close">Закрыть</string>
+    <string name="common_completed">Успешно</string>
+    <string name="common_completed_with_count">Завершённые (%s)</string>
+    <string name="common_confirm">Подтвердить</string>
+    <string name="common_confirm_title">Подтверждение</string>
+    <string name="common_confirmation_title">Уверены ли вы?</string>
+    <string name="common_confirmed">Подтверждено</string>
+    <string name="common_connect">Подключиться</string>
+    <string name="common_connection_problems">Проблема интернет-соединения</string>
+    <string name="common_continue">Продолжить</string>
+    <string name="common_copied">Скопировано в буфер обмена</string>
     <string name="common_copy_address">Копировать адрес</string>
+    <string name="common_copy_id">Копировать идентификатор</string>
+    <string name="common_create">Создать</string>
+    <string name="common_crypto_type">Тип ключевой пары</string>
+    <string name="common_currency">Валюта</string>
+    <string name="common_date">Дата</string>
+    <string name="common_destination_network">Сеть назначения</string>
+    <string name="common_destination_network_fee">Комиссия сети назначения</string>
+    <string name="common_destroy">Уничтожить</string>
+    <string name="common_details">Подробности</string>
+    <string name="common_disclaimer">Дисклеймер</string>
+    <string name="common_disconnect">Отключиться</string>
+    <string name="common_done">Готово</string>
+    <string name="common_edit">Редактировать</string>
+    <string name="common_email_chooser_title">Выберите приложение для работы с почтой</string>
+    <string name="common_error_general_message">Мы уже решаем проблему. Пожалуйста, попробуйте позже.</string>
+    <string name="common_error_general_title">Ошибка</string>
+    <string name="common_error_internal">Внутренняя ошибка</string>
+    <string name="common_error_network">Возникла ошибка при обмене данными с удаленным сервером</string>
+    <string name="common_event">Событие</string>
+    <string name="common_existential_warning_message">Эта операция приведет к тому, что счет опустится ниже экзистенциального депозита, что приведет к его деактивации (счет будет стерт из состояния блокчейна для экономии места). Если вы решите продолжить, вы потеряете все средства, которые находятся ниже суммы экзистенциального депозита, установленного сетью. За подробной информацией обращайтесь к официальной документации сети (например, Polkadot Wiki). Fearless Wallet является полностью не опекунским приложением и не контролирует и не знает о любых ваших действиях в самой сети. ПРОДОЛЖАЙТЕ ТОЛЬКО В ТОМ СЛУЧАЕ, ЕСЛИ ВЫ ПОЛНОСТЬЮ СОГЛАСНЫ И ПОНИМАЕТЕ ПОСЛЕДСТВИЯ.</string>
+    <string name="common_existential_warning_title">Операция сделает аккаунт неактивным</string>
+    <string name="common_filter_sort_header">Сортировать по:</string>
+    <string name="common_friend_bonus">Бонус для вашего друга</string>
+    <string name="common_got_it">Понятно</string>
+    <string name="common_history">История</string>
+    <plurals name="common_hours_format">
+        <item quantity="one">%d час</item>
+        <item quantity="few">%d часа</item>
+        <item quantity="many">%d часов</item>
+        <item quantity="other">%d час</item>
+    </plurals>
+    <string name="common_important">Важно</string>
+    <string name="common_info">Информация</string>
+    <string name="common_invalid_hard_soft_numeric_password_message">Пожалуйста, удостоверьтесь, что введенная строка это комбинация //\'hard\' и /\'soft\' где \'hard\' и \'soft\' могут быть любой последовательностью символов, не включая /.  Путь может оканчиваться ///\'password\'. Например, //0/1//0///mypass</string>
+    <string name="common_learn_more">Узнать больше</string>
+    <string name="common_left">%s осталось</string>
+    <string name="common_liquidity_provider_fee">Комиссия LP</string>
+    <string name="common_max">Все</string>
+    <string name="common_min_received">Мин. покупка</string>
+    <string name="common_module">Модуль</string>
+    <string name="common_network">Сеть</string>
+    <string name="common_network_fee">Комиссия сети</string>
+    <string name="common_next">Далее</string>
+    <string name="common_no">Нет</string>
+    <string name="common_no_screenshot_message">Не делайте скриншоты, которые могут быть собраны сторонними вредоносными программами</string>
+    <string name="common_no_screenshot_title">Не делайте скриншоты</string>
+    <string name="common_not_enough_funds_controller_message">К сожалению, у контроллер аккаунта недостаточно средств для оплаты сетевого сбора.</string>
+    <string name="common_not_enough_funds_message">К сожалению, у вас недостаточно средств для оплаты сетевого сбора.</string>
+    <string name="common_not_enough_funds_title">Недостаточный баланс</string>
+    <string name="common_note">Note: </string>
+    <string name="common_ok">OK</string>
+    <string name="common_options">Опции</string>
+    <string name="common_options_title">Выберите опцию</string>
+    <string name="common_origin_network">Исходная сеть</string>
+    <string name="common_origin_network_fee">Комиссия исходной сети</string>
+    <string name="common_preview">Предварительный просмотр</string>
+    <string name="common_proceed">Продолжить</string>
+    <string name="common_read">Читать</string>
+    <string name="common_receive_alert_description">Это Polkadot кошелек. Пожалуйста, отправляйте активы только\nв сети Polkadot.</string>
+    <string name="common_reset">Сброс</string>
+    <string name="common_retry">Повторить</string>
+    <string name="common_route">Направление</string>
+    <string name="common_search">Поиск</string>
+    <string name="common_search_no_results">Поиск не дал результатов.\nПроверьте, что вы указали полный адрес аккаунта</string>
+    <string name="common_search_results_number">Результаты поиска: %d</string>
+    <string name="common_search_start_title">Здесь появятся результаты поиска</string>
+    <string name="common_secret_derivation_path">Последовательность для вывода секрета</string>
+    <string name="common_select">Выбрать</string>
+    <string name="common_select_asset">Выбрать Актив</string>
+    <string name="common_select_network">Выбрать Сеть</string>
+    <string name="common_selected">Выбрано</string>
+    <string name="common_share">Поделиться</string>
+    <string name="common_skip">Пропустить</string>
+    <string name="common_skip_process">Пропустить</string>
+    <string name="common_sort_by">Сортировать по:</string>
+    <string name="common_till_date">до %s</string>
+    <string name="common_time_left">Оставшееся время</string>
+    <string name="common_title_select_wallet">Выберите кошелек</string>
+    <string name="common_transaction_submitted">Транзакция отправлена</string>
+    <string name="common_transferable_format">Доступно: %s</string>
+    <string name="common_undefined_error_message">Пожалуйста, попробуйте снова с другими входными данными. Если ошибка повторяется, то свяжитесь со службой поддержки.</string>
+    <string name="common_unknown">Неизвестно</string>
+    <string name="common_unsupported">Не поддерживается</string>
+    <string name="common_update">Обновить</string>
+    <string name="common_update_needed">Требуется обновление</string>
+    <string name="common_use">Использовать</string>
+    <string name="common_warning">Предупреждение</string>
+    <string name="common_watch">Смотреть</string>
+    <string name="common_yes">Да</string>
+    <string name="common_your_bonus">Ваш бонус</string>
+
+    <string name="community">Сообщество</string>
+
+    <string name="confirm_mnemonic_mismatch_error_message_2_0">Неверная мнемоническая фраза, пожалуйста, проверьте еще раз порядок слов</string>
+
+    <string name="connection_add_already_exists_error">Узел уже был добавлен ранее. Пожалуйста, попробуйте другой узел.</string>
+    <string name="connection_add_invalid_error">Не удается установить соединение с узлом. Пожалуйста, попробуйте другой узел.</string>
+    <string name="connection_add_unsupported_error">К сожалению, сеть не поддерживается. Пожалуйста, попробуйте одну из следующих: %s.</string>
+    <string name="connection_delete_confirm">Удалить</string>
     <string name="connection_error_message">Пожалуйста, проверьте подключение к Интернету и повторите попытку.</string>
+    <string name="connection_management_custom_title">Добавленные ноды</string>
+    <string name="connection_management_default_title">Ноды по умолчанию</string>
+    <string name="connection_problems_alert_message">Не удается загрузить необходимые данные для запуска приложения. Пожалуйста, проверьте ваше интернет соединение и повторите снова.</string>
+    <string name="connection_problems_text">Проблемы с подключением</string>
+
+    <string name="connections_add_connection">Добавить соединение</string>
+
+    <string name="contact_address">Адрес Контакта</string>
+    <string name="contact_name">Имя Контакта</string>
+
+    <string name="copy_referral_code">Копировать реферальный код</string>
+
+    <string name="create_backup_password_agreements">Я понимаю, что если я забуду свой пароль, то восстановить его будет невозможно</string>
+    <string name="create_backup_password_btn_set">Сохранить резервный пароль</string>
+    <string name="create_backup_password_matched">Пароль совпал</string>
+    <string name="create_backup_password_not_matched">Пароль не совпал</string>
+    <string name="create_backup_password_subtitle">Установка пароля приведет к шифрованию вашей резервной копии Google. Вам нужно будет ввести его при восстановлении вашего кошелька</string>
+    <string name="create_backup_password_title">Создать резервный пароль</string>
+    <string name="create_contact">Создать Контакт</string>
+    <string name="create_new_account">Создать новый аккаунт</string>
+
+    <string name="crodloan_private_crowdloan_message">Приватные краудлоуны пока не поддерживаются</string>
+    <string name="crodloan_private_crowdloan_title">Приватный краудлоун</string>
+
+    <string name="cross_chain_wallet_external">Внешний кошелек</string>
+    <string name="cross_chain_wallet_my">Мой кошелек</string>
+    <string name="cross_chain_wallet_title">Cross-chain перевод на кошелек</string>
+
+    <string name="crowdloan_active_section_format">Активные (%s)</string>
+    <string name="crowdloan_app_bonus_format">Бонус Fearless Wallet (%s)</string>
+    <string name="crowdloan_astar_referral_code_invalid">Недействительный реферальный адрес, допускается ввод только адреса сети Polkadot, попробуйте еще раз</string>
+    <string name="crowdloan_cap_reached_amount_message">Невозможно вложить введённую сумму, поскольку общая сумма сбора будет превышать максимальную сумму краудлоуна. Максимально допустимый вклад составляет %s.</string>
+    <string name="crowdloan_cap_reached_raised_message">Невозможно внести вклад в выбранный краудлоун, поскольку его максимальная сумма сбора уже достигнута.</string>
+    <string name="crowdloan_cap_reached_title">Превышена максимальная сумма краудлоуна</string>
+    <string name="crowdloan_confirmation_name">%s краудлоун</string>
+    <string name="crowdloan_contribute_title">Внести вклад в краудлоун</string>
+    <string name="crowdloan_contribution_format">Вы вложили: %s</string>
+    <string name="crowdloan_crowdloan">Краудлоуны</string>
+    <string name="crowdloan_email_hint">Адрес электронной почты</string>
+    <string name="crowdloan_empty_bonus_title">Получите специальный бонус</string>
+    <string name="crowdloan_empty_message">Информация о краудлоунах \n появится здесь.</string>
+    <string name="crowdloan_ended_message">Невозможно внести вклад в выбранный краудлоун, поскольку он уже завершён.</string>
+    <string name="crowdloan_ended_title">Краудлоун завершён</string>
+    <string name="crowdloan_enter_referral">Введите реферальный код</string>
+    <string name="crowdloan_info">Информация о краундлоуне</string>
+    <string name="crowdloan_learn">О краудлоуне %s</string>
+    <string name="crowdloan_learn_bonuses">Узнайте о бонусах %s</string>
+    <string name="crowdloan_leasing_period">Период лизинга</string>
+    <string name="crowdloan_main_description">Выберите кампанию краудлана, в которую вы хотите внести свой вклад. Вы получите вознаграждение, если кампания выиграет слот парачейна в аукционе.</string>
+    <string name="crowdloan_placeholder">Здесь появятся активные краудлоуны</string>
+    <string name="crowdloan_privacy_policy">Я подтверждаю, что прочитал и согласен с Условиями использования и Политикой конфиденциальности</string>
+    <string name="crowdloan_raised">Собрано</string>
+    <string formatted="false" name="crowdloan_raised_amount">%s из %s</string>
+    <string name="crowdloan_referral_code_hint">Реферальный код</string>
+    <string name="crowdloan_referral_code_invalid">Реферальный код недействителен. Пожалуйста, попробуйте другой.</string>
+    <string name="crowdloan_terms_action">Соглашаюсь с Условиями использования</string>
+    <string name="crowdloan_too_small_contribution_message">Минимально допустимая сумма вклада составляет %s .</string>
+    <string name="crowdloan_too_small_contribution_title">Сумма вклада слишком мала</string>
+    <string name="crowdloan_unlock_hint">Ваши %s токены будут возвращены обратно после срока лизинга парачейна.</string>
+
+    <string formatted="false" name="crownloans_raised_format">Собрано: %s из %s</string>
+
+    <plurals name="days_format">
+        <item quantity="one">%d день</item>
+        <item quantity="few">%d дня</item>
+        <item quantity="many">%d дней</item>
+        <item quantity="other">%d дней</item>
+    </plurals>
+
+    <string name="delete_custom_node_title">Удалить выбранную ноду?</string>
+
+    <string name="donation_alert_title">This address has been suspicious.</string>
+    <string name="donation_warning_message">This address has been suspicious. We strongly recommend that you don\'t send DOT to this account.</string>
+
+    <string name="ecdsa_selection_subtitle">(BTC/ETH совместимый)</string>
+    <string name="ecdsa_selection_title">ECDSA</string>
+
+    <string name="ed25519_selection_subtitle">ed25519 (альтернативный)</string>
+    <string name="ed25519_selection_title">Edwards</string>
+
+    <string name="error_message_enter_the_name">Введите имя…</string>
+    <string name="error_message_enter_the_url_address">Введите URL-адрес…</string>
+
+    <string name="eth_import_message">Добавить аккаунты Moonbeam и Moonriver?</string>
+    <string name="eth_import_title">ETH аккаунты</string>
+
+    <string name="ethereum_crypto_type">Тип криптографической пары ключей Ethereum</string>
+    <string name="ethereum_secret_derivation_path">Путь деривации секрета Ethereum</string>
+
+    <string name="example">Пример:</string>
+
+    <string name="exchange_alert_message">Be careful the deposit and withdrawal addresses may different.</string>
+    <string name="exchange_alert_title">This address is marked as an exchange</string>
+    <string name="exchange_warning_message">This address is marked as an exchange be careful the deposit and withdrawal addresses may different.</string>
+
+    <string name="export_json_password_confirm">Подтверждение пароля</string>
+    <string name="export_json_password_explanation">Пароль необходим для шифрования вашей учетной записи и сохранения как Recovery JSON. Пожалуйста, придумайте пароль для продолжения работы.</string>
+    <string name="export_json_password_match_error">Неверный пароль</string>
+    <string name="export_json_password_new">Новый пароль</string>
+    <string formatted="false" name="export_mnemonic_with_derivation">Сеть: %s
+Мнемоника: %s
+Путь деривации: %s</string>
+    <string formatted="false" name="export_mnemonic_without_derivation">Сеть: %s
+Мнемоника: %s</string>
+    <string formatted="false" name="export_seed_with_derivation">Сеть: %s
+Сид: %s
+Путь деривации: %s</string>
+    <string formatted="false" name="export_seed_without_derivation">Сеть: %s
+Сид: %s</string>
+    <string name="export_wallet">Экспорт кошелька</string>
+
+    <string name="fearless_wallet">Fearless Wallet</string>
+
+    <string name="fee_not_yet_loaded_message">Подождите, пока будет рассчитана комиссия</string>
+    <string name="fee_not_yet_loaded_title">Расчет комиссии в процессе</string>
+
+    <string name="fiat_chooser_title">Валюты</string>
+
+    <string name="hash">Хэш</string>
+
+    <string name="hidden_assets">Скрытые активы</string>
+
+    <string name="history_v1.9.0">История</string>
+
+    <string name="i_dont_need_account">Мне не нужен аккаунт</string>
+
+    <string name="identity_display_name_title">Отображаемое имя</string>
+    <string name="identity_email_title">Почта</string>
+    <string name="identity_legal_name_title">Официальное имя</string>
+    <string name="identity_riot_name_title">Имя в Element</string>
+    <string name="identity_title">Персонализация</string>
+    <string name="identity_web_title">Сайт</string>
+
+    <string name="import_account_exists_title">Аккаунт уже существует</string>
+    <string name="import_ethereum_recovery">JSON для восстановления ETH аккаунтов</string>
+    <string name="import_json_invalid_format_message">Пожалуйста, удостоверьтесь, что данные соответствуют json формату.</string>
+    <string name="import_json_invalid_format_title">JSON для восстановления недействителен</string>
+    <string name="import_json_invalid_password">Пожалуйста, проверьте корректность пароля и попробуйте снова.</string>
+    <string name="import_json_invalid_password_title">Ошибка дешифрования</string>
+    <string name="import_json_paste">Вставьте json</string>
+    <string name="import_mnemonic_invalid_title">Ваша мнемоника недействительна</string>
+    <string name="import_remote_wallet_btn_create_wallet">Создать новый счёт</string>
+    <string name="import_remote_wallet_btn_import_more">Добавить ещё</string>
+    <string name="import_remote_wallet_hint_enter_password">Введите пароль</string>
+    <string name="import_remote_wallet_subtitle_password">Введите резервный пароль для выбранного кошелька для импорта</string>
+    <string name="import_remote_wallet_title_imported">Кошелек импортирован</string>
+    <string name="import_remote_wallet_title_password">Ввести резервный пароль</string>
+    <string name="import_remote_wallet_title_wallets">Выбрать счёт для импорта</string>
+    <string name="import_seed_invalid_message">Пожалуйста, убедитесь, что введенные данные содержат 64 hex символа.</string>
+    <string name="import_seed_invalid_title">Сид неверный</string>
+    <string name="import_substrate_recovery">JSON для восстановления Substrate аккаунтов</string>
+    <string name="import_wallet">Импорт кошелька</string>
+
+    <string name="input_address_unrecognised">Input doesn\'t match known network\'s address</string>
+
+    <string name="invoice_scan_error_no_info">Не удается декодировать QR</string>
+    <string name="invoice_scan_upload">Из галереи</string>
+
+    <string name="json_export_file_title">Экспорт в файл</string>
+    <string name="json_export_text_title">Экспортировать как текст</string>
+    <string name="json_export_type_file">Экспортировать в файл</string>
+    <string name="json_export_type_text">Экспортировать как текст</string>
+
+    <string name="label_link">Ссылка</string>
+
+    <string name="language_title">Язык</string>
+
+    <string name="make_payout_transaction_sent">Транзакция на выплату отправлена</string>
+
+    <string name="manage_assets_search_hint">Поиск по активу</string>
+
+    <string name="min_to_create_pool_threshold_error_message">Минимальная сумма - %s</string>
+    <string name="min_to_create_pool_threshold_error_title">Извините, указанной суммы недостаточно для создания пула</string>
+
+    <string name="mnemonic_agreements_ageement_1">Если я потеряю свою мнемоническую фразу, мои средства будут потеряны навсегда</string>
+    <string name="mnemonic_agreements_ageement_2">Если я раскрою или поделюсь своей мнемонической фразой с кем-либо, мои средства могут быть украдены</string>
+    <string name="mnemonic_agreements_ageement_3">Я несу полную ответственность за сохранность моей мнемонической фразы</string>
+    <string name="mnemonic_agreements_btn_text">Показать мнемоническую фразу</string>
+    <string name="mnemonic_agreements_subtitle">Ваша мнемоническая фраза - это ключ к вашему кошельку. Создайте резервную копию, чтобы вы могли восстановить свой кошелек, если потеряете или повредите свое устройство.</string>
+    <string name="mnemonic_agreements_title">Создайте резервную копию</string>
+    <string name="mnemonic_error_try_another_one">Пожалуйста, попробуйте другую.</string>
+
+    <string name="moonbeam_crowdloan_terms">Правила и условия Moonbeam краудлоуна</string>
+    <string name="moonbeam_ethereum_address_incorrect">Формат адреса Moonbeam Ethereum неверен, попробуйте еще раз</string>
+    <string name="moonbeam_ethereum_reward">Вознаграждения будут выплачиваться на этот адрес. Вы можете использовать существующий адрес Ethereum. ПОЖАЛУЙСТА, УБЕДИТЕСЬ, ЧТО У ВАС ЕСТЬ ПРИВАТНЫЕ КЛЮЧИ ДЛЯ ЭТОГО АДРЕСА.</string>
+    <string name="moonbeam_location_unsupported_error">К сожалению, вы не можете участвовать в кампании Moonbeam Crowdloan Campaign из-за вашего местоположения.</string>
+    <string name="moonbeam_registration">Регистрация в краудлоуне Moonbeam</string>
+    <string name="moonbeam_registration_description">Эта транзакция подтверждает, что вы согласны с правилами и условиями краудлоуна Moonbeam.
+В качестве доказательства вашего согласия будет отправлена подписанная транзакция system.remark extrinsic. Эта информация будет обработана и сохранена в Polkadot Relay Chain.
+Обратите внимание, что за данную подписанную транзакцию будет взиматься комиссия в сети Polkadot.</string>
+    <string name="moonbeam_signed_successful">Вы успешно подписали правила и условия краудлоуна Moonbeam, и транзакция была отправлена.
+Это хэш вашей транзакции:</string>
+
+    <string name="moonbean_ethereum_address">Адрес Moonbeam Ethereum</string>
+
+    <string name="network_fee">Комиссия сети</string>
+    <string name="network_info_name">Имя ноды</string>
+    <string name="network_info_title">Информация ноды</string>
+    <string name="network_issue_action_add_account">Добавить Аккаунт</string>
+    <string name="network_issue_action_switch_node">Выбрать Ноду</string>
+    <string name="network_issue_add_an_account">Добавить аккаунт</string>
+    <string name="network_issue_network_unavailable">Сеть недоступна</string>
+    <string name="network_issue_node_unavailable">Нода недоступна</string>
+    <string name="network_issue_stub">Проблемы с сетью</string>
+    <string name="network_issue_unavailable">Сеть недоступна, вы можете подождать или задать вопрос сообществу</string>
+    <string name="network_status_connected">Подключено</string>
+    <string name="network_status_connecting">Подключение…</string>
+    <string name="network_url_address">URL-адрес</string>
+
+    <string name="nft_stub_text">NFTs скоро будут здесь</string>
+    <string name="nft_stub_title">Извините!</string>
+
+    <string name="nfts_stub">NFTs</string>
+
+    <string name="node">Нода</string>
+    <string name="node_selection_delete_node_title">Удалить выбранную ноду?</string>
+
+    <string name="notification">Уведомление</string>
+
+    <string name="onboarding_create_account">Создать аккаунт</string>
+    <string name="onboarding_create_wallet">Создать кошелёк</string>
+    <string name="onboarding_ethereum_derivation_path_hint">Пример: //44//60//0/0/0</string>
+    <string name="onboarding_privacy_policy">Политикой конфиденциальности</string>
     <string name="onboarding_restore_account">Восстановить</string>
+    <string name="onboarding_restore_wallet">У меня уже есть кошелек</string>
+    <string name="onboarding_substrate_derivation_path_hint">Пример: //hard/soft///password</string>
     <string name="onboarding_terms_and_conditions_1">Я подтверждаю, что прочитал и согласен с
 Условиями использования и Политикой конфиденциальности</string>
     <string name="onboarding_terms_and_conditions_2">Условиями использования</string>
-    <string name="onboarding_privacy_policy">Политикой конфиденциальности</string>
-    <string name="pincode_enter_pin_code">Введите PIN-код</string>
+
+    <string name="parachain_crowdloans">Краудлоуны парачейнов</string>
+    <string name="parachain_staking_request_finished">Завершен</string>
+    <string name="parachain_staking_unlock">Разблокировать</string>
+
+    <string name="pincode_biometry_dialog_title">Биометрия</string>
+    <string name="pincode_changed_message">PIN-код успешно изменен</string>
+    <string name="pincode_confirm_pin_code">Подтвердите пин-код</string>
     <string name="pincode_confirm_your_pin_code">Подтвердите свой PIN-код</string>
-    <string name="pincode_title_create">Установите свой PIN-код</string>
-    <string name="tabbar_wallet_title">Кошелёк</string>
-    <string name="tabbar_staking_title">Стейкинг</string>
-    <string name="tabbar_governance_title">Управление</string>
-    <string name="tabbar_extrinsics_title">Экстринсики</string>
-    <string name="transfers_empty">Входящие и исходящие
-транзакции будут отображаться здесь</string>
-    <string name="profile_settings_title">Настройки</string>
-    <string name="profile_language_title">Язык</string>
-    <string name="about_version">Версия</string>
-    <string name="about_contact_us">Свяжитесь с нами</string>
-    <string name="about_title">О приложении</string>
-    <string name="about_privacy">Политика конфиденциальности</string>
-    <string name="about_terms">Условия использования</string>
-    <string name="language_title">Язык</string>
-    <string name="onboarding_create_account">Создать аккаунт</string>
-    <string name="username_setup_choose_title">Имя</string>
-    <string name="username_setup_hint">Данное имя будет отображаться только для вас и храниться только на вашем мобильном устройстве.</string>
-    <string name="common_no_screenshot_title">Не делайте скриншоты</string>
-    <string name="common_no_screenshot_message">Не делайте скриншоты, которые могут быть собраны сторонними вредоносными программами</string>
-    <string name="common_ok">OK</string>
-    <string name="account_create_title">Мнемоника</string>
-    <string name="account_create_details">Используйте нецифровой носитель для сохранения, например, выпишите слова на бумагу.</string>
-    <string name="common_advanced">Продвинутый</string>
-    <string name="common_crypto_type">Тип ключевой пары</string>
-    <string name="common_secret_derivation_path">Последовательность для вывода секрета</string>
-    <string name="common_choose_network">Выберите сеть</string>
-    <string name="sr25519_selection_subtitle">sr25519 (рекомендованный)</string>
-    <string name="ed25519_selection_subtitle">ed25519 (альтернативный)</string>
-    <string name="ecdsa_selection_subtitle">(BTC/ETH совместимый)</string>
-    <string name="sr25519_selection_title">Schnorrkel</string>
-    <string name="ed25519_selection_title">Edwards</string>
-    <string name="ecdsa_selection_title">ECDSA</string>
-    <string name="account_creation_info">Мнемоническая фраза используется для восстановления доступа к аккаунту. Запишите ее, мы не сможем восстановить доступ к аккаунту без нее!</string>
-    <string name="common_info">Информация</string>
-    <string name="common_selected">Выбрано</string>
-    <string name="common_select">Выбрать</string>
-    <string name="common_undefined_error_message">Пожалуйста, попробуйте снова с другими входными данными. Если ошибка повторяется, то свяжитесь со службой поддержки.</string>
-    <string name="recovery_source_type">Тип источника</string>
-    <string name="recovery_raw_seed">Сид</string>
-    <string name="recovery_json">JSON для восстановления</string>
-    <string name="account_import_password_placeholder">Пароль</string>
-    <string name="common_error_general_message">Мы уже решаем проблему. Пожалуйста, попробуйте позже.</string>
-    <string name="recover_json_hint">Вставьте json строку или загрузите файл…</string>
-    <string name="import_json_paste">Вставьте json</string>
-    <string name="recovery_passphrase">Мнемоническая фраза</string>
-    <string name="account_import_invalid_seed">Seed неверный. Пожалуйста, убедитесь, что введенные данные содержат 64 hex символа.</string>
-    <string name="account_import_invalid_keystore">Неверный формат данных восстановления. Пожалуйста, удостоверьтесь, что данные соответствуют json формату.</string>
-    <string name="import_json_invalid_password">Пожалуйста, проверьте корректность пароля и попробуйте снова.</string>
-    <string name="account_confirmation_title">Подтверждение</string>
-    <string name="account_confirmation_details">Выберите слова в правильном порядке</string>
     <string name="pincode_create_top_title">Новый PIN-код</string>
+    <string name="pincode_enter_pin_code">Введите PIN-код</string>
     <string name="pincode_fingerprint_error">Вы не авторизованы. Попробуйте другой палец.</string>
-    <string name="pincode_touch_fingerprint_scanner">Коснитесь сканера отпечатков пальцев</string>
     <string name="pincode_fingerprint_switch_dialog_title">Использовать биометрию для авторизации</string>
-    <string name="profile_title">Аккаунт</string>
+    <string name="pincode_setup_top_title">Установить пин-код</string>
+    <string name="pincode_title_create">Установите свой PIN-код</string>
+    <string name="pincode_touch_fingerprint_scanner">Коснитесь сканера отпечатков пальцев</string>
+
+    <string name="polkaswap_btn_reset_to_default">Сбросить</string>
+    <string name="polkaswap_btn_save">Сохранить</string>
+    <string name="polkaswap_confirmation_swapped_stub">Swapped</string>
+    <string name="polkaswap_disclaimer_message">Пожалйста прочитайте перед использованием polkaswap</string>
+    <string name="polkaswap_from">Из</string>
+    <string name="polkaswap_info_switch_text">Я подтверждаю, что ознакомился со всеми упомянутыми документами и, нажимая «Продолжить», принимаю их.</string>
+    <string name="polkaswap_info_text_1">Polkaswap разрабатывается сообществом SORA. Перед тем, как стать контрибьютером Polkaswap, ознакомьтесь с %%Polkaswap FAQ%% и документацией, которая описывает то, как работает Polkaswap, %%Polkaswap Меморандумом и Условиями и положениями%%, и %%Политикой конфиденциальности%%.\n\nЭти документы важны для безопасной и комфортной работы пользователей. Используя Polkaswap вы соглашаетесь, что вы прочли и поняли суть документов.</string>
+    <string name="polkaswap_info_text_2">Вы также осознаете:</string>
+    <string name="polkaswap_info_text_3">Вашу личную ответственность за соблюдение законов, которые могут применяться к использованию Polkaswap в вашей юрисдикции;</string>
+    <string name="polkaswap_info_text_4">Что текущая версия Polkaswap является альфа-версией: она не была полностью протестирована, и некоторые функции могут работать не так, как задумано;</string>
+    <string name="polkaswap_info_text_5">Понимание и добровольное принятие рисков, связанных с использованием Polkaswap, включая, но не ограничиваясь, риском потери токенов.</string>
+    <string name="polkaswap_info_text_6">Не продолжайте, пока не ознакомитесь с %%Polkaswap FAQ%%, %%Polkaswap Меморандумом и Условиями и положениями%%, и %%Политикой конфиденциальности%%!</string>
+    <string name="polkaswap_insufficient_liqudity">Недостаточная ликвидность</string>
+    <string name="polkaswap_liqudity_fee_info">Часть каждой сделки (0,3%) является награждением для поставщиков ликвидности.</string>
+    <string name="polkaswap_liqudity_fee_title">Комиссия провайдера ликвидности</string>
+    <string name="polkaswap_market">Маркет:</string>
+    <string name="polkaswap_market_alert_message">Вы не завершили настройку свапа. Один или оба ассета не выбраны, поэтому выбор маркета недоступен.</string>
+    <string name="polkaswap_market_alert_positive_button">Выбрать ассет</string>
+    <string name="polkaswap_market_alert_title">Выбор маркета недоступен</string>
+    <string name="polkaswap_market_algorithm_title">Маркет алгоритм</string>
+    <string name="polkaswap_market_smart_description">Маршрутизация ликвидности SMART обеспечивает лучшую цену для любой транзакции, комбинируя только лучшие варианты цены со всех доступных рынков. При наличии TBC будет использоваться для обеспечения ликвидности до тех пор, пока цена актива будет более доступной, чем из других источников, на которых используется пул XYK.</string>
+    <string name="polkaswap_market_tbc_description">TBC(Token Bonding Curve)  — покупка только по кривой связывания токенов (первичный рынок). Есть вероятность того, что цена может стать невыгодной по сравнению с пулом XYK (вторичный рынок), но ценность, полученная от закрепленных вознаграждений, со временем может оказаться гораздо более выгодной.</string>
+    <string name="polkaswap_market_title">Маркет</string>
+    <string name="polkaswap_market_xyk_description">XYK — покупка только из пула XYK (вторичный рынок). Традиционный обмен/свап пула XYK, когда любой может покупать или продавать активы, меняя позицию маркет-мейкера на кривой x*y=k.</string>
+    <string name="polkaswap_maximum_sold">Макс. продажа</string>
+    <string name="polkaswap_maximum_sold_info">Ваша транзакция будет отменена, если произойдет значительное неблагоприятное изменение цены до ее подтверждения.</string>
+    <string name="polkaswap_maximum_sold_title">Максимальная продажа</string>
+    <string name="polkaswap_minimum_received_info">Ваша транзакция будет отменена, если произойдет значительное неблагоприятное изменение цены до ее подтверждения.</string>
+    <string name="polkaswap_minimum_received_title">Минимальная покупка</string>
+    <string name="polkaswap_network_fee_info">Плата за сеть используется для обеспечения роста и стабильной работы системы SORA.</string>
+    <string name="polkaswap_not_enough_result_to_pay_fee_message">К сожалению, у вас недостаточно средств для оплаты комиссии. Мы не можем взимать комиссию ни с вашего текущего баланса, ни с результатов свопа. Пожалуйста, добавьте больше токенов или измените сумму транзакции, чтобы продолжить.</string>
+    <string name="polkaswap_not_enough_result_to_pay_fee_title">Ошибка комиссии за свап</string>
+    <string name="polkaswap_path_unavailable_message">К сожалению, такой пары нет. Но вы можете выбрать другую</string>
+    <string name="polkaswap_preview_title">Предпросмотр</string>
+    <string name="polkaswap_slippage_tolerance">Допустимое проскальзывание</string>
+    <string name="polkaswap_slippage_tolerance_description">Ваша транзакция будет отменена, если цена неблагоприятно изменится более чем на этот процент</string>
+    <string name="polkaswap_swap_settings_title">Настройки обмена</string>
+    <string name="polkaswap_swap_title">Обмен</string>
+    <string name="polkaswap_to">На</string>
+    <string name="polkaswap_transaction_may_fail">Транзакция может завершиться с ошибкой</string>
+    <string name="polkaswap_transaction_may_frontrun">Возможен фронтран транзакции</string>
+
+    <string name="pool_account_for_join">Аккаунт</string>
+    <string name="pool_claim_reward">Получить награды</string>
+    <string name="pool_create_success_message">Ваш пулл успешно создан. Теперь вы должны выбрать валидаторов для этого пулла</string>
+    <string name="pool_create_title">Создать пулл</string>
+    <string name="pool_depositor_unstake_error_message">Как создатель пула, Вы должны иметь стейк не меньше %s. Если вы хотите распустить всех участников и закрыть пул, используйте Polkadot.js.plus</string>
+    <string name="pool_depositor_unstake_error_title">Вы не можете сделать полный анстейк</string>
+    <string name="pool_depositor_unstake_polkadot_js_plus_button_text">Polkadot.js Plus</string>
+    <string name="pool_edit_confirm_warning">ВНИМАНИЕ: Смена роли - необратимая операция. Она может вызвать потерю контроля над пуллом.</string>
+    <string name="pool_edit_title">Редактирование пулла</string>
+    <string name="pool_info_index">Индекс</string>
+    <string name="pool_info_members">Участники</string>
+    <string name="pool_info_state">Состояние</string>
+    <string name="pool_join_no_validators_message">Пул еще не выбрал ни одного валидатора. Если вы присоединитесь к нему, вы не получите никаких вознаграждений, пока не будут выбраны валидаторы.</string>
+    <string name="pool_nominations">Валидаторы пула</string>
+    <string name="pool_options_title">Настройки пулла</string>
+    <string name="pool_redeem">Забрать токены</string>
+    <string name="pool_select_validators_notification_message">Чтобы продолжить, вы должны выбрать валидаторов</string>
+    <string name="pool_select_validators_notification_title">Выберите валидаторов</string>
+    <string name="pool_stake_info">Информация о пуле</string>
+    <string name="pool_staking_bouncer">Bouncer</string>
+    <string name="pool_staking_change_validators_button">Сменить валидаторов</string>
+    <string name="pool_staking_choosepool_button_title">Выбрать</string>
+    <string name="pool_staking_choosepool_members_count_title">Участники: %d</string>
+    <string name="pool_staking_choosepool_staked_title">Застейкано </string>
+    <string name="pool_staking_choosepool_title">Выбрать пул</string>
+    <string name="pool_staking_confirm_join_title">Присоединение к пулу</string>
+    <string name="pool_staking_create_confirm_title">Создать пулл</string>
+    <string name="pool_staking_depositor">Вкладчик</string>
+    <string name="pool_staking_join_account_title">Присоединиться к пулу из</string>
+    <string name="pool_staking_join_button_title">Присоединиться</string>
+    <string name="pool_staking_join_title">Присоединиться к пулу</string>
+    <string name="pool_staking_main_description_title">Стейкеры (участники) с небольшим количеством токенов могут объединить свои средства вместе и выступать в качестве единого номинатора. Прибыль пула делится пропорционально доле члена в зарезервированном пуле.</string>
+    <string name="pool_staking_main_existing_pools_title">Существующие пулы</string>
+    <string name="pool_staking_main_max_members_inpool_title">Максимальное количество участников в пуле</string>
+    <string name="pool_staking_main_max_pool_members_title">Максимальное количество участников пула</string>
+    <string name="pool_staking_main_min_create_title">Минимум чтобы создать пул</string>
+    <string name="pool_staking_main_min_join_title">Минимум, чтобы присоединиться</string>
+    <string name="pool_staking_main_possible_pools_title">Возможные пулы</string>
+    <string name="pool_staking_nominator">Nominator</string>
+    <string name="pool_staking_number_of_members">Количество участников</string>
+    <string name="pool_staking_pool_id">Id пула</string>
+    <string name="pool_staking_pool_info">Информация о пуле</string>
+    <string name="pool_staking_pool_name">Имя пула</string>
+    <string name="pool_staking_roles">Роли</string>
+    <string name="pool_staking_root">Root</string>
+    <string name="pool_staking_selected_pool">Выбранный пул</string>
+    <string name="pool_staking_selected_validators_title">Валидаторы пулла</string>
+    <string name="pool_staking_start_about_title">Что такое стейкинг и как он работает, смотрите инструкцию</string>
+    <string name="pool_staking_title">Pool staking</string>
+    <string name="pool_staking_unstake_alert">Your pending reward will be payment automatically</string>
+    <string name="pool_staking_unstake_error">No redeemable tokens found</string>
+    <string name="pool_time_before_redeem">Время до получения наград</string>
+    <string name="pool_your_total_stake">Всего застейкано</string>
+
+    <string name="pools_limit_has_reached_error_message">Лимит пуллов в этой сети был достигнут</string>
+    <string name="pools_limit_has_reached_error_title">Вы не можете создать больше пулов</string>
+
+    <string name="preview">Предпросмотр</string>
+
     <string name="profile_accounts_title">Аккаунты</string>
+    <string name="profile_language_title">Язык</string>
+    <string name="profile_logout_description">Это действие приведет к удалению всех учетных записей с этого устройства. Прежде чем продолжить, убедитесь, что вы сделали резервную копию своей парольной фразы.</string>
+    <string name="profile_logout_title">Выйти</string>
     <string name="profile_network_title">Сеть</string>
     <string name="profile_pincode_change_title">Изменить PIN-код</string>
-    <string name="tabbar_profile_title">Профиль</string>
-    <string name="pincode_biometry_dialog_title">Биометрия</string>
-    <string name="common_edit">Редактировать</string>
-    <string name="common_done">Готово</string>
-    <string name="accounts_add_account">Добавить аккаунт</string>
-    <string name="account_add_already_exists_message">Аккаунт уже существует. Пожалуйста, попробуйте другой.</string>
-    <string name="fearless_wallet">Fearless Wallet</string>
-    <string name="community">Сообщество</string>
-    <string name="social_media">Social Media</string>
-    <string name="support_and_feedback">Поддержка и Обратная связь</string>
-    <string name="about_website">Официальный сайт</string>
-    <string name="about_github">Исходный код на GitHub</string>
-    <string name="about_telegram">Присоединяйтесь к группе Telegram</string>
-    <string name="common_email_chooser_title">Выберите приложение для работы с почтой</string>
-    <string name="common_skip_process">Пропустить</string>
-    <string name="account_info_title">Аккаунт</string>
-    <string name="account_address">Адрес аккаунта</string>
-    <string name="account_export">Экспорт аккаунта</string>
-    <string name="common_copied">Скопировано в буфер обмена</string>
-    <string name="connections_add_connection">Добавить соединение</string>
-    <string name="connection_management_default_title">Ноды по умолчанию</string>
-    <string name="connection_management_custom_title">Добавленные ноды</string>
-    <string name="account_delete_confirmation_title">Забыть аккаунт?</string>
-    <string name="account_delete_confirmation_description">Прежде чем продолжить, убедитесь, что вы создали резервную копию своей учетной записи.</string>
-    <string name="account_delete_confirm">Забыть</string>
-    <string name="account_needed_title">Необходим аккаунт</string>
-    <string name="account_needed_message">У вас нет учетной записи в этой сети, вы можете создать или импортировать учетную запись.</string>
-    <string name="common_proceed">Продолжить</string>
-    <string name="wallet_asset_receive">Получить</string>
-    <string name="wallet_assets_total_title">Стоимость активов</string>
-    <string name="network_info_title">Информация ноды</string>
-    <string name="network_info_name">Имя ноды</string>
-    <string name="common_add">Добавить</string>
-    <string name="common_update">Обновить</string>
-    <string name="connection_add_invalid_error">Не удается установить соединение с узлом. Пожалуйста, попробуйте другой узел.</string>
-    <string name="connection_add_unsupported_error">К сожалению, сеть не поддерживается. Пожалуйста, попробуйте одну из следующих: %s.</string>
-    <string name="connection_add_already_exists_error">Узел уже был добавлен ранее. Пожалуйста, попробуйте другой узел.</string>
-    <string name="today">Сегодня</string>
-    <string name="yesterday">Вчера</string>
-    <string name="transfers">Переводы</string>
-    <string name="wallet_asset_send">Перевести</string>
-    <string name="choose_amount_asset">Токен</string>
-    <string name="choose_amount_to">Кому</string>
-    <string name="choose_amount_fee">Комиссия</string>
-    <string name="choose_amount_tip">Чаевые</string>
-    <string name="common_continue">Продолжить</string>
-    <string name="common_preview">Предварительный просмотр</string>
-    <string name="common_amount">Сумма</string>
-    <string name="wallet_send_confirm_transfer">Подтвердить</string>
-    <string name="wallet_search_empty_title">Убедитесь, что адрес
-из правильной сети</string>
-    <string name="search_recipient_hint">Адрес аккаунта или имя аккаунта</string>
-    <string name="wallet_balance_available">Доступно</string>
-    <string name="wallet_send_total_title">Всего</string>
-    <string name="search_contacts">Контакты</string>
-    <string name="search_result_header">Результат поиска</string>
-    <string name="search_recipient_no_results">Нет результатов</string>
-    <string name="common_retry">Повторить</string>
-    <string name="choose_amount_network_error">Сеть недоступна</string>
-    <string name="choose_amount_error_balance">К сожалению, запрос проверки баланса не выполнен. Пожалуйста, попробуйте позже.</string>
-    <string name="choose_amount_error_fee">Извините, сервис переводов недоступен. Пожалуйста, попробуйте позже.</string>
-    <string name="choose_amount_checking">Проверка…</string>
-    <string name="wallet_send_progress">Отправка…</string>
-    <string name="wallet_balance_frozen">Заморожено</string>
-    <string name="transaction_status_completed">Успешно</string>
-    <string name="transaction_status_failed">Ошибка</string>
-    <string name="transaction_status_pending">В ожидании</string>
-    <string name="transaction_details_title">Детали транзакции</string>
-    <string name="transaction_detail_status">Статус</string>
-    <string name="common_date">Дата</string>
-    <string name="transaction_details_from">От</string>
-    <string name="wallet_balance_locked">Заблокировано</string>
-    <string name="wallet_balance_reserved">Зарезервировано</string>
-    <string name="wallet_balance_redeemable">Можно забрать</string>
-    <string name="transaction_details_hash_title">Хеш транзакции</string>
-    <string name="transaction_details_copy_hash">Копировать хеш</string>
-    <string name="transaction_details_view_polkascan">Посмотреть в Polkascan</string>
-    <string name="transaction_details_view_subscan">Просмотреть в Subscan</string>
-    <string name="wallet_balance_details_existential_deposit">Минимальный баланс</string>
-    <string name="wallet_send_existential_warning_message">Ваш перевод удалит аккаунт, так как общий баланс станет ниже минимального.</string>
-    <string name="common_warning">Предупреждение</string>
-    <string name="common_important">Важно</string>
-    <string name="common_unknown">Неизвестно</string>
-    <string name="connection_delete_confirm">Удалить</string>
-    <string name="network_status_connecting">Подключение…</string>
-    <string name="network_status_connected">Подключено</string>
-    <string name="wallet_balance_frozen_template">Заморожено %s</string>
-    <string name="wallet_receive_description">Покажите этот QR-код отправителю</string>
-    <string name="wallet_send_existential_warning_title">Перевод сделает аккаунт неактивным</string>
-    <string name="search_header_my_accounts">мои аккаунты</string>
-    <string name="coming_soon">Скоро будет…</string>
-    <string name="wallet_receive_share_message" formatted="false">Мой %s адрес для получения %s:</string>
-    <string name="coming_soon_dev_status">Статус разработки</string>
-    <string name="comming_soon_roadmap">План разработки</string>
-    <string name="import_json_invalid_format_title">JSON для восстановления недействителен</string>
-    <string name="import_json_invalid_format_message">Пожалуйста, удостоверьтесь, что данные соответствуют json формату.</string>
-    <string name="import_json_invalid_password_title">Ошибка дешифрования</string>
-    <string name="import_seed_invalid_title">Сид неверный</string>
-    <string name="import_seed_invalid_message">Пожалуйста, убедитесь, что введенные данные содержат 64 hex символа.</string>
-    <string name="mnemonic_error_try_another_one">Пожалуйста, попробуйте другую.</string>
-    <string name="import_account_exists_title">Аккаунт уже существует</string>
-    <string name="tabbar_polkaswap_title">Polkaswap</string>
-    <string name="account_export_action">Экспортировать</string>
-    <string name="account_export_warning_message">Передача или копирование вашего секрета - операция с высоким риском, не отправляйте ее никому. Хотите продолжить процесс обмена / копирования?</string>
-    <string name="account_export_warning_title">Будьте осторожны</string>
-    <string name="export_json_password_explanation">Пароль необходим для шифрования вашей учетной записи и сохранения как Recovery JSON. Пожалуйста, придумайте пароль для продолжения работы.</string>
-    <string name="export_json_password_new">Новый пароль</string>
-    <string name="export_json_password_confirm">Подтверждение пароля</string>
-    <string name="export_json_password_match_error">Неверный пароль</string>
-    <string name="account_export_password_change">Сменить пароль</string>
-    <string name="export_mnemonic_with_derivation" formatted="false">Сеть: %s
-Мнемоника: %s
-Путь деривации: %s</string>
-    <string name="export_mnemonic_without_derivation" formatted="false">Сеть: %s
-Мнемоника: %s</string>
-    <string name="common_confirm">Подтвердить</string>
-    <string name="common_confirmed">Подтверждено</string>
-    <string name="export_seed_without_derivation" formatted="false">Сеть: %s
-Сид: %s</string>
-    <string name="export_seed_with_derivation" formatted="false">Сеть: %s
-Сид: %s
-Путь деривации: %s</string>
-    <string name="pincode_changed_message">PIN-код успешно изменен</string>
-    <string name="common_choose_file">Загрузить файл</string>
-    <string name="account_import_json_no_network">JSON не содержит информации о сети. Пожалуйста, укажите её в блоке дополнительных ниже.</string>
-    <string name="account_import_wrong_network" formatted="false">Сеть в JSON - это %s , а не такая, как у выбранной %s . Выбранная сеть будет использоваться для импорта аккаунта.</string>
-    <string name="common_address">Адрес</string>
-    <string name="common_share">Поделиться</string>
-    <string name="common_amount_low">Сумма слишком мала</string>
-    <string name="wallet_send_dead_recipient_message">Ваш перевод не состоится, так как окончательная сумма на целевом счете будет меньше, чем минимальный баланс. Пожалуйста, попробуйте увеличить сумму.</string>
-    <string name="buy_completed">Покупка совершена! Ожидайте до 60 минут. Вы можете отслеживать статус по электронной почте.</string>
-    <string name="staking_start_title">Начать стейкинг</string>
-    <string name="staking_setup_title">Настройка стейкинга</string>
-    <string name="staking_setup_amount">Сумма стейкинга</string>
-    <string name="common_balance_format">Баланс: %s</string>
-    <string name="network_fee">Комиссия сети</string>
-    <string name="staking_setup_reward_destination">Что делать с вознаграждением</string>
-    <string name="staking_setup_restake">Увеличения стейка</string>
-    <string name="staking_payout">Выплаты</string>
-    <string name="staking_setup_restake_description">Больше сумма вознаграждения</string>
-    <string name="staking_setup_reward_description">Заработок за первый год</string>
-    <string name="staking_setup_payout_description">Перевести награду</string>
-    <string name="staking_setup_learn_more">Подробнее о выплатах</string>
-    <string name="staking_setup_reward_payout_account">Аккаунт для выплат</string>
-    <string name="staking_selected_accounts_mask">Аккаунты ( %d )</string>
-    <string name="staking_recommended_validators_title">Рекомендуемые валидаторы</string>
-    <string name="staking_recommended_validators_description">Эти валидаторы принесут вам максимальную прибыль с наименьшим шансом мошенничества или провала.</string>
-    <string name="common_learn_more">Узнать больше</string>
-    <string name="staking_custom_validators_title">Выберите валидаторов сами</string>
-    <string name="staking_recommended_validators_apy">Вознаграждения (APY)</string>
-    <string name="runtime_update_failure_title">Ошибка обновления среды выполнения</string>
+    <string name="profile_settings_title">Настройки</string>
+    <string name="profile_title">Аккаунт</string>
+    <string name="profile_wallets_title">Кошельки</string>
+
+    <string name="reason">Причина</string>
+
+    <string name="recent">Недавние</string>
+
+    <string name="recover_json_hint">Вставьте json строку или загрузите файл…</string>
+
+    <string name="recovery_json">JSON для восстановления</string>
+    <string name="recovery_passphrase">Мнемоническая фраза</string>
+    <string name="recovery_raw_seed">Сид</string>
+    <string name="recovery_source_type">Тип источника</string>
+
+    <string name="referral_email_acala">Я согласен получать электронную почту от Acala</string>
+
+    <string name="replace_account">Заменить аккаунт</string>
+    <string name="replace_account_template">Заменить %s аккаунт</string>
+
+    <string name="return_to_app_message">Вы можете вернуться в приложение</string>
+
+    <plurals name="rounds_format">
+        <item quantity="one">%d раунд</item>
+        <item quantity="few">%d раунда</item>
+        <item quantity="many">%d раундов</item>
+        <item quantity="other">%d раундов</item>
+    </plurals>
+
     <string name="runtime_update_failure_description">Не удалось обновить информацию о среде выполнения блокчейна. Некоторые функции могут не работать.</string>
-    <string name="runtime_update_not_actual_title">Устаревшая конфигурация</string>
+    <string name="runtime_update_failure_title">Ошибка обновления среды выполнения</string>
     <string name="runtime_update_not_actual_description">Невозможно получить новейшую информацию о среде выполнения блокчейна, будет использоваться устаревшая версия. Некоторые функции могут не работать.</string>
-    <string name="staking_setup_too_big_error">Извините, у вас недостаточно средств для стейкинга выбранной суммы</string>
-    <string name="staking_title">Стейкинг</string>
-    <string name="staking_estimate_earning_title">Расчёт доходности</string>
-    <string name="staking_month_period_title">ежемесячно</string>
-    <string name="staking_year_period_title">ежегодно</string>
-    <string name="staking_recommended_title">Валидаторы</string>
-    <string name="staking_recommended_section_title">Рекомендованные валидаторы</string>
-    <string name="staking_suggested_collators_title">Рекомендованные коллаторы</string>
-    <string name="staking_suggested_validators_title">Рекомендованные валидаторы</string>
-    <string name="staking_select_collator_title">Select a collator</string>
-    <string name="staking_recommended_feature_1">Самые доходные</string>
-    <string name="staking_recommended_feature_2">Не превышен лимит номинаторов</string>
-    <string name="staking_recommended_feature_3">Идентифицирован в сети</string>
-    <string name="staking_recommended_feature_4">Не был заслешан</string>
-    <string name="staking_validators">Валидаторы</string>
+    <string name="runtime_update_not_actual_title">Устаревшая конфигурация</string>
+
+    <string name="same_address_transfer_warning_message">Вы пытаетесь сделать трансфер на свой адрес. За операцию будет списана комиссия и это не несет никакого смысла</string>
+
+    <string name="sanction_alert_title">This address has been flagged due to entity related to Russia.</string>
+    <string name="sanction_warning_message">This address has been flagged due to entity related to Russia. We strongly recommend that you don\'t send DOT to this account.</string>
+
+    <string name="scam_alert_message_format">We strongly recommend that you don\'t send %s to this account.</string>
+    <string name="scam_alert_title">This address has been flagged due to evidence of a scam.</string>
+    <string name="scam_warning_message">This address has been flagged due to evidence of a scam. We strongly recommend that you don\'t send DOT to this account.</string>
+
+    <string name="scan_qr_subtitle">Поднесите QR код получателя</string>
+    <string name="scan_qr_title">Сканирование QR</string>
+    <string name="scan_qr_upload_button_title">Из галереи</string>
+
+    <string name="search_contacts">Контакты</string>
+    <string name="search_header_my_accounts">мои аккаунты</string>
+    <string name="search_recipient_hint">Адрес аккаунта или имя аккаунта</string>
+    <string name="search_recipient_no_results">Нет результатов</string>
+    <string name="search_result_header">Результат поиска</string>
+
+    <string name="select_another_network_description">The address doesn\'t match the destination network. You should select another network</string>
+    <string name="select_collator_having_identity">Идентифицирован в сети</string>
+    <string name="select_collator_having_relevant_minimum_bond">Релевантный минимальный стейк</string>
+    <string name="select_import_mode_btn_mnemonic">Мнемоническая фраза</string>
+    <string name="select_import_mode_title">Выберите источник для импорта</string>
+    <string name="select_network_template">Select %s network</string>
+    <string name="select_save_type">Выберите тип сохранения</string>
+    <string name="select_validators_disclaimer">DISCLAIMER: Предложения алгоритмических валидаторов не являются финансовыми консультациями или советами. Стейкинг - это деятельность с высоким риском, и предложения алгоритмических валидаторов не обязательно снижают этот риск. Валидатор, предложенный алгоритмом, все равно может быть слэширован. Валидатор, предложенный алгоритмом, также может изменить свои параметры (например, размер комиссии и т.д.) в любое время после того, как он был предложен и/или выбран. Вы можете потерять токены или вознаграждения по этим или другим причинам. Ставьте токены и используйте предложения валидаторов только по своему усмотрению, после проведения должной проверки и тщательного рассмотрения сопутствующих рисков.</string>
+
+    <string name="send_fund">Отправить Средства</string>
+    <string name="send_to">Отправить</string>
+
+    <string name="sending">Отправка</string>
+
+    <string name="settings_hide_zero_balances">Скрыть нулевые балансы</string>
+
+    <string name="share_referral_code">Поделиться реферальным кодом</string>
+
+    <string name="social_media">Social Media</string>
+
+    <string name="sora_card_already_have_card">I already have a card</string>
+    <string name="sora_card_annual_service_fee">0 € годовой сервисный сбор</string>
+    <string name="sora_card_blacklisted_countires_title">Исключения из заявки</string>
+    <string name="sora_card_blacklisted_countires_warning"><![CDATA[Резиденты <b>некоторых стран<br>не могут подать заявку</b> на получение карты SORA Card в данный момент<br><a href=\"https://soracard.com/blacklist/\">Просмотреть список </a>]]></string>
+    <string name="sora_card_buy_xor">Buy XOR with EUR</string>
+    <string name="sora_card_description">Получите счет IBAN в евро и дебетовую карту Mastercard, подключенную к вашему кошельку SORA</string>
+    <string name="sora_card_enable_card_title">Aктивировать карту</string>
+    <string name="sora_card_free_card_issuance">Бесплатный выпуск карты</string>
+    <string name="sora_card_free_card_issuance_conditions_xor">Если вы держите, ставите или предоставляете ликвидность XOR на сумму не менее 100 евро на своем счете SORA.</string>
+    <string name="sora_card_get_more_xor">Get more XOR</string>
+    <string name="sora_card_get_sora_card">Получить SORA карту</string>
+    <string name="sora_card_issue_card_for_12_euro">Issue card for 12 €</string>
+    <string name="sora_card_issue_card_for_free">Issue card for free</string>
+    <string name="sora_card_no_more_free_tries">No more free attempts</string>
+    <string name="sora_card_swap_for_xor">Swap crypto for XOR</string>
+    <string name="sora_card_swap_or_buy_xor">You can swap for XOR or buy with Euro</string>
+    <string name="sora_card_title">Пополняйте карту SORA с помощью фиата или криптовалюты и оплачивайте онлайн, в магазине или в банкомате.</string>
+    <string name="sora_card_verification_failed">Ошибка проверки</string>
+    <string name="sora_card_verification_in_progress">Выполняется проверка</string>
+    <string name="sora_card_verification_rejected">Проверка отклонена</string>
+    <string name="sora_card_verification_successful">Карта в пути</string>
+    <string name="sora_card_you_have_enough_xor">У вас достаточно XOR</string>
+    <string name="sora_card_you_need_xor">You need %s XOR (€%s)</string>
+
+    <string name="specify_network">Specify Network</string>
+    <string name="specify_network_description">The address prefix matches several networks please specify the network</string>
+
+    <string name="sr25519_selection_subtitle">sr25519 (рекомендованный)</string>
+    <string name="sr25519_selection_title">Schnorrkel</string>
+
+    <string name="stake_less">Вывод из стейка</string>
+
+    <string name="staking_account_is_used_as_controller">Выбранный аккаунт уже используется в качестве контроллера.</string>
+    <string name="staking_add_controller">Чтобы выполнить это действие, добавьте контроллер аккаунт %s в приложение</string>
+    <string name="staking_alert_bond_more_message">В настоящее время стейкинг неактивен. \nТекущая минимальная ставка %s .</string>
+    <string name="staking_alert_bond_more_title">Застейкайте ещё токенов</string>
+    <string name="staking_alert_change_validators">Смените своих валидаторов.</string>
+    <string name="staking_alert_change_validators_message">Стейкинг неактивен. Ни один из ваших валидаторов не был выбран сетью.</string>
+    <string name="staking_alert_election">Действия со стейкингом сейчас недоступны.</string>
+    <string name="staking_alert_election_message">Сеть избирает валидаторов.\nОбычно это занимает менее 10 минут.</string>
+    <string name="staking_alert_leaving_collator_text">Проверьте делегацию коллатору %s и заберите токены, если они доступны</string>
+    <string name="staking_alert_leaving_collator_title">Коллатор %s покидает список кандидатов</string>
+    <string name="staking_alert_low_stake_text">Ваш стейк слишком мал для генерации наград. Вы можете добавить %s токенов или забрать свой стейк</string>
+    <string name="staking_alert_low_stake_title">Ваша делегация не производит наград.</string>
+    <string name="staking_alert_no_alerts_now">Сейчас всё хорошо. Здесь будут появляться предупреждения.</string>
+    <string name="staking_alert_redeem_title">Заберите токены после вывода</string>
+    <string name="staking_alert_start_next_era_message">Пожалуйста, дождитесь начала следующей эры.</string>
+    <string name="staking_alert_title">Предупреждения</string>
+    <string name="staking_alert_unlock_text">Пожалуйста завершите текущую операцию (уменьшить/отозвать стейк) забрав ваши токены</string>
+    <string name="staking_alert_unlock_title">Вы можете забрать ваши токены</string>
+    <string name="staking_already_controller_title">Уже контроллер</string>
+    <string name="staking_apr">%s APR</string>
+    <string name="staking_apy">%s APY</string>
+    <string name="staking_balance_ready_for_unlocking">Готовы к разблокировке</string>
+    <string name="staking_balance_title">Баланс стейкинга</string>
+    <string name="staking_bond_more_v1_9_0">Застейкать ещё</string>
+    <string name="staking_bonded_format">Застейкано: %s</string>
+    <string name="staking_bonded_inactive">Вы не номинируете и не валидируете</string>
+    <string name="staking_collator_status_idle">Неактивный</string>
+    <string name="staking_collator_status_leaving">Выходящий</string>
     <string name="staking_collators">Коллаторы</string>
-    <string name="staking_confirm_nominations" formatted="false">%s из %s</string>
-    <string name="staking_recommended_custom_title">Выбрать других валидаторов</string>
-    <string name="fee_not_yet_loaded_title">Расчет комиссии в процессе</string>
-    <string name="fee_not_yet_loaded_message">Подождите, пока будет рассчитана комиссия</string>
-    <string name="staking_setup_amount_too_low">Нельзя застейкать меньше минимального значения (%s)</string>
-    <string name="common_confirm_title">Подтверждение</string>
+    <string formatted="false" name="staking_confirm_nominations">%s из %s</string>
     <string name="staking_confirm_reward_destination">Назначение вознаграждений</string>
-    <string name="staking_stash_title">Аккаунт</string>
-    <string name="staking_setup_sent_message">Транзакция на установку стейкинга отправлена</string>
     <string name="staking_confirm_selected_validators">Выбранные валидаторы</string>
-    <string name="staking_validator_info_title">Информация о валидаторе</string>
-    <string name="staking_validator_total_stake">Всего застейкано</string>
-    <string name="staking_validator_nominators">Номинаторы</string>
-    <string name="staking_validator_estimated_reward">Примерное вознаграждение</string>
-    <string name="identity_title">Персонализация</string>
-    <string name="identity_display_name_title">Отображаемое имя</string>
-    <string name="identity_legal_name_title">Официальное имя</string>
-    <string name="identity_email_title">Почта</string>
-    <string name="identity_web_title">Сайт</string>
-    <string name="identity_riot_name_title">Имя в Element</string>
-    <string name="validator_not_elected_description">Эта учетная запись не выбрана сетью для участия в текущей эпохе</string>
-    <string name="staking_main_network_title">Сеть %s</string>
-    <string name="staking_total_staked">Всего застейкано</string>
-    <string name="staking_main_minimum_stake_title">Минимальный стейк</string>
+    <string name="staking_controller_account">Контроллер аккаунт</string>
+    <string name="staking_controller_account_zero_balance">Мы обнаружили, что на этом аккаунте нет свободных токенов. Вы уверены, что хотите сменить контроллер?</string>
+    <string name="staking_controller_can_hint">Контроллер аккаунт может вывести из стейка, забрать, вернуть в стейк, сменить назначение вознаграждений и валидаторов.</string>
+    <string name="staking_controller_change_success">Контроллер изменен</string>
+    <string name="staking_custom_blocked_warning">Этот валидатор не принимает номинации в данный момент. Пожалуйста, попробуйте снова в следующую эру.</string>
+    <string name="staking_custom_clear_button_title">Очистить фильтры</string>
+    <string name="staking_custom_deselect_button_title">Отменить выбор</string>
+    <string name="staking_custom_fill_button_title">Дополнить рекомендованными</string>
+    <string formatted="false" name="staking_custom_header_validators_title">Валидаторов: %d из %d</string>
+    <string name="staking_custom_proceed_button_disabled_title">Выбрать валидаторов (макс. %d)</string>
+    <string formatted="false" name="staking_custom_proceed_button_enabled_title">Показать выбранных: %d (макс. %d)</string>
+    <string name="staking_custom_validators_list_title">Выберите валидаторов</string>
+    <string name="staking_custom_validators_settings_filters">Показать</string>
+    <string name="staking_custom_validators_settings_sort_apy">Примерное вознаграждение (% APR)</string>
+    <string name="staking_custom_validators_settings_sort_total_stake">Общий стейк (%s)</string>
+    <string name="staking_custom_validators_title">Выберите валидаторов сами</string>
+    <string name="staking_custom_validators_update_list">Обновить свой список</string>
+    <string name="staking_delegation_status_ready_to_unlock">Готовы к разблокировке</string>
+    <string name="staking_era_index">Эра №%d</string>
+    <string name="staking_era_title">эра %s</string>
+    <string name="staking_estimate_earning_title">Расчёт доходности</string>
+    <string name="staking_estimate_earning_title_v1.9.0">Расчёт доходности</string>
+    <string name="staking_filter_title_own_stake">Стейк валидатора</string>
+    <string name="staking_filter_title_own_stake_token">Стейк валидатора (%s)</string>
+    <string name="staking_hint_no_rewards">Во время вывода токены не приносят наград.</string>
+    <string name="staking_hint_redeem">После вывода токенов из стейкинга не забудьте их забрать.</string>
+    <string name="staking_hint_reward_bond_more">Ваши вознаграждения увеличатся со следующей эры.</string>
+    <string name="staking_hint_reward_more">Ваши вознаграждения увеличатся со следующего периода.</string>
+    <string name="staking_hint_rewards_format">Застейканые токены приносят награду каждую эру (%s).</string>
+    <string name="staking_hint_unbond_kills_stash">Fearless wallet изменит назначение вознаграждений
+на ваш аккаунт, чтобы избежать остатка в стейкинге.</string>
+    <string name="staking_hint_unstake_format">Для вывода токенов из стейкинга потребуется %s.</string>
+    <string name="staking_history_title">История стейкинга</string>
+    <string name="staking_inactive_validators_format">Неактивен (%d)</string>
+    <string name="staking_information_controller_actions">Контроллер аккаунт может вывести из стейка, забрать, вернуть в стейк, сменить назначение вознаграждений и валидаторов.</string>
     <string name="staking_main_active_nominators_title">Активные номинаторы</string>
     <string name="staking_main_lockup_period_title">Время вывода</string>
     <plurals name="staking_main_lockup_period_value">
@@ -275,755 +798,315 @@
         <item quantity="many">%d дней</item>
         <item quantity="other">%d дней</item>
     </plurals>
-    <string name="staking_validator_own_stake">Собственный</string>
-    <string name="staking_validator_total">Всего</string>
-    <string name="staking_stake">Стейкинг</string>
-    <string name="staking_total_rewards">Все вознаграждения</string>
-    <string name="staking_nominator_status_election">Период выборов</string>
+    <string name="staking_main_minimum_stake_title">Минимальный стейк</string>
+    <string name="staking_main_network_title">Сеть %s</string>
+    <string name="staking_main_stake_balance_staked">Застейкано</string>
+    <string name="staking_manage_title">Управление</string>
+    <string formatted="false" name="staking_max_format">%s (макс. %s)</string>
+    <string name="staking_max_nominators_reached_message">Достигнуто максимальное количество номинаторов</string>
+    <string name="staking_max_nominators_reached_title">Невозможно начать стейкинг</string>
+    <string name="staking_month_period_title">ежемесячно</string>
+    <string name="staking_no_controller_account">Контроллер аккаунт %s недоступен для выполнения операции.</string>
     <string name="staking_nominator_status_active">Активен</string>
+    <string name="staking_nominator_status_alert_active_message">Один из ваших валидаторов был выбран сетью.</string>
+    <string name="staking_nominator_status_alert_active_title">Активный статус</string>
+    <string name="staking_nominator_status_alert_election_message">Сеть выбирает валидаторов. Подождите несколько минут.</string>
+    <string name="staking_nominator_status_alert_inactive_title">Неактивный статус</string>
+    <string name="staking_nominator_status_alert_low_stake">Ваш стейк меньше минимального стейка для получения вознаграждений.</string>
+    <string name="staking_nominator_status_alert_no_validators">Ни один из ваших валидаторов не был избран сетью.</string>
+    <string name="staking_nominator_status_alert_waiting_message">Ваш стейкинг начнётся со следующий эры.</string>
+    <string name="staking_nominator_status_election">Период выборов</string>
     <string name="staking_nominator_status_inactive">Неактивен</string>
     <string name="staking_nominator_status_waiting">Ожидание следующей Эры</string>
-    <string name="staking_era_title">эра %s</string>
-    <string name="staking_validator_summary_title">Стейкинг для валидатора</string>
-    <string name="staking_validator_summary_description">В будущих обновлениях мы добавим функции стекинга для валидаторов. \n \n Оставайся бесстрашным</string>
-    <string name="staking_nominator_status_alert_active_title">Активный статус</string>
-    <string name="staking_nominator_status_alert_active_message">Один из ваших валидаторов был выбран сетью.</string>
-    <string name="staking_nominator_status_alert_election_message">Сеть выбирает валидаторов. Подождите несколько минут.</string>
-    <string name="staking_nominator_status_alert_waiting_message">Ваш стейкинг начнётся со следующий эры.</string>
-    <string name="staking_nominator_status_alert_inactive_title">Неактивный статус</string>
-    <string name="staking_nominator_status_alert_no_validators">Ни один из ваших валидаторов не был избран сетью.</string>
-    <string name="staking_nominator_status_alert_low_stake">Ваш стейк меньше минимального стейка для получения вознаграждений.</string>
-    <string name="staking_no_controller_account">Контроллер аккаунт %s недоступен для выполнения операции.</string>
-    <string name="transfers_v1">История</string>
-    <string name="staking_manage_title">Управление</string>
-    <string name="staking_reward_payouts_title">Ожидаемые вознаграждения</string>
-    <string name="staking_reward_payouts_payout_all">Выплатить все (%s)</string>
-    <string name="staking_reward_details_title">Детали награды</string>
-    <string name="staking_reward_details_payout">Выплата</string>
-    <string name="staking_reward_details_status">Статус</string>
-    <string name="staking_reward_details_status_claimable">Можно забрать</string>
-    <string name="staking_reward_details_status_received">Получено</string>
-    <string name="staking_reward_details_date">Дата</string>
-    <string name="staking_reward_details_era">Эра</string>
-    <string name="staking_reward_details_reward">Вознаграждение</string>
-    <string name="staking_reward">Вознаграждение</string>
-    <string name="staking_slash">Слэш</string>
-    <string name="common_call">Вызов</string>
-    <string name="common_module">Модуль</string>
-    <string name="wallet_asset_buy_with">Купить %s с</string>
-    <string name="wallet_filters_title">Фильтры</string>
-    <string name="common_apply">Применить</string>
-    <string name="common_reset">Сброс</string>
-    <string name="wallet_filters_transfers">Переводы</string>
-    <string name="wallet_filters_rewards_and_slashes">Вознаграждения и слэши</string>
-    <string name="wallet_filters_extrinsics">Прочие транзакции</string>
-    <string name="wallet_filters_header">Показывать</string>
-    <string name="common_available_format">Доступно: %s</string>
-    <string name="common_transferable_format">Доступно: %s</string>
-    <string name="staking_rewards_learn_more">Подробнее о вознаграждениях</string>
+    <string name="staking_only_apr">APR</string>
+    <string name="staking_only_apy">APY</string>
+    <string name="staking_payout">Выплаты</string>
+    <string name="staking_payout_expired">Срок выплаты истёк</string>
     <plurals name="staking_payouts_days_left">
         <item quantity="one">%d день</item>
         <item quantity="few">%d дня</item>
         <item quantity="many">%d дней</item>
         <item quantity="other">%d дней</item>
     </plurals>
-    <plurals name="days_format">
-        <item quantity="one">%d день</item>
-        <item quantity="few">%d дня</item>
-        <item quantity="many">%d дней</item>
-        <item quantity="other">%d дней</item>
-    </plurals>
-    <string name="staking_reward_payouts_empty_rewards">Прекрасно! Все вознаграждения выплачены.</string>
-    <string name="staking_reward_details_validator">Валидатор</string>
-    <string name="common_not_enough_funds_title">Недостаточный баланс</string>
-    <string name="common_confirmation_title">Уверены ли вы?</string>
-    <string name="staking_warning_tiny_payout">Вознаграждение меньше комиссии сети.</string>
-    <string name="staking_unbonding_limit_reached_message">Вы достигли лимита запросов на вывод из стейка (%d активных запросов).</string>
-    <string name="staking_unbonding_limit_reached_title">Достигнут лимит запросов на вывод из стейка</string>
-    <string name="staking_redeem">Забрать</string>
-    <string name="parachain_staking_unlock">Разблокировать</string>
-    <string name="staking_balance_ready_for_unlocking">Готовы к разблокировке</string>
-    <string name="staking_delegation_status_ready_to_unlock">Готовы к разблокировке</string>
-    <string name="common_balance">Баланс</string>
-    <string name="your_collator">Ваш коллатор</string>
-    <string name="collator">Коллатор</string>
-    <string name="staking_balance_title">Баланс стейкинга</string>
-    <string name="make_payout_transaction_sent">Транзакция на выплату отправлена</string>
-    <string name="staking_zero_bond_error">Сумма должна быть больше нуля</string>
-    <string name="common_transaction_submitted">Транзакция отправлена</string>
-    <string name="staking_your_validators">Ваши валидаторы</string>
-    <string name="staking_rebond_all">Ребонд все</string>
-    <string name="staking_rebond_last">Ребонд последний</string>
-    <string name="common_change">Изменить</string>
-    <string name="common_active_with_count">Активные (%s)</string>
-    <string name="staking_your_nominated_format">Номинировано: %s</string>
-    <string name="staking_your_validators_changing_title">Ваши валидаторы поменяются в следующую эру</string>
-    <string name="staking_max_format" formatted="false">%s (макс. %s)</string>
-    <string name="staking_bonded_format">Застейкано: %s</string>
-    <string name="staking_unbonding_all_message">Оставшийся баланс стейка будет меньше минимального значения, поэтому он добавлен к сумме вывода.</string>
-    <string name="staking_unbonding_hint">Ваши токены будут доступны после истечения периода вывода со стейкинга.</string>
-    <string name="common_account">Счет</string>
-    <string name="account_template">%s аккаунт</string>
-    <string name="staking_redeemable_format">Можно забрать: %s</string>
-    <string name="staking_rebond">Вернуть в стейк</string>
-    <string name="staking_unbonding_format">Время вывода: %s</string>
-    <string name="staking_rebond_insufficient_bondings">Сумма, которую вы хотите вернуть в стейк больше суммы вывода</string>
-    <string name="staking_stash_account">Стэш аккаунт</string>
-    <string name="staking_stash_missing_message">Стэш аккаунт %s недоступен для обновления настроек стейкинга</string>
-    <string name="staking_controller_account">Контроллер аккаунт</string>
-    <string name="staking_account_is_used_as_controller">Выбранный аккаунт уже используется в качестве контроллера.</string>
-    <string name="staking_reward_info_title">Доходность с реинвестированием</string>
-    <string name="staking_reward_info_max">Максимальный APY</string>
-    <string name="staking_reward_info_avg">Средний APY</string>
-    <string name="staking_alert_title">Предупреждения</string>
-    <string name="staking_recommended_feature_5">Лимит 2 валидатора на персонализацию</string>
-    <string name="staking_set_separate_account_controller">Установите отдельный аккаунт как контроллер, чтобы увеличить безопасность управления стейкингом.</string>
-    <string name="staking_stash_can_hint">С помощью стэш аккаунта можно застейкать больше и установить контроллер аккаунт</string>
-    <string name="staking_controller_can_hint">Контроллер аккаунт может вывести из стейка, забрать, вернуть в стейк, сменить назначение вознаграждений и валидаторов.</string>
-    <string name="staking_switch_account_to_stash">Для установки контроллер аккаунта смените аккаунт на стэш.</string>
-    <string name="staking_alert_bond_more_message">В настоящее время стейкинг неактивен. \nТекущая минимальная ставка %s .</string>
-    <string name="staking_alert_change_validators">Смените своих валидаторов.</string>
-    <string name="staking_alert_bond_more_title">Застейкайте ещё токенов</string>
-    <string name="staking_alert_election">Действия со стейкингом сейчас недоступны.</string>
-    <string name="staking_alert_election_message">Сеть избирает валидаторов.\nОбычно это занимает менее 10 минут.</string>
-    <string name="staking_alert_redeem_title">Заберите токены после вывода</string>
-    <string name="staking_alert_no_alerts_now">Сейчас всё хорошо. Здесь будут появляться предупреждения.</string>
-    <string name="staking_your_stake">Ваш стейк</string>
-    <string name="staking_controller_account_zero_balance">Мы обнаружили, что на этом аккаунте нет свободных токенов. Вы уверены, что хотите сменить контроллер?</string>
-    <string name="wallet_send_balance_minimal">Минимальный баланс</string>
-    <string name="staking_your_allocated_description">Ваш стейк распределяется между этими валидаторами.</string>
-    <string name="staking_your_not_allocated_description">Другие, которые активны без вашего стейка.</string>
-    <string name="staking_your_inactive_description">Валидаторы, которые не были избраны в этой эре.</string>
-    <string name="crowdloan_crowdloan">Краудлоуны</string>
-    <string name="crowdloan_main_description">Выберите кампанию краудлана, в которую вы хотите внести свой вклад. Вы получите вознаграждение, если кампания выиграет слот парачейна в аукционе.</string>
-    <string name="crownloans_raised_format" formatted="false">Собрано: %s из %s</string>
-    <string name="crowdloan_active_section_format">Активные (%s)</string>
-    <string name="common_completed_with_count">Завершённые (%s)</string>
-    <string name="crowdloan_empty_message">Информация о краудлоунах \n появится здесь.</string>
-    <string name="common_left">%s осталось</string>
-    <string name="common_existential_warning_message">Эта операция приведет к тому, что счет опустится ниже экзистенциального депозита, что приведет к его деактивации (счет будет стерт из состояния блокчейна для экономии места). Если вы решите продолжить, вы потеряете все средства, которые находятся ниже суммы экзистенциального депозита, установленного сетью. За подробной информацией обращайтесь к официальной документации сети (например, Polkadot Wiki). Fearless Wallet является полностью не опекунским приложением и не контролирует и не знает о любых ваших действиях в самой сети. ПРОДОЛЖАЙТЕ ТОЛЬКО В ТОМ СЛУЧАЕ, ЕСЛИ ВЫ ПОЛНОСТЬЮ СОГЛАСНЫ И ПОНИМАЕТЕ ПОСЛЕДСТВИЯ.</string>
-    <string name="common_existential_warning_title">Операция сделает аккаунт неактивным</string>
-    <string name="crowdloan_ended_message">Невозможно внести вклад в выбранный краудлоун, поскольку он уже завершён.</string>
-    <string name="crowdloan_ended_title">Краудлоун завершён</string>
-    <string name="crowdloan_cap_reached_amount_message">Невозможно вложить введённую сумму, поскольку общая сумма сбора будет превышать максимальную сумму краудлоуна. Максимально допустимый вклад составляет %s.</string>
-    <string name="crowdloan_cap_reached_raised_message">Невозможно внести вклад в выбранный краудлоун, поскольку его максимальная сумма сбора уже достигнута.</string>
-    <string name="crowdloan_cap_reached_title">Превышена максимальная сумма краудлоуна</string>
-    <string name="crowdloan_too_small_contribution_message">Минимально допустимая сумма вклада составляет %s .</string>
-    <string name="crowdloan_too_small_contribution_title">Сумма вклада слишком мала</string>
-    <string name="crowdloan_learn">О краудлоуне %s</string>
-    <string name="common_time_left">Оставшееся время</string>
-    <string name="crowdloan_placeholder">Здесь появятся активные краудлоуны</string>
-    <string name="crowdloan_contribute_title">Внести вклад в краудлоун</string>
-    <string name="crowdloan_unlock_hint">Ваши %s токены будут возвращены обратно после срока лизинга парачейна.</string>
-    <string name="crowdloan_info">Информация о краундлоуне</string>
-    <string name="crowdloan_raised_amount" formatted="false">%s из %s</string>
-    <string name="crowdloan_raised">Собрано</string>
-    <string name="crowdloan_leasing_period">Период лизинга</string>
-    <string name="common_completed">Успешно</string>
-    <string name="common_till_date">до %s</string>
-    <string name="staking_bonded_inactive">Вы не номинируете и не валидируете</string>
-    <string name="crodloan_private_crowdloan_title">Приватный краудлоун</string>
-    <string name="crodloan_private_crowdloan_message">Приватные краудлоуны пока не поддерживаются</string>
-    <string name="common_bonus">Бонус</string>
-    <string name="crowdloan_app_bonus_format">Бонус Fearless Wallet (%s)</string>
-    <string name="crowdloan_enter_referral">Введите реферальный код</string>
-    <string name="staking_add_controller">Чтобы выполнить это действие, добавьте контроллер аккаунт %s в приложение</string>
-    <string name="crowdloan_empty_bonus_title">Получите специальный бонус</string>
-    <string name="staking_start_change_validators_recommended_title">Стейкинг с рекоммендованными валидаторами</string>
-    <string name="staking_start_change_collators_suggested_title">Стейкинг с рекоммендованными коллаторами</string>
-    <string name="staking_start_change_validators_custom_title">Стейкинг с выбранными валидаторами</string>
-    <string name="common_applied">Применено</string>
-    <string name="crowdloan_terms_action">Соглашаюсь с Условиями использования</string>
-    <string name="crowdloan_referral_code_invalid">Реферальный код недействителен. Пожалуйста, попробуйте другой.</string>
-    <string name="staking_start_change_validators_custom_subtitle">Вы должны доверять своим валидаторам, чтобы они действовали грамотно и честно. Принятие решения исключительно на основе их текущей прибыльности может привести к снижению прибыли или даже потере средств.</string>
-    <string name="staking_select_recommended">Выбрать рекомендованных</string>
-    <string name="staking_select_custom">Выбрать самому</string>
-    <string name="staking_selected_validators_count_v1.9.1" formatted="false">выбрано %d (макс. %d)</string>
-    <string name="staking_start_change_validators_recommended_subtitle">Алгоритм Fearless Wallet составил список рекомендованных валидаторов, основываясь на критериях:</string>
-    <string name="common_not_enough_funds_message">К сожалению, у вас недостаточно средств для оплаты сетевого сбора.</string>
-    <string name="common_not_enough_funds_controller_message">К сожалению, у контроллер аккаунта недостаточно средств для оплаты сетевого сбора.</string>
-    <string name="choose_amount_error_too_big">К сожалению, у вас недостаточно средств для совершения данной операции</string>
-    <string name="staking_alert_change_validators_message">Стейкинг неактивен. Ни один из ваших валидаторов не был выбран сетью.</string>
-    <string name="staking_custom_validators_list_title">Выберите валидаторов</string>
-    <string name="staking_custom_fill_button_title">Дополнить рекомендованными</string>
-    <string name="staking_custom_clear_button_title">Очистить фильтры</string>
-    <string name="staking_custom_deselect_button_title">Отменить выбор</string>
-    <string name="staking_custom_header_validators_title" formatted="false">Валидаторов: %d из %d</string>
-    <string name="crowdloan_contribution_format">Вы вложили: %s</string>
-    <string name="staking_set_validators_title">Выберите валидаторов для начала стейкинга</string>
-    <string name="staking_set_validators_message">Валидаторы не выбраны</string>
-    <string name="staking_max_nominators_reached_title">Невозможно начать стейкинг</string>
-    <string name="staking_max_nominators_reached_message">Достигнуто максимальное количество номинаторов</string>
-    <string name="staking_custom_blocked_warning">Этот валидатор не принимает номинации в данный момент. Пожалуйста, попробуйте снова в следующую эру.</string>
-    <string name="staking_alert_start_next_era_message">Пожалуйста, дождитесь начала следующей эры.</string>
-    <string name="staking_custom_proceed_button_disabled_title">Выбрать валидаторов (макс. %d)</string>
-    <string name="staking_custom_proceed_button_enabled_title" formatted="false">Показать выбранных: %d (макс. %d)</string>
-    <string name="staking_filter_title_own_stake">Стейк валидатора</string>
-    <string name="staking_filter_title_own_stake_token">Стейк валидатора (%s)</string>
-    <string name="common_search">Поиск</string>
-    <string name="common_search_results_number">Результаты поиска: %d</string>
-    <string name="common_search_start_title">Здесь появятся результаты поиска</string>
-    <string name="staking_validator_search_empty_title">Поиск не дал результатов.\nПроверьте, что вы указали полный адрес аккаунта</string>
-    <string name="common_filter_sort_header">Сортировать по:</string>
-    <string name="staking_validator_total_stake_token">Общий стейк (%s)</string>
-    <string name="staking_validator_apy_percent">Примерное вознаграждение (% APY)</string>
-    <string name="staking_rewards_destination_title">Назначение вознаграждений</string>
-    <string name="staking_custom_validators_update_list">Обновить свой список</string>
-    <string name="staking_your_oversubscribed_message">Ваши токены попали к валидатору, превысившему лимит номинаторов. В этой эре вы не получите награду от этого валидатора. </string>
-    <string name="staking_your_not_elected_format">Не избраны (%s)</string>
-    <string name="staking_your_elected_format">Избраны (%s)</string>
-    <string name="staking_rewards_apy">Вознаграждение (APY)</string>
-    <string name="staking_rewards_apr">Вознаграждение (APR)</string>
-    <string name="staking_validator_slashed_desc">Валидатор наказан за неправильные действия в сети (например, был оффлайн, атаковал сеть, работал с модифицированным ПО).</string>
-    <string name="staking_payout_expired">Срок выплаты истёк</string>
-    <string name="wallet_balance_unbonding_v1_9_0">В процессе вывода</string>
-    <string name="staking_unbonding_period_v1_9_0">Время вывода</string>
-    <string name="wallet_balance_bonded">Застейкано</string>
-    <string name="staking_total_rewards_v1.9.0">Заработано</string>
-    <string name="staking_setup_reward_destination_section_title">Использовать вознаграждения для</string>
-    <string name="staking_bond_more_v1_9_0">Застейкать ещё</string>
-    <string name="stake_less">Вывод из стейка</string>
-    <string name="staking_unbond_v1_9_0">Вывод из стейка</string>
-    <string name="staking_unbonding_empty_list_v1_9_0">Операции по выводу из стейка появятся здесь</string>
-    <string name="staking_validator_my_oversubscribed_message">Превышен лимит номинаторов для валидатора. В этой эре вы не получите награду от этого валидатора.</string>
-    <string name="staking_validator_other_oversubscribed_message">Превышен лимит номинаторов для валидатора. Только номинаторы с наибольшим стейком получат награду.</string>
-    <string name="history_v1.9.0">История</string>
-    <string name="staking_estimate_earning_title_v1.9.0">Расчёт доходности</string>
-    <string name="staking_main_stake_balance_staked">Застейкано</string>
     <string name="staking_pending_rewards_info">Валидаторы выплачивают вознаграждения каждые 2–5 дней. Однако, вы можете инициировать выплату самостоятельно, особенно, если срок вознаграждения истекает. В этом случае придётся заплатить комиссию.</string>
-    <string name="staking_hint_rewards_format">Застейканые токены приносят награду каждую эру (%s).</string>
-    <string name="staking_hint_unstake_format">Для вывода токенов из стейкинга потребуется %s.</string>
-    <string name="staking_hint_no_rewards">Во время вывода токены не приносят наград.</string>
-    <string name="staking_hint_redeem">После вывода токенов из стейкинга не забудьте их забрать.</string>
-    <string name="staking_hint_reward_bond_more">Ваши вознаграждения увеличатся со следующей эры.</string>
-    <string name="staking_hint_reward_more">Ваши вознаграждения увеличатся со следующего периода.</string>
-    <string name="staking_hint_unbond_kills_stash">Fearless wallet изменит назначение вознаграждений
-на ваш аккаунт, чтобы избежать остатка в стейкинге.</string>
-    <string name="staking_custom_validators_settings_filters">Показать</string>
-    <string name="common_sort_by">Сортировать по:</string>
-    <string name="staking_custom_validators_settings_sort_apy">Примерное вознаграждение (% APR)</string>
-    <string name="staking_information_controller_actions">Контроллер аккаунт может вывести из стейка, забрать, вернуть в стейк, сменить назначение вознаграждений и валидаторов.</string>
-    <string name="staking_only_apr">APR</string>
-    <string name="staking_only_apy">APY</string>
-    <string name="crowdloan_privacy_policy">Я подтверждаю, что прочитал и согласен с Условиями использования и Политикой конфиденциальности</string>
-    <string name="staking_unbondings_placeholder">Операции по выводу из стейка появятся здесь</string>
-    <string name="common_options_title">Выберите опцию</string>
-    <string name="invoice_scan_error_no_info">Не удается декодировать QR</string>
-    <string name="invoice_scan_upload">Из галереи</string>
-    <string name="staking_story_staking_title">Что такое стейкинг?</string>
-    <string name="staking_story_staking_page_1">Стейкинг — это один из способов пассивного дохода с помощью удержания токенов в сети. Вознаграждения за стейкинг выпускаются каждую эру (6 часов в Kusama и 24 часа в Polkadot). Вы можете стейкать неограниченное количество времени, и для вывода из стейкинга вам нужно будет подождать период вывода, после которого вы сможете забрать свои токены.</string>
-    <string name="staking_story_staking_page_2">Стейкинг играет ключевую роль в безопасности и надежности сети. Любой может запустить собственную ноду, но только тот, кто наберёт необходимое количество токенов в стейкинге, будет избран сетью для создания новых блоков и получения наград. Часто валидаторы не имеют необходимого количества токенов, поэтому номинаторы помогают им с помощью своих токенов.</string>
-    <string name="staking_story_nominator_title">Кто такой номинатор?</string>
-    <string name="staking_story_nominator_page_1">Номинатор получает пассивный доход за удержание своих токенов для безопасности сети. Для этого номинатор должен выбрать валидаторов, с которыми он будет стейкать. Номинатору нужно осторожно подходить к выбору валидаторов. Если выбранный валидатор не будет поддерживать свою ноду в рабочем состоянии или будет пытаться атаковать сеть, то им обоим будет назначен штраф в виде слэша определенной части стейкинга в зависимости от масштаба причиненного ущерба.</string>
-    <string name="staking_story_nominator_page_2">Fearless Wallet помогает номинаторам в выборе валидаторов. Приложение получает данные из сети и составляет список доступных для номинирования валидаторов, имеющих максимальный доход, персонализацию и контакты для связи, а также не имеющих слэшей. Fearless Wallet также заботится о децентрализации, поэтому если один человек или компания запустили несколько валидирующих нод, то только 2 из них будут присутствовать в списке рекомендованных.</string>
-    <string name="staking_story_validator_title">Кто такой валидатор?</string>
-    <string name="staking_story_validator_page_1">Валидатор обеспечивает работу ноды блокчейна 24/7 и обязан иметь необходимое количество стейка (общий стейк самого валидатора и его номинаторов), чтобы быть избранным сетью. Валидаторы должны поддерживать производительность и надежность своих нод, за что они получают вознаграждения. Валидатор — это полноценная работа, существуют профильные компании, которые специализируются на валидировании в блокчейн сетях.</string>
-    <string name="staking_story_validator_page_2">Любой может стать валидатором и запустить ноду блокчейна, однако это требует определённых технических знаний и ответственности. Сети Polkadot и Kusama запустили программу Thousand Validators Programme (Программа Тысячи Валидаторов), чтобы помочь начинающим. Более того, сеть всегда будет стремиться вознаграждать тех валидаторов, чей суммарный стейк меньше (но достаточен чтобы быть избранным в сети), для поддержки децентрализации.</string>
-    <string name="staking_story_reward_title">Получение наград</string>
-    <string name="staking_story_reward_page_1">Вознаграждения за стейкинг доступны для выплаты в конце каждой эры (6 часов в Kusama и 24 часа в Polkadot). Сеть хранит ожидаемые вознаграждения в течении 84 эр и в большинстве случаев валидаторы сами выплачивают всем награды. Однако, валидаторы могут забыть это сделать или с ними может что-то случиться, поэтому номинаторы могут выплатить свои награды самостоятельно.</string>
-    <string name="staking_story_reward_page_2">Несмотря на то, что обычно вознаграждения выплачиваются валидаторами, Fearless Wallet помогает узнать о вознаграждениях, срок выплаты которых близок к истечению, с помощью предупреждений. Предупреждения об этом и других важных событиях появятся на главном экране стейкинга.</string>
-    <string name="staking_selected_validators_mask">Валидаторы (%d)</string>
-    <string name="staking_apy">%s APY</string>
-    <string name="staking_apr">%s APR</string>
-    <string name="staking_controller_change_success">Контроллер изменен</string>
-    <string name="staking_already_controller_title">Уже контроллер</string>
-    <string name="staking_reward_estimation_bottom_sheet_title">Доходность в сети</string>
-    <string name="staking_era_index">Эра №%d</string>
-    <string name="staking_unbond_crossed_existential">После операции итоговый стейкинг баланс будет меньше минимального баланса. Это приведет к тому, что весь стейкинг будет недействительным.</string>
-    <string name="staking_unbond_too_big">Сумма, которую вы хотите вернуть в стейк больше суммы вывода</string>
-    <string name="common_search_no_results">Поиск не дал результатов.\nПроверьте, что вы указали полный адрес аккаунта</string>
-    <string name="staking_custom_validators_settings_sort_total_stake">Общий стейк (%s)</string>
-    <string name="staking_inactive_validators_format">Неактивен (%d)</string>
-    <string name="staking_selected_validators_format" formatted="false">Выбрано %d (макс. %d)</string>
-    <plurals name="common_hours_format">
-        <item quantity="one">%d час</item>
-        <item quantity="few">%d часа</item>
-        <item quantity="many">%d часов</item>
-        <item quantity="other">%d час</item>
-    </plurals>
-    <plurals name="rounds_format">
-        <item quantity="one">%d раунд</item>
-        <item quantity="few">%d раунда</item>
-        <item quantity="many">%d раундов</item>
-        <item quantity="other">%d раундов</item>
-    </plurals>
-    <string name="import_mnemonic_invalid_title">Ваша мнемоника недействительна</string>
-    <string name="account_error_try_another_one">Пожалуйста, попробуйте другой.</string>
-    <string name="wallet_extrinsic_details_title">Детали транзакции</string>
-    <string name="transaction_details_extrinsic_fee">Комиссия</string>
-    <string name="wallet_transfer_details_title">Детали перевода</string>
-    <string name="wallet_title_stash_details">Детали слеша</string>
-    <string name="common_event">Событие</string>
-    <string name="common_copy_id">Копировать идентификатор</string>
-    <string name="common_details">Подробности</string>
-    <string name="wallet_assets">Активы</string>
-    <string name="username_setup_choose_title_2_0">Псевдоним кошелька</string>
-    <string name="wallet_info_title">Кошелёк</string>
-    <string name="account_no_chain_projection">Аккаунт не найден</string>
-    <string name="account_custom_secret">Аккаунты с измененным секретом</string>
-    <string name="account_shared_secret">Аккаунты с общим секретом</string>
-    <string name="parachain_crowdloans">Краудлоуны парачейнов</string>
-    <string name="crowdloan_confirmation_name">%s краудлоун</string>
-    <string name="apply_fearless_wallet_bonus">Нажмите, чтобы применить бонус кошелька Fearless</string>
-    <string name="applied_fearless_wallet_bonus">Бонус кошелька Fearless применен</string>
-    <string name="crowdloan_learn_bonuses">Узнайте о бонусах %s</string>
-    <string name="crowdloan_astar_referral_code_invalid">Недействительный реферальный адрес, допускается ввод только адреса сети Polkadot, попробуйте еще раз</string>
-    <string name="common_your_bonus">Ваш бонус</string>
-    <string name="common_friend_bonus">Бонус для вашего друга</string>
-    <string name="transfer_title">Перевод</string>
-
-    <string name="onboarding_ethereum_derivation_path_hint">Пример: //44//60//0/0/0</string>
-
-    <string name="moonbeam_crowdloan_terms">Правила и условия Moonbeam краудлоуна</string>
-    <string name="moonbeam_registration">Регистрация в краудлоуне Moonbeam</string>
-    <string name="moonbeam_registration_description">Эта транзакция подтверждает, что вы согласны с правилами и условиями краудлоуна Moonbeam.
-В качестве доказательства вашего согласия будет отправлена подписанная транзакция system.remark extrinsic. Эта информация будет обработана и сохранена в Polkadot Relay Chain.
-Обратите внимание, что за данную подписанную транзакцию будет взиматься комиссия в сети Polkadot.</string>
-    <string name="transaction_successful">Транзакция успешна!</string>
-    <string name="moonbeam_signed_successful">Вы успешно подписали правила и условия краудлоуна Moonbeam, и транзакция была отправлена.
-Это хэш вашей транзакции:</string>
-    <string name="moonbean_ethereum_address">Адрес Moonbeam Ethereum</string>
-    <string name="about_twitter">Следить за новостями в Twitter</string>
-    <string name="about_youtube">Подписаться на YouTube</string>
-    <string name="about_medium">Читать на Medium</string>
-    <string name="about_announcement">Следить за новостями в Telegram</string>
-    <string name="about_support">Обратиться за поддержкой</string>
-    <string name="wallet_asset_receive_template">Получить %s</string>
-    <string name="username_setup_hint_2_0">Пример: Сбережения, инвестиции, краудлоуны, стейкинг. Данное имя будет отображаться только для вас и храниться только на вашем мобильном устройстве.</string>
-    <string name="username_setup_title_2_0">Создать новый кошелек</string>
-    <string name="pincode_confirm_pin_code">Подтвердите пин-код</string>
-    <string name="substrate_crypto_type">Тип криптографической пары ключей substrate</string>
-    <string name="ethereum_crypto_type">Тип криптографической пары ключей Ethereum</string>
-    <string name="substrate_secret_derivation_path">Путь деривации секрета substrate</string>
-    <string name="ethereum_secret_derivation_path">Путь деривации секрета Ethereum</string>
-    <string name="example">Пример:</string>
-    <string name="pincode_setup_top_title">Установить пин-код</string>
-    <string name="confirm_mnemonic_mismatch_error_message_2_0">Неверная мнемоническая фраза, пожалуйста, проверьте еще раз порядок слов</string>
-    <string name="share_referral_code">Поделиться реферальным кодом</string>
-    <string name="copy_referral_code">Копировать реферальный код</string>
-    <string name="scan_qr_title">Сканирование QR</string>
-    <string name="scan_qr_subtitle">Поднесите QR код получателя</string>
-    <string name="scan_qr_upload_button_title">Из галереи</string>
-    <string name="wallet_receive_qr_description">Покажите этот QR-код отправителю</string>
-    <string name="common_error_network">Возникла ошибка при обмене данными с удаленным сервером</string>
-    <string name="common_error_internal">Внутренняя ошибка</string>
-    <string name="moonbeam_location_unsupported_error">К сожалению, вы не можете участвовать в кампании Moonbeam Crowdloan Campaign из-за вашего местоположения.</string>
-    <string name="tabbar_crowdloan_attention">Пожалуйста, проверьте вкладку Краудлоны \n Требуется внимание</string>
-    <string name="common_max">Все</string>
-    <string name="wallet_receive_navigation_title">Получить %s</string>
-    <string name="assetdetails_balance_total">Всего</string>
-    <string name="assetdetails_balance_transferable">Доступно</string>
-    <string name="assetdetails_balance_locked">Заблокировано</string>
-    <string name="assetdetails_balance_title">Баланс</string>
-    <string name="wallet_send_navigation_title">Перевести %s</string>
-    <string name="profile_wallets_title">Кошельки</string>
-    <string name="onboarding_create_wallet">Создать кошелёк</string>
-    <string name="onboarding_restore_wallet">У меня уже есть кошелек</string>
-    <string name="import_wallet">Импорт кошелька</string>
-    <string name="about_crowdloans">Узнайте больше о Crowdloans</string>
-    <string name="wallet_asset_your_balance">Ваш баланс</string>
-    <string name="wallet_asset_transferable_caption">Доступны к отправке</string>
-    <string name="about_wiki">Узнать в Wiki</string>
-    <string name="about_instagram">Поставьте лайк в Instagram</string>
-    <string name="switch_node">Выбрать ноду</string>
-    <string name="wallet_transaction_detail_copy_id">Копировать идентификатор</string>
-    <string name="wallet_transaction_history_filter_title">Показать</string>
-    <string name="view_in">Посмотреть в %s</string>
-    <string name="wallet_transaction_history_unsupported_message">История транзакций для этой сети еще не поддерживается</string>
-    <string name="wallet_transaction_history_empty_message">Здесь появится история транзакций</string>
-    <string name="switch_node_autoselect_title">Автоматический выбор нод</string>
-    <string name="add_node_button_title">Добавить ноду</string>
-    <string name="profile_logout_title">Выйти</string>
-    <string name="profile_logout_description">Это действие приведет к удалению всех учетных записей с этого устройства. Прежде чем продолжить, убедитесь, что вы сделали резервную копию своей парольной фразы.</string>
-    <string name="delete_custom_node_title">Удалить выбранную ноду?</string>
-    <string name="network_url_address">URL-адрес</string>
-    <string name="error_message_enter_the_name">Введите имя…</string>
-    <string name="error_message_enter_the_url_address">Введите URL-адрес…</string>
-    <string name="node">Нода</string>
-    <string name="wallet_transaction_history_error_message">Сервис временно недоступен</string>
-    <string name="node_selection_delete_node_title">Удалить выбранную ноду?</string>
-    <string name="wallet_settings">Настройки кошелька</string>
-    <string name="view_wallet">Посмотреть кошелек</string>
-    <string name="export_wallet">Экспорт кошелька</string>
-    <string name="select_validators_disclaimer">DISCLAIMER: Предложения алгоритмических валидаторов не являются финансовыми консультациями или советами. Стейкинг - это деятельность с высоким риском, и предложения алгоритмических валидаторов не обязательно снижают этот риск. Валидатор, предложенный алгоритмом, все равно может быть слэширован. Валидатор, предложенный алгоритмом, также может изменить свои параметры (например, размер комиссии и т.д.) в любое время после того, как он был предложен и/или выбран. Вы можете потерять токены или вознаграждения по этим или другим причинам. Ставьте токены и используйте предложения валидаторов только по своему усмотрению, после проведения должной проверки и тщательного рассмотрения сопутствующих рисков.</string>
-    <string name="accounts_with_one_key">Аккаунты с одним ключом</string>
-    <string name="accounts_with_changed_key">Аккаунты с измененным ключом</string>
-    <string name="select_save_type">Выберите тип сохранения</string>
-    <string name="accounts_for_export">Аккаунты для экспорта</string>
-    <string name="what_accounts_for_export">Какие аккаунты в кошельке вы хотите экспортировать?</string>
-    <string name="replace_account">Заменить аккаунт</string>
-    <string name="wallet_manage_assets">Управление активами</string>
-    <string name="moonbeam_ethereum_address_incorrect">Формат адреса Moonbeam Ethereum неверен, попробуйте еще раз</string>
-    <string name="moonbeam_ethereum_reward">Вознаграждения будут выплачиваться на этот адрес. Вы можете использовать существующий адрес Ethereum. ПОЖАЛУЙСТА, УБЕДИТЕСЬ, ЧТО У ВАС ЕСТЬ ПРИВАТНЫЕ КЛЮЧИ ДЛЯ ЭТОГО АДРЕСА.</string>
-    <string name="manage_assets_search_hint">Поиск по активу</string>
-    <string name="assets_search_hint">Поиск по токену</string>
-    <string name="crowdloan_email_hint">Адрес электронной почты</string>
-    <string name="crowdloan_referral_code_hint">Реферальный код</string>
-    <string name="label_link">Ссылка</string>
-    <string name="apply_fearless_referal_wallet">Нажмите, чтобы применить бонус кошелька Fearless</string>
-    <string name="referral_email_acala">Я согласен получать электронную почту от Acala</string>
-    <string name="wallet_send_transferable_amount_caption">Доступны к отправке: %s</string>
-    <string name="replace_account_template">Заменить %s аккаунт</string>
-    <string name="create_new_account">Создать новый аккаунт</string>
-    <string name="already_have_account">У меня уже есть аккаунт</string>
-    <string name="json_export_file_title">Экспорт в файл</string>
-    <string name="json_export_text_title">Экспортировать как текст</string>
-    <string name="app_version_unsupported_text">Текущая версия приложения больше не поддерживается. Требуется обновление</string>
-    <string name="chain_unsupported_text">Эта сеть недоступна в текущей версии приложения. Пожалуйста, обновите приложение до последней версии</string>
-    <string name="update_needed_text">Требуется обновление</string>
-    <string name="connection_problems_text">Проблемы с подключением</string>
-    <string name="common_unsupported">Не поддерживается</string>
-    <string name="stories_version2_slide1_title">Больше сетей — больше токенов</string>
-    <string name="stories_version2_slide2_title">Аккаунты улучшились до кошельков</string>
-    <string name="stories_version2_slide3_title">Кошелёк стал мощнее</string>
-    <string name="stories_version2_slide4_title">Кастомизируйте свои кошельки</string>
-    <string name="stories_version2_slide5_title">Гармония с экосистемой</string>
-    <string name="stories_version2_slide1_subtitle">Теперь Fearless Wallet поддерживает больше сетей и токенов: Polkadot (DOT), Kusama (KSM), Moonriver (MOVR), Karura (KAR), Shiden (SDN), SORA (XOR), Bifrost (BNC), KILT (KILT) и другие…</string>
-    <string name="stories_version2_slide2_subtitle">Все ваши аккаунты остались в приложении! Каждый кошелёк теперь содержит множество аккаутов в разных сетях.  У каждого кошелька новая, красочная иконка, которая помогает лучше их различать. </string>
-    <string name="stories_version2_slide3_subtitle">Теперь разные токены экосистемы Polkadot и Kusama находятся на одном экране. </string>
-    <string name="stories_version2_slide4_subtitle">По умолчанию кошелёк использует один ключ во всех аккаунтах. Теперь можно заменить аккаунт внутри кошелька на любой существующий или создать новый.</string>
-    <string name="stories_version2_slide5_subtitle">Вы все так же можете импортировать и экспортировать свои аккаунты в Fearless Wallet из других приложений экосистемы.
-
-Не забудьте сделать резервную копию и хранить её в безопасном и приватном месте (например, на листе бумаге)</string>
-    <string name="stories_bottom_close_button">Отличные новости!</string>
-
-    <string name="import_substrate_recovery">JSON для восстановления Substrate аккаунтов</string>
-    <string name="import_ethereum_recovery">JSON для восстановления ETH аккаунтов</string>
-    <string name="i_dont_need_account">Мне не нужен аккаунт</string>
-    <string name="common_network">Сеть</string>
-    <string name="common_origin_network">Исходная сеть</string>
-    <string name="common_destination_network">Сеть назначения</string>
-
-    <string name="account_import_substrate_raw_seed_placeholder">Substrate сид</string>
-    <string name="account_import_ethereum_raw_seed_placeholder">ETH сид</string>
-    <string name="common_currency">Валюта</string>
-    <string name="onboarding_substrate_derivation_path_hint">Пример: //hard/soft///password</string>
-    <string name="ECDSA_crypto_type">ECDSA | BTC/ETH совместимый</string>
-    <string name="alert_add_ethereum_title">ETH аккаунты</string>
-    <string name="alert_add_ethereum_message">Добавить аккаунты Moonbeam и Moonriver?</string>
-    <string name="common_yes">Да</string>
-    <string name="common_no">Нет</string>
-
-    <string name="common_connect">Подключиться</string>
-    <string name="beacon_connected_to">Подключено к</string>
-    <string name="common_are_you_sure">Вы уверены?</string>
-    <string name="beacon_exit_message">Вы хотите закрыть это подключение?</string>
-
-    <string name="common_disconnect">Отключиться</string>
-    <string name="beacon_connect_warning">Внимание: Нажимая «Подключиться», вы разрешаете этому dapp просматривать ваш публичный адрес. Это важный шаг для защиты ваших данных от потенциальных рисков фишинга.</string>
-    <string name="beacon_transaction_warning">Внимание: Убедитесь, что вы доверяете этому сайту. Взаимодействуя с этим сайтом, вы даете доступ к своим средствам.</string>
-    <string name="success_title">Все готово</string>
-    <string name="success_message">Вы можете вернуться к вашему приложению</string>
-
-    <string name="eth_import_title">ETH аккаунты</string>
-    <string name="eth_import_message">Добавить аккаунты Moonbeam и Moonriver?</string>
-
-    <string name="common_invalid_hard_soft_numeric_password_message">Пожалуйста, удостоверьтесь, что введенная строка это комбинация //\'hard\' и /\'soft\' где \'hard\' и \'soft\' могут быть любой последовательностью символов, не включая /.  Путь может оканчиваться ///\'password\'. Например, //0/1//0///mypass</string>
-
-    <string name="account_export_substrate_action">Экспорт substrate</string>
-    <string name="account_export_ethereum_action">Экспорт ethereum</string>
-
-    <string name="json_export_type_text">Экспортировать как текст</string>
-    <string name="json_export_type_file">Экспортировать в файл</string>
-
-    <string name="fiat_chooser_title">Валюты</string>
-
-    <string name="common_update_needed">Требуется обновление</string>
-    <string name="unsupported_chain_alert_message">Эта сеть не поддерживается в текущей версии приложения. Пожалуйста, обновите приложение до последней версии.</string>
-
-    <string name="unsupported_app_version_alert_message">Данная версия приложения больше не поддерживается. Пожалуйста, обновите.</string>
-
-    <string name="common_connection_problems">Проблема интернет-соединения</string>
-    <string name="connection_problems_alert_message">Не удается загрузить необходимые данные для запуска приложения. Пожалуйста, проверьте ваше интернет соединение и повторите снова.</string>
-
-    <string name="staking_collator_status_leaving">Выходящий</string>
-    <string name="staking_collator_status_idle">Неактивный</string>
-
-    <string name="staking_alert_leaving_collator_title">Коллатор %s покидает список кандидатов</string>
-    <string name="staking_alert_leaving_collator_text">Проверьте делегацию коллатору %s и заберите токены, если они доступны</string>
-    <string name="staking_alert_low_stake_title">Ваша делегация не производит наград.</string>
-    <string name="staking_alert_low_stake_text">Ваш стейк слишком мал для генерации наград. Вы можете добавить %s токенов или забрать свой стейк</string>
-    <string name="staking_alert_unlock_title">Вы можете забрать ваши токены</string>
-    <string name="staking_alert_unlock_text">Пожалуйста завершите текущую операцию (уменьшить/отозвать стейк) забрав ваши токены</string>
-
-    <string name="staking_reward_info_apr_max">Максимальный APR</string>
-    <string name="staking_reward_info_apr_avg">Средний APR</string>
-
-    <string name="staking_recommended_collators_empty_text">Сумма вашего стейка меньше минимального из всех коллаторов, предложенных алгоритмом. Увеличьте сумму ставки или выберите коллатор вручную</string>
-    <string name="collator_details_delegators">Делегаторы</string>
-    <string name="select_collator_having_identity">Идентифицирован в сети</string>
-    <string name="select_collator_having_relevant_minimum_bond">Релевантный минимальный стейк</string>
-
-    <string name="staking_history_title">История стейкинга</string>
-    <string name="parachain_staking_request_finished">Завершен</string>
-    <string name="chain_selection_all_networks">Все сети</string>
-    <string name="hidden_assets">Скрытые активы</string>
-    <string name="common_select_network">Выбрать Сеть</string>
-    <string name="common_select_asset">Выбрать Актив</string>
-
     <string name="staking_pool_rewards_delay_text">Делайте ставки в любое время. Вы начнете зарабатывать проценты после %s</string>
+    <string name="staking_pool_stake_title">Ваш пулл стейкинг</string>
     <string name="staking_pool_start_apr_text">Зарабатывайте %s за год</string>
-    <string name="staking_pool_start_unstake_period_text">Отмените стейк в любое время. Вам нужно будет подождать %s , прежде чем вы сможете потратить свои средства и заработанные проценты</string>
-    <string name="staking_pool_start_reward_freq_text">Вознаграждения выплачиваются каждые %s</string>
-    <string name="staking_pool_start_join_button_title">Присоединиться к пулу</string>
     <string name="staking_pool_start_create_button_title">Создать пул</string>
     <string name="staking_pool_start_earn_reward_title">Получайте вознаграждения, когда стейкаете свои</string>
-    <string name="pool_staking_main_min_create_title">Минимум чтобы создать пул</string>
-    <string name="pool_staking_main_min_join_title">Минимум, чтобы присоединиться</string>
-    <string name="pool_staking_main_existing_pools_title">Существующие пулы</string>
-    <string name="pool_staking_main_possible_pools_title">Возможные пулы</string>
-    <string name="pool_staking_main_max_members_inpool_title">Максимальное количество участников в пуле</string>
-    <string name="pool_staking_main_max_pool_members_title">Максимальное количество участников пула</string>
-    <string name="pool_staking_main_description_title">Стейкеры (участники) с небольшим количеством токенов могут объединить свои средства вместе и выступать в качестве единого номинатора. Прибыль пула делится пропорционально доле члена в зарезервированном пуле.</string>
-    <string name="pool_staking_start_about_title">Что такое стейкинг и как он работает, смотрите инструкцию</string>
-    <string name="pool_staking_join_title">Присоединиться к пулу</string>
-    <string name="pool_staking_join_account_title">Присоединиться к пулу из</string>
-    <string name="pool_staking_join_button_title">Присоединиться</string>
-    <string name="pool_staking_choosepool_title">Выбрать пул</string>
-    <string name="pool_staking_choosepool_button_title">Выбрать</string>
-    <string name="pool_staking_choosepool_members_count_title">Участники: %d</string>
-    <string name="pool_staking_choosepool_staked_title">Застейкано </string>
-    <string name="pool_staking_selected_pool">Выбранный пул</string>
-    <string name="pool_staking_pool_name">Имя пула</string>
-    <string name="pool_staking_pool_id">Id пула</string>
-    <string name="pool_staking_depositor">Вкладчик</string>
-    <string name="pool_staking_root">Root</string>
-    <string name="pool_staking_nominator">Nominator</string>
-    <string name="pool_staking_bouncer">Bouncer</string>
-    <string name="pool_staking_title">Pool staking</string>
-    <string name="common_watch">Смотреть</string>
-    <string name="nft_stub_title">Извините!</string>
-    <string name="nft_stub_text">NFTs скоро будут здесь</string>
-    <string name="сurrencies_stub_text">Токены</string>
-    <string name="nfts_stub">NFTs</string>
-
-    <string name="common_action_receive">Получить</string>
-    <string name="common_action_send">Перевести</string>
-    <string name="common_action_teleport">Телепорт</string>
-    <string name="common_action_hide">Скрыть</string>
-    <string name="common_action_show">Показать</string>
-    <string name="common_action_buy">Купить</string>
-    <string name="common_action_swap">Обменять</string>
-
-    <string name="common_title_select_wallet">Выберите кошелек</string>
-
-    <string name="pool_staking_confirm_join_title">Присоединение к пулу</string>
-    <string name="pool_staking_number_of_members">Количество участников</string>
-    <string name="pool_staking_pool_info">Информация о пуле</string>
-    <string name="pool_staking_roles">Роли</string>
-    <string name="pool_info_index">Индекс</string>
-    <string name="pool_info_members">Участники</string>
-    <string name="pool_info_state">Состояние</string>
-    <string name="pool_claim_reward">Получить награды</string>
-    <string name="common_claim">Получить</string>
-    <string name="pool_redeem">Забрать токены</string>
-    <string name="pool_time_before_redeem">Время до получения наград</string>
-    <string name="pool_nominations">Валидаторы пула</string>
-    <string name="common_options">Опции</string>
-    <string name="pool_stake_info">Информация о пуле</string>
-    <string name="pool_your_total_stake">Всего застейкано</string>
-    <string name="pool_account_for_join">Аккаунт</string>
-    <string name="common_note">Note: </string>
-    <string name="pool_staking_unstake_alert">Your pending reward will be payment automatically</string>
-    <string name="pool_staking_unstake_error">No redeemable tokens found</string>
-    <string name="common_claimable">Claimable</string>
-    <string name="pool_create_title">Создать пулл</string>
-    <string name="common_create">Создать</string>
-    <string name="pool_staking_create_confirm_title">Создать пулл</string>
-    <string name="min_to_create_pool_threshold_error_title">Извините, указанной суммы недостаточно для создания пула</string>
-    <string name="min_to_create_pool_threshold_error_message">Минимальная сумма - %s</string>
-
-    <string name="pool_select_validators_notification_title">Выберите валидаторов</string>
-    <string name="pool_select_validators_notification_message">Чтобы продолжить, вы должны выбрать валидаторов</string>
-    <string name="network_issue_stub">Проблемы с сетью</string>
-    <string name="common_close">Закрыть</string>
-    <string name="notification">Уведомление</string>
-    <string name="network_issue_node_unavailable">Нода недоступна</string>
-    <string name="network_issue_network_unavailable">Сеть недоступна</string>
-    <string name="network_issue_add_an_account">Добавить аккаунт</string>
-    <string name="network_issue_action_switch_node">Выбрать Ноду</string>
-    <string name="network_issue_action_add_account">Добавить Аккаунт</string>
-    <string name="network_issue_unavailable">Сеть недоступна, вы можете подождать или задать вопрос сообществу</string>
-    <string name="top_up">Пополнить</string>
-    <string name="common_receive_alert_description">Это Polkadot кошелек. Пожалуйста, отправляйте активы только\nв сети Polkadot.</string>
-    <string name="alert_suggested_validators">Предложения алгоритмических валидаторов не являются финансовыми консультациями или советами. Стейкинг - это деятельность с высоким риском, и предложения алгоритмических валидаторов не обязательно снижают этот риск. Валидатор, предложенный алгоритмом, все равно может быть слэширован. Валидатор, предложенный алгоритмом, также может изменить свои параметры (например, размер комиссии и т.д.) в любое время после того, как он был предложен и/или выбран. Вы можете потерять токены или вознаграждения по этим или другим причинам. Ставьте токены и используйте предложения валидаторов только по своему усмотрению, после проведения должной проверки и тщательного рассмотрения сопутствующих рисков.</string>
-    <string name="alert_oversubscribed_alert_title">Превышен лимит номинаторов для валидатора</string>
-    <string name="alert_oversubscribed_alert_message">Вы не будете получать награды от этого валидатора в этой эре</string>
-
-
-    <string name="send_fund">Отправить Средства</string>
-    <string name="send_to">Отправить</string>
-    <string name="chip_qr">QR код</string>
-    <string name="chip_history">История</string>
-    <string name="chip_paste">Из буфера</string>
-    <string name="chip_my_wallets">Мои счета</string>
-    <string name="address_not_valid_error_title">Не адрес сети</string>
-    <string name="address_not_valid_error_message">Неверный формат адреса.\nУбедитесь, что адрес\nсоответствует сети</string>
-    <string name="transfer_address_not_valid_error_message">According to the address provided you\'re trying to make a transfer on the wrong network.</string>
-    <string name="preview">Предпросмотр</string>
-    <string name="hash">Хэш</string>
-    <string name="all_done">Все готово</string>
-    <string name="return_to_app_message">Вы можете вернуться в приложение</string>
-    <string name="scam_warning_message">This address has been flagged due to evidence of a scam. We strongly recommend that you don\'t send DOT to this account.</string>
-    <string name="exchange_warning_message">This address is marked as an exchange be careful the deposit and withdrawal addresses may different.</string>
-    <string name="donation_warning_message">This address has been suspicious. We strongly recommend that you don\'t send DOT to this account.</string>
-    <string name="sanction_warning_message">This address has been flagged due to entity related to Russia. We strongly recommend that you don\'t send DOT to this account.</string>
-    <string name="reason">Причина</string>
-    <string name="additional">Дополнительно</string>
-    <string name="scam_alert_title">This address has been flagged due to evidence of a scam.</string>
-    <string name="scam_alert_message_format">We strongly recommend that you don\'t send %s to this account.</string>
-    <string name="exchange_alert_title">This address is marked as an exchange</string>
-    <string name="exchange_alert_message">Be careful the deposit and withdrawal addresses may different.</string>
-    <string name="donation_alert_title">This address has been suspicious.</string>
-    <string name="sanction_alert_title">This address has been flagged due to entity related to Russia.</string>
-    <string name="sending">Отправка</string>
-
-    <string name="staking_pool_stake_title">Ваш пулл стейкинг</string>
+    <string name="staking_pool_start_join_button_title">Присоединиться к пулу</string>
+    <string name="staking_pool_start_reward_freq_text">Вознаграждения выплачиваются каждые %s</string>
+    <string name="staking_pool_start_unstake_period_text">Отмените стейк в любое время. Вам нужно будет подождать %s , прежде чем вы сможете потратить свои средства и заработанные проценты</string>
     <string name="staking_pool_status_active">Активный</string>
     <string name="staking_pool_status_inactive">Неактивный</string>
     <string name="staking_pool_status_validators_are_not_selected">Валидаторы не выбраны</string>
-    <string name="pool_staking_selected_validators_title">Валидаторы пулла</string>
-    <string name="pool_staking_change_validators_button">Сменить валидаторов</string>
-    <string name="common_destroy">Уничтожить</string>
-    <string name="common_block">Заблокировать</string>
-    <string name="pool_options_title">Настройки пулла</string>
-    <string name="pool_edit_title">Редактирование пулла</string>
-    <string name="pool_edit_confirm_warning">ВНИМАНИЕ: Смена роли - необратимая операция. Она может вызвать потерю контроля над пуллом.</string>
-    <string name="pool_join_no_validators_message">Пул еще не выбрал ни одного валидатора. Если вы присоединитесь к нему, вы не получите никаких вознаграждений, пока не будут выбраны валидаторы.</string>
-    <string name="pools_limit_has_reached_error_title">Вы не можете создать больше пулов</string>
-    <string name="pools_limit_has_reached_error_message">Лимит пуллов в этой сети был достигнут</string>
+    <string name="staking_rebond">Вернуть в стейк</string>
+    <string name="staking_rebond_all">Ребонд все</string>
+    <string name="staking_rebond_insufficient_bondings">Сумма, которую вы хотите вернуть в стейк больше суммы вывода</string>
+    <string name="staking_rebond_last">Ребонд последний</string>
+    <string name="staking_recommended_collators_empty_text">Сумма вашего стейка меньше минимального из всех коллаторов, предложенных алгоритмом. Увеличьте сумму ставки или выберите коллатор вручную</string>
+    <string name="staking_recommended_custom_title">Выбрать других валидаторов</string>
+    <string name="staking_recommended_feature_1">Самые доходные</string>
+    <string name="staking_recommended_feature_2">Не превышен лимит номинаторов</string>
+    <string name="staking_recommended_feature_3">Идентифицирован в сети</string>
+    <string name="staking_recommended_feature_4">Не был заслешан</string>
+    <string name="staking_recommended_feature_5">Лимит 2 валидатора на персонализацию</string>
+    <string name="staking_recommended_section_title">Рекомендованные валидаторы</string>
+    <string name="staking_recommended_title">Валидаторы</string>
+    <string name="staking_recommended_validators_apy">Вознаграждения (APY)</string>
+    <string name="staking_recommended_validators_description">Эти валидаторы принесут вам максимальную прибыль с наименьшим шансом мошенничества или провала.</string>
+    <string name="staking_recommended_validators_title">Рекомендуемые валидаторы</string>
+    <string name="staking_redeem">Забрать</string>
+    <string name="staking_redeemable_format">Можно забрать: %s</string>
+    <string name="staking_reward">Вознаграждение</string>
+    <string name="staking_reward_details_date">Дата</string>
+    <string name="staking_reward_details_era">Эра</string>
+    <string name="staking_reward_details_payout">Выплата</string>
+    <string name="staking_reward_details_reward">Вознаграждение</string>
+    <string name="staking_reward_details_status">Статус</string>
+    <string name="staking_reward_details_status_claimable">Можно забрать</string>
+    <string name="staking_reward_details_status_received">Получено</string>
+    <string name="staking_reward_details_title">Детали награды</string>
+    <string name="staking_reward_details_validator">Валидатор</string>
+    <string name="staking_reward_estimation_bottom_sheet_title">Доходность в сети</string>
+    <string name="staking_reward_info_apr_avg">Средний APR</string>
+    <string name="staking_reward_info_apr_max">Максимальный APR</string>
+    <string name="staking_reward_info_avg">Средний APY</string>
+    <string name="staking_reward_info_max">Максимальный APY</string>
+    <string name="staking_reward_info_title">Доходность с реинвестированием</string>
+    <string name="staking_reward_payouts_empty_rewards">Прекрасно! Все вознаграждения выплачены.</string>
+    <string name="staking_reward_payouts_payout_all">Выплатить все (%s)</string>
+    <string name="staking_reward_payouts_title">Ожидаемые вознаграждения</string>
+    <string name="staking_rewards_apr">Вознаграждение (APR)</string>
+    <string name="staking_rewards_apy">Вознаграждение (APY)</string>
+    <string name="staking_rewards_destination_title">Назначение вознаграждений</string>
+    <string name="staking_rewards_learn_more">Подробнее о вознаграждениях</string>
+    <string name="staking_select_collator_title">Select a collator</string>
+    <string name="staking_select_custom">Выбрать самому</string>
+    <string name="staking_select_recommended">Выбрать рекомендованных</string>
+    <string name="staking_selected_accounts_mask">Аккаунты ( %d )</string>
+    <string formatted="false" name="staking_selected_validators_count_v1.9.1">выбрано %d (макс. %d)</string>
+    <string formatted="false" name="staking_selected_validators_format">Выбрано %d (макс. %d)</string>
+    <string name="staking_selected_validators_mask">Валидаторы (%d)</string>
+    <string name="staking_set_separate_account_controller">Установите отдельный аккаунт как контроллер, чтобы увеличить безопасность управления стейкингом.</string>
+    <string name="staking_set_validators_message">Валидаторы не выбраны</string>
+    <string name="staking_set_validators_title">Выберите валидаторов для начала стейкинга</string>
+    <string name="staking_setup_amount">Сумма стейкинга</string>
+    <string name="staking_setup_amount_too_low">Нельзя застейкать меньше минимального значения (%s)</string>
+    <string name="staking_setup_learn_more">Подробнее о выплатах</string>
+    <string name="staking_setup_payout_description">Перевести награду</string>
+    <string name="staking_setup_restake">Увеличения стейка</string>
+    <string name="staking_setup_restake_description">Больше сумма вознаграждения</string>
+    <string name="staking_setup_reward_description">Заработок за первый год</string>
+    <string name="staking_setup_reward_destination">Что делать с вознаграждением</string>
+    <string name="staking_setup_reward_destination_section_title">Использовать вознаграждения для</string>
+    <string name="staking_setup_reward_payout_account">Аккаунт для выплат</string>
+    <string name="staking_setup_sent_message">Транзакция на установку стейкинга отправлена</string>
+    <string name="staking_setup_title">Настройка стейкинга</string>
+    <string name="staking_setup_too_big_error">Извините, у вас недостаточно средств для стейкинга выбранной суммы</string>
+    <string name="staking_slash">Слэш</string>
+    <string name="staking_stake">Стейкинг</string>
+    <string name="staking_start_change_collators_suggested_title">Стейкинг с рекоммендованными коллаторами</string>
+    <string name="staking_start_change_validators_custom_subtitle">Вы должны доверять своим валидаторам, чтобы они действовали грамотно и честно. Принятие решения исключительно на основе их текущей прибыльности может привести к снижению прибыли или даже потере средств.</string>
+    <string name="staking_start_change_validators_custom_title">Стейкинг с выбранными валидаторами</string>
+    <string name="staking_start_change_validators_recommended_subtitle">Алгоритм Fearless Wallet составил список рекомендованных валидаторов, основываясь на критериях:</string>
+    <string name="staking_start_change_validators_recommended_title">Стейкинг с рекоммендованными валидаторами</string>
+    <string name="staking_start_title">Начать стейкинг</string>
+    <string name="staking_stash_account">Стэш аккаунт</string>
+    <string name="staking_stash_can_hint">С помощью стэш аккаунта можно застейкать больше и установить контроллер аккаунт</string>
+    <string name="staking_stash_missing_message">Стэш аккаунт %s недоступен для обновления настроек стейкинга</string>
+    <string name="staking_stash_title">Аккаунт</string>
+    <string name="staking_story_nominator_page_1">Номинатор получает пассивный доход за удержание своих токенов для безопасности сети. Для этого номинатор должен выбрать валидаторов, с которыми он будет стейкать. Номинатору нужно осторожно подходить к выбору валидаторов. Если выбранный валидатор не будет поддерживать свою ноду в рабочем состоянии или будет пытаться атаковать сеть, то им обоим будет назначен штраф в виде слэша определенной части стейкинга в зависимости от масштаба причиненного ущерба.</string>
+    <string name="staking_story_nominator_page_2">Fearless Wallet помогает номинаторам в выборе валидаторов. Приложение получает данные из сети и составляет список доступных для номинирования валидаторов, имеющих максимальный доход, персонализацию и контакты для связи, а также не имеющих слэшей. Fearless Wallet также заботится о децентрализации, поэтому если один человек или компания запустили несколько валидирующих нод, то только 2 из них будут присутствовать в списке рекомендованных.</string>
+    <string name="staking_story_nominator_title">Кто такой номинатор?</string>
+    <string name="staking_story_reward_page_1">Вознаграждения за стейкинг доступны для выплаты в конце каждой эры (6 часов в Kusama и 24 часа в Polkadot). Сеть хранит ожидаемые вознаграждения в течении 84 эр и в большинстве случаев валидаторы сами выплачивают всем награды. Однако, валидаторы могут забыть это сделать или с ними может что-то случиться, поэтому номинаторы могут выплатить свои награды самостоятельно.</string>
+    <string name="staking_story_reward_page_2">Несмотря на то, что обычно вознаграждения выплачиваются валидаторами, Fearless Wallet помогает узнать о вознаграждениях, срок выплаты которых близок к истечению, с помощью предупреждений. Предупреждения об этом и других важных событиях появятся на главном экране стейкинга.</string>
+    <string name="staking_story_reward_title">Получение наград</string>
+    <string name="staking_story_staking_page_1">Стейкинг — это один из способов пассивного дохода с помощью удержания токенов в сети. Вознаграждения за стейкинг выпускаются каждую эру (6 часов в Kusama и 24 часа в Polkadot). Вы можете стейкать неограниченное количество времени, и для вывода из стейкинга вам нужно будет подождать период вывода, после которого вы сможете забрать свои токены.</string>
+    <string name="staking_story_staking_page_2">Стейкинг играет ключевую роль в безопасности и надежности сети. Любой может запустить собственную ноду, но только тот, кто наберёт необходимое количество токенов в стейкинге, будет избран сетью для создания новых блоков и получения наград. Часто валидаторы не имеют необходимого количества токенов, поэтому номинаторы помогают им с помощью своих токенов.</string>
+    <string name="staking_story_staking_title">Что такое стейкинг?</string>
+    <string name="staking_story_validator_page_1">Валидатор обеспечивает работу ноды блокчейна 24/7 и обязан иметь необходимое количество стейка (общий стейк самого валидатора и его номинаторов), чтобы быть избранным сетью. Валидаторы должны поддерживать производительность и надежность своих нод, за что они получают вознаграждения. Валидатор — это полноценная работа, существуют профильные компании, которые специализируются на валидировании в блокчейн сетях.</string>
+    <string name="staking_story_validator_page_2">Любой может стать валидатором и запустить ноду блокчейна, однако это требует определённых технических знаний и ответственности. Сети Polkadot и Kusama запустили программу Thousand Validators Programme (Программа Тысячи Валидаторов), чтобы помочь начинающим. Более того, сеть всегда будет стремиться вознаграждать тех валидаторов, чей суммарный стейк меньше (но достаточен чтобы быть избранным в сети), для поддержки децентрализации.</string>
+    <string name="staking_story_validator_title">Кто такой валидатор?</string>
+    <string name="staking_suggested_collators_title">Рекомендованные коллаторы</string>
+    <string name="staking_suggested_validators_title">Рекомендованные валидаторы</string>
+    <string name="staking_switch_account_to_stash">Для установки контроллер аккаунта смените аккаунт на стэш.</string>
+    <string name="staking_title">Стейкинг</string>
+    <string name="staking_total_rewards">Все вознаграждения</string>
+    <string name="staking_total_rewards_v1.9.0">Заработано</string>
+    <string name="staking_total_staked">Всего застейкано</string>
+    <string name="staking_unbond_crossed_existential">После операции итоговый стейкинг баланс будет меньше минимального баланса. Это приведет к тому, что весь стейкинг будет недействительным.</string>
+    <string name="staking_unbond_too_big">Сумма, которую вы хотите вернуть в стейк больше суммы вывода</string>
+    <string name="staking_unbond_v1_9_0">Вывод из стейка</string>
+    <string name="staking_unbonding_all_message">Оставшийся баланс стейка будет меньше минимального значения, поэтому он добавлен к сумме вывода.</string>
+    <string name="staking_unbonding_empty_list_v1_9_0">Операции по выводу из стейка появятся здесь</string>
+    <string name="staking_unbonding_format">Время вывода: %s</string>
+    <string name="staking_unbonding_hint">Ваши токены будут доступны после истечения периода вывода со стейкинга.</string>
+    <string name="staking_unbonding_limit_reached_message">Вы достигли лимита запросов на вывод из стейка (%d активных запросов).</string>
+    <string name="staking_unbonding_limit_reached_title">Достигнут лимит запросов на вывод из стейка</string>
+    <string name="staking_unbonding_period_v1_9_0">Время вывода</string>
+    <string name="staking_unbondings_placeholder">Операции по выводу из стейка появятся здесь</string>
+    <string name="staking_validator_apy_percent">Примерное вознаграждение (% APY)</string>
+    <string name="staking_validator_estimated_reward">Примерное вознаграждение</string>
+    <string name="staking_validator_info_title">Информация о валидаторе</string>
+    <string name="staking_validator_my_oversubscribed_message">Превышен лимит номинаторов для валидатора. В этой эре вы не получите награду от этого валидатора.</string>
+    <string name="staking_validator_nominators">Номинаторы</string>
+    <string name="staking_validator_other_oversubscribed_message">Превышен лимит номинаторов для валидатора. Только номинаторы с наибольшим стейком получат награду.</string>
+    <string name="staking_validator_own_stake">Собственный</string>
+    <string name="staking_validator_search_empty_title">Поиск не дал результатов.\nПроверьте, что вы указали полный адрес аккаунта</string>
+    <string name="staking_validator_slashed_desc">Валидатор наказан за неправильные действия в сети (например, был оффлайн, атаковал сеть, работал с модифицированным ПО).</string>
+    <string name="staking_validator_summary_description">В будущих обновлениях мы добавим функции стекинга для валидаторов. \n \n Оставайся бесстрашным</string>
+    <string name="staking_validator_summary_title">Стейкинг для валидатора</string>
+    <string name="staking_validator_total">Всего</string>
+    <string name="staking_validator_total_stake">Всего застейкано</string>
+    <string name="staking_validator_total_stake_token">Общий стейк (%s)</string>
+    <string name="staking_validators">Валидаторы</string>
+    <string name="staking_warning_tiny_payout">Вознаграждение меньше комиссии сети.</string>
+    <string name="staking_year_period_title">ежегодно</string>
+    <string name="staking_your_allocated_description">Ваш стейк распределяется между этими валидаторами.</string>
+    <string name="staking_your_elected_format">Избраны (%s)</string>
+    <string name="staking_your_inactive_description">Валидаторы, которые не были избраны в этой эре.</string>
+    <string name="staking_your_nominated_format">Номинировано: %s</string>
+    <string name="staking_your_not_allocated_description">Другие, которые активны без вашего стейка.</string>
+    <string name="staking_your_not_elected_format">Не избраны (%s)</string>
+    <string name="staking_your_oversubscribed_message">Ваши токены попали к валидатору, превысившему лимит номинаторов. В этой эре вы не получите награду от этого валидатора. </string>
+    <string name="staking_your_stake">Ваш стейк</string>
+    <string name="staking_your_validators">Ваши валидаторы</string>
+    <string name="staking_your_validators_changing_title">Ваши валидаторы поменяются в следующую эру</string>
+    <string name="staking_zero_bond_error">Сумма должна быть больше нуля</string>
 
-    <string name="common_history">История</string>
-    <string name="create_contact">Создать Контакт</string>
-    <string name="contact_name">Имя Контакта</string>
-    <string name="contact_address">Адрес Контакта</string>
-    <string name="recent">Недавние</string>
-    <string name="address_history_empty_message">Нет истории транзакций</string>
+    <string name="stories_bottom_close_button">Отличные новости!</string>
+    <string name="stories_version2_slide1_subtitle">Теперь Fearless Wallet поддерживает больше сетей и токенов: Polkadot (DOT), Kusama (KSM), Moonriver (MOVR), Karura (KAR), Shiden (SDN), SORA (XOR), Bifrost (BNC), KILT (KILT) и другие…</string>
+    <string name="stories_version2_slide1_title">Больше сетей — больше токенов</string>
+    <string name="stories_version2_slide2_subtitle">Все ваши аккаунты остались в приложении! Каждый кошелёк теперь содержит множество аккаутов в разных сетях.  У каждого кошелька новая, красочная иконка, которая помогает лучше их различать. </string>
+    <string name="stories_version2_slide2_title">Аккаунты улучшились до кошельков</string>
+    <string name="stories_version2_slide3_subtitle">Теперь разные токены экосистемы Polkadot и Kusama находятся на одном экране. </string>
+    <string name="stories_version2_slide3_title">Кошелёк стал мощнее</string>
+    <string name="stories_version2_slide4_subtitle">По умолчанию кошелёк использует один ключ во всех аккаунтах. Теперь можно заменить аккаунт внутри кошелька на любой существующий или создать новый.</string>
+    <string name="stories_version2_slide4_title">Кастомизируйте свои кошельки</string>
+    <string name="stories_version2_slide5_subtitle">Вы все так же можете импортировать и экспортировать свои аккаунты в Fearless Wallet из других приложений экосистемы.
 
-    <string name="common_got_it">Понятно</string>
+Не забудьте сделать резервную копию и хранить её в безопасном и приватном месте (например, на листе бумаге)</string>
+    <string name="stories_version2_slide5_title">Гармония с экосистемой</string>
+
+    <string name="substrate_crypto_type">Тип криптографической пары ключей substrate</string>
+    <string name="substrate_secret_derivation_path">Путь деривации секрета substrate</string>
+
+    <string name="success_message">Вы можете вернуться к вашему приложению</string>
+    <string name="success_title">Все готово</string>
+
+    <string name="support_and_feedback">Поддержка и Обратная связь</string>
+
+    <string name="switch_node">Выбрать ноду</string>
+    <string name="switch_node_autoselect_title">Автоматический выбор нод</string>
+
+    <string name="tabbar_crowdloan_attention">Пожалуйста, проверьте вкладку Краудлоны \n Требуется внимание</string>
+    <string name="tabbar_extrinsics_title">Экстринсики</string>
+    <string name="tabbar_governance_title">Управление</string>
+    <string name="tabbar_polkaswap_title">Polkaswap</string>
+    <string name="tabbar_profile_title">Профиль</string>
+    <string name="tabbar_staking_title">Стейкинг</string>
+    <string name="tabbar_wallet_title">Кошелёк</string>
+
+    <string name="today">Сегодня</string>
+
+    <string name="top_up">Пополнить</string>
+
+    <string name="transaction_detail_status">Статус</string>
+    <string name="transaction_details_copy_hash">Копировать хеш</string>
+    <string name="transaction_details_extrinsic_fee">Комиссия</string>
+    <string name="transaction_details_from">От</string>
+    <string name="transaction_details_hash_title">Хеш транзакции</string>
+    <string name="transaction_details_title">Детали транзакции</string>
+    <string name="transaction_details_view_polkascan">Посмотреть в Polkascan</string>
+    <string name="transaction_details_view_subscan">Просмотреть в Subscan</string>
+    <string name="transaction_status_completed">Успешно</string>
+    <string name="transaction_status_failed">Ошибка</string>
+    <string name="transaction_status_pending">В ожидании</string>
+    <string name="transaction_successful">Транзакция успешна!</string>
+
+    <string name="transfer_address_not_valid_error_message">According to the address provided you\'re trying to make a transfer on the wrong network.</string>
+    <string name="transfer_title">Перевод</string>
+
+    <string name="transfers">Переводы</string>
+    <string name="transfers_empty">Входящие и исходящие
+транзакции будут отображаться здесь</string>
+    <string name="transfers_v1">История</string>
+
+    <string name="unsupported_app_version_alert_message">Данная версия приложения больше не поддерживается. Пожалуйста, обновите.</string>
+    <string name="unsupported_chain_alert_message">Эта сеть не поддерживается в текущей версии приложения. Пожалуйста, обновите приложение до последней версии.</string>
+
+    <string name="update_needed_text">Требуется обновление</string>
+
+    <string name="username_setup_choose_title">Имя</string>
+    <string name="username_setup_choose_title_2_0">Псевдоним кошелька</string>
+    <string name="username_setup_hint">Данное имя будет отображаться только для вас и храниться только на вашем мобильном устройстве.</string>
+    <string name="username_setup_hint_2_0">Пример: Сбережения, инвестиции, краудлоуны, стейкинг. Данное имя будет отображаться только для вас и храниться только на вашем мобильном устройстве.</string>
+    <string name="username_setup_title_2_0">Создать новый кошелек</string>
+
+    <string name="validator_not_elected_description">Эта учетная запись не выбрана сетью для участия в текущей эпохе</string>
+
     <string name="validators_list_empty_message">Валидаторы не найдены. Пожалуйста, попробуйте изменить фильтры</string>
-    <string name="pool_depositor_unstake_error_title">Вы не можете сделать полный анстейк</string>
-    <string name="pool_depositor_unstake_error_message">Как создатель пула, Вы должны иметь стейк не меньше %s. Если вы хотите распустить всех участников и закрыть пул, используйте Polkadot.js.plus</string>
-    <string name="pool_depositor_unstake_polkadot_js_plus_button_text">Polkadot.js Plus</string>
-    <string name="pool_create_success_message">Ваш пулл успешно создан. Теперь вы должны выбрать валидаторов для этого пулла</string>
-    <string name="same_address_transfer_warning_message">Вы пытаетесь сделать трансфер на свой адрес. За операцию будет списана комиссия и это не несет никакого смысла</string>
 
-    <string name="common_min_received">Мин. покупка</string>
-    <string name="common_liquidity_provider_fee">Комиссия LP</string>
-    <string name="common_network_fee">Комиссия сети</string>
-    <string name="common_origin_network_fee">Комиссия исходной сети</string>
-    <string name="common_destination_network_fee">Комиссия сети назначения</string>
-    <string name="common_route">Направление</string>
+    <string name="view_in">Посмотреть в %s</string>
+    <string name="view_wallet">Посмотреть кошелек</string>
 
-    <string name="polkaswap_from">Из</string>
-    <string name="polkaswap_to">На</string>
-    <string name="polkaswap_market">Маркет:</string>
-    <string name="polkaswap_market_title">Маркет</string>
-    <string name="polkaswap_swap_settings_title">Настройки обмена</string>
-    <string name="polkaswap_slippage_tolerance">Допустимое проскальзывание</string>
-    <string name="polkaswap_slippage_tolerance_description">Ваша транзакция будет отменена, если цена неблагоприятно изменится более чем на этот процент</string>
-    <string name="polkaswap_btn_reset_to_default">Сбросить</string>
-    <string name="polkaswap_btn_save">Сохранить</string>
-    <string name="polkaswap_transaction_may_fail">Транзакция может завершиться с ошибкой</string>
-    <string name="polkaswap_transaction_may_frontrun">Возможен фронтран транзакции</string>
-    <string name="polkaswap_market_algorithm_title">Маркет алгоритм</string>
-    <string name="polkaswap_market_smart_description">Маршрутизация ликвидности SMART обеспечивает лучшую цену для любой транзакции, комбинируя только лучшие варианты цены со всех доступных рынков. При наличии TBC будет использоваться для обеспечения ликвидности до тех пор, пока цена актива будет более доступной, чем из других источников, на которых используется пул XYK.</string>
-    <string name="polkaswap_market_tbc_description">TBC(Token Bonding Curve)  — покупка только по кривой связывания токенов (первичный рынок). Есть вероятность того, что цена может стать невыгодной по сравнению с пулом XYK (вторичный рынок), но ценность, полученная от закрепленных вознаграждений, со временем может оказаться гораздо более выгодной.</string>
-    <string name="polkaswap_market_xyk_description">XYK — покупка только из пула XYK (вторичный рынок). Традиционный обмен/свап пула XYK, когда любой может покупать или продавать активы, меняя позицию маркет-мейкера на кривой x*y=k.</string>
-    <string name="polkaswap_preview_title">Предпросмотр</string>
-    <string name="polkaswap_swap_title">Обмен</string>
-    <string name="polkaswap_path_unavailable_message">К сожалению, такой пары нет. Но вы можете выбрать другую</string>
-    <string name="polkaswap_maximum_sold">Макс. продажа</string>
-    <string name="polkaswap_insufficient_liqudity">Недостаточная ликвидность</string>
-    <string name="polkaswap_market_alert_title">Выбор маркета недоступен</string>
-    <string name="polkaswap_market_alert_message">Вы не завершили настройку свапа. Один или оба ассета не выбраны, поэтому выбор маркета недоступен.</string>
-    <string name="polkaswap_market_alert_positive_button">Выбрать ассет</string>
-    <string name="polkaswap_maximum_sold_title">Максимальная продажа</string>
-    <string name="polkaswap_minimum_received_title">Минимальная покупка</string>
-    <string name="polkaswap_maximum_sold_info">Ваша транзакция будет отменена, если произойдет значительное неблагоприятное изменение цены до ее подтверждения.</string>
-    <string name="polkaswap_minimum_received_info">Ваша транзакция будет отменена, если произойдет значительное неблагоприятное изменение цены до ее подтверждения.</string>
-    <string name="polkaswap_liqudity_fee_title">Комиссия провайдера ликвидности</string>
-    <string name="polkaswap_liqudity_fee_info">Часть каждой сделки (0,3%) является награждением для поставщиков ликвидности.</string>
-    <string name="polkaswap_network_fee_info">Плата за сеть используется для обеспечения роста и стабильной работы системы SORA.</string>
-    <string name="all_done_alert_result_stub">Результат</string>
-    <string name="all_done_alert_success_stub">Успешно</string>
-    <string name="polkaswap_confirmation_swapped_stub">Swapped</string>
-    <string name="polkaswap_not_enough_result_to_pay_fee_title">Ошибка комиссии за свап</string>
-    <string name="polkaswap_not_enough_result_to_pay_fee_message">К сожалению, у вас недостаточно средств для оплаты комиссии. Мы не можем взимать комиссию ни с вашего текущего баланса, ни с результатов свопа. Пожалуйста, добавьте больше токенов или измените сумму транзакции, чтобы продолжить.</string>
-    <string name="common_disclaimer">Дисклеймер</string>
-    <string name="polkaswap_disclaimer_message">Пожалйста прочитайте перед использованием polkaswap</string>
-    <string name="common_read">Читать</string>
+    <string name="wallet_asset_buy_with">Купить %s с</string>
+    <string name="wallet_asset_receive">Получить</string>
+    <string name="wallet_asset_receive_template">Получить %s</string>
+    <string name="wallet_asset_send">Перевести</string>
+    <string name="wallet_asset_transferable_caption">Доступны к отправке</string>
+    <string name="wallet_asset_your_balance">Ваш баланс</string>
+    <string name="wallet_assets">Активы</string>
+    <string name="wallet_assets_total_title">Стоимость активов</string>
+    <string name="wallet_balance_available">Доступно</string>
+    <string name="wallet_balance_bonded">Застейкано</string>
+    <string name="wallet_balance_details_existential_deposit">Минимальный баланс</string>
+    <string name="wallet_balance_frozen">Заморожено</string>
+    <string name="wallet_balance_frozen_template">Заморожено %s</string>
+    <string name="wallet_balance_locked">Заблокировано</string>
+    <string name="wallet_balance_redeemable">Можно забрать</string>
+    <string name="wallet_balance_reserved">Зарезервировано</string>
+    <string name="wallet_balance_unbonding_v1_9_0">В процессе вывода</string>
+    <string name="wallet_extrinsic_details_title">Детали транзакции</string>
+    <string name="wallet_filters_extrinsics">Прочие транзакции</string>
+    <string name="wallet_filters_header">Показывать</string>
+    <string name="wallet_filters_rewards_and_slashes">Вознаграждения и слэши</string>
+    <string name="wallet_filters_title">Фильтры</string>
+    <string name="wallet_filters_transfers">Переводы</string>
+    <string name="wallet_info_title">Кошелёк</string>
+    <string name="wallet_manage_assets">Управление активами</string>
+    <string name="wallet_receive_description">Покажите этот QR-код отправителю</string>
+    <string name="wallet_receive_navigation_title">Получить %s</string>
+    <string name="wallet_receive_qr_description">Покажите этот QR-код отправителю</string>
+    <string formatted="false" name="wallet_receive_share_message">Мой %s адрес для получения %s:</string>
+    <string name="wallet_search_empty_title">Убедитесь, что адрес
+из правильной сети</string>
+    <string name="wallet_send_balance_minimal">Минимальный баланс</string>
+    <string name="wallet_send_confirm_transfer">Подтвердить</string>
+    <string name="wallet_send_dead_recipient_message">Ваш перевод не состоится, так как окончательная сумма на целевом счете будет меньше, чем минимальный баланс. Пожалуйста, попробуйте увеличить сумму.</string>
+    <string name="wallet_send_existential_warning_message">Ваш перевод удалит аккаунт, так как общий баланс станет ниже минимального.</string>
+    <string name="wallet_send_existential_warning_title">Перевод сделает аккаунт неактивным</string>
+    <string name="wallet_send_navigation_title">Перевести %s</string>
+    <string name="wallet_send_progress">Отправка…</string>
+    <string name="wallet_send_total_title">Всего</string>
+    <string name="wallet_send_transferable_amount_caption">Доступны к отправке: %s</string>
+    <string name="wallet_settings">Настройки кошелька</string>
+    <string name="wallet_title_stash_details">Детали слеша</string>
+    <string name="wallet_transaction_detail_copy_id">Копировать идентификатор</string>
+    <string name="wallet_transaction_history_empty_message">Здесь появится история транзакций</string>
+    <string name="wallet_transaction_history_error_message">Сервис временно недоступен</string>
+    <string name="wallet_transaction_history_filter_title">Показать</string>
+    <string name="wallet_transaction_history_unsupported_message">История транзакций для этой сети еще не поддерживается</string>
+    <string name="wallet_transfer_details_title">Детали перевода</string>
 
-    <string name="polkaswap_info_text_1">Polkaswap разрабатывается сообществом SORA. Перед тем, как стать контрибьютером Polkaswap, ознакомьтесь с %%Polkaswap FAQ%% и документацией, которая описывает то, как работает Polkaswap, %%Polkaswap Меморандумом и Условиями и положениями%%, и %%Политикой конфиденциальности%%.\n\nЭти документы важны для безопасной и комфортной работы пользователей. Используя Polkaswap вы соглашаетесь, что вы прочли и поняли суть документов.</string>
-    <string name="polkaswap_info_text_2">Вы также осознаете:</string>
-    <string name="polkaswap_info_text_3">Вашу личную ответственность за соблюдение законов, которые могут применяться к использованию Polkaswap в вашей юрисдикции;</string>
-    <string name="polkaswap_info_text_4">Что текущая версия Polkaswap является альфа-версией: она не была полностью протестирована, и некоторые функции могут работать не так, как задумано;</string>
-    <string name="polkaswap_info_text_5">Понимание и добровольное принятие рисков, связанных с использованием Polkaswap, включая, но не ограничиваясь, риском потери токенов.</string>
-    <string name="polkaswap_info_text_6">Не продолжайте, пока не ознакомитесь с %%Polkaswap FAQ%%, %%Polkaswap Меморандумом и Условиями и положениями%%, и %%Политикой конфиденциальности%%!</string>
-    <string name="polkaswap_info_switch_text">Я подтверждаю, что ознакомился со всеми упомянутыми документами и, нажимая «Продолжить», принимаю их.</string>
+    <string name="what_accounts_for_export">Какие аккаунты в кошельке вы хотите экспортировать?</string>
 
-    <string name="sora_card_title">Пополняйте карту SORA с помощью фиата или криптовалюты и оплачивайте онлайн, в магазине или в банкомате.</string>
-    <string name="sora_card_annual_service_fee">0 € годовой сервисный сбор</string>
-    <string name="sora_card_description">Получите счет IBAN в евро и дебетовую карту Mastercard, подключенную к вашему кошельку SORA</string>
-    <string name="sora_card_enable_card_title">Aктивировать карту</string>
-    <string name="sora_card_free_card_issuance">Бесплатный выпуск карты</string>
-    <string name="sora_card_free_card_issuance_conditions_xor">Если вы держите, ставите или предоставляете ликвидность XOR на сумму не менее 100 евро на своем счете SORA.</string>
-    <string name="sora_card_you_have_enough_xor">У вас достаточно XOR</string>
-    <string name="sora_card_you_need_xor">You need %s XOR (€%s)</string>
-    <string name="sora_card_get_more_xor">Get more XOR</string>
-    <string name="sora_card_swap_or_buy_xor">You can swap for XOR or buy with Euro</string>
-    <string name="sora_card_already_have_card">I already have a card</string>
-    <string name="sora_card_issue_card_for_free">Issue card for free</string>
-    <string name="sora_card_issue_card_for_12_euro">Issue card for 12 €</string>
-    <string name="sora_card_swap_for_xor">Swap crypto for XOR</string>
-    <string name="sora_card_buy_xor">Buy XOR with EUR</string>
+    <string name="yesterday">Вчера</string>
 
-    <string name="sora_card_no_more_free_tries">No more free attempts</string>
-    <string name="sora_card_verification_failed">Ошибка проверки</string>
-    <string name="sora_card_verification_in_progress">Выполняется проверка</string>
-    <string name="sora_card_verification_rejected">Проверка отклонена</string>
-    <string name="sora_card_verification_successful">Карта в пути</string>
-    <string name="sora_card_get_sora_card">Получить SORA карту</string>
+    <string name="your_collator">Ваш коллатор</string>
 
-    <string name="sora_card_blacklisted_countires_title">Исключения из заявки</string>
-    <string name="sora_card_blacklisted_countires_warning"><![CDATA[Резиденты <b>некоторых стран<br>не могут подать заявку</b> на получение карты SORA Card в данный момент<br><a href=\"https://soracard.com/blacklist/\">Просмотреть список </a>]]></string>
-
-    <string name="settings_hide_zero_balances">Скрыть нулевые балансы</string>
-
-    <string name="cross_chain_wallet_title">Cross-chain перевод на кошелек</string>
-    <string name="cross_chain_wallet_my">Мой кошелек</string>
-    <string name="cross_chain_wallet_external">Внешний кошелек</string>
-
-    <string name="select_import_mode_btn_mnemonic">Мнемоническая фраза</string>
-    <string name="select_import_mode_title">Выберите источник для импорта</string>
-
-    <string name="import_remote_wallet_title_wallets">Выбрать счёт для импорта</string>
-    <string name="import_remote_wallet_title_password">Ввести резервный пароль</string>
-    <string name="import_remote_wallet_title_imported">Кошелек импортирован</string>
-    <string name="import_remote_wallet_hint_enter_password">Введите пароль</string>
-    <string name="import_remote_wallet_subtitle_password">Введите резервный пароль для выбранного кошелька для импорта</string>
-    <string name="import_remote_wallet_btn_create_wallet">Создать новый счёт</string>
-    <string name="import_remote_wallet_btn_import_more">Добавить ещё</string>
-
-    <string name="create_backup_password_btn_set">Сохранить резервный пароль</string>
-    <string name="create_backup_password_title">Создать резервный пароль</string>
-    <string name="create_backup_password_subtitle">Установка пароля приведет к шифрованию вашей резервной копии Google. Вам нужно будет ввести его при восстановлении вашего кошелька</string>
-    <string name="create_backup_password_agreements">Я понимаю, что если я забуду свой пароль, то восстановить его будет невозможно</string>
-    <string name="create_backup_password_matched">Пароль совпал</string>
-    <string name="create_backup_password_not_matched">Пароль не совпал</string>
-
-    <string name="mnemonic_agreements_title">Создайте резервную копию</string>
-    <string name="mnemonic_agreements_subtitle">Ваша мнемоническая фраза - это ключ к вашему кошельку. Создайте резервную копию, чтобы вы могли восстановить свой кошелек, если потеряете или повредите свое устройство.</string>
-    <string name="mnemonic_agreements_ageement_1">Если я потеряю свою мнемоническую фразу, мои средства будут потеряны навсегда</string>
-    <string name="mnemonic_agreements_ageement_2">Если я раскрою или поделюсь своей мнемонической фразой с кем-либо, мои средства могут быть украдены</string>
-    <string name="mnemonic_agreements_ageement_3">Я несу полную ответственность за сохранность моей мнемонической фразы</string>
-    <string name="mnemonic_agreements_btn_text">Показать мнемоническую фразу</string>
-
-    <string name="specify_network">Specify Network</string>
-    <string name="specify_network_description">The address prefix matches several networks please specify the network</string>
-    <string name="select_another_network_description">The address doesn\'t match the destination network. You should select another network</string>
-    <string name="select_network_template">Select %s network</string>
-    <string name="input_address_unrecognised">Input doesn\'t match known network\'s address</string>
+    <string name="сurrencies_stub_text">Токены</string>
 
     <string name="btn_backup_with_google">Сохранить в Google</string>
 
@@ -1041,5 +1124,4 @@
     <string name="backup_wallet_backup_to_google">Сохранить кошелек в Google</string>
     <string name="backup_wallet_delete_wallet">Удалить кошелек</string>
     <string name="backup_wallet_warning_about_lose_phrase">Если вы потеряете доступ к этому устройству, ваши средства будут потеряны, если вы не создадите резервную копию!</string>
-
 </resources>
