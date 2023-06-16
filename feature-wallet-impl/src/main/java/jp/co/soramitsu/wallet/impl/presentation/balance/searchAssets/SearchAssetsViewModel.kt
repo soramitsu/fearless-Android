@@ -111,7 +111,7 @@ class SearchAssetsViewModel @Inject constructor(
 
         val assets = assetsListItemStates
             .filter {
-                searchQuery.isEmpty() || it.displayName.contains(searchQuery, true) || it.assetChainName.contains(searchQuery, true)
+                searchQuery.isEmpty() || it.assetSymbol.contains(searchQuery, true) || it.assetName.contains(searchQuery, true)
             }
 
         SearchAssetState(
@@ -229,17 +229,17 @@ class SearchAssetsViewModel @Inject constructor(
         ecosystem: ChainEcosystem
     ): List<BalanceListItemModel> {
         val result = mutableListOf<BalanceListItemModel>()
-        ecosystemAssets.groupBy { it.asset.token.configuration.symbolToShow }.forEach { (symbol, symbolAssets) ->
+        ecosystemAssets.groupBy { it.asset.token.configuration.symbol }.forEach { (symbol, symbolAssets) ->
             val tokenChains = ecosystemChains.getWithToken(symbol)
             if (tokenChains.isEmpty()) return@forEach
 
             val showChain = tokenChains.sortedWith(
                 compareByDescending<Chain> {
-                    it.assets.firstOrNull { it.symbolToShow == symbol }?.isUtility ?: false
+                    it.assets.firstOrNull { it.symbol == symbol }?.isUtility ?: false
                 }.thenByDescending { it.parentId == null }
             ).firstOrNull()
 
-            val showChainAsset = showChain?.assets?.firstOrNull { it.symbolToShow == symbol } ?: return@forEach
+            val showChainAsset = showChain?.assets?.firstOrNull { it.symbol == symbol } ?: return@forEach
 
             val hasNetworkIssue = tokenChains.any { it.id in chainConnectings }
             val hasChainWithoutAccount = symbolAssets.any { it.hasAccount.not() }

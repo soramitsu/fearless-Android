@@ -27,9 +27,6 @@ import kotlinx.coroutines.launch
 class SendSetupFragment : BaseComposeBottomSheetDialogFragment<SendSetupViewModel>() {
 
     companion object {
-        const val ALERT_RESULT_SELECT_CHAINS = "ALERT_RESULT_SELECT_CHAINS"
-        const val ALERT_RESULT_CONFIRM_CHAIN_SELECTION = "ALERT_RESULT_CONFIRM_CHAIN_SELECTION"
-
         const val KEY_PAYLOAD = "payload"
         const val KEY_INITIAL_ADDRESS = "KEY_INITIAL_ADDRESS"
         const val KEY_TOKEN_ID = "KEY_TOKEN_ID"

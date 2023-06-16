@@ -121,5 +121,5 @@ abstract class ChainDao {
     abstract suspend fun insertTypes(types: List<ChainTypesLocal>)
 
     @Query("SELECT typesConfig FROM chain_types WHERE chainId = :chainId")
-    abstract suspend fun getTypes(chainId: String): String
+    abstract suspend fun getTypes(chainId: String): String?
 }

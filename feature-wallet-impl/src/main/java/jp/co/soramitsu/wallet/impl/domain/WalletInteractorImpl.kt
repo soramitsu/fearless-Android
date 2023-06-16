@@ -127,7 +127,7 @@ class WalletInteractorImpl(
         .thenBy { it.asset.token.configuration.isTestNet }
         .thenByDescending { it.asset.token.configuration.chainId.isPolkadotOrKusama() }
         .thenBy { it.asset.token.configuration.chainName }
-        .thenBy { it.asset.token.configuration.symbolToShow }
+        .thenBy { it.asset.token.configuration.symbol }
         .thenByDescending { it.asset.token.configuration.isUtility }
         .thenByDescending { it.asset.token.configuration.isNative == true }
 
@@ -315,12 +315,12 @@ class WalletInteractorImpl(
                 chainItem.ecosystem() == chain.ecosystem()
             }
             isChainItemFromSameEcosystem && chainItem.assets.any {
-                it.symbolToShow == chainAsset.symbolToShow
+                it.symbol == chainAsset.symbol
             }
         }
 
         val assetsToManage = chainsWithAsset.map {
-            it.assets.filter { it.symbolToShow == chainAsset.symbolToShow }
+            it.assets.filter { it.symbol == chainAsset.symbol }
         }.flatten()
 
         accountId?.let {

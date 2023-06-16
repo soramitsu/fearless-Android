@@ -1,5 +1,8 @@
 package jp.co.soramitsu.staking.impl.scenarios.parachain
 
+import java.math.BigDecimal
+import java.math.BigInteger
+import java.util.Optional
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.accountId
@@ -101,9 +104,6 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
-import java.math.BigDecimal
-import java.math.BigInteger
-import java.util.Optional
 import jp.co.soramitsu.core.models.Asset as CoreAsset
 
 class StakingParachainScenarioInteractor(
@@ -122,12 +122,12 @@ class StakingParachainScenarioInteractor(
     override suspend fun observeNetworkInfoState(): Flow<NetworkInfo> {
         val chain = stakingInteractor.getSelectedChain()
         val lockupPeriod = getParachainLockupPeriodInDays(chain.id)
-        val minimumStakeInPlanks = getMinimumStake(chain.utilityAsset)
+        val minimumStakeInPlanks = chain.utilityAsset?.let { getMinimumStake(it) }
 
         return flowOf(
             NetworkInfo.Parachain(
                 lockupPeriodInHours = lockupPeriod,
-                minimumStake = minimumStakeInPlanks
+                minimumStake = minimumStakeInPlanks.orZero()
             )
         )
     }

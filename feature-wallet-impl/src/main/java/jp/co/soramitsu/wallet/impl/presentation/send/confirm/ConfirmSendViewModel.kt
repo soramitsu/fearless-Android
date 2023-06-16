@@ -5,12 +5,12 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.common.AlertViewState
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.address.createAddressModel
-import jp.co.soramitsu.common.utils.formatting.shortenAddress
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.base.errors.ValidationException
 import jp.co.soramitsu.common.base.errors.ValidationWarning
@@ -22,6 +22,7 @@ import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.combine
 import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.common.utils.formatCryptoDetail
+import jp.co.soramitsu.common.utils.formatting.shortenAddress
 import jp.co.soramitsu.common.utils.requireException
 import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.core.models.Asset
@@ -54,10 +55,10 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import javax.inject.Inject
 
 private const val ICON_IN_DP = 24
 
@@ -117,8 +118,10 @@ class ConfirmSendViewModel @Inject constructor(
     @OptIn(ExperimentalCoroutinesApi::class)
     val utilityAssetFlow = flowOf {
         val assetChain = interactor.getChain(transferDraft.assetPayload.chainId)
-        assetChain.utilityAsset.id
-    }.flatMapLatest { assetId ->
+        assetChain.utilityAsset?.id
+    }
+        .mapNotNull { it }
+        .flatMapLatest { assetId ->
         interactor.assetFlow(transferDraft.assetPayload.chainId, assetId)
             .map(::mapAssetToAssetModel)
     }
@@ -149,21 +152,21 @@ class ConfirmSendViewModel @Inject constructor(
         val assetModel = mapAssetToAssetModel(asset)
         val amountInfoItem = TitleValueViewState(
             title = resourceManager.getString(R.string.common_amount),
-            value = transferDraft.amount.formatCryptoDetail(assetModel.token.configuration.symbolToShow),
+            value = transferDraft.amount.formatCryptoDetail(assetModel.token.configuration.symbol),
             additionalValue = assetModel.getAsFiatWithCurrency(transferDraft.amount)
         )
 
         val tipInfoItem = transferDraft.tip?.let {
             TitleValueViewState(
                 title = resourceManager.getString(R.string.choose_amount_tip),
-                value = transferDraft.tip.formatCryptoDetail(utilityAsset.token.configuration.symbolToShow),
+                value = transferDraft.tip.formatCryptoDetail(utilityAsset.token.configuration.symbol),
                 additionalValue = utilityAsset.getAsFiatWithCurrency(transferDraft.tip)
             )
         }
 
         val feeInfoItem = TitleValueViewState(
             title = resourceManager.getString(R.string.network_fee),
-            value = transferDraft.fee.formatCryptoDetail(utilityAsset.token.configuration.symbolToShow),
+            value = transferDraft.fee.formatCryptoDetail(utilityAsset.token.configuration.symbol),
             additionalValue = utilityAsset.getAsFiatWithCurrency(transferDraft.fee)
         )
 
@@ -246,7 +249,7 @@ class ConfirmSendViewModel @Inject constructor(
 
     private fun openWarningAlert() {
         launch {
-            val symbol = assetFlow.first().token.configuration.symbolToShow
+            val symbol = assetFlow.first().token.configuration.symbol
 
             val payload = AlertViewState(
                 title = getPhishingTitle(phishingType),

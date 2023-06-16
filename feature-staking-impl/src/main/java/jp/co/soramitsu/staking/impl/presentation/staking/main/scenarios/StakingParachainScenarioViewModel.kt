@@ -1,5 +1,6 @@
 package jp.co.soramitsu.staking.impl.presentation.staking.main.scenarios
 
+import java.math.BigDecimal
 import jp.co.soramitsu.common.domain.model.StoryGroup
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -34,7 +35,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
-import java.math.BigDecimal
 
 class StakingParachainScenarioViewModel(
     private val stakingInteractor: StakingInteractor,
@@ -83,7 +83,7 @@ class StakingParachainScenarioViewModel(
             stakingInteractor.currentAssetFlow()
         ) { networkInfo, asset ->
             val minimumStake = asset.token.amountFromPlanks(networkInfo.minimumStake)
-            val minimumStakeFormatted = minimumStake.formatCryptoDetail(asset.token.configuration.symbolToShow)
+            val minimumStakeFormatted = minimumStake.formatCryptoDetail(asset.token.configuration.symbol)
 
             val minimumStakeFiat = asset.token.fiatAmount(minimumStake)?.formatFiat(asset.token.fiatSymbol)
 
@@ -129,7 +129,7 @@ class StakingParachainScenarioViewModel(
             val candidateInfo = scenarioInteractor.getCollator(collatorIdHex.requireHexPrefix().fromHex())
             val amountToStakeMoreInPlanks = (candidateInfo.lowestTopDelegationAmount - delegation.amount)
             val token = stakingInteractor.currentAssetFlow().first().token
-            val amountToStakeMore = (token.amountFromPlanks(amountToStakeMoreInPlanks) * BigDecimal(1.1)).formatCryptoDetail(token.configuration.symbolToShow)
+            val amountToStakeMore = (token.amountFromPlanks(amountToStakeMoreInPlanks) * BigDecimal(1.1)).formatCryptoDetail(token.configuration.symbol)
             Alert.ChangeCollators(collatorIdHex.requireHexPrefix(), amountToStakeMore)
         }
     }

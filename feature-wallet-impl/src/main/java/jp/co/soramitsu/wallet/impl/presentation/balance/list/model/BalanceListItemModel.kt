@@ -1,5 +1,6 @@
 package jp.co.soramitsu.wallet.impl.presentation.balance.list.model
 
+import java.math.BigDecimal
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState
 import jp.co.soramitsu.common.utils.formatAsChange
 import jp.co.soramitsu.common.utils.formatCrypto
@@ -9,7 +10,6 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.ChainEcosystem
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.wallet.impl.domain.model.Token
-import java.math.BigDecimal
 
 data class BalanceListItemModel(
     val asset: Asset,
@@ -30,7 +30,6 @@ fun BalanceListItemModel.toAssetState() = AssetListItemViewState(
     assetName = asset.name.orEmpty(),
     assetChainName = chain?.name.orEmpty(),
     assetSymbol = asset.symbol,
-    displayName = asset.symbolToShow,
     assetTokenFiat = token.fiatRate?.formatFiat(token.fiatSymbol),
     assetTokenRate = token.recentRateChange?.formatAsChange(),
     assetTransferableBalance = transferable.formatCrypto(),

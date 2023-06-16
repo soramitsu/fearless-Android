@@ -27,8 +27,9 @@ private const val RETRIEVE_ASSETS_SQL_SYMBOL = """
             SELECT a.*, tp.* FROM assets AS a 
             LEFT JOIN token_price AS tp ON a.tokenPriceId = tp.priceId 
             LEFT JOIN chain_assets ca ON ca.id = a.id AND ca.chainId = a.chainId
-            WHERE a.accountId IN (:accountId, :emptyAccountId) AND a.chainId = :chainId 
-              AND (ca.displayName IS NOT NULL AND ca.displayName = :symbol OR ca.symbol = :symbol)
+            WHERE a.accountId IN (:accountId, :emptyAccountId) 
+              AND a.chainId = :chainId 
+              AND ca.symbol = :symbol
               AND a.metaId = :metaId
             ORDER BY a.sortIndex
 """

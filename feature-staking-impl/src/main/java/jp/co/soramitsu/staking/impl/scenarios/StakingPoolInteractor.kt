@@ -1,5 +1,6 @@
 package jp.co.soramitsu.staking.impl.scenarios
 
+import java.math.BigInteger
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.accountId
 import jp.co.soramitsu.common.list.GroupedList
@@ -48,7 +49,6 @@ import kotlinx.coroutines.flow.flattenMerge
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
-import java.math.BigInteger
 
 class StakingPoolInteractor(
     private val api: StakingPoolApi,
@@ -134,7 +134,7 @@ class StakingPoolInteractor(
     private suspend fun calculatePendingRewards(chain: Chain, poolMember: PoolMember, bondedPool: BondedPool, rewardPool: PoolRewards?): BigInteger {
         rewardPool ?: return BigInteger.ZERO
         val rewardsAccountId = generatePoolRewardAccount(chain, poolMember.poolId)
-        val existentialDeposit = walletConstants.existentialDeposit(chain.utilityAsset).orZero()
+        val existentialDeposit = chain.utilityAsset?.let { walletConstants.existentialDeposit(it) }.orZero()
         val rewardsAccountBalance = stakingInteractor.getAccountBalance(chain.id, rewardsAccountId).data.free.subtract(existentialDeposit)
         val payoutSinceLastRecord = rewardsAccountBalance.add(rewardPool.totalRewardsClaimed).subtract(rewardPool.lastRecordedTotalPayouts)
         val rewardCounterBase = BigInteger.valueOf(10).pow(18)

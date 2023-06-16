@@ -2,6 +2,8 @@ package jp.co.soramitsu.wallet.api.presentation
 
 import androidx.annotation.StringRes
 import androidx.lifecycle.viewModelScope
+import java.math.BigDecimal
+import java.math.BigInteger
 import jp.co.soramitsu.common.AlertViewState
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -27,8 +29,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import java.math.BigDecimal
-import java.math.BigInteger
 
 open class BaseEnterAmountViewModel(
     @StringRes private val nextButtonTextRes: Int = R.string.common_continue,
@@ -75,11 +75,11 @@ open class BaseEnterAmountViewModel(
     private val enteredAmountFlow = MutableStateFlow(initialAmount.orZero())
 
     private val amountInputViewState: Flow<AmountInputViewState> = enteredAmountFlow.map { amount ->
-        val tokenBalance = availableAmountForOperation(asset).formatCrypto(asset.token.configuration.symbolToShow)
+        val tokenBalance = availableAmountForOperation(asset).formatCrypto(asset.token.configuration.symbol)
         val fiatAmount = amount.applyFiatRate(asset.token.fiatRate)?.formatFiat(asset.token.fiatSymbol)
 
         AmountInputViewState(
-            tokenName = asset.token.configuration.symbolToShow,
+            tokenName = asset.token.configuration.symbol,
             tokenImage = asset.token.configuration.iconUrl,
             totalBalance = resourceManager.getString(balanceHintRes, tokenBalance),
             fiatAmount = fiatAmount,
@@ -94,7 +94,7 @@ open class BaseEnterAmountViewModel(
         val inPlanks = asset.token.planksFromAmount(amount)
         val feeInPlanks = feeEstimator(inPlanks)
         val fee = asset.token.amountFromPlanks(feeInPlanks)
-        val feeFormatted = fee.formatCryptoDetail(asset.token.configuration.symbolToShow)
+        val feeFormatted = fee.formatCryptoDetail(asset.token.configuration.symbol)
         val feeFiat = fee.applyFiatRate(asset.token.fiatRate)?.formatFiat(asset.token.fiatSymbol)
 
         FeeInfoViewState(feeAmount = feeFormatted, feeAmountFiat = feeFiat)

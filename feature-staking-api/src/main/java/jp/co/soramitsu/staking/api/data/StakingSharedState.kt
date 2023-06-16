@@ -9,6 +9,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraTestChainId
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ternoaChainId
 import jp.co.soramitsu.runtime.multiNetwork.chainWithAsset
 import jp.co.soramitsu.runtime.state.SingleAssetSharedState
 import jp.co.soramitsu.wallet.impl.domain.TokenUseCase
@@ -31,14 +32,14 @@ enum class StakingType {
 }
 
 enum class SyntheticStakingType {
-    DEFAULT, SORA
+    DEFAULT, SORA, TERNOA
 }
 
 fun CoreAsset.syntheticStakingType(): SyntheticStakingType {
     return when {
         (chainId == soraMainChainId || chainId == soraTestChainId) &&
             staking == CoreAsset.StakingType.RELAYCHAIN -> SyntheticStakingType.SORA
-
+        chainId == ternoaChainId && staking == CoreAsset.StakingType.RELAYCHAIN -> SyntheticStakingType.TERNOA
         else -> SyntheticStakingType.DEFAULT
     }
 }

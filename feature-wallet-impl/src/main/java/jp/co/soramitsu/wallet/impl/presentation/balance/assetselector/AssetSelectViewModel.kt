@@ -3,6 +3,7 @@ package jp.co.soramitsu.wallet.impl.presentation.balance.assetselector
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.utils.formatCrypto
 import jp.co.soramitsu.common.utils.mapList
@@ -19,7 +20,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import javax.inject.Inject
 import jp.co.soramitsu.wallet.api.presentation.WalletRouter as WalletRouterApi
 
 @HiltViewModel
@@ -63,7 +63,9 @@ class AssetSelectViewModel @Inject constructor(
                 filterChainId == null || it.token.configuration.chainId == filterChainId
             }
             .filter {
-                searchQuery.isEmpty() || it.token.configuration.symbolToShow.contains(searchQuery, true)
+                searchQuery.isEmpty() ||
+                    it.token.configuration.symbol.contains(searchQuery, true) ||
+                    it.token.configuration.name.orEmpty().contains(searchQuery, true)
             }
             .filter { it.token.configuration.id != excludeAssetId }
             .sortedWith(compareByDescending<AssetModel> { it.fiatAmount.orZero() }.thenBy { it.token.configuration.chainName })
@@ -83,7 +85,7 @@ class AssetSelectViewModel @Inject constructor(
         id = token.configuration.id,
         imageUrl = token.configuration.iconUrl,
         chainName = token.configuration.chainName.takeIf { isChainNameVisible },
-        symbol = token.configuration.symbolToShow.uppercase(),
+        symbol = token.configuration.symbol.uppercase(),
         amount = total.orZero().formatCrypto(),
         fiatAmount = getAsFiatWithCurrency(total) ?: "${token.fiatSymbol.orEmpty()}0",
         isSelected = false,

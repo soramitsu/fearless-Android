@@ -174,7 +174,6 @@ private fun AssetItemSwipeBoxPreview() {
         chainAssetId = "",
         isSupported = true,
         isHidden = false,
-        displayName = "KSM",
         hasAccount = true,
         priceId = null,
         hasNetworkIssue = false,

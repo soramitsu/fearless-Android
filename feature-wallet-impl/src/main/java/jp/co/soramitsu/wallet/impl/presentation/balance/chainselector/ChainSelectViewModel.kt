@@ -3,6 +3,7 @@ package jp.co.soramitsu.wallet.impl.presentation.balance.chainselector
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.core.utils.utilityAsset
@@ -21,7 +22,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 import jp.co.soramitsu.wallet.api.presentation.WalletRouter as WalletRouterApi
 
 @HiltViewModel
@@ -77,14 +77,14 @@ class ChainSelectViewModel @Inject constructor(
                 chains.firstOrNull {
                     it.assets.any { it.id == initialSelectedAssetId }
                 }?.let { chainOfTheAsset ->
-                    val symbolToShow = chains.flatMap { it.assets }
-                        .firstOrNull { it.id == (initialSelectedAssetId) }
-                        ?.symbolToShow
+                    val symbol = chainOfTheAsset.assets
+                        .firstOrNull { it.id == initialSelectedAssetId }
+                        ?.symbol
                     val chainsWithAsset = chains.filter {
                         when (val chainEcosystem = it.ecosystem()) {
                             ChainEcosystem.POLKADOT,
                             ChainEcosystem.KUSAMA -> {
-                                chainEcosystem == chainOfTheAsset.ecosystem() && it.assets.any { it.symbolToShow == symbolToShow }
+                                chainEcosystem == chainOfTheAsset.ecosystem() && it.assets.any { it.symbol == symbol }
                             }
                             ChainEcosystem.STANDALONE -> {
                                 it.id == chainOfTheAsset.id
@@ -116,10 +116,7 @@ class ChainSelectViewModel @Inject constructor(
 
     private val symbolFlow = allChainsFlow.map { chains ->
         (initialSelectedAssetId ?: sharedSendState.assetId)?.let { chainAssetId ->
-            chains.firstOrNull { it.assets.any { it.id == chainAssetId } }?.let { chainOfTheAsset ->
-                val symbol = chainOfTheAsset.assets.firstOrNull { it.id == (chainAssetId) }?.symbolToShow
-                symbol
-            }
+            chains.flatMap { it.assets }.firstOrNull { it.id == chainAssetId }?.symbol
         }
     }.stateIn(this, SharingStarted.Eagerly, null)
 
@@ -186,7 +183,7 @@ class ChainSelectViewModel @Inject constructor(
                     }
                 }
             } else {
-                assetSpecified(assetId = assetId ?: chain.utilityAsset.id, chainId = chainId)
+                assetSpecified(assetId = assetId ?: chain.utilityAsset?.id, chainId = chainId)
             }
         }
     }

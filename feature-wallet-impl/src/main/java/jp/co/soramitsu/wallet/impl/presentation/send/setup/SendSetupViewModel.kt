@@ -9,7 +9,6 @@ import java.math.BigDecimal
 import java.math.BigInteger
 import java.math.RoundingMode
 import javax.inject.Inject
-import jp.co.soramitsu.common.AlertViewState
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressIcon
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -50,7 +49,6 @@ import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
 import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.ChainItemState
-import jp.co.soramitsu.wallet.impl.presentation.history.AddressHistoryFragment
 import jp.co.soramitsu.wallet.impl.presentation.send.SendSharedState
 import jp.co.soramitsu.wallet.impl.presentation.send.TransferDraft
 import kotlinx.coroutines.flow.Flow
@@ -119,7 +117,7 @@ class SendSetupViewModel @Inject constructor(
                 imageUrl = chain.icon,
                 title = chain.name,
                 isSelected = false,
-                tokenSymbols = chain.assets.associate { it.id to it.symbolToShow }
+                tokenSymbols = chain.assets.associate { it.id to it.symbol }
             )
         }
     }
@@ -200,11 +198,11 @@ class SendSetupViewModel @Inject constructor(
         if (asset == null) {
             defaultAmountInputState
         } else {
-            val tokenBalance = asset.transferable.formatCrypto(asset.token.configuration.symbolToShow)
+            val tokenBalance = asset.transferable.formatCrypto(asset.token.configuration.symbol)
             val fiatAmount = amount.applyFiatRate(asset.token.fiatRate)?.formatFiat(asset.token.fiatSymbol)
 
             AmountInputViewState(
-                tokenName = asset.token.configuration.symbolToShow,
+                tokenName = asset.token.configuration.symbol,
                 tokenImage = asset.token.configuration.iconUrl,
                 totalBalance = resourceManager.getString(R.string.common_transferable_format, tokenBalance),
                 fiatAmount = fiatAmount,
@@ -253,14 +251,14 @@ class SendSetupViewModel @Inject constructor(
 
     private val utilityAssetFlow = assetFlow.mapNotNull { it }.flatMapLatest { asset ->
         val chain = walletInteractor.getChain(asset.token.configuration.chainId)
-        walletInteractor.assetFlow(chain.id, chain.utilityAsset.id)
+        walletInteractor.assetFlow(chain.id, chain.utilityAsset?.id.orEmpty())
     }
 
     private val feeInfoViewStateFlow: Flow<FeeInfoViewState> = combine(
         feeAmountFlow,
         utilityAssetFlow
     ) { feeAmount, utilityAsset ->
-        val feeFormatted = feeAmount?.formatCryptoDetail(utilityAsset.token.configuration.symbolToShow)
+        val feeFormatted = feeAmount?.formatCryptoDetail(utilityAsset.token.configuration.symbol)
         val feeFiat = feeAmount?.applyFiatRate(utilityAsset.token.fiatRate)?.formatFiat(utilityAsset.token.fiatSymbol)
 
         FeeInfoViewState(feeAmount = feeFormatted, feeAmountFiat = feeFiat)
@@ -357,53 +355,6 @@ class SendSetupViewModel @Inject constructor(
         sharedState.addressFlow.onEach {
             it?.let { addressInputFlow.value = it }
         }.launchIn(this)
-
-        viewModelScope.launch {
-            router.observeResult<String>(AddressHistoryFragment.RESULT_ADDRESS)
-                .onEach {
-                    checkChainsForInput(it)
-                }
-
-            router.alertResultFlow(SendSetupFragment.ALERT_RESULT_SELECT_CHAINS).collect {
-                openSelectChains()
-            }
-
-            router.alertResultFlow(SendSetupFragment.ALERT_RESULT_CONFIRM_CHAIN_SELECTION).collect {
-                if (it.isSuccess) {
-                    onChainSelectionConfirm()
-                }
-            }
-        }
-    }
-
-    private suspend fun onChainSelectionConfirm() {
-        val chains = walletInteractor.getChains().first()
-        val inputAddress = addressInputFlow.value
-        sharedState.updateAddress(inputAddress)
-
-        val addressChains = chains.filter {
-            it.isValidAddress(inputAddress)
-        }
-        addressChains.getOrNull(0)?.let { chain ->
-            sharedState.update(chain.id, chain.assets[0].id)
-        }
-    }
-
-    private suspend fun openSelectChains() {
-        val chains = walletInteractor.getChains().first()
-        val inputAddress = addressInputFlow.value
-        sharedState.updateAddress(inputAddress)
-
-        val addressChains = chains.filter {
-            it.isValidAddress(inputAddress)
-        }
-
-        router.openSelectChain(
-            filterChainIds = addressChains.map { it.id },
-            chooserMode = false,
-            currencyId = tokenCurrencyId,
-            showAllChains = false
-        )
     }
 
     private fun findChainsForAddress(address: String) {
@@ -420,22 +371,14 @@ class SendSetupViewModel @Inject constructor(
                         else -> router.openSelectChainAsset(chain.id)
                     }
                 }
-
-                else -> {
-                    showSpecifyNetworkAlert()
-                }
+                else -> router.openSelectChain(
+                    filterChainIds = addressChains.map { it.id },
+                    chooserMode = false,
+                    currencyId = tokenCurrencyId,
+                    showAllChains = false
+                )
             }
         }
-    }
-
-    private fun showSpecifyNetworkAlert() {
-        val payload = AlertViewState(
-            title = resourceManager.getString(R.string.specify_network),
-            message = resourceManager.getString(R.string.specify_network_description),
-            buttonText = resourceManager.getString(R.string.top_up),
-            iconRes = R.drawable.ic_alert_16
-        )
-        router.openAlert(payload, SendSetupFragment.ALERT_RESULT_SELECT_CHAINS)
     }
 
     override fun onAmountInput(input: BigDecimal?) {
@@ -556,10 +499,6 @@ class SendSetupViewModel @Inject constructor(
     override fun onPasteClick() {
         clipboardManager.getFromClipboard()?.let { buffer ->
             addressInputFlow.value = buffer
-
-            launch {
-                checkChainsForInput(buffer)
-            }
         }
     }
 
@@ -572,54 +511,7 @@ class SendSetupViewModel @Inject constructor(
             val result = walletInteractor.tryReadAddressFromSoraFormat(content) ?: content
 
             addressInputFlow.value = result
-
-            checkChainsForInput(result)
         }
-    }
-
-    private suspend fun checkChainsForInput(input: String) {
-        val chains = walletInteractor.getChains().first()
-        val addressChains = chains.filter {
-            it.isValidAddress(input)
-        }
-
-        when {
-            addressChains.map { it.id }.contains(sharedState.chainId) -> {
-                // assume new address is from chosen chain; no action
-            }
-
-            addressChains.isEmpty() -> {
-                showInputAddressNotRecognizedAlert()
-            }
-
-            addressChains.size == 1 -> {
-                showConfirmOneChainFound(addressChains[0].name)
-            }
-
-            else -> {
-                showSpecifyNetworkAlert()
-            }
-        }
-    }
-
-    private fun showConfirmOneChainFound(chainName: String) {
-        val payload = AlertViewState(
-            title = resourceManager.getString(R.string.common_important),
-            message = resourceManager.getString(R.string.select_another_network_description),
-            buttonText = resourceManager.getString(R.string.select_network_template, chainName),
-            iconRes = R.drawable.ic_alert_16
-        )
-        router.openAlert(payload, SendSetupFragment.ALERT_RESULT_CONFIRM_CHAIN_SELECTION)
-    }
-
-    private fun showInputAddressNotRecognizedAlert() {
-        val payload = AlertViewState(
-            title = resourceManager.getString(R.string.common_warning),
-            message = resourceManager.getString(R.string.input_address_unrecognised),
-            buttonText = resourceManager.getString(R.string.common_close),
-            iconRes = R.drawable.ic_alert_16
-        )
-        router.openAlert(payload)
     }
 
     override fun onQuickAmountInput(input: Double) {

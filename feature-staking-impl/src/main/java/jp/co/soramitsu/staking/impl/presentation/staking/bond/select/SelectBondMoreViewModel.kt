@@ -5,6 +5,9 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.math.BigDecimal
+import javax.inject.Inject
+import javax.inject.Named
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -26,6 +29,8 @@ import jp.co.soramitsu.staking.impl.scenarios.StakingScenarioInteractor
 import jp.co.soramitsu.wallet.api.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.wallet.api.presentation.mixin.fee.FeeLoaderMixin
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
@@ -36,11 +41,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import java.math.BigDecimal
-import javax.inject.Inject
-import javax.inject.Named
-import kotlin.time.DurationUnit
-import kotlin.time.toDuration
 
 private const val DEFAULT_AMOUNT = 1
 private const val DEBOUNCE_DURATION_MILLIS = 500
@@ -75,7 +75,7 @@ class SelectBondMoreViewModel @Inject constructor(
     val stakeCreatorBalanceFlow = flowOf {
         val balance = stakingScenarioInteractor.getAvailableForBondMoreBalance()
         val asset = assetFlow.first()
-        val balanceAmount = balance.formatCrypto(asset.token.configuration.symbolToShow)
+        val balanceAmount = balance.formatCrypto(asset.token.configuration.symbol)
         resourceManager.getString(R.string.common_available_format, balanceAmount)
     }.inBackground().share()
 

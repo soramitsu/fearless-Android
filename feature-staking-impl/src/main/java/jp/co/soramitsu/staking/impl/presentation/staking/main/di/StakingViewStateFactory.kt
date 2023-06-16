@@ -82,6 +82,7 @@ class StakingViewStateFactory(
     ): RelaychainWelcomeViewState {
         return when (currentAssetFlow.first().token.configuration.syntheticStakingType()) {
             SyntheticStakingType.SORA -> createSoraWelcomeViewState(currentAssetFlow, scope, welcomeStakingValidationSystem, errorDisplayer)
+            SyntheticStakingType.TERNOA,
             SyntheticStakingType.DEFAULT -> RelaychainWelcomeViewState(
                 setupStakingSharedState,
                 rewardCalculatorFactory,
@@ -130,6 +131,8 @@ class StakingViewStateFactory(
                 resourceManager = resourceManager,
                 soraStakingRewardsScenario = soraStakingRewardsScenario
             )
+
+            SyntheticStakingType.TERNOA,
             SyntheticStakingType.DEFAULT -> NominatorViewState(
                 nominatorState = stakingState,
                 stakingInteractor = stakingInteractor,

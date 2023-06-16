@@ -2,6 +2,7 @@ package jp.co.soramitsu.staking.impl.domain.rewards
 
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.core.models.ChainId
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ternoaChainId
 import jp.co.soramitsu.staking.api.data.SyntheticStakingType
 import jp.co.soramitsu.staking.api.data.syntheticStakingType
 import jp.co.soramitsu.staking.api.domain.api.AccountIdMap
@@ -154,6 +155,77 @@ class RewardCalculatorFactory(
         return calculator
     }
 
+    private suspend fun createTernoa(asset: Asset): RewardCalculator {
+        val chainId = asset.chainId
+        require(chainId == ternoaChainId)
+
+        val cached = calculators[chainId]
+        if (cached != null) {
+            return cached
+        }
+
+        val exposures = relayChainRepository.getActiveElectedValidatorsExposures(chainId)
+        val validatorsPrefs = relayChainRepository.getValidatorPrefs(chainId, exposures.keys.toList())
+
+        val validators = exposures.keys.mapNotNull { accountIdHex ->
+            val exposure = exposures[accountIdHex] ?: accountIdNotFound(accountIdHex)
+            val validatorPrefs = validatorsPrefs[accountIdHex] ?: return@mapNotNull null
+
+            RewardCalculationTarget(
+                accountIdHex = accountIdHex,
+                totalStake = exposure.total,
+                nominatorStakes = exposure.others,
+                ownStake = exposure.own,
+                commission = validatorPrefs.commission
+            )
+        }
+
+        val validatorsPayouts = relayChainRepository.getErasValidatorRewards(chainId).values.filterNotNull().map { asset.amountFromPlanks(it).toDouble() }
+        val averageValidatorPayout: Double = validatorsPayouts.average()
+
+        return TernoaRewardCalculator(
+            validators = validators,
+            averageValidatorPayout = averageValidatorPayout,
+            asset = asset
+        )
+    }
+
+    suspend fun createTernoaWithCustomValidatorsSettings(
+        exposures: AccountIdMap<Exposure>,
+        validatorsPrefs: AccountIdMap<ValidatorPrefs?>,
+        asset: Asset
+    ): RewardCalculator = withContext(Dispatchers.Default) {
+        val chainId = asset.chainId
+        require(chainId == ternoaChainId)
+
+        val cached = calculators[chainId]
+        if (cached != null) {
+            return@withContext cached
+        }
+
+        val validators = exposures.keys.mapNotNull { accountIdHex ->
+            val exposure = exposures[accountIdHex] ?: accountIdNotFound(accountIdHex)
+            val validatorPrefs = validatorsPrefs[accountIdHex] ?: return@mapNotNull null
+
+            RewardCalculationTarget(
+                accountIdHex = accountIdHex,
+                totalStake = exposure.total,
+                nominatorStakes = exposure.others,
+                ownStake = exposure.own,
+                commission = validatorPrefs.commission
+            )
+        }
+
+        val validatorsPayouts = relayChainRepository.getErasValidatorRewards(chainId).values.filterNotNull().map { asset.amountFromPlanks(it).toDouble() }
+        val averageValidatorPayout: Double = validatorsPayouts.average()
+
+        return@withContext TernoaRewardCalculator(
+            validators = validators,
+            averageValidatorPayout = averageValidatorPayout,
+            asset = asset
+        )
+    }
+
     suspend fun create(asset: Asset): RewardCalculator {
         val stakingType = asset.staking
         val chainId = asset.chainId
@@ -161,6 +233,7 @@ class RewardCalculatorFactory(
 
         return when {
             syntheticType == SyntheticStakingType.SORA -> createSora(asset)
+            syntheticType == SyntheticStakingType.TERNOA -> createTernoa(asset)
             stakingType == Asset.StakingType.RELAYCHAIN -> createManual(chainId)
             stakingType == Asset.StakingType.PARACHAIN -> createSubquery()
 

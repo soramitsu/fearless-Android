@@ -5,6 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -37,7 +38,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import javax.inject.Inject
 
 @HiltViewModel
 class ValidatorDetailsViewModel @Inject constructor(
@@ -95,16 +95,16 @@ class ValidatorDetailsViewModel @Inject constructor(
         require(validatorStake is ValidatorStakeParcelModel.Active)
 
         val ownStake = asset.token.amountFromPlanks(validatorStake.ownStake)
-        val ownStakeFormatted = ownStake.formatCryptoDetail(asset.token.configuration.symbolToShow)
+        val ownStakeFormatted = ownStake.formatCryptoDetail(asset.token.configuration.symbol)
         val ownStakeFiatFormatted = asset.token.fiatAmount(ownStake)?.formatFiat(asset.token.fiatSymbol)
 
         val nominatorsStakeValue = validatorStake.nominators.sumByBigInteger(NominatorParcelModel::value)
         val nominatorsStake = asset.token.amountFromPlanks(nominatorsStakeValue)
-        val nominatorsStakeFormatted = nominatorsStake.formatCryptoDetail(asset.token.configuration.symbolToShow)
+        val nominatorsStakeFormatted = nominatorsStake.formatCryptoDetail(asset.token.configuration.symbol)
         val nominatorsStakeFiatFormatted = asset.token.fiatAmount(nominatorsStake)?.formatFiat(asset.token.fiatSymbol)
 
         val totalStake = asset.token.amountFromPlanks(validatorStake.totalStake)
-        val totalStakeFormatted = totalStake.formatCryptoDetail(asset.token.configuration.symbolToShow)
+        val totalStakeFormatted = totalStake.formatCryptoDetail(asset.token.configuration.symbol)
         val totalStakeFiatFormatted = asset.token.fiatAmount(totalStake)?.formatFiat(asset.token.fiatSymbol)
 
         ValidatorStakeBottomSheet.Payload(
