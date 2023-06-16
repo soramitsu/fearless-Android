@@ -2,6 +2,7 @@ package jp.co.soramitsu.staking.impl.presentation.payouts.list
 
 import androidx.lifecycle.MutableLiveData
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.base.errors.TitledException
 import jp.co.soramitsu.common.mixin.api.Retriable
@@ -31,7 +32,6 @@ import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @HiltViewModel
 class PayoutsListViewModel @Inject constructor(
@@ -113,7 +113,7 @@ class PayoutsListViewModel @Inject constructor(
         statistics: PendingPayoutsStatistics
     ): PendingPayoutsStatisticsModel {
         val token = interactor.currentAssetFlow().first().token
-        val totalAmount = token.amountFromPlanks(statistics.totalAmountInPlanks).formatCrypto(token.configuration.symbolToShow)
+        val totalAmount = token.amountFromPlanks(statistics.totalAmountInPlanks).formatCrypto(token.configuration.symbol)
 
         val payouts = statistics.payouts.map { mapPayoutToPayoutModel(token, it) }
 
@@ -133,7 +133,7 @@ class PayoutsListViewModel @Inject constructor(
                 timeLeft = timeLeft,
                 createdAt = createdAt,
                 daysLeftColor = if (closeToExpire) R.color.error_red else R.color.white_64,
-                amount = amount.formatCrypto(token.configuration.symbolToShow).formatSigned(true),
+                amount = amount.formatCrypto(token.configuration.symbol).formatSigned(true),
                 amountFiat = token.fiatAmount(amount)?.formatFiat(token.fiatSymbol)
             )
         }

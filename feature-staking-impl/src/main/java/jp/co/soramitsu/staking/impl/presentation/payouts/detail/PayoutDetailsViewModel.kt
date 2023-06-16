@@ -2,6 +2,7 @@ package jp.co.soramitsu.staking.impl.presentation.payouts.detail
 
 import androidx.lifecycle.SavedStateHandle
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressModel
@@ -23,7 +24,6 @@ import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @HiltViewModel
 class PayoutDetailsViewModel @Inject constructor(
@@ -84,7 +84,7 @@ class PayoutDetailsViewModel @Inject constructor(
             validatorAddressModel = addressModel,
             createdAt = payout.createdAt,
             eraDisplay = resourceManager.getString(R.string.staking_era_index_no_prefix, payout.era.toLong()),
-            reward = rewardAmount.formatCryptoDetail(tokenType.symbolToShow),
+            reward = rewardAmount.formatCryptoDetail(tokenType.symbol),
             rewardFiat = asset.token.fiatAmount(rewardAmount)?.formatFiat(asset.token.fiatSymbol)
         )
     }

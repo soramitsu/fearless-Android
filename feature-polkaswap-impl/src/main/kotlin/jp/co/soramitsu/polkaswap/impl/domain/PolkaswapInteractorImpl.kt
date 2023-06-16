@@ -1,13 +1,17 @@
 package jp.co.soramitsu.polkaswap.impl.domain
 
+import java.math.BigDecimal
+import java.math.BigInteger
+import java.math.RoundingMode
+import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.accountId
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.utils.isZero
 import jp.co.soramitsu.common.utils.orZero
-import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.core.runtime.models.responses.QuoteResponse
+import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.polkaswap.api.data.PolkaswapRepository
 import jp.co.soramitsu.polkaswap.api.domain.InsufficientLiquidityException
 import jp.co.soramitsu.polkaswap.api.domain.PolkaswapInteractor
@@ -26,16 +30,12 @@ import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
+import kotlin.math.max
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.merge
-import java.math.BigDecimal
-import java.math.BigInteger
-import java.math.RoundingMode
-import javax.inject.Inject
-import kotlin.math.max
 
 class PolkaswapInteractorImpl @Inject constructor(
     private val chainRegistry: ChainRegistry,
@@ -64,7 +64,7 @@ class PolkaswapInteractorImpl @Inject constructor(
 
     override suspend fun getFeeAsset(): Asset? {
         val chain = chainRegistry.getChain(polkaswapChainId)
-        return getAsset(chain.utilityAsset.id)
+        return chain.utilityAsset?.id?.let { getAsset(it) }
     }
 
     override suspend fun getAsset(assetId: String): Asset? {
@@ -106,8 +106,8 @@ class PolkaswapInteractorImpl @Inject constructor(
         slippageTolerance: Double,
         market: Market
     ): Result<SwapDetails?> {
-        val polkaswapUtilityAssetId = chainRegistry.getChain(polkaswapChainId).utilityAsset.id
-        val feeAsset = requireNotNull(getAsset(polkaswapUtilityAssetId))
+        val polkaswapUtilityAssetId = chainRegistry.getChain(polkaswapChainId).utilityAsset?.id
+        val feeAsset = requireNotNull(polkaswapUtilityAssetId?.let { getAsset(it) })
 
         val curMarkets = if (market == Market.SMART) emptyList() else listOf(market)
 

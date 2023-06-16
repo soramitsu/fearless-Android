@@ -5,6 +5,9 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.math.BigDecimal
+import javax.inject.Inject
+import javax.inject.Named
 import jp.co.soramitsu.account.api.domain.interfaces.SelectedAccountUseCase
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressModel
@@ -69,9 +72,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.launch
-import java.math.BigDecimal
-import javax.inject.Inject
-import javax.inject.Named
 
 @HiltViewModel
 class CustomContributeViewModel @Inject constructor(
@@ -128,7 +128,7 @@ class CustomContributeViewModel @Inject constructor(
         .filter { (_viewStateFlow.value as? MoonbeamContributeViewState)?.customContributePayload?.step == CONTRIBUTE }
         .flatMapLatest { assetFlow }
         .map {
-            resourceManager.getString(R.string.crowdloan_unlock_hint, it.token.configuration.symbolToShow.uppercase())
+            resourceManager.getString(R.string.crowdloan_unlock_hint, it.token.configuration.symbol.uppercase())
         }
         .inBackground()
         .share()

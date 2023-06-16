@@ -86,7 +86,7 @@ class RuntimeProvider(
                 val runtimeVersion = chainDao.runtimeInfo(chainId)?.syncedVersion ?: return@launch
                 val metadataRaw = runCatching { runtimeFilesCache.getChainMetadata(chainId) }
                     .getOrElse { throw ChainInfoNotInCacheException }
-                val ownTypesRaw = runCatching { chainDao.getTypes(chainId) }
+                val ownTypesRaw = runCatching { chainDao.getTypes(chainId) ?: throw ChainInfoNotInCacheException }
                     .getOrElse { throw ChainInfoNotInCacheException }
 
                 val runtime = runtimeFactory.constructRuntime(metadataRaw, ownTypesRaw, runtimeVersion)

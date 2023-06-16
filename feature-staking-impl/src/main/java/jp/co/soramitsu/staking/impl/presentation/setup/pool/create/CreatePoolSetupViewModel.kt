@@ -2,6 +2,9 @@ package jp.co.soramitsu.staking.impl.presentation.setup.pool.create
 
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.math.BigDecimal
+import java.math.BigInteger
+import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.AmountInputViewState
@@ -39,9 +42,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import java.math.BigDecimal
-import java.math.BigInteger
-import javax.inject.Inject
 
 @HiltViewModel
 class CreatePoolSetupViewModel @Inject constructor(
@@ -99,7 +99,7 @@ class CreatePoolSetupViewModel @Inject constructor(
     private val enteredAmountFlow = MutableStateFlow(initialAmount)
 
     private val amountInputViewState: Flow<AmountInputViewState> = enteredAmountFlow.map { amount ->
-        val tokenBalance = asset.transferable.formatCrypto(asset.token.configuration.symbolToShow)
+        val tokenBalance = asset.transferable.formatCrypto(asset.token.configuration.symbol)
         val fiatAmount = amount.applyFiatRate(asset.token.fiatRate)?.formatFiat(asset.token.fiatSymbol)
 
         AmountInputViewState(
@@ -151,7 +151,7 @@ class CreatePoolSetupViewModel @Inject constructor(
         val feeInPlanks = poolInteractor.estimateCreateFee(poolId.toBigInteger(), poolName, amountInPlanks, address, selectedNominator, selectedStateToggler)
         feeInPlanksFlow.value = feeInPlanks
         val fee = asset.token.amountFromPlanks(feeInPlanks)
-        val feeFormatted = fee.formatCryptoDetail(asset.token.configuration.symbolToShow)
+        val feeFormatted = fee.formatCryptoDetail(asset.token.configuration.symbol)
         val feeFiat = fee.applyFiatRate(asset.token.fiatRate)?.formatFiat(asset.token.fiatSymbol)
 
         FeeInfoViewState(feeAmount = feeFormatted, feeAmountFiat = feeFiat)

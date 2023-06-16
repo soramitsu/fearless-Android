@@ -252,18 +252,18 @@ class BalanceListViewModel @Inject constructor(
         ecosystem: ChainEcosystem
     ): List<BalanceListItemModel> {
         val result = mutableListOf<BalanceListItemModel>()
-        ecosystemAssets.groupBy { it.asset.token.configuration.symbolToShow }.forEach { (symbol, symbolAssets) ->
+        ecosystemAssets.groupBy { it.asset.token.configuration.symbol }.forEach { (symbol, symbolAssets) ->
             val tokenChains = ecosystemChains.getWithToken(symbol)
             if (tokenChains.isEmpty()) return@forEach
 
             val mainChain = tokenChains.sortedWith(
                 compareByDescending<Chain> {
-                    it.assets.firstOrNull { it.symbolToShow == symbol }?.isUtility ?: false
+                    it.assets.firstOrNull { it.symbol == symbol }?.isUtility ?: false
                 }.thenByDescending { it.parentId == null }
             ).firstOrNull()
 
             val showChain = tokenChains.firstOrNull { it.id == selectedChainId } ?: mainChain
-            val showChainAsset = showChain?.assets?.firstOrNull { it.symbolToShow == symbol } ?: return@forEach
+            val showChainAsset = showChain?.assets?.firstOrNull { it.symbol == symbol } ?: return@forEach
 
             val hasNetworkIssue = networkIssues.any { it.chainId in tokenChains.map { it.id } }
 
@@ -321,7 +321,7 @@ class BalanceListViewModel @Inject constructor(
             chainAssets.map { chainAsset ->
                 val chain = requireNotNull(chains.find { it.id == chainAsset.chainId })
 
-                val assetChainUrls = chains.getWithToken(chainAsset.symbolToShow).associate { it.id to it.icon }
+                val assetChainUrls = chains.getWithToken(chainAsset.symbol).associate { it.id to it.icon }
 
                 val isSupported: Boolean = when (chain.minSupportedVersion) {
                     null -> true
@@ -333,7 +333,6 @@ class BalanceListViewModel @Inject constructor(
                     assetChainName = chainAsset.chainName,
                     assetName = chainAsset.name.orEmpty(),
                     assetSymbol = chainAsset.symbol,
-                    displayName = chainAsset.symbolToShow,
                     assetTokenFiat = null,
                     assetTokenRate = null,
                     assetTransferableBalance = null,

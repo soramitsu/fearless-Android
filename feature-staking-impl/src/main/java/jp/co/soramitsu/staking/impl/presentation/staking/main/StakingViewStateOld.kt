@@ -197,9 +197,9 @@ sealed class StakeViewState<S>(
 
             StakeSummaryModel(
                 status = summary.status,
-                totalStaked = summary.totalStaked.formatCrypto(tokenType.symbolToShow),
+                totalStaked = summary.totalStaked.formatCrypto(tokenType.symbol),
                 totalStakedFiat = token.fiatAmount(summary.totalStaked)?.formatFiat(token.fiatSymbol),
-                totalRewards = summary.totalReward.formatCryptoDetail(tokenType.symbolToShow),
+                totalRewards = summary.totalReward.formatCryptoDetail(tokenType.symbol),
                 totalRewardsFiat = token.fiatAmount(summary.totalReward)?.formatFiat(token.fiatSymbol),
                 currentEraDisplay = resourceManager.getString(R.string.staking_era_title, summary.currentEra)
             )
@@ -328,7 +328,7 @@ class SoraNominatorViewState(
 
             StakeSummaryModel(
                 status = summary.status,
-                totalStaked = summary.totalStaked.formatCrypto(tokenType.symbolToShow),
+                totalStaked = summary.totalStaked.formatCrypto(tokenType.symbol),
                 totalStakedFiat = token.fiatAmount(summary.totalStaked)?.formatFiat(token.fiatSymbol),
                 totalRewards = "N/A",
                 totalRewardsFiat = rewardToken.fiatAmount(summary.totalReward)?.formatFiat(rewardToken.fiatSymbol),
@@ -725,7 +725,7 @@ class DelegatorViewState(
                 collatorId = collator.collatorId,
                 collatorAddress = collator.collatorId.toHexString(true),
                 collatorName = identity?.display ?: collatorIdHex,
-                staked = staked.formatCryptoDetail(asset.token.configuration.symbolToShow),
+                staked = staked.formatCryptoDetail(asset.token.configuration.symbol),
                 stakedFiat = staked.applyFiatRate(asset.token.fiatRate)?.formatFiat(asset.token.fiatSymbol),
                 rewardApy = rewardApy.formatAsPercentage(),
                 rewardedFiat = rewarded.applyFiatRate(asset.token.fiatRate)?.formatFiat(asset.token.fiatSymbol),

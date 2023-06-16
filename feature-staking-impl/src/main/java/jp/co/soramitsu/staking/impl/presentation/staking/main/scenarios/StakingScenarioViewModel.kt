@@ -1,5 +1,6 @@
 package jp.co.soramitsu.staking.impl.presentation.staking.main.scenarios
 
+import java.math.BigDecimal
 import jp.co.soramitsu.common.domain.model.StoryGroup
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.utils.formatCryptoDetail
@@ -16,7 +17,6 @@ import jp.co.soramitsu.staking.impl.presentation.staking.main.model.StakingNetwo
 import jp.co.soramitsu.wallet.impl.domain.model.Token
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import java.math.BigDecimal
 
 const val PERIOD_MONTH = 30
 const val PERIOD_YEAR = 365
@@ -46,7 +46,7 @@ interface StakingScenarioViewModel {
 
 fun formatAlertTokenAmount(amount: BigDecimal, token: Token): String {
     val formattedFiat = token.fiatAmount(amount)?.formatFiat(token.fiatSymbol)
-    val formattedAmount = amount.formatCryptoDetail(token.configuration.symbolToShow)
+    val formattedAmount = amount.formatCryptoDetail(token.configuration.symbol)
 
     return buildString {
         append(formattedAmount)

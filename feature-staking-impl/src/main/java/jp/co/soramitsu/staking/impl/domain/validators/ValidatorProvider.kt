@@ -53,11 +53,13 @@ class ValidatorProvider(
 
         val rewardCalculator = when (chainId) {
             soraMainChainId -> {
-                rewardCalculatorFactory.createSoraWithCustomValidatorsSettings(electedValidatorExposures, validatorPrefs, chain.utilityAsset)
+                val utilityAsset = chain.utilityAsset ?: error("Utility asset not specified for chain ${chain.name} - ${chain.id}")
+                rewardCalculatorFactory.createSoraWithCustomValidatorsSettings(electedValidatorExposures, validatorPrefs, utilityAsset)
             }
 
             ternoaChainId -> {
-                rewardCalculatorFactory.createTernoaWithCustomValidatorsSettings(electedValidatorExposures, validatorPrefs, chain.utilityAsset)
+                val utilityAsset = chain.utilityAsset ?: error("Utility asset not specified for chain ${chain.name} - ${chain.id}")
+                rewardCalculatorFactory.createTernoaWithCustomValidatorsSettings(electedValidatorExposures, validatorPrefs, utilityAsset)
             }
 
             else -> {

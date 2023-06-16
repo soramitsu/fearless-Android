@@ -1,5 +1,6 @@
 package jp.co.soramitsu.staking.impl.presentation.staking.main.scenarios
 
+import java.math.BigDecimal
 import jp.co.soramitsu.common.domain.model.StoryGroup
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -39,7 +40,6 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.map
-import java.math.BigDecimal
 
 class StakingRelaychainScenarioViewModel(
     private val stakingInteractor: StakingInteractor,
@@ -115,7 +115,7 @@ class StakingRelaychainScenarioViewModel(
             stakingInteractor.currentAssetFlow()
         ) { networkInfo, asset ->
             val minimumStake = asset.token.amountFromPlanks(networkInfo.minimumStake)
-            val minimumStakeFormatted = minimumStake.formatCryptoDetail(asset.token.configuration.symbolToShow)
+            val minimumStakeFormatted = minimumStake.formatCryptoDetail(asset.token.configuration.symbol)
 
             val minimumStakeFiat = asset.token.fiatAmount(minimumStake)?.formatFiat(asset.token.fiatSymbol)
 
@@ -126,7 +126,7 @@ class StakingRelaychainScenarioViewModel(
                 resourceManager.getQuantityString(R.plurals.common_hours_format, networkInfo.lockupPeriodInHours, networkInfo.lockupPeriodInHours)
             }
             val totalStake = asset.token.amountFromPlanks(networkInfo.totalStake)
-            val totalStakeFormatted = totalStake.formatCryptoDetail(asset.token.configuration.symbolToShow)
+            val totalStakeFormatted = totalStake.formatCryptoDetail(asset.token.configuration.symbol)
 
             val totalStakeFiat = asset.token.fiatAmount(totalStake)?.formatFiat(asset.token.fiatSymbol)
 

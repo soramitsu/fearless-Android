@@ -138,6 +138,6 @@ fun List<Chain>.getWithToken(symbol: String, filter: Map<ChainId, List<String>>?
             null -> true
             else -> filter[chain.id]?.contains(asset.id) ?: false
         }
-        asset.symbolToShow == symbol && allowAsset
+        asset.symbol == symbol && allowAsset
     }
 }
