@@ -1,5 +1,6 @@
 package jp.co.soramitsu.account.impl.presentation.importing.remote_backup
 
+import android.app.Activity
 import androidx.compose.runtime.Composable
 import jp.co.soramitsu.account.impl.presentation.importing.remote_backup.screens.EnterBackupPasswordCallback
 import jp.co.soramitsu.account.impl.presentation.importing.remote_backup.screens.EnterBackupPasswordScreen
@@ -18,6 +19,7 @@ interface ImportRemoteWalletState
 
 @Composable
 internal fun ImportRemoteWalletContent(
+    activity: Activity,
     state: ImportRemoteWalletState,
     callback: ImportRemoteWalletCallback
 ) {
@@ -25,18 +27,21 @@ internal fun ImportRemoteWalletContent(
         when (state) {
             is RemoteWalletListState -> {
                 RemoteWalletListScreen(
+                    activity = activity,
                     state = state,
                     callback = callback
                 )
             }
             is EnterBackupPasswordState -> {
                 EnterBackupPasswordScreen(
+                    activity = activity,
                     state = state,
                     callback = callback
                 )
             }
             is WalletImportedState -> {
                 WalletImportedScreen(
+                    activity = activity,
                     state = state,
                     callback = callback
                 )

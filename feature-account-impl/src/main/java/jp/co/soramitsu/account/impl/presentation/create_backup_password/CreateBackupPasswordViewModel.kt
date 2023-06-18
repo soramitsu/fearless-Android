@@ -1,8 +1,14 @@
 package jp.co.soramitsu.account.impl.presentation.create_backup_password
 
+import android.content.Context
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
+import jp.co.soramitsu.account.api.presentation.create_backup_password.CreateBackupPasswordPayload
 import jp.co.soramitsu.account.impl.presentation.AccountRouter
+import jp.co.soramitsu.backup.BackupService
+import jp.co.soramitsu.backup.domain.models.DecryptedBackupAccount
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.TextInputViewState
 import jp.co.soramitsu.common.compose.component.TextSelectableItemState
@@ -11,13 +17,21 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
+import java.util.UUID
 import javax.inject.Inject
 import jp.co.soramitsu.common.utils.combine as combineFlows
 
 @HiltViewModel
 class CreateBackupPasswordViewModel @Inject constructor(
-    private val accountRouter: AccountRouter
+    private val accountRouter: AccountRouter,
+    private val backupService: BackupService,
+    private val context: Context,
+    private val savedStateHandle: SavedStateHandle,
+    private val interactor: AccountInteractor
 ) : BaseViewModel(), CreateBackupPasswordCallback {
+
+    private val payload = savedStateHandle.get<CreateBackupPasswordPayload>(CreateBackupPasswordDialog.PAYLOAD_KEY)!!
 
     private val originPassword = MutableStateFlow("")
     private val confirmPassword = MutableStateFlow("")
@@ -119,6 +133,53 @@ class CreateBackupPasswordViewModel @Inject constructor(
     }
 
     override fun onApplyPasswordClick() {
+        viewModelScope.launch {
+            runCatching {
+                importFromMnemonic()
+                saveBackupAccount()
+            }
+                .onSuccess {
+                    continueBasedOnCodeStatus()
+                }
+                .onFailure {
+                    // TODO: Handle create account error
+                    // handleCreateAccountError(result.requireException())
+                }
+        }
+    }
+
+    private suspend fun importFromMnemonic() {
+        interactor.importFromMnemonic(
+            walletName = payload.accountName,
+            mnemonic = payload.mnemonic,
+            substrateDerivationPath = payload.substrateDerivationPath,
+            ethereumDerivationPath = payload.ethereumDerivationPath,
+            selectedEncryptionType = payload.cryptoType,
+            withEth = true
+        ).getOrThrow()
+    }
+
+    private suspend fun saveBackupAccount() {
+        val password = originPassword.value
+        backupService.saveBackupAccount(
+            context = context,
+            account = DecryptedBackupAccount(
+                name = payload.accountName,
+                address = UUID.randomUUID().toString(),
+                mnemonicPhrase = payload.mnemonic,
+                derivationPath = payload.substrateDerivationPath,
+                cryptoType = payload.cryptoType
+            ),
+            password = password
+        )
+    }
+
+    private suspend fun continueBasedOnCodeStatus() {
+        if (interactor.isCodeSet()) {
+            accountRouter.openMain()
+        } else {
+            accountRouter.openCreatePincode()
+        }
     }
 
     override fun onAgreementsClick() {

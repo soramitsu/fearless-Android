@@ -85,8 +85,8 @@ interface AccountRepository {
     suspend fun getMyAccounts(query: String, chainId: String): Set<Account>
 
     suspend fun importFromMnemonic(
-        keyString: String,
-        username: String,
+        mnemonic: String,
+        accountName: String,
         substrateDerivationPath: String,
         ethereumDerivationPath: String,
         selectedEncryptionType: CryptoType,

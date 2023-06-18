@@ -200,16 +200,16 @@ class AccountRepositoryImpl(
     }
 
     override suspend fun importFromMnemonic(
-        keyString: String,
-        username: String,
+        mnemonic: String,
+        accountName: String,
         substrateDerivationPath: String,
         ethereumDerivationPath: String,
         selectedEncryptionType: CryptoType,
         withEth: Boolean
     ) {
         val metaAccountId = saveFromMnemonic(
-            username,
-            keyString,
+            accountName,
+            mnemonic,
             substrateDerivationPath,
             ethereumDerivationPath,
             selectedEncryptionType,

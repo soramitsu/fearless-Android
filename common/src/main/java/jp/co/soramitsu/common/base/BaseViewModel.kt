@@ -6,6 +6,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.base.errors.TitledException
 import jp.co.soramitsu.common.base.errors.ValidationException
+import jp.co.soramitsu.common.base.models.ErrorDialogState
+import jp.co.soramitsu.common.compose.component.emptyClick
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.asLiveData
 import jp.co.soramitsu.common.validation.ProgressConsumer
@@ -27,6 +29,9 @@ open class BaseViewModel : ViewModel(), CoroutineScope {
     private val _errorWithTitleLiveData = MutableLiveData<Event<TitleAndMessage>>()
     val errorWithTitleLiveData: LiveData<Event<TitleAndMessage>> = _errorWithTitleLiveData
 
+    private val _errorDialogStateLiveData = MutableLiveData<Event<ErrorDialogState>>()
+    val errorDialogStateLiveData: LiveData<Event<ErrorDialogState>> = _errorDialogStateLiveData
+
     private val _messageLiveData = MutableLiveData<Event<String>>()
     val messageLiveData: LiveData<Event<String>> = _messageLiveData
 
@@ -40,6 +45,24 @@ open class BaseViewModel : ViewModel(), CoroutineScope {
 
     fun showError(text: String) {
         _errorLiveData.value = Event(text)
+    }
+
+    fun showError(
+        title: String,
+        message: String,
+        positiveButtonText: String? = null,
+        negativeButtonText: String? = null,
+        positiveClick: () -> Unit = emptyClick
+    ) {
+        _errorDialogStateLiveData.value = Event(
+            ErrorDialogState(
+                title = title,
+                message = message,
+                positiveButtonText = positiveButtonText,
+                negativeButtonText = negativeButtonText,
+                positiveClick = positiveClick
+            )
+        )
     }
 
     open fun showError(throwable: Throwable) {

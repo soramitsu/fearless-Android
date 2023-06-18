@@ -20,6 +20,7 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import jp.co.soramitsu.common.R
+import jp.co.soramitsu.common.compose.component.emptyClick
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.presentation.ErrorDialog
 import jp.co.soramitsu.common.utils.Event
@@ -67,11 +68,31 @@ abstract class BaseComposeBottomSheetDialogFragment<T : BaseViewModel> : BottomS
         viewModel.errorWithTitleLiveData.observeEvent { (title, message) ->
             showErrorDialog(title, message)
         }
+        viewModel.errorDialogStateLiveData.observeEvent { errorDialogState ->
+            showErrorDialog(
+                title = errorDialogState.title,
+                message = errorDialogState.message,
+                positiveButtonText = errorDialogState.positiveButtonText,
+                negativeButtonText = errorDialogState.negativeButtonText,
+                positiveClick = errorDialogState.positiveClick
+            )
+        }
     }
 
-    private fun showErrorDialog(title: String, message: String) {
-        val buttonText = requireContext().resources.getString(R.string.common_ok)
-        ErrorDialog(title = title, message = message, positiveButtonText = buttonText).show(childFragmentManager)
+    private fun showErrorDialog(
+        title: String,
+        message: String,
+        positiveButtonText: String? = requireContext().resources.getString(R.string.common_ok),
+        negativeButtonText: String? = null,
+        positiveClick: () -> Unit = emptyClick
+    ) {
+        ErrorDialog(
+            title = title,
+            message = message,
+            positiveButtonText = positiveButtonText,
+            negativeButtonText = negativeButtonText,
+            positiveClick = positiveClick
+        ).show(childFragmentManager)
     }
 
     protected fun showMessage(text: String) {

@@ -252,7 +252,7 @@ fun Toolbar(state: ToolbarViewState, modifier: Modifier = Modifier, onNavigation
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(3f),
+                .weight(4f),
             horizontalAlignment = CenterHorizontally
         ) {
             Text(
