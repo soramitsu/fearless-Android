@@ -176,6 +176,10 @@ fun AssetListItem(
                         )
                     } ?: Shimmer(
                         Modifier
+                            .padding(
+                                top = 8.dp,
+                                bottom = 4.dp
+                            )
                             .size(height = 16.dp, width = 54.dp)
                             .align(Alignment.End)
                     )
