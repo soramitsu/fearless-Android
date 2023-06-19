@@ -23,7 +23,7 @@ class OptionsWalletViewModel @Inject constructor(
     val savedStateHandle: SavedStateHandle,
     private val accountInteractor: AccountInteractor,
     private val router: WalletRouter
-) : BaseViewModel() {
+) : BaseViewModel(), OptionsWalletCallback {
 
     private val _deleteWalletConfirmation = MutableLiveData<Event<Long>>()
     val deleteWalletConfirmation: LiveData<Event<Long>> = _deleteWalletConfirmation
@@ -40,15 +40,15 @@ class OptionsWalletViewModel @Inject constructor(
         OptionsWalletScreenViewState(true)
     )
 
-    fun exportWallet() {
+    override fun onExportWalletClick() {
         router.openExportWallet(savedStateHandle[KEY_WALLET_ID]!!)
     }
 
-    fun openWalletDetails() {
+    override fun onWalletDetailsClick() {
         router.openAccountDetails(savedStateHandle[KEY_WALLET_ID]!!)
     }
 
-    fun deleteWallet() {
+    override fun onDeleteWalletClick() {
         _deleteWalletConfirmation.value = Event(savedStateHandle[KEY_WALLET_ID]!!)
     }
 
@@ -57,5 +57,9 @@ class OptionsWalletViewModel @Inject constructor(
             accountInteractor.deleteAccount(savedStateHandle[KEY_WALLET_ID]!!)
             router.back()
         }
+    }
+
+    override fun onBackupWalletClick() {
+        router.openBackupWalletScreen(savedStateHandle[KEY_WALLET_ID]!!)
     }
 }

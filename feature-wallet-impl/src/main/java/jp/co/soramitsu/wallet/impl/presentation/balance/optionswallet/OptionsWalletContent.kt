@@ -24,12 +24,21 @@ data class OptionsWalletScreenViewState(
     val isSelected: Boolean
 )
 
+interface OptionsWalletCallback {
+
+    fun onExportWalletClick()
+
+    fun onWalletDetailsClick()
+
+    fun onBackupWalletClick()
+
+    fun onDeleteWalletClick()
+}
+
 @Composable
 fun OptionsWalletContent(
     state: OptionsWalletScreenViewState,
-    exportWallet: () -> Unit,
-    openWalletDetails: () -> Unit,
-    deleteWallet: () -> Unit
+    callback: OptionsWalletCallback
 ) {
     BottomSheetScreen {
         Column(
@@ -40,12 +49,21 @@ fun OptionsWalletContent(
             H3(text = stringResource(id = R.string.common_title_wallet_option))
             MarginVertical(margin = 28.dp)
             GrayButton(
+                text = stringResource(id = R.string.common_backup_wallet),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp)
+            ) {
+                callback.onBackupWalletClick()
+            }
+            MarginVertical(margin = 12.dp)
+            GrayButton(
                 text = stringResource(id = R.string.common_details_wallet),
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(48.dp)
             ) {
-                openWalletDetails()
+                callback.onWalletDetailsClick()
             }
             MarginVertical(margin = 12.dp)
             GrayButton(
@@ -54,7 +72,7 @@ fun OptionsWalletContent(
                     .fillMaxWidth()
                     .height(48.dp)
             ) {
-                exportWallet()
+                callback.onExportWalletClick()
             }
             if (!state.isSelected) {
                 MarginVertical(margin = 12.dp)
@@ -65,7 +83,7 @@ fun OptionsWalletContent(
                         .height(48.dp),
                     colors = customButtonColors(grayButtonBackground, colorAccentDark)
                 ) {
-                    deleteWallet()
+                    callback.onDeleteWalletClick()
                 }
             }
             MarginVertical(margin = 12.dp)
@@ -81,9 +99,20 @@ private fun OptionsWalletScreenPreview() {
             state = OptionsWalletScreenViewState(
                 isSelected = false
             ),
-            exportWallet = {},
-            openWalletDetails = {},
-            deleteWallet = {}
+            callback = object : OptionsWalletCallback {
+
+                override fun onExportWalletClick() {
+                }
+
+                override fun onWalletDetailsClick() {
+                }
+
+                override fun onBackupWalletClick() {
+                }
+
+                override fun onDeleteWalletClick() {
+                }
+            }
         )
     }
 }

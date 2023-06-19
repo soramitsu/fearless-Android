@@ -8,6 +8,7 @@ import dagger.hilt.components.SingletonComponent
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.account.impl.presentation.importing.FileReader
 import jp.co.soramitsu.backup.BackupService
+import jp.co.soramitsu.common.BuildConfig
 import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
@@ -21,7 +22,7 @@ class ImportAccountModule {
     @Singleton
     fun provideBackupService(): BackupService {
         return BackupService.create(
-            token = "empty_token"
+            token = BuildConfig.WEB_CLIENT_ID
         )
     }
 }

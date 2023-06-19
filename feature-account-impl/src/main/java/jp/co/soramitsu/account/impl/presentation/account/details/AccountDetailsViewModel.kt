@@ -173,9 +173,9 @@ class AccountDetailsViewModel @Inject constructor(
 
     fun exportTypeSelected(selected: ExportSource, chainId: ChainId) {
         val destination = when (selected) {
-            is ExportSource.Json -> accountRouter.openExportJsonPassword(metaId, chainId)
-            is ExportSource.Seed -> accountRouter.openExportSeed(metaId, chainId)
-            is ExportSource.Mnemonic -> accountRouter.openExportMnemonic(metaId, chainId)
+            is ExportSource.Json -> accountRouter.openExportJsonPasswordDestination(metaId, chainId)
+            is ExportSource.Seed -> accountRouter.getExportSeedDestination(metaId, chainId)
+            is ExportSource.Mnemonic -> accountRouter.getExportMnemonicDestination(metaId, chainId)
         }
 
         accountRouter.withPinCodeCheckRequired(destination, pinCodeTitleRes = R.string.account_export)

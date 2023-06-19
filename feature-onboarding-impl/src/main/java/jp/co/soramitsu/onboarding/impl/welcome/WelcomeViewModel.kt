@@ -1,6 +1,6 @@
 package jp.co.soramitsu.onboarding.impl.welcome
 
-import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import androidx.activity.result.ActivityResultLauncher
 import androidx.lifecycle.LiveData
@@ -8,7 +8,6 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.model.ImportMode
 import jp.co.soramitsu.backup.BackupService
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -24,6 +23,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 private const val SUBSTRATE_BLOCKCHAIN_TYPE = 0
 
@@ -32,7 +32,8 @@ class WelcomeViewModel @Inject constructor(
     private val router: OnboardingRouter,
     private val appLinksProvider: AppLinksProvider,
     private val savedStateHandle: SavedStateHandle,
-    private val backupService: BackupService
+    private val backupService: BackupService,
+    private val context: Context
 ) : BaseViewModel(), Browserable {
 
     private val payload = savedStateHandle.get<WelcomeFragmentPayload>(KEY_PAYLOAD)!!
@@ -75,11 +76,7 @@ class WelcomeViewModel @Inject constructor(
 
     private fun handleSelectedImportMode(importMode: ImportMode) {
         if (importMode == ImportMode.Google) {
-            // TODO: Implement Google Auth later
             _events.trySend(WelcomeEvent.AuthorizeGoogle)
-            // router.openImportRemoteWalletDialog()
-            // router.openCreateBackupPasswordDialog()
-            // router.openMnemonicAgreementsDialog()
         } else {
             router.openImportAccountScreen(
                 blockChainType = SUBSTRATE_BLOCKCHAIN_TYPE,
@@ -88,12 +85,15 @@ class WelcomeViewModel @Inject constructor(
         }
     }
 
-    fun authorizeGoogle(activity: Activity, launcher: ActivityResultLauncher<Intent>) {
-        launch {
-            backupService.authorize(
-                context = activity,
+    fun authorizeGoogle(launcher: ActivityResultLauncher<Intent>) {
+        viewModelScope.launch {
+            val isAuthorized = backupService.authorize(
+                context = context,
                 launcher = launcher
             )
+            if (isAuthorized) {
+                openAddWalletThroughGoogleScreen()
+            }
         }
     }
 
@@ -103,6 +103,18 @@ class WelcomeViewModel @Inject constructor(
 
     fun privacyClicked() {
         openBrowserEvent.value = Event(appLinksProvider.privacyUrl)
+    }
+
+    private suspend fun openAddWalletThroughGoogleScreen() {
+        if (backupService.getBackupAccounts(context).isEmpty()) {
+            router.openCreateWalletDialog()
+        } else {
+            router.openImportRemoteWalletDialog()
+        }
+    }
+
+    fun onGoogleLoginError() {
+        // TODO: Login error
     }
 
     fun backClicked() {

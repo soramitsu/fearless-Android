@@ -43,7 +43,8 @@ data class WalletItemViewState(
 fun WalletItem(
     state: WalletItemViewState,
     onOptionsClick: ((WalletItemViewState) -> Unit)? = null,
-    onSelected: (WalletItemViewState) -> Unit
+    onSelected: (WalletItemViewState) -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val borderColor = if (state.isSelected) {
         borderGradientColors
@@ -52,7 +53,7 @@ fun WalletItem(
     }
 
     BackgroundCorneredWithGradientBorder(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clickableWithNoIndication { onSelected(state) },
         borderColors = borderColor,
@@ -79,8 +80,6 @@ fun WalletItem(
             }
             MarginHorizontal(margin = 8.dp)
             Column(
-                modifier = Modifier
-                    .fillMaxWidth(),
                 horizontalAlignment = Alignment.Start
             ) {
                 if (state.balance != null || state.changeBalanceViewState != null) {
@@ -103,7 +102,9 @@ fun WalletItem(
             }
             Spacer(modifier = Modifier.weight(1f))
             onOptionsClick?.let { optionsAction ->
-                Box(contentAlignment = Alignment.CenterEnd) {
+                Box(
+                    contentAlignment = Alignment.CenterEnd
+                ) {
                     IconButton(
                         onClick = {
                             optionsAction(state)

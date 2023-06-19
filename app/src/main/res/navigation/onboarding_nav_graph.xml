@@ -61,6 +61,11 @@
     </fragment>
 
     <dialog
+        android:id="@+id/createAccountDialog"
+        android:name="jp.co.soramitsu.account.impl.presentation.account.create.CreateAccountDialog"
+        android:label="dialog_create_account" />
+
+    <dialog
         android:id="@+id/selectImportModeDialog"
         android:name="jp.co.soramitsu.onboarding.impl.welcome.select_import_mode.SelectImportModeDialog"
         android:label="select_import_mode_dialog"/>
@@ -125,6 +130,11 @@
         </action>
 
     </fragment>
+
+    <dialog
+        android:id="@+id/backupMnemonicDialog"
+        android:name="jp.co.soramitsu.account.impl.presentation.mnemonic.backup.BackupMnemonicDialog"
+        android:label="dialog_backup_mnemonic" />
 
     <fragment
         android:id="@+id/confirmMnemonicFragment"

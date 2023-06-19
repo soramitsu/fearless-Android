@@ -1024,4 +1024,22 @@
     <string name="select_another_network_description">The address doesn\'t match the destination network. You should select another network</string>
     <string name="select_network_template">Select %s network</string>
     <string name="input_address_unrecognised">Input doesn\'t match known network\'s address</string>
+
+    <string name="btn_backup_with_google">Сохранить в Google</string>
+
+    <string name="create_account_title">Назовите свой кошелек</string>
+    <string name="create_account_description">Придумайте название для своего нового кошелька, чтобы вы могли легко его идентифицировать. Это необязательно и будет видно только вам</string>
+    <string name="create_account_edit_text_visibility">Виден только вам и хранится локально</string>
+
+    <string name="backup_mnemonic_title">Запишите мнемоническую фразу</string>
+    <string name="backup_mnemonic_description">Не забудьте записать слова в том порядке, в котором они указаны ниже. Используйте нецифровой способ резервного копирования.</string>
+
+    <string name="backup_wallet_show_mnemonic_phrase">Показать мнемоническую фразу</string>
+    <string name="backup_wallet_show_raw_seed">Показать Raw Seed</string>
+    <string name="backup_wallet_export_json">Экспортировать JSON</string>
+    <string name="backup_wallet_delete_google_backup">Удалить кошелек из Google</string>
+    <string name="backup_wallet_backup_to_google">Сохранить кошелек в Google</string>
+    <string name="backup_wallet_delete_wallet">Удалить кошелек</string>
+    <string name="backup_wallet_warning_about_lose_phrase">Если вы потеряете доступ к этому устройству, ваши средства будут потеряны, если вы не создадите резервную копию!</string>
+
 </resources>
