@@ -3,6 +3,7 @@ package jp.co.soramitsu.wallet.impl.presentation.send.setup
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -52,6 +53,7 @@ import jp.co.soramitsu.common.compose.component.ToolbarViewState
 import jp.co.soramitsu.common.compose.component.WarningInfo
 import jp.co.soramitsu.common.compose.component.WarningInfoState
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
+import jp.co.soramitsu.common.compose.theme.backgroundBlack
 import jp.co.soramitsu.common.compose.theme.black05
 import jp.co.soramitsu.common.compose.theme.colorAccentDark
 import jp.co.soramitsu.common.compose.theme.white24
@@ -138,6 +140,7 @@ fun SendSetupContent(
             val showQuickInput = state.amountInputState.isFocused && isSoftKeyboardOpen
             Column(
                 modifier = Modifier
+                    .background(backgroundBlack)
                     .align(Alignment.BottomCenter)
                     .imePadding()
             ) {
