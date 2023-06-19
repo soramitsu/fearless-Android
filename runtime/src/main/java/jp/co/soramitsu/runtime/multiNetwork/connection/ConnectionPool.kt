@@ -19,6 +19,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
@@ -80,6 +81,7 @@ class ConnectionPool @Inject constructor(
 
         val isConnectingListFlow = pool.map { it.value.isConnecting }
         val hasConnectingFlow = combine(isConnectingListFlow) { it.any { it } }
+            .filter { connecting -> connecting }
         val showConnecting = combine(hasConnectionsFlow, hasConnectingFlow) { connected, connecting ->
             !connected && connecting
         }
