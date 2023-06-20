@@ -100,12 +100,12 @@ class XcmInteractor(
 
     suspend fun getDestinationFee(
         destinationChainId: ChainId,
-        tokenSymbol: String
+        tokenConfiguration: Asset
     ): BigDecimal? {
         return runCatching {
             xcmService.getXcmDestinationFee(
                 destinationChainId = destinationChainId,
-                tokenSymbol = tokenSymbol
+                asset = tokenConfiguration
             )
         }.getOrNull()
     }
