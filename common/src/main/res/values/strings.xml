@@ -61,8 +61,6 @@
 
     <string name="add_node_button_title">Add node</string>
 
-    <string name="scam_additional_stub">Additional</string>
-
     <string name="address_history_empty_message">No history found</string>
     <string name="address_not_valid_error_message">The address format is invalid.\nMake sure that address\nbelongs to the right network</string>
     <string name="address_not_valid_error_title">Is not network address</string>
@@ -93,6 +91,16 @@
 
     <string name="assets_search_hint">Search by token</string>
 
+    <string name="backup_mnemonic_description">Remember to record your words in the same order as they appear below. Use a non-digital way to backup.</string>
+    <string name="backup_mnemonic_title">Write down your mnemonic</string>
+    <string name="backup_wallet_backup_to_google">Backup to Google</string>
+    <string name="backup_wallet_delete_google_backup">Delete Google backup</string>
+    <string name="backup_wallet_delete_wallet">Delete wallet</string>
+    <string name="backup_wallet_export_json">Export JSON</string>
+    <string name="backup_wallet_show_mnemonic_phrase">Show mnemonic phrase</string>
+    <string name="backup_wallet_show_raw_seed">Show Raw Seed</string>
+    <string name="backup_wallet_warning_about_lose_phrase">If you loose access to this device, your funds will be lost, unless you back up!</string>
+
     <string name="beacon_connect_warning">Warning: By clicking connect, you allow this dapp to view your public address. This is an important security step to protect your data from potential phishing risks.</string>
     <string name="beacon_connected">Connected to %s</string>
     <string name="beacon_connected_to">Connected to</string>
@@ -104,6 +112,8 @@
     <string name="beacon_signed">Approved</string>
     <string name="beacon_title">Beacon</string>
     <string name="beacon_transaction_warning">Warning: Make sure you trust this site. By interacting with it, you allow this site access your funds.</string>
+
+    <string name="btn_backup_with_google">Backup with Google</string>
 
     <string name="buy_completed">Purchase initiated! Please wait up to 60 minutes. You can track status on the email.</string>
 
@@ -190,6 +200,10 @@
     <string name="common_currency">Currency</string>
     <string name="common_dapp" translatable="false">Dapp</string>
     <string name="common_date">Date</string>
+    <plurals name="common_days_format">
+        <item quantity="one">%d day</item>
+        <item quantity="other">%d days</item>
+    </plurals>
     <string name="common_delete_wallet">Delete Wallet</string>
     <string name="common_destination_network">Destination network</string>
     <string name="common_destination_network_fee">Destination network fee</string>
@@ -243,6 +257,7 @@
     <string name="common_options_title">Select an option</string>
     <string name="common_origin_network">Origin network</string>
     <string name="common_origin_network_fee">Origin network fee</string>
+    <string name="common_payout">Payout</string>
     <string name="common_preview">Preview</string>
     <string name="common_proceed">Proceed</string>
     <string name="common_read">Read</string>
@@ -318,6 +333,9 @@
 
     <string name="copy_referral_code">Copy referral code</string>
 
+    <string name="create_account_description">Make a name for your new wallet, so you can easily indentify it. This is optional and will be visible only for you</string>
+    <string name="create_account_edit_text_visibility">Visible only for you and stored locally</string>
+    <string name="create_account_title">Name your new wallet</string>
     <string name="create_backup_password_agreements">I understand that if I forget my password there is no way to retrieve it</string>
     <string name="create_backup_password_btn_set">Set backup password</string>
     <string name="create_backup_password_matched">Password matched</string>
@@ -368,11 +386,6 @@
     <string name="crowdloan_unlock_hint">Your %s tokens will be returned after the leasing period.</string>
 
     <string formatted="false" name="crownloans_raised_format">Raised: %s of %s</string>
-
-    <plurals name="common_days_format">
-        <item quantity="one">%d day</item>
-        <item quantity="other">%d days</item>
-    </plurals>
 
     <string name="default_account_shared_secret">Default accounts with a shared secret</string>
 
@@ -736,6 +749,7 @@ Terms and Conditions and Privacy Policy</string>
     <string name="sanction_alert_title">This address has been flagged due to entity related to Russia.</string>
     <string name="sanction_warning_message">This address has been flagged due to entity related to Russia. We strongly recommend that you don\'t send DOT to this account.</string>
 
+    <string name="scam_additional_stub">Additional</string>
     <string name="scam_alert_message_format">We strongly recommend that you don\'t send %s to this account.</string>
     <string name="scam_alert_title">This address has been flagged due to evidence of a scam.</string>
     <string name="scam_warning_message">This address has been flagged due to evidence of a scam. We strongly recommend that you don\'t send DOT to this account.</string>
@@ -908,7 +922,6 @@ to your account to avoid remaining stake.</string>
     <string name="staking_nominator_status_waiting">Waiting for the next Era</string>
     <string name="staking_only_apr">APR</string>
     <string name="staking_only_apy">APY</string>
-    <string name="common_payout">Payout</string>
     <string name="staking_payout_expired">Payout expired</string>
     <plurals name="staking_payouts_days_left">
         <item quantity="one">%d day left</item>
@@ -1065,23 +1078,6 @@ to your account to avoid remaining stake.</string>
     <string name="staking_your_validators">Your validators</string>
     <string name="staking_your_validators_changing_title">Your validators will change in the next era.</string>
     <string name="staking_zero_bond_error">Amount must be positive</string>
-
-    <string name="btn_backup_with_google">Backup with Google</string>
-
-    <string name="create_account_title">Name your new wallet</string>
-    <string name="create_account_description">Make a name for your new wallet, so you can easily indentify it. This is optional and will be visible only for you</string>
-    <string name="create_account_edit_text_visibility">Visible only for you and stored locally</string>
-
-    <string name="backup_mnemonic_title">Write down your mnemonic</string>
-    <string name="backup_mnemonic_description">Remember to record your words in the same order as they appear below. Use a non-digital way to backup.</string>
-
-    <string name="backup_wallet_show_mnemonic_phrase">Show mnemonic phrase</string>
-    <string name="backup_wallet_show_raw_seed">Show Raw Seed</string>
-    <string name="backup_wallet_export_json">Export JSON</string>
-    <string name="backup_wallet_delete_google_backup">Delete Google backup</string>
-    <string name="backup_wallet_backup_to_google">Backup to Google</string>
-    <string name="backup_wallet_delete_wallet">Delete wallet</string>
-    <string name="backup_wallet_warning_about_lose_phrase">If you loose access to this device, your funds will be lost, unless you back up!</string>
 
     <string name="stories_bottom_close_button">Great news!</string>
     <string name="stories_version2_slide1_subtitle">Fearless Wallet now supports more networks and tokens: Polkadot (DOT), Kusama (KSM), Moonriver (MOVR), Karura (KAR), Shiden (SDN), SORA (XOR), Bifrost (BNC), KILT (KILT) and others…</string>

@@ -89,10 +89,22 @@
 
     <string name="assets_search_hint">Поиск по токену</string>
 
+    <string name="backup_mnemonic_description">Не забудьте записать слова в том порядке, в котором они указаны ниже. Используйте нецифровой способ резервного копирования.</string>
+    <string name="backup_mnemonic_title">Запишите мнемоническую фразу</string>
+    <string name="backup_wallet_backup_to_google">Сохранить кошелек в Google</string>
+    <string name="backup_wallet_delete_google_backup">Удалить кошелек из Google</string>
+    <string name="backup_wallet_delete_wallet">Удалить кошелек</string>
+    <string name="backup_wallet_export_json">Экспортировать JSON</string>
+    <string name="backup_wallet_show_mnemonic_phrase">Показать мнемоническую фразу</string>
+    <string name="backup_wallet_show_raw_seed">Показать Raw Seed</string>
+    <string name="backup_wallet_warning_about_lose_phrase">Если вы потеряете доступ к этому устройству, ваши средства будут потеряны, если вы не создадите резервную копию!</string>
+
     <string name="beacon_connect_warning">Внимание: Нажимая «Подключиться», вы разрешаете этому dapp просматривать ваш публичный адрес. Это важный шаг для защиты ваших данных от потенциальных рисков фишинга.</string>
     <string name="beacon_connected_to">Подключено к</string>
     <string name="beacon_exit_message">Вы хотите закрыть это подключение?</string>
     <string name="beacon_transaction_warning">Внимание: Убедитесь, что вы доверяете этому сайту. Взаимодействуя с этим сайтом, вы даете доступ к своим средствам.</string>
+
+    <string name="btn_backup_with_google">Сохранить в Google</string>
 
     <string name="buy_completed">Покупка совершена! Ожидайте до 60 минут. Вы можете отслеживать статус по электронной почте.</string>
 
@@ -168,6 +180,12 @@
     <string name="common_crypto_type">Тип ключевой пары</string>
     <string name="common_currency">Валюта</string>
     <string name="common_date">Дата</string>
+    <plurals name="common_days_format">
+        <item quantity="one">%d день</item>
+        <item quantity="few">%d дня</item>
+        <item quantity="many">%d дней</item>
+        <item quantity="other">%d дней</item>
+    </plurals>
     <string name="common_destination_network">Сеть назначения</string>
     <string name="common_destination_network_fee">Комиссия сети назначения</string>
     <string name="common_destroy">Уничтожить</string>
@@ -218,6 +236,7 @@
     <string name="common_options_title">Выберите опцию</string>
     <string name="common_origin_network">Исходная сеть</string>
     <string name="common_origin_network_fee">Комиссия исходной сети</string>
+    <string name="common_payout">Выплаты</string>
     <string name="common_preview">Предварительный просмотр</string>
     <string name="common_proceed">Продолжить</string>
     <string name="common_read">Читать</string>
@@ -275,6 +294,9 @@
 
     <string name="copy_referral_code">Копировать реферальный код</string>
 
+    <string name="create_account_description">Придумайте название для своего нового кошелька, чтобы вы могли легко его идентифицировать. Это необязательно и будет видно только вам</string>
+    <string name="create_account_edit_text_visibility">Виден только вам и хранится локально</string>
+    <string name="create_account_title">Назовите свой кошелек</string>
     <string name="create_backup_password_agreements">Я понимаю, что если я забуду свой пароль, то восстановить его будет невозможно</string>
     <string name="create_backup_password_btn_set">Сохранить резервный пароль</string>
     <string name="create_backup_password_matched">Пароль совпал</string>
@@ -286,10 +308,6 @@
 
     <string name="crodloan_private_crowdloan_message">Приватные краудлоуны пока не поддерживаются</string>
     <string name="crodloan_private_crowdloan_title">Приватный краудлоун</string>
-
-    <string name="cross_chain_wallet_external">Внешний кошелек</string>
-    <string name="cross_chain_wallet_my">Мой кошелек</string>
-    <string name="cross_chain_wallet_title">Cross-chain перевод на кошелек</string>
 
     <string name="crowdloan_acala_referral_code_invalid">Неверный реферальный код, убедитесь, что вы ввели его правильно, и повторите попытку.</string>
     <string name="crowdloan_active_section_format">Активные (%s)</string>
@@ -320,7 +338,7 @@
     <string name="crowdloan_placeholder">Здесь появятся активные краудлоуны</string>
     <string name="crowdloan_privacy_policy">Я подтверждаю, что прочитал и согласен с Условиями использования и Политикой конфиденциальности</string>
     <string name="crowdloan_raised">Собрано</string>
-    <string name="crowdloan_raised_amount" formatted="false">%s из %s</string>
+    <string formatted="false" name="crowdloan_raised_amount">%s из %s</string>
     <string name="crowdloan_referral_code_hint">Реферальный код</string>
     <string name="crowdloan_referral_code_invalid">Реферальный код недействителен. Пожалуйста, попробуйте другой.</string>
     <string name="crowdloan_terms_action">Соглашаюсь с Условиями использования</string>
@@ -328,14 +346,7 @@
     <string name="crowdloan_too_small_contribution_title">Сумма вклада слишком мала</string>
     <string name="crowdloan_unlock_hint">Ваши %s токены будут возвращены обратно после срока лизинга парачейна.</string>
 
-    <string name="crownloans_raised_format" formatted="false">Собрано: %s из %s</string>
-
-    <plurals name="common_days_format">
-        <item quantity="one">%d день</item>
-        <item quantity="few">%d дня</item>
-        <item quantity="many">%d дней</item>
-        <item quantity="other">%d дней</item>
-    </plurals>
+    <string formatted="false" name="crownloans_raised_format">Собрано: %s из %s</string>
 
     <string name="delete_custom_node_title">Удалить выбранную ноду?</string>
 
@@ -817,7 +828,6 @@
     <string name="staking_nominator_status_waiting">Ожидание следующей Эры</string>
     <string name="staking_only_apr">APR</string>
     <string name="staking_only_apy">APY</string>
-    <string name="common_payout">Выплаты</string>
     <string name="staking_payout_expired">Срок выплаты истёк</string>
     <plurals name="staking_payouts_days_left">
         <item quantity="one">%d день</item>
@@ -1104,21 +1114,4 @@
     <string name="your_collator">Ваш коллатор</string>
 
     <string name="сurrencies_stub_text">Токены</string>
-
-    <string name="btn_backup_with_google">Сохранить в Google</string>
-
-    <string name="create_account_title">Назовите свой кошелек</string>
-    <string name="create_account_description">Придумайте название для своего нового кошелька, чтобы вы могли легко его идентифицировать. Это необязательно и будет видно только вам</string>
-    <string name="create_account_edit_text_visibility">Виден только вам и хранится локально</string>
-
-    <string name="backup_mnemonic_title">Запишите мнемоническую фразу</string>
-    <string name="backup_mnemonic_description">Не забудьте записать слова в том порядке, в котором они указаны ниже. Используйте нецифровой способ резервного копирования.</string>
-
-    <string name="backup_wallet_show_mnemonic_phrase">Показать мнемоническую фразу</string>
-    <string name="backup_wallet_show_raw_seed">Показать Raw Seed</string>
-    <string name="backup_wallet_export_json">Экспортировать JSON</string>
-    <string name="backup_wallet_delete_google_backup">Удалить кошелек из Google</string>
-    <string name="backup_wallet_backup_to_google">Сохранить кошелек в Google</string>
-    <string name="backup_wallet_delete_wallet">Удалить кошелек</string>
-    <string name="backup_wallet_warning_about_lose_phrase">Если вы потеряете доступ к этому устройству, ваши средства будут потеряны, если вы не создадите резервную копию!</string>
 </resources>
