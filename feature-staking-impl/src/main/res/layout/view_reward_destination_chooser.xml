@@ -22,7 +22,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
-        app:targetName="@string/staking_payout"
+        app:targetName="@string/common_payout"
         android:id="@+id/rewardDestinationChooserPayout"
         android:layout_marginTop="12dp"
         android:layout_marginEnd="16dp" />

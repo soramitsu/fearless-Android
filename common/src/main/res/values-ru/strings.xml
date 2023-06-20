@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <resources>
     <string name="ECDSA_crypto_type">ECDSA | BTC/ETH совместимый</string>
 
@@ -38,12 +38,12 @@
     <string name="account_export_substrate_action">Экспорт substrate</string>
     <string name="account_export_warning_message">Передача или копирование вашего секрета - операция с высоким риском, не отправляйте ее никому. Хотите продолжить процесс обмена / копирования?</string>
     <string name="account_export_warning_title">Будьте осторожны</string>
-    <string name="account_import_ethereum_raw_seed_placeholder">ETH сид</string>
+    <string name="account_import_ethereum_raw_seed_placeholder">Бинарный сид для эфир аккаунтов (64 шестнадцатиричных символа)</string>
     <string name="account_import_invalid_keystore">Неверный формат данных восстановления. Пожалуйста, удостоверьтесь, что данные соответствуют json формату.</string>
     <string name="account_import_invalid_seed">Seed неверный. Пожалуйста, убедитесь, что введенные данные содержат 64 hex символа.</string>
     <string name="account_import_json_no_network">JSON не содержит информации о сети. Пожалуйста, укажите её в блоке дополнительных ниже.</string>
     <string name="account_import_password_placeholder">Пароль</string>
-    <string name="account_import_substrate_raw_seed_placeholder">Substrate сид</string>
+    <string name="account_import_substrate_raw_seed_placeholder">Бинарный сид для сабстрейт аккаунтов (64 шестнадцатиричных символа)</string>
     <string formatted="false" name="account_import_wrong_network">Сеть в JSON - это %s , а не такая, как у выбранной %s . Выбранная сеть будет использоваться для импорта аккаунта.</string>
     <string name="account_info_title">Аккаунт</string>
     <string name="account_needed_message">У вас нет учетной записи в этой сети, вы можете создать или импортировать учетную запись.</string>
@@ -58,8 +58,6 @@
     <string name="accounts_with_one_key">Аккаунты с одним ключом</string>
 
     <string name="add_node_button_title">Добавить ноду</string>
-
-    <string name="additional">Дополнительно</string>
 
     <string name="address_history_empty_message">Нет истории транзакций</string>
     <string name="address_not_valid_error_message">Неверный формат адреса.\nУбедитесь, что адрес\nсоответствует сети</string>
@@ -293,8 +291,11 @@
     <string name="cross_chain_wallet_my">Мой кошелек</string>
     <string name="cross_chain_wallet_title">Cross-chain перевод на кошелек</string>
 
+    <string name="crowdloan_acala_referral_code_invalid">Неверный реферальный код, убедитесь, что вы ввели его правильно, и повторите попытку.</string>
     <string name="crowdloan_active_section_format">Активные (%s)</string>
+    <string name="crowdloan_agreement_required">Требуется соглашение</string>
     <string name="crowdloan_app_bonus_format">Бонус Fearless Wallet (%s)</string>
+    <string name="crowdloan_astar_referral_code_hint">Реферальный адрес (только адреса Polkadot)</string>
     <string name="crowdloan_astar_referral_code_invalid">Недействительный реферальный адрес, допускается ввод только адреса сети Polkadot, попробуйте еще раз</string>
     <string name="crowdloan_cap_reached_amount_message">Невозможно вложить введённую сумму, поскольку общая сумма сбора будет превышать максимальную сумму краудлоуна. Максимально допустимый вклад составляет %s.</string>
     <string name="crowdloan_cap_reached_raised_message">Невозможно внести вклад в выбранный краудлоун, поскольку его максимальная сумма сбора уже достигнута.</string>
@@ -305,10 +306,12 @@
     <string name="crowdloan_crowdloan">Краудлоуны</string>
     <string name="crowdloan_email_hint">Адрес электронной почты</string>
     <string name="crowdloan_empty_bonus_title">Получите специальный бонус</string>
+    <string name="crowdloan_empty_email_title">Введите адрес электронной почты</string>
     <string name="crowdloan_empty_message">Информация о краудлоунах \n появится здесь.</string>
     <string name="crowdloan_ended_message">Невозможно внести вклад в выбранный краудлоун, поскольку он уже завершён.</string>
     <string name="crowdloan_ended_title">Краудлоун завершён</string>
     <string name="crowdloan_enter_referral">Введите реферальный код</string>
+    <string name="crowdloan_enter_referral_address">Введите реферальный адрес</string>
     <string name="crowdloan_info">Информация о краундлоуне</string>
     <string name="crowdloan_learn">О краудлоуне %s</string>
     <string name="crowdloan_learn_bonuses">Узнайте о бонусах %s</string>
@@ -317,7 +320,7 @@
     <string name="crowdloan_placeholder">Здесь появятся активные краудлоуны</string>
     <string name="crowdloan_privacy_policy">Я подтверждаю, что прочитал и согласен с Условиями использования и Политикой конфиденциальности</string>
     <string name="crowdloan_raised">Собрано</string>
-    <string formatted="false" name="crowdloan_raised_amount">%s из %s</string>
+    <string name="crowdloan_raised_amount" formatted="false">%s из %s</string>
     <string name="crowdloan_referral_code_hint">Реферальный код</string>
     <string name="crowdloan_referral_code_invalid">Реферальный код недействителен. Пожалуйста, попробуйте другой.</string>
     <string name="crowdloan_terms_action">Соглашаюсь с Условиями использования</string>
@@ -325,9 +328,9 @@
     <string name="crowdloan_too_small_contribution_title">Сумма вклада слишком мала</string>
     <string name="crowdloan_unlock_hint">Ваши %s токены будут возвращены обратно после срока лизинга парачейна.</string>
 
-    <string formatted="false" name="crownloans_raised_format">Собрано: %s из %s</string>
+    <string name="crownloans_raised_format" formatted="false">Собрано: %s из %s</string>
 
-    <plurals name="days_format">
+    <plurals name="common_days_format">
         <item quantity="one">%d день</item>
         <item quantity="few">%d дня</item>
         <item quantity="many">%d дней</item>
@@ -460,7 +463,6 @@
 
     <string name="moonbean_ethereum_address">Адрес Moonbeam Ethereum</string>
 
-    <string name="network_fee">Комиссия сети</string>
     <string name="network_info_name">Имя ноды</string>
     <string name="network_info_title">Информация ноды</string>
     <string name="network_issue_action_add_account">Добавить Аккаунт</string>
@@ -657,6 +659,7 @@
     <string name="sanction_alert_title">This address has been flagged due to entity related to Russia.</string>
     <string name="sanction_warning_message">This address has been flagged due to entity related to Russia. We strongly recommend that you don\'t send DOT to this account.</string>
 
+    <string name="scam_additional_stub">Дополнительно</string>
     <string name="scam_alert_message_format">We strongly recommend that you don\'t send %s to this account.</string>
     <string name="scam_alert_title">This address has been flagged due to evidence of a scam.</string>
     <string name="scam_warning_message">This address has been flagged due to evidence of a scam. We strongly recommend that you don\'t send DOT to this account.</string>
@@ -792,12 +795,6 @@
     <string name="staking_information_controller_actions">Контроллер аккаунт может вывести из стейка, забрать, вернуть в стейк, сменить назначение вознаграждений и валидаторов.</string>
     <string name="staking_main_active_nominators_title">Активные номинаторы</string>
     <string name="staking_main_lockup_period_title">Время вывода</string>
-    <plurals name="staking_main_lockup_period_value">
-        <item quantity="one">%d день</item>
-        <item quantity="few">%d дня</item>
-        <item quantity="many">%d дней</item>
-        <item quantity="other">%d дней</item>
-    </plurals>
     <string name="staking_main_minimum_stake_title">Минимальный стейк</string>
     <string name="staking_main_network_title">Сеть %s</string>
     <string name="staking_main_stake_balance_staked">Застейкано</string>
@@ -820,7 +817,7 @@
     <string name="staking_nominator_status_waiting">Ожидание следующей Эры</string>
     <string name="staking_only_apr">APR</string>
     <string name="staking_only_apy">APY</string>
-    <string name="staking_payout">Выплаты</string>
+    <string name="common_payout">Выплаты</string>
     <string name="staking_payout_expired">Срок выплаты истёк</string>
     <plurals name="staking_payouts_days_left">
         <item quantity="one">%d день</item>

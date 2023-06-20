@@ -161,7 +161,6 @@
   <string name="common_not_enough_funds_title">残高不足です</string>
   <string name="common_ok">OK</string>
   <string name="common_options_title">オプションを選択</string>
-  <string name="common_payout">配当性向</string>
   <string name="common_privacy_policy">個人情報保護方針</string>
   <string name="common_proceed">続行</string>
   <string name="common_reset">リセット</string>
@@ -522,7 +521,7 @@
   <string name="staking_information_controller_actions">コントローラーは、ボンド解除、引き換え、再ボンド、リワード先とバリデーターの変更が可能です</string>
   <string name="staking_main_active_nominators_title">アクティブなノミネーター</string>
   <string name="staking_main_lockup_period_title">ステーキング解除期間</string>
-  <plurals name="staking_main_lockup_period_value">
+  <plurals name="common_days_format">
     <item quantity="other">%d日</item>
   </plurals>
   <string name="staking_main_minimum_stake_title">最少ステーク</string>

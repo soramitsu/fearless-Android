@@ -554,7 +554,7 @@ class SwapTokensViewModel @Inject constructor(
 
     override fun networkFeeTooltipClick() {
         _showTooltipEvent.value = Event(
-            resourceManager.getString(R.string.network_fee) to
+            resourceManager.getString(R.string.common_network_fee) to
                 resourceManager.getString(R.string.polkaswap_network_fee_info)
         )
     }

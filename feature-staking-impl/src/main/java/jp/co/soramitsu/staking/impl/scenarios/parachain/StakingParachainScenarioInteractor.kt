@@ -418,7 +418,7 @@ class StakingParachainScenarioInteractor(
             resourceManager.getQuantityString(R.plurals.common_hours_format, delayInHours, delayInHours)
         } else {
             val delayInDays = delayInHours / 24
-            resourceManager.getQuantityString(R.plurals.days_format, delayInDays, delayInDays)
+            resourceManager.getQuantityString(R.plurals.common_days_format, delayInDays, delayInDays)
         }
         val roundsPart = resourceManager.getQuantityString(R.plurals.rounds_format, bondLessDelayInRounds, bondLessDelayInRounds)
         val unbondDurationHint = resourceManager.getString(R.string.parachain_staking_unbonding_period_template, roundsPart, chain.name, timePart)

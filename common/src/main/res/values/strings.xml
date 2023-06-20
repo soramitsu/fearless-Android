@@ -61,7 +61,7 @@
 
     <string name="add_node_button_title">Add node</string>
 
-    <string name="additional">Additional</string>
+    <string name="scam_additional_stub">Additional</string>
 
     <string name="address_history_empty_message">No history found</string>
     <string name="address_not_valid_error_message">The address format is invalid.\nMake sure that address\nbelongs to the right network</string>
@@ -369,7 +369,7 @@
 
     <string formatted="false" name="crownloans_raised_format">Raised: %s of %s</string>
 
-    <plurals name="days_format">
+    <plurals name="common_days_format">
         <item quantity="one">%d day</item>
         <item quantity="other">%d days</item>
     </plurals>
@@ -886,10 +886,6 @@ to your account to avoid remaining stake.</string>
     <string name="staking_information_controller_actions">Controller can unbond, redeem, rebond, change reward destination and validators</string>
     <string name="staking_main_active_nominators_title">Active nominators</string>
     <string name="staking_main_lockup_period_title">Unstaking period</string>
-    <plurals name="staking_main_lockup_period_value">
-        <item quantity="one">%d day</item>
-        <item quantity="other">%d days</item>
-    </plurals>
     <string name="staking_main_minimum_stake_title">Minimum stake</string>
     <string name="staking_main_network_title">%s network</string>
     <string name="staking_main_stake_balance_staked">Staked</string>
@@ -912,7 +908,7 @@ to your account to avoid remaining stake.</string>
     <string name="staking_nominator_status_waiting">Waiting for the next Era</string>
     <string name="staking_only_apr">APR</string>
     <string name="staking_only_apy">APY</string>
-    <string name="staking_payout">Payout</string>
+    <string name="common_payout">Payout</string>
     <string name="staking_payout_expired">Payout expired</string>
     <plurals name="staking_payouts_days_left">
         <item quantity="one">%d day left</item>

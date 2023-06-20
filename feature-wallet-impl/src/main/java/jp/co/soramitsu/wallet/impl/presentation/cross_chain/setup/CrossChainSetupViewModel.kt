@@ -340,7 +340,7 @@ class CrossChainSetupViewModel @Inject constructor(
                 extras = listOf(
                     phishing.name?.let { resourceManager.getString(R.string.username_setup_choose_title) to it },
                     phishing.type.let { resourceManager.getString(R.string.reason) to it.capitalizedName },
-                    phishing.subtype?.let { resourceManager.getString(R.string.additional) to it }
+                    phishing.subtype?.let { resourceManager.getString(R.string.scam_additional_stub) to it }
                 ).mapNotNull { it },
                 isExpanded = isExpanded,
                 color = phishing.color

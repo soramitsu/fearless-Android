@@ -121,7 +121,7 @@ class StakingRelaychainScenarioViewModel(
 
             val lockupPeriod = if (networkInfo.lockupPeriodInHours > HOURS_IN_DAY) {
                 val inDays = networkInfo.lockupPeriodInHours / HOURS_IN_DAY
-                resourceManager.getQuantityString(R.plurals.staking_main_lockup_period_value, inDays, inDays)
+                resourceManager.getQuantityString(R.plurals.common_days_format, inDays, inDays)
             } else {
                 resourceManager.getQuantityString(R.plurals.common_hours_format, networkInfo.lockupPeriodInHours, networkInfo.lockupPeriodInHours)
             }
