@@ -226,10 +226,9 @@ class CrossChainSetupViewModel @Inject constructor(
         hasDestinationFeeAmountFlow.value = false
         val destinationChainId = _destinationChainId ?: return@combine null
         val tokenConfiguration = _asset?.token?.configuration ?: return@combine null
-
         val fee = xcmInteractor.getDestinationFee(
             destinationChainId = destinationChainId,
-            tokenSymbol = tokenConfiguration.symbol
+            tokenConfiguration = tokenConfiguration
         )
         fee
     }
