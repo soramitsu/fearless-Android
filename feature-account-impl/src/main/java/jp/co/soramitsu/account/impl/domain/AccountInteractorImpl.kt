@@ -73,8 +73,8 @@ class AccountInteractorImpl(
     }
 
     override suspend fun importFromMnemonic(
-        keyString: String,
-        username: String,
+        mnemonic: String,
+        walletName: String,
         substrateDerivationPath: String,
         ethereumDerivationPath: String,
         selectedEncryptionType: CryptoType,
@@ -82,8 +82,8 @@ class AccountInteractorImpl(
     ): Result<Unit> {
         return runCatching {
             accountRepository.importFromMnemonic(
-                keyString,
-                username,
+                mnemonic,
+                walletName,
                 substrateDerivationPath,
                 ethereumDerivationPath,
                 selectedEncryptionType,

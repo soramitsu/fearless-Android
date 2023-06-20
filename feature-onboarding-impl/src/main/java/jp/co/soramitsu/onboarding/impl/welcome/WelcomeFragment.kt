@@ -5,7 +5,6 @@ import android.graphics.Color
 import android.os.Bundle
 import android.text.method.LinkMovementMethod
 import android.view.View
-import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.os.bundleOf
 import androidx.fragment.app.viewModels
@@ -42,9 +41,7 @@ class WelcomeFragment : BaseFragment<WelcomeViewModel>(R.layout.fragment_welcome
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
         if (result.resultCode != Activity.RESULT_OK) {
-            Toast.makeText(context, "Google signin failed", Toast.LENGTH_SHORT).show()
-        } else {
-            Toast.makeText(context, "Google signin success", Toast.LENGTH_SHORT).show()
+            viewModel.onGoogleLoginError()
         }
     }
 
@@ -80,10 +77,7 @@ class WelcomeFragment : BaseFragment<WelcomeViewModel>(R.layout.fragment_welcome
     }
 
     private fun handleAuthorizeGoogleEvent() {
-        viewModel.authorizeGoogle(
-            activity = requireActivity(),
-            launcher = launcher
-        )
+        viewModel.authorizeGoogle(launcher = launcher)
     }
 
     private fun configureTermsAndPrivacy(sourceText: String, terms: String, privacy: String) {

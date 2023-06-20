@@ -59,10 +59,14 @@ android {
         debug {
             buildConfigField "String", "X1_ENDPOINT_URL", readSecretInQuotes("X1_ENDPOINT_URL_DEBUG")
             buildConfigField "String", "X1_WIDGET_ID", readSecretInQuotes("X1_WIDGET_ID_DEBUG")
+
+            buildConfigField "String", "WEB_CLIENT_ID", readSecretInQuotes("WEB_CLIENT_ID_DEBUG")
         }
         release {
             buildConfigField "String", "X1_ENDPOINT_URL", readSecretInQuotes("X1_ENDPOINT_URL_RELEASE")
             buildConfigField "String", "X1_WIDGET_ID", readSecretInQuotes("X1_WIDGET_ID_RELEASE")
+
+            buildConfigField "String", "WEB_CLIENT_ID", readSecretInQuotes("WEB_CLIENT_ID_RELEASE")
         }
     }
 

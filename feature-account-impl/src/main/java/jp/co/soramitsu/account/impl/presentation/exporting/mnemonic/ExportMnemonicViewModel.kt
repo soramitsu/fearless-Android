@@ -8,7 +8,7 @@ import jp.co.soramitsu.account.api.presentation.exporting.ExportSource
 import jp.co.soramitsu.account.impl.presentation.AccountRouter
 import jp.co.soramitsu.account.impl.presentation.exporting.ExportViewModel
 import jp.co.soramitsu.account.impl.presentation.exporting.mnemonic.ExportMnemonicFragment.Companion.PAYLOAD_KEY
-import jp.co.soramitsu.account.impl.presentation.view.mnemonic.mapMnemonicToMnemonicWords
+import jp.co.soramitsu.common.compose.component.mapMnemonicToMnemonicWords
 import jp.co.soramitsu.common.data.secrets.v2.ChainAccountSecrets
 import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
 import jp.co.soramitsu.common.resources.ResourceManager

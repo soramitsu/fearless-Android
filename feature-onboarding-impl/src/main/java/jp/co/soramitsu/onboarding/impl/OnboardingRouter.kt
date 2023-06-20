@@ -2,11 +2,13 @@ package jp.co.soramitsu.onboarding.impl
 
 import jp.co.soramitsu.account.api.domain.model.ImportMode
 import jp.co.soramitsu.account.api.presentation.account.create.ChainAccountCreatePayload
+import jp.co.soramitsu.account.api.presentation.create_backup_password.CreateBackupPasswordPayload
 import kotlinx.coroutines.flow.Flow
 
 interface OnboardingRouter {
 
     fun openCreateAccountFromOnboarding()
+
     fun openCreateAccountSkipWelcome(payload: ChainAccountCreatePayload)
 
     fun backToWelcomeScreen()
@@ -15,11 +17,16 @@ interface OnboardingRouter {
 
     fun openImportAccountSkipWelcome(payload: ChainAccountCreatePayload)
 
+    fun openCreateWalletDialog()
+
     fun openImportRemoteWalletDialog()
 
-    fun openCreateBackupPasswordDialog()
+    fun openCreateBackupPasswordDialog(payload: CreateBackupPasswordPayload)
 
-    fun openMnemonicAgreementsDialog()
+    fun openMnemonicAgreementsDialog(
+        isFromGoogleBackup: Boolean,
+        accountName: String
+    )
 
     fun back()
 

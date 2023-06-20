@@ -1,5 +1,6 @@
 package jp.co.soramitsu.account.impl.presentation.mnemonic_agreements
 
+import android.os.Bundle
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -24,6 +25,18 @@ class MnemonicAgreementsDialog : BaseComposeBottomSheetDialogFragment<MnemonicAg
     }
 
     companion object {
-        fun getBundle() = bundleOf()
+
+        const val IS_FROM_GOOGLE_BACKUP_KEY = "IS_FROM_GOOGLE_BACKUP_KEY"
+        const val WALLET_NAME_KEY = "ACCOUNT_NAME_KEY"
+
+        fun getBundle(
+            isFromGoogleBackupKey: Boolean,
+            accountName: String
+        ): Bundle {
+            return bundleOf(
+                IS_FROM_GOOGLE_BACKUP_KEY to isFromGoogleBackupKey,
+                WALLET_NAME_KEY to accountName
+            )
+        }
     }
 }

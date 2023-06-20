@@ -34,9 +34,7 @@ class OptionsWalletFragment : BaseComposeBottomSheetDialogFragment<OptionsWallet
         val state by viewModel.state.collectAsState()
         OptionsWalletContent(
             state = state,
-            exportWallet = viewModel::exportWallet,
-            deleteWallet = viewModel::deleteWallet,
-            openWalletDetails = viewModel::openWalletDetails
+            callback = viewModel
         )
     }
 

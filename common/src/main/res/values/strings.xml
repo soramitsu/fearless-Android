@@ -895,6 +895,7 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="common_add_new_wallet">Add New Wallet</string>
     <string name="common_import_wallet">Import Wallet</string>
     <string name="common_details_wallet">Wallet Details</string>
+    <string name="common_backup_wallet">Backup wallet</string>
     <string name="common_export_wallet">Export Wallet</string>
     <string name="common_delete_wallet">Delete Wallet</string>
     <string name="common_search_assets_alert_title">Sumimasen!</string>
@@ -1122,5 +1123,22 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="select_another_network_description">The address doesn\'t match the destination network. You should select another network</string>
     <string name="select_network_template">Select %s network</string>
     <string name="input_address_unrecognised">Input doesn\'t match known network\'s address</string>
+
+    <string name="btn_backup_with_google">Backup with Google</string>
+
+    <string name="create_account_title">Name your new wallet</string>
+    <string name="create_account_description">Make a name for your new wallet, so you can easily indentify it. This is optional and will be visible only for you</string>
+    <string name="create_account_edit_text_visibility">Visible only for you and stored locally</string>
+
+    <string name="backup_mnemonic_title">Write down your mnemonic</string>
+    <string name="backup_mnemonic_description">Remember to record your words in the same order as they appear below. Use a non-digital way to backup.</string>
+    
+    <string name="backup_wallet_show_mnemonic_phrase">Show mnemonic phrase</string>
+    <string name="backup_wallet_show_raw_seed">Show Raw Seed</string>
+    <string name="backup_wallet_export_json">Export JSON</string>
+    <string name="backup_wallet_delete_google_backup">Delete Google backup</string>
+    <string name="backup_wallet_backup_to_google">Backup to Google</string>
+    <string name="backup_wallet_delete_wallet">Delete wallet</string>
+    <string name="backup_wallet_warning_about_lose_phrase">If you loose access to this device, your funds will be lost, unless you back up!</string>
 
 </resources>
