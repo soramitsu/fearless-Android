@@ -1,14 +1,17 @@
 package jp.co.soramitsu.staking.impl.presentation.validators.change.custom.search
 
+import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.util.Locale
+import javax.inject.Inject
+import javax.inject.Named
 import jp.co.soramitsu.common.address.AddressIconGenerator.Companion.SIZE_MEDIUM
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.presentation.map
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.inBackground
-import jp.co.soramitsu.common.utils.invoke
-import jp.co.soramitsu.common.utils.withLoadingSingle
+import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.shared_utils.extensions.fromHex
 import jp.co.soramitsu.shared_utils.extensions.requireHexPrefix
@@ -23,14 +26,14 @@ import jp.co.soramitsu.staking.impl.presentation.validators.parcel.CollatorDetai
 import jp.co.soramitsu.staking.impl.presentation.validators.parcel.CollatorStakeParcelModel
 import jp.co.soramitsu.staking.impl.presentation.validators.parcel.IdentityParcelModel
 import jp.co.soramitsu.wallet.impl.domain.TokenUseCase
-import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import javax.inject.Inject
-import javax.inject.Named
 
 sealed class SearchBlockProducersState {
     object NoInput : SearchBlockProducersState()
@@ -55,52 +58,51 @@ class SearchCustomValidatorsViewModel @Inject constructor(
         .filterIsInstance<SetupStakingProcess.ReadyToSubmit<*>>()
         .share()
 
+    private val stakingType = tokenUseCase.currentTokenFlow().map {
+        it.configuration.staking
+    }
+
     private val selectedBlockProducers = confirmSetupState
         .map { it.payload.blockProducers.map { producer -> producer.address }.toSet() }
-        .inBackground()
-        .share()
-
-    private val currentTokenFlow = tokenUseCase.currentTokenFlow()
-        .share()
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptySet())
 
     val enteredQuery = MutableStateFlow("")
 
-    private val allBlockProducers by lazy {
-        async { searchCustomBlockProducerInteractor.getBlockProducers(router.currentStackEntryLifecycle).toSet() }
-    }
+    private val allBlockProducers = selectedBlockProducers.map { selected ->
+        val validators = searchCustomBlockProducerInteractor.getBlockProducers(router.currentStackEntryLifecycle)
+        val type = stakingType.first()
+        val models = validators.toSet().map { blockProducer ->
+            blockProducer.toModel(blockProducer.address in selected, type)
+        }
+        LoadingState.Loaded(models)
+    }.inBackground().stateIn(viewModelScope, SharingStarted.Eagerly, LoadingState.Loading())
 
-    private val foundBlockProducersState = enteredQuery
-        .withLoadingSingle { query ->
+    private val filteredBlockProducers = combine(enteredQuery, allBlockProducers) { query, blockProducersState ->
+        blockProducersState.map { blockProducers ->
             if (query.isNotEmpty()) {
-                searchCustomBlockProducerInteractor.searchBlockProducer(
-                    query,
-                    allBlockProducers.invoke()
-                )
+                val queryLower = query.lowercase(Locale.getDefault())
+
+                val searchResults = blockProducers.asSequence().filter {
+                    val foundInIdentity = it.name.lowercase(Locale.getDefault()).contains(queryLower)
+                    it.address.startsWith(query) || foundInIdentity
+                }.toList()
+
+                searchResults.ifEmpty {
+                    searchCustomBlockProducerInteractor.getBlockProducerByAddress(queryLower)?.let {
+                        listOf(it.toModel(it.address in selectedBlockProducers.value, stakingType.first()))
+                    } ?: emptyList()
+                }
             } else {
                 null
             }
         }
-        .inBackground()
-        .share()
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, LoadingState.Loading())
 
-    private val selectedBlockProducersModelsState = combine(
-        selectedBlockProducers,
-        foundBlockProducersState
-    ) { selectedBlockProducers, foundBlockProducersState ->
-        foundBlockProducersState.map { blockProducers ->
-            blockProducers?.map { blockProducer ->
-                blockProducer.toModel(blockProducer.address in selectedBlockProducers)
-            }
-        }
-    }
-        .inBackground()
-        .share()
-
-    val screenState = selectedBlockProducersModelsState.map { blockProducersState ->
+    val screenState = filteredBlockProducers.map { blockProducersState ->
         when {
             blockProducersState is LoadingState.Loading -> SearchBlockProducersState.Loading
             blockProducersState is LoadingState.Loaded && blockProducersState.data == null -> SearchBlockProducersState.NoInput
-
+            blockProducersState is LoadingState.Loaded && blockProducersState.data?.isEmpty() == true -> SearchBlockProducersState.NoResults
             blockProducersState is LoadingState.Loaded && blockProducersState.data.isNullOrEmpty().not() -> {
                 val blockProducers = blockProducersState.data!!
 
@@ -110,9 +112,9 @@ class SearchCustomValidatorsViewModel @Inject constructor(
                 )
             }
 
-            else -> SearchBlockProducersState.NoResults
+            else -> SearchBlockProducersState.NoInput
         }
-    }.share()
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, SearchBlockProducersState.NoResults)
 
     fun blockProducerClicked(validatorModel: SearchBlockProducerModel) {
         launch {
@@ -172,8 +174,9 @@ class SearchCustomValidatorsViewModel @Inject constructor(
     }
 
     private suspend fun SearchCustomBlockProducerInteractor.BlockProducer.toModel(
-        selected: Boolean
+        selected: Boolean,
+        type: Asset.StakingType
     ): SearchBlockProducerModel {
-        return SearchBlockProducerModel(name, address, selected, rewardsPercent, searchCustomBlockProducerInteractor.getIcon(address, SIZE_MEDIUM))
+        return SearchBlockProducerModel(name, address, selected, rewardsPercent, searchCustomBlockProducerInteractor.getIcon(address, SIZE_MEDIUM, type))
     }
 }

@@ -1,8 +1,8 @@
 package jp.co.soramitsu.staking.impl.domain.validators.current.search
 
-import android.annotation.SuppressLint
 import android.graphics.drawable.PictureDrawable
 import androidx.lifecycle.Lifecycle
+import java.math.BigDecimal
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressIcon
 import jp.co.soramitsu.common.address.createEthereumAddressIcon
@@ -23,11 +23,7 @@ import jp.co.soramitsu.staking.impl.presentation.common.SetupStakingProcess
 import jp.co.soramitsu.staking.impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.staking.impl.presentation.validators.change.setCustomCollators
 import jp.co.soramitsu.staking.impl.presentation.validators.change.setCustomValidators
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.withContext
-import java.math.BigDecimal
-import java.util.Locale
 
 private const val ELECTED_COLLATORS_CACHE = "ELECTED_COLLATORS_CACHE"
 private const val ELECTED_VALIDATORS_CACHE = "ELECTED_VALIDATORS_CACHE"
@@ -61,6 +57,7 @@ class SearchCustomBlockProducerInteractor(
                     )
                 }
             }
+
             Asset.StakingType.PARACHAIN -> {
                 getCollators(lifecycle).map { (_, collator) ->
                     BlockProducer(
@@ -73,53 +70,34 @@ class SearchCustomBlockProducerInteractor(
         }
     }
 
-    @SuppressLint("DefaultLocale")
-    suspend fun searchBlockProducer(query: String, localValidators: Collection<BlockProducer>): List<BlockProducer> = withContext(Dispatchers.Default) {
-        val queryLower = query.lowercase(Locale.getDefault())
-
-        val searchInLocal = localValidators.filter {
-            val foundInIdentity = it.name.lowercase(Locale.getDefault()).contains(queryLower)
-            it.address.startsWith(query) || foundInIdentity
-        }
-
-        if (searchInLocal.isNotEmpty()) {
-            return@withContext searchInLocal
-        }
-
+    suspend fun getBlockProducerByAddress(query: String): BlockProducer? {
         val (chain, asset) = sharedState.assetWithChain.first()
-
-        if (chain.isValidAddress(query)) {
+        return if (chain.isValidAddress(query)) {
             when (asset.staking) {
                 Asset.StakingType.UNSUPPORTED -> error("Wrong staking type")
                 Asset.StakingType.RELAYCHAIN -> {
                     val validator = validatorProvider.getValidatorWithoutElectedInfo(chain, query)
-                    if (validator.prefs != null) {
-                        listOf(
-                            BlockProducer(
-                                validator.identity?.display ?: validator.address,
-                                validator.address,
-                                (validator.electedInfo?.apy ?: BigDecimal.ZERO).fractionToPercentage().formatAsPercentage()
-                            )
+                    validator.prefs?.let {
+                        BlockProducer(
+                            validator.identity?.display ?: validator.address,
+                            validator.address,
+                            (validator.electedInfo?.apy ?: BigDecimal.ZERO).fractionToPercentage().formatAsPercentage()
                         )
-                    } else {
-                        emptyList()
                     }
                 }
                 Asset.StakingType.PARACHAIN -> {
                     val collator = collatorProvider.getCollators(chain)[query.requireHexPrefix()]
                     collator?.let {
-                        listOf(
-                            BlockProducer(
-                                it.identity?.display ?: it.address,
-                                it.address,
-                                (it.apy ?: BigDecimal.ZERO).formatAsPercentage()
-                            )
+                        BlockProducer(
+                            it.identity?.display ?: it.address,
+                            it.address,
+                            (it.apy ?: BigDecimal.ZERO).formatAsPercentage()
                         )
-                    } ?: emptyList()
+                    }
                 }
             }
         } else {
-            emptyList()
+            null
         }
     }
 
@@ -136,6 +114,7 @@ class SearchCustomBlockProducerInteractor(
                 setupStakingProcess.setCustomValidators(selectedValidators.toList())
                 return Result.success(Unit)
             }
+
             Asset.StakingType.PARACHAIN -> {
                 val collators = getCollators(lifecycle)
                 val selectedCollators = collators[address]?.let { listOf(it) } ?: emptyList()
@@ -159,6 +138,7 @@ class SearchCustomBlockProducerInteractor(
                 val validator = validators.find { it.address == address } ?: error("cannot find validator")
                 openValidatorInfo(validator)
             }
+
             Asset.StakingType.PARACHAIN -> {
                 val collators = getCollators(lifecycle)
                 val collator = collators[address] ?: error("cannot find collator")
@@ -167,13 +147,13 @@ class SearchCustomBlockProducerInteractor(
         }
     }
 
-    suspend fun getIcon(address: String, sizeInDp: Int): PictureDrawable {
-        val asset = sharedState.assetWithChain.first().asset
-        return when (asset.staking) {
+    suspend fun getIcon(address: String, sizeInDp: Int, type: Asset.StakingType): PictureDrawable {
+        return when (type) {
             Asset.StakingType.UNSUPPORTED -> error("Wrong staking type")
             Asset.StakingType.RELAYCHAIN -> {
                 addressIconGenerator.createAddressIcon(address, sizeInDp)
             }
+
             Asset.StakingType.PARACHAIN -> {
                 addressIconGenerator.createEthereumAddressIcon(address.requireHexPrefix(), sizeInDp)
             }

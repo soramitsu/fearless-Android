@@ -65,7 +65,6 @@ import jp.co.soramitsu.staking.impl.domain.validators.CollatorProvider
 import jp.co.soramitsu.staking.impl.domain.validators.ValidatorProvider
 import jp.co.soramitsu.staking.impl.domain.validators.current.CurrentValidatorsInteractor
 import jp.co.soramitsu.staking.impl.domain.validators.current.search.SearchCustomBlockProducerInteractor
-import jp.co.soramitsu.staking.impl.domain.validators.current.search.SearchCustomValidatorsInteractor
 import jp.co.soramitsu.staking.impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSharedStateProvider
 import jp.co.soramitsu.staking.impl.presentation.common.rewardDestination.RewardDestinationMixin
@@ -500,13 +499,6 @@ class StakingFeatureModule {
     fun provideChangeRewardDestinationInteractor(
         extrinsicService: ExtrinsicService
     ) = ChangeRewardDestinationInteractor(extrinsicService)
-
-    @Provides
-    @Singleton
-    fun provideSearchCustomValidatorsInteractor(
-        validatorProvider: ValidatorProvider,
-        sharedState: StakingSharedState
-    ) = SearchCustomValidatorsInteractor(validatorProvider, sharedState)
 
     @Provides
     @Singleton
