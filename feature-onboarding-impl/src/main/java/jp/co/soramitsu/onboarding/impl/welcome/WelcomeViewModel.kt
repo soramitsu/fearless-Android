@@ -33,7 +33,7 @@ class WelcomeViewModel @Inject constructor(
     private val appLinksProvider: AppLinksProvider,
     private val savedStateHandle: SavedStateHandle,
     private val backupService: BackupService,
-    private val context: Context
+    private val applicationContext: Context
 ) : BaseViewModel(), Browserable {
 
     private val payload = savedStateHandle.get<WelcomeFragmentPayload>(KEY_PAYLOAD)!!
@@ -88,7 +88,7 @@ class WelcomeViewModel @Inject constructor(
     fun authorizeGoogle(launcher: ActivityResultLauncher<Intent>) {
         viewModelScope.launch {
             val isAuthorized = backupService.authorize(
-                context = context,
+                context = applicationContext,
                 launcher = launcher
             )
             if (isAuthorized) {
@@ -106,7 +106,7 @@ class WelcomeViewModel @Inject constructor(
     }
 
     private suspend fun openAddWalletThroughGoogleScreen() {
-        if (backupService.getBackupAccounts(context).isEmpty()) {
+        if (backupService.getBackupAccounts(applicationContext).isEmpty()) {
             router.openCreateWalletDialog()
         } else {
             router.openImportRemoteWalletDialog()
