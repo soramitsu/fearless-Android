@@ -47,7 +47,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="start"
-        tools:text="@string/search_results_header"
+        tools:text="@string/common_search_results_number"
         android:textAllCaps="true"
         android:textColor="@color/gray1" />
 

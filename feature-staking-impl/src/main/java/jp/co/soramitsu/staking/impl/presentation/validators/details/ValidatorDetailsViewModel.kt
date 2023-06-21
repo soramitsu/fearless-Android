@@ -114,7 +114,7 @@ class ValidatorDetailsViewModel @Inject constructor(
             resourceManager.getString(R.string.staking_validator_nominators),
             nominatorsStakeFormatted,
             nominatorsStakeFiatFormatted,
-            resourceManager.getString(R.string.wallet_send_total_title),
+            resourceManager.getString(R.string.common_total),
             totalStakeFormatted,
             totalStakeFiatFormatted
         )

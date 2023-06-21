@@ -33,9 +33,7 @@
     <string name="account_error_try_another_one">Пожалуйста, попробуйте другой.</string>
     <string name="account_export">Экспорт аккаунта</string>
     <string name="account_export_action">Экспортировать</string>
-    <string name="account_export_ethereum_action">Экспорт ethereum</string>
     <string name="account_export_password_change">Сменить пароль</string>
-    <string name="account_export_substrate_action">Экспорт substrate</string>
     <string name="account_export_warning_message">Передача или копирование вашего секрета - операция с высоким риском, не отправляйте ее никому. Хотите продолжить процесс обмена / копирования?</string>
     <string name="account_export_warning_title">Будьте осторожны</string>
     <string name="account_import_ethereum_raw_seed_placeholder">Бинарный сид для эфир аккаунтов (64 шестнадцатиричных символа)</string>
@@ -266,7 +264,6 @@
     <string name="common_unknown">Неизвестно</string>
     <string name="common_unsupported">Не поддерживается</string>
     <string name="common_update">Обновить</string>
-    <string name="common_update_needed">Требуется обновление</string>
     <string name="common_use">Использовать</string>
     <string name="common_warning">Предупреждение</string>
     <string name="common_watch">Смотреть</string>
@@ -673,7 +670,7 @@
     <string name="scam_additional_stub">Дополнительно</string>
     <string name="scam_alert_message_format">We strongly recommend that you don\'t send %s to this account.</string>
     <string name="scam_alert_title">This address has been flagged due to evidence of a scam.</string>
-    <string name="scam_warning_message">This address has been flagged due to evidence of a scam. We strongly recommend that you don\'t send DOT to this account.</string>
+    <string name="scam_warning_message">Этот адрес был помечен в связи с доказательствами мошенничества. Мы настоятельно рекомендуем вам не отправлять %s на этот аккаунт.</string>
 
     <string name="scan_qr_subtitle">Поднесите QR код получателя</string>
     <string name="scan_qr_title">Сканирование QR</string>
@@ -892,7 +889,6 @@
     <string name="staking_select_custom">Выбрать самому</string>
     <string name="staking_select_recommended">Выбрать рекомендованных</string>
     <string name="staking_selected_accounts_mask">Аккаунты ( %d )</string>
-    <string formatted="false" name="staking_selected_validators_count_v1.9.1">выбрано %d (макс. %d)</string>
     <string formatted="false" name="staking_selected_validators_format">Выбрано %d (макс. %d)</string>
     <string name="staking_selected_validators_mask">Валидаторы (%d)</string>
     <string name="staking_set_separate_account_controller">Установите отдельный аккаунт как контроллер, чтобы увеличить безопасность управления стейкингом.</string>
@@ -938,7 +934,6 @@
     <string name="staking_suggested_collators_title">Рекомендованные коллаторы</string>
     <string name="staking_suggested_validators_title">Рекомендованные валидаторы</string>
     <string name="staking_switch_account_to_stash">Для установки контроллер аккаунта смените аккаунт на стэш.</string>
-    <string name="staking_title">Стейкинг</string>
     <string name="staking_total_rewards">Все вознаграждения</string>
     <string name="staking_total_rewards_v1.9.0">Заработано</string>
     <string name="staking_total_staked">Всего застейкано</string>
@@ -951,7 +946,7 @@
     <string name="staking_unbonding_hint">Ваши токены будут доступны после истечения периода вывода со стейкинга.</string>
     <string name="staking_unbonding_limit_reached_message">Вы достигли лимита запросов на вывод из стейка (%d активных запросов).</string>
     <string name="staking_unbonding_limit_reached_title">Достигнут лимит запросов на вывод из стейка</string>
-    <string name="staking_unbonding_period_v1_9_0">Время вывода</string>
+    <string name="staking_unstaking_period">Время вывода</string>
     <string name="staking_unbondings_placeholder">Операции по выводу из стейка появятся здесь</string>
     <string name="staking_validator_apy_percent">Примерное вознаграждение (% APY)</string>
     <string name="staking_validator_estimated_reward">Примерное вознаграждение</string>
@@ -1000,7 +995,6 @@
     <string name="substrate_secret_derivation_path">Путь деривации секрета substrate</string>
 
     <string name="success_message">Вы можете вернуться к вашему приложению</string>
-    <string name="success_title">Все готово</string>
 
     <string name="support_and_feedback">Поддержка и Обратная связь</string>
 
@@ -1040,9 +1034,6 @@
 транзакции будут отображаться здесь</string>
     <string name="transfers_v1">История</string>
 
-    <string name="unsupported_app_version_alert_message">Данная версия приложения больше не поддерживается. Пожалуйста, обновите.</string>
-    <string name="unsupported_chain_alert_message">Эта сеть не поддерживается в текущей версии приложения. Пожалуйста, обновите приложение до последней версии.</string>
-
     <string name="update_needed_text">Требуется обновление</string>
 
     <string name="username_setup_choose_title">Имя</string>
@@ -1081,7 +1072,6 @@
     <string name="wallet_filters_rewards_and_slashes">Вознаграждения и слэши</string>
     <string name="wallet_filters_title">Фильтры</string>
     <string name="wallet_filters_transfers">Переводы</string>
-    <string name="wallet_info_title">Кошелёк</string>
     <string name="wallet_manage_assets">Управление активами</string>
     <string name="wallet_receive_description">Покажите этот QR-код отправителю</string>
     <string name="wallet_receive_navigation_title">Получить %s</string>
@@ -1096,7 +1086,7 @@
     <string name="wallet_send_existential_warning_title">Перевод сделает аккаунт неактивным</string>
     <string name="wallet_send_navigation_title">Перевести %s</string>
     <string name="wallet_send_progress">Отправка…</string>
-    <string name="wallet_send_total_title">Всего</string>
+    <string name="common_total">Всего</string>
     <string name="wallet_send_transferable_amount_caption">Доступны к отправке: %s</string>
     <string name="wallet_settings">Настройки кошелька</string>
     <string name="wallet_title_stash_details">Детали слеша</string>

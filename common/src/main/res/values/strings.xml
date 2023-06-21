@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <resources>
     <string name="ECDSA_crypto_type">ECDSA | BTC/ETH compatible</string>
 
@@ -42,7 +42,7 @@
     <string name="account_import_json_no_network">JSON contains no network information. Please specify it below.</string>
     <string name="account_import_password_placeholder">Password</string>
     <string name="account_import_substrate_raw_seed_placeholder">Substrate accounts raw seed (64 hex symbols)</string>
-    <string name="account_import_wrong_network" formatted="false">Network in JSON is %s, does not match selected %s. The latter will be used to import an account.</string>
+    <string formatted="false" name="account_import_wrong_network">Network in JSON is %s, does not match selected %s. The latter will be used to import an account.</string>
     <string name="account_info_title">Account</string>
     <string name="account_needed_message">You don’t have account for this network, you can create or import account.</string>
     <string name="account_needed_title">Account needed</string>
@@ -290,7 +290,6 @@
     <string name="common_unknown">Unknown</string>
     <string name="common_unsupported">Unsupported</string>
     <string name="common_update">Update</string>
-    <string name="common_update_needed">Update Needed</string>
     <string name="common_use">Use</string>
     <string name="common_warning">Warning</string>
     <string name="common_watch">Watch</string>
@@ -375,6 +374,8 @@
 
     <string formatted="false" name="crownloans_raised_format">Raised: %s of %s</string>
 
+    <string name="custom_collators_title">Stake with known collators</string>
+
     <string name="default_account_shared_secret">Default accounts with a shared secret</string>
 
     <string name="delete_custom_node_title">Delete custom node?</string>
@@ -411,10 +412,10 @@
     <string name="export_json_password_explanation">Password is required to encrypt your account and store as Restore JSON. Please, create password to continue operation.</string>
     <string name="export_json_password_match_error">Password do not match</string>
     <string name="export_json_password_new">Set password</string>
-    <string name="export_mnemonic_with_derivation" formatted="false">Network: %s\nMnemonic: %s\nDerivation path: %s</string>
-    <string name="export_mnemonic_without_derivation" formatted="false">Network: %s\nMnemonic: %s</string>
-    <string name="export_seed_with_derivation" formatted="false">Network: %s\nSeed: %s\nDerivation path: %s</string>
-    <string name="export_seed_without_derivation" formatted="false">Network: %s\nSeed: %s</string>
+    <string formatted="false" name="export_mnemonic_with_derivation">Network: %s\nMnemonic: %s\nDerivation path: %s</string>
+    <string formatted="false" name="export_mnemonic_without_derivation">Network: %s\nMnemonic: %s</string>
+    <string formatted="false" name="export_seed_with_derivation">Network: %s\nSeed: %s\nDerivation path: %s</string>
+    <string formatted="false" name="export_seed_without_derivation">Network: %s\nSeed: %s</string>
     <string name="export_substrate_title">Export Substrate</string>
     <string name="export_wallet">Export wallet</string>
 
@@ -724,7 +725,7 @@ Terms and Conditions and Privacy Policy</string>
     <string name="scam_additional_stub">Additional</string>
     <string name="scam_alert_message_format">We strongly recommend that you don\'t send %s to this account.</string>
     <string name="scam_alert_title">This address has been flagged due to evidence of a scam.</string>
-    <string name="scam_warning_message">This address has been flagged due to evidence of a scam. We strongly recommend that you don\'t send DOT to this account.</string>
+    <string name="scam_warning_message">This address has been flagged due to evidence of a scam. We strongly recommend that you don\'t send %s to this account.</string>
 
     <string name="scan_qr_subtitle">Scan code from receiver</string>
     <string name="scan_qr_title">Scan QR</string>
@@ -734,11 +735,8 @@ Terms and Conditions and Privacy Policy</string>
     <string name="search_header_my_accounts">my accounts</string>
     <string name="search_recipient_hint">Account address or account name</string>
     <string name="search_recipient_no_results">No search results</string>
-    <string name="search_result_header">Search results</string>
-    <string name="search_results_header">Search results: %d</string>
 
     <string name="select_another_network_description">The address doesn\'t match the destination network. You should select another network</string>
-    <string name="select_collator_having_identity">Having onchain identity</string>
     <string name="select_collator_having_relevant_minimum_bond">Having relevant minimum bond</string>
     <string name="select_collators_warning">DISCLAIMER: Algorithmic сollator suggestions do not constitute financial consultation or advice. Staking is a high-risk activity, and algorithmic сollator suggestions do not necessarily mitigate this risk. A сollator suggested by the algorithm could still leave the pool of candidates. A сollator suggested by the algorithm could also change their parameters (e.g.,commission rates, etc.) at any time after having been suggested and/or selected. You could lose rewards for these or other reasons. Only stake tokens and use сollator suggestions at your own discretion, after conducting due diligence and carefully considering the risks involved.</string>
     <string name="select_import_mode_btn_google" translatable="false">Google</string>
@@ -819,7 +817,6 @@ Terms and Conditions and Privacy Policy</string>
     <string name="staking_bond_more_v1_9_0">Stake more</string>
     <string name="staking_bonded_format">Bonded: %s</string>
     <string name="staking_bonded_inactive">You are neither nominating nor validating</string>
-    <string name="staking_collator_delegations">Delegations</string>
     <string name="staking_collator_effective_amount_bonded">Effective amount bonded</string>
     <string name="staking_collator_info">Collator info</string>
     <string name="staking_collator_min_bond">Min. bond</string>
@@ -957,8 +954,6 @@ to your account to avoid remaining stake.</string>
     <string name="staking_select_recommended">Select recommended</string>
     <string name="staking_select_suggested">Select suggested</string>
     <string name="staking_selected_accounts_mask">Accounts(%d)</string>
-    <string formatted="false" name="staking_selected_validators_count_v1.9.1">selected %d (max %d)</string>
-    <string formatted="false" name="staking_selected_validators_format">Validators: %d of %d</string>
     <string name="staking_selected_validators_mask">Validators (%d)</string>
     <string name="staking_set_separate_account_controller">Set a separate account as a controller to increase staking management security.</string>
     <string name="staking_set_validators_message">Validators are not selected</string>
@@ -979,7 +974,6 @@ to your account to avoid remaining stake.</string>
     <string name="staking_slash">Slash</string>
     <string name="staking_stake">Stake</string>
     <string name="staking_start_change_collators_custom_subtitle">You should trust your collators to act competently and honest; basing your decision purely on their current profitability could lead to reduced profits or even loss of funds.</string>
-    <string name="staking_start_change_collators_custom_title">Stake with known collators</string>
     <string name="staking_start_change_collators_suggested_subtitle">FEARLESS algorithm has made a list of suggested collators based on the following criteria:</string>
     <string name="staking_start_change_collators_suggested_title">Stake with collators suggested by the algorithm</string>
     <string name="staking_start_change_validators_custom_subtitle">You should trust your nominations to act competently and honest, basing your decision purely on their current profitability could lead to reduced profits or even loss of funds.</string>
@@ -1006,7 +1000,6 @@ to your account to avoid remaining stake.</string>
     <string name="staking_suggested_collators_title">Suggested collators</string>
     <string name="staking_suggested_validators_title">Suggested validators</string>
     <string name="staking_switch_account_to_stash">Switch your account to stash to set the controller.</string>
-    <string name="staking_title">Staking</string>
     <string name="staking_total_rewards">Total rewards</string>
     <string name="staking_total_rewards_v1.9.0">Rewarded</string>
     <string name="staking_total_staked">Total staked</string>
@@ -1019,7 +1012,7 @@ to your account to avoid remaining stake.</string>
     <string name="staking_unbonding_hint">Your tokens will be available to redeem after the unstaking period.</string>
     <string name="staking_unbonding_limit_reached_message">You have reached the unstaking requests limit (%d active requests).</string>
     <string name="staking_unbonding_limit_reached_title">Unstaking requests limit reached</string>
-    <string name="staking_unbonding_period_v1_9_0">Unstaking period</string>
+    <string name="staking_unstaking_period">Unstaking period</string>
     <string name="staking_unbondings_placeholder">Unstaking transactions will appear here</string>
     <string name="staking_validator_apy_percent">Estimated reward (% APY)</string>
     <string name="staking_validator_estimated_reward">Estimated reward</string>
@@ -1066,11 +1059,9 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="stories_version2_slide5_title">Harmony with the ecosystem</string>
 
     <string name="substrate_crypto_type">Substrate keypair crypto type</string>
-    <string name="substrate_secret_derivation_path">Substrate secret derivation path
-</string>
+    <string name="substrate_secret_derivation_path">Substrate secret derivation path</string>
 
     <string name="success_message">You can return to your browser now</string>
-    <string name="success_title">All done</string>
 
     <string name="support_and_feedback">Support &amp; Feedback</string>
 
@@ -1110,9 +1101,6 @@ Remember to make a backup of your key and keep it in a safe and private place (e
 operations\nwill appear here</string>
     <string name="transfers_v1">History</string>
 
-    <string name="unsupported_app_version_alert_message">We no longer support this version of the application. Please update it.</string>
-    <string name="unsupported_chain_alert_message">This chain isn\'t available in the current version of the application. Please update it to the latest version.</string>
-
     <string name="update_needed_text">Update Needed</string>
 
     <string name="username_setup_choose_title">Name</string>
@@ -1151,7 +1139,6 @@ operations\nwill appear here</string>
     <string name="wallet_filters_rewards_and_slashes">Rewards and Slashes</string>
     <string name="wallet_filters_title">Filters</string>
     <string name="wallet_filters_transfers">Transfers</string>
-    <string name="wallet_info_title">Wallet</string>
     <string name="wallet_manage_assets">Manage assets</string>
     <string name="wallet_receive_description">Show this QR to sender</string>
     <string name="wallet_receive_navigation_title">Receive %s</string>
@@ -1170,7 +1157,7 @@ from the right network</string>
     <string name="wallet_send_quick_input_50" translatable="false">50%</string>
     <string name="wallet_send_quick_input_75" translatable="false">75%</string>
     <string name="wallet_send_quick_input_max" translatable="false">MAX</string>
-    <string name="wallet_send_total_title">Total</string>
+    <string name="common_total">Total</string>
     <string name="wallet_send_transferable_amount_caption">Transferable: %s</string>
     <string name="wallet_settings">Wallet settings</string>
     <string name="wallet_title_stash_details">Slash details</string>

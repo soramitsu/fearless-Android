@@ -603,7 +603,6 @@
   <string name="staking_select_suggested">提案されたものを選択</string>
   <string name="staking_selected_accounts_mask">アカウント（ %d ）</string>
   <string name="staking_selected_collator">選択したコレーター</string>
-  <string name="staking_selected_validators_count_v1.9.1" formatted="false">選択済み： %s （最大%s ）</string>
   <string name="staking_selected_validators_format" formatted="false">バリデーター：%d の %d</string>
   <string name="staking_selected_validators_mask">バリデーター (%d)</string>
   <string name="staking_set_separate_account_controller">ステーキング管理のセキュリティを強化するために、コントローラーとして別のアカウントを設定します</string>
@@ -625,7 +624,6 @@
   <string name="staking_slash">スラッシュ</string>
   <string name="staking_stake">ステーク</string>
   <string name="staking_stake_with_selected_title">選択したものにステーク</string>
-  <string name="staking_start_change_collators_custom_title">コレーターとステークする</string>
   <string name="staking_start_change_collators_suggested_subtitle">フィアレスのアルゴリズムは、以下に基づいて提案されたコレーターのリストを作成しました：</string>
   <string name="staking_start_change_collators_suggested_title">アルゴリズムによって提案されたコレーターとステークする</string>
   <string name="staking_start_change_validators_custom_subtitle">ノミネーターが有能かつ誠実に行動することを信頼すべきです。現在の収益性だけで判断すると、利益の減少や資金喪失につながる可能性があります</string>
@@ -769,7 +767,6 @@
   <string name="wallet_filters_rewards_and_slashes">報酬とスラッシュ</string>
   <string name="wallet_filters_title">フィルタ</string>
   <string name="wallet_filters_transfers">送信</string>
-  <string name="wallet_info_title">ウォレット</string>
   <string name="wallet_manage_assets">アセットの管理</string>
   <string name="wallet_options_delete">ウォレットを削除</string>
   <string name="wallet_options_details">ウォレットの詳細</string>

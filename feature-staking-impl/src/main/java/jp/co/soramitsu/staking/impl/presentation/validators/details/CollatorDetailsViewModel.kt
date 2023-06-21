@@ -146,7 +146,7 @@ class CollatorDetailsViewModel @Inject constructor(
             resourceManager.getString(R.string.collator_details_delegators),
             nominatorsStakeFormatted,
             nominatorsStakeFiatFormatted,
-            resourceManager.getString(R.string.wallet_send_total_title),
+            resourceManager.getString(R.string.common_total),
             totalStakeFormatted,
             totalStakeFiatFormatted
         )

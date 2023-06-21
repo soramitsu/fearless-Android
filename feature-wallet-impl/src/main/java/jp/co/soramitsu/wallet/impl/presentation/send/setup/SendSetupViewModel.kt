@@ -289,11 +289,11 @@ class SendSetupViewModel @Inject constructor(
 
     private fun getPhishingMessage(type: PhishingType): String {
         return when (type) {
-            PhishingType.SCAM -> resourceManager.getString(R.string.scam_warning_message)
+            PhishingType.SCAM -> resourceManager.getString(R.string.scam_warning_message, "DOT")
             PhishingType.EXCHANGE -> resourceManager.getString(R.string.exchange_warning_message)
             PhishingType.DONATION -> resourceManager.getString(R.string.donation_warning_message_format, "DOT")
             PhishingType.SANCTIONS -> resourceManager.getString(R.string.sanction_warning_message)
-            else -> resourceManager.getString(R.string.scam_warning_message)
+            else -> resourceManager.getString(R.string.scam_warning_message, "DOT")
         }
     }
 
