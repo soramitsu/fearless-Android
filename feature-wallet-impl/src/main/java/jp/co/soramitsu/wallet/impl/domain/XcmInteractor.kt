@@ -9,6 +9,7 @@ import jp.co.soramitsu.core.extrinsic.keypair_provider.SingleKeypairProvider
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.core.models.ChainId
 import jp.co.soramitsu.core.models.ChainIdWithMetadata
+import jp.co.soramitsu.core.utils.removedXcPrefix
 import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.ext.fakeAddress
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
@@ -67,7 +68,9 @@ class XcmInteractor(
             .map { (assets, availableXcmAssetSymbols) ->
                 assets.filter {
                     val assetSymbol = it.asset.token.configuration.symbol.uppercase()
-                    assetSymbol in availableXcmAssetSymbols
+                    val removedXcAssetSymbol = assetSymbol.removedXcPrefix()
+                    removedXcAssetSymbol in availableXcmAssetSymbols ||
+                        assetSymbol in availableXcmAssetSymbols
                 }
             }
     }
