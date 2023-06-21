@@ -91,7 +91,7 @@ internal fun MnemonicAgreementsContent(
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp),
                 state = ButtonViewState(
-                    text = stringResource(R.string.mnemonic_agreements_btn_text),
+                    text = stringResource(R.string.backup_wallet_show_mnemonic_phrase),
                     enabled = state.isShowMnemonicButtonEnabled
                 ),
                 onClick = callback::onShowPhrase

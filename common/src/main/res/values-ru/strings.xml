@@ -93,7 +93,7 @@
     <string name="backup_mnemonic_title">Запишите мнемоническую фразу</string>
     <string name="backup_wallet_backup_to_google">Сохранить кошелек в Google</string>
     <string name="backup_wallet_delete_google_backup">Удалить кошелек из Google</string>
-    <string name="backup_wallet_delete_wallet">Удалить кошелек</string>
+    <string name="common_delete_wallet">Удалить кошелек</string>
     <string name="backup_wallet_export_json">Экспортировать JSON</string>
     <string name="backup_wallet_show_mnemonic_phrase">Показать мнемоническую фразу</string>
     <string name="backup_wallet_show_raw_seed">Показать Raw Seed</string>
@@ -150,7 +150,7 @@
     <string name="common_amount_low">Сумма слишком мала</string>
     <string name="common_applied">Применено</string>
     <string name="common_apply">Применить</string>
-    <string name="common_are_you_sure">Вы уверены?</string>
+    <string name="common_confirmation_title">Вы уверены?</string>
     <string name="common_available_format">Доступно: %s</string>
     <string name="common_balance">Баланс</string>
     <string name="common_balance_format">Баланс: %s</string>

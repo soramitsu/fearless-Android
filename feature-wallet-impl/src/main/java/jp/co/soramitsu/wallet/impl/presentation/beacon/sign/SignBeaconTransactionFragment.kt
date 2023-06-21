@@ -108,7 +108,7 @@ class SignBeaconTransactionFragment : BaseFragment<SignBeaconTransactionViewMode
         warningDialog(
             requireContext(),
             childFragmentManager,
-            title = resources.getString(R.string.common_are_you_sure),
+            title = resources.getString(R.string.common_confirmation_title),
             message = resources.getString(R.string.beacon_decline_signing_message),
             onConfirm = { viewModel.exit() }
         )

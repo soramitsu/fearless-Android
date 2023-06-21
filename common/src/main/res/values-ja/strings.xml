@@ -48,7 +48,6 @@
   <string name="account_option">アカウントオプション</string>
   <string name="account_shared_secret">共有シークレットを持つアカウント</string>
   <string name="account_template">%sアカウント</string>
-  <string name="account_unique_secret">一意のシークレットを持つアカウント</string>
   <string name="accounts_add_account">アカウントを追加</string>
   <string name="accounts_for_export">エクスポートするアカウント</string>
   <string name="accounts_with_changed_key">キーが変更されたアカウント</string>

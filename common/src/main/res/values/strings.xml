@@ -33,9 +33,7 @@
     <string name="account_error_try_another_one">Please, try another one.</string>
     <string name="account_export">Export account</string>
     <string name="account_export_action">Export</string>
-    <string name="account_export_ethereum_action">Export ethereum</string>
     <string name="account_export_password_change">Change password</string>
-    <string name="account_export_substrate_action">Export substrate</string>
     <string name="account_export_warning_message">Sharing or copying your secret is a high risk operation, don’t send it to anyone. Would you like to proceed with sharing/copying process?</string>
     <string name="account_export_warning_title">Be careful</string>
     <string name="account_import_ethereum_raw_seed_placeholder">ETH accounts raw seed (64 hex symbols)</string>
@@ -44,7 +42,7 @@
     <string name="account_import_json_no_network">JSON contains no network information. Please specify it below.</string>
     <string name="account_import_password_placeholder">Password</string>
     <string name="account_import_substrate_raw_seed_placeholder">Substrate accounts raw seed (64 hex symbols)</string>
-    <string formatted="false" name="account_import_wrong_network">Network in JSON is %s, does not match selected %s. The latter will be used to import an account.</string>
+    <string name="account_import_wrong_network" formatted="false">Network in JSON is %s, does not match selected %s. The latter will be used to import an account.</string>
     <string name="account_info_title">Account</string>
     <string name="account_needed_message">You don’t have account for this network, you can create or import account.</string>
     <string name="account_needed_title">Account needed</string>
@@ -52,7 +50,6 @@
     <string name="account_option">Account option</string>
     <string name="account_shared_secret">Accounts with a shared secret</string>
     <string name="account_template">%s account</string>
-    <string name="account_unique_secret">Accounts with a unique secrets</string>
 
     <string name="accounts_add_account">Add account</string>
     <string name="accounts_for_export">Accounts for export</string>
@@ -69,7 +66,7 @@
     <string name="alert_add_ethereum_title">ETH accounts</string>
     <string name="alert_oversubscribed_alert_message">You will not receive rewards from the validator in this era</string>
     <string name="alert_oversubscribed_alert_title">Oversubscribed</string>
-    <string name="alert_suggested_validators">Algorithmic validator suggestions do not constitute financial consultation or advice. Staking is a high-risk activity, and algorithmic validator suggestions do not necessarily mitigate this risk.\n\nA validator suggested by the algorithm could still be slashed. A validator suggested by the algorithm could also change their parameters (e.g.,commission rates, etc.) at any time after having been suggested and/or selected.\n\nYou could lose tokens or rewards for these or other reasons. Only stake tokens and use validator suggestions at your own discretion, after conducting due diligence and carefully considering the risks involved.</string>
+    <string name="alert_suggested_validators">Algorithmic validator suggestions do not constitute financial consultation or advice. Staking is a high-risk activity and algorithmic validator suggestions do not necessarily mitigate this risk.\n\nA validator suggested by the algorithm could still be slashed. A validator suggested by the algorithm could also change their parameters (e.g. commission rates, etc.) at any time after having been suggested and/or selected.\n\nYou could lose tokens or rewards for these or other reasons. Only stake tokens and use validator suggestions at your own discretion, after conducting due diligence and carefully considering the risks involved.</string>
 
     <string name="all_done">All Done</string>
     <string name="all_done_alert_result_stub">Result</string>
@@ -166,7 +163,6 @@
     <string name="common_amount_low">Amount is too low</string>
     <string name="common_applied">Applied</string>
     <string name="common_apply">Apply</string>
-    <string name="common_are_you_sure">Are you sure?</string>
     <string name="common_available_format">Available: %s</string>
     <string name="common_backup_wallet">Backup wallet</string>
     <string name="common_balance">Balance</string>
@@ -226,7 +222,6 @@
     <string name="common_filter_sort_header">Sort by:</string>
     <string name="common_friend_bonus">Bonus for your friend</string>
     <string name="common_got_it">Got it</string>
-    <string name="common_hash" translatable="false">Hash</string>
     <string name="common_history">History</string>
     <plurals name="common_hours_format">
         <item quantity="one">%d hour</item>
@@ -268,7 +263,6 @@
     <string name="common_search">Search</string>
     <string name="common_search_assets_alert_description">No networks or asset were found :(</string>
     <string name="common_search_assets_alert_title">Sumimasen!</string>
-    <string name="common_search_no_input">Search results will appear here</string>
     <string name="common_search_no_results">No search results.\nBe sure you type full account address</string>
     <string name="common_search_results_number">Search results: %d</string>
     <string name="common_search_start_title">Search results will appear here</string>
@@ -284,12 +278,7 @@
     <string name="common_till_date">till %s</string>
     <string name="common_time_left">Time left</string>
     <string name="common_title_cross_chain" translatable="false">Cross-chain</string>
-    <string name="common_title_frozen_loked">Locked</string>
-    <string name="common_title_frozen_redeemable">Redeemable</string>
-    <string name="common_title_frozen_reserved">Reserved</string>
-    <string name="common_title_frozen_staked">Staked</string>
     <string name="common_title_frozen_token">Locked %s</string>
-    <string name="common_title_frozen_unstaking">Unstaking</string>
     <string name="common_title_select_wallet">Select your wallet</string>
     <string name="common_title_wallet">Wallet</string>
     <string name="common_title_wallet_option">Wallet option</string>
@@ -297,7 +286,7 @@
     <string name="common_transaction_raw_data">Transaction raw data</string>
     <string name="common_transaction_submitted">Transaction submitted</string>
     <string name="common_transferable_format">Transferable: %s</string>
-    <string name="common_undefined_error_message">Please, try again with another input. If the error appears again, please, contact support.</string>
+    <string name="common_undefined_error_message">Please try again with another input. If the error appears again, please contact support.</string>
     <string name="common_unknown">Unknown</string>
     <string name="common_unsupported">Unsupported</string>
     <string name="common_update">Update</string>
@@ -320,7 +309,6 @@
     <string name="connection_management_custom_title">Custom nodes</string>
     <string name="connection_management_default_title">Default nodes</string>
     <string name="connection_problems_alert_message">Failed to load necessary data to launch the application. Please, check your internet connection and try again.</string>
-    <string name="connection_problems_text">Connection Problems</string>
 
     <string name="connections_add_connection">Add connection</string>
 
@@ -333,7 +321,7 @@
 
     <string name="copy_referral_code">Copy referral code</string>
 
-    <string name="create_account_description">Make a name for your new wallet, so you can easily indentify it. This is optional and will be visible only for you</string>
+    <string name="create_account_description">Make a name for your new wallet, so you can easily identify it. This is optional and will be visible only for you</string>
     <string name="create_account_edit_text_visibility">Visible only for you and stored locally</string>
     <string name="create_account_title">Name your new wallet</string>
     <string name="create_backup_password_agreements">I understand that if I forget my password there is no way to retrieve it</string>
@@ -392,7 +380,7 @@
     <string name="delete_custom_node_title">Delete custom node?</string>
 
     <string name="donation_alert_title">This address has been suspicious.</string>
-    <string name="donation_warning_message">This address has been suspicious. We strongly recommend that you don\'t send DOT to this account.</string>
+    <string name="donation_warning_message_format">This address has been flagged as suspicious. We strongly recommend that you don\'t send %s to this account.</string>
 
     <string name="ecdsa_selection_subtitle">(BTC/ETH compatible)</string>
     <string name="ecdsa_selection_title">ECDSA</string>
@@ -423,16 +411,10 @@
     <string name="export_json_password_explanation">Password is required to encrypt your account and store as Restore JSON. Please, create password to continue operation.</string>
     <string name="export_json_password_match_error">Password do not match</string>
     <string name="export_json_password_new">Set password</string>
-    <string formatted="false" name="export_mnemonic_with_derivation">Network: %s
-Mnemonic: %s
-Derivation path: %s</string>
-    <string formatted="false" name="export_mnemonic_without_derivation">Network: %s
-Mnemonic: %s</string>
-    <string formatted="false" name="export_seed_with_derivation">Network: %s
-Seed: %s
-Derivation path: %s</string>
-    <string formatted="false" name="export_seed_without_derivation">Network: %s
-Seed: %s</string>
+    <string name="export_mnemonic_with_derivation" formatted="false">Network: %s\nMnemonic: %s\nDerivation path: %s</string>
+    <string name="export_mnemonic_without_derivation" formatted="false">Network: %s\nMnemonic: %s</string>
+    <string name="export_seed_with_derivation" formatted="false">Network: %s\nSeed: %s\nDerivation path: %s</string>
+    <string name="export_seed_without_derivation" formatted="false">Network: %s\nSeed: %s</string>
     <string name="export_substrate_title">Export Substrate</string>
     <string name="export_wallet">Export wallet</string>
 
@@ -440,8 +422,6 @@ Seed: %s</string>
 
     <string name="fee_not_yet_loaded_message">Please wait until fee is calculated</string>
     <string name="fee_not_yet_loaded_title">Fee calculation is in progress</string>
-
-    <string name="fiat_chooser_title">Currency</string>
 
     <string name="hash">Hash</string>
 
@@ -456,7 +436,7 @@ Seed: %s</string>
     <string name="identity_legal_name_title">Legal name</string>
     <string name="identity_riot_name_title">Element name</string>
     <string name="identity_title">Identity</string>
-    <string name="identity_twitter_title" translatable="false">Twitter</string>
+    <string name="identity_twitter_title">Twitter</string>
     <string name="identity_web_title">Web</string>
 
     <string name="import_account_exists_title">Account already exists</string>
@@ -477,7 +457,6 @@ Seed: %s</string>
     <string name="import_seed_invalid_message">Please, make sure that your input contains 64 hex symbols.</string>
     <string name="import_seed_invalid_title">Seed is invalid</string>
     <string name="import_substrate_recovery">Restore JSON for Substrate accounts</string>
-    <string name="import_wallet">Import wallet</string>
 
     <string name="input_address_unrecognised">Input doesn\'t match known network\'s address</string>
 
@@ -486,8 +465,6 @@ Seed: %s</string>
 
     <string name="json_export_file_title">Export to file</string>
     <string name="json_export_text_title">Export as text</string>
-    <string name="json_export_type_file">Export to file</string>
-    <string name="json_export_type_text">Export as text</string>
 
     <string name="label_link">Link</string>
     <string name="label_testnet" translatable="false">Testnet</string>
@@ -503,13 +480,9 @@ Seed: %s</string>
     <string name="min_to_create_pool_threshold_error_message">Minimum amount is %s</string>
     <string name="min_to_create_pool_threshold_error_title">Sorry, the specified amount is not enough to create a pool</string>
 
-    <string name="minimum_stake_alert_message">The bonded amount is less than the current active minimum nominated amount of %1$s and depending on the network state, may not be selected to participate</string>
-    <string name="minimum_stake_alert_title">Inactive bond</string>
-
     <string name="mnemonic_agreements_ageement_1">If I lose my mnemonic phrase, my funds will be lost forever</string>
     <string name="mnemonic_agreements_ageement_2">If  I expose or share my mnemonic phrase to anybody, my funds can get stolen</string>
     <string name="mnemonic_agreements_ageement_3">It is my full responsibility to keep my mnemonic phrase secure</string>
-    <string name="mnemonic_agreements_btn_text">Show mnemonic phrase</string>
     <string name="mnemonic_agreements_subtitle">Your mnemonic phrase is the key to your wallet. Back it up so you can restore your wallet if you lose or damage your device.</string>
     <string name="mnemonic_agreements_title">Back up your mnemonic</string>
     <string name="mnemonic_error_try_another_one">Please, try another one.</string>
@@ -528,7 +501,6 @@ Please note that this signing transaction will be subject to transaction fees on
 
     <string name="moonbean_ethereum_address">Moonbeam Ethereum address</string>
 
-    <string name="network_fee">Network fee</string>
     <string name="network_info_name">Node name</string>
     <string name="network_info_title">Node Info</string>
     <string name="network_issue_action_add_account">Add Account</string>

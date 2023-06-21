@@ -126,7 +126,7 @@ internal fun BackupWalletContent(
 
                 SettingsItem(
                     icon = painterResource(R.drawable.ic_sign_out_24),
-                    text = stringResource(R.string.backup_wallet_delete_wallet),
+                    text = stringResource(R.string.common_delete_wallet),
                     onClick = callback::onDeleteWalletClick
                 )
                 SettingsDivider()
