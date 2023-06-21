@@ -8,6 +8,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.model.ImportMode
 import jp.co.soramitsu.backup.BackupService
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -23,7 +24,6 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 private const val SUBSTRATE_BLOCKCHAIN_TYPE = 0
 
@@ -88,7 +88,6 @@ class WelcomeViewModel @Inject constructor(
     fun authorizeGoogle(launcher: ActivityResultLauncher<Intent>) {
         viewModelScope.launch {
             val isAuthorized = backupService.authorize(
-                context = context,
                 launcher = launcher
             )
             if (isAuthorized) {
@@ -106,7 +105,7 @@ class WelcomeViewModel @Inject constructor(
     }
 
     private suspend fun openAddWalletThroughGoogleScreen() {
-        if (backupService.getBackupAccounts(context).isEmpty()) {
+        if (backupService.getBackupAccounts().isEmpty()) {
             router.openCreateWalletDialog()
         } else {
             router.openImportRemoteWalletDialog()

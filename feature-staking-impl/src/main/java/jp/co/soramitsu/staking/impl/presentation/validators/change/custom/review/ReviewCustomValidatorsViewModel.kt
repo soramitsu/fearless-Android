@@ -1,6 +1,8 @@
 package jp.co.soramitsu.staking.impl.presentation.validators.change.custom.review
 
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
+import javax.inject.Named
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -27,8 +29,6 @@ import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import javax.inject.Inject
-import javax.inject.Named
 
 @HiltViewModel
 class ReviewCustomValidatorsViewModel @Inject constructor(
@@ -66,7 +66,7 @@ class ReviewCustomValidatorsViewModel @Inject constructor(
         val isOverflow = validators.size > maxValidatorsPerNominator
 
         ValidatorsSelectionState(
-            selectedHeaderText = resourceManager.getString(R.string.staking_selected_validators_count_v1_9_1, validators.size, maxValidatorsPerNominator),
+            selectedHeaderText = resourceManager.getString(R.string.staking_selected_validators_count, validators.size, maxValidatorsPerNominator),
             isOverflow = isOverflow,
             nextButtonText = if (isOverflow) {
                 resourceManager.getString(R.string.staking_custom_proceed_button_disabled_title, maxValidatorsPerNominator)
