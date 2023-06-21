@@ -1,12 +1,14 @@
 package jp.co.soramitsu.account.impl.presentation.create_backup_password
 
 import android.os.Bundle
+import android.widget.FrameLayout
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.core.os.bundleOf
 import androidx.fragment.app.viewModels
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.account.api.presentation.create_backup_password.CreateBackupPasswordPayload
 import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
@@ -31,5 +33,11 @@ class CreateBackupPasswordDialog : BaseComposeBottomSheetDialogFragment<CreateBa
             state = state,
             callback = viewModel
         )
+    }
+
+    override fun setupBehavior(behavior: BottomSheetBehavior<FrameLayout>) {
+        behavior.state = BottomSheetBehavior.STATE_EXPANDED
+        behavior.isHideable = true
+        behavior.skipCollapsed = true
     }
 }

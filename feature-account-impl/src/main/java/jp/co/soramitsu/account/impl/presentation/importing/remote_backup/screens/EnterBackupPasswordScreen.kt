@@ -49,7 +49,10 @@ internal fun EnterBackupPasswordScreen(
     callback: EnterBackupPasswordCallback,
     modifier: Modifier = Modifier
 ) {
-    Column(modifier = modifier) {
+    Column(
+        modifier = modifier
+            .imePadding()
+    ) {
         Toolbar(
             modifier = Modifier.padding(bottom = 12.dp),
             state = ToolbarViewState(
