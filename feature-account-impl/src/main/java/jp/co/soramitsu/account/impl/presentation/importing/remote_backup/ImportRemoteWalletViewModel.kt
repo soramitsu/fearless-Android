@@ -101,7 +101,7 @@ class ImportRemoteWalletViewModel @Inject constructor(
 
     override fun loadRemoteWallets(activity: Activity) {
         viewModelScope.launch {
-            remoteWallets.value = backupService.getBackupAccounts(activity)
+            remoteWallets.value = backupService.getBackupAccounts()
         }
     }
 
@@ -127,13 +127,13 @@ class ImportRemoteWalletViewModel @Inject constructor(
         accountRouter.openCreateWalletDialog()
     }
 
-    override fun onContinueClick(activity: Activity) {
+    override fun onContinueClick() {
         when (currentStep.value) {
             ImportRemoteWalletStep.WalletList -> {
                 /* ignore */
             }
             ImportRemoteWalletStep.EnterBackupPassword -> {
-                decryptWalletByPassword(activity = activity)
+                decryptWalletByPassword()
             }
             ImportRemoteWalletStep.WalletImported -> {
                 openMainScreen()
@@ -141,12 +141,11 @@ class ImportRemoteWalletViewModel @Inject constructor(
         }
     }
 
-    private fun decryptWalletByPassword(activity: Activity) {
+    private fun decryptWalletByPassword() {
         viewModelScope.launch {
             runCatching {
                 val decryptedBackupAccount = backupService.importBackupAccount(
-                    context = activity,
-                    fileId = selectedWallet.value!!.fileId,
+                    address = selectedWallet.value!!.address,
                     password = passwordInputViewState.value.text
                 )
                 importFromMnemonic(decryptedBackupAccount)
@@ -164,7 +163,7 @@ class ImportRemoteWalletViewModel @Inject constructor(
         interactor.importFromMnemonic(
             walletName = decryptedBackupAccount.name,
             mnemonic = decryptedBackupAccount.mnemonicPhrase,
-            substrateDerivationPath = decryptedBackupAccount.derivationPath,
+            substrateDerivationPath = decryptedBackupAccount.substrateDerivationPath,
             ethereumDerivationPath = "",
             selectedEncryptionType = decryptedBackupAccount.cryptoType,
             withEth = true

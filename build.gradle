@@ -251,6 +251,7 @@ configurations {
 configurations.all {
     resolutionStrategy {
         cacheChangingModulesFor 0, 'seconds'
+        cacheDynamicVersionsFor 5, 'minutes'
     }
 }
 

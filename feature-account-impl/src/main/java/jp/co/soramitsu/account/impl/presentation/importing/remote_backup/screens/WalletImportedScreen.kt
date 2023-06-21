@@ -35,7 +35,7 @@ interface WalletImportedCallback {
 
     fun onBackClick()
 
-    fun onContinueClick(activity: Activity)
+    fun onContinueClick()
 
     fun onImportMore()
 }
@@ -87,7 +87,7 @@ internal fun WalletImportedScreen(
                 text = stringResource(R.string.common_continue),
                 enabled = true
             ),
-            onClick = { callback.onContinueClick(activity) }
+            onClick = { callback.onContinueClick() }
         )
         MarginVertical(8.dp)
         GrayButton(

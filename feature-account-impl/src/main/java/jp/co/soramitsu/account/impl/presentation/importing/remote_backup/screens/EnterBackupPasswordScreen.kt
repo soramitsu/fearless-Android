@@ -37,7 +37,7 @@ interface EnterBackupPasswordCallback {
 
     fun onBackClick()
 
-    fun onContinueClick(activity: Activity)
+    fun onContinueClick()
 
     fun onPasswordChanged(password: String)
 }
@@ -96,7 +96,7 @@ internal fun EnterBackupPasswordScreen(
                 text = stringResource(R.string.common_continue),
                 enabled = true
             ),
-            onClick = { callback.onContinueClick(activity) }
+            onClick = callback::onContinueClick
         )
         MarginVertical(12.dp)
     }

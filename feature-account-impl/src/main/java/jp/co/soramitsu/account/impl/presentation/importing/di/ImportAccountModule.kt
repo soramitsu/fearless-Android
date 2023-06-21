@@ -20,9 +20,10 @@ class ImportAccountModule {
 
     @Provides
     @Singleton
-    fun provideBackupService(): BackupService {
+    fun provideBackupService(context: Context): BackupService {
         return BackupService.create(
-            token = BuildConfig.WEB_CLIENT_ID
+            token = BuildConfig.WEB_CLIENT_ID,
+            context = context
         )
     }
 }

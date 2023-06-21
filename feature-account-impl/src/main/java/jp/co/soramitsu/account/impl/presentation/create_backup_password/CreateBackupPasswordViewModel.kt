@@ -162,12 +162,12 @@ class CreateBackupPasswordViewModel @Inject constructor(
     private suspend fun saveBackupAccount() {
         val password = originPassword.value
         backupService.saveBackupAccount(
-            context = context,
             account = DecryptedBackupAccount(
                 name = payload.accountName,
                 address = UUID.randomUUID().toString(),
                 mnemonicPhrase = payload.mnemonic,
-                derivationPath = payload.substrateDerivationPath,
+                substrateDerivationPath = payload.substrateDerivationPath,
+                ethDerivationPath = payload.ethereumDerivationPath,
                 cryptoType = payload.cryptoType
             ),
             password = password

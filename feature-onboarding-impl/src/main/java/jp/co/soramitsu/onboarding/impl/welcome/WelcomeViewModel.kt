@@ -1,6 +1,5 @@
 package jp.co.soramitsu.onboarding.impl.welcome
 
-import android.content.Context
 import android.content.Intent
 import androidx.activity.result.ActivityResultLauncher
 import androidx.lifecycle.LiveData
@@ -31,9 +30,8 @@ private const val SUBSTRATE_BLOCKCHAIN_TYPE = 0
 class WelcomeViewModel @Inject constructor(
     private val router: OnboardingRouter,
     private val appLinksProvider: AppLinksProvider,
-    private val savedStateHandle: SavedStateHandle,
-    private val backupService: BackupService,
-    private val applicationContext: Context
+    savedStateHandle: SavedStateHandle,
+    private val backupService: BackupService
 ) : BaseViewModel(), Browserable {
 
     private val payload = savedStateHandle.get<WelcomeFragmentPayload>(KEY_PAYLOAD)!!
@@ -87,10 +85,7 @@ class WelcomeViewModel @Inject constructor(
 
     fun authorizeGoogle(launcher: ActivityResultLauncher<Intent>) {
         viewModelScope.launch {
-            val isAuthorized = backupService.authorize(
-                context = applicationContext,
-                launcher = launcher
-            )
+            val isAuthorized = backupService.authorize(launcher)
             if (isAuthorized) {
                 openAddWalletThroughGoogleScreen()
             }
@@ -106,7 +101,7 @@ class WelcomeViewModel @Inject constructor(
     }
 
     private suspend fun openAddWalletThroughGoogleScreen() {
-        if (backupService.getBackupAccounts(applicationContext).isEmpty()) {
+        if (backupService.getBackupAccounts().isEmpty()) {
             router.openCreateWalletDialog()
         } else {
             router.openImportRemoteWalletDialog()
