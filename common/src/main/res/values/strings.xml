@@ -250,6 +250,7 @@
     <string name="common_skip">Skip</string>
     <string name="common_skip_process">Skip process</string>
     <string name="common_sort_by">Sort by</string>
+    <string name="common_staking">Staking</string>
     <string name="common_till_date">till %s</string>
     <string name="common_time_left">Time left</string>
     <string name="common_title_cross_chain">Cross-chain</string>

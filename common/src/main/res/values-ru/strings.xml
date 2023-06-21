@@ -236,6 +236,7 @@
     <string name="common_skip">Пропустить</string>
     <string name="common_skip_process">Пропустить</string>
     <string name="common_sort_by">Сортировать по:</string>
+    <string name="common_staking">Стейкинг</string>
     <string name="common_till_date">до %s</string>
     <string name="common_time_left">Оставшееся время</string>
     <string name="common_title_cross_chain">Cross-chain</string>
@@ -771,6 +772,7 @@
     <string name="staking_select_recommended">Выбрать рекомендованных</string>
     <string name="staking_selected_accounts_mask">Аккаунты ( %d )</string>
     <string name="staking_selected_validators_mask">Валидаторы (%d)</string>
+    <string name="staking_selected_validators_count" formatted="false">выбрано %d (макс. %d)</string>
     <string name="staking_set_separate_account_controller">Установите отдельный аккаунт как контроллер, чтобы увеличить безопасность управления стейкингом.</string>
     <string name="staking_set_validators_message">Валидаторы не выбраны</string>
     <string name="staking_set_validators_title">Выберите валидаторов для начала стейкинга</string>

@@ -185,6 +185,7 @@
   <string name="common_skip">スキップ</string>
   <string name="common_skip_process">プロセスをスキップ</string>
   <string name="common_sort_by">並び替え</string>
+  <string name="common_staking">ステーキング</string>
   <string name="common_till_date">%sまで</string>
   <string name="common_time_left">残り時間</string>
   <string name="common_title_frozen_token">ロック済み %s</string>
@@ -610,6 +611,7 @@
   <string name="staking_select_recommended">推奨を選択</string>
   <string name="staking_select_suggested">提案されたものを選択</string>
   <string name="staking_selected_accounts_mask">アカウント（ %d ）</string>
+  <string name="staking_selected_validators_count" formatted="false">選択済み： %d （最大%d ）</string>
   <string name="staking_selected_validators_mask">バリデーター (%d)</string>
   <string name="staking_set_separate_account_controller">ステーキング管理のセキュリティを強化するために、コントローラーとして別のアカウントを設定します</string>
   <string name="staking_set_validators_message">バリデーターが選択されていない</string>
