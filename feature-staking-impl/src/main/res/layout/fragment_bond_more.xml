@@ -1,113 +1,125 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/bondMoreContainer"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     tools:background="@color/black">
 
-    <jp.co.soramitsu.common.view.Toolbar
-        android:id="@+id/bondMoreToolbar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:homeButtonIcon="@drawable/ic_close"
-        app:titleText="@string/staking_bond_more_v1_9_0" />
-
-    <jp.co.soramitsu.common.view.LabeledTextView
-        android:id="@+id/collatorAddressView"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="16dp"
-        android:layout_marginTop="16dp"
-        android:visibility="gone"
-        app:actionIcon="@drawable/ic_more_vertical"
-        app:enabled="false"
-        app:label="@string/collator"
-        tools:textIcon="@color/colorAccent"
-        tools:visibility="visible" />
-
-    <jp.co.soramitsu.common.view.LabeledTextView
-        android:id="@+id/accountAddressView"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="16dp"
-        android:layout_marginTop="16dp"
-        android:visibility="gone"
-        app:actionIcon="@drawable/ic_more_vertical"
-        app:enabled="false"
-        app:label="@string/common_account"
-        tools:textIcon="@color/colorAccent"
-        tools:visibility="visible" />
-
-    <jp.co.soramitsu.common.view.AmountView
-        android:id="@+id/bondMoreAmount"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="16dp" />
-
-    <TextView
-        android:id="@+id/stakingMoreRewardHint"
-        style="@style/TextAppearance.Soramitsu.Body2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="16dp"
-        android:drawablePadding="8dp"
-        android:gravity="left|center"
-        android:includeFontPadding="false"
-        android:text="@string/staking_hint_reward_more"
-        android:textColor="@color/black1"
-        app:drawableLeftCompat="@drawable/ic_reward_24"
-        tools:drawableLeft="@drawable/ic_reward_24" />
-
-    <jp.co.soramitsu.wallet.api.presentation.view.FeeView
-        android:id="@+id/bondMoreFee"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="16dp" />
-
-    <Space
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1" />
-
     <LinearLayout
-        android:id="@+id/confirmBondMoreLayout"
+        android:id="@+id/bondMoreContainer"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@color/black4"
+        android:layout_height="match_parent"
         android:orientation="vertical">
 
-        <jp.co.soramitsu.wallet.api.presentation.view.FeeView
-            android:id="@+id/bondMoreConfirmFee"
+        <jp.co.soramitsu.common.view.Toolbar
+            android:id="@+id/bondMoreToolbar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:homeButtonIcon="@drawable/ic_close"
+            app:titleText="@string/staking_bond_more_v1_9_0" />
+
+        <jp.co.soramitsu.common.view.LabeledTextView
+            android:id="@+id/collatorAddressView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginTop="16dp"
+            android:visibility="gone"
+            app:actionIcon="@drawable/ic_more_vertical"
+            app:enabled="false"
+            app:label="@string/collator"
+            tools:textIcon="@color/colorAccent"
+            tools:visibility="visible" />
+
+        <jp.co.soramitsu.common.view.LabeledTextView
+            android:id="@+id/accountAddressView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginTop="16dp"
+            android:visibility="gone"
+            app:actionIcon="@drawable/ic_more_vertical"
+            app:enabled="false"
+            app:label="@string/common_account"
+            tools:textIcon="@color/colorAccent"
+            tools:visibility="visible" />
+
+        <jp.co.soramitsu.common.view.AmountView
+            android:id="@+id/bondMoreAmount"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
+            android:layout_marginTop="16dp"
             android:layout_marginEnd="16dp" />
 
+        <TextView
+            android:id="@+id/stakingMoreRewardHint"
+            style="@style/TextAppearance.Soramitsu.Body2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginEnd="16dp"
+            android:drawablePadding="8dp"
+            android:gravity="left|center"
+            android:includeFontPadding="false"
+            android:text="@string/staking_hint_reward_more"
+            android:textColor="@color/black1"
+            app:drawableLeftCompat="@drawable/ic_reward_24"
+            tools:drawableLeft="@drawable/ic_reward_24" />
+
+        <jp.co.soramitsu.wallet.api.presentation.view.FeeView
+            android:id="@+id/bondMoreFee"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginEnd="16dp" />
+
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
+        <LinearLayout
+            android:id="@+id/confirmBondMoreLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/black4"
+            android:orientation="vertical">
+
+            <jp.co.soramitsu.wallet.api.presentation.view.FeeView
+                android:id="@+id/bondMoreConfirmFee"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp" />
+
+            <jp.co.soramitsu.common.view.PrimaryButton
+                android:id="@+id/bondMoreConfirm"
+                style="@style/Widget.Fearless.Button.Primary"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="16dp"
+                android:text="@string/common_confirm" />
+        </LinearLayout>
+
         <jp.co.soramitsu.common.view.PrimaryButton
-            android:id="@+id/bondMoreConfirm"
+            android:id="@+id/bondMoreContinue"
             style="@style/Widget.Fearless.Button.Primary"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="16dp"
-            android:text="@string/common_confirm" />
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="16dp"
+            android:text="@string/common_continue" />
     </LinearLayout>
 
-    <jp.co.soramitsu.common.view.PrimaryButton
-        android:id="@+id/bondMoreContinue"
-        style="@style/Widget.Fearless.Button.Primary"
+    <androidx.compose.ui.platform.ComposeView
+        android:id="@+id/quickInput"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="16dp"
-        android:text="@string/common_continue" />
-</LinearLayout>
+        android:layout_gravity="bottom"
+        tools:layout_height="24dp" />
+</FrameLayout>
