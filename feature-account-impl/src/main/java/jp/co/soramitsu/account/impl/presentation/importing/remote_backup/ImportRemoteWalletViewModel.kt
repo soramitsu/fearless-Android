@@ -3,7 +3,6 @@ package jp.co.soramitsu.account.impl.presentation.importing.remote_backup
 import android.app.Activity
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.util.UUID
 import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.impl.presentation.AccountRouter
@@ -128,13 +127,13 @@ class ImportRemoteWalletViewModel @Inject constructor(
         accountRouter.openCreateWalletDialog()
     }
 
-    override fun onContinueClick(activity: Activity) {
+    override fun onContinueClick() {
         when (currentStep.value) {
             ImportRemoteWalletStep.WalletList -> {
                 /* ignore */
             }
             ImportRemoteWalletStep.EnterBackupPassword -> {
-                decryptWalletByPassword(activity = activity)
+                decryptWalletByPassword()
             }
             ImportRemoteWalletStep.WalletImported -> {
                 openMainScreen()
@@ -142,11 +141,11 @@ class ImportRemoteWalletViewModel @Inject constructor(
         }
     }
 
-    private fun decryptWalletByPassword(activity: Activity) {
+    private fun decryptWalletByPassword() {
         viewModelScope.launch {
             runCatching {
                 val decryptedBackupAccount = backupService.importBackupAccount(
-                    address = UUID.randomUUID().toString(), // fixme
+                    address = selectedWallet.value!!.address,
                     password = passwordInputViewState.value.text
                 )
                 importFromMnemonic(decryptedBackupAccount)

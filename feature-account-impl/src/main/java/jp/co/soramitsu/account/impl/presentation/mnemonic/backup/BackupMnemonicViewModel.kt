@@ -1,6 +1,5 @@
 package jp.co.soramitsu.account.impl.presentation.mnemonic.backup
 
-import android.content.Context
 import android.content.Intent
 import androidx.activity.result.ActivityResultLauncher
 import androidx.lifecycle.LiveData
@@ -42,7 +41,6 @@ class BackupMnemonicViewModel @Inject constructor(
     private val cryptoTypeChooserMixin: CryptoTypeChooserMixin,
     savedStateHandle: SavedStateHandle,
     private val backupService: BackupService,
-    private val context: Context,
     private val resourceManager: ResourceManager
 ) : BaseViewModel(),
     BackupMnemonicCallback,

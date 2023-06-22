@@ -32,7 +32,7 @@ interface RemoteWalletListCallback {
 
     fun onCreateNewWallet()
 
-    fun onContinueClick(activity: Activity)
+    fun onContinueClick()
 
     fun onWalletSelected(backupAccount: BackupAccountMeta)
 

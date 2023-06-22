@@ -223,6 +223,12 @@ buildscript {
         classpath "com.github.triplet.gradle:play-publisher:$playPublisherVersion"
         classpath "com.google.dagger:hilt-android-gradle-plugin:$daggerVersion"
     }
+
+    configurations.all {
+        resolutionStrategy {
+            cacheChangingModulesFor 0, 'seconds'
+        }
+    }
 }
 
 allprojects {
@@ -246,12 +252,6 @@ allprojects {
 
 configurations {
     ktlint
-}
-
-configurations.all {
-    resolutionStrategy {
-        cacheChangingModulesFor 0, 'seconds'
-    }
 }
 
 task clean(type: Delete) {
