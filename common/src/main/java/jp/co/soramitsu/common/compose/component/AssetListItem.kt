@@ -116,13 +116,11 @@ fun AssetListItem(
                                     .height(1.dp)
                                     .weight(1.0f)
                             )
-                            if (state.assetChainUrls.size > 1) {
-                                AssetChainsBadge(
-                                    urls = state.assetChainUrls.values.toList(),
-                                    modifier = Modifier
-                                        .testTag("AssetListItem_${state.assetSymbol}_chains")
-                                )
-                            }
+                            AssetChainsBadge(
+                                urls = state.assetChainUrls.values.toList(),
+                                modifier = Modifier
+                                    .testTag("AssetListItem_${state.assetSymbol}_chains")
+                            )
                         }
                     }
                     Row {

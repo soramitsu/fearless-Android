@@ -172,7 +172,7 @@ class BalanceDetailViewModel @Inject constructor(
         LoadingState.Loading(),
         LoadingState.Loading(),
         TitleValueViewState(title = resourceManager.getString(R.string.assetdetails_balance_transferable)),
-        TitleValueViewState(title = resourceManager.getString(R.string.assetdetails_balance_locked),),
+        TitleValueViewState(title = resourceManager.getString(R.string.assetdetails_balance_locked)),
         TransactionHistoryUi.State.EmptyProgress
     )
 
