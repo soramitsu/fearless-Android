@@ -73,7 +73,7 @@ class ConfirmJoinPoolViewModel @Inject constructor(
         val feeFormatted = fee.formatCryptoDetail(asset.token.configuration.symbol)
         val feeFiat = fee.formatFiat(asset.token.fiatSymbol)
         TitleValueViewState(
-            resourceManager.getString(R.string.network_fee),
+            resourceManager.getString(R.string.common_network_fee),
             feeFormatted,
             feeFiat
         )
@@ -128,7 +128,7 @@ class ConfirmJoinPoolViewModel @Inject constructor(
 
     private val defaultFeeState
         get() = TitleValueViewState(
-            resourceManager.getString(R.string.network_fee),
+            resourceManager.getString(R.string.common_network_fee),
             null,
             null
         )

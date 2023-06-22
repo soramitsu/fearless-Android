@@ -102,6 +102,7 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import jp.co.soramitsu.oauth.R as SoraCardR
 
 private const val CURRENT_ICON_SIZE = 40
 
@@ -686,7 +687,7 @@ class BalanceListViewModel @Inject constructor(
     private fun mapKycStatus(kycStatus: String): String? {
         return when (runCatching { SoraCardCommonVerification.valueOf(kycStatus) }.getOrNull()) {
             SoraCardCommonVerification.Pending -> {
-                resourceManager.getString(R.string.sora_card_verification_in_progress)
+                resourceManager.getString(SoraCardR.string.kyc_result_verification_in_progress)
             }
 
             SoraCardCommonVerification.Successful -> {
@@ -694,15 +695,15 @@ class BalanceListViewModel @Inject constructor(
             }
 
             SoraCardCommonVerification.Rejected -> {
-                resourceManager.getString(R.string.sora_card_verification_rejected)
+                resourceManager.getString(SoraCardR.string.verification_rejected_title)
             }
 
             SoraCardCommonVerification.Failed -> {
-                resourceManager.getString(R.string.sora_card_verification_failed)
+                resourceManager.getString(SoraCardR.string.verification_failed_title)
             }
 
             SoraCardCommonVerification.NoFreeAttempt -> {
-                resourceManager.getString(R.string.sora_card_no_more_free_tries)
+                resourceManager.getString(SoraCardR.string.no_free_kyc_attempts_title)
             }
 
             else -> {

@@ -47,7 +47,7 @@
                     style="@style/TextAppearance.Soramitsu.Body1"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/network_fee"
+                    android:text="@string/common_network_fee"
                     android:textColor="@color/gray1" />
 
                 <Space

@@ -3,6 +3,8 @@ package jp.co.soramitsu.account.impl.presentation.importing.remote_backup
 import android.app.Activity
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.util.UUID
+import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.impl.presentation.AccountRouter
 import jp.co.soramitsu.account.impl.presentation.importing.remote_backup.screens.EnterBackupPasswordState
@@ -20,7 +22,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @HiltViewModel
 class ImportRemoteWalletViewModel @Inject constructor(
@@ -101,7 +102,7 @@ class ImportRemoteWalletViewModel @Inject constructor(
 
     override fun loadRemoteWallets(activity: Activity) {
         viewModelScope.launch {
-            remoteWallets.value = backupService.getBackupAccounts(activity)
+            remoteWallets.value = backupService.getBackupAccounts()
         }
     }
 
@@ -145,8 +146,7 @@ class ImportRemoteWalletViewModel @Inject constructor(
         viewModelScope.launch {
             runCatching {
                 val decryptedBackupAccount = backupService.importBackupAccount(
-                    context = activity,
-                    fileId = selectedWallet.value!!.fileId,
+                    address = UUID.randomUUID().toString(), // fixme
                     password = passwordInputViewState.value.text
                 )
                 importFromMnemonic(decryptedBackupAccount)
@@ -164,8 +164,8 @@ class ImportRemoteWalletViewModel @Inject constructor(
         interactor.importFromMnemonic(
             walletName = decryptedBackupAccount.name,
             mnemonic = decryptedBackupAccount.mnemonicPhrase,
-            substrateDerivationPath = decryptedBackupAccount.derivationPath,
-            ethereumDerivationPath = "",
+            substrateDerivationPath = decryptedBackupAccount.substrateDerivationPath,
+            ethereumDerivationPath = decryptedBackupAccount.ethDerivationPath,
             selectedEncryptionType = decryptedBackupAccount.cryptoType,
             withEth = true
         ).getOrThrow()

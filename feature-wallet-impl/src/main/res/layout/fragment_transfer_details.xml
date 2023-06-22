@@ -233,7 +233,7 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="15dp"
             android:paddingTop="15dp"
-            android:text="@string/wallet_send_total_title"
+            android:text="@string/common_total"
             app:layout_constraintBottom_toTopOf="@+id/transactionDetailDivider5"
             app:layout_constraintStart_toStartOf="@+id/transactionDetailDivider5" />
 
