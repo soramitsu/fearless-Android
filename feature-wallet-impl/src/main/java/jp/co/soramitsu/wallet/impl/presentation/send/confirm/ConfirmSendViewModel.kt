@@ -165,7 +165,7 @@ class ConfirmSendViewModel @Inject constructor(
         }
 
         val feeInfoItem = TitleValueViewState(
-            title = resourceManager.getString(R.string.network_fee),
+            title = resourceManager.getString(R.string.common_network_fee),
             value = transferDraft.fee.formatCryptoDetail(utilityAsset.token.configuration.symbol),
             additionalValue = utilityAsset.getAsFiatWithCurrency(transferDraft.fee)
         )

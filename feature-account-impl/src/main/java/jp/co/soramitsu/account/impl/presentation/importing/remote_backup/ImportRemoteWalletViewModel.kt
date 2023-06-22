@@ -3,6 +3,7 @@ package jp.co.soramitsu.account.impl.presentation.importing.remote_backup
 import android.app.Activity
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.impl.presentation.AccountRouter
 import jp.co.soramitsu.account.impl.presentation.importing.remote_backup.screens.EnterBackupPasswordState
@@ -20,7 +21,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @HiltViewModel
 class ImportRemoteWalletViewModel @Inject constructor(
@@ -164,7 +164,7 @@ class ImportRemoteWalletViewModel @Inject constructor(
             walletName = decryptedBackupAccount.name,
             mnemonic = decryptedBackupAccount.mnemonicPhrase,
             substrateDerivationPath = decryptedBackupAccount.substrateDerivationPath,
-            ethereumDerivationPath = "",
+            ethereumDerivationPath = decryptedBackupAccount.ethDerivationPath,
             selectedEncryptionType = decryptedBackupAccount.cryptoType,
             withEth = true
         ).getOrThrow()

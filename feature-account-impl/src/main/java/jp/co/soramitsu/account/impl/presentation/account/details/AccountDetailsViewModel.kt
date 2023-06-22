@@ -104,7 +104,7 @@ class AccountDetailsViewModel @Inject constructor(
     private fun mapFromToTextHeader(from: AccountInChain.From): TextHeader? {
         val resId = when (from) {
             AccountInChain.From.META_ACCOUNT -> R.string.default_account_shared_secret
-            AccountInChain.From.CHAIN_ACCOUNT -> R.string.account_unique_secret
+            AccountInChain.From.CHAIN_ACCOUNT -> R.string.account_custom_secret
             AccountInChain.From.ACCOUNT_WO_ADDRESS -> return null
         }
 

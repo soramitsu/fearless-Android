@@ -47,7 +47,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="start"
-        tools:text="@string/search_results_header"
+        tools:text="@string/common_search_results_number"
         android:textAllCaps="true"
         android:textColor="@color/gray1" />
 
@@ -103,7 +103,7 @@
         android:layout_gravity="center"
         android:id="@+id/searchCustomValidatorsPlaceholder"
         android:drawablePadding="26dp"
-        tools:text="@string/common_search_no_input"
+        tools:text="@string/common_search_start_title"
         android:textColor="@color/black1"
         android:gravity="center"
         tools:drawableTopCompat="@drawable/ic_placeholder"

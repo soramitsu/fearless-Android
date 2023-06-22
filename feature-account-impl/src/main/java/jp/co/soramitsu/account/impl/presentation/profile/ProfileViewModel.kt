@@ -6,6 +6,8 @@ import androidx.lifecycle.liveData
 import androidx.lifecycle.map
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.util.Locale
+import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.GetTotalBalanceUseCase
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
@@ -43,8 +45,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import java.util.Locale
-import javax.inject.Inject
+import jp.co.soramitsu.oauth.R as SoraCardR
 
 private const val AVATAR_SIZE_DP = 32
 
@@ -196,19 +197,19 @@ class ProfileViewModel @Inject constructor(
     private fun mapKycStatus(kycStatus: String): String? {
         return when (runCatching { SoraCardCommonVerification.valueOf(kycStatus) }.getOrNull()) {
             SoraCardCommonVerification.Pending -> {
-                resourceManager.getString(R.string.sora_card_verification_in_progress)
+                resourceManager.getString(SoraCardR.string.kyc_result_verification_in_progress)
             }
             SoraCardCommonVerification.Successful -> {
                 resourceManager.getString(R.string.sora_card_verification_successful)
             }
             SoraCardCommonVerification.Rejected -> {
-                resourceManager.getString(R.string.sora_card_verification_rejected)
+                resourceManager.getString(SoraCardR.string.verification_rejected_title)
             }
             SoraCardCommonVerification.Failed -> {
-                resourceManager.getString(R.string.sora_card_verification_failed)
+                resourceManager.getString(SoraCardR.string.verification_failed_title)
             }
             SoraCardCommonVerification.NoFreeAttempt -> {
-                resourceManager.getString(R.string.sora_card_no_more_free_tries)
+                resourceManager.getString(SoraCardR.string.no_free_kyc_attempts_title)
             }
             else -> {
                 null
