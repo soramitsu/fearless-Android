@@ -83,11 +83,16 @@ fun SearchAssetsScreen(
             }
         }
         MarginVertical(margin = 16.dp)
-        if (data?.assets?.isNotEmpty() == true) {
-            AssetsList(data, callback)
-        } else {
-            MarginVertical(margin = 16.dp)
-            EmptyMessage(message = R.string.common_search_assets_alert_description)
+        when {
+            data?.assets == null -> {}
+            data.assets.isEmpty() -> {
+                MarginVertical(margin = 16.dp)
+                EmptyMessage(message = R.string.common_search_assets_alert_description)
+            }
+
+            else -> {
+                AssetsList(data, callback)
+            }
         }
     }
 }
