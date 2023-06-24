@@ -1,13 +1,13 @@
 package jp.co.soramitsu.wallet.impl.presentation.common
 
 import androidx.fragment.app.Fragment
-import com.github.florent37.runtimepermission.PermissionResult
-import com.github.florent37.runtimepermission.kotlin.PermissionException
-import com.github.florent37.runtimepermission.kotlin.coroutines.experimental.askPermission
+import jp.co.soramitsu.runtime_permission.core.PermissionResult
+import jp.co.soramitsu.runtime_permission.core.RuntimePermission
+import jp.co.soramitsu.runtime_permission.kotlin.PermissionException
 
-suspend fun Fragment.askPermissionsSafely(vararg permissions: String): Result<PermissionResult> =
+suspend fun Fragment.askPermissionsSafely(vararg permissions: String): Result<RuntimePermission> =
     try {
-        Result.success(askPermission(*permissions))
+        Result.success(RuntimePermission.askPermission(this, *permissions))
     } catch (e: PermissionException) {
         Result.failure(e)
     }

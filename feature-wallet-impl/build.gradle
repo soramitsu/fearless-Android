@@ -72,6 +72,7 @@ dependencies {
     implementation project(':runtime')
     implementation project(':feature-soracard-api')
     implementation project(':feature-soracard-impl')
+    implementation project(':runtime-permission')
 
     implementation kotlinDep
 
@@ -79,8 +80,6 @@ dependencies {
     implementation materialDep
     implementation cardViewDep
     implementation constraintDep
-
-    implementation permissionsDep
 
     implementation coroutinesDep
     implementation coroutinesAndroidDep
