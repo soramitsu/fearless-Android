@@ -1,4 +1,3 @@
 [submodule "android-foundation"]
 	path = android-foundation
 	url = https://github.com/soramitsu/android-foundation
-	branch = add_permissions_module
