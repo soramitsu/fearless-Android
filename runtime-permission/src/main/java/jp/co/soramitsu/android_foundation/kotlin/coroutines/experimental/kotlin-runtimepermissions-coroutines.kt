@@ -1,15 +1,15 @@
 /* ktlint-disable filename */
-package jp.co.soramitsu.runtime_permission.kotlin.coroutines.experimental
+package jp.co.soramitsu.android_foundation.kotlin.coroutines.experimental
 
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
-import jp.co.soramitsu.runtime_permission.kotlin.NoActivityException
-import jp.co.soramitsu.runtime_permission.kotlin.PermissionException
-import jp.co.soramitsu.runtime_permission.core.PermissionResult
+import jp.co.soramitsu.android_foundation.kotlin.NoActivityException
+import jp.co.soramitsu.android_foundation.kotlin.PermissionException
+import jp.co.soramitsu.android_foundation.core.PermissionResult
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
-import jp.co.soramitsu.runtime_permission.core.RuntimePermission as RuntimePermission
+import jp.co.soramitsu.android_foundation.core.RuntimePermission as RuntimePermission
 
 suspend fun FragmentActivity.askPermission(vararg permissions: String): PermissionResult = suspendCoroutine { continuation ->
     var resumed = false

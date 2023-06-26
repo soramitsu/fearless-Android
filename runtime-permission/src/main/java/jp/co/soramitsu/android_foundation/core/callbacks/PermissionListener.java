@@ -1,6 +1,6 @@
-package jp.co.soramitsu.runtime_permission.core.callbacks;
+package jp.co.soramitsu.android_foundation.core.callbacks;
 
-import jp.co.soramitsu.runtime_permission.core.PermissionResult;
+import jp.co.soramitsu.android_foundation.core.PermissionResult;
 
 import java.util.List;
 

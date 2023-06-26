@@ -1,4 +1,4 @@
-package jp.co.soramitsu.runtime_permission.core;
+package jp.co.soramitsu.android_foundation.core;
 
 import android.content.Context;
 import android.content.pm.PackageInfo;

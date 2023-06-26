@@ -21,3 +21,6 @@ include ':feature-success-impl'
 include ':feature-soracard-api'
 include ':feature-soracard-impl'
 include ':runtime-permission'
+
+include ':android-foundation'
+project(':android-foundation').projectDir = new File('android-foundation')

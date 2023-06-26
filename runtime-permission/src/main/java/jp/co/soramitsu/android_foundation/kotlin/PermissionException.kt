@@ -1,7 +1,7 @@
-package jp.co.soramitsu.runtime_permission.kotlin
+package jp.co.soramitsu.android_foundation.kotlin
 
-import jp.co.soramitsu.runtime_permission.core.RuntimePermission
-import jp.co.soramitsu.runtime_permission.core.PermissionResult
+import jp.co.soramitsu.android_foundation.core.RuntimePermission
+import jp.co.soramitsu.android_foundation.core.PermissionResult
 import java.lang.Exception
 
 class PermissionException(val permissionResult: PermissionResult) : Exception() {

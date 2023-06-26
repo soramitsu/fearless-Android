@@ -1,4 +1,4 @@
-package jp.co.soramitsu.runtime_permission.core;
+package jp.co.soramitsu.android_foundation.core;
 
 import android.content.Context;
 import android.content.Intent;
@@ -19,11 +19,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import jp.co.soramitsu.runtime_permission.core.callbacks.AcceptedCallback;
-import jp.co.soramitsu.runtime_permission.core.callbacks.DeniedCallback;
-import jp.co.soramitsu.runtime_permission.core.callbacks.ForeverDeniedCallback;
-import jp.co.soramitsu.runtime_permission.core.callbacks.PermissionListener;
-import jp.co.soramitsu.runtime_permission.core.callbacks.ResponseCallback;
+import jp.co.soramitsu.android_foundation.core.callbacks.AcceptedCallback;
+import jp.co.soramitsu.android_foundation.core.callbacks.DeniedCallback;
+import jp.co.soramitsu.android_foundation.core.callbacks.ForeverDeniedCallback;
+import jp.co.soramitsu.android_foundation.core.callbacks.PermissionListener;
+import jp.co.soramitsu.android_foundation.core.callbacks.ResponseCallback;
 
 public class RuntimePermission {
 

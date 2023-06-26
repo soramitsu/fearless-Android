@@ -1,4 +1,4 @@
-package jp.co.soramitsu.runtime_permission.core;
+package jp.co.soramitsu.android_foundation.core;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;

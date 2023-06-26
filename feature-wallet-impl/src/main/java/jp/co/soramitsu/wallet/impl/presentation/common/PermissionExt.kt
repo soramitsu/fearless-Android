@@ -1,9 +1,9 @@
 package jp.co.soramitsu.wallet.impl.presentation.common
 
 import androidx.fragment.app.Fragment
-import jp.co.soramitsu.runtime_permission.core.PermissionResult
-import jp.co.soramitsu.runtime_permission.core.RuntimePermission
-import jp.co.soramitsu.runtime_permission.kotlin.PermissionException
+import jp.co.soramitsu.android_foundation.core.PermissionResult
+import jp.co.soramitsu.android_foundation.core.RuntimePermission
+import jp.co.soramitsu.android_foundation.kotlin.PermissionException
 
 suspend fun Fragment.askPermissionsSafely(vararg permissions: String): Result<RuntimePermission> =
     try {
