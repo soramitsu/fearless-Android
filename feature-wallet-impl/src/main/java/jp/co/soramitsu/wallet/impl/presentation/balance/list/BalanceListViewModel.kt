@@ -277,9 +277,12 @@ class BalanceListViewModel @Inject constructor(
                 valueTransform = { it.asset.token.configuration.id }
             )
 
-            val assetChainUrls = when (selectedChainId) {
-                null -> ecosystemChains.getWithToken(symbol, assetIdsWithBalance).associate { it.id to it.icon }
-                else -> emptyMap()
+            val assetChainUrls = if (selectedChainId == null) {
+                ecosystemChains.getWithToken(symbol, assetIdsWithBalance)
+                    .ifEmpty { listOf(showChain) }
+                    .associate { it.id to it.icon }
+            } else {
+                emptyMap()
             }
 
             val assetTransferable = symbolAssets.sumByBigDecimal { it.asset.transferable }

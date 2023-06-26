@@ -18,6 +18,7 @@ import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.requireException
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.common.validation.progressConsumer
+import jp.co.soramitsu.core.utils.amountFromPlanks
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.staking.impl.domain.StakingInteractor
 import jp.co.soramitsu.staking.impl.domain.staking.bond.BondMoreInteractor
@@ -36,6 +37,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
@@ -62,6 +64,8 @@ class SelectBondMoreViewModel @Inject constructor(
     private val payload = savedStateHandle.get<SelectBondMorePayload>(PAYLOAD_KEY)!!
 
     val oneScreenConfirmation = payload.oneScreenConfirmation
+
+    val isInputFocused = MutableStateFlow(false)
 
     private val _showNextProgress = MutableLiveData(false)
     val showNextProgress: LiveData<Boolean> = _showNextProgress
@@ -203,5 +207,40 @@ class SelectBondMoreViewModel @Inject constructor(
     private fun finishFlow() = when {
         payload.overrideFinishAction != null -> payload.overrideFinishAction.invoke(router)
         else -> router.returnToStakingBalance()
+    }
+
+    fun onAmountInputFocusChanged(hasFocus: Boolean) {
+        launch {
+            isInputFocused.emit(hasFocus)
+        }
+    }
+
+    fun onQuickAmountInput(input: Double) {
+        launch {
+            val availableAmount = stakingScenarioInteractor.getAvailableForBondMoreBalance()
+            val asset = assetFlow.firstOrNull() ?: return@launch
+
+            val amountInPlanks = asset.token.planksFromAmount(availableAmount)
+            val fee = bondMoreInteractor.estimateFee {
+                stakingScenarioInteractor.stakeMore(this, amountInPlanks, payload.collatorAddress)
+            }
+            val utilityFeeReserve = asset.token.configuration.amountFromPlanks(fee)
+
+            val value = when {
+                availableAmount < utilityFeeReserve -> {
+                    BigDecimal.ZERO
+                }
+
+                availableAmount * input.toBigDecimal() < availableAmount - utilityFeeReserve -> {
+                    availableAmount * input.toBigDecimal()
+                }
+
+                else -> {
+                    availableAmount - utilityFeeReserve
+                }
+            }
+
+            enteredAmountFlow.emit(value.formatCrypto())
+        }
     }
 }

@@ -5,6 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.math.BigDecimal
 import javax.inject.Inject
 import jp.co.soramitsu.account.api.presentation.account.AddressDisplayUseCase
 import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
@@ -171,10 +172,7 @@ class BalanceDetailViewModel @Inject constructor(
         LoadingState.Loading(),
         LoadingState.Loading(),
         TitleValueViewState(title = resourceManager.getString(R.string.assetdetails_balance_transferable)),
-        TitleValueViewState(
-            title = resourceManager.getString(R.string.assetdetails_balance_locked),
-            clickState = TitleValueViewState.ClickState.Title(R.drawable.ic_info_14, LOCKED_BALANCE_INFO_ID)
-        ),
+        TitleValueViewState(title = resourceManager.getString(R.string.assetdetails_balance_locked)),
         TransactionHistoryUi.State.EmptyProgress
     )
 
@@ -212,7 +210,15 @@ class BalanceDetailViewModel @Inject constructor(
 
         val lockedFormatted = balanceModel.locked.formatCryptoDetail(balanceModel.token.configuration.symbol)
         val lockedFiat = balanceModel.token.fiatAmount(balanceModel.locked)?.formatFiat(balanceModel.token.fiatSymbol)
-        val newLockedState = defaultState.lockedViewState.copy(value = lockedFormatted, additionalValue = lockedFiat)
+        val newLockedState = defaultState.lockedViewState.copy(
+            value = lockedFormatted,
+            additionalValue = lockedFiat,
+            clickState = if (balanceModel.locked > BigDecimal.ZERO) {
+                TitleValueViewState.ClickState.Title(R.drawable.ic_info_14, LOCKED_BALANCE_INFO_ID)
+            } else {
+                null
+            }
+        )
 
         BalanceDetailsState(
             actionBarViewState = actionBarState,
