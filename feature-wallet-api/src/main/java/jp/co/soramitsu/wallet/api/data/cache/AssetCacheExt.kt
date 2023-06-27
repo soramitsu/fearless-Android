@@ -3,6 +3,7 @@ package jp.co.soramitsu.wallet.api.data.cache
 import java.math.BigInteger
 import jp.co.soramitsu.common.data.network.runtime.binding.AccountData
 import jp.co.soramitsu.common.data.network.runtime.binding.AccountInfo
+import jp.co.soramitsu.common.data.network.runtime.binding.AssetBalanceData
 import jp.co.soramitsu.common.data.network.runtime.binding.AssetsAccountInfo
 import jp.co.soramitsu.common.data.network.runtime.binding.EqAccountInfo
 import jp.co.soramitsu.common.data.network.runtime.binding.OrmlTokensAccountData
@@ -22,6 +23,56 @@ import jp.co.soramitsu.shared_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.shared_utils.runtime.definitions.types.composite.Struct
 import jp.co.soramitsu.shared_utils.runtime.definitions.types.fromHexOrNull
 import jp.co.soramitsu.shared_utils.runtime.metadata.storage
+
+suspend fun AssetCache.updateAsset(
+    metaId: Long,
+    accountId: AccountId,
+    asset: Asset,
+    balanceData: AssetBalanceData?
+) {
+    when (balanceData) {
+        null -> {
+            updateAsset(metaId, accountId, asset) {
+                it.copy(
+                    accountId = accountId,
+                    freeInPlanks = BigInteger.ZERO
+                )
+            }
+        }
+
+        is AccountInfo -> updateAsset(metaId, accountId, asset, accountInfoUpdater(balanceData))
+        is OrmlTokensAccountData -> {
+            updateAsset(metaId, accountId, asset) {
+                it.copy(
+                    accountId = accountId,
+                    freeInPlanks = balanceData.free,
+                    miscFrozenInPlanks = balanceData.frozen,
+                    reservedInPlanks = balanceData.reserved
+                )
+            }
+        }
+
+        is EqAccountInfo -> {
+            updateAsset(metaId, accountId, asset) {
+                it.copy(
+                    accountId = accountId,
+                    freeInPlanks = balanceData.data.balances[asset.currency].orZero()
+                )
+            }
+        }
+
+        is AssetsAccountInfo -> {
+            updateAsset(metaId, accountId, asset) {
+                it.copy(
+                    accountId = accountId,
+                    freeInPlanks = balanceData.balance
+                )
+            }
+        }
+
+        else -> Unit
+    }
+}
 
 suspend fun AssetCache.updateAsset(
     metaId: Long,

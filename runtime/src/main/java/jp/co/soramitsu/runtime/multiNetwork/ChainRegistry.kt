@@ -26,6 +26,7 @@ import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeSyncService
 import jp.co.soramitsu.shared_utils.runtime.RuntimeSnapshot
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
@@ -49,11 +50,11 @@ class ChainRegistry @Inject constructor(
     private val updatesMixin: UpdatesMixin
 ) : IChainRegistry, CoroutineScope by CoroutineScope(Dispatchers.Default), UpdatesProviderUi by updatesMixin {
 
-    val currentChains = chainDao.joinChainInfoFlow()
+    val syncedChains = MutableSharedFlow<List<Chain>>()
+
+    val currentChains = syncedChains
         .filter { it.isNotEmpty() }
         .distinctUntilChanged()
-        .mapList(::mapChainLocalToChain)
-        .inBackground()
         .shareIn(this, SharingStarted.Eagerly, replay = 1)
 
     val chainsById = currentChains.map { chains -> chains.associateBy { it.id } }
@@ -71,7 +72,7 @@ class ChainRegistry @Inject constructor(
                 runtimeSyncService.syncTypes()
             }
             chainDao.joinChainInfoFlow().mapList(::mapChainLocalToChain).diffed()
-                .collect { (removed, addedOrModified, _) ->
+                .collect { (removed, addedOrModified, all) ->
                     removed.forEach {
                         val chainId = it.id
                         runtimeProviderPool.removeRuntimeProvider(chainId)
@@ -80,7 +81,7 @@ class ChainRegistry @Inject constructor(
                         connectionPool.removeConnection(chainId)
                     }
                     updatesMixin.startChainsSyncUp(addedOrModified.filter { it.nodes.isNotEmpty() }.map { it.id })
-                    addedOrModified.filter { it.nodes.isNotEmpty() }.forEach { chain ->
+                    addedOrModified.filter { it.nodes.isNotEmpty() }.onEach { chain ->
                         val connection = connectionPool.setupConnection(
                             chain,
                             onSelectedNodeChange = { chainId, newNodeUrl ->
@@ -91,6 +92,7 @@ class ChainRegistry @Inject constructor(
                         runtimeSyncService.registerChain(chain)
                         runtimeProviderPool.setupRuntimeProvider(chain)
                     }
+                    this@ChainRegistry.syncedChains.emit(all)
                 }
         }
     }

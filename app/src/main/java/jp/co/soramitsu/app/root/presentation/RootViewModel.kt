@@ -4,6 +4,10 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.util.Date
+import java.util.Timer
+import java.util.TimerTask
+import javax.inject.Inject
 import jp.co.soramitsu.app.R
 import jp.co.soramitsu.app.root.domain.RootInteractor
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -13,18 +17,14 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.core.runtime.ChainConnection
 import jp.co.soramitsu.core.updater.Updater
+import kotlin.concurrent.timerTask
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import java.util.Date
-import java.util.Timer
-import java.util.TimerTask
-import javax.inject.Inject
-import kotlin.concurrent.timerTask
-import kotlin.time.DurationUnit
-import kotlin.time.toDuration
 
 @HiltViewModel
 class RootViewModel @Inject constructor(
@@ -70,9 +70,11 @@ class RootViewModel @Inject constructor(
                     shouldHandleResumeInternetConnection = true
                     _showNoInternetConnectionAlert.value = Event(Unit)
                 }
+
                 appConfigResult.getOrNull()?.isCurrentVersionSupported == false -> {
                     _showUnsupportedAppVersionAlert.value = Event(Unit)
                 }
+
                 else -> {
                     runBalancesUpdate()
                 }

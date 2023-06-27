@@ -20,11 +20,11 @@ import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.network.coingecko.CoingeckoApi
 import jp.co.soramitsu.common.data.network.config.RemoteConfigFetcher
+import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
 import jp.co.soramitsu.common.domain.SelectedFiat
 import jp.co.soramitsu.common.interfaces.FileProvider
-import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.QrBitmapDecoder
@@ -159,8 +159,7 @@ class WalletFeatureModule {
         chainRegistry: ChainRegistry,
         availableFiatCurrencies: GetAvailableFiatCurrencies,
         updatesMixin: UpdatesMixin,
-        remoteConfigFetcher: RemoteConfigFetcher,
-        networkStateMixin: NetworkStateMixin
+        remoteConfigFetcher: RemoteConfigFetcher
     ): WalletRepository = WalletRepositoryImpl(
         substrateSource,
         operationsDao,
@@ -173,8 +172,7 @@ class WalletFeatureModule {
         chainRegistry,
         availableFiatCurrencies,
         updatesMixin,
-        remoteConfigFetcher,
-        networkStateMixin
+        remoteConfigFetcher
     )
 
     @Provides
@@ -336,11 +334,15 @@ class WalletFeatureModule {
     fun provideFeatureUpdaters(
         chainRegistry: ChainRegistry,
         paymentUpdaterFactory: PaymentUpdaterFactory,
-        accountRepository: AccountRepository
+        accountRepository: AccountRepository,
+        bulkRetriever: BulkRetriever,
+        assetCache: AssetCache
     ): UpdateSystem = BalancesUpdateSystem(
         chainRegistry,
         paymentUpdaterFactory,
-        accountRepository
+        accountRepository,
+        bulkRetriever,
+        assetCache
     )
 
     @Provides

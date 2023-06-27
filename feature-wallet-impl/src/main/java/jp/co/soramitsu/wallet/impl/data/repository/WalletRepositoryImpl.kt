@@ -12,7 +12,6 @@ import jp.co.soramitsu.common.data.network.coingecko.CoingeckoApi
 import jp.co.soramitsu.common.data.network.config.AppConfigRemote
 import jp.co.soramitsu.common.data.network.config.RemoteConfigFetcher
 import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
-import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
 import jp.co.soramitsu.common.utils.orZero
@@ -66,8 +65,7 @@ class WalletRepositoryImpl(
     private val chainRegistry: ChainRegistry,
     private val availableFiatCurrencies: GetAvailableFiatCurrencies,
     private val updatesMixin: UpdatesMixin,
-    private val remoteConfigFetcher: RemoteConfigFetcher,
-    private val networkStateMixin: NetworkStateMixin
+    private val remoteConfigFetcher: RemoteConfigFetcher
 ) : WalletRepository, UpdatesProviderUi by updatesMixin {
 
     companion object {
@@ -129,10 +127,6 @@ class WalletRepositoryImpl(
             val notUpdatedAssets = assetsByChain.filter {
                 it.asset.token.configuration.chainToSymbol !in updatedAssets.map { it.asset.token.configuration.chainToSymbol }
             }
-
-            val assetsWithProblems = notUpdatedAssetsByUniqueAccounts + notUpdatedAssets
-            val issues = buildNetworkIssues(assetsWithProblems)
-            networkStateMixin.notifyAssetsProblem(issues)
 
             updatedAssets + notUpdatedAssetsByUniqueAccounts + notUpdatedAssets
         }

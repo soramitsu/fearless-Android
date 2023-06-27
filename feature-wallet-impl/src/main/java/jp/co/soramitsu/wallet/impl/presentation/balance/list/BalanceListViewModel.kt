@@ -31,7 +31,6 @@ import jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState
 import jp.co.soramitsu.common.data.network.OptionsProvider
 import jp.co.soramitsu.common.data.network.coingecko.FiatChooserEvent
 import jp.co.soramitsu.common.data.network.coingecko.FiatCurrency
-import jp.co.soramitsu.common.domain.AppVersion
 import jp.co.soramitsu.common.domain.FiatCurrencies
 import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
 import jp.co.soramitsu.common.domain.SelectedFiat
@@ -91,6 +90,7 @@ import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.first
@@ -191,7 +191,7 @@ class BalanceListViewModel @Inject constructor(
         }.orEmpty()
 
         BalanceModel(assetsWithState, fiatSymbol.orEmpty())
-    }.inBackground().share()
+    }.onStart { emit(BalanceModel(emptyList(), "")) }.inBackground().share()
 
     private val assetTypeSelectorState = MutableStateFlow(
         MultiToggleButtonState(
@@ -319,19 +319,9 @@ class BalanceListViewModel @Inject constructor(
     // we open screen - no assets in the list
     private suspend fun buildInitialAssetsList(): List<AssetListItemViewState> {
         return withContext(Dispatchers.Default) {
-            val chains = chainInteractor.getChainsFlow().first()
+            val assets = chainInteractor.getRawChainAssets()
 
-            val chainAssets = chains.filter { it.ecosystem() == ChainEcosystem.POLKADOT }.map { it.assets }.flatten().sortedWith(defaultChainAssetListSort())
-            chainAssets.map { chainAsset ->
-                val chain = requireNotNull(chains.find { it.id == chainAsset.chainId })
-
-                val assetChainUrls = chains.getWithToken(chainAsset.symbol).associate { it.id to it.icon }
-
-                val isSupported: Boolean = when (chain.minSupportedVersion) {
-                    null -> true
-                    else -> AppVersion.isSupported(chain.minSupportedVersion)
-                }
-
+            assets.sortedWith(defaultChainAssetListSort()).map { chainAsset ->
                 AssetListItemViewState(
                     assetIconUrl = chainAsset.iconUrl,
                     assetChainName = chainAsset.chainName,
@@ -341,16 +331,16 @@ class BalanceListViewModel @Inject constructor(
                     assetTokenRate = null,
                     assetTransferableBalance = null,
                     assetTransferableBalanceFiat = null,
-                    assetChainUrls = assetChainUrls,
+                    assetChainUrls = emptyMap(),
                     chainId = chainAsset.chainId,
                     chainAssetId = chainAsset.id,
-                    isSupported = isSupported,
+                    isSupported = true,
                     isHidden = false,
                     hasAccount = true,
                     priceId = chainAsset.priceId,
                     hasNetworkIssue = false,
                     ecosystem = ChainEcosystem.POLKADOT.name,
-                    isTestnet = chain.isTestNet
+                    isTestnet = chainAsset.isTestNet ?: false
                 )
             }.filter { selectedChainId.value == null || selectedChainId.value == it.chainId }
         }
@@ -578,6 +568,7 @@ class BalanceListViewModel @Inject constructor(
 
     private fun currentAddressModelFlow(): Flow<AddressModel> {
         return interactor.selectedAccountFlow(polkadotChainId)
+            .catch { emit(WalletAccount("", "")) }
             .onEach {
                 if (accountAddressToChainIdMap.containsKey(it.address).not()) {
                     selectedChainId.value = null
