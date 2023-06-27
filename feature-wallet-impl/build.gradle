@@ -117,7 +117,7 @@ dependencies {
     implementation jnaDep
     implementation beaconDep, withoutJna
 
-    implementation soraCardDep, withoutBouncycastle
+    implementation soraCardDep
 
     implementation shimmerDep
 
