@@ -247,6 +247,7 @@ class CrossChainConfirmViewModel @Inject constructor(
 
     override fun onNextClick() {
         launch {
+            val destinationChain = destinationNetworkFlow.value ?: return@launch
             val asset = originAssetFlow.firstOrNull() ?: return@launch
             val token = asset.token.configuration
 
@@ -259,6 +260,7 @@ class CrossChainConfirmViewModel @Inject constructor(
             val validationProcessResult = validateTransferUseCase.validateExistentialDeposit(
                 amountInPlanks = rawAmountInPlanks + destinationFeeInPlanks,
                 asset = asset,
+                destinationChainId = destinationChain.id,
                 recipientAddress = recipientAddress,
                 ownAddress = selfAddress,
                 fee = originFee,

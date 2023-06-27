@@ -1,5 +1,6 @@
 package jp.co.soramitsu.wallet.api.domain
 
+import java.math.BigInteger
 import jp.co.soramitsu.common.base.errors.ValidationException
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.validation.DeadRecipientException
@@ -10,7 +11,6 @@ import jp.co.soramitsu.common.validation.TransferToTheSameAddressException
 import jp.co.soramitsu.common.validation.WaitForFeeCalculationException
 import jp.co.soramitsu.core.models.ChainId
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
-import java.math.BigInteger
 
 interface ValidateTransferUseCase {
     suspend operator fun invoke(
@@ -27,6 +27,7 @@ interface ValidateTransferUseCase {
     suspend fun validateExistentialDeposit(
         amountInPlanks: BigInteger,
         asset: Asset,
+        destinationChainId: ChainId,
         recipientAddress: String,
         ownAddress: String,
         fee: BigInteger,
