@@ -215,6 +215,7 @@ class ConfirmSendViewModel @Inject constructor(
             val validationProcessResult = validateTransferUseCase.validateExistentialDeposit(
                 amountInPlanks = inPlanks,
                 asset = asset,
+                destinationChainId = asset.token.configuration.chainId,
                 recipientAddress = recipientAddress,
                 ownAddress = selfAddress,
                 fee = fee,

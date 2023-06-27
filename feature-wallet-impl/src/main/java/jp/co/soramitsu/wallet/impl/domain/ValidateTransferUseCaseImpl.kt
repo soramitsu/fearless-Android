@@ -43,6 +43,7 @@ class ValidateTransferUseCaseImpl(
         val originChain = chainRegistry.getChain(chainId)
         val destinationChain = chainRegistry.getChain(destinationChainId)
         val chainAsset = asset.token.configuration
+        val destinationAsset = destinationChain.assets.firstOrNull { it.symbol == asset.token.configuration.symbol }
         val transferable = asset.transferableInPlanks
         val assetExistentialDeposit = existentialDepositUseCase(chainAsset)
         val tip = if (chainAsset.isUtility) walletConstants.tip(chainId).orZero() else BigInteger.ZERO
@@ -61,7 +62,7 @@ class ValidateTransferUseCaseImpl(
 
         val recipientAccountId = destinationChain.accountIdOf(recipientAddress)
 
-        val totalRecipientBalanceInPlanks = substrateSource.getTotalBalance(chainAsset, recipientAccountId)
+        val totalRecipientBalanceInPlanks = destinationAsset?.let { substrateSource.getTotalBalance(it, recipientAccountId) }.orZero()
 
         val validationChecks = when {
             chainAsset.type == ChainAssetType.Equilibrium -> {
@@ -97,36 +98,40 @@ class ValidateTransferUseCaseImpl(
     override suspend fun validateExistentialDeposit(
         amountInPlanks: BigInteger,
         asset: Asset,
+        destinationChainId: ChainId,
         recipientAddress: String,
         ownAddress: String,
         fee: BigInteger,
         confirmedValidations: List<TransferValidationResult>
     ): Result<TransferValidationResult> = kotlin.runCatching {
         val chainId = asset.token.configuration.chainId
-        val chain = chainRegistry.getChain(chainId)
+        val originChain = chainRegistry.getChain(chainId)
         val chainAsset = asset.token.configuration
+        val destinationChain = chainRegistry.getChain(destinationChainId)
+        val destinationAsset = destinationChain.assets.firstOrNull { it.symbol == asset.token.configuration.symbol }
         val transferable = asset.transferableInPlanks
         val assetExistentialDeposit = existentialDepositUseCase(chainAsset)
+        val destinationExistentialDeposit = existentialDepositUseCase(destinationAsset ?: chainAsset)
         val tip = if (chainAsset.isUtility) walletConstants.tip(chainId).orZero() else BigInteger.ZERO
 
-        val recipientAccountId = chain.accountIdOf(recipientAddress)
-        val totalRecipientBalanceInPlanks = substrateSource.getTotalBalance(chainAsset, recipientAccountId)
+        val recipientAccountId = destinationChain.accountIdOf(recipientAddress)
+        val totalRecipientBalanceInPlanks = destinationAsset?.let { substrateSource.getTotalBalance(it, recipientAccountId) }.orZero()
 
         val validationChecks = when {
             chainAsset.type == ChainAssetType.Equilibrium -> {
-                getEquilibriumValidationChecks(asset, recipientAccountId, chain, ownAddress, amountInPlanks, fee, tip)
+                getEquilibriumValidationChecks(asset, recipientAccountId, originChain, ownAddress, amountInPlanks, fee, tip)
             }
             chainAsset.isUtility -> {
                 val resultedBalance = (asset.freeInPlanks ?: transferable) - (amountInPlanks + fee + tip)
                 mapOf(
                     TransferValidationResult.ExistentialDepositWarning to (resultedBalance < assetExistentialDeposit),
-                    TransferValidationResult.DeadRecipient to (totalRecipientBalanceInPlanks + amountInPlanks < assetExistentialDeposit)
+                    TransferValidationResult.DeadRecipient to (totalRecipientBalanceInPlanks + amountInPlanks < destinationExistentialDeposit)
                 )
             }
             else -> {
                 mapOf(
                     TransferValidationResult.ExistentialDepositWarning to (transferable - amountInPlanks < assetExistentialDeposit),
-                    TransferValidationResult.DeadRecipient to (totalRecipientBalanceInPlanks + amountInPlanks < assetExistentialDeposit)
+                    TransferValidationResult.DeadRecipient to (totalRecipientBalanceInPlanks + amountInPlanks < destinationExistentialDeposit)
                 )
             }
         }
