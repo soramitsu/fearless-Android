@@ -22,16 +22,10 @@ android {
     }
     signingConfigs {
         ci {
-            storeFile file(System.env.CI_KEYSTORE_PATH ?: "stub")
-            storePassword System.env.CI_KEYSTORE_PASS ?: ""
-            keyAlias System.env.CI_KEYSTORE_KEY_ALIAS ?: ""
-            keyPassword System.env.CI_KEYSTORE_KEY_PASS ?: ""
-        }
-        debug {
-            storeFile file("../debug-keystore.jks")
-            storePassword "00000000"
-            keyAlias "fearless"
-            keyPassword "00000000"
+            storeFile file(System.env.CI_KEYSTORE_PATH ?: "../debug-keystore.jks")
+            storePassword System.env.CI_KEYSTORE_PASS ?: "00000000"
+            keyAlias System.env.CI_KEYSTORE_KEY_ALIAS ?: "fearless"
+            keyPassword System.env.CI_KEYSTORE_KEY_PASS ?: "00000000"
         }
     }
     buildTypes {
@@ -40,7 +34,7 @@ android {
             proguardFiles 'proguard-rules.pro'
             applicationIdSuffix '.debug'
             versionNameSuffix '-debug'
-            signingConfig signingConfigs.debug
+            signingConfig signingConfigs.ci
         }
         release {
             minifyEnabled minifyRelease
