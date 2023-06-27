@@ -39,7 +39,13 @@ class XcmInteractor(
 
     suspend fun prepareDataForChains(originChainId: ChainId, destinationChainId: ChainId) {
         val metaAccount = accountInteractor.selectedMetaAccount()
-        val secrets = accountInteractor.getMetaAccountSecrets(metaAccount.id)?.get(MetaAccountSecrets.SubstrateKeypair)
+        val originChain = chainRegistry.getChain(originChainId)
+        val keypairType = if (originChain.isEthereumBased) {
+            MetaAccountSecrets.EthereumKeypair
+        } else {
+            MetaAccountSecrets.SubstrateKeypair
+        }
+        val secrets = accountInteractor.getMetaAccountSecrets(metaAccount.id)?.get(keypairType)
         requireNotNull(secrets)
         val private = secrets[KeyPairSchema.PrivateKey]
         val public = secrets[KeyPairSchema.PublicKey]

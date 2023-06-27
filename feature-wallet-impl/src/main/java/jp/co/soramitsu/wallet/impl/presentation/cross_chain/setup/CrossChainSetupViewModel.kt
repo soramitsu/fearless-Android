@@ -266,12 +266,6 @@ class CrossChainSetupViewModel @Inject constructor(
         .onEach { fee -> hasOriginFeeAmountFlow.value = fee != null }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    private val originFeeInPlanksFlow = combine(originFeeAmountFlow, assetFlow) { fee, asset ->
-        fee ?: return@combine null
-        asset ?: return@combine null
-        asset.token.planksFromAmount(fee)
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
-
     @OptIn(ExperimentalCoroutinesApi::class)
     private val utilityAssetFlow = assetFlow.filterNotNull()
         .flatMapLatest { asset ->
@@ -285,6 +279,12 @@ class CrossChainSetupViewModel @Inject constructor(
                 }
             }
         }
+
+    private val originFeeInPlanksFlow = combine(originFeeAmountFlow, utilityAssetFlow) { fee, asset ->
+        fee ?: return@combine null
+        asset ?: return@combine null
+        asset.token.planksFromAmount(fee)
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val originFeeInfoViewStateFlow: Flow<FeeInfoViewState> = combine(
         hasOriginFeeAmountFlow,
