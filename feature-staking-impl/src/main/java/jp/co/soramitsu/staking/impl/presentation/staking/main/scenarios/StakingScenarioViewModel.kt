@@ -32,6 +32,8 @@ interface StakingScenarioViewModel {
     @Deprecated("Don't use this method, use the getStakingViewStateFlow instead")
     suspend fun getStakingViewStateFlowOld(): Flow<StakingViewStateOld>
 
+    val stakingViewStateFlowOld: Flow<StakingViewStateOld>
+
     suspend fun getStakingViewStateFlow(): Flow<StakingViewState>
 
     suspend fun networkInfo(): Flow<LoadingState<StakingNetworkInfoModel>>

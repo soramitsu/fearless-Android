@@ -79,6 +79,9 @@ import jp.co.soramitsu.wallet.api.presentation.mixin.fee.FeeLoaderProvider
 import jp.co.soramitsu.wallet.impl.domain.TokenUseCase
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletConstants
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -103,13 +106,19 @@ class StakingFeatureModule {
     )
 
     @Provides
+    fun provideStakingSharedScope(): CoroutineScope {
+        return CoroutineScope(Dispatchers.Main + SupervisorJob())
+    }
+
+    @Provides
     @Singleton
     fun provideStakingSharedState(
         chainRegistry: ChainRegistry,
         preferences: Preferences,
         accountRepository: AccountRepository,
-        walletRepository: WalletRepository
-    ): StakingSharedState = StakingSharedState(chainRegistry, preferences, walletRepository, accountRepository)
+        walletRepository: WalletRepository,
+        scope: CoroutineScope
+    ): StakingSharedState = StakingSharedState(chainRegistry, preferences, walletRepository, accountRepository, scope)
 
     @Provides
     @Singleton

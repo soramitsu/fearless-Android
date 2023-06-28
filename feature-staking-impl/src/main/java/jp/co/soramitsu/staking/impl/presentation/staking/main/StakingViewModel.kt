@@ -4,6 +4,9 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.math.BigDecimal
+import javax.inject.Inject
+import javax.inject.Named
 import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -73,9 +76,6 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import java.math.BigDecimal
-import javax.inject.Inject
-import javax.inject.Named
 
 private const val CURRENT_ICON_SIZE = 40
 
@@ -127,7 +127,6 @@ class StakingViewModel @Inject constructor(
     val showRewardEstimationEvent: LiveData<Event<StakingRewardEstimationBottomSheet.Payload>> = _showRewardEstimationEvent
 
     private val scenarioViewModelFlow = stakingSharedState.selectionItem
-        .debounce(50)
         .onEach {
             stakingStateScope.coroutineContext.cancelChildren()
         }
@@ -142,7 +141,7 @@ class StakingViewModel @Inject constructor(
     @Deprecated("Use stakingViewState flow with ready models for compose")
     val stakingViewStateOld = scenarioViewModelFlow
         .flatMapLatest {
-            it.getStakingViewStateFlowOld().withLoading()
+            it.stakingViewStateFlowOld.withLoading()
         }.distinctUntilChanged().shareIn(stakingStateScope, started = SharingStarted.Eagerly, replay = 1)
 
     val alertsFlow = scenarioViewModelFlow

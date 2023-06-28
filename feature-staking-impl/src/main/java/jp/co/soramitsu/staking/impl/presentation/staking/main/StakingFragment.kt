@@ -94,6 +94,7 @@ class StakingFragment : BaseFragment<StakingViewModel>(R.layout.fragment_staking
 
     private var observeDelegationsJob: Job? = null
     private var observeAlertsJob: Job? = null
+    private var observeStakingStateJob: Job? = null
 
     override fun subscribe(viewModel: StakingViewModel) {
         observeValidations(viewModel)
@@ -348,7 +349,8 @@ class StakingFragment : BaseFragment<StakingViewModel>(R.layout.fragment_staking
             ManageStakingBottomSheet(requireContext(), it, stakingViewState::manageActionChosen).show()
         }
 
-        stakingViewState.stakeSummaryFlow.observe { summaryState ->
+        observeStakingStateJob?.cancel()
+        observeStakingStateJob = stakingViewState.stakeSummaryFlow.onEach { summaryState ->
             when (summaryState) {
                 is LoadingState.Loaded<StakeSummaryModel<S>> -> {
                     val summary = summaryState.data
@@ -368,7 +370,7 @@ class StakingFragment : BaseFragment<StakingViewModel>(R.layout.fragment_staking
                 }
                 is LoadingState.Loading -> {}
             }
-        }
+        }.launchIn(viewModel.stakingStateScope)
     }
 
     private fun showStatusAlert(title: String, message: String) {

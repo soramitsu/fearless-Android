@@ -73,6 +73,8 @@ class StakingPoolViewModel(
             "jp.co.soramitsu.staking.impl.presentation.staking.main.scenarios.getStakingViewStateFlow()"
         )
     )
+    override val stakingViewStateFlowOld: Flow<StakingViewStateOld> = kotlinx.coroutines.flow.flowOf(Pool)
+
     override suspend fun getStakingViewStateFlowOld(): Flow<StakingViewStateOld> {
         return kotlinx.coroutines.flow.flowOf(Pool)
     }
@@ -105,6 +107,7 @@ class StakingPoolViewModel(
                     val poolViewState = state.pool.toViewState(asset, resourceManager)
                     StakingViewState.Pool.PoolMember(poolViewState)
                 }
+
                 is StakingState.Pool.None -> {
                     val monthly =
                         returns.monthly.gain.nullIfEmpty()?.let { TitleValueViewState(it, returns.monthly.amount.nullIfEmpty(), returns.monthly.fiatAmount) }
@@ -117,6 +120,7 @@ class StakingPoolViewModel(
                     )
                     StakingViewState.Pool.Welcome(returnsViewState)
                 }
+
                 is StakingState.Pool.Nominator -> error("StakingState.Pool.Nominator is not supported")
                 is StakingState.Pool.Root -> error("StakingState.Pool.Root is not supported")
                 is StakingState.Pool.StateToggler -> error("StakingState.Pool.StateToggler is not supported")

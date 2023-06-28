@@ -301,7 +301,7 @@ class StakingRelayChainScenarioRepository(
         }
     }
 
-    suspend fun stakingStateFlow(
+    fun stakingStateFlow(
         chain: Chain,
         chainAsset: Asset,
         accountId: AccountId
@@ -323,7 +323,7 @@ class StakingRelayChainScenarioRepository(
         val controllerId = accessInfo.controllerId
 
         return combine(
-            observeAccountNominations(chain.id, stashId),
+            observeRemoteAccountNominations(chain.id, stashId),
             observeAccountValidatorPrefs(chain.id, stashId)
         ) { nominations, prefs ->
             when {

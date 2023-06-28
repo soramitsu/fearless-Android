@@ -16,15 +16,16 @@ import jp.co.soramitsu.wallet.impl.domain.TokenUseCase
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.Token
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.shareIn
 import jp.co.soramitsu.core.models.Asset as CoreAsset
 
 enum class StakingType {
@@ -39,6 +40,7 @@ fun CoreAsset.syntheticStakingType(): SyntheticStakingType {
     return when {
         (chainId == soraMainChainId || chainId == soraTestChainId) &&
             staking == CoreAsset.StakingType.RELAYCHAIN -> SyntheticStakingType.SORA
+
         chainId == ternoaChainId && staking == CoreAsset.StakingType.RELAYCHAIN -> SyntheticStakingType.TERNOA
         else -> SyntheticStakingType.DEFAULT
     }
@@ -50,7 +52,8 @@ class StakingSharedState(
     private val chainRegistry: ChainRegistry,
     private val preferences: Preferences,
     private val walletRepository: WalletRepository,
-    private val accountRepository: AccountRepository
+    private val accountRepository: AccountRepository,
+    private val scope: CoroutineScope
 ) : ChainIdHolder, TokenUseCase {
 
     companion object {
@@ -70,19 +73,16 @@ class StakingSharedState(
         ::Pair
     )
         .distinctUntilChanged()
-        .debounce(100)
-        .map { (walletId, encoded) ->
-            encoded
+        .map { (_, encoded) ->
+            encoded?.let { decode(it) }
         }
         .filterNotNull()
-        .map { encoded ->
-            decode(encoded)
-        }
+        .shareIn(scope, SharingStarted.Eagerly, replay = 1)
 
     val assetWithChain: Flow<SingleAssetSharedState.AssetWithChain> = selectionItem.map {
         val (chain, asset) = chainRegistry.chainWithAsset(it.chainId, it.chainAssetId)
         SingleAssetSharedState.AssetWithChain(chain, asset)
-    }
+    }.shareIn(scope, SharingStarted.Eagerly, replay = 1)
 
     suspend fun assetWithChain(selectionItem: StakingAssetSelection) {
         val (chain, asset) = chainRegistry.chainWithAsset(selectionItem.chainId, selectionItem.chainAssetId)
@@ -98,16 +98,15 @@ class StakingSharedState(
         }
     }
         .mapNotNull { it }
-        .flatMapLatest { (selectedMetaAccount, chainAndAsset) ->
+        .mapNotNull { (selectedMetaAccount, chainAndAsset) ->
             val (chain, chainAsset) = chainAndAsset
-
-            walletRepository.assetFlow(
+            walletRepository.getAsset(
                 metaId = selectedMetaAccount.id,
                 accountId = selectedMetaAccount.accountId(chain)!!,
                 chainAsset = chainAsset,
                 minSupportedVersion = chain.minSupportedVersion
             )
-        }
+        }.shareIn(scope, SharingStarted.Eagerly, replay = 1)
 
     suspend fun availableAssetsToSelect(): List<Asset> {
         val metaAccount = accountRepository.getSelectedMetaAccount()
@@ -152,7 +151,7 @@ class StakingSharedState(
     }
 
     override suspend fun chainId(): String {
-        return selectionItem.first().chainId
+        return chain().id
     }
 
     private fun encode(item: StakingAssetSelection): String {
