@@ -9,7 +9,9 @@ import jp.co.soramitsu.coredb.model.AssetLocal
 import jp.co.soramitsu.coredb.model.AssetUpdateItem
 import jp.co.soramitsu.coredb.model.AssetWithToken
 import jp.co.soramitsu.shared_utils.runtime.AccountId
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 
@@ -65,6 +67,7 @@ abstract class AssetDao : AssetReadOnlyCache {
 
     override fun observeAsset(metaId: Long, accountId: AccountId, chainId: String, assetId: String): Flow<AssetWithToken> =
         observeAssetWithEmpty(metaId, accountId, chainId, assetId, emptyAccountIdValue)
+            .flowOn(Dispatchers.IO)
             .mapNotNull { it }
             .map { AssetWithToken(it.asset.copy(accountId = accountId), it.token) }
 

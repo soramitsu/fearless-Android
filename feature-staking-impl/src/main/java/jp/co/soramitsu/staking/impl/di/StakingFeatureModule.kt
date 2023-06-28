@@ -65,7 +65,6 @@ import jp.co.soramitsu.staking.impl.domain.validators.CollatorProvider
 import jp.co.soramitsu.staking.impl.domain.validators.ValidatorProvider
 import jp.co.soramitsu.staking.impl.domain.validators.current.CurrentValidatorsInteractor
 import jp.co.soramitsu.staking.impl.domain.validators.current.search.SearchCustomBlockProducerInteractor
-import jp.co.soramitsu.staking.impl.domain.validators.current.search.SearchCustomValidatorsInteractor
 import jp.co.soramitsu.staking.impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSharedStateProvider
 import jp.co.soramitsu.staking.impl.presentation.common.rewardDestination.RewardDestinationMixin
@@ -80,6 +79,9 @@ import jp.co.soramitsu.wallet.api.presentation.mixin.fee.FeeLoaderProvider
 import jp.co.soramitsu.wallet.impl.domain.TokenUseCase
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletConstants
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -104,13 +106,19 @@ class StakingFeatureModule {
     )
 
     @Provides
+    fun provideStakingSharedScope(): CoroutineScope {
+        return CoroutineScope(Dispatchers.Main + SupervisorJob())
+    }
+
+    @Provides
     @Singleton
     fun provideStakingSharedState(
         chainRegistry: ChainRegistry,
         preferences: Preferences,
         accountRepository: AccountRepository,
-        walletRepository: WalletRepository
-    ): StakingSharedState = StakingSharedState(chainRegistry, preferences, walletRepository, accountRepository)
+        walletRepository: WalletRepository,
+        scope: CoroutineScope
+    ): StakingSharedState = StakingSharedState(chainRegistry, preferences, walletRepository, accountRepository, scope)
 
     @Provides
     @Singleton
@@ -500,13 +508,6 @@ class StakingFeatureModule {
     fun provideChangeRewardDestinationInteractor(
         extrinsicService: ExtrinsicService
     ) = ChangeRewardDestinationInteractor(extrinsicService)
-
-    @Provides
-    @Singleton
-    fun provideSearchCustomValidatorsInteractor(
-        validatorProvider: ValidatorProvider,
-        sharedState: StakingSharedState
-    ) = SearchCustomValidatorsInteractor(validatorProvider, sharedState)
 
     @Provides
     @Singleton

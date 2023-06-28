@@ -9,7 +9,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import java.util.Locale
 import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
-import jp.co.soramitsu.account.api.domain.interfaces.GetTotalBalanceUseCase
+import jp.co.soramitsu.account.api.domain.interfaces.TotalBalanceUseCase
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.account.impl.presentation.AccountRouter
@@ -57,7 +57,7 @@ class ProfileViewModel @Inject constructor(
     private val router: AccountRouter,
     private val addressIconGenerator: AddressIconGenerator,
     private val externalAccountActions: ExternalAccountActions.Presentation,
-    getTotalBalance: GetTotalBalanceUseCase,
+    getTotalBalance: TotalBalanceUseCase,
     private val getAvailableFiatCurrencies: GetAvailableFiatCurrencies,
     private val selectedFiat: SelectedFiat,
     private val resourceManager: ResourceManager
@@ -66,7 +66,7 @@ class ProfileViewModel @Inject constructor(
     private val _launchSoraCardSignIn = MutableLiveData<Event<SoraCardContractData>>()
     val launchSoraCardSignIn: LiveData<Event<SoraCardContractData>> = _launchSoraCardSignIn
 
-    val totalBalanceLiveData = combine(getTotalBalance(), selectedFiat.flow()) { balance, fiat ->
+    val totalBalanceLiveData = combine(getTotalBalance.observe(), selectedFiat.flow()) { balance, fiat ->
         val selectedFiatSymbol = getAvailableFiatCurrencies[fiat]?.symbol
         balance.balance.formatFiat(selectedFiatSymbol ?: balance.fiatSymbol)
     }.asLiveData()

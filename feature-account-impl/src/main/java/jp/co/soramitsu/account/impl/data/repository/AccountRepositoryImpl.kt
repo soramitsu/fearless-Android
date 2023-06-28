@@ -57,6 +57,7 @@ import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.toAccountId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import org.bouncycastle.util.encoders.Hex
@@ -117,7 +118,7 @@ class AccountRepositoryImpl(
     }
 
     override fun allMetaAccountsFlow(): Flow<List<MetaAccount>> {
-        return accountDataSource.observeAllMetaAccounts()
+        return accountDataSource.observeAllMetaAccounts().flowOn(Dispatchers.IO)
     }
 
     override fun lightMetaAccountsFlow(): Flow<List<LightMetaAccount>> {

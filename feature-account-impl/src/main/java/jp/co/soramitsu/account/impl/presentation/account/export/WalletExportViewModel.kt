@@ -8,7 +8,6 @@ import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.invoke
-import jp.co.soramitsu.account.api.domain.interfaces.GetTotalBalanceUseCase
 import jp.co.soramitsu.account.api.domain.model.TotalBalance
 import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_account_impl.R
@@ -23,6 +22,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import jp.co.soramitsu.account.api.domain.interfaces.TotalBalanceUseCase
 
 @HiltViewModel
 class WalletExportViewModel @Inject constructor(
@@ -30,7 +30,7 @@ class WalletExportViewModel @Inject constructor(
     private val accountRouter: AccountRouter,
     private val iconGenerator: AddressIconGenerator,
     private val resourceManager: ResourceManager,
-    getTotalBalance: GetTotalBalanceUseCase,
+    getTotalBalance: TotalBalanceUseCase,
     private val externalAccountActions: ExternalAccountActions.Presentation,
     private val savedStateHandle: SavedStateHandle
 ) : BaseViewModel(), ExternalAccountActions by externalAccountActions {
@@ -39,7 +39,7 @@ class WalletExportViewModel @Inject constructor(
 
     val accountNameLiveData = MutableLiveData<String>()
     val accountIconLiveData = MutableLiveData<Drawable>()
-    val totalBalanceLiveData = getTotalBalance(metaId).map(TotalBalance::format).asLiveData()
+    val totalBalanceLiveData = getTotalBalance.observe(metaId).map(TotalBalance::format).asLiveData()
     val amountsWithOneKeyAmountBadgeLiveData = MutableLiveData<String>()
     val amountsWithOneKeyChainNameLiveData = MutableLiveData<String>()
     val amountsWithOneKeyChainIconLiveData = MutableLiveData<String>()

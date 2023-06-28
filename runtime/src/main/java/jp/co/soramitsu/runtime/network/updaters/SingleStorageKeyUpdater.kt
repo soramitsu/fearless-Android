@@ -44,7 +44,7 @@ abstract class SingleStorageKeyUpdater<S : UpdateScope>(
         val chainId = chainIdHolder.chainId()
         val runtime = chainRegistry.getRuntime(chainId)
 
-        val storageKey = storageKey(runtime) ?: return emptyFlow()
+        val storageKey = kotlin.runCatching { storageKey(runtime) }.getOrNull() ?: return emptyFlow()
 
         return storageSubscriptionBuilder.subscribe(storageKey)
             .map {

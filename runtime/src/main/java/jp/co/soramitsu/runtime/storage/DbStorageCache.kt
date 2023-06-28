@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 
@@ -40,6 +41,7 @@ class DbStorageCache(
     override suspend fun observeEntry(key: String?, chainId: String): Flow<StorageEntry> {
         return key?.let {
             storageDao.observeEntry(chainId, it)
+                .flowOn(Dispatchers.IO)
                 .filterNotNull()
                 .map { mapStorageEntryFromLocal(it) }
                 .distinctUntilChangedBy(StorageEntry::content)
@@ -48,6 +50,7 @@ class DbStorageCache(
 
     override suspend fun observeEntries(keyPrefix: String, chainId: String): Flow<List<StorageEntry>> {
         return storageDao.observeEntries(chainId, keyPrefix)
+            .flowOn(Dispatchers.IO)
             .mapList { mapStorageEntryFromLocal(it) }
             .filter { it.isNotEmpty() }
     }

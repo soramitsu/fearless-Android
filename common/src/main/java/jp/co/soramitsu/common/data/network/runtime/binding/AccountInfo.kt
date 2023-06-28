@@ -13,6 +13,9 @@ import jp.co.soramitsu.shared_utils.runtime.definitions.types.fromHexOrNull
 import jp.co.soramitsu.shared_utils.runtime.metadata.module
 import jp.co.soramitsu.shared_utils.runtime.metadata.storage
 
+interface AssetBalanceData
+
+object EmptyBalance : AssetBalanceData
 class AccountData(
     val free: BigInteger,
     val reserved: BigInteger,
@@ -34,7 +37,7 @@ class OrmlTokensAccountData(
     val free: BigInteger,
     val reserved: BigInteger,
     val frozen: BigInteger
-) {
+) : AssetBalanceData {
     companion object {
         fun empty() = OrmlTokensAccountData(
             free = BigInteger.ZERO,
@@ -47,16 +50,16 @@ class OrmlTokensAccountData(
 class EqAccountInfo(
     val nonce: BigInteger,
     val data: EqAccountData
-)
+) : AssetBalanceData
 
 class AssetsAccountInfo(
     val balance: BigInteger
-)
+) : AssetBalanceData
 
 class AccountInfo(
     val nonce: BigInteger,
     val data: AccountData
-) {
+) : AssetBalanceData {
 
     companion object {
         fun empty() = AccountInfo(

@@ -4,7 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
-import jp.co.soramitsu.account.api.domain.interfaces.GetTotalBalanceUseCase
+import jp.co.soramitsu.account.api.domain.interfaces.TotalBalanceUseCase
 import jp.co.soramitsu.account.impl.presentation.AccountRouter
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -18,7 +18,6 @@ import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
@@ -29,7 +28,7 @@ class BackupWalletViewModel @Inject constructor(
     val savedStateHandle: SavedStateHandle,
     private val accountInteractor: AccountInteractor,
     private val addressIconGenerator: AddressIconGenerator,
-    private val getTotalBalanceUseCase: GetTotalBalanceUseCase,
+    private val totalBalanceUseCase: TotalBalanceUseCase,
     private val resourceManager: ResourceManager
 ) : BaseViewModel(), BackupWalletCallback {
 
@@ -45,7 +44,7 @@ class BackupWalletViewModel @Inject constructor(
                 AddressIconGenerator.SIZE_BIG
             )
 
-            val balanceModel = getTotalBalanceUseCase.invoke(walletId).first()
+            val balanceModel = totalBalanceUseCase(walletId)
 
             WalletItemViewState(
                 id = walletId,
