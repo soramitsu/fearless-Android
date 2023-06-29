@@ -803,4 +803,6 @@
   <string name="what_accounts_for_export">ウォレット内のどのアカウントをエクスポートしますか?</string>
   <string name="yesterday">昨日</string>
   <string name="your_collator">あなたのコレーター</string>
+
+  <string name="error_invalid_address">選択したチェーンのアドレスが無効です</string>
 </resources>
