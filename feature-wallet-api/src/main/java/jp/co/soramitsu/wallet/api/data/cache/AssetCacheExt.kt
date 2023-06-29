@@ -5,6 +5,7 @@ import jp.co.soramitsu.common.data.network.runtime.binding.AccountData
 import jp.co.soramitsu.common.data.network.runtime.binding.AccountInfo
 import jp.co.soramitsu.common.data.network.runtime.binding.AssetBalanceData
 import jp.co.soramitsu.common.data.network.runtime.binding.AssetsAccountInfo
+import jp.co.soramitsu.common.data.network.runtime.binding.EmptyBalance
 import jp.co.soramitsu.common.data.network.runtime.binding.EqAccountInfo
 import jp.co.soramitsu.common.data.network.runtime.binding.OrmlTokensAccountData
 import jp.co.soramitsu.common.data.network.runtime.binding.bindAccountInfo
@@ -31,7 +32,7 @@ suspend fun AssetCache.updateAsset(
     balanceData: AssetBalanceData?
 ) {
     when (balanceData) {
-        null -> {
+        null, EmptyBalance -> {
             updateAsset(metaId, accountId, asset) {
                 it.copy(
                     accountId = accountId,
