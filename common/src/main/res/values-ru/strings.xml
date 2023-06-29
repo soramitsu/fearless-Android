@@ -561,6 +561,7 @@
     <string name="recent">Недавние</string>
     <string name="recover_json_hint">Вставьте json строку или загрузите файл…</string>
     <string name="recovery_json">JSON для восстановления</string>
+    <string name="recovery_mnemonic">Мнемоническая фраза</string>
     <string name="recovery_passphrase">Мнемоническая фраза</string>
     <string name="recovery_raw_seed">Сид</string>
     <string name="recovery_source_type">Тип источника</string>

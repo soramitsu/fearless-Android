@@ -416,6 +416,7 @@
   <string name="reason">理由</string>
   <string name="recover_json_hint">JSONを貼り付けるかファイルをアップロード...</string>
   <string name="recovery_json">リカバリJSON</string>
+  <string name="recovery_mnemonic">ニーモニック-フレーズ</string>
   <string name="recovery_passphrase">ニーモニック・パスフレーズ</string>
   <string name="recovery_raw_seed">シード</string>
   <string name="recovery_source_type">ソースの種類</string>
