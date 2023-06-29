@@ -203,10 +203,6 @@ class SelectCustomValidatorsViewModel @Inject constructor(
         setupStakingSharedState.setCustomValidators(selectedValidators.value.toList())
     }
 
-    fun clearFilters() {
-        settingsStorage.resetFilters()
-    }
-
     fun deselectAll() {
         mutateSelected { emptySet() }
     }
