@@ -6,10 +6,6 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.math.BigDecimal
-import java.util.Locale
-import java.util.concurrent.TimeUnit
-import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.presentation.actions.AddAccountBottomSheet
 import jp.co.soramitsu.common.AlertViewState
@@ -102,6 +98,10 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.math.BigDecimal
+import java.util.Locale
+import java.util.concurrent.TimeUnit
+import javax.inject.Inject
 import jp.co.soramitsu.oauth.R as SoraCardR
 
 private const val CURRENT_ICON_SIZE = 40
@@ -243,6 +243,20 @@ class BalanceListViewModel @Inject constructor(
 
         assetStates
     }.onStart { emit(buildInitialAssetsList().toMutableList()) }.inBackground().share()
+
+    init {
+        observeNetworkState()
+    }
+
+    private fun observeNetworkState() {
+        networkStateMixin.showConnectingBarFlow
+            .onEach { hasConnectionProblems ->
+                if (!hasConnectionProblems) {
+                    refresh()
+                }
+            }
+            .launchIn(viewModelScope)
+    }
 
     private fun processAssets(
         ecosystemAssets: List<AssetWithStatus>,
@@ -429,6 +443,10 @@ class BalanceListViewModel @Inject constructor(
     }
 
     override fun onRefresh() {
+        refresh()
+    }
+
+    private fun refresh() {
         updateSoraCardStatus()
         sync()
     }
