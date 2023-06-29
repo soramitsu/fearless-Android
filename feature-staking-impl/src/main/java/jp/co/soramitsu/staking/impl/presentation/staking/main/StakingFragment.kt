@@ -2,12 +2,15 @@ package jp.co.soramitsu.staking.impl.presentation.staking.main
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
@@ -23,11 +26,14 @@ import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.compose.component.AccentButton
 import jp.co.soramitsu.common.compose.component.AssetSelector
 import jp.co.soramitsu.common.compose.component.MarginVertical
+import jp.co.soramitsu.common.compose.component.QuickAmountInput
+import jp.co.soramitsu.common.compose.component.QuickInput
 import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
 import jp.co.soramitsu.common.mixin.impl.observeValidations
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.presentation.StoryGroupModel
 import jp.co.soramitsu.common.utils.bindTo
+import jp.co.soramitsu.common.utils.hideSoftKeyboard
 import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.common.utils.setVisible
@@ -47,10 +53,12 @@ import jp.co.soramitsu.staking.impl.presentation.view.DelegationOptionsBottomShe
 import jp.co.soramitsu.staking.impl.presentation.view.DelegationRecyclerViewAdapter
 import jp.co.soramitsu.staking.impl.presentation.view.StakeSummaryView
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class StakingFragment : BaseFragment<StakingViewModel>(R.layout.fragment_staking), DelegationRecyclerViewAdapter.DelegationHandler {
@@ -62,6 +70,8 @@ class StakingFragment : BaseFragment<StakingViewModel>(R.layout.fragment_staking
     override val viewModel: StakingViewModel by viewModels()
 
     private val binding by viewBinding(FragmentStakingBinding::bind)
+
+    var currentEnteredAmountFlow = MutableStateFlow("")
 
     override fun initViews() {
         with(binding) {
@@ -283,6 +293,37 @@ class StakingFragment : BaseFragment<StakingViewModel>(R.layout.fragment_staking
                 onClicked = viewModel.assetSelectorMixin::assetChosen
             ).show()
         }
+
+        binding.quickInput.apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+            setContent {
+                val isInputFocused by viewModel.isInputFocused.collectAsState()
+                val bottom = WindowInsets.ime.getBottom(LocalDensity.current)
+
+                val isSoftKeyboardOpen = bottom > 0
+
+                val isShowQuickInput = isInputFocused && isSoftKeyboardOpen
+
+                FearlessAppTheme {
+                    if (isShowQuickInput) {
+                        QuickInput(
+                            values = QuickAmountInput.values(),
+                            onQuickAmountInput = {
+                                hideSoftKeyboard()
+                                viewModel.onQuickAmountInput(it)
+                            },
+                            onDoneClick = ::hideSoftKeyboard
+                        )
+                    }
+                }
+            }
+        }
+
+        viewModel.enteredAmountEvent.observeEvent {
+            viewModel.launch {
+                currentEnteredAmountFlow.emit(it)
+            }
+        }
     }
 
     private fun setupNetworkInfo(model: StakingNetworkInfoModel.RelayChain) {
@@ -422,7 +463,11 @@ class StakingFragment : BaseFragment<StakingViewModel>(R.layout.fragment_staking
         }.launchIn(viewModel.stakingStateScope)
         returnsJob?.start()
 
+        currentEnteredAmountFlow = stakingState.enteredAmountFlow
         binding.stakingEstimate.amountInput.bindTo(stakingState.enteredAmountFlow, viewLifecycleOwner.lifecycleScope)
+        binding.stakingEstimate.amountInput.setOnFocusChangeListener { v, hasFocus ->
+            viewModel.onAmountInputFocusChanged(hasFocus)
+        }
 
         binding.startStakingBtn.setOnClickListener { stakingState.nextClicked() }
 

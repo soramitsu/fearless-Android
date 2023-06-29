@@ -1,134 +1,145 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:animateLayoutChanges="true"
-    android:id="@+id/setupStakingContainer"
-    android:background="@color/black"
-    android:theme="@style/PinkOverlay"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:orientation="vertical">
+    android:background="@color/black">
 
-    <jp.co.soramitsu.common.view.Toolbar
+    <LinearLayout
+        android:id="@+id/setupStakingContainer"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/setupStakingToolbar"
-        app:homeButtonIcon="@drawable/ic_close"
-        app:titleText="@string/staking_stake" />
+        android:layout_height="match_parent"
+        android:animateLayoutChanges="true"
+        android:orientation="vertical"
+        android:theme="@style/PinkOverlay">
 
-    <ScrollView
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1">
-
-        <LinearLayout
-            android:orientation="vertical"
+        <jp.co.soramitsu.common.view.Toolbar
+            android:id="@+id/setupStakingToolbar"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            app:homeButtonIcon="@drawable/ic_close"
+            app:titleText="@string/staking_stake" />
 
-            <jp.co.soramitsu.common.view.AmountView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:id="@+id/setupStakingAmountField"
-                android:layout_marginStart="16dp"
-                android:layout_marginEnd="16dp" />
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="27dp"
-                android:layout_marginEnd="16dp"
-                android:orientation="horizontal">
+                android:orientation="vertical">
+
+                <jp.co.soramitsu.common.view.AmountView
+                    android:id="@+id/setupStakingAmountField"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginTop="12dp"
+                    android:layout_marginEnd="16dp" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginTop="27dp"
+                    android:layout_marginEnd="16dp"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        style="@style/TextAppearance.Soramitsu.Body1"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/common_network_fee"
+                        android:textColor="@color/gray1" />
+
+                    <Space
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1" />
+
+                    <ProgressBar
+                        android:id="@+id/setupStakingFeeProgress"
+                        android:layout_width="16dp"
+                        android:layout_height="16dp"
+                        android:layout_gravity="center_vertical"
+                        android:indeterminate="true"
+                        android:indeterminateTint="@color/white" />
+
+                    <TextView
+                        android:id="@+id/setupStakingFeeToken"
+                        style="@style/TextAppearance.Soramitsu.Body1"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="8dp"
+                        android:textColor="@color/white"
+                        android:visibility="gone"
+                        tools:text="0.001 KSM" />
+
+
+                    <TextView
+                        android:id="@+id/setupStakingFeeFiat"
+                        style="@style/TextAppearance.Soramitsu.Body1"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/gray2"
+                        android:visibility="gone"
+                        tools:text="$0.2" />
+
+                </LinearLayout>
+
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginTop="15dp"
+                    android:layout_marginEnd="16dp"
+                    android:background="@color/gray3" />
 
                 <TextView
                     style="@style/TextAppearance.Soramitsu.Body1"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/common_network_fee"
-                    android:textColor="@color/gray1" />
-
-                <Space
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1" />
-
-                <ProgressBar
-                    android:layout_width="16dp"
-                    android:indeterminate="true"
-                    android:id="@+id/setupStakingFeeProgress"
-                    android:layout_gravity="center_vertical"
-                    android:indeterminateTint="@color/white"
-                    android:layout_height="16dp" />
-
-                <TextView
-                    android:id="@+id/setupStakingFeeToken"
-                    style="@style/TextAppearance.Soramitsu.Body1"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:visibility="gone"
-                    android:layout_marginEnd="8dp"
-                    tools:text="0.001 KSM"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginTop="25dp"
+                    android:text="@string/staking_setup_reward_destination_section_title"
                     android:textColor="@color/white" />
 
+                <jp.co.soramitsu.staking.impl.presentation.view.RewardDestinationChooserView
+                    android:id="@+id/setupStakingRewardDestinationChooser"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
 
-                <TextView
-                    android:id="@+id/setupStakingFeeFiat"
-                    style="@style/TextAppearance.Soramitsu.Body1"
-                    android:layout_width="wrap_content"
-                    android:visibility="gone"
+                <jp.co.soramitsu.staking.impl.presentation.view.PayoutViewerView
+                    android:id="@+id/setupStakingPayoutViewer"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    tools:text="$0.2"
-                    android:textColor="@color/gray2" />
+                    android:visibility="gone"/>
 
+                <Space
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1" />
             </LinearLayout>
+        </ScrollView>
 
+        <jp.co.soramitsu.common.view.PrimaryButton
+            android:id="@+id/setupStakingNext"
+            style="@style/Widget.Fearless.Button.Primary"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="22dp"
+            android:text="@string/common_continue" />
+    </LinearLayout>
 
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="15dp"
-                android:layout_marginEnd="16dp"
-                android:background="@color/gray3" />
-
-            <TextView
-                style="@style/TextAppearance.Soramitsu.Body1"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="25dp"
-                android:text="@string/staking_setup_reward_destination_section_title"
-                android:textColor="@color/white" />
-
-            <jp.co.soramitsu.staking.impl.presentation.view.RewardDestinationChooserView
-                android:id="@+id/setupStakingRewardDestinationChooser"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
-
-            <jp.co.soramitsu.staking.impl.presentation.view.PayoutViewerView
-                android:id="@+id/setupStakingPayoutViewer"
-                android:layout_width="match_parent"
-                android:visibility="gone"
-                android:layout_height="wrap_content"/>
-
-            <Space
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1" />
-        </LinearLayout>
-    </ScrollView>
-
-    <jp.co.soramitsu.common.view.PrimaryButton
-        style="@style/Widget.Fearless.Button.Primary"
+    <androidx.compose.ui.platform.ComposeView
+        android:id="@+id/quickInput"
         android:layout_width="match_parent"
-        android:id="@+id/setupStakingNext"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="22dp"
-        android:text="@string/common_continue"
-         />
-</LinearLayout>
+        android:layout_gravity="bottom"
+        tools:layout_height="24dp" />
+</FrameLayout>
