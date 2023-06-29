@@ -55,9 +55,6 @@ dependencies {
 
     implementation(libs.sora.ui)
     implementation(libs.sora.card)
-    {
-        exclude(group = "org.bouncycastle", module = "bcprov-jdk15to18")
-    }
 
     implementation(projects.common)
     implementation(projects.runtime)
