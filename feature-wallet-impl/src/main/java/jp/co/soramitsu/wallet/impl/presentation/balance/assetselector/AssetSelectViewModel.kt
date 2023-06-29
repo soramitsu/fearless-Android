@@ -86,8 +86,8 @@ class AssetSelectViewModel @Inject constructor(
         imageUrl = token.configuration.iconUrl,
         chainName = token.configuration.chainName.takeIf { isChainNameVisible },
         symbol = token.configuration.symbol.uppercase(),
-        amount = total.orZero().formatCrypto(),
-        fiatAmount = getAsFiatWithCurrency(total) ?: "${token.fiatSymbol.orEmpty()}0",
+        amount = available.orZero().formatCrypto(),
+        fiatAmount = getAsFiatWithCurrency(available) ?: "${token.fiatSymbol.orEmpty()}0",
         isSelected = false,
         chainId = token.configuration.chainId
     )
