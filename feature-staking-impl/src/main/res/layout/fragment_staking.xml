@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:paddingBottom="56dp">
@@ -9,7 +10,8 @@
     <androidx.core.widget.NestedScrollView
         android:clipToPadding="false"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_weight="1"
+        android:layout_height="0dp">
 
         <LinearLayout
             android:id="@+id/stakingContainer"
@@ -132,4 +134,4 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
         tools:layout_height="24dp" />
-</FrameLayout>
+</LinearLayout>
