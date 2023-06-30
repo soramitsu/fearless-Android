@@ -1022,6 +1022,4 @@
     <string name="what_accounts_for_export">What accounts in the wallet do you want to export?</string>
     <string name="yesterday">Yesterday</string>
     <string name="your_collator">Your collator</string>
-
-    <string name="error_invalid_address">Invalid address for selected chain</string>
 </resources>

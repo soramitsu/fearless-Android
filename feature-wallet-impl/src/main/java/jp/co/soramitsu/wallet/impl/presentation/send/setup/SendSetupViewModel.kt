@@ -511,17 +511,8 @@ class SendSetupViewModel @Inject constructor(
     fun qrCodeScanned(content: String) {
         viewModelScope.launch {
             val result = walletInteractor.tryReadAddressFromSoraFormat(content) ?: content
-            val chainId = chainIdFlow.value ?: return@launch
 
-            val isValidAddress = walletInteractor.validateSendAddress(chainId, result)
-            if (isValidAddress) {
-                addressInputFlow.value = result
-            } else {
-                showError(
-                    title = resourceManager.getString(jp.co.soramitsu.common.R.string.common_warning),
-                    text = resourceManager.getString(jp.co.soramitsu.common.R.string.error_invalid_address)
-                )
-            }
+            addressInputFlow.value = result
         }
     }
 
