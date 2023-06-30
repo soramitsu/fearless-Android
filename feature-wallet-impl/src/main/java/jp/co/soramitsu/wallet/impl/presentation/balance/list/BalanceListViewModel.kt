@@ -31,7 +31,6 @@ import jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState
 import jp.co.soramitsu.common.data.network.OptionsProvider
 import jp.co.soramitsu.common.data.network.coingecko.FiatChooserEvent
 import jp.co.soramitsu.common.data.network.coingecko.FiatCurrency
-import jp.co.soramitsu.common.domain.AppVersion
 import jp.co.soramitsu.common.domain.FiatCurrencies
 import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
 import jp.co.soramitsu.common.domain.SelectedFiat
@@ -91,6 +90,7 @@ import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.first
@@ -102,6 +102,7 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import jp.co.soramitsu.oauth.R as SoraCardR
 
 private const val CURRENT_ICON_SIZE = 40
 
@@ -190,7 +191,7 @@ class BalanceListViewModel @Inject constructor(
         }.orEmpty()
 
         BalanceModel(assetsWithState, fiatSymbol.orEmpty())
-    }.inBackground().share()
+    }.onStart { emit(BalanceModel(emptyList(), "")) }.inBackground().share()
 
     private val assetTypeSelectorState = MutableStateFlow(
         MultiToggleButtonState(
@@ -243,6 +244,20 @@ class BalanceListViewModel @Inject constructor(
         assetStates
     }.onStart { emit(buildInitialAssetsList().toMutableList()) }.inBackground().share()
 
+    init {
+        observeNetworkState()
+    }
+
+    private fun observeNetworkState() {
+        networkStateMixin.showConnectingBarFlow
+            .onEach { hasConnectionProblems ->
+                if (!hasConnectionProblems) {
+                    refresh()
+                }
+            }
+            .launchIn(viewModelScope)
+    }
+
     private fun processAssets(
         ecosystemAssets: List<AssetWithStatus>,
         ecosystemChains: List<Chain>,
@@ -252,18 +267,18 @@ class BalanceListViewModel @Inject constructor(
         ecosystem: ChainEcosystem
     ): List<BalanceListItemModel> {
         val result = mutableListOf<BalanceListItemModel>()
-        ecosystemAssets.groupBy { it.asset.token.configuration.symbolToShow }.forEach { (symbol, symbolAssets) ->
+        ecosystemAssets.groupBy { it.asset.token.configuration.symbol }.forEach { (symbol, symbolAssets) ->
             val tokenChains = ecosystemChains.getWithToken(symbol)
             if (tokenChains.isEmpty()) return@forEach
 
             val mainChain = tokenChains.sortedWith(
                 compareByDescending<Chain> {
-                    it.assets.firstOrNull { it.symbolToShow == symbol }?.isUtility ?: false
+                    it.assets.firstOrNull { it.symbol == symbol }?.isUtility ?: false
                 }.thenByDescending { it.parentId == null }
             ).firstOrNull()
 
             val showChain = tokenChains.firstOrNull { it.id == selectedChainId } ?: mainChain
-            val showChainAsset = showChain?.assets?.firstOrNull { it.symbolToShow == symbol } ?: return@forEach
+            val showChainAsset = showChain?.assets?.firstOrNull { it.symbol == symbol } ?: return@forEach
 
             val hasNetworkIssue = networkIssues.any { it.chainId in tokenChains.map { it.id } }
 
@@ -276,9 +291,12 @@ class BalanceListViewModel @Inject constructor(
                 valueTransform = { it.asset.token.configuration.id }
             )
 
-            val assetChainUrls = when (selectedChainId) {
-                null -> ecosystemChains.getWithToken(symbol, assetIdsWithBalance).associate { it.id to it.icon }
-                else -> emptyMap()
+            val assetChainUrls = if (selectedChainId == null) {
+                ecosystemChains.getWithToken(symbol, assetIdsWithBalance)
+                    .ifEmpty { listOf(showChain) }
+                    .associate { it.id to it.icon }
+            } else {
+                emptyMap()
             }
 
             val assetTransferable = symbolAssets.sumByBigDecimal { it.asset.transferable }
@@ -315,39 +333,28 @@ class BalanceListViewModel @Inject constructor(
     // we open screen - no assets in the list
     private suspend fun buildInitialAssetsList(): List<AssetListItemViewState> {
         return withContext(Dispatchers.Default) {
-            val chains = chainInteractor.getChainsFlow().first()
+            val assets = chainInteractor.getRawChainAssets()
 
-            val chainAssets = chains.filter { it.ecosystem() == ChainEcosystem.POLKADOT }.map { it.assets }.flatten().sortedWith(defaultChainAssetListSort())
-            chainAssets.map { chainAsset ->
-                val chain = requireNotNull(chains.find { it.id == chainAsset.chainId })
-
-                val assetChainUrls = chains.getWithToken(chainAsset.symbolToShow).associate { it.id to it.icon }
-
-                val isSupported: Boolean = when (chain.minSupportedVersion) {
-                    null -> true
-                    else -> AppVersion.isSupported(chain.minSupportedVersion)
-                }
-
+            assets.sortedWith(defaultChainAssetListSort()).map { chainAsset ->
                 AssetListItemViewState(
                     assetIconUrl = chainAsset.iconUrl,
                     assetChainName = chainAsset.chainName,
                     assetName = chainAsset.name.orEmpty(),
                     assetSymbol = chainAsset.symbol,
-                    displayName = chainAsset.symbolToShow,
                     assetTokenFiat = null,
                     assetTokenRate = null,
                     assetTransferableBalance = null,
                     assetTransferableBalanceFiat = null,
-                    assetChainUrls = assetChainUrls,
+                    assetChainUrls = emptyMap(),
                     chainId = chainAsset.chainId,
                     chainAssetId = chainAsset.id,
-                    isSupported = isSupported,
+                    isSupported = true,
                     isHidden = false,
                     hasAccount = true,
                     priceId = chainAsset.priceId,
                     hasNetworkIssue = false,
                     ecosystem = ChainEcosystem.POLKADOT.name,
-                    isTestnet = chain.isTestNet
+                    isTestnet = chainAsset.isTestNet ?: false
                 )
             }.filter { selectedChainId.value == null || selectedChainId.value == it.chainId }
         }
@@ -363,7 +370,7 @@ class BalanceListViewModel @Inject constructor(
         .thenBy { it.chainId.defaultChainSort() }
         .thenBy { it.chainName }
 
-    //    private val soraCardState = combine(
+//    private val soraCardState = combine(
 //        interactor.observeIsShowSoraCard(),
 //        soraCardInteractor.subscribeSoraCardInfo()
 //    ) { isShow, soraCardInfo ->
@@ -436,6 +443,10 @@ class BalanceListViewModel @Inject constructor(
     }
 
     override fun onRefresh() {
+        refresh()
+    }
+
+    private fun refresh() {
         updateSoraCardStatus()
         sync()
     }
@@ -575,6 +586,7 @@ class BalanceListViewModel @Inject constructor(
 
     private fun currentAddressModelFlow(): Flow<AddressModel> {
         return interactor.selectedAccountFlow(polkadotChainId)
+            .catch { emit(WalletAccount("", "")) }
             .onEach {
                 if (accountAddressToChainIdMap.containsKey(it.address).not()) {
                     selectedChainId.value = null
@@ -687,7 +699,7 @@ class BalanceListViewModel @Inject constructor(
     private fun mapKycStatus(kycStatus: String): String? {
         return when (runCatching { SoraCardCommonVerification.valueOf(kycStatus) }.getOrNull()) {
             SoraCardCommonVerification.Pending -> {
-                resourceManager.getString(R.string.sora_card_verification_in_progress)
+                resourceManager.getString(SoraCardR.string.kyc_result_verification_in_progress)
             }
 
             SoraCardCommonVerification.Successful -> {
@@ -695,15 +707,15 @@ class BalanceListViewModel @Inject constructor(
             }
 
             SoraCardCommonVerification.Rejected -> {
-                resourceManager.getString(R.string.sora_card_verification_rejected)
+                resourceManager.getString(SoraCardR.string.verification_rejected_title)
             }
 
             SoraCardCommonVerification.Failed -> {
-                resourceManager.getString(R.string.sora_card_verification_failed)
+                resourceManager.getString(SoraCardR.string.verification_failed_title)
             }
 
             SoraCardCommonVerification.NoFreeAttempt -> {
-                resourceManager.getString(R.string.sora_card_no_more_free_tries)
+                resourceManager.getString(SoraCardR.string.no_free_kyc_attempts_title)
             }
 
             else -> {

@@ -34,6 +34,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import java.lang.Integer.max
+import java.math.BigDecimal
 import jp.co.soramitsu.common.compose.component.AccentButton
 import jp.co.soramitsu.common.compose.component.MarginHorizontal
 import jp.co.soramitsu.common.compose.component.MarginVertical
@@ -52,8 +54,7 @@ import jp.co.soramitsu.ui_core.theme.borderRadius
 import jp.co.soramitsu.ui_core.theme.customColors
 import jp.co.soramitsu.ui_core.theme.customTypography
 import jp.co.soramitsu.ui_core.theme.elevation
-import java.lang.Integer.max
-import java.math.BigDecimal
+import jp.co.soramitsu.oauth.R as SoraCardR
 
 data class GetSoraCardState(
     val xorBalance: BigDecimal = BigDecimal.ZERO,
@@ -151,7 +152,7 @@ fun GetSoraCardScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 8.dp),
-                    text = stringResource(R.string.sora_card_description),
+                    text = stringResource(SoraCardR.string.details_description),
                     style = MaterialTheme.customTypography.paragraphM,
                     color = Color.White
                 )
@@ -183,7 +184,7 @@ fun GetSoraCardScreen(
                             .padding(horizontal = 8.dp)
                             .height(48.dp),
                         onClick = callbacks::onGetMoreXor,
-                        text = stringResource(R.string.sora_card_get_more_xor)
+                        text = stringResource(SoraCardR.string.details_get_more_xor)
                     )
                 }
 
@@ -194,7 +195,7 @@ fun GetSoraCardScreen(
                         .fillMaxWidth()
                         .padding(horizontal = 8.dp)
                         .height(48.dp),
-                    text = stringResource(R.string.sora_card_already_have_card),
+                    text = stringResource(SoraCardR.string.details_already_have_card),
                     onClick = callbacks::onAlreadyHaveCard
                 )
 
@@ -290,7 +291,7 @@ private fun FreeCardIssuance(
                     }
                 )
                 MarginHorizontal(margin = 4.dp)
-                val cardIssuancePriceText = stringResource(R.string.sora_card_free_card_issuance)
+                val cardIssuancePriceText = stringResource(SoraCardR.string.card_issuance_screen_free_card_title)
                 Text(
                     text = AnnotatedString(
                         text = cardIssuancePriceText,
@@ -309,7 +310,7 @@ private fun FreeCardIssuance(
             Text(
                 modifier = Modifier
                     .fillMaxSize(),
-                text = stringResource(R.string.sora_card_free_card_issuance_conditions_xor),
+                text = stringResource(SoraCardR.string.card_issuance_screen_free_card_description, "100"),
                 style = MaterialTheme.customTypography.paragraphM,
                 color = Color.White
             )
@@ -324,11 +325,11 @@ private fun FreeCardIssuance(
                         stringResource(R.string.common_error_general_title)
                     }
                     state.enoughXor -> {
-                        stringResource(R.string.sora_card_you_have_enough_xor)
+                        stringResource(SoraCardR.string.details_enough_xor_desription)
                     }
                     else -> {
                         stringResource(
-                            R.string.sora_card_you_need_xor,
+                            SoraCardR.string.details_need_xor_desription,
                             state.needInXor.formatCryptoDetail(),
                             state.needInEur.formatFiat()
                         )

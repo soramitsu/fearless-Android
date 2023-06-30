@@ -21,12 +21,12 @@ android {
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     signingConfigs {
-      ci {
-          storeFile file(System.env.CI_KEYSTORE_PATH ?: "stub")
-          storePassword System.env.CI_KEYSTORE_PASS ?: ""
-          keyAlias System.env.CI_KEYSTORE_KEY_ALIAS ?: ""
-          keyPassword System.env.CI_KEYSTORE_KEY_PASS ?: ""
-      }
+        ci {
+            storeFile file(System.env.CI_KEYSTORE_PATH ?: "../debug-keystore.jks")
+            storePassword System.env.CI_KEYSTORE_PASS ?: "00000000"
+            keyAlias System.env.CI_KEYSTORE_KEY_ALIAS ?: "fearless"
+            keyPassword System.env.CI_KEYSTORE_KEY_PASS ?: "00000000"
+        }
     }
     buildTypes {
         debug {
@@ -34,6 +34,7 @@ android {
             proguardFiles 'proguard-rules.pro'
             applicationIdSuffix '.debug'
             versionNameSuffix '-debug'
+            signingConfig signingConfigs.ci
         }
         release {
             minifyEnabled minifyRelease
@@ -111,6 +112,11 @@ android {
         disable 'Instantiatable'
     }
     namespace 'jp.co.soramitsu.app'
+
+    packagingOptions {
+        resources.excludes.add("META-INF/**/*")
+        resources.excludes.add("META-INF/*")
+    }
 }
 
 play {
@@ -127,8 +133,8 @@ dependencies {
 
     implementation project(':feature-onboarding-api')
     implementation project(':feature-onboarding-impl')
-    implementation project(':feature-account-api')
 
+    implementation project(':feature-account-api')
     implementation project(':feature-account-impl')
 
     implementation project(':feature-wallet-api')

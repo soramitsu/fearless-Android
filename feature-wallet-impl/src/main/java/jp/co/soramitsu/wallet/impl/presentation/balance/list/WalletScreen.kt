@@ -124,7 +124,6 @@ private fun PreviewWalletScreen() {
             assetIconUrl = "",
             assetChainName = "Chain",
             assetSymbol = "SMB",
-            displayName = "Sora",
             assetName = "Sora Asset",
             assetTokenFiat = null,
             assetTokenRate = null,

@@ -11,7 +11,8 @@ import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.sumByBigInteger
 import jp.co.soramitsu.common.validation.CompositeValidation
 import jp.co.soramitsu.common.validation.ValidationSystem
-import jp.co.soramitsu.core.models.utilityAsset
+import jp.co.soramitsu.core.models.Asset.StakingType
+import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
@@ -42,7 +43,6 @@ import jp.co.soramitsu.staking.impl.domain.EraTimeCalculator
 import jp.co.soramitsu.staking.impl.domain.EraTimeCalculatorFactory
 import jp.co.soramitsu.staking.impl.domain.StakingInteractor
 import jp.co.soramitsu.staking.impl.domain.common.isWaiting
-import jp.co.soramitsu.staking.impl.domain.getSelectedChain
 import jp.co.soramitsu.staking.impl.domain.isNominationActive
 import jp.co.soramitsu.staking.impl.domain.minimumStake
 import jp.co.soramitsu.staking.impl.domain.model.NetworkInfo
@@ -97,13 +97,14 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.withContext
@@ -127,20 +128,20 @@ class StakingRelayChainScenarioInteractor(
 ) : StakingScenarioInteractor {
 
     override suspend fun observeNetworkInfoState(): Flow<NetworkInfo> {
-        val chain = stakingInteractor.getSelectedChain()
-        val lockupPeriod = runCatching { getLockupPeriodInHours(chain.id) }.getOrDefault(0)
+        return stakingSharedState.assetWithChain.filter { it.asset.staking == StakingType.RELAYCHAIN }.flatMapLatest { (chain, _) ->
+            val lockupPeriod = runCatching { getLockupPeriodInHours(chain.id) }.getOrDefault(0)
+            stakingRelayChainScenarioRepository.electedExposuresInActiveEra(chain.id).map { exposuresMap ->
+                val exposures = exposuresMap.values
 
-        return stakingRelayChainScenarioRepository.electedExposuresInActiveEra(chain.id).map { exposuresMap ->
-            val exposures = exposuresMap.values
+                val minimumNominatorBond = chain.utilityAsset?.let { stakingRelayChainScenarioRepository.minimumNominatorBond(it) }.orZero()
 
-            val minimumNominatorBond = stakingRelayChainScenarioRepository.minimumNominatorBond(chain.utilityAsset)
-
-            NetworkInfo.RelayChain(
-                lockupPeriodInHours = lockupPeriod,
-                minimumStake = minimumStake(exposures, minimumNominatorBond),
-                totalStake = totalStake(exposures),
-                nominatorsCount = activeNominators(chain.id, exposures)
-            )
+                NetworkInfo.RelayChain(
+                    lockupPeriodInHours = lockupPeriod,
+                    minimumStake = minimumStake(exposures, minimumNominatorBond),
+                    totalStake = totalStake(exposures),
+                    nominatorsCount = activeNominators(chain.id, exposures)
+                )
+            }
         }
     }
 
@@ -164,18 +165,20 @@ class StakingRelayChainScenarioInteractor(
         return stakingConstantsRepository.lockupPeriodInEras(chainId).toInt() * stakingRelayChainScenarioRepository.hoursInEra(chainId)
     }
 
-    override val stakingStateFlow = stakingSharedState.assetWithChain.distinctUntilChanged().flatMapConcat { (chain, asset) ->
-        val accountId = accountRepository.getSelectedMetaAccount().accountId(chain) ?: error("cannot find accountId")
-        stakingRelayChainScenarioRepository.stakingStateFlow(chain, asset, accountId)
+    override fun stakingStateFlow(): Flow<StakingState> {
+        return stakingSharedState.assetWithChain.distinctUntilChanged().flatMapLatest { (chain, asset) ->
+            val accountId = accountRepository.getSelectedMetaAccount().accountId(chain) ?: error("cannot find accountId")
+            stakingRelayChainScenarioRepository.stakingStateFlow(chain, asset, accountId)
+        }
     }
 
-    suspend fun observeStashSummary(
+    fun observeStashSummary(
         stashState: StakingState.Stash.None
     ): Flow<StakeSummary<StashNoneStatus>> = observeStakeSummary(stashState) {
         StashNoneStatus.INACTIVE
     }
 
-    suspend fun observeValidatorSummary(
+    fun observeValidatorSummary(
         validatorState: StakingState.Stash.Validator
     ): Flow<StakeSummary<ValidatorStatus>> = observeStakeSummary(validatorState) {
         when {
@@ -184,52 +187,52 @@ class StakingRelayChainScenarioInteractor(
         }
     }
 
-    suspend fun observeNominatorSummary(
+    fun observeNominatorSummary(
         nominatorState: StakingState.Stash.Nominator
-    ): Flow<StakeSummary<NominatorStatus>> = observeStakeSummary(nominatorState) {
-        val eraStakers = it.eraStakers.values
-        val chainId = nominatorState.chain.id
+    ): Flow<StakeSummary<NominatorStatus>> {
+        return observeStakeSummary(nominatorState) {
+            val eraStakers = it.eraStakers.values
+            val chainId = nominatorState.chain.id
 
-        when {
-            isNominationActive(nominatorState.stashId, it.eraStakers.values, it.rewardedNominatorsPerValidator) -> NominatorStatus.Active
+            when {
+                isNominationActive(nominatorState.stashId, it.eraStakers.values, it.rewardedNominatorsPerValidator) -> NominatorStatus.Active
 
-            nominatorState.nominations.isWaiting(it.activeEraIndex) -> NominatorStatus.Waiting(
-                timeLeft = getCalculator(chainId).calculate(nominatorState.nominations.submittedInEra + ERA_OFFSET).toLong()
-            )
+                nominatorState.nominations.isWaiting(it.activeEraIndex) -> NominatorStatus.Waiting(
+                    timeLeft = getCalculator(chainId).calculate(nominatorState.nominations.submittedInEra + ERA_OFFSET).toLong()
+                )
 
-            else -> {
-                val inactiveReason = when {
-                    it.asset.bondedInPlanks.orZero() < minimumStake(
-                        eraStakers,
-                        stakingRelayChainScenarioRepository.minimumNominatorBond(nominatorState.chain.utilityAsset)
-                    ) -> {
-                        NominatorStatus.Inactive.Reason.MIN_STAKE
+                else -> {
+                    val utilityAsset = nominatorState.chain.utilityAsset
+                    val inactiveReason = when {
+                        utilityAsset != null && it.asset.bondedInPlanks.orZero() < minimumStake(
+                            eraStakers,
+                            stakingRelayChainScenarioRepository.minimumNominatorBond(utilityAsset)
+                        ) -> {
+                            NominatorStatus.Inactive.Reason.MIN_STAKE
+                        }
+
+                        else -> NominatorStatus.Inactive.Reason.NO_ACTIVE_VALIDATOR
                     }
-                    else -> NominatorStatus.Inactive.Reason.NO_ACTIVE_VALIDATOR
-                }
 
-                NominatorStatus.Inactive(inactiveReason)
+                    NominatorStatus.Inactive(inactiveReason)
+                }
             }
         }
     }
 
-    private suspend fun <S> observeStakeSummary(
+    private fun <S> observeStakeSummary(
         state: StakingState.Stash,
         statusResolver: suspend (StatusResolutionContext) -> S
-    ): Flow<StakeSummary<S>> = withContext(Dispatchers.Default) {
-        val (chain, chainAsset) = stakingSharedState.assetWithChain.first()
-        val chainId = chainAsset.chainId
-        val meta = accountRepository.getSelectedMetaAccount()
-
-        combine(
-            stakingRelayChainScenarioRepository.observeActiveEraIndex(chainId),
-            walletRepository.assetFlow(meta.id, state.accountId, chainAsset, chain.minSupportedVersion),
+    ): Flow<StakeSummary<S>> {
+        return combine(
+            stakingRelayChainScenarioRepository.observeActiveEraIndex(state.chain.id),
+            stakingSharedState.currentAssetFlow(),
             stakingRewardsRepository.totalRewardFlow(state.stashAddress).onStart { emit(BigInteger.ZERO) }
         ) { activeEraIndex, asset, totalReward ->
             val totalStaked = asset.bonded
 
-            val eraStakers = stakingRelayChainScenarioRepository.getActiveElectedValidatorsExposures(chainId)
-            val rewardedNominatorsPerValidator = stakingConstantsRepository.maxRewardedNominatorPerValidator(chainId)
+            val eraStakers = stakingRelayChainScenarioRepository.getActiveElectedValidatorsExposures(state.chain.id)
+            val rewardedNominatorsPerValidator = stakingConstantsRepository.maxRewardedNominatorPerValidator(state.chain.id)
 
             val statusResolutionContext = StatusResolutionContext(eraStakers, activeEraIndex, asset, rewardedNominatorsPerValidator)
 
@@ -240,7 +243,7 @@ class StakingRelayChainScenarioInteractor(
                 totalReward = asset.token.amountFromPlanks(totalReward),
                 currentEra = activeEraIndex.toInt()
             )
-        }
+        }.flowOn(Dispatchers.Default)
     }
 
     private fun isValidatorActive(stashId: ByteArray, exposures: AccountIdMap<Exposure>): Boolean {
@@ -597,7 +600,7 @@ class StakingRelayChainScenarioInteractor(
         // see https://github.com/paritytech/substrate/blob/master/frame/staking/src/lib.rs#L1614
         // if account is nominating
         val resultedBalance = currentBondedBalance.minus(unbondAmount)
-        val minBond = stakingRelayChainScenarioRepository.minimumNominatorBond(stashState.chain.utilityAsset)
+        val minBond = stashState.chain.utilityAsset?.let { stakingRelayChainScenarioRepository.minimumNominatorBond(it) }.orZero()
         val isFullUnbond = resultedBalance.compareTo(BigInteger.ZERO) == 0
         val needChill = stashState is StakingState.Stash.Nominator &&
             // and resulting bonded balance is less than min bond

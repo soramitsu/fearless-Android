@@ -6,8 +6,8 @@ import jp.co.soramitsu.common.data.network.runtime.binding.getList
 import jp.co.soramitsu.common.data.network.runtime.binding.getTyped
 import jp.co.soramitsu.common.data.network.runtime.binding.incompatible
 import jp.co.soramitsu.common.data.network.runtime.binding.requireType
-import jp.co.soramitsu.common.data.network.runtime.binding.returnType
 import jp.co.soramitsu.common.utils.staking
+import jp.co.soramitsu.core.runtime.storage.returnType
 import jp.co.soramitsu.shared_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.shared_utils.runtime.definitions.types.composite.Struct
 import jp.co.soramitsu.shared_utils.runtime.definitions.types.fromHexOrNull

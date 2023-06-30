@@ -93,7 +93,7 @@
                 android:visibility="gone"
                 android:paddingEnd="12dp"
                 android:paddingBottom="6dp"
-                android:text="@string/select_collator_having_identity"
+                android:text="@string/staking_recommended_feature_3"
                 android:textColor="@color/button_text_colors" />
 
             <TextView

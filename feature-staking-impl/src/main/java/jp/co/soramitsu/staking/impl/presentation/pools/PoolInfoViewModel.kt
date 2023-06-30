@@ -3,6 +3,7 @@ package jp.co.soramitsu.staking.impl.presentation.pools
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.DropDownViewState
 import jp.co.soramitsu.common.compose.component.TitleValueViewState
@@ -34,7 +35,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
-import javax.inject.Inject
 
 @HiltViewModel
 class PoolInfoViewModel @Inject constructor(
@@ -63,7 +63,7 @@ class PoolInfoViewModel @Inject constructor(
         canChangeRoles = poolInfo.root.contentEquals(currentUserAccountId)
 
         val stakedAmount = asset.token.amountFromPlanks(poolInfo.stakedInPlanks)
-        staked = stakedAmount.formatCryptoDetail(asset.token.configuration.symbolToShow)
+        staked = stakedAmount.formatCryptoDetail(asset.token.configuration.symbol)
         stakedFiat = stakedAmount.applyFiatRate(asset.token.fiatRate)?.formatFiat(asset.token.fiatSymbol)
 
         setupSelectedValidatorsSharedState()

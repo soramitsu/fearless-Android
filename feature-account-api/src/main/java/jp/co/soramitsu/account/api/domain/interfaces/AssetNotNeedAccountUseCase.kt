@@ -10,6 +10,7 @@ interface AssetNotNeedAccountUseCase {
      * used in lists sort
      */
     suspend fun markNotNeed(chainId: ChainId, metaId: Long, assetId: String, priceId: String?)
+    suspend fun markChainAssetsNotNeed(chainId: ChainId, metaId: Long)
 
     /**
      * Get assets without account

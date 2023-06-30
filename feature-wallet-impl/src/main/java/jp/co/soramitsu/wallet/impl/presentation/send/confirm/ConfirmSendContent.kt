@@ -87,7 +87,7 @@ fun ConfirmSendContent(
                         .verticalScroll(rememberScrollState())
                 ) {
                     ToolbarBottomSheet(
-                        title = stringResource(id = R.string.preview),
+                        title = stringResource(id = R.string.common_preview),
                         onNavigationClick = callback::onNavigationClick
                     )
 

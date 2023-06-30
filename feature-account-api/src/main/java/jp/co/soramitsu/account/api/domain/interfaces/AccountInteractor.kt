@@ -40,8 +40,8 @@ interface AccountInteractor {
     ): Result<Unit>
 
     suspend fun importFromMnemonic(
-        keyString: String,
-        username: String,
+        mnemonic: String,
+        walletName: String,
         substrateDerivationPath: String,
         ethereumDerivationPath: String,
         selectedEncryptionType: CryptoType,

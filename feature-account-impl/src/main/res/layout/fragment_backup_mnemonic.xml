@@ -52,7 +52,17 @@
         android:layout_marginStart="@dimen/x2"
         android:layout_marginTop="@dimen/x3"
         android:layout_marginEnd="@dimen/x2"
-        android:layout_marginBottom="@dimen/x3"
         android:text="@string/common_next" />
+
+    <jp.co.soramitsu.common.view.PrimaryButton
+        android:id="@+id/googleBackupButton"
+        style="@style/Widget.Fearless.Button.Outline"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/x2"
+        android:layout_marginTop="@dimen/x1"
+        android:layout_marginEnd="@dimen/x2"
+        android:layout_marginBottom="@dimen/x3"
+        android:text="@string/btn_backup_with_google" />
 
 </LinearLayout>

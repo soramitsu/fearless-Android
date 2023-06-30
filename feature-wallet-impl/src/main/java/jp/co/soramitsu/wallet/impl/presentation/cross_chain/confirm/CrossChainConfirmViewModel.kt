@@ -5,6 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.common.AlertViewState
 import jp.co.soramitsu.common.address.AddressIconGenerator
@@ -25,7 +26,7 @@ import jp.co.soramitsu.common.utils.formatting.shortenAddress
 import jp.co.soramitsu.common.utils.requireException
 import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.core.models.Asset
-import jp.co.soramitsu.core.models.utilityAsset
+import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
 import jp.co.soramitsu.wallet.api.domain.TransferValidationResult
@@ -56,7 +57,6 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import javax.inject.Inject
 
 private const val ICON_IN_DP = 24
 
@@ -178,7 +178,7 @@ class CrossChainConfirmViewModel @Inject constructor(
             val assetModel = mapAssetToAssetModel(originAsset)
             TitleValueViewState(
                 title = resourceManager.getString(R.string.common_amount),
-                value = transferDraft.amount.formatCryptoDetail(assetModel.token.configuration.symbolToShow),
+                value = transferDraft.amount.formatCryptoDetail(assetModel.token.configuration.symbol),
                 additionalValue = assetModel.getAsFiatWithCurrency(transferDraft.amount)
             )
         } else {
@@ -188,20 +188,20 @@ class CrossChainConfirmViewModel @Inject constructor(
         val tipInfoItem = transferDraft.tip?.let {
             TitleValueViewState(
                 title = resourceManager.getString(R.string.choose_amount_tip),
-                value = transferDraft.tip.formatCryptoDetail(utilityAsset.token.configuration.symbolToShow),
+                value = transferDraft.tip.formatCryptoDetail(utilityAsset.token.configuration.symbol),
                 additionalValue = utilityAsset.getAsFiatWithCurrency(transferDraft.tip)
             )
         }
 
         val originFeeInfoItem = TitleValueViewState(
             title = resourceManager.getString(R.string.common_origin_network_fee),
-            value = transferDraft.originFee.formatCryptoDetail(utilityAsset.token.configuration.symbolToShow),
+            value = transferDraft.originFee.formatCryptoDetail(utilityAsset.token.configuration.symbol),
             additionalValue = utilityAsset.getAsFiatWithCurrency(transferDraft.originFee)
         )
 
         val destinationFeeInfoItem = TitleValueViewState(
             title = resourceManager.getString(R.string.common_destination_network_fee),
-            value = transferDraft.destinationFee.formatCryptoDetail(transferableAsset.token.configuration.symbolToShow),
+            value = transferDraft.destinationFee.formatCryptoDetail(transferableAsset.token.configuration.symbol),
             additionalValue = transferableAsset.getAsFiatWithCurrency(transferDraft.destinationFee)
         )
 
@@ -247,6 +247,7 @@ class CrossChainConfirmViewModel @Inject constructor(
 
     override fun onNextClick() {
         launch {
+            val destinationChain = destinationNetworkFlow.value ?: return@launch
             val asset = originAssetFlow.firstOrNull() ?: return@launch
             val token = asset.token.configuration
 
@@ -259,6 +260,7 @@ class CrossChainConfirmViewModel @Inject constructor(
             val validationProcessResult = validateTransferUseCase.validateExistentialDeposit(
                 amountInPlanks = rawAmountInPlanks + destinationFeeInPlanks,
                 asset = asset,
+                destinationChainId = destinationChain.id,
                 recipientAddress = recipientAddress,
                 ownAddress = selfAddress,
                 fee = originFee,
@@ -294,7 +296,7 @@ class CrossChainConfirmViewModel @Inject constructor(
     private fun openWarningAlert() {
         launch {
             val originAsset = originAssetFlow.value ?: return@launch
-            val symbol = originAsset.token.configuration.symbolToShow
+            val symbol = originAsset.token.configuration.symbol
 
             val payload = AlertViewState(
                 title = getPhishingTitle(phishingType),

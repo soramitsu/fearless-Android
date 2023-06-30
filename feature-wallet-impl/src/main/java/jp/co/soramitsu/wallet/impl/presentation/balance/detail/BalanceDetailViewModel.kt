@@ -5,6 +5,8 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.math.BigDecimal
+import javax.inject.Inject
 import jp.co.soramitsu.account.api.presentation.account.AddressDisplayUseCase
 import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.account.api.presentation.exporting.ExportSource
@@ -49,7 +51,7 @@ import jp.co.soramitsu.wallet.impl.presentation.model.OperationModel
 import jp.co.soramitsu.wallet.impl.presentation.transaction.filter.HistoryFiltersProvider
 import jp.co.soramitsu.wallet.impl.presentation.transaction.history.mixin.TransactionHistoryProvider
 import jp.co.soramitsu.wallet.impl.presentation.transaction.history.mixin.TransactionHistoryUi
-import jp.co.soramitsu.xcm_impl.XcmService
+import jp.co.soramitsu.xcm.XcmService
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
@@ -61,7 +63,6 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @HiltViewModel
 class BalanceDetailViewModel @Inject constructor(
@@ -114,14 +115,14 @@ class BalanceDetailViewModel @Inject constructor(
         selectedChainId
     ) { assetModels: List<AssetModel>,
         selectedChainId: ChainId? ->
-        val assetSymbolToShow = assetModels.first {
+        val assetSymbol = assetModels.first {
             it.token.configuration.id == assetPayloadInitial.chainAssetId
-        }.token.configuration.symbolToShow
+        }.token.configuration.symbol
 
         val chainId = selectedChainId ?: assetPayload.value.chainId
 
         val asset = assetModels.first {
-            it.token.configuration.symbolToShow == assetSymbolToShow && it.token.configuration.chainId == chainId
+            it.token.configuration.symbol == assetSymbol && it.token.configuration.chainId == chainId
         }
 
         assetPayload.emit(
@@ -171,10 +172,7 @@ class BalanceDetailViewModel @Inject constructor(
         LoadingState.Loading(),
         LoadingState.Loading(),
         TitleValueViewState(title = resourceManager.getString(R.string.assetdetails_balance_transferable)),
-        TitleValueViewState(
-            title = resourceManager.getString(R.string.assetdetails_balance_locked),
-            clickState = TitleValueViewState.ClickState.Title(R.drawable.ic_info_14, LOCKED_BALANCE_INFO_ID)
-        ),
+        TitleValueViewState(title = resourceManager.getString(R.string.assetdetails_balance_locked)),
         TransactionHistoryUi.State.EmptyProgress
     )
 
@@ -185,7 +183,7 @@ class BalanceDetailViewModel @Inject constructor(
         balanceModel: Asset ->
 
         val balanceState = AssetBalanceViewState(
-            transferableBalance = balanceModel.transferable.orZero().formatCryptoDetail(balanceModel.token.configuration.symbolToShow),
+            transferableBalance = balanceModel.transferable.orZero().formatCryptoDetail(balanceModel.token.configuration.symbol),
             address = currentAccountAddress(chainId = balanceModel.token.configuration.chainId).orEmpty(),
             isInfoEnabled = false,
             changeViewState = ChangeBalanceViewState(
@@ -206,13 +204,21 @@ class BalanceDetailViewModel @Inject constructor(
             )
         )
 
-        val transferableFormatted = balanceModel.transferable.formatCryptoDetail(balanceModel.token.configuration.symbolToShow)
+        val transferableFormatted = balanceModel.transferable.formatCryptoDetail(balanceModel.token.configuration.symbol)
         val transferableFiat = balanceModel.token.fiatAmount(balanceModel.transferable)?.formatFiat(balanceModel.token.fiatSymbol)
         val newTransferableState = defaultState.transferableViewState.copy(value = transferableFormatted, additionalValue = transferableFiat)
 
-        val lockedFormatted = balanceModel.locked.formatCryptoDetail(balanceModel.token.configuration.symbolToShow)
+        val lockedFormatted = balanceModel.locked.formatCryptoDetail(balanceModel.token.configuration.symbol)
         val lockedFiat = balanceModel.token.fiatAmount(balanceModel.locked)?.formatFiat(balanceModel.token.fiatSymbol)
-        val newLockedState = defaultState.lockedViewState.copy(value = lockedFormatted, additionalValue = lockedFiat)
+        val newLockedState = defaultState.lockedViewState.copy(
+            value = lockedFormatted,
+            additionalValue = lockedFiat,
+            clickState = if (balanceModel.locked > BigDecimal.ZERO) {
+                TitleValueViewState.ClickState.Title(R.drawable.ic_info_14, LOCKED_BALANCE_INFO_ID)
+            } else {
+                null
+            }
+        )
 
         BalanceDetailsState(
             actionBarViewState = actionBarState,
@@ -438,7 +444,7 @@ class BalanceDetailViewModel @Inject constructor(
             val assetModel = assetModelFlow.first()
             router.openFrozenTokens(
                 FrozenAssetPayload(
-                    assetSymbol = assetModel.token.configuration.symbolToShow,
+                    assetSymbol = assetModel.token.configuration.symbol,
                     locked = assetModel.locked,
                     reserved = assetModel.reserved,
                     redeemable = assetModel.redeemable

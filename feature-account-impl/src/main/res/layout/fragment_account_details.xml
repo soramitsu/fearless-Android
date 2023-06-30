@@ -14,7 +14,7 @@
         android:layout_height="wrap_content"
         app:dividerVisible="false"
         app:homeButtonIcon="@drawable/ic_close"
-        app:titleText="@string/wallet_info_title" />
+        app:titleText="@string/common_title_wallet" />
 
     <jp.co.soramitsu.common.view.InputField
         android:id="@+id/accountDetailsNameField"

@@ -45,7 +45,7 @@ class BuyMixinProvider(
 
         when {
             asset == null -> throw IllegalArgumentException("No asset found with id = $chainAssetId for chain $chainId")
-            availableProviders.isEmpty() -> throw IllegalArgumentException("No provider found for ${asset.symbolToShow}")
+            availableProviders.isEmpty() -> throw IllegalArgumentException("No provider found for ${asset.symbol}")
             availableProviders.size == 1 -> providerChosen(availableProviders.first(), asset, accountAddress)
             else -> showProviderChooserEvent.value = Event(ProviderChooserPayload(availableProviders, asset, accountAddress))
         }

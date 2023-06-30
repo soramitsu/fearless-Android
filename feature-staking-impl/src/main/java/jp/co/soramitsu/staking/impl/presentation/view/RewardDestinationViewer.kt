@@ -33,7 +33,7 @@ class RewardDestinationViewer @JvmOverloads constructor(
                 binding.viewRewardDestinationDestination.showValue(context.getString(R.string.staking_setup_restake))
             }
             is RewardDestinationModel.Payout -> {
-                binding.viewRewardDestinationDestination.showValue(context.getString(R.string.staking_payout))
+                binding.viewRewardDestinationDestination.showValue(context.getString(R.string.common_payout))
                 binding.viewRewardDestinationPayoutAccount.setMessage(rewardDestinationModel.destination.nameOrAddress)
                 binding.viewRewardDestinationPayoutAccount.setTextIcon(rewardDestinationModel.destination.image)
             }

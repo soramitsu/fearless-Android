@@ -58,7 +58,7 @@ class ConfirmUnbondViewModel @Inject constructor(
     private val _showNextProgress = MutableLiveData(false)
     val showNextProgress: LiveData<Boolean> = _showNextProgress
 
-    private val accountStakingFlow = stakingScenarioInteractor.stakingStateFlow
+    private val accountStakingFlow = stakingScenarioInteractor.stakingStateFlow()
         .share()
 
     private val assetFlow = interactor.currentAssetFlow()

@@ -98,7 +98,7 @@
                 android:layout_marginStart="16dp"
                 android:layout_marginTop="12dp"
                 android:layout_marginEnd="16dp"
-                app:title="@string/network_fee" />
+                app:title="@string/common_network_fee" />
 
             <jp.co.soramitsu.common.view.TableCellView
                 android:id="@+id/crowdloanContributeLeasingPeriod"

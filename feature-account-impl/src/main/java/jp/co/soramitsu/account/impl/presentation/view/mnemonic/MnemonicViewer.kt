@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.AttributeSet
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.GridLayoutManager
+import jp.co.soramitsu.common.compose.component.MnemonicWordModel
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.databinding.ViewMnemonicBinding
 
@@ -26,7 +27,7 @@ class MnemonicViewer @JvmOverloads constructor(
     fun submitList(list: List<MnemonicWordModel>) {
         val manager = binding.mnemonicViewerList.layoutManager as GridLayoutManager
 
-        manager.spanCount = list.size / 2
+        manager.spanCount = (list.size / 2).coerceAtLeast(1)
 
         adapter.submitList(list)
     }

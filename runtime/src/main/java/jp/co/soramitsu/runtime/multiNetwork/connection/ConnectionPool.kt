@@ -1,12 +1,15 @@
 package jp.co.soramitsu.runtime.multiNetwork.connection
 
+import java.util.concurrent.ConcurrentHashMap
+import javax.inject.Inject
+import javax.inject.Provider
 import jp.co.soramitsu.common.compose.component.NetworkIssueItemState
 import jp.co.soramitsu.common.compose.component.NetworkIssueType
 import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
 import jp.co.soramitsu.common.mixin.api.NetworkStateUi
 import jp.co.soramitsu.common.utils.Event
-import jp.co.soramitsu.core.models.utilityAsset
 import jp.co.soramitsu.core.runtime.ChainConnection
+import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.storage.NodesSettingsStorage
@@ -16,13 +19,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
-import java.util.concurrent.ConcurrentHashMap
-import javax.inject.Inject
-import javax.inject.Provider
 
 class ConnectionPool @Inject constructor(
     private val socketServiceProvider: Provider<SocketService>,
@@ -64,8 +65,8 @@ class ConnectionPool @Inject constructor(
                     },
                     chainId = chain.id,
                     chainName = chain.name,
-                    assetId = chain.utilityAsset.id,
-                    priceId = chain.utilityAsset.priceId
+                    assetId = chain.utilityAsset?.id.orEmpty(),
+                    priceId = chain.utilityAsset?.priceId
                 )
             }
             issues
@@ -80,6 +81,7 @@ class ConnectionPool @Inject constructor(
 
         val isConnectingListFlow = pool.map { it.value.isConnecting }
         val hasConnectingFlow = combine(isConnectingListFlow) { it.any { it } }
+            .filter { connecting -> connecting }
         val showConnecting = combine(hasConnectionsFlow, hasConnectingFlow) { connected, connecting ->
             !connected && connecting
         }

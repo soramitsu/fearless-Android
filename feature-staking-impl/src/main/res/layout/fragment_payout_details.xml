@@ -157,6 +157,6 @@
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="16dp"
-        android:text="@string/staking_payout" />
+        android:text="@string/common_payout" />
 
 </LinearLayout>

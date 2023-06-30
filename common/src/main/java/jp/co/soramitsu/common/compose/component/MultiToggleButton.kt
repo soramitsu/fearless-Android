@@ -93,7 +93,7 @@ interface MultiToggleItem {
 @Composable
 private fun PreviewMultiToggleButton() {
     val currencies = object : MultiToggleItem {
-        override val titleResId = R.string.сurrencies_stub_text
+        override val titleResId = R.string.currencies_stub_text
     }
     val nfts = object : MultiToggleItem {
         override val titleResId = R.string.nfts_stub

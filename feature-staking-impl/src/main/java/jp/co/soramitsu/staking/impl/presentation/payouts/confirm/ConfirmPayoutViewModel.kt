@@ -5,6 +5,8 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
+import javax.inject.Named
 import jp.co.soramitsu.account.api.presentation.account.AddressDisplayUseCase
 import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.common.address.AddressIconGenerator
@@ -42,8 +44,6 @@ import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import javax.inject.Inject
-import javax.inject.Named
 
 @HiltViewModel
 class ConfirmPayoutViewModel @Inject constructor(
@@ -81,7 +81,7 @@ class ConfirmPayoutViewModel @Inject constructor(
     val totalRewardDisplay = assetFlow.map {
         val token = it.token
         val totalReward = token.amountFromPlanks(payload.totalRewardInPlanks)
-        val inToken = totalReward.formatCryptoDetail(token.configuration.symbolToShow)
+        val inToken = totalReward.formatCryptoDetail(token.configuration.symbol)
         val inFiat = token.fiatAmount(totalReward)?.formatFiat(token.fiatSymbol)
 
         inToken to inFiat

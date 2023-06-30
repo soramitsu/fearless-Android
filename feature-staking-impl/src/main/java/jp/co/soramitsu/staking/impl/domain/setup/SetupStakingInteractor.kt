@@ -116,6 +116,7 @@ class SetupStakingInteractor(
         val validatorsIds = validatorAccountIdsHex.map(String::fromHex)
 
         when (chainAsset.syntheticStakingType()) {
+            SyntheticStakingType.TERNOA,
             SyntheticStakingType.DEFAULT -> {
                 val targets = validatorsIds.map(chain::multiAddressOf)
 

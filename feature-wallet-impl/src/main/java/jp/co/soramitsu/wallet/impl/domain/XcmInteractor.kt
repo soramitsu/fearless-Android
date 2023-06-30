@@ -9,6 +9,7 @@ import jp.co.soramitsu.core.extrinsic.keypair_provider.SingleKeypairProvider
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.core.models.ChainId
 import jp.co.soramitsu.core.models.ChainIdWithMetadata
+import jp.co.soramitsu.core.utils.removedXcPrefix
 import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.ext.fakeAddress
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
@@ -17,8 +18,8 @@ import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.domain.model.AssetWithStatus
 import jp.co.soramitsu.wallet.impl.domain.model.CrossChainTransfer
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
-import jp.co.soramitsu.xcm_impl.XcmService
-import jp.co.soramitsu.xcm_impl.domain.XcmEntitiesFetcher
+import jp.co.soramitsu.xcm.XcmService
+import jp.co.soramitsu.xcm.domain.XcmEntitiesFetcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
@@ -38,7 +39,13 @@ class XcmInteractor(
 
     suspend fun prepareDataForChains(originChainId: ChainId, destinationChainId: ChainId) {
         val metaAccount = accountInteractor.selectedMetaAccount()
-        val secrets = accountInteractor.getMetaAccountSecrets(metaAccount.id)?.get(MetaAccountSecrets.SubstrateKeypair)
+        val originChain = chainRegistry.getChain(originChainId)
+        val keypairType = if (originChain.isEthereumBased) {
+            MetaAccountSecrets.EthereumKeypair
+        } else {
+            MetaAccountSecrets.SubstrateKeypair
+        }
+        val secrets = accountInteractor.getMetaAccountSecrets(metaAccount.id)?.get(keypairType)
         requireNotNull(secrets)
         val private = secrets[KeyPairSchema.PrivateKey]
         val public = secrets[KeyPairSchema.PublicKey]
@@ -67,7 +74,9 @@ class XcmInteractor(
             .map { (assets, availableXcmAssetSymbols) ->
                 assets.filter {
                     val assetSymbol = it.asset.token.configuration.symbol.uppercase()
-                    assetSymbol in availableXcmAssetSymbols
+                    val removedXcAssetSymbol = assetSymbol.removedXcPrefix()
+                    removedXcAssetSymbol in availableXcmAssetSymbols ||
+                        assetSymbol in availableXcmAssetSymbols
                 }
             }
     }
@@ -88,8 +97,8 @@ class XcmInteractor(
             val destinationChain = chainRegistry.getChain(transfer.destinationChainId)
             val selfAddress = currentAccountAddress(originChain.id) ?: throw IllegalStateException("No self address")
             xcmService.transfer(
-                fromChain = originChain,
-                toChain = destinationChain,
+                originChain = originChain,
+                destinationChain = destinationChain,
                 asset = transfer.chainAsset,
                 senderAccountId = originChain.accountIdOf(selfAddress),
                 address = transfer.recipient,
@@ -100,12 +109,12 @@ class XcmInteractor(
 
     suspend fun getDestinationFee(
         destinationChainId: ChainId,
-        tokenSymbol: String
+        tokenConfiguration: Asset
     ): BigDecimal? {
         return runCatching {
-            xcmService.getXcmDestFee(
-                toChainId = destinationChainId,
-                tokenSymbol = tokenSymbol
+            xcmService.getXcmDestinationFee(
+                destinationChainId = destinationChainId,
+                asset = tokenConfiguration
             )
         }.getOrNull()
     }
@@ -117,10 +126,10 @@ class XcmInteractor(
         amount: BigDecimal
     ): BigDecimal? {
         return runCatching {
-            val chain = chainRegistry.getChain(originNetworkId)
-            xcmService.getXcmOrigFee(
-                fromChainId = originNetworkId,
-                toChainId = destinationNetworkId,
+            val chain = chainRegistry.getChain(destinationNetworkId)
+            xcmService.getXcmOriginFee(
+                originChainId = originNetworkId,
+                destinationChainId = destinationNetworkId,
                 asset = asset,
                 address = chain.fakeAddress(),
                 amount = asset.getPlanksFromAmountForOriginFee(amount)

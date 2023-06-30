@@ -1,6 +1,6 @@
 package jp.co.soramitsu.polkaswap.api.data
 
-import jp.co.soramitsu.core.rpc.models.responses.QuoteResponse
+import jp.co.soramitsu.core.runtime.models.responses.QuoteResponse
 import jp.co.soramitsu.polkaswap.api.models.Market
 import jp.co.soramitsu.polkaswap.api.models.WithDesired
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId

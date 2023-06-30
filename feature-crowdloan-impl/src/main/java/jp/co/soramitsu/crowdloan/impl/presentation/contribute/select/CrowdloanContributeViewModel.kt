@@ -5,6 +5,10 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.math.BigDecimal
+import java.math.RoundingMode
+import javax.inject.Inject
+import javax.inject.Named
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.mixin.api.Browserable
 import jp.co.soramitsu.common.mixin.api.Validatable
@@ -51,6 +55,7 @@ import jp.co.soramitsu.wallet.api.presentation.formatters.formatCryptoDetailFrom
 import jp.co.soramitsu.wallet.api.presentation.mixin.fee.FeeLoaderMixin
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -67,11 +72,6 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
-import java.math.BigDecimal
-import java.math.RoundingMode
-import javax.inject.Inject
-import javax.inject.Named
-import kotlin.time.Duration.Companion.milliseconds
 
 private const val DEBOUNCE_DURATION_MILLIS = 500
 
@@ -190,7 +190,7 @@ class CrowdloanContributeViewModel @Inject constructor(
         .share()
 
     val unlockHintFlow = assetFlow.map {
-        resourceManager.getString(R.string.crowdloan_unlock_hint, it.token.configuration.symbolToShow.uppercase())
+        resourceManager.getString(R.string.crowdloan_unlock_hint, it.token.configuration.symbol.uppercase())
     }
         .inBackground()
         .share()

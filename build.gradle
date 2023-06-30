@@ -25,7 +25,7 @@ buildscript {
 
         progressButtonsVersion = '2.1.0'
         xNetworkingVersion = '0.0.55'
-        soraCardVersion = '0.0.36'
+        soraCardVersion = '0.0.45'
         soraUiCoreVersion = '0.0.67'
 
         daggerVersion = '2.45'
@@ -84,7 +84,7 @@ buildscript {
         minifyRelease = true
         beaconVersion = "3.2.4"
 
-        sharedFeaturesVersion = "0.0.26_snapshot2"
+        sharedFeaturesVersion = "1.0.0-SNAPSHOT"
 
         coilDep = "io.coil-kt:coil:$coilVersion"
         coilSvg = "io.coil-kt:coil-svg:$coilVersion"
@@ -172,7 +172,6 @@ buildscript {
 
         gifDep = "pl.droidsonroids.gif:android-gif-drawable:$gifVersion"
 
-        withoutBouncycastle = { exclude group: 'org.bouncycastle' }
         soraCardDep = "jp.co.soramitsu:android-sora-card:$soraCardVersion"
         wsDep = "com.neovisionaries:nv-websocket-client:$wsVersion"
         xNetworkingDep = "jp.co.soramitsu:XNetworking-android:$xNetworkingVersion"
@@ -203,6 +202,7 @@ buildscript {
 
         sharedFeaturesCoreDep = "jp.co.soramitsu.shared_features:core:$sharedFeaturesVersion"
         sharedFeaturesXcmDep = "jp.co.soramitsu.shared_features:xcm:$sharedFeaturesVersion"
+        sharedFeaturesBackupDep = "jp.co.soramitsu.shared_features:backup:$sharedFeaturesVersion"
 
         serializationDep = "org.jetbrains.kotlinx:kotlinx-serialization-json:$serializationVersion"
     }
@@ -221,6 +221,12 @@ buildscript {
         classpath "com.google.firebase:firebase-appdistribution-gradle:$firebaseAppDistrVersion"
         classpath "com.github.triplet.gradle:play-publisher:$playPublisherVersion"
         classpath "com.google.dagger:hilt-android-gradle-plugin:$daggerVersion"
+    }
+
+    configurations.all {
+        resolutionStrategy {
+            cacheChangingModulesFor 0, 'seconds'
+        }
     }
 }
 

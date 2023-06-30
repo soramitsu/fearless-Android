@@ -28,7 +28,7 @@ class SubqueryRewardCalculator(
     private var avgApr = BigDecimal.ZERO
 
     override suspend fun calculateMaxAPY(chainId: ChainId): BigDecimal {
-        val chain = stakingParachainScenarioInteractor?.stakingStateFlow?.first()?.chain
+        val chain = stakingParachainScenarioInteractor?.stakingStateFlow()?.first()?.chain
         val stakingUrl = chain?.externalApi?.staking?.url
         val stakingType = chain?.externalApi?.staking?.type
 
@@ -98,7 +98,7 @@ class SubqueryRewardCalculator(
     }
 
     suspend fun getApy(selectedCandidates: List<ByteArray>): Map<String, BigDecimal?> {
-        val chain = stakingParachainScenarioInteractor?.stakingStateFlow?.first()?.chain
+        val chain = stakingParachainScenarioInteractor?.stakingStateFlow()?.first()?.chain
         val stakingUrl = chain?.externalApi?.staking?.url
         val stakingType = chain?.externalApi?.staking?.type
 

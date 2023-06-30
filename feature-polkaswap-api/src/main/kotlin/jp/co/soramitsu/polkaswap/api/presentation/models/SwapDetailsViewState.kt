@@ -1,18 +1,18 @@
 package jp.co.soramitsu.polkaswap.api.presentation.models
 
 import android.os.Parcelable
+import java.math.BigDecimal
 import jp.co.soramitsu.common.compose.component.GradientIconState
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.formatCryptoDetail
 import jp.co.soramitsu.common.utils.formatFiat
-import jp.co.soramitsu.core.rpc.models.responses.QuoteResponse
+import jp.co.soramitsu.core.runtime.models.responses.QuoteResponse
 import jp.co.soramitsu.feature_polkaswap_api.R
 import jp.co.soramitsu.polkaswap.api.domain.models.SwapDetails
 import jp.co.soramitsu.polkaswap.api.models.WithDesired
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import kotlinx.parcelize.Parcelize
-import java.math.BigDecimal
 import jp.co.soramitsu.core.models.Asset as CoreAsset
 
 @Parcelize
@@ -66,19 +66,19 @@ fun detailsToViewState(
 
     when (desired) {
         WithDesired.INPUT -> {
-            fromAmount = amount.formatCryptoDetail(fromAsset.token.configuration.symbolToShow)
-            toAmount = details.amount.formatCryptoDetail(toAsset.token.configuration.symbolToShow)
+            fromAmount = amount.formatCryptoDetail(fromAsset.token.configuration.symbol)
+            toAmount = details.amount.formatCryptoDetail(toAsset.token.configuration.symbol)
 
             minMaxTitle = resourceManager.getString(R.string.common_min_received)
-            minMaxAmount = details.minMax.formatCryptoDetail(toAsset.token.configuration.symbolToShow)
+            minMaxAmount = details.minMax.formatCryptoDetail(toAsset.token.configuration.symbol)
             minMaxFiat = toAsset.token.fiatAmount(details.minMax)?.formatFiat(toAsset.token.fiatSymbol)
         }
         WithDesired.OUTPUT -> {
-            fromAmount = details.amount.formatCryptoDetail(fromAsset.token.configuration.symbolToShow)
-            toAmount = amount.formatCryptoDetail(toAsset.token.configuration.symbolToShow)
+            fromAmount = details.amount.formatCryptoDetail(fromAsset.token.configuration.symbol)
+            toAmount = amount.formatCryptoDetail(toAsset.token.configuration.symbol)
 
             minMaxTitle = resourceManager.getString(R.string.polkaswap_maximum_sold)
-            minMaxAmount = details.minMax.formatCryptoDetail(fromAsset.token.configuration.symbolToShow)
+            minMaxAmount = details.minMax.formatCryptoDetail(fromAsset.token.configuration.symbol)
             minMaxFiat = fromAsset.token.fiatAmount(details.minMax)?.formatFiat(fromAsset.token.fiatSymbol)
         }
     }
@@ -88,8 +88,8 @@ fun detailsToViewState(
     return SwapDetailsViewState(
         fromTokenId = tokenFromId,
         toTokenId = tokenToId,
-        fromTokenName = fromAsset.token.configuration.symbolToShow.uppercase(),
-        toTokenName = toAsset.token.configuration.symbolToShow.uppercase(),
+        fromTokenName = fromAsset.token.configuration.symbol.uppercase(),
+        toTokenName = toAsset.token.configuration.symbol.uppercase(),
         fromTokenImage = GradientIconState.Remote(fromAsset.token.configuration.iconUrl, fromAsset.token.configuration.color),
         toTokenImage = GradientIconState.Remote(toAsset.token.configuration.iconUrl, toAsset.token.configuration.color),
         fromTokenAmount = fromAmount,
@@ -100,8 +100,8 @@ fun detailsToViewState(
         fromTokenOnToToken = details.fromTokenOnToToken.formatCryptoDetail(),
         toTokenOnFromToken = details.toTokenOnFromToken.formatCryptoDetail(),
         liquidityProviderFee = SwapDetailsViewState.NetworkFee(
-            details.feeAsset.token.configuration.symbolToShow.uppercase(),
-            details.liquidityProviderFee.formatCryptoDetail(details.feeAsset.token.configuration.symbolToShow),
+            details.feeAsset.token.configuration.symbol.uppercase(),
+            details.liquidityProviderFee.formatCryptoDetail(details.feeAsset.token.configuration.symbol),
             details.feeAsset.token.fiatAmount(details.liquidityProviderFee)?.formatFiat(details.feeAsset.token.fiatSymbol)
         )
     )

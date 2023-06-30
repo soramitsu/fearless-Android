@@ -479,6 +479,11 @@
         android:label="poolInfoFragment" />
 
     <dialog
+        android:id="@+id/backupWalletDialog"
+        android:name="jp.co.soramitsu.account.impl.presentation.backup_wallet.BackupWalletDialog"
+        android:label="backupWalletDialog" />
+
+    <dialog
         android:id="@+id/managePoolStakeFragment"
         android:name="jp.co.soramitsu.staking.impl.presentation.staking.balance.ManagePoolStakeFragment"
         android:label="managePoolStakeFragment" />

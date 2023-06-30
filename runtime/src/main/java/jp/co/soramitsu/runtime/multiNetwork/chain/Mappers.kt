@@ -11,7 +11,6 @@ import jp.co.soramitsu.coredb.model.chain.ChainLocal
 import jp.co.soramitsu.coredb.model.chain.ChainNodeLocal
 import jp.co.soramitsu.coredb.model.chain.JoinedChainInfo
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
-import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.AssetRemote
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.ChainExternalApiRemote
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.ChainRemote
 
@@ -80,17 +79,7 @@ private fun mapSectionToSectionLocal(sectionLocal: Chain.ExternalApi.Section?) =
 
 private const val DEFAULT_PRECISION = 10
 
-fun mapChainsRemoteToChains(
-    chainsRemote: List<ChainRemote>,
-    assetsRemote: List<AssetRemote>
-): List<Chain> {
-    val assetsById = assetsRemote.filter { it.id != null }.associateBy { it.id }
-    return chainsRemote.mapNotNull { chainRemote ->
-        runCatching { chainRemote.toChain(assetsById) }.getOrNull()
-    }
-}
-
-private fun ChainRemote.toChain(assetsById: Map<String?, AssetRemote>): Chain {
+fun ChainRemote.toChain(): Chain {
     val nodes = this.nodes?.mapIndexed { index, node ->
         ChainNode(
             url = node.url,
@@ -98,34 +87,6 @@ private fun ChainRemote.toChain(assetsById: Map<String?, AssetRemote>): Chain {
             isActive = index == 0,
             isDefault = true
         )
-    }
-
-    val assets = this.assets?.mapNotNull { chainAsset ->
-        chainAsset.assetId?.let {
-            val assetRemote = assetsById[chainAsset.assetId]
-            Asset(
-                id = chainAsset.assetId,
-                name = assetRemote?.name,
-                symbol = assetRemote?.symbol.orEmpty(),
-                displayName = assetRemote?.displayName,
-                iconUrl = assetRemote?.icon.orEmpty(),
-                chainId = this.chainId,
-                chainName = this.name,
-                chainIcon = this.icon,
-                isTestNet = TESTNET_OPTION in this.options.orEmpty(),
-                priceId = assetRemote?.priceId,
-                precision = assetRemote?.precision ?: DEFAULT_PRECISION,
-                staking = mapStakingStringToStakingType(chainAsset.staking),
-                priceProviders = chainAsset.purchaseProviders,
-                supportStakingPool = NOMINATION_POOL_OPTION in this.options.orEmpty(),
-                isUtility = chainAsset.isUtility ?: false,
-                type = ChainAssetType.from(chainAsset.type),
-                currencyId = assetRemote?.currencyId,
-                existentialDeposit = assetRemote?.existentialDeposit,
-                color = assetRemote?.color,
-                isNative = assetRemote?.isNative
-            )
-        }
     }
 
     val externalApi = this.externalApi?.let { externalApi ->
@@ -137,6 +98,8 @@ private fun ChainRemote.toChain(assetsById: Map<String?, AssetRemote>): Chain {
             )
         }
     }
+
+    val assets = this.assetConfigs()
 
     val explorers = this.externalApi?.explorers?.map { it.toExplorer() }
 
@@ -160,6 +123,34 @@ private fun ChainRemote.toChain(assetsById: Map<String?, AssetRemote>): Chain {
     )
 }
 
+private fun ChainRemote.assetConfigs(): List<Asset>? {
+    return assets?.mapNotNull { chainAsset ->
+        chainAsset.id?.let {
+            Asset(
+                id = chainAsset.id,
+                name = chainAsset.name,
+                symbol = chainAsset.symbol.orEmpty(),
+                iconUrl = chainAsset.icon.orEmpty(),
+                chainId = this.chainId,
+                chainName = this.name,
+                chainIcon = this.icon,
+                isTestNet = TESTNET_OPTION in this.options.orEmpty(),
+                priceId = chainAsset.priceId,
+                precision = chainAsset.precision ?: DEFAULT_PRECISION,
+                staking = mapStakingStringToStakingType(chainAsset.staking),
+                priceProviders = chainAsset.purchaseProviders,
+                supportStakingPool = NOMINATION_POOL_OPTION in this.options.orEmpty(),
+                isUtility = chainAsset.isUtility ?: false,
+                type = ChainAssetType.from(chainAsset.type),
+                currencyId = chainAsset.currencyId,
+                existentialDeposit = chainAsset.existentialDeposit,
+                color = chainAsset.color,
+                isNative = chainAsset.isNative
+            )
+        }
+    }
+}
+
 fun mapNodeLocalToNode(nodeLocal: ChainNodeLocal) = ChainNode(
     url = nodeLocal.url,
     name = nodeLocal.name,
@@ -175,7 +166,6 @@ fun mapChainLocalToChain(chainLocal: JoinedChainInfo): Chain {
             id = it.id,
             name = it.name,
             symbol = it.symbol,
-            displayName = it.displayName,
             iconUrl = it.icon,
             chainId = it.chainId,
             priceId = it.priceId,
@@ -247,7 +237,6 @@ fun mapChainToChainLocal(chain: Chain): JoinedChainInfo {
             id = it.id,
             name = it.name,
             symbol = it.symbol,
-            displayName = it.displayName,
             icon = it.iconUrl,
             precision = it.precision,
             chainId = chain.id,

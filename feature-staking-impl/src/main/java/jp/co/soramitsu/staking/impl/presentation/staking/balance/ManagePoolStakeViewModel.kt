@@ -2,6 +2,8 @@ package jp.co.soramitsu.staking.impl.presentation.staking.balance
 
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.math.BigInteger
+import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.NotificationState
 import jp.co.soramitsu.common.compose.component.TitleValueViewState
@@ -35,8 +37,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import java.math.BigInteger
-import javax.inject.Inject
 
 @HiltViewModel
 class ManagePoolStakeViewModel @Inject constructor(
@@ -102,7 +102,7 @@ class ManagePoolStakeViewModel @Inject constructor(
         val lockupPeriodInHours = relayChainScenarioInteractor.unstakingPeriod()
         if (lockupPeriodInHours > HOURS_IN_DAY) {
             val inDays = lockupPeriodInHours / HOURS_IN_DAY
-            resourceManager.getQuantityString(R.plurals.staking_main_lockup_period_value, inDays, inDays)
+            resourceManager.getQuantityString(R.plurals.common_days_format, inDays, inDays)
         } else {
             resourceManager.getQuantityString(R.plurals.common_hours_format, lockupPeriodInHours, lockupPeriodInHours)
         }
@@ -111,10 +111,10 @@ class ManagePoolStakeViewModel @Inject constructor(
     val state = combine(poolStateFlow.filterNotNull(), unstakingPeriodFlow) { pool, unstakingPeriod ->
         val isFullUnstake = pool.myStakeInPlanks == BigInteger.ZERO
         val total = asset.token.amountFromPlanks(pool.myStakeInPlanks)
-        val totalFormatted = total.formatCryptoDetail(asset.token.configuration.symbolToShow)
+        val totalFormatted = total.formatCryptoDetail(asset.token.configuration.symbol)
 
         val hasRewardsForClaim = pool.pendingRewards > BigInteger.ZERO
-        val claimable = asset.token.amountFromPlanks(pool.pendingRewards).formatCryptoDetail(asset.token.configuration.symbolToShow)
+        val claimable = asset.token.amountFromPlanks(pool.pendingRewards).formatCryptoDetail(asset.token.configuration.symbol)
         val claimNotification = if (hasRewardsForClaim) {
             NotificationState(
                 R.drawable.ic_status_warning_16,
@@ -127,7 +127,7 @@ class ManagePoolStakeViewModel @Inject constructor(
             null
         }
         val redeemableNotification = pool.redeemable.takeIf { it > BigInteger.ZERO }?.let { redeemable ->
-            val redeemableFormatted = asset.token.amountFromPlanks(redeemable).formatCryptoDetail(asset.token.configuration.symbolToShow)
+            val redeemableFormatted = asset.token.amountFromPlanks(redeemable).formatCryptoDetail(asset.token.configuration.symbol)
             NotificationState(
                 R.drawable.ic_status_warning_16,
                 resourceManager.getString(R.string.pool_redeem),
@@ -150,12 +150,12 @@ class ManagePoolStakeViewModel @Inject constructor(
             null
         }
 
-        val available = asset.transferable.formatCryptoDetail(asset.token.configuration.symbolToShow)
+        val available = asset.transferable.formatCryptoDetail(asset.token.configuration.symbol)
         val availableFiat = asset.transferable.applyFiatRate(asset.token.fiatRate)?.formatFiat(asset.token.fiatSymbol)
         val availableState = defaultAvailableState.copy(value = available, additionalValue = availableFiat)
 
         val unstaking = asset.token.amountFromPlanks(pool.unbonding)
-        val unstakingFormatted = unstaking.formatCryptoDetail(asset.token.configuration.symbolToShow)
+        val unstakingFormatted = unstaking.formatCryptoDetail(asset.token.configuration.symbol)
         val unstakingFiat = unstaking.applyFiatRate(asset.token.fiatRate)?.formatFiat(asset.token.fiatSymbol)
         val unstakingState = defaultUnstakingState.copy(value = unstakingFormatted, additionalValue = unstakingFiat)
 

@@ -40,7 +40,7 @@ fun FrozenTokensContent(
                 Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    H5(text = stringResource(id = R.string.common_title_frozen_loked))
+                    H5(text = stringResource(id = R.string.assetdetails_balance_locked))
                     Spacer(modifier = Modifier.weight(1f))
                     B2(text = it.formatFiat(""))
                 }
@@ -50,7 +50,7 @@ fun FrozenTokensContent(
                 Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    H5(text = stringResource(id = R.string.common_title_frozen_staked))
+                    H5(text = stringResource(id = R.string.wallet_balance_bonded))
                     Spacer(modifier = Modifier.weight(1f))
                     B2(text = it.formatFiat(""))
                 }
@@ -60,7 +60,7 @@ fun FrozenTokensContent(
                 Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    H5(text = stringResource(id = R.string.common_title_frozen_reserved))
+                    H5(text = stringResource(id = R.string.wallet_balance_reserved))
                     Spacer(modifier = Modifier.weight(1f))
                     B2(text = it.formatFiat(""))
                 }
@@ -70,7 +70,7 @@ fun FrozenTokensContent(
                 Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    H5(text = stringResource(id = R.string.common_title_frozen_redeemable))
+                    H5(text = stringResource(id = R.string.wallet_balance_redeemable))
                     Spacer(modifier = Modifier.weight(1f))
                     B2(text = it.formatFiat(""))
                 }
@@ -80,7 +80,7 @@ fun FrozenTokensContent(
                 Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    H5(text = stringResource(id = R.string.common_title_frozen_unstaking))
+                    H5(text = stringResource(id = R.string.wallet_balance_unbonding_v1_9_0))
                     Spacer(modifier = Modifier.weight(1f))
                     B2(text = it.formatFiat(""))
                 }

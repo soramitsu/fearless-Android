@@ -16,7 +16,7 @@ import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.core.models.ChainId
-import jp.co.soramitsu.core.models.isValidAddress
+import jp.co.soramitsu.core.utils.isValidAddress
 import jp.co.soramitsu.coredb.model.AssetUpdateItem
 import jp.co.soramitsu.runtime.ext.ecosystem
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
@@ -40,7 +40,7 @@ import jp.co.soramitsu.wallet.impl.domain.model.PhishingModel
 import jp.co.soramitsu.wallet.impl.domain.model.Transfer
 import jp.co.soramitsu.wallet.impl.domain.model.WalletAccount
 import jp.co.soramitsu.wallet.impl.domain.model.toPhishingModel
-import jp.co.soramitsu.xcm_impl.domain.XcmEntitiesFetcher
+import jp.co.soramitsu.xcm.domain.XcmEntitiesFetcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -127,7 +127,7 @@ class WalletInteractorImpl(
         .thenBy { it.asset.token.configuration.isTestNet }
         .thenByDescending { it.asset.token.configuration.chainId.isPolkadotOrKusama() }
         .thenBy { it.asset.token.configuration.chainName }
-        .thenBy { it.asset.token.configuration.symbolToShow }
+        .thenBy { it.asset.token.configuration.symbol }
         .thenByDescending { it.asset.token.configuration.isUtility }
         .thenByDescending { it.asset.token.configuration.isNative == true }
 
@@ -315,12 +315,12 @@ class WalletInteractorImpl(
                 chainItem.ecosystem() == chain.ecosystem()
             }
             isChainItemFromSameEcosystem && chainItem.assets.any {
-                it.symbolToShow == chainAsset.symbolToShow
+                it.symbol == chainAsset.symbol
             }
         }
 
         val assetsToManage = chainsWithAsset.map {
-            it.assets.filter { it.symbolToShow == chainAsset.symbolToShow }
+            it.assets.filter { it.symbol == chainAsset.symbol }
         }.flatten()
 
         accountId?.let {

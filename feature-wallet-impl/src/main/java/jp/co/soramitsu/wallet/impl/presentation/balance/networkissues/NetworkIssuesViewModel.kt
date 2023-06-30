@@ -47,6 +47,8 @@ class NetworkIssuesViewModel @Inject constructor(
                     assetId = it.asset.token.configuration.id
                 )
             }
+                .groupBy { it.chainId }
+                .map { it.value[0] }
         }
     ) { networkIssues, assetsWoAccount ->
         networkIssues.plus(assetsWoAccount.toSet())

@@ -5,6 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AssetNotNeedAccountUseCase
 import jp.co.soramitsu.account.api.domain.model.hasChainAccount
 import jp.co.soramitsu.account.api.presentation.actions.AddAccountBottomSheet
@@ -24,11 +25,13 @@ import jp.co.soramitsu.common.list.toListWithHeaders
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.inBackground
+import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.feature_account_impl.R
-import jp.co.soramitsu.core.models.utilityAsset
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.debounce
@@ -37,9 +40,6 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import javax.inject.Inject
-import kotlin.time.DurationUnit
-import kotlin.time.toDuration
 
 private const val UPDATE_NAME_INTERVAL_SECONDS = 1L
 
@@ -104,7 +104,7 @@ class AccountDetailsViewModel @Inject constructor(
     private fun mapFromToTextHeader(from: AccountInChain.From): TextHeader? {
         val resId = when (from) {
             AccountInChain.From.META_ACCOUNT -> R.string.default_account_shared_secret
-            AccountInChain.From.CHAIN_ACCOUNT -> R.string.account_unique_secret
+            AccountInChain.From.CHAIN_ACCOUNT -> R.string.account_custom_secret
             AccountInChain.From.ACCOUNT_WO_ADDRESS -> return null
         }
 
@@ -173,9 +173,9 @@ class AccountDetailsViewModel @Inject constructor(
 
     fun exportTypeSelected(selected: ExportSource, chainId: ChainId) {
         val destination = when (selected) {
-            is ExportSource.Json -> accountRouter.openExportJsonPassword(metaId, chainId)
-            is ExportSource.Seed -> accountRouter.openExportSeed(metaId, chainId)
-            is ExportSource.Mnemonic -> accountRouter.openExportMnemonic(metaId, chainId)
+            is ExportSource.Json -> accountRouter.openExportJsonPasswordDestination(metaId, chainId)
+            is ExportSource.Seed -> accountRouter.getExportSeedDestination(metaId, chainId)
+            is ExportSource.Mnemonic -> accountRouter.getExportMnemonicDestination(metaId, chainId)
         }
 
         accountRouter.withPinCodeCheckRequired(destination, pinCodeTitleRes = R.string.account_export)
@@ -191,8 +191,8 @@ class AccountDetailsViewModel @Inject constructor(
                 metaId = metaId,
                 chainId = item.chainId,
                 chainName = item.chainName,
-                assetId = utilityAsset.id,
-                priceId = utilityAsset.priceId,
+                assetId = utilityAsset?.id.orEmpty(),
+                priceId = utilityAsset?.priceId,
                 markedAsNotNeed = item.markedAsNotNeed
             )
             accountRouter.openOptionsAddAccount(payload)

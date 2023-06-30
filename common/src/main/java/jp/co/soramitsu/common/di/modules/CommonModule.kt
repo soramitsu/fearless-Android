@@ -11,6 +11,10 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import java.security.SecureRandom
+import java.util.Random
+import javax.inject.Qualifier
+import javax.inject.Singleton
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.CachingAddressIconGenerator
 import jp.co.soramitsu.common.address.StatelessAddressIconGenerator
@@ -44,10 +48,6 @@ import jp.co.soramitsu.core.extrinsic.keypair_provider.KeypairProvider
 import jp.co.soramitsu.core.rpc.RpcCalls
 import jp.co.soramitsu.shared_utils.encrypt.Signer
 import jp.co.soramitsu.shared_utils.icon.IconGenerator
-import java.security.SecureRandom
-import java.util.Random
-import javax.inject.Qualifier
-import javax.inject.Singleton
 
 const val SHARED_PREFERENCES_FILE = "fearless_prefs"
 
@@ -156,16 +156,10 @@ class CommonModule {
 
     @Provides
     @Singleton
-    fun provideAddressModelCreator(
+    fun provideCachingAddressModelCreator(
         resourceManager: ResourceManager,
         iconGenerator: IconGenerator
-    ): AddressIconGenerator = StatelessAddressIconGenerator(iconGenerator, resourceManager)
-
-    @Provides
-    @Caching
-    fun provideCachingAddressModelCreator(
-        delegate: AddressIconGenerator
-    ): AddressIconGenerator = CachingAddressIconGenerator(delegate)
+    ): AddressIconGenerator = CachingAddressIconGenerator(StatelessAddressIconGenerator(iconGenerator, resourceManager))
 
     @Provides
     @Singleton

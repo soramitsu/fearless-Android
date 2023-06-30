@@ -4,10 +4,10 @@ import jp.co.soramitsu.common.data.network.runtime.binding.bindNumber
 import jp.co.soramitsu.common.data.network.runtime.binding.getTyped
 import jp.co.soramitsu.common.data.network.runtime.binding.incompatible
 import jp.co.soramitsu.common.data.network.runtime.binding.requireType
-import jp.co.soramitsu.common.data.network.runtime.binding.returnType
 import jp.co.soramitsu.common.data.network.runtime.binding.storageReturnType
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.parachainStaking
+import jp.co.soramitsu.core.runtime.storage.returnType
 import jp.co.soramitsu.shared_utils.extensions.fromHex
 import jp.co.soramitsu.shared_utils.extensions.fromUnsignedBytes
 import jp.co.soramitsu.shared_utils.runtime.AccountId

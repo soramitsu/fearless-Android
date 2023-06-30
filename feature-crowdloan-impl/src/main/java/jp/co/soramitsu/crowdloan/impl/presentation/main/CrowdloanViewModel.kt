@@ -3,6 +3,9 @@ package jp.co.soramitsu.crowdloan.impl.presentation.main
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.math.BigDecimal
+import javax.inject.Inject
+import javax.inject.Named
 import jp.co.soramitsu.account.api.domain.interfaces.SelectedAccountUseCase
 import jp.co.soramitsu.common.BuildConfig
 import jp.co.soramitsu.common.address.AddressIconGenerator
@@ -49,6 +52,7 @@ import jp.co.soramitsu.wallet.api.presentation.formatters.formatCryptoFromPlanks
 import jp.co.soramitsu.wallet.api.presentation.mixin.assetSelector.AssetSelectorMixin
 import jp.co.soramitsu.wallet.api.presentation.mixin.assetSelector.WithAssetSelector
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
+import kotlin.reflect.KClass
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
@@ -56,10 +60,6 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import java.math.BigDecimal
-import javax.inject.Inject
-import javax.inject.Named
-import kotlin.reflect.KClass
 
 private const val ICON_SIZE_DP = 40
 
@@ -90,7 +90,7 @@ class CrowdloanViewModel @Inject constructor(
         .share()
 
     val mainDescription = assetFlow.map {
-        resourceManager.getString(R.string.crowdloan_main_description, it.token.configuration.symbolToShow.uppercase())
+        resourceManager.getString(R.string.crowdloan_main_description, it.token.configuration.symbol.uppercase())
     }
 
     private val selectedChain = sharedState.selectedChainFlow()

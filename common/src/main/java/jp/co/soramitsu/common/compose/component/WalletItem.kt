@@ -3,7 +3,10 @@ package jp.co.soramitsu.common.compose.component
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -40,7 +43,8 @@ data class WalletItemViewState(
 fun WalletItem(
     state: WalletItemViewState,
     onOptionsClick: ((WalletItemViewState) -> Unit)? = null,
-    onSelected: (WalletItemViewState) -> Unit
+    onSelected: (WalletItemViewState) -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val borderColor = if (state.isSelected) {
         borderGradientColors
@@ -49,7 +53,7 @@ fun WalletItem(
     }
 
     BackgroundCorneredWithGradientBorder(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clickableWithNoIndication { onSelected(state) },
         borderColors = borderColor,
@@ -58,42 +62,48 @@ fun WalletItem(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
+                .heightIn(min = 72.dp)
+                .padding(horizontal = 12.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
                 contentAlignment = Alignment.CenterStart,
                 modifier = Modifier
-                    .weight(1f)
                     .size(32.dp)
             ) {
                 Icon(
+                    modifier = Modifier.fillMaxSize(),
                     painter = rememberAsyncImagePainter(model = state.walletIcon),
                     contentDescription = null,
                     tint = Color.Unspecified
                 )
             }
+            MarginHorizontal(margin = 8.dp)
             Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(6f),
                 horizontalAlignment = Alignment.Start
             ) {
-                B2(
-                    text = state.title,
-                    color = gray2
-                )
-                H4(
-                    text = state.assetSymbol.orEmpty() + state.balance.orEmpty()
-                )
-                state.changeBalanceViewState?.let {
-                    ChangeBalance(state = it)
+                if (state.balance != null || state.changeBalanceViewState != null) {
+                    B2(
+                        text = state.title,
+                        color = gray2
+                    )
+                    H4(
+                        text = state.assetSymbol.orEmpty() + state.balance.orEmpty()
+                    )
+                    state.changeBalanceViewState?.let {
+                        ChangeBalance(state = it)
+                    }
+                } else {
+                    B1(
+                        text = state.title,
+                        color = gray2
+                    )
                 }
             }
+            Spacer(modifier = Modifier.weight(1f))
             onOptionsClick?.let { optionsAction ->
                 Box(
-                    contentAlignment = Alignment.CenterEnd,
-                    modifier = Modifier.weight(1f)
+                    contentAlignment = Alignment.CenterEnd
                 ) {
                     IconButton(
                         onClick = {
@@ -149,6 +159,14 @@ private fun WalletItemPreview() {
         WalletItem(
             state = state.copy(isSelected = false),
             onOptionsClick = {},
+            onSelected = {}
+        )
+        WalletItem(
+            state = state.copy(
+                isSelected = false,
+                changeBalanceViewState = null,
+                balance = null
+            ),
             onSelected = {}
         )
     }

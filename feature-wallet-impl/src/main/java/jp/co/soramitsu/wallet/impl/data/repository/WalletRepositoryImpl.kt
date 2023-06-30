@@ -12,11 +12,10 @@ import jp.co.soramitsu.common.data.network.coingecko.CoingeckoApi
 import jp.co.soramitsu.common.data.network.config.AppConfigRemote
 import jp.co.soramitsu.common.data.network.config.RemoteConfigFetcher
 import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
-import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
 import jp.co.soramitsu.common.utils.orZero
-import jp.co.soramitsu.core.models.utilityAsset
+import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.coredb.dao.OperationDao
 import jp.co.soramitsu.coredb.dao.PhishingDao
 import jp.co.soramitsu.coredb.dao.emptyAccountIdValue
@@ -66,8 +65,7 @@ class WalletRepositoryImpl(
     private val chainRegistry: ChainRegistry,
     private val availableFiatCurrencies: GetAvailableFiatCurrencies,
     private val updatesMixin: UpdatesMixin,
-    private val remoteConfigFetcher: RemoteConfigFetcher,
-    private val networkStateMixin: NetworkStateMixin
+    private val remoteConfigFetcher: RemoteConfigFetcher
 ) : WalletRepository, UpdatesProviderUi by updatesMixin {
 
     companion object {
@@ -129,10 +127,6 @@ class WalletRepositoryImpl(
             val notUpdatedAssets = assetsByChain.filter {
                 it.asset.token.configuration.chainToSymbol !in updatedAssets.map { it.asset.token.configuration.chainToSymbol }
             }
-
-            val assetsWithProblems = notUpdatedAssetsByUniqueAccounts + notUpdatedAssets
-            val issues = buildNetworkIssues(assetsWithProblems)
-            networkStateMixin.notifyAssetsProblem(issues)
 
             updatedAssets + notUpdatedAssetsByUniqueAccounts + notUpdatedAssets
         }
@@ -241,7 +235,7 @@ class WalletRepositoryImpl(
 
         return Fee(
             transferAmount = transfer.amount,
-            feeAmount = chain.utilityAsset.amountFromPlanks(fee)
+            feeAmount = chain.utilityAsset?.amountFromPlanks(fee).orZero()
         )
     }
 
@@ -293,14 +287,14 @@ class WalletRepositoryImpl(
         val existentialDepositInPlanks = walletConstants.existentialDeposit(chainAsset).orZero()
         val existentialDeposit = chainAsset.amountFromPlanks(existentialDepositInPlanks)
 
-        val utilityAssetLocal = assetCache.getAsset(metaId, accountId, chainAsset.chainId, chain.utilityAsset.id)!!
-        val utilityAsset = mapAssetLocalToAsset(utilityAssetLocal, chain.utilityAsset, chain.minSupportedVersion)
+        val utilityAssetLocal = assetCache.getAsset(metaId, accountId, chainAsset.chainId, chain.utilityAsset?.id.orEmpty())!!
+        val utilityAsset = chain.utilityAsset?.let { mapAssetLocalToAsset(utilityAssetLocal, it, chain.minSupportedVersion) }
 
-        val utilityExistentialDepositInPlanks = walletConstants.existentialDeposit(chain.utilityAsset).orZero()
-        val utilityExistentialDeposit = chain.utilityAsset.amountFromPlanks(utilityExistentialDepositInPlanks)
+        val utilityExistentialDepositInPlanks = chain.utilityAsset?.let { walletConstants.existentialDeposit(it) }.orZero()
+        val utilityExistentialDeposit = chain.utilityAsset?.amountFromPlanks(utilityExistentialDepositInPlanks).orZero()
 
         val tipInPlanks = kotlin.runCatching { walletConstants.tip(chain.id) }.getOrNull()
-        val tip = tipInPlanks?.let { chain.utilityAsset.amountFromPlanks(it) }
+        val tip = tipInPlanks?.let { chain.utilityAsset?.amountFromPlanks(it) }
 
         return transfer.validityStatus(
             senderTransferable = asset.transferable,
@@ -309,7 +303,7 @@ class WalletRepositoryImpl(
             recipientBalance = totalRecipientBalance,
             existentialDeposit = existentialDeposit,
             isUtilityToken = chainAsset.isUtility,
-            senderUtilityBalance = utilityAsset.total.orZero(),
+            senderUtilityBalance = utilityAsset?.total.orZero(),
             utilityExistentialDeposit = utilityExistentialDeposit,
             tip = tip
         )

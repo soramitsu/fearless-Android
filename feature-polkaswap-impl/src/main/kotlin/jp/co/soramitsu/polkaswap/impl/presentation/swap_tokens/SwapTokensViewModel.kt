@@ -6,6 +6,9 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.math.BigDecimal
+import java.math.BigInteger
+import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.base.errors.ValidationException
 import jp.co.soramitsu.common.compose.component.AmountInputViewState
@@ -58,9 +61,6 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.launch
-import java.math.BigDecimal
-import java.math.BigInteger
-import javax.inject.Inject
 
 typealias TooltipEvent = Event<Pair<String, String>>
 
@@ -177,8 +177,8 @@ class SwapTokensViewModel @Inject constructor(
             it?.let { feeAmount ->
                 val feeAsset = swapDetails.value.getOrNull()?.feeAsset ?: return@let null
                 SwapDetailsViewState.NetworkFee(
-                    feeAsset.token.configuration.symbolToShow.uppercase(),
-                    feeAmount.formatCryptoDetail(feeAsset.token.configuration.symbolToShow),
+                    feeAsset.token.configuration.symbol.uppercase(),
+                    feeAmount.formatCryptoDetail(feeAsset.token.configuration.symbol),
                     feeAsset.token.fiatAmount(feeAmount)?.formatFiat(feeAsset.token.fiatSymbol)
                 )
             }
@@ -374,11 +374,11 @@ class SwapTokensViewModel @Inject constructor(
             )
         }
 
-        val tokenBalance = asset.transferable.formatCrypto(asset.token.configuration.symbolToShow)
+        val tokenBalance = asset.transferable.formatCrypto(asset.token.configuration.symbol)
         val fiatAmount = amount.applyFiatRate(asset.token.fiatRate)?.formatFiat(asset.token.fiatSymbol)
 
         return AmountInputViewState(
-            tokenName = asset.token.configuration.symbolToShow,
+            tokenName = asset.token.configuration.symbol,
             tokenImage = asset.token.configuration.iconUrl,
             totalBalance = resourceManager.getString(totalFormatRes, tokenBalance),
             fiatAmount = fiatAmount,
@@ -554,7 +554,7 @@ class SwapTokensViewModel @Inject constructor(
 
     override fun networkFeeTooltipClick() {
         _showTooltipEvent.value = Event(
-            resourceManager.getString(R.string.network_fee) to
+            resourceManager.getString(R.string.common_network_fee) to
                 resourceManager.getString(R.string.polkaswap_network_fee_info)
         )
     }

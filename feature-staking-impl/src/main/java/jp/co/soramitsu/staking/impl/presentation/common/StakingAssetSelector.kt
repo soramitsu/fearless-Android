@@ -39,7 +39,7 @@ class StakingAssetSelector(
             selectedItem,
             asset.token.configuration.iconUrl,
             asset.token.configuration.chainName,
-            assetBalance.formatCrypto(asset.token.configuration.symbolToShow)
+            assetBalance.formatCrypto(asset.token.configuration.symbol)
         )
     }
         .shareIn(this, SharingStarted.Eagerly, replay = 1)
@@ -60,7 +60,7 @@ class StakingAssetSelector(
                     selection,
                     asset.token.configuration.iconUrl,
                     asset.token.configuration.chainName,
-                    assetBalance.formatCrypto(asset.token.configuration.symbolToShow)
+                    assetBalance.formatCrypto(asset.token.configuration.symbol)
                 )
             }
 
