@@ -35,7 +35,7 @@ fun OptionsAddAccountContent(
     state: OptionsAddAccountScreenViewState,
     onCreate: (chainId: ChainId, metaId: Long) -> Unit,
     onImport: (chainId: ChainId, metaId: Long) -> Unit,
-    onNoNeed: (chainId: ChainId, metaId: Long, assetId: String, priceId: String?) -> Unit
+    onNoNeed: (chainId: ChainId, metaId: Long) -> Unit
 ) {
     BottomSheetScreen {
         Column(
@@ -71,7 +71,7 @@ fun OptionsAddAccountContent(
                         .height(48.dp),
                     colors = customButtonColors(grayButtonBackground, colorAccentDark)
                 ) {
-                    onNoNeed(state.chainId, state.metaId, state.assetId, state.priceId)
+                    onNoNeed(state.chainId, state.metaId)
                 }
             }
             MarginVertical(margin = 12.dp)
@@ -94,7 +94,7 @@ private fun OptionsAddAccountScreenPreview() {
             ),
             onCreate = { t, t2 -> },
             onImport = { t, t2 -> },
-            onNoNeed = { t, t2, t3, t4 -> }
+            onNoNeed = { t, t2 -> }
         )
     }
 }

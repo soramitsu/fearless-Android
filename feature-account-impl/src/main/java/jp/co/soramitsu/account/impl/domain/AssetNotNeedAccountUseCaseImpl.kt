@@ -6,17 +6,26 @@ import jp.co.soramitsu.coredb.dao.AssetDao
 import jp.co.soramitsu.coredb.dao.TokenPriceDao
 import jp.co.soramitsu.coredb.dao.emptyAccountIdValue
 import jp.co.soramitsu.coredb.model.AssetLocal
+import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
 class AssetNotNeedAccountUseCaseImpl(
+    private val chainRegistry: ChainRegistry,
     private val assetDao: AssetDao,
     private val tokenPriceDao: TokenPriceDao
 ) : AssetNotNeedAccountUseCase {
 
     override suspend fun markNotNeed(chainId: ChainId, metaId: Long, assetId: String, priceId: String?) {
         updateAssetNotNeed(metaId, chainId, assetId, priceId)
+    }
+
+    override suspend fun markChainAssetsNotNeed(chainId: ChainId, metaId: Long) {
+        val chainAssets = chainRegistry.getChain(chainId).assets
+        chainAssets.forEach {
+            updateAssetNotNeed(metaId, chainId, it.id, it.priceId)
+        }
     }
 
     private suspend fun updateAssetNotNeed(
