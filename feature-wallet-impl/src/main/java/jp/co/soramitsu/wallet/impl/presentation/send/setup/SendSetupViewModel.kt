@@ -5,10 +5,6 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.math.BigDecimal
-import java.math.BigInteger
-import java.math.RoundingMode
-import javax.inject.Inject
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressIcon
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -67,6 +63,10 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.retry
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
+import java.math.BigInteger
+import java.math.RoundingMode
+import javax.inject.Inject
 
 private const val RETRY_TIMES = 3L
 
@@ -106,7 +106,9 @@ class SendSetupViewModel @Inject constructor(
     private val initialAmount = BigDecimal.ZERO
     private val confirmedValidations = mutableListOf<TransferValidationResult>()
 
-    private val selectedChain = sharedState.chainIdFlow.map { chainId ->
+    private val chainIdFlow = sharedState.chainIdFlow
+        .stateIn(viewModelScope, SharingStarted.Eagerly, initialValue = null)
+    private val selectedChain = chainIdFlow.map { chainId ->
         chainId?.let { walletInteractor.getChain(it) }
     }
 
@@ -170,7 +172,7 @@ class SendSetupViewModel @Inject constructor(
 
     private val addressInputFlow = MutableStateFlow(initSendToAddress.orEmpty())
 
-    private val isInputAddressValidFlow = combine(addressInputFlow, sharedState.chainIdFlow) { addressInput, chainId ->
+    private val isInputAddressValidFlow = combine(addressInputFlow, chainIdFlow) { addressInput, chainId ->
         when (chainId) {
             null -> false
             else -> walletInteractor.validateSendAddress(chainId, addressInput)
@@ -446,7 +448,7 @@ class SendSetupViewModel @Inject constructor(
         }
     }
 
-    private val tipFlow = sharedState.chainIdFlow.map { it?.let { walletConstants.tip(it) } }
+    private val tipFlow = chainIdFlow.map { it?.let { walletConstants.tip(it) } }
     private val tipAmountFlow = combine(tipFlow, assetFlow) { tip: BigInteger?, asset: Asset? ->
         tip?.let {
             asset?.token?.amountFromPlanks(it)
