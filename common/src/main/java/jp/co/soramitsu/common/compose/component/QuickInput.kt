@@ -45,7 +45,7 @@ fun QuickInput(
     val keyboardController = LocalSoftwareKeyboardController.current
     Row(
         modifier = modifier
-            .background(color = backgroundBlack)
+            .background(color = backgroundBlack.copy(alpha = 0.75f))
             .height(44.dp)
             .padding(horizontal = 10.dp)
     ) {
