@@ -320,7 +320,7 @@ class BalanceDetailViewModel @Inject constructor(
             assetSymbol = asset.token.configuration.symbol
         )
 
-        if (BuildConfig.DEBUG && isXcmSupportAsset) {
+        if (isXcmSupportAsset) {
             actionItems += ActionItemType.CROSS_CHAIN
         }
         if (isBuyEnabled()) {
