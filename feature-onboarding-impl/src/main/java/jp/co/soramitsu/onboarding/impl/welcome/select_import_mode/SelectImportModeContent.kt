@@ -9,6 +9,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import jp.co.soramitsu.common.BuildConfig
 import jp.co.soramitsu.common.compose.component.AccentButton
 import jp.co.soramitsu.common.compose.component.BottomSheetScreen
 import jp.co.soramitsu.common.compose.component.GrayButton
@@ -42,13 +43,15 @@ fun SelectImportModeContent(
             MarginVertical(margin = 8.dp)
             H4(text = stringResource(id = R.string.select_import_mode_title))
             MarginVertical(margin = 16.dp)
-            GrayButton(
-                text = stringResource(id = R.string.select_import_mode_btn_google),
-                modifier = Modifier
-                    .fillMaxWidth(),
-                onClick = callback::onGoogleClick
-            )
-            MarginVertical(margin = 8.dp)
+            if (BuildConfig.DEBUG) {
+                GrayButton(
+                    text = stringResource(id = R.string.select_import_mode_btn_google),
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    onClick = callback::onGoogleClick
+                )
+                MarginVertical(margin = 8.dp)
+            }
             GrayButton(
                 text = stringResource(id = R.string.select_import_mode_btn_mnemonic),
                 modifier = Modifier
