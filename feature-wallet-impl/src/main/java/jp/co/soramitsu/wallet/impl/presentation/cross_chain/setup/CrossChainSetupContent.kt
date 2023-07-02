@@ -1,28 +1,28 @@
 package jp.co.soramitsu.wallet.impl.presentation.cross_chain.setup
 
 import android.graphics.drawable.Drawable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.ime
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusState
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import java.math.BigDecimal
 import jp.co.soramitsu.common.compose.component.AccentButton
 import jp.co.soramitsu.common.compose.component.AddressInput
 import jp.co.soramitsu.common.compose.component.AddressInputState
@@ -46,7 +46,6 @@ import jp.co.soramitsu.common.compose.component.WarningInfoState
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.theme.colorAccentDark
 import jp.co.soramitsu.feature_wallet_impl.R
-import java.math.BigDecimal
 
 data class CrossChainSetupViewState(
     val toolbarState: ToolbarViewState,
@@ -58,7 +57,9 @@ data class CrossChainSetupViewState(
     val destinationFeeInfoState: FeeInfoViewState?,
     val warningInfoState: WarningInfoState?,
     val buttonState: ButtonViewState,
-    val walletIcon: Drawable?
+    val walletIcon: Drawable?,
+    val isSoftKeyboardOpen: Boolean,
+    val heightDiffDp: Dp
 )
 
 interface CrossChainSetupScreenInterface {
@@ -73,7 +74,7 @@ interface CrossChainSetupScreenInterface {
     fun onHistoryClick()
     fun onPasteClick()
     fun onMyWalletsClick()
-    fun onAmountFocusChanged(focusState: FocusState)
+    fun onAmountFocusChanged(isFocused: Boolean)
     fun onQuickAmountInput(input: Double)
     fun onWarningInfoClick()
 }
@@ -85,19 +86,18 @@ fun CrossChainSetupContent(
     callback: CrossChainSetupScreenInterface
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
-
+    val showQuickInput = state.amountInputState.isFocused && state.isSoftKeyboardOpen
     BottomSheetScreen {
-        val isSoftKeyboardOpen = WindowInsets.ime.getBottom(LocalDensity.current) > 0
-        val showQuickInput = state.amountInputState.isFocused && isSoftKeyboardOpen
-        Column(
+        Box(
             modifier = Modifier
-                .imePadding()
+                .fillMaxSize()
+                .padding(bottom = state.heightDiffDp)
         ) {
             Column(
                 modifier = Modifier
                     .padding(horizontal = 16.dp)
+                    .padding(bottom = 115.dp)
                     .fillMaxWidth()
-                    .weight(1f)
                     .verticalScroll(rememberScrollState())
             ) {
                 ToolbarBottomSheet(
@@ -115,7 +115,8 @@ fun CrossChainSetupContent(
                     state = state.amountInputState,
                     borderColorFocused = colorAccentDark,
                     onTokenClick = callback::onAssetClick,
-                    onInput = callback::onAmountInput
+                    onInput = callback::onAmountInput,
+                    onInputFocusChange = callback::onAmountFocusChanged
                 )
 
                 MarginVertical(margin = 12.dp)
@@ -150,6 +151,7 @@ fun CrossChainSetupContent(
 
             Column(
                 modifier = Modifier
+                    .align(Alignment.BottomCenter)
             ) {
                 MarginVertical(margin = 12.dp)
                 AccentButton(
@@ -199,7 +201,8 @@ private fun AddressActions(
             onClick = callback::onHistoryClick
         )
         Spacer(
-            modifier = Modifier.weight(1f)
+            modifier = Modifier
+                .weight(1f)
                 .widthIn(min = 12.dp)
         )
         if (walletIcon != null) {
@@ -234,7 +237,9 @@ private fun CrossChainPreview() {
         destinationFeeInfoState = FeeInfoViewState.default,
         warningInfoState = null,
         buttonState = ButtonViewState("Continue", true),
-        walletIcon = null
+        walletIcon = null,
+        isSoftKeyboardOpen = false,
+        heightDiffDp = 0.dp
     )
 
     val emptyCallback = object : CrossChainSetupScreenInterface {
@@ -249,7 +254,7 @@ private fun CrossChainPreview() {
         override fun onHistoryClick() {}
         override fun onPasteClick() {}
         override fun onMyWalletsClick() {}
-        override fun onAmountFocusChanged(focusState: FocusState) {}
+        override fun onAmountFocusChanged(isFocused: Boolean) {}
         override fun onQuickAmountInput(input: Double) {}
         override fun onWarningInfoClick() {}
     }

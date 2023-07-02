@@ -1,6 +1,7 @@
 package jp.co.soramitsu.wallet.impl.presentation.cross_chain.setup
 
-import androidx.compose.ui.focus.FocusState
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
@@ -99,6 +100,9 @@ class CrossChainSetupViewModel @Inject constructor(
     private val xcmInteractor: XcmInteractor
 ) : BaseViewModel(), CrossChainSetupScreenInterface {
 
+    private val isSoftKeyboardOpenFlow = MutableStateFlow(false)
+    private val heightDiffDpFlow = MutableStateFlow(0.dp)
+
     private val _openScannerEvent = MutableSharedFlow<Unit>()
     val openScannerEvent = _openScannerEvent.asSharedFlow()
 
@@ -169,7 +173,9 @@ class CrossChainSetupViewModel @Inject constructor(
         destinationFeeInfoState = null,
         warningInfoState = null,
         defaultButtonState,
-        walletIcon = null
+        walletIcon = null,
+        isSoftKeyboardOpen = false,
+        heightDiffDp = 0.dp
     )
 
     private val amountInputFocusFlow = MutableStateFlow(false)
@@ -378,11 +384,14 @@ class CrossChainSetupViewModel @Inject constructor(
         destinationFeeInfoViewStateFlow,
         warningInfoStateFlow,
         buttonStateFlow,
-        walletIconFlow
+        walletIconFlow,
+        isSoftKeyboardOpenFlow,
+        heightDiffDpFlow
     ) { originSelectedChain, destinationSelectedChain, address, originChainSelectorState,
         destinationChainSelectorState, amountInputState,
         originFeeInfoState, destinationFeeInfoState,
-        warningInfoState, buttonState, walletIcon ->
+        warningInfoState, buttonState, walletIcon,
+        isSoftKeyboardOpen, heightDiffDp ->
         val isAddressValid = if (destinationSelectedChain == null) {
             false
         } else {
@@ -414,7 +423,9 @@ class CrossChainSetupViewModel @Inject constructor(
             destinationFeeInfoState = destinationFeeInfoState,
             warningInfoState = warningInfoState,
             buttonState = buttonState,
-            walletIcon = walletIcon
+            walletIcon = walletIcon,
+            isSoftKeyboardOpen = isSoftKeyboardOpen,
+            heightDiffDp = heightDiffDp
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, defaultState)
 
@@ -625,8 +636,8 @@ class CrossChainSetupViewModel @Inject constructor(
         }
     }
 
-    override fun onAmountFocusChanged(focusState: FocusState) {
-        amountInputFocusFlow.value = focusState.isFocused
+    override fun onAmountFocusChanged(isFocused: Boolean) {
+        amountInputFocusFlow.value = isFocused
     }
 
     fun qrCodeScanned(content: String) {
@@ -707,5 +718,13 @@ class CrossChainSetupViewModel @Inject constructor(
     fun warningConfirmed(validationResult: TransferValidationResult) {
         confirmedValidations.add(validationResult)
         onNextClick()
+    }
+
+    fun setSoftKeyboardOpen(isOpen: Boolean) {
+        isSoftKeyboardOpenFlow.value = isOpen
+    }
+
+    fun setHeightDiffDp(value: Dp) {
+        heightDiffDpFlow.value = value
     }
 }
