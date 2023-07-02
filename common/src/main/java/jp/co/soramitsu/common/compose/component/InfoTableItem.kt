@@ -39,7 +39,6 @@ fun InfoTableItem(state: TitleValueViewState, onClick: (Int) -> Unit = {}) {
         Row(
             modifier = Modifier
                 .align(Alignment.CenterVertically)
-                .weight(1f)
                 .then(titleClickModifier)
         ) {
             H5(
@@ -63,9 +62,10 @@ fun InfoTableItem(state: TitleValueViewState, onClick: (Int) -> Unit = {}) {
         } else {
             Modifier
         }
+        MarginHorizontal(margin = 16.dp)
         Row(
             modifier = Modifier
-                .weight(1f)
+                .fillMaxWidth()
                 .align(Alignment.CenterVertically)
                 .then(valueClickModifier)
         ) {
