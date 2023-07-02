@@ -111,14 +111,20 @@ class StakingFragment : BaseFragment<StakingViewModel>(R.layout.fragment_staking
         setupComposeViews()
         observeAlertsJob?.cancel()
         observeAlertsJob = viewModel.alertsFlow.onEach { loadingState ->
-            if (loadingState is LoadingState.Loaded) {
-                binding.stakingAlertsInfo.hideLoading()
+            when (loadingState) {
+                is LoadingState.Loaded -> {
+                    binding.stakingAlertsInfo.hideLoading()
 
-                if (loadingState.data.isEmpty()) {
-                    binding.stakingAlertsInfo.makeGone()
-                } else {
-                    binding.stakingAlertsInfo.makeVisible()
-                    binding.stakingAlertsInfo.setStatus(loadingState.data)
+                    if (loadingState.data.isEmpty()) {
+                        binding.stakingAlertsInfo.makeGone()
+                    } else {
+                        binding.stakingAlertsInfo.makeVisible()
+                        binding.stakingAlertsInfo.setStatus(loadingState.data)
+                    }
+                }
+
+                is LoadingState.Loading -> {
+                    binding.stakingAlertsInfo.showLoading()
                 }
             }
         }.launchIn(viewModel.stakingStateScope)
