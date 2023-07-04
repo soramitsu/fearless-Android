@@ -78,7 +78,7 @@ fun WalletItem(
                     tint = Color.Unspecified
                 )
             }
-            MarginHorizontal(margin = 8.dp)
+            MarginHorizontal(margin = 12.dp)
             Column(
                 horizontalAlignment = Alignment.Start
             ) {
