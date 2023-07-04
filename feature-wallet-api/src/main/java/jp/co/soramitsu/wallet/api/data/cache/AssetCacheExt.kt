@@ -3,9 +3,13 @@ package jp.co.soramitsu.wallet.api.data.cache
 import java.math.BigInteger
 import jp.co.soramitsu.common.data.network.runtime.binding.AccountData
 import jp.co.soramitsu.common.data.network.runtime.binding.AccountInfo
+import jp.co.soramitsu.common.data.network.runtime.binding.AssetBalanceData
+import jp.co.soramitsu.common.data.network.runtime.binding.AssetsAccountInfo
+import jp.co.soramitsu.common.data.network.runtime.binding.EmptyBalance
 import jp.co.soramitsu.common.data.network.runtime.binding.EqAccountInfo
 import jp.co.soramitsu.common.data.network.runtime.binding.OrmlTokensAccountData
 import jp.co.soramitsu.common.data.network.runtime.binding.bindAccountInfo
+import jp.co.soramitsu.common.data.network.runtime.binding.bindAssetsAccountInfo
 import jp.co.soramitsu.common.data.network.runtime.binding.bindEquilibriumAccountInfo
 import jp.co.soramitsu.common.data.network.runtime.binding.bindNonce
 import jp.co.soramitsu.common.data.network.runtime.binding.bindOrmlTokensAccountData
@@ -13,13 +17,63 @@ import jp.co.soramitsu.common.data.network.runtime.binding.cast
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.system
 import jp.co.soramitsu.core.models.Asset
-import jp.co.soramitsu.core.rpc.storage.returnType
+import jp.co.soramitsu.core.runtime.storage.returnType
 import jp.co.soramitsu.coredb.model.AssetLocal
 import jp.co.soramitsu.shared_utils.runtime.AccountId
 import jp.co.soramitsu.shared_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.shared_utils.runtime.definitions.types.composite.Struct
 import jp.co.soramitsu.shared_utils.runtime.definitions.types.fromHexOrNull
 import jp.co.soramitsu.shared_utils.runtime.metadata.storage
+
+suspend fun AssetCache.updateAsset(
+    metaId: Long,
+    accountId: AccountId,
+    asset: Asset,
+    balanceData: AssetBalanceData?
+) {
+    when (balanceData) {
+        null, EmptyBalance -> {
+            updateAsset(metaId, accountId, asset) {
+                it.copy(
+                    accountId = accountId,
+                    freeInPlanks = BigInteger.ZERO
+                )
+            }
+        }
+
+        is AccountInfo -> updateAsset(metaId, accountId, asset, accountInfoUpdater(balanceData))
+        is OrmlTokensAccountData -> {
+            updateAsset(metaId, accountId, asset) {
+                it.copy(
+                    accountId = accountId,
+                    freeInPlanks = balanceData.free,
+                    miscFrozenInPlanks = balanceData.frozen,
+                    reservedInPlanks = balanceData.reserved
+                )
+            }
+        }
+
+        is EqAccountInfo -> {
+            updateAsset(metaId, accountId, asset) {
+                it.copy(
+                    accountId = accountId,
+                    freeInPlanks = balanceData.data.balances[asset.currency].orZero()
+                )
+            }
+        }
+
+        is AssetsAccountInfo -> {
+            updateAsset(metaId, accountId, asset) {
+                it.copy(
+                    accountId = accountId,
+                    freeInPlanks = balanceData.balance
+                )
+            }
+        }
+
+        else -> Unit
+    }
+}
 
 suspend fun AssetCache.updateAsset(
     metaId: Long,
@@ -73,4 +127,8 @@ fun bindOrmlTokensAccountDataOrDefault(hex: String?, runtime: RuntimeSnapshot): 
 
 fun bindEquilibriumAccountData(hex: String?, runtime: RuntimeSnapshot): EqAccountInfo? {
     return hex?.let { bindEquilibriumAccountInfo(it, runtime) }
+}
+
+fun bindAssetsAccountData(hex: String?, runtime: RuntimeSnapshot): AssetsAccountInfo? {
+    return hex?.let { bindAssetsAccountInfo(it, runtime) }
 }

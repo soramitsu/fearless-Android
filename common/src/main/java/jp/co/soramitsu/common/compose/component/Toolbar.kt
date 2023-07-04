@@ -30,6 +30,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
@@ -240,7 +241,7 @@ fun Toolbar(state: ToolbarViewState, modifier: Modifier = Modifier, onNavigation
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Box(
-            contentAlignment = Alignment.CenterStart,
+            contentAlignment = CenterStart,
             modifier = Modifier.weight(1f)
         ) {
             ToolbarHomeIcon(
@@ -251,13 +252,14 @@ fun Toolbar(state: ToolbarViewState, modifier: Modifier = Modifier, onNavigation
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(2f),
+                .weight(4f),
             horizontalAlignment = CenterHorizontally
         ) {
             Text(
                 text = state.title,
                 style = MaterialTheme.customTypography.header4,
-                maxLines = 1
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
         }
         Row(

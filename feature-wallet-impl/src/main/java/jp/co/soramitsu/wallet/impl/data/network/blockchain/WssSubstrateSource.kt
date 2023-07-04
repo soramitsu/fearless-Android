@@ -4,6 +4,7 @@ package jp.co.soramitsu.wallet.impl.data.network.blockchain
 
 import java.math.BigInteger
 import jp.co.soramitsu.common.data.network.runtime.binding.AccountInfo
+import jp.co.soramitsu.common.data.network.runtime.binding.AssetsAccountInfo
 import jp.co.soramitsu.common.data.network.runtime.binding.EqAccountInfo
 import jp.co.soramitsu.common.data.network.runtime.binding.EqOraclePricePoint
 import jp.co.soramitsu.common.data.network.runtime.binding.EventRecord
@@ -38,6 +39,7 @@ import jp.co.soramitsu.shared_utils.runtime.metadata.module
 import jp.co.soramitsu.shared_utils.runtime.metadata.storage
 import jp.co.soramitsu.shared_utils.runtime.metadata.storageKey
 import jp.co.soramitsu.wallet.api.data.cache.bindAccountInfoOrDefault
+import jp.co.soramitsu.wallet.api.data.cache.bindAssetsAccountData
 import jp.co.soramitsu.wallet.api.data.cache.bindEquilibriumAccountData
 import jp.co.soramitsu.wallet.api.data.cache.bindOrmlTokensAccountDataOrDefault
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.bindings.bindTransferExtrinsic
@@ -55,6 +57,7 @@ class WssSubstrateSource(
             is OrmlTokensAccountData -> info.free
             is AccountInfo -> info.data.free
             is EqAccountInfo -> info.data.balances[chainAsset.currency].orZero()
+            is AssetsAccountInfo -> info.balance
             else -> BigInteger.ZERO
         }
     }
@@ -64,6 +67,7 @@ class WssSubstrateSource(
             is OrmlTokensAccountData -> info.totalBalance
             is AccountInfo -> info.totalBalance
             is EqAccountInfo -> info.data.balances[chainAsset.currency].orZero()
+            is AssetsAccountInfo -> info.balance
             else -> BigInteger.ZERO
         }
     }
@@ -83,12 +87,18 @@ class WssSubstrateSource(
         ChainAssetType.VToken,
         ChainAssetType.VSToken,
         ChainAssetType.SoraAsset,
+        ChainAssetType.AssetId,
+        ChainAssetType.Token2,
         ChainAssetType.Stable -> {
             getOrmlTokensAccountData(chainAsset, accountId)
         }
 
         ChainAssetType.Equilibrium -> {
             getEquilibriumAccountInfo(chainAsset, accountId)
+        }
+
+        ChainAssetType.Assets -> {
+            getAssetsAccountInfo(chainAsset, accountId)
         }
 
         ChainAssetType.Unknown -> null
@@ -120,6 +130,21 @@ class WssSubstrateSource(
             },
             binding = { scale, runtime ->
                 bindEquilibriumAccountData(scale, runtime)
+            }
+        )
+    }
+
+    override suspend fun getAssetsAccountInfo(
+        asset: Asset,
+        accountId: AccountId
+    ): AssetsAccountInfo? {
+        return remoteStorageSource.query(
+            chainId = asset.chainId,
+            keyBuilder = {
+                it.metadata.module(Modules.ASSETS).storage("Account").storageKey(it, asset.currency, accountId)
+            },
+            binding = { scale, runtime ->
+                bindAssetsAccountData(scale, runtime)
             }
         )
     }
@@ -251,11 +276,16 @@ class WssSubstrateSource(
             ChainAssetType.LiquidCrowdloan,
             ChainAssetType.VToken,
             ChainAssetType.VSToken,
+            ChainAssetType.Token2,
+            ChainAssetType.AssetId,
             ChainAssetType.Stable -> ormlAssetTransfer(accountId, transfer)
 
             ChainAssetType.Equilibrium -> equilibriumAssetTransfer(accountId, transfer)
-            ChainAssetType.Unknown -> error("Token ${transfer.chainAsset.symbolToShow} not supported, chain ${chain.name}")
-            else -> error("Token ${transfer.chainAsset.symbolToShow} not supported, chain ${chain.name}")
+
+            ChainAssetType.Assets -> assetsAssetTransfer(accountId, transfer)
+
+            ChainAssetType.Unknown -> error("Token ${transfer.chainAsset.symbol} not supported, chain ${chain.name}")
+            else -> error("Token ${transfer.chainAsset.symbol} not supported, chain ${chain.name}")
         }
     }
 
@@ -269,6 +299,19 @@ class WssSubstrateSource(
             "asset" to transfer.chainAsset.currency,
             "to" to accountId,
             "value" to transfer.amountInPlanks
+        )
+    )
+
+    private fun ExtrinsicBuilder.assetsAssetTransfer(
+        accountId: AccountId,
+        transfer: Transfer
+    ): ExtrinsicBuilder = call(
+        moduleName = Modules.ASSETS,
+        callName = "transfer",
+        arguments = mapOf(
+            "id" to transfer.chainAsset.currency,
+            "target" to DictEnum.Entry("Id", accountId),
+            "amount" to transfer.amountInPlanks
         )
     )
 

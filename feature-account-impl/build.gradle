@@ -95,7 +95,9 @@ dependencies {
 
     implementation gsonDep
 
-    implementation soraCardDep, withoutBouncycastle
+    implementation soraCardDep
 
     api sharedFeaturesCoreDep
+
+    implementation sharedFeaturesBackupDep
 }

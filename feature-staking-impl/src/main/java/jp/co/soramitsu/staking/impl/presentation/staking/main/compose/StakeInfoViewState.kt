@@ -58,21 +58,21 @@ fun StakeInfoViewState.PoolStakeInfoViewState.Companion.default(resourceManager:
 
 fun OwnPool.toViewState(asset: Asset, resourceManager: ResourceManager): StakeInfoViewState.PoolStakeInfoViewState {
     val staked = asset.token.amountFromPlanks(myStakeInPlanks)
-    val stakedFormatted = staked.formatCryptoDetail(asset.token.configuration.symbolToShow)
+    val stakedFormatted = staked.formatCryptoDetail(asset.token.configuration.symbol)
     val stakedFiat = staked.applyFiatRate(asset.token.fiatRate)?.formatFiat(asset.token.fiatSymbol)
 
     val rewardedInPlanks = pendingRewards
     val rewarded = asset.token.amountFromPlanks(rewardedInPlanks)
-    val rewardedFormatted = rewarded.formatCryptoDetail(asset.token.configuration.symbolToShow)
+    val rewardedFormatted = rewarded.formatCryptoDetail(asset.token.configuration.symbol)
     val rewardedFiat = rewarded.applyFiatRate(asset.token.fiatRate)?.formatFiat(asset.token.fiatSymbol)
 
     val redeemableInPlanks = redeemable
     val redeemable = asset.token.amountFromPlanks(redeemableInPlanks)
-    val redeemableFormatted = redeemable.formatCryptoDetail(asset.token.configuration.symbolToShow)
+    val redeemableFormatted = redeemable.formatCryptoDetail(asset.token.configuration.symbol)
     val redeemableFiat = redeemable.applyFiatRate(asset.token.fiatRate)?.formatFiat(asset.token.fiatSymbol)
 
     val unstaking = asset.token.amountFromPlanks(unbonding)
-    val unstakingFormatted = unstaking.formatCryptoDetail(asset.token.configuration.symbolToShow)
+    val unstakingFormatted = unstaking.formatCryptoDetail(asset.token.configuration.symbol)
     val unstakingFiat = unstaking.applyFiatRate(asset.token.fiatRate)?.formatFiat(asset.token.fiatSymbol)
 
     val status = when (state) {

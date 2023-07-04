@@ -2,6 +2,7 @@ package jp.co.soramitsu.runtime.multiNetwork.runtime
 
 import android.util.Log
 import io.ktor.util.collections.ConcurrentSet
+import java.util.concurrent.ConcurrentHashMap
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
 import jp.co.soramitsu.common.utils.md5
@@ -30,7 +31,6 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
-import java.util.concurrent.ConcurrentHashMap
 
 class SyncResult(
     val chainId: String,
@@ -116,7 +116,7 @@ class RuntimeSyncService(
         }
 
         val types = chainDao.getTypes(chainId)
-        val typesHash = types.md5()
+        val typesHash = types?.md5()
 
         syncFinished(chainId)
 

@@ -5,7 +5,6 @@ import jp.co.soramitsu.common.data.network.runtime.binding.Binder
 import jp.co.soramitsu.common.data.network.runtime.binding.BinderWithKey
 import jp.co.soramitsu.common.data.network.runtime.binding.BlockHash
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
-import jp.co.soramitsu.runtime.multiNetwork.getRuntime
 import jp.co.soramitsu.shared_utils.runtime.RuntimeSnapshot
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow

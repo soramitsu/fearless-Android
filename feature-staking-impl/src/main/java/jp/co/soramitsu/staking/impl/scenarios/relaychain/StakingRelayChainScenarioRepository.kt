@@ -3,7 +3,6 @@ package jp.co.soramitsu.staking.impl.scenarios.relaychain
 import java.math.BigInteger
 import jp.co.soramitsu.common.data.network.runtime.binding.NonNullBinderWithType
 import jp.co.soramitsu.common.data.network.runtime.binding.incompatible
-import jp.co.soramitsu.common.data.network.runtime.binding.returnType
 import jp.co.soramitsu.common.utils.Modules
 import jp.co.soramitsu.common.utils.accountIdFromMapKey
 import jp.co.soramitsu.common.utils.babe
@@ -18,6 +17,7 @@ import jp.co.soramitsu.common.utils.stakingOrNull
 import jp.co.soramitsu.common.utils.storageKeys
 import jp.co.soramitsu.common.utils.u32ArgumentFromStorageKey
 import jp.co.soramitsu.core.models.Asset
+import jp.co.soramitsu.core.runtime.storage.returnType
 import jp.co.soramitsu.coredb.dao.AccountStakingDao
 import jp.co.soramitsu.coredb.model.AccountStakingLocal
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
@@ -301,7 +301,7 @@ class StakingRelayChainScenarioRepository(
         }
     }
 
-    suspend fun stakingStateFlow(
+    fun stakingStateFlow(
         chain: Chain,
         chainAsset: Asset,
         accountId: AccountId
@@ -323,7 +323,7 @@ class StakingRelayChainScenarioRepository(
         val controllerId = accessInfo.controllerId
 
         return combine(
-            observeAccountNominations(chain.id, stashId),
+            observeRemoteAccountNominations(chain.id, stashId),
             observeAccountValidatorPrefs(chain.id, stashId)
         ) { nominations, prefs ->
             when {

@@ -103,7 +103,7 @@ fun SwapPreviewContent(
 
                 val infoItems = listOf(
                     TitleValueViewState(
-                        title = stringResource(R.string.common_hash),
+                        title = stringResource(R.string.hash),
                         value = state.hash,
                         clickState = TitleValueViewState.ClickState.Value(R.drawable.ic_copy_16, SwapDetailViewModel.CODE_HASH_CLICK)
                     ),

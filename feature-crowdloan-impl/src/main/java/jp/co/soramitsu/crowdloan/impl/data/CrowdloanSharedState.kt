@@ -1,7 +1,7 @@
 package jp.co.soramitsu.crowdloan.impl.data
 
 import jp.co.soramitsu.common.data.storage.Preferences
-import jp.co.soramitsu.core.models.utilityAsset
+import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.state.SingleAssetSharedState
 
@@ -13,6 +13,6 @@ class CrowdloanSharedState(
 ) : SingleAssetSharedState(
     preferences = preferences,
     chainRegistry = chainRegistry,
-    filter = { chain, chainAsset -> chain.hasCrowdloans and (chain.utilityAsset.id == chainAsset.id) },
+    filter = { chain, chainAsset -> chain.hasCrowdloans and (chain.utilityAsset?.id == chainAsset.id) },
     preferencesKey = CROWDLOAN_SHARED_STATE
 )

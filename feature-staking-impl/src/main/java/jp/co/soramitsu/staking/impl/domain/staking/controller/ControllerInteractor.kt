@@ -24,6 +24,7 @@ class ControllerInteractor(
 
             extrinsicService.estimateFee(chain) {
                 when (asset.syntheticStakingType()) {
+                    SyntheticStakingType.TERNOA,
                     SyntheticStakingType.DEFAULT -> setController(chain.multiAddressOf(controllerAccountAddress))
                     SyntheticStakingType.SORA -> setControllerSora(controllerAccountAddress.toAccountId())
                 }
@@ -38,6 +39,7 @@ class ControllerInteractor(
 
             extrinsicService.submitExtrinsic(chain, accountId) {
                 when (asset.syntheticStakingType()) {
+                    SyntheticStakingType.TERNOA,
                     SyntheticStakingType.DEFAULT -> setController(chain.multiAddressOf(controllerAccountAddress))
                     SyntheticStakingType.SORA -> setControllerSora(controllerAccountAddress.toAccountId())
                 }

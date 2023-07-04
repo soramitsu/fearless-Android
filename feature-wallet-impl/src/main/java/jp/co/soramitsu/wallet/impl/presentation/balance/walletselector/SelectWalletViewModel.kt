@@ -2,8 +2,9 @@ package jp.co.soramitsu.wallet.impl.presentation.balance.walletselector
 
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
-import jp.co.soramitsu.account.api.domain.interfaces.GetTotalBalanceUseCase
+import jp.co.soramitsu.account.api.domain.interfaces.TotalBalanceUseCase
 import jp.co.soramitsu.account.impl.presentation.account.mixin.api.AccountListingMixin
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -20,24 +21,24 @@ import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 private const val SUBSTRATE_BLOCKCHAIN_TYPE = 0
 
 @HiltViewModel
 class SelectWalletViewModel @Inject constructor(
-    private val accountListingMixin: AccountListingMixin,
+    accountListingMixin: AccountListingMixin,
     private val accountInteractor: AccountInteractor,
     private val router: WalletRouter,
     private val updatesMixin: UpdatesMixin,
-    private val getTotalBalanceUseCase: GetTotalBalanceUseCase
+    private val getTotalBalance: TotalBalanceUseCase
 ) : BaseViewModel(), UpdatesProviderUi by updatesMixin {
 
-    private val walletItemsFlow = accountListingMixin.accountsFlow(AddressIconGenerator.SIZE_BIG).mapList {
-        val balanceModel = getTotalBalanceUseCase.invoke(it.id).first()
+    private val accountsFlow = accountListingMixin.accountsFlow(AddressIconGenerator.SIZE_BIG)
+
+    private val walletItemsFlow = accountsFlow.mapList {
+        val balanceModel = getTotalBalance(it.id)
 
         WalletItemViewState(
             id = it.id,
@@ -49,6 +50,7 @@ class SelectWalletViewModel @Inject constructor(
                 percentChange = balanceModel.rateChange?.formatAsChange().orEmpty(),
                 fiatChange = balanceModel.balanceChange.abs().formatFiat(balanceModel.fiatSymbol)
             )
+
         )
     }
         .inBackground()

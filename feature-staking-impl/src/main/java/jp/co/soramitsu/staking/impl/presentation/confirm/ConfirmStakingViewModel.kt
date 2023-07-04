@@ -90,7 +90,7 @@ class ConfirmStakingViewModel @Inject constructor(
         is Payload.Full<*> -> BondPayload(payload.amount, payload.rewardDestination)
         else -> null
     }
-    private val stateFlow = scenarioInteractor.stakingStateFlow
+    private val stateFlow = scenarioInteractor.stakingStateFlow()
         .share()
 
     private val controllerAddressFlow = flowOf(payload)
@@ -139,7 +139,7 @@ class ConfirmStakingViewModel @Inject constructor(
         val lockupPeriodInHours = scenarioInteractor.unstakingPeriod()
         val lockupPeriod = if (lockupPeriodInHours > HOURS_IN_DAY) {
             val inDays = lockupPeriodInHours / HOURS_IN_DAY
-            resourceManager.getQuantityString(R.plurals.staking_main_lockup_period_value, inDays, inDays)
+            resourceManager.getQuantityString(R.plurals.common_days_format, inDays, inDays)
         } else {
             resourceManager.getQuantityString(R.plurals.common_hours_format, lockupPeriodInHours, lockupPeriodInHours)
         }
@@ -244,7 +244,7 @@ class ConfirmStakingViewModel @Inject constructor(
                     is SetupStakingProcess.ReadyToSubmit.Parachain -> {
                         val collator = currentProcessState.payload.blockProducers.first()
                         val amount = bondPayload?.amount ?: error("Amount cant be null")
-                        val delegationCount = when (val state = scenarioInteractor.stakingStateFlow.first()) {
+                        val delegationCount = when (val state = scenarioInteractor.stakingStateFlow().first()) {
                             is StakingState.Parachain.Delegator -> state.delegations.size
                             is StakingState.Parachain.Collator -> 0 // todo add collators support
                             is StakingState.Parachain.None -> 0
@@ -309,13 +309,13 @@ class ConfirmStakingViewModel @Inject constructor(
                 val token = controllerAssetFlow.first().token
                 val collator = currentProcessState.payload.blockProducers.first()
                 val amount = bondPayload?.amount ?: error("Amount cant be null")
-                val delegationCount = when (val state = scenarioInteractor.stakingStateFlow.first()) {
+                val delegationCount = when (val state = scenarioInteractor.stakingStateFlow().first()) {
                     is StakingState.Parachain.Delegator -> state.delegations.size
                     is StakingState.Parachain.Collator -> 0 // todo add collators support
                     is StakingState.Parachain.None -> 0
                     else -> 0
                 }
-                val accountAddress = (scenarioInteractor.stakingStateFlow.first() as StakingState.Parachain).accountAddress
+                val accountAddress = (scenarioInteractor.stakingStateFlow().first() as StakingState.Parachain).accountAddress
                 setupStakingInteractor.setupStaking(collator, token.planksFromAmount(amount), delegationCount, accountAddress)
             }
         }

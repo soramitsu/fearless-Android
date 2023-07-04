@@ -1,6 +1,7 @@
 package jp.co.soramitsu.wallet.impl.presentation.cross_chain.setup
 
 import android.Manifest
+import android.graphics.Rect
 import android.os.Bundle
 import android.view.View
 import android.widget.FrameLayout
@@ -9,6 +10,8 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.dp
 import androidx.core.os.bundleOf
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
@@ -76,6 +79,28 @@ class CrossChainSetupFragment : BaseComposeBottomSheetDialogFragment<CrossChainS
                 positiveClick = { viewModel.warningConfirmed(result) },
                 isHideable = false
             ).show(childFragmentManager)
+        }
+
+        var constantDiff = 0
+        view.postDelayed({
+            val w = Rect()
+            view.getWindowVisibleDisplayFrame(w)
+            constantDiff = view.rootView.height - (w.bottom - w.top)
+        }, 100)
+
+        view.viewTreeObserver.addOnGlobalLayoutListener {
+            val r = Rect()
+            // r will be populated with the coordinates of your view that area still visible.
+            view.getWindowVisibleDisplayFrame(r)
+            val heightDiff: Int = view.rootView.height - (r.bottom - r.top)
+
+            // if more than 100 pixels, its probably a keyboard...
+            viewModel.setSoftKeyboardOpen(heightDiff > 500)
+
+            context?.let {
+                val correctedDiff = Integer.max(heightDiff - constantDiff, 0)
+                viewModel.setHeightDiffDp((correctedDiff / Density(it).density).dp)
+            }
         }
     }
 

@@ -16,12 +16,14 @@ import jp.co.soramitsu.common.mixin.api.Retriable
 import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
+import jp.co.soramitsu.common.utils.formatCrypto
 import jp.co.soramitsu.common.utils.formatCryptoDetail
 import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.common.validation.progressConsumer
 import jp.co.soramitsu.core.models.Asset
+import jp.co.soramitsu.core.utils.amountFromPlanks
 import jp.co.soramitsu.staking.api.data.StakingSharedState
 import jp.co.soramitsu.staking.api.domain.model.RewardDestination
 import jp.co.soramitsu.staking.impl.data.mappers.mapRewardDestinationModelToRewardDestination
@@ -37,13 +39,14 @@ import jp.co.soramitsu.staking.impl.presentation.common.validation.stakingValida
 import jp.co.soramitsu.staking.impl.scenarios.StakingScenarioInteractor
 import jp.co.soramitsu.wallet.api.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.wallet.api.presentation.mixin.fee.FeeLoaderMixin
-import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
+import jp.co.soramitsu.wallet.api.presentation.mixin.fee.FeeStatus
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
@@ -70,6 +73,8 @@ class SetupStakingViewModel @Inject constructor(
     Validatable by validationExecutor,
     FeeLoaderMixin by feeLoaderMixin,
     RewardDestinationMixin by rewardDestinationMixin {
+
+    val isInputFocused = MutableStateFlow(false)
 
     private val currentProcessState = setupStakingSharedState.get<SetupStakingProcess.SetupStep>()
 
@@ -204,7 +209,7 @@ class SetupStakingViewModel @Inject constructor(
 
                 val minimumStakeAmount = payload.asset.token.configuration.amountFromPlanks(minimumStake)
                 if (amount < minimumStakeAmount) {
-                    _showMinimumStakeAlert.value = Event(minimumStakeAmount.formatCryptoDetail(payload.asset.token.configuration.symbolToShow))
+                    _showMinimumStakeAlert.value = Event(minimumStakeAmount.formatCryptoDetail(payload.asset.token.configuration.symbol))
                 } else {
                     goToNextStep(amount, rewardDestination, currentAccountAddress, asset.token.configuration.staking)
                 }
@@ -240,4 +245,35 @@ class SetupStakingViewModel @Inject constructor(
     )
 
     private suspend fun rewardCalculator() = rewardCalculator.await()
+
+    fun onAmountInputFocusChanged(hasFocus: Boolean) {
+        launch {
+            isInputFocused.emit(hasFocus)
+        }
+    }
+
+    fun onQuickAmountInput(input: Double) {
+        launch {
+            val asset = assetFlow.firstOrNull() ?: return@launch
+            val availableAmount = asset.availableForStaking
+
+            val fee = (feeLiveData.value as? FeeStatus.Loaded)?.feeModel?.fee.orZero()
+
+            val value = when {
+                availableAmount < fee -> {
+                    BigDecimal.ZERO
+                }
+
+                availableAmount * input.toBigDecimal() < availableAmount - fee -> {
+                    availableAmount * input.toBigDecimal()
+                }
+
+                else -> {
+                    availableAmount - fee
+                }
+            }
+
+            enteredAmountFlow.emit(value.formatCrypto())
+        }
+    }
 }

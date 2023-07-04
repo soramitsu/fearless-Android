@@ -1,5 +1,8 @@
 package jp.co.soramitsu.staking.impl.scenarios.parachain
 
+import java.math.BigDecimal
+import java.math.BigInteger
+import java.util.Optional
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.accountId
@@ -13,7 +16,8 @@ import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.sumByBigInteger
 import jp.co.soramitsu.common.validation.CompositeValidation
 import jp.co.soramitsu.common.validation.ValidationSystem
-import jp.co.soramitsu.core.models.utilityAsset
+import jp.co.soramitsu.core.models.Asset.StakingType
+import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
@@ -93,17 +97,14 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
-import java.math.BigDecimal
-import java.math.BigInteger
-import java.util.Optional
 import jp.co.soramitsu.core.models.Asset as CoreAsset
 
 class StakingParachainScenarioInteractor(
@@ -120,16 +121,14 @@ class StakingParachainScenarioInteractor(
 ) : StakingScenarioInteractor {
 
     override suspend fun observeNetworkInfoState(): Flow<NetworkInfo> {
-        val chain = stakingInteractor.getSelectedChain()
-        val lockupPeriod = getParachainLockupPeriodInDays(chain.id)
-        val minimumStakeInPlanks = getMinimumStake(chain.utilityAsset)
-
-        return flowOf(
+        return stakingSharedState.assetWithChain.filter { it.asset.staking == StakingType.PARACHAIN }.map { (chain, _) ->
+            val lockupPeriod = getParachainLockupPeriodInDays(chain.id)
+            val minimumStakeInPlanks = chain.utilityAsset?.let { getMinimumStake(it) }
             NetworkInfo.Parachain(
                 lockupPeriodInHours = lockupPeriod,
-                minimumStake = minimumStakeInPlanks
+                minimumStake = minimumStakeInPlanks.orZero()
             )
-        )
+        }
     }
 
     private suspend fun getParachainLockupPeriodInDays(chainId: ChainId): Int {
@@ -145,24 +144,26 @@ class StakingParachainScenarioInteractor(
         "91bc6e169807aaa54802737e1c504b2577d4fafedd5a02c10293b1cd60e39527" to 2 // moonbase
     )
 
-    override val stakingStateFlow = stakingInteractor.selectedChainFlow().flatMapConcat { chain ->
-        val availableStakingSelection = stakingSharedState.availableToSelect()
-        val isSelectedChainAvailable = availableStakingSelection.any { it.chainId == chain.id }
+    override fun stakingStateFlow(): Flow<StakingState> {
+        return stakingInteractor.selectedChainFlow().flatMapLatest { chain ->
+            val availableStakingSelection = stakingSharedState.availableToSelect()
+            val isSelectedChainAvailable = availableStakingSelection.any { it.chainId == chain.id }
 
-        val useChain = if (isSelectedChainAvailable) {
-            chain
-        } else {
-            val chainId = with(availableStakingSelection) {
-                firstOrNull { it.chainId == polkadotChainId } ?: first()
-            }.chainId
-            availableStakingSelection.firstOrNull { it.chainId == chainId }?.let { newSelection ->
-                stakingSharedState.update(newSelection)
+            val useChain = if (isSelectedChainAvailable) {
+                chain
+            } else {
+                val chainId = with(availableStakingSelection) {
+                    firstOrNull { it.chainId == polkadotChainId } ?: first()
+                }.chainId
+                availableStakingSelection.firstOrNull { it.chainId == chainId }?.let { newSelection ->
+                    stakingSharedState.update(newSelection)
+                }
+                val availableChain = stakingInteractor.getChain(chainId)
+                availableChain
             }
-            val availableChain = stakingInteractor.getChain(chainId)
-            availableChain
+            val accountId = accountRepository.getSelectedMetaAccount().accountId(useChain) ?: error("cannot find accountId")
+            stakingParachainScenarioRepository.stakingStateFlow(useChain, accountId)
         }
-        val accountId = accountRepository.getSelectedMetaAccount().accountId(useChain) ?: error("cannot find accountId")
-        stakingParachainScenarioRepository.stakingStateFlow(useChain, accountId)
     }
 
     suspend fun getIdentities(collatorsIds: List<AccountId>): Map<String, Identity?> {
@@ -418,7 +419,7 @@ class StakingParachainScenarioInteractor(
             resourceManager.getQuantityString(R.plurals.common_hours_format, delayInHours, delayInHours)
         } else {
             val delayInDays = delayInHours / 24
-            resourceManager.getQuantityString(R.plurals.days_format, delayInDays, delayInDays)
+            resourceManager.getQuantityString(R.plurals.common_days_format, delayInDays, delayInDays)
         }
         val roundsPart = resourceManager.getQuantityString(R.plurals.rounds_format, bondLessDelayInRounds, bondLessDelayInRounds)
         val unbondDurationHint = resourceManager.getString(R.string.parachain_staking_unbonding_period_template, roundsPart, chain.name, timePart)

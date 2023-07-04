@@ -8,7 +8,6 @@ import jp.co.soramitsu.core.updater.SubscriptionBuilder
 import jp.co.soramitsu.core.updater.UpdateScope
 import jp.co.soramitsu.core.updater.Updater
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
-import jp.co.soramitsu.runtime.multiNetwork.getRuntime
 import jp.co.soramitsu.shared_utils.runtime.RuntimeSnapshot
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
@@ -45,7 +44,7 @@ abstract class SingleStorageKeyUpdater<S : UpdateScope>(
         val chainId = chainIdHolder.chainId()
         val runtime = chainRegistry.getRuntime(chainId)
 
-        val storageKey = storageKey(runtime) ?: return emptyFlow()
+        val storageKey = kotlin.runCatching { storageKey(runtime) }.getOrNull() ?: return emptyFlow()
 
         return storageSubscriptionBuilder.subscribe(storageKey)
             .map {

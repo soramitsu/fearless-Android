@@ -31,6 +31,7 @@ import jp.co.soramitsu.common.compose.theme.warningOrange
 import jp.co.soramitsu.common.compose.theme.white
 import jp.co.soramitsu.common.compose.theme.white50
 import jp.co.soramitsu.feature_soracard_impl.R
+import jp.co.soramitsu.oauth.R as SoraCardR
 
 interface GetMoreXorScreenInterface {
     fun onSwapForXorClick()
@@ -72,19 +73,19 @@ fun GetMoreXorContent(
                 )
                 MarginVertical(margin = 16.dp)
                 H3(
-                    text = stringResource(id = R.string.sora_card_get_more_xor),
+                    text = stringResource(id = SoraCardR.string.details_get_more_xor),
                     modifier = Modifier.align(Alignment.CenterHorizontally)
                 )
                 MarginVertical(margin = 8.dp)
                 B0(
-                    text = stringResource(id = R.string.sora_card_swap_or_buy_xor),
+                    text = stringResource(id = SoraCardR.string.get_more_xor_dialog_description),
                     color = white50,
                     modifier = Modifier.align(Alignment.CenterHorizontally)
                 )
                 MarginVertical(margin = 12.dp)
 
                 AccentButton(
-                    text = stringResource(id = R.string.sora_card_buy_xor),
+                    text = stringResource(id = SoraCardR.string.get_more_xor_dialog_buy_option),
                     onClick = {
                         keyboardController?.hide()
                         callback.onBuyXorClick()
@@ -96,7 +97,7 @@ fun GetMoreXorContent(
                 MarginVertical(margin = 12.dp)
 
                 GrayButton(
-                    text = stringResource(id = R.string.sora_card_swap_for_xor),
+                    text = stringResource(id = SoraCardR.string.get_more_xor_dialog_swap_option),
                     onClick = {
                         keyboardController?.hide()
                         callback.onSwapForXorClick()

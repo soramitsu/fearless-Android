@@ -1,6 +1,7 @@
 package jp.co.soramitsu.wallet.impl.presentation.cross_chain.setup
 
-import androidx.compose.ui.focus.FocusState
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
@@ -38,7 +39,7 @@ import jp.co.soramitsu.common.utils.isNotZero
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.core.models.ChainId
-import jp.co.soramitsu.core.models.utilityAsset
+import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.wallet.api.domain.TransferValidationResult
 import jp.co.soramitsu.wallet.api.domain.ValidateTransferUseCase
@@ -98,6 +99,9 @@ class CrossChainSetupViewModel @Inject constructor(
     private val chainAssetsManager: ChainAssetsManager,
     private val xcmInteractor: XcmInteractor
 ) : BaseViewModel(), CrossChainSetupScreenInterface {
+
+    private val isSoftKeyboardOpenFlow = MutableStateFlow(false)
+    private val heightDiffDpFlow = MutableStateFlow(0.dp)
 
     private val _openScannerEvent = MutableSharedFlow<Unit>()
     val openScannerEvent = _openScannerEvent.asSharedFlow()
@@ -169,7 +173,9 @@ class CrossChainSetupViewModel @Inject constructor(
         destinationFeeInfoState = null,
         warningInfoState = null,
         defaultButtonState,
-        walletIcon = null
+        walletIcon = null,
+        isSoftKeyboardOpen = false,
+        heightDiffDp = 0.dp
     )
 
     private val amountInputFocusFlow = MutableStateFlow(false)
@@ -197,11 +203,11 @@ class CrossChainSetupViewModel @Inject constructor(
         if (asset == null) {
             defaultAmountInputState
         } else {
-            val tokenBalance = asset.transferable.formatCrypto(asset.token.configuration.symbolToShow)
+            val tokenBalance = asset.transferable.formatCrypto(asset.token.configuration.symbol)
             val fiatAmount = amount.applyFiatRate(asset.token.fiatRate)?.formatFiat(asset.token.fiatSymbol)
 
             AmountInputViewState(
-                tokenName = asset.token.configuration.symbolToShow,
+                tokenName = asset.token.configuration.symbol,
                 tokenImage = asset.token.configuration.iconUrl,
                 totalBalance = resourceManager.getString(
                     R.string.common_transferable_format,
@@ -226,10 +232,9 @@ class CrossChainSetupViewModel @Inject constructor(
         hasDestinationFeeAmountFlow.value = false
         val destinationChainId = _destinationChainId ?: return@combine null
         val tokenConfiguration = _asset?.token?.configuration ?: return@combine null
-
         val fee = xcmInteractor.getDestinationFee(
             destinationChainId = destinationChainId,
-            tokenSymbol = tokenConfiguration.symbol
+            tokenConfiguration = tokenConfiguration
         )
         fee
     }
@@ -267,28 +272,35 @@ class CrossChainSetupViewModel @Inject constructor(
         .onEach { fee -> hasOriginFeeAmountFlow.value = fee != null }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    private val originFeeInPlanksFlow = combine(originFeeAmountFlow, assetFlow) { fee, asset ->
-        fee ?: return@combine null
-        asset ?: return@combine null
-        asset.token.planksFromAmount(fee)
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
-
     @OptIn(ExperimentalCoroutinesApi::class)
     private val utilityAssetFlow = assetFlow.filterNotNull()
         .flatMapLatest { asset ->
             val chain = walletInteractor.getChain(asset.token.configuration.chainId)
-            walletInteractor.assetFlow(chain.id, chain.utilityAsset.id)
+            val utilityAsset = chain.utilityAsset
+            if (utilityAsset == null) {
+                flowOf(null)
+            } else {
+                walletInteractor.assetFlow(chain.id, utilityAsset.id).mapNotNull {
+                    it
+                }
+            }
         }
+
+    private val originFeeInPlanksFlow = combine(originFeeAmountFlow, utilityAssetFlow) { fee, asset ->
+        fee ?: return@combine null
+        asset ?: return@combine null
+        asset.token.planksFromAmount(fee)
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val originFeeInfoViewStateFlow: Flow<FeeInfoViewState> = combine(
         hasOriginFeeAmountFlow,
         originFeeAmountFlow,
         utilityAssetFlow
     ) { hasOriginFeeAmount, feeAmount, utilityAsset ->
-        val feeFormatted = feeAmount?.formatCryptoDetail(utilityAsset.token.configuration.symbolToShow)
+        val feeFormatted = feeAmount?.formatCryptoDetail(utilityAsset?.token?.configuration?.symbol)
             ?.takeIf { hasOriginFeeAmount }
-        val feeFiat = feeAmount?.applyFiatRate(utilityAsset.token.fiatRate)
-            ?.formatFiat(utilityAsset.token.fiatSymbol)
+        val feeFiat = feeAmount?.applyFiatRate(utilityAsset?.token?.fiatRate)
+            ?.formatFiat(utilityAsset?.token?.fiatSymbol)
             ?.takeIf { hasOriginFeeAmount }
 
         FeeInfoViewState(
@@ -306,7 +318,7 @@ class CrossChainSetupViewModel @Inject constructor(
     ) { hasDestinationFeeAmount, feeAmount, asset ->
         if (asset == null) return@combine null
 
-        val feeFormatted = feeAmount?.formatCryptoDetail(asset.token.configuration.symbolToShow)
+        val feeFormatted = feeAmount?.formatCryptoDetail(asset.token.configuration.symbol)
             ?.takeIf { hasDestinationFeeAmount }
         val feeFiat = feeAmount?.applyFiatRate(asset.token.fiatRate)
             ?.formatFiat(asset.token.fiatSymbol)
@@ -334,7 +346,7 @@ class CrossChainSetupViewModel @Inject constructor(
                 extras = listOf(
                     phishing.name?.let { resourceManager.getString(R.string.username_setup_choose_title) to it },
                     phishing.type.let { resourceManager.getString(R.string.reason) to it.capitalizedName },
-                    phishing.subtype?.let { resourceManager.getString(R.string.additional) to it }
+                    phishing.subtype?.let { resourceManager.getString(R.string.scam_additional_stub) to it }
                 ).mapNotNull { it },
                 isExpanded = isExpanded,
                 color = phishing.color
@@ -372,11 +384,14 @@ class CrossChainSetupViewModel @Inject constructor(
         destinationFeeInfoViewStateFlow,
         warningInfoStateFlow,
         buttonStateFlow,
-        walletIconFlow
+        walletIconFlow,
+        isSoftKeyboardOpenFlow,
+        heightDiffDpFlow
     ) { originSelectedChain, destinationSelectedChain, address, originChainSelectorState,
         destinationChainSelectorState, amountInputState,
         originFeeInfoState, destinationFeeInfoState,
-        warningInfoState, buttonState, walletIcon ->
+        warningInfoState, buttonState, walletIcon,
+        isSoftKeyboardOpen, heightDiffDp ->
         val isAddressValid = if (destinationSelectedChain == null) {
             false
         } else {
@@ -408,7 +423,9 @@ class CrossChainSetupViewModel @Inject constructor(
             destinationFeeInfoState = destinationFeeInfoState,
             warningInfoState = warningInfoState,
             buttonState = buttonState,
-            walletIcon = walletIcon
+            walletIcon = walletIcon,
+            isSoftKeyboardOpen = isSoftKeyboardOpen,
+            heightDiffDp = heightDiffDp
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, defaultState)
 
@@ -448,11 +465,11 @@ class CrossChainSetupViewModel @Inject constructor(
 
     private fun getPhishingMessage(type: PhishingType): String {
         return when (type) {
-            PhishingType.SCAM -> resourceManager.getString(R.string.scam_warning_message)
+            PhishingType.SCAM -> resourceManager.getString(R.string.scam_warning_message, "DOT")
             PhishingType.EXCHANGE -> resourceManager.getString(R.string.exchange_warning_message)
-            PhishingType.DONATION -> resourceManager.getString(R.string.donation_warning_message)
+            PhishingType.DONATION -> resourceManager.getString(R.string.donation_warning_message_format, "DOT")
             PhishingType.SANCTIONS -> resourceManager.getString(R.string.sanction_warning_message)
-            else -> resourceManager.getString(R.string.scam_warning_message)
+            else -> resourceManager.getString(R.string.scam_warning_message, "DOT")
         }
     }
 
@@ -619,8 +636,8 @@ class CrossChainSetupViewModel @Inject constructor(
         }
     }
 
-    override fun onAmountFocusChanged(focusState: FocusState) {
-        amountInputFocusFlow.value = focusState.isFocused
+    override fun onAmountFocusChanged(isFocused: Boolean) {
+        amountInputFocusFlow.value = isFocused
     }
 
     fun qrCodeScanned(content: String) {
@@ -701,5 +718,13 @@ class CrossChainSetupViewModel @Inject constructor(
     fun warningConfirmed(validationResult: TransferValidationResult) {
         confirmedValidations.add(validationResult)
         onNextClick()
+    }
+
+    fun setSoftKeyboardOpen(isOpen: Boolean) {
+        isSoftKeyboardOpenFlow.value = isOpen
+    }
+
+    fun setHeightDiffDp(value: Dp) {
+        heightDiffDpFlow.value = value
     }
 }

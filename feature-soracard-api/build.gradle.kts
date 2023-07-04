@@ -29,9 +29,6 @@ dependencies {
     implementation(libs.bundles.coroutines)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.sora.card)
-    {
-        exclude(group = "org.bouncycastle", module = "bcprov-jdk15to18")
-    }
 
     implementation(projects.runtime)
     implementation(projects.featureWalletApi)

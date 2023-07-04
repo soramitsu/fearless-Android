@@ -1,10 +1,16 @@
 package jp.co.soramitsu.wallet.impl.presentation.send.setup
 
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.math.BigDecimal
+import java.math.BigInteger
+import java.math.RoundingMode
+import javax.inject.Inject
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressIcon
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -28,8 +34,8 @@ import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.isNotZero
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.requireValue
-import jp.co.soramitsu.core.models.isValidAddress
-import jp.co.soramitsu.core.models.utilityAsset
+import jp.co.soramitsu.core.utils.isValidAddress
+import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.wallet.api.domain.TransferValidationResult
 import jp.co.soramitsu.wallet.api.domain.ValidateTransferUseCase
@@ -63,10 +69,6 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.retry
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import java.math.BigDecimal
-import java.math.BigInteger
-import java.math.RoundingMode
-import javax.inject.Inject
 
 private const val RETRY_TIMES = 3L
 
@@ -106,7 +108,9 @@ class SendSetupViewModel @Inject constructor(
     private val initialAmount = BigDecimal.ZERO
     private val confirmedValidations = mutableListOf<TransferValidationResult>()
 
-    private val selectedChain = sharedState.chainIdFlow.map { chainId ->
+    private val chainIdFlow = sharedState.chainIdFlow
+        .stateIn(viewModelScope, SharingStarted.Eagerly, initialValue = null)
+    private val selectedChain = chainIdFlow.map { chainId ->
         chainId?.let { walletInteractor.getChain(it) }
     }
 
@@ -117,7 +121,7 @@ class SendSetupViewModel @Inject constructor(
                 imageUrl = chain.icon,
                 title = chain.name,
                 isSelected = false,
-                tokenSymbols = chain.assets.associate { it.id to it.symbolToShow }
+                tokenSymbols = chain.assets.associate { it.id to it.symbol }
             )
         }
     }
@@ -155,7 +159,9 @@ class SendSetupViewModel @Inject constructor(
         SelectorState.default,
         FeeInfoViewState.default,
         warningInfoState = null,
-        defaultButtonState
+        defaultButtonState,
+        isSoftKeyboardOpen = false,
+        heightDiffDp = 0.dp
     )
 
     private val assetFlow: StateFlow<Asset?> =
@@ -170,7 +176,10 @@ class SendSetupViewModel @Inject constructor(
 
     private val addressInputFlow = MutableStateFlow(initSendToAddress.orEmpty())
 
-    private val isInputAddressValidFlow = combine(addressInputFlow, sharedState.chainIdFlow) { addressInput, chainId ->
+    private val isSoftKeyboardOpenFlow = MutableStateFlow(false)
+    private val heightDiffDpFlow = MutableStateFlow(0.dp)
+
+    private val isInputAddressValidFlow = combine(addressInputFlow, chainIdFlow) { addressInput, chainId ->
         when (chainId) {
             null -> false
             else -> walletInteractor.validateSendAddress(chainId, addressInput)
@@ -198,11 +207,11 @@ class SendSetupViewModel @Inject constructor(
         if (asset == null) {
             defaultAmountInputState
         } else {
-            val tokenBalance = asset.transferable.formatCrypto(asset.token.configuration.symbolToShow)
+            val tokenBalance = asset.transferable.formatCrypto(asset.token.configuration.symbol)
             val fiatAmount = amount.applyFiatRate(asset.token.fiatRate)?.formatFiat(asset.token.fiatSymbol)
 
             AmountInputViewState(
-                tokenName = asset.token.configuration.symbolToShow,
+                tokenName = asset.token.configuration.symbol,
                 tokenImage = asset.token.configuration.iconUrl,
                 totalBalance = resourceManager.getString(R.string.common_transferable_format, tokenBalance),
                 fiatAmount = fiatAmount,
@@ -251,14 +260,14 @@ class SendSetupViewModel @Inject constructor(
 
     private val utilityAssetFlow = assetFlow.mapNotNull { it }.flatMapLatest { asset ->
         val chain = walletInteractor.getChain(asset.token.configuration.chainId)
-        walletInteractor.assetFlow(chain.id, chain.utilityAsset.id)
+        walletInteractor.assetFlow(chain.id, chain.utilityAsset?.id.orEmpty())
     }
 
     private val feeInfoViewStateFlow: Flow<FeeInfoViewState> = combine(
         feeAmountFlow,
         utilityAssetFlow
     ) { feeAmount, utilityAsset ->
-        val feeFormatted = feeAmount?.formatCryptoDetail(utilityAsset.token.configuration.symbolToShow)
+        val feeFormatted = feeAmount?.formatCryptoDetail(utilityAsset.token.configuration.symbol)
         val feeFiat = feeAmount?.applyFiatRate(utilityAsset.token.fiatRate)?.formatFiat(utilityAsset.token.fiatSymbol)
 
         FeeInfoViewState(feeAmount = feeFormatted, feeAmountFiat = feeFiat)
@@ -279,7 +288,7 @@ class SendSetupViewModel @Inject constructor(
                 extras = listOf(
                     phishing.name?.let { resourceManager.getString(R.string.username_setup_choose_title) to it },
                     phishing.type?.let { resourceManager.getString(R.string.reason) to it.capitalizedName },
-                    phishing.subtype?.let { resourceManager.getString(R.string.additional) to it }
+                    phishing.subtype?.let { resourceManager.getString(R.string.scam_additional_stub) to it }
                 ).mapNotNull { it },
                 isExpanded = isExpanded,
                 color = phishing.color
@@ -289,11 +298,11 @@ class SendSetupViewModel @Inject constructor(
 
     private fun getPhishingMessage(type: PhishingType): String {
         return when (type) {
-            PhishingType.SCAM -> resourceManager.getString(R.string.scam_warning_message)
+            PhishingType.SCAM -> resourceManager.getString(R.string.scam_warning_message, "DOT")
             PhishingType.EXCHANGE -> resourceManager.getString(R.string.exchange_warning_message)
-            PhishingType.DONATION -> resourceManager.getString(R.string.donation_warning_message)
+            PhishingType.DONATION -> resourceManager.getString(R.string.donation_warning_message_format, "DOT")
             PhishingType.SANCTIONS -> resourceManager.getString(R.string.sanction_warning_message)
-            else -> resourceManager.getString(R.string.scam_warning_message)
+            else -> resourceManager.getString(R.string.scam_warning_message, "DOT")
         }
     }
 
@@ -315,8 +324,10 @@ class SendSetupViewModel @Inject constructor(
         amountInputViewState,
         feeInfoViewStateFlow,
         warningInfoStateFlow,
-        buttonStateFlow
-    ) { chain, address, chainSelectorState, amountInputState, feeInfoState, warningInfoState, buttonState ->
+        buttonStateFlow,
+        isSoftKeyboardOpenFlow,
+        heightDiffDpFlow
+    ) { chain, address, chainSelectorState, amountInputState, feeInfoState, warningInfoState, buttonState, isSoftKeyboardOpen, heightDiffDp ->
         val isAddressValid = when (chain) {
             null -> false
             else -> walletInteractor.validateSendAddress(chain.id, address)
@@ -338,7 +349,9 @@ class SendSetupViewModel @Inject constructor(
             amountInputState = amountInputState,
             feeInfoState = feeInfoState,
             warningInfoState = warningInfoState,
-            buttonState = buttonState
+            buttonState = buttonState,
+            isSoftKeyboardOpen = isSoftKeyboardOpen,
+            heightDiffDp = heightDiffDp
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, defaultState)
 
@@ -446,7 +459,7 @@ class SendSetupViewModel @Inject constructor(
         }
     }
 
-    private val tipFlow = sharedState.chainIdFlow.map { it?.let { walletConstants.tip(it) } }
+    private val tipFlow = chainIdFlow.map { it?.let { walletConstants.tip(it) } }
     private val tipAmountFlow = combine(tipFlow, assetFlow) { tip: BigInteger?, asset: Asset? ->
         tip?.let {
             asset?.token?.amountFromPlanks(it)
@@ -512,6 +525,14 @@ class SendSetupViewModel @Inject constructor(
 
             addressInputFlow.value = result
         }
+    }
+
+    fun setSoftKeyboardOpen(isOpen: Boolean) {
+        isSoftKeyboardOpenFlow.value = isOpen
+    }
+
+    fun setHeightDiffDp(value: Dp) {
+        heightDiffDpFlow.value = value
     }
 
     override fun onQuickAmountInput(input: Double) {

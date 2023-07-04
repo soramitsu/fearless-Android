@@ -5,7 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import jp.co.soramitsu.account.api.domain.interfaces.GetTotalBalanceUseCase
+import jp.co.soramitsu.account.api.domain.interfaces.TotalBalanceUseCase
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -59,7 +59,7 @@ class SignBeaconTransactionViewModel @Inject constructor(
     private val interactor: WalletInteractor,
     private val iconGenerator: AddressIconGenerator,
     private val resourceManager: ResourceManager,
-    totalBalance: GetTotalBalanceUseCase,
+    totalBalance: TotalBalanceUseCase,
     savedStateHandle: SavedStateHandle
 ) : BaseViewModel() {
 
@@ -77,7 +77,7 @@ class SignBeaconTransactionViewModel @Inject constructor(
         .inBackground()
         .share()
 
-    val totalBalanceLiveData = totalBalance().map { it.balance.formatCryptoDetail() }.asLiveData()
+    val totalBalanceLiveData = totalBalance.observe().map { it.balance.formatCryptoDetail() }.asLiveData()
 
     private val decodedOperation = flow {
         val result = when {

@@ -2,6 +2,8 @@ package jp.co.soramitsu.staking.impl.presentation.confirm.pool.join
 
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.math.BigDecimal
+import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.GradientIconState
 import jp.co.soramitsu.common.compose.component.TitleValueViewState
@@ -23,8 +25,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import java.math.BigDecimal
-import javax.inject.Inject
 
 @HiltViewModel
 class ConfirmJoinPoolViewModel @Inject constructor(
@@ -70,10 +70,10 @@ class ConfirmJoinPoolViewModel @Inject constructor(
         val amountInPlanks = asset.token.planksFromAmount(amount)
         val feeInPlanks = poolInteractor.estimateJoinFee(amountInPlanks, selectedPool.poolId)
         val fee = asset.token.amountFromPlanks(feeInPlanks)
-        val feeFormatted = fee.formatCryptoDetail(asset.token.configuration.symbolToShow)
+        val feeFormatted = fee.formatCryptoDetail(asset.token.configuration.symbol)
         val feeFiat = fee.formatFiat(asset.token.fiatSymbol)
         TitleValueViewState(
-            resourceManager.getString(R.string.network_fee),
+            resourceManager.getString(R.string.common_network_fee),
             feeFormatted,
             feeFiat
         )
@@ -86,7 +86,7 @@ class ConfirmJoinPoolViewModel @Inject constructor(
     private val isLoadingViewState = MutableStateFlow(false)
 
     val viewState = combine(feeViewStateFlow, isLoadingViewState) { feeViewState, isLoading ->
-        val amount = this.amount.formatCryptoDetail(asset.token.configuration.symbolToShow)
+        val amount = this.amount.formatCryptoDetail(asset.token.configuration.symbol)
         val validators = poolInteractor.getValidatorsIds(chain, selectedPool.poolId)
 
         val additionalMessage = if (validators.isEmpty()) {
@@ -128,7 +128,7 @@ class ConfirmJoinPoolViewModel @Inject constructor(
 
     private val defaultFeeState
         get() = TitleValueViewState(
-            resourceManager.getString(R.string.network_fee),
+            resourceManager.getString(R.string.common_network_fee),
             null,
             null
         )

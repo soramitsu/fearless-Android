@@ -1,5 +1,6 @@
 package jp.co.soramitsu.staking.impl.presentation.validators.change.custom.select
 
+import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -39,6 +40,8 @@ class SelectCustomValidatorsFragment :
 
             onBackPressed { viewModel.backClicked() }
 
+            selectCustomValidatorsClearFilters.isVisible = false
+
             selectCustomValidatorsList.adapter = adapter
             selectCustomValidatorsList.setHasFixedSize(true)
 
@@ -61,7 +64,6 @@ class SelectCustomValidatorsFragment :
             selectCustomValidatorsList.addItemDecoration(dividerItemDecoration)
 
             selectCustomValidatorsFillWithRecommended.setOnClickListener { viewModel.fillRestWithRecommended() }
-            selectCustomValidatorsClearFilters.setOnClickListener { viewModel.clearFilters() }
             selectCustomValidatorsDeselectAll.setOnClickListener { viewModel.deselectAll() }
 
             selectCustomValidatorsNext.setOnClickListener { viewModel.nextClicked() }
@@ -87,7 +89,6 @@ class SelectCustomValidatorsFragment :
         viewModel.scoringHeader.observe(binding.selectCustomValidatorsSorting::setText)
 
         viewModel.fillWithRecommendedEnabled.observe(binding.selectCustomValidatorsFillWithRecommended::setEnabled)
-        viewModel.clearFiltersEnabled.observe(binding.selectCustomValidatorsClearFilters::setEnabled)
         viewModel.deselectAllEnabled.observe(binding.selectCustomValidatorsDeselectAll::setEnabled)
     }
 

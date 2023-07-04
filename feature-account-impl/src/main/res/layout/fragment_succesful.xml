@@ -35,7 +35,7 @@
         style="@style/TextAppearance.Soramitsu.Header2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/success_title"
+        android:text="@string/all_done"
         app:layout_constraintBottom_toTopOf="@+id/successMessage"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

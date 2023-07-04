@@ -9,7 +9,9 @@ import jp.co.soramitsu.coredb.model.AssetLocal
 import jp.co.soramitsu.coredb.model.AssetUpdateItem
 import jp.co.soramitsu.coredb.model.AssetWithToken
 import jp.co.soramitsu.shared_utils.runtime.AccountId
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 
@@ -27,8 +29,9 @@ private const val RETRIEVE_ASSETS_SQL_SYMBOL = """
             SELECT a.*, tp.* FROM assets AS a 
             LEFT JOIN token_price AS tp ON a.tokenPriceId = tp.priceId 
             LEFT JOIN chain_assets ca ON ca.id = a.id AND ca.chainId = a.chainId
-            WHERE a.accountId IN (:accountId, :emptyAccountId) AND a.chainId = :chainId 
-              AND (ca.displayName IS NOT NULL AND ca.displayName = :symbol OR ca.symbol = :symbol)
+            WHERE a.accountId IN (:accountId, :emptyAccountId) 
+              AND a.chainId = :chainId 
+              AND ca.symbol = :symbol
               AND a.metaId = :metaId
             ORDER BY a.sortIndex
 """
@@ -64,6 +67,7 @@ abstract class AssetDao : AssetReadOnlyCache {
 
     override fun observeAsset(metaId: Long, accountId: AccountId, chainId: String, assetId: String): Flow<AssetWithToken> =
         observeAssetWithEmpty(metaId, accountId, chainId, assetId, emptyAccountIdValue)
+            .flowOn(Dispatchers.IO)
             .mapNotNull { it }
             .map { AssetWithToken(it.asset.copy(accountId = accountId), it.token) }
 

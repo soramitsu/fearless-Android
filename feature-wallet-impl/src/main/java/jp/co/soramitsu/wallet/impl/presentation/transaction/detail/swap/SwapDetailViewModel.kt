@@ -5,6 +5,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.math.BigDecimal
+import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.GradientIconState
 import jp.co.soramitsu.common.compose.theme.greenText
@@ -33,8 +35,6 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import java.math.BigDecimal
-import javax.inject.Inject
 
 @HiltViewModel
 class SwapDetailViewModel @Inject constructor(
@@ -74,8 +74,8 @@ class SwapDetailViewModel @Inject constructor(
         toTokenImage = GradientIconState.Remote(swap.targetAsset?.iconUrl.orEmpty(), swap.targetAsset?.color.orEmpty()),
         fromTokenAmount = swap.baseAssetAmount.formatCryptoFromPlanks(swap.chainAsset),
         toTokenAmount = swap.targetAsset?.let { swap.targetAssetAmount?.formatCryptoFromPlanks(it) } ?: "???",
-        fromTokenName = swap.chainAsset.symbolToShow.uppercase(),
-        toTokenName = swap.targetAsset?.symbolToShow?.uppercase() ?: "???",
+        fromTokenName = swap.chainAsset.symbol.uppercase(),
+        toTokenName = swap.targetAsset?.symbol?.uppercase() ?: "???",
         statusAppearance = swap.status.mapToStatusAppearance(),
         address = swap.address,
         hash = swap.hash,

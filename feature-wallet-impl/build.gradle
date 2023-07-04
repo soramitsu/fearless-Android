@@ -27,7 +27,7 @@ android {
         buildConfigField "String", "SORA_CONFIG_COMMON_PROD", "\"https://config.polkaswap2.io/prod/common.json\""
         buildConfigField "String", "SORA_CONFIG_MOBILE_PROD", "\"https://config.polkaswap2.io/prod/mobile.json\""
 
-        buildConfigField "String", "SCAM_DETECTION_CONFIG", "\"https://raw.githubusercontent.com/soramitsu/shared-features-utils/develop/scamDetection/Polkadot_Hot_Wallet_Attributions.csv\""
+        buildConfigField "String", "SCAM_DETECTION_CONFIG", "\"https://raw.githubusercontent.com/soramitsu/shared-features-utils/master/scamDetection/Polkadot_Hot_Wallet_Attributions.csv\""
     }
 
     buildTypes {
@@ -72,6 +72,7 @@ dependencies {
     implementation project(':runtime')
     implementation project(':feature-soracard-api')
     implementation project(':feature-soracard-impl')
+    implementation project(':runtime-permission')
 
     implementation kotlinDep
 
@@ -79,8 +80,6 @@ dependencies {
     implementation materialDep
     implementation cardViewDep
     implementation constraintDep
-
-    implementation permissionsDep
 
     implementation coroutinesDep
     implementation coroutinesAndroidDep
@@ -118,7 +117,7 @@ dependencies {
     implementation jnaDep
     implementation beaconDep, withoutJna
 
-    implementation soraCardDep, withoutBouncycastle
+    implementation soraCardDep
 
     implementation shimmerDep
 

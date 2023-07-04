@@ -3,7 +3,8 @@ package jp.co.soramitsu.wallet.impl.presentation.balance.walletselector.light
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import jp.co.soramitsu.account.api.domain.interfaces.GetTotalBalanceUseCase
+import javax.inject.Inject
+import jp.co.soramitsu.account.api.domain.interfaces.TotalBalanceUseCase
 import jp.co.soramitsu.account.impl.presentation.account.mixin.api.AccountListingMixin
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -20,18 +21,16 @@ import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @HiltViewModel
 class WalletSelectorViewModel @Inject constructor(
     accountListingMixin: AccountListingMixin,
     private val router: WalletRouter,
     private val updatesMixin: UpdatesMixin,
-    private val getTotalBalanceUseCase: GetTotalBalanceUseCase,
+    private val totalBalanceUseCase: TotalBalanceUseCase,
     savedStateHandle: SavedStateHandle
 ) : BaseViewModel(), UpdatesProviderUi by updatesMixin {
 
@@ -40,7 +39,7 @@ class WalletSelectorViewModel @Inject constructor(
     private val walletSelectionMode = savedStateHandle[WalletSelectorFragment.WALLET_SELECTION_MODE] ?: WalletSelectionMode.CurrentWallet
 
     private val walletItemsFlow = accountListingMixin.accountsFlow(AddressIconGenerator.SIZE_BIG).mapList {
-        val balanceModel = getTotalBalanceUseCase.invoke(it.id).first()
+        val balanceModel = totalBalanceUseCase(it.id)
 
         WalletItemViewState(
             id = it.id,
@@ -70,6 +69,7 @@ class WalletSelectorViewModel @Inject constructor(
                 WalletSelectionMode.CurrentWallet -> {
                     selectedWallet ?: walletItems.first { it.isSelected }
                 }
+
                 WalletSelectionMode.ExternalSelectedWallet -> {
                     selectedWallet ?: selectedWalletId?.let {
                         walletItems.firstOrNull { it.id == selectedWalletId }

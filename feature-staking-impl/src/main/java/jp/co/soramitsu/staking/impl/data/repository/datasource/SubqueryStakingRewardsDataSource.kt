@@ -18,9 +18,12 @@ import jp.co.soramitsu.staking.impl.data.network.subquery.request.StakingSumRewa
 import jp.co.soramitsu.staking.impl.data.network.subquery.request.SubsquidEthRewardAmountRequest
 import jp.co.soramitsu.staking.impl.data.network.subquery.request.SubsquidRelayRewardAmountRequest
 import jp.co.soramitsu.staking.impl.domain.model.TotalReward
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
 
 class SubqueryStakingRewardsDataSource(
     private val stakingApi: StakingApi,
@@ -28,18 +31,19 @@ class SubqueryStakingRewardsDataSource(
     private val chainRegistry: ChainRegistry
 ) : StakingRewardsDataSource {
 
-    override suspend fun totalRewardsFlow(accountAddress: String): Flow<TotalReward> {
+    override fun totalRewardsFlow(accountAddress: String): Flow<TotalReward> {
         return stakingTotalRewardDao.observeTotalRewards(accountAddress)
+            .flowOn(Dispatchers.IO)
             .filterNotNull()
             .map(::mapTotalRewardLocalToTotalReward)
     }
 
-    override suspend fun sync(chainId: ChainId, accountAddress: String) {
+    override suspend fun sync(chainId: ChainId, accountAddress: String) = withContext(Dispatchers.Default) {
         val chain = chainRegistry.getChain(chainId)
         val stakingUrl = chain.externalApi?.staking?.url
         val stakingType = chain.externalApi?.staking?.type
 
-        return when {
+        when {
             stakingUrl == null -> throw RewardsNotSupportedWarning()
             stakingType == Chain.ExternalApi.Section.Type.SUBQUERY -> {
                 syncSubquery(stakingUrl, accountAddress)
@@ -61,25 +65,25 @@ class SubqueryStakingRewardsDataSource(
         }
     }
 
-    private suspend fun syncSubsquidEth(stakingUrl: String, accountAddress: String) {
+    private suspend fun syncSubsquidEth(stakingUrl: String, accountAddress: String) = withContext(Dispatchers.IO) {
         val rewards = stakingApi.getEthRewardAmounts(stakingUrl, SubsquidEthRewardAmountRequest(accountAddress))
         val totalReward = rewards.data.rewards.sumByBigInteger { it.amount.orZero() }
         stakingTotalRewardDao.insert(TotalRewardLocal(accountAddress, totalReward))
     }
 
-    private suspend fun syncSubsquidRelay(stakingUrl: String, accountAddress: String) {
+    private suspend fun syncSubsquidRelay(stakingUrl: String, accountAddress: String) = withContext(Dispatchers.IO) {
         val rewards = stakingApi.getRelayRewardAmounts(stakingUrl, SubsquidRelayRewardAmountRequest(accountAddress))
         val totalReward = rewards.data.historyElements.sumByBigInteger { it.reward?.amount.orZero() }
         stakingTotalRewardDao.insert(TotalRewardLocal(accountAddress, totalReward))
     }
 
-    private suspend fun syncGiantsquidRelay(stakingUrl: String, accountAddress: String) {
+    private suspend fun syncGiantsquidRelay(stakingUrl: String, accountAddress: String) = withContext(Dispatchers.IO) {
         val rewards = stakingApi.getRelayRewardAmounts(stakingUrl, GiantsquidRewardAmountRequest(accountAddress.toAccountId().toHexString(true)))
         val totalReward = rewards.data.stakingRewards.sumByBigInteger { it.amount }
         stakingTotalRewardDao.insert(TotalRewardLocal(accountAddress, totalReward))
     }
 
-    private suspend fun syncSubquery(stakingUrl: String, accountAddress: String) {
+    private suspend fun syncSubquery(stakingUrl: String, accountAddress: String) = withContext(Dispatchers.IO) {
         val r = stakingApi.getSumReward(
             stakingUrl,
             StakingSumRewardRequest(accountAddress = accountAddress)

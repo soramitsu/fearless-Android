@@ -44,6 +44,7 @@ class RootActivity : BaseActivity<RootViewModel>(), LifecycleObserver {
     lateinit var navigator: Navigator
 
     override val viewModel: RootViewModel by viewModels()
+    private var animation: Animation? = null
 
     private val rootNetworkBar: TextView by lazy { findViewById(R.id.rootNetworkBar) }
 
@@ -72,6 +73,9 @@ class RootActivity : BaseActivity<RootViewModel>(), LifecycleObserver {
 
     override fun onDestroy() {
         super.onDestroy()
+
+        animation?.cancel()
+        animation = null
 
         navigator.detach()
     }
@@ -176,6 +180,7 @@ class RootActivity : BaseActivity<RootViewModel>(), LifecycleObserver {
     }
 
     private fun showBadConnectionView() {
+        animation?.cancel()
         if (rootNetworkBar.isVisible) {
             return
         }
@@ -185,35 +190,38 @@ class RootActivity : BaseActivity<RootViewModel>(), LifecycleObserver {
             setText(R.string.network_status_connecting)
             setBackgroundColor(errorColor)
         }
-        val animation = TranslateAnimation(0f, 0f, -ANIM_START_POSITION, 0f)
-        animation.duration = ANIM_DURATION
-        findViewById<TextView>(R.id.rootNetworkBar).startAnimation(animation)
-        findViewById<TextView>(R.id.rootNetworkBar).isVisible = true
+        animation = TranslateAnimation(0f, 0f, -ANIM_START_POSITION, 0f).apply {
+            duration = ANIM_DURATION
+            findViewById<TextView>(R.id.rootNetworkBar).startAnimation(this)
+        }
+        rootNetworkBar.isVisible = true
     }
 
     private fun hideBadConnectionView() {
-        if (!findViewById<TextView>(R.id.rootNetworkBar).isVisible) {
+        animation?.cancel()
+        if (!rootNetworkBar.isVisible) {
             return
         }
 
         val successColor = getColor(R.color.green)
         rootNetworkBar.setText(R.string.network_status_connected)
         rootNetworkBar.setBackgroundColor(successColor)
-        val animation = TranslateAnimation(0f, 0f, 0f, -ANIM_START_POSITION)
-        animation.duration = ANIM_DURATION
-        animation.startOffset = 500
-        animation.setAnimationListener(object : Animation.AnimationListener {
-            override fun onAnimationRepeat(p0: Animation?) {
-            }
+        animation = TranslateAnimation(0f, 0f, 0f, -ANIM_START_POSITION).apply {
+            duration = ANIM_DURATION
+            startOffset = 500
+            setAnimationListener(object : Animation.AnimationListener {
+                override fun onAnimationRepeat(p0: Animation?) {
+                }
 
-            override fun onAnimationEnd(p0: Animation?) {
-                findViewById<TextView>(R.id.rootNetworkBar).isVisible = false
-            }
+                override fun onAnimationEnd(p0: Animation?) {
+                    findViewById<TextView>(R.id.rootNetworkBar).isVisible = false
+                }
 
-            override fun onAnimationStart(p0: Animation?) {
-            }
-        })
-        findViewById<TextView>(R.id.rootNetworkBar).startAnimation(animation)
+                override fun onAnimationStart(p0: Animation?) {
+                }
+            })
+            rootNetworkBar.startAnimation(this)
+        }
     }
 
     override fun changeLanguage() {

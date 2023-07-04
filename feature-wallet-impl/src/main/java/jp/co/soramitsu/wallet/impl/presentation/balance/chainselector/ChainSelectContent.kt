@@ -14,11 +14,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.rememberNestedScrollInteropConnection
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -49,7 +46,6 @@ data class ChainSelectScreenViewState(
     }
 }
 
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun ChainSelectContent(
     state: ChainSelectScreenViewState,
@@ -58,7 +54,6 @@ fun ChainSelectContent(
 ) {
     Column(
         modifier = Modifier
-            .nestedScroll(rememberNestedScrollInteropConnection())
             .padding(horizontal = 16.dp)
             .fillMaxWidth()
             .imePadding()
@@ -115,7 +110,7 @@ fun Chain.toChainItemState() = ChainItemState(
     imageUrl = icon,
     title = name,
     isSelected = false,
-    tokenSymbols = assets.associate { it.id to it.symbolToShow }
+    tokenSymbols = assets.associate { it.id to it.symbol }
 )
 
 @Composable

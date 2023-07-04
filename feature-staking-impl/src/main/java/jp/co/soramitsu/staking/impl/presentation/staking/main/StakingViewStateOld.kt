@@ -2,6 +2,8 @@ package jp.co.soramitsu.staking.impl.presentation.staking.main
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import java.math.BigDecimal
+import java.math.BigInteger
 import jp.co.soramitsu.common.base.TitleAndMessage
 import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.presentation.LoadingState
@@ -56,7 +58,6 @@ import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -64,20 +65,15 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.cancellable
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import java.math.BigDecimal
-import java.math.BigInteger
 import jp.co.soramitsu.core.models.Asset as CoreAsset
 
 @Deprecated("All ViewStates should be provided and created in staking type aware ViewModels")
@@ -96,7 +92,7 @@ val ReturnsModel.Companion.default
         RewardEstimation("", "", "")
     )
 
-class StakeSummaryModel<S>(
+data class StakeSummaryModel<S>(
     val status: S,
     val totalStaked: String,
     val totalStakedFiat: String?,
@@ -122,10 +118,12 @@ sealed class StakeViewState<S>(
     protected val scope: CoroutineScope,
     protected val router: StakingRouter,
     protected val errorDisplayer: (Throwable) -> Unit,
-    protected val summaryFlowProvider: suspend (StakingState) -> Flow<StakeSummary<S>>,
+    protected val summaryFlowProvider: (StakingState) -> Flow<StakeSummary<S>>,
     protected val statusMessageProvider: (S) -> TitleAndMessage,
     initialManageActions: Set<ManageStakeAction>
 ) : StakingViewStateOld() {
+
+    val assetFlow = currentAssetFlow.filter { it.token.configuration.chainId == stakeState.chain.id }
 
     val manageStakingActionsButtonVisible = initialManageActions.isNotEmpty()
 
@@ -148,7 +146,7 @@ sealed class StakeViewState<S>(
 
     init {
         scope.launch {
-            currentAssetFlow.collect {
+            assetFlow.collect {
                 val supportedValidatorsLoadingBlockExplorerTypes = setOf(Chain.ExternalApi.Section.Type.SUBQUERY, Chain.ExternalApi.Section.Type.SUBSQUID)
                 if (stakeState.chain.externalApi?.staking?.type !in supportedValidatorsLoadingBlockExplorerTypes) {
                     availableManageActionsFlow.value = initialManageActions.toMutableSet().apply { remove(ManageStakeAction.PAYOUTS) }
@@ -163,7 +161,9 @@ sealed class StakeViewState<S>(
         _showManageActionsEvent.value = Event(ManageStakingBottomSheet.Payload(availableManageActionsFlow.value))
     }
 
-    val stakeSummaryFlow = flow { emitAll(summaryFlow()) }
+    val stakeSummaryFlow = combine(assetFlow, summaryFlowProvider(stakeState)) { asset, summary ->
+        buildStakeSummaryModel(asset, summary)
+    }
         .withLoading()
         .inBackground()
         .shareIn(scope, SharingStarted.Eagerly, replay = 1)
@@ -187,23 +187,18 @@ sealed class StakeViewState<S>(
         }
     }
 
-    @ExperimentalCoroutinesApi
-    protected open suspend fun summaryFlow(): Flow<StakeSummaryModel<S>> {
-        return currentAssetFlow.flatMapLatest { asset ->
-            summaryFlowProvider(stakeState).map { asset to it }
-        }.map { (asset, summary) ->
-            val token = asset.token
-            val tokenType = token.configuration
+    protected open suspend fun buildStakeSummaryModel(asset: Asset, summary: StakeSummary<S>): StakeSummaryModel<S> {
+        val token = asset.token
+        val tokenType = token.configuration
 
-            StakeSummaryModel(
-                status = summary.status,
-                totalStaked = summary.totalStaked.formatCrypto(tokenType.symbolToShow),
-                totalStakedFiat = token.fiatAmount(summary.totalStaked)?.formatFiat(token.fiatSymbol),
-                totalRewards = summary.totalReward.formatCryptoDetail(tokenType.symbolToShow),
-                totalRewardsFiat = token.fiatAmount(summary.totalReward)?.formatFiat(token.fiatSymbol),
-                currentEraDisplay = resourceManager.getString(R.string.staking_era_title, summary.currentEra)
-            )
-        }
+        return StakeSummaryModel(
+            status = summary.status,
+            totalStaked = summary.totalStaked.formatCrypto(tokenType.symbol),
+            totalStakedFiat = token.fiatAmount(summary.totalStaked)?.formatFiat(token.fiatSymbol),
+            totalRewards = summary.totalReward.formatCryptoDetail(tokenType.symbol),
+            totalRewardsFiat = token.fiatAmount(summary.totalReward)?.formatFiat(token.fiatSymbol),
+            currentEraDisplay = resourceManager.getString(R.string.staking_era_title, summary.currentEra)
+        )
     }
 
     private fun loadedSummaryOrNull(): StakeSummaryModel<S>? {
@@ -296,7 +291,7 @@ open class NominatorViewState(
 ) : StakeViewState<NominatorStatus>(
     nominatorState, currentAssetFlow, stakingInteractor,
     resourceManager, scope, router, errorDisplayer,
-    summaryFlowProvider = { relayChainScenarioInteractor.observeNominatorSummary(nominatorState).shareIn(scope, SharingStarted.Eagerly, replay = 1) },
+    summaryFlowProvider = { relayChainScenarioInteractor.observeNominatorSummary(nominatorState) },
     statusMessageProvider = { getNominatorStatusTitleAndMessage(resourceManager, it) },
     initialManageActions = ManageStakeAction.values().toSet()
 ) {
@@ -317,24 +312,11 @@ class SoraNominatorViewState(
     router: StakingRouter,
     errorDisplayer: (Throwable) -> Unit
 ) : NominatorViewState(nominatorState, currentAssetFlow, stakingInteractor, relayChainScenarioInteractor, resourceManager, scope, router, errorDisplayer) {
-    @ExperimentalCoroutinesApi
-    override suspend fun summaryFlow(): Flow<StakeSummaryModel<NominatorStatus>> {
-        return currentAssetFlow.flatMapLatest { asset ->
-            summaryFlowProvider(nominatorState).map { asset to it }
-        }.map { (asset, summary) ->
-            val token = asset.token
-            val rewardToken = soraStakingRewardsScenario.getRewardAsset()
-            val tokenType = token.configuration
 
-            StakeSummaryModel(
-                status = summary.status,
-                totalStaked = summary.totalStaked.formatCrypto(tokenType.symbolToShow),
-                totalStakedFiat = token.fiatAmount(summary.totalStaked)?.formatFiat(token.fiatSymbol),
-                totalRewards = "N/A",
-                totalRewardsFiat = rewardToken.fiatAmount(summary.totalReward)?.formatFiat(rewardToken.fiatSymbol),
-                currentEraDisplay = resourceManager.getString(R.string.staking_era_title, summary.currentEra)
-            )
-        }
+    override suspend fun buildStakeSummaryModel(asset: Asset, summary: StakeSummary<NominatorStatus>): StakeSummaryModel<NominatorStatus> {
+        val rewardToken = soraStakingRewardsScenario.getRewardAsset()
+        return super.buildStakeSummaryModel(asset, summary)
+            .copy(totalRewards = "N/A", totalRewardsFiat = rewardToken.fiatAmount(summary.totalReward)?.formatFiat(rewardToken.fiatSymbol))
     }
 }
 
@@ -725,7 +707,7 @@ class DelegatorViewState(
                 collatorId = collator.collatorId,
                 collatorAddress = collator.collatorId.toHexString(true),
                 collatorName = identity?.display ?: collatorIdHex,
-                staked = staked.formatCryptoDetail(asset.token.configuration.symbolToShow),
+                staked = staked.formatCryptoDetail(asset.token.configuration.symbol),
                 stakedFiat = staked.applyFiatRate(asset.token.fiatRate)?.formatFiat(asset.token.fiatSymbol),
                 rewardApy = rewardApy.formatAsPercentage(),
                 rewardedFiat = rewarded.applyFiatRate(asset.token.fiatRate)?.formatFiat(asset.token.fiatSymbol),

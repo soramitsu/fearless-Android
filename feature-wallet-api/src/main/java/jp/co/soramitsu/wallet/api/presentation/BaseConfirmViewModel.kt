@@ -3,6 +3,7 @@ package jp.co.soramitsu.wallet.api.presentation
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.lifecycle.viewModelScope
+import java.math.BigInteger
 import jp.co.soramitsu.common.AlertViewState
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.base.errors.TitledException
@@ -33,7 +34,6 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import java.math.BigInteger
 
 abstract class BaseConfirmViewModel(
     private val existentialDepositUseCase: ExistentialDepositUseCase,
@@ -53,7 +53,7 @@ abstract class BaseConfirmViewModel(
 ) : BaseViewModel() {
 
     private val amount = amountInPlanks?.let { asset.token.amountFromPlanks(it) }
-    private val amountFormatted = amount?.formatCryptoDetail(asset.token.configuration.symbolToShow)
+    private val amountFormatted = amount?.formatCryptoDetail(asset.token.configuration.symbol)
     private val amountFiat = amount?.applyFiatRate(asset.token.fiatRate)?.formatFiat(asset.token.fiatSymbol)
 
     private val toolbarViewState = ToolbarViewState(
@@ -92,10 +92,10 @@ abstract class BaseConfirmViewModel(
 
     val feeViewStateFlow = feeInPlanksFlow.filterNotNull().map { feeInPlanks ->
         val fee = asset.token.amountFromPlanks(feeInPlanks)
-        val feeFormatted = fee.formatCryptoDetail(asset.token.configuration.symbolToShow)
+        val feeFormatted = fee.formatCryptoDetail(asset.token.configuration.symbol)
         val feeFiat = fee.formatFiat(asset.token.fiatSymbol)
         TitleValueViewState(
-            resourceManager.getString(R.string.network_fee),
+            resourceManager.getString(R.string.common_network_fee),
             feeFormatted,
             feeFiat
         )
@@ -195,7 +195,7 @@ abstract class BaseConfirmViewModel(
 
     private val defaultFeeState
         get() = TitleValueViewState(
-            resourceManager.getString(R.string.network_fee),
+            resourceManager.getString(R.string.common_network_fee),
             null,
             null
         )

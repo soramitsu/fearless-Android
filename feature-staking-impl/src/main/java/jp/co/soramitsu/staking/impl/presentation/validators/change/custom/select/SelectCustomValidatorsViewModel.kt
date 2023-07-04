@@ -4,6 +4,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.math.BigInteger
 import javax.inject.Inject
+import javax.inject.Named
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.address.createAddressModel
@@ -15,6 +16,7 @@ import jp.co.soramitsu.common.utils.invoke
 import jp.co.soramitsu.common.utils.lazyAsync
 import jp.co.soramitsu.common.utils.toggle
 import jp.co.soramitsu.feature_staking_impl.R
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.staking.api.domain.model.Validator
 import jp.co.soramitsu.staking.impl.domain.StakingInteractor
 import jp.co.soramitsu.staking.impl.domain.getSelectedChain
@@ -34,7 +36,6 @@ import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenar
 import jp.co.soramitsu.wallet.impl.domain.TokenUseCase
 import jp.co.soramitsu.wallet.impl.domain.model.Token
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emitAll
@@ -45,7 +46,6 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import javax.inject.Named
 
 @HiltViewModel
 class SelectCustomValidatorsViewModel @Inject constructor(
@@ -97,7 +97,6 @@ class SelectCustomValidatorsViewModel @Inject constructor(
         tokenFlow
     ) { shown, selected, token ->
         val chain = interactor.getSelectedChain()
-
         convertToModels(chain, shown, selected, token)
     }
         .inBackground()
@@ -202,10 +201,6 @@ class SelectCustomValidatorsViewModel @Inject constructor(
 
     private fun updateSetupStakingState() {
         setupStakingSharedState.setCustomValidators(selectedValidators.value.toList())
-    }
-
-    fun clearFilters() {
-        settingsStorage.resetFilters()
     }
 
     fun deselectAll() {

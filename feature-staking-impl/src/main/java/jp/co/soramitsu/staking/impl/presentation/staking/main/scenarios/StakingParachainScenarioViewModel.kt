@@ -1,5 +1,6 @@
 package jp.co.soramitsu.staking.impl.presentation.staking.main.scenarios
 
+import java.math.BigDecimal
 import jp.co.soramitsu.common.domain.model.StoryGroup
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -30,11 +31,12 @@ import jp.co.soramitsu.staking.impl.scenarios.relaychain.HOURS_IN_DAY
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
-import java.math.BigDecimal
+import kotlinx.coroutines.flow.shareIn
 
 class StakingParachainScenarioViewModel(
     private val stakingInteractor: StakingInteractor,
@@ -47,7 +49,31 @@ class StakingParachainScenarioViewModel(
 
     override val enteredAmountFlow = MutableStateFlow<BigDecimal?>(null)
 
-    override val stakingStateFlow: Flow<StakingState> = scenarioInteractor.stakingStateFlow
+    override val stakingStateFlow: Flow<StakingState> =
+        scenarioInteractor.stakingStateFlow().shareIn(baseViewModel.stakingStateScope, SharingStarted.Eagerly, replay = 1)
+
+    override val stakingViewStateFlowOld: Flow<StakingViewStateOld> = stakingStateFlow.map { stakingState ->
+        when (stakingState) {
+            is StakingState.Parachain.None -> {
+                stakingViewStateFactory.createParachainWelcomeViewState(
+                    stakingInteractor.currentAssetFlow(),
+                    baseViewModel.stakingStateScope,
+                    baseViewModel::showError
+                )
+            }
+
+            is StakingState.Parachain.Delegator -> {
+                stakingViewStateFactory.createDelegatorViewState(
+                    stakingState,
+                    stakingInteractor.currentAssetFlow(),
+                    baseViewModel.stakingStateScope,
+                    baseViewModel::showError
+                )
+            }
+
+            else -> error("Wrong state")
+        }
+    }.shareIn(baseViewModel.stakingStateScope, SharingStarted.Eagerly, replay = 1)
 
     @Deprecated("Don't use this method, use the getStakingViewStateFlow instead")
     override suspend fun getStakingViewStateFlowOld(): Flow<StakingViewStateOld> {
@@ -60,6 +86,7 @@ class StakingParachainScenarioViewModel(
                         baseViewModel::showError
                     )
                 }
+
                 is StakingState.Parachain.Delegator -> {
                     stakingViewStateFactory.createDelegatorViewState(
                         stakingState,
@@ -68,6 +95,7 @@ class StakingParachainScenarioViewModel(
                         baseViewModel::showError
                     )
                 }
+
                 else -> error("Wrong state")
             }
         }
@@ -83,13 +111,13 @@ class StakingParachainScenarioViewModel(
             stakingInteractor.currentAssetFlow()
         ) { networkInfo, asset ->
             val minimumStake = asset.token.amountFromPlanks(networkInfo.minimumStake)
-            val minimumStakeFormatted = minimumStake.formatCryptoDetail(asset.token.configuration.symbolToShow)
+            val minimumStakeFormatted = minimumStake.formatCryptoDetail(asset.token.configuration.symbol)
 
             val minimumStakeFiat = asset.token.fiatAmount(minimumStake)?.formatFiat(asset.token.fiatSymbol)
 
             val lockupPeriod = if (networkInfo.lockupPeriodInHours > HOURS_IN_DAY) {
                 val inDays = networkInfo.lockupPeriodInHours / HOURS_IN_DAY
-                resourceManager.getQuantityString(R.plurals.staking_main_lockup_period_value, inDays, inDays)
+                resourceManager.getQuantityString(R.plurals.common_days_format, inDays, inDays)
             } else {
                 resourceManager.getQuantityString(R.plurals.common_hours_format, networkInfo.lockupPeriodInHours, networkInfo.lockupPeriodInHours)
             }
@@ -98,7 +126,7 @@ class StakingParachainScenarioViewModel(
     }
 
     override suspend fun alerts(): Flow<LoadingState<List<AlertModel>>> {
-        return scenarioInteractor.stakingStateFlow.map { state ->
+        return scenarioInteractor.stakingStateFlow().map { state ->
             if (state !is StakingState.Parachain.Delegator) return@map emptyList<AlertModel>()
 
             val lowStakeAlerts = produceLowStakeAlerts(state)
@@ -129,7 +157,7 @@ class StakingParachainScenarioViewModel(
             val candidateInfo = scenarioInteractor.getCollator(collatorIdHex.requireHexPrefix().fromHex())
             val amountToStakeMoreInPlanks = (candidateInfo.lowestTopDelegationAmount - delegation.amount)
             val token = stakingInteractor.currentAssetFlow().first().token
-            val amountToStakeMore = (token.amountFromPlanks(amountToStakeMoreInPlanks) * BigDecimal(1.1)).formatCryptoDetail(token.configuration.symbolToShow)
+            val amountToStakeMore = (token.amountFromPlanks(amountToStakeMoreInPlanks) * BigDecimal(1.1)).formatCryptoDetail(token.configuration.symbol)
             Alert.ChangeCollators(collatorIdHex.requireHexPrefix(), amountToStakeMore)
         }
     }
@@ -151,6 +179,7 @@ class StakingParachainScenarioViewModel(
                     AlertModel.Type.CallToAction { baseViewModel.openStakingBalance(this.collatorIdHex) }
                 )
             }
+
             is Alert.CollatorLeaving -> {
                 AlertModel(
                     StakingScenarioViewModel.WARNING_ICON,
@@ -159,6 +188,7 @@ class StakingParachainScenarioViewModel(
                     AlertModel.Type.CallToAction { baseViewModel.openStakingBalance(this.delegation.collatorId.toHexString(true)) }
                 )
             }
+
             is Alert.ReadyForUnlocking -> {
                 AlertModel(
                     StakingScenarioViewModel.WARNING_ICON,
@@ -167,6 +197,7 @@ class StakingParachainScenarioViewModel(
                     AlertModel.Type.CallToAction { baseViewModel.openStakingBalance(this.collatorId.toHexString(true)) }
                 )
             }
+
             else -> error("Wrong alert type")
         }
     }
