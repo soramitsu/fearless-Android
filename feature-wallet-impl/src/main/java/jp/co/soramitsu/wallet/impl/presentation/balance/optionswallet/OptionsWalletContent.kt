@@ -48,15 +48,15 @@ fun OptionsWalletContent(
         ) {
             H3(text = stringResource(id = R.string.common_title_wallet_option))
             MarginVertical(margin = 28.dp)
-            GrayButton(
-                text = stringResource(id = R.string.common_backup_wallet),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(48.dp)
-            ) {
-                callback.onBackupWalletClick()
-            }
-            MarginVertical(margin = 12.dp)
+//            GrayButton(
+//                text = stringResource(id = R.string.common_backup_wallet),
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .height(48.dp)
+//            ) {
+//                callback.onBackupWalletClick()
+//            }
+//            MarginVertical(margin = 12.dp)
             GrayButton(
                 text = stringResource(id = R.string.common_details_wallet),
                 modifier = Modifier
