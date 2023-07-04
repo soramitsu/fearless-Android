@@ -5,18 +5,17 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
+import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.account.api.presentation.account.create.ChainAccountCreatePayload
 import jp.co.soramitsu.account.impl.presentation.AccountRouter
-import jp.co.soramitsu.common.BuildConfig
-import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.TextInputViewState
-import jp.co.soramitsu.common.utils.Event
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import javax.inject.Inject
 
 @HiltViewModel
 class CreateAccountViewModel @Inject constructor(
@@ -65,7 +64,7 @@ class CreateAccountViewModel @Inject constructor(
     }
 
     override fun nextClicked() {
-        if (isFromGoogleBackup && BuildConfig.DEBUG) {
+        if (isFromGoogleBackup) {
             router.openMnemonicAgreementsDialog(
                 isFromGoogleBackup = isFromGoogleBackup,
                 accountName = walletNickname.value
