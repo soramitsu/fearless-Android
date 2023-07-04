@@ -8,10 +8,10 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
-import jp.co.soramitsu.common.vibration.DeviceVibrator
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.account.impl.presentation.AccountRouter
+import jp.co.soramitsu.common.vibration.DeviceVibrator
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 

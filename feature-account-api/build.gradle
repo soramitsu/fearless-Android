@@ -34,6 +34,7 @@ dependencies {
     implementation coroutinesDep
     implementation project(':runtime')
     implementation project(":common")
+    implementation project(":android-foundation")
 
     implementation fragmentKtxDep
     implementation liveDataKtxDep

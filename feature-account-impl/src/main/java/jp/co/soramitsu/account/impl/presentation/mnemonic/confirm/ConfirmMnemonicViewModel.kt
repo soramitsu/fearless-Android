@@ -5,6 +5,9 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
+import jp.co.soramitsu.account.impl.presentation.AccountRouter
+import jp.co.soramitsu.account.impl.presentation.mnemonic.confirm.ConfirmMnemonicFragment.Companion.KEY_PAYLOAD
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
@@ -13,10 +16,7 @@ import jp.co.soramitsu.common.utils.map
 import jp.co.soramitsu.common.utils.requireException
 import jp.co.soramitsu.common.utils.sendEvent
 import jp.co.soramitsu.common.vibration.DeviceVibrator
-import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_impl.R
-import jp.co.soramitsu.account.impl.presentation.AccountRouter
-import jp.co.soramitsu.account.impl.presentation.mnemonic.confirm.ConfirmMnemonicFragment.Companion.KEY_PAYLOAD
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 

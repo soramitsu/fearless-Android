@@ -30,7 +30,7 @@ import javax.security.auth.x500.X500Principal
 import org.bouncycastle.util.Arrays
 import org.bouncycastle.util.encoders.Base64
 
-class EncryptionUtil @Inject constructor(
+class EncryptionUtil(
     private val context: Context
 ) {
 

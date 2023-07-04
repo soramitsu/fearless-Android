@@ -50,4 +50,5 @@ dependencies {
     implementation(projects.runtime)
     implementation(projects.featureSuccessApi)
     implementation(projects.featureAccountApi)
+    implementation(projects.androidFoundation)
 }

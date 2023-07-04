@@ -73,6 +73,7 @@ dependencies {
     implementation project(':feature-soracard-api')
     implementation project(':feature-soracard-impl')
     implementation project(':runtime-permission')
+    implementation project(':android-foundation')
 
     implementation kotlinDep
 

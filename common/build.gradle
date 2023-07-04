@@ -95,6 +95,7 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
     api project(":core-api")
+    implementation project(":android-foundation")
 
     implementation kotlinDep
 

@@ -53,6 +53,7 @@ dependencies {
     implementation project(':feature-wallet-api')
     implementation project(':feature-soracard-api')
     implementation project(':feature-soracard-impl')
+    implementation project(':android-foundation')
     implementation kotlinDep
 
     implementation androidDep
