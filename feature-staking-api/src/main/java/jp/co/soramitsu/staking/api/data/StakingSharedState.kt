@@ -23,6 +23,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.shareIn
@@ -60,20 +61,18 @@ class StakingSharedState(
         private const val DELIMITER = ":"
     }
 
-    val selectionItem: Flow<StakingAssetSelection> = combine(
-        accountRepository.selectedMetaAccountFlow().map { it.id },
-        preferences.stringFlow(
-            field = STAKING_SHARED_STATE,
-            initialValueProducer = {
-                val defaultAsset = availableToSelect().first()
+    val selectionItem: Flow<StakingAssetSelection> = accountRepository.selectedMetaAccountFlow()
+        .flatMapLatest {
+            preferences.stringFlow(
+                field = STAKING_SHARED_STATE,
+                initialValueProducer = {
+                    val defaultAsset = availableToSelect().first()
 
-                encode(defaultAsset)
-            }
-        ),
-        ::Pair
-    )
-        .distinctUntilChanged()
-        .map { (_, encoded) ->
+                    encode(defaultAsset)
+                }
+            ).distinctUntilChanged()
+        }
+        .map { encoded ->
             encoded?.let { decode(it) }
         }
         .filterNotNull()

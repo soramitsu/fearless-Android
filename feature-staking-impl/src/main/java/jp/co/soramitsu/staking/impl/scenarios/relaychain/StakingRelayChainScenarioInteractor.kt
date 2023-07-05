@@ -106,6 +106,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.withContext
 import jp.co.soramitsu.core.models.Asset as CoreAsset
@@ -166,10 +167,14 @@ class StakingRelayChainScenarioInteractor(
     }
 
     override fun stakingStateFlow(): Flow<StakingState> {
-        return stakingSharedState.assetWithChain.distinctUntilChanged().flatMapLatest { (chain, asset) ->
-            val accountId = accountRepository.getSelectedMetaAccount().accountId(chain) ?: error("cannot find accountId")
-            stakingRelayChainScenarioRepository.stakingStateFlow(chain, asset, accountId)
-        }
+        return stakingSharedState.assetWithChain.distinctUntilChanged()
+            .flatMapLatest { (chain, asset) ->
+                accountRepository.selectedMetaAccountFlow().mapNotNull {
+                    it.accountId(chain)
+                }.flatMapLatest { accountId ->
+                    stakingRelayChainScenarioRepository.stakingStateFlow(chain, asset, accountId)
+                }
+            }
     }
 
     fun observeStashSummary(

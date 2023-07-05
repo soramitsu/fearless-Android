@@ -1,10 +1,16 @@
 package jp.co.soramitsu.wallet.impl.presentation.send.setup
 
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.math.BigDecimal
+import java.math.BigInteger
+import java.math.RoundingMode
+import javax.inject.Inject
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressIcon
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -63,10 +69,6 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.retry
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import java.math.BigDecimal
-import java.math.BigInteger
-import java.math.RoundingMode
-import javax.inject.Inject
 
 private const val RETRY_TIMES = 3L
 
@@ -157,7 +159,9 @@ class SendSetupViewModel @Inject constructor(
         SelectorState.default,
         FeeInfoViewState.default,
         warningInfoState = null,
-        defaultButtonState
+        defaultButtonState,
+        isSoftKeyboardOpen = false,
+        heightDiffDp = 0.dp
     )
 
     private val assetFlow: StateFlow<Asset?> =
@@ -171,6 +175,9 @@ class SendSetupViewModel @Inject constructor(
     private val amountInputFocusFlow = MutableStateFlow(false)
 
     private val addressInputFlow = MutableStateFlow(initSendToAddress.orEmpty())
+
+    private val isSoftKeyboardOpenFlow = MutableStateFlow(false)
+    private val heightDiffDpFlow = MutableStateFlow(0.dp)
 
     private val isInputAddressValidFlow = combine(addressInputFlow, chainIdFlow) { addressInput, chainId ->
         when (chainId) {
@@ -317,8 +324,10 @@ class SendSetupViewModel @Inject constructor(
         amountInputViewState,
         feeInfoViewStateFlow,
         warningInfoStateFlow,
-        buttonStateFlow
-    ) { chain, address, chainSelectorState, amountInputState, feeInfoState, warningInfoState, buttonState ->
+        buttonStateFlow,
+        isSoftKeyboardOpenFlow,
+        heightDiffDpFlow
+    ) { chain, address, chainSelectorState, amountInputState, feeInfoState, warningInfoState, buttonState, isSoftKeyboardOpen, heightDiffDp ->
         val isAddressValid = when (chain) {
             null -> false
             else -> walletInteractor.validateSendAddress(chain.id, address)
@@ -340,7 +349,9 @@ class SendSetupViewModel @Inject constructor(
             amountInputState = amountInputState,
             feeInfoState = feeInfoState,
             warningInfoState = warningInfoState,
-            buttonState = buttonState
+            buttonState = buttonState,
+            isSoftKeyboardOpen = isSoftKeyboardOpen,
+            heightDiffDp = heightDiffDp
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, defaultState)
 
@@ -514,6 +525,14 @@ class SendSetupViewModel @Inject constructor(
 
             addressInputFlow.value = result
         }
+    }
+
+    fun setSoftKeyboardOpen(isOpen: Boolean) {
+        isSoftKeyboardOpenFlow.value = isOpen
+    }
+
+    fun setHeightDiffDp(value: Dp) {
+        heightDiffDpFlow.value = value
     }
 
     override fun onQuickAmountInput(input: Double) {

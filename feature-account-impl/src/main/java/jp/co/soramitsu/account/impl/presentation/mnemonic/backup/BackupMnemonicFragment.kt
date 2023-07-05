@@ -11,6 +11,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.account.api.presentation.account.create.ChainAccountCreatePayload
 import jp.co.soramitsu.account.impl.presentation.view.advanced.encryption.EncryptionTypeChooserBottomSheetDialog
 import jp.co.soramitsu.account.impl.presentation.view.advanced.encryption.model.CryptoTypeModel
+import jp.co.soramitsu.common.BuildConfig
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.presentation.ErrorDialog
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet.Payload
@@ -77,7 +78,7 @@ class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>(R.layout.fr
                     launcher
                 )
             }
-            googleBackupButton.isVisible = !viewModel.isFromGoogleBackup
+            googleBackupButton.isVisible = !viewModel.isFromGoogleBackup && BuildConfig.DEBUG
             googleBackupButton.setOnClickListener {
                 viewModel.onGoogleBackupClick(
                     advancedBlockView.getSubstrateDerivationPath(),

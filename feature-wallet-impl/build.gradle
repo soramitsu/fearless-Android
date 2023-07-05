@@ -27,7 +27,7 @@ android {
         buildConfigField "String", "SORA_CONFIG_COMMON_PROD", "\"https://config.polkaswap2.io/prod/common.json\""
         buildConfigField "String", "SORA_CONFIG_MOBILE_PROD", "\"https://config.polkaswap2.io/prod/mobile.json\""
 
-        buildConfigField "String", "SCAM_DETECTION_CONFIG", "\"https://raw.githubusercontent.com/soramitsu/shared-features-utils/develop/scamDetection/Polkadot_Hot_Wallet_Attributions.csv\""
+        buildConfigField "String", "SCAM_DETECTION_CONFIG", "\"https://raw.githubusercontent.com/soramitsu/shared-features-utils/master/scamDetection/Polkadot_Hot_Wallet_Attributions.csv\""
     }
 
     buildTypes {

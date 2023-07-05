@@ -12,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import jp.co.soramitsu.common.BuildConfig
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.compose.component.B2
 import jp.co.soramitsu.common.compose.component.MarginVertical
@@ -98,20 +99,22 @@ internal fun BackupWalletContent(
                 onClick = callback::onExportJsonClick
             )
             SettingsDivider()
-            if (state.isWalletSavedInGoogle) {
-                SettingsItem(
-                    icon = painterResource(R.drawable.ic_google_24),
-                    text = stringResource(R.string.backup_wallet_delete_google_backup),
-                    onClick = callback::onDeleteGoogleBackupClick
-                )
-            } else {
-                SettingsItem(
-                    icon = painterResource(R.drawable.ic_google_24),
-                    text = stringResource(R.string.backup_wallet_backup_to_google),
-                    onClick = callback::onGoogleBackupClick
-                )
+            if (BuildConfig.DEBUG) {
+                if (state.isWalletSavedInGoogle) {
+                    SettingsItem(
+                        icon = painterResource(R.drawable.ic_google_24),
+                        text = stringResource(R.string.backup_wallet_delete_google_backup),
+                        onClick = callback::onDeleteGoogleBackupClick
+                    )
+                } else {
+                    SettingsItem(
+                        icon = painterResource(R.drawable.ic_google_24),
+                        text = stringResource(R.string.backup_wallet_backup_to_google),
+                        onClick = callback::onGoogleBackupClick
+                    )
+                }
+                SettingsDivider()
             }
-            SettingsDivider()
 
             MarginVertical(16.dp)
             B2(

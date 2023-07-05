@@ -1,5 +1,6 @@
 package jp.co.soramitsu.staking.impl.presentation.validators.change.custom.review
 
+import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import javax.inject.Named
@@ -113,6 +114,13 @@ class ReviewCustomValidatorsViewModel @Inject constructor(
     }
 
     fun nextClicked() {
-        router.openConfirmStaking()
+        viewModelScope.launch {
+            val validators = selectedValidators.first()
+            sharedStateSetup.mutate {
+                (it as? SetupStakingProcess.SelectBlockProducersStep.Validators)?.next(validators, SetupStakingProcess.ReadyToSubmit.SelectionMethod.CUSTOM)
+                    ?: it
+            }
+            router.openConfirmStaking()
+        }
     }
 }

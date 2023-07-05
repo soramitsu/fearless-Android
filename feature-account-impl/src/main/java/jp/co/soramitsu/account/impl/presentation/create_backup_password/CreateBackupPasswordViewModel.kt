@@ -1,6 +1,5 @@
 package jp.co.soramitsu.account.impl.presentation.create_backup_password
 
-import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -26,7 +25,6 @@ import jp.co.soramitsu.common.utils.combine as combineFlows
 class CreateBackupPasswordViewModel @Inject constructor(
     private val accountRouter: AccountRouter,
     private val backupService: BackupService,
-    private val context: Context,
     private val savedStateHandle: SavedStateHandle,
     private val interactor: AccountInteractor
 ) : BaseViewModel(), CreateBackupPasswordCallback {
