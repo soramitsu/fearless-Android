@@ -14,6 +14,7 @@ import jp.co.soramitsu.common.data.network.config.RemoteConfigFetcher
 import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
+import jp.co.soramitsu.common.utils.balances
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.coredb.dao.OperationDao
@@ -70,6 +71,7 @@ class WalletRepositoryImpl(
 
     companion object {
         private const val COINGECKO_REQUEST_DELAY_MILLIS = 60 * 1000
+        private const val TRANSFER_ALLOW_DEATH = "transfer_allow_death"
     }
 
     private val coingeckoCache = mutableMapOf<String, MutableMap<String, Pair<Long, BigDecimal>>>()
@@ -230,7 +232,9 @@ class WalletRepositoryImpl(
         batchAll: Boolean
     ): Fee {
         val runtimeVersion = chainRegistry.getRemoteRuntimeVersion(chain.id) ?: 0
-        val allowDeath = runtimeVersion >= 9420
+        val existingBalancesCalls = chainRegistry.getRuntime(chain.id).metadata.balances().calls?.keys.orEmpty()
+        val isTransferAllowDeathExists = existingBalancesCalls.any { it.lowercase() == TRANSFER_ALLOW_DEATH }
+        val allowDeath = runtimeVersion >= 9420 && isTransferAllowDeathExists
         val fee = substrateSource.getTransferFee(chain, transfer, additional, batchAll, allowDeath)
 
         return Fee(
