@@ -86,7 +86,7 @@ class XcmInteractor(
             val availableXcmAssetSymbols = xcmEntitiesFetcher.getAvailableAssets(
                 originChainId = originChainId,
                 destinationChainId = null
-            ).map { it.uppercase() }
+            ).map { it.symbol.uppercase() }
             emit(availableXcmAssetSymbols)
         }
     }
@@ -134,7 +134,11 @@ class XcmInteractor(
                 address = chain.fakeAddress(),
                 amount = asset.getPlanksFromAmountForOriginFee(amount)
             )
-        }.getOrNull()
+        }
+            .onFailure {
+                println("error: $it")
+            }
+            .getOrNull()
     }
 
     private fun Asset.getPlanksFromAmountForOriginFee(amount: BigDecimal): BigInteger {
