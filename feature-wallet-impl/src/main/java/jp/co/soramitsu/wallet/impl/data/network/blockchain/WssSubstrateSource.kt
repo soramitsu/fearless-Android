@@ -14,6 +14,7 @@ import jp.co.soramitsu.common.data.network.runtime.binding.Phase
 import jp.co.soramitsu.common.data.network.runtime.binding.bindEquilibriumAssetRates
 import jp.co.soramitsu.common.data.network.runtime.binding.bindExtrinsicStatusEventRecords
 import jp.co.soramitsu.common.data.network.runtime.binding.bindOrNull
+import jp.co.soramitsu.common.utils.Calls
 import jp.co.soramitsu.common.utils.Modules
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.system
@@ -176,14 +177,13 @@ class WssSubstrateSource(
         chain: Chain,
         transfer: Transfer,
         additional: (suspend ExtrinsicBuilder.() -> Unit)?,
-        batchAll: Boolean,
-        allowDeath: Boolean
+        batchAll: Boolean
     ): BigInteger {
         return extrinsicService.estimateFee(
             chain = chain,
             useBatchAll = batchAll,
             formExtrinsic = {
-                transfer(chain, transfer, this.runtime.typeRegistry, allowDeath)
+                transfer(chain, transfer, this.runtime.typeRegistry)
                 additional?.invoke(this)
             }
         )
@@ -195,8 +195,7 @@ class WssSubstrateSource(
         transfer: Transfer,
         tip: BigInteger?,
         additional: (suspend ExtrinsicBuilder.() -> Unit)?,
-        batchAll: Boolean,
-        allowDeath: Boolean
+        batchAll: Boolean
     ): String {
         return extrinsicService.submitExtrinsic(
             chain = chain,
@@ -204,7 +203,7 @@ class WssSubstrateSource(
             useBatchAll = batchAll,
             tip = tip,
             formExtrinsic = {
-                transfer(chain, transfer, this.runtime.typeRegistry, allowDeath)
+                transfer(chain, transfer, this.runtime.typeRegistry)
                 additional?.invoke(this)
             }
         ).getOrThrow()
@@ -253,12 +252,14 @@ class WssSubstrateSource(
         }.filterNotNull()
     }
 
-    private fun ExtrinsicBuilder.transfer(chain: Chain, transfer: Transfer, typeRegistry: TypeRegistry, allowDeath: Boolean): ExtrinsicBuilder {
+    private fun ExtrinsicBuilder.transfer(chain: Chain, transfer: Transfer, typeRegistry: TypeRegistry): ExtrinsicBuilder {
         val accountId = chain.accountIdOf(transfer.recipient)
         val useDefaultTransfer =
             transfer.chainAsset.currency == null || transfer.chainAsset.typeExtra == null || transfer.chainAsset.typeExtra == ChainAssetType.Normal
+
         if (useDefaultTransfer) {
-            return if (allowDeath) {
+            val chainCanTransferAllowDeath = this.runtime.metadata.module(Modules.BALANCES).calls?.contains(Calls.BALANCES_TRANSFER_ALLOW_DEATH) ?: false
+            return if (chainCanTransferAllowDeath) {
                 defaultTransferAllowDeath(accountId, transfer, typeRegistry)
             } else {
                 defaultTransfer(accountId, transfer, typeRegistry)
@@ -392,7 +393,7 @@ class WssSubstrateSource(
         }
         return call(
             moduleName = Modules.BALANCES,
-            callName = "transfer_allow_death",
+            callName = Calls.BALANCES_TRANSFER_ALLOW_DEATH,
             arguments = mapOf(
                 "dest" to dest,
                 "value" to transfer.amountInPlanks

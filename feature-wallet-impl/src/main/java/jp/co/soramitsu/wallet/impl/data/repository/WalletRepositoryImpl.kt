@@ -229,9 +229,7 @@ class WalletRepositoryImpl(
         additional: (suspend ExtrinsicBuilder.() -> Unit)?,
         batchAll: Boolean
     ): Fee {
-        val runtimeVersion = chainRegistry.getRemoteRuntimeVersion(chain.id) ?: 0
-        val allowDeath = runtimeVersion >= 9420
-        val fee = substrateSource.getTransferFee(chain, transfer, additional, batchAll, allowDeath)
+        val fee = substrateSource.getTransferFee(chain, transfer, additional, batchAll)
 
         return Fee(
             transferAmount = transfer.amount,
@@ -248,9 +246,7 @@ class WalletRepositoryImpl(
         additional: (suspend ExtrinsicBuilder.() -> Unit)?,
         batchAll: Boolean
     ): String {
-        val runtimeVersion = chainRegistry.getRemoteRuntimeVersion(chain.id) ?: 0
-        val allowDeath = runtimeVersion >= 9420
-        val operationHash = substrateSource.performTransfer(accountId, chain, transfer, tip, additional, batchAll, allowDeath)
+        val operationHash = substrateSource.performTransfer(accountId, chain, transfer, tip, additional, batchAll)
         val accountAddress = chain.addressOf(accountId)
 
         val operation = createOperation(

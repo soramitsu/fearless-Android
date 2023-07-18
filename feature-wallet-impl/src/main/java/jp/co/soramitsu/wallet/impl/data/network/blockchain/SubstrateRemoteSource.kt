@@ -26,8 +26,7 @@ interface SubstrateRemoteSource {
         chain: Chain,
         transfer: Transfer,
         additional: (suspend ExtrinsicBuilder.() -> Unit)?,
-        batchAll: Boolean,
-        allowDeath: Boolean = false
+        batchAll: Boolean
     ): BigInteger
 
     suspend fun performTransfer(
@@ -36,8 +35,7 @@ interface SubstrateRemoteSource {
         transfer: Transfer,
         tip: BigInteger?,
         additional: (suspend ExtrinsicBuilder.() -> Unit)?,
-        batchAll: Boolean,
-        allowDeath: Boolean = false
+        batchAll: Boolean
     ): String
 
     suspend fun fetchAccountTransfersInBlock(
