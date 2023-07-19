@@ -1024,7 +1024,7 @@
     <string name="what_accounts_for_export">What accounts in the wallet do you want to export?</string>
     <string name="yesterday">Yesterday</string>
     <string name="your_collator">Your collator</string>
-    <string name="controller_account_issue_message">Please note that in the %s network the Controller account feature will be deprecated soon, and as a result, you are required to set your Stash account as the Controller.</string>
+    <string name="controller_account_issue_message">Please note that in the %s network the Controller account feature has been deprecated, and as a result, you are required to set your Stash account as the Controller.</string>
     <string name="controller_account_issue_action">Manage controller account</string>
     <string name="stash_account_issue_message">Stash account %s isn\'t available. Please, import the Stash account by following the necessary steps</string>
     <string name="stash_account_issue_action">Import stash account</string>

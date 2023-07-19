@@ -161,6 +161,10 @@ suspend fun ChainRegistry.getRuntime(chainId: ChainId): RuntimeSnapshot {
     return getRuntimeProvider(chainId).get()
 }
 
+suspend fun ChainRegistry.getRuntimeOrNull(chainId: ChainId): RuntimeSnapshot? {
+    return getRuntimeProvider(chainId).getOrNull()
+}
+
 fun ChainRegistry.getSocket(chainId: ChainId) = getConnection(chainId).socketService
 fun ChainRegistry.getSocketOrNull(chainId: ChainId) = getConnectionOrNull(chainId)?.socketService
 
