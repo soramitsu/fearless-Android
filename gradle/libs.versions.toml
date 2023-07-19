@@ -11,8 +11,15 @@ kotlinxSerializationjson = "1.5.0"
 xNetworking = "0.0.55"
 retrofit = "2.9.0"
 gson = "2.10.1"
+detekt = "1.23.0"
+kotlin = "1.9.0"
+android_plugin = "7.4.2"
 
 [libraries]
+gradleplugins-detekt = { module = "io.gitlab.arturbosch.detekt:detekt-gradle-plugin", version.ref = "detekt" }
+gradleplugins-kotlin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
+gradleplugins-android = { module = "com.android.tools.build:gradle", version.ref = "android_plugin" }
+
 sora-ui = { module = "jp.co.soramitsu:ui-core", version.ref = "soraUiCore" }
 sora-card = { module = "jp.co.soramitsu:android-sora-card", version.ref = "soraCard" }
 
@@ -41,6 +48,9 @@ material = { module = "com.google.android.material:material", version.ref = "mat
 
 coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
 coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines" }
+
+detekt-formatting = { module = "io.gitlab.arturbosch.detekt:detekt-formatting", version.ref = "detekt" }
+detekt-cli = { module = "io.gitlab.arturbosch.detekt:detekt-cli", version.ref = "detekt" }
 
 [bundles]
 compose = [
