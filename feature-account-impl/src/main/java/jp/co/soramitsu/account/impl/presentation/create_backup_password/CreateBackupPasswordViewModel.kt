@@ -166,7 +166,10 @@ class CreateBackupPasswordViewModel @Inject constructor(
                 mnemonicPhrase = payload.mnemonic,
                 substrateDerivationPath = payload.substrateDerivationPath,
                 ethDerivationPath = payload.ethereumDerivationPath,
-                cryptoType = payload.cryptoType
+                cryptoType = payload.cryptoType,
+                backupAccountType = listOf(), // TODO: Backup fix
+                seed = null, // TODO: Backup fix
+                json = null // TODO: Backup fix
             ),
             password = password
         )
