@@ -1,6 +1,10 @@
 package jp.co.soramitsu.staking.impl.domain
 
+import java.math.BigDecimal
+import java.math.BigInteger
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.account.api.domain.model.MetaAccount
+import jp.co.soramitsu.account.api.domain.model.accountId
 import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
@@ -8,18 +12,22 @@ import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.address.createEthereumAddressModel
 import jp.co.soramitsu.common.data.network.runtime.binding.AccountInfo
 import jp.co.soramitsu.common.data.network.runtime.binding.BlockNumber
+import jp.co.soramitsu.common.utils.Modules
 import jp.co.soramitsu.common.utils.balances
 import jp.co.soramitsu.common.utils.combineToPair
 import jp.co.soramitsu.common.utils.numberConstant
 import jp.co.soramitsu.core.extrinsic.mortality.IChainStateRepository
 import jp.co.soramitsu.core.models.Asset
+import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
-import jp.co.soramitsu.runtime.multiNetwork.getRuntime
+import jp.co.soramitsu.shared_utils.extensions.toHexString
 import jp.co.soramitsu.shared_utils.runtime.AccountId
+import jp.co.soramitsu.shared_utils.runtime.metadata.RuntimeMetadata
+import jp.co.soramitsu.shared_utils.runtime.metadata.module
 import jp.co.soramitsu.staking.api.data.StakingSharedState
 import jp.co.soramitsu.staking.api.domain.api.StakingRepository
 import jp.co.soramitsu.staking.api.domain.model.StakingAccount
@@ -28,6 +36,7 @@ import jp.co.soramitsu.staking.impl.data.repository.StakingRewardsRepository
 import jp.co.soramitsu.staking.impl.domain.validations.setup.SetupStakingFeeValidation
 import jp.co.soramitsu.staking.impl.domain.validations.setup.SetupStakingValidationFailure
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
+import jp.co.soramitsu.wallet.impl.domain.model.ControllerDeprecationWarning
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.validation.EnoughToPayFeesValidation
 import kotlinx.coroutines.Dispatchers
@@ -38,8 +47,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.withContext
-import java.math.BigDecimal
-import java.math.BigInteger
 
 class StakingInteractor(
     private val accountRepository: AccountRepository,
@@ -52,6 +59,7 @@ class StakingInteractor(
     private val walletRepository: WalletRepository
 ) {
     suspend fun getCurrentMetaAccount() = accountRepository.getSelectedMetaAccount()
+    fun selectedMetaAccountFlow() = accountRepository.selectedMetaAccountFlow()
     suspend fun getMetaAccount(metaId: Long) = accountRepository.getMetaAccount(metaId)
 
     suspend fun syncStakingRewards(chainId: ChainId, accountAddress: String) = withContext(Dispatchers.IO) {
@@ -76,6 +84,21 @@ class StakingInteractor(
     }
 
     fun currentAssetFlow() = stakingSharedState.currentAssetFlow()
+
+    suspend fun getUtilityAsset(chainId: ChainId): jp.co.soramitsu.wallet.impl.domain.model.Asset? {
+        val chain = getChain(chainId)
+        return getUtilityAsset(chain)
+    }
+
+    suspend fun getUtilityAsset(chain: Chain): jp.co.soramitsu.wallet.impl.domain.model.Asset? {
+        val currentAccount = getCurrentMetaAccount()
+        return walletRepository.getAsset(
+            currentAccount.id,
+            requireNotNull(currentAccount.accountId(chain)),
+            requireNotNull(chain.utilityAsset),
+            null
+        )
+    }
 
     fun selectedAccountProjectionFlow(): Flow<StakingAccount> {
         return combine(
@@ -112,6 +135,10 @@ class StakingInteractor(
 
     suspend fun getChain(chainId: ChainId): Chain {
         return chainRegistry.getChain(chainId)
+    }
+
+    suspend fun getChainMetadata(chainId: ChainId): RuntimeMetadata {
+        return chainRegistry.getRuntime(chainId).metadata
     }
 
     suspend fun feeValidation(): SetupStakingFeeValidation {
@@ -161,5 +188,40 @@ class StakingInteractor(
         } else {
             cachedBalance
         }
+    }
+
+    suspend fun checkControllerDeprecations(metaAccount: MetaAccount, chain: Chain): ControllerDeprecationWarning? {
+        val isControllerAccountDeprecated =
+            chainRegistry.getRuntime(chain.id).metadata.module(Modules.STAKING).calls?.get("set_controller")?.arguments?.isEmpty() == true
+        if (!isControllerAccountDeprecated) return null
+
+        val accountId = metaAccount.accountId(chain) ?: return null
+
+        // checking current account is stash
+
+        val controllerAccount = walletRepository.getControllerAccount(chain.id, accountId)
+
+        val currentAccountIsStashAndController = controllerAccount != null && controllerAccount.contentEquals(accountId) // the case is resolved
+        if (currentAccountIsStashAndController) {
+            return null
+        }
+
+        val currentAccountHasAnotherController = controllerAccount != null && !controllerAccount.contentEquals(accountId) // user needs to fix it
+        if (currentAccountHasAnotherController) {
+            return ControllerDeprecationWarning.ChangeController(chain.id, chain.name)
+        }
+
+        // checking current account is controller
+        val currentAccountIsNotStash = controllerAccount == null
+
+        if (currentAccountIsNotStash) {
+            val stash = walletRepository.getStashAccount(chain.id, accountId)
+            // we've found the stash
+            if (stash != null) {
+                return ControllerDeprecationWarning.ImportStash(chain.id, stash.toHexString(false))
+            }
+        }
+
+        return null
     }
 }

@@ -20,6 +20,14 @@ fun ExtrinsicBuilder.setController(controllerAddress: MultiAddress): ExtrinsicBu
     )
 }
 
+fun ExtrinsicBuilder.setController(): ExtrinsicBuilder {
+    return call(
+        "Staking",
+        "set_controller",
+        emptyMap()
+    )
+}
+
 fun ExtrinsicBuilder.setControllerSora(controllerAccountId: AccountId): ExtrinsicBuilder {
     return call(
         "Staking",

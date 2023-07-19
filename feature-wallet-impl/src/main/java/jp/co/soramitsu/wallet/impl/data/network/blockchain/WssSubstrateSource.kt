@@ -15,8 +15,10 @@ import jp.co.soramitsu.common.data.network.runtime.binding.bindEquilibriumAssetR
 import jp.co.soramitsu.common.data.network.runtime.binding.bindExtrinsicStatusEventRecords
 import jp.co.soramitsu.common.data.network.runtime.binding.bindOrNull
 import jp.co.soramitsu.common.utils.Calls
+import jp.co.soramitsu.common.data.network.runtime.binding.getTyped
 import jp.co.soramitsu.common.utils.Modules
 import jp.co.soramitsu.common.utils.orZero
+import jp.co.soramitsu.common.utils.staking
 import jp.co.soramitsu.common.utils.system
 import jp.co.soramitsu.common.utils.tokens
 import jp.co.soramitsu.common.utils.u64ArgumentFromStorageKey
@@ -25,15 +27,19 @@ import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.core.models.ChainAssetType
 import jp.co.soramitsu.core.rpc.RpcCalls
 import jp.co.soramitsu.core.rpc.calls.getBlock
+import jp.co.soramitsu.core.runtime.storage.returnType
 import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 import jp.co.soramitsu.runtime.storage.source.queryNonNull
+import jp.co.soramitsu.shared_utils.extensions.fromHex
 import jp.co.soramitsu.shared_utils.runtime.AccountId
 import jp.co.soramitsu.shared_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.shared_utils.runtime.definitions.registry.TypeRegistry
 import jp.co.soramitsu.shared_utils.runtime.definitions.types.composite.DictEnum
+import jp.co.soramitsu.shared_utils.runtime.definitions.types.composite.Struct
+import jp.co.soramitsu.shared_utils.runtime.definitions.types.fromHexOrNull
 import jp.co.soramitsu.shared_utils.runtime.definitions.types.primitives.FixedByteArray
 import jp.co.soramitsu.shared_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.shared_utils.runtime.metadata.module
@@ -234,6 +240,28 @@ class WssSubstrateSource(
 
             extrinsic.senderId.contentEquals(accountId) || extrinsic.recipientId.contentEquals(accountId)
         }
+    }
+
+    override suspend fun getControllerAccount(chainId: ChainId, currentAccountId: AccountId): AccountId? {
+        return remoteStorageSource.query(
+            chainId = chainId,
+            keyBuilder = { runtime -> runtime.metadata.staking().storage("Bonded").storageKey(runtime, currentAccountId) },
+            binding = { scale, _ -> scale?.fromHex() }
+        )
+    }
+
+    override suspend fun getStashAccount(chainId: ChainId, currentAccountId: AccountId): AccountId? {
+        return remoteStorageSource.query(
+            chainId = chainId,
+            keyBuilder = { runtime -> runtime.metadata.staking().storage("Ledger").storageKey(runtime, currentAccountId) },
+            binding = { scale, runtime ->
+                scale ?: return@query null
+                val type = runtime.metadata.staking().storage("Ledger").returnType()
+                val dynamicInstance = type.fromHexOrNull(runtime, scale) ?: return@query null
+
+                (dynamicInstance as? Struct.Instance)?.getTyped("stash") ?: return@query null
+            }
+        )
     }
 
     private fun buildExtrinsics(

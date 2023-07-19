@@ -64,7 +64,7 @@ class StakingLedgerUpdater(
         val currentAccountId = scope.getAccount().accountId(chain)!! // TODO ethereum
 
         val key = runtime.metadata.staking().storage("Bonded").storageKey(runtime, currentAccountId)
-
+        runtime.metadata.staking().calls?.get("setController")?.arguments
         updatesMixin.startUpdateAsset(scope.getAccount().id, chain.id, currentAccountId, chainAsset.id)
 
         return storageSubscriptionBuilder.subscribe(key)
