@@ -413,4 +413,12 @@ class WalletRepositoryImpl(
     override fun chainRegistrySyncUp() {
         chainRegistry.syncUp()
     }
+
+    override suspend fun getControllerAccount(chainId: ChainId, accountId: AccountId): AccountId? {
+        return substrateSource.getControllerAccount(chainId, accountId)
+    }
+
+    override suspend fun getStashAccount(chainId: ChainId, accountId: AccountId): AccountId? {
+        return substrateSource.getStashAccount(chainId, accountId)
+    }
 }

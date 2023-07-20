@@ -48,4 +48,8 @@ interface SubstrateRemoteSource {
     suspend fun getEquilibriumAccountInfo(asset: Asset, accountId: AccountId): EqAccountInfo?
 
     suspend fun getAssetsAccountInfo(asset: Asset, accountId: AccountId): AssetsAccountInfo?
+
+    suspend fun getControllerAccount(chainId: ChainId, currentAccountId: AccountId): AccountId?
+
+    suspend fun getStashAccount(chainId: ChainId, currentAccountId: AccountId): AccountId?
 }

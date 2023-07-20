@@ -991,6 +991,13 @@
         android:label="SelectBondMoreFragment"
         tools:layout="@layout/fragment_set_controller_account">
 
+        <argument
+            android:name="CHAIN_ID_KEY"
+            android:defaultValue=""
+            app:argType="string" />
+
+        <deepLink app:uri="fearless://staking/setControllerAccountFragment/{CHAIN_ID_KEY}" />
+
         <action
             android:id="@+id/action_stakingSetControllerAccountFragment_to_confirmSetControllerAccountFragment"
             app:destination="@id/confirmSetControllerAccount"
@@ -1219,6 +1226,6 @@
     <fragment
         android:id="@+id/transactionRawDataFragment"
         android:name="jp.co.soramitsu.wallet.impl.presentation.beacon.sign.TransactionRawDataFragment"
-        android:label="TransactionRawDataFragment"/>
+        android:label="TransactionRawDataFragment" />
 
 </navigation>
