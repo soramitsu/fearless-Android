@@ -85,6 +85,8 @@ import jp.co.soramitsu.wallet.impl.presentation.balance.list.model.toAssetState
 import jp.co.soramitsu.wallet.impl.presentation.model.AssetModel
 import jp.co.soramitsu.wallet.impl.presentation.model.AssetUpdateState
 import jp.co.soramitsu.wallet.impl.presentation.model.AssetWithStateModel
+import jp.co.soramitsu.wallet.impl.presentation.model.ControllerDeprecationWarningModel
+import jp.co.soramitsu.wallet.impl.presentation.model.toModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
@@ -453,6 +455,36 @@ class BalanceListViewModel @Inject constructor(
 
     fun onResume() {
         updateSoraCardStatus()
+        viewModelScope.launch {
+            interactor.selectedMetaAccountFlow().onEach {
+                checkControllerDeprecations()
+            }
+            checkControllerDeprecations()
+        }
+    }
+
+    private suspend fun checkControllerDeprecations() {
+        val warnings = withContext(Dispatchers.Default) { interactor.checkControllerDeprecations() }
+        warnings.firstOrNull()?.let { warning ->
+            val model = warning.toModel(resourceManager)
+            showError(
+                title = model.title,
+                message = model.message,
+                positiveButtonText = model.buttonText,
+                negativeButtonText = null,
+                positiveClick = {
+                    when (model.action) {
+                        ControllerDeprecationWarningModel.Action.ChangeController -> {
+                            router.openManageControllerAccount(model.chainId)
+                        }
+
+                        ControllerDeprecationWarningModel.Action.ImportStash -> {
+                            router.openImportAccountScreenFromWallet(0)
+                        }
+                    }
+                }
+            )
+        }
     }
 
     private fun updateSoraCardStatus() {

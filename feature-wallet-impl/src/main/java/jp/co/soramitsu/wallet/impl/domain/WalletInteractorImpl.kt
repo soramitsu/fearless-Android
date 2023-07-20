@@ -14,7 +14,9 @@ import jp.co.soramitsu.common.domain.SelectedFiat
 import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
+import jp.co.soramitsu.common.utils.Modules
 import jp.co.soramitsu.common.utils.orZero
+import jp.co.soramitsu.core.models.Asset.StakingType
 import jp.co.soramitsu.core.models.ChainId
 import jp.co.soramitsu.core.utils.isValidAddress
 import jp.co.soramitsu.coredb.model.AssetUpdateItem
@@ -25,7 +27,9 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.isPolkadotOrKusama
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import jp.co.soramitsu.runtime.multiNetwork.chainWithAsset
+import jp.co.soramitsu.shared_utils.extensions.toHexString
 import jp.co.soramitsu.shared_utils.runtime.AccountId
+import jp.co.soramitsu.shared_utils.runtime.metadata.module
 import jp.co.soramitsu.wallet.impl.data.repository.HistoryRepository
 import jp.co.soramitsu.wallet.impl.domain.interfaces.AddressBookRepository
 import jp.co.soramitsu.wallet.impl.domain.interfaces.TransactionFilter
@@ -33,6 +37,7 @@ import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.AssetWithStatus
+import jp.co.soramitsu.wallet.impl.domain.model.ControllerDeprecationWarning
 import jp.co.soramitsu.wallet.impl.domain.model.Fee
 import jp.co.soramitsu.wallet.impl.domain.model.Operation
 import jp.co.soramitsu.wallet.impl.domain.model.OperationsPageChange
@@ -391,4 +396,53 @@ class WalletInteractorImpl(
 
     override suspend fun getEquilibriumAssetRates(chainAsset: CoreAsset): Map<BigInteger, EqOraclePricePoint?> =
         walletRepository.getEquilibriumAssetRates(chainAsset)
+
+    override suspend fun checkControllerDeprecations(): List<ControllerDeprecationWarning> {
+        val currentAccount = accountRepository.getSelectedMetaAccount()
+        val chains = chainRegistry.chainsById.first()
+        val allRelayChainStakingAssets = chains.values
+            .map { it.assets }
+            .flatten()
+            .asSequence()
+            .filter { it.staking == StakingType.RELAYCHAIN }
+            .toList()
+
+        val relayStakingChains = allRelayChainStakingAssets.map { it.chainId }
+
+        val chainsWithDeprecatedControllerAccount = relayStakingChains.filter {
+            chainRegistry.getRuntime(it).metadata.module(Modules.STAKING).calls?.get("set_controller")?.arguments?.isEmpty() == true
+        }
+
+        return chainsWithDeprecatedControllerAccount.mapNotNull { chainId ->
+            val chain = chains[chainId] ?: return@mapNotNull null
+            val accountId = currentAccount.accountId(chain) ?: return@mapNotNull null
+
+            // checking current account is stash
+
+            val controllerAccount = walletRepository.getControllerAccount(chainId, accountId)
+
+            val currentAccountIsStashAndController = controllerAccount != null && controllerAccount.contentEquals(accountId) // the case is resolved
+            if (currentAccountIsStashAndController) {
+                return@mapNotNull null
+            }
+
+            val currentAccountHasAnotherController = controllerAccount != null && !controllerAccount.contentEquals(accountId) // user needs to fix it
+            if (currentAccountHasAnotherController) {
+                return@mapNotNull ControllerDeprecationWarning.ChangeController(chainId, chain.name)
+            }
+
+            // checking current account is controller
+            val currentAccountIsNotStash = controllerAccount == null
+
+            if (currentAccountIsNotStash) {
+                val stash = walletRepository.getStashAccount(chainId, accountId)
+                // we've found the stash
+                if (stash != null) {
+                    return@mapNotNull ControllerDeprecationWarning.ImportStash(chainId, stash.toHexString(false))
+                }
+            }
+
+            return@mapNotNull null
+        }
+    }
 }

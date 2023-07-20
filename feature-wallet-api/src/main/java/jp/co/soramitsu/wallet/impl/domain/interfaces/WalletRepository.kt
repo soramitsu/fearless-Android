@@ -17,6 +17,7 @@ import jp.co.soramitsu.wallet.impl.domain.model.TransferValidityStatus
 import kotlinx.coroutines.flow.Flow
 import java.math.BigDecimal
 import java.math.BigInteger
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.core.models.Asset as CoreAsset
 
 interface WalletRepository {
@@ -83,4 +84,6 @@ interface WalletRepository {
     fun chainRegistrySyncUp()
 
     suspend fun getSingleAssetPriceCoingecko(priceId: String, currency: String): BigDecimal?
+    suspend fun getControllerAccount(chainId: ChainId, accountId: AccountId): AccountId?
+    suspend fun getStashAccount(chainId: ChainId, accountId: AccountId): AccountId?
 }
