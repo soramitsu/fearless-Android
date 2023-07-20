@@ -86,7 +86,7 @@ class XcmInteractor(
             val availableXcmAssetSymbols = xcmEntitiesFetcher.getAvailableAssets(
                 originChainId = originChainId,
                 destinationChainId = null
-            ).map { it.uppercase() }
+            ).map { it.symbol.uppercase() }
             emit(availableXcmAssetSymbols)
         }
     }

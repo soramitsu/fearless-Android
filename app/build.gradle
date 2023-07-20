@@ -117,6 +117,10 @@ android {
         resources.excludes.add("META-INF/**/*")
         resources.excludes.add("META-INF/*")
     }
+
+    configurations{
+        all*.exclude module: 'bcprov-jdk15on'
+    }
 }
 
 play {
