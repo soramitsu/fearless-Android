@@ -134,11 +134,7 @@ class XcmInteractor(
                 address = chain.fakeAddress(),
                 amount = asset.getPlanksFromAmountForOriginFee(amount)
             )
-        }
-            .onFailure {
-                println("error: $it")
-            }
-            .getOrNull()
+        }.getOrNull()
     }
 
     private fun Asset.getPlanksFromAmountForOriginFee(amount: BigDecimal): BigInteger {
