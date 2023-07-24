@@ -31,6 +31,26 @@ fun Detekt.setup(autoCorrect: Boolean) {
     config.setFrom(files("$rootDir/detekt/detekt.yml"))
     include("**/*.kt")
     exclude("**/resources/**", "**/build/**")
+
+    // TODO: Remove exclude paths after merge detekt to develop
+    exclude(
+        "**/android-foundation/**",
+        "**/common/**",
+        "**/core-api/**",
+        "**/core-db/**",
+        "**/feature-account-api/**", "**/feature-account-impl/**",
+        "**/feature-crowdloan-api/**", "**/feature-crowdloan-impl/**",
+        "**/feature-onboarding-api/**", "**/feature-onboarding-impl/**",
+        "**/feature-polkaswap-api/**", "**/feature-polkaswap-impl/**",
+        "**/feature-soracard-api/**", "**/feature-soracard-impl/**",
+        "**/splash/**",
+        "**/feature-staking-api/**", "**/feature-staking-impl/**",
+        "**/feature-success-api/**", "**/feature-success-impl/**",
+        "**/feature-wallet-api/**", "**/feature-wallet-impl/**",
+        "**/runtime/**", "**/runtime-permission/**",
+        "**/test-shared/**",
+        "**/app/**"
+    )
 }
 
 tasks.withType<Detekt>().configureEach {
