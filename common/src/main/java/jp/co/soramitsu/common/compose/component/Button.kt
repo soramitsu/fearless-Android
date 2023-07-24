@@ -1,5 +1,6 @@
 package jp.co.soramitsu.common.compose.component
 
+import android.os.SystemClock
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
@@ -14,6 +15,9 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.material.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
@@ -109,11 +113,19 @@ fun FearlessButton(
     textStyle: TextStyle = MaterialTheme.customTypography.header3,
     colors: ButtonColors,
     modifier: Modifier = Modifier,
+    clickDisablePeriod: Long = 1000L,
     onClick: () -> Unit
 ) {
+    val lastClickTimeState = rememberLastClickTime()
     TextButton(
         modifier = modifier,
-        onClick = onClick,
+        onClick = {
+            onSingleClick(
+                lastClickTimeState = lastClickTimeState,
+                clickDisablePeriod = clickDisablePeriod,
+                onClick = onClick
+            )
+        },
         shape = FearlessCorneredShape(),
         colors = colors,
         enabled = enabled,
@@ -125,6 +137,22 @@ fun FearlessButton(
             color = colors.contentColor(enabled = enabled).value,
             textAlign = TextAlign.Center
         )
+    }
+}
+
+@Composable
+private fun rememberLastClickTime(): MutableState<Long> {
+    return remember { mutableStateOf(0L) }
+}
+
+private fun onSingleClick(
+    lastClickTimeState: MutableState<Long>,
+    clickDisablePeriod: Long = 1000L,
+    onClick: () -> Unit
+) {
+    if (SystemClock.elapsedRealtime() - lastClickTimeState.value > clickDisablePeriod) {
+        lastClickTimeState.value = SystemClock.elapsedRealtime()
+        onClick()
     }
 }
 
