@@ -4,16 +4,20 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.liveData
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
+import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.data.network.BlockExplorerUrlBuilder
 import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.feature_staking_impl.R
-import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
+import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
 import jp.co.soramitsu.staking.impl.domain.StakingInteractor
 import jp.co.soramitsu.staking.impl.domain.staking.controller.ControllerInteractor
 import jp.co.soramitsu.staking.impl.domain.validations.controller.SetControllerValidationPayload
@@ -22,12 +26,9 @@ import jp.co.soramitsu.staking.impl.presentation.StakingRouter
 import jp.co.soramitsu.staking.impl.presentation.staking.controller.set.bondSetControllerValidationFailure
 import jp.co.soramitsu.wallet.api.data.mappers.mapFeeToFeeModel
 import jp.co.soramitsu.wallet.api.presentation.mixin.fee.FeeStatus
-import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @HiltViewModel
 class ConfirmSetControllerViewModel @Inject constructor(
@@ -47,8 +48,11 @@ class ConfirmSetControllerViewModel @Inject constructor(
 
     private val payload = savedStateHandle.get<ConfirmSetControllerPayload>(PAYLOAD_KEY)!!
 
-    private val assetFlow = interactor.currentAssetFlow()
-        .share()
+    private val assetFlow = if (payload.chainId.isNullOrEmpty()) {
+        interactor.currentAssetFlow()
+    } else {
+        flowOf { requireNotNull(interactor.getUtilityAsset(payload.chainId)) }
+    }.share()
 
     val feeStatusLiveData = assetFlow.map { asset ->
         val feeModel = mapFeeToFeeModel(payload.fee, asset.token)

@@ -26,8 +26,7 @@ interface SubstrateRemoteSource {
         chain: Chain,
         transfer: Transfer,
         additional: (suspend ExtrinsicBuilder.() -> Unit)?,
-        batchAll: Boolean,
-        allowDeath: Boolean = false
+        batchAll: Boolean
     ): BigInteger
 
     suspend fun performTransfer(
@@ -36,8 +35,7 @@ interface SubstrateRemoteSource {
         transfer: Transfer,
         tip: BigInteger?,
         additional: (suspend ExtrinsicBuilder.() -> Unit)?,
-        batchAll: Boolean,
-        allowDeath: Boolean = false
+        batchAll: Boolean
     ): String
 
     suspend fun fetchAccountTransfersInBlock(
@@ -50,4 +48,8 @@ interface SubstrateRemoteSource {
     suspend fun getEquilibriumAccountInfo(asset: Asset, accountId: AccountId): EqAccountInfo?
 
     suspend fun getAssetsAccountInfo(asset: Asset, accountId: AccountId): AssetsAccountInfo?
+
+    suspend fun getControllerAccount(chainId: ChainId, currentAccountId: AccountId): AccountId?
+
+    suspend fun getStashAccount(chainId: ChainId, currentAccountId: AccountId): AccountId?
 }

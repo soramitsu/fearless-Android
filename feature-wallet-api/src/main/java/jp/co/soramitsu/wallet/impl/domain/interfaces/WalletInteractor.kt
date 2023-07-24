@@ -16,6 +16,7 @@ import jp.co.soramitsu.shared_utils.runtime.AccountId
 import jp.co.soramitsu.shared_utils.scale.EncodableStruct
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.AssetWithStatus
+import jp.co.soramitsu.wallet.impl.domain.model.ControllerDeprecationWarning
 import jp.co.soramitsu.wallet.impl.domain.model.Fee
 import jp.co.soramitsu.wallet.impl.domain.model.Operation
 import jp.co.soramitsu.wallet.impl.domain.model.OperationsPageChange
@@ -122,4 +123,6 @@ interface WalletInteractor {
     fun observeHideZeroBalanceEnabledForCurrentWallet(): Flow<Boolean>
     suspend fun toggleHideZeroBalancesForCurrentWallet()
     suspend fun getHideZeroBalancesForCurrentWallet(): Boolean
+
+    suspend fun checkControllerDeprecations(): List<ControllerDeprecationWarning>
 }

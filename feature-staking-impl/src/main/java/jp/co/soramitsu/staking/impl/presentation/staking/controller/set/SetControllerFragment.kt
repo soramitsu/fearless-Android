@@ -15,6 +15,9 @@ import jp.co.soramitsu.feature_staking_impl.databinding.FragmentSetControllerAcc
 
 @AndroidEntryPoint
 class SetControllerFragment : BaseFragment<SetControllerViewModel>(R.layout.fragment_set_controller_account) {
+    companion object {
+        const val CHAIN_ID_KEY = "CHAIN_ID_KEY"
+    }
 
     override val viewModel: SetControllerViewModel by viewModels()
 
@@ -56,6 +59,10 @@ class SetControllerFragment : BaseFragment<SetControllerViewModel>(R.layout.frag
 
         viewModel.isContinueButtonAvailable.observe {
             binding.setControllerContinueBtn.isEnabled = it
+        }
+
+        viewModel.isControllerSelectionEnabled.observe {
+            binding.setControllerDestinationAccount.isEnabled = it
         }
     }
 

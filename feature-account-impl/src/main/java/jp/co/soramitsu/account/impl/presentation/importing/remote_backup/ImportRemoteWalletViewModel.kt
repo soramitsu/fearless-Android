@@ -162,9 +162,9 @@ class ImportRemoteWalletViewModel @Inject constructor(
     ) {
         interactor.importFromMnemonic(
             walletName = decryptedBackupAccount.name,
-            mnemonic = decryptedBackupAccount.mnemonicPhrase,
-            substrateDerivationPath = decryptedBackupAccount.substrateDerivationPath,
-            ethereumDerivationPath = decryptedBackupAccount.ethDerivationPath,
+            mnemonic = decryptedBackupAccount.mnemonicPhrase.orEmpty(), // TODO: Backup fix
+            substrateDerivationPath = decryptedBackupAccount.substrateDerivationPath.orEmpty(), // TODO: Backup fix
+            ethereumDerivationPath = decryptedBackupAccount.ethDerivationPath.orEmpty(), // TODO: Backup fix
             selectedEncryptionType = decryptedBackupAccount.cryptoType,
             withEth = true
         ).getOrThrow()

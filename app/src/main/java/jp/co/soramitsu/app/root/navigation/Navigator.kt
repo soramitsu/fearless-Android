@@ -228,6 +228,13 @@ class Navigator :
         navController?.navigate(request)
     }
 
+    override fun openManageControllerAccount(chainId: ChainId) {
+        val request = NavDeepLinkRequest.Builder
+            .fromUri("fearless://staking/setControllerAccountFragment/$chainId".toUri())
+            .build()
+        navController?.navigate(request)
+    }
+
     override fun openCreateAccountSkipWelcome(payload: ChainAccountCreatePayload) {
         val bundle = BackupMnemonicFragment.getBundle(false, "", payload)
         navController?.navigate(R.id.action_welcomeFragment_to_backupMnemonicFragment, bundle)
