@@ -38,6 +38,8 @@ import jp.co.soramitsu.common.compose.theme.customTypography
 import jp.co.soramitsu.common.compose.theme.grayButtonBackground
 import jp.co.soramitsu.common.compose.theme.purple
 
+private const val DISABLE_CLICK_TIME = 1000L
+
 data class ButtonViewState(
     val text: String,
     val enabled: Boolean = true
@@ -113,7 +115,6 @@ fun FearlessButton(
     textStyle: TextStyle = MaterialTheme.customTypography.header3,
     colors: ButtonColors,
     modifier: Modifier = Modifier,
-    clickDisablePeriod: Long = 1000L,
     onClick: () -> Unit
 ) {
     val lastClickTimeState = rememberLastClickTime()
@@ -122,7 +123,6 @@ fun FearlessButton(
         onClick = {
             onSingleClick(
                 lastClickTimeState = lastClickTimeState,
-                clickDisablePeriod = clickDisablePeriod,
                 onClick = onClick
             )
         },
@@ -147,10 +147,9 @@ private fun rememberLastClickTime(): MutableState<Long> {
 
 private fun onSingleClick(
     lastClickTimeState: MutableState<Long>,
-    clickDisablePeriod: Long = 1000L,
     onClick: () -> Unit
 ) {
-    if (SystemClock.elapsedRealtime() - lastClickTimeState.value > clickDisablePeriod) {
+    if (SystemClock.elapsedRealtime() - lastClickTimeState.value > DISABLE_CLICK_TIME) {
         lastClickTimeState.value = SystemClock.elapsedRealtime()
         onClick()
     }
