@@ -5,6 +5,8 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.io.File
+import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.account.api.presentation.exporting.ExportSource
@@ -17,8 +19,6 @@ import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.moonriverChainId
 import kotlinx.coroutines.launch
-import java.io.File
-import javax.inject.Inject
 
 @HiltViewModel
 class ExportJsonConfirmViewModel @Inject constructor(
@@ -101,11 +101,17 @@ class ExportJsonConfirmViewModel @Inject constructor(
     }
 
     fun onExportByText(isEthereum: Boolean) {
+        launch {
+            accountInteractor.updateWalletBackedUp(payload.metaId)
+        }
         val json = if (isEthereum) ethereumJson else substrateJson
         exportText(json ?: return)
     }
 
     fun onExportByFile(isEthereum: Boolean) {
+        launch {
+            accountInteractor.updateWalletBackedUp(payload.metaId)
+        }
         if (isEthereum) {
             exportEthereumJsonAsFile()
         } else {

@@ -3,23 +3,26 @@ package jp.co.soramitsu.account.impl.presentation.mnemonic_agreements
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.compose.component.AccentButton
 import jp.co.soramitsu.common.compose.component.B0
 import jp.co.soramitsu.common.compose.component.BottomSheetScreen
-import jp.co.soramitsu.common.compose.component.ButtonViewState
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.component.TextSelectableItem
 import jp.co.soramitsu.common.compose.component.TextSelectableItemState
 import jp.co.soramitsu.common.compose.component.Toolbar
 import jp.co.soramitsu.common.compose.component.ToolbarViewState
+import jp.co.soramitsu.common.compose.theme.customColors
 
 data class MnemonicAgreementsState(
     val losePhraseAgreementItemState: TextSelectableItemState,
@@ -65,7 +68,9 @@ internal fun MnemonicAgreementsContent(
                     .verticalScroll(rememberScrollState())
             ) {
                 B0(
-                    text = stringResource(R.string.mnemonic_agreements_subtitle)
+                    text = stringResource(R.string.mnemonic_agreements_subtitle),
+                    color = MaterialTheme.customColors.colorGreyText,
+                    textAlign = TextAlign.Center
                 )
                 MarginVertical(16.dp)
                 TextSelectableItem(
@@ -89,11 +94,10 @@ internal fun MnemonicAgreementsContent(
             AccentButton(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .height(48.dp)
                     .padding(horizontal = 16.dp),
-                state = ButtonViewState(
-                    text = stringResource(R.string.backup_wallet_show_mnemonic_phrase),
-                    enabled = state.isShowMnemonicButtonEnabled
-                ),
+                text = stringResource(R.string.backup_wallet_show_mnemonic_phrase),
+                enabled = state.isShowMnemonicButtonEnabled,
                 onClick = callback::onShowPhrase
             )
             MarginVertical(12.dp)

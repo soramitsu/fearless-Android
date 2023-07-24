@@ -1,5 +1,6 @@
 package jp.co.soramitsu.account.api.domain.interfaces
 
+import java.io.File
 import jp.co.soramitsu.account.api.domain.model.Account
 import jp.co.soramitsu.account.api.domain.model.ImportJsonData
 import jp.co.soramitsu.account.api.domain.model.LightMetaAccount
@@ -12,7 +13,6 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.shared_utils.scale.EncodableStruct
 import kotlinx.coroutines.flow.Flow
-import java.io.File
 
 interface AccountInteractor {
     suspend fun generateMnemonic(): List<String>
@@ -26,7 +26,8 @@ interface AccountInteractor {
         mnemonic: String,
         encryptionType: CryptoType,
         substrateDerivationPath: String,
-        ethereumDerivationPath: String
+        ethereumDerivationPath: String,
+        isBackedUp: Boolean
     ): Result<Unit>
 
     suspend fun createChainAccount(
@@ -45,7 +46,8 @@ interface AccountInteractor {
         substrateDerivationPath: String,
         ethereumDerivationPath: String,
         selectedEncryptionType: CryptoType,
-        withEth: Boolean
+        withEth: Boolean,
+        googleBackupAddress: String?
     ): Result<Unit>
 
     suspend fun importChainAccountFromMnemonic(
@@ -63,7 +65,8 @@ interface AccountInteractor {
         username: String,
         derivationPath: String,
         selectedEncryptionType: CryptoType,
-        ethSeed: String?
+        ethSeed: String?,
+        googleBackupAddress: String?
     ): Result<Unit>
 
     suspend fun importChainFromSeed(
@@ -79,7 +82,8 @@ interface AccountInteractor {
         json: String,
         password: String,
         name: String,
-        ethJson: String?
+        ethJson: String?,
+        googleBackupAddress: String?
     ): Result<Unit>
 
     suspend fun importChainFromJson(
@@ -129,6 +133,7 @@ interface AccountInteractor {
     suspend fun generateRestoreJson(metaId: Long, chainId: ChainId, password: String): Result<String>
 
     suspend fun getMetaAccount(metaId: Long): MetaAccount
+    fun getMetaAccountsGoogleAddresses(): Flow<List<String>>
 
     suspend fun getMetaAccountSecrets(metaId: Long): EncodableStruct<MetaAccountSecrets>?
 
@@ -136,7 +141,14 @@ interface AccountInteractor {
 
     fun polkadotAddressForSelectedAccountFlow(): Flow<String>
 
+    suspend fun googleBackupAddressForWallet(walletId: Long): String
+    suspend fun isGoogleBackupSupported(walletId: Long): Boolean
+
     suspend fun getChain(chainId: ChainId): Chain
 
     suspend fun createFileInTempStorageAndRetrieveAsset(fileName: String): Result<File>
+
+    suspend fun updateAccountName(metaId: Long, name: String)
+
+    suspend fun updateWalletBackedUp(metaId: Long)
 }

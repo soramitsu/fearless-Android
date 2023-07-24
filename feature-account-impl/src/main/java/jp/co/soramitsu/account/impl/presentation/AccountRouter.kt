@@ -68,7 +68,7 @@ interface AccountRouter : SecureRouter {
     @PinRequired
     fun openExportJsonPasswordDestination(metaId: Long, chainId: ChainId, isExportWallet: Boolean = false): DelayedNavigation
 
-    fun openConfirmMnemonicOnExport(mnemonic: List<String>)
+    fun openConfirmMnemonicOnExport(mnemonic: List<String>, metaId: Long)
 
     fun openExportJsonConfirm(payload: ExportJsonConfirmPayload)
 
@@ -90,7 +90,7 @@ interface AccountRouter : SecureRouter {
 
     fun openGetSoraCard()
 
-    fun openCreateWalletDialog()
+    fun openCreateWalletDialog(isFromGoogleBackup: Boolean)
 
     fun openCreateBackupPasswordDialog(payload: CreateBackupPasswordPayload)
 
@@ -98,4 +98,6 @@ interface AccountRouter : SecureRouter {
         isFromGoogleBackup: Boolean,
         accountName: String
     )
+
+    fun openImportRemoteWalletDialog()
 }

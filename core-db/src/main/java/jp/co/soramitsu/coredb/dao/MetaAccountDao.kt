@@ -77,6 +77,9 @@ interface MetaAccountDao {
     @Query("UPDATE meta_accounts SET name = :newName WHERE id = :metaId")
     suspend fun updateName(metaId: Long, newName: String)
 
+    @Query("UPDATE meta_accounts SET isBackedUp = 1 WHERE id = :metaId")
+    suspend fun updateBackedUp(metaId: Long)
+
     @Query("DELETE FROM meta_accounts WHERE id = :metaId")
     suspend fun delete(metaId: Long)
 

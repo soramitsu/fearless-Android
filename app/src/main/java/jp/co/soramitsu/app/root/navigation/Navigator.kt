@@ -15,15 +15,16 @@ import it.airgap.beaconsdk.blockchain.substrate.data.SubstrateSignerPayload
 import jp.co.soramitsu.account.api.domain.model.ImportMode
 import jp.co.soramitsu.account.api.presentation.account.create.ChainAccountCreatePayload
 import jp.co.soramitsu.account.api.presentation.actions.AddAccountBottomSheet
+import jp.co.soramitsu.account.api.presentation.create_backup_password.CreateBackupPasswordPayload
 import jp.co.soramitsu.account.impl.domain.account.details.AccountInChain
 import jp.co.soramitsu.account.impl.presentation.AccountRouter
-import jp.co.soramitsu.account.impl.presentation.account.details.AccountDetailsFragment
+import jp.co.soramitsu.account.impl.presentation.account.create.CreateAccountDialog
+import jp.co.soramitsu.account.impl.presentation.account.details.AccountDetailsDialog
 import jp.co.soramitsu.account.impl.presentation.account.export.WalletExportFragment
 import jp.co.soramitsu.account.impl.presentation.account.exportaccounts.AccountsForExportFragment
-import jp.co.soramitsu.account.impl.presentation.create_backup_password.CreateBackupPasswordDialog
-import jp.co.soramitsu.account.api.presentation.create_backup_password.CreateBackupPasswordPayload
-import jp.co.soramitsu.account.impl.presentation.account.create.CreateAccountDialog
+import jp.co.soramitsu.account.impl.presentation.account.rename.RenameAccountDialog
 import jp.co.soramitsu.account.impl.presentation.backup_wallet.BackupWalletDialog
+import jp.co.soramitsu.account.impl.presentation.create_backup_password.CreateBackupPasswordDialog
 import jp.co.soramitsu.account.impl.presentation.experimental.SuccessfulFragment
 import jp.co.soramitsu.account.impl.presentation.exporting.json.confirm.ExportJsonConfirmFragment
 import jp.co.soramitsu.account.impl.presentation.exporting.json.confirm.ExportJsonConfirmPayload
@@ -146,6 +147,7 @@ import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.reward.Reward
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.reward.RewardDetailsPayload
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.swap.SwapDetailFragment
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.transfer.TransferDetailFragment
+import kotlin.coroutines.coroutineContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -161,7 +163,6 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.job
 import kotlinx.parcelize.Parcelize
-import kotlin.coroutines.coroutineContext
 import jp.co.soramitsu.common.utils.combine as combineLiveData
 
 @Parcelize
@@ -210,8 +211,8 @@ class Navigator :
         navController?.navigate(R.id.action_welcomeFragment_to_createAccountFragment)
     }
 
-    override fun openCreateWalletDialog() {
-        val bundle = CreateAccountDialog.getBundle(isFromGoogleBackup = true)
+    override fun openCreateWalletDialog(isFromGoogleBackup: Boolean) {
+        val bundle = CreateAccountDialog.getBundle(isFromGoogleBackup = isFromGoogleBackup)
         navController?.navigate(R.id.createAccountDialog, bundle)
     }
 
@@ -311,10 +312,7 @@ class Navigator :
     override fun openConfirmMnemonicOnCreate(confirmMnemonicPayload: ConfirmMnemonicPayload) {
         val bundle = ConfirmMnemonicFragment.getBundle(confirmMnemonicPayload)
 
-        navController?.navigate(
-            R.id.action_backupMnemonicFragment_to_confirmMnemonicFragment,
-            bundle
-        )
+        navController?.navigate(R.id.confirmExportMnemonicFragment, bundle)
     }
 
     override fun openAboutScreen() {
@@ -915,9 +913,9 @@ class Navigator :
     }
 
     override fun openAccountDetails(metaAccountId: Long) {
-        val extras = AccountDetailsFragment.getBundle(metaAccountId)
+        val extras = AccountDetailsDialog.getBundle(metaAccountId)
 
-        navController?.navigate(R.id.action_open_accountDetailsFragment, extras)
+        navController?.navigate(R.id.accountDetailsDialog, extras)
     }
 
     override fun openBackupWalletScreen(metaAccountId: Long) {
@@ -930,6 +928,12 @@ class Navigator :
         val extras = WalletExportFragment.getBundle(metaAccountId)
 
         navController?.navigate(R.id.action_open_walletExportFragment, extras)
+    }
+
+    override fun openRenameWallet(metaAccountId: Long) {
+        val extras = RenameAccountDialog.getBundle(metaAccountId)
+
+        navController?.navigate(R.id.renameAccountDialog, extras)
     }
 
     override fun openAccountsForExport(metaId: Long, from: AccountInChain.From) {
@@ -999,8 +1003,8 @@ class Navigator :
         return NavComponentDelayedNavigation(R.id.exportJsonPasswordFragment, extras)
     }
 
-    override fun openConfirmMnemonicOnExport(mnemonic: List<String>) {
-        val extras = ConfirmMnemonicFragment.getBundle(ConfirmMnemonicPayload(mnemonic, null))
+    override fun openConfirmMnemonicOnExport(mnemonic: List<String>, metaId: Long) {
+        val extras = ConfirmMnemonicFragment.getBundle(ConfirmMnemonicPayload(mnemonic, metaId, null))
 
         navController?.navigate(R.id.action_exportMnemonicFragment_to_confirmExportMnemonicFragment, extras)
     }

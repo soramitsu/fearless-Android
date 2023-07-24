@@ -23,7 +23,9 @@ class MetaAccountLocal(
     val ethereumAddress: ByteArray?,
     val name: String,
     val isSelected: Boolean,
-    val position: Int
+    val position: Int,
+    val isBackedUp: Boolean,
+    val googleBackupAddress: String?
 ) {
 
     companion object Table {

@@ -1,23 +1,36 @@
 package jp.co.soramitsu.account.impl.presentation.create_backup_password
 
-import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.util.UUID
 import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.presentation.create_backup_password.CreateBackupPasswordPayload
 import jp.co.soramitsu.account.impl.presentation.AccountRouter
 import jp.co.soramitsu.backup.BackupService
+import jp.co.soramitsu.backup.domain.models.BackupAccountType
 import jp.co.soramitsu.backup.domain.models.DecryptedBackupAccount
+import jp.co.soramitsu.backup.domain.models.Json
+import jp.co.soramitsu.backup.domain.models.Seed
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.TextInputViewState
 import jp.co.soramitsu.common.compose.component.TextSelectableItemState
+import jp.co.soramitsu.common.data.secrets.v2.KeyPairSchema
+import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
+import jp.co.soramitsu.common.utils.deriveSeed32
+import jp.co.soramitsu.common.utils.nullIfEmpty
 import jp.co.soramitsu.feature_account_impl.R
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.moonriverChainId
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
+import jp.co.soramitsu.shared_utils.encrypt.junction.SubstrateJunctionDecoder
+import jp.co.soramitsu.shared_utils.encrypt.mnemonic.MnemonicCreator
+import jp.co.soramitsu.shared_utils.encrypt.seed.substrate.SubstrateSeedFactory
+import jp.co.soramitsu.shared_utils.extensions.toHexString
+import jp.co.soramitsu.shared_utils.scale.EncodableStruct
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import jp.co.soramitsu.common.utils.combine as combineFlows
@@ -26,7 +39,6 @@ import jp.co.soramitsu.common.utils.combine as combineFlows
 class CreateBackupPasswordViewModel @Inject constructor(
     private val accountRouter: AccountRouter,
     private val backupService: BackupService,
-    private val context: Context,
     private val savedStateHandle: SavedStateHandle,
     private val interactor: AccountInteractor
 ) : BaseViewModel(), CreateBackupPasswordCallback {
@@ -135,47 +147,139 @@ class CreateBackupPasswordViewModel @Inject constructor(
     override fun onApplyPasswordClick() {
         viewModelScope.launch {
             runCatching {
-                importFromMnemonic()
+                if (payload.createAccount) {
+                    importFromBackup()
+                }
                 saveBackupAccount()
             }
                 .onSuccess {
                     continueBasedOnCodeStatus()
                 }
                 .onFailure {
-                    // TODO: Handle create account error
-                    // handleCreateAccountError(result.requireException())
+                    handleAccountBackupError(it)
                 }
         }
     }
 
-    private suspend fun importFromMnemonic() {
-        interactor.importFromMnemonic(
-            walletName = payload.accountName,
-            mnemonic = payload.mnemonic,
-            substrateDerivationPath = payload.substrateDerivationPath,
-            ethereumDerivationPath = payload.ethereumDerivationPath,
-            selectedEncryptionType = payload.cryptoType,
-            withEth = true
-        ).getOrThrow()
+    private fun handleAccountBackupError(it: Throwable) {
+        showError(it)
+    }
+
+    private suspend fun importFromBackup() {
+//        val address = interactor.polkadotAddressForSelectedAccountFlow().first()
+        val mnemonic = payload.mnemonic
+//        val substrateSeed = payload.substrateSeed
+//        val substrateJson = payload.substrateJson
+
+        val password = originPassword.value
+        val address = interactor.polkadotAddressForSelectedAccountFlow().first()
+
+        val metaId = interactor.selectedMetaAccount().id
+        val jsonResult = interactor.generateRestoreJson(
+            metaId = metaId,
+            chainId = polkadotChainId,
+            password = password
+        )
+
+        val ethJsonResult = interactor.generateRestoreJson(
+            metaId = metaId,
+            chainId = moonriverChainId,
+            password = password
+        )
+
+        val substrateJson = jsonResult.getOrNull()
+        val ethJson = ethJsonResult.getOrNull()
+        val metaAccountSecrets = interactor.getMetaAccountSecrets(metaId)
+//        val entropy = metaAccountSecrets?.get(MetaAccountSecrets.Entropy)
+        val substrateSeed = (metaAccountSecrets?.get(MetaAccountSecrets.Seed) ?: seedFromEntropy(metaAccountSecrets))?.toHexString(withPrefix = true)
+        val ethSeed= metaAccountSecrets?.get(MetaAccountSecrets.EthereumKeypair)?.get(KeyPairSchema.PrivateKey)?.toHexString(withPrefix = true)
+
+        when {
+            mnemonic != null -> {
+                interactor.importFromMnemonic(
+                    walletName = payload.accountName,
+                    mnemonic = mnemonic,
+                    substrateDerivationPath = payload.substrateDerivationPath,
+                    ethereumDerivationPath = payload.ethereumDerivationPath,
+                    selectedEncryptionType = payload.cryptoType,
+                    withEth = true,
+                    googleBackupAddress = address
+                ).getOrThrow()
+            }
+
+            substrateSeed != null -> {
+                interactor.importFromSeed(
+                    substrateSeed = substrateSeed,
+                    username = payload.accountName,
+                    derivationPath = payload.substrateDerivationPath,
+                    selectedEncryptionType = payload.cryptoType,
+                    ethSeed = ethSeed,
+                    googleBackupAddress = address
+                )
+            }
+
+            substrateJson != null -> {
+                interactor.importFromJson(
+                    json = substrateJson,
+                    password = "123456", //sourceType.passwordLiveData.value!!,
+                    name = payload.accountName,
+                    ethJson = ethJson,
+                    googleBackupAddress = address
+                )
+            }
+        }
     }
 
     private suspend fun saveBackupAccount() {
         val password = originPassword.value
+        val address = interactor.polkadotAddressForSelectedAccountFlow().first()
+
+        val metaId = interactor.selectedMetaAccount().id
+        val jsonResult = interactor.generateRestoreJson(
+            metaId = metaId,
+            chainId = polkadotChainId,
+            password = password
+        )
+        val substrateJson = jsonResult.getOrNull()
+        val metaAccountSecrets = interactor.getMetaAccountSecrets(metaId)
+//        val entropy = metaAccountSecrets?.get(MetaAccountSecrets.Entropy)
+        val substrateSeed = (metaAccountSecrets?.get(MetaAccountSecrets.Seed) ?: seedFromEntropy(metaAccountSecrets))?.toHexString(withPrefix = true)
+        val ethSeed= metaAccountSecrets?.get(MetaAccountSecrets.EthereumKeypair)?.get(KeyPairSchema.PrivateKey)?.toHexString(withPrefix = true)
+
+        println("saveBackupAccount: name = ${payload.accountName}, address = $address")
+        println("saveBackupAccount: mnemonicPhrase = ${payload.mnemonic}")
+        println("saveBackupAccount: seedSubstrate = $substrateSeed")
+        println("saveBackupAccount: ethSeed = $ethSeed")
+        println("saveBackupAccount: substrateJson = $substrateJson")
         backupService.saveBackupAccount(
             account = DecryptedBackupAccount(
                 name = payload.accountName,
-                address = UUID.randomUUID().toString(),
+                address = address,
                 mnemonicPhrase = payload.mnemonic,
                 substrateDerivationPath = payload.substrateDerivationPath,
                 ethDerivationPath = payload.ethereumDerivationPath,
                 cryptoType = payload.cryptoType,
-                backupAccountType = listOf(), // TODO: Backup fix
-                seed = null, // TODO: Backup fix
-                json = null // TODO: Backup fix
+                backupAccountType = listOf(BackupAccountType.PASSHRASE, BackupAccountType.SEED, BackupAccountType.JSON),
+                seed =  Seed(substrateSeed = substrateSeed, ethSeed),
+                json = Json(substrateJson = substrateJson) //, payload.ethJson)
             ),
             password = password
         )
     }
+
+    private fun seedFromEntropy(secret: EncodableStruct<MetaAccountSecrets>?) = secret?.get(MetaAccountSecrets.Entropy)?.let { entropy ->
+        val mnemonicWords = MnemonicCreator.fromEntropy(entropy).words
+        val derivationPath = secret[MetaAccountSecrets.SubstrateDerivationPath]?.nullIfEmpty()
+        val password = derivationPath?.let { SubstrateJunctionDecoder.decode(it).password }
+        SubstrateSeedFactory.deriveSeed32(mnemonicWords, password).seed
+    }
+
+//    private fun CreateBackupPasswordPayload.backupTypes(): List<BackupAccountType> = listOfNotNull(
+//        mnemonic?.let { BackupAccountType.PASSHRASE },
+//        substrateSeed?.let { BackupAccountType.SEED },
+//        substrateJson?.let { BackupAccountType.JSON }
+//    )
+
 
     private suspend fun continueBasedOnCodeStatus() {
         if (interactor.isCodeSet()) {

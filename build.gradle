@@ -71,7 +71,8 @@ buildscript {
 
         androidxCoreVersion = '1.8.0'
 
-        composeVersion = '1.3.1'
+        composeVersion = '1.4.3'
+        composeFoundationVersion = '1.5.0-beta03'
         composeCompilerVersion = '1.4.4'
 
         appcompatVersion = '1.6.1'
@@ -111,7 +112,7 @@ buildscript {
                 "androidx.compose.ui:ui:$composeVersion",
                 "androidx.compose.runtime:runtime-livedata:$composeVersion",
                 "androidx.compose.compiler:compiler:$composeCompilerVersion",
-                "androidx.compose.foundation:foundation:$composeVersion",
+                "androidx.compose.foundation:foundation:$composeFoundationVersion",
                 "androidx.compose.material:material:$composeVersion",
                 "com.google.android.material:compose-theme-adapter:1.2.1",
                 "androidx.compose.animation:animation:$composeVersion",

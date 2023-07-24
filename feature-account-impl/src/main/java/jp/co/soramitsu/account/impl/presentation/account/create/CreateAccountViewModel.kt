@@ -5,21 +5,24 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import jp.co.soramitsu.common.base.BaseViewModel
-import jp.co.soramitsu.common.utils.Event
+import javax.inject.Inject
 import jp.co.soramitsu.account.api.presentation.account.create.ChainAccountCreatePayload
 import jp.co.soramitsu.account.impl.presentation.AccountRouter
+import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.TextInputViewState
+import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.utils.Event
+import jp.co.soramitsu.feature_account_impl.R
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import javax.inject.Inject
 
 @HiltViewModel
 class CreateAccountViewModel @Inject constructor(
     private val router: AccountRouter,
+    resourceManager: ResourceManager,
     savedStateHandle: SavedStateHandle
 ) : BaseViewModel(), CreateAccountCallback {
 
@@ -40,7 +43,7 @@ class CreateAccountViewModel @Inject constructor(
     private val walletNameInputViewState = walletNickname.map { walletNickname ->
         TextInputViewState(
             text = walletNickname,
-            hint = "Wallet name"
+            hint = resourceManager.getString(R.string.wallet_name)
         )
     }
 
@@ -64,14 +67,18 @@ class CreateAccountViewModel @Inject constructor(
     }
 
     override fun nextClicked() {
-        if (isFromGoogleBackup) {
-            router.openMnemonicAgreementsDialog(
-                isFromGoogleBackup = isFromGoogleBackup,
-                accountName = walletNickname.value
-            )
-        } else {
-            _showScreenshotsWarningEvent.value = Event(Unit)
-        }
+        router.openMnemonicAgreementsDialog(
+            isFromGoogleBackup = isFromGoogleBackup,
+            accountName = walletNickname.value
+        )
+//        if (isFromGoogleBackup) {
+//            router.openMnemonicAgreementsDialog(
+//                isFromGoogleBackup = isFromGoogleBackup,
+//                accountName = walletNickname.value
+//            )
+//        } else {
+//            _showScreenshotsWarningEvent.value = Event(Unit)
+//        }
     }
 
     fun screenshotWarningConfirmed() {
