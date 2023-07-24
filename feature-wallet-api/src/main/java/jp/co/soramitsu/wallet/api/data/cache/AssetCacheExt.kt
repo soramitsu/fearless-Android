@@ -8,6 +8,7 @@ import jp.co.soramitsu.common.data.network.runtime.binding.AssetsAccountInfo
 import jp.co.soramitsu.common.data.network.runtime.binding.EmptyBalance
 import jp.co.soramitsu.common.data.network.runtime.binding.EqAccountInfo
 import jp.co.soramitsu.common.data.network.runtime.binding.OrmlTokensAccountData
+import jp.co.soramitsu.common.data.network.runtime.binding.SimpleBalanceData
 import jp.co.soramitsu.common.data.network.runtime.binding.bindAccountInfo
 import jp.co.soramitsu.common.data.network.runtime.binding.bindAssetsAccountInfo
 import jp.co.soramitsu.common.data.network.runtime.binding.bindEquilibriumAccountInfo
@@ -63,6 +64,15 @@ suspend fun AssetCache.updateAsset(
         }
 
         is AssetsAccountInfo -> {
+            updateAsset(metaId, accountId, asset) {
+                it.copy(
+                    accountId = accountId,
+                    freeInPlanks = balanceData.balance
+                )
+            }
+        }
+
+        is SimpleBalanceData -> {
             updateAsset(metaId, accountId, asset) {
                 it.copy(
                     accountId = accountId,
