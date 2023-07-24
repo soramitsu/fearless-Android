@@ -206,7 +206,7 @@ private fun SelectAssetScreenPreview() {
         )
     )
     val state = AssetSelectScreenViewState(
-        assets = items,
+        assets = listOf(),
         searchQuery = null
     )
     Column(

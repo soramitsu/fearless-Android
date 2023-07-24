@@ -2,6 +2,7 @@ package jp.co.soramitsu.account.impl.presentation.exporting.seed
 
 import androidx.lifecycle.SavedStateHandle
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.presentation.exporting.ExportSource
 import jp.co.soramitsu.account.impl.presentation.AccountRouter
@@ -23,7 +24,7 @@ import jp.co.soramitsu.shared_utils.encrypt.mnemonic.MnemonicCreator
 import jp.co.soramitsu.shared_utils.encrypt.seed.substrate.SubstrateSeedFactory
 import jp.co.soramitsu.shared_utils.extensions.toHexString
 import jp.co.soramitsu.shared_utils.scale.EncodableStruct
-import javax.inject.Inject
+import kotlinx.coroutines.launch
 
 @HiltViewModel
 class ExportSeedViewModel @Inject constructor(
@@ -86,6 +87,13 @@ class ExportSeedViewModel @Inject constructor(
 
     init {
         showSecurityWarning()
+        markWalletBackedUp()
+    }
+
+    private fun markWalletBackedUp() {
+        launch {
+            accountInteractor.updateWalletBackedUp(payload.metaId)
+        }
     }
 
     fun back() {

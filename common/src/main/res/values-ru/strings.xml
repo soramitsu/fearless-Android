@@ -179,7 +179,6 @@
     <string name="common_event">Событие</string>
     <string name="common_existential_warning_message">Эта операция приведет к тому, что счет опустится ниже экзистенциального депозита, что приведет к его деактивации (счет будет стерт из состояния блокчейна для экономии места). Если вы решите продолжить, вы потеряете все средства, которые находятся ниже суммы экзистенциального депозита, установленного сетью. За подробной информацией обращайтесь к официальной документации сети (например, Polkadot Wiki). Fearless Wallet является полностью не опекунским приложением и не контролирует и не знает о любых ваших действиях в самой сети. ПРОДОЛЖАЙТЕ ТОЛЬКО В ТОМ СЛУЧАЕ, ЕСЛИ ВЫ ПОЛНОСТЬЮ СОГЛАСНЫ И ПОНИМАЕТЕ ПОСЛЕДСТВИЯ.</string>
     <string name="common_existential_warning_title">Операция сделает аккаунт неактивным</string>
-    <string name="common_export_wallet">Экспортировать кошелек</string>
     <string name="common_filter_sort_header">Сортировать по:</string>
     <string name="common_friend_bonus">Бонус для вашего друга</string>
     <string name="common_got_it">Понятно</string>
@@ -261,7 +260,7 @@
     <string name="connection_add_already_exists_error">Узел уже был добавлен ранее. Пожалуйста, попробуйте другой узел.</string>
     <string name="connection_add_invalid_error">Не удается установить соединение с узлом. Пожалуйста, попробуйте другой узел.</string>
     <string name="connection_add_unsupported_error">К сожалению, сеть не поддерживается. Пожалуйста, попробуйте одну из следующих: %s.</string>
-    <string name="connection_delete_confirm">Удалить</string>
+    <string name="common_delete">Удалить</string>
     <string name="connection_error_message">Пожалуйста, проверьте подключение к Интернету и повторите попытку.</string>
     <string name="connection_management_custom_title">Добавленные ноды</string>
     <string name="connection_management_default_title">Ноды по умолчанию</string>
@@ -378,7 +377,7 @@
     <string name="import_remote_wallet_subtitle_password">Введите резервный пароль для выбранного кошелька для импорта</string>
     <string name="import_remote_wallet_title_imported">Кошелек импортирован</string>
     <string name="import_remote_wallet_title_password">Ввести резервный пароль</string>
-    <string name="import_remote_wallet_title_wallets">Выбрать счёт для импорта</string>
+    <string name="import_remote_wallet_title_wallets">Выбрать кошелёк для импорта</string>
     <string name="import_seed_invalid_message">Пожалуйста, убедитесь, что введенные данные содержат 64 hex символа.</string>
     <string name="import_seed_invalid_title">Сид неверный</string>
     <string name="import_substrate_recovery">JSON для восстановления Substrate аккаунтов</string>
@@ -459,7 +458,7 @@
         <item quantity="other">+%d других</item>
     </plurals>
     <string name="polkaswap_btn_reset_to_default">Сбросить</string>
-    <string name="polkaswap_btn_save">Сохранить</string>
+    <string name="common_save">Сохранить</string>
     <string name="polkaswap_confirmation_swap_stub">Обменять</string>
     <string name="polkaswap_confirmation_swapped_stub">Swapped</string>
     <string name="polkaswap_disclaimer_message">Пожалуйста, прочитайте перед использованием polkaswap</string>
@@ -906,7 +905,7 @@
     <string name="username_setup_choose_title">Имя</string>
     <string name="username_setup_choose_title_2_0">Псевдоним кошелька</string>
     <string name="username_setup_hint">Данное имя будет отображаться только для вас и храниться только на вашем мобильном устройстве.</string>
-    <string name="username_setup_hint_2_0">Пример: Сбережения, инвестиции, краудлоуны, стейкинг. Данное имя будет отображаться только для вас и храниться только на вашем мобильном устройстве.</string>
+    <string name="rename_account_description">Пример: Сбережения, инвестиции, краудлоуны, стейкинг. Данное имя будет отображаться только для вас и храниться только на вашем мобильном устройстве.</string>
     <string name="username_setup_title_2_0">Создать новый кошелек</string>
     <string name="validator_not_elected_description">Эта учетная запись не выбрана сетью для участия в текущей эпохе</string>
     <string name="view_in">Посмотреть в %s</string>

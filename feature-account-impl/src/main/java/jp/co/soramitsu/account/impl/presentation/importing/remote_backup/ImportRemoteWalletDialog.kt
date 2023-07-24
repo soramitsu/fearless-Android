@@ -1,5 +1,7 @@
 package jp.co.soramitsu.account.impl.presentation.importing.remote_backup
 
+import android.os.Bundle
+import android.view.View
 import android.widget.FrameLayout
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
@@ -10,6 +12,7 @@ import androidx.fragment.app.viewModels
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
+import jp.co.soramitsu.oauth.base.extension.onBackPressed
 
 @AndroidEntryPoint
 class ImportRemoteWalletDialog : BaseComposeBottomSheetDialogFragment<ImportRemoteWalletViewModel>() {
@@ -20,7 +23,7 @@ class ImportRemoteWalletDialog : BaseComposeBottomSheetDialogFragment<ImportRemo
     override fun Content(padding: PaddingValues) {
         val state by viewModel.state.collectAsState()
         ImportRemoteWalletContent(
-            activity = requireActivity(),
+//            activity = requireActivity(),
             state = state,
             callback = viewModel
         )
@@ -34,5 +37,10 @@ class ImportRemoteWalletDialog : BaseComposeBottomSheetDialogFragment<ImportRemo
 
     companion object {
         fun getBundle() = bundleOf()
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        onBackPressed { viewModel.backClicked() }
     }
 }

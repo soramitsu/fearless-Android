@@ -18,6 +18,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusState
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.input.ImeAction
@@ -31,6 +33,7 @@ import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.theme.black05
 import jp.co.soramitsu.common.compose.theme.black2
+import jp.co.soramitsu.common.compose.theme.colorAccentDark
 import jp.co.soramitsu.common.compose.theme.customTypography
 import jp.co.soramitsu.common.compose.theme.gray1
 import jp.co.soramitsu.common.compose.theme.transparent
@@ -59,6 +62,7 @@ fun TextInput(
     backgroundColor: Color = black05,
     borderColor: Color = white24,
     onInput: (String) -> Unit,
+    onFocusChanged: (FocusState) -> Unit = {},
     onEndIconClick: () -> Unit = emptyClick
 ) {
     val textColorState = if (state.isActive) {
@@ -101,8 +105,9 @@ fun TextInput(
                 visualTransformation = visualTransformation,
                 modifier = Modifier
                     .background(color = transparent)
+                    .onFocusChanged(onFocusChanged)
                     .fillMaxWidth(),
-                cursorBrush = SolidColor(white),
+                cursorBrush = SolidColor(colorAccentDark),
                 decorationBox = { innerTextField ->
                     TextFieldDefaults.TextFieldDecorationBox(
                         value = state.text,

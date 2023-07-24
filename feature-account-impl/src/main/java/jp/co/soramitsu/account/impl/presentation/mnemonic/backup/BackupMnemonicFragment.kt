@@ -40,8 +40,10 @@ class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>(R.layout.fr
     private val launcher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
+        val googleSignInStatus = result.data?.extras?.get("googleSignInStatus")
+        println("!!! BackupMnemonicFragment WelcomeFragment GoogleLogin result: $googleSignInStatus ")
         if (result.resultCode != Activity.RESULT_OK) {
-            viewModel.onGoogleLoginError()
+            viewModel.onGoogleLoginError(googleSignInStatus.toString())
         } else {
             with(binding) {
                 viewModel.onGoogleSignInSuccess(

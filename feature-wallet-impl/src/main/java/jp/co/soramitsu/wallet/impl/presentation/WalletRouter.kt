@@ -87,6 +87,8 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
 
     fun openExportWallet(metaAccountId: Long)
 
+    fun openRenameWallet(metaAccountId: Long)
+
     fun openImportAccountScreen(blockChainType: Int, importMode: ImportMode)
 
     fun openImportAccountScreenFromWallet(blockChainType: Int)
@@ -160,4 +162,10 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
     fun openCreateContact(chainId: ChainId?, address: String?)
 
     val chainSelectorPayloadFlow: Flow<ChainId?>
+
+    fun openSelectImportModeForResult(): Flow<ImportMode>
+
+    fun openCreateWalletDialog(isFromGoogleBackup: Boolean)
+
+    fun openImportRemoteWalletDialog()
 }

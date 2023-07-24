@@ -5,6 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.utils.Event
@@ -16,7 +17,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @HiltViewModel
 class OptionsWalletViewModel @Inject constructor(
@@ -40,8 +40,9 @@ class OptionsWalletViewModel @Inject constructor(
         OptionsWalletScreenViewState(true)
     )
 
-    override fun onExportWalletClick() {
-        router.openExportWallet(savedStateHandle[KEY_WALLET_ID]!!)
+    override fun onChangeWalletNameClick() {
+        router.back()
+        router.openRenameWallet(savedStateHandle[KEY_WALLET_ID]!!)
     }
 
     override fun onWalletDetailsClick() {
@@ -50,6 +51,10 @@ class OptionsWalletViewModel @Inject constructor(
 
     override fun onDeleteWalletClick() {
         _deleteWalletConfirmation.value = Event(savedStateHandle[KEY_WALLET_ID]!!)
+    }
+
+    override fun onCloseClick() {
+        router.back()
     }
 
     fun deleteWalletConfirmed() {

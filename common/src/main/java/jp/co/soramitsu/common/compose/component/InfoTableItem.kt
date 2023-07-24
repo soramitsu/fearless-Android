@@ -1,4 +1,4 @@
-package jp.co.soramitsu.common.compose.component
+    package jp.co.soramitsu.common.compose.component
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row

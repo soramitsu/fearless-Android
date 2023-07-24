@@ -71,7 +71,7 @@
         app:exitAnim="?android:attr/fragmentCloseExitAnimation"
         app:popEnterAnim="?android:attr/fragmentOpenEnterAnimation"
         app:popExitAnim="?android:attr/fragmentOpenExitAnimation"
-        app:popUpTo="@+id/accountDetailsFragment" />
+        app:popUpTo="@+id/accountDetailsDialog" />
 
     <action
         android:id="@+id/action_export_mnemonic"
@@ -292,7 +292,7 @@
 
     <fragment
         android:id="@+id/accountDetailsFragment"
-        android:name="jp.co.soramitsu.account.impl.presentation.account.details.AccountDetailsFragment"
+        android:name="jp.co.soramitsu.account.impl.presentation.account.details.AccountDetailsFragmentOld"
         android:label="AccountDetailsFragment"
         tools:layout="@layout/fragment_account_details" />
 
@@ -428,6 +428,26 @@
         android:name="jp.co.soramitsu.soracard.impl.presentation.buycrypto.BuyCryptoFragment"
         android:label="buyCryptoFragment" />
 
+    <fragment
+        android:id="@+id/importAccountFragment"
+        android:name="jp.co.soramitsu.account.impl.presentation.importing.ImportAccountFragment"
+        android:label="fragment_import"
+        tools:layout="@layout/fragment_import_account">
+
+        <action
+            android:id="@+id/action_importAccountFragment_to_pincodeFragment"
+            app:destination="@id/pincodeFragment"
+            app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
+            app:exitAnim="?android:attr/fragmentOpenExitAnimation"
+            app:popUpTo="@id/welcomeFragment"
+            app:popUpToInclusive="true"
+            app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
+            app:popExitAnim="?android:attr/fragmentCloseExitAnimation">
+
+        </action>
+
+    </fragment>
+
     <dialog
         android:id="@+id/confirmSendFragment"
         android:name="jp.co.soramitsu.wallet.impl.presentation.send.confirm.ConfirmSendFragment"
@@ -482,6 +502,51 @@
         android:id="@+id/backupWalletDialog"
         android:name="jp.co.soramitsu.account.impl.presentation.backup_wallet.BackupWalletDialog"
         android:label="backupWalletDialog" />
+
+    <dialog
+        android:id="@+id/accountDetailsDialog"
+        android:name="jp.co.soramitsu.account.impl.presentation.account.details.AccountDetailsDialog"
+        android:label="accountDetailsDialog" />
+
+    <dialog
+        android:id="@+id/createBackupPasswordDialog"
+        android:name="jp.co.soramitsu.account.impl.presentation.create_backup_password.CreateBackupPasswordDialog"
+        android:label="createBackupPasswordDialog"/>
+
+    <dialog
+        android:id="@+id/selectImportModeDialog"
+        android:name="jp.co.soramitsu.onboarding.impl.welcome.select_import_mode.SelectImportModeDialog"
+        android:label="select_import_mode_dialog"/>
+
+    <dialog
+        android:id="@+id/createAccountDialog"
+        android:name="jp.co.soramitsu.account.impl.presentation.account.create.CreateAccountDialog"
+        android:label="dialog_create_account" />
+
+<!--    <dialog-->
+<!--        android:id="@+id/backupMnemonicFragment"-->
+<!--        android:name="jp.co.soramitsu.account.impl.presentation.account.create.CreateAccountDialog"-->
+<!--        android:label="dialog_create_account" />-->
+
+    <dialog
+        android:id="@+id/mnemonicAgreementsDialog"
+        android:name="jp.co.soramitsu.account.impl.presentation.mnemonic_agreements.MnemonicAgreementsDialog"
+        android:label="mnemonicAgreementsDialog"/>
+
+    <dialog
+        android:id="@+id/backupMnemonicDialog"
+        android:name="jp.co.soramitsu.account.impl.presentation.mnemonic.backup.BackupMnemonicDialog"
+        android:label="dialog_backup_mnemonic" />
+
+    <dialog
+        android:id="@+id/renameAccountDialog"
+        android:name="jp.co.soramitsu.account.impl.presentation.account.rename.RenameAccountDialog"
+        android:label="dialog_rename_account" />
+
+    <dialog
+        android:id="@+id/importRemoteWalletDialog"
+        android:name="jp.co.soramitsu.account.impl.presentation.importing.remote_backup.ImportRemoteWalletDialog"
+        android:label="importRemoteWalletDialog" />
 
     <dialog
         android:id="@+id/managePoolStakeFragment"
