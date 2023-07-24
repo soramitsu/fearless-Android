@@ -17,7 +17,7 @@ interface OnboardingRouter {
 
     fun openImportAccountSkipWelcome(payload: ChainAccountCreatePayload)
 
-    fun openCreateWalletDialog()
+    fun openCreateWalletDialog(isFromGoogleBackup: Boolean)
 
     fun openImportRemoteWalletDialog()
 

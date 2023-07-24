@@ -19,7 +19,7 @@ import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.utils.clickableWithNoIndication
 
 @Composable
-fun ExapandableText(
+fun ExpandableText(
     title: String,
     modifier: Modifier = Modifier,
     initialState: Boolean = false,

@@ -4,6 +4,7 @@ import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -11,13 +12,13 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.compose.component.AccentButton
 import jp.co.soramitsu.common.compose.component.B0
 import jp.co.soramitsu.common.compose.component.B2
 import jp.co.soramitsu.common.compose.component.BottomSheetScreen
-import jp.co.soramitsu.common.compose.component.ButtonViewState
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.component.TextInput
 import jp.co.soramitsu.common.compose.component.TextInputViewState
@@ -25,6 +26,7 @@ import jp.co.soramitsu.common.compose.component.TextSelectableItem
 import jp.co.soramitsu.common.compose.component.TextSelectableItemState
 import jp.co.soramitsu.common.compose.component.Toolbar
 import jp.co.soramitsu.common.compose.component.ToolbarViewState
+import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
 import jp.co.soramitsu.common.compose.theme.colorAccent
 import jp.co.soramitsu.common.compose.theme.gray2
 import jp.co.soramitsu.common.compose.theme.white24
@@ -39,7 +41,7 @@ data class CreateBackupPasswordViewState(
     val isSetButtonEnabled: Boolean
 )
 
-sealed interface CreateBackupPasswordCallback {
+interface CreateBackupPasswordCallback {
 
     fun onOriginPasswordChange(password: String)
 
@@ -96,6 +98,7 @@ internal fun CreateBackupPasswordContent(
                         white24
                     }
                 )
+                MarginVertical(margin = 8.dp)
                 B2(
                     text = state.passwordMatchingTextResource
                         ?.let { stringResource(it) }.orEmpty(),
@@ -115,15 +118,49 @@ internal fun CreateBackupPasswordContent(
             Spacer(modifier = Modifier.weight(1f))
             AccentButton(
                 modifier = Modifier
+                    .height(48.dp)
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp),
-                state = ButtonViewState(
-                    text = stringResource(R.string.create_backup_password_btn_set),
-                    enabled = state.isSetButtonEnabled
-                ),
+                text = stringResource(R.string.create_backup_password_btn_set),
+                enabled = state.isSetButtonEnabled,
                 onClick = callback::onApplyPasswordClick
             )
             MarginVertical(12.dp)
         }
+    }
+}
+
+@Preview
+@Composable
+fun PreviewCreateBackupPasswordContent() {
+    FearlessAppTheme {
+        CreateBackupPasswordContent(
+            state = CreateBackupPasswordViewState(
+                originPasswordViewState = TextInputViewState(
+                    text = "origin password",
+                    hint = "origin hint"
+                ),
+                confirmPasswordViewState = TextInputViewState(
+                    text = "confirm password",
+                    hint = "confirm hint"
+                ),
+                isUserAgreedWithStatements = false,
+                agreementsState = TextSelectableItemState(
+                    isSelected = true,
+                    R.string.create_backup_password_agreements
+                ),
+                passwordMatchingTextResource = null,
+                highlightConfirmPassword = true,
+                isSetButtonEnabled = true
+            ),
+            callback = object : CreateBackupPasswordCallback {
+                override fun onOriginPasswordChange(password: String) {}
+                override fun onConfirmPasswordChange(password: String) {}
+                override fun onIsUserAgreedWithStatementsChange(isChecked: Boolean) {}
+                override fun onBackClick() {}
+                override fun onApplyPasswordClick() {}
+                override fun onAgreementsClick() {}
+            }
+        )
     }
 }

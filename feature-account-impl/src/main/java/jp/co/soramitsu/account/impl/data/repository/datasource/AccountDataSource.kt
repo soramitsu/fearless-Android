@@ -52,6 +52,7 @@ interface AccountDataSource : SecretStoreV1 {
     suspend fun getMetaAccount(metaId: Long): MetaAccount
 
     suspend fun updateMetaAccountName(metaId: Long, newName: String)
+    suspend fun updateMetaAccountBackedUp(metaId: Long)
     suspend fun deleteMetaAccount(metaId: Long)
 
     fun observeAllMetaAccounts(): Flow<List<MetaAccount>>

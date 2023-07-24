@@ -195,7 +195,7 @@ fun TransactionSettingsContent(
         )
         MarginVertical(margin = 8.dp)
         AccentButton(
-            text = stringResource(R.string.polkaswap_btn_save),
+            text = stringResource(R.string.common_save),
             modifier = Modifier
                 .padding(horizontal = 16.dp)
                 .padding(bottom = 8.dp)

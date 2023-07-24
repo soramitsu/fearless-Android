@@ -42,6 +42,8 @@ interface AccountRepository {
 
     suspend fun updateMetaAccountName(metaId: Long, newName: String)
 
+    suspend fun updateMetaAccountBackedUp(metaId: Long)
+
     suspend fun getPreferredCryptoType(): CryptoType
 
     suspend fun isAccountSelected(): Boolean
@@ -51,7 +53,8 @@ interface AccountRepository {
         mnemonic: String,
         encryptionType: CryptoType,
         substrateDerivationPath: String,
-        ethereumDerivationPath: String
+        ethereumDerivationPath: String,
+        isBackedUp: Boolean
     )
 
     suspend fun importChainAccountFromMnemonic(
@@ -90,7 +93,9 @@ interface AccountRepository {
         substrateDerivationPath: String,
         ethereumDerivationPath: String,
         selectedEncryptionType: CryptoType,
-        withEth: Boolean
+        withEth: Boolean,
+        isBackedUp: Boolean,
+        googleBackupAddress: String?
     )
 
     suspend fun importFromSeed(
@@ -98,7 +103,8 @@ interface AccountRepository {
         username: String,
         derivationPath: String,
         selectedEncryptionType: CryptoType,
-        ethSeed: String?
+        ethSeed: String?,
+        googleBackupAddress: String?
     )
 
     suspend fun importChainFromSeed(
@@ -114,7 +120,8 @@ interface AccountRepository {
         json: String,
         password: String,
         name: String,
-        ethJson: String?
+        ethJson: String?,
+        googleBackupAddress: String?
     )
 
     suspend fun importChainFromJson(
@@ -162,7 +169,9 @@ interface AccountRepository {
     suspend fun isInCurrentNetwork(address: String, chainId: ChainId): Boolean
 
     fun polkadotAddressForSelectedAccountFlow(): Flow<String>
-
+    fun googleAddressAllWalletsFlow(): Flow<List<String>>
+    suspend fun googleBackupAddressForWallet(walletId: Long): String
+    suspend fun isGoogleBackupSupported(walletId: Long): Boolean
     suspend fun getChain(chainId: ChainId): Chain
 
     fun allMetaAccountsFlow(): Flow<List<MetaAccount>>

@@ -78,9 +78,11 @@
     <string name="backup_mnemonic_title">Write down your mnemonic</string>
     <string name="backup_wallet_backup_to_google">Backup to Google</string>
     <string name="backup_wallet_delete_google_backup">Delete Google backup</string>
+    <string name="backup_wallet_delete_alert_message">If you delete your Google backup, you’ll only be able to recover your wallet with a manual backup of your passphrase</string>
     <string name="backup_wallet_export_json">Export JSON</string>
     <string name="backup_wallet_show_mnemonic_phrase">Show mnemonic phrase</string>
     <string name="backup_wallet_show_raw_seed">Show Raw Seed</string>
+    <string name="banners_backup_description">If you loose your device, you\nwill lose your funds forever</string>
     <string name="backup_wallet_warning_about_lose_phrase">If you loose access to this device, your funds will be lost, unless you back up!</string>
     <string name="beacon_connect_warning">Warning: By clicking connect, you allow this dapp to view your public address. This is an important security step to protect your data from potential phishing risks.</string>
     <string name="beacon_connected">Connected to %s</string>
@@ -140,6 +142,11 @@
     <string name="common_apply">Apply</string>
     <string name="common_available_format">Available: %s</string>
     <string name="common_backup_wallet">Backup wallet</string>
+    <string name="common_backup_your_wallet">Backup your wallet</string>
+    <string name="banners_buy_xor_title">Buy XOR token</string>
+    <string name="banners_buy_xor">Buy XOR</string>
+    <string name="banners_buy_xor_description">Buy or sell XOR token with\nEuro cash</string>
+    <string name="backup_now">Backup now</string>
     <string name="common_balance">Balance</string>
     <string name="common_balance_format">Balance: %s</string>
     <string name="common_block">Block</string>
@@ -193,7 +200,8 @@
     <string name="common_event">Event</string>
     <string name="common_existential_warning_message">This transaction will result in the account going below the Existential Deposit, which will cause it to be reaped (the account will be wiped from the blockchain\'s state to conserve space). If you choose to continue you will lose any funds that are below the existential deposit amount set by the network. For detailed information please refer to the official network documentation (e.g., the Polkadot Wiki). Fearless Wallet is a fully non-custodial application and has no control or knowledge of any of your actions on the network itself. ONLY CONTINUE IF YOU FULLY AGREE TO AND UNDERSTAND THE IMPLICATIONS.</string>
     <string name="common_existential_warning_title">This operation will remove the account</string>
-    <string name="common_export_wallet">Export Wallet</string>
+    <string name="wallet_name">Wallet name</string>
+    <string name="change_wallet_name">Change wallet name</string>
     <string name="common_filter_sort_header">Sort by:</string>
     <string name="common_friend_bonus">Bonus for your friend</string>
     <string name="common_got_it">Got it</string>
@@ -238,6 +246,7 @@
     <string name="common_search">Search</string>
     <string name="common_search_assets_alert_description">No networks or asset were found :(</string>
     <string name="common_search_assets_alert_title">Sumimasen!</string>
+    <string name="import_wallets_not_found">No import wallets were found :(</string>
     <string name="common_search_no_results">No search results.\nMake sure you type the full account address</string>
     <string name="common_search_results_number">Search results: %d</string>
     <string name="common_search_start_title">Search results will appear here</string>
@@ -257,7 +266,7 @@
     <string name="common_title_frozen_token">Locked %s</string>
     <string name="common_title_select_wallet">Select your wallet</string>
     <string name="common_title_wallet">Wallet</string>
-    <string name="common_title_wallet_option">Wallet option</string>
+    <string name="common_title_wallet_option">Wallet options</string>
     <string name="common_total">Total</string>
     <string name="common_transaction">Transaction</string>
     <string name="common_transaction_raw_data">Transaction raw data</string>
@@ -277,7 +286,7 @@
     <string name="connection_add_already_exists_error">The node has been added previously. Please try another node.</string>
     <string name="connection_add_invalid_error">Can\'t establish connection with the node. Please try another one.</string>
     <string name="connection_add_unsupported_error">Unfortunately, the network is unsupported. Please try one of the following: %s.</string>
-    <string name="connection_delete_confirm">Delete</string>
+    <string name="common_delete">Delete</string>
     <string name="connection_error_message">Please check your internet connection and try again later.</string>
     <string name="connection_management_custom_title">Custom nodes</string>
     <string name="connection_management_default_title">Default nodes</string>
@@ -290,6 +299,7 @@
     <string name="contribution_type_lcdot">lcDOT</string>
     <string name="copy_referral_code">Copy referral code</string>
     <string name="create_account_description">Make a name for your new wallet, so you can easily identify it. This is optional and will be visible only for you</string>
+    <string name="rename_account_description">Example: Savings, Investments, Crowdloans, Staking. This nickname will only be displayed to you and stored locally on your mobile device.</string>
     <string name="create_account_edit_text_visibility">Visible only for you and stored locally</string>
     <string name="create_account_title">Name your new wallet</string>
     <string name="create_backup_password_agreements">I understand that if I forget my password there is no way to retrieve it</string>
@@ -341,7 +351,7 @@
     <string name="crownloans_raised_format" formatted="false">Raised: %s of %s</string>
     <string name="currencies_stub_text">Currencies</string>
     <string name="custom_collators_title">Stake with known collators</string>
-    <string name="default_account_shared_secret">Default accounts with a shared secret</string>
+    <string name="default_account_shared_secret">Accounts with a shared secret</string>
     <string name="delete_custom_node_title">Delete custom node?</string>
     <string name="donation_alert_title">This address has been flagged as suspicious.</string>
     <string name="donation_warning_message_format">This address has been flagged as suspicious. We strongly recommend that you don\'t send %s to this account.</string>
@@ -398,8 +408,9 @@
     <string name="import_remote_wallet_hint_enter_password">Enter password</string>
     <string name="import_remote_wallet_subtitle_password">Enter backup password for the selected wallet to import</string>
     <string name="import_remote_wallet_title_imported">Wallet imported</string>
+    <string name="import_remote_wallet_success_imported">You have successfully imported wallet</string>
     <string name="import_remote_wallet_title_password">Enter backup password</string>
-    <string name="import_remote_wallet_title_wallets">Select account to import</string>
+    <string name="import_remote_wallet_title_wallets">Select wallet to import</string>
     <string name="import_seed_invalid_message">Please make sure that your input contains 64 hex symbols.</string>
     <string name="import_seed_invalid_title">The seed is invalid</string>
     <string name="import_substrate_recovery">Restore JSON for Substrate accounts</string>
@@ -453,12 +464,14 @@
     <string name="notification">Notification</string>
     <string name="onboarding_create_account">Create an account</string>
     <string name="onboarding_create_wallet">Create a wallet</string>
+    <string name="onboarding_continue_with_google">Continue with Google</string>
     <string name="onboarding_ethereum_derivation_path_hint">Example: //44//60//0/0/0</string>
     <string name="onboarding_privacy_policy">Privacy Policy</string>
     <string name="onboarding_restore_account">Import account</string>
     <string name="onboarding_restore_wallet">I already have a wallet</string>
     <string name="onboarding_substrate_derivation_path_hint">Example: //hard/soft///password</string>
     <string name="onboarding_terms_and_conditions_1">I have read and agree to the\nTerms and Conditions and Privacy Policy</string>
+    <string name="onboarding_terms_and_conditions">By continuing you are agreeing with the\nTerms and Conditions and Privacy Policy</string>
     <string name="onboarding_terms_and_conditions_2">Terms and Conditions</string>
     <string name="parachain_crowdloans">Parachain Crowdloans</string>
     <string name="parachain_staking_request_finished">Finished</string>
@@ -491,7 +504,7 @@
         <item quantity="other">+ %d others</item>
     </plurals>
     <string name="polkaswap_btn_reset_to_default">Reset to default</string>
-    <string name="polkaswap_btn_save">Save</string>
+    <string name="common_save">Save</string>
     <string name="polkaswap_confirmation_swap_stub">Swap</string>
     <string name="polkaswap_confirmation_swapped_stub">Swapped</string>
     <string name="polkaswap_disclaimer_message">Please read before continuing to use Polkaswap</string>
@@ -966,7 +979,6 @@
     <string name="username_setup_choose_title">Name</string>
     <string name="username_setup_choose_title_2_0">Wallet nickname</string>
     <string name="username_setup_hint">This name will be displayed only to you and stored locally on your mobile device.</string>
-    <string name="username_setup_hint_2_0">Example: Savings, Investments, Crowdloans, Staking. This nickname will only be displayed to you and stored locally on your mobile device.</string>
     <string name="username_setup_title_2_0">Create a new wallet</string>
     <string name="validator_not_elected_description">This account has not been elected by the network to participate in the current era</string>
     <string name="validators_list_empty_message">No validators found. Please try to change filters</string>

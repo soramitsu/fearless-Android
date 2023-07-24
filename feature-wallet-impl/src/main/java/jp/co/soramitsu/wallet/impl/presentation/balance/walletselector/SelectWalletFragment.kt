@@ -1,6 +1,10 @@
 package jp.co.soramitsu.wallet.impl.presentation.balance.walletselector
 
+import android.app.Activity
+import android.os.Bundle
+import android.view.View
 import android.widget.FrameLayout
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -13,6 +17,16 @@ import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
 @AndroidEntryPoint
 class SelectWalletFragment : BaseComposeBottomSheetDialogFragment<SelectWalletViewModel>() {
     override val viewModel: SelectWalletViewModel by viewModels()
+
+    private val launcher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        val googleSignInStatus = result.data?.extras?.get("googleSignInStatus")
+        println("!!! SelectWalletFragment GoogleLogin result: $googleSignInStatus ")
+        if (result.resultCode != Activity.RESULT_OK) {
+            viewModel.onGoogleLoginError(googleSignInStatus.toString())
+        }
+    }
 
     @Composable
     override fun Content(padding: PaddingValues) {
@@ -30,5 +44,13 @@ class SelectWalletFragment : BaseComposeBottomSheetDialogFragment<SelectWalletVi
     override fun setupBehavior(behavior: BottomSheetBehavior<FrameLayout>) {
         behavior.state = BottomSheetBehavior.STATE_EXPANDED
         behavior.isHideable = true
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        viewModel.googleAuthorizeLiveData.observeEvent {
+            viewModel.authorizeGoogle(launcher = launcher)
+        }
     }
 }

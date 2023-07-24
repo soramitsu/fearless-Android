@@ -6,6 +6,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountAlreadyExistsException
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.model.ImportMode.Google
@@ -38,7 +39,6 @@ import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomShe
 import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.feature_account_impl.R
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @HiltViewModel
 class ImportAccountViewModel @Inject constructor(
@@ -280,20 +280,23 @@ class ImportAccountViewModel @Inject constructor(
                 substrateDerivationPath,
                 ethereumDerivationPath,
                 cryptoType,
-                withEth
+                withEth,
+                googleBackupAddress = null
             )
             is RawSeedImportSource -> interactor.importFromSeed(
                 substrateSeed!!,
                 name,
                 substrateDerivationPath,
                 cryptoType,
-                ethSeed
+                ethSeed,
+                googleBackupAddress = null
             )
             is JsonImportSource -> interactor.importFromJson(
                 substrateJson!!,
                 sourceType.passwordLiveData.value!!,
                 name,
-                ethJson
+                ethJson,
+                googleBackupAddress = null
             )
         }
     }

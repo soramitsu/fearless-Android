@@ -75,7 +75,8 @@ class BackupMnemonicViewModel @Inject constructor(
             selectedEncryptionType = selectedEncryptionType.name,
             accountType = accountType,
             substrateDerivationPath = substrateDerivationPath,
-            ethereumDerivationPath = ethereumDerivationPath
+            ethereumDerivationPath = ethereumDerivationPath,
+            isFromGoogleBackup = isFromGoogleBackup
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, BackupMnemonicState.Empty)
 
@@ -109,11 +110,21 @@ class BackupMnemonicViewModel @Inject constructor(
             val ethereumDerivationPath = ethereumDerivationPath.value
 
             if (isFromGoogleBackup) {
-                backupPhraseInGoogle(substrateDerivationPath, ethereumDerivationPath, launcher)
+                backupPhraseInGoogle(substrateDerivationPath, ethereumDerivationPath, launcher, true)
                 return@launch
             }
 
             openConfirmMnemonicOnCreate(substrateDerivationPath, ethereumDerivationPath)
+        }
+    }
+
+    override fun onBackupWithGoogleClick(
+        launcher: ActivityResultLauncher<Intent>
+    ) {
+        viewModelScope.launch {
+            val substrateDerivationPath = substrateDerivationPath.value
+            val ethereumDerivationPath = ethereumDerivationPath.value
+            backupPhraseInGoogle(substrateDerivationPath, ethereumDerivationPath, launcher, true)
         }
     }
 
@@ -176,6 +187,7 @@ class BackupMnemonicViewModel @Inject constructor(
         }
         val payload = ConfirmMnemonicPayload(
             mnemonic,
+            metaId = payload.chainAccountData?.metaId,
             createExtras
         )
 
@@ -195,7 +207,8 @@ class BackupMnemonicViewModel @Inject constructor(
     private suspend fun backupPhraseInGoogle(
         substrateDerivationPath: String,
         ethereumDerivationPath: String,
-        launcher: ActivityResultLauncher<Intent>
+        launcher: ActivityResultLauncher<Intent>,
+        createAccount: Boolean = false
     ) {
         val isSubstrateDerivationPathValid = substrateDerivationPath.matches(substrateDerivationPathRegex)
         if (isSubstrateDerivationPathValid.not()) {
@@ -208,7 +221,8 @@ class BackupMnemonicViewModel @Inject constructor(
         if (isAuthorized) {
             openCreateBackupPasswordDialog(
                 substrateDerivationPath,
-                ethereumDerivationPath
+                ethereumDerivationPath,
+                createAccount
             )
         }
     }
@@ -219,20 +233,23 @@ class BackupMnemonicViewModel @Inject constructor(
     ) {
         openCreateBackupPasswordDialog(
             substrateDerivationPath,
-            ethereumDerivationPath
+            ethereumDerivationPath,
+            createAccount = isFromGoogleBackup
         )
     }
 
     override fun onGoogleSignInSuccess() {
         openCreateBackupPasswordDialog(
             substrateDerivationPath.value,
-            ethereumDerivationPath.value
+            ethereumDerivationPath.value,
+            createAccount = isFromGoogleBackup
         )
     }
 
     private fun openCreateBackupPasswordDialog(
         substrateDerivationPath: String,
-        ethereumDerivationPath: String
+        ethereumDerivationPath: String,
+        createAccount: Boolean
     ) {
         val cryptoTypeModel = selectedEncryptionTypeLiveData.value ?: return
         val mnemonicWords = mnemonic.value
@@ -246,13 +263,18 @@ class BackupMnemonicViewModel @Inject constructor(
                 accountName = payload.accountName,
                 cryptoType = cryptoTypeModel.cryptoType,
                 substrateDerivationPath = substrateDerivationPath,
-                ethereumDerivationPath = ethereumDerivationPath
+                ethereumDerivationPath = ethereumDerivationPath,
+                createAccount = createAccount,
+                //todo update
+//                substrateSeed = null,
+//                ethSeed = null,
             )
         )
     }
 
-    override fun onGoogleLoginError() {
-        // TODO: Implement onGoogleLoginError
+    override fun onGoogleLoginError(message: String) {
+        println("!!! BackupMnemonicViewModel onGoogleLoginError")
+        showError("GoogleLoginError\n$message")
     }
 
     private suspend fun generateMnemonic(): List<MnemonicWordModel> {

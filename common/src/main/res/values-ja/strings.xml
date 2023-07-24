@@ -147,7 +147,6 @@
   <string name="common_event">イベント</string>
   <string name="common_existential_warning_message">この取引により、アカウント存続預金を下回るため、「刈り取られる」ことになります(スペースを節約するためにブロックチェーンの状態からアカウントは消去されます)。継続を選択した場合、ネットワークによって設定された存続預金額を下回る資金を失うことになります。詳細な情報については、ネットワークの公式ドキュメント(例：Polkadot Wiki)を参照してください。フィアレス・ウォレットは完全な非管理的なアプリであり、ネットワークでのあなたの行動については一切判らないし制御もできません。あなたが、その意味を理解して完全に同意した場合のみ、続行してください</string>
   <string name="common_existential_warning_title">操作によりアカウントが削除されます</string>
-  <string name="common_export_wallet">ウォレットをエクスポート</string>
   <string name="common_filter_sort_header">並び替え：</string>
   <string name="common_friend_bonus">ご友人へのボーナス</string>
   <string name="common_history">履歴</string>
@@ -207,7 +206,7 @@
   <string name="connection_add_already_exists_error">ノードは既に追加されています。別のノードを試してください</string>
   <string name="connection_add_invalid_error">ノードとの接続を確立できません。別のものを試してください</string>
   <string name="connection_add_unsupported_error">残念ながら、ネットワークはサポートされていません。次のいずれかを試してください： %s</string>
-  <string name="connection_delete_confirm">削除</string>
+  <string name="common_delete">削除</string>
   <string name="connection_error_message">インターネット接続を確認して、後でもう一度お試しください</string>
   <string name="connection_management_custom_title">カスタム</string>
   <string name="connection_management_default_title">デフォルト</string>
@@ -748,7 +747,7 @@
   <string name="username_setup_choose_title">名前</string>
   <string name="username_setup_choose_title_2_0">ウォレットのニックネーム</string>
   <string name="username_setup_hint">この名前はあなたにのみ表示され、あなたのスマホの中に保存されます。</string>
-  <string name="username_setup_hint_2_0">例：貯蓄、投資、クラウドローン、ステーキング。このニックネームはあなたにのみ表示され、あなたのスマホの中に保存されます</string>
+  <string name="rename_account_description">例：貯蓄、投資、クラウドローン、ステーキング。このニックネームはあなたにのみ表示され、あなたのスマホの中に保存されます</string>
   <string name="username_setup_title_2_0">新しいウォレットを作成</string>
   <string name="validator_not_elected_description">このアカウントは、現在の時代に参加するためにネットワークによって選出されていません</string>
   <string name="view_in">%sで表示</string>

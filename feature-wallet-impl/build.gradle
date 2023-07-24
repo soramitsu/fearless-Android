@@ -130,4 +130,5 @@ dependencies {
     implementation navigationUiDep
 
     implementation sharedFeaturesXcmDep
+    implementation sharedFeaturesBackupDep
 }

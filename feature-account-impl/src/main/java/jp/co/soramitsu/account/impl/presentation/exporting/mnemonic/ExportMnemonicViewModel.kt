@@ -109,7 +109,7 @@ class ExportMnemonicViewModel @Inject constructor(
     fun openConfirmMnemonic() {
         val mnemonicSource = mnemonicSourceLiveData.value ?: return
 
-        router.openConfirmMnemonicOnExport(mnemonicSource.wordList)
+        router.openConfirmMnemonicOnExport(mnemonicSource.wordList, metaId)
     }
 
     override fun securityWarningCancel() {

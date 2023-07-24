@@ -1,6 +1,5 @@
 package jp.co.soramitsu.account.impl.presentation.importing.remote_backup
 
-import android.app.Activity
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -14,6 +13,8 @@ import jp.co.soramitsu.backup.domain.models.BackupAccountMeta
 import jp.co.soramitsu.backup.domain.models.DecryptedBackupAccount
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.TextInputViewState
+import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.feature_account_impl.R
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -26,7 +27,8 @@ import kotlinx.coroutines.launch
 class ImportRemoteWalletViewModel @Inject constructor(
     private val accountRouter: AccountRouter,
     private val backupService: BackupService,
-    private val interactor: AccountInteractor
+    private val interactor: AccountInteractor,
+    private val resourceManager: ResourceManager
 ) : BaseViewModel(), ImportRemoteWalletCallback {
 
     private val steps = listOf(
@@ -61,8 +63,14 @@ class ImportRemoteWalletViewModel @Inject constructor(
             passwordInputViewState = passwordInputViewState
         )
     }
-    private val remoteWalletListState = remoteWallets.map { wallets ->
-        RemoteWalletListState(wallets = wallets)
+    private val remoteWalletListState = combine(
+        remoteWallets,
+        interactor.getMetaAccountsGoogleAddresses()
+    ) { wallets, localWalletAddresses ->
+        val remoteWalletListState1 = RemoteWalletListState(wallets = wallets.filter { it.address !in localWalletAddresses })
+        println("!!! wallets: ${wallets.size}")
+        println("!!! localWalletAddresses: ${localWalletAddresses.size}")
+        remoteWalletListState1
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, initialValue = RemoteWalletListState())
 
@@ -78,7 +86,7 @@ class ImportRemoteWalletViewModel @Inject constructor(
             ImportRemoteWalletStep.WalletImported -> walletImportedState
         }
     }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, initialValue = remoteWalletListState.value)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, initialValue = remoteWalletListState.value) as StateFlow<ImportRemoteWalletState>
 
     override fun onWalletSelected(backupAccount: BackupAccountMeta) {
         selectedWallet.value = backupAccount
@@ -99,7 +107,7 @@ class ImportRemoteWalletViewModel @Inject constructor(
         }
     }
 
-    override fun loadRemoteWallets(activity: Activity) {
+    override fun loadRemoteWallets() {
         viewModelScope.launch {
             remoteWallets.value = backupService.getBackupAccounts()
         }
@@ -116,15 +124,38 @@ class ImportRemoteWalletViewModel @Inject constructor(
     }
 
     override fun onBackClick() {
-        if (hasPreviousStep()) {
-            previousStep()
-        } else {
-            accountRouter.back()
-        }
+        backClicked()
+        /*
+                if (hasPreviousStep()) {
+                    if (currentStep.value == ImportRemoteWalletStep.WalletImported) {
+                        openMainScreen()
+                    } else {
+                        previousStep()
+                    }
+                } else {
+                    accountRouter.back()
+                }
+        */
     }
 
     override fun onCreateNewWallet() {
-        accountRouter.openCreateWalletDialog()
+        accountRouter.openCreateWalletDialog(true)
+    }
+
+    fun backClicked() {
+        when (currentStep.value) {
+            ImportRemoteWalletStep.WalletList -> {
+                accountRouter.back()
+            }
+
+            ImportRemoteWalletStep.EnterBackupPassword -> {
+                previousStep()
+            }
+
+            ImportRemoteWalletStep.WalletImported -> {
+                openMainScreen()
+            }
+        }
     }
 
     override fun onContinueClick() {
@@ -132,9 +163,11 @@ class ImportRemoteWalletViewModel @Inject constructor(
             ImportRemoteWalletStep.WalletList -> {
                 /* ignore */
             }
+
             ImportRemoteWalletStep.EnterBackupPassword -> {
                 decryptWalletByPassword()
             }
+
             ImportRemoteWalletStep.WalletImported -> {
                 openMainScreen()
             }
@@ -152,9 +185,14 @@ class ImportRemoteWalletViewModel @Inject constructor(
                 nextStep()
             }
                 .onFailure {
-                    // TODO: Handle exception
+                    handleDecryptException(it)
                 }
         }
+    }
+
+    private fun handleDecryptException(throwable: Throwable) {
+        throwable.printStackTrace()
+        showError(resourceManager.getString(R.string.import_json_invalid_password))
     }
 
     private suspend fun importFromMnemonic(
@@ -166,12 +204,19 @@ class ImportRemoteWalletViewModel @Inject constructor(
             substrateDerivationPath = decryptedBackupAccount.substrateDerivationPath.orEmpty(), // TODO: Backup fix
             ethereumDerivationPath = decryptedBackupAccount.ethDerivationPath.orEmpty(), // TODO: Backup fix
             selectedEncryptionType = decryptedBackupAccount.cryptoType,
-            withEth = true
+            withEth = true,
+            googleBackupAddress = decryptedBackupAccount.address
         ).getOrThrow()
     }
 
     private fun openMainScreen() {
-        accountRouter.openCreateWalletDialog()
+        launch {
+            if (interactor.isCodeSet()) {
+                accountRouter.openMain()
+            } else {
+                accountRouter.openCreatePincode()
+            }
+        }
     }
 
     override fun onPasswordChanged(password: String) {
@@ -181,5 +226,6 @@ class ImportRemoteWalletViewModel @Inject constructor(
     }
 
     override fun onImportMore() {
+        accountRouter.openImportRemoteWalletDialog()
     }
 }

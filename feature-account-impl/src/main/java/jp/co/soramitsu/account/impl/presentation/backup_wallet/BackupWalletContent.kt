@@ -11,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.compose.component.B2
@@ -20,17 +21,20 @@ import jp.co.soramitsu.common.compose.component.Toolbar
 import jp.co.soramitsu.common.compose.component.ToolbarViewState
 import jp.co.soramitsu.common.compose.component.WalletItem
 import jp.co.soramitsu.common.compose.component.WalletItemViewState
+import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
 import jp.co.soramitsu.common.compose.theme.customColors
 
 data class BackupWalletState(
     val walletItem: WalletItemViewState?,
     val isWalletSavedInGoogle: Boolean,
+    val isGoogleBackupSupported: Boolean,
     val isDeleteWalletEnabled: Boolean
 ) {
     companion object {
         val Empty = BackupWalletState(
             walletItem = null,
             isWalletSavedInGoogle = false,
+            isGoogleBackupSupported = true,
             isDeleteWalletEnabled = false
         )
     }
@@ -98,21 +102,22 @@ internal fun BackupWalletContent(
                 onClick = callback::onExportJsonClick
             )
             SettingsDivider()
-            if (state.isWalletSavedInGoogle) {
-                SettingsItem(
-                    icon = painterResource(R.drawable.ic_google_24),
-                    text = stringResource(R.string.backup_wallet_delete_google_backup),
-                    onClick = callback::onDeleteGoogleBackupClick
-                )
-            } else {
-                SettingsItem(
-                    icon = painterResource(R.drawable.ic_google_24),
-                    text = stringResource(R.string.backup_wallet_backup_to_google),
-                    onClick = callback::onGoogleBackupClick
-                )
+            if (state.isGoogleBackupSupported) {
+                if (state.isWalletSavedInGoogle) {
+                    SettingsItem(
+                        icon = painterResource(R.drawable.ic_google_24),
+                        text = stringResource(R.string.backup_wallet_delete_google_backup),
+                        onClick = callback::onDeleteGoogleBackupClick
+                    )
+                } else {
+                    SettingsItem(
+                        icon = painterResource(R.drawable.ic_google_24),
+                        text = stringResource(R.string.backup_wallet_backup_to_google),
+                        onClick = callback::onGoogleBackupClick
+                    )
+                }
+                SettingsDivider()
             }
-            SettingsDivider()
-
             MarginVertical(16.dp)
             B2(
                 modifier = Modifier
@@ -144,4 +149,23 @@ private fun SettingsDivider(
         modifier = modifier.padding(horizontal = 16.dp),
         color = MaterialTheme.customColors.dividerGray
     )
+}
+
+@Preview
+@Composable
+private fun PreviewBackupWalletContent() {
+    FearlessAppTheme {
+        BackupWalletContent(
+            state = BackupWalletState.Empty,
+            callback = object : BackupWalletCallback {
+                override fun onBackClick() {}
+                override fun onShowMnemonicPhraseClick() {}
+                override fun onShowRawSeedClick() {}
+                override fun onExportJsonClick() {}
+                override fun onDeleteGoogleBackupClick() {}
+                override fun onGoogleBackupClick() {}
+                override fun onDeleteWalletClick() {}
+            }
+        )
+    }
 }

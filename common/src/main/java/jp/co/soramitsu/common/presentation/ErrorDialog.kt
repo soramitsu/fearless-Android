@@ -7,10 +7,12 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
+import android.widget.LinearLayout
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -35,6 +37,7 @@ import jp.co.soramitsu.common.compose.component.BottomSheetScreen
 import jp.co.soramitsu.common.compose.component.GradientIcon
 import jp.co.soramitsu.common.compose.component.GrayButton
 import jp.co.soramitsu.common.compose.component.H3
+import jp.co.soramitsu.common.compose.component.MarginHorizontal
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.component.emptyClick
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
@@ -53,6 +56,7 @@ class ErrorDialog(
     private val textSize: Int = 13,
     @DrawableRes private val iconRes: Int = R.drawable.ic_status_warning_16,
     private val isHideable: Boolean = true,
+    private val buttonsOrientation: Int = LinearLayout.VERTICAL,
     private val onBackClick: () -> Unit = emptyClick,
     private val positiveClick: () -> Unit = emptyClick,
     private val negativeClick: () -> Unit = emptyClick
@@ -129,31 +133,59 @@ class ErrorDialog(
                                 color = black2
                             )
                             MarginVertical(margin = 24.dp)
-                            positiveButtonText?.let {
-                                AccentButton(
-                                    text = it,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(52.dp)
-                                ) {
-                                    positiveClick()
-                                    dismiss()
+                            if (buttonsOrientation == LinearLayout.VERTICAL) {
+                                positiveButtonText?.let {
+                                    AccentButton(
+                                        text = it,
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(52.dp)
+                                    ) {
+                                        positiveClick()
+                                        dismiss()
+                                    }
+                                    MarginVertical(margin = 12.dp)
                                 }
-                            }
-                            negativeButtonText?.let {
+                                negativeButtonText?.let {
+                                    GrayButton(
+                                        text = it,
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(52.dp)
+                                    ) {
+                                        negativeClick()
+                                        dismiss()
+                                    }
+                                    MarginVertical(margin = 12.dp)
+                                }
+                            } else {
+                                Row {
+                                    negativeButtonText?.let {
+                                        GrayButton(
+                                            text = it,
+                                            modifier = Modifier
+                                                .weight(1f)
+                                                .height(52.dp)
+                                        ) {
+                                            negativeClick()
+                                            dismiss()
+                                        }
+                                    }
+                                    MarginHorizontal(margin = 12.dp)
+                                    positiveButtonText?.let {
+                                        AccentButton(
+                                            text = it,
+                                            modifier = Modifier
+                                                .weight(1f)
+                                                .height(52.dp)
+                                        ) {
+                                            positiveClick()
+                                            dismiss()
+                                        }
+                                    }
+                                }
                                 MarginVertical(margin = 12.dp)
-                                GrayButton(
-                                    text = it,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(52.dp)
-                                ) {
-                                    negativeClick()
-                                    dismiss()
-                                }
                             }
-
-                            MarginVertical(margin = 12.dp)
                         }
                     }
                 }

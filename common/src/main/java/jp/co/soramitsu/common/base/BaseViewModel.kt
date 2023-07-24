@@ -1,5 +1,6 @@
 package jp.co.soramitsu.common.base
 
+import android.widget.LinearLayout
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -13,11 +14,11 @@ import jp.co.soramitsu.common.utils.asLiveData
 import jp.co.soramitsu.common.validation.ProgressConsumer
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.common.validation.ValidationSystem
+import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.shareIn
-import kotlin.coroutines.CoroutineContext
 
 typealias TitleAndMessage = Pair<String, String>
 
@@ -52,6 +53,7 @@ open class BaseViewModel : ViewModel(), CoroutineScope {
         message: String,
         positiveButtonText: String? = null,
         negativeButtonText: String? = null,
+        buttonsOrientation: Int = LinearLayout.VERTICAL,
         positiveClick: () -> Unit = emptyClick
     ) {
         _errorDialogStateLiveData.value = Event(
@@ -60,6 +62,7 @@ open class BaseViewModel : ViewModel(), CoroutineScope {
                 message = message,
                 positiveButtonText = positiveButtonText,
                 negativeButtonText = negativeButtonText,
+                buttonsOrientation = buttonsOrientation,
                 positiveClick = positiveClick
             )
         )

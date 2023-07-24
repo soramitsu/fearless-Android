@@ -25,7 +25,7 @@ import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.compose.theme.black05
 import jp.co.soramitsu.common.compose.theme.borderGradientColors
 import jp.co.soramitsu.common.compose.theme.gray2
-import jp.co.soramitsu.common.compose.theme.white24
+import jp.co.soramitsu.common.compose.theme.white08
 import jp.co.soramitsu.common.utils.clickableWithNoIndication
 
 data class WalletItemViewState(
@@ -49,7 +49,7 @@ fun WalletItem(
     val borderColor = if (state.isSelected) {
         borderGradientColors
     } else {
-        listOf(white24)
+        listOf(white08)
     }
 
     BackgroundCorneredWithGradientBorder(
@@ -57,7 +57,7 @@ fun WalletItem(
             .fillMaxWidth()
             .clickableWithNoIndication { onSelected(state) },
         borderColors = borderColor,
-        backgroundColor = black05
+        backgroundColor = black05 // white08.compositeOver(darkButtonBackground)
     ) {
         Row(
             modifier = Modifier

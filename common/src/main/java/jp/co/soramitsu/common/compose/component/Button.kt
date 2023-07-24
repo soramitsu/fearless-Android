@@ -2,9 +2,15 @@ package jp.co.soramitsu.common.compose.component
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -14,6 +20,7 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.material.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
@@ -24,15 +31,17 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.R
-import jp.co.soramitsu.common.compose.theme.FearlessTheme
+import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
 import jp.co.soramitsu.common.compose.theme.accentButtonColors
+import jp.co.soramitsu.common.compose.theme.accentDarkButtonColors
 import jp.co.soramitsu.common.compose.theme.accentDarkDisabledButtonColors
 import jp.co.soramitsu.common.compose.theme.colorAccent
 import jp.co.soramitsu.common.compose.theme.colorAccentDark
 import jp.co.soramitsu.common.compose.theme.customButtonColors
 import jp.co.soramitsu.common.compose.theme.customTypography
-import jp.co.soramitsu.common.compose.theme.grayButtonBackground
 import jp.co.soramitsu.common.compose.theme.purple
+import jp.co.soramitsu.common.compose.theme.white08
+import jp.co.soramitsu.common.compose.theme.white64
 import jp.co.soramitsu.common.utils.onSingleClick
 import jp.co.soramitsu.common.utils.rememberLastClickTime
 
@@ -50,7 +59,14 @@ fun AccentButton(state: ButtonViewState, modifier: Modifier = Modifier, onClick:
 
 @Composable
 fun AccentButton(text: String, enabled: Boolean = true, modifier: Modifier = Modifier, onClick: () -> Unit) {
-    TextButton(text = text, enabled = enabled, colors = accentButtonColors, modifier = modifier, onClick = onClick)
+    TextButton(
+        text = text,
+        enabled = enabled,
+        colors = accentDarkButtonColors,
+        modifier = modifier,
+        textStyle = MaterialTheme.customTypography.header4,
+        onClick = onClick
+    )
 }
 
 @Composable
@@ -60,7 +76,52 @@ fun AccentDarkDisabledButton(state: ButtonViewState, modifier: Modifier = Modifi
 
 @Composable
 fun GrayButton(text: String, enabled: Boolean = true, modifier: Modifier = Modifier, onClick: () -> Unit) {
-    TextButton(text = text, enabled = enabled, colors = customButtonColors(grayButtonBackground), modifier = modifier, onClick = onClick)
+    TextButton(
+        text = text,
+        enabled = enabled,
+        colors = customButtonColors(white08),
+        modifier = modifier,
+        textStyle = MaterialTheme.customTypography.header4,
+        onClick = onClick
+    )
+}
+
+@Composable
+fun GoogleButton(
+    modifier: Modifier = Modifier,
+    text: String = stringResource(id = R.string.onboarding_continue_with_google),
+    backgroundColor: Color = Color.Unspecified,
+    borderColor: Color = white64,
+    onClick: () -> Unit
+) {
+    BackgroundCorneredWithBorder(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(48.dp)
+            .clickable(onClick = onClick),
+        borderColor = borderColor,
+        backgroundColor = backgroundColor
+    ) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Row(
+                modifier = Modifier.fillMaxSize(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Image(
+                    modifier = Modifier.padding(end = 8.dp),
+                    res = R.drawable.ic_google_30
+                )
+                Text(
+                    text = text,
+                    style = MaterialTheme.customTypography.header4
+                )
+            }
+        }
+    }
 }
 
 @Composable
@@ -206,12 +267,27 @@ fun ShapeButton(
 @Composable
 @Preview
 fun ButtonPreview() {
-    FearlessTheme {
+    FearlessAppTheme {
         Column(
             modifier = Modifier
                 .padding(16.dp)
                 .background(Color.Black)
         ) {
+            AccentButton(
+                text = "Dark Start staking ",
+                modifier = Modifier
+                    .width(200.dp)
+                    .height(52.dp)
+            ) {}
+            MarginVertical(margin = 16.dp)
+            AccentButton(
+                text = "Dark Start staking ",
+                enabled = false,
+                modifier = Modifier
+                    .width(200.dp)
+                    .height(52.dp)
+            ) {}
+            MarginVertical(margin = 16.dp)
             AccentButton(
                 "Start staking Start staking Start staking ",
                 modifier = Modifier
@@ -250,6 +326,20 @@ fun ButtonPreview() {
             TransparentButton(
                 modifier = Modifier.height(52.dp),
                 text = stringResource(id = R.string.staking_redeem),
+                onClick = {}
+            )
+            MarginVertical(margin = 16.dp)
+            GoogleButton(onClick = {})
+            MarginVertical(margin = 16.dp)
+            GoogleButton(
+                text = "Google",
+                backgroundColor = white08,
+                borderColor = Color.Unspecified,
+                onClick = {}
+            )
+            MarginVertical(margin = 16.dp)
+            AccentDarkDisabledButton(
+                state = ButtonViewState("Dark Button text"),
                 onClick = {}
             )
         }
