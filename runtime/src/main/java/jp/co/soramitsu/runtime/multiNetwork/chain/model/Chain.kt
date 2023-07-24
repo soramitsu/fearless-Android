@@ -36,7 +36,8 @@ data class Chain(
     val isTestNet: Boolean,
     val hasCrowdloans: Boolean,
     override val parentId: String?,
-    val supportStakingPool: Boolean
+    val supportStakingPool: Boolean,
+    val isEthereumChain: Boolean
 ) : IChain {
     val assetsById = assets.associateBy(CoreAsset::id)
 

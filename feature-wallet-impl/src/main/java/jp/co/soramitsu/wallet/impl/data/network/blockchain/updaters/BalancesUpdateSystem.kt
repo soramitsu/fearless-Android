@@ -5,12 +5,17 @@ import it.airgap.beaconsdk.core.internal.utils.onEachFailure
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.accountId
+import jp.co.soramitsu.account.api.domain.model.address
+import jp.co.soramitsu.common.data.network.StorageSubscriptionBuilder
 import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
 import jp.co.soramitsu.common.data.network.runtime.binding.ExtrinsicStatusEvent
 import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
 import jp.co.soramitsu.common.utils.requireException
 import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.core.models.Asset
+import jp.co.soramitsu.common.data.network.runtime.binding.SimpleBalanceData
+import jp.co.soramitsu.common.utils.diffed
+import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.core.updater.UpdateSystem
 import jp.co.soramitsu.core.updater.Updater
 import jp.co.soramitsu.core.utils.utilityAsset
@@ -47,6 +52,12 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.withContext
+import org.web3j.abi.FunctionEncoder
+import org.web3j.abi.datatypes.Address
+import org.web3j.protocol.Web3j
+import org.web3j.protocol.core.DefaultBlockParameterName
+import org.web3j.protocol.http.HttpService
+import org.web3j.utils.Numeric
 
 private const val RUNTIME_AWAITING_TIMEOUT = 10_000L
 
@@ -162,6 +173,11 @@ class BalancesUpdateSystem(
             accountRepository.allMetaAccountsFlow()
         ) { chains, accounts ->
             chains.forEach singleChainUpdate@{ chain ->
+                if (chain.isEthereumChain) {
+                    fetchEthereumBalances(chain, accounts)
+                    return@singleChainUpdate
+                }
+
                 runCatching {
                     val runtime =
                         runCatching { chainRegistry.getRuntimeOrNull(chain.id) }.getOrNull()
@@ -251,6 +267,51 @@ class BalancesUpdateSystem(
             result = 31 * result + metaAccountId.hashCode()
             result = 31 * result + accountId.contentHashCode()
             return result
+        }
+    }
+
+    private suspend fun fetchEthereumBalances(chain: Chain, addedOrModified: List<MetaAccount>) {
+        addedOrModified.forEach { account ->
+            val address = account.address(chain) ?: return@forEach
+            val accountId = account.accountId(chain) ?: return@forEach
+            chain.assets.forEach { asset ->
+                val web3 = Web3j.build(HttpService(chain.nodes.first().url))
+                val balanceData = kotlin.runCatching {
+                    if (asset.isUtility) {
+                        val balance = web3.ethGetBalance(address, DefaultBlockParameterName.LATEST).send()
+                        SimpleBalanceData(balance.balance)
+                    } else {
+                        val daiGetBalanceFunction = org.web3j.abi.datatypes.Function(
+                            "balanceOf",
+                            listOf(Address(address)),
+                            emptyList()
+                        )
+
+                        val daiBalanceWei = web3.ethCall(
+                            org.web3j.protocol.core.methods.request.Transaction.createEthCallTransaction(
+                                null,
+                                asset.id,
+                                FunctionEncoder.encode(daiGetBalanceFunction)
+                            ),
+                            DefaultBlockParameterName.LATEST
+                        ).send().value
+
+                        val balance = runCatching { Numeric.decodeQuantity(daiBalanceWei) }.getOrNull().orZero()
+
+                        SimpleBalanceData(balance)
+                    }
+                }
+                balanceData.exceptionOrNull()?.let {
+                    Log.e("&&&", "ethereum balance error ${asset.name} :$it")
+                }
+                web3.shutdown()
+                assetCache.updateAsset(
+                    metaId = account.id,
+                    accountId = accountId,
+                    asset = asset,
+                    balanceData = balanceData.getOrNull()
+                )
+            }
         }
     }
 

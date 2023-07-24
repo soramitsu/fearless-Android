@@ -14,7 +14,8 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.ChainExternalApiRemote
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.ChainRemote
 
-private const val ETHEREUM_OPTION = "ethereumBased"
+private const val ETHEREUM_BASED_OPTION = "ethereumBased"
+private const val ETHEREUM_OPTION = "ethereum"
 private const val CROWDLOAN_OPTION = "crowdloans"
 private const val TESTNET_OPTION = "testnet"
 private const val NOMINATION_POOL_OPTION = "poolStaking"
@@ -104,7 +105,9 @@ fun ChainRemote.toChain(): Chain {
     val explorers = this.externalApi?.explorers?.map { it.toExplorer() }
 
     val optionsOrEmpty = this.options.orEmpty()
-
+    if (this.chainId == "0x1") {
+        hashCode()
+    }
     return Chain(
         id = this.chainId,
         parentId = this.parentId,
@@ -116,10 +119,11 @@ fun ChainRemote.toChain(): Chain {
         icon = this.icon.orEmpty(),
         externalApi = externalApi,
         addressPrefix = this.addressPrefix,
-        isEthereumBased = ETHEREUM_OPTION in optionsOrEmpty,
+        isEthereumBased = ETHEREUM_BASED_OPTION in optionsOrEmpty,
         isTestNet = TESTNET_OPTION in optionsOrEmpty,
         hasCrowdloans = CROWDLOAN_OPTION in optionsOrEmpty,
-        supportStakingPool = NOMINATION_POOL_OPTION in optionsOrEmpty
+        supportStakingPool = NOMINATION_POOL_OPTION in optionsOrEmpty,
+        isEthereumChain = ETHEREUM_OPTION in optionsOrEmpty
     )
 }
 
@@ -216,7 +220,8 @@ fun mapChainLocalToChain(chainLocal: JoinedChainInfo): Chain {
             isEthereumBased = isEthereumBased,
             isTestNet = isTestNet,
             hasCrowdloans = hasCrowdloans,
-            supportStakingPool = supportStakingPool
+            supportStakingPool = supportStakingPool,
+            isEthereumChain = isEthereumChain
         )
     }
 }
@@ -281,7 +286,8 @@ fun mapChainToChainLocal(chain: Chain): JoinedChainInfo {
             isEthereumBased = isEthereumBased,
             isTestNet = isTestNet,
             hasCrowdloans = hasCrowdloans,
-            supportStakingPool = supportStakingPool
+            supportStakingPool = supportStakingPool,
+            isEthereumChain = isEthereumChain
         )
     }
 
