@@ -519,6 +519,11 @@
         android:label="optionsAddAccountFragment" />
 
     <dialog
+        android:id="@+id/optionsSwitchNodeFragment"
+        android:name="jp.co.soramitsu.account.impl.presentation.options_switch_node.OptionsSwitchNodeFragment"
+        android:label="optionsSwitchNodeFragment" />
+
+    <dialog
         android:id="@+id/optionsWalletFragment"
         android:name="jp.co.soramitsu.wallet.impl.presentation.balance.optionswallet.OptionsWalletFragment"
         android:label="optionsWalletFragment" />

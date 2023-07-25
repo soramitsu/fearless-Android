@@ -39,6 +39,8 @@ interface WalletInteractor {
 
     suspend fun getCurrentAsset(chainId: ChainId, chainAssetId: String): Asset
 
+    suspend fun getCurrentAssetOrNull(chainId: ChainId, chainAssetId: String): Asset?
+
     fun operationsFirstPageFlow(chainId: ChainId, chainAssetId: String): Flow<OperationsPageChange>
 
     suspend fun syncOperationsFirstPage(

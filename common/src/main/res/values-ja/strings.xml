@@ -342,6 +342,7 @@
   <string name="network_issue_node_unavailable">ノードは利用できません</string>
   <string name="network_issue_stub">ネットワークの問題</string>
   <string name="network_issue_unavailable">ネットワークは利用できません。待つか、コミュニティ・サポートを依頼できます</string>
+  <string name="issue_do_not_show_again">二度と見せない</string>
   <string name="network_status_connected">接続済み</string>
   <string name="network_status_connecting">接続しています...</string>
   <string name="network_url_address">URLアドレス</string>
@@ -716,6 +717,7 @@
   <string name="substrate_secret_derivation_path">サブストレート(Substrate)の秘密の派生経路</string>
   <string name="support_and_feedback">サポートとフィードバック</string>
   <string name="switch_node">ノードの切り替え</string>
+  <string name="resolve">解決</string>
   <string name="switch_node_autoselect_title">ノードの自動選択</string>
   <string name="tabbar_crowdloan_attention">「クラウドローン」タブを確認してください\n注意が必要です</string>
   <string name="tabbar_extrinsics_title">外因剤</string>
@@ -803,4 +805,5 @@
   <string name="what_accounts_for_export">ウォレット内のどのアカウントをエクスポートしますか?</string>
   <string name="yesterday">昨日</string>
   <string name="your_collator">あなたのコレーター</string>
+  <string name="options_switch_node_title">%s ネットワークの問題を解決する</string>
 </resources>
