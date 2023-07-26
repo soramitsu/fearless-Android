@@ -11,10 +11,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.fragment.app.viewModels
-import coil.ImageLoader
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
 import jp.co.soramitsu.account.api.presentation.accountSource.SourceTypeChooserBottomSheetDialog
 import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.account.api.presentation.actions.copyAddressClicked
@@ -33,18 +31,9 @@ const val ACCOUNT_ID_KEY = "ACCOUNT_ADDRESS_KEY"
 @AndroidEntryPoint
 class AccountDetailsDialog : BaseComposeBottomSheetDialogFragment<AccountDetailsViewModel>(), ChainAccountsAdapter.Handler {
 
-    @Inject lateinit var imageLoader: ImageLoader
-
-//    private val binding by viewBinding(FragmentAccountDetailsBinding::bind)
-
     override val viewModel: AccountDetailsViewModel by viewModels()
 
-    private val adapter by lazy(LazyThreadSafetyMode.NONE) {
-        ChainAccountsAdapter(this, imageLoader)
-    }
-
     companion object {
-
         fun getBundle(metaAccountId: Long): Bundle {
             return Bundle().apply {
                 putLong(ACCOUNT_ID_KEY, metaAccountId)
@@ -67,43 +56,12 @@ class AccountDetailsDialog : BaseComposeBottomSheetDialogFragment<AccountDetails
         super.onViewCreated(view, savedInstanceState)
         observeBrowserEvents(viewModel)
 
-//        binding.accountDetailsNameField.content.bindTo(viewModel.accountNameFlow, viewLifecycleOwner.lifecycleScope)
-
-//        viewModel.chainAccountProjections.observe { adapter.submitList(it) }
-
         viewModel.showExternalActionsEvent.observeEvent(::showAccountActions)
         viewModel.showExportSourceChooser.observeEvent(::showExportSourceChooser)
         viewModel.showImportChainAccountChooser.observeEvent(::showImportChainAccountChooser)
         viewModel.showUnsupportedChainAlert.observeEvent { showUnsupportedChainAlert() }
         viewModel.openPlayMarket.observeEvent { openPlayMarket() }
-
     }
-
-//    override fun initViews() {
-//        with(binding) {
-//            accountDetailsToolbar.setHomeButtonListener {
-//                viewModel.backClicked()
-//            }
-//
-//            accountDetailsNameField.content.filters = nameInputFilters()
-//            accountDetailsChainAccounts.setHasFixedSize(true)
-//            accountDetailsChainAccounts.adapter = adapter
-//        }
-//    }
-
-//    override fun subscribe(viewModel: AccountDetailsViewModel) {
-//        observeBrowserEvents(viewModel)
-//
-////        binding.accountDetailsNameField.content.bindTo(viewModel.accountNameFlow, viewLifecycleOwner.lifecycleScope)
-//
-////        viewModel.chainAccountProjections.observe { adapter.submitList(it) }
-//
-//        viewModel.showExternalActionsEvent.observeEvent(::showAccountActions)
-//        viewModel.showExportSourceChooser.observeEvent(::showExportSourceChooser)
-//        viewModel.showImportChainAccountChooser.observeEvent(::showImportChainAccountChooser)
-//        viewModel.showUnsupportedChainAlert.observeEvent { showUnsupportedChainAlert() }
-//        viewModel.openPlayMarket.observeEvent { openPlayMarket() }
-//    }
 
     override fun setupBehavior(behavior: BottomSheetBehavior<FrameLayout>) {
         behavior.state = BottomSheetBehavior.STATE_EXPANDED

@@ -121,9 +121,12 @@ private fun PreviewAccountDetailsContent() {
         )
     )
     FearlessAppTheme {
-        AccountDetailsContent(state = state, callback = object : AccountDetailsCallback {
-            override fun onBackClick() {}
-            override fun chainAccountOptionsClicked(item: AccountInChainUi) {}
-        })
+        AccountDetailsContent(
+            state = state,
+            callback = object : AccountDetailsCallback {
+                override fun onBackClick() {}
+                override fun chainAccountOptionsClicked(item: AccountInChainUi) {}
+            }
+        )
     }
 }

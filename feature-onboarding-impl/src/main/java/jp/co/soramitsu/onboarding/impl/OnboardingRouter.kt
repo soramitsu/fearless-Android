@@ -7,8 +7,6 @@ import kotlinx.coroutines.flow.Flow
 
 interface OnboardingRouter {
 
-    fun openCreateAccountFromOnboarding()
-
     fun openCreateAccountSkipWelcome(payload: ChainAccountCreatePayload)
 
     fun backToWelcomeScreen()

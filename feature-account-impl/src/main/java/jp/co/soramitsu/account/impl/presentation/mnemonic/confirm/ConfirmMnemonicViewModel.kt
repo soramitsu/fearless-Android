@@ -1,5 +1,6 @@
 package jp.co.soramitsu.account.impl.presentation.mnemonic.confirm
 
+import android.widget.LinearLayout
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
@@ -105,7 +106,7 @@ class ConfirmMnemonicViewModel @Inject constructor(
     }
 
     private fun proceed(isBackedUp: Boolean) {
-        if (proceedInProgress.value == true) return // fixme use the same for progress
+        if (proceedInProgress.value == true) return
         proceedInProgress.value = true
         when (val createExtras = payload.createExtras) {
             null -> markWalletBackedUp(payload.metaId)
@@ -172,6 +173,15 @@ class ConfirmMnemonicViewModel @Inject constructor(
     }
 
     fun skipClicked() {
-        proceed(isBackedUp = false)
+        showError(
+            title = resourceManager.getString(R.string.backup_not_backed_up_title),
+            message = resourceManager.getString(R.string.backup_not_backed_up_message),
+            positiveButtonText = resourceManager.getString(R.string.backup_not_backed_up_confirm),
+            negativeButtonText = resourceManager.getString(R.string.common_cancel),
+            buttonsOrientation = LinearLayout.HORIZONTAL,
+            positiveClick = {
+                proceed(isBackedUp = false)
+            }
+        )
     }
 }

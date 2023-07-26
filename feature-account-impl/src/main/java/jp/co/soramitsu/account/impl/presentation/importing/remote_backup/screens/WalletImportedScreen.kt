@@ -103,7 +103,6 @@ internal fun WalletImportedScreen(
     }
 }
 
-
 @Preview
 @Composable
 private fun PreviewWalletImportedScreen() {

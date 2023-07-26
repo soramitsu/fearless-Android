@@ -44,6 +44,8 @@ interface AccountRepository {
 
     suspend fun updateMetaAccountBackedUp(metaId: Long)
 
+    suspend fun updateWalletOnGoogleBackupDelete(metaId: Long)
+
     suspend fun getPreferredCryptoType(): CryptoType
 
     suspend fun isAccountSelected(): Boolean

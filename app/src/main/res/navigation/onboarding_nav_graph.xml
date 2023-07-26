@@ -12,14 +12,6 @@
         tools:layout="@layout/fragment_welcome">
 
         <action
-            android:id="@+id/action_welcomeFragment_to_createAccountFragment"
-            app:destination="@id/createAccountFragment"
-            app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
-            app:exitAnim="?android:attr/fragmentOpenExitAnimation"
-            app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
-            app:popExitAnim="?android:attr/fragmentCloseExitAnimation" />
-
-        <action
             android:id="@+id/action_welcomeFragment_to_backupMnemonicFragment"
             app:destination="@id/backupMnemonicFragment"
             app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
@@ -130,6 +122,12 @@
         </action>
 
     </fragment>
+
+    <fragment
+        android:id="@+id/confirmExportMnemonicFragment"
+        android:name="jp.co.soramitsu.account.impl.presentation.mnemonic.confirm.ConfirmMnemonicFragment"
+        android:label="ConfirmMnemonicFragment"
+        tools:layout="@layout/fragment_confirm_mnemonic" />
 
     <dialog
         android:id="@+id/backupMnemonicDialog"
