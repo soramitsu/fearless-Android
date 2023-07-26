@@ -1,4 +1,5 @@
 apply from: './scripts/secrets.gradle'
+// apply plugin: "detekt-setup"
 
 buildscript {
     ext {
@@ -28,7 +29,7 @@ buildscript {
         soraCardVersion = '0.0.45'
         soraUiCoreVersion = '0.0.67'
 
-        daggerVersion = '2.45'
+        daggerVersion = '2.47'
         javaxInjectVersion = '1'
 
         architectureComponentVersion = '2.6.1'
@@ -68,13 +69,13 @@ buildscript {
 
         coilVersion = '2.2.2'
 
-        androidxCoreVersion = '1.9.0'
+        androidxCoreVersion = '1.8.0'
 
         composeVersion = '1.3.1'
         composeCompilerVersion = '1.4.4'
 
         appcompatVersion = '1.6.1'
-        recyclerviewVersion = '1.3.0'
+        recyclerviewVersion = '1.2.0'
         lifecycleVersion = '2.6.1'
 
         serializationVersion = '1.5.0'
