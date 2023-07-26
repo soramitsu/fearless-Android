@@ -25,6 +25,8 @@ import jp.co.soramitsu.runtime.ext.addressOf
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.getRuntimeOrNull
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.runtime.multiNetwork.getRuntimeOrNull
 import jp.co.soramitsu.runtime.multiNetwork.getSocket
 import jp.co.soramitsu.runtime.multiNetwork.getSocketOrNull
 import jp.co.soramitsu.runtime.multiNetwork.toSyncIssue
@@ -43,6 +45,9 @@ import jp.co.soramitsu.wallet.impl.data.network.model.handleBalanceResponse
 import jp.co.soramitsu.wallet.impl.domain.model.Operation
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
@@ -56,6 +61,7 @@ import org.web3j.abi.FunctionEncoder
 import org.web3j.abi.datatypes.Address
 import org.web3j.protocol.Web3j
 import org.web3j.protocol.core.DefaultBlockParameterName
+import org.web3j.protocol.core.Ethereum
 import org.web3j.protocol.http.HttpService
 import org.web3j.utils.Numeric
 
@@ -71,6 +77,12 @@ class BalancesUpdateSystem(
     private val networkStateMixin: NetworkStateMixin,
 ) : UpdateSystem {
 
+    companion object {
+        private const val ETHEREUM_BALANCES_UPDATE_DELAY = 30_000L
+    }
+
+    private val ethereumBalancesSubscriptionJob: MutableMap<ChainId, Job?> = mutableMapOf()
+
     @OptIn(ExperimentalCoroutinesApi::class)
     private fun subscribeFlow(): Flow<Updater.SideEffect> {
         return combine(
@@ -80,6 +92,16 @@ class BalancesUpdateSystem(
             chains to metaAccount
         }.flatMapLatest { (chains, metaAccount) ->
             val chainsFLow = chains.map { chain ->
+                if (chain.isEthereumChain) {
+                    ethereumBalancesSubscriptionJob[chain.id]?.cancel()
+                    ethereumBalancesSubscriptionJob[chain.id] = Job()
+                    return@map withContext(Dispatchers.Default + ethereumBalancesSubscriptionJob[chain.id]!!) {
+                        subscribeEthereumBalance(
+                            chain,
+                            metaAccount
+                        )
+                    }
+                }
                 subscribeChainBalances(chain, metaAccount).onEachFailure { logError(chain, it) }
             }
 
@@ -165,6 +187,15 @@ class BalancesUpdateSystem(
                     }
                 }
         return chainUpdateFlow
+    }
+
+    private fun subscribeEthereumBalance(chain: Chain, account: MetaAccount): Flow<Updater.SideEffect> = flow {
+        val web3 = Web3j.build(HttpService(chain.nodes.first().url))
+        while (ethereumBalancesSubscriptionJob[chain.id]?.isActive == true) {
+            fetchEthereumBalances(chain, listOf(account), web3)
+            emit(Updater.SideEffect.Nothing)
+            delay(ETHEREUM_BALANCES_UPDATE_DELAY)
+        }
     }
 
     private fun singleUpdateFlow(): Flow<Unit> {
@@ -271,45 +302,46 @@ class BalancesUpdateSystem(
     }
 
     private suspend fun fetchEthereumBalances(chain: Chain, addedOrModified: List<MetaAccount>) {
-        addedOrModified.forEach { account ->
+        val web3 = Web3j.build(HttpService(chain.nodes.first().url))
+        fetchEthereumBalances(chain, addedOrModified, web3)
+        web3.shutdown()
+    }
+
+    private suspend fun fetchEthereumBalances(chain: Chain, accounts: List<MetaAccount>, eth: Ethereum) {
+        accounts.forEach { account ->
             val address = account.address(chain) ?: return@forEach
             val accountId = account.accountId(chain) ?: return@forEach
             chain.assets.forEach { asset ->
-                val web3 = Web3j.build(HttpService(chain.nodes.first().url))
-                val balanceData = kotlin.runCatching {
-                    if (asset.isUtility) {
-                        val balance = web3.ethGetBalance(address, DefaultBlockParameterName.LATEST).send()
-                        SimpleBalanceData(balance.balance)
-                    } else {
-                        val daiGetBalanceFunction = org.web3j.abi.datatypes.Function(
-                            "balanceOf",
-                            listOf(Address(address)),
-                            emptyList()
-                        )
 
-                        val daiBalanceWei = web3.ethCall(
-                            org.web3j.protocol.core.methods.request.Transaction.createEthCallTransaction(
-                                null,
-                                asset.id,
-                                FunctionEncoder.encode(daiGetBalanceFunction)
-                            ),
-                            DefaultBlockParameterName.LATEST
-                        ).send().value
+                val balanceData = if (asset.isUtility) {
+                    val balance = eth.ethGetBalance(address, DefaultBlockParameterName.LATEST).send()
+                    SimpleBalanceData(balance.balance)
+                } else {
+                    val daiGetBalanceFunction = org.web3j.abi.datatypes.Function(
+                        "balanceOf",
+                        listOf(Address(address)),
+                        emptyList()
+                    )
 
-                        val balance = runCatching { Numeric.decodeQuantity(daiBalanceWei) }.getOrNull().orZero()
+                    val daiBalanceWei = eth.ethCall(
+                        org.web3j.protocol.core.methods.request.Transaction.createEthCallTransaction(
+                            null,
+                            asset.id,
+                            FunctionEncoder.encode(daiGetBalanceFunction)
+                        ),
+                        DefaultBlockParameterName.LATEST
+                    ).send().value
 
-                        SimpleBalanceData(balance)
-                    }
+                    val balance = runCatching { Numeric.decodeQuantity(daiBalanceWei) }.getOrNull().orZero()
+
+                    SimpleBalanceData(balance)
                 }
-                balanceData.exceptionOrNull()?.let {
-                    Log.e("&&&", "ethereum balance error ${asset.name} :$it")
-                }
-                web3.shutdown()
+
                 assetCache.updateAsset(
                     metaId = account.id,
                     accountId = accountId,
                     asset = asset,
-                    balanceData = balanceData.getOrNull()
+                    balanceData = balanceData
                 )
             }
         }
