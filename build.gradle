@@ -85,7 +85,7 @@ buildscript {
         minifyRelease = true
         beaconVersion = "3.2.4"
 
-        sharedFeaturesVersion = "1.1.1.4-20230719.132915-1"
+        sharedFeaturesVersion = "1.1.1.5-SNAPSHOT"
 
         coilDep = "io.coil-kt:coil:$coilVersion"
         coilSvg = "io.coil-kt:coil-svg:$coilVersion"
