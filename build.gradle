@@ -1,5 +1,5 @@
 apply from: './scripts/secrets.gradle'
-// apply plugin: "detekt-setup"
+apply plugin: "detekt-setup"
 
 buildscript {
     ext {
