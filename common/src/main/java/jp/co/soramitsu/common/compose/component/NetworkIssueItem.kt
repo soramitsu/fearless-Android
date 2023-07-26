@@ -37,11 +37,11 @@ enum class NetworkIssueType(
 ) {
     Node(
         reason = R.string.network_issue_node_unavailable,
-        action = R.string.network_issue_action_switch_node
+        action = R.string.resolve
     ),
     Network(
         reason = R.string.network_issue_network_unavailable,
-        actionColor = alertYellow
+        action = R.string.resolve
     ),
     Account(
         reason = R.string.network_issue_add_an_account,
@@ -138,7 +138,7 @@ fun NetworkIssueItem(
             } else {
                 TextButtonSmall(
                     modifier = Modifier.height(24.dp),
-                    contentPadding = PaddingValues(horizontal = 8.dp),
+                    contentPadding = PaddingValues(horizontal = 12.dp),
                     text = actionLabel,
                     colors = customButtonColors(state.type.actionColor),
                     onClick = onClick::invoke

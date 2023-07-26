@@ -41,6 +41,7 @@ import jp.co.soramitsu.account.impl.presentation.node.add.AddNodeFragment
 import jp.co.soramitsu.account.impl.presentation.node.details.NodeDetailsFragment
 import jp.co.soramitsu.account.impl.presentation.node.details.NodeDetailsPayload
 import jp.co.soramitsu.account.impl.presentation.node.list.NodesFragment
+import jp.co.soramitsu.account.impl.presentation.options_switch_node.OptionsSwitchNodeFragment
 import jp.co.soramitsu.account.impl.presentation.optionsaddaccount.OptionsAddAccountFragment
 import jp.co.soramitsu.account.impl.presentation.pincode.PinCodeAction
 import jp.co.soramitsu.account.impl.presentation.pincode.PincodeFragment
@@ -1081,6 +1082,15 @@ class Navigator :
         navController?.navigate(R.id.optionsAddAccountFragment, bundle)
     }
 
+    override fun openOptionsSwitchNode(
+        metaId: Long,
+        chainId: ChainId,
+        chainName: String
+    ) {
+        val bundle = OptionsSwitchNodeFragment.getBundle(metaId, chainId, chainName)
+        navController?.navigate(R.id.optionsSwitchNodeFragment, bundle)
+    }
+
     override fun openAlert(payload: AlertViewState) {
         openAlert(payload, emptyResultKey)
     }
@@ -1205,6 +1215,21 @@ class Navigator :
 
     override fun listenAlertResultFlowFromStartSelectValidatorsScreen(key: String): Flow<Result<Unit>> {
         val currentEntry = navController?.getBackStackEntry(R.id.startSelectValidatorsFragment)
+        val onResumeObserver = currentEntry?.getLifecycle()?.onResumeObserver()
+
+        return (onResumeObserver?.asFlow() ?: emptyFlow()).map {
+            if (currentEntry?.savedStateHandle?.contains(key) == true) {
+                val result = currentEntry.savedStateHandle.get<Result<Unit>?>(key)
+                currentEntry.savedStateHandle.set<Result<Unit>?>(key, null)
+                result
+            } else {
+                null
+            }
+        }.filterNotNull()
+    }
+
+    override fun listenAlertResultFlowFromNetworkIssuesScreen(key: String): Flow<Result<Unit>> {
+        val currentEntry = navController?.getBackStackEntry(R.id.networkIssuesFragment)
         val onResumeObserver = currentEntry?.getLifecycle()?.onResumeObserver()
 
         return (onResumeObserver?.asFlow() ?: emptyFlow()).map {

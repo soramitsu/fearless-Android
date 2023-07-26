@@ -128,9 +128,17 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
 
     fun openOptionsAddAccount(payload: AddAccountBottomSheet.Payload)
 
+    fun openOptionsSwitchNode(
+        metaId: Long,
+        chainId: ChainId,
+        chainName: String
+    )
+
     fun openAlert(payload: AlertViewState)
 
     fun openAlert(payload: AlertViewState, resultKey: String)
+
+    fun listenAlertResultFlowFromNetworkIssuesScreen(key: String): Flow<Result<Unit>>
 
     fun openSearchAssets()
 

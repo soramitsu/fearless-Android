@@ -153,10 +153,14 @@ class WalletInteractorImpl(
     }
 
     override suspend fun getCurrentAsset(chainId: ChainId, chainAssetId: String): Asset {
+        return getCurrentAssetOrNull(chainId, chainAssetId)!!
+    }
+
+    override suspend fun getCurrentAssetOrNull(chainId: ChainId, chainAssetId: String): Asset? {
         val metaAccount = accountRepository.getSelectedMetaAccount()
         val (chain, chainAsset) = chainRegistry.chainWithAsset(chainId, chainAssetId)
 
-        return walletRepository.getAsset(metaAccount.id, metaAccount.accountId(chain)!!, chainAsset, chain.minSupportedVersion)!!
+        return walletRepository.getAsset(metaAccount.id, metaAccount.accountId(chain)!!, chainAsset, chain.minSupportedVersion)
     }
 
     override fun operationsFirstPageFlow(chainId: ChainId, chainAssetId: String): Flow<OperationsPageChange> {

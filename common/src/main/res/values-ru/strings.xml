@@ -419,6 +419,7 @@
     <string name="network_issue_node_unavailable">Нода не доступна</string>
     <string name="network_issue_stub">Проблемы с сетью</string>
     <string name="network_issue_unavailable">Сеть недоступна, вы можете подождать или задать вопрос сообществу</string>
+    <string name="issue_do_not_show_again">Не показывать снова</string>
     <string name="network_status_connected">Подключено</string>
     <string name="network_status_connecting">Подключение…</string>
     <string name="network_url_address">URL-адрес</string>
@@ -874,6 +875,7 @@
     <string name="substrate_secret_derivation_path">Путь деривации секрета substrate\n</string>
     <string name="support_and_feedback">Поддержка и Обратная связь</string>
     <string name="switch_node">Выбрать ноду</string>
+    <string name="resolve">Исправить</string>
     <string name="switch_node_autoselect_title">Автоматический выбор нод</string>
     <string name="tabbar_crowdloan_attention">Пожалуйста, проверьте вкладку Краудлоны \n Требуется внимание</string>
     <string name="tabbar_extrinsics_title">Экстринсики</string>
@@ -961,4 +963,5 @@
     <string name="what_accounts_for_export">Какие аккаунты в кошельке вы хотите экспортировать?</string>
     <string name="yesterday">Вчера</string>
     <string name="your_collator">Ваш коллатор</string>
+    <string name="options_switch_node_title">Устранить проблемы с сетью %s</string>
 </resources>
