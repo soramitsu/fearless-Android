@@ -137,6 +137,10 @@ class AccountRepositoryImpl(
         return accountDataSource.updateMetaAccountBackedUp(metaId)
     }
 
+    override suspend fun updateWalletOnGoogleBackupDelete(metaId: Long) {
+        return accountDataSource.updateWalletOnGoogleBackupDelete(metaId)
+    }
+
     override suspend fun getPreferredCryptoType(): CryptoType {
         return accountDataSource.getPreferredCryptoTypeOrSelected()
     }
@@ -664,7 +668,7 @@ class AccountRepositoryImpl(
                 name = accountName,
                 isSelected = true,
                 position = position,
-                isBackedUp = isBackedUp, //googleBackupAddress.isNullOrEmpty().not(),
+                isBackedUp = isBackedUp,
                 googleBackupAddress = googleBackupAddress
             )
 

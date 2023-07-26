@@ -119,7 +119,6 @@ fun WelcomeScreen(
     }
 }
 
-
 @Composable
 @Preview
 private fun WelcomeScreenPreview() {
@@ -133,6 +132,7 @@ private fun WelcomeScreenPreview() {
                 override fun googleSigninClicked() {}
                 override fun privacyClicked() {}
                 override fun termsClicked() {}
-            })
+            }
+        )
     }
 }

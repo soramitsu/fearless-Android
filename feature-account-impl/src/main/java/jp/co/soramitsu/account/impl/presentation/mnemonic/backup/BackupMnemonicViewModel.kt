@@ -264,10 +264,7 @@ class BackupMnemonicViewModel @Inject constructor(
                 cryptoType = cryptoTypeModel.cryptoType,
                 substrateDerivationPath = substrateDerivationPath,
                 ethereumDerivationPath = ethereumDerivationPath,
-                createAccount = createAccount,
-                //todo update
-//                substrateSeed = null,
-//                ethSeed = null,
+                createAccount = createAccount
             )
         )
     }

@@ -227,6 +227,11 @@ class AccountDataSourceImpl(
         metaAccountDao.updateBackedUp(metaId)
     }
 
+    override suspend fun updateWalletOnGoogleBackupDelete(metaId: Long) {
+        metaAccountDao.updateBackedUp(metaId = metaId, isBackedUp = false)
+        metaAccountDao.clearGoogleBackupInfo(metaId)
+    }
+
     override suspend fun deleteMetaAccount(metaId: Long) {
         val joinedMetaAccountInfo = metaAccountDao.getJoinedMetaAccountInfo(metaId)
         val chainAccountIds = joinedMetaAccountInfo.chainAccounts.map(ChainAccountLocal::accountId)
