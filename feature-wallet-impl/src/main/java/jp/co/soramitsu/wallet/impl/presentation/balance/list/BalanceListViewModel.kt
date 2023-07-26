@@ -6,10 +6,6 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.math.BigDecimal
-import java.util.Locale
-import java.util.concurrent.TimeUnit
-import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.presentation.actions.AddAccountBottomSheet
 import jp.co.soramitsu.common.AlertViewState
@@ -48,6 +44,7 @@ import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.isZero
 import jp.co.soramitsu.common.utils.mapList
+import jp.co.soramitsu.common.utils.moreThanZero
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.sumByBigDecimal
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
@@ -104,6 +101,10 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.math.BigDecimal
+import java.util.Locale
+import java.util.concurrent.TimeUnit
+import javax.inject.Inject
 import jp.co.soramitsu.oauth.R as SoraCardR
 
 private const val CURRENT_ICON_SIZE = 40
@@ -260,7 +261,7 @@ class BalanceListViewModel @Inject constructor(
             .launchIn(viewModelScope)
     }
 
-    private fun processAssets(
+    private suspend fun processAssets(
         ecosystemAssets: List<AssetWithStatus>,
         ecosystemChains: List<Chain>,
         selectedChainId: ChainId?,
@@ -269,6 +270,7 @@ class BalanceListViewModel @Inject constructor(
         ecosystem: ChainEcosystem
     ): List<BalanceListItemModel> {
         val result = mutableListOf<BalanceListItemModel>()
+        val metaAccount = accountRepository.getSelectedMetaAccount()
         ecosystemAssets.groupBy { it.asset.token.configuration.symbol }.forEach { (symbol, symbolAssets) ->
             val tokenChains = ecosystemChains.getWithToken(symbol)
             if (tokenChains.isEmpty()) return@forEach
@@ -282,7 +284,17 @@ class BalanceListViewModel @Inject constructor(
             val showChain = tokenChains.firstOrNull { it.id == selectedChainId } ?: mainChain
             val showChainAsset = showChain?.assets?.firstOrNull { it.symbol == symbol } ?: return@forEach
 
-            val hasNetworkIssue = networkIssues.any { it.chainId in tokenChains.map { it.id } }
+            val hasNetworkIssue = networkIssues.any { issueItemState ->
+                val chainAssets = symbolAssets
+                    .filter {
+                        it.asset.token.configuration.chainId == issueItemState.chainId &&
+                            it.asset.token.configuration.id == issueItemState.assetId &&
+                            it.asset.metaId == metaAccount.id
+                    }
+
+                (issueItemState.chainId in tokenChains.map { it.id } || chainAssets.any { !it.hasAccount }) &&
+                    chainAssets.any { !it.asset.markedNotNeed && it.asset.total.moreThanZero() }
+            }
 
             val hasChainWithoutAccount = symbolAssets.any { it.hasAccount.not() }
 
@@ -406,7 +418,7 @@ class BalanceListViewModel @Inject constructor(
             )
         )
 
-        val hasNetworkIssues = assetsListItemStates.any { !it.hasAccount || it.hasNetworkIssue }
+        val hasNetworkIssues = assetsListItemStates.any { it.hasNetworkIssue }
         WalletState(
             assets = assetsListItemStates,
             multiToggleButtonState = multiToggleButtonState,

@@ -53,7 +53,7 @@ fun AlertSheet(
                     }
 
             )
-            MarginVertical(margin = 44.dp)
+            MarginVertical(margin = 24.dp)
             GradientIcon(
                 iconRes = state.iconRes,
                 color = alertYellow,

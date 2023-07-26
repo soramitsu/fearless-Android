@@ -440,7 +440,8 @@
     <string name="network_issue_network_unavailable">Network is unavailable</string>
     <string name="network_issue_node_unavailable">Node is unavailable</string>
     <string name="network_issue_stub">Network Issues</string>
-    <string name="network_issue_unavailable">The network is unavailable, you can wait or request community support</string>
+    <string name="network_issue_unavailable">The network is unavailable, you can wait or ask a question to the community</string>
+    <string name="issue_do_not_show_again">Don\'t show me again</string>
     <string name="network_status_connected">Connected</string>
     <string name="network_status_connecting">Connecting…</string>
     <string name="network_url_address">URL address</string>
@@ -933,6 +934,7 @@
     <string name="success_message">You can return to your browser now</string>
     <string name="support_and_feedback">Support &amp; Feedback</string>
     <string name="switch_node">Switch node</string>
+    <string name="resolve">Resolve</string>
     <string name="switch_node_autoselect_title">Auto select nodes</string>
     <string name="tabbar_crowdloan_attention">Please check the Crowdloans tab\nAttention required</string>
     <string name="tabbar_extrinsics_title">Extrinsics</string>
@@ -1026,4 +1028,5 @@
     <string name="controller_account_issue_action">Manage controller account</string>
     <string name="stash_account_issue_message">Stash account %s isn\'t available. Please, import the Stash account by following the necessary steps</string>
     <string name="stash_account_issue_action">Import stash account</string>
+    <string name="options_switch_node_title">Resolve %s network issues</string>
 </resources>

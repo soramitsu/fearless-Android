@@ -1,4 +1,4 @@
-package jp.co.soramitsu.account.impl.presentation.optionsaddaccount
+package jp.co.soramitsu.account.impl.presentation.options_switch_node
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -29,20 +29,16 @@ import jp.co.soramitsu.common.compose.theme.white
 import jp.co.soramitsu.feature_account_api.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 
-data class OptionsAddAccountScreenViewState(
+data class OptionsSwitchNodeScreenViewState(
     val metaId: Long,
     val chainId: ChainId,
-    val chainName: String,
-    val markedAsNotNeed: Boolean,
-    val assetId: String,
-    val priceId: String?
+    val chainName: String
 )
 
 @Composable
-fun OptionsAddAccountContent(
-    state: OptionsAddAccountScreenViewState,
-    onCreate: (chainId: ChainId, metaId: Long) -> Unit,
-    onImport: (chainId: ChainId, metaId: Long) -> Unit,
+fun OptionsSwitchNodeContent(
+    state: OptionsSwitchNodeScreenViewState,
+    onSwitch: (chainId: ChainId) -> Unit,
     dontShowAgain: (chainId: ChainId, metaId: Long) -> Unit,
     onBackClicked: () -> Unit
 ) {
@@ -68,39 +64,28 @@ fun OptionsAddAccountContent(
                     modifier = Modifier
                         .align(Alignment.Center)
                         .padding(horizontal = 32.dp),
-                    text = stringResource(id = R.string.recovery_source_type),
+                    text = stringResource(id = R.string.options_switch_node_title, state.chainName),
                     textAlign = TextAlign.Center
                 )
             }
             MarginVertical(margin = 28.dp)
             GrayButton(
-                text = stringResource(id = R.string.create_new_account),
+                text = stringResource(id = R.string.switch_node),
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(48.dp)
             ) {
-                onCreate(state.chainId, state.metaId)
+                onSwitch(state.chainId)
             }
             MarginVertical(margin = 12.dp)
-            GrayButton(
-                text = stringResource(id = R.string.already_have_account),
+            TextButton(
+                text = stringResource(id = R.string.issue_do_not_show_again),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(48.dp)
+                    .height(48.dp),
+                colors = customButtonColors(grayButtonBackground, colorAccentDark)
             ) {
-                onImport(state.chainId, state.metaId)
-            }
-            if (!state.markedAsNotNeed) {
-                MarginVertical(margin = 12.dp)
-                TextButton(
-                    text = stringResource(id = R.string.issue_do_not_show_again),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(48.dp),
-                    colors = customButtonColors(grayButtonBackground, colorAccentDark)
-                ) {
-                    dontShowAgain(state.chainId, state.metaId)
-                }
+                dontShowAgain(state.chainId, state.metaId)
             }
             MarginVertical(margin = 12.dp)
         }
@@ -109,19 +94,15 @@ fun OptionsAddAccountContent(
 
 @Preview
 @Composable
-private fun OptionsAddAccountScreenPreview() {
+private fun OptionsSwitchNodeScreenPreview() {
     FearlessTheme {
-        OptionsAddAccountContent(
-            state = OptionsAddAccountScreenViewState(
+        OptionsSwitchNodeContent(
+            state = OptionsSwitchNodeScreenViewState(
                 metaId = 1,
                 chainId = "",
-                chainName = "Kusama",
-                markedAsNotNeed = false,
-                assetId = "",
-                priceId = null
+                chainName = "Kusama"
             ),
-            onCreate = { t, t2 -> },
-            onImport = { t, t2 -> },
+            onSwitch = {},
             dontShowAgain = { t, t2 -> },
             onBackClicked = {}
         )
