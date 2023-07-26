@@ -119,7 +119,7 @@ fun MetaAccount.cryptoType(chain: IChain): CryptoType {
 fun MetaAccount.address(chain: Chain): String? {
     return when {
         hasChainAccount(chain.id) -> chain.addressOf(chainAccounts.getValue(chain.id).accountId)
-        chain.isEthereumBased || chain.isEthereumChain -> ethereumAddress?.ethereumAddressToHex()
+        chain.isEthereumBased -> ethereumAddress?.ethereumAddressToHex()
         else -> substrateAccountId.toAddress(chain.addressPrefix.toShort())
     }
 }
@@ -134,7 +134,7 @@ fun MetaAccount.chainAddress(chain: Chain): String? {
 fun MetaAccount.accountId(chain: Chain): ByteArray? {
     return when {
         hasChainAccount(chain.id) -> chainAccounts.getValue(chain.id).accountId
-        chain.isEthereumBased || chain.isEthereumChain -> ethereumAddress
+        chain.isEthereumBased -> ethereumAddress
         else -> substrateAccountId
     }
 }
