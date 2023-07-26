@@ -7,6 +7,9 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import java.io.File
+import java.util.concurrent.TimeUnit
+import javax.inject.Singleton
 import jp.co.soramitsu.common.BuildConfig
 import jp.co.soramitsu.common.data.network.AndroidLogger
 import jp.co.soramitsu.common.data.network.AppLinksProvider
@@ -21,9 +24,6 @@ import jp.co.soramitsu.shared_utils.wsrpc.request.RequestExecutor
 import okhttp3.Cache
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
-import java.io.File
-import java.util.concurrent.TimeUnit
-import javax.inject.Singleton
 
 private const val HTTP_CACHE = "http_cache"
 private const val CACHE_SIZE = 50L * 1024L * 1024L // 50 MiB

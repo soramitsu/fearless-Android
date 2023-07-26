@@ -105,9 +105,7 @@ fun ChainRemote.toChain(): Chain {
     val explorers = this.externalApi?.explorers?.map { it.toExplorer() }
 
     val optionsOrEmpty = this.options.orEmpty()
-    if (this.chainId == "0x1") {
-        hashCode()
-    }
+
     return Chain(
         id = this.chainId,
         parentId = this.parentId,
@@ -119,7 +117,7 @@ fun ChainRemote.toChain(): Chain {
         icon = this.icon.orEmpty(),
         externalApi = externalApi,
         addressPrefix = this.addressPrefix,
-        isEthereumBased = ETHEREUM_BASED_OPTION in optionsOrEmpty,
+        isEthereumBased = ETHEREUM_OPTION in optionsOrEmpty || ETHEREUM_BASED_OPTION in optionsOrEmpty,
         isTestNet = TESTNET_OPTION in optionsOrEmpty,
         hasCrowdloans = CROWDLOAN_OPTION in optionsOrEmpty,
         supportStakingPool = NOMINATION_POOL_OPTION in optionsOrEmpty,

@@ -42,7 +42,10 @@ interface Updater : SideEffectScope {
         storageSubscriptionBuilder: SubscriptionBuilder
     ): Flow<SideEffect>
 
-    interface SideEffect
+    interface SideEffect {
+        class RuntimeError(val chainName: String) : SideEffect
+        object Nothing : SideEffect
+    }
 }
 
 interface UpdateSystem {
