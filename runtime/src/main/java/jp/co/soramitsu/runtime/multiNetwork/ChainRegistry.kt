@@ -94,7 +94,7 @@ class ChainRegistry @Inject constructor(
                             }
                             updatesMixin.startChainsSyncUp(addedOrModified.filter { it.nodes.isNotEmpty() }
                                 .map { it.id })
-                            addedOrModified.filter { /*it.disabled*/ it.nodes.isNotEmpty() }
+                            addedOrModified.filter { !it.isEthereumChain }.filter { /*it.disabled*/ it.nodes.isNotEmpty() }
                                 .forEach { chain ->
                                     runCatching {
                                         val connection = connectionPool.setupConnection(
