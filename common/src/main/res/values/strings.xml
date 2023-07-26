@@ -28,6 +28,9 @@
     <string name="account_delete_confirm">Forget</string>
     <string name="account_delete_confirmation_description">Make sure you have exported your account before proceeding.</string>
     <string name="account_delete_confirmation_title">Forget this account?</string>
+    <string name="backup_not_backed_up_title">Not backed up!</string>
+    <string name="backup_not_backed_up_message">If your device gets lost or stolen, you will loose your wallet and all your funds forever</string>
+    <string name="backup_not_backed_up_confirm">I will risk it</string>
     <string name="account_error_try_another_one">Please try another one.</string>
     <string name="account_export">Export account</string>
     <string name="account_export_action">Export</string>

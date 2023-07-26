@@ -5,13 +5,10 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
-import androidx.navigation.NavController
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.model.ImportMode
 import jp.co.soramitsu.backup.BackupService
-import jp.co.soramitsu.backup.domain.exceptions.UnauthorizedException
-import jp.co.soramitsu.backup.domain.models.BackupAccountMeta
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.mixin.api.Browserable
@@ -58,84 +55,16 @@ class WelcomeViewModel @Inject constructor(
     }
 
     override fun createAccountClicked() {
-        router.openCreateAccountFromOnboarding()
+        router.openCreateWalletDialog(isFromGoogleBackup = false)
     }
     override fun googleSigninClicked() {
         _events.trySend(WelcomeEvent.AuthorizeGoogle)
-/*
-        viewModelScope.launch {
-            if (backupService.authorize(launcher)) {
-                _events.trySend(WelcomeEvent.AuthorizeGoogle)
-//                onSuccessfulGoogleSignin()
-            } else {
-//                _tutorialScreenState.value = it.copy(isGoogleSigninLoading = false)
-            }
-        }
-*/
-    }
-
-    fun onSuccessfulGoogleSignin(navController: NavController) {
-//        _tutorialScreenState.value =
-//            _tutorialScreenState.value?.copy(isGoogleSigninLoading = true)
-
-        viewModelScope.launch {
-            try {
-//                isFromGoogleDrive = true
-
-//                if (navController.currentDestination?.route == OnboardingFeatureRoutes.PASSPHRASE) {
-//                    navController.navigate(OnboardingFeatureRoutes.CREATE_BACKUP_PASSWORD)
-//                } else {
-                val result = getBackupedAccountsFiltered()
-
-//                _tutorialScreenState.value =
-//                    _tutorialScreenState.value?.copy(isGoogleSigninLoading = false)
-
-                if (result.isEmpty()) {
-                    println("!!! getBackupedAccountsFiltered emptyResults")
-//                    navController.navigate(OnboardingFeatureRoutes.CREATE_ACCOUNT)
-                } else {
-                    println("!!! getBackupedAccountsFiltered results = ${result.size}")
-
-//                    _importAccountListState.value = ImportAccountListScreenState(
-//                        accountList = result.map {
-//                            BackupAccountMetaWithIcon(
-//                                it,
-//                                getDrawableFromGoogleBackup(it.address),
-//                            )
-//                        }
-//                    )
-//                    navController.navigate(OnboardingFeatureRoutes.IMPORT_ACCOUNT_LIST)
-                }
-//                }
-            } catch (e: UnauthorizedException) {
-//                _tutorialScreenState.value =
-//                    _tutorialScreenState.value?.copy(isGoogleSigninLoading = false)
-
-                showError("GOOGLE_LOGIN_FAILED")
-            }
-        }
-    }
-
-    private suspend fun getBackupedAccountsFiltered(): List<BackupAccountMeta> {
-        return backupService.getBackupAccounts()
-//            .filter {
-//                multiaccountInteractor.isAddressValid(it.address) && !multiaccountInteractor.accountExists(
-//                    it.address
-//                )
-//            }
     }
 
     override fun importAccountClicked() {
-//        if (BuildConfig.DEBUG) {
             router.openSelectImportModeForResult()
                 .onEach(::handleSelectedImportMode)
                 .launchIn(viewModelScope)
-//        } else {
-//            router.openImportAccountScreen(
-//                blockChainType = SUBSTRATE_BLOCKCHAIN_TYPE,
-//                importMode = ImportMode.MnemonicPhrase
-//            )
-//        }
     }
 
     private fun handleSelectedImportMode(importMode: ImportMode) {
@@ -151,22 +80,12 @@ class WelcomeViewModel @Inject constructor(
 
     fun authorizeGoogle(launcher: ActivityResultLauncher<Intent>) {
         viewModelScope.launch {
-//            val isAuthorized = backupService.authorize(launcher)
-//            println("!!! authorizeGoogle isAuthorized = $isAuthorized")
-//            if (isAuthorized) {
-//                openAddWalletThroughGoogleScreen()
-//            }
-
             try {
                 backupService.logout()
                 if (backupService.authorize(launcher)) {
-                    print("!!! authorizeGoogle isAuthorized = true")
                     openAddWalletThroughGoogleScreen()
-                } else {
-                    print("!!! authorizeGoogle isAuthorized = false")
                 }
             } catch (e: Exception) {
-                print("!!! authorizeGoogle error = ${e.message}")
                 e.printStackTrace()
                 showError(e)
             }
@@ -190,7 +109,6 @@ class WelcomeViewModel @Inject constructor(
     }
 
     fun onGoogleLoginError(message: String?) {
-        println("!!! onGoogleLoginError")
         showError("GoogleLoginError\n$message")
     }
 

@@ -149,6 +149,9 @@ class CreateBackupPasswordViewModel @Inject constructor(
             runCatching {
                 if (payload.createAccount) {
                     importFromBackup()
+                } else {
+                    val currentMetaId = interactor.selectedMetaAccount().id
+                    interactor.updateWalletBackedUp(currentMetaId)
                 }
                 saveBackupAccount()
             }
@@ -166,10 +169,7 @@ class CreateBackupPasswordViewModel @Inject constructor(
     }
 
     private suspend fun importFromBackup() {
-//        val address = interactor.polkadotAddressForSelectedAccountFlow().first()
         val mnemonic = payload.mnemonic
-//        val substrateSeed = payload.substrateSeed
-//        val substrateJson = payload.substrateJson
 
         val password = originPassword.value
         val address = interactor.polkadotAddressForSelectedAccountFlow().first()
@@ -190,9 +190,8 @@ class CreateBackupPasswordViewModel @Inject constructor(
         val substrateJson = jsonResult.getOrNull()
         val ethJson = ethJsonResult.getOrNull()
         val metaAccountSecrets = interactor.getMetaAccountSecrets(metaId)
-//        val entropy = metaAccountSecrets?.get(MetaAccountSecrets.Entropy)
         val substrateSeed = (metaAccountSecrets?.get(MetaAccountSecrets.Seed) ?: seedFromEntropy(metaAccountSecrets))?.toHexString(withPrefix = true)
-        val ethSeed= metaAccountSecrets?.get(MetaAccountSecrets.EthereumKeypair)?.get(KeyPairSchema.PrivateKey)?.toHexString(withPrefix = true)
+        val ethSeed = metaAccountSecrets?.get(MetaAccountSecrets.EthereumKeypair)?.get(KeyPairSchema.PrivateKey)?.toHexString(withPrefix = true)
 
         when {
             mnemonic != null -> {
@@ -221,7 +220,7 @@ class CreateBackupPasswordViewModel @Inject constructor(
             substrateJson != null -> {
                 interactor.importFromJson(
                     json = substrateJson,
-                    password = "123456", //sourceType.passwordLiveData.value!!,
+                    password = password,
                     name = payload.accountName,
                     ethJson = ethJson,
                     googleBackupAddress = address
@@ -241,16 +240,16 @@ class CreateBackupPasswordViewModel @Inject constructor(
             password = password
         )
         val substrateJson = jsonResult.getOrNull()
+        val ethJsonResult = interactor.generateRestoreJson(
+            metaId = metaId,
+            chainId = moonriverChainId,
+            password = password
+        )
+        val ethJson = ethJsonResult.getOrNull()
         val metaAccountSecrets = interactor.getMetaAccountSecrets(metaId)
-//        val entropy = metaAccountSecrets?.get(MetaAccountSecrets.Entropy)
         val substrateSeed = (metaAccountSecrets?.get(MetaAccountSecrets.Seed) ?: seedFromEntropy(metaAccountSecrets))?.toHexString(withPrefix = true)
-        val ethSeed= metaAccountSecrets?.get(MetaAccountSecrets.EthereumKeypair)?.get(KeyPairSchema.PrivateKey)?.toHexString(withPrefix = true)
+        val ethSeed = metaAccountSecrets?.get(MetaAccountSecrets.EthereumKeypair)?.get(KeyPairSchema.PrivateKey)?.toHexString(withPrefix = true)
 
-        println("saveBackupAccount: name = ${payload.accountName}, address = $address")
-        println("saveBackupAccount: mnemonicPhrase = ${payload.mnemonic}")
-        println("saveBackupAccount: seedSubstrate = $substrateSeed")
-        println("saveBackupAccount: ethSeed = $ethSeed")
-        println("saveBackupAccount: substrateJson = $substrateJson")
         backupService.saveBackupAccount(
             account = DecryptedBackupAccount(
                 name = payload.accountName,
@@ -259,9 +258,9 @@ class CreateBackupPasswordViewModel @Inject constructor(
                 substrateDerivationPath = payload.substrateDerivationPath,
                 ethDerivationPath = payload.ethereumDerivationPath,
                 cryptoType = payload.cryptoType,
-                backupAccountType = listOf(BackupAccountType.PASSHRASE, BackupAccountType.SEED, BackupAccountType.JSON),
-                seed =  Seed(substrateSeed = substrateSeed, ethSeed),
-                json = Json(substrateJson = substrateJson) //, payload.ethJson)
+                backupAccountType = listOf(BackupAccountType.PASSPHRASE, BackupAccountType.SEED, BackupAccountType.JSON),
+                seed = Seed(substrateSeed = substrateSeed, ethSeed),
+                json = Json(substrateJson = substrateJson, ethJson)
             ),
             password = password
         )
@@ -273,13 +272,6 @@ class CreateBackupPasswordViewModel @Inject constructor(
         val password = derivationPath?.let { SubstrateJunctionDecoder.decode(it).password }
         SubstrateSeedFactory.deriveSeed32(mnemonicWords, password).seed
     }
-
-//    private fun CreateBackupPasswordPayload.backupTypes(): List<BackupAccountType> = listOfNotNull(
-//        mnemonic?.let { BackupAccountType.PASSHRASE },
-//        substrateSeed?.let { BackupAccountType.SEED },
-//        substrateJson?.let { BackupAccountType.JSON }
-//    )
-
 
     private suspend fun continueBasedOnCodeStatus() {
         if (interactor.isCodeSet()) {

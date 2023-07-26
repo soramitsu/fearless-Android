@@ -77,8 +77,18 @@ interface MetaAccountDao {
     @Query("UPDATE meta_accounts SET name = :newName WHERE id = :metaId")
     suspend fun updateName(metaId: Long, newName: String)
 
-    @Query("UPDATE meta_accounts SET isBackedUp = 1 WHERE id = :metaId")
-    suspend fun updateBackedUp(metaId: Long)
+    @Query("UPDATE meta_accounts SET googleBackupAddress = NULL WHERE id = :metaId")
+    suspend fun clearGoogleBackupInfo(metaId: Long)
+
+    @Query("UPDATE meta_accounts SET isBackedUp = :isBackedUp WHERE id = :metaId")
+    suspend fun updateBackedUp(metaId: Long, isBackedUp: Int)
+
+    suspend fun updateBackedUp(metaId: Long, isBackedUp: Boolean = true) {
+        updateBackedUp(
+            metaId = metaId,
+            isBackedUp = if (isBackedUp) 1 else 0
+        )
+    }
 
     @Query("DELETE FROM meta_accounts WHERE id = :metaId")
     suspend fun delete(metaId: Long)

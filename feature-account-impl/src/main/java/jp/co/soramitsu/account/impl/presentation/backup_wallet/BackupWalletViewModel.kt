@@ -80,7 +80,6 @@ class BackupWalletViewModel @Inject constructor(
         googleBackupAddressFlow.map { backupService.isAccountBackedUp(it) }
     }
 
-
     val state = combine(
         walletItem,
         isDeleteWalletEnabled,
@@ -101,27 +100,21 @@ class BackupWalletViewModel @Inject constructor(
     }
 
     override fun onShowMnemonicPhraseClick() {
-        // TODO: Only polkadotChainId?
         val destination = accountRouter.getExportMnemonicDestination(walletId, polkadotChainId)
         accountRouter.withPinCodeCheckRequired(destination, pinCodeTitleRes = R.string.account_export)
     }
 
     override fun onShowRawSeedClick() {
-        // TODO: Only polkadotChainId?
         val destination = accountRouter.getExportSeedDestination(walletId, polkadotChainId)
         accountRouter.withPinCodeCheckRequired(destination, pinCodeTitleRes = R.string.account_export)
     }
 
     override fun onExportJsonClick() {
-        // TODO: Only polkadotChainId?
         val destination = accountRouter.openExportJsonPasswordDestination(walletId, polkadotChainId)
         accountRouter.withPinCodeCheckRequired(destination, pinCodeTitleRes = R.string.account_export)
     }
 
     override fun onDeleteGoogleBackupClick() {
-//        accountRouter.openConfirmMnemonicOnExport()
-//        accountRouter.openConfirmDeleteGoogleBackup()
-        // TODO
         showError(
             title = resourceManager.getString(R.string.common_confirmation_title),
             message = resourceManager.getString(R.string.backup_wallet_delete_alert_message),
@@ -129,11 +122,10 @@ class BackupWalletViewModel @Inject constructor(
             negativeButtonText = resourceManager.getString(R.string.common_cancel),
             buttonsOrientation = LinearLayout.HORIZONTAL
         ) {
-            println("!!! positiveClick onDeleteGoogleBackupClick")
             launch {
                 googleBackupAddressFlow.firstOrNull()?.let { address ->
-                    println("!!! deleting backup for address = $address")
                     backupService.deleteBackupAccount(address)
+                    accountInteractor.updateWalletOnGoogleBackupDelete(walletId)
                     refresh.emit(Event(Unit))
                 }
             }
@@ -142,39 +134,20 @@ class BackupWalletViewModel @Inject constructor(
 
     override fun onGoogleBackupClick() {
         launch {
-//            val metaAccount = accountInteractor.selectedMetaAccount()
             val secrets = accountInteractor.getMetaAccountSecrets(walletId) ?: error("There are no secrets for walletId: $walletId")
-//            val keypairSchema = secrets[MetaAccountSecrets.SubstrateKeypair]
-//            val publicKey = keypairSchema[KeyPairSchema.PublicKey]
-//            val privateKey = keypairSchema[KeyPairSchema.PrivateKey]
-//            val nonce1 = keypairSchema[KeyPairSchema.Nonce]
-//            val keypair = Keypair(publicKey, privateKey, nonce1)
-//            val encryption = mapCryptoTypeToEncryption(metaAccount.substrateCryptoType)
             val entropy = secrets[MetaAccountSecrets.Entropy]
             val substrateDerivationPath = secrets[MetaAccountSecrets.SubstrateDerivationPath]
             val ethereumDerivationPath = secrets[MetaAccountSecrets.EthereumDerivationPath]
-//            metaAccount.id
             val payload = CreateBackupPasswordPayload(
                 mnemonic = entropy?.let { MnemonicCreator.fromEntropy(it).words }.orEmpty(),
                 accountName = wallet.first().name,
                 cryptoType = wallet.first().substrateCryptoType,
                 substrateDerivationPath = substrateDerivationPath.orEmpty(),
                 ethereumDerivationPath = ethereumDerivationPath.orEmpty(),
-                createAccount = false,
-                //todo update
-//                substrateSeed = null,
-//                substrateJson = null,
-//                ethSeed = null,
-//                ethJson = null
+                createAccount = false
             )
-            println("!!! payload.accountName = ${payload.accountName}")
-            println("!!! payload.mnemonic = ${payload.mnemonic}")
-            println("!!! payload.cryptoType = ${payload.cryptoType}")
-            println("!!! payload.substrateDerivationPath = ${payload.substrateDerivationPath}")
-            println("!!! payload.ethereumDerivationPath = ${payload.ethereumDerivationPath}")
             accountRouter.openCreateBackupPasswordDialog(payload)
         }
-        // TODO
     }
 
     override fun onDeleteWalletClick() {
@@ -182,14 +155,13 @@ class BackupWalletViewModel @Inject constructor(
             title = resourceManager.getString(R.string.account_delete_confirmation_title),
             message = resourceManager.getString(R.string.account_delete_confirmation_description),
             positiveButtonText = resourceManager.getString(R.string.account_delete_confirm),
-            negativeButtonText = resourceManager.getString(R.string.common_cancel)
-        ) {
-            println("123")
-            launch {
-                accountInteractor.deleteAccount(walletId)
-                onBackClick()
+            negativeButtonText = resourceManager.getString(R.string.common_cancel),
+            positiveClick = {
+                launch {
+                    accountInteractor.deleteAccount(walletId)
+                    onBackClick()
+                }
             }
-        }
-        // TODO
+        )
     }
 }

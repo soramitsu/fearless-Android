@@ -280,4 +280,8 @@ class AccountInteractorImpl(
     override suspend fun updateWalletBackedUp(metaId: Long) {
         accountRepository.updateMetaAccountBackedUp(metaId)
     }
+
+    override suspend fun updateWalletOnGoogleBackupDelete(metaId: Long) {
+        accountRepository.updateWalletOnGoogleBackupDelete(metaId)
+    }
 }

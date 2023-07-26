@@ -91,7 +91,7 @@ fun BannerBackup(
                 onClick = onBackupClick
             ) {
                 Text(
-                    modifier = Modifier.defaultMinSize(minWidth = 86.dp) ,
+                    modifier = Modifier.defaultMinSize(minWidth = 86.dp),
                     text = stringResource(R.string.backup_now),
                     style = MaterialTheme.customTypography.headline2.copy(fontSize = TextUnit(12f, TextUnitType.Sp)),
                     color = Color.White,

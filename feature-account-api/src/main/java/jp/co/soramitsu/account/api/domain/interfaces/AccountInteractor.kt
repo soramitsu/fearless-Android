@@ -151,4 +151,6 @@ interface AccountInteractor {
     suspend fun updateAccountName(metaId: Long, name: String)
 
     suspend fun updateWalletBackedUp(metaId: Long)
+
+    suspend fun updateWalletOnGoogleBackupDelete(metaId: Long)
 }
