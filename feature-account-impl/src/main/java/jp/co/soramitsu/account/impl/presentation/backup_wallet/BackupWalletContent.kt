@@ -66,7 +66,7 @@ internal fun BackupWalletContent(
         Toolbar(
             modifier = Modifier.padding(bottom = 12.dp),
             state = ToolbarViewState(
-                title = stringResource(R.string.common_backup_wallet),
+                title = stringResource(R.string.export_wallet),
                 navigationIcon = R.drawable.ic_arrow_back_24dp
             ),
             onNavigationClick = callback::onBackClick
