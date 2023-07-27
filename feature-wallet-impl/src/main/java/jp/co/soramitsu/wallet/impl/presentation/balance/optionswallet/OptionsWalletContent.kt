@@ -82,7 +82,7 @@ fun OptionsWalletContent(
             }
             MarginVertical(margin = 28.dp)
             GrayButton(
-                text = stringResource(id = R.string.common_backup_wallet),
+                text = stringResource(id = R.string.export_wallet),
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(48.dp)

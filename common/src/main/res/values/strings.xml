@@ -144,7 +144,6 @@
     <string name="common_applied">Applied</string>
     <string name="common_apply">Apply</string>
     <string name="common_available_format">Available: %s</string>
-    <string name="common_backup_wallet">Backup wallet</string>
     <string name="common_backup_your_wallet">Backup your wallet</string>
     <string name="banners_buy_xor_title">Buy XOR token</string>
     <string name="banners_buy_xor">Buy XOR</string>
