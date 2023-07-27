@@ -33,6 +33,10 @@ import jp.co.soramitsu.common.compose.theme.customButtonColors
 import jp.co.soramitsu.common.compose.theme.customTypography
 import jp.co.soramitsu.common.compose.theme.grayButtonBackground
 import jp.co.soramitsu.common.compose.theme.purple
+import jp.co.soramitsu.common.utils.onSingleClick
+import jp.co.soramitsu.common.utils.rememberLastClickTime
+
+private const val DISABLE_CLICK_TIME = 1000L
 
 data class ButtonViewState(
     val text: String,
@@ -111,9 +115,15 @@ fun FearlessButton(
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
+    val lastClickTimeState = rememberLastClickTime()
     TextButton(
         modifier = modifier,
-        onClick = onClick,
+        onClick = {
+            onSingleClick(
+                lastClickTimeState = lastClickTimeState,
+                onClick = onClick
+            )
+        },
         shape = FearlessCorneredShape(),
         colors = colors,
         enabled = enabled,
