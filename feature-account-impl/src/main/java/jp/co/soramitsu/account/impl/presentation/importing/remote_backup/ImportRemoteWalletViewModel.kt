@@ -1,5 +1,6 @@
 package jp.co.soramitsu.account.impl.presentation.importing.remote_backup
 
+import android.widget.LinearLayout
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -11,6 +12,7 @@ import jp.co.soramitsu.account.impl.presentation.importing.remote_backup.screens
 import jp.co.soramitsu.backup.BackupService
 import jp.co.soramitsu.backup.domain.models.BackupAccountMeta
 import jp.co.soramitsu.backup.domain.models.DecryptedBackupAccount
+import jp.co.soramitsu.common.BuildConfig
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.TextInputViewState
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -37,7 +39,7 @@ class ImportRemoteWalletViewModel @Inject constructor(
         ImportRemoteWalletStep.WalletImported
     )
     private val currentStep = MutableStateFlow(steps.first())
-    private val remoteWallets = MutableStateFlow(emptyList<BackupAccountMeta>())
+    private val remoteWallets = MutableStateFlow<List<BackupAccountMeta>?>(null)
 
     private val selectedWallet = MutableStateFlow<BackupAccountMeta?>(null)
     private val walletImportedState = selectedWallet.map { selectedWallet ->
@@ -67,10 +69,7 @@ class ImportRemoteWalletViewModel @Inject constructor(
         remoteWallets,
         interactor.getMetaAccountsGoogleAddresses()
     ) { wallets, localWalletAddresses ->
-        val remoteWalletListState1 = RemoteWalletListState(wallets = wallets.filter { it.address !in localWalletAddresses })
-        println("!!! wallets: ${wallets.size}")
-        println("!!! localWalletAddresses: ${localWalletAddresses.size}")
-        remoteWalletListState1
+        RemoteWalletListState(wallets = wallets?.filter { it.address !in localWalletAddresses })
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, initialValue = RemoteWalletListState())
 
@@ -91,6 +90,24 @@ class ImportRemoteWalletViewModel @Inject constructor(
     override fun onWalletSelected(backupAccount: BackupAccountMeta) {
         selectedWallet.value = backupAccount
         nextStep()
+    }
+
+    override fun onWalletLongClick(backupAccount: BackupAccountMeta) {
+        if (!BuildConfig.DEBUG) return
+        showError(
+            title = resourceManager.getString(R.string.common_confirmation_title),
+            message = resourceManager.getString(R.string.backup_wallet_delete_alert_message),
+            positiveButtonText = resourceManager.getString(R.string.common_delete),
+            negativeButtonText = resourceManager.getString(R.string.common_cancel),
+            buttonsOrientation = LinearLayout.HORIZONTAL
+        ) {
+            launch {
+                backupService.deleteBackupAccount(backupAccount.address)
+                val current = remoteWallets.value
+                val new = current?.minus(backupAccount)
+                remoteWallets.value = new
+            }
+        }
     }
 
     private fun nextStep() {

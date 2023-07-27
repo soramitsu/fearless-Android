@@ -62,6 +62,7 @@ internal fun PreviewImportRemoteWalletContent() {
                 override fun onCreateNewWallet() {}
                 override fun onContinueClick() {}
                 override fun onWalletSelected(backupAccount: BackupAccountMeta) {}
+                override fun onWalletLongClick(backupAccount: BackupAccountMeta) {}
                 override fun onBackClick() {}
                 override fun loadRemoteWallets() {}
                 override fun onPasswordChanged(password: String) {}
