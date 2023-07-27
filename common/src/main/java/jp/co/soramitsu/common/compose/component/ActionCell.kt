@@ -27,6 +27,8 @@ import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.theme.black2
 import jp.co.soramitsu.common.compose.theme.customTypography
 import jp.co.soramitsu.common.compose.theme.white04
+import jp.co.soramitsu.common.utils.onSingleClick
+import jp.co.soramitsu.common.utils.rememberLastClickTime
 
 data class ActionCellViewState(
     val painter: Painter,
@@ -40,8 +42,17 @@ fun ActionCell(
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
+    val lastClickTimeState = rememberLastClickTime()
     val boxModifier = when {
-        state.isEnabled -> modifier.clickable(role = Role.Button, onClick = onClick)
+        state.isEnabled -> modifier.clickable(
+            role = Role.Button,
+            onClick = {
+                onSingleClick(
+                    lastClickTimeState = lastClickTimeState,
+                    onClick = onClick
+                )
+            }
+        )
         else -> modifier
     }
         .size(80.dp)
