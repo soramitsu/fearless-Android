@@ -44,6 +44,8 @@ interface RemoteWalletListCallback {
 
     fun onWalletSelected(backupAccount: BackupAccountMeta)
 
+    fun onWalletLongClick(backupAccount: BackupAccountMeta)
+
     fun onBackClick()
 
     fun loadRemoteWallets()
@@ -51,7 +53,6 @@ interface RemoteWalletListCallback {
 
 @Composable
 internal fun RemoteWalletListScreen(
-//    activity: Activity,
     state: RemoteWalletListState,
     callback: RemoteWalletListCallback,
     modifier: Modifier = Modifier
@@ -95,6 +96,9 @@ internal fun RemoteWalletListScreen(
                             ),
                             onSelected = {
                                 callback.onWalletSelected(wallet)
+                            },
+                            onLongClick = {
+                                callback.onWalletLongClick(wallet)
                             }
                         )
                     }
@@ -146,6 +150,7 @@ private fun PreviewRemoteWalletListScreen() {
                 override fun onCreateNewWallet() {}
                 override fun onContinueClick() {}
                 override fun onWalletSelected(backupAccount: BackupAccountMeta) {}
+                override fun onWalletLongClick(backupAccount: BackupAccountMeta) {}
                 override fun onBackClick() {}
                 override fun loadRemoteWallets() {}
             }

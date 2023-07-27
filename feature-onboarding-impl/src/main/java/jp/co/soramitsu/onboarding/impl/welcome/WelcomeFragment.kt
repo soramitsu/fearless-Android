@@ -46,6 +46,8 @@ class WelcomeFragment : BaseComposeFragment<WelcomeViewModel>() {
         println("!!! WelcomeFragment GoogleLogin result: $googleSignInStatus ")
         if (result.resultCode != Activity.RESULT_OK) {
             viewModel.onGoogleLoginError(googleSignInStatus.toString())
+        } else {
+            viewModel.openAddWalletThroughGoogleScreen()
         }
     }
 

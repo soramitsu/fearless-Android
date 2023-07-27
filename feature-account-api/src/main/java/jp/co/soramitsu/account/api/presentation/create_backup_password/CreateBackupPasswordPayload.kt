@@ -11,9 +11,5 @@ class CreateBackupPasswordPayload(
     val cryptoType: CryptoType,
     val substrateDerivationPath: String,
     val ethereumDerivationPath: String,
-//    val substrateSeed: String?,
-//    val ethSeed: String?,
-//    val substrateJson: String?,
-//    val ethJson: String?,
     val createAccount: Boolean
 ) : Parcelable

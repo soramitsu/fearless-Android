@@ -27,6 +27,12 @@ android {
             keyAlias System.env.CI_KEYSTORE_KEY_ALIAS ?: "fearless"
             keyPassword System.env.CI_KEYSTORE_KEY_PASS ?: "00000000"
         }
+        debug {
+            storeFile file("../debug-keystore.jks")
+            storePassword "00000000"
+            keyAlias "fearless"
+            keyPassword "00000000"
+        }
     }
     buildTypes {
         debug {
@@ -34,7 +40,7 @@ android {
             proguardFiles 'proguard-rules.pro'
             applicationIdSuffix '.debug'
             versionNameSuffix '-debug'
-            signingConfig signingConfigs.ci
+            signingConfig signingConfigs.debug
         }
         release {
             minifyEnabled minifyRelease
@@ -44,7 +50,7 @@ android {
         }
         staging {
             initWith debug
-            signingConfig signingConfigs.ci
+            signingConfig signingConfigs.debug
             matchingFallbacks = ['debug']
             versionNameSuffix '-staging'
             applicationIdSuffix '.staging'
@@ -57,7 +63,7 @@ android {
             }
         }
         develop {
-            signingConfig signingConfigs.ci
+            signingConfig signingConfigs.debug
             matchingFallbacks = ['debug']
             versionNameSuffix '-develop'
             applicationIdSuffix '.dev'
@@ -70,7 +76,7 @@ android {
             }
         }
         pr {
-            signingConfig signingConfigs.ci
+            signingConfig signingConfigs.debug
             matchingFallbacks = ['debug']
             versionNameSuffix '-pr'
             applicationIdSuffix '.dev'

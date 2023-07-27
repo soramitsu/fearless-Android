@@ -100,11 +100,13 @@ class WelcomeViewModel @Inject constructor(
         openBrowserEvent.value = Event(appLinksProvider.privacyUrl)
     }
 
-    private suspend fun openAddWalletThroughGoogleScreen() {
-        if (backupService.getBackupAccounts().isEmpty()) {
-            router.openCreateWalletDialog(true)
-        } else {
-            router.openImportRemoteWalletDialog()
+    fun openAddWalletThroughGoogleScreen() {
+        launch {
+            if (backupService.getBackupAccounts().isEmpty()) {
+                router.openCreateWalletDialog(true)
+            } else {
+                router.openImportRemoteWalletDialog()
+            }
         }
     }
 

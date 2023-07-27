@@ -145,7 +145,6 @@ class SelectWalletViewModel @Inject constructor(
     }
 
     fun onGoogleLoginError(message: String?) {
-        println("!!! SelectWalletModel onGoogleLoginError")
         showError("GoogleLoginError: ${message.orEmpty()}")
     }
 }

@@ -8,42 +8,6 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:621183184145:android:98678d680ec2e9060730b0",
-        "android_client_info": {
-          "package_name": "jp.co.soramitsu.adar.staging"
-        }
-      },
-      "oauth_client": [
-        {
-          "client_id": "621183184145-9f45pucnai4o553imtpnep1mdl909i5b.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
-      "api_key": [
-        {
-          "current_key": "AIzaSyAdN45IMOhSas1GG1wuJCbXG1VlnrW_ZxE"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "621183184145-3hd3h5ioiejqu2bs1ngamlpd616mmcio.apps.googleusercontent.com",
-              "client_type": 3
-            },
-            {
-              "client_id": "621183184145-3epcp830ue13bh54eshg09mfku2me1qv.apps.googleusercontent.com",
-              "client_type": 2,
-              "ios_info": {
-                "bundle_id": "co.jp.soramitsu.soraui-example"
-              }
-            }
-          ]
-        }
-      }
-    },
-    {
-      "client_info": {
         "mobilesdk_app_id": "1:621183184145:android:0f3c905e5882bbf50730b0",
         "android_client_info": {
           "package_name": "jp.co.soramitsu.fearless.debug"
@@ -64,6 +28,14 @@
           "android_info": {
             "package_name": "jp.co.soramitsu.fearless.debug",
             "certificate_hash": "a65f469b8a488fa8cb5629c79121e9bec759f1ed"
+          }
+        },
+        {
+          "client_id": "621183184145-g3i9om82fat5hrit1urm94g946iipac4.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "jp.co.soramitsu.fearless.debug",
+            "certificate_hash": "f107164171ec2d32d37cbc61574dbf09a4d567ca"
           }
         },
         {
@@ -111,6 +83,22 @@
       },
       "oauth_client": [
         {
+          "client_id": "621183184145-11lu1jtvfcjmsvm09di6eqtsln5qe6fi.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "jp.co.soramitsu.fearless.dev",
+            "certificate_hash": "f107164171ec2d32d37cbc61574dbf09a4d567ca"
+          }
+        },
+        {
+          "client_id": "621183184145-j7hcbp3p9cl99nuuea3d9hs88l1k4k46.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "jp.co.soramitsu.fearless.dev",
+            "certificate_hash": "a6cb8486963f79002d4bafdf0bf1b84c0288eba8"
+          }
+        },
+        {
           "client_id": "621183184145-9f45pucnai4o553imtpnep1mdl909i5b.apps.googleusercontent.com",
           "client_type": 3
         }
@@ -143,186 +131,6 @@
         "mobilesdk_app_id": "1:621183184145:android:fc33975da180db940730b0",
         "android_client_info": {
           "package_name": "jp.co.soramitsu.fearless.staging"
-        }
-      },
-      "oauth_client": [
-        {
-          "client_id": "621183184145-9f45pucnai4o553imtpnep1mdl909i5b.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
-      "api_key": [
-        {
-          "current_key": "AIzaSyAdN45IMOhSas1GG1wuJCbXG1VlnrW_ZxE"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "621183184145-3hd3h5ioiejqu2bs1ngamlpd616mmcio.apps.googleusercontent.com",
-              "client_type": 3
-            },
-            {
-              "client_id": "621183184145-3epcp830ue13bh54eshg09mfku2me1qv.apps.googleusercontent.com",
-              "client_type": 2,
-              "ios_info": {
-                "bundle_id": "co.jp.soramitsu.soraui-example"
-              }
-            }
-          ]
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:621183184145:android:77c7ba52dc549fe50730b0",
-        "android_client_info": {
-          "package_name": "jp.co.soramitsu.manticora"
-        }
-      },
-      "oauth_client": [
-        {
-          "client_id": "621183184145-9f45pucnai4o553imtpnep1mdl909i5b.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
-      "api_key": [
-        {
-          "current_key": "AIzaSyAdN45IMOhSas1GG1wuJCbXG1VlnrW_ZxE"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "621183184145-3hd3h5ioiejqu2bs1ngamlpd616mmcio.apps.googleusercontent.com",
-              "client_type": 3
-            },
-            {
-              "client_id": "621183184145-3epcp830ue13bh54eshg09mfku2me1qv.apps.googleusercontent.com",
-              "client_type": 2,
-              "ios_info": {
-                "bundle_id": "co.jp.soramitsu.soraui-example"
-              }
-            }
-          ]
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:621183184145:android:16d74f53a9d0df090730b0",
-        "android_client_info": {
-          "package_name": "jp.co.soramitsu.manticora.debug"
-        }
-      },
-      "oauth_client": [
-        {
-          "client_id": "621183184145-9f45pucnai4o553imtpnep1mdl909i5b.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
-      "api_key": [
-        {
-          "current_key": "AIzaSyAdN45IMOhSas1GG1wuJCbXG1VlnrW_ZxE"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "621183184145-3hd3h5ioiejqu2bs1ngamlpd616mmcio.apps.googleusercontent.com",
-              "client_type": 3
-            },
-            {
-              "client_id": "621183184145-3epcp830ue13bh54eshg09mfku2me1qv.apps.googleusercontent.com",
-              "client_type": 2,
-              "ios_info": {
-                "bundle_id": "co.jp.soramitsu.soraui-example"
-              }
-            }
-          ]
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:621183184145:android:4cd848e984cf539c0730b0",
-        "android_client_info": {
-          "package_name": "jp.co.soramitsu.manticora.demo"
-        }
-      },
-      "oauth_client": [
-        {
-          "client_id": "621183184145-9f45pucnai4o553imtpnep1mdl909i5b.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
-      "api_key": [
-        {
-          "current_key": "AIzaSyAdN45IMOhSas1GG1wuJCbXG1VlnrW_ZxE"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "621183184145-3hd3h5ioiejqu2bs1ngamlpd616mmcio.apps.googleusercontent.com",
-              "client_type": 3
-            },
-            {
-              "client_id": "621183184145-3epcp830ue13bh54eshg09mfku2me1qv.apps.googleusercontent.com",
-              "client_type": 2,
-              "ios_info": {
-                "bundle_id": "co.jp.soramitsu.soraui-example"
-              }
-            }
-          ]
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:621183184145:android:966f9975216628600730b0",
-        "android_client_info": {
-          "package_name": "jp.co.soramitsu.unkai.terminal"
-        }
-      },
-      "oauth_client": [
-        {
-          "client_id": "621183184145-9f45pucnai4o553imtpnep1mdl909i5b.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
-      "api_key": [
-        {
-          "current_key": "AIzaSyAdN45IMOhSas1GG1wuJCbXG1VlnrW_ZxE"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "621183184145-3hd3h5ioiejqu2bs1ngamlpd616mmcio.apps.googleusercontent.com",
-              "client_type": 3
-            },
-            {
-              "client_id": "621183184145-3epcp830ue13bh54eshg09mfku2me1qv.apps.googleusercontent.com",
-              "client_type": 2,
-              "ios_info": {
-                "bundle_id": "co.jp.soramitsu.soraui-example"
-              }
-            }
-          ]
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:621183184145:android:b3de34997fb76ecd0730b0",
-        "android_client_info": {
-          "package_name": "jp.co.soramitsu.unkai.terminal.debug"
         }
       },
       "oauth_client": [
