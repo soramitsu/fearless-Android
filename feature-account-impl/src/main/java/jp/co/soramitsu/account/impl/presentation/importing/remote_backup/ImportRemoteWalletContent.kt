@@ -66,6 +66,7 @@ internal fun PreviewImportRemoteWalletContent() {
                 override fun onBackClick() {}
                 override fun loadRemoteWallets() {}
                 override fun onPasswordChanged(password: String) {}
+                override fun onPasswordVisibilityClick() {}
                 override fun onImportMore() {}
             }
         )

@@ -22,9 +22,10 @@ class SelectWalletFragment : BaseComposeBottomSheetDialogFragment<SelectWalletVi
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
         val googleSignInStatus = result.data?.extras?.get("googleSignInStatus")
-        println("!!! SelectWalletFragment GoogleLogin result: $googleSignInStatus ")
         if (result.resultCode != Activity.RESULT_OK) {
             viewModel.onGoogleLoginError(googleSignInStatus.toString())
+        } else {
+            viewModel.openAddWalletThroughGoogleScreen()
         }
     }
 

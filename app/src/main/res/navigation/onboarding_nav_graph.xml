@@ -12,6 +12,14 @@
         tools:layout="@layout/fragment_welcome">
 
         <action
+            android:id="@+id/action_welcomeFragment_to_createAccountFragment"
+            app:destination="@id/createAccountFragment"
+            app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
+            app:exitAnim="?android:attr/fragmentOpenExitAnimation"
+            app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
+            app:popExitAnim="?android:attr/fragmentCloseExitAnimation" />
+
+        <action
             android:id="@+id/action_welcomeFragment_to_backupMnemonicFragment"
             app:destination="@id/backupMnemonicFragment"
             app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
