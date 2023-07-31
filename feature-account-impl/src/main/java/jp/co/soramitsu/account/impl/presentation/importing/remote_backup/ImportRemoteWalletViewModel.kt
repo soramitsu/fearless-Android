@@ -48,13 +48,24 @@ class ImportRemoteWalletViewModel @Inject constructor(
 
     private val defaultTextInputViewState = TextInputViewState(
         text = "",
-        hint = "Enter password",
-        placeholder = "",
-        endIcon = null,
-        isActive = true,
+        hint = resourceManager.getString(R.string.import_remote_wallet_hint_enter_password),
+        endIcon = R.drawable.ic_eye_disabled,
         mode = TextInputViewState.Mode.Password
     )
-    private val passwordInputViewState = MutableStateFlow(defaultTextInputViewState)
+
+    private val isPasswordVisible = MutableStateFlow(false)
+    private val passwordText = MutableStateFlow("")
+    private val passwordInputViewState = combine(
+        passwordText,
+        isPasswordVisible
+    ) { password, isVisible ->
+        TextInputViewState(
+            text = password,
+            hint = resourceManager.getString(R.string.import_remote_wallet_hint_enter_password),
+            endIcon = if (isVisible) R.drawable.ic_eye_enabled else R.drawable.ic_eye_disabled,
+            mode = if (isVisible) TextInputViewState.Mode.Text else TextInputViewState.Mode.Password
+        )
+    }.stateIn(this, SharingStarted.Eagerly, defaultTextInputViewState)
 
     private val enterBackupPasswordState = combine(
         selectedWallet,
@@ -85,7 +96,7 @@ class ImportRemoteWalletViewModel @Inject constructor(
             ImportRemoteWalletStep.WalletImported -> walletImportedState
         }
     }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, initialValue = remoteWalletListState.value) as StateFlow<ImportRemoteWalletState>
+        .stateIn(viewModelScope, SharingStarted.Eagerly, initialValue = remoteWalletListState.value)
 
     override fun onWalletSelected(backupAccount: BackupAccountMeta) {
         selectedWallet.value = backupAccount
@@ -142,17 +153,6 @@ class ImportRemoteWalletViewModel @Inject constructor(
 
     override fun onBackClick() {
         backClicked()
-        /*
-                if (hasPreviousStep()) {
-                    if (currentStep.value == ImportRemoteWalletStep.WalletImported) {
-                        openMainScreen()
-                    } else {
-                        previousStep()
-                    }
-                } else {
-                    accountRouter.back()
-                }
-        */
     }
 
     override fun onCreateNewWallet() {
@@ -222,6 +222,7 @@ class ImportRemoteWalletViewModel @Inject constructor(
             ethereumDerivationPath = decryptedBackupAccount.ethDerivationPath.orEmpty(), // TODO: Backup fix
             selectedEncryptionType = decryptedBackupAccount.cryptoType,
             withEth = true,
+            isBackedUp = true,
             googleBackupAddress = decryptedBackupAccount.address
         ).getOrThrow()
     }
@@ -237,12 +238,14 @@ class ImportRemoteWalletViewModel @Inject constructor(
     }
 
     override fun onPasswordChanged(password: String) {
-        passwordInputViewState.value = passwordInputViewState.value.copy(
-            text = password
-        )
+        passwordText.value = password
     }
 
     override fun onImportMore() {
         accountRouter.openImportRemoteWalletDialog()
+    }
+
+    override fun onPasswordVisibilityClick() {
+        isPasswordVisible.value = isPasswordVisible.value.not()
     }
 }

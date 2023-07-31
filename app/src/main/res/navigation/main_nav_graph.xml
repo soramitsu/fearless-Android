@@ -523,10 +523,10 @@
         android:name="jp.co.soramitsu.account.impl.presentation.account.create.CreateAccountDialog"
         android:label="dialog_create_account" />
 
-<!--    <dialog-->
-<!--        android:id="@+id/backupMnemonicFragment"-->
-<!--        android:name="jp.co.soramitsu.account.impl.presentation.account.create.CreateAccountDialog"-->
-<!--        android:label="dialog_create_account" />-->
+    <dialog
+        android:id="@+id/backupMnemonicFragment"
+        android:name="jp.co.soramitsu.account.impl.presentation.account.create.CreateAccountDialog"
+        android:label="dialog_create_account" />
 
     <dialog
         android:id="@+id/mnemonicAgreementsDialog"

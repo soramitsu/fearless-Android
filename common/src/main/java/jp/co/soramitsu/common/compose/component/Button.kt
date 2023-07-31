@@ -13,9 +13,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.ButtonColors
 import androidx.compose.material.ButtonDefaults
+import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.material.TextButton
@@ -40,6 +42,7 @@ import jp.co.soramitsu.common.compose.theme.colorAccentDark
 import jp.co.soramitsu.common.compose.theme.customButtonColors
 import jp.co.soramitsu.common.compose.theme.customTypography
 import jp.co.soramitsu.common.compose.theme.purple
+import jp.co.soramitsu.common.compose.theme.white
 import jp.co.soramitsu.common.compose.theme.white08
 import jp.co.soramitsu.common.compose.theme.white64
 import jp.co.soramitsu.common.utils.onSingleClick
@@ -58,7 +61,7 @@ fun AccentButton(state: ButtonViewState, modifier: Modifier = Modifier, onClick:
 }
 
 @Composable
-fun AccentButton(text: String, enabled: Boolean = true, modifier: Modifier = Modifier, onClick: () -> Unit) {
+fun AccentButton(modifier: Modifier = Modifier, text: String, enabled: Boolean = true, onClick: () -> Unit) {
     TextButton(
         text = text,
         enabled = enabled,
@@ -67,6 +70,44 @@ fun AccentButton(text: String, enabled: Boolean = true, modifier: Modifier = Mod
         textStyle = MaterialTheme.customTypography.header4,
         onClick = onClick
     )
+}
+
+@Composable
+fun AccentButton(
+    modifier: Modifier = Modifier,
+    text: String,
+    enabled: Boolean = true,
+    loading: Boolean = false,
+    onClick: () -> Unit
+) {
+    if (loading) {
+        ShapeButton(
+            modifier = modifier,
+            backgroundColor = colorAccentDark,
+            onClick = {}
+        ) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(16.dp),
+                strokeWidth = 1.dp,
+                color = white
+            )
+            MarginHorizontal(margin = 4.dp)
+            Text(
+                text = text,
+                style = MaterialTheme.customTypography.header4,
+                textAlign = TextAlign.Center
+            )
+        }
+    } else {
+        TextButton(
+            text = text,
+            enabled = enabled,
+            colors = accentDarkButtonColors,
+            modifier = modifier,
+            textStyle = MaterialTheme.customTypography.header4,
+            onClick = onClick
+        )
+    }
 }
 
 @Composable
@@ -274,29 +315,23 @@ fun ButtonPreview() {
                 .background(Color.Black)
         ) {
             AccentButton(
-                text = "Dark Start staking ",
-                modifier = Modifier
-                    .width(200.dp)
-                    .height(52.dp)
-            ) {}
-            MarginVertical(margin = 16.dp)
-            AccentButton(
-                text = "Dark Start staking ",
+                text = "Start staking",
                 enabled = false,
+                loading = true,
+                modifier = Modifier
+                    .width(300.dp)
+                    .height(52.dp)
+            ) {}
+            MarginVertical(margin = 16.dp)
+            AccentButton(
+                text = "Start staking Start staking Start staking",
                 modifier = Modifier
                     .width(200.dp)
                     .height(52.dp)
             ) {}
             MarginVertical(margin = 16.dp)
             AccentButton(
-                "Start staking Start staking Start staking ",
-                modifier = Modifier
-                    .width(200.dp)
-                    .height(52.dp)
-            ) {}
-            MarginVertical(margin = 16.dp)
-            AccentButton(
-                "Start staking",
+                text = "Start staking",
                 enabled = false,
                 modifier = Modifier
                     .width(200.dp)

@@ -94,6 +94,7 @@ fun CreateAccountDialogContent(
                 .height(48.dp)
                 .padding(horizontal = 16.dp)
                 .imePadding(),
+            enabled = state.isContinueEnabled,
             text = stringResource(R.string.common_continue),
             onClick = callback::nextClicked
         )

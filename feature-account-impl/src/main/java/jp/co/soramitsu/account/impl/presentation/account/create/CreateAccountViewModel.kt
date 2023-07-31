@@ -67,18 +67,14 @@ class CreateAccountViewModel @Inject constructor(
     }
 
     override fun nextClicked() {
-        router.openMnemonicAgreementsDialog(
-            isFromGoogleBackup = isFromGoogleBackup,
-            accountName = walletNickname.value
-        )
-//        if (isFromGoogleBackup) {
-//            router.openMnemonicAgreementsDialog(
-//                isFromGoogleBackup = isFromGoogleBackup,
-//                accountName = walletNickname.value
-//            )
-//        } else {
-//            _showScreenshotsWarningEvent.value = Event(Unit)
-//        }
+        if (isFromGoogleBackup) {
+            router.openMnemonicAgreementsDialog(
+                isFromGoogleBackup = isFromGoogleBackup,
+                accountName = walletNickname.value
+            )
+        } else {
+            _showScreenshotsWarningEvent.value = Event(Unit)
+        }
     }
 
     fun screenshotWarningConfirmed() {
