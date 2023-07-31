@@ -207,6 +207,10 @@ class Navigator :
         runCatching { navigate(resId, args) }
     }
 
+    override fun openCreateAccountFromOnboarding() {
+        navController?.navigate(R.id.action_welcomeFragment_to_createAccountFragment)
+    }
+
     override fun openCreateWalletDialog(isFromGoogleBackup: Boolean) {
         val bundle = CreateAccountDialog.getBundle(isFromGoogleBackup = isFromGoogleBackup)
         navController?.navigate(R.id.createAccountDialog, bundle)

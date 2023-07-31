@@ -19,7 +19,6 @@ import jp.co.soramitsu.feature_account_impl.databinding.FragmentCreateAccountBin
 class CreateAccountFragment : BaseFragment<CreateAccountViewModel>(R.layout.fragment_create_account) {
     companion object {
 
-        // todo use this
         fun getBundle(isFromGoogleBackup: Boolean): Bundle {
             return bundleOf(
                 CreateAccountScreenKeys.IS_FROM_GOOGLE_BACKUP_KEY to isFromGoogleBackup

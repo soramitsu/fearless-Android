@@ -17,6 +17,7 @@ import jp.co.soramitsu.common.compose.component.TextInputViewState
 import jp.co.soramitsu.common.compose.component.TextSelectableItemState
 import jp.co.soramitsu.common.data.secrets.v2.KeyPairSchema
 import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
+import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.deriveSeed32
 import jp.co.soramitsu.common.utils.nullIfEmpty
 import jp.co.soramitsu.feature_account_impl.R
@@ -40,7 +41,8 @@ class CreateBackupPasswordViewModel @Inject constructor(
     private val accountRouter: AccountRouter,
     private val backupService: BackupService,
     private val savedStateHandle: SavedStateHandle,
-    private val interactor: AccountInteractor
+    private val interactor: AccountInteractor,
+    private val resourceManager: ResourceManager
 ) : BaseViewModel(), CreateBackupPasswordCallback {
 
     private val payload = savedStateHandle.get<CreateBackupPasswordPayload>(CreateBackupPasswordDialog.PAYLOAD_KEY)!!
@@ -49,6 +51,9 @@ class CreateBackupPasswordViewModel @Inject constructor(
     private val confirmPassword = MutableStateFlow("")
     private val isUserAgreedWithStatements = MutableStateFlow(false)
     private val isAgreementsChecked = MutableStateFlow(false)
+    private val isLoading = MutableStateFlow(false)
+    private val isOriginPasswordVisible = MutableStateFlow(false)
+    private val isConfirmPasswordVisible = MutableStateFlow(false)
     private val passwordMatchingTextResource = combine(originPassword, confirmPassword) {
             originPassword, confirmPassword ->
         if (originPassword.isNotEmpty() && confirmPassword.length >= originPassword.length) {
@@ -80,8 +85,16 @@ class CreateBackupPasswordViewModel @Inject constructor(
     }
 
     private val initialState = CreateBackupPasswordViewState(
-        originPasswordViewState = createTextInputViewState(hint = "Set password", originPassword.value),
-        confirmPasswordViewState = createTextInputViewState(hint = "Confirm password", confirmPassword.value),
+        originPasswordViewState = createTextInputViewState(
+            hint = resourceManager.getString(R.string.export_json_password_new),
+            password = originPassword.value,
+            isPasswordVisible = false
+        ),
+        confirmPasswordViewState = createTextInputViewState(
+            hint = resourceManager.getString(R.string.export_json_password_confirm),
+            password = confirmPassword.value,
+            isPasswordVisible = false
+        ),
         isUserAgreedWithStatements = isUserAgreedWithStatements.value,
         agreementsState = TextSelectableItemState(
             isSelected = isAgreementsChecked.value,
@@ -89,7 +102,8 @@ class CreateBackupPasswordViewModel @Inject constructor(
         ),
         passwordMatchingTextResource = null,
         highlightConfirmPassword = false,
-        isSetButtonEnabled = true
+        isSetButtonEnabled = true,
+        isLoading = false
     )
     val state = combineFlows(
         originPassword,
@@ -98,14 +112,25 @@ class CreateBackupPasswordViewModel @Inject constructor(
         isAgreementsChecked,
         passwordMatchingTextResource,
         highlightConfirmPassword,
-        isSetButtonEnabled
+        isSetButtonEnabled,
+        isLoading,
+        isOriginPasswordVisible,
+        isConfirmPasswordVisible
     ) {
             originPassword, confirmPassword, isUserAgreedWithStatements,
             isAgreementsChecked, passwordMatchingTextResource,
-            highlightConfirmPassword, isSetButtonEnabled ->
+            highlightConfirmPassword, isSetButtonEnabled, isLoading, isOriginPasswordVisible, isConfirmPasswordVisible ->
         CreateBackupPasswordViewState(
-            originPasswordViewState = createTextInputViewState(hint = "Set password", password = originPassword),
-            confirmPasswordViewState = createTextInputViewState(hint = "Confirm password", password = confirmPassword),
+            originPasswordViewState = createTextInputViewState(
+                hint = resourceManager.getString(R.string.export_json_password_new),
+                password = originPassword,
+                isPasswordVisible = isOriginPasswordVisible
+            ),
+            confirmPasswordViewState = createTextInputViewState(
+                hint = resourceManager.getString(R.string.export_json_password_confirm),
+                password = confirmPassword,
+                isPasswordVisible = isConfirmPasswordVisible
+            ),
             isUserAgreedWithStatements = isUserAgreedWithStatements,
             agreementsState = TextSelectableItemState(
                 isSelected = isAgreementsChecked,
@@ -113,18 +138,21 @@ class CreateBackupPasswordViewModel @Inject constructor(
             ),
             passwordMatchingTextResource = passwordMatchingTextResource,
             highlightConfirmPassword = highlightConfirmPassword,
-            isSetButtonEnabled = isSetButtonEnabled
+            isSetButtonEnabled = isSetButtonEnabled,
+            isLoading = isLoading
         )
     }.stateIn(viewModelScope, started = SharingStarted.Eagerly, initialValue = initialState)
 
     private fun createTextInputViewState(
         hint: String,
-        password: String
+        password: String,
+        isPasswordVisible: Boolean
     ): TextInputViewState {
         return TextInputViewState(
             hint = hint,
             text = password,
-            mode = TextInputViewState.Mode.Password
+            mode = if (isPasswordVisible) TextInputViewState.Mode.Text else TextInputViewState.Mode.Password,
+            endIcon = if (isPasswordVisible) R.drawable.ic_eye_enabled else R.drawable.ic_eye_disabled
         )
     }
 
@@ -145,6 +173,7 @@ class CreateBackupPasswordViewModel @Inject constructor(
     }
 
     override fun onApplyPasswordClick() {
+        isLoading.value = true
         viewModelScope.launch {
             runCatching {
                 if (payload.createAccount) {
@@ -157,8 +186,10 @@ class CreateBackupPasswordViewModel @Inject constructor(
             }
                 .onSuccess {
                     continueBasedOnCodeStatus()
+                    isLoading.value = true
                 }
                 .onFailure {
+                    isLoading.value = true
                     handleAccountBackupError(it)
                 }
         }
@@ -172,8 +203,6 @@ class CreateBackupPasswordViewModel @Inject constructor(
         val mnemonic = payload.mnemonic
 
         val password = originPassword.value
-        val address = interactor.polkadotAddressForSelectedAccountFlow().first()
-
         val metaId = interactor.selectedMetaAccount().id
         val jsonResult = interactor.generateRestoreJson(
             metaId = metaId,
@@ -202,7 +231,8 @@ class CreateBackupPasswordViewModel @Inject constructor(
                     ethereumDerivationPath = payload.ethereumDerivationPath,
                     selectedEncryptionType = payload.cryptoType,
                     withEth = true,
-                    googleBackupAddress = address
+                    isBackedUp = true,
+                    googleBackupAddress = null
                 ).getOrThrow()
             }
 
@@ -213,7 +243,7 @@ class CreateBackupPasswordViewModel @Inject constructor(
                     derivationPath = payload.substrateDerivationPath,
                     selectedEncryptionType = payload.cryptoType,
                     ethSeed = ethSeed,
-                    googleBackupAddress = address
+                    googleBackupAddress = null
                 )
             }
 
@@ -223,7 +253,7 @@ class CreateBackupPasswordViewModel @Inject constructor(
                     password = password,
                     name = payload.accountName,
                     ethJson = ethJson,
-                    googleBackupAddress = address
+                    googleBackupAddress = null
                 )
             }
         }
@@ -283,5 +313,13 @@ class CreateBackupPasswordViewModel @Inject constructor(
 
     override fun onAgreementsClick() {
         isAgreementsChecked.value = !isAgreementsChecked.value
+    }
+
+    override fun onOriginPasswordVisibilityClick() {
+        isOriginPasswordVisible.value = isOriginPasswordVisible.value.not()
+    }
+
+    override fun onConfirmPasswordVisibilityClick() {
+        isConfirmPasswordVisible.value = isConfirmPasswordVisible.value.not()
     }
 }

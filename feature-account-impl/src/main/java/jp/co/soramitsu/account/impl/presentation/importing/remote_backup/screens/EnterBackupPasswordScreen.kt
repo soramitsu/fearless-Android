@@ -46,11 +46,12 @@ interface EnterBackupPasswordCallback {
     fun onContinueClick()
 
     fun onPasswordChanged(password: String)
+
+    fun onPasswordVisibilityClick()
 }
 
 @Composable
 internal fun EnterBackupPasswordScreen(
-//    activity: Activity,
     state: EnterBackupPasswordState,
     callback: EnterBackupPasswordCallback,
     modifier: Modifier = Modifier
@@ -102,7 +103,8 @@ internal fun EnterBackupPasswordScreen(
                 state = state.passwordInputViewState,
                 borderColor = borderColor,
                 onFocusChanged = ::onFocusChanged,
-                onInput = callback::onPasswordChanged
+                onInput = callback::onPasswordChanged,
+                onEndIconClick = callback::onPasswordVisibilityClick
             )
             MarginVertical(margin = 16.dp)
         }

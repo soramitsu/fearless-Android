@@ -259,8 +259,6 @@ task clean(type: Delete) {
     delete rootProject.buildDir
 }
 
-tasks["clean"].dependsOn ":app:signingReport"
-
 dependencies {
 
     ktlint("com.pinterest:ktlint:$ktlintPinterestVersion") {

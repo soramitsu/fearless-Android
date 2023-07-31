@@ -117,62 +117,63 @@ internal fun BackupMnemonicContent(
 
             MarginVertical(margin = 16.dp)
 
-            AdvancedExpandableText(
-                title = stringResource(id = R.string.common_advanced),
-                initialState = false,
-                content = {
-                    DropDown(
-                        state = DropDownViewState(
-                            text = state.selectedEncryptionType,
-                            hint = stringResource(R.string.substrate_crypto_type)
-                        ),
-                        onClick = callback::chooseEncryptionClicked
-                    )
-                    MarginVertical(margin = 12.dp)
-                    TextInput(
-                        state = TextInputViewState(
-                            text = state.substrateDerivationPath,
-                            hint = stringResource(R.string.substrate_secret_derivation_path)
-                        ),
-                        onInput = callback::onSubstrateDerivationPathChange
-                    )
-                    MarginVertical(margin = 8.dp)
-                    B1(
-                        text = stringResource(R.string.onboarding_substrate_derivation_path_hint),
-                        color = MaterialTheme.customColors.colorGreyText
-                    )
-                    MarginVertical(margin = 12.dp)
-                    DropDown(
-                        state = DropDownViewState(
-                            text = stringResource(R.string.ECDSA_crypto_type),
-                            hint = stringResource(R.string.ethereum_crypto_type),
-                            isActive = false
-                        ),
-                        onClick = {}
-                    )
-                    MarginVertical(margin = 12.dp)
-                    TextInput(
-                        state = TextInputViewState(
-                            text = state.ethereumDerivationPath,
-                            hint = stringResource(R.string.ethereum_secret_derivation_path)
-                        ),
-                        onInput = callback::onEthereumDerivationPathChange
-                    )
-                    MarginVertical(margin = 8.dp)
-                    B1(
-                        text = stringResource(R.string.onboarding_ethereum_derivation_path_hint),
-                        color = MaterialTheme.customColors.colorGreyText
-                    )
-                    MarginVertical(margin = 24.dp)
-                }
-            )
+            if (!state.isFromGoogleBackup) {
+                AdvancedExpandableText(
+                    title = stringResource(id = R.string.common_advanced),
+                    initialState = false,
+                    content = {
+                        DropDown(
+                            state = DropDownViewState(
+                                text = state.selectedEncryptionType,
+                                hint = stringResource(R.string.substrate_crypto_type)
+                            ),
+                            onClick = callback::chooseEncryptionClicked
+                        )
+                        MarginVertical(margin = 12.dp)
+                        TextInput(
+                            state = TextInputViewState(
+                                text = state.substrateDerivationPath,
+                                hint = stringResource(R.string.substrate_secret_derivation_path)
+                            ),
+                            onInput = callback::onSubstrateDerivationPathChange
+                        )
+                        MarginVertical(margin = 8.dp)
+                        B1(
+                            text = stringResource(R.string.onboarding_substrate_derivation_path_hint),
+                            color = MaterialTheme.customColors.colorGreyText
+                        )
+                        MarginVertical(margin = 12.dp)
+                        DropDown(
+                            state = DropDownViewState(
+                                text = stringResource(R.string.ECDSA_crypto_type),
+                                hint = stringResource(R.string.ethereum_crypto_type),
+                                isActive = false
+                            ),
+                            onClick = {}
+                        )
+                        MarginVertical(margin = 12.dp)
+                        TextInput(
+                            state = TextInputViewState(
+                                text = state.ethereumDerivationPath,
+                                hint = stringResource(R.string.ethereum_secret_derivation_path)
+                            ),
+                            onInput = callback::onEthereumDerivationPathChange
+                        )
+                        MarginVertical(margin = 8.dp)
+                        B1(
+                            text = stringResource(R.string.onboarding_ethereum_derivation_path_hint),
+                            color = MaterialTheme.customColors.colorGreyText
+                        )
+                        MarginVertical(margin = 24.dp)
+                    }
+                )
+            }
         }
 
         val launcher = rememberLauncherForActivityResult(
             ActivityResultContracts.StartActivityForResult()
         ) { result ->
             val googleSignInStatus = result.data?.extras?.get("googleSignInStatus")
-            println("!!! BackupMnemonicContent GoogleLogin result: $googleSignInStatus ")
             if (result.resultCode != Activity.RESULT_OK) {
                 callback.onGoogleLoginError(googleSignInStatus.toString())
             } else {

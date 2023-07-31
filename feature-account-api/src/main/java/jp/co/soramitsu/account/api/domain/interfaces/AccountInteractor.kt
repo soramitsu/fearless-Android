@@ -47,6 +47,7 @@ interface AccountInteractor {
         ethereumDerivationPath: String,
         selectedEncryptionType: CryptoType,
         withEth: Boolean,
+        isBackedUp: Boolean,
         googleBackupAddress: String?
     ): Result<Unit>
 

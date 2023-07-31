@@ -217,8 +217,7 @@ class BackupMnemonicViewModel @Inject constructor(
             return
         }
 
-        val isAuthorized = backupService.authorize(launcher)
-        if (isAuthorized) {
+        if (backupService.authorize(launcher)) {
             openCreateBackupPasswordDialog(
                 substrateDerivationPath,
                 ethereumDerivationPath,

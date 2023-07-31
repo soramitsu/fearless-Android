@@ -38,7 +38,8 @@ data class CreateBackupPasswordViewState(
     val agreementsState: TextSelectableItemState,
     @StringRes val passwordMatchingTextResource: Int?,
     val highlightConfirmPassword: Boolean,
-    val isSetButtonEnabled: Boolean
+    val isSetButtonEnabled: Boolean,
+    val isLoading: Boolean
 )
 
 interface CreateBackupPasswordCallback {
@@ -54,6 +55,10 @@ interface CreateBackupPasswordCallback {
     fun onApplyPasswordClick()
 
     fun onAgreementsClick()
+
+    fun onOriginPasswordVisibilityClick()
+
+    fun onConfirmPasswordVisibilityClick()
 }
 
 @Composable
@@ -86,12 +91,14 @@ internal fun CreateBackupPasswordContent(
                 MarginVertical(margin = 16.dp)
                 TextInput(
                     state = state.originPasswordViewState,
-                    onInput = callback::onOriginPasswordChange
+                    onInput = callback::onOriginPasswordChange,
+                    onEndIconClick = callback::onOriginPasswordVisibilityClick
                 )
                 MarginVertical(margin = 16.dp)
                 TextInput(
                     state = state.confirmPasswordViewState,
                     onInput = callback::onConfirmPasswordChange,
+                    onEndIconClick = callback::onConfirmPasswordVisibilityClick,
                     borderColor = if (state.highlightConfirmPassword) {
                         colorAccent
                     } else {
@@ -116,12 +123,14 @@ internal fun CreateBackupPasswordContent(
             }
 
             Spacer(modifier = Modifier.weight(1f))
+
             AccentButton(
                 modifier = Modifier
                     .height(48.dp)
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp),
                 text = stringResource(R.string.create_backup_password_btn_set),
+                loading = state.isLoading,
                 enabled = state.isSetButtonEnabled,
                 onClick = callback::onApplyPasswordClick
             )
@@ -138,7 +147,8 @@ fun PreviewCreateBackupPasswordContent() {
             state = CreateBackupPasswordViewState(
                 originPasswordViewState = TextInputViewState(
                     text = "origin password",
-                    hint = "origin hint"
+                    hint = "origin hint",
+                    endIcon = R.drawable.ic_eye_disabled
                 ),
                 confirmPasswordViewState = TextInputViewState(
                     text = "confirm password",
@@ -151,7 +161,8 @@ fun PreviewCreateBackupPasswordContent() {
                 ),
                 passwordMatchingTextResource = null,
                 highlightConfirmPassword = true,
-                isSetButtonEnabled = true
+                isSetButtonEnabled = true,
+                isLoading = false
             ),
             callback = object : CreateBackupPasswordCallback {
                 override fun onOriginPasswordChange(password: String) {}
@@ -160,6 +171,8 @@ fun PreviewCreateBackupPasswordContent() {
                 override fun onBackClick() {}
                 override fun onApplyPasswordClick() {}
                 override fun onAgreementsClick() {}
+                override fun onOriginPasswordVisibilityClick() {}
+                override fun onConfirmPasswordVisibilityClick() {}
             }
         )
     }

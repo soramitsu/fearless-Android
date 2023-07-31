@@ -81,6 +81,7 @@ class AccountInteractorImpl(
         ethereumDerivationPath: String,
         selectedEncryptionType: CryptoType,
         withEth: Boolean,
+        isBackedUp: Boolean,
         googleBackupAddress: String?
     ): Result<Unit> {
         return runCatching {
@@ -91,7 +92,7 @@ class AccountInteractorImpl(
                 ethereumDerivationPath = ethereumDerivationPath,
                 selectedEncryptionType = selectedEncryptionType,
                 withEth = withEth,
-                isBackedUp = true,
+                isBackedUp = isBackedUp,
                 googleBackupAddress = googleBackupAddress
             )
         }

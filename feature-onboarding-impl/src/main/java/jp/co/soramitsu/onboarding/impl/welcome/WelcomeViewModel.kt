@@ -55,7 +55,7 @@ class WelcomeViewModel @Inject constructor(
     }
 
     override fun createAccountClicked() {
-        router.openCreateWalletDialog(isFromGoogleBackup = false)
+        router.openCreateAccountFromOnboarding()
     }
     override fun googleSigninClicked() {
         _events.trySend(WelcomeEvent.AuthorizeGoogle)

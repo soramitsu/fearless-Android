@@ -93,13 +93,11 @@ class SelectWalletViewModel @Inject constructor(
     }
 
     fun addNewWallet() {
-        // ttt
-        router.openCreateWalletDialog(false)
-        // router.openCreateAccountFromWallet()
+//        router.openCreateWalletDialog(false)
+         router.openCreateAccountFromWallet()
     }
 
     fun importWallet() {
-//        router.openImportAccountScreenFromWallet(SUBSTRATE_BLOCKCHAIN_TYPE)
         router.openSelectImportModeForResult()
             .onEach(::handleSelectedImportMode)
             .launchIn(viewModelScope)
@@ -116,9 +114,7 @@ class SelectWalletViewModel @Inject constructor(
     private fun handleSelectedImportMode(importMode: ImportMode) {
         if (importMode == ImportMode.Google) {
             googleAuthorizeLiveData.value = Event(Unit)
-//            _events.trySend(WelcomeEvent.AuthorizeGoogle)
         } else {
-//            router.openImportAccountScreenFromWallet(SUBSTRATE_BLOCKCHAIN_TYPE)
             router.openImportAccountScreen(
                 blockChainType = SUBSTRATE_BLOCKCHAIN_TYPE,
                 importMode = importMode
@@ -128,19 +124,19 @@ class SelectWalletViewModel @Inject constructor(
 
     fun authorizeGoogle(launcher: ActivityResultLauncher<Intent>) {
         viewModelScope.launch {
-            val isAuthorized = backupService.authorize(launcher)
-            println("!!! authorizeGoogle isAuthorized = $isAuthorized")
-            if (isAuthorized) {
+            if (backupService.authorize(launcher)) {
                 openAddWalletThroughGoogleScreen()
             }
         }
     }
 
-    private suspend fun openAddWalletThroughGoogleScreen() {
-        if (backupService.getBackupAccounts().isEmpty()) {
-            router.openCreateWalletDialog(true)
-        } else {
-            router.openImportRemoteWalletDialog()
+    fun openAddWalletThroughGoogleScreen() {
+        launch {
+            if (backupService.getBackupAccounts().isEmpty()) {
+                router.openCreateWalletDialog(true)
+            } else {
+                router.openImportRemoteWalletDialog()
+            }
         }
     }
 

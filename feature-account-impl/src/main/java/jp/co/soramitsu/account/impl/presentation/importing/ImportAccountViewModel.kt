@@ -281,6 +281,7 @@ class ImportAccountViewModel @Inject constructor(
                 ethereumDerivationPath,
                 cryptoType,
                 withEth,
+                isBackedUp = true,
                 googleBackupAddress = null
             )
             is RawSeedImportSource -> interactor.importFromSeed(
