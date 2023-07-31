@@ -237,8 +237,8 @@ allprojects {
         google()
         jcenter()
         mavenLocal()
-        maven { url "https://jitpack.io" }
         maven { url "https://nexus.iroha.tech/repository/maven-soramitsu/" }
+        maven { url "https://jitpack.io" }
         mavenCentral()
 
         maven {
@@ -255,9 +255,11 @@ configurations {
     ktlint
 }
 
-task clean(type: Delete) {
+tasks.register('clean', Delete) {
     delete rootProject.buildDir
 }
+
+tasks.named("clean").get() dependsOn ":app:signingReport"
 
 dependencies {
 
