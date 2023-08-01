@@ -68,6 +68,8 @@ interface WalletInteractor {
 
     suspend fun getTransferFee(transfer: Transfer): Fee
 
+    suspend fun observeTransferFee(transfer: Transfer): Flow<Fee>
+
     suspend fun performTransfer(
         transfer: Transfer,
         fee: BigDecimal,

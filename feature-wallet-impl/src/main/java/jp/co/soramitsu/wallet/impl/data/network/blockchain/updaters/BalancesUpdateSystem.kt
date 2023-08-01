@@ -314,8 +314,8 @@ class BalancesUpdateSystem(
             chain.assets.forEach { asset ->
 
                 val balanceData = if (asset.isUtility) {
-                    val balance = eth.ethGetBalance(address, DefaultBlockParameterName.LATEST).send()
-                    SimpleBalanceData(balance.balance)
+                    val balance = kotlin.runCatching { eth.ethGetBalance(address, DefaultBlockParameterName.LATEST).send() }.getOrNull()
+                    SimpleBalanceData(balance?.balance.orZero())
                 } else {
                     val daiGetBalanceFunction = org.web3j.abi.datatypes.Function(
                         "balanceOf",
@@ -323,14 +323,14 @@ class BalancesUpdateSystem(
                         emptyList()
                     )
 
-                    val daiBalanceWei = eth.ethCall(
+                    val daiBalanceWei = kotlin.runCatching { eth.ethCall(
                         org.web3j.protocol.core.methods.request.Transaction.createEthCallTransaction(
                             null,
                             asset.id,
                             FunctionEncoder.encode(daiGetBalanceFunction)
                         ),
                         DefaultBlockParameterName.LATEST
-                    ).send().value
+                    ).send().value}.getOrNull()
 
                     val balance = runCatching { Numeric.decodeQuantity(daiBalanceWei) }.getOrNull().orZero()
 

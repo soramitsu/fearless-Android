@@ -46,6 +46,13 @@ interface WalletRepository {
         batchAll: Boolean = false
     ): Fee
 
+    suspend fun observeTransferFee(
+        chain: Chain,
+        transfer: Transfer,
+        additional: (suspend ExtrinsicBuilder.() -> Unit)? = null,
+        batchAll: Boolean = false
+    ): Flow<Fee>
+
     suspend fun performTransfer(
         accountId: AccountId,
         chain: Chain,
