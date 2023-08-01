@@ -63,6 +63,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
@@ -238,13 +239,14 @@ class SendSetupViewModel @Inject constructor(
             else -> currentAccountAddress(asset.token.configuration.chainId) ?: return@combine null
         }
 
-        val transfer = Transfer(
+        Transfer(
             recipient = feeRequestAddress,
+            sender = requireNotNull(currentAccountAddress.invoke(asset.token.configuration.chainId)),
             amount = enteredAmount,
             chainAsset = asset.token.configuration
         )
-        val fee = walletInteractor.getTransferFee(transfer)
-        fee.feeAmount
+    }.flatMapLatest {
+        it?.let { transfer -> walletInteractor.observeTransferFee(transfer).map { it.feeAmount } } ?: flowOf(null)
     }
         .retry(RETRY_TIMES)
         .catch {
@@ -385,6 +387,7 @@ class SendSetupViewModel @Inject constructor(
                         else -> router.openSelectChainAsset(chain.id)
                     }
                 }
+
                 else -> router.openSelectChain(
                     filterChainIds = addressChains.map { it.id },
                     chooserMode = false,
@@ -554,6 +557,7 @@ class SendSetupViewModel @Inject constructor(
             val selfAddress = sharedState.chainId?.let { currentAccountAddress(it) } ?: return@launch
             val transfer = Transfer(
                 recipient = selfAddress,
+                sender = selfAddress,
                 amount = amountToTransfer,
                 chainAsset = asset.token.configuration
             )
