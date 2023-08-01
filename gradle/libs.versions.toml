@@ -3,12 +3,13 @@ compose = "1.4.3"
 composeFoundation = "1.5.0-beta03"
 fragmentKtx = "1.5.6"
 composeThemeAdapter = "1.2.1"
+googleServices = "4.3.15"
 material = "1.8.0"
 coroutines = "1.6.4"
 soraUiCore = "0.0.72"
-soraCard = "0.0.45"
-kotlinxSerializationjson = "1.5.0"
-xNetworking = "0.0.55"
+soraCard = "0.1.9"
+kotlinxSerializationjson = "1.5.1"
+xNetworking = "0.0.60"
 retrofit = "2.9.0"
 gson = "2.10.1"
 detekt = "1.23.0"
@@ -17,6 +18,7 @@ dagger = "2.47"
 android_plugin = "7.4.2"
 
 [libraries]
+google-services = { module = "com.google.gms:google-services", version.ref = "googleServices" }
 gradleplugins-detekt = { module = "io.gitlab.arturbosch.detekt:detekt-gradle-plugin", version.ref = "detekt" }
 gradleplugins-kotlin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 gradleplugins-android = { module = "com.android.tools.build:gradle", version.ref = "android_plugin" }

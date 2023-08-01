@@ -53,8 +53,6 @@ dependencies {
     implementation cardViewDep
     implementation constraintDep
 
-    implementation permissionsDep
-
     implementation coroutinesDep
     implementation coroutinesAndroidDep
     implementation viewModelKtxDep

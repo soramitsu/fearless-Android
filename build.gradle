@@ -25,8 +25,8 @@ buildscript {
         biometricVersion = '1.1.0'
 
         progressButtonsVersion = '2.1.0'
-        xNetworkingVersion = '0.0.55'
-        soraCardVersion = '0.0.45'
+        xNetworkingVersion = '0.0.60'
+        soraCardVersion = '0.1.9'
         soraUiCoreVersion = '0.0.72'
 
         daggerVersion = '2.47'
@@ -59,8 +59,6 @@ buildscript {
 
         wsVersion = '2.14'
 
-        permissionsVersion = '1.1.2'
-
         insetterVersion = "0.5.0"
 
         shimmerVersion = '0.5.0'
@@ -79,7 +77,7 @@ buildscript {
         recyclerviewVersion = '1.2.0'
         lifecycleVersion = '2.6.1'
 
-        serializationVersion = '1.5.0'
+        serializationVersion = '1.5.1'
 
         activityKtx = '1.7.0'
         fragmentKtx = '1.5.6'
@@ -151,8 +149,6 @@ buildscript {
         // lifecycle scopes
         lifeCycleKtxDep = "androidx.lifecycle:lifecycle-runtime-ktx:$architectureComponentVersion"
 
-        permissionsDep = "com.github.florent37:runtime-permission-kotlin:$permissionsVersion"
-
         roomDep = "androidx.room:room-runtime:$roomVersion"
         roomKtxDep = "androidx.room:room-ktx:$roomVersion"
         roomKapt = "androidx.room:room-compiler:$roomVersion"
@@ -216,10 +212,10 @@ buildscript {
         maven { url 'https://maven.google.com' }
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:7.4.2'
+        classpath libs.gradleplugins.android
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
         classpath "org.jetbrains.kotlin:kotlin-serialization:$kotlinVersion"
-        classpath 'com.google.gms:google-services:4.3.15'
+        classpath libs.google.services
         classpath "com.google.firebase:firebase-appdistribution-gradle:$firebaseAppDistrVersion"
         classpath "com.github.triplet.gradle:play-publisher:$playPublisherVersion"
         classpath "com.google.dagger:hilt-android-gradle-plugin:$daggerVersion"
@@ -235,7 +231,6 @@ buildscript {
 allprojects {
     repositories {
         google()
-        jcenter()
         mavenLocal()
         maven { url "https://nexus.iroha.tech/repository/maven-soramitsu/" }
         maven { url "https://jitpack.io" }
