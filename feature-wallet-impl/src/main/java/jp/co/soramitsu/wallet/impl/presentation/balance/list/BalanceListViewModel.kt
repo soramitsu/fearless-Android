@@ -6,6 +6,10 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.math.BigDecimal
+import java.util.Locale
+import java.util.concurrent.TimeUnit
+import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.presentation.actions.AddAccountBottomSheet
@@ -53,7 +57,6 @@ import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomShe
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.oauth.base.sdk.SoraCardEnvironmentType
-import jp.co.soramitsu.oauth.base.sdk.SoraCardInfo
 import jp.co.soramitsu.oauth.base.sdk.SoraCardKycCredentials
 import jp.co.soramitsu.oauth.base.sdk.contract.SoraCardCommonVerification
 import jp.co.soramitsu.oauth.base.sdk.contract.SoraCardContractData
@@ -102,10 +105,6 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.math.BigDecimal
-import java.util.Locale
-import java.util.concurrent.TimeUnit
-import javax.inject.Inject
 import jp.co.soramitsu.oauth.R as SoraCardR
 
 private const val CURRENT_ICON_SIZE = 40
@@ -521,18 +520,7 @@ class BalanceListViewModel @Inject constructor(
 
             if (!accessTokenExpired) {
                 kycRepository.getKycLastFinalStatus(soraCardInfo.accessToken).onSuccess { kycStatus ->
-                    val extendedKycStatus = when (kycStatus) {
-                        SoraCardCommonVerification.Rejected -> {
-                            val hasFreeKycAttempt = kycRepository.hasFreeKycAttempt(soraCardInfo.accessToken).getOrNull()
-                            when (hasFreeKycAttempt) {
-                                false -> SoraCardCommonVerification.NoFreeAttempt
-                                else -> SoraCardCommonVerification.Rejected
-                            }
-                        }
-
-                        else -> kycStatus
-                    }
-                    soraCardInteractor.updateSoraCardKycStatus(kycStatus = extendedKycStatus?.toString().orEmpty())
+                    soraCardInteractor.updateSoraCardKycStatus(kycStatus = kycStatus?.toString().orEmpty())
                 }
             }
         }
@@ -779,10 +767,6 @@ class BalanceListViewModel @Inject constructor(
                 resourceManager.getString(SoraCardR.string.verification_failed_title)
             }
 
-            SoraCardCommonVerification.NoFreeAttempt -> {
-                resourceManager.getString(SoraCardR.string.no_free_kyc_attempts_title)
-            }
-
             else -> {
                 null
             }
@@ -799,19 +783,16 @@ class BalanceListViewModel @Inject constructor(
                     BuildConfig.DEBUG -> SoraCardEnvironmentType.TEST
                     else -> SoraCardEnvironmentType.PRODUCTION
                 },
-                soraCardInfo = state.value.soraCardState?.soraCardInfo?.let {
-                    SoraCardInfo(
-                        accessToken = it.accessToken,
-                        refreshToken = it.refreshToken,
-                        accessTokenExpirationTime = it.accessTokenExpirationTime
-                    )
-                },
                 kycCredentials = SoraCardKycCredentials(
                     endpointUrl = BuildConfig.SORA_CARD_KYC_ENDPOINT_URL,
                     username = BuildConfig.SORA_CARD_KYC_USERNAME,
                     password = BuildConfig.SORA_CARD_KYC_PASSWORD
                 ),
-                client = OptionsProvider.header
+                client = OptionsProvider.header,
+                userAvailableXorAmount = 0.0, // userAvailableXorAmount,
+                areAttemptsPaidSuccessfully = false, // will be available in Phase 2
+                isEnoughXorAvailable = false, // isEnoughXorAvailable,
+                isIssuancePaid = false // will be available in Phase 2
             )
         )
     }
