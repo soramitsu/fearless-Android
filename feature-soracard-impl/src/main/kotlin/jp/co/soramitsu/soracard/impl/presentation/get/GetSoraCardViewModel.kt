@@ -3,6 +3,10 @@ package jp.co.soramitsu.soracard.impl.presentation.get
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.math.BigDecimal
+import java.math.RoundingMode
+import java.util.Locale
+import javax.inject.Inject
 import jp.co.soramitsu.common.BuildConfig
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -11,7 +15,6 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.greaterThen
 import jp.co.soramitsu.oauth.base.sdk.SoraCardEnvironmentType
-import jp.co.soramitsu.oauth.base.sdk.SoraCardInfo
 import jp.co.soramitsu.oauth.base.sdk.SoraCardKycCredentials
 import jp.co.soramitsu.oauth.base.sdk.contract.SoraCardContractData
 import jp.co.soramitsu.soracard.api.domain.SoraCardInteractor
@@ -22,10 +25,6 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import java.math.BigDecimal
-import java.math.RoundingMode
-import java.util.Locale
-import javax.inject.Inject
 
 @HiltViewModel
 class GetSoraCardViewModel @Inject constructor(
@@ -126,14 +125,11 @@ class GetSoraCardViewModel @Inject constructor(
                     BuildConfig.DEBUG -> SoraCardEnvironmentType.TEST
                     else -> SoraCardEnvironmentType.PRODUCTION
                 },
-                soraCardInfo = state.value.soraCardInfo?.let {
-                    SoraCardInfo(
-                        accessToken = it.accessToken,
-                        refreshToken = it.refreshToken,
-                        accessTokenExpirationTime = it.accessTokenExpirationTime
-                    )
-                },
-                client = OptionsProvider.header
+                client = OptionsProvider.header,
+                userAvailableXorAmount = 0.0, // userAvailableXorAmount,
+                areAttemptsPaidSuccessfully = false, // will be available in Phase 2
+                isEnoughXorAvailable = false, // isEnoughXorAvailable,
+                isIssuancePaid = false // will be available in Phase 2
             )
         )
     }
@@ -148,19 +144,16 @@ class GetSoraCardViewModel @Inject constructor(
                     BuildConfig.DEBUG -> SoraCardEnvironmentType.TEST
                     else -> SoraCardEnvironmentType.PRODUCTION
                 },
-                soraCardInfo = state.value.soraCardInfo?.let {
-                    SoraCardInfo(
-                        accessToken = it.accessToken,
-                        refreshToken = it.refreshToken,
-                        accessTokenExpirationTime = it.accessTokenExpirationTime
-                    )
-                },
                 kycCredentials = SoraCardKycCredentials(
                     endpointUrl = BuildConfig.SORA_CARD_KYC_ENDPOINT_URL,
                     username = BuildConfig.SORA_CARD_KYC_USERNAME,
                     password = BuildConfig.SORA_CARD_KYC_PASSWORD
                 ),
-                client = OptionsProvider.header
+                client = OptionsProvider.header,
+                userAvailableXorAmount = 0.0, // userAvailableXorAmount,
+                areAttemptsPaidSuccessfully = false, // will be available in Phase 2
+                isEnoughXorAvailable = false, // isEnoughXorAvailable,
+                isIssuancePaid = false // will be available in Phase 2
             )
         )
     }

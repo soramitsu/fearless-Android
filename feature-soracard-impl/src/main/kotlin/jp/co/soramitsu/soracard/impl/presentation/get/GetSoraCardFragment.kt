@@ -45,6 +45,9 @@ class GetSoraCardFragment : BaseComposeFragment<GetSoraCardViewModel>() {
                     kycStatus = result.status.toString()
                 )
             }
+
+            SoraCardResult.Logout -> {}
+            is SoraCardResult.NavigateTo -> {}
         }
     }
 
