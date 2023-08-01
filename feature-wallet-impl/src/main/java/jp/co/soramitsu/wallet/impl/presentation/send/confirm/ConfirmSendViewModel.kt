@@ -323,10 +323,13 @@ class ConfirmSendViewModel @Inject constructor(
         return addressIconGenerator.createAddressModel(address, ICON_IN_DP, accountName)
     }
 
-    private fun createTransfer(token: Asset): Transfer {
+    private suspend fun createTransfer(token: Asset): Transfer {
+        val currentAddress = currentAccountAddress(transferDraft.assetPayload.chainId)
+        requireNotNull(currentAddress)
         return with(transferDraft) {
             Transfer(
                 recipient = recipientAddress,
+                sender = currentAddress,
                 amount = amount,
                 chainAsset = token
             )

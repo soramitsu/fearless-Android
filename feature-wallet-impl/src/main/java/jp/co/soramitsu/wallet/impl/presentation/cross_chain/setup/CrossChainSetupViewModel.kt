@@ -667,6 +667,7 @@ class CrossChainSetupViewModel @Inject constructor(
             val selfAddress = originChainId?.let { currentAccountAddress(it) } ?: return@launch
             val transfer = Transfer(
                 recipient = selfAddress,
+                sender = selfAddress,
                 amount = amountToTransfer,
                 chainAsset = asset.token.configuration
             )
