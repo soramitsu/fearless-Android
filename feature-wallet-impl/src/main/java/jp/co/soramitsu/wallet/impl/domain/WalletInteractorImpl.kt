@@ -263,7 +263,13 @@ class WalletInteractorImpl(
     override suspend fun getTransferFee(transfer: Transfer): Fee {
         val chain = chainRegistry.getChain(transfer.chainAsset.chainId)
 
-        return walletRepository.getTransferFee(chain, transfer)
+        return walletRepository.getTransferFee(chain = chain, transfer = transfer)
+    }
+
+    override suspend fun observeTransferFee(transfer: Transfer): Flow<Fee> {
+        val chain = chainRegistry.getChain(transfer.chainAsset.chainId)
+
+        return walletRepository.observeTransferFee(chain = chain, transfer = transfer)
     }
 
     override suspend fun performTransfer(

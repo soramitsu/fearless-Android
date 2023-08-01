@@ -83,6 +83,7 @@ dependencies {
 
     implementation coroutinesDep
     implementation coroutinesAndroidDep
+    implementation coroutinesRxDep
     implementation viewModelKtxDep
     implementation liveDataKtxDep
     implementation lifeCycleKtxDep
