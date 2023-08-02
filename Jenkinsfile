@@ -1,4 +1,4 @@
-@Library('jenkins-library')
+@Library('jenkins-library@duty/android-google-auth')
 
 // Job properties
 def jobParams = [
@@ -10,10 +10,9 @@ def pipeline = new org.android.AppPipeline(
     sonar:            false,
     pushReleaseNotes: false,
     testCmd:          'runTest',
-    dockerImage:      'build-tools/android-build-box-jdk17:latest',
+    dockerImage:      'build-tools/android-build-box-jdk11:latest',
     publishCmd:       'publishReleaseApk',
     jobParams: jobParams,
-    appPushNoti: true,
-    testBuildTypes: 'PR'
+    appPushNoti: true
 )
 pipeline.runPipeline('fearless')
