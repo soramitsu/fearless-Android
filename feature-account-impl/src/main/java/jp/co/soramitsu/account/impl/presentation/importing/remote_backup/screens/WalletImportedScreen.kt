@@ -15,6 +15,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.account.impl.presentation.importing.remote_backup.ImportRemoteWalletState
+import jp.co.soramitsu.account.impl.presentation.importing.remote_backup.model.WrappedBackupAccountMeta
 import jp.co.soramitsu.account.impl.presentation.importing.remote_backup.views.CompactWalletItemViewState
 import jp.co.soramitsu.backup.domain.models.BackupAccountMeta
 import jp.co.soramitsu.common.R
@@ -29,7 +30,7 @@ import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
 import jp.co.soramitsu.common.compose.theme.gray2
 
 data class WalletImportedState(
-    val wallet: BackupAccountMeta?
+    val wallet: WrappedBackupAccountMeta?
 ) : ImportRemoteWalletState
 
 interface WalletImportedCallback {
@@ -43,7 +44,6 @@ interface WalletImportedCallback {
 
 @Composable
 internal fun WalletImportedScreen(
-//    activity: Activity,
     state: WalletImportedState,
     callback: WalletImportedCallback,
     modifier: Modifier = Modifier
@@ -67,7 +67,7 @@ internal fun WalletImportedScreen(
         ) {
             MarginVertical(margin = 16.dp)
             WalletItem(
-                state = CompactWalletItemViewState(title = state.wallet?.name.orEmpty()),
+                state = CompactWalletItemViewState(title = state.wallet?.backupMeta?.name.orEmpty()),
                 onSelected = {}
             )
             MarginVertical(margin = 16.dp)
@@ -109,7 +109,7 @@ private fun PreviewWalletImportedScreen() {
     FearlessAppTheme {
         WalletImportedScreen(
             state = WalletImportedState(
-                wallet = BackupAccountMeta("Name", "address")
+                wallet = WrappedBackupAccountMeta(BackupAccountMeta("Name", "address"))
             ),
             callback = object : WalletImportedCallback {
                 override fun onBackClick() {}

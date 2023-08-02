@@ -23,7 +23,6 @@ class ImportRemoteWalletDialog : BaseComposeBottomSheetDialogFragment<ImportRemo
     override fun Content(padding: PaddingValues) {
         val state by viewModel.state.collectAsState()
         ImportRemoteWalletContent(
-//            activity = requireActivity(),
             state = state,
             callback = viewModel
         )

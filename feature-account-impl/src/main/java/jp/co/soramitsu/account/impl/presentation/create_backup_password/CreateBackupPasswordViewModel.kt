@@ -31,7 +31,6 @@ import jp.co.soramitsu.shared_utils.scale.EncodableStruct
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import jp.co.soramitsu.common.utils.combine as combineFlows
@@ -215,7 +214,7 @@ class CreateBackupPasswordViewModel @Inject constructor(
 
     private suspend fun saveBackupAccount() {
         val password = originPassword.value
-        val address = interactor.polkadotAddressForSelectedAccountFlow().first()
+        val address = interactor.getGoogleBackupAddress()
 
         val metaId = interactor.selectedMetaAccount().id
         val jsonResult = interactor.generateRestoreJson(
