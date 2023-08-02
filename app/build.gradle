@@ -11,7 +11,7 @@ apply plugin: "com.github.triplet.play"
 apply from: "../scripts/versions.gradle"
 
 android {
-    compileSdkVersion rootProject.compileSdkVersion
+    compileSdk rootProject.compileSdkVersion
     defaultConfig {
         applicationId "jp.co.soramitsu.fearless"
         minSdkVersion rootProject.minSdkVersion
@@ -76,6 +76,7 @@ android {
             }
         }
         pr {
+            debuggable = true
             signingConfig signingConfigs.debug
             matchingFallbacks = ['debug']
             versionNameSuffix '-pr'
