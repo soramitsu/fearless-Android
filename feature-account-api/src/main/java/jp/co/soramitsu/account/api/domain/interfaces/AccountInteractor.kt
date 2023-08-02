@@ -115,6 +115,8 @@ interface AccountInteractor {
 
     suspend fun selectedMetaAccount(): MetaAccount
 
+    suspend fun getGoogleBackupAddress(): String
+
     fun lightMetaAccountsFlow(): Flow<List<LightMetaAccount>>
 
     suspend fun selectMetaAccount(metaId: Long)

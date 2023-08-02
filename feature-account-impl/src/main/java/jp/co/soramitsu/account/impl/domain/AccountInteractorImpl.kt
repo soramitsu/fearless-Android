@@ -11,6 +11,7 @@ import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.core.model.Language
 import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.toAddress
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
@@ -212,6 +213,10 @@ class AccountInteractorImpl(
     override fun selectedMetaAccountFlow() = accountRepository.selectedMetaAccountFlow()
 
     override suspend fun selectedMetaAccount() = accountRepository.getSelectedMetaAccount()
+
+    override suspend fun getGoogleBackupAddress(): String {
+        return accountRepository.getSelectedMetaAccount().substrateAccountId.toAddress(42)
+    }
 
     override fun lightMetaAccountsFlow(): Flow<List<LightMetaAccount>> {
         return accountRepository.lightMetaAccountsFlow()

@@ -102,7 +102,15 @@ class WelcomeViewModel @Inject constructor(
 
     fun openAddWalletThroughGoogleScreen() {
         launch {
-            if (backupService.getBackupAccounts().isEmpty()) {
+            val backupAccounts = backupService.getBackupAccounts()
+            val webBackupAccounts = backupService.getWebBackupAccounts()
+
+            val webBackupNotInCommonBackup = webBackupAccounts.filter {
+                it.address !in backupAccounts.map { it.address }
+            }
+
+            val totalBackup = webBackupNotInCommonBackup + backupAccounts
+            if (totalBackup.isEmpty()) {
                 router.openCreateWalletDialog(true)
             } else {
                 router.openImportRemoteWalletDialog()

@@ -19,8 +19,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.account.impl.presentation.importing.remote_backup.ImportRemoteWalletState
+import jp.co.soramitsu.account.impl.presentation.importing.remote_backup.model.WrappedBackupAccountMeta
 import jp.co.soramitsu.account.impl.presentation.importing.remote_backup.views.CompactWalletItemViewState
-import jp.co.soramitsu.backup.domain.models.BackupAccountMeta
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.compose.component.AccentButton
 import jp.co.soramitsu.common.compose.component.B0
@@ -35,7 +35,7 @@ import jp.co.soramitsu.common.compose.theme.gray2
 import jp.co.soramitsu.common.compose.theme.white08
 
 data class EnterBackupPasswordState(
-    val wallet: BackupAccountMeta?,
+    val wallet: WrappedBackupAccountMeta?,
     val passwordInputViewState: TextInputViewState
 ) : ImportRemoteWalletState
 
@@ -95,7 +95,7 @@ internal fun EnterBackupPasswordScreen(
             )
             MarginVertical(margin = 16.dp)
             WalletItem(
-                state = CompactWalletItemViewState(title = state.wallet?.name.orEmpty()),
+                state = CompactWalletItemViewState(title = state.wallet?.backupMeta?.name.orEmpty()),
                 onSelected = {}
             )
             MarginVertical(margin = 16.dp)

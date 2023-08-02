@@ -17,8 +17,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.account.impl.presentation.importing.remote_backup.ImportRemoteWalletState
+import jp.co.soramitsu.account.impl.presentation.importing.remote_backup.model.WrappedBackupAccountMeta
 import jp.co.soramitsu.account.impl.presentation.importing.remote_backup.views.CompactWalletItemViewState
-import jp.co.soramitsu.backup.domain.models.BackupAccountMeta
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.compose.component.AccentButton
 import jp.co.soramitsu.common.compose.component.B0
@@ -33,7 +33,7 @@ import jp.co.soramitsu.common.compose.theme.alertYellow
 import jp.co.soramitsu.common.compose.theme.white50
 
 data class RemoteWalletListState(
-    val wallets: List<BackupAccountMeta>? = null
+    val wallets: List<WrappedBackupAccountMeta>? = null
 ) : ImportRemoteWalletState
 
 interface RemoteWalletListCallback {
@@ -42,9 +42,9 @@ interface RemoteWalletListCallback {
 
     fun onContinueClick()
 
-    fun onWalletSelected(backupAccount: BackupAccountMeta)
+    fun onWalletSelected(backupAccount: WrappedBackupAccountMeta)
 
-    fun onWalletLongClick(backupAccount: BackupAccountMeta)
+    fun onWalletLongClick(backupAccount: WrappedBackupAccountMeta)
 
     fun onBackClick()
 
@@ -92,7 +92,7 @@ internal fun RemoteWalletListScreen(
                     items(state.wallets) { wallet ->
                         WalletItem(
                             state = CompactWalletItemViewState(
-                                title = wallet.name
+                                title = wallet.backupMeta.name
                             ),
                             onSelected = {
                                 callback.onWalletSelected(wallet)
@@ -149,8 +149,8 @@ private fun PreviewRemoteWalletListScreen() {
             callback = object : RemoteWalletListCallback {
                 override fun onCreateNewWallet() {}
                 override fun onContinueClick() {}
-                override fun onWalletSelected(backupAccount: BackupAccountMeta) {}
-                override fun onWalletLongClick(backupAccount: BackupAccountMeta) {}
+                override fun onWalletSelected(backupAccount: WrappedBackupAccountMeta) {}
+                override fun onWalletLongClick(backupAccount: WrappedBackupAccountMeta) {}
                 override fun onBackClick() {}
                 override fun loadRemoteWallets() {}
             }
