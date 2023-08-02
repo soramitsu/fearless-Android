@@ -10,7 +10,7 @@ def pipeline = new org.android.AppPipeline(
     sonar:            false,
     pushReleaseNotes: false,
     testCmd:          'runTest',
-    dockerImage:      'build-tools/android-build-box-jdk11:latest',
+    dockerImage:      'build-tools/android-build-box-jdk17:latest',
     publishCmd:       'publishReleaseApk',
     jobParams: jobParams,
     appPushNoti: true
