@@ -200,63 +200,17 @@ class CreateBackupPasswordViewModel @Inject constructor(
     }
 
     private suspend fun importFromBackup() {
-        val mnemonic = payload.mnemonic
-
-        val password = originPassword.value
-        val metaId = interactor.selectedMetaAccount().id
-        val jsonResult = interactor.generateRestoreJson(
-            metaId = metaId,
-            chainId = polkadotChainId,
-            password = password
-        )
-
-        val ethJsonResult = interactor.generateRestoreJson(
-            metaId = metaId,
-            chainId = moonriverChainId,
-            password = password
-        )
-
-        val substrateJson = jsonResult.getOrNull()
-        val ethJson = ethJsonResult.getOrNull()
-        val metaAccountSecrets = interactor.getMetaAccountSecrets(metaId)
-        val substrateSeed = (metaAccountSecrets?.get(MetaAccountSecrets.Seed) ?: seedFromEntropy(metaAccountSecrets))?.toHexString(withPrefix = true)
-        val ethSeed = metaAccountSecrets?.get(MetaAccountSecrets.EthereumKeypair)?.get(KeyPairSchema.PrivateKey)?.toHexString(withPrefix = true)
-
-        when {
-            mnemonic != null -> {
-                interactor.importFromMnemonic(
-                    walletName = payload.accountName,
-                    mnemonic = mnemonic,
-                    substrateDerivationPath = payload.substrateDerivationPath,
-                    ethereumDerivationPath = payload.ethereumDerivationPath,
-                    selectedEncryptionType = payload.cryptoType,
-                    withEth = true,
-                    isBackedUp = true,
-                    googleBackupAddress = null
-                ).getOrThrow()
-            }
-
-            substrateSeed != null -> {
-                interactor.importFromSeed(
-                    substrateSeed = substrateSeed,
-                    username = payload.accountName,
-                    derivationPath = payload.substrateDerivationPath,
-                    selectedEncryptionType = payload.cryptoType,
-                    ethSeed = ethSeed,
-                    googleBackupAddress = null
-                )
-            }
-
-            substrateJson != null -> {
-                interactor.importFromJson(
-                    json = substrateJson,
-                    password = password,
-                    name = payload.accountName,
-                    ethJson = ethJson,
-                    googleBackupAddress = null
-                )
-            }
-        }
+        val mnemonic = payload.mnemonic ?: error("No mnemonic in importing from backup")
+        interactor.importFromMnemonic(
+            walletName = payload.accountName,
+            mnemonic = mnemonic,
+            substrateDerivationPath = payload.substrateDerivationPath,
+            ethereumDerivationPath = payload.ethereumDerivationPath,
+            selectedEncryptionType = payload.cryptoType,
+            withEth = true,
+            isBackedUp = true,
+            googleBackupAddress = null
+        ).getOrThrow()
     }
 
     private suspend fun saveBackupAccount() {
