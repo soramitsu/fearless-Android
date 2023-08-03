@@ -2,6 +2,7 @@ package jp.co.soramitsu.account.impl.presentation.importing.remote_backup
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
+import jp.co.soramitsu.account.impl.presentation.importing.remote_backup.model.WrappedBackupAccountMeta
 import jp.co.soramitsu.account.impl.presentation.importing.remote_backup.screens.EnterBackupPasswordCallback
 import jp.co.soramitsu.account.impl.presentation.importing.remote_backup.screens.EnterBackupPasswordScreen
 import jp.co.soramitsu.account.impl.presentation.importing.remote_backup.screens.EnterBackupPasswordState
@@ -21,7 +22,6 @@ interface ImportRemoteWalletState
 
 @Composable
 internal fun ImportRemoteWalletContent(
-//    activity: Activity,
     state: ImportRemoteWalletState,
     callback: ImportRemoteWalletCallback
 ) {
@@ -29,21 +29,18 @@ internal fun ImportRemoteWalletContent(
         when (state) {
             is RemoteWalletListState -> {
                 RemoteWalletListScreen(
-//                    activity = activity,
                     state = state,
                     callback = callback
                 )
             }
             is EnterBackupPasswordState -> {
                 EnterBackupPasswordScreen(
-//                    activity = activity,
                     state = state,
                     callback = callback
                 )
             }
             is WalletImportedState -> {
                 WalletImportedScreen(
-//                    activity = activity,
                     state = state,
                     callback = callback
                 )
@@ -56,13 +53,14 @@ internal fun ImportRemoteWalletContent(
 @Composable
 internal fun PreviewImportRemoteWalletContent() {
     FearlessAppTheme {
+        val wallets = (1..3).map { WrappedBackupAccountMeta(BackupAccountMeta("Wallet name_$it", "Address_$it")) }
         ImportRemoteWalletContent(
-            state = RemoteWalletListState(),
+            state = RemoteWalletListState(wallets),
             callback = object : ImportRemoteWalletCallback {
                 override fun onCreateNewWallet() {}
                 override fun onContinueClick() {}
-                override fun onWalletSelected(backupAccount: BackupAccountMeta) {}
-                override fun onWalletLongClick(backupAccount: BackupAccountMeta) {}
+                override fun onWalletSelected(backupAccount: WrappedBackupAccountMeta) {}
+                override fun onWalletLongClick(backupAccount: WrappedBackupAccountMeta) {}
                 override fun onBackClick() {}
                 override fun loadRemoteWallets() {}
                 override fun onPasswordChanged(password: String) {}

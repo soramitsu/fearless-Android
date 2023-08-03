@@ -84,7 +84,7 @@ buildscript {
         minifyRelease = true
         beaconVersion = "3.2.4"
 
-        sharedFeaturesVersion = "1.1.1.6-SNAPSHOT"
+        sharedFeaturesVersion = "1.1.1.8-SNAPSHOT"
 
         coilDep = "io.coil-kt:coil:$coilVersion"
         coilSvg = "io.coil-kt:coil-svg:$coilVersion"
@@ -253,8 +253,6 @@ configurations {
 tasks.register('clean', Delete) {
     delete rootProject.buildDir
 }
-
-tasks.named("clean").get() dependsOn ":app:signingReport"
 
 dependencies {
 
