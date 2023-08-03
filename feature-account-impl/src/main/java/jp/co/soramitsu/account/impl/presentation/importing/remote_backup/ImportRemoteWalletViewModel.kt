@@ -100,7 +100,13 @@ class ImportRemoteWalletViewModel @Inject constructor(
 
     override fun onWalletSelected(backupAccount: BackupAccountMeta) {
         selectedWallet.value = backupAccount
+        resetPasswordField()
         nextStep()
+    }
+
+    private fun resetPasswordField() {
+        isPasswordVisible.value = false
+        passwordText.value = ""
     }
 
     override fun onWalletLongClick(backupAccount: BackupAccountMeta) {
