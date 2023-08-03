@@ -37,7 +37,6 @@ import jp.co.soramitsu.wallet.api.presentation.mixin.TransferValidityChecks
 import jp.co.soramitsu.wallet.impl.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
 import jp.co.soramitsu.wallet.impl.domain.interfaces.NotValidTransferStatus
-import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletConstants
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.domain.model.PhishingType
 import jp.co.soramitsu.wallet.impl.domain.model.Transfer
@@ -56,6 +55,7 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -69,9 +69,8 @@ class ConfirmSendViewModel @Inject constructor(
     private val addressIconGenerator: AddressIconGenerator,
     private val chainRegistry: ChainRegistry,
     private val externalAccountActions: ExternalAccountActions.Presentation,
-    private val walletConstants: WalletConstants,
     private val transferValidityChecks: TransferValidityChecks.Presentation,
-    private val savedStateHandle: SavedStateHandle,
+    savedStateHandle: SavedStateHandle,
     private val resourceManager: ResourceManager,
     private val currentAccountAddress: CurrentAccountAddressUseCase,
     private val validateTransferUseCase: ValidateTransferUseCase
@@ -113,7 +112,7 @@ class ConfirmSendViewModel @Inject constructor(
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, defaultButtonState)
 
-    private val assetFlow = interactor.assetFlow(transferDraft.assetPayload.chainId, transferDraft.assetPayload.chainAssetId)
+    private val assetFlow = interactor.assetFlow(transferDraft.assetPayload.chainId, transferDraft.assetPayload.chainAssetId).share()
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val utilityAssetFlow = flowOf {
@@ -122,9 +121,14 @@ class ConfirmSendViewModel @Inject constructor(
     }
         .mapNotNull { it }
         .flatMapLatest { assetId ->
-        interactor.assetFlow(transferDraft.assetPayload.chainId, assetId)
-            .map(::mapAssetToAssetModel)
-    }
+            interactor.assetFlow(transferDraft.assetPayload.chainId, assetId)
+                .map(::mapAssetToAssetModel)
+        }
+
+    private val feeFlow = assetFlow.map { createTransfer(it.token.configuration) }
+        .flatMapLatest { interactor.observeTransferFee(it) }
+        .map { it.feeAmount }
+        .onStart { transferDraft.fee }
 
     val state: StateFlow<ConfirmSendViewState> = combine(
         recipientFlow,
@@ -132,8 +136,9 @@ class ConfirmSendViewModel @Inject constructor(
         assetFlow,
         utilityAssetFlow,
         buttonStateFlow,
-        transferSubmittingFlow
-    ) { recipient, sender, asset, utilityAsset, buttonState, isSubmitting ->
+        transferSubmittingFlow,
+        feeFlow
+    ) { recipient, sender, asset, utilityAsset, buttonState, isSubmitting, fee ->
         val isSenderNameSpecified = !sender?.name.isNullOrEmpty()
         val fromInfoItem = TitleValueViewState(
             title = resourceManager.getString(R.string.transaction_details_from),
@@ -166,8 +171,8 @@ class ConfirmSendViewModel @Inject constructor(
 
         val feeInfoItem = TitleValueViewState(
             title = resourceManager.getString(R.string.common_network_fee),
-            value = transferDraft.fee.formatCryptoDetail(utilityAsset.token.configuration.symbol),
-            additionalValue = utilityAsset.getAsFiatWithCurrency(transferDraft.fee)
+            value = fee.formatCryptoDetail(utilityAsset.token.configuration.symbol),
+            additionalValue = utilityAsset.getAsFiatWithCurrency(fee)
         )
 
         ConfirmSendViewState(

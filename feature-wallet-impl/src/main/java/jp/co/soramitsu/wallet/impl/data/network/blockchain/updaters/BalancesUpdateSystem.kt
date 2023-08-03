@@ -15,7 +15,6 @@ import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.common.data.network.runtime.binding.SimpleBalanceData
 import jp.co.soramitsu.common.utils.diffed
-import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.core.updater.UpdateSystem
 import jp.co.soramitsu.core.updater.Updater
 import jp.co.soramitsu.core.utils.utilityAsset
@@ -26,7 +25,6 @@ import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.getRuntimeOrNull
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
-import jp.co.soramitsu.runtime.multiNetwork.getRuntimeOrNull
 import jp.co.soramitsu.runtime.multiNetwork.getSocket
 import jp.co.soramitsu.runtime.multiNetwork.getSocketOrNull
 import jp.co.soramitsu.runtime.multiNetwork.toSyncIssue
@@ -43,6 +41,7 @@ import jp.co.soramitsu.wallet.impl.data.network.blockchain.bindings.TransferExtr
 import jp.co.soramitsu.wallet.impl.data.network.model.constructBalanceKey
 import jp.co.soramitsu.wallet.impl.data.network.model.handleBalanceResponse
 import jp.co.soramitsu.wallet.impl.domain.model.Operation
+import jp.co.soramitsu.wallet.impl.data.network.blockchain.fetchEthBalance
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
@@ -57,13 +56,9 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.withContext
-import org.web3j.abi.FunctionEncoder
-import org.web3j.abi.datatypes.Address
 import org.web3j.protocol.Web3j
-import org.web3j.protocol.core.DefaultBlockParameterName
 import org.web3j.protocol.core.Ethereum
 import org.web3j.protocol.http.HttpService
-import org.web3j.utils.Numeric
 
 private const val RUNTIME_AWAITING_TIMEOUT = 10_000L
 
@@ -312,30 +307,8 @@ class BalancesUpdateSystem(
             val address = account.address(chain) ?: return@forEach
             val accountId = account.accountId(chain) ?: return@forEach
             chain.assets.forEach { asset ->
-
-                val balanceData = if (asset.isUtility) {
-                    val balance = kotlin.runCatching { eth.ethGetBalance(address, DefaultBlockParameterName.LATEST).send() }.getOrNull()
-                    SimpleBalanceData(balance?.balance.orZero())
-                } else {
-                    val daiGetBalanceFunction = org.web3j.abi.datatypes.Function(
-                        "balanceOf",
-                        listOf(Address(address)),
-                        emptyList()
-                    )
-
-                    val daiBalanceWei = kotlin.runCatching { eth.ethCall(
-                        org.web3j.protocol.core.methods.request.Transaction.createEthCallTransaction(
-                            null,
-                            asset.id,
-                            FunctionEncoder.encode(daiGetBalanceFunction)
-                        ),
-                        DefaultBlockParameterName.LATEST
-                    ).send().value}.getOrNull()
-
-                    val balance = runCatching { Numeric.decodeQuantity(daiBalanceWei) }.getOrNull().orZero()
-
-                    SimpleBalanceData(balance)
-                }
+                val balance = eth.fetchEthBalance(asset, address)
+                val balanceData = SimpleBalanceData(balance)
 
                 assetCache.updateAsset(
                     metaId = account.id,

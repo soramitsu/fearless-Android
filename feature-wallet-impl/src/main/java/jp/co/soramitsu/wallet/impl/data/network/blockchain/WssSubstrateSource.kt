@@ -14,8 +14,8 @@ import jp.co.soramitsu.common.data.network.runtime.binding.Phase
 import jp.co.soramitsu.common.data.network.runtime.binding.bindEquilibriumAssetRates
 import jp.co.soramitsu.common.data.network.runtime.binding.bindExtrinsicStatusEventRecords
 import jp.co.soramitsu.common.data.network.runtime.binding.bindOrNull
-import jp.co.soramitsu.common.utils.Calls
 import jp.co.soramitsu.common.data.network.runtime.binding.getTyped
+import jp.co.soramitsu.common.utils.Calls
 import jp.co.soramitsu.common.utils.Modules
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.staking
@@ -34,6 +34,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 import jp.co.soramitsu.runtime.storage.source.queryNonNull
 import jp.co.soramitsu.shared_utils.extensions.fromHex
+import jp.co.soramitsu.shared_utils.extensions.toHexString
 import jp.co.soramitsu.shared_utils.runtime.AccountId
 import jp.co.soramitsu.shared_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.shared_utils.runtime.definitions.registry.TypeRegistry
@@ -52,6 +53,8 @@ import jp.co.soramitsu.wallet.api.data.cache.bindOrmlTokensAccountDataOrDefault
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.bindings.bindTransferExtrinsic
 import jp.co.soramitsu.wallet.impl.data.repository.totalBalance
 import jp.co.soramitsu.wallet.impl.domain.model.Transfer
+import org.web3j.protocol.Web3j
+import org.web3j.protocol.http.HttpService
 
 class WssSubstrateSource(
     private val rpcCalls: RpcCalls,
@@ -69,7 +72,10 @@ class WssSubstrateSource(
         }
     }
 
-    override suspend fun getTotalBalance(chainAsset: Asset, accountId: AccountId): BigInteger {
+    override suspend fun getTotalBalance(chainAsset: Asset, chain: Chain, accountId: AccountId): BigInteger {
+        if (chain.isEthereumChain) {
+            return getEthTotalBalance(chainAsset, chain, accountId)
+        }
         return when (val info = getAccountInfo(chainAsset, accountId)) {
             is OrmlTokensAccountData -> info.totalBalance
             is AccountInfo -> info.totalBalance
@@ -77,6 +83,11 @@ class WssSubstrateSource(
             is AssetsAccountInfo -> info.balance
             else -> BigInteger.ZERO
         }
+    }
+
+    private suspend fun getEthTotalBalance(chainAsset: Asset, chain: Chain, accountId: AccountId): BigInteger {
+        val web3 = Web3j.build(HttpService(chain.nodes.first().url))
+        return web3.fetchEthBalance(chainAsset, accountId.toHexString(true))
     }
 
     @Suppress("IMPLICIT_CAST_TO_ANY")

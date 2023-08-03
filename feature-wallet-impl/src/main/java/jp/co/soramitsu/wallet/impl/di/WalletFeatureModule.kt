@@ -58,6 +58,7 @@ import jp.co.soramitsu.wallet.impl.data.network.blockchain.updaters.BalancesUpda
 import jp.co.soramitsu.wallet.impl.data.network.phishing.PhishingApi
 import jp.co.soramitsu.wallet.impl.data.network.subquery.OperationsHistoryApi
 import jp.co.soramitsu.wallet.impl.data.repository.AddressBookRepositoryImpl
+import jp.co.soramitsu.wallet.impl.data.repository.EthGasService
 import jp.co.soramitsu.wallet.impl.data.repository.HistoryRepository
 import jp.co.soramitsu.wallet.impl.data.repository.RuntimeWalletConstants
 import jp.co.soramitsu.wallet.impl.data.repository.TokenRepositoryImpl
@@ -159,7 +160,8 @@ class WalletFeatureModule {
         availableFiatCurrencies: GetAvailableFiatCurrencies,
         updatesMixin: UpdatesMixin,
         remoteConfigFetcher: RemoteConfigFetcher,
-        preferences: Preferences
+        preferences: Preferences,
+        ethGasService: EthGasService
     ): WalletRepository = WalletRepositoryImpl(
         substrateSource,
         operationsDao,
@@ -173,8 +175,13 @@ class WalletFeatureModule {
         availableFiatCurrencies,
         updatesMixin,
         remoteConfigFetcher,
-        preferences
+        preferences,
+        ethGasService
     )
+
+    @Provides
+    @Singleton
+    fun provideEthereumGasService() = EthGasService()
 
     @Provides
     @Singleton

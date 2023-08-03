@@ -19,7 +19,7 @@ class TransferExtrinsicWithStatus(
 )
 
 interface SubstrateRemoteSource {
-    suspend fun getTotalBalance(chainAsset: Asset, accountId: AccountId): BigInteger
+    suspend fun getTotalBalance(chainAsset: Asset, chain: Chain, accountId: AccountId): BigInteger
     suspend fun getAccountFreeBalance(chainAsset: Asset, accountId: AccountId): BigInteger
 
     suspend fun getTransferFee(
