@@ -127,8 +127,16 @@ class ChainRegistry @Inject constructor(
 
     override fun getConnection(chainId: String) = connectionPool.getConnection(chainId)
 
+    @Deprecated(
+        "Since we have ethereum chains, which don't have runtime, we must use the function with nullable return value",
+        ReplaceWith("getRuntimeOrNull(chainId)")
+    )
     override suspend fun getRuntime(chainId: ChainId): RuntimeSnapshot {
         return getRuntimeProvider(chainId).get()
+    }
+
+    suspend fun getRuntimeOrNull(chainId: ChainId): RuntimeSnapshot? {
+        return kotlin.runCatching { getRuntimeProvider(chainId).get() }.getOrNull()
     }
 
     fun getConnectionOrNull(chainId: String) = connectionPool.getConnectionOrNull(chainId)
