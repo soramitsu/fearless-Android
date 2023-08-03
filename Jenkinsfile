@@ -1,4 +1,4 @@
-@Library('jenkins-library@duty/android-google-auth')
+@Library('jenkins-library')
 
 // Job properties
 def jobParams = [
