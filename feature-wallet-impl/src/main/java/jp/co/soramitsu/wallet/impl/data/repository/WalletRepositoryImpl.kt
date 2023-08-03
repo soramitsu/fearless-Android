@@ -53,20 +53,8 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
-import kotlinx.coroutines.flow.onStart
-import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.withContext
-import org.web3j.abi.FunctionEncoder
-import org.web3j.abi.datatypes.Address
-import org.web3j.abi.datatypes.Function
-import org.web3j.abi.datatypes.generated.Uint256
-import org.web3j.protocol.Web3j
-import org.web3j.protocol.Web3jService
-import org.web3j.protocol.core.DefaultBlockParameterName
-import org.web3j.protocol.core.Request
 import org.web3j.protocol.core.Response
-import org.web3j.protocol.core.methods.request.Transaction
-import org.web3j.protocol.websocket.WebSocketService
 import org.web3j.utils.Numeric
 import jp.co.soramitsu.core.models.Asset as CoreAsset
 
@@ -82,7 +70,8 @@ class WalletRepositoryImpl(
     private val chainRegistry: ChainRegistry,
     private val availableFiatCurrencies: GetAvailableFiatCurrencies,
     private val updatesMixin: UpdatesMixin,
-    private val remoteConfigFetcher: RemoteConfigFetcher
+    private val remoteConfigFetcher: RemoteConfigFetcher,
+    private val ethGasService: EthGasService
 ) : WalletRepository, UpdatesProviderUi by updatesMixin {
 
     companion object {
@@ -250,12 +239,14 @@ class WalletRepositoryImpl(
             subscribeOnEthereumTransferFee(transfer, chain)
         } else {
             flowOf(substrateSource.getTransferFee(chain, transfer, additional, batchAll))
-        }.map {
-            Fee(
-                transferAmount = transfer.amount,
-                feeAmount = chain.utilityAsset?.amountFromPlanks(it).orZero()
-            )
         }
+            .flowOn(Dispatchers.IO)
+            .map {
+                Fee(
+                    transferAmount = transfer.amount,
+                    feeAmount = chain.utilityAsset?.amountFromPlanks(it).orZero()
+                )
+            }
     }
 
     override suspend fun getTransferFee(
@@ -276,62 +267,8 @@ class WalletRepositoryImpl(
         )
     }
 
-    private val wsServicePool: MutableMap<ChainId, WebSocketService> = mutableMapOf()
-
-    private suspend fun subscribeOnEthereumTransferFee(transfer: Transfer, chain: Chain): Flow<BigInteger> {
-        val wsService = wsServicePool.getOrPut(chain.id) {
-            WebSocketService("wss://mainnet.infura.io/ws/v3/550f1aa1e8a147f8b43184507686569b", false).apply { connect() }
-        }
-        val web3j = Web3j.build(wsService)
-        return web3j.blockFlowable(false).asFlow()
-            .onStart {
-                val block = web3j.ethGetBlockByNumber(DefaultBlockParameterName.LATEST, false).send()
-                emit(block)
-            }
-            .map { block ->
-                val priorityFee = withContext(Dispatchers.IO) {
-                    kotlin.runCatching { wsService.ethMaxPriorityFeePerGas().send()?.maxPriorityFeePerGas }.getOrNull().orZero()
-                }
-                val baseFee = Numeric.decodeQuantity(block.block.baseFeePerGas)
-
-                val call = if (transfer.chainAsset.isUtility) {
-                    Transaction.createEtherTransaction(
-                        transfer.sender,
-                        null,
-                        null,
-                        null,
-                        transfer.recipient,
-                        null
-                    )
-                } else {
-                    val function = Function("transfer", listOf(Address(transfer.recipient), Uint256(null)), emptyList())
-                    val txData: String = FunctionEncoder.encode(function)
-
-                    Transaction.createFunctionCallTransaction(
-                        transfer.sender,
-                        null,
-                        null,
-                        null,
-                        transfer.chainAsset.id,
-                        BigInteger.ZERO,
-                        txData
-                    )
-                }
-                val gasLimit = kotlin.runCatching {
-                    web3j.ethEstimateGas(call).send().amountUsed
-                }.getOrNull().orZero()
-                gasLimit * (priorityFee + baseFee)
-            }
-            .flowOn(Dispatchers.IO)
-    }
-
-    private fun Web3jService.ethMaxPriorityFeePerGas(): Request<Any, MaxPriorityFeePerGas> {
-        return Request<Any, MaxPriorityFeePerGas>(
-            "eth_maxPriorityFeePerGas",
-            emptyList(),
-            this,
-            MaxPriorityFeePerGas::class.java
-        )
+    private fun subscribeOnEthereumTransferFee(transfer: Transfer, chain: Chain): Flow<BigInteger> {
+        return ethGasService.listenGas(transfer, chain)
     }
 
     override suspend fun performTransfer(
@@ -371,7 +308,7 @@ class WalletRepositoryImpl(
         val chainAsset = transfer.chainAsset
         val recipientAccountId = chain.accountIdOf(transfer.recipient)
 
-        val totalRecipientBalanceInPlanks = substrateSource.getTotalBalance(chainAsset, recipientAccountId)
+        val totalRecipientBalanceInPlanks = substrateSource.getTotalBalance(chainAsset, chain, recipientAccountId)
         val totalRecipientBalance = chainAsset.amountFromPlanks(totalRecipientBalanceInPlanks)
 
         val assetLocal = assetCache.getAsset(metaId, accountId, chainAsset.chainId, chainAsset.id)!!
