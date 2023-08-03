@@ -1,8 +1,5 @@
 package jp.co.soramitsu.runtime.multiNetwork.connection
 
-import java.util.concurrent.ConcurrentHashMap
-import javax.inject.Inject
-import javax.inject.Provider
 import jp.co.soramitsu.common.compose.component.NetworkIssueItemState
 import jp.co.soramitsu.common.compose.component.NetworkIssueType
 import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
@@ -18,12 +15,18 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import java.util.concurrent.ConcurrentHashMap
+import javax.inject.Inject
+import javax.inject.Provider
+
+private const val ConnectingStatusDebounce = 750L
 
 class ConnectionPool @Inject constructor(
     private val socketServiceProvider: Provider<SocketService>,
@@ -79,15 +82,23 @@ class ConnectionPool @Inject constructor(
         val isConnectedListFlow = pool.map { it.value.isConnected }
         val hasConnectionsFlow = combine(isConnectedListFlow) { it.any { it } }
 
+        val isPausedListFlow = pool.map { it.value.isPaused }
+        val hasPausesFlow = combine(isPausedListFlow) { it.any { it } }
+
         val isConnectingListFlow = pool.map { it.value.isConnecting }
         val hasConnectingFlow = combine(isConnectingListFlow) { it.any { it } }
             .filter { connecting -> connecting }
-        val showConnecting = combine(hasConnectionsFlow, hasConnectingFlow) { connected, connecting ->
-            !connected && connecting
+        val showConnecting = combine(
+            hasConnectionsFlow,
+            hasConnectingFlow,
+            hasPausesFlow
+        ) { connected, connecting, paused ->
+            !(connected || paused) && connecting
         }
         showConnecting
     }
         .distinctUntilChanged()
+        .debounce(ConnectingStatusDebounce)
 
     init {
         connections.onEach {
