@@ -1,7 +1,8 @@
 package jp.co.soramitsu.account.impl.presentation.importing.remote_backup.screens
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
@@ -9,14 +10,18 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.FocusState
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.account.impl.presentation.importing.remote_backup.ImportRemoteWalletState
 import jp.co.soramitsu.account.impl.presentation.importing.remote_backup.model.WrappedBackupAccountMeta
@@ -36,7 +41,8 @@ import jp.co.soramitsu.common.compose.theme.white08
 
 data class EnterBackupPasswordState(
     val wallet: WrappedBackupAccountMeta?,
-    val passwordInputViewState: TextInputViewState
+    val passwordInputViewState: TextInputViewState,
+    val heightDiffDp: Dp
 ) : ImportRemoteWalletState
 
 interface EnterBackupPasswordCallback {
@@ -57,6 +63,8 @@ internal fun EnterBackupPasswordScreen(
     modifier: Modifier = Modifier
 ) {
     var focusedState by remember { mutableStateOf(false) }
+    val focusRequester = remember { FocusRequester() }
+    LaunchedEffect(Unit) { focusRequester.requestFocus() }
 
     fun onFocusChanged(focusState: FocusState) {
         focusedState = focusState.isFocused
@@ -68,57 +76,63 @@ internal fun EnterBackupPasswordScreen(
         white08
     }
 
-    Column(
-        modifier = modifier
-            .imePadding()
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(bottom = state.heightDiffDp)
     ) {
-        Toolbar(
-            modifier = Modifier.padding(bottom = 12.dp),
-            state = ToolbarViewState(
-                title = stringResource(R.string.import_remote_wallet_title_password),
-                navigationIcon = R.drawable.ic_arrow_back_24dp
-            ),
-            onNavigationClick = callback::onBackClick
-        )
-        MarginVertical(margin = 24.dp)
-
         Column(
-            modifier = Modifier
-                .padding(horizontal = 16.dp)
-                .verticalScroll(rememberScrollState())
+            modifier = modifier
                 .imePadding()
         ) {
-            B0(
-                text = stringResource(R.string.import_remote_wallet_subtitle_password),
-                textAlign = TextAlign.Center,
-                color = gray2
+            Toolbar(
+                modifier = Modifier.padding(bottom = 12.dp),
+                state = ToolbarViewState(
+                    title = stringResource(R.string.import_remote_wallet_title_password),
+                    navigationIcon = R.drawable.ic_arrow_back_24dp
+                ),
+                onNavigationClick = callback::onBackClick
             )
-            MarginVertical(margin = 16.dp)
-            WalletItem(
-                state = CompactWalletItemViewState(title = state.wallet?.backupMeta?.name.orEmpty()),
-                onSelected = {}
-            )
-            MarginVertical(margin = 16.dp)
-            TextInput(
-                state = state.passwordInputViewState,
-                borderColor = borderColor,
-                onFocusChanged = ::onFocusChanged,
-                onInput = callback::onPasswordChanged,
-                onEndIconClick = callback::onPasswordVisibilityClick
-            )
-            MarginVertical(margin = 16.dp)
-        }
+            MarginVertical(margin = 24.dp)
 
-        Spacer(modifier = Modifier.weight(1f))
-        AccentButton(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(48.dp)
-                .padding(horizontal = 16.dp),
-            text = stringResource(R.string.common_continue),
-            enabled = true,
-            onClick = callback::onContinueClick
-        )
-        MarginVertical(12.dp)
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(horizontal = 16.dp)
+                    .verticalScroll(rememberScrollState())
+            ) {
+                B0(
+                    text = stringResource(R.string.import_remote_wallet_subtitle_password),
+                    textAlign = TextAlign.Center,
+                    color = gray2
+                )
+                MarginVertical(margin = 16.dp)
+                WalletItem(
+                    state = CompactWalletItemViewState(title = state.wallet?.backupMeta?.name.orEmpty()),
+                    onSelected = {}
+                )
+                MarginVertical(margin = 16.dp)
+                TextInput(
+                    modifier = Modifier.focusRequester(focusRequester),
+                    state = state.passwordInputViewState,
+                    borderColor = borderColor,
+                    onFocusChanged = ::onFocusChanged,
+                    onInput = callback::onPasswordChanged,
+                    onEndIconClick = callback::onPasswordVisibilityClick
+                )
+                MarginVertical(margin = 16.dp)
+            }
+
+            AccentButton(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp)
+                    .padding(horizontal = 16.dp),
+                text = stringResource(R.string.common_continue),
+                enabled = true,
+                onClick = callback::onContinueClick
+            )
+            MarginVertical(12.dp)
+        }
     }
 }

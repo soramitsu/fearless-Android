@@ -1,6 +1,8 @@
 package jp.co.soramitsu.account.impl.presentation.importing.remote_backup
 
 import android.widget.LinearLayout
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -35,6 +37,7 @@ class ImportRemoteWalletViewModel @Inject constructor(
     private val resourceManager: ResourceManager
 ) : BaseViewModel(), ImportRemoteWalletCallback {
 
+    private val heightDiffDpFlow = MutableStateFlow(0.dp)
     private val steps = listOf(
         ImportRemoteWalletStep.WalletList,
         ImportRemoteWalletStep.EnterBackupPassword,
@@ -71,11 +74,13 @@ class ImportRemoteWalletViewModel @Inject constructor(
 
     private val enterBackupPasswordState = combine(
         selectedWallet,
-        passwordInputViewState
-    ) { selectedWallet, passwordInputViewState ->
+        passwordInputViewState,
+        heightDiffDpFlow
+    ) { selectedWallet, passwordInputViewState, heightDiffDp ->
         EnterBackupPasswordState(
             wallet = selectedWallet,
-            passwordInputViewState = passwordInputViewState
+            passwordInputViewState = passwordInputViewState,
+            heightDiffDp = heightDiffDp
         )
     }
     private val remoteWalletListState = combine(
@@ -309,5 +314,9 @@ class ImportRemoteWalletViewModel @Inject constructor(
 
     override fun onPasswordVisibilityClick() {
         isPasswordVisible.value = isPasswordVisible.value.not()
+    }
+
+    fun setHeightDiffDp(value: Dp) {
+        heightDiffDpFlow.value = value
     }
 }

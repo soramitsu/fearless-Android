@@ -1,5 +1,7 @@
 package jp.co.soramitsu.account.impl.presentation.account.create
 
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
@@ -29,6 +31,8 @@ class CreateAccountViewModel @Inject constructor(
     private val payload = savedStateHandle.getLiveData<ChainAccountCreatePayload>(CreateAccountScreenKeys.PAYLOAD_KEY)
     private val isFromGoogleBackup = savedStateHandle.get<Boolean>(CreateAccountScreenKeys.IS_FROM_GOOGLE_BACKUP_KEY) ?: false
 
+    private val heightDiffDpFlow = MutableStateFlow(0.dp)
+
     private val _nextButtonEnabledLiveData = MutableLiveData<Boolean>()
     val nextButtonEnabledLiveData: LiveData<Boolean> = _nextButtonEnabledLiveData
 
@@ -49,11 +53,13 @@ class CreateAccountViewModel @Inject constructor(
 
     val state = combine(
         walletNameInputViewState,
-        isContinueEnabled
-    ) { walletNameInputViewState, isContinueEnabled ->
+        isContinueEnabled,
+        heightDiffDpFlow
+    ) { walletNameInputViewState, isContinueEnabled, heightDiffDp ->
         CreateAccountState(
             walletNickname = walletNameInputViewState,
-            isContinueEnabled = isContinueEnabled
+            isContinueEnabled = isContinueEnabled,
+            heightDiffDp = heightDiffDp
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, initialValue = CreateAccountState.Empty)
 
@@ -83,5 +89,9 @@ class CreateAccountViewModel @Inject constructor(
 
     override fun onBackClick() {
         router.back()
+    }
+
+    fun setHeightDiffDp(value: Dp) {
+        heightDiffDpFlow.value = value
     }
 }

@@ -1,5 +1,7 @@
 package jp.co.soramitsu.account.impl.presentation.account.rename
 
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -31,6 +33,7 @@ class RenameAccountViewModel @Inject constructor(
     private val isSaveEnabled = walletNickname.map {
         it.isNotBlank()
     }
+    private val heightDiffDpFlow = MutableStateFlow(0.dp)
 
     private val walletNameInputViewState = walletNickname.map { walletNickname ->
         TextInputViewState(
@@ -41,11 +44,13 @@ class RenameAccountViewModel @Inject constructor(
 
     val state = combine(
         walletNameInputViewState,
-        isSaveEnabled
-    ) { walletNameInputViewState, isSaveEnabled ->
+        isSaveEnabled,
+        heightDiffDpFlow
+    ) { walletNameInputViewState, isSaveEnabled, heightDiffDp ->
         RenameAccountState(
             walletNickname = walletNameInputViewState,
-            isSaveEnabled = isSaveEnabled
+            isSaveEnabled = isSaveEnabled,
+            heightDiffDp = heightDiffDp
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, initialValue = RenameAccountState.Empty)
 
@@ -69,5 +74,9 @@ class RenameAccountViewModel @Inject constructor(
 
     override fun onBackClick() {
         router.back()
+    }
+
+    fun setHeightDiffDp(value: Dp) {
+        heightDiffDpFlow.value = value
     }
 }
