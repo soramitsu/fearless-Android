@@ -366,6 +366,10 @@ class AccountRepositoryImpl(
         }
     }
 
+    override fun validateJsonBackup(json: String, password: String) {
+        jsonSeedDecoder.decode(json, password)
+    }
+
     override suspend fun importFromJson(
         json: String,
         password: String,

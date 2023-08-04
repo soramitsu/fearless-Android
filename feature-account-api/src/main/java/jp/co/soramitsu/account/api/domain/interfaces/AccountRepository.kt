@@ -118,6 +118,8 @@ interface AccountRepository {
         selectedEncryptionType: CryptoType
     )
 
+    fun validateJsonBackup(json: String, password: String)
+
     suspend fun importFromJson(
         json: String,
         password: String,
