@@ -181,13 +181,18 @@ internal fun BackupMnemonicContent(
             }
         }
 
+        val buttonText = if (state.isFromGoogleBackup) {
+            stringResource(R.string.common_continue)
+        } else {
+            stringResource(R.string.account_confirmation_title)
+        }
         AccentButton(
             modifier = Modifier
                 .padding(horizontal = 16.dp)
                 .height(48.dp)
                 .fillMaxWidth()
                 .imePadding(),
-            text = stringResource(R.string.import_remote_wallet_btn_create_wallet),
+            text = buttonText,
             onClick = {
                 callback.onNextClick(launcher)
             }

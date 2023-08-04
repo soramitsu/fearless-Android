@@ -367,6 +367,10 @@ class AccountRepositoryImpl(
         }
     }
 
+    override fun validateJsonBackup(json: String, password: String) {
+        jsonSeedDecoder.decode(json, password)
+    }
+
     override suspend fun importFromJson(
         json: String,
         password: String,
@@ -640,6 +644,7 @@ class AccountRepositoryImpl(
 
             val (ethereumKeypair: Keypair?, ethereumDerivationPathOrDefault: String?) = if (withEth) {
                 val ethereumDerivationPathOrDefault = ethereumDerivationPath.nullIfEmpty() ?: BIP32JunctionDecoder.DEFAULT_DERIVATION_PATH
+
                 val decodedEthereumDerivationPath = BIP32JunctionDecoder.decode(ethereumDerivationPathOrDefault)
                 val ethereumSeed = EthereumSeedFactory.deriveSeed32(mnemonicWords, password = decodedEthereumDerivationPath.password).seed
                 val ethereumKeypair = EthereumKeypairFactory.generate(ethereumSeed, junctions = decodedEthereumDerivationPath.junctions)

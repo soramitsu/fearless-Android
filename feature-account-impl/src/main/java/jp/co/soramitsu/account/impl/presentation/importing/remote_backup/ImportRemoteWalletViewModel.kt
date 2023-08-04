@@ -37,6 +37,7 @@ class ImportRemoteWalletViewModel @Inject constructor(
     private val resourceManager: ResourceManager
 ) : BaseViewModel(), ImportRemoteWalletCallback {
 
+    private val isLoading = MutableStateFlow(false)
     private val heightDiffDpFlow = MutableStateFlow(0.dp)
     private val steps = listOf(
         ImportRemoteWalletStep.WalletList,
@@ -75,19 +76,18 @@ class ImportRemoteWalletViewModel @Inject constructor(
     private val enterBackupPasswordState = combine(
         selectedWallet,
         passwordInputViewState,
+        isLoading,
         heightDiffDpFlow
-    ) { selectedWallet, passwordInputViewState, heightDiffDp ->
+    ) { selectedWallet, passwordInputViewState, isLoading, heightDiffDp ->
         EnterBackupPasswordState(
             wallet = selectedWallet,
             passwordInputViewState = passwordInputViewState,
+            isLoading = isLoading,
             heightDiffDp = heightDiffDp
         )
     }
-    private val remoteWalletListState = combine(
-        remoteWallets,
-        interactor.getMetaAccountsGoogleAddresses()
-    ) { wallets, localWalletAddresses ->
-        RemoteWalletListState(wallets = wallets?.filter { it.backupMeta.address !in localWalletAddresses })
+    private val remoteWalletListState = remoteWallets.map { wallets ->
+        RemoteWalletListState(wallets = wallets)
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, initialValue = RemoteWalletListState())
 
@@ -215,6 +215,7 @@ class ImportRemoteWalletViewModel @Inject constructor(
     }
 
     private fun decryptWalletByPassword() {
+        isLoading.value = true
         viewModelScope.launch {
             runCatching {
                 val backupAccountMeta = selectedWallet.value
@@ -231,6 +232,9 @@ class ImportRemoteWalletViewModel @Inject constructor(
                             name = selectedWallet.value?.backupMeta?.name.orEmpty()
                         )
 
+                        val json = webBackupAccount.json?.substrateJson ?: error("No backup found")
+                        interactor.validateJsonBackup(json, passwordText.value)
+
                         backupService.saveBackupAccount(
                             account = webBackupAccount,
                             password = passwordText.value
@@ -241,8 +245,10 @@ class ImportRemoteWalletViewModel @Inject constructor(
 
                 importFromBackup(decryptedBackupAccount)
                 nextStep()
+                isLoading.value = false
             }
                 .onFailure {
+                    isLoading.value = false
                     handleDecryptException(it)
                 }
         }

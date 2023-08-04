@@ -154,6 +154,11 @@ class AccountInteractorImpl(
         }
     }
 
+    override fun validateJsonBackup(json: String, password: String) {
+        accountRepository.validateJsonBackup(json, password)
+    }
+
+
     override suspend fun importFromJson(
         json: String,
         password: String,
