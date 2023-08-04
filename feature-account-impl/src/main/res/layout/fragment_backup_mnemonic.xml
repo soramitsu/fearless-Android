@@ -54,15 +54,44 @@
         android:layout_marginEnd="@dimen/x2"
         android:text="@string/common_next" />
 
-    <jp.co.soramitsu.common.view.PrimaryButton
-        android:id="@+id/googleBackupButton"
-        style="@style/Widget.Fearless.Button.Outline"
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/x2"
         android:layout_marginTop="@dimen/x1"
         android:layout_marginEnd="@dimen/x2"
-        android:layout_marginBottom="@dimen/x3"
-        android:text="@string/btn_backup_with_google" />
+        android:layout_marginBottom="@dimen/x3">
+
+        <jp.co.soramitsu.common.view.PrimaryButton
+            android:id="@+id/googleBackupButton"
+            style="@style/Widget.Fearless.Button.Outline"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+
+        <LinearLayout
+            android:elevation="@dimen/x1_2"
+            android:layout_width="match_parent"
+            android:orientation="horizontal"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            >
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_google_30"
+                android:paddingEnd="@dimen/x2"
+                />
+
+            <TextView
+                style="@style/TextAppearance.Soramitsu.Header4"
+                android:fontFamily="@font/sora_bold"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/white"
+                android:text="@string/btn_backup_with_google"
+                />
+        </LinearLayout>
+    </FrameLayout>
 
 </LinearLayout>
