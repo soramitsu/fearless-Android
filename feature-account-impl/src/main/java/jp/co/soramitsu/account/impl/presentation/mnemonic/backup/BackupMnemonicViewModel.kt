@@ -24,7 +24,9 @@ import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.MnemonicWordModel
 import jp.co.soramitsu.common.compose.component.mapMnemonicToMnemonicWords
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.utils.DEFAULT_DERIVATION_PATH
 import jp.co.soramitsu.common.utils.Event
+import jp.co.soramitsu.shared_utils.encrypt.junction.BIP32JunctionDecoder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -107,7 +109,7 @@ class BackupMnemonicViewModel @Inject constructor(
     ) {
         viewModelScope.launch {
             val substrateDerivationPath = substrateDerivationPath.value
-            val ethereumDerivationPath = ethereumDerivationPath.value
+            val ethereumDerivationPath = ethereumDerivationPath.value.ifEmpty { BIP32JunctionDecoder.DEFAULT_DERIVATION_PATH }
 
             if (isFromGoogleBackup) {
                 backupPhraseInGoogle(substrateDerivationPath, ethereumDerivationPath, launcher)
@@ -123,7 +125,7 @@ class BackupMnemonicViewModel @Inject constructor(
     ) {
         viewModelScope.launch {
             val substrateDerivationPath = substrateDerivationPath.value
-            val ethereumDerivationPath = ethereumDerivationPath.value
+            val ethereumDerivationPath = ethereumDerivationPath.value.ifEmpty { BIP32JunctionDecoder.DEFAULT_DERIVATION_PATH }
             backupPhraseInGoogle(substrateDerivationPath, ethereumDerivationPath, launcher)
         }
     }
@@ -237,7 +239,7 @@ class BackupMnemonicViewModel @Inject constructor(
     override fun onGoogleSignInSuccess() {
         openCreateBackupPasswordDialog(
             substrateDerivationPath.value,
-            ethereumDerivationPath.value
+            ethereumDerivationPath.value.ifEmpty { BIP32JunctionDecoder.DEFAULT_DERIVATION_PATH }
         )
     }
 

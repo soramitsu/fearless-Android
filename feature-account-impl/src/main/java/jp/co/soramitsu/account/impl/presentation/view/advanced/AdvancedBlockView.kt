@@ -7,11 +7,11 @@ import android.view.View.OnClickListener
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.TextView
+import jp.co.soramitsu.account.api.presentation.importing.ImportAccountType
 import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.common.view.InputField
 import jp.co.soramitsu.common.view.LabeledTextView
-import jp.co.soramitsu.account.api.presentation.importing.ImportAccountType
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.databinding.ViewAdvancedBlockBinding
 
@@ -109,7 +109,7 @@ class AdvancedBlockView @JvmOverloads constructor(
     }
 
     fun getSubstrateDerivationPath(): String {
-        return substrateDerivationPathEditText.text?.toString() ?: ""
+        return substrateDerivationPathEditText.text?.toString().orEmpty()
     }
 
     fun setSubstrateDerivationPath(path: String?) {
@@ -121,7 +121,7 @@ class AdvancedBlockView @JvmOverloads constructor(
     }
 
     fun getEthereumDerivationPath(): String {
-        return ethereumDerivationPathEditText.text?.toString() ?: ""
+        return ethereumDerivationPathEditText.text?.toString().orEmpty()
     }
 
     fun setEthereumDerivationPath(path: String?) {
