@@ -38,6 +38,7 @@ import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.westendChainId
 import jp.co.soramitsu.shared_utils.encrypt.MultiChainEncryption
 import jp.co.soramitsu.shared_utils.encrypt.json.JsonSeedDecoder
 import jp.co.soramitsu.shared_utils.encrypt.json.JsonSeedEncoder
@@ -643,6 +644,7 @@ class AccountRepositoryImpl(
 
             val (ethereumKeypair: Keypair?, ethereumDerivationPathOrDefault: String?) = if (withEth) {
                 val ethereumDerivationPathOrDefault = ethereumDerivationPath.nullIfEmpty() ?: BIP32JunctionDecoder.DEFAULT_DERIVATION_PATH
+
                 val decodedEthereumDerivationPath = BIP32JunctionDecoder.decode(ethereumDerivationPathOrDefault)
                 val ethereumSeed = EthereumSeedFactory.deriveSeed32(mnemonicWords, password = decodedEthereumDerivationPath.password).seed
                 val ethereumKeypair = EthereumKeypairFactory.generate(ethereumSeed, junctions = decodedEthereumDerivationPath.junctions)
@@ -801,25 +803,17 @@ class AccountRepositoryImpl(
     }
     override suspend fun googleBackupAddressForWallet(walletId: Long): String {
         val wallet = getMetaAccount(walletId)
-        val chain = chainRegistry.getChain(polkadotChainId)
+        val chain = chainRegistry.getChain(westendChainId)
         return wallet.googleBackupAddress ?: wallet.address(chain) ?: ""
     }
 
     override fun googleAddressAllWalletsFlow(): Flow<List<String>> {
         return allMetaAccountsFlow().map { allMetaAccounts ->
-            val polkadotChain = chainRegistry.getChain(polkadotChainId)
+            val polkadotChain = chainRegistry.getChain(westendChainId)
             allMetaAccounts.mapNotNull {
                 it.googleBackupAddress ?: it.address(polkadotChain)
             }
         }
-//        return combine(
-//            allMetaAccountsFlow(),
-//            flowOf { getChain(polkadotChainId) }
-//        ) { allMetaAccounts, polkadotChain ->
-//            allMetaAccounts.mapNotNull {
-//                it.googleBackupAddress ?: it.address(polkadotChain)
-//            }
-//        }
     }
 
     override suspend fun getChain(chainId: ChainId): Chain {

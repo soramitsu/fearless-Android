@@ -110,7 +110,7 @@ class BackupMnemonicViewModel @Inject constructor(
             val ethereumDerivationPath = ethereumDerivationPath.value
 
             if (isFromGoogleBackup) {
-                backupPhraseInGoogle(substrateDerivationPath, ethereumDerivationPath, launcher, true)
+                backupPhraseInGoogle(substrateDerivationPath, ethereumDerivationPath, launcher)
                 return@launch
             }
 
@@ -124,7 +124,7 @@ class BackupMnemonicViewModel @Inject constructor(
         viewModelScope.launch {
             val substrateDerivationPath = substrateDerivationPath.value
             val ethereumDerivationPath = ethereumDerivationPath.value
-            backupPhraseInGoogle(substrateDerivationPath, ethereumDerivationPath, launcher, true)
+            backupPhraseInGoogle(substrateDerivationPath, ethereumDerivationPath, launcher)
         }
     }
 
@@ -207,8 +207,7 @@ class BackupMnemonicViewModel @Inject constructor(
     private suspend fun backupPhraseInGoogle(
         substrateDerivationPath: String,
         ethereumDerivationPath: String,
-        launcher: ActivityResultLauncher<Intent>,
-        createAccount: Boolean = false
+        launcher: ActivityResultLauncher<Intent>
     ) {
         val isSubstrateDerivationPathValid = substrateDerivationPath.matches(substrateDerivationPathRegex)
         if (isSubstrateDerivationPathValid.not()) {
@@ -220,8 +219,7 @@ class BackupMnemonicViewModel @Inject constructor(
         if (backupService.authorize(launcher)) {
             openCreateBackupPasswordDialog(
                 substrateDerivationPath,
-                ethereumDerivationPath,
-                createAccount
+                ethereumDerivationPath
             )
         }
     }
@@ -232,23 +230,20 @@ class BackupMnemonicViewModel @Inject constructor(
     ) {
         openCreateBackupPasswordDialog(
             substrateDerivationPath,
-            ethereumDerivationPath,
-            createAccount = isFromGoogleBackup
+            ethereumDerivationPath
         )
     }
 
     override fun onGoogleSignInSuccess() {
         openCreateBackupPasswordDialog(
             substrateDerivationPath.value,
-            ethereumDerivationPath.value,
-            createAccount = isFromGoogleBackup
+            ethereumDerivationPath.value
         )
     }
 
     private fun openCreateBackupPasswordDialog(
         substrateDerivationPath: String,
-        ethereumDerivationPath: String,
-        createAccount: Boolean
+        ethereumDerivationPath: String
     ) {
         val cryptoTypeModel = selectedEncryptionTypeLiveData.value ?: return
         val mnemonicWords = mnemonic.value
@@ -263,7 +258,7 @@ class BackupMnemonicViewModel @Inject constructor(
                 cryptoType = cryptoTypeModel.cryptoType,
                 substrateDerivationPath = substrateDerivationPath,
                 ethereumDerivationPath = ethereumDerivationPath,
-                createAccount = createAccount
+                createAccount = true
             )
         )
     }
