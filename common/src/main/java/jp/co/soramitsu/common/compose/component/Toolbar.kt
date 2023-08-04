@@ -72,7 +72,6 @@ fun MainToolbar(
     menuItems: List<MenuIconItem>? = null,
     modifier: Modifier = Modifier
 ) {
-
     val paddingTitleEnd = menuItems.orEmpty().size * (32 /* icon size */ + 8 /* padding */)
     val paddingTitleStart = 40 /* icon size */ + 8 /* padding */
     Box(
