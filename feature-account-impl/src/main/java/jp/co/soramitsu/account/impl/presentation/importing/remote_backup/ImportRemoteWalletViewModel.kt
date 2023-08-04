@@ -83,11 +83,8 @@ class ImportRemoteWalletViewModel @Inject constructor(
             heightDiffDp = heightDiffDp
         )
     }
-    private val remoteWalletListState = combine(
-        remoteWallets,
-        interactor.getMetaAccountsGoogleAddresses()
-    ) { wallets, localWalletAddresses ->
-        RemoteWalletListState(wallets = wallets?.filter { it.backupMeta.address !in localWalletAddresses })
+    private val remoteWalletListState = remoteWallets.map { wallets ->
+        RemoteWalletListState(wallets = wallets)
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, initialValue = RemoteWalletListState())
 
