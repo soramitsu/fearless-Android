@@ -42,6 +42,7 @@ import jp.co.soramitsu.common.compose.theme.white08
 data class EnterBackupPasswordState(
     val wallet: WrappedBackupAccountMeta?,
     val passwordInputViewState: TextInputViewState,
+    val isLoading: Boolean,
     val heightDiffDp: Dp
 ) : ImportRemoteWalletState
 
@@ -130,6 +131,7 @@ internal fun EnterBackupPasswordScreen(
                     .padding(horizontal = 16.dp),
                 text = stringResource(R.string.common_continue),
                 enabled = true,
+                loading = state.isLoading,
                 onClick = callback::onContinueClick
             )
             MarginVertical(12.dp)
