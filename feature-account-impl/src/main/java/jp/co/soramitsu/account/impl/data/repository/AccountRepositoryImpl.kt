@@ -643,13 +643,11 @@ class AccountRepositoryImpl(
             val mnemonic = MnemonicCreator.fromWords(mnemonicWords)
 
             val (ethereumKeypair: Keypair?, ethereumDerivationPathOrDefault: String?) = if (withEth) {
-                val ethereumDerivationPathOrDefault = ethereumDerivationPath.nullIfEmpty() ?: BIP32JunctionDecoder.DEFAULT_DERIVATION_PATH
-
-                val decodedEthereumDerivationPath = BIP32JunctionDecoder.decode(ethereumDerivationPathOrDefault)
+                val decodedEthereumDerivationPath = BIP32JunctionDecoder.decode(ethereumDerivationPath)
                 val ethereumSeed = EthereumSeedFactory.deriveSeed32(mnemonicWords, password = decodedEthereumDerivationPath.password).seed
                 val ethereumKeypair = EthereumKeypairFactory.generate(ethereumSeed, junctions = decodedEthereumDerivationPath.junctions)
 
-                ethereumKeypair to ethereumDerivationPathOrDefault
+                ethereumKeypair to ethereumDerivationPath
             } else {
                 null to null
             }
@@ -709,8 +707,7 @@ class AccountRepositoryImpl(
 
         val mnemonic = MnemonicCreator.fromWords(mnemonicWords)
 
-        val ethereumDerivationPathOrDefault = ethereumDerivationPath.nullIfEmpty() ?: BIP32JunctionDecoder.DEFAULT_DERIVATION_PATH
-        val decodedEthereumDerivationPath = BIP32JunctionDecoder.decode(ethereumDerivationPathOrDefault)
+        val decodedEthereumDerivationPath = BIP32JunctionDecoder.decode(ethereumDerivationPath)
         val ethereumSeed = EthereumSeedFactory.deriveSeed32(mnemonicWords, password = decodedEthereumDerivationPath.password).seed
         val ethereumKeypair = EthereumKeypairFactory.generate(ethereumSeed, junctions = decodedEthereumDerivationPath.junctions)
 
@@ -726,7 +723,7 @@ class AccountRepositoryImpl(
         }
 
         val derPath = when {
-            ethereumBased -> ethereumDerivationPathOrDefault
+            ethereumBased -> ethereumDerivationPath
             else -> substrateDerivationPath
         }
 

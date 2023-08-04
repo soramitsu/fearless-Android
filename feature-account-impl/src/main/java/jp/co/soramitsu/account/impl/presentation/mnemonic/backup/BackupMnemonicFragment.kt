@@ -13,10 +13,12 @@ import jp.co.soramitsu.account.impl.presentation.view.advanced.encryption.Encryp
 import jp.co.soramitsu.account.impl.presentation.view.advanced.encryption.model.CryptoTypeModel
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.presentation.ErrorDialog
+import jp.co.soramitsu.common.utils.DEFAULT_DERIVATION_PATH
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet.Payload
 import jp.co.soramitsu.common.view.viewBinding
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.databinding.FragmentBackupMnemonicBinding
+import jp.co.soramitsu.shared_utils.encrypt.junction.BIP32JunctionDecoder
 
 @AndroidEntryPoint
 class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>(R.layout.fragment_backup_mnemonic) {
@@ -41,14 +43,13 @@ class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>(R.layout.fr
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
         val googleSignInStatus = result.data?.extras?.get("googleSignInStatus")
-        println("!!! BackupMnemonicFragment WelcomeFragment GoogleLogin result: $googleSignInStatus ")
         if (result.resultCode != Activity.RESULT_OK) {
             viewModel.onGoogleLoginError(googleSignInStatus.toString())
         } else {
             with(binding) {
                 viewModel.onGoogleSignInSuccess(
                     advancedBlockView.getSubstrateDerivationPath(),
-                    advancedBlockView.getEthereumDerivationPath()
+                    advancedBlockView.getEthereumDerivationPath().ifEmpty { BIP32JunctionDecoder.DEFAULT_DERIVATION_PATH }
                 )
             }
         }
@@ -75,7 +76,7 @@ class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>(R.layout.fr
             nextBtn.setOnClickListener {
                 viewModel.onNextClick(
                     advancedBlockView.getSubstrateDerivationPath(),
-                    advancedBlockView.getEthereumDerivationPath(),
+                    advancedBlockView.getEthereumDerivationPath().ifEmpty { BIP32JunctionDecoder.DEFAULT_DERIVATION_PATH },
                     launcher
                 )
             }
@@ -83,7 +84,7 @@ class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>(R.layout.fr
             googleBackupButton.setOnClickListener {
                 viewModel.onGoogleBackupClick(
                     advancedBlockView.getSubstrateDerivationPath(),
-                    advancedBlockView.getEthereumDerivationPath(),
+                    advancedBlockView.getEthereumDerivationPath().ifEmpty { BIP32JunctionDecoder.DEFAULT_DERIVATION_PATH },
                     launcher
                 )
             }
