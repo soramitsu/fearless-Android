@@ -79,6 +79,8 @@ interface AccountInteractor {
         selectedEncryptionType: CryptoType
     ): Result<Unit>
 
+    fun validateJsonBackup(json: String, password: String)
+
     suspend fun importFromJson(
         json: String,
         password: String,
