@@ -5,6 +5,7 @@ import jp.co.soramitsu.account.api.domain.model.Account
 import jp.co.soramitsu.account.api.domain.model.ImportJsonData
 import jp.co.soramitsu.account.api.domain.model.LightMetaAccount
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
+import jp.co.soramitsu.backup.domain.models.BackupAccountType
 import jp.co.soramitsu.common.data.secrets.v2.ChainAccountSecrets
 import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
 import jp.co.soramitsu.core.model.Language
@@ -148,6 +149,7 @@ interface AccountInteractor {
 
     suspend fun googleBackupAddressForWallet(walletId: Long): String
     suspend fun isGoogleBackupSupported(walletId: Long): Boolean
+    suspend fun getSupportedBackupTypes(walletId: Long): Set<BackupAccountType>
 
     suspend fun getChain(chainId: ChainId): Chain
 

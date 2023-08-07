@@ -255,6 +255,7 @@ class BackupMnemonicViewModel @Inject constructor(
 
         router.openCreateBackupPasswordDialog(
             payload = CreateBackupPasswordPayload(
+                walletId = null,
                 mnemonic = mnemonic,
                 accountName = payload.accountName,
                 cryptoType = cryptoTypeModel.cryptoType,
@@ -266,7 +267,6 @@ class BackupMnemonicViewModel @Inject constructor(
     }
 
     override fun onGoogleLoginError(message: String) {
-        println("!!! BackupMnemonicViewModel onGoogleLoginError")
         showError("GoogleLoginError\n$message")
     }
 
