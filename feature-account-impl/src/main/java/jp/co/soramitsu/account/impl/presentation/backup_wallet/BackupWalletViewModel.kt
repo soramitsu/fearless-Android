@@ -177,7 +177,7 @@ class BackupWalletViewModel @Inject constructor(
                 mnemonic = entropy?.let { MnemonicCreator.fromEntropy(it).words }.orEmpty(),
                 accountName = wallet.first().name,
                 cryptoType = wallet.first().substrateCryptoType,
-                substrateDerivationPath = substrateDerivationPath.orEmpty(), //todo remove
+                substrateDerivationPath = substrateDerivationPath.orEmpty(), // todo remove
                 ethereumDerivationPath = ethereumDerivationPath.orEmpty(),
                 createAccount = false
             )
