@@ -30,6 +30,7 @@ import jp.co.soramitsu.account.impl.presentation.importing.source.model.RawSeedI
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.utils.DEFAULT_DERIVATION_PATH
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.combine
 import jp.co.soramitsu.common.utils.requireException
@@ -38,6 +39,7 @@ import jp.co.soramitsu.common.view.ButtonState
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet.Payload
 import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.feature_account_impl.R
+import jp.co.soramitsu.shared_utils.encrypt.junction.BIP32JunctionDecoder
 import kotlinx.coroutines.launch
 
 @HiltViewModel
@@ -185,7 +187,7 @@ class ImportAccountViewModel @Inject constructor(
 
         val cryptoType = selectedEncryptionTypeLiveData.value!!.cryptoType
         val substrateDerivationPath = substrateDerivationPathLiveData.value.orEmpty()
-        val ethereumDerivationPath = ethereumDerivationPathLiveData.value.orEmpty()
+        val ethereumDerivationPath = ethereumDerivationPathLiveData.value.orEmpty().ifEmpty { BIP32JunctionDecoder.DEFAULT_DERIVATION_PATH }
         val name = if (isChainAccount) "" else nameLiveData.value!!
 
         viewModelScope.launch {
