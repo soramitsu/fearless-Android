@@ -76,12 +76,10 @@ class BackupWalletViewModel @Inject constructor(
             )
         }
     private val isDeleteWalletEnabled = wallet.map { !it.isSelected }
-    private val isGoogleBackupSupported = flowOf { accountInteractor.isGoogleBackupSupported(walletId) }
     private val supportedBackupTypes = flowOf { accountInteractor.getSupportedBackupTypes(walletId) }
     private val googleBackupAddressFlow = flowOf { accountInteractor.googleBackupAddressForWallet(walletId) }
     private val refresh = MutableSharedFlow<Event<Unit>>()
     private val isAccountBackedUp = refresh.onStart { emit(Event(Unit)) }.flatMapLatest {
-        println("!!! got refresh")
         googleBackupAddressFlow.map { backupService.isAccountBackedUp(it) }
     }
 
@@ -177,7 +175,7 @@ class BackupWalletViewModel @Inject constructor(
                 mnemonic = entropy?.let { MnemonicCreator.fromEntropy(it).words }.orEmpty(),
                 accountName = wallet.first().name,
                 cryptoType = wallet.first().substrateCryptoType,
-                substrateDerivationPath = substrateDerivationPath.orEmpty(), // todo remove
+                substrateDerivationPath = substrateDerivationPath.orEmpty(),
                 ethereumDerivationPath = ethereumDerivationPath.orEmpty(),
                 createAccount = false
             )

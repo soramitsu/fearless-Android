@@ -430,7 +430,6 @@ class BalanceListViewModel @Inject constructor(
         )
 
         val hasNetworkIssues = assetsListItemStates.any { it.hasNetworkIssue }
-        println("!!! state balance list: wallet: ${currentMetaAccount.id}: ${currentMetaAccount.name}, isBackedUp = ${currentMetaAccount.isBackedUp}")
         WalletState(
             assets = assetsListItemStates,
             multiToggleButtonState = multiToggleButtonState,

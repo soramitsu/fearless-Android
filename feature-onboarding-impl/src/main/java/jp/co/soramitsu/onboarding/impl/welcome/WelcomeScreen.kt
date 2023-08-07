@@ -1,7 +1,9 @@
 package jp.co.soramitsu.onboarding.impl.welcome
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -25,8 +27,8 @@ import jp.co.soramitsu.common.compose.component.IconButton
 import jp.co.soramitsu.common.compose.component.Image
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
+import jp.co.soramitsu.common.compose.theme.colorAccentDark
 import jp.co.soramitsu.common.compose.theme.customTypography
-import jp.co.soramitsu.common.utils.createSpannable
 import jp.co.soramitsu.feature_onboarding_impl.R
 
 data class WelcomeState(
@@ -100,21 +102,31 @@ fun WelcomeScreen(
         )
         MarginVertical(margin = 68.dp)
 
-        val terms = stringResource(id = R.string.onboarding_terms_and_conditions_1)
-        val privacy = stringResource(id = R.string.onboarding_terms_and_conditions_2)
         Text(
             style = MaterialTheme.customTypography.body1,
             color = Color.White,
-            text = createSpannable(stringResource(id = R.string.onboarding_terms_and_conditions)) {
-                clickable(terms) {
-                    callbacks.termsClicked()
-                }
-
-                clickable(privacy) {
-                    callbacks.privacyClicked()
-                }
-            }.toString()
+            text = stringResource(id = R.string.onboarding_terms_and_conditions_prefix)
         )
+        Row {
+            Text(
+                modifier = Modifier.clickable(onClick = callbacks::termsClicked),
+                style = MaterialTheme.customTypography.body1,
+                color = colorAccentDark,
+                text = stringResource(id = R.string.onboarding_terms_and_conditions_2)
+            )
+            Text(
+                modifier = Modifier.padding(horizontal = 3.dp),
+                style = MaterialTheme.customTypography.body1,
+                color = Color.White,
+                text = stringResource(id = R.string.common_and)
+            )
+            Text(
+                modifier = Modifier.clickable(onClick = callbacks::privacyClicked),
+                style = MaterialTheme.customTypography.body1,
+                color = colorAccentDark,
+                text = stringResource(id = R.string.onboarding_privacy_policy)
+            )
+        }
         MarginVertical(margin = 40.dp)
     }
 }
