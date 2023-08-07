@@ -1,6 +1,9 @@
 package jp.co.soramitsu.account.impl.presentation.backup_wallet
 
+import android.content.Intent
 import android.widget.LinearLayout
+import androidx.activity.compose.ManagedActivityResultLauncher
+import androidx.activity.result.ActivityResult
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -10,6 +13,7 @@ import jp.co.soramitsu.account.api.domain.interfaces.TotalBalanceUseCase
 import jp.co.soramitsu.account.api.presentation.create_backup_password.CreateBackupPasswordPayload
 import jp.co.soramitsu.account.impl.presentation.AccountRouter
 import jp.co.soramitsu.backup.BackupService
+import jp.co.soramitsu.backup.domain.models.BackupAccountType
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.ChangeBalanceViewState
@@ -73,6 +77,7 @@ class BackupWalletViewModel @Inject constructor(
         }
     private val isDeleteWalletEnabled = wallet.map { !it.isSelected }
     private val isGoogleBackupSupported = flowOf { accountInteractor.isGoogleBackupSupported(walletId) }
+    private val supportedBackupTypes = flowOf { accountInteractor.getSupportedBackupTypes(walletId) }
     private val googleBackupAddressFlow = flowOf { accountInteractor.googleBackupAddressForWallet(walletId) }
     private val refresh = MutableSharedFlow<Event<Unit>>()
     private val isAccountBackedUp = refresh.onStart { emit(Event(Unit)) }.flatMapLatest {
@@ -84,12 +89,14 @@ class BackupWalletViewModel @Inject constructor(
         walletItem,
         isDeleteWalletEnabled,
         isAccountBackedUp,
-        isGoogleBackupSupported
-    ) { walletItem, isDeleteWalletEnabled, isAccountBackedUp, isGoogleBackupSupported ->
+        supportedBackupTypes
+    ) { walletItem, isDeleteWalletEnabled, isAccountBackedUp, supportedBackupTypes ->
         BackupWalletState(
             walletItem = walletItem,
             isWalletSavedInGoogle = isAccountBackedUp,
-            isGoogleBackupSupported = isGoogleBackupSupported,
+            isMnemonicBackupSupported = supportedBackupTypes.contains(BackupAccountType.PASSPHRASE),
+            isSeedBackupSupported = supportedBackupTypes.contains(BackupAccountType.SEED),
+            isJsonBackupSupported = supportedBackupTypes.contains(BackupAccountType.JSON),
             isDeleteWalletEnabled = isDeleteWalletEnabled
         )
     }
@@ -132,21 +139,11 @@ class BackupWalletViewModel @Inject constructor(
         }
     }
 
-    override fun onGoogleBackupClick() {
+    override fun onGoogleBackupClick(launcher: ManagedActivityResultLauncher<Intent, ActivityResult>) {
         launch {
-            val secrets = accountInteractor.getMetaAccountSecrets(walletId) ?: error("There are no secrets for walletId: $walletId")
-            val entropy = secrets[MetaAccountSecrets.Entropy]
-            val substrateDerivationPath = secrets[MetaAccountSecrets.SubstrateDerivationPath]
-            val ethereumDerivationPath = secrets[MetaAccountSecrets.EthereumDerivationPath]
-            val payload = CreateBackupPasswordPayload(
-                mnemonic = entropy?.let { MnemonicCreator.fromEntropy(it).words }.orEmpty(),
-                accountName = wallet.first().name,
-                cryptoType = wallet.first().substrateCryptoType,
-                substrateDerivationPath = substrateDerivationPath.orEmpty(),
-                ethereumDerivationPath = ethereumDerivationPath.orEmpty(),
-                createAccount = false
-            )
-            accountRouter.openCreateBackupPasswordDialog(payload)
+            if (backupService.authorize(launcher)) {
+                onGoogleSignInSuccess()
+            }
         }
     }
 
@@ -163,5 +160,28 @@ class BackupWalletViewModel @Inject constructor(
                 }
             }
         )
+    }
+
+    override fun onGoogleSignInSuccess() {
+        launch {
+            val secrets = accountInteractor.getMetaAccountSecrets(walletId) ?: error("There are no secrets for walletId: $walletId")
+            val entropy = secrets[MetaAccountSecrets.Entropy]
+            val substrateDerivationPath = secrets[MetaAccountSecrets.SubstrateDerivationPath]
+            val ethereumDerivationPath = secrets[MetaAccountSecrets.EthereumDerivationPath]
+            val payload = CreateBackupPasswordPayload(
+                walletId = walletId,
+                mnemonic = entropy?.let { MnemonicCreator.fromEntropy(it).words }.orEmpty(),
+                accountName = wallet.first().name,
+                cryptoType = wallet.first().substrateCryptoType,
+                substrateDerivationPath = substrateDerivationPath.orEmpty(),
+                ethereumDerivationPath = ethereumDerivationPath.orEmpty(),
+                createAccount = false
+            )
+            accountRouter.openCreateBackupPasswordDialog(payload)
+        }
+    }
+
+    override fun onGoogleLoginError(message: String) {
+        showError("GoogleLoginError\n$message")
     }
 }

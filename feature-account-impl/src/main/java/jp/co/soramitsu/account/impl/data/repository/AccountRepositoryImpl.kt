@@ -13,6 +13,7 @@ import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.account.api.domain.model.cryptoType
 import jp.co.soramitsu.account.api.domain.model.hasChainAccount
 import jp.co.soramitsu.account.impl.data.repository.datasource.AccountDataSource
+import jp.co.soramitsu.backup.domain.models.BackupAccountType
 import jp.co.soramitsu.common.data.Keypair
 import jp.co.soramitsu.common.data.secrets.v2.ChainAccountSecrets
 import jp.co.soramitsu.common.data.secrets.v2.KeyPairSchema
@@ -798,6 +799,23 @@ class AccountRepositoryImpl(
         val meta = getMetaAccountSecrets(walletId)
         return meta?.get(MetaAccountSecrets.Entropy) != null
     }
+
+    override suspend fun getSupportedBackupTypes(walletId: Long): Set<BackupAccountType> {
+        val meta = getMetaAccountSecrets(walletId)
+        val types = mutableSetOf<BackupAccountType>()
+        if (meta?.get(MetaAccountSecrets.Entropy) != null) {
+            types.add(BackupAccountType.PASSPHRASE)
+            types.add(BackupAccountType.SEED)
+        }
+
+        if (meta?.get(MetaAccountSecrets.Seed) != null) {
+            types.add(BackupAccountType.SEED)
+        }
+
+        types.add(BackupAccountType.JSON)
+        return types
+    }
+
     override suspend fun googleBackupAddressForWallet(walletId: Long): String {
         val wallet = getMetaAccount(walletId)
         val chain = chainRegistry.getChain(westendChainId)

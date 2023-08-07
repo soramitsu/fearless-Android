@@ -6,6 +6,7 @@ import kotlinx.parcelize.Parcelize
 
 @Parcelize
 class CreateBackupPasswordPayload(
+    val walletId: Long?,
     val mnemonic: String?,
     val accountName: String,
     val cryptoType: CryptoType,

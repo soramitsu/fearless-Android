@@ -277,6 +277,7 @@ class AccountInteractorImpl(
     override suspend fun googleBackupAddressForWallet(walletId: Long) = accountRepository.googleBackupAddressForWallet(walletId)
 
     override suspend fun isGoogleBackupSupported(walletId: Long) = accountRepository.isGoogleBackupSupported(walletId)
+    override suspend fun getSupportedBackupTypes(walletId: Long) = accountRepository.getSupportedBackupTypes(walletId)
     override suspend fun getChain(chainId: ChainId) = accountRepository.getChain(chainId)
 
     override suspend fun createFileInTempStorageAndRetrieveAsset(fileName: String): Result<File> = runCatching {

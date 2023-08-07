@@ -1,5 +1,11 @@
 package jp.co.soramitsu.account.impl.presentation.backup_wallet
 
+import android.app.Activity
+import android.content.Intent
+import androidx.activity.compose.ManagedActivityResultLauncher
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.ActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
@@ -27,14 +33,18 @@ import jp.co.soramitsu.common.compose.theme.customColors
 data class BackupWalletState(
     val walletItem: WalletItemViewState?,
     val isWalletSavedInGoogle: Boolean,
-    val isGoogleBackupSupported: Boolean,
+    val isMnemonicBackupSupported: Boolean,
+    val isSeedBackupSupported: Boolean,
+    val isJsonBackupSupported: Boolean,
     val isDeleteWalletEnabled: Boolean
 ) {
     companion object {
         val Empty = BackupWalletState(
             walletItem = null,
             isWalletSavedInGoogle = false,
-            isGoogleBackupSupported = true,
+            isMnemonicBackupSupported = false,
+            isSeedBackupSupported = false,
+            isJsonBackupSupported = true,
             isDeleteWalletEnabled = false
         )
     }
@@ -52,9 +62,13 @@ interface BackupWalletCallback {
 
     fun onDeleteGoogleBackupClick()
 
-    fun onGoogleBackupClick()
+    fun onGoogleBackupClick(launcher: ManagedActivityResultLauncher<Intent, ActivityResult>)
 
     fun onDeleteWalletClick()
+
+    fun onGoogleLoginError(message: String)
+
+    fun onGoogleSignInSuccess()
 }
 
 @Composable
@@ -62,6 +76,17 @@ internal fun BackupWalletContent(
     state: BackupWalletState,
     callback: BackupWalletCallback
 ) {
+    val launcher = rememberLauncherForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        val googleSignInStatus = result.data?.extras?.get("googleSignInStatus")
+        if (result.resultCode != Activity.RESULT_OK) {
+            callback.onGoogleLoginError(googleSignInStatus.toString())
+        } else {
+            callback.onGoogleSignInSuccess()
+        }
+    }
+
     Column {
         Toolbar(
             modifier = Modifier.padding(bottom = 12.dp),
@@ -84,40 +109,47 @@ internal fun BackupWalletContent(
         Column(
             modifier = Modifier.verticalScroll(rememberScrollState())
         ) {
-            SettingsItem(
-                icon = painterResource(R.drawable.ic_pass_phrase_24),
-                text = stringResource(R.string.backup_wallet_show_mnemonic_phrase),
-                onClick = callback::onShowMnemonicPhraseClick
-            )
-            SettingsDivider()
-            SettingsItem(
-                icon = painterResource(R.drawable.ic_key_24),
-                text = stringResource(R.string.backup_wallet_show_raw_seed),
-                onClick = callback::onShowRawSeedClick
-            )
-            SettingsDivider()
-            SettingsItem(
-                icon = painterResource(R.drawable.ic_arrow_up_rectangle_24),
-                text = stringResource(R.string.backup_wallet_export_json),
-                onClick = callback::onExportJsonClick
-            )
-            SettingsDivider()
-            if (state.isGoogleBackupSupported) {
-                if (state.isWalletSavedInGoogle) {
-                    SettingsItem(
-                        icon = painterResource(R.drawable.ic_google_24),
-                        text = stringResource(R.string.backup_wallet_delete_google_backup),
-                        onClick = callback::onDeleteGoogleBackupClick
-                    )
-                } else {
-                    SettingsItem(
-                        icon = painterResource(R.drawable.ic_google_24),
-                        text = stringResource(R.string.backup_wallet_backup_to_google),
-                        onClick = callback::onGoogleBackupClick
-                    )
-                }
+            if (state.isMnemonicBackupSupported) {
+                SettingsItem(
+                    icon = painterResource(R.drawable.ic_pass_phrase_24),
+                    text = stringResource(R.string.backup_wallet_show_mnemonic_phrase),
+                    onClick = callback::onShowMnemonicPhraseClick
+                )
                 SettingsDivider()
             }
+            if (state.isSeedBackupSupported) {
+                SettingsItem(
+                    icon = painterResource(R.drawable.ic_key_24),
+                    text = stringResource(R.string.backup_wallet_show_raw_seed),
+                    onClick = callback::onShowRawSeedClick
+                )
+                SettingsDivider()
+            }
+            if (state.isJsonBackupSupported) {
+                SettingsItem(
+                    icon = painterResource(R.drawable.ic_arrow_up_rectangle_24),
+                    text = stringResource(R.string.backup_wallet_export_json),
+                    onClick = callback::onExportJsonClick
+                )
+                SettingsDivider()
+            }
+            if (state.isWalletSavedInGoogle) {
+                SettingsItem(
+                    icon = painterResource(R.drawable.ic_google_24),
+                    text = stringResource(R.string.backup_wallet_delete_google_backup),
+                    onClick = callback::onDeleteGoogleBackupClick
+                )
+            } else {
+                SettingsItem(
+                    icon = painterResource(R.drawable.ic_google_24),
+                    text = stringResource(R.string.backup_wallet_backup_to_google),
+                    onClick = {
+                        callback.onGoogleBackupClick(launcher)
+                    }
+                )
+            }
+            SettingsDivider()
+
             MarginVertical(16.dp)
             B2(
                 modifier = Modifier
@@ -163,8 +195,10 @@ private fun PreviewBackupWalletContent() {
                 override fun onShowRawSeedClick() {}
                 override fun onExportJsonClick() {}
                 override fun onDeleteGoogleBackupClick() {}
-                override fun onGoogleBackupClick() {}
+                override fun onGoogleBackupClick(launcher: ManagedActivityResultLauncher<Intent, ActivityResult>) {}
                 override fun onDeleteWalletClick() {}
+                override fun onGoogleLoginError(message: String) {}
+                override fun onGoogleSignInSuccess() {}
             }
         )
     }
