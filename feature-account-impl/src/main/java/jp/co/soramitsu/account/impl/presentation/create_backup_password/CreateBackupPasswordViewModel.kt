@@ -1,5 +1,7 @@
 package jp.co.soramitsu.account.impl.presentation.create_backup_password
 
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -46,6 +48,8 @@ class CreateBackupPasswordViewModel @Inject constructor(
 ) : BaseViewModel(), CreateBackupPasswordCallback {
 
     private val payload = savedStateHandle.get<CreateBackupPasswordPayload>(CreateBackupPasswordDialog.PAYLOAD_KEY)!!
+
+    private val heightDiffDpFlow = MutableStateFlow(0.dp)
 
     private val originPassword = MutableStateFlow("")
     private val confirmPassword = MutableStateFlow("")
@@ -103,7 +107,8 @@ class CreateBackupPasswordViewModel @Inject constructor(
         passwordMatchingTextResource = null,
         highlightConfirmPassword = false,
         isSetButtonEnabled = true,
-        isLoading = false
+        isLoading = false,
+        heightDiffDp = 0.dp
     )
     val state = combineFlows(
         originPassword,
@@ -115,11 +120,12 @@ class CreateBackupPasswordViewModel @Inject constructor(
         isSetButtonEnabled,
         isLoading,
         isOriginPasswordVisible,
-        isConfirmPasswordVisible
+        isConfirmPasswordVisible,
+        heightDiffDpFlow
     ) {
             originPassword, confirmPassword, isUserAgreedWithStatements,
             isAgreementsChecked, passwordMatchingTextResource,
-            highlightConfirmPassword, isSetButtonEnabled, isLoading, isOriginPasswordVisible, isConfirmPasswordVisible ->
+            highlightConfirmPassword, isSetButtonEnabled, isLoading, isOriginPasswordVisible, isConfirmPasswordVisible, heightDiffDp ->
         CreateBackupPasswordViewState(
             originPasswordViewState = createTextInputViewState(
                 hint = resourceManager.getString(R.string.export_json_password_new),
@@ -139,7 +145,8 @@ class CreateBackupPasswordViewModel @Inject constructor(
             passwordMatchingTextResource = passwordMatchingTextResource,
             highlightConfirmPassword = highlightConfirmPassword,
             isSetButtonEnabled = isSetButtonEnabled,
-            isLoading = isLoading
+            isLoading = isLoading,
+            heightDiffDp = heightDiffDp
         )
     }.stateIn(viewModelScope, started = SharingStarted.Eagerly, initialValue = initialState)
 
@@ -288,5 +295,9 @@ class CreateBackupPasswordViewModel @Inject constructor(
 
     override fun onConfirmPasswordVisibilityClick() {
         isConfirmPasswordVisible.value = isConfirmPasswordVisible.value.not()
+    }
+
+    fun setHeightDiffDp(value: Dp) {
+        heightDiffDpFlow.value = value
     }
 }

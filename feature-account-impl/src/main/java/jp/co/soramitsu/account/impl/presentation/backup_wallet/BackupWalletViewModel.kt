@@ -131,9 +131,13 @@ class BackupWalletViewModel @Inject constructor(
         ) {
             launch {
                 googleBackupAddressFlow.firstOrNull()?.let { address ->
-                    backupService.deleteBackupAccount(address)
-                    accountInteractor.updateWalletOnGoogleBackupDelete(walletId)
-                    refresh.emit(Event(Unit))
+                    runCatching {
+                        backupService.deleteBackupAccount(address)
+                        accountInteractor.updateWalletOnGoogleBackupDelete(walletId)
+                        refresh.emit(Event(Unit))
+                    }.onFailure {
+                        showError("DeleteGoogleBackup error:\n${it.message}")
+                    }
                 }
             }
         }
@@ -173,7 +177,7 @@ class BackupWalletViewModel @Inject constructor(
                 mnemonic = entropy?.let { MnemonicCreator.fromEntropy(it).words }.orEmpty(),
                 accountName = wallet.first().name,
                 cryptoType = wallet.first().substrateCryptoType,
-                substrateDerivationPath = substrateDerivationPath.orEmpty(),
+                substrateDerivationPath = substrateDerivationPath.orEmpty(), //todo remove
                 ethereumDerivationPath = ethereumDerivationPath.orEmpty(),
                 createAccount = false
             )
