@@ -45,10 +45,10 @@ class MainFragment : BaseFragment<MainViewModel>(R.layout.fragment_main) {
             val systemWindowInsetBottom = insets.systemWindowInsetBottom
 
             // post to prevent bottomNavigationView.height being 0 if callback is called before view has been measured
-            v.post {
+            v.postDelayed({
                 val padding = (systemWindowInsetBottom - binding.bottomNavigationView.height).coerceAtLeast(0)
                 v.updatePadding(bottom = padding)
-            }
+            }, 200)
 
             insets
         }
