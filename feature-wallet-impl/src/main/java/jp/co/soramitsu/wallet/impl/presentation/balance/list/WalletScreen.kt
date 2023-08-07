@@ -113,7 +113,6 @@ fun WalletScreen(
             }
             val banners = listOfNotNull(buyXorBanner, backupBanner)
             val bannersCount = banners.size
-            println("!!! bannersCount = $bannersCount")
             val bannersCarousel: @Composable (() -> Unit)? = banners.takeIf { it.isNotEmpty() }?.let {
                 {
                     val pagerState = rememberPagerState { bannersCount }

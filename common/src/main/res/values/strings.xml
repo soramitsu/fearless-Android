@@ -473,8 +473,10 @@
     <string name="onboarding_restore_wallet">I already have a wallet</string>
     <string name="onboarding_substrate_derivation_path_hint">Example: //hard/soft///password</string>
     <string name="onboarding_terms_and_conditions_1">I have read and agree to the\nTerms and Conditions and Privacy Policy</string>
+    <string name="onboarding_terms_and_conditions_prefix">By continuing you are agreeing with the</string>
     <string name="onboarding_terms_and_conditions">By continuing you are agreeing with the\nTerms and Conditions and Privacy Policy</string>
     <string name="onboarding_terms_and_conditions_2">Terms and Conditions</string>
+    <string name="common_and">and</string>
     <string name="parachain_crowdloans">Parachain Crowdloans</string>
     <string name="parachain_staking_request_finished">Finished</string>
     <string name="parachain_staking_story_collator_page_1">Collators maintain parachains by collecting parachain transactions from users and producing state transition proofs for Relay Chain validators. In other words, collators aggregate parachain transactions into parachain block candidates and produce state transition proofs for validators based on those blocks.</string>

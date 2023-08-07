@@ -43,7 +43,6 @@ class WelcomeFragment : BaseComposeFragment<WelcomeViewModel>() {
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
         val googleSignInStatus = result.data?.extras?.get("googleSignInStatus")
-        println("!!! WelcomeFragment GoogleLogin result: $googleSignInStatus ")
         if (result.resultCode != Activity.RESULT_OK) {
             viewModel.onGoogleLoginError(googleSignInStatus.toString())
         } else {
