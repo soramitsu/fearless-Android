@@ -28,7 +28,6 @@ import jp.co.soramitsu.shared_utils.encrypt.junction.SubstrateJunctionDecoder
 import jp.co.soramitsu.shared_utils.encrypt.mnemonic.MnemonicCreator
 import jp.co.soramitsu.shared_utils.encrypt.seed.substrate.SubstrateSeedFactory
 import jp.co.soramitsu.shared_utils.extensions.toHexString
-import jp.co.soramitsu.shared_utils.scale.EncodableStruct
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -58,8 +57,7 @@ class CreateBackupPasswordViewModel @Inject constructor(
     private val isLoading = MutableStateFlow(false)
     private val isOriginPasswordVisible = MutableStateFlow(false)
     private val isConfirmPasswordVisible = MutableStateFlow(false)
-    private val passwordMatchingTextResource = combine(originPassword, confirmPassword) {
-            originPassword, confirmPassword ->
+    private val passwordMatchingTextResource = combine(originPassword, confirmPassword) { originPassword, confirmPassword ->
         if (originPassword.isNotEmpty() && confirmPassword.length >= originPassword.length) {
             if (confirmPassword == originPassword) {
                 R.string.create_backup_password_matched
@@ -70,21 +68,18 @@ class CreateBackupPasswordViewModel @Inject constructor(
             null
         }
     }
-    private val arePasswordsMatched = combine(originPassword, confirmPassword) {
-            originPassword, confirmPassword ->
+    private val arePasswordsMatched = combine(originPassword, confirmPassword) { originPassword, confirmPassword ->
         originPassword.isNotEmpty() &&
             confirmPassword.length >= originPassword.length &&
             confirmPassword == originPassword
     }
 
-    private val highlightConfirmPassword = combine(originPassword, confirmPassword) {
-            originPassword, confirmPassword ->
+    private val highlightConfirmPassword = combine(originPassword, confirmPassword) { originPassword, confirmPassword ->
         originPassword.isNotEmpty() &&
             confirmPassword.length >= originPassword.length &&
             confirmPassword != originPassword
     }
-    private val isSetButtonEnabled = combine(arePasswordsMatched, isAgreementsChecked) {
-            arePasswordsMatched, isAgreementsChecked ->
+    private val isSetButtonEnabled = combine(arePasswordsMatched, isAgreementsChecked) { arePasswordsMatched, isAgreementsChecked ->
         arePasswordsMatched && isAgreementsChecked
     }
 
@@ -122,10 +117,9 @@ class CreateBackupPasswordViewModel @Inject constructor(
         isOriginPasswordVisible,
         isConfirmPasswordVisible,
         heightDiffDpFlow
-    ) {
-            originPassword, confirmPassword, isUserAgreedWithStatements,
-            isAgreementsChecked, passwordMatchingTextResource,
-            highlightConfirmPassword, isSetButtonEnabled, isLoading, isOriginPasswordVisible, isConfirmPasswordVisible, heightDiffDp ->
+    ) { originPassword, confirmPassword, isUserAgreedWithStatements,
+        isAgreementsChecked, passwordMatchingTextResource,
+        highlightConfirmPassword, isSetButtonEnabled, isLoading, isOriginPasswordVisible, isConfirmPasswordVisible, heightDiffDp ->
         CreateBackupPasswordViewState(
             originPasswordViewState = createTextInputViewState(
                 hint = resourceManager.getString(R.string.export_json_password_new),
@@ -242,14 +236,18 @@ class CreateBackupPasswordViewModel @Inject constructor(
             val ethJson = ethJsonResult.getOrNull()
 
             val metaAccountSecrets = interactor.getMetaAccountSecrets(walletId)
-            val substrateSeed = (metaAccountSecrets?.get(MetaAccountSecrets.Seed) ?: seedFromEntropy(metaAccountSecrets))?.toHexString(withPrefix = true)
-            val ethSeed = metaAccountSecrets?.get(MetaAccountSecrets.EthereumKeypair)?.get(KeyPairSchema.PrivateKey)?.toHexString(withPrefix = true)
-
-            val entropy = metaAccountSecrets?.get(MetaAccountSecrets.Entropy)
-            val mnemonic = entropy?.let { MnemonicCreator.fromEntropy(it).words }.orEmpty()
 
             val substrateDerivationPath = metaAccountSecrets?.get(MetaAccountSecrets.SubstrateDerivationPath).orEmpty()
             val ethereumDerivationPath = metaAccountSecrets?.get(MetaAccountSecrets.EthereumDerivationPath).orEmpty()
+            val entropy = metaAccountSecrets?.get(MetaAccountSecrets.Entropy)?.clone()
+            val mnemonic = entropy?.let { MnemonicCreator.fromEntropy(it).words }.orEmpty()
+            val substrateSeed = (
+                metaAccountSecrets?.get(MetaAccountSecrets.Seed) ?: seedFromMnemonic(
+                    mnemonic,
+                    substrateDerivationPath.nullIfEmpty()
+                )
+                ).toHexString(withPrefix = true)
+            val ethSeed = metaAccountSecrets?.get(MetaAccountSecrets.EthereumKeypair)?.get(KeyPairSchema.PrivateKey)?.toHexString(withPrefix = true)
 
             val backupAccountTypes = interactor.getSupportedBackupTypes(walletId).toList()
 
@@ -270,11 +268,9 @@ class CreateBackupPasswordViewModel @Inject constructor(
         }
     }
 
-    private fun seedFromEntropy(secret: EncodableStruct<MetaAccountSecrets>?) = secret?.get(MetaAccountSecrets.Entropy)?.let { entropy ->
-        val mnemonicWords = MnemonicCreator.fromEntropy(entropy).words
-        val derivationPath = secret[MetaAccountSecrets.SubstrateDerivationPath]?.nullIfEmpty()
+    private fun seedFromMnemonic(mnemonic: String, derivationPath: String?): ByteArray {
         val password = derivationPath?.let { SubstrateJunctionDecoder.decode(it).password }
-        SubstrateSeedFactory.deriveSeed32(mnemonicWords, password).seed
+        return SubstrateSeedFactory.deriveSeed32(mnemonic, password).seed
     }
 
     private suspend fun continueBasedOnCodeStatus() {
