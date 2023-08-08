@@ -468,7 +468,7 @@ class BalanceListViewModel @Inject constructor(
     fun onResume() {
         updateSoraCardStatus()
         viewModelScope.launch {
-            interactor.selectedMetaAccountFlow().onEach {
+            interactor.selectedMetaAccountFlow().collect {
                 checkControllerDeprecations()
             }
             checkControllerDeprecations()

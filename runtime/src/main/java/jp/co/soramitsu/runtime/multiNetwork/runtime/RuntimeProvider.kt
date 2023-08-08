@@ -38,6 +38,14 @@ class RuntimeProvider(
         return runtime.runtime
     }
 
+    suspend fun getOrNull(): RuntimeSnapshot? {
+        return if (runtimeFlow.replayCache.isEmpty()) {
+            null
+        } else {
+            runtimeFlow.first().runtime
+        }
+    }
+
     fun observe(): Flow<RuntimeSnapshot> = runtimeFlow.map { it.runtime }
 
     init {

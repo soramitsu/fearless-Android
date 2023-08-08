@@ -27,9 +27,10 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.isPolkadotOrKusama
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import jp.co.soramitsu.runtime.multiNetwork.chainWithAsset
-import jp.co.soramitsu.shared_utils.extensions.toHexString
+import jp.co.soramitsu.runtime.multiNetwork.getRuntimeOrNull
 import jp.co.soramitsu.shared_utils.runtime.AccountId
 import jp.co.soramitsu.shared_utils.runtime.metadata.module
+import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.toAddress
 import jp.co.soramitsu.wallet.impl.data.repository.HistoryRepository
 import jp.co.soramitsu.wallet.impl.domain.interfaces.AddressBookRepository
 import jp.co.soramitsu.wallet.impl.domain.interfaces.TransactionFilter
@@ -414,7 +415,7 @@ class WalletInteractorImpl(
         val relayStakingChains = allRelayChainStakingAssets.map { it.chainId }
 
         val chainsWithDeprecatedControllerAccount = relayStakingChains.filter {
-            chainRegistry.getRuntime(it).metadata.module(Modules.STAKING).calls?.get("set_controller")?.arguments?.isEmpty() == true
+            chainRegistry.getRuntimeOrNull(it)?.metadata?.module(Modules.STAKING)?.calls?.get("set_controller")?.arguments?.isEmpty() == true
         }
 
         return chainsWithDeprecatedControllerAccount.mapNotNull { chainId ->
@@ -442,7 +443,7 @@ class WalletInteractorImpl(
                 val stash = walletRepository.getStashAccount(chainId, accountId)
                 // we've found the stash
                 if (stash != null) {
-                    return@mapNotNull ControllerDeprecationWarning.ImportStash(chainId, stash.toHexString(false))
+                    return@mapNotNull ControllerDeprecationWarning.ImportStash(chainId, stash.toAddress(chain.addressPrefix.toShort()))
                 }
             }
 

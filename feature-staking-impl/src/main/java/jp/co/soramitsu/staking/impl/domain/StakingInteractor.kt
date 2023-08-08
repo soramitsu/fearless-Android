@@ -24,10 +24,11 @@ import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
-import jp.co.soramitsu.shared_utils.extensions.toHexString
+import jp.co.soramitsu.runtime.multiNetwork.getRuntimeOrNull
 import jp.co.soramitsu.shared_utils.runtime.AccountId
 import jp.co.soramitsu.shared_utils.runtime.metadata.RuntimeMetadata
 import jp.co.soramitsu.shared_utils.runtime.metadata.module
+import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.toAddress
 import jp.co.soramitsu.staking.api.data.StakingSharedState
 import jp.co.soramitsu.staking.api.domain.api.StakingRepository
 import jp.co.soramitsu.staking.api.domain.model.StakingAccount
@@ -192,7 +193,7 @@ class StakingInteractor(
 
     suspend fun checkControllerDeprecations(metaAccount: MetaAccount, chain: Chain): ControllerDeprecationWarning? {
         val isControllerAccountDeprecated =
-            chainRegistry.getRuntime(chain.id).metadata.module(Modules.STAKING).calls?.get("set_controller")?.arguments?.isEmpty() == true
+            chainRegistry.getRuntimeOrNull(chain.id)?.metadata?.module(Modules.STAKING)?.calls?.get("set_controller")?.arguments?.isEmpty() == true
         if (!isControllerAccountDeprecated) return null
 
         val accountId = metaAccount.accountId(chain) ?: return null
@@ -218,7 +219,7 @@ class StakingInteractor(
             val stash = walletRepository.getStashAccount(chain.id, accountId)
             // we've found the stash
             if (stash != null) {
-                return ControllerDeprecationWarning.ImportStash(chain.id, stash.toHexString(false))
+                return ControllerDeprecationWarning.ImportStash(chain.id, stash.toAddress(chain.addressPrefix.toShort()))
             }
         }
 
