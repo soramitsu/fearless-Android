@@ -52,6 +52,7 @@ import jp.co.soramitsu.wallet.api.presentation.mixin.fee.FeeLoaderProvider
 import jp.co.soramitsu.wallet.impl.data.buyToken.MoonPayProvider
 import jp.co.soramitsu.wallet.impl.data.buyToken.RampProvider
 import jp.co.soramitsu.wallet.impl.data.historySource.HistorySourceProvider
+import jp.co.soramitsu.wallet.impl.data.network.blockchain.EthereumRemoteSource
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.SubstrateRemoteSource
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.WssSubstrateSource
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.updaters.BalancesUpdateSystem
@@ -136,6 +137,9 @@ class WalletFeatureModule {
     )
 
     @Provides
+    fun provideEthereumRemoteSource(): EthereumRemoteSource = EthereumRemoteSource()
+
+    @Provides
     fun provideTokenRepository(
         tokenPriceDao: TokenPriceDao
     ): TokenRepository = TokenRepositoryImpl(
@@ -149,6 +153,7 @@ class WalletFeatureModule {
     @Singleton
     fun provideWalletRepository(
         substrateSource: SubstrateRemoteSource,
+        ethereumRemoteSource: EthereumRemoteSource,
         operationsDao: OperationDao,
         httpExceptionHandler: HttpExceptionHandler,
         phishingApi: PhishingApi,
@@ -161,9 +166,11 @@ class WalletFeatureModule {
         updatesMixin: UpdatesMixin,
         remoteConfigFetcher: RemoteConfigFetcher,
         preferences: Preferences,
-        ethGasService: EthGasService
+        ethGasService: EthGasService,
+        accountRepository: AccountRepository
     ): WalletRepository = WalletRepositoryImpl(
         substrateSource,
+        ethereumRemoteSource,
         operationsDao,
         httpExceptionHandler,
         phishingApi,
@@ -176,7 +183,8 @@ class WalletFeatureModule {
         updatesMixin,
         remoteConfigFetcher,
         preferences,
-        ethGasService
+        ethGasService,
+        accountRepository
     )
 
     @Provides
@@ -280,14 +288,14 @@ class WalletFeatureModule {
         existentialDepositUseCase: ExistentialDepositUseCase,
         walletConstants: WalletConstants,
         chainRegistry: ChainRegistry,
-        walletInteractor: WalletInteractor,
-        substrateSource: SubstrateRemoteSource
+        accountRepository: AccountRepository,
+        walletRepository: WalletRepository
     ): ValidateTransferUseCase = ValidateTransferUseCaseImpl(
         existentialDepositUseCase,
         walletConstants,
         chainRegistry,
-        walletInteractor,
-        substrateSource
+        accountRepository,
+        walletRepository
     )
 
     @Provides
