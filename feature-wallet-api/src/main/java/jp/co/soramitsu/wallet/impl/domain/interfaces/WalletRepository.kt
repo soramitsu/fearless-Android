@@ -93,4 +93,6 @@ interface WalletRepository {
     suspend fun getSingleAssetPriceCoingecko(priceId: String, currency: String): BigDecimal?
     suspend fun getControllerAccount(chainId: ChainId, accountId: AccountId): AccountId?
     suspend fun getStashAccount(chainId: ChainId, accountId: AccountId): AccountId?
+
+    suspend fun getTotalBalance(chainAsset: jp.co.soramitsu.core.models.Asset, chain: Chain, accountId: ByteArray): BigInteger
 }

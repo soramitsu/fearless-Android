@@ -1,6 +1,8 @@
 package jp.co.soramitsu.wallet.impl.domain
 
 import java.math.BigInteger
+import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.account.api.domain.model.accountId
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.sumByBigDecimal
 import jp.co.soramitsu.core.models.ChainAssetType
@@ -13,9 +15,8 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.wallet.api.domain.ExistentialDepositUseCase
 import jp.co.soramitsu.wallet.api.domain.TransferValidationResult
 import jp.co.soramitsu.wallet.api.domain.ValidateTransferUseCase
-import jp.co.soramitsu.wallet.impl.data.network.blockchain.SubstrateRemoteSource
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletConstants
-import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
+import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
@@ -24,8 +25,8 @@ class ValidateTransferUseCaseImpl(
     private val existentialDepositUseCase: ExistentialDepositUseCase,
     private val walletConstants: WalletConstants,
     private val chainRegistry: ChainRegistry,
-    private val walletInteractor: WalletInteractor,
-    private val substrateSource: SubstrateRemoteSource
+    private val accountRepository: AccountRepository,
+    private val walletRepository: WalletRepository
 ) : ValidateTransferUseCase {
 
     override suspend fun invoke(
@@ -63,7 +64,7 @@ class ValidateTransferUseCaseImpl(
         val recipientAccountId = destinationChain.accountIdOf(recipientAddress)
 
         val totalRecipientBalanceInPlanks =
-            kotlin.runCatching { destinationAsset?.let { substrateSource.getTotalBalance(it, destinationChain, recipientAccountId) } }.getOrNull().orZero()
+            kotlin.runCatching { destinationAsset?.let { walletRepository.getTotalBalance(it, destinationChain, recipientAccountId) } }.getOrNull().orZero()
 
         val validationChecks = when {
             chainAsset.type == ChainAssetType.Equilibrium -> {
@@ -81,7 +82,15 @@ class ValidateTransferUseCaseImpl(
             }
 
             else -> {
-                val utilityAsset = originChain.utilityAsset?.id?.let { walletInteractor.getCurrentAsset(chainId, it) }
+                val metaAccount = accountRepository.getSelectedMetaAccount()
+                val utilityAsset = originChain.utilityAsset?.id?.let {
+                    walletRepository.getAsset(
+                        metaAccount.id,
+                        metaAccount.accountId(originChain)!!,
+                        chainAsset,
+                        originChain.minSupportedVersion
+                    )
+                }
                 val utilityAssetBalance = utilityAsset?.transferableInPlanks.orZero()
                 val utilityAssetExistentialDeposit = originChain.utilityAsset?.let { existentialDepositUseCase(it) }.orZero()
 
@@ -118,7 +127,7 @@ class ValidateTransferUseCaseImpl(
         val tip = if (chainAsset.isUtility) walletConstants.tip(chainId).orZero() else BigInteger.ZERO
 
         val recipientAccountId = destinationChain.accountIdOf(recipientAddress)
-        val totalRecipientBalanceInPlanks = destinationAsset?.let { substrateSource.getTotalBalance(it, destinationChain, recipientAccountId) }.orZero()
+        val totalRecipientBalanceInPlanks = destinationAsset?.let { walletRepository.getTotalBalance(it, destinationChain, recipientAccountId) }.orZero()
 
         val validationChecks = when {
             chainAsset.type == ChainAssetType.Equilibrium -> {
@@ -156,9 +165,9 @@ class ValidateTransferUseCaseImpl(
         val chainAsset = asset.token.configuration
         val assetExistentialDeposit = existentialDepositUseCase(chainAsset)
 
-        val recipientAccountInfo = walletInteractor.getEquilibriumAccountInfo(chainAsset, recipientAccountId)
-        val ownAccountInfo = walletInteractor.getEquilibriumAccountInfo(chainAsset, chain.accountIdOf(ownAddress))
-        val assetRates = walletInteractor.getEquilibriumAssetRates(chainAsset)
+        val recipientAccountInfo = walletRepository.getEquilibriumAccountInfo(chainAsset, recipientAccountId)
+        val ownAccountInfo = walletRepository.getEquilibriumAccountInfo(chainAsset, chain.accountIdOf(ownAddress))
+        val assetRates = walletRepository.getEquilibriumAssetRates(chainAsset)
 
         val ownNewTotal = ownAccountInfo?.data?.balances?.entries?.sumByBigDecimal { (eqAssetId, amount) ->
             val tokenRateInPlanks = assetRates[eqAssetId]?.price.orZero()
