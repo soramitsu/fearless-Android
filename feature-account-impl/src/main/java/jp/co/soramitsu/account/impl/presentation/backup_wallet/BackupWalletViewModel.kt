@@ -37,7 +37,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -170,12 +169,8 @@ class BackupWalletViewModel @Inject constructor(
         }
     }
 
-    override fun onGoogleBackupClick(launcher: ManagedActivityResultLauncher<Intent, ActivityResult>) {
-        launch {
-            if (backupService.authorize(launcher)) {
-                openCreateBackupPasswordDialog()
-            }
-        }
+    override fun onGoogleBackupClick() {
+        openCreateBackupPasswordDialog()
     }
 
     override fun onDeleteWalletClick() {
@@ -207,6 +202,7 @@ class BackupWalletViewModel @Inject constructor(
     fun authorizeGoogle(launcher: ActivityResultLauncher<Intent>) {
         launch {
             try {
+                backupService.logout()
                 if (backupService.authorize(launcher)) {
                     checkIsWalletBackedUpToGoogle()
                 }

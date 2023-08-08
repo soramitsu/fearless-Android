@@ -1,11 +1,5 @@
 package jp.co.soramitsu.account.impl.presentation.backup_wallet
 
-import android.app.Activity
-import android.content.Intent
-import androidx.activity.compose.ManagedActivityResultLauncher
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.ActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
@@ -62,7 +56,7 @@ interface BackupWalletCallback {
 
     fun onDeleteGoogleBackupClick()
 
-    fun onGoogleBackupClick(launcher: ManagedActivityResultLauncher<Intent, ActivityResult>)
+    fun onGoogleBackupClick()
 
     fun onDeleteWalletClick()
 
@@ -76,18 +70,6 @@ internal fun BackupWalletContent(
     state: BackupWalletState,
     callback: BackupWalletCallback
 ) {
-    val launcher = rememberLauncherForActivityResult(
-        ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        when (result.resultCode) {
-            Activity.RESULT_OK -> callback.onGoogleSignInSuccess()
-            Activity.RESULT_CANCELED -> { /* no action */ }
-            else -> {
-                val googleSignInStatus = result.data?.extras?.get("googleSignInStatus")
-                callback.onGoogleLoginError(googleSignInStatus.toString())
-            }
-        }
-    }
 
     Column {
         Toolbar(
@@ -145,9 +127,7 @@ internal fun BackupWalletContent(
                 SettingsItem(
                     icon = painterResource(R.drawable.ic_google_24),
                     text = stringResource(R.string.backup_wallet_backup_to_google),
-                    onClick = {
-                        callback.onGoogleBackupClick(launcher)
-                    }
+                    onClick = callback::onGoogleBackupClick
                 )
             }
             SettingsDivider()
@@ -197,7 +177,7 @@ private fun PreviewBackupWalletContent() {
                 override fun onShowRawSeedClick() {}
                 override fun onExportJsonClick() {}
                 override fun onDeleteGoogleBackupClick() {}
-                override fun onGoogleBackupClick(launcher: ManagedActivityResultLauncher<Intent, ActivityResult>) {}
+                override fun onGoogleBackupClick() {}
                 override fun onDeleteWalletClick() {}
                 override fun onGoogleLoginError(message: String) {}
                 override fun onGoogleSignInSuccess() {}

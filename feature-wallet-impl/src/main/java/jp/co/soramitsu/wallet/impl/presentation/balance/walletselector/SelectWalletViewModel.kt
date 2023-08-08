@@ -93,7 +93,6 @@ class SelectWalletViewModel @Inject constructor(
     }
 
     fun addNewWallet() {
-//        router.openCreateWalletDialog(false)
          router.openCreateAccountFromWallet()
     }
 
@@ -123,7 +122,7 @@ class SelectWalletViewModel @Inject constructor(
     }
 
     fun authorizeGoogle(launcher: ActivityResultLauncher<Intent>) {
-        viewModelScope.launch {
+        launch {
             if (backupService.authorize(launcher)) {
                 openAddWalletThroughGoogleScreen()
             }

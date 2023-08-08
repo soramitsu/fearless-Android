@@ -12,9 +12,11 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
@@ -67,11 +69,13 @@ interface CreateBackupPasswordCallback {
     fun onConfirmPasswordVisibilityClick()
 }
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 internal fun CreateBackupPasswordContent(
     state: CreateBackupPasswordViewState,
     callback: CreateBackupPasswordCallback
 ) {
+    val keyboardController = LocalSoftwareKeyboardController.current
     val focusRequester = remember { FocusRequester() }
     LaunchedEffect(Unit) { focusRequester.requestFocus() }
 
@@ -145,7 +149,10 @@ internal fun CreateBackupPasswordContent(
                     text = stringResource(R.string.create_backup_password_btn_set),
                     loading = state.isLoading,
                     enabled = state.isSetButtonEnabled,
-                    onClick = callback::onApplyPasswordClick
+                    onClick = {
+                        keyboardController?.hide()
+                        callback.onApplyPasswordClick()
+                    }
                 )
                 MarginVertical(12.dp)
             }

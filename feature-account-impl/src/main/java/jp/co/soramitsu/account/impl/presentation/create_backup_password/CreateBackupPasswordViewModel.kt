@@ -191,7 +191,7 @@ class CreateBackupPasswordViewModel @Inject constructor(
                     isLoading.value = true
                 }
                 .onFailure {
-                    isLoading.value = true
+                    isLoading.value = false
                     handleAccountBackupError(it)
                 }
         }

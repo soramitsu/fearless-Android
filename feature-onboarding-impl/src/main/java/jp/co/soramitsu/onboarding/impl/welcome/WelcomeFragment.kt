@@ -56,6 +56,7 @@ class WelcomeFragment : BaseComposeFragment<WelcomeViewModel>() {
         super.onViewCreated(view, savedInstanceState)
 
         observeBrowserEvents(viewModel)
+
         viewModel.events
             .onEach(::handleEvents)
             .launchIn(viewLifecycleOwner.lifecycleScope)
