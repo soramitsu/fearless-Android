@@ -19,8 +19,8 @@ import org.web3j.utils.Numeric
 suspend fun Ethereum.fetchEthBalance(asset: Asset, address: String): BigInteger {
     return if (asset.isUtility) {
         runCatching {
-            withContext(Dispatchers.IO) { ethGetBalance(address, DefaultBlockParameterName.LATEST).send() }
-        }.getOrNull()?.balance.orZero()
+            withContext(Dispatchers.IO) { ethGetBalance(address, DefaultBlockParameterName.LATEST).send().balance }
+        }.getOrNull().orZero()
     } else {
         val erc20GetBalanceFunction = Function(
             "balanceOf",

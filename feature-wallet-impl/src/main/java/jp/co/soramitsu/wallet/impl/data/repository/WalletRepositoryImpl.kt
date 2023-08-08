@@ -4,19 +4,25 @@ import com.opencsv.CSVReaderHeaderAware
 import java.math.BigDecimal
 import java.math.BigInteger
 import jp.co.soramitsu.account.api.domain.PendulumPreInstalledAccountsScenario
+import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.accountId
 import jp.co.soramitsu.common.compose.component.NetworkIssueItemState
 import jp.co.soramitsu.common.compose.component.NetworkIssueType
+import jp.co.soramitsu.common.data.Keypair
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.coingecko.CoingeckoApi
 import jp.co.soramitsu.common.data.network.config.AppConfigRemote
 import jp.co.soramitsu.common.data.network.config.RemoteConfigFetcher
 import jp.co.soramitsu.common.data.storage.Preferences
+import jp.co.soramitsu.common.data.secrets.v2.KeyPairSchema
+import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
 import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
+import jp.co.soramitsu.common.utils.ethereumAddressToHex
 import jp.co.soramitsu.common.utils.orZero
+import jp.co.soramitsu.core.crypto.mapCryptoTypeToEncryption
 import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.coredb.dao.OperationDao
 import jp.co.soramitsu.coredb.dao.PhishingDao
@@ -30,10 +36,12 @@ import jp.co.soramitsu.runtime.ext.addressOf
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.shared_utils.extensions.toHexString
 import jp.co.soramitsu.shared_utils.runtime.AccountId
 import jp.co.soramitsu.shared_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.wallet.api.data.cache.AssetCache
 import jp.co.soramitsu.wallet.impl.data.mappers.mapAssetLocalToAsset
+import jp.co.soramitsu.wallet.impl.data.network.blockchain.EthereumRemoteSource
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.SubstrateRemoteSource
 import jp.co.soramitsu.wallet.impl.data.network.phishing.PhishingApi
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletConstants
@@ -62,6 +70,7 @@ import jp.co.soramitsu.core.models.Asset as CoreAsset
 
 class WalletRepositoryImpl(
     private val substrateSource: SubstrateRemoteSource,
+    private val ethereumSource: EthereumRemoteSource,
     private val operationDao: OperationDao,
     private val httpExceptionHandler: HttpExceptionHandler,
     private val phishingApi: PhishingApi,
@@ -73,8 +82,9 @@ class WalletRepositoryImpl(
     private val availableFiatCurrencies: GetAvailableFiatCurrencies,
     private val updatesMixin: UpdatesMixin,
     private val remoteConfigFetcher: RemoteConfigFetcher,
-    private val preferences: Preferences
-    private val ethGasService: EthGasService
+    private val preferences: Preferences,
+    private val ethGasService: EthGasService,
+    private val accountRepository: AccountRepository
 ) : WalletRepository, UpdatesProviderUi by updatesMixin {
 
     companion object {
@@ -283,7 +293,17 @@ class WalletRepositoryImpl(
         additional: (suspend ExtrinsicBuilder.() -> Unit)?,
         batchAll: Boolean
     ): String {
-        val operationHash = substrateSource.performTransfer(accountId, chain, transfer, tip, additional, batchAll)
+        val operationHash = if (chain.isEthereumChain) {
+            val currentMetaAccount = accountRepository.getSelectedMetaAccount()
+            val secrets = accountRepository.getMetaAccountSecrets(currentMetaAccount.id) ?: error("There are no secrets for metaId: ${currentMetaAccount.id}")
+            val keypairSchema = secrets[MetaAccountSecrets.EthereumKeypair] ?: error("")
+            val privateKey = keypairSchema[KeyPairSchema.PrivateKey]
+
+            ethereumSource.performTransfer(chain, transfer, privateKey.toHexString(true))
+        } else {
+            substrateSource.performTransfer(accountId, chain, transfer, tip, additional, batchAll)
+        }
+
         val accountAddress = chain.addressOf(accountId)
 
         val operation = createOperation(
@@ -311,7 +331,7 @@ class WalletRepositoryImpl(
         val chainAsset = transfer.chainAsset
         val recipientAccountId = chain.accountIdOf(transfer.recipient)
 
-        val totalRecipientBalanceInPlanks = substrateSource.getTotalBalance(chainAsset, chain, recipientAccountId)
+        val totalRecipientBalanceInPlanks = getTotalBalance(chainAsset, chain, recipientAccountId)
         val totalRecipientBalance = chainAsset.amountFromPlanks(totalRecipientBalanceInPlanks)
 
         val assetLocal = assetCache.getAsset(metaId, accountId, chainAsset.chainId, chainAsset.id)!!
@@ -340,6 +360,14 @@ class WalletRepositoryImpl(
             utilityExistentialDeposit = utilityExistentialDeposit,
             tip = tip
         )
+    }
+
+    override suspend fun getTotalBalance(chainAsset: jp.co.soramitsu.core.models.Asset, chain: Chain, accountId: ByteArray): BigInteger {
+        return if (chain.isEthereumChain) {
+            ethereumSource.getTotalBalance(chainAsset, chain, accountId)
+        } else {
+            substrateSource.getTotalBalance(chainAsset, accountId)
+        }
     }
 
     override suspend fun updatePhishingAddresses() = withContext(Dispatchers.Default) {
