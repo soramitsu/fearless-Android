@@ -94,4 +94,6 @@ interface WalletRepository {
     suspend fun getControllerAccount(chainId: ChainId, accountId: AccountId): AccountId?
     suspend fun getStashAccount(chainId: ChainId, accountId: AccountId): AccountId?
     suspend fun fetchFeatureToggle()
+
+    suspend fun getTotalBalance(chainAsset: jp.co.soramitsu.core.models.Asset, chain: Chain, accountId: ByteArray): BigInteger
 }

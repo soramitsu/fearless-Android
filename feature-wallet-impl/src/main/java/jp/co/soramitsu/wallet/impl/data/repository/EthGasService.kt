@@ -1,7 +1,9 @@
 package jp.co.soramitsu.wallet.impl.data.repository
 
+import android.util.Log
 import java.math.BigInteger
 import jp.co.soramitsu.common.utils.orZero
+import jp.co.soramitsu.core.models.ChainNode
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.ethMaxPriorityFeePerGas
@@ -56,7 +58,7 @@ class EthGasService {
                     null
                 )
             } else {
-                val function = Function("transfer", listOf(Address(transfer.recipient), Uint256(null)), emptyList())
+                val function = Function("transfer", listOf(Address(transfer.recipient), Uint256.DEFAULT), emptyList())
                 val txData: String = FunctionEncoder.encode(function)
 
                 Transaction.createFunctionCallTransaction(
@@ -70,7 +72,11 @@ class EthGasService {
                 )
             }
             val gasLimit = kotlin.runCatching {
-                web3j.ethEstimateGas(call).send().amountUsed
+                val response = web3j.ethEstimateGas(call).send()
+                if(response.hasError()){
+                    Log.d("&&&", "ethEstimateGas error: ${response.error.message}")
+                }
+                response.amountUsed
             }.getOrNull().orZero()
             gasLimit * (priorityFee + baseFee)
         }
