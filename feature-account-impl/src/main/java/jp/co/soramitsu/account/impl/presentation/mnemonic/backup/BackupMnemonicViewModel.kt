@@ -49,7 +49,8 @@ class BackupMnemonicViewModel @Inject constructor(
     CryptoTypeChooserMixin by cryptoTypeChooserMixin {
 
     private val payload = savedStateHandle.get<BackupMnemonicPayload>(BackupMnemonicScreenKeys.PAYLOAD_KEY)!!
-    val isFromGoogleBackup = payload.isFromGoogleBackup
+    val isShowAdvancedBlock = !payload.isFromGoogleBackup
+    val isShowBackupWithGoogle = !payload.isFromGoogleBackup && payload.chainAccountData == null
 
     val mnemonic = flow {
         emit(generateMnemonic())
@@ -78,7 +79,7 @@ class BackupMnemonicViewModel @Inject constructor(
             accountType = accountType,
             substrateDerivationPath = substrateDerivationPath,
             ethereumDerivationPath = ethereumDerivationPath,
-            isFromGoogleBackup = isFromGoogleBackup
+            isFromGoogleBackup = payload.isFromGoogleBackup
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, BackupMnemonicState.Empty)
 
@@ -111,7 +112,7 @@ class BackupMnemonicViewModel @Inject constructor(
             val substrateDerivationPath = substrateDerivationPath.value
             val ethereumDerivationPath = ethereumDerivationPath.value.ifEmpty { BIP32JunctionDecoder.DEFAULT_DERIVATION_PATH }
 
-            if (isFromGoogleBackup) {
+            if (payload.isFromGoogleBackup) {
                 backupPhraseInGoogle(substrateDerivationPath, ethereumDerivationPath, launcher)
                 return@launch
             }
@@ -144,7 +145,7 @@ class BackupMnemonicViewModel @Inject constructor(
         launcher: ActivityResultLauncher<Intent>
     ) {
         viewModelScope.launch {
-            if (isFromGoogleBackup) {
+            if (payload.isFromGoogleBackup) {
                 backupPhraseInGoogle(substrateDerivationPath, ethereumDerivationPath, launcher)
                 return@launch
             }

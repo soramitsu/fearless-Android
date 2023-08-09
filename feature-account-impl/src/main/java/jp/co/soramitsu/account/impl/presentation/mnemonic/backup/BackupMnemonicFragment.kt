@@ -67,7 +67,7 @@ class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>(R.layout.fr
                 viewModel.infoClicked()
             }
 
-            advancedBlockView.isVisible = !viewModel.isFromGoogleBackup
+            advancedBlockView.isVisible = viewModel.isShowAdvancedBlock
             advancedBlockView.setOnSubstrateEncryptionTypeClickListener {
                 viewModel.chooseEncryptionClicked()
             }
@@ -82,7 +82,7 @@ class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>(R.layout.fr
                     launcher
                 )
             }
-            googleBackupButton.isVisible = !viewModel.isFromGoogleBackup
+            googleBackupLayout.isVisible = viewModel.isShowBackupWithGoogle
             googleBackupButton.setOnClickListener {
                 viewModel.onGoogleBackupClick(
                     advancedBlockView.getSubstrateDerivationPath(),
