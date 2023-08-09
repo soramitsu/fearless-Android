@@ -123,6 +123,7 @@ class SelectWalletViewModel @Inject constructor(
 
     fun authorizeGoogle(launcher: ActivityResultLauncher<Intent>) {
         launch {
+            backupService.logout()
             if (backupService.authorize(launcher)) {
                 openAddWalletThroughGoogleScreen()
             }

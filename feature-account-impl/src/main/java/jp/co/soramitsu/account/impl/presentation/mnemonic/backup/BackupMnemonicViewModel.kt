@@ -219,6 +219,7 @@ class BackupMnemonicViewModel @Inject constructor(
             return
         }
 
+        backupService.logout()
         if (backupService.authorize(launcher)) {
             openCreateBackupPasswordDialog(
                 substrateDerivationPath,
