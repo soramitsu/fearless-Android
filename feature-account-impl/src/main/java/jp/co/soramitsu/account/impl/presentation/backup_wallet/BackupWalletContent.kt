@@ -79,11 +79,13 @@ internal fun BackupWalletContent(
     val launcher = rememberLauncherForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
-        val googleSignInStatus = result.data?.extras?.get("googleSignInStatus")
-        if (result.resultCode != Activity.RESULT_OK) {
-            callback.onGoogleLoginError(googleSignInStatus.toString())
-        } else {
-            callback.onGoogleSignInSuccess()
+        when (result.resultCode) {
+            Activity.RESULT_OK -> callback.onGoogleSignInSuccess()
+            Activity.RESULT_CANCELED -> { /* no action */ }
+            else -> {
+                val googleSignInStatus = result.data?.extras?.get("googleSignInStatus")
+                callback.onGoogleLoginError(googleSignInStatus.toString())
+            }
         }
     }
 

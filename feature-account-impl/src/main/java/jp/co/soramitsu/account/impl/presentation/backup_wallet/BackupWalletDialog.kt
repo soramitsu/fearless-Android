@@ -1,7 +1,12 @@
 package jp.co.soramitsu.account.impl.presentation.backup_wallet
 
+import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
+import android.view.View
 import android.widget.FrameLayout
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -28,6 +33,21 @@ class BackupWalletDialog : BaseComposeBottomSheetDialogFragment<BackupWalletView
 
     override val viewModel: BackupWalletViewModel by viewModels()
 
+    private val launcher: ActivityResultLauncher<Intent> by lazy {
+        registerForActivityResult(
+            ActivityResultContracts.StartActivityForResult()
+        ) { result ->
+            when (result.resultCode) {
+                Activity.RESULT_OK -> viewModel.onGoogleSignInSuccess()
+                Activity.RESULT_CANCELED -> { /* no action */ }
+                else -> {
+                    val googleSignInStatus = result.data?.extras?.get("googleSignInStatus")
+                    viewModel.onGoogleLoginError(googleSignInStatus.toString())
+                }
+            }
+        }
+    }
+
     @Composable
     override fun Content(padding: PaddingValues) {
         val state by viewModel.state.collectAsState()
@@ -43,5 +63,11 @@ class BackupWalletDialog : BaseComposeBottomSheetDialogFragment<BackupWalletView
         behavior.state = BottomSheetBehavior.STATE_EXPANDED
         behavior.isHideable = true
         behavior.skipCollapsed = true
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        viewModel.authorizeGoogle(launcher = launcher)
     }
 }

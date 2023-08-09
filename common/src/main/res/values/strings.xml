@@ -167,6 +167,7 @@
     <string name="common_confirm">Confirm</string>
     <string name="common_confirm_title">Confirmation</string>
     <string name="common_confirmation_title">Are you sure?</string>
+    <string name="remove_backup_extension_error_message">The backup\'s been created by the Fearless Wallet browser extension. The mobile application can\'t remove it because of lack of credentials</string>
     <string name="common_confirmed">Confirmed</string>
     <string name="common_connect">Connect</string>
     <string name="common_connection_problems">Connection Problems</string>

@@ -42,35 +42,23 @@ class WelcomeFragment : BaseComposeFragment<WelcomeViewModel>() {
     private val launcher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
-        val googleSignInStatus = result.data?.extras?.get("googleSignInStatus")
-        if (result.resultCode != Activity.RESULT_OK) {
-            viewModel.onGoogleLoginError(googleSignInStatus.toString())
-        } else {
-            viewModel.openAddWalletThroughGoogleScreen()
+        when (result.resultCode) {
+            Activity.RESULT_OK -> viewModel.openAddWalletThroughGoogleScreen()
+            Activity.RESULT_CANCELED -> { /* no action */ }
+            else -> {
+                val googleSignInStatus = result.data?.extras?.get("googleSignInStatus")
+                viewModel.onGoogleLoginError(googleSignInStatus.toString())
+            }
         }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        initViews()
         observeBrowserEvents(viewModel)
-    }
-    fun initViews() {
-//        configureTermsAndPrivacy(
-//            getString(R.string.onboarding_terms_and_conditions_1),
-//            getString(R.string.onboarding_terms_and_conditions_2),
-//            getString(R.string.onboarding_privacy_policy)
-//        )
-
         viewModel.events
             .onEach(::handleEvents)
             .launchIn(viewLifecycleOwner.lifecycleScope)
-
-//        with(binding) {
-//            termsTv.movementMethod = LinkMovementMethod.getInstance()
-//            termsTv.highlightColor = Color.TRANSPARENT
-//        }
     }
 
     private fun handleEvents(event: WelcomeEvent) {
@@ -83,18 +71,6 @@ class WelcomeFragment : BaseComposeFragment<WelcomeViewModel>() {
         viewModel.authorizeGoogle(launcher = launcher)
     }
 
-//    private fun configureTermsAndPrivacy(sourceText: String, terms: String, privacy: String) {
-//        binding.termsTv.text = createSpannable(sourceText) {
-//            clickable(terms) {
-//                viewModel.termsClicked()
-//            }
-//
-//            clickable(privacy) {
-//                viewModel.privacyClicked()
-//            }
-//        }
-//    }
-
     @ExperimentalMaterialApi
     @Composable
     override fun Content(padding: PaddingValues, scrollState: ScrollState, modalBottomSheetState: ModalBottomSheetState) {
@@ -103,7 +79,6 @@ class WelcomeFragment : BaseComposeFragment<WelcomeViewModel>() {
         FearlessAppTheme {
             WelcomeScreen(
                 state = state,
-//                scrollState = scrollState,
                 callbacks = viewModel
             )
         }

@@ -82,43 +82,38 @@ fun OptionsWalletContent(
             }
             MarginVertical(margin = 28.dp)
             GrayButton(
-                text = stringResource(id = R.string.export_wallet),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(48.dp)
-            ) {
-                callback.onBackupWalletClick()
-            }
+                    .height(48.dp),
+                text = stringResource(id = R.string.export_wallet),
+                onClick = callback::onBackupWalletClick
+            )
             MarginVertical(margin = 12.dp)
             GrayButton(
                 text = stringResource(id = R.string.common_details_wallet),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(48.dp)
-            ) {
-                callback.onWalletDetailsClick()
-            }
+                    .height(48.dp),
+                onClick = callback::onWalletDetailsClick
+            )
             MarginVertical(margin = 12.dp)
             GrayButton(
-                text = stringResource(id = R.string.change_wallet_name),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(48.dp)
-            ) {
-                callback.onChangeWalletNameClick()
-            }
+                    .height(48.dp),
+                text = stringResource(id = R.string.change_wallet_name),
+                onClick = callback::onChangeWalletNameClick
+            )
             if (!state.isSelected) {
                 MarginVertical(margin = 12.dp)
                 TextButton(
-                    text = stringResource(id = R.string.common_delete_wallet),
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(48.dp),
                     textStyle = MaterialTheme.customTypography.header4,
-                    colors = customButtonColors(grayButtonBackground, colorAccentDark)
-                ) {
-                    callback.onDeleteWalletClick()
-                }
+                    text = stringResource(id = R.string.common_delete_wallet),
+                    colors = customButtonColors(grayButtonBackground, colorAccentDark),
+                    onClick = callback::onDeleteWalletClick)
             }
             MarginVertical(margin = 12.dp)
         }

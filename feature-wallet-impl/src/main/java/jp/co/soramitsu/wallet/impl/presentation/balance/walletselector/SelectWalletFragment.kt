@@ -21,11 +21,13 @@ class SelectWalletFragment : BaseComposeBottomSheetDialogFragment<SelectWalletVi
     private val launcher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
-        val googleSignInStatus = result.data?.extras?.get("googleSignInStatus")
-        if (result.resultCode != Activity.RESULT_OK) {
-            viewModel.onGoogleLoginError(googleSignInStatus.toString())
-        } else {
-            viewModel.openAddWalletThroughGoogleScreen()
+        when (result.resultCode) {
+            Activity.RESULT_OK -> viewModel.openAddWalletThroughGoogleScreen()
+            Activity.RESULT_CANCELED -> { /* no action */ }
+            else -> {
+                val googleSignInStatus = result.data?.extras?.get("googleSignInStatus")
+                viewModel.onGoogleLoginError(googleSignInStatus.toString())
+            }
         }
     }
 

@@ -42,15 +42,17 @@ class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>(R.layout.fr
     private val launcher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
-        val googleSignInStatus = result.data?.extras?.get("googleSignInStatus")
-        if (result.resultCode != Activity.RESULT_OK) {
-            viewModel.onGoogleLoginError(googleSignInStatus.toString())
-        } else {
-            with(binding) {
+        when (result.resultCode) {
+            Activity.RESULT_OK -> with(binding) {
                 viewModel.onGoogleSignInSuccess(
                     advancedBlockView.getSubstrateDerivationPath(),
                     advancedBlockView.getEthereumDerivationPath().ifEmpty { BIP32JunctionDecoder.DEFAULT_DERIVATION_PATH }
                 )
+            }
+            Activity.RESULT_CANCELED -> { /* no action */ }
+            else -> {
+                val googleSignInStatus = result.data?.extras?.get("googleSignInStatus")
+                viewModel.onGoogleLoginError(googleSignInStatus.toString())
             }
         }
     }
