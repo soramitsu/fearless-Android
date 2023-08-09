@@ -33,8 +33,6 @@ class SelectImportModeViewModel @Inject constructor(
                 showError(e)
             }
         }
-
-        router.backWithResult(SelectImportModeDialog.RESULT_IMPORT_MODE to ImportMode.Google)
     }
 
     override fun onMnemonicPhraseClick() {
