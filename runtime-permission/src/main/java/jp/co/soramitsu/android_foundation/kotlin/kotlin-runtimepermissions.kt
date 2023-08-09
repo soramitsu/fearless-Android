@@ -1,4 +1,3 @@
-/* ktlint-disable filename */
 package jp.co.soramitsu.android_foundation.kotlin
 
 import androidx.fragment.app.Fragment
