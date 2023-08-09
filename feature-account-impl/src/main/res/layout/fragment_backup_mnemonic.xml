@@ -55,6 +55,7 @@
         android:text="@string/common_next" />
 
     <FrameLayout
+        android:id="@+id/googleBackupLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/x2"
