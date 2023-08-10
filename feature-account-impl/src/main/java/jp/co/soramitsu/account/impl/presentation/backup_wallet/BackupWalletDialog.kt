@@ -12,10 +12,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
 import jp.co.soramitsu.common.compose.component.BottomSheetScreen
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 
 @AndroidEntryPoint
 class BackupWalletDialog : BaseComposeBottomSheetDialogFragment<BackupWalletViewModel>() {
@@ -68,6 +71,8 @@ class BackupWalletDialog : BaseComposeBottomSheetDialogFragment<BackupWalletView
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        viewModel.authorizeGoogle(launcher = launcher)
+        viewModel.requestGoogleAuth.onEach {
+            viewModel.authorizeGoogle(launcher = launcher)
+        }.launchIn(viewLifecycleOwner.lifecycleScope)
     }
 }

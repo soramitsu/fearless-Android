@@ -26,6 +26,7 @@ import jp.co.soramitsu.common.compose.theme.customColors
 
 data class BackupWalletState(
     val walletItem: WalletItemViewState?,
+    val isAuthedToGoogle: Boolean,
     val isWalletSavedInGoogle: Boolean,
     val isMnemonicBackupSupported: Boolean,
     val isSeedBackupSupported: Boolean,
@@ -35,6 +36,7 @@ data class BackupWalletState(
     companion object {
         val Empty = BackupWalletState(
             walletItem = null,
+            isAuthedToGoogle = false,
             isWalletSavedInGoogle = false,
             isMnemonicBackupSupported = false,
             isSeedBackupSupported = false,
@@ -117,20 +119,22 @@ internal fun BackupWalletContent(
                 )
                 SettingsDivider()
             }
-            if (state.isWalletSavedInGoogle) {
-                SettingsItem(
-                    icon = painterResource(R.drawable.ic_google_24),
-                    text = stringResource(R.string.backup_wallet_delete_google_backup),
-                    onClick = callback::onDeleteGoogleBackupClick
-                )
-            } else {
-                SettingsItem(
-                    icon = painterResource(R.drawable.ic_google_24),
-                    text = stringResource(R.string.backup_wallet_backup_to_google),
-                    onClick = callback::onGoogleBackupClick
-                )
+            if (state.isAuthedToGoogle) {
+                if (state.isWalletSavedInGoogle) {
+                    SettingsItem(
+                        icon = painterResource(R.drawable.ic_google_24),
+                        text = stringResource(R.string.backup_wallet_delete_google_backup),
+                        onClick = callback::onDeleteGoogleBackupClick
+                    )
+                } else {
+                    SettingsItem(
+                        icon = painterResource(R.drawable.ic_google_24),
+                        text = stringResource(R.string.backup_wallet_backup_to_google),
+                        onClick = callback::onGoogleBackupClick
+                    )
+                }
+                SettingsDivider()
             }
-            SettingsDivider()
 
             MarginVertical(16.dp)
             B2(

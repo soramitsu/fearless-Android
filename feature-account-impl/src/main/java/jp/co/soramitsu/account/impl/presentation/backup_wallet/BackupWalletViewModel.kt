@@ -79,34 +79,43 @@ class BackupWalletViewModel @Inject constructor(
     private val isDeleteWalletEnabled = wallet.map { !it.isSelected }
     private val supportedBackupTypes = flowOf { accountInteractor.getSupportedBackupTypes(walletId) }
     private val googleBackupAddressFlow = flowOf { accountInteractor.googleBackupAddressForWallet(walletId) }
+
+    val requestGoogleAuth = MutableStateFlow(Event(Unit))
     private val refresh = MutableSharedFlow<Event<Unit>>()
     private val isAuthedToGoogle = MutableStateFlow(false)
 
     private val accountBackupType = refresh.onStart { emit(Event(Unit)) }.flatMapLatest {
-        combine(
-            googleBackupAddressFlow,
-            isAuthedToGoogle
-         ) { backupAddress, isAuthed ->
-            if (!isAuthed) return@combine null
+            googleBackupAddressFlow.map { backupAddress ->
 
-            val backupAccountAddresses = backupService.getBackupAccounts().map { it.address }
-            val webBackupAccountAddresses = backupService.getWebBackupAccounts().map { it.address }
-            when (backupAddress) {
-                in backupAccountAddresses -> BackupOrigin.APP
-                in webBackupAccountAddresses -> BackupOrigin.WEB
-                else -> null
+                val backupAccountAddresses = kotlin.runCatching {
+                    backupService.getBackupAccounts().map { it.address }
+                }.onSuccess {
+                    isAuthedToGoogle.value = true
+                }.onFailure {
+                    return@map null
+                }.getOrNull().orEmpty()
+
+                val webBackupAccountAddresses = backupService.getWebBackupAccounts().map { it.address }
+
+                when (backupAddress) {
+                    in backupAccountAddresses -> BackupOrigin.APP
+                    in webBackupAccountAddresses -> BackupOrigin.WEB
+                    else -> null
+                }
             }
-        }
     }
+
 
     val state = combine(
         walletItem,
         isDeleteWalletEnabled,
         accountBackupType,
-        supportedBackupTypes
-    ) { walletItem, isDeleteWalletEnabled, accountBackupType, supportedBackupTypes ->
+        supportedBackupTypes,
+        isAuthedToGoogle
+    ) { walletItem, isDeleteWalletEnabled, accountBackupType, supportedBackupTypes, isAuthedToGoogle ->
         BackupWalletState(
             walletItem = walletItem,
+            isAuthedToGoogle = isAuthedToGoogle,
             isWalletSavedInGoogle = accountBackupType != null,
             isMnemonicBackupSupported = supportedBackupTypes.contains(BackupAccountType.PASSPHRASE),
             isSeedBackupSupported = supportedBackupTypes.contains(BackupAccountType.SEED),
@@ -169,7 +178,11 @@ class BackupWalletViewModel @Inject constructor(
     }
 
     override fun onGoogleBackupClick() {
-        openCreateBackupPasswordDialog()
+        if (isAuthedToGoogle.value) {
+            openCreateBackupPasswordDialog()
+        } else {
+            requestGoogleAuth.tryEmit(Event(Unit))
+        }
     }
 
     override fun onDeleteWalletClick() {
@@ -193,7 +206,6 @@ class BackupWalletViewModel @Inject constructor(
 
     private fun checkIsWalletBackedUpToGoogle() {
         launch {
-            isAuthedToGoogle.value = true
             refresh.emit(Event(Unit))
         }
     }
