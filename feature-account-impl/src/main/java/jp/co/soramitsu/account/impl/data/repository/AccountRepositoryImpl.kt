@@ -824,9 +824,9 @@ class AccountRepositoryImpl(
 
     override fun googleAddressAllWalletsFlow(): Flow<List<String>> {
         return allMetaAccountsFlow().map { allMetaAccounts ->
-            val polkadotChain = chainRegistry.getChain(westendChainId)
+            val westendChain = chainRegistry.getChain(westendChainId)
             allMetaAccounts.mapNotNull {
-                it.googleBackupAddress ?: it.address(polkadotChain)
+                it.googleBackupAddress ?: it.address(westendChain)
             }
         }
     }

@@ -117,7 +117,7 @@ internal fun BackupMnemonicContent(
 
             MarginVertical(margin = 16.dp)
 
-            if (!state.isFromGoogleBackup) {
+            if (state.isFromGoogleBackup.not()) {
                 AdvancedExpandableText(
                     title = stringResource(id = R.string.common_advanced),
                     initialState = false,

@@ -2,8 +2,8 @@ package jp.co.soramitsu.android_foundation.kotlin
 
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
-import jp.co.soramitsu.android_foundation.core.RuntimePermission
 import jp.co.soramitsu.android_foundation.core.PermissionResult
+import jp.co.soramitsu.android_foundation.core.RuntimePermission
 
 fun Fragment.askPermission(vararg permissions: String, acceptedblock: (PermissionResult) -> Unit): KotlinRuntimePermission {
     return KotlinRuntimePermission(
