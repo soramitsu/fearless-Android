@@ -33,7 +33,7 @@ class EthGasService {
     fun listenGas(transfer: Transfer, chain: Chain): Flow<BigInteger> {
         val wsService = wsServicePool.getOrPut(chain.id) {
             // todo replace url with WS url from chain
-            WebSocketService("wss://mainnet.infura.io/ws/v3/550f1aa1e8a147f8b43184507686569b", false).apply { connect() }
+            WebSocketService("wss://sepolia.infura.io/ws/v3/550f1aa1e8a147f8b43184507686569b", false).apply { connect() }
         }
         val web3j = Web3j.build(wsService)
         return blockSubscriptions.getOrPut(chain.id) {

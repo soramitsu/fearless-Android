@@ -15,6 +15,7 @@ import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.common.data.network.runtime.binding.SimpleBalanceData
 import jp.co.soramitsu.common.utils.diffed
+import jp.co.soramitsu.common.utils.second
 import jp.co.soramitsu.core.updater.UpdateSystem
 import jp.co.soramitsu.core.updater.Updater
 import jp.co.soramitsu.core.utils.utilityAsset

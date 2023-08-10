@@ -3,7 +3,6 @@ package jp.co.soramitsu.wallet.impl.data.network.blockchain
 import java.math.BigInteger
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.core.models.Asset
-import jp.co.soramitsu.wallet.impl.data.repository.MaxPriorityFeePerGas
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.web3j.abi.FunctionEncoder
@@ -13,6 +12,7 @@ import org.web3j.protocol.Web3jService
 import org.web3j.protocol.core.DefaultBlockParameterName
 import org.web3j.protocol.core.Ethereum
 import org.web3j.protocol.core.Request
+import org.web3j.protocol.core.Response
 import org.web3j.protocol.core.methods.request.Transaction
 import org.web3j.utils.Numeric
 
@@ -52,4 +52,9 @@ fun Web3jService.ethMaxPriorityFeePerGas(): Request<Any, MaxPriorityFeePerGas> {
         this,
         MaxPriorityFeePerGas::class.java
     )
+}
+
+class MaxPriorityFeePerGas : Response<String?>() {
+    val maxPriorityFeePerGas: BigInteger
+        get() = Numeric.decodeQuantity(result)
 }

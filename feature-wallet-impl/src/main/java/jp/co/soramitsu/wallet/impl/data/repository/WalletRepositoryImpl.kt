@@ -485,7 +485,3 @@ class WalletRepositoryImpl(
     }
 }
 
-class MaxPriorityFeePerGas : Response<String?>() {
-    val maxPriorityFeePerGas: BigInteger
-        get() = Numeric.decodeQuantity(result)
-}
