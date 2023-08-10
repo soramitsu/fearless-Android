@@ -22,6 +22,7 @@ import jp.co.soramitsu.coredb.model.OperationLocal
 import jp.co.soramitsu.runtime.ext.addressOf
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.runtime.multiNetwork.getRuntimeOrNull
 import jp.co.soramitsu.shared_utils.runtime.AccountId
 import jp.co.soramitsu.shared_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.shared_utils.runtime.metadata.module
@@ -85,7 +86,7 @@ class PaymentUpdater(
         val chainId = chain.id
 
         val runtimeVersion = withContext(Dispatchers.IO) { chainRegistry.getRemoteRuntimeVersion(chain.id) ?: 0 }
-        val runtime = runCatching { chainRegistry.getRuntime(chainId) }
+        val runtime = runCatching { chainRegistry.getRuntimeOrNull(chainId) }
             .onFailure {
                 Log.e("PaymentUpdater", "Failed to get runtime for chain ${chain.name} (${chain.id}) $it")
                 return emptyFlow()

@@ -11,6 +11,7 @@ import jp.co.soramitsu.core.updater.UpdateSystem
 import jp.co.soramitsu.core.updater.Updater
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.runtime.multiNetwork.getRuntimeOrNull
 import jp.co.soramitsu.runtime.multiNetwork.getSocket
 import jp.co.soramitsu.runtime.multiNetwork.getSocketOrNull
 import jp.co.soramitsu.shared_utils.wsrpc.SocketService
@@ -85,7 +86,7 @@ class BalancesUpdateSystem(
                         subscriptions.remove(updaterKey)
                     }
 
-                    val runtime = runCatching { chainRegistry.getRuntime(chain.id) }.getOrNull() ?: return@singleChainUpdate
+                    val runtime = runCatching { chainRegistry.getRuntimeOrNull(chain.id) }.getOrNull() ?: return@singleChainUpdate
                     val runtimeVersion = chainRegistry.getRemoteRuntimeVersion(chain.id) ?: 0
                     val socketService = runCatching { chainRegistry.getSocket(chain.id) }.getOrNull() ?: return@singleChainUpdate
                     val storageKeyToMapId = addedOrModified.filter { it.isSelected.not() }.mapNotNull { metaAccount ->
