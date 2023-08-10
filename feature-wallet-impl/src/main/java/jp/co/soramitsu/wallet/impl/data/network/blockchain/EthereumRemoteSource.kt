@@ -1,9 +1,9 @@
 package jp.co.soramitsu.wallet.impl.data.network.blockchain
 
-import android.util.Log
 import java.math.BigInteger
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.shared_utils.extensions.requireHexPrefix
 import jp.co.soramitsu.shared_utils.extensions.toHexString
 import jp.co.soramitsu.shared_utils.runtime.AccountId
 import jp.co.soramitsu.wallet.impl.domain.model.Transfer
@@ -20,6 +20,8 @@ import org.web3j.crypto.RawTransaction
 import org.web3j.crypto.TransactionEncoder
 import org.web3j.protocol.Web3j
 import org.web3j.protocol.core.DefaultBlockParameterName
+import org.web3j.protocol.core.Request
+import org.web3j.protocol.core.Response
 import org.web3j.protocol.core.methods.request.Transaction
 import org.web3j.protocol.http.HttpService
 import org.web3j.utils.Convert
@@ -33,89 +35,93 @@ class EthereumRemoteSource {
     }
 
     suspend fun performTransfer(chain: Chain, transfer: Transfer, privateKey: String) = withContext(Dispatchers.IO) {
-        kotlin.runCatching {
-            val service = HttpService(chain.nodes.first().url)
-            val web3 = Web3j.build(service)
-            val cred = Credentials.create(privateKey)
-            val nonce = web3.ethGetTransactionCount(transfer.sender, DefaultBlockParameterName.LATEST).send().transactionCount
+        val service = HttpService(chain.nodes.first().url)
+        val web3 = Web3j.build(service)
+        val cred = Credentials.create(privateKey)
+        val nonce = web3.ethGetTransactionCount(transfer.sender, DefaultBlockParameterName.LATEST).send().transactionCount
 
-            val amountInPlanks = Convert.toWei(transfer.amount, Convert.Unit.ETHER).toBigInteger()
+        val amountInPlanks = Convert.toWei(transfer.amount, Convert.Unit.ETHER).toBigInteger()
 
-            val transaction = if (transfer.chainAsset.isUtility) {
-                Transaction.createEtherTransaction(
-                    transfer.sender,
-                    nonce,
-                    null,
-                    null,
-                    transfer.recipient,
-                    amountInPlanks
-                )
-            } else {
-                val function = Function("transfer", listOf(Address(transfer.recipient), Uint256.DEFAULT), emptyList())
-                val txData: String = FunctionEncoder.encode(function)
+        val transaction = if (transfer.chainAsset.isUtility) {
+            Transaction.createEtherTransaction(
+                transfer.sender,
+                nonce,
+                null,
+                null,
+                transfer.recipient,
+                amountInPlanks
+            )
+        } else {
+            val function =
+                Function("transfer", listOf(Address(transfer.recipient), Uint256(transfer.amountInPlanks)), listOf(TypeReference.create(Bool::class.java)))
 
-                Transaction.createFunctionCallTransaction(
-                    transfer.sender,
-                    null,
-                    null,
-                    null,
-                    transfer.chainAsset.id,
-                    BigInteger.ZERO,
-                    txData
-                )
-            }
+            Transaction.createFunctionCallTransaction(
+                transfer.sender,
+                null,
+                null,
+                null,
+                transfer.chainAsset.id,
+                BigInteger.ZERO,
+                FunctionEncoder.encode(function)
+            )
+        }
 
-            val baseFeeRaw = web3.ethGetBlockByNumber(DefaultBlockParameterName.LATEST, false).send().block.baseFeePerGas
-            val baseFee = Numeric.decodeQuantity(baseFeeRaw)
-            val priorityFee = service.ethMaxPriorityFeePerGas().send().maxPriorityFeePerGas
+        val baseFeeRaw = web3.ethGetBlockByNumber(DefaultBlockParameterName.LATEST, false).send().resultOrThrow().baseFeePerGas
+        val baseFee = Numeric.decodeQuantity(baseFeeRaw)
+        val priorityFee = service.ethMaxPriorityFeePerGas().send().resultOrThrow().let { Numeric.decodeQuantity(it) }
 
-            val estimatedGas = kotlin.runCatching {
-                val response = web3.ethEstimateGas(transaction).send()
-                if (response.hasError()) {
-                    Log.d("&&&", "ethEstimateGas error ${response.error.message}")
-                }
-                response
-            }.onFailure { Log.d("&&&", "ethEstimateGas exception $it") }.getOrNull()?.amountUsed ?: return@withContext "error"
+        val estimatedGas = web3.ethEstimateGas(transaction).send().resultOrThrow().let { Numeric.decodeQuantity(it) }
 
-            val maxFeePerGas = (baseFee + priorityFee) * estimatedGas
-            val chainId = chain.id.drop(2).toLong()
-            val raw = if (transfer.chainAsset.isUtility) {
-                RawTransaction.createEtherTransaction(
-                    chainId,
-                    nonce,
-                    estimatedGas, //gasLimit
-                    transfer.recipient,
-                    amountInPlanks,
-                    priorityFee, //maxPriorityFeePerGas
-                    maxFeePerGas //maxFeePerGas
-                )
-            } else {
-                Log.d("&&&", "in planks ${transfer.amountInPlanks}, amount: ${transfer.amount}")
-                val erc20TransferFunction = Function(
-                    "transfer",
-                    listOf(Address(transfer.recipient), Uint256(transfer.amountInPlanks)),
-                    listOf(TypeReference.create(Bool::class.java))
-                )
-                val encodedErc20Function = FunctionEncoder.encode(erc20TransferFunction)
-                RawTransaction.createTransaction(
-                    chainId,
-                    nonce,
-                    estimatedGas, //gasLimit
-                    transfer.chainAsset.id,
-                    BigInteger.ZERO,
-                    encodedErc20Function,
-                    priorityFee, //maxPriorityFeePerGas
-                    maxFeePerGas * 2.toBigInteger() //maxFeePerGas
-                )
-            }
+        val maxFeePerGas = (baseFee + priorityFee) * estimatedGas
+        val chainId = chain.id.requireHexPrefix().drop(2).toLong()
+        val raw = if (transfer.chainAsset.isUtility) {
+            RawTransaction.createEtherTransaction(
+                chainId,
+                nonce,
+                estimatedGas, //gasLimit
+                transfer.recipient,
+                amountInPlanks,
+                priorityFee, //maxPriorityFeePerGas
+                maxFeePerGas //maxFeePerGas
+            )
+        } else {
+            val erc20TransferFunction = Function(
+                "transfer",
+                listOf(Address(transfer.recipient), Uint256(transfer.amountInPlanks)),
+                listOf(TypeReference.create(Bool::class.java))
+            )
 
-            val signed = TransactionEncoder.signMessage(raw, cred)
-            val transactionResponse = web3.ethSendRawTransaction(signed.toHexString(true)).send()
-            if (transactionResponse.hasError()) {
-                Log.d("&&&", "ethSendRawTransaction error ${transactionResponse.error.message}")
-            }
+            val encodedErc20Function = FunctionEncoder.encode(erc20TransferFunction)
+            RawTransaction.createTransaction(
+                chainId,
+                nonce,
+                estimatedGas, //gasLimit
+                transfer.chainAsset.id,
+                BigInteger.ZERO,
+                encodedErc20Function,
+                priorityFee, //maxPriorityFeePerGas
+                maxFeePerGas //maxFeePerGas
+            )
+        }
+
+        val signed = TransactionEncoder.signMessage(raw, cred)
+
+        web3.ethSendRawTransaction(signed.toHexString(true)).send().let {
             hashCode()
-            transactionResponse.transactionHash
-        }.onFailure { Log.d("&&&", "eth transfer error $it") }.getOrNull() ?: ""
+            it
+        }.resultOrThrow()
     }
 }
+
+fun <T> Response<T>.resultOrThrow(): T {
+    if (hasError()) {
+
+        throw EthereumRequestError(error.message)
+    } else {
+        return result
+    }
+}
+
+class EthereumRequestError(message: String) : Exception(message)
+
+class EthereumTransferException(message: String) : Exception(message)
