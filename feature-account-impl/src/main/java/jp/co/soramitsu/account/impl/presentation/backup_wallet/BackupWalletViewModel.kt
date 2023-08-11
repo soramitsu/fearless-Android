@@ -130,17 +130,17 @@ class BackupWalletViewModel @Inject constructor(
     }
 
     override fun onShowMnemonicPhraseClick() {
-        val destination = accountRouter.getExportMnemonicDestination(walletId, polkadotChainId)
+        val destination = accountRouter.getExportMnemonicDestination(walletId, polkadotChainId, isExportWallet = true)
         accountRouter.withPinCodeCheckRequired(destination, pinCodeTitleRes = R.string.account_export)
     }
 
     override fun onShowRawSeedClick() {
-        val destination = accountRouter.getExportSeedDestination(walletId, polkadotChainId)
+        val destination = accountRouter.getExportSeedDestination(walletId, polkadotChainId, isExportWallet = true)
         accountRouter.withPinCodeCheckRequired(destination, pinCodeTitleRes = R.string.account_export)
     }
 
     override fun onExportJsonClick() {
-        val destination = accountRouter.openExportJsonPasswordDestination(walletId, polkadotChainId)
+        val destination = accountRouter.openExportJsonPasswordDestination(walletId, polkadotChainId, isExportWallet = true)
         accountRouter.withPinCodeCheckRequired(destination, pinCodeTitleRes = R.string.account_export)
     }
 
