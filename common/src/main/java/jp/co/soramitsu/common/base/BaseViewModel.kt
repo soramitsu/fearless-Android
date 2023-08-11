@@ -54,7 +54,9 @@ open class BaseViewModel : ViewModel(), CoroutineScope {
         positiveButtonText: String? = null,
         negativeButtonText: String? = null,
         buttonsOrientation: Int = LinearLayout.VERTICAL,
-        positiveClick: () -> Unit = emptyClick
+        positiveClick: () -> Unit = emptyClick,
+        onBackClick: () -> Unit = emptyClick,
+        isHideable: Boolean = true
     ) {
         _errorDialogStateLiveData.value = Event(
             ErrorDialogState(
@@ -63,7 +65,9 @@ open class BaseViewModel : ViewModel(), CoroutineScope {
                 positiveButtonText = positiveButtonText,
                 negativeButtonText = negativeButtonText,
                 buttonsOrientation = buttonsOrientation,
-                positiveClick = positiveClick
+                positiveClick = positiveClick,
+                onBackClick = onBackClick,
+                isHideable = isHideable
             )
         )
     }

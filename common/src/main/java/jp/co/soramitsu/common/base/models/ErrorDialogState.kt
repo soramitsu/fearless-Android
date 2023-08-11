@@ -1,6 +1,7 @@
 package jp.co.soramitsu.common.base.models
 
 import android.widget.LinearLayout
+import jp.co.soramitsu.common.compose.component.emptyClick
 
 data class ErrorDialogState(
     val title: String,
@@ -8,5 +9,7 @@ data class ErrorDialogState(
     val positiveButtonText: String?,
     val negativeButtonText: String?,
     val buttonsOrientation: Int = LinearLayout.VERTICAL,
-    val positiveClick: () -> Unit
+    val positiveClick: () -> Unit,
+    val onBackClick: () -> Unit = emptyClick,
+    val isHideable: Boolean = true
 )

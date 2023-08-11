@@ -36,17 +36,15 @@ class BackupWalletDialog : BaseComposeBottomSheetDialogFragment<BackupWalletView
 
     override val viewModel: BackupWalletViewModel by viewModels()
 
-    private val launcher: ActivityResultLauncher<Intent> by lazy {
-        registerForActivityResult(
-            ActivityResultContracts.StartActivityForResult()
-        ) { result ->
-            when (result.resultCode) {
-                Activity.RESULT_OK -> viewModel.onGoogleSignInSuccess()
-                Activity.RESULT_CANCELED -> { /* no action */ }
-                else -> {
-                    val googleSignInStatus = result.data?.extras?.get("googleSignInStatus")
-                    viewModel.onGoogleLoginError(googleSignInStatus.toString())
-                }
+    private val launcher: ActivityResultLauncher<Intent> = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        when (result.resultCode) {
+            Activity.RESULT_OK -> viewModel.onGoogleSignInSuccess()
+            Activity.RESULT_CANCELED -> { /* no action */ }
+            else -> {
+                val googleSignInStatus = result.data?.extras?.get("googleSignInStatus")
+                viewModel.onGoogleLoginError(googleSignInStatus.toString())
             }
         }
     }

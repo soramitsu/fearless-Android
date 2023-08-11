@@ -10,6 +10,8 @@ import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.TotalBalanceUseCase
 import jp.co.soramitsu.account.api.presentation.create_backup_password.CreateBackupPasswordPayload
+import jp.co.soramitsu.account.impl.domain.account.details.AccountDetailsInteractor
+import jp.co.soramitsu.account.impl.domain.account.details.AccountInChain
 import jp.co.soramitsu.account.impl.presentation.AccountRouter
 import jp.co.soramitsu.account.impl.presentation.importing.remote_backup.model.BackupOrigin
 import jp.co.soramitsu.backup.BackupService
@@ -44,6 +46,7 @@ class BackupWalletViewModel @Inject constructor(
     private val accountRouter: AccountRouter,
     val savedStateHandle: SavedStateHandle,
     private val accountInteractor: AccountInteractor,
+    private val accountDetailsInteractor: AccountDetailsInteractor,
     private val addressIconGenerator: AddressIconGenerator,
     private val totalBalanceUseCase: TotalBalanceUseCase,
     private val resourceManager: ResourceManager,
@@ -76,54 +79,93 @@ class BackupWalletViewModel @Inject constructor(
                 )
             )
         }
-    private val isDeleteWalletEnabled = wallet.map { !it.isSelected }
     private val supportedBackupTypes = flowOf { accountInteractor.getSupportedBackupTypes(walletId) }
     private val googleBackupAddressFlow = flowOf { accountInteractor.googleBackupAddressForWallet(walletId) }
 
-    val requestGoogleAuth = MutableStateFlow(Event(Unit))
+    val requestGoogleAuth = MutableSharedFlow<Event<Unit>>()
     private val refresh = MutableSharedFlow<Event<Unit>>()
     private val isAuthedToGoogle = MutableStateFlow(false)
 
-    private val accountBackupType = refresh.onStart { emit(Event(Unit)) }.flatMapLatest {
-            googleBackupAddressFlow.map { backupAddress ->
+    private val googleBackupType = refresh.flatMapLatest {
+        googleBackupAddressFlow.map { backupAddress ->
 
-                val backupAccountAddresses = kotlin.runCatching {
-                    backupService.getBackupAccounts().map { it.address }
-                }.onSuccess {
-                    isAuthedToGoogle.value = true
-                }.onFailure {
-                    return@map null
-                }.getOrNull().orEmpty()
+            val backupAccountAddresses = kotlin.runCatching {
+                backupService.getBackupAccounts().map { it.address }
+            }.onSuccess {
+                isAuthedToGoogle.value = true
+            }.onFailure {
+                return@map null
+            }.getOrNull().orEmpty()
 
-                val webBackupAccountAddresses = backupService.getWebBackupAccounts().map { it.address }
+            val webBackupAccountAddresses = backupService.getWebBackupAccounts().map { it.address }
 
-                when (backupAddress) {
-                    in backupAccountAddresses -> BackupOrigin.APP
-                    in webBackupAccountAddresses -> BackupOrigin.WEB
-                    else -> null
-                }
+            when (backupAddress) {
+                in backupAccountAddresses -> BackupOrigin.APP
+                in webBackupAccountAddresses -> BackupOrigin.WEB
+                else -> null
             }
-    }
+        }
+    }.onStart { emit(null) }
 
 
     val state = combine(
         walletItem,
-        isDeleteWalletEnabled,
-        accountBackupType,
+        googleBackupType,
         supportedBackupTypes,
         isAuthedToGoogle
-    ) { walletItem, isDeleteWalletEnabled, accountBackupType, supportedBackupTypes, isAuthedToGoogle ->
+    ) { walletItem, googleBackupType, supportedBackupTypes, isAuthedToGoogle ->
         BackupWalletState(
             walletItem = walletItem,
             isAuthedToGoogle = isAuthedToGoogle,
-            isWalletSavedInGoogle = accountBackupType != null,
+            isWalletSavedInGoogle = googleBackupType != null,
             isMnemonicBackupSupported = supportedBackupTypes.contains(BackupAccountType.PASSPHRASE),
             isSeedBackupSupported = supportedBackupTypes.contains(BackupAccountType.SEED),
-            isJsonBackupSupported = supportedBackupTypes.contains(BackupAccountType.JSON),
-            isDeleteWalletEnabled = isDeleteWalletEnabled
+            isJsonBackupSupported = supportedBackupTypes.contains(BackupAccountType.JSON)
         )
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, BackupWalletState.Empty)
+
+    init {
+        launch {
+            checkIsWalletWithChainAccounts()
+        }
+    }
+
+    private suspend fun checkIsWalletWithChainAccounts() {
+        val chainProjections = accountDetailsInteractor.getChainProjectionsFlow(walletId).firstOrNull().orEmpty()
+        val chainAccounts = chainProjections[AccountInChain.From.CHAIN_ACCOUNT].orEmpty()
+
+        if (chainAccounts.isEmpty()) {
+            requestGoogleAuth.emit(Event(Unit))
+        } else {
+            val message = if (chainAccounts.size == 1) {
+                val singleChainAccount = chainAccounts[0]
+                val chainName = singleChainAccount.chain.name
+                val address = singleChainAccount.projection?.address.orEmpty()
+                resourceManager.getString(
+                    R.string.backup_wallet_replace_accounts_alert,
+                    chainName,
+                    address
+                )
+            } else {
+                resourceManager.getString(R.string.backup_wallet_replace_several_alert)
+            }
+
+            showError(
+                title = resourceManager.getString(R.string.common_warning),
+                message = message,
+                positiveButtonText = resourceManager.getString(R.string.backup_chain_account),
+                positiveClick = {
+                    accountRouter.openAccountDetails(walletId)
+                },
+                onBackClick = {
+                    launch {
+                        requestGoogleAuth.emit(Event(Unit))
+                    }
+                }
+            )
+        }
+    }
 
     override fun onBackClick() {
         accountRouter.back()
@@ -146,7 +188,7 @@ class BackupWalletViewModel @Inject constructor(
 
     override fun onDeleteGoogleBackupClick() {
         launch {
-            val backupOrigin = accountBackupType.firstOrNull()
+            val backupOrigin = googleBackupType.firstOrNull()
 
             if (backupOrigin == BackupOrigin.WEB) {
                 showError(
@@ -159,20 +201,21 @@ class BackupWalletViewModel @Inject constructor(
                     message = resourceManager.getString(R.string.backup_wallet_delete_alert_message),
                     positiveButtonText = resourceManager.getString(R.string.common_delete),
                     negativeButtonText = resourceManager.getString(R.string.common_cancel),
-                    buttonsOrientation = LinearLayout.HORIZONTAL
-                ) {
-                    launch {
-                        googleBackupAddressFlow.firstOrNull()?.let { address ->
-                            runCatching {
-                                backupService.deleteBackupAccount(address)
-                                accountInteractor.updateWalletOnGoogleBackupDelete(walletId)
-                                refresh.emit(Event(Unit))
-                            }.onFailure {
-                                showError("DeleteGoogleBackup error:\n${it.message}")
+                    buttonsOrientation = LinearLayout.HORIZONTAL,
+                    positiveClick = {
+                        launch {
+                            googleBackupAddressFlow.firstOrNull()?.let { address ->
+                                runCatching {
+                                    backupService.deleteBackupAccount(address)
+                                    accountInteractor.updateWalletOnGoogleBackupDelete(walletId)
+                                    refresh.emit(Event(Unit))
+                                }.onFailure {
+                                    showError("DeleteGoogleBackup error:\n${it.message}")
+                                }
                             }
                         }
                     }
-                }
+                )
             }
         }
     }
@@ -185,20 +228,6 @@ class BackupWalletViewModel @Inject constructor(
         }
     }
 
-    override fun onDeleteWalletClick() {
-        showError(
-            title = resourceManager.getString(R.string.account_delete_confirmation_title),
-            message = resourceManager.getString(R.string.account_delete_confirmation_description),
-            positiveButtonText = resourceManager.getString(R.string.account_delete_confirm),
-            negativeButtonText = resourceManager.getString(R.string.common_cancel),
-            positiveClick = {
-                launch {
-                    accountInteractor.deleteAccount(walletId)
-                    onBackClick()
-                }
-            }
-        )
-    }
 
     override fun onGoogleSignInSuccess() {
         checkIsWalletBackedUpToGoogle()

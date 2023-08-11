@@ -30,8 +30,7 @@ data class BackupWalletState(
     val isWalletSavedInGoogle: Boolean,
     val isMnemonicBackupSupported: Boolean,
     val isSeedBackupSupported: Boolean,
-    val isJsonBackupSupported: Boolean,
-    val isDeleteWalletEnabled: Boolean
+    val isJsonBackupSupported: Boolean
 ) {
     companion object {
         val Empty = BackupWalletState(
@@ -40,8 +39,7 @@ data class BackupWalletState(
             isWalletSavedInGoogle = false,
             isMnemonicBackupSupported = false,
             isSeedBackupSupported = false,
-            isJsonBackupSupported = true,
-            isDeleteWalletEnabled = false
+            isJsonBackupSupported = true
         )
     }
 }
@@ -59,8 +57,6 @@ interface BackupWalletCallback {
     fun onDeleteGoogleBackupClick()
 
     fun onGoogleBackupClick()
-
-    fun onDeleteWalletClick()
 
     fun onGoogleLoginError(message: String)
 
@@ -143,17 +139,6 @@ internal fun BackupWalletContent(
                 text = stringResource(R.string.backup_wallet_warning_about_lose_phrase),
                 color = MaterialTheme.customColors.colorGreyText
             )
-
-            if (state.isDeleteWalletEnabled) {
-                MarginVertical(12.dp)
-
-                SettingsItem(
-                    icon = painterResource(R.drawable.ic_sign_out_24),
-                    text = stringResource(R.string.common_delete_wallet),
-                    onClick = callback::onDeleteWalletClick
-                )
-                SettingsDivider()
-            }
         }
         Spacer(modifier = Modifier.weight(1f))
     }
@@ -182,7 +167,6 @@ private fun PreviewBackupWalletContent() {
                 override fun onExportJsonClick() {}
                 override fun onDeleteGoogleBackupClick() {}
                 override fun onGoogleBackupClick() {}
-                override fun onDeleteWalletClick() {}
                 override fun onGoogleLoginError(message: String) {}
                 override fun onGoogleSignInSuccess() {}
             }

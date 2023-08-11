@@ -74,6 +74,7 @@
   <string name="assetdetails_balance_total">Total</string>
   <string name="assetdetails_balance_transferable">Transferable</string>
   <string name="assets_search_hint">Search by token</string>
+  <string name="backup_chain_account">Backup chain account</string>
   <string name="backup_mnemonic_description">Remember to record your words in the same order as they appear below. Use a non-digital way to backup.</string>
   <string name="backup_mnemonic_title">Write down your mnemonic</string>
   <string name="backup_not_backed_up_confirm">I will risk it</string>
@@ -468,6 +469,7 @@
   <string name="nft_stub_title">Sumimasen!</string>
   <string name="nfts_stub">NFTs</string>
   <string name="node">Node</string>
+  <string name="no_access_to_google">No access to Google</string>
   <string name="node_selection_delete_node_title">Delete custom node?</string>
   <string name="notification">Notification</string>
   <string name="onboarding_continue_with_google">Continue with Google</string>

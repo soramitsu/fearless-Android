@@ -18,11 +18,13 @@ import jp.co.soramitsu.common.compose.component.WalletItemViewState
 import jp.co.soramitsu.common.compose.component.WalletSelectorViewState
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
+import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.formatAsChange
 import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.mapList
+import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -41,7 +43,8 @@ class SelectWalletViewModel @Inject constructor(
     private val router: WalletRouter,
     private val updatesMixin: UpdatesMixin,
     private val getTotalBalance: TotalBalanceUseCase,
-    private val backupService: BackupService
+    private val backupService: BackupService,
+    private val resourceManager: ResourceManager
 ) : BaseViewModel(), UpdatesProviderUi by updatesMixin {
 
     private val accountsFlow = accountListingMixin.accountsFlow(AddressIconGenerator.SIZE_BIG)
@@ -132,10 +135,20 @@ class SelectWalletViewModel @Inject constructor(
 
     fun openAddWalletThroughGoogleScreen() {
         launch {
-            if (backupService.getBackupAccounts().isEmpty()) {
-                router.openCreateWalletDialog(true)
-            } else {
-                router.openImportRemoteWalletDialog()
+            runCatching {
+                backupService.getBackupAccounts()
+            }.onFailure {
+                showError(
+                    title = resourceManager.getString(R.string.common_error_general_title),
+                    message = resourceManager.getString(R.string.no_access_to_google),
+                    positiveClick = router::back
+                )
+            }.onSuccess { backupAccounts ->
+                if (backupAccounts.isEmpty()) {
+                    router.openCreateWalletDialog(true)
+                } else {
+                    router.openImportRemoteWalletDialog()
+                }
             }
         }
     }

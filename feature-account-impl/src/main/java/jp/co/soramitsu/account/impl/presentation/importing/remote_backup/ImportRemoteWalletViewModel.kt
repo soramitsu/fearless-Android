@@ -123,15 +123,16 @@ class ImportRemoteWalletViewModel @Inject constructor(
             message = resourceManager.getString(R.string.backup_wallet_delete_alert_message),
             positiveButtonText = resourceManager.getString(R.string.common_delete),
             negativeButtonText = resourceManager.getString(R.string.common_cancel),
-            buttonsOrientation = LinearLayout.HORIZONTAL
-        ) {
-            launch {
-                backupService.deleteBackupAccount(backupAccount.backupMeta.address)
-                val current = remoteWallets.value
-                val new = current?.minus(backupAccount)
-                remoteWallets.value = new
+            buttonsOrientation = LinearLayout.HORIZONTAL,
+            positiveClick = {
+                launch {
+                    backupService.deleteBackupAccount(backupAccount.backupMeta.address)
+                    val current = remoteWallets.value
+                    val new = current?.minus(backupAccount)
+                    remoteWallets.value = new
+                }
             }
-        }
+        )
     }
 
     private fun nextStep() {

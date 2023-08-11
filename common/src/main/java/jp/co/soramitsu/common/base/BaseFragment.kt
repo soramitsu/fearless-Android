@@ -46,7 +46,8 @@ abstract class BaseFragment<T : BaseViewModel> : Fragment {
                 message = errorDialogState.message,
                 positiveButtonText = errorDialogState.positiveButtonText,
                 negativeButtonText = errorDialogState.negativeButtonText,
-                positiveClick = errorDialogState.positiveClick
+                positiveClick = errorDialogState.positiveClick,
+                isHideable = errorDialogState.isHideable
             ).show(childFragmentManager)
         }
     }

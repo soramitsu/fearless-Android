@@ -76,6 +76,7 @@ class ErrorDialog(
             @Deprecated("Deprecated in Java")
             override fun onBackPressed() {
                 if (isHideable) {
+                    onBackClick()
                     super.onBackPressed()
                 }
             }
@@ -196,7 +197,7 @@ class ErrorDialog(
     private fun setupBottomSheet() {
         dialog?.setOnShowListener {
             val bottomSheetDialog = it as BottomSheetDialog
-            bottomSheetDialog.setCanceledOnTouchOutside(isHideable)
+            bottomSheetDialog.setCanceledOnTouchOutside(isHideable && onBackClick == emptyClick)
             setupBehavior(bottomSheetDialog.behavior)
         }
     }
