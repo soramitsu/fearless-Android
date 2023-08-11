@@ -37,7 +37,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -105,8 +104,7 @@ class BackupWalletViewModel @Inject constructor(
                 else -> null
             }
         }
-    }.onStart { emit(null) }
-
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val state = combine(
         walletItem,
@@ -202,20 +200,22 @@ class BackupWalletViewModel @Inject constructor(
                     positiveButtonText = resourceManager.getString(R.string.common_delete),
                     negativeButtonText = resourceManager.getString(R.string.common_cancel),
                     buttonsOrientation = LinearLayout.HORIZONTAL,
-                    positiveClick = {
-                        launch {
-                            googleBackupAddressFlow.firstOrNull()?.let { address ->
-                                runCatching {
-                                    backupService.deleteBackupAccount(address)
-                                    accountInteractor.updateWalletOnGoogleBackupDelete(walletId)
-                                    refresh.emit(Event(Unit))
-                                }.onFailure {
-                                    showError("DeleteGoogleBackup error:\n${it.message}")
-                                }
-                            }
-                        }
-                    }
+                    positiveClick = ::deleteGoogleBackup
                 )
+            }
+        }
+    }
+
+    private fun deleteGoogleBackup() {
+        launch {
+            googleBackupAddressFlow.firstOrNull()?.let { address ->
+                runCatching {
+                    backupService.deleteBackupAccount(address)
+                    accountInteractor.updateWalletOnGoogleBackupDelete(walletId)
+                    refresh.emit(Event(Unit))
+                }.onFailure {
+                    showError("DeleteGoogleBackup error:\n${it.message}")
+                }
             }
         }
     }
