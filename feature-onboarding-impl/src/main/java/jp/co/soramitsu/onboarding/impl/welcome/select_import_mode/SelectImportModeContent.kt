@@ -1,11 +1,5 @@
 package jp.co.soramitsu.onboarding.impl.welcome.select_import_mode
 
-import android.app.Activity
-import android.content.Intent
-import androidx.activity.compose.ManagedActivityResultLauncher
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.ActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -31,7 +25,7 @@ interface SelectImportModeScreenInterface {
 
     fun onCancelClick()
 
-    fun onGoogleClick(launcher: ManagedActivityResultLauncher<Intent, ActivityResult>)
+    fun onGoogleClick()
 
     fun onMnemonicPhraseClick()
 
@@ -48,18 +42,6 @@ interface SelectImportModeScreenInterface {
 fun SelectImportModeContent(
     callback: SelectImportModeScreenInterface
 ) {
-
-    val launcher = rememberLauncherForActivityResult(
-        ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        val googleSignInStatus = result.data?.extras?.get("googleSignInStatus")
-        if (result.resultCode != Activity.RESULT_OK) {
-            callback.onGoogleLoginError(googleSignInStatus.toString())
-        } else {
-            callback.onGoogleSignInSuccess()
-        }
-    }
-
     BottomSheetScreen {
         Column(
             modifier = Modifier
@@ -97,9 +79,7 @@ fun SelectImportModeContent(
                 text = stringResource(id = R.string.select_import_mode_btn_google),
                 backgroundColor = white08,
                 borderColor = Color.Unspecified,
-                onClick = {
-                    callback.onGoogleClick(launcher)
-                }
+                onClick = callback::onGoogleClick
             )
             MarginVertical(margin = 8.dp)
             AccentButton(
@@ -120,7 +100,7 @@ private fun PreviewSelectImportModeContent() {
     FearlessAppTheme {
         SelectImportModeContent(object : SelectImportModeScreenInterface {
             override fun onCancelClick() {}
-            override fun onGoogleClick(launcher: ManagedActivityResultLauncher<Intent, ActivityResult>) {}
+            override fun onGoogleClick() {}
             override fun onMnemonicPhraseClick() {}
             override fun onRawSeedClick() {}
             override fun onJsonClick() {}
