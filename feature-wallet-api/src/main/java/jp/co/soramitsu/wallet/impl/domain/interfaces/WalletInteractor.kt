@@ -127,4 +127,5 @@ interface WalletInteractor {
     suspend fun getHideZeroBalancesForCurrentWallet(): Boolean
 
     suspend fun checkControllerDeprecations(): List<ControllerDeprecationWarning>
+    suspend fun canUseAsset(chainId: String, chainAssetId: String): Boolean
 }

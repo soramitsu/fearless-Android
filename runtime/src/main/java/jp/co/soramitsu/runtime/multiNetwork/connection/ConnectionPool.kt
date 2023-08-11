@@ -1,5 +1,8 @@
 package jp.co.soramitsu.runtime.multiNetwork.connection
 
+import java.util.concurrent.ConcurrentHashMap
+import javax.inject.Inject
+import javax.inject.Provider
 import jp.co.soramitsu.common.compose.component.NetworkIssueItemState
 import jp.co.soramitsu.common.compose.component.NetworkIssueType
 import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
@@ -22,9 +25,6 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
-import java.util.concurrent.ConcurrentHashMap
-import javax.inject.Inject
-import javax.inject.Provider
 
 private const val ConnectingStatusDebounce = 750L
 
@@ -52,26 +52,28 @@ class ConnectionPool @Inject constructor(
 
     private val connectionIssues = connectionWatcher.flatMapLatest {
         val connListFlow = pool.map {
-            it.value.isConnecting.map { isConnecting ->
-                it.value.chain to isConnecting
+
+            it.value.isConnected.map { isConnecting ->
+                it.value.chain to !isConnecting
             }
         }
         val connectionIssues = combine(connListFlow) { chains ->
-            val issues = chains.filter { (_, isConnecting) -> isConnecting }.mapNotNull { (iChain, _) ->
-                val chain = iChain as? Chain ?: return@mapNotNull null
-                NetworkIssueItemState(
-                    iconUrl = chain.icon,
-                    title = chain.name,
-                    type = when {
-                        chain.nodes.size > 1 -> NetworkIssueType.Node
-                        else -> NetworkIssueType.Network
-                    },
-                    chainId = chain.id,
-                    chainName = chain.name,
-                    assetId = chain.utilityAsset?.id.orEmpty(),
-                    priceId = chain.utilityAsset?.priceId
-                )
-            }
+            val issues =
+                chains.filter { (_, isConnecting) -> isConnecting }.mapNotNull { (iChain, _) ->
+                    val chain = iChain as? Chain ?: return@mapNotNull null
+                    NetworkIssueItemState(
+                        iconUrl = chain.icon,
+                        title = chain.name,
+                        type = when {
+                            chain.nodes.size > 1 -> NetworkIssueType.Node
+                            else -> NetworkIssueType.Network
+                        },
+                        chainId = chain.id,
+                        chainName = chain.name,
+                        assetId = chain.utilityAsset?.id.orEmpty(),
+                        priceId = chain.utilityAsset?.priceId
+                    )
+                }
             issues
         }
 
@@ -118,7 +120,10 @@ class ConnectionPool @Inject constructor(
 
     fun getConnectionOrNull(chainId: ChainId): ChainConnection? = pool.getOrDefault(chainId, null)
 
-    fun setupConnection(chain: Chain, onSelectedNodeChange: (chainId: ChainId, newNodeUrl: String) -> Unit): ChainConnection {
+    fun setupConnection(
+        chain: Chain,
+        onSelectedNodeChange: (chainId: ChainId, newNodeUrl: String) -> Unit
+    ): ChainConnection {
         var isNew = false
         val connection = pool.getOrPut(chain.id) {
             isNew = true

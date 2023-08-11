@@ -450,4 +450,10 @@ class WalletInteractorImpl(
             return@mapNotNull null
         }
     }
+
+    override suspend fun canUseAsset(chainId: String, chainAssetId: String): Boolean {
+        val hasAsset = getCurrentAssetOrNull(chainId, chainAssetId) != null
+        val hasRuntime = chainRegistry.getRuntimeOrNull(chainId) != null
+        return hasAsset && hasRuntime
+    }
 }

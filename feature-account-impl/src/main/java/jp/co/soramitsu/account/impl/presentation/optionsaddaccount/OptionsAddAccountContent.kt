@@ -20,11 +20,7 @@ import jp.co.soramitsu.common.compose.component.BottomSheetScreen
 import jp.co.soramitsu.common.compose.component.GrayButton
 import jp.co.soramitsu.common.compose.component.H3
 import jp.co.soramitsu.common.compose.component.MarginVertical
-import jp.co.soramitsu.common.compose.component.TextButton
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
-import jp.co.soramitsu.common.compose.theme.colorAccentDark
-import jp.co.soramitsu.common.compose.theme.customButtonColors
-import jp.co.soramitsu.common.compose.theme.grayButtonBackground
 import jp.co.soramitsu.common.compose.theme.white
 import jp.co.soramitsu.feature_account_api.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
@@ -92,15 +88,16 @@ fun OptionsAddAccountContent(
             }
             if (!state.markedAsNotNeed) {
                 MarginVertical(margin = 12.dp)
-                TextButton(
-                    text = stringResource(id = R.string.issue_do_not_show_again),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(48.dp),
-                    colors = customButtonColors(grayButtonBackground, colorAccentDark)
-                ) {
-                    dontShowAgain(state.chainId, state.metaId)
-                }
+                // TODO temporarily hide this button
+//                TextButton(
+//                    text = stringResource(id = R.string.issue_do_not_show_again),
+//                    modifier = Modifier
+//                        .fillMaxWidth()
+//                        .height(48.dp),
+//                    colors = customButtonColors(grayButtonBackground, colorAccentDark)
+//                ) {
+//                    dontShowAgain(state.chainId, state.metaId)
+//                }
             }
             MarginVertical(margin = 12.dp)
         }

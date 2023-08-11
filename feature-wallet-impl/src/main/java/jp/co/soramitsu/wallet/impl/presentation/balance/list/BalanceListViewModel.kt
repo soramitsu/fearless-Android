@@ -50,7 +50,6 @@ import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.isZero
 import jp.co.soramitsu.common.utils.mapList
-import jp.co.soramitsu.common.utils.moreThanZero
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.sumByBigDecimal
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
@@ -125,7 +124,8 @@ class BalanceListViewModel @Inject constructor(
     private val clipboardManager: ClipboardManager,
     private val currentAccountAddress: CurrentAccountAddressUseCase,
     private val kycRepository: KycRepository
-) : BaseViewModel(), UpdatesProviderUi by updatesMixin, NetworkStateUi by networkStateMixin, WalletScreenInterface {
+) : BaseViewModel(), UpdatesProviderUi by updatesMixin, NetworkStateUi by networkStateMixin,
+    WalletScreenInterface {
 
     private val accountAddressToChainIdMap = mutableMapOf<String, ChainId?>()
 
@@ -155,7 +155,10 @@ class BalanceListViewModel @Inject constructor(
         .inBackground()
 
     private val fiatSymbolFlow =
-        kotlinx.coroutines.flow.combine(selectedFiat.flow(), getAvailableFiatCurrencies.flow()) { selectedFiat: String, fiatCurrencies: FiatCurrencies ->
+        kotlinx.coroutines.flow.combine(
+            selectedFiat.flow(),
+            getAvailableFiatCurrencies.flow()
+        ) { selectedFiat: String, fiatCurrencies: FiatCurrencies ->
             fiatCurrencies.associateBy { it.id }[selectedFiat]?.symbol
         }.onEach {
             sync()
@@ -165,11 +168,12 @@ class BalanceListViewModel @Inject constructor(
         it.toChainItemState()
     }.inBackground()
     private val selectedChainId = MutableStateFlow<ChainId?>(null)
-    private val selectedChainItemFlow = kotlinx.coroutines.flow.combine(selectedChainId, chainsFlow) { selectedChainId, chains ->
-        selectedChainId?.let {
-            chains.firstOrNull { it.id == selectedChainId }
+    private val selectedChainItemFlow =
+        kotlinx.coroutines.flow.combine(selectedChainId, chainsFlow) { selectedChainId, chains ->
+            selectedChainId?.let {
+                chains.firstOrNull { it.id == selectedChainId }
+            }
         }
-    }
 
     private val currentMetaAccountFlow = accountRepository.selectedMetaAccountFlow()
 
@@ -222,32 +226,48 @@ class BalanceListViewModel @Inject constructor(
     ) { assets: List<AssetWithStatus>, chains: List<Chain>, selectedChainId: ChainId?, networkIssues: Set<NetworkIssueItemState>, hideZeroBalancesEnabled ->
         val balanceListItems = mutableListOf<BalanceListItemModel>()
 
-        chains.groupBy { if (it.isTestNet) ChainEcosystem.STANDALONE else it.ecosystem() }.forEach { (ecosystem, ecosystemChains) ->
-            when (ecosystem) {
-                ChainEcosystem.POLKADOT,
-                ChainEcosystem.KUSAMA -> {
-                    val ecosystemAssets = assets.filter {
-                        it.asset.token.configuration.chainId in ecosystemChains.map { it.id }
+        chains.groupBy { if (it.isTestNet) ChainEcosystem.STANDALONE else it.ecosystem() }
+            .forEach { (ecosystem, ecosystemChains) ->
+                when (ecosystem) {
+                    ChainEcosystem.POLKADOT,
+                    ChainEcosystem.KUSAMA -> {
+                        val ecosystemAssets = assets.filter {
+                            it.asset.token.configuration.chainId in ecosystemChains.map { it.id }
+                        }
+
+                        val filtered = ecosystemAssets
+                            .filter { selectedChainId == null || selectedChainId == it.asset.token.configuration.chainId }
+
+                        val items = processAssets(
+                            filtered,
+                            ecosystemChains,
+                            selectedChainId,
+                            networkIssues,
+                            hideZeroBalancesEnabled,
+                            ecosystem
+                        )
+                        balanceListItems.addAll(items)
                     }
 
-                    val filtered = ecosystemAssets
-                        .filter { selectedChainId == null || selectedChainId == it.asset.token.configuration.chainId }
-
-                    val items = processAssets(filtered, ecosystemChains, selectedChainId, networkIssues, hideZeroBalancesEnabled, ecosystem)
-                    balanceListItems.addAll(items)
-                }
-
-                ChainEcosystem.STANDALONE -> {
-                    ecosystemChains.forEach { chain ->
-                        if (selectedChainId == null || selectedChainId == chain.id) {
-                            val chainAssets = assets.filter { it.asset.token.configuration.chainId == chain.id }
-                            val items = processAssets(chainAssets, listOf(chain), selectedChainId, networkIssues, hideZeroBalancesEnabled, ecosystem)
-                            balanceListItems.addAll(items)
+                    ChainEcosystem.STANDALONE -> {
+                        ecosystemChains.forEach { chain ->
+                            if (selectedChainId == null || selectedChainId == chain.id) {
+                                val chainAssets =
+                                    assets.filter { it.asset.token.configuration.chainId == chain.id }
+                                val items = processAssets(
+                                    chainAssets,
+                                    listOf(chain),
+                                    selectedChainId,
+                                    networkIssues,
+                                    hideZeroBalancesEnabled,
+                                    ecosystem
+                                )
+                                balanceListItems.addAll(items)
+                            }
                         }
                     }
                 }
             }
-        }
 
         val assetStates: List<AssetListItemViewState> = balanceListItems
             .sortedWith(defaultBalanceListItemSort())
@@ -270,7 +290,7 @@ class BalanceListViewModel @Inject constructor(
             .launchIn(viewModelScope)
     }
 
-    private suspend fun processAssets(
+    private fun processAssets(
         ecosystemAssets: List<AssetWithStatus>,
         ecosystemChains: List<Chain>,
         selectedChainId: ChainId?,
@@ -279,77 +299,69 @@ class BalanceListViewModel @Inject constructor(
         ecosystem: ChainEcosystem
     ): List<BalanceListItemModel> {
         val result = mutableListOf<BalanceListItemModel>()
-        val metaAccount = accountRepository.getSelectedMetaAccount()
-        ecosystemAssets.groupBy { it.asset.token.configuration.symbol }.forEach { (symbol, symbolAssets) ->
-            val tokenChains = ecosystemChains.getWithToken(symbol)
-            if (tokenChains.isEmpty()) return@forEach
+        ecosystemAssets.groupBy { it.asset.token.configuration.symbol }
+            .forEach { (symbol, symbolAssets) ->
+                val tokenChains = ecosystemChains.getWithToken(symbol)
+                if (tokenChains.isEmpty()) return@forEach
 
-            val mainChain = tokenChains.sortedWith(
-                compareByDescending<Chain> {
-                    it.assets.firstOrNull { it.symbol == symbol }?.isUtility ?: false
-                }.thenByDescending { it.parentId == null }
-            ).firstOrNull()
+                val mainChain = tokenChains.sortedWith(
+                    compareByDescending<Chain> {
+                        it.assets.firstOrNull { it.symbol == symbol }?.isUtility ?: false
+                    }.thenByDescending { it.parentId == null }
+                ).firstOrNull()
 
-            val showChain = tokenChains.firstOrNull { it.id == selectedChainId } ?: mainChain
-            val showChainAsset = showChain?.assets?.firstOrNull { it.symbol == symbol } ?: return@forEach
+                val showChain = tokenChains.firstOrNull { it.id == selectedChainId } ?: mainChain
+                val showChainAsset =
+                    showChain?.assets?.firstOrNull { it.symbol == symbol } ?: return@forEach
 
-            val hasNetworkIssue = networkIssues.any { issueItemState ->
-                val chainAssets = symbolAssets
-                    .filter {
-                        it.asset.token.configuration.chainId == issueItemState.chainId &&
-                            it.asset.token.configuration.id == issueItemState.assetId &&
-                            it.asset.metaId == metaAccount.id
-                    }
+                val hasNetworkIssue = networkIssues.any { it.chainId in tokenChains.map { it.id } }
 
-                (issueItemState.chainId in tokenChains.map { it.id } || chainAssets.any { !it.hasAccount }) &&
-                    chainAssets.any { !it.asset.markedNotNeed && it.asset.total.moreThanZero() }
+                val hasChainWithoutAccount = symbolAssets.any { it.hasAccount.not() }
+
+                val assetIdsWithBalance = symbolAssets.filter {
+                    it.asset.total.orZero() > BigDecimal.ZERO
+                }.groupBy(
+                    keySelector = { it.asset.token.configuration.chainId },
+                    valueTransform = { it.asset.token.configuration.id }
+                )
+
+                val assetChainUrls = if (selectedChainId == null) {
+                    ecosystemChains.getWithToken(symbol, assetIdsWithBalance)
+                        .ifEmpty { listOf(showChain) }
+                        .associate { it.id to it.icon }
+                } else {
+                    emptyMap()
+                }
+
+                val assetTransferable = symbolAssets.sumByBigDecimal { it.asset.transferable }
+                val assetTotal = symbolAssets.sumByBigDecimal { it.asset.total.orZero() }
+                val assetTotalFiat = symbolAssets.sumByBigDecimal { it.asset.fiatAmount.orZero() }
+
+                val isZeroBalance = assetTotal.isZero()
+
+                val assetDisabledByUser = symbolAssets.any { it.asset.enabled == false }
+                val assetManagedByUser = symbolAssets.any { it.asset.enabled != null }
+
+                val isHidden =
+                    assetDisabledByUser || (!assetManagedByUser && isZeroBalance && hideZeroBalancesEnabled)
+
+                val token = symbolAssets.first().asset.token
+
+                val model = BalanceListItemModel(
+                    asset = showChainAsset,
+                    chain = showChain,
+                    token = token,
+                    total = assetTotal,
+                    fiatAmount = assetTotalFiat,
+                    transferable = assetTransferable,
+                    chainUrls = assetChainUrls,
+                    isHidden = isHidden,
+                    hasChainWithoutAccount = hasChainWithoutAccount,
+                    hasNetworkIssue = hasNetworkIssue,
+                    ecosystem = ecosystem
+                )
+                result.add(model)
             }
-
-            val hasChainWithoutAccount = symbolAssets.any { it.hasAccount.not() }
-
-            val assetIdsWithBalance = symbolAssets.filter {
-                it.asset.total.orZero() > BigDecimal.ZERO
-            }.groupBy(
-                keySelector = { it.asset.token.configuration.chainId },
-                valueTransform = { it.asset.token.configuration.id }
-            )
-
-            val assetChainUrls = if (selectedChainId == null) {
-                ecosystemChains.getWithToken(symbol, assetIdsWithBalance)
-                    .ifEmpty { listOf(showChain) }
-                    .associate { it.id to it.icon }
-            } else {
-                emptyMap()
-            }
-
-            val assetTransferable = symbolAssets.sumByBigDecimal { it.asset.transferable }
-            val assetTotal = symbolAssets.sumByBigDecimal { it.asset.total.orZero() }
-            val assetTotalFiat = symbolAssets.sumByBigDecimal { it.asset.fiatAmount.orZero() }
-
-            val isZeroBalance = assetTotal.isZero()
-
-            val assetDisabledByUser = symbolAssets.any { it.asset.enabled == false }
-            val assetManagedByUser = symbolAssets.any { it.asset.enabled != null }
-
-            val isHidden = assetDisabledByUser || (!assetManagedByUser && isZeroBalance && hideZeroBalancesEnabled)
-
-            val token = symbolAssets.first().asset.token
-
-            val model = BalanceListItemModel(
-                asset = showChainAsset,
-                chain = showChain,
-                token = token,
-                total = assetTotal,
-                fiatAmount = assetTotalFiat,
-                transferable = assetTransferable,
-                chainUrls = assetChainUrls,
-                isHidden = isHidden,
-                hasChainWithoutAccount = hasChainWithoutAccount,
-                hasNetworkIssue = hasNetworkIssue,
-                ecosystem = ecosystem
-            )
-            result.add(model)
-        }
         return result
     }
 
@@ -383,17 +395,18 @@ class BalanceListViewModel @Inject constructor(
         }
     }
 
-    private fun defaultBalanceListItemSort() = compareByDescending<BalanceListItemModel> { it.total > BigDecimal.ZERO }
-        .thenByDescending { it.fiatAmount.orZero() }
-        .thenBy { it.asset.isTestNet }
-        .thenBy { it.asset.chainId.defaultChainSort() }
-        .thenBy { it.asset.chainName }
+    private fun defaultBalanceListItemSort() =
+        compareByDescending<BalanceListItemModel> { it.total > BigDecimal.ZERO }
+            .thenByDescending { it.fiatAmount.orZero() }
+            .thenBy { it.asset.isTestNet }
+            .thenBy { it.asset.chainId.defaultChainSort() }
+            .thenBy { it.asset.chainName }
 
     private fun defaultChainAssetListSort() = compareBy<Asset> { it.isTestNet }
         .thenBy { it.chainId.defaultChainSort() }
         .thenBy { it.chainName }
 
-//    private val soraCardState = combine(
+    //    private val soraCardState = combine(
 //        interactor.observeIsShowSoraCard(),
 //        soraCardInteractor.subscribeSoraCardInfo()
 //    ) { isShow, soraCardInfo ->
@@ -421,11 +434,13 @@ class BalanceListViewModel @Inject constructor(
         }.orEmpty()
 
         val balanceState = AssetBalanceViewState(
-            transferableBalance = balanceModel.totalTransferableBalance?.formatFiat(balanceModel.fiatSymbol).orEmpty(),
+            transferableBalance = balanceModel.totalTransferableBalance?.formatFiat(balanceModel.fiatSymbol)
+                .orEmpty(),
             address = selectedChainAddress,
             changeViewState = ChangeBalanceViewState(
                 percentChange = balanceModel.transferableRate?.formatAsChange().orEmpty(),
-                fiatChange = balanceModel.totalTransferableBalanceChange.abs().formatFiat(balanceModel.fiatSymbol)
+                fiatChange = balanceModel.totalTransferableBalanceChange.abs()
+                    .formatFiat(balanceModel.fiatSymbol)
             )
         )
 
@@ -440,7 +455,10 @@ class BalanceListViewModel @Inject constructor(
         )
     }.stateIn(scope = this, started = SharingStarted.Eagerly, initialValue = WalletState.default)
 
-    val toolbarState = kotlinx.coroutines.flow.combine(currentAddressModelFlow(), selectedChainItemFlow) { addressModel, chain ->
+    val toolbarState = kotlinx.coroutines.flow.combine(
+        currentAddressModelFlow(),
+        selectedChainItemFlow
+    ) { addressModel, chain ->
         LoadingState.Loaded(
             MainToolbarViewState(
                 title = addressModel.nameOrAddress,
@@ -515,12 +533,16 @@ class BalanceListViewModel @Inject constructor(
         viewModelScope.launch {
             val soraCardInfo = soraCardInteractor.getSoraCardInfo() ?: return@launch
             val accessTokenExpirationTime = soraCardInfo.accessTokenExpirationTime
-            val accessTokenExpired = accessTokenExpirationTime < TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis())
+            val accessTokenExpired =
+                accessTokenExpirationTime < TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis())
 
             if (!accessTokenExpired) {
-                kycRepository.getKycLastFinalStatus(soraCardInfo.accessToken).onSuccess { kycStatus ->
-                    soraCardInteractor.updateSoraCardKycStatus(kycStatus = kycStatus?.toString().orEmpty())
-                }
+                kycRepository.getKycLastFinalStatus(soraCardInfo.accessToken)
+                    .onSuccess { kycStatus ->
+                        soraCardInteractor.updateSoraCardKycStatus(
+                            kycStatus = kycStatus?.toString().orEmpty()
+                        )
+                    }
             }
         }
     }
@@ -537,7 +559,12 @@ class BalanceListViewModel @Inject constructor(
     }
 
     @OptIn(ExperimentalMaterialApi::class)
-    override fun actionItemClicked(actionType: ActionItemType, chainId: ChainId, chainAssetId: String, swipeableState: SwipeableState<SwipeState>) {
+    override fun actionItemClicked(
+        actionType: ActionItemType,
+        chainId: ChainId,
+        chainAssetId: String,
+        swipeableState: SwipeableState<SwipeState>
+    ) {
         val payload = AssetPayload(chainId, chainAssetId)
         launch {
             swipeableState.snapTo(SwipeState.INITIAL)
@@ -584,25 +611,26 @@ class BalanceListViewModel @Inject constructor(
     }
 
     override fun assetClicked(asset: AssetListItemViewState) {
-        if (asset.hasNetworkIssue) {
-            launch {
+        launch {
+            if (asset.hasNetworkIssue) {
                 val chain = interactor.getChain(asset.chainId)
                 if (chain.nodes.size > 1) {
                     router.openNodes(asset.chainId)
                 } else {
                     val payload = AlertViewState(
-                        title = resourceManager.getString(R.string.staking_main_network_title, chain.name),
+                        title = resourceManager.getString(
+                            R.string.staking_main_network_title,
+                            chain.name
+                        ),
                         message = resourceManager.getString(R.string.network_issue_unavailable),
                         buttonText = resourceManager.getString(R.string.top_up),
                         iconRes = R.drawable.ic_alert_16
                     )
                     router.openAlert(payload)
                 }
+                return@launch
             }
-            return
-        }
-        if (!asset.hasAccount) {
-            launch {
+            if (!asset.hasAccount) {
                 val meta = accountRepository.getSelectedMetaAccount()
                 val payload = AddAccountBottomSheet.Payload(
                     metaId = meta.id,
@@ -613,21 +641,27 @@ class BalanceListViewModel @Inject constructor(
                     markedAsNotNeed = false
                 )
                 router.openOptionsAddAccount(payload)
+                return@launch
             }
-            return
-        }
-        if (asset.isSupported.not()) {
-            _showUnsupportedChainAlert.value = Event(Unit)
-            return
-        }
+            if (asset.isSupported.not()) {
+                _showUnsupportedChainAlert.value = Event(Unit)
+                return@launch
+            }
 
-        val payload = AssetPayload(
-            chainId = asset.chainId,
-            chainAssetId = asset.chainAssetId
-        )
+            // TODO don't do like that
+            if (interactor.canUseAsset(asset.chainId, asset.chainAssetId).not()) {
+                return@launch
+            }
 
-        router.openAssetDetails(payload)
+            val payload = AssetPayload(
+                chainId = asset.chainId,
+                chainAssetId = asset.chainAssetId
+            )
+
+            router.openAssetDetails(payload)
+        }
     }
+
 
     private fun currentAddressModelFlow(): Flow<AddressModel> {
         return interactor.selectedAccountFlow(polkadotChainId)
@@ -637,7 +671,8 @@ class BalanceListViewModel @Inject constructor(
                     selectedChainId.value = null
                     accountAddressToChainIdMap[it.address] = null
                 } else {
-                    selectedChainId.value = accountAddressToChainIdMap.getOrDefault(it.address, null)
+                    selectedChainId.value =
+                        accountAddressToChainIdMap.getOrDefault(it.address, null)
                 }
             }
             .map { generateAddressModel(it, CURRENT_ICON_SIZE) }
@@ -653,7 +688,8 @@ class BalanceListViewModel @Inject constructor(
             if (currencies.isEmpty()) return@launch
             val selected = selectedFiat.get()
             val selectedItem = currencies.first { it.id == selected }
-            _showFiatChooser.value = FiatChooserEvent(DynamicListBottomSheet.Payload(currencies, selectedItem))
+            _showFiatChooser.value =
+                FiatChooserEvent(DynamicListBottomSheet.Payload(currencies, selectedItem))
         }
     }
 
@@ -725,7 +761,11 @@ class BalanceListViewModel @Inject constructor(
                     null
                 }
             }
-            router.openSend(assetPayload = payloadFromQr, initialSendToAddress = result, currencyId = qrTokenId)
+            router.openSend(
+                assetPayload = payloadFromQr,
+                initialSendToAddress = result,
+                currencyId = qrTokenId
+            )
         }
     }
 
