@@ -191,7 +191,7 @@ class CreateBackupPasswordViewModel @Inject constructor(
                     val walletId = payload.walletId ?: interactor.selectedMetaAccount().id
                     interactor.updateWalletBackedUp(walletId)
                     continueBasedOnCodeStatus()
-                    isLoading.value = true
+                    isLoading.value = false
                 }
                 .onFailure {
                     isLoading.value = false
@@ -281,7 +281,7 @@ class CreateBackupPasswordViewModel @Inject constructor(
 
     private suspend fun continueBasedOnCodeStatus() {
         if (interactor.isCodeSet()) {
-            accountRouter.openMain()
+            accountRouter.back()
         } else {
             accountRouter.openCreatePincode()
         }
