@@ -144,11 +144,7 @@ class SelectWalletViewModel @Inject constructor(
                     positiveClick = router::back
                 )
             }.onSuccess { backupAccounts ->
-                if (backupAccounts.isEmpty()) {
-                    router.openCreateWalletDialog(true)
-                } else {
-                    router.openImportRemoteWalletDialog()
-                }
+                router.openImportRemoteWalletDialog()
             }
         }
     }
