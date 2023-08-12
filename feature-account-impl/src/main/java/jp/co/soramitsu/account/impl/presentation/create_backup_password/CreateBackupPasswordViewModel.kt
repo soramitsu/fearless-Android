@@ -119,8 +119,7 @@ class CreateBackupPasswordViewModel @Inject constructor(
         isOriginPasswordVisible,
         isConfirmPasswordVisible,
         heightDiffDpFlow
-    ) { originPassword, confirmPassword, isUserAgreedWithStatements,
-        isAgreementsChecked, passwordMatchingTextResource,
+    ) { originPassword, confirmPassword, isUserAgreedWithStatements, isAgreementsChecked, passwordMatchingTextResource,
         highlightConfirmPassword, isSetButtonEnabled, isLoading, isOriginPasswordVisible, isConfirmPasswordVisible, heightDiffDp ->
         CreateBackupPasswordViewState(
             originPasswordViewState = createTextInputViewState(
@@ -245,13 +244,15 @@ class CreateBackupPasswordViewModel @Inject constructor(
             val substrateDerivationPath = metaAccountSecrets?.get(MetaAccountSecrets.SubstrateDerivationPath).orEmpty()
             val ethereumDerivationPath = metaAccountSecrets?.get(MetaAccountSecrets.EthereumDerivationPath).orEmpty()
             val entropy = metaAccountSecrets?.get(MetaAccountSecrets.Entropy)?.clone()
-            val mnemonic = entropy?.let { MnemonicCreator.fromEntropy(it).words }.orEmpty()
+            val mnemonic = entropy?.let { MnemonicCreator.fromEntropy(it).words }
             val substrateSeed = (
-                    metaAccountSecrets?.get(MetaAccountSecrets.Seed) ?: seedFromMnemonic(
-                        mnemonic,
-                        substrateDerivationPath.nullIfEmpty()
-                    )
-                    ).toHexString(withPrefix = true)
+                    metaAccountSecrets?.get(MetaAccountSecrets.Seed) ?: mnemonic?.let {
+                        seedFromMnemonic(
+                            mnemonic,
+                            substrateDerivationPath.nullIfEmpty()
+                        )
+                    }
+                    )?.toHexString(withPrefix = true)
             val ethSeed = metaAccountSecrets?.get(MetaAccountSecrets.EthereumKeypair)?.get(KeyPairSchema.PrivateKey)?.toHexString(withPrefix = true)
 
             val backupAccountTypes = interactor.getSupportedBackupTypes(walletId).toList()
