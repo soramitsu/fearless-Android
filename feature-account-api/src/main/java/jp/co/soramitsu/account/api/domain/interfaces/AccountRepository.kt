@@ -99,7 +99,7 @@ interface AccountRepository {
         withEth: Boolean,
         isBackedUp: Boolean,
         googleBackupAddress: String?
-    )
+    ): Long
 
     suspend fun importFromSeed(
         seed: String,

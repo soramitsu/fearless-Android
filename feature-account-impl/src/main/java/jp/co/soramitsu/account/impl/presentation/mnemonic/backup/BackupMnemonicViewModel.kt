@@ -105,9 +105,7 @@ class BackupMnemonicViewModel @Inject constructor(
         _showInfoEvent.value = Event(Unit)
     }
 
-    override fun onNextClick(
-        launcher: ActivityResultLauncher<Intent>
-    ) {
+    override fun onNextClick(launcher: ActivityResultLauncher<Intent>) {
         viewModelScope.launch {
             val substrateDerivationPath = substrateDerivationPath.value
             val ethereumDerivationPath = ethereumDerivationPath.value.ifEmpty { BIP32JunctionDecoder.DEFAULT_DERIVATION_PATH }
@@ -219,7 +217,9 @@ class BackupMnemonicViewModel @Inject constructor(
             return
         }
 
-        backupService.logout()
+        if (payload.isFromGoogleBackup.not()) {
+            backupService.logout()
+        }
         if (backupService.authorize(launcher)) {
             openCreateBackupPasswordDialog(
                 substrateDerivationPath,

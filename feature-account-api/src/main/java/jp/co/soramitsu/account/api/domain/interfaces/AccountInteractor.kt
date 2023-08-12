@@ -50,7 +50,7 @@ interface AccountInteractor {
         withEth: Boolean,
         isBackedUp: Boolean,
         googleBackupAddress: String?
-    ): Result<Unit>
+    ): Result<Long>
 
     suspend fun importChainAccountFromMnemonic(
         metaId: Long,
@@ -117,8 +117,6 @@ interface AccountInteractor {
     fun selectedMetaAccountFlow(): Flow<MetaAccount>
 
     suspend fun selectedMetaAccount(): MetaAccount
-
-    suspend fun getGoogleBackupAddress(): String
 
     fun lightMetaAccountsFlow(): Flow<List<LightMetaAccount>>
 

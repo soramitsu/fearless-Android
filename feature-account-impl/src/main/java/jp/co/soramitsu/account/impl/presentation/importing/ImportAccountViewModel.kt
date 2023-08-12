@@ -274,7 +274,7 @@ class ImportAccountViewModel @Inject constructor(
         ethereumDerivationPath: String,
         cryptoType: CryptoType,
         withEth: Boolean
-    ): Result<Unit> {
+    ): Result<Any> {
         return when (sourceType) {
             is MnemonicImportSource -> interactor.importFromMnemonic(
                 sourceType.mnemonicContentLiveData.value!!,

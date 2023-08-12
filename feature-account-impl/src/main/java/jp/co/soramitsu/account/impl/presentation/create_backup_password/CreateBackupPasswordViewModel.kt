@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
+import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.account.api.presentation.create_backup_password.CreateBackupPasswordPayload
 import jp.co.soramitsu.account.impl.presentation.AccountRouter
 import jp.co.soramitsu.backup.BackupService
@@ -24,6 +25,7 @@ import jp.co.soramitsu.common.utils.nullIfEmpty
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.moonriverChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.westendChainId
 import jp.co.soramitsu.shared_utils.encrypt.junction.SubstrateJunctionDecoder
 import jp.co.soramitsu.shared_utils.encrypt.mnemonic.MnemonicCreator
 import jp.co.soramitsu.shared_utils.encrypt.seed.substrate.SubstrateSeedFactory
@@ -177,12 +179,14 @@ class CreateBackupPasswordViewModel @Inject constructor(
         isLoading.value = true
         viewModelScope.launch {
             runCatching {
-                if (payload.createAccount) {
+                val walletId = if (payload.createAccount) {
                     // only mnemonic creation in this flow
                     importFromMnemonic()
+                } else {
+                    payload.walletId ?: error("Wallet id not specified")
                 }
 
-                backupAccountToGoogle()
+                backupAccountToGoogle(walletId)
             }
                 .onSuccess {
                     val walletId = payload.walletId ?: interactor.selectedMetaAccount().id
@@ -201,9 +205,9 @@ class CreateBackupPasswordViewModel @Inject constructor(
         showError(it)
     }
 
-    private suspend fun importFromMnemonic() {
+    private suspend fun importFromMnemonic(): Long {
         val mnemonic = payload.mnemonic ?: error("No mnemonic specified")
-        interactor.importFromMnemonic(
+        return interactor.importFromMnemonic(
             walletName = payload.accountName,
             mnemonic = mnemonic,
             substrateDerivationPath = payload.substrateDerivationPath,
@@ -215,12 +219,13 @@ class CreateBackupPasswordViewModel @Inject constructor(
         ).getOrThrow()
     }
 
-    private suspend fun backupAccountToGoogle() {
+    private suspend fun backupAccountToGoogle(walletId: Long) {
         withContext(Dispatchers.IO) {
             val password = originPassword.value
-            val address = interactor.getGoogleBackupAddress()
 
-            val walletId = payload.walletId ?: interactor.selectedMetaAccount().id
+            val wallet = interactor.getMetaAccount(walletId)
+            val westendChain = interactor.getChain(westendChainId)
+            val googleBackupAddress = wallet.address(westendChain) ?: error("error obtaining google backup address")
 
             val jsonResult = interactor.generateRestoreJson(
                 metaId = walletId,
@@ -242,11 +247,11 @@ class CreateBackupPasswordViewModel @Inject constructor(
             val entropy = metaAccountSecrets?.get(MetaAccountSecrets.Entropy)?.clone()
             val mnemonic = entropy?.let { MnemonicCreator.fromEntropy(it).words }.orEmpty()
             val substrateSeed = (
-                metaAccountSecrets?.get(MetaAccountSecrets.Seed) ?: seedFromMnemonic(
-                    mnemonic,
-                    substrateDerivationPath.nullIfEmpty()
-                )
-                ).toHexString(withPrefix = true)
+                    metaAccountSecrets?.get(MetaAccountSecrets.Seed) ?: seedFromMnemonic(
+                        mnemonic,
+                        substrateDerivationPath.nullIfEmpty()
+                    )
+                    ).toHexString(withPrefix = true)
             val ethSeed = metaAccountSecrets?.get(MetaAccountSecrets.EthereumKeypair)?.get(KeyPairSchema.PrivateKey)?.toHexString(withPrefix = true)
 
             val backupAccountTypes = interactor.getSupportedBackupTypes(walletId).toList()
@@ -254,7 +259,7 @@ class CreateBackupPasswordViewModel @Inject constructor(
             backupService.saveBackupAccount(
                 account = DecryptedBackupAccount(
                     name = payload.accountName,
-                    address = address,
+                    address = googleBackupAddress,
                     mnemonicPhrase = mnemonic,
                     substrateDerivationPath = substrateDerivationPath,
                     ethDerivationPath = ethereumDerivationPath,

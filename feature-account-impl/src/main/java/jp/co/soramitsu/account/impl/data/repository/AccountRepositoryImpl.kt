@@ -222,7 +222,7 @@ class AccountRepositoryImpl(
         withEth: Boolean,
         isBackedUp: Boolean,
         googleBackupAddress: String?
-    ) {
+    ): Long {
         val metaAccountId = saveFromMnemonic(
             accountName,
             mnemonic,
@@ -235,6 +235,7 @@ class AccountRepositoryImpl(
         )
 
         selectAccount(metaAccountId)
+        return metaAccountId
     }
 
     override suspend fun importChainAccountFromMnemonic(

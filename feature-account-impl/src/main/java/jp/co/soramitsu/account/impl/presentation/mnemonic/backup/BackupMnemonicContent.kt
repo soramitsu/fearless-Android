@@ -61,9 +61,7 @@ data class BackupMnemonicState(
 
 interface BackupMnemonicCallback {
 
-    fun onNextClick(
-        launcher: ActivityResultLauncher<Intent>
-    )
+    fun onNextClick(launcher: ActivityResultLauncher<Intent>)
 
     fun onBackClick()
 
