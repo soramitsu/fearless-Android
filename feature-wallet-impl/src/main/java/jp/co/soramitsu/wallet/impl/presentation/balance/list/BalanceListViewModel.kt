@@ -11,6 +11,7 @@ import java.util.Locale
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.account.api.domain.interfaces.TotalBalanceUseCase
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.presentation.actions.AddAccountBottomSheet
 import jp.co.soramitsu.common.AlertViewState
@@ -39,12 +40,10 @@ import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
 import jp.co.soramitsu.common.mixin.api.NetworkStateUi
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
-import jp.co.soramitsu.common.model.AssetKey
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
-import jp.co.soramitsu.common.utils.combine
 import jp.co.soramitsu.common.utils.formatAsChange
 import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.inBackground
@@ -70,7 +69,6 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.addressByteOrNull
 import jp.co.soramitsu.soracard.api.domain.SoraCardInteractor
 import jp.co.soramitsu.soracard.impl.presentation.SoraCardItemViewState
-import jp.co.soramitsu.wallet.impl.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.wallet.impl.domain.ChainInteractor
 import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
@@ -81,11 +79,7 @@ import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.toChainItemState
 import jp.co.soramitsu.wallet.impl.presentation.balance.list.model.AssetType
 import jp.co.soramitsu.wallet.impl.presentation.balance.list.model.BalanceListItemModel
-import jp.co.soramitsu.wallet.impl.presentation.balance.list.model.BalanceModel
 import jp.co.soramitsu.wallet.impl.presentation.balance.list.model.toAssetState
-import jp.co.soramitsu.wallet.impl.presentation.model.AssetModel
-import jp.co.soramitsu.wallet.impl.presentation.model.AssetUpdateState
-import jp.co.soramitsu.wallet.impl.presentation.model.AssetWithStateModel
 import jp.co.soramitsu.wallet.impl.presentation.model.ControllerDeprecationWarningModel
 import jp.co.soramitsu.wallet.impl.presentation.model.toModel
 import kotlinx.coroutines.Dispatchers
@@ -100,6 +94,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
@@ -124,7 +119,8 @@ class BalanceListViewModel @Inject constructor(
     private val resourceManager: ResourceManager,
     private val clipboardManager: ClipboardManager,
     private val currentAccountAddress: CurrentAccountAddressUseCase,
-    private val kycRepository: KycRepository
+    private val kycRepository: KycRepository,
+    private val getTotalBalance: TotalBalanceUseCase
 ) : BaseViewModel(), UpdatesProviderUi by updatesMixin, NetworkStateUi by networkStateMixin,
     WalletScreenInterface {
 
@@ -142,29 +138,6 @@ class BalanceListViewModel @Inject constructor(
     private val _launchSoraCardSignIn = MutableLiveData<Event<SoraCardContractData>>()
     val launchSoraCardSignIn: LiveData<Event<SoraCardContractData>> = _launchSoraCardSignIn
 
-    private val rawAssets = interactor.assetsFlow()
-
-    private val assetModelsFlow: Flow<List<AssetModel>> = rawAssets
-        .mapList {
-            when {
-                it.hasAccount -> it.asset
-                else -> null
-            }
-        }
-        .map { it.filterNotNull() }
-        .mapList { mapAssetToAssetModel(it) }
-        .inBackground()
-
-    private val fiatSymbolFlow =
-        kotlinx.coroutines.flow.combine(
-            selectedFiat.flow(),
-            getAvailableFiatCurrencies.flow()
-        ) { selectedFiat: String, fiatCurrencies: FiatCurrencies ->
-            fiatCurrencies.associateBy { it.id }[selectedFiat]?.symbol
-        }.onEach {
-            sync()
-        }
-
     private val chainsFlow = chainInteractor.getChainsFlow().mapList {
         it.toChainItemState()
     }.inBackground()
@@ -177,36 +150,6 @@ class BalanceListViewModel @Inject constructor(
 
     private val currentMetaAccountFlow = accountRepository.selectedMetaAccountFlow()
 
-    private val balanceFlow = combine(
-        assetModelsFlow,
-        fiatSymbolFlow,
-        tokenRatesUpdate,
-        assetsUpdate,
-        chainsUpdate
-    ) { assetModels: List<AssetModel>?,
-        fiatSymbol: String?,
-        tokenRatesUpdate: Set<String>?,
-        assetsUpdate: Set<AssetKey>?,
-        chainsUpdate: Set<String>? ->
-        val assetsWithState = assetModels?.map { asset ->
-            val rateUpdate = tokenRatesUpdate?.let { asset.token.configuration.id in it }
-            val balanceUpdate = assetsUpdate?.let { asset.primaryKey in it }
-            val chainUpdate = chainsUpdate?.let { asset.token.configuration.chainId in it }
-            val isTokenFiatChanged = when {
-                fiatSymbol == null -> false
-                asset.token.fiatSymbol == null -> false
-                else -> fiatSymbol != asset.token.fiatSymbol
-            }
-
-            AssetWithStateModel(
-                asset = asset,
-                state = AssetUpdateState(rateUpdate, balanceUpdate, chainUpdate, isTokenFiatChanged)
-            )
-        }.orEmpty()
-
-        BalanceModel(assetsWithState, fiatSymbol.orEmpty())
-    }.onStart { emit(BalanceModel(emptyList(), "")) }.inBackground().share()
-
     private val assetTypeSelectorState = MutableStateFlow(
         MultiToggleButtonState(
             currentSelection = AssetType.Currencies,
@@ -215,7 +158,7 @@ class BalanceListViewModel @Inject constructor(
     )
 
     @OptIn(FlowPreview::class)
-    private val assetStates = kotlinx.coroutines.flow.combine(
+    private val assetStates = combine(
         interactor.assetsFlow().debounce(100L),
         chainInteractor.getChainsFlow(),
         selectedChainId,
@@ -250,8 +193,7 @@ class BalanceListViewModel @Inject constructor(
                     ChainEcosystem.STANDALONE -> {
                         ecosystemChains.forEach { chain ->
                             if (selectedChainId == null || selectedChainId == chain.id) {
-                                val chainAssets =
-                                    assets.filter { it.asset.token.configuration.chainId == chain.id }
+                                val chainAssets = assets.filter { it.asset.token.configuration.chainId == chain.id }
                                 val items = processAssets(
                                     chainAssets,
                                     listOf(chain),
@@ -276,6 +218,21 @@ class BalanceListViewModel @Inject constructor(
 
     init {
         observeNetworkState()
+        observeFiatSymbolChange()
+    }
+
+    private fun observeFiatSymbolChange() {
+        combine(
+            selectedFiat.flow(),
+            getAvailableFiatCurrencies.flow()
+        ) { selectedFiat: String, fiatCurrencies: FiatCurrencies ->
+            fiatCurrencies.associateBy { it.id }[selectedFiat]?.symbol
+        }
+            .mapNotNull { it }
+            .onEach {
+                sync()
+            }
+            .stateIn(viewModelScope, SharingStarted.Eagerly, initialValue = null)
     }
 
     private fun observeNetworkState() {
@@ -416,13 +373,11 @@ class BalanceListViewModel @Inject constructor(
     val state = combine(
         assetStates,
         assetTypeSelectorState,
-        balanceFlow,
         selectedChainId,
         soraCardState,
         currentMetaAccountFlow
     ) { assetsListItemStates: List<AssetListItemViewState>,
         multiToggleButtonState: MultiToggleButtonState<AssetType>,
-        balanceModel: BalanceModel,
         selectedChainId: ChainId?,
         soraCardState: SoraCardItemViewState,
         currentMetaAccount: MetaAccount ->
@@ -431,14 +386,13 @@ class BalanceListViewModel @Inject constructor(
             currentAccountAddress(chainId = it)
         }.orEmpty()
 
+        val balanceModel = getTotalBalance()
         val balanceState = AssetBalanceViewState(
-            transferableBalance = balanceModel.totalTransferableBalance?.formatFiat(balanceModel.fiatSymbol)
-                .orEmpty(),
+            transferableBalance = balanceModel.balance.formatFiat(balanceModel.fiatSymbol),
             address = selectedChainAddress,
             changeViewState = ChangeBalanceViewState(
-                percentChange = balanceModel.transferableRate?.formatAsChange().orEmpty(),
-                fiatChange = balanceModel.totalTransferableBalanceChange.abs()
-                    .formatFiat(balanceModel.fiatSymbol)
+                percentChange = balanceModel.rateChange?.formatAsChange().orEmpty(),
+                fiatChange = balanceModel.balanceChange.abs().formatFiat(balanceModel.fiatSymbol)
             )
         )
 
@@ -453,7 +407,7 @@ class BalanceListViewModel @Inject constructor(
         )
     }.stateIn(scope = this, started = SharingStarted.Eagerly, initialValue = WalletState.default)
 
-    val toolbarState = kotlinx.coroutines.flow.combine(
+    val toolbarState = combine(
         currentAddressModelFlow(),
         selectedChainItemFlow
     ) { addressModel, chain ->
