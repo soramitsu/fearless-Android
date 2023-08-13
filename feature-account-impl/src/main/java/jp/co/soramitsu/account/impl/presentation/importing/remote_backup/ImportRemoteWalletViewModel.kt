@@ -152,7 +152,9 @@ class ImportRemoteWalletViewModel @Inject constructor(
     override fun loadRemoteWallets() {
         viewModelScope.launch {
             val backupAccounts = backupService.getBackupAccounts().map(::getWrapped)
-            val webBackupAccounts = backupService.getWebBackupAccounts().map { getWrapped(it, origin = BackupOrigin.WEB) }
+            val webBackupAccounts = backupService.getWebBackupAccounts()
+                .distinctBy { it.address }
+                .map { getWrapped(it, origin = BackupOrigin.WEB) }
 
             val webBackupNotInCommonBackup = webBackupAccounts.filter {
                 it.backupMeta.address !in backupAccounts.map { it.backupMeta.address }
