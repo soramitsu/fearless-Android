@@ -118,21 +118,28 @@ class ImportRemoteWalletViewModel @Inject constructor(
 
     override fun onWalletLongClick(backupAccount: WrappedBackupAccountMeta) {
         if (!BuildConfig.DEBUG) return
-        showError(
-            title = resourceManager.getString(R.string.common_confirmation_title),
-            message = resourceManager.getString(R.string.backup_wallet_delete_alert_message),
-            positiveButtonText = resourceManager.getString(R.string.common_delete),
-            negativeButtonText = resourceManager.getString(R.string.common_cancel),
-            buttonsOrientation = LinearLayout.HORIZONTAL,
-            positiveClick = {
-                launch {
-                    backupService.deleteBackupAccount(backupAccount.backupMeta.address)
-                    val current = remoteWallets.value
-                    val new = current?.minus(backupAccount)
-                    remoteWallets.value = new
+        if (backupAccount.origin == BackupOrigin.WEB) {
+            showError(
+                title = resourceManager.getString(R.string.common_warning),
+                message = resourceManager.getString(R.string.remove_backup_extension_error_message)
+            )
+        } else {
+            showError(
+                title = resourceManager.getString(R.string.common_confirmation_title),
+                message = resourceManager.getString(R.string.backup_wallet_delete_alert_message),
+                positiveButtonText = resourceManager.getString(R.string.common_delete),
+                negativeButtonText = resourceManager.getString(R.string.common_cancel),
+                buttonsOrientation = LinearLayout.HORIZONTAL,
+                positiveClick = {
+                    launch {
+                        backupService.deleteBackupAccount(backupAccount.backupMeta.address)
+                        val current = remoteWallets.value
+                        val new = current?.minus(backupAccount)
+                        remoteWallets.value = new
+                    }
                 }
-            }
-        )
+            )
+        }
     }
 
     private fun nextStep() {
