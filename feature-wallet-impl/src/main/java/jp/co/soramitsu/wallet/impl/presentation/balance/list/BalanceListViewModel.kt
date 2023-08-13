@@ -94,6 +94,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
@@ -168,8 +169,7 @@ class BalanceListViewModel @Inject constructor(
         it.toChainItemState()
     }.inBackground()
     private val selectedChainId = MutableStateFlow<ChainId?>(null)
-    private val selectedChainItemFlow =
-        kotlinx.coroutines.flow.combine(selectedChainId, chainsFlow) { selectedChainId, chains ->
+    private val selectedChainItemFlow = combine(selectedChainId, chainsFlow) { selectedChainId, chains ->
             selectedChainId?.let {
                 chains.firstOrNull { it.id == selectedChainId }
             }
@@ -182,14 +182,12 @@ class BalanceListViewModel @Inject constructor(
         fiatSymbolFlow,
         tokenRatesUpdate,
         assetsUpdate,
-        chainsUpdate,
-        currentMetaAccountFlow
+        chainsUpdate
     ) { assetModels: List<AssetModel>?,
         fiatSymbol: String?,
         tokenRatesUpdate: Set<String>?,
         assetsUpdate: Set<AssetKey>?,
-        chainsUpdate: Set<String>?,
-        currentMetaAccount: MetaAccount ->
+        chainsUpdate: Set<String>? ->
         val assetsWithState = assetModels?.map { asset ->
             val rateUpdate = tokenRatesUpdate?.let { asset.token.configuration.id in it }
             val balanceUpdate = assetsUpdate?.let { asset.primaryKey in it }
