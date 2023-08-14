@@ -6,6 +6,7 @@ import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.accountId
 import jp.co.soramitsu.common.data.network.StorageSubscriptionBuilder
 import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
+import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.diffed
 import jp.co.soramitsu.core.updater.UpdateSystem
 import jp.co.soramitsu.core.updater.Updater
@@ -19,7 +20,9 @@ import jp.co.soramitsu.shared_utils.wsrpc.request.runtime.storage.subscribeUsing
 import jp.co.soramitsu.wallet.api.data.cache.AssetCache
 import jp.co.soramitsu.wallet.api.data.cache.updateAsset
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emitAll
@@ -28,7 +31,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onCompletion
-import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.withContext
 
 class BalancesUpdateSystem(
@@ -74,7 +77,7 @@ class BalancesUpdateSystem(
         }
     }
 
-    private fun singleUpdateFlow(): Flow<Unit> {
+    private fun singleUpdateFlow(): Flow<Event<Unit>> {
         return combine(
             chainRegistry.syncedChains,
             accountRepository.allMetaAccountsFlow().diffed()
@@ -89,7 +92,7 @@ class BalancesUpdateSystem(
                     val runtime = runCatching { chainRegistry.getRuntimeOrNull(chain.id) }.getOrNull() ?: return@singleChainUpdate
                     val runtimeVersion = chainRegistry.getRemoteRuntimeVersion(chain.id) ?: 0
                     val socketService = runCatching { chainRegistry.getSocket(chain.id) }.getOrNull() ?: return@singleChainUpdate
-                    val storageKeyToMapId = addedOrModified.filter { it.isSelected.not() }.mapNotNull { metaAccount ->
+                    val storageKeyToMapId = addedOrModified.mapNotNull { metaAccount ->
                         val accountId = metaAccount.accountId(chain) ?: return@mapNotNull null
 
                         chain.assets.mapNotNull { asset ->
@@ -113,7 +116,10 @@ class BalancesUpdateSystem(
                         }
                 }.onFailure { return@singleChainUpdate }
             }
-        }.onStart { emit(Unit) }.flowOn(Dispatchers.Default)
+            Event(Unit)
+        }
+            .flowOn(Dispatchers.Default)
+            .stateIn(GlobalScope, SharingStarted.Eagerly, Event(Unit))
     }
 
     override fun start(): Flow<Updater.SideEffect> {

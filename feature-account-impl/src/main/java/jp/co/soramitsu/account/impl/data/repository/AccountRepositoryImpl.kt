@@ -57,10 +57,14 @@ import jp.co.soramitsu.shared_utils.scale.EncodableStruct
 import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.addressByte
 import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.toAccountId
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.withContext
 import org.bouncycastle.util.encoders.Hex
 
@@ -119,8 +123,10 @@ class AccountRepositoryImpl(
         return accountDataSource.allMetaAccounts()
     }
 
-    override fun allMetaAccountsFlow(): Flow<List<MetaAccount>> {
-        return accountDataSource.observeAllMetaAccounts().flowOn(Dispatchers.IO)
+    override fun allMetaAccountsFlow(): StateFlow<List<MetaAccount>> {
+        return accountDataSource.observeAllMetaAccounts()
+            .flowOn(Dispatchers.IO)
+            .stateIn(GlobalScope, SharingStarted.Eagerly, emptyList())
     }
 
     override fun lightMetaAccountsFlow(): Flow<List<LightMetaAccount>> {

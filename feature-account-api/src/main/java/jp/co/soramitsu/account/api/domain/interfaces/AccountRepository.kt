@@ -16,6 +16,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.shared_utils.runtime.AccountId
 import jp.co.soramitsu.shared_utils.scale.EncodableStruct
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.StateFlow
 
 class AccountAlreadyExistsException : Exception()
 
@@ -180,5 +181,5 @@ interface AccountRepository {
     suspend fun getSupportedBackupTypes(walletId: Long): Set<BackupAccountType>
     suspend fun getChain(chainId: ChainId): Chain
 
-    fun allMetaAccountsFlow(): Flow<List<MetaAccount>>
+    fun allMetaAccountsFlow(): StateFlow<List<MetaAccount>>
 }
