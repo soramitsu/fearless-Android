@@ -22,6 +22,7 @@ class CreateBackupPasswordDialog : BaseComposeBottomSheetDialogFragment<CreateBa
 
     companion object {
         const val PAYLOAD_KEY = "PAYLOAD_KEY"
+        const val RESULT_BACKUP_KEY = "RESULT_BACKUP_KEY"
 
         fun getBundle(payload: CreateBackupPasswordPayload): Bundle {
             return bundleOf(PAYLOAD_KEY to payload)

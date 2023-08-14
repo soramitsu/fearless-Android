@@ -261,6 +261,15 @@ class Navigator :
         navController?.navigate(R.id.createBackupPasswordDialog, bundle)
     }
 
+    override fun openCreateBackupPasswordDialogWithResult(payload: CreateBackupPasswordPayload): Flow<Int> {
+        val bundle = CreateBackupPasswordDialog.getBundle(payload)
+        return openWithResult(
+            destinationId = R.id.createBackupPasswordDialog,
+            bundle = bundle,
+            resultKey = CreateBackupPasswordDialog.RESULT_BACKUP_KEY
+        )
+    }
+
     override fun openMnemonicAgreementsDialog(
         isFromGoogleBackup: Boolean,
         accountName: String

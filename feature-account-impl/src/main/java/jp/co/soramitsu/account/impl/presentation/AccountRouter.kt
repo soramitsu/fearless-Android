@@ -11,6 +11,7 @@ import jp.co.soramitsu.common.navigation.DelayedNavigation
 import jp.co.soramitsu.common.navigation.PinRequired
 import jp.co.soramitsu.common.navigation.SecureRouter
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import kotlinx.coroutines.flow.Flow
 
 interface AccountRouter : SecureRouter {
 
@@ -42,6 +43,8 @@ interface AccountRouter : SecureRouter {
     fun backToProfileScreen()
 
     fun back()
+
+    fun backWithResult(vararg results: Pair<String, Any?>)
 
     fun openSelectWallet()
 
@@ -93,6 +96,8 @@ interface AccountRouter : SecureRouter {
     fun openCreateWalletDialog(isFromGoogleBackup: Boolean)
 
     fun openCreateBackupPasswordDialog(payload: CreateBackupPasswordPayload)
+
+    fun openCreateBackupPasswordDialogWithResult(payload: CreateBackupPasswordPayload): Flow<Int>
 
     fun openMnemonicAgreementsDialog(
         isFromGoogleBackup: Boolean,

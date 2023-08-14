@@ -1,5 +1,6 @@
 package jp.co.soramitsu.account.impl.presentation.backup_wallet
 
+import android.app.Activity
 import android.content.Intent
 import android.widget.LinearLayout
 import androidx.activity.result.ActivityResultLauncher
@@ -36,7 +37,9 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -268,7 +271,13 @@ class BackupWalletViewModel @Inject constructor(
                 ethereumDerivationPath = ethereumDerivationPath.orEmpty(),
                 createAccount = false
             )
-            accountRouter.openCreateBackupPasswordDialog(payload)
+            accountRouter.openCreateBackupPasswordDialogWithResult(payload)
+                .onEach { resultCode ->
+                    if (resultCode == Activity.RESULT_OK) {
+                        checkIsWalletBackedUpToGoogle()
+                    }
+                }
+                .launchIn(viewModelScope)
         }
     }
 

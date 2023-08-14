@@ -1,5 +1,6 @@
 package jp.co.soramitsu.account.impl.presentation.create_backup_password
 
+import android.app.Activity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.SavedStateHandle
@@ -171,7 +172,7 @@ class CreateBackupPasswordViewModel @Inject constructor(
     }
 
     override fun onBackClick() {
-        accountRouter.back()
+        accountRouter.backWithResult(CreateBackupPasswordDialog.RESULT_BACKUP_KEY to Activity.RESULT_CANCELED)
     }
 
     override fun onApplyPasswordClick() {
@@ -287,7 +288,7 @@ class CreateBackupPasswordViewModel @Inject constructor(
                 accountRouter.openCreatePincode()
             }
         } else {
-            accountRouter.back()
+            accountRouter.backWithResult(CreateBackupPasswordDialog.RESULT_BACKUP_KEY to Activity.RESULT_OK)
         }
     }
 
