@@ -280,10 +280,14 @@ class CreateBackupPasswordViewModel @Inject constructor(
     }
 
     private suspend fun continueBasedOnCodeStatus() {
-        if (interactor.isCodeSet()) {
-            accountRouter.back()
+        if (payload.createAccount) {
+            if (interactor.isCodeSet()) {
+                accountRouter.openMain()
+            } else {
+                accountRouter.openCreatePincode()
+            }
         } else {
-            accountRouter.openCreatePincode()
+            accountRouter.back()
         }
     }
 
