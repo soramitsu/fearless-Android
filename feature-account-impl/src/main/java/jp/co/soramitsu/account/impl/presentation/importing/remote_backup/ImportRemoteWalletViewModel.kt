@@ -245,10 +245,6 @@ class ImportRemoteWalletViewModel @Inject constructor(
                         val json = webBackupAccount.json?.substrateJson ?: error("No backup found")
                         interactor.validateJsonBackup(json, passwordText.value)
 
-                        backupService.saveBackupAccount(
-                            account = webBackupAccount,
-                            password = passwordText.value
-                        )
                         webBackupAccount
                     }
                 }
