@@ -228,7 +228,6 @@ class AccountDataSourceImpl(
     }
 
     override suspend fun updateWalletOnGoogleBackupDelete(metaId: Long) {
-        metaAccountDao.updateBackedUp(metaId = metaId, isBackedUp = false)
         metaAccountDao.clearGoogleBackupInfo(metaId)
     }
 
