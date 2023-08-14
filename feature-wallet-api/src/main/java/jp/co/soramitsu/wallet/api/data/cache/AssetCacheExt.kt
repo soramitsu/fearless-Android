@@ -32,7 +32,7 @@ suspend fun AssetCache.updateAsset(
     balanceData: AssetBalanceData?
 ) {
     when (balanceData) {
-        null, EmptyBalance -> {
+        null, is EmptyBalance -> {
             updateAsset(metaId, accountId, asset) {
                 it.copy(
                     accountId = accountId,

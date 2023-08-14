@@ -1,6 +1,10 @@
 package jp.co.soramitsu.runtime.multiNetwork
 
+import android.util.Log
 import javax.inject.Inject
+import jp.co.soramitsu.common.compose.component.NetworkIssueItemState
+import jp.co.soramitsu.common.compose.component.NetworkIssueType
+import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
 import jp.co.soramitsu.common.utils.diffed
@@ -10,6 +14,7 @@ import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.core.models.IChain
 import jp.co.soramitsu.core.runtime.ChainConnection
 import jp.co.soramitsu.core.runtime.IChainRegistry
+import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.coredb.dao.ChainDao
 import jp.co.soramitsu.coredb.model.chain.ChainNodeLocal
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainSyncService
@@ -47,8 +52,10 @@ class ChainRegistry @Inject constructor(
     private val chainDao: ChainDao,
     private val chainSyncService: ChainSyncService,
     private val runtimeSyncService: RuntimeSyncService,
-    private val updatesMixin: UpdatesMixin
-) : IChainRegistry, CoroutineScope by CoroutineScope(Dispatchers.Default), UpdatesProviderUi by updatesMixin {
+    private val updatesMixin: UpdatesMixin,
+    private val networkStateMixin: NetworkStateMixin
+) : IChainRegistry, CoroutineScope by CoroutineScope(Dispatchers.Default),
+    UpdatesProviderUi by updatesMixin {
 
     val syncedChains = MutableSharedFlow<List<Chain>>()
 
@@ -73,25 +80,36 @@ class ChainRegistry @Inject constructor(
             }
             chainDao.joinChainInfoFlow().mapList(::mapChainLocalToChain).diffed()
                 .collect { (removed, addedOrModified, all) ->
-                    removed.forEach {
-                        val chainId = it.id
-                        runtimeProviderPool.removeRuntimeProvider(chainId)
-                        runtimeSubscriptionPool.removeSubscription(chainId)
-                        runtimeSyncService.unregisterChain(chainId)
-                        connectionPool.removeConnection(chainId)
-                    }
-                    updatesMixin.startChainsSyncUp(addedOrModified.filter { it.nodes.isNotEmpty() }.map { it.id })
-                    addedOrModified.filter { /*it.disabled*/ it.nodes.isNotEmpty() }.forEach { chain ->
-                        val connection = connectionPool.setupConnection(
-                            chain,
-                            onSelectedNodeChange = { chainId, newNodeUrl ->
-                                launch { notifyNodeSwitched(NodeId(chainId to newNodeUrl)) }
+                    runCatching {
+                        removed.forEach {
+                            val chainId = it.id
+                            runtimeProviderPool.removeRuntimeProvider(chainId)
+                            runtimeSubscriptionPool.removeSubscription(chainId)
+                            runtimeSyncService.unregisterChain(chainId)
+                            connectionPool.removeConnection(chainId)
+                        }
+                        updatesMixin.startChainsSyncUp(addedOrModified.filter { it.nodes.isNotEmpty() }
+                            .map { it.id })
+                        addedOrModified.filter { /*it.disabled*/ it.nodes.isNotEmpty() }
+                            .forEach { chain ->
+                                runCatching {
+                                    val connection = connectionPool.setupConnection(
+                                        chain,
+                                        onSelectedNodeChange = { chainId, newNodeUrl ->
+                                            launch { notifyNodeSwitched(NodeId(chainId to newNodeUrl)) }
+                                        }
+                                    )
+                                    runtimeSubscriptionPool.setupRuntimeSubscription(
+                                        chain,
+                                        connection
+                                    )
+                                    runtimeSyncService.registerChain(chain)
+                                    runtimeProviderPool.setupRuntimeProvider(chain)
+                                }.onFailure { networkStateMixin.notifyChainSyncProblem(chain.toSyncIssue()) }
+                                    .onSuccess { networkStateMixin.notifyChainSyncSuccess(chain.id) }
                             }
-                        )
-                        runtimeSubscriptionPool.setupRuntimeSubscription(chain, connection)
-                        runtimeSyncService.registerChain(chain)
-                        runtimeProviderPool.setupRuntimeProvider(chain)
-                    }
+                        all
+                    }.onFailure { Log.e("ChainRegistry", "error while sync in chain registry $it") }
                     this@ChainRegistry.syncedChains.emit(all)
                 }
         }
@@ -109,9 +127,14 @@ class ChainRegistry @Inject constructor(
         return runtimeProviderPool.getRuntimeProvider(chainId)
     }
 
-    fun getAsset(chainId: ChainId, chainAssetId: String) = chainsById.replayCache.lastOrNull()?.get(chainId)?.assets?.firstOrNull {
-        it.id == chainAssetId
+    fun getRuntimeProviderOrNull(chainId: String): RuntimeProvider? {
+        return runtimeProviderPool.getRuntimeProviderOrNull(chainId)
     }
+
+    fun getAsset(chainId: ChainId, chainAssetId: String) =
+        chainsById.replayCache.lastOrNull()?.get(chainId)?.assets?.firstOrNull {
+            it.id == chainAssetId
+        }
 
     override suspend fun getChain(chainId: ChainId): Chain {
         return chainsById.first().getValue(chainId)
@@ -134,13 +157,22 @@ class ChainRegistry @Inject constructor(
     }
 
     suspend fun addNode(chainId: ChainId, nodeName: String, nodeUrl: String) =
-        chainDao.insertChainNode(ChainNodeLocal(chainId, nodeUrl, nodeName, isActive = false, isDefault = false))
+        chainDao.insertChainNode(
+            ChainNodeLocal(
+                chainId,
+                nodeUrl,
+                nodeName,
+                isActive = false,
+                isDefault = false
+            )
+        )
 
     suspend fun deleteNode(id: NodeId) = chainDao.deleteNode(id.chainId, id.nodeUrl)
 
     suspend fun getNode(id: NodeId) = mapNodeLocalToNode(chainDao.getNode(id.chainId, id.nodeUrl))
 
-    suspend fun updateNode(id: NodeId, name: String, url: String) = chainDao.updateNode(id.chainId, id.nodeUrl, name, url)
+    suspend fun updateNode(id: NodeId, name: String, url: String) =
+        chainDao.updateNode(id.chainId, id.nodeUrl, name, url)
 
     suspend fun getRemoteRuntimeVersion(chainId: ChainId): Int? {
         return chainDao.runtimeInfo(chainId)?.remoteVersion
@@ -148,7 +180,7 @@ class ChainRegistry @Inject constructor(
 }
 
 suspend fun ChainRegistry.getChain(chainId: ChainId): Chain {
-    return getChain(chainId) as Chain
+    return getChain(chainId)
 }
 
 suspend fun ChainRegistry.chainWithAsset(chainId: ChainId, assetId: String): Pair<Chain, Asset> {
@@ -162,7 +194,7 @@ suspend fun ChainRegistry.getRuntime(chainId: ChainId): RuntimeSnapshot {
 }
 
 suspend fun ChainRegistry.getRuntimeOrNull(chainId: ChainId): RuntimeSnapshot? {
-    return getRuntimeProvider(chainId).getOrNull()
+    return getRuntimeProviderOrNull(chainId)?.getOrNull()
 }
 
 fun ChainRegistry.getSocket(chainId: ChainId) = getConnection(chainId).socketService
@@ -172,3 +204,18 @@ fun ChainRegistry.getService(chainId: ChainId) = ChainService(
     runtimeProvider = getRuntimeProvider(chainId),
     connection = getConnection(chainId)
 )
+
+fun Chain.toSyncIssue(): NetworkIssueItemState {
+    return NetworkIssueItemState(
+        iconUrl = this.icon,
+        title = this.name,
+        type = when {
+            this.nodes.size > 1 -> NetworkIssueType.Node
+            else -> NetworkIssueType.Network
+        },
+        chainId = this.id,
+        chainName = this.name,
+        assetId = this.utilityAsset?.id.orEmpty(),
+        priceId = this.utilityAsset?.priceId
+    )
+}

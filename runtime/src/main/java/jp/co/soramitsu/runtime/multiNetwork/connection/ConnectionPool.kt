@@ -53,8 +53,8 @@ class ConnectionPool @Inject constructor(
     private val connectionIssues = connectionWatcher.flatMapLatest {
         val connListFlow = pool.map {
 
-            it.value.isConnected.map { isConnecting ->
-                it.value.chain to !isConnecting
+            it.value.isConnecting.map { isConnecting ->
+                it.value.chain to isConnecting
             }
         }
         val connectionIssues = combine(connListFlow) { chains ->

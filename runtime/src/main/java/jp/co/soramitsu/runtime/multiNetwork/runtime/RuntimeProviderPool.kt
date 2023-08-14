@@ -18,6 +18,10 @@ class RuntimeProviderPool(
         return pool.getValue(chainId)
     }
 
+    fun getRuntimeProviderOrNull(chainId: String): RuntimeProvider? {
+        return pool.getOrDefault(chainId, null)
+    }
+
     fun setupRuntimeProvider(chain: Chain): RuntimeProvider {
         return pool.getOrPut(chain.id) {
             RuntimeProvider(runtimeFactory, runtimeSyncService, runtimeFilesCache, chainDao, chain)

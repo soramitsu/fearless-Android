@@ -126,7 +126,8 @@ class ChainRegistryModule {
         chainDao: ChainDao,
         chainSyncService: ChainSyncService,
         runtimeSyncService: RuntimeSyncService,
-        updatesMixin: UpdatesMixin
+        updatesMixin: UpdatesMixin,
+        networkStateMixin: NetworkStateMixin
     ): ChainRegistry = ChainRegistry(
         runtimeProviderPool,
         chainConnectionPool,
@@ -134,6 +135,7 @@ class ChainRegistryModule {
         chainDao,
         chainSyncService,
         runtimeSyncService,
-        updatesMixin
+        updatesMixin,
+        networkStateMixin
     )
 }
