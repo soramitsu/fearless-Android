@@ -74,6 +74,7 @@
   <string name="buy_completed">購入開始！ 60分ほどお待ちください。メールでステータスを追跡できます</string>
   <string name="chain_selection_all_networks">全てのネットワーク</string>
   <string name="chain_unsupported_text">このブロックチェーンは、現在のアプリのバージョンでは利用できません。最新のバージョンに更新してください</string>
+  <string name="change_wallet_name">ウォレットの名チェンジしてください</string>
   <string name="chip_history">履歴</string>
   <string name="choose_amount_asset">資産</string>
   <string name="choose_amount_checking">チェック中…</string>
