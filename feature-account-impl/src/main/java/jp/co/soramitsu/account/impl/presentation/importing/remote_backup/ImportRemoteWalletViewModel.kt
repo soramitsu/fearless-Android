@@ -15,6 +15,7 @@ import jp.co.soramitsu.account.impl.presentation.importing.remote_backup.screens
 import jp.co.soramitsu.account.impl.presentation.importing.remote_backup.screens.WalletImportedState
 import jp.co.soramitsu.backup.BackupService
 import jp.co.soramitsu.backup.domain.models.BackupAccountMeta
+import jp.co.soramitsu.backup.domain.models.BackupAccountType
 import jp.co.soramitsu.backup.domain.models.DecryptedBackupAccount
 import jp.co.soramitsu.common.BuildConfig
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -236,17 +237,15 @@ class ImportRemoteWalletViewModel @Inject constructor(
                         password = passwordText.value
                     )
 
-                    BackupOrigin.WEB -> {
-                        val webBackupAccount = backupService.importWebBackupAccount(
-                            address = backupAccountMeta.backupMeta.address,
-                            name = selectedWallet.value?.backupMeta?.name.orEmpty()
-                        )
+                    BackupOrigin.WEB -> backupService.importWebBackupAccount(
+                        address = backupAccountMeta.backupMeta.address,
+                        name = selectedWallet.value?.backupMeta?.name.orEmpty()
+                    )
+                }
 
-                        val json = webBackupAccount.json?.substrateJson ?: error("No backup found")
-                        interactor.validateJsonBackup(json, passwordText.value)
-
-                        webBackupAccount
-                    }
+                if (decryptedBackupAccount.backupAccountType.contains(BackupAccountType.JSON)) {
+                    val json = decryptedBackupAccount.json?.substrateJson ?: decryptedBackupAccount.json?.ethJson ?: error("No JSON backup found")
+                    interactor.validateJsonBackup(json, passwordText.value)
                 }
 
                 importFromBackup(decryptedBackupAccount)
