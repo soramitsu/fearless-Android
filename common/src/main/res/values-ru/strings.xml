@@ -597,7 +597,7 @@
   <string name="search_recipient_hint">Адрес аккаунта или имя аккаунта</string>
   <string name="search_recipient_no_results">Нет результатов</string>
   <string name="select_collator_having_relevant_minimum_bond">Релевантный минимальный стейк</string>
-  <string name="select_import_mode_btn_google">Google</string>
+  <string name="select_import_mode_btn_google">Импорт из Google</string>
   <string name="select_import_mode_btn_json">JSON</string>
   <string name="select_import_mode_btn_raw_seed">Raw Seed</string>
   <string name="select_import_mode_title">Выберите источник для импорта</string>

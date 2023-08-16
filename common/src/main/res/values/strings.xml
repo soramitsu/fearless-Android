@@ -666,7 +666,7 @@
   <string name="select_another_network_description">The address doesn\'t match the destination network. You should select another network</string>
   <string name="select_collator_having_relevant_minimum_bond">Having relevant minimum bond</string>
   <string name="select_collators_warning">DISCLAIMER: Algorithmic сollator suggestions do not constitute financial consultation or advice. Staking is a high-risk activity, and algorithmic сollator suggestions do not necessarily mitigate this risk. A сollator suggested by the algorithm could still leave the pool of candidates. A сollator suggested by the algorithm could also change their parameters (e.g.,commission rates, etc.) at any time after having been suggested and/or selected. You could lose rewards for these or other reasons. Only stake tokens and use сollator suggestions at your own discretion, after conducting due diligence and carefully considering the risks involved.</string>
-  <string name="select_import_mode_btn_google">Google</string>
+  <string name="select_import_mode_btn_google">Import from Google</string>
   <string name="select_import_mode_btn_json">JSON</string>
   <string name="select_import_mode_btn_mnemonic">Mnemonic phrase</string>
   <string name="select_import_mode_btn_raw_seed">Raw Seed</string>
