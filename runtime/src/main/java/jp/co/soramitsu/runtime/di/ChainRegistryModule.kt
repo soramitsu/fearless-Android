@@ -35,7 +35,8 @@ class ChainRegistryModule {
 
     @Provides
     @Singleton
-    fun provideChainFetcher(apiCreator: NetworkApiCreator) = apiCreator.create(ChainFetcher::class.java)
+    fun provideChainFetcher(apiCreator: NetworkApiCreator) =
+        apiCreator.create(ChainFetcher::class.java)
 
     @Provides
     @Singleton
@@ -90,8 +91,9 @@ class ChainRegistryModule {
         runtimeFactory: RuntimeFactory,
         runtimeSyncService: RuntimeSyncService,
         runtimeFilesCache: RuntimeFilesCache,
-        chainDao: ChainDao
-    ) = RuntimeProviderPool(runtimeFactory, runtimeSyncService, runtimeFilesCache, chainDao)
+        chainDao: ChainDao,
+        networkStateMixin: NetworkStateMixin
+    ) = RuntimeProviderPool(runtimeFactory, runtimeSyncService, runtimeFilesCache, chainDao, networkStateMixin)
 
     @Provides
     @Singleton
@@ -104,7 +106,12 @@ class ChainRegistryModule {
         externalRequirementsFlow: MutableStateFlow<ChainConnection.ExternalRequirement>,
         nodesSettingsStorage: NodesSettingsStorage,
         networkStateMixin: NetworkStateMixin
-    ) = ConnectionPool(socketProvider, externalRequirementsFlow, nodesSettingsStorage, networkStateMixin)
+    ) = ConnectionPool(
+        socketProvider,
+        externalRequirementsFlow,
+        nodesSettingsStorage,
+        networkStateMixin
+    )
 
     @Provides
     @Singleton
@@ -115,7 +122,8 @@ class ChainRegistryModule {
 
     @Provides
     @Singleton
-    fun provideExternalRequirementsFlow() = MutableStateFlow(ChainConnection.ExternalRequirement.ALLOWED)
+    fun provideExternalRequirementsFlow() =
+        MutableStateFlow(ChainConnection.ExternalRequirement.ALLOWED)
 
     @Provides
     @Singleton

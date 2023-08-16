@@ -24,6 +24,7 @@ import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
 import jp.co.soramitsu.common.domain.SelectedFiat
 import jp.co.soramitsu.common.interfaces.FileProvider
+import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.QrBitmapDecoder
@@ -324,14 +325,16 @@ class WalletFeatureModule {
         bulkRetriever: BulkRetriever,
         assetCache: AssetCache,
         substrateSource: SubstrateRemoteSource,
-        operationDao: OperationDao
+        operationDao: OperationDao,
+        networkStateMixin: NetworkStateMixin
     ): UpdateSystem = BalancesUpdateSystem(
         chainRegistry,
         accountRepository,
         bulkRetriever,
         assetCache,
         substrateSource,
-        operationDao
+        operationDao,
+        networkStateMixin
     )
 
     @Provides

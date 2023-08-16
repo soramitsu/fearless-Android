@@ -142,7 +142,8 @@ class BalanceListViewModel @Inject constructor(
         it.toChainItemState()
     }.inBackground()
     private val selectedChainId = MutableStateFlow<ChainId?>(null)
-    private val selectedChainItemFlow = combine(selectedChainId, chainsFlow) { selectedChainId, chains ->
+    private val selectedChainItemFlow =
+        combine(selectedChainId, chainsFlow) { selectedChainId, chains ->
             selectedChainId?.let {
                 chains.firstOrNull { it.id == selectedChainId }
             }
@@ -193,7 +194,8 @@ class BalanceListViewModel @Inject constructor(
                     ChainEcosystem.STANDALONE -> {
                         ecosystemChains.forEach { chain ->
                             if (selectedChainId == null || selectedChainId == chain.id) {
-                                val chainAssets = assets.filter { it.asset.token.configuration.chainId == chain.id }
+                                val chainAssets =
+                                    assets.filter { it.asset.token.configuration.chainId == chain.id }
                                 val items = processAssets(
                                     chainAssets,
                                     listOf(chain),
@@ -597,11 +599,6 @@ class BalanceListViewModel @Inject constructor(
             }
             if (asset.isSupported.not()) {
                 _showUnsupportedChainAlert.value = Event(Unit)
-                return@launch
-            }
-
-            // TODO don't do like that
-            if (interactor.canUseAsset(asset.chainId, asset.chainAssetId).not()) {
                 return@launch
             }
 

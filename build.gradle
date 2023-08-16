@@ -12,13 +12,13 @@ buildscript {
         minSdkVersion = 24
         targetSdkVersion = 33
 
-        kotlinVersion = '1.8.10'
+        kotlinVersion = '1.8.20'
 
         materialVersion = '1.8.0'
         cardViewVersion = '1.0.0'
         constraintVersion = '2.1.4'
 
-        coroutinesVersion = '1.6.4'
+        coroutinesVersion = '1.7.3'
 
         biometricVersion = '1.1.0'
 

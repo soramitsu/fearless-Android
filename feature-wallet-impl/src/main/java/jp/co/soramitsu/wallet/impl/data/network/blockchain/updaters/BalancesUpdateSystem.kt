@@ -7,6 +7,8 @@ import jp.co.soramitsu.account.api.domain.model.accountId
 import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
 import jp.co.soramitsu.common.data.network.runtime.binding.ExtrinsicStatusEvent
 import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
+import jp.co.soramitsu.common.utils.requireException
+import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.core.updater.UpdateSystem
 import jp.co.soramitsu.core.updater.Updater
@@ -38,11 +40,14 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flatMapMerge
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.withContext
+
+private const val RUNTIME_AWAITING_TIMEOUT = 10_000L
 
 class BalancesUpdateSystem(
     private val chainRegistry: ChainRegistry,
@@ -50,7 +55,8 @@ class BalancesUpdateSystem(
     private val bulkRetriever: BulkRetriever,
     private val assetCache: AssetCache,
     private val substrateSource: SubstrateRemoteSource,
-    private val operationDao: OperationDao
+    private val operationDao: OperationDao,
+    private val networkStateMixin: NetworkStateMixin,
 ) : UpdateSystem {
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -61,71 +67,91 @@ class BalancesUpdateSystem(
         ) { chains, metaAccount ->
             chains to metaAccount
         }.flatMapLatest { (chains, metaAccount) ->
-            chains.mapNotNull { chain ->
+            val chainsFLow = chains.mapNotNull { chain ->
                 subscribeChainBalances(chain, metaAccount)
                     .onFailure {
                         logError(chain, it)
                     }
+                    .onSuccess {
+                    }
                     .getOrNull()
-            }.merge().transform { }
+            }
+
+            combine(chainsFLow) { }.transform { }
         }
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     private suspend fun subscribeChainBalances(
         chain: Chain,
         metaAccount: MetaAccount
     ): Result<Flow<Any>> {
-        val runtime = runCatching { chainRegistry.getRuntimeOrNull(chain.id) }
-            .onFailure { return Result.failure(it) }
-            .getOrNull()
-            ?: return Result.failure(RuntimeException("Can't get runtime for chain ${chain.name}"))
-
-        val runtimeVersion = kotlin.runCatching { chainRegistry.getRemoteRuntimeVersion(chain.id) }
-            .onFailure { return Result.failure(it) }
-            .getOrNull()
-            ?: return Result.failure(RuntimeException("Error getting remote runtime version for chain ${chain.name}"))
-
-        val socketService = runCatching { chainRegistry.getSocketOrNull(chain.id) }
-            .onFailure { return Result.failure(it) }
-            .getOrNull()
-            ?: return Result.failure(RuntimeException("Error getting socket for chain ${chain.name}"))
-
-        val storageKeyToMapId =
-            buildStorageKeys(chain, metaAccount, runtime).onFailure { return Result.failure(it) }
-                .getOrNull()
-                ?: return Result.failure(RuntimeException("Can't get account id for meta account ${metaAccount.name}, chain: ${chain.name}"))
-
-        val request = SubscribeStorageRequest(storageKeyToMapId.keys.toList())
         val chainUpdateFlow =
-            combine(socketService.subscriptionFlowCatching(request)) { subscriptionsChangeResults ->
-                subscriptionsChangeResults.forEach { subscriptionChangeResult ->
-                    val subscriptionChange = subscriptionChangeResult.getOrNull() ?: return@combine
-                    val storageChange = subscriptionChange.storageChange()
+            chainRegistry.getRuntimeProvider(chain.id).observeWithTimeout(RUNTIME_AWAITING_TIMEOUT)
+                .flatMapMerge { runtimeResult ->
+                    if (runtimeResult.isFailure) {
+                        networkStateMixin.notifyChainSyncProblem(chain.toSyncIssue())
+                        return@flatMapMerge flowOf(runtimeResult.requireException())
+                    }
+                    val runtime = runtimeResult.requireValue()
 
-                    storageChange.changes.associate { it[0]!! to it[1] }
-                        .mapKeys { (fullKey, _) -> storageKeyToMapId[fullKey]!! }
-                        .mapValues { (metadata, hexRaw) ->
-                            handleBalanceResponse(
-                                runtime,
-                                metadata.asset.typeExtra,
-                                hexRaw,
-                                runtimeVersion
-                            )
-                        }.toList()
-                        .forEach {
-                            val (asset, metaId, accountId) = it.first
-                            val balanceData = it.second
-                            assetCache.updateAsset(
-                                metaId,
-                                accountId,
-                                asset,
-                                balanceData.getOrNull()
-                            )
+                    networkStateMixin.notifyChainSyncSuccess(chain.id)
+                    val storageKeyToMapId =
+                        buildStorageKeys(
+                            chain,
+                            metaAccount,
+                            runtime
+                        ).onFailure { return@flatMapMerge flowOf(Result.failure<Any>(it)) }
+                            .getOrNull()
+                            ?: return@flatMapMerge flowOf(Result.failure<Any>(RuntimeException("Can't get account id for meta account ${metaAccount.name}, chain: ${chain.name}")))
 
-                            fetchTransfers(storageChange.block, chain, accountId)
+                    val socketService = runCatching { chainRegistry.getSocketOrNull(chain.id) }
+                        .onFailure { return@flatMapMerge flowOf(Result.failure<Any>(it)) }
+                        .getOrNull()
+                        ?: return@flatMapMerge flowOf(Result.failure<Any>(RuntimeException("Error getting socket for chain ${chain.name}")))
+
+                    val request = SubscribeStorageRequest(storageKeyToMapId.keys.toList())
+                    combine(socketService.subscriptionFlowCatching(request)) { subscriptionsChangeResults ->
+                        subscriptionsChangeResults.forEach { subscriptionChangeResult ->
+                            val subscriptionChange =
+                                subscriptionChangeResult.getOrNull() ?: return@combine
+                            val storageChange = subscriptionChange.storageChange()
+
+                            storageChange.changes.associate { it[0]!! to it[1] }
+                                .mapKeys { (fullKey, _) -> storageKeyToMapId[fullKey]!! }
+                                .mapValues { (metadata, hexRaw) ->
+
+                                    val runtimeVersion =
+                                        kotlin.runCatching {
+                                            chainRegistry.getRemoteRuntimeVersion(
+                                                chain.id
+                                            )
+                                        }
+                                            .getOrNull() ?: 0
+
+                                    handleBalanceResponse(
+                                        runtime,
+                                        metadata.asset.typeExtra,
+                                        hexRaw,
+                                        runtimeVersion
+                                    )
+                                }.toList()
+                                .forEach {
+                                    val (asset, metaId, accountId) = it.first
+                                    val balanceData = it.second
+                                    assetCache.updateAsset(
+                                        metaId,
+                                        accountId,
+                                        asset,
+                                        balanceData.getOrNull()
+                                    )
+
+                                    fetchTransfers(storageChange.block, chain, accountId)
+                                }
                         }
+                    }
+
                 }
-            }
         return Result.success(chainUpdateFlow)
     }
 
