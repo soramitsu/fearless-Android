@@ -40,7 +40,7 @@ enum class SyntheticStakingType {
 fun CoreAsset.syntheticStakingType(): SyntheticStakingType {
     return when {
         (chainId == soraMainChainId || chainId == soraTestChainId) &&
-            staking == CoreAsset.StakingType.RELAYCHAIN -> SyntheticStakingType.SORA
+                staking == CoreAsset.StakingType.RELAYCHAIN -> SyntheticStakingType.SORA
 
         chainId == ternoaChainId && staking == CoreAsset.StakingType.RELAYCHAIN -> SyntheticStakingType.TERNOA
         else -> SyntheticStakingType.DEFAULT
@@ -84,7 +84,10 @@ class StakingSharedState(
     }.shareIn(scope, SharingStarted.Eagerly, replay = 1)
 
     suspend fun assetWithChain(selectionItem: StakingAssetSelection) {
-        val (chain, asset) = chainRegistry.chainWithAsset(selectionItem.chainId, selectionItem.chainAssetId)
+        val (chain, asset) = chainRegistry.chainWithAsset(
+            selectionItem.chainId,
+            selectionItem.chainAssetId
+        )
         SingleAssetSharedState.AssetWithChain(chain, asset)
     }
 
@@ -97,9 +100,9 @@ class StakingSharedState(
         }
     }
         .mapNotNull { it }
-        .mapNotNull { (selectedMetaAccount, chainAndAsset) ->
+        .flatMapLatest { (selectedMetaAccount, chainAndAsset) ->
             val (chain, chainAsset) = chainAndAsset
-            walletRepository.getAsset(
+            walletRepository.assetFlow(
                 metaId = selectedMetaAccount.id,
                 accountId = selectedMetaAccount.accountId(chain)!!,
                 chainAsset = chainAsset,
@@ -130,8 +133,16 @@ class StakingSharedState(
                 chainAsset.staking != CoreAsset.StakingType.UNSUPPORTED
             }.map {
                 when (it.staking) {
-                    CoreAsset.StakingType.PARACHAIN -> StakingAssetSelection.ParachainStaking(chain.id, it.id)
-                    CoreAsset.StakingType.RELAYCHAIN -> StakingAssetSelection.RelayChainStaking(chain.id, it.id)
+                    CoreAsset.StakingType.PARACHAIN -> StakingAssetSelection.ParachainStaking(
+                        chain.id,
+                        it.id
+                    )
+
+                    CoreAsset.StakingType.RELAYCHAIN -> StakingAssetSelection.RelayChainStaking(
+                        chain.id,
+                        it.id
+                    )
+
                     else -> error("StakingSharedState.availableToSelect wrong staking type: ${it.staking}")
                 }
             }
@@ -175,15 +186,18 @@ class StakingSharedState(
 sealed class StakingAssetSelection(val chainId: ChainId, val chainAssetId: String) {
     abstract val type: StakingType
 
-    class RelayChainStaking(chainId: ChainId, chainAssetId: String) : StakingAssetSelection(chainId, chainAssetId) {
+    class RelayChainStaking(chainId: ChainId, chainAssetId: String) :
+        StakingAssetSelection(chainId, chainAssetId) {
         override val type = StakingType.RELAYCHAIN
     }
 
-    class ParachainStaking(chainId: ChainId, chainAssetId: String) : StakingAssetSelection(chainId, chainAssetId) {
+    class ParachainStaking(chainId: ChainId, chainAssetId: String) :
+        StakingAssetSelection(chainId, chainAssetId) {
         override val type = StakingType.PARACHAIN
     }
 
-    class Pool(chainId: ChainId, chainAssetId: String) : StakingAssetSelection(chainId, chainAssetId) {
+    class Pool(chainId: ChainId, chainAssetId: String) :
+        StakingAssetSelection(chainId, chainAssetId) {
         override val type = StakingType.POOL
     }
 
