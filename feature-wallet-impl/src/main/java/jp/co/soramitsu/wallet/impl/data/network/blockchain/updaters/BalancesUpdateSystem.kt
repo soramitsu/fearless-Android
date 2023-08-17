@@ -97,7 +97,8 @@ class BalancesUpdateSystem(
                     }
                     val runtime = runtimeResult.requireValue()
                     networkStateMixin.notifyChainSyncSuccess(chain.id)
-                    val storageKeyToMapId =
+
+                    val storageKeys =
                         buildStorageKeys(
                             chain,
                             metaAccount,
@@ -111,39 +112,43 @@ class BalancesUpdateSystem(
                         .getOrNull()
                         ?: return@flatMapMerge flowOf(Result.failure<Any>(RuntimeException("Error getting socket for chain ${chain.name}")))
 
-                    val request = SubscribeStorageRequest(storageKeyToMapId.keys.toList())
-                    combine(socketService.subscriptionFlowCatching(request)) { subscriptionsChangeResults ->
+                    val request = SubscribeStorageRequest(storageKeys.map { it.key })
 
+                    combine(socketService.subscriptionFlowCatching(request)) { subscriptionsChangeResults ->
                         subscriptionsChangeResults.forEach { subscriptionChangeResult ->
                             subscriptionChangeResult.onFailure { logError(chain, it) }
+
                             val subscriptionChange =
                                 subscriptionChangeResult.getOrNull()
                                     ?: return@combine Result.failure(subscriptionChangeResult.requireException())
+
                             val storageChange = subscriptionChange.storageChange()
+                            val storageKeyToHex = storageChange.changes.map { it[0]!! to it[1] }
 
-                            storageChange.changes.associate { it[0]!! to it[1] }
-                                .mapKeys { (fullKey, _) -> storageKeyToMapId[fullKey]!! }
-                                .mapValues { (metadata, hexRaw) ->
-                                    handleBalanceResponse(
-                                        runtime,
-                                        metadata.asset.typeExtra,
-                                        hexRaw,
-                                        runtimeVersion
-                                    ).onFailure { logError(chain, it) }
-                                }.toList()
-                                .forEach {
-                                    val (asset, metaId, accountId) = it.first
-                                    val balanceData = it.second
+                            storageKeys.map { keyWithMetadata ->
+                                val hexRaw =
+                                    storageKeyToHex.first { it.first == keyWithMetadata.key }
 
-                                    assetCache.updateAsset(
-                                        metaId,
-                                        accountId,
-                                        asset,
-                                        balanceData.getOrNull()
-                                    )
+                                val balanceData = handleBalanceResponse(
+                                    runtime,
+                                    keyWithMetadata.asset.typeExtra,
+                                    hexRaw.second,
+                                    runtimeVersion
+                                ).onFailure { logError(chain, it) }
 
-                                    fetchTransfers(storageChange.block, chain, accountId)
-                                }
+                                assetCache.updateAsset(
+                                    keyWithMetadata.metaAccountId,
+                                    keyWithMetadata.accountId,
+                                    keyWithMetadata.asset,
+                                    balanceData.getOrNull()
+                                )
+
+                                fetchTransfers(
+                                    storageChange.block,
+                                    chain,
+                                    keyWithMetadata.accountId
+                                )
+                            }
                         }
                         Result.success(Unit)
                     }
@@ -167,39 +172,37 @@ class BalancesUpdateSystem(
                         runCatching { chainRegistry.getSocket(chain.id) }.getOrNull()
                             ?: return@singleChainUpdate
 
-
-                    val storageKeyToMapId =
-                        accounts.filter { it.isSelected.not() }.mapNotNull { metaAccount ->
+                    val storageKeys =
+                        accounts.mapNotNull { metaAccount ->
                             buildStorageKeys(chain, metaAccount, runtime)
                                 .getOrNull()?.toList()
-                        }.flatten().toMap()
+                        }.flatten()
 
                     val queryResults = withContext(Dispatchers.IO) {
                         bulkRetriever.queryKeys(
                             socketService,
-                            storageKeyToMapId.keys.toList()
+                            storageKeys.map { it.key }
                         )
                     }
-                    queryResults.mapKeys { (fullKey, _) -> storageKeyToMapId[fullKey]!! }
-                        .mapValues { (metadata, hexRaw) ->
-                            handleBalanceResponse(
-                                runtime,
-                                metadata.asset.typeExtra,
-                                hexRaw,
-                                runtimeVersion
-                            )
-                        }
-                        .toList()
-                        .forEach {
-                            val (asset, metaId, accountId) = it.first
-                            val balanceData = it.second
-                            assetCache.updateAsset(
-                                metaId,
-                                accountId,
-                                asset,
-                                balanceData.getOrNull()
-                            )
-                        }
+
+                    storageKeys.map { keyWithMetadata ->
+                        val hexRaw =
+                            queryResults[keyWithMetadata.key]
+
+                        val balanceData = handleBalanceResponse(
+                            runtime,
+                            keyWithMetadata.asset.typeExtra,
+                            hexRaw,
+                            runtimeVersion
+                        ).onFailure { logError(chain, it) }
+
+                        assetCache.updateAsset(
+                            keyWithMetadata.metaAccountId,
+                            keyWithMetadata.accountId,
+                            keyWithMetadata.asset,
+                            balanceData.getOrNull()
+                        )
+                    }
                 }
                     .onFailure {
                         logError(chain, it)
@@ -213,31 +216,28 @@ class BalancesUpdateSystem(
         chain: Chain,
         metaAccount: MetaAccount,
         runtime: RuntimeSnapshot
-    ): Result<Map<String, StorageKeysMetadata>> {
+    ): Result<List<StorageKeyWithMetadata>> {
         val accountId = metaAccount.accountId(chain)
             ?: return Result.failure(RuntimeException("Can't get account id for meta account ${metaAccount.name}, chain: ${chain.name}"))
 
         return Result.success(chain.assets.mapNotNull { asset ->
-            constructBalanceKey(runtime, asset, accountId)?.let { key ->
-                key to StorageKeysMetadata(
-                    asset,
-                    metaAccount.id,
-                    accountId
-                )
+            constructBalanceKey(runtime, asset, accountId)?.let {
+                StorageKeyWithMetadata(asset, metaAccount.id, accountId, it)
             }
-        }.toMap())
+        })
     }
 
-    data class StorageKeysMetadata(
+    data class StorageKeyWithMetadata(
         val asset: Asset,
         val metaAccountId: Long,
-        val accountId: AccountId
+        val accountId: AccountId,
+        val key: String
     ) {
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
             if (javaClass != other?.javaClass) return false
 
-            other as StorageKeysMetadata
+            other as StorageKeyWithMetadata
 
             if (asset != other.asset) return false
             if (metaAccountId != other.metaAccountId) return false
