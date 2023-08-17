@@ -1,6 +1,7 @@
 package jp.co.soramitsu.wallet.impl.data.network.blockchain.updaters
 
 import android.util.Log
+import it.airgap.beaconsdk.core.internal.utils.onEachFailure
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.accountId
@@ -67,14 +68,8 @@ class BalancesUpdateSystem(
         ) { chains, metaAccount ->
             chains to metaAccount
         }.flatMapLatest { (chains, metaAccount) ->
-            val chainsFLow = chains.mapNotNull { chain ->
-                subscribeChainBalances(chain, metaAccount)
-                    .onFailure {
-                        logError(chain, it)
-                    }
-                    .onSuccess {
-                    }
-                    .getOrNull()
+            val chainsFLow = chains.map { chain ->
+                subscribeChainBalances(chain, metaAccount).onEachFailure { logError(chain, it) }
             }
 
             combine(chainsFLow) { }.transform { }
@@ -85,16 +80,22 @@ class BalancesUpdateSystem(
     private suspend fun subscribeChainBalances(
         chain: Chain,
         metaAccount: MetaAccount
-    ): Result<Flow<Any>> {
+    ): Flow<Result<Any>> {
+        val runtimeVersion =
+            kotlin.runCatching {
+                chainRegistry.getRemoteRuntimeVersion(
+                    chain.id
+                )
+            }
+                .getOrNull() ?: 0
         val chainUpdateFlow =
             chainRegistry.getRuntimeProvider(chain.id).observeWithTimeout(RUNTIME_AWAITING_TIMEOUT)
                 .flatMapMerge { runtimeResult ->
                     if (runtimeResult.isFailure) {
                         networkStateMixin.notifyChainSyncProblem(chain.toSyncIssue())
-                        return@flatMapMerge flowOf(runtimeResult.requireException())
+                        return@flatMapMerge flowOf(runtimeResult)
                     }
                     val runtime = runtimeResult.requireValue()
-
                     networkStateMixin.notifyChainSyncSuccess(chain.id)
                     val storageKeyToMapId =
                         buildStorageKeys(
@@ -112,33 +113,28 @@ class BalancesUpdateSystem(
 
                     val request = SubscribeStorageRequest(storageKeyToMapId.keys.toList())
                     combine(socketService.subscriptionFlowCatching(request)) { subscriptionsChangeResults ->
+
                         subscriptionsChangeResults.forEach { subscriptionChangeResult ->
+                            subscriptionChangeResult.onFailure { logError(chain, it) }
                             val subscriptionChange =
-                                subscriptionChangeResult.getOrNull() ?: return@combine
+                                subscriptionChangeResult.getOrNull()
+                                    ?: return@combine Result.failure(subscriptionChangeResult.requireException())
                             val storageChange = subscriptionChange.storageChange()
 
                             storageChange.changes.associate { it[0]!! to it[1] }
                                 .mapKeys { (fullKey, _) -> storageKeyToMapId[fullKey]!! }
                                 .mapValues { (metadata, hexRaw) ->
-
-                                    val runtimeVersion =
-                                        kotlin.runCatching {
-                                            chainRegistry.getRemoteRuntimeVersion(
-                                                chain.id
-                                            )
-                                        }
-                                            .getOrNull() ?: 0
-
                                     handleBalanceResponse(
                                         runtime,
                                         metadata.asset.typeExtra,
                                         hexRaw,
                                         runtimeVersion
-                                    )
+                                    ).onFailure { logError(chain, it) }
                                 }.toList()
                                 .forEach {
                                     val (asset, metaId, accountId) = it.first
                                     val balanceData = it.second
+
                                     assetCache.updateAsset(
                                         metaId,
                                         accountId,
@@ -149,10 +145,10 @@ class BalancesUpdateSystem(
                                     fetchTransfers(storageChange.block, chain, accountId)
                                 }
                         }
+                        Result.success(Unit)
                     }
-
                 }
-        return Result.success(chainUpdateFlow)
+        return chainUpdateFlow
     }
 
     private fun singleUpdateFlow(): Flow<Unit> {
