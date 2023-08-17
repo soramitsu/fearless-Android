@@ -1,7 +1,5 @@
 package jp.co.soramitsu.staking.impl.domain
 
-import java.math.BigDecimal
-import java.math.BigInteger
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.accountId
@@ -27,7 +25,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import jp.co.soramitsu.runtime.multiNetwork.getRuntimeOrNull
 import jp.co.soramitsu.shared_utils.runtime.AccountId
 import jp.co.soramitsu.shared_utils.runtime.metadata.RuntimeMetadata
-import jp.co.soramitsu.shared_utils.runtime.metadata.module
+import jp.co.soramitsu.shared_utils.runtime.metadata.moduleOrNull
 import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.toAddress
 import jp.co.soramitsu.staking.api.data.StakingSharedState
 import jp.co.soramitsu.staking.api.domain.api.StakingRepository
@@ -48,6 +46,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.withContext
+import java.math.BigDecimal
+import java.math.BigInteger
 
 class StakingInteractor(
     private val accountRepository: AccountRepository,
@@ -193,7 +193,7 @@ class StakingInteractor(
 
     suspend fun checkControllerDeprecations(metaAccount: MetaAccount, chain: Chain): ControllerDeprecationWarning? {
         val isControllerAccountDeprecated =
-            chainRegistry.getRuntimeOrNull(chain.id)?.metadata?.module(Modules.STAKING)?.calls?.get("set_controller")?.arguments?.isEmpty() == true
+            chainRegistry.getRuntimeOrNull(chain.id)?.metadata?.moduleOrNull(Modules.STAKING)?.calls?.get("set_controller")?.arguments?.isEmpty() == true
         if (!isControllerAccountDeprecated) return null
 
         val accountId = metaAccount.accountId(chain) ?: return null

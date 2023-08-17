@@ -6,9 +6,11 @@ import kotlinx.parcelize.Parcelize
 
 @Parcelize
 class CreateBackupPasswordPayload(
-    val mnemonic: String,
+    val walletId: Long?,
+    val mnemonic: String?,
     val accountName: String,
     val cryptoType: CryptoType,
     val substrateDerivationPath: String,
-    val ethereumDerivationPath: String
+    val ethereumDerivationPath: String,
+    val createAccount: Boolean
 ) : Parcelable

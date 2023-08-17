@@ -86,7 +86,9 @@ class V2Migration(
                 ethereumAddress = ethereumKeypair?.publicKey?.ethereumAddressFromPublicKey(),
                 name = account.name,
                 isSelected = isSelected,
-                position = index
+                position = index,
+                isBackedUp = false,
+                googleBackupAddress = null
             )
 
             val metaId = insertMetaAccount(metaAccount, database)

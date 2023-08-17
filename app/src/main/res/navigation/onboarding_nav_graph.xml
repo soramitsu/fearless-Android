@@ -8,8 +8,7 @@
     <fragment
         android:id="@+id/welcomeFragment"
         android:name="jp.co.soramitsu.onboarding.impl.welcome.WelcomeFragment"
-        android:label="fragment_users"
-        tools:layout="@layout/fragment_welcome">
+        android:label="fragment_users">
 
         <action
             android:id="@+id/action_welcomeFragment_to_createAccountFragment"
@@ -130,6 +129,12 @@
         </action>
 
     </fragment>
+
+    <fragment
+        android:id="@+id/confirmExportMnemonicFragment"
+        android:name="jp.co.soramitsu.account.impl.presentation.mnemonic.confirm.ConfirmMnemonicFragment"
+        android:label="ConfirmMnemonicFragment"
+        tools:layout="@layout/fragment_confirm_mnemonic" />
 
     <dialog
         android:id="@+id/backupMnemonicDialog"

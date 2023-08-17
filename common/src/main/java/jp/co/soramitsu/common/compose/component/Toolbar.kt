@@ -35,7 +35,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
 import jp.co.soramitsu.common.R
-import jp.co.soramitsu.common.compose.theme.FearlessTheme
+import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
 import jp.co.soramitsu.common.compose.theme.backgroundBlurColor
 import jp.co.soramitsu.common.compose.theme.colorAccent
 import jp.co.soramitsu.common.compose.theme.customTypography
@@ -72,6 +72,8 @@ fun MainToolbar(
     menuItems: List<MenuIconItem>? = null,
     modifier: Modifier = Modifier
 ) {
+    val paddingTitleEnd = menuItems.orEmpty().size * (32 /* icon size */ + 8 /* padding */)
+    val paddingTitleStart = 40 /* icon size */ + 8 /* padding */
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -90,12 +92,14 @@ fun MainToolbar(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .padding(start = paddingTitleStart.dp, end = paddingTitleEnd.dp)
                 .align(Alignment.Center),
             horizontalAlignment = CenterHorizontally
         ) {
             Text(
                 text = state.title,
                 style = MaterialTheme.customTypography.header4,
+                overflow = TextOverflow.Ellipsis,
                 maxLines = 1
             )
 
@@ -289,7 +293,7 @@ fun Toolbar(state: ToolbarViewState, modifier: Modifier = Modifier, onNavigation
 @Preview
 @Composable
 private fun MainToolbarPreview() {
-    FearlessTheme {
+    FearlessAppTheme {
         Column(
             modifier = Modifier
                 .background(Color.Black)
@@ -305,7 +309,7 @@ private fun MainToolbarPreview() {
 
             MainToolbar(
                 state = MainToolbarViewState(
-                    title = "Fearless wallet",
+                    title = "Fearless wallet very long wallet name",
                     homeIconState = ToolbarHomeIconState(navigationIcon = R.drawable.ic_wallet),
                     selectorViewState = ChainSelectorViewState(
                         selectedChainId = "id",

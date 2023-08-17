@@ -12,7 +12,6 @@ import javax.inject.Named
 import javax.inject.Singleton
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
-import jp.co.soramitsu.account.api.domain.updaters.AccountUpdateScope
 import jp.co.soramitsu.account.impl.presentation.account.mixin.api.AccountListingMixin
 import jp.co.soramitsu.account.impl.presentation.account.mixin.impl.AccountListingProvider
 import jp.co.soramitsu.common.address.AddressIconGenerator
@@ -25,6 +24,7 @@ import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
 import jp.co.soramitsu.common.domain.SelectedFiat
 import jp.co.soramitsu.common.interfaces.FileProvider
+import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.QrBitmapDecoder
@@ -55,7 +55,6 @@ import jp.co.soramitsu.wallet.impl.data.historySource.HistorySourceProvider
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.SubstrateRemoteSource
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.WssSubstrateSource
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.updaters.BalancesUpdateSystem
-import jp.co.soramitsu.wallet.impl.data.network.blockchain.updaters.PaymentUpdaterFactory
 import jp.co.soramitsu.wallet.impl.data.network.phishing.PhishingApi
 import jp.co.soramitsu.wallet.impl.data.network.subquery.OperationsHistoryApi
 import jp.co.soramitsu.wallet.impl.data.repository.AddressBookRepositoryImpl
@@ -264,7 +263,8 @@ class WalletFeatureModule {
         rpcCalls: RpcCalls,
         @Named(REMOTE_STORAGE_SOURCE)
         remoteStorageSource: StorageDataSource
-    ): ExistentialDepositUseCase = ExistentialDepositUseCaseImpl(chainRegistry, rpcCalls, remoteStorageSource)
+    ): ExistentialDepositUseCase =
+        ExistentialDepositUseCaseImpl(chainRegistry, rpcCalls, remoteStorageSource)
 
     @Provides
     fun provideValidateTransferUseCase(
@@ -297,7 +297,11 @@ class WalletFeatureModule {
         return BuyTokenRegistry(
             availableProviders = listOf(
                 RampProvider(host = BuildConfig.RAMP_HOST, apiToken = BuildConfig.RAMP_TOKEN),
-                MoonPayProvider(host = BuildConfig.MOONPAY_HOST, publicKey = BuildConfig.MOONPAY_PUBLIC_KEY, privateKey = BuildConfig.MOONPAY_PRIVATE_KEY)
+                MoonPayProvider(
+                    host = BuildConfig.MOONPAY_HOST,
+                    publicKey = BuildConfig.MOONPAY_PUBLIC_KEY,
+                    privateKey = BuildConfig.MOONPAY_PRIVATE_KEY
+                )
             )
         )
     }
@@ -309,40 +313,28 @@ class WalletFeatureModule {
     ): BuyMixin.Presentation = BuyMixinProvider(buyTokenRegistry, chainRegistry)
 
     @Provides
-    fun provideTransferChecks(): TransferValidityChecks.Presentation = TransferValidityChecksProvider()
-
-    @Provides
-    fun providePaymentUpdaterFactory(
-        remoteSource: SubstrateRemoteSource,
-        assetCache: AssetCache,
-        operationDao: OperationDao,
-        accountUpdateScope: AccountUpdateScope,
-        chainRegistry: ChainRegistry,
-        updatesMixin: UpdatesMixin
-    ) = PaymentUpdaterFactory(
-        remoteSource,
-        assetCache,
-        operationDao,
-        chainRegistry,
-        accountUpdateScope,
-        updatesMixin
-    )
+    fun provideTransferChecks(): TransferValidityChecks.Presentation =
+        TransferValidityChecksProvider()
 
     @Provides
     @Singleton
     @Named("BalancesUpdateSystem")
     fun provideFeatureUpdaters(
         chainRegistry: ChainRegistry,
-        paymentUpdaterFactory: PaymentUpdaterFactory,
         accountRepository: AccountRepository,
         bulkRetriever: BulkRetriever,
-        assetCache: AssetCache
+        assetCache: AssetCache,
+        substrateSource: SubstrateRemoteSource,
+        operationDao: OperationDao,
+        networkStateMixin: NetworkStateMixin
     ): UpdateSystem = BalancesUpdateSystem(
         chainRegistry,
-        paymentUpdaterFactory,
         accountRepository,
         bulkRetriever,
-        assetCache
+        assetCache,
+        substrateSource,
+        operationDao,
+        networkStateMixin
     )
 
     @Provides
@@ -351,7 +343,10 @@ class WalletFeatureModule {
     ): WalletConstants = RuntimeWalletConstants(chainRegistry)
 
     @Provides
-    fun provideAccountAddressUseCase(accountRepository: AccountRepository, chainRegistry: ChainRegistry) =
+    fun provideAccountAddressUseCase(
+        accountRepository: AccountRepository,
+        chainRegistry: ChainRegistry
+    ) =
         CurrentAccountAddressUseCase(accountRepository, chainRegistry)
 
     @Provides
@@ -363,7 +358,14 @@ class WalletFeatureModule {
         preferences: Preferences,
         extrinsicService: ExtrinsicService,
         beaconSharedState: BeaconSharedState
-    ) = BeaconInteractor(gson, accountRepository, chainRegistry, preferences, extrinsicService, beaconSharedState)
+    ) = BeaconInteractor(
+        gson,
+        accountRepository,
+        chainRegistry,
+        preferences,
+        extrinsicService,
+        beaconSharedState
+    )
 
     @Provides
     fun provideFeeLoaderMixin(

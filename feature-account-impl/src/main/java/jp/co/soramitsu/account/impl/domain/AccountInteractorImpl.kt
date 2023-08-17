@@ -1,5 +1,6 @@
 package jp.co.soramitsu.account.impl.domain
 
+import java.io.File
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.Account
@@ -13,7 +14,6 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
-import java.io.File
 
 class AccountInteractorImpl(
     private val accountRepository: AccountRepository,
@@ -37,7 +37,8 @@ class AccountInteractorImpl(
         mnemonic: String,
         encryptionType: CryptoType,
         substrateDerivationPath: String,
-        ethereumDerivationPath: String
+        ethereumDerivationPath: String,
+        isBackedUp: Boolean
     ): Result<Unit> {
         return runCatching {
             accountRepository.createAccount(
@@ -45,7 +46,8 @@ class AccountInteractorImpl(
                 mnemonic,
                 encryptionType,
                 substrateDerivationPath,
-                ethereumDerivationPath
+                ethereumDerivationPath,
+                isBackedUp
             )
         }
     }
@@ -78,16 +80,20 @@ class AccountInteractorImpl(
         substrateDerivationPath: String,
         ethereumDerivationPath: String,
         selectedEncryptionType: CryptoType,
-        withEth: Boolean
-    ): Result<Unit> {
+        withEth: Boolean,
+        isBackedUp: Boolean,
+        googleBackupAddress: String?
+    ): Result<Long> {
         return runCatching {
             accountRepository.importFromMnemonic(
-                mnemonic,
-                walletName,
-                substrateDerivationPath,
-                ethereumDerivationPath,
-                selectedEncryptionType,
-                withEth
+                mnemonic = mnemonic,
+                accountName = walletName,
+                substrateDerivationPath = substrateDerivationPath,
+                ethereumDerivationPath = ethereumDerivationPath,
+                selectedEncryptionType = selectedEncryptionType,
+                withEth = withEth,
+                isBackedUp = isBackedUp,
+                googleBackupAddress = googleBackupAddress
             )
         }
     }
@@ -119,7 +125,8 @@ class AccountInteractorImpl(
         username: String,
         derivationPath: String,
         selectedEncryptionType: CryptoType,
-        ethSeed: String?
+        ethSeed: String?,
+        googleBackupAddress: String?
     ): Result<Unit> {
         return runCatching {
             accountRepository.importFromSeed(
@@ -127,7 +134,8 @@ class AccountInteractorImpl(
                 username,
                 derivationPath,
                 selectedEncryptionType,
-                ethSeed
+                ethSeed,
+                googleBackupAddress
             )
         }
     }
@@ -145,14 +153,19 @@ class AccountInteractorImpl(
         }
     }
 
+    override fun validateJsonBackup(json: String, password: String) {
+        accountRepository.validateJsonBackup(json, password)
+    }
+
     override suspend fun importFromJson(
         json: String,
         password: String,
         name: String,
-        ethJson: String?
+        ethJson: String?,
+        googleBackupAddress: String?
     ): Result<Unit> {
         return runCatching {
-            accountRepository.importFromJson(json, password, name, ethJson)
+            accountRepository.importFromJson(json, password, name, ethJson, googleBackupAddress)
         }
     }
 
@@ -254,9 +267,27 @@ class AccountInteractorImpl(
 
     override fun polkadotAddressForSelectedAccountFlow() = accountRepository.polkadotAddressForSelectedAccountFlow()
 
+    override fun getMetaAccountsGoogleAddresses(): Flow<List<String>> = accountRepository.googleAddressAllWalletsFlow()
+
+    override suspend fun googleBackupAddressForWallet(walletId: Long) = accountRepository.googleBackupAddressForWallet(walletId)
+
+    override suspend fun isGoogleBackupSupported(walletId: Long) = accountRepository.isGoogleBackupSupported(walletId)
+    override suspend fun getSupportedBackupTypes(walletId: Long) = accountRepository.getSupportedBackupTypes(walletId)
     override suspend fun getChain(chainId: ChainId) = accountRepository.getChain(chainId)
 
     override suspend fun createFileInTempStorageAndRetrieveAsset(fileName: String): Result<File> = runCatching {
         fileProvider.getFileInExternalCacheStorage(fileName)
+    }
+
+    override suspend fun updateAccountName(metaId: Long, name: String) {
+        accountRepository.updateMetaAccountName(metaId, name)
+    }
+
+    override suspend fun updateWalletBackedUp(metaId: Long) {
+        accountRepository.updateMetaAccountBackedUp(metaId)
+    }
+
+    override suspend fun updateWalletOnGoogleBackupDelete(metaId: Long) {
+        accountRepository.updateWalletOnGoogleBackupDelete(metaId)
     }
 }

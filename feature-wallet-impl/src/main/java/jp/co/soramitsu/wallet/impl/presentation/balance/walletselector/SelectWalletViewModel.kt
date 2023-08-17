@@ -1,11 +1,16 @@
 package jp.co.soramitsu.wallet.impl.presentation.balance.walletselector
 
+import android.content.Intent
+import androidx.activity.result.ActivityResultLauncher
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.TotalBalanceUseCase
+import jp.co.soramitsu.account.api.domain.model.ImportMode
 import jp.co.soramitsu.account.impl.presentation.account.mixin.api.AccountListingMixin
+import jp.co.soramitsu.backup.BackupService
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.ChangeBalanceViewState
@@ -13,14 +18,19 @@ import jp.co.soramitsu.common.compose.component.WalletItemViewState
 import jp.co.soramitsu.common.compose.component.WalletSelectorViewState
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
+import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.formatAsChange
 import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.mapList
+import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -32,7 +42,9 @@ class SelectWalletViewModel @Inject constructor(
     private val accountInteractor: AccountInteractor,
     private val router: WalletRouter,
     private val updatesMixin: UpdatesMixin,
-    private val getTotalBalance: TotalBalanceUseCase
+    private val getTotalBalance: TotalBalanceUseCase,
+    private val backupService: BackupService,
+    private val resourceManager: ResourceManager
 ) : BaseViewModel(), UpdatesProviderUi by updatesMixin {
 
     private val accountsFlow = accountListingMixin.accountsFlow(AddressIconGenerator.SIZE_BIG)
@@ -56,6 +68,7 @@ class SelectWalletViewModel @Inject constructor(
         .inBackground()
         .share()
     private val selectedWalletItem = MutableStateFlow<WalletItemViewState?>(null)
+    val googleAuthorizeLiveData = MutableLiveData<Event<Unit>>()
 
     val state = combine(
         walletItemsFlow,
@@ -83,11 +96,13 @@ class SelectWalletViewModel @Inject constructor(
     }
 
     fun addNewWallet() {
-        router.openCreateAccountFromWallet()
+         router.openCreateAccountFromWallet()
     }
 
     fun importWallet() {
-        router.openImportAccountScreenFromWallet(SUBSTRATE_BLOCKCHAIN_TYPE)
+        router.openSelectImportModeForResult()
+            .onEach(::handleSelectedImportMode)
+            .launchIn(viewModelScope)
     }
 
     fun onBackClicked() {
@@ -96,5 +111,45 @@ class SelectWalletViewModel @Inject constructor(
 
     fun onWalletOptionsClick(item: WalletItemViewState) {
         router.openOptionsWallet(item.id)
+    }
+
+    private fun handleSelectedImportMode(importMode: ImportMode) {
+        if (importMode == ImportMode.Google) {
+            googleAuthorizeLiveData.value = Event(Unit)
+        } else {
+            router.openImportAccountScreen(
+                blockChainType = SUBSTRATE_BLOCKCHAIN_TYPE,
+                importMode = importMode
+            )
+        }
+    }
+
+    fun authorizeGoogle(launcher: ActivityResultLauncher<Intent>) {
+        launch {
+            backupService.logout()
+            if (backupService.authorize(launcher)) {
+                openAddWalletThroughGoogleScreen()
+            }
+        }
+    }
+
+    fun openAddWalletThroughGoogleScreen() {
+        launch {
+            runCatching {
+                backupService.getBackupAccounts()
+            }.onFailure {
+                showError(
+                    title = resourceManager.getString(R.string.common_error_general_title),
+                    message = resourceManager.getString(R.string.no_access_to_google),
+                    positiveClick = router::back
+                )
+            }.onSuccess { backupAccounts ->
+                router.openImportRemoteWalletDialog()
+            }
+        }
+    }
+
+    fun onGoogleLoginError(message: String?) {
+        showError("GoogleLoginError: ${message.orEmpty()}")
     }
 }

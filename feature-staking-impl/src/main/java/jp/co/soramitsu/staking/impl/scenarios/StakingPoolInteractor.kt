@@ -154,7 +154,7 @@ class StakingPoolInteractor(
         val palletId = relayChainRepository.getNominationPoolPalletId(chain.id)
         val modPrefix = "modl".toByteArray()
         val indexBytes = index.toByte()
-        val poolIdBytes = poolId.toByte()
+        val poolIdBytes = poolId.toByteArray().reversedArray() // reversed for little-endian order
         val empty = ByteArray(32)
         val source = modPrefix + palletId + indexBytes + poolIdBytes + empty
         val encoded = SS58Encoder.encode(source.take(32).toByteArray(), chain.addressPrefix.toShort())

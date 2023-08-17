@@ -2,6 +2,7 @@ package jp.co.soramitsu.wallet.impl.presentation.balance.networkissues
 
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.AssetNotNeedAccountUseCase
 import jp.co.soramitsu.account.api.presentation.actions.AddAccountBottomSheet
@@ -14,7 +15,6 @@ import jp.co.soramitsu.common.mixin.api.NetworkStateUi
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.common.utils.moreThanZero
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
@@ -27,7 +27,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @HiltViewModel
 class NetworkIssuesViewModel @Inject constructor(
@@ -47,25 +46,9 @@ class NetworkIssuesViewModel @Inject constructor(
     private var lastSelectedNetworkIssueState: NetworkIssueItemState? = null
 
     val state = combine(
-        networkStateMixin.networkIssuesFlow
-            .map {
-                it to it.mapNotNull {
-                    walletInteractor.getCurrentAssetOrNull(
-                        chainId = it.chainId,
-                        chainAssetId = it.assetId
-                    )
-                }
-            }
-            .filter {
-                val (_, assets) = it
-                assets.any { !it.markedNotNeed && it.total.moreThanZero() }
-            }
-            .map { it.first }
-            .stateIn(viewModelScope, SharingStarted.Eagerly, emptySet()),
+        networkStateMixin.networkIssuesFlow.stateIn(viewModelScope, SharingStarted.Eagerly, emptySet()),
         walletInteractor.assetsFlow().map {
-            it.filter {
-                !it.hasAccount && !it.asset.markedNotNeed && it.asset.total.moreThanZero()
-            }.map {
+            it.filter { !it.hasAccount && !it.asset.markedNotNeed }.map {
                 NetworkIssueItemState(
                     iconUrl = it.asset.token.configuration.chainIcon ?: it.asset.token.configuration.iconUrl,
                     title = it.asset.token.configuration.chainName,
@@ -80,14 +63,14 @@ class NetworkIssuesViewModel @Inject constructor(
         }
     ) { networkIssues, assetsWoAccount ->
         networkIssues.plus(assetsWoAccount.toSet())
+    }.map {
+        NetworkIssuesState(it.toList())
     }
-        .map { NetworkIssuesState(it.toList()) }
         .stateIn(
             viewModelScope,
             SharingStarted.Eagerly,
             NetworkIssuesState(emptyList())
         )
-
     init {
         walletRouter.listenAlertResultFlowFromNetworkIssuesScreen(KEY_ALERT_RESULT)
             .onEach { onAlertResult(it) }
@@ -105,15 +88,20 @@ class NetworkIssuesViewModel @Inject constructor(
                     chainName = issue.chainName
                 )
             }
+
             NetworkIssueType.Network -> {
                 val payload = AlertViewState(
-                    title = resourceManager.getString(R.string.staking_main_network_title, issue.chainName),
+                    title = resourceManager.getString(
+                        R.string.staking_main_network_title,
+                        issue.chainName
+                    ),
                     message = resourceManager.getString(R.string.network_issue_unavailable),
-                    buttonText = resourceManager.getString(R.string.issue_do_not_show_again),
+                    buttonText = resourceManager.getString(R.string.top_up),
                     iconRes = R.drawable.ic_alert_16
                 )
                 walletRouter.openAlert(payload, KEY_ALERT_RESULT)
             }
+
             NetworkIssueType.Account -> launch {
                 val meta = accountInteractor.selectedMetaAccountFlow().first()
                 val payload = AddAccountBottomSheet.Payload(

@@ -53,6 +53,8 @@ data class MetaAccount(
     override val ethereumAddress: ByteArray?,
     override val ethereumPublicKey: ByteArray?,
     override val isSelected: Boolean,
+    val isBackedUp: Boolean,
+    val googleBackupAddress: String?,
     override val name: String
 ) : LightMetaAccount {
 

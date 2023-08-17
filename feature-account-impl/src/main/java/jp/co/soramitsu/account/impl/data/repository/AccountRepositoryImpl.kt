@@ -13,6 +13,7 @@ import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.account.api.domain.model.cryptoType
 import jp.co.soramitsu.account.api.domain.model.hasChainAccount
 import jp.co.soramitsu.account.impl.data.repository.datasource.AccountDataSource
+import jp.co.soramitsu.backup.domain.models.BackupAccountType
 import jp.co.soramitsu.common.data.Keypair
 import jp.co.soramitsu.common.data.secrets.v2.ChainAccountSecrets
 import jp.co.soramitsu.common.data.secrets.v2.KeyPairSchema
@@ -38,6 +39,7 @@ import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.westendChainId
 import jp.co.soramitsu.shared_utils.encrypt.MultiChainEncryption
 import jp.co.soramitsu.shared_utils.encrypt.json.JsonSeedDecoder
 import jp.co.soramitsu.shared_utils.encrypt.json.JsonSeedEncoder
@@ -55,10 +57,14 @@ import jp.co.soramitsu.shared_utils.scale.EncodableStruct
 import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.addressByte
 import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.toAccountId
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.withContext
 import org.bouncycastle.util.encoders.Hex
 
@@ -117,8 +123,10 @@ class AccountRepositoryImpl(
         return accountDataSource.allMetaAccounts()
     }
 
-    override fun allMetaAccountsFlow(): Flow<List<MetaAccount>> {
-        return accountDataSource.observeAllMetaAccounts().flowOn(Dispatchers.IO)
+    override fun allMetaAccountsFlow(): StateFlow<List<MetaAccount>> {
+        return accountDataSource.observeAllMetaAccounts()
+            .flowOn(Dispatchers.IO)
+            .stateIn(GlobalScope, SharingStarted.Eagerly, emptyList())
     }
 
     override fun lightMetaAccountsFlow(): Flow<List<LightMetaAccount>> {
@@ -131,6 +139,14 @@ class AccountRepositoryImpl(
 
     override suspend fun updateMetaAccountName(metaId: Long, newName: String) {
         return accountDataSource.updateMetaAccountName(metaId, newName)
+    }
+
+    override suspend fun updateMetaAccountBackedUp(metaId: Long) {
+        return accountDataSource.updateMetaAccountBackedUp(metaId)
+    }
+
+    override suspend fun updateWalletOnGoogleBackupDelete(metaId: Long) {
+        return accountDataSource.updateWalletOnGoogleBackupDelete(metaId)
     }
 
     override suspend fun getPreferredCryptoType(): CryptoType {
@@ -158,7 +174,8 @@ class AccountRepositoryImpl(
         mnemonic: String,
         encryptionType: CryptoType,
         substrateDerivationPath: String,
-        ethereumDerivationPath: String
+        ethereumDerivationPath: String,
+        isBackedUp: Boolean
     ) {
         val metaAccountId = saveFromMnemonic(
             accountName,
@@ -166,7 +183,9 @@ class AccountRepositoryImpl(
             substrateDerivationPath,
             ethereumDerivationPath,
             encryptionType,
-            true
+            true,
+            isBackedUp,
+            null
         )
 
         selectAccount(metaAccountId)
@@ -206,18 +225,23 @@ class AccountRepositoryImpl(
         substrateDerivationPath: String,
         ethereumDerivationPath: String,
         selectedEncryptionType: CryptoType,
-        withEth: Boolean
-    ) {
+        withEth: Boolean,
+        isBackedUp: Boolean,
+        googleBackupAddress: String?
+    ): Long {
         val metaAccountId = saveFromMnemonic(
             accountName,
             mnemonic,
             substrateDerivationPath,
             ethereumDerivationPath,
             selectedEncryptionType,
-            withEth
+            withEth,
+            isBackedUp,
+            googleBackupAddress
         )
 
         selectAccount(metaAccountId)
+        return metaAccountId
     }
 
     override suspend fun importChainAccountFromMnemonic(
@@ -237,7 +261,8 @@ class AccountRepositoryImpl(
         username: String,
         derivationPath: String,
         selectedEncryptionType: CryptoType,
-        ethSeed: String?
+        ethSeed: String?,
+        googleBackupAddress: String?
     ) {
         return withContext(Dispatchers.Default) {
             val substrateSeedBytes = Hex.decode(seed.removePrefix("0x"))
@@ -274,7 +299,9 @@ class AccountRepositoryImpl(
                 isSelected = true,
                 position = position,
                 ethereumPublicKey = ethereumKeypair?.publicKey,
-                ethereumAddress = ethereumKeypair?.publicKey?.ethereumAddressFromPublicKey()
+                ethereumAddress = ethereumKeypair?.publicKey?.ethereumAddressFromPublicKey(),
+                isBackedUp = true,
+                googleBackupAddress = googleBackupAddress
             )
 
             val metaAccountId = insertAccount(metaAccount)
@@ -348,11 +375,16 @@ class AccountRepositoryImpl(
         }
     }
 
+    override fun validateJsonBackup(json: String, password: String) {
+        jsonSeedDecoder.decode(json, password)
+    }
+
     override suspend fun importFromJson(
         json: String,
         password: String,
         name: String,
-        ethJson: String?
+        ethJson: String?,
+        googleBackupAddress: String?
     ) {
         return withContext(Dispatchers.Default) {
             val substrateImportData = jsonSeedDecoder.decode(json, password)
@@ -379,7 +411,9 @@ class AccountRepositoryImpl(
                 isSelected = true,
                 position = position,
                 ethereumAddress = ethereumKeypair?.publicKey?.ethereumAddressFromPublicKey(),
-                ethereumPublicKey = ethereumKeypair?.publicKey
+                ethereumPublicKey = ethereumKeypair?.publicKey,
+                isBackedUp = true,
+                googleBackupAddress = googleBackupAddress
             )
 
             val metaAccountId = insertAccount(metaAccount)
@@ -596,7 +630,9 @@ class AccountRepositoryImpl(
         substrateDerivationPath: String,
         ethereumDerivationPath: String,
         cryptoType: CryptoType,
-        withEth: Boolean
+        withEth: Boolean,
+        isBackedUp: Boolean,
+        googleBackupAddress: String?
     ): Long {
         return withContext(Dispatchers.Default) {
             val substrateDerivationPathOrNull = substrateDerivationPath.nullIfEmpty()
@@ -615,12 +651,11 @@ class AccountRepositoryImpl(
             val mnemonic = MnemonicCreator.fromWords(mnemonicWords)
 
             val (ethereumKeypair: Keypair?, ethereumDerivationPathOrDefault: String?) = if (withEth) {
-                val ethereumDerivationPathOrDefault = ethereumDerivationPath.nullIfEmpty() ?: BIP32JunctionDecoder.DEFAULT_DERIVATION_PATH
-                val decodedEthereumDerivationPath = BIP32JunctionDecoder.decode(ethereumDerivationPathOrDefault)
+                val decodedEthereumDerivationPath = BIP32JunctionDecoder.decode(ethereumDerivationPath)
                 val ethereumSeed = EthereumSeedFactory.deriveSeed32(mnemonicWords, password = decodedEthereumDerivationPath.password).seed
                 val ethereumKeypair = EthereumKeypairFactory.generate(ethereumSeed, junctions = decodedEthereumDerivationPath.junctions)
 
-                ethereumKeypair to ethereumDerivationPathOrDefault
+                ethereumKeypair to ethereumDerivationPath
             } else {
                 null to null
             }
@@ -644,7 +679,9 @@ class AccountRepositoryImpl(
                 ethereumAddress = ethereumKeypair?.publicKey?.ethereumAddressFromPublicKey(),
                 name = accountName,
                 isSelected = true,
-                position = position
+                position = position,
+                isBackedUp = isBackedUp,
+                googleBackupAddress = googleBackupAddress
             )
 
             val metaAccountId = insertAccount(metaAccount)
@@ -678,8 +715,7 @@ class AccountRepositoryImpl(
 
         val mnemonic = MnemonicCreator.fromWords(mnemonicWords)
 
-        val ethereumDerivationPathOrDefault = ethereumDerivationPath.nullIfEmpty() ?: BIP32JunctionDecoder.DEFAULT_DERIVATION_PATH
-        val decodedEthereumDerivationPath = BIP32JunctionDecoder.decode(ethereumDerivationPathOrDefault)
+        val decodedEthereumDerivationPath = BIP32JunctionDecoder.decode(ethereumDerivationPath)
         val ethereumSeed = EthereumSeedFactory.deriveSeed32(mnemonicWords, password = decodedEthereumDerivationPath.password).seed
         val ethereumKeypair = EthereumKeypairFactory.generate(ethereumSeed, junctions = decodedEthereumDerivationPath.junctions)
 
@@ -695,7 +731,7 @@ class AccountRepositoryImpl(
         }
 
         val derPath = when {
-            ethereumBased -> ethereumDerivationPathOrDefault
+            ethereumBased -> ethereumDerivationPath
             else -> substrateDerivationPath
         }
 
@@ -763,6 +799,42 @@ class AccountRepositoryImpl(
         return selectedMetaAccountFlow().map {
             val chain = chainRegistry.getChain(polkadotChainId)
             it.address(chain) ?: ""
+        }
+    }
+
+    override suspend fun isGoogleBackupSupported(walletId: Long): Boolean {
+        val meta = getMetaAccountSecrets(walletId)
+        return meta?.get(MetaAccountSecrets.Entropy) != null
+    }
+
+    override suspend fun getSupportedBackupTypes(walletId: Long): Set<BackupAccountType> {
+        val meta = getMetaAccountSecrets(walletId)
+        val types = mutableSetOf<BackupAccountType>()
+        if (meta?.get(MetaAccountSecrets.Entropy) != null) {
+            types.add(BackupAccountType.PASSPHRASE)
+            types.add(BackupAccountType.SEED)
+        }
+
+        if (meta?.get(MetaAccountSecrets.Seed) != null) {
+            types.add(BackupAccountType.SEED)
+        }
+
+        types.add(BackupAccountType.JSON)
+        return types
+    }
+
+    override suspend fun googleBackupAddressForWallet(walletId: Long): String {
+        val wallet = getMetaAccount(walletId)
+        val chain = chainRegistry.getChain(westendChainId)
+        return wallet.googleBackupAddress ?: wallet.address(chain) ?: ""
+    }
+
+    override fun googleAddressAllWalletsFlow(): Flow<List<String>> {
+        return allMetaAccountsFlow().map { allMetaAccounts ->
+            val westendChain = chainRegistry.getChain(westendChainId)
+            allMetaAccounts.mapNotNull {
+                it.googleBackupAddress ?: it.address(westendChain)
+            }
         }
     }
 

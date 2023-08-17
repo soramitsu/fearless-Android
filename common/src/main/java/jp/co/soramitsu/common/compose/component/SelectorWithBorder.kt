@@ -3,7 +3,6 @@ package jp.co.soramitsu.common.compose.component
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -14,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -41,11 +41,12 @@ data class SelectorState(
 fun SelectorWithBorder(
     state: SelectorState,
     modifier: Modifier = Modifier,
+    backgroundColor: Color = black05,
     onClick: () -> Unit = {}
 ) {
     val shape = FearlessCorneredShape()
     BackgroundCorneredWithBorder(
-        backgroundColor = black05,
+        backgroundColor = backgroundColor,
         borderColor = white24,
         shape = shape,
         modifier = modifier
@@ -70,7 +71,9 @@ fun SelectorWithBorder(
                 MarginHorizontal(8.dp)
             }
             Column(
-                modifier = Modifier.align(Alignment.CenterVertically)
+                modifier = Modifier
+                    .align(Alignment.CenterVertically)
+                    .weight(1f)
             ) {
                 H5(
                     text = state.title.withNoFontPadding(),
@@ -82,7 +85,7 @@ fun SelectorWithBorder(
                 }
             }
 
-            Spacer(modifier = Modifier.weight(1f))
+            MarginHorizontal(margin = 4.dp)
             state.actionIcon?.let {
                 Image(res = state.actionIcon, modifier = Modifier.align(Alignment.CenterVertically))
             }
@@ -115,6 +118,9 @@ private fun SelectorWithBorderPreview() {
             )
             SelectorWithBorder(
                 state = state.copy(actionIcon = R.drawable.ic_dots_horizontal_24)
+            )
+            SelectorWithBorder(
+                state = state.copy(subTitle = "Kusama long string", actionIcon = R.drawable.ic_dots_horizontal_24)
             )
         }
     }

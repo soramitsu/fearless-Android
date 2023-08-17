@@ -1,19 +1,27 @@
 package jp.co.soramitsu.account.impl.presentation.importing.remote_backup
 
-import android.app.Activity
+import android.widget.LinearLayout
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.impl.presentation.AccountRouter
+import jp.co.soramitsu.account.impl.presentation.importing.remote_backup.model.BackupOrigin
+import jp.co.soramitsu.account.impl.presentation.importing.remote_backup.model.WrappedBackupAccountMeta
 import jp.co.soramitsu.account.impl.presentation.importing.remote_backup.screens.EnterBackupPasswordState
 import jp.co.soramitsu.account.impl.presentation.importing.remote_backup.screens.RemoteWalletListState
 import jp.co.soramitsu.account.impl.presentation.importing.remote_backup.screens.WalletImportedState
 import jp.co.soramitsu.backup.BackupService
 import jp.co.soramitsu.backup.domain.models.BackupAccountMeta
+import jp.co.soramitsu.backup.domain.models.BackupAccountType
 import jp.co.soramitsu.backup.domain.models.DecryptedBackupAccount
+import jp.co.soramitsu.common.BuildConfig
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.TextInputViewState
+import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.feature_account_impl.R
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -26,39 +34,57 @@ import kotlinx.coroutines.launch
 class ImportRemoteWalletViewModel @Inject constructor(
     private val accountRouter: AccountRouter,
     private val backupService: BackupService,
-    private val interactor: AccountInteractor
+    private val interactor: AccountInteractor,
+    private val resourceManager: ResourceManager
 ) : BaseViewModel(), ImportRemoteWalletCallback {
 
+    private val isLoading = MutableStateFlow(false)
+    private val heightDiffDpFlow = MutableStateFlow(0.dp)
     private val steps = listOf(
         ImportRemoteWalletStep.WalletList,
         ImportRemoteWalletStep.EnterBackupPassword,
         ImportRemoteWalletStep.WalletImported
     )
     private val currentStep = MutableStateFlow(steps.first())
-    private val remoteWallets = MutableStateFlow(emptyList<BackupAccountMeta>())
+    private val remoteWallets = MutableStateFlow<List<WrappedBackupAccountMeta>?>(null)
 
-    private val selectedWallet = MutableStateFlow<BackupAccountMeta?>(null)
+    private val selectedWallet = MutableStateFlow<WrappedBackupAccountMeta?>(null)
     private val walletImportedState = selectedWallet.map { selectedWallet ->
         WalletImportedState(selectedWallet)
     }
 
     private val defaultTextInputViewState = TextInputViewState(
         text = "",
-        hint = "Enter password",
-        placeholder = "",
-        endIcon = null,
-        isActive = true,
+        hint = resourceManager.getString(R.string.import_remote_wallet_hint_enter_password),
+        endIcon = R.drawable.ic_eye_disabled,
         mode = TextInputViewState.Mode.Password
     )
-    private val passwordInputViewState = MutableStateFlow(defaultTextInputViewState)
+
+    private val isPasswordVisible = MutableStateFlow(false)
+    private val passwordText = MutableStateFlow("")
+    private val passwordInputViewState = combine(
+        passwordText,
+        isPasswordVisible
+    ) { password, isVisible ->
+        TextInputViewState(
+            text = password,
+            hint = resourceManager.getString(R.string.import_remote_wallet_hint_enter_password),
+            endIcon = if (isVisible) R.drawable.ic_eye_enabled else R.drawable.ic_eye_disabled,
+            mode = if (isVisible) TextInputViewState.Mode.Text else TextInputViewState.Mode.Password
+        )
+    }.stateIn(this, SharingStarted.Eagerly, defaultTextInputViewState)
 
     private val enterBackupPasswordState = combine(
         selectedWallet,
-        passwordInputViewState
-    ) { selectedWallet, passwordInputViewState ->
+        passwordInputViewState,
+        isLoading,
+        heightDiffDpFlow
+    ) { selectedWallet, passwordInputViewState, isLoading, heightDiffDp ->
         EnterBackupPasswordState(
             wallet = selectedWallet,
-            passwordInputViewState = passwordInputViewState
+            passwordInputViewState = passwordInputViewState,
+            isLoading = isLoading,
+            heightDiffDp = heightDiffDp
         )
     }
     private val remoteWalletListState = remoteWallets.map { wallets ->
@@ -80,9 +106,41 @@ class ImportRemoteWalletViewModel @Inject constructor(
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, initialValue = remoteWalletListState.value)
 
-    override fun onWalletSelected(backupAccount: BackupAccountMeta) {
+    override fun onWalletSelected(backupAccount: WrappedBackupAccountMeta) {
         selectedWallet.value = backupAccount
+        resetPasswordField()
         nextStep()
+    }
+
+    private fun resetPasswordField() {
+        isPasswordVisible.value = false
+        passwordText.value = ""
+    }
+
+    override fun onWalletLongClick(backupAccount: WrappedBackupAccountMeta) {
+        if (!BuildConfig.DEBUG) return
+        if (backupAccount.origin == BackupOrigin.WEB) {
+            showError(
+                title = resourceManager.getString(R.string.common_warning),
+                message = resourceManager.getString(R.string.remove_backup_extension_error_message)
+            )
+        } else {
+            showError(
+                title = resourceManager.getString(R.string.common_confirmation_title),
+                message = resourceManager.getString(R.string.backup_wallet_delete_alert_message),
+                positiveButtonText = resourceManager.getString(R.string.common_delete),
+                negativeButtonText = resourceManager.getString(R.string.common_cancel),
+                buttonsOrientation = LinearLayout.HORIZONTAL,
+                positiveClick = {
+                    launch {
+                        backupService.deleteBackupAccount(backupAccount.backupMeta.address)
+                        val current = remoteWallets.value
+                        val new = current?.minus(backupAccount)
+                        remoteWallets.value = new
+                    }
+                }
+            )
+        }
     }
 
     private fun nextStep() {
@@ -99,10 +157,22 @@ class ImportRemoteWalletViewModel @Inject constructor(
         }
     }
 
-    override fun loadRemoteWallets(activity: Activity) {
+    override fun loadRemoteWallets() {
         viewModelScope.launch {
-            remoteWallets.value = backupService.getBackupAccounts()
+            val backupAccounts = backupService.getBackupAccounts().map(::getWrapped)
+            val webBackupAccounts = backupService.getWebBackupAccounts()
+                .distinctBy { it.address }
+                .map { getWrapped(it, origin = BackupOrigin.WEB) }
+
+            val webBackupNotInCommonBackup = webBackupAccounts.filter {
+                it.backupMeta.address !in backupAccounts.map { it.backupMeta.address }
+            }
+            remoteWallets.value = webBackupNotInCommonBackup + backupAccounts
         }
+    }
+
+    private fun getWrapped(backupMeta: BackupAccountMeta, origin: BackupOrigin = BackupOrigin.APP): WrappedBackupAccountMeta {
+        return WrappedBackupAccountMeta(backupMeta, origin)
     }
 
     private fun hasNextStep(): Boolean {
@@ -116,15 +186,27 @@ class ImportRemoteWalletViewModel @Inject constructor(
     }
 
     override fun onBackClick() {
-        if (hasPreviousStep()) {
-            previousStep()
-        } else {
-            accountRouter.back()
-        }
+        backClicked()
     }
 
     override fun onCreateNewWallet() {
-        accountRouter.openCreateWalletDialog()
+        accountRouter.openCreateWalletDialog(true)
+    }
+
+    fun backClicked() {
+        when (currentStep.value) {
+            ImportRemoteWalletStep.WalletList -> {
+                accountRouter.back()
+            }
+
+            ImportRemoteWalletStep.EnterBackupPassword -> {
+                previousStep()
+            }
+
+            ImportRemoteWalletStep.WalletImported -> {
+                openMainScreen()
+            }
+        }
     }
 
     override fun onContinueClick() {
@@ -132,9 +214,11 @@ class ImportRemoteWalletViewModel @Inject constructor(
             ImportRemoteWalletStep.WalletList -> {
                 /* ignore */
             }
+
             ImportRemoteWalletStep.EnterBackupPassword -> {
                 decryptWalletByPassword()
             }
+
             ImportRemoteWalletStep.WalletImported -> {
                 openMainScreen()
             }
@@ -142,44 +226,108 @@ class ImportRemoteWalletViewModel @Inject constructor(
     }
 
     private fun decryptWalletByPassword() {
+        isLoading.value = true
         viewModelScope.launch {
             runCatching {
-                val decryptedBackupAccount = backupService.importBackupAccount(
-                    address = selectedWallet.value!!.address,
-                    password = passwordInputViewState.value.text
-                )
-                importFromMnemonic(decryptedBackupAccount)
+                val backupAccountMeta = selectedWallet.value
+                val decryptedBackupAccount = when (backupAccountMeta?.origin) {
+                    null -> return@launch
+                    BackupOrigin.APP -> backupService.importBackupAccount(
+                        address = backupAccountMeta.backupMeta.address,
+                        password = passwordText.value
+                    )
+
+                    BackupOrigin.WEB -> backupService.importWebBackupAccount(
+                        address = backupAccountMeta.backupMeta.address,
+                        name = selectedWallet.value?.backupMeta?.name.orEmpty()
+                    )
+                }
+
+                if (decryptedBackupAccount.backupAccountType.contains(BackupAccountType.JSON)) {
+                    val json = decryptedBackupAccount.json?.substrateJson ?: decryptedBackupAccount.json?.ethJson ?: error("No JSON backup found")
+                    interactor.validateJsonBackup(json, passwordText.value)
+                }
+
+                importFromBackup(decryptedBackupAccount)
                 nextStep()
+                isLoading.value = false
             }
                 .onFailure {
-                    // TODO: Handle exception
+                    isLoading.value = false
+                    handleDecryptException(it)
                 }
         }
     }
 
-    private suspend fun importFromMnemonic(
+    private fun handleDecryptException(throwable: Throwable) {
+        throwable.printStackTrace()
+        showError(resourceManager.getString(R.string.import_json_invalid_password))
+    }
+
+    private suspend fun importFromBackup(
         decryptedBackupAccount: DecryptedBackupAccount
     ) {
-        interactor.importFromMnemonic(
-            walletName = decryptedBackupAccount.name,
-            mnemonic = decryptedBackupAccount.mnemonicPhrase.orEmpty(), // TODO: Backup fix
-            substrateDerivationPath = decryptedBackupAccount.substrateDerivationPath.orEmpty(), // TODO: Backup fix
-            ethereumDerivationPath = decryptedBackupAccount.ethDerivationPath.orEmpty(), // TODO: Backup fix
-            selectedEncryptionType = decryptedBackupAccount.cryptoType,
-            withEth = true
-        ).getOrThrow()
+        decryptedBackupAccount.mnemonicPhrase?.let { mnemonicPhrase ->
+            interactor.importFromMnemonic(
+                walletName = decryptedBackupAccount.name,
+                mnemonic = mnemonicPhrase,
+                substrateDerivationPath = decryptedBackupAccount.substrateDerivationPath.orEmpty(),
+                ethereumDerivationPath = decryptedBackupAccount.ethDerivationPath.orEmpty(),
+                selectedEncryptionType = decryptedBackupAccount.cryptoType,
+                withEth = true,
+                isBackedUp = true,
+                googleBackupAddress = decryptedBackupAccount.address
+            ).getOrThrow()
+            return
+        }
+
+        decryptedBackupAccount.seed?.let { seed ->
+            interactor.importFromSeed(
+                substrateSeed = seed.substrateSeed.orEmpty(),
+                username = decryptedBackupAccount.name,
+                derivationPath = decryptedBackupAccount.substrateDerivationPath.orEmpty(),
+                selectedEncryptionType = decryptedBackupAccount.cryptoType,
+                ethSeed = seed.ethSeed,
+                googleBackupAddress = decryptedBackupAccount.address
+            )
+            return
+        }
+
+        decryptedBackupAccount.json?.let { json ->
+            interactor.importFromJson(
+                json = json.substrateJson.orEmpty(),
+                password = passwordText.value,
+                name = decryptedBackupAccount.name,
+                ethJson = json.ethJson,
+                googleBackupAddress = decryptedBackupAccount.address
+            )
+            return
+        }
     }
 
     private fun openMainScreen() {
-        accountRouter.openCreateWalletDialog()
+        launch {
+            if (interactor.isCodeSet()) {
+                accountRouter.openMain()
+            } else {
+                accountRouter.openCreatePincode()
+            }
+        }
     }
 
     override fun onPasswordChanged(password: String) {
-        passwordInputViewState.value = passwordInputViewState.value.copy(
-            text = password
-        )
+        passwordText.value = password
     }
 
     override fun onImportMore() {
+        accountRouter.openImportRemoteWalletDialog()
+    }
+
+    override fun onPasswordVisibilityClick() {
+        isPasswordVisible.value = isPasswordVisible.value.not()
+    }
+
+    fun setHeightDiffDp(value: Dp) {
+        heightDiffDpFlow.value = value
     }
 }

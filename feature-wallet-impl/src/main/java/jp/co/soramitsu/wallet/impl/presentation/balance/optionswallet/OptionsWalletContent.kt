@@ -1,23 +1,29 @@
 package jp.co.soramitsu.wallet.impl.presentation.balance.optionswallet
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import jp.co.soramitsu.common.BuildConfig
 import jp.co.soramitsu.common.compose.component.BottomSheetScreen
 import jp.co.soramitsu.common.compose.component.GrayButton
-import jp.co.soramitsu.common.compose.component.H3
+import jp.co.soramitsu.common.compose.component.H4
 import jp.co.soramitsu.common.compose.component.MarginVertical
+import jp.co.soramitsu.common.compose.component.NavigationIconButton
 import jp.co.soramitsu.common.compose.component.TextButton
-import jp.co.soramitsu.common.compose.theme.FearlessTheme
+import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
 import jp.co.soramitsu.common.compose.theme.colorAccentDark
 import jp.co.soramitsu.common.compose.theme.customButtonColors
+import jp.co.soramitsu.common.compose.theme.customTypography
 import jp.co.soramitsu.common.compose.theme.grayButtonBackground
 import jp.co.soramitsu.feature_wallet_impl.R
 
@@ -27,13 +33,15 @@ data class OptionsWalletScreenViewState(
 
 interface OptionsWalletCallback {
 
-    fun onExportWalletClick()
+    fun onChangeWalletNameClick()
 
     fun onWalletDetailsClick()
 
     fun onBackupWalletClick()
 
     fun onDeleteWalletClick()
+
+    fun onCloseClick()
 }
 
 @Composable
@@ -47,47 +55,65 @@ fun OptionsWalletContent(
                 .padding(horizontal = 16.dp)
                 .fillMaxWidth()
         ) {
-            H3(text = stringResource(id = R.string.common_title_wallet_option))
-            MarginVertical(margin = 28.dp)
-            if (BuildConfig.DEBUG) {
-                GrayButton(
-                    text = stringResource(id = R.string.common_backup_wallet),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(48.dp)
+            Box(
+                modifier = Modifier
+                    .height(32.dp)
+                    .fillMaxWidth()
+            ) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
                 ) {
-                    callback.onBackupWalletClick()
+                    H4(
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = TextAlign.Center,
+                        text = stringResource(id = R.string.common_title_wallet_option)
+                    )
                 }
-                MarginVertical(margin = 12.dp)
+                Box(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.CenterEnd
+                ) {
+                    NavigationIconButton(
+                        navigationIconResId = R.drawable.ic_cross_32,
+                        onNavigationClick = callback::onCloseClick
+                    )
+                }
             }
+            MarginVertical(margin = 28.dp)
+            GrayButton(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp),
+                text = stringResource(id = R.string.export_wallet),
+                onClick = callback::onBackupWalletClick
+            )
+            MarginVertical(margin = 12.dp)
             GrayButton(
                 text = stringResource(id = R.string.common_details_wallet),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(48.dp)
-            ) {
-                callback.onWalletDetailsClick()
-            }
+                    .height(48.dp),
+                onClick = callback::onWalletDetailsClick
+            )
             MarginVertical(margin = 12.dp)
             GrayButton(
-                text = stringResource(id = R.string.common_export_wallet),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(48.dp)
-            ) {
-                callback.onExportWalletClick()
-            }
+                    .height(48.dp),
+                text = stringResource(id = R.string.change_wallet_name),
+                onClick = callback::onChangeWalletNameClick
+            )
             if (!state.isSelected) {
                 MarginVertical(margin = 12.dp)
                 TextButton(
-                    text = stringResource(id = R.string.common_delete_wallet),
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(48.dp),
-                    colors = customButtonColors(grayButtonBackground, colorAccentDark)
-                ) {
-                    callback.onDeleteWalletClick()
-                }
+                    textStyle = MaterialTheme.customTypography.header4,
+                    text = stringResource(id = R.string.common_delete_wallet),
+                    colors = customButtonColors(grayButtonBackground, colorAccentDark),
+                    onClick = callback::onDeleteWalletClick)
             }
             MarginVertical(margin = 12.dp)
         }
@@ -97,24 +123,17 @@ fun OptionsWalletContent(
 @Preview
 @Composable
 private fun OptionsWalletScreenPreview() {
-    FearlessTheme {
+    FearlessAppTheme() {
         OptionsWalletContent(
             state = OptionsWalletScreenViewState(
                 isSelected = false
             ),
             callback = object : OptionsWalletCallback {
-
-                override fun onExportWalletClick() {
-                }
-
-                override fun onWalletDetailsClick() {
-                }
-
-                override fun onBackupWalletClick() {
-                }
-
-                override fun onDeleteWalletClick() {
-                }
+                override fun onChangeWalletNameClick() {}
+                override fun onWalletDetailsClick() {}
+                override fun onBackupWalletClick() {}
+                override fun onDeleteWalletClick() {}
+                override fun onCloseClick() {}
             }
         )
     }

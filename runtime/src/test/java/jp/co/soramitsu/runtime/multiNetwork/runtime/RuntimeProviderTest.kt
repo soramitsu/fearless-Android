@@ -199,6 +199,13 @@ class RuntimeProviderTest {
     }
 
     private fun initProvider() {
-        runtimeProvider = RuntimeProvider(runtimeFactory, runtimeSyncService, runtimeFilesCache, chainDao, chain)
+        runtimeProvider = RuntimeProvider(
+            runtimeFactory,
+            runtimeSyncService,
+            runtimeFilesCache,
+            chainDao,
+            networkStateMixin,
+            chain
+        )
     }
 }

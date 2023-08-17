@@ -3,6 +3,7 @@ package jp.co.soramitsu.account.impl.presentation.exporting.mnemonic
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.SavedStateHandle
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.presentation.exporting.ExportSource
 import jp.co.soramitsu.account.impl.presentation.AccountRouter
@@ -21,7 +22,6 @@ import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.shared_utils.encrypt.junction.BIP32JunctionDecoder
 import jp.co.soramitsu.shared_utils.encrypt.mnemonic.Mnemonic
 import jp.co.soramitsu.shared_utils.encrypt.mnemonic.MnemonicCreator
-import javax.inject.Inject
 
 @HiltViewModel
 class ExportMnemonicViewModel @Inject constructor(
@@ -109,7 +109,7 @@ class ExportMnemonicViewModel @Inject constructor(
     fun openConfirmMnemonic() {
         val mnemonicSource = mnemonicSourceLiveData.value ?: return
 
-        router.openConfirmMnemonicOnExport(mnemonicSource.wordList)
+        router.openConfirmMnemonicOnExport(mnemonicSource.wordList, metaId)
     }
 
     override fun securityWarningCancel() {

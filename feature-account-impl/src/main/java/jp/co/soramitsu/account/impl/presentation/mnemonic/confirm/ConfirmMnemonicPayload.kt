@@ -8,6 +8,7 @@ import kotlinx.parcelize.Parcelize
 @Parcelize
 class ConfirmMnemonicPayload(
     val mnemonic: List<String>,
+    val metaId: Long?,
     val createExtras: CreateExtras?
 ) : Parcelable {
     @Parcelize

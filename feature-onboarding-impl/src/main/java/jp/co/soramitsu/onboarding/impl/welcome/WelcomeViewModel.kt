@@ -2,7 +2,6 @@ package jp.co.soramitsu.onboarding.impl.welcome
 
 import android.content.Intent
 import androidx.activity.result.ActivityResultLauncher
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
@@ -14,11 +13,11 @@ import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.mixin.api.Browserable
 import jp.co.soramitsu.common.utils.Event
-import jp.co.soramitsu.feature_onboarding_impl.BuildConfig
 import jp.co.soramitsu.onboarding.impl.OnboardingRouter
 import jp.co.soramitsu.onboarding.impl.welcome.WelcomeFragment.Companion.KEY_PAYLOAD
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -32,11 +31,11 @@ class WelcomeViewModel @Inject constructor(
     private val appLinksProvider: AppLinksProvider,
     savedStateHandle: SavedStateHandle,
     private val backupService: BackupService
-) : BaseViewModel(), Browserable {
+) : BaseViewModel(), Browserable, WelcomeScreenInterface {
 
     private val payload = savedStateHandle.get<WelcomeFragmentPayload>(KEY_PAYLOAD)!!
 
-    val shouldShowBackLiveData: LiveData<Boolean> = MutableLiveData(payload.displayBack)
+    val state = MutableStateFlow(WelcomeState(isBackVisible = payload.displayBack))
 
     private val _events = Channel<WelcomeEvent>(
         capacity = Int.MAX_VALUE,
@@ -55,21 +54,17 @@ class WelcomeViewModel @Inject constructor(
         }
     }
 
-    fun createAccountClicked() {
+    override fun createAccountClicked() {
         router.openCreateAccountFromOnboarding()
     }
+    override fun googleSigninClicked() {
+        _events.trySend(WelcomeEvent.AuthorizeGoogle)
+    }
 
-    fun importAccountClicked() {
-        if (BuildConfig.DEBUG) {
+    override fun importAccountClicked() {
             router.openSelectImportModeForResult()
                 .onEach(::handleSelectedImportMode)
                 .launchIn(viewModelScope)
-        } else {
-            router.openImportAccountScreen(
-                blockChainType = SUBSTRATE_BLOCKCHAIN_TYPE,
-                importMode = ImportMode.MnemonicPhrase
-            )
-        }
     }
 
     private fun handleSelectedImportMode(importMode: ImportMode) {
@@ -85,34 +80,35 @@ class WelcomeViewModel @Inject constructor(
 
     fun authorizeGoogle(launcher: ActivityResultLauncher<Intent>) {
         viewModelScope.launch {
-            val isAuthorized = backupService.authorize(launcher)
-            if (isAuthorized) {
-                openAddWalletThroughGoogleScreen()
+            try {
+                backupService.logout()
+                if (backupService.authorize(launcher)) {
+                    openAddWalletThroughGoogleScreen()
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                showError(e)
             }
         }
     }
 
-    fun termsClicked() {
+    override fun termsClicked() {
         openBrowserEvent.value = Event(appLinksProvider.termsUrl)
     }
 
-    fun privacyClicked() {
+    override fun privacyClicked() {
         openBrowserEvent.value = Event(appLinksProvider.privacyUrl)
     }
 
-    private suspend fun openAddWalletThroughGoogleScreen() {
-        if (backupService.getBackupAccounts().isEmpty()) {
-            router.openCreateWalletDialog()
-        } else {
-            router.openImportRemoteWalletDialog()
-        }
+    fun openAddWalletThroughGoogleScreen() {
+        router.openImportRemoteWalletDialog()
     }
 
-    fun onGoogleLoginError() {
-        // TODO: Login error
+    fun onGoogleLoginError(message: String?) {
+        showError("GoogleLoginError\n$message")
     }
 
-    fun backClicked() {
+    override fun backClicked() {
         router.back()
     }
 }
