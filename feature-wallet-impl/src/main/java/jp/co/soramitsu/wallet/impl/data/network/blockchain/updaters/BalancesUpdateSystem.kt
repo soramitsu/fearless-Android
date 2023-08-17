@@ -127,12 +127,12 @@ class BalancesUpdateSystem(
 
                             storageKeys.map { keyWithMetadata ->
                                 val hexRaw =
-                                    storageKeyToHex.first { it.first == keyWithMetadata.key }
+                                    storageKeyToHex.firstOrNull { it.first == keyWithMetadata.key }
 
                                 val balanceData = handleBalanceResponse(
                                     runtime,
                                     keyWithMetadata.asset.typeExtra,
-                                    hexRaw.second,
+                                    hexRaw?.second,
                                     runtimeVersion
                                 ).onFailure { logError(chain, it) }
 
