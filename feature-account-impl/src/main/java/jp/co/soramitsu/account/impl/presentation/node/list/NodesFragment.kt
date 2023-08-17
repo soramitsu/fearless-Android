@@ -103,7 +103,7 @@ class NodesFragment : BaseFragment<NodesViewModel>(), NodesAdapter.NodeItemHandl
         ErrorDialog(
             title = res.getString(R.string.delete_custom_node_title),
             message = nodeModel.name,
-            positiveButtonText = res.getString(R.string.connection_delete_confirm),
+            positiveButtonText = res.getString(R.string.common_delete),
             negativeButtonText = res.getString(R.string.common_cancel),
             positiveClick = { viewModel.confirmNodeDeletion(nodeModel) }
         ).show(childFragmentManager)

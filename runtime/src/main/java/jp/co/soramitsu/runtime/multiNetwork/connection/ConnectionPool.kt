@@ -18,12 +18,15 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+
+private const val ConnectingStatusDebounce = 750L
 
 class ConnectionPool @Inject constructor(
     private val socketServiceProvider: Provider<SocketService>,
@@ -49,26 +52,28 @@ class ConnectionPool @Inject constructor(
 
     private val connectionIssues = connectionWatcher.flatMapLatest {
         val connListFlow = pool.map {
+
             it.value.isConnecting.map { isConnecting ->
                 it.value.chain to isConnecting
             }
         }
         val connectionIssues = combine(connListFlow) { chains ->
-            val issues = chains.filter { (_, isConnecting) -> isConnecting }.mapNotNull { (iChain, _) ->
-                val chain = iChain as? Chain ?: return@mapNotNull null
-                NetworkIssueItemState(
-                    iconUrl = chain.icon,
-                    title = chain.name,
-                    type = when {
-                        chain.nodes.size > 1 -> NetworkIssueType.Node
-                        else -> NetworkIssueType.Network
-                    },
-                    chainId = chain.id,
-                    chainName = chain.name,
-                    assetId = chain.utilityAsset?.id.orEmpty(),
-                    priceId = chain.utilityAsset?.priceId
-                )
-            }
+            val issues =
+                chains.filter { (_, isConnecting) -> isConnecting }.mapNotNull { (iChain, _) ->
+                    val chain = iChain as? Chain ?: return@mapNotNull null
+                    NetworkIssueItemState(
+                        iconUrl = chain.icon,
+                        title = chain.name,
+                        type = when {
+                            chain.nodes.size > 1 -> NetworkIssueType.Node
+                            else -> NetworkIssueType.Network
+                        },
+                        chainId = chain.id,
+                        chainName = chain.name,
+                        assetId = chain.utilityAsset?.id.orEmpty(),
+                        priceId = chain.utilityAsset?.priceId
+                    )
+                }
             issues
         }
 
@@ -79,15 +84,23 @@ class ConnectionPool @Inject constructor(
         val isConnectedListFlow = pool.map { it.value.isConnected }
         val hasConnectionsFlow = combine(isConnectedListFlow) { it.any { it } }
 
+        val isPausedListFlow = pool.map { it.value.isPaused }
+        val hasPausesFlow = combine(isPausedListFlow) { it.any { it } }
+
         val isConnectingListFlow = pool.map { it.value.isConnecting }
         val hasConnectingFlow = combine(isConnectingListFlow) { it.any { it } }
             .filter { connecting -> connecting }
-        val showConnecting = combine(hasConnectionsFlow, hasConnectingFlow) { connected, connecting ->
-            !connected && connecting
+        val showConnecting = combine(
+            hasConnectionsFlow,
+            hasConnectingFlow,
+            hasPausesFlow
+        ) { connected, connecting, paused ->
+            !(connected || paused) && connecting
         }
         showConnecting
     }
         .distinctUntilChanged()
+        .debounce(ConnectingStatusDebounce)
 
     init {
         connections.onEach {
@@ -107,7 +120,10 @@ class ConnectionPool @Inject constructor(
 
     fun getConnectionOrNull(chainId: ChainId): ChainConnection? = pool.getOrDefault(chainId, null)
 
-    fun setupConnection(chain: Chain, onSelectedNodeChange: (chainId: ChainId, newNodeUrl: String) -> Unit): ChainConnection {
+    fun setupConnection(
+        chain: Chain,
+        onSelectedNodeChange: (chainId: ChainId, newNodeUrl: String) -> Unit
+    ): ChainConnection {
         var isNew = false
         val connection = pool.getOrPut(chain.id) {
             isNew = true

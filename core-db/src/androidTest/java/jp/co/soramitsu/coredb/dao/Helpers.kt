@@ -34,7 +34,6 @@ fun chainOf(
     parentId = null,
     name = name,
     icon = "Test",
-    types = null,
     prefix = 0,
     isTestNet = false,
     isEthereumBased = false,
@@ -66,13 +65,13 @@ fun ChainLocal.assetOf(
     staking = "test",
     icon = "",
     priceProviders = null,
-    nativeChainId = null,
     symbol = symbol,
     isUtility = null,
     type = null,
-    displayName = null,
     currencyId = null,
-    existentialDeposit = null
+    existentialDeposit = null,
+    color = null,
+    isNative = null
 )
 
 suspend fun ChainDao.addChain(joinedChainInfo: JoinedChainInfo) {

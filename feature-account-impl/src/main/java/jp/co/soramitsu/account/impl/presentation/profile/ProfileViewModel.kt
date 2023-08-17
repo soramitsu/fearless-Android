@@ -30,7 +30,6 @@ import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.oauth.base.sdk.SoraCardEnvironmentType
-import jp.co.soramitsu.oauth.base.sdk.SoraCardInfo
 import jp.co.soramitsu.oauth.base.sdk.SoraCardKycCredentials
 import jp.co.soramitsu.oauth.base.sdk.contract.SoraCardCommonVerification
 import jp.co.soramitsu.oauth.base.sdk.contract.SoraCardContractData
@@ -176,19 +175,16 @@ class ProfileViewModel @Inject constructor(
                         BuildConfig.DEBUG -> SoraCardEnvironmentType.TEST
                         else -> SoraCardEnvironmentType.PRODUCTION
                     },
-                    soraCardInfo = soraCardState?.soraCardInfo?.let {
-                        SoraCardInfo(
-                            accessToken = it.accessToken,
-                            refreshToken = it.refreshToken,
-                            accessTokenExpirationTime = it.accessTokenExpirationTime
-                        )
-                    },
                     kycCredentials = SoraCardKycCredentials(
                         endpointUrl = BuildConfig.SORA_CARD_KYC_ENDPOINT_URL,
                         username = BuildConfig.SORA_CARD_KYC_USERNAME,
                         password = BuildConfig.SORA_CARD_KYC_PASSWORD
                     ),
-                    client = OptionsProvider.header
+                    client = OptionsProvider.header,
+                    userAvailableXorAmount = 0.0, // userAvailableXorAmount,
+                    areAttemptsPaidSuccessfully = false, // will be available in Phase 2
+                    isEnoughXorAvailable = false, // isEnoughXorAvailable,
+                    isIssuancePaid = false // will be available in Phase 2
                 )
             )
         }
@@ -207,9 +203,6 @@ class ProfileViewModel @Inject constructor(
             }
             SoraCardCommonVerification.Failed -> {
                 resourceManager.getString(SoraCardR.string.verification_failed_title)
-            }
-            SoraCardCommonVerification.NoFreeAttempt -> {
-                resourceManager.getString(SoraCardR.string.no_free_kyc_attempts_title)
             }
             else -> {
                 null

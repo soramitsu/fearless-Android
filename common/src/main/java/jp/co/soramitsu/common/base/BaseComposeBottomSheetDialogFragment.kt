@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
+import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -72,9 +73,12 @@ abstract class BaseComposeBottomSheetDialogFragment<T : BaseViewModel> : BottomS
             showErrorDialog(
                 title = errorDialogState.title,
                 message = errorDialogState.message,
+                buttonsOrientation = errorDialogState.buttonsOrientation,
                 positiveButtonText = errorDialogState.positiveButtonText,
                 negativeButtonText = errorDialogState.negativeButtonText,
-                positiveClick = errorDialogState.positiveClick
+                positiveClick = errorDialogState.positiveClick,
+                onBackClick = errorDialogState.onBackClick,
+                isHideable = errorDialogState.isHideable
             )
         }
     }
@@ -84,14 +88,20 @@ abstract class BaseComposeBottomSheetDialogFragment<T : BaseViewModel> : BottomS
         message: String,
         positiveButtonText: String? = requireContext().resources.getString(R.string.common_ok),
         negativeButtonText: String? = null,
-        positiveClick: () -> Unit = emptyClick
+        buttonsOrientation: Int = LinearLayout.VERTICAL,
+        positiveClick: () -> Unit = emptyClick,
+        onBackClick: () -> Unit = emptyClick,
+        isHideable: Boolean = true
     ) {
         ErrorDialog(
             title = title,
             message = message,
+            buttonsOrientation = buttonsOrientation,
             positiveButtonText = positiveButtonText,
             negativeButtonText = negativeButtonText,
-            positiveClick = positiveClick
+            positiveClick = positiveClick,
+            onBackClick = onBackClick,
+            isHideable = isHideable
         ).show(childFragmentManager)
     }
 

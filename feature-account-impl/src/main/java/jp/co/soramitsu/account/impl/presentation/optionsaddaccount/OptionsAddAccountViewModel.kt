@@ -62,10 +62,14 @@ class OptionsAddAccountViewModel @Inject constructor(
         accountRouter.openOnboardingNavGraph(chainId = chainId, metaId = metaId, isImport = true)
     }
 
-    fun noNeedAccount(chainId: ChainId, metaId: Long) {
+    fun dontShowAgainClicked(chainId: ChainId, metaId: Long) {
         launch {
             assetNotNeedAccount.markChainAssetsNotNeed(chainId = chainId, metaId = metaId)
             accountRouter.back()
         }
+    }
+
+    fun onBackClicked() {
+        accountRouter.back()
     }
 }

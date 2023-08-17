@@ -43,6 +43,7 @@ import jp.co.soramitsu.common.compose.component.Toolbar
 import jp.co.soramitsu.common.compose.component.ToolbarViewState
 import jp.co.soramitsu.common.compose.component.TransparentButton
 import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
+import jp.co.soramitsu.common.compose.theme.backgroundBlack
 import jp.co.soramitsu.common.compose.theme.errorRed
 import jp.co.soramitsu.common.utils.formatCryptoDetail
 import jp.co.soramitsu.common.utils.formatFiat
@@ -230,7 +231,7 @@ private fun AnnualFee() {
             .fillMaxWidth()
             .padding(horizontal = 8.dp),
         cornerRadius = 12.dp,
-        backgroundColor = Color(0xFF131313),
+        backgroundColor = backgroundBlack,
         elevation = 0.dp
     ) {
         Row(
@@ -267,7 +268,7 @@ private fun FreeCardIssuance(
             .fillMaxWidth()
             .padding(horizontal = 8.dp),
         cornerRadius = 12.dp,
-        backgroundColor = Color(0xFF131313),
+        backgroundColor = backgroundBlack,
         elevation = 0.dp
     ) {
         Column(

@@ -14,8 +14,8 @@ import jp.co.soramitsu.runtime.BuildConfig
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.connection.ConnectionPool
 import jp.co.soramitsu.runtime.multiNetwork.runtime.types.TypesFetcher
+import jp.co.soramitsu.runtime.network.executeAsyncCatching
 import jp.co.soramitsu.shared_utils.runtime.metadata.GetMetadataRequest
-import jp.co.soramitsu.shared_utils.wsrpc.executeAsync
 import jp.co.soramitsu.shared_utils.wsrpc.mappers.nonNull
 import jp.co.soramitsu.shared_utils.wsrpc.mappers.pojo
 import kotlinx.coroutines.CoroutineScope
@@ -26,7 +26,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.jsonObject
@@ -49,7 +48,8 @@ class RuntimeSyncService(
     private val connectionPool: ConnectionPool
 ) : CoroutineScope by CoroutineScope(Dispatchers.Default), UpdatesProviderUi by updatesMixin {
 
-    private val syncDispatcher = newLimitedThreadPoolExecutor(maxConcurrentUpdates).asCoroutineDispatcher()
+    private val syncDispatcher =
+        newLimitedThreadPoolExecutor(maxConcurrentUpdates).asCoroutineDispatcher()
     private val knownChains = ConcurrentSet<String>()
 
     private val syncingChains = ConcurrentHashMap<String, Job>()
@@ -104,13 +104,20 @@ class RuntimeSyncService(
         val runtimeInfo = chainDao.runtimeInfo(chainId) ?: return
 
         val metadataHash = if (force || runtimeInfo.shouldSyncMetadata()) {
-            val runtimeMetadata = connectionPool.getConnection(chainId).socketService.executeAsync(GetMetadataRequest, mapper = pojo<String>().nonNull())
+            val runtimeMetadata =
+                connectionPool.getConnection(chainId).socketService.executeAsyncCatching(
+                    GetMetadataRequest,
+                    mapper = pojo<String>().nonNull()
+                ).getOrNull()
 
-            runtimeFilesCache.saveChainMetadata(chainId, runtimeMetadata)
+            runtimeMetadata?.let {
 
-            chainDao.updateSyncedRuntimeVersion(chainId, runtimeInfo.remoteVersion)
+                runtimeFilesCache.saveChainMetadata(chainId, runtimeMetadata)
 
-            runtimeMetadata.md5()
+                chainDao.updateSyncedRuntimeVersion(chainId, runtimeInfo.remoteVersion)
+
+                runtimeMetadata.md5()
+            }
         } else {
             null
         }
@@ -134,7 +141,8 @@ class RuntimeSyncService(
         val array = Json.decodeFromString<JsonArray>(types)
         val chainIdToTypes =
             array.mapNotNull { element ->
-                val chainId = element.jsonObject["chainId"]?.jsonPrimitive?.content ?: return@mapNotNull null
+                val chainId =
+                    element.jsonObject["chainId"]?.jsonPrimitive?.content ?: return@mapNotNull null
                 ChainTypesLocal(chainId, element.toString())
             }
         chainDao.insertTypes(chainIdToTypes)

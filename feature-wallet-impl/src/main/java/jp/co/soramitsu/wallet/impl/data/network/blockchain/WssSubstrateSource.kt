@@ -14,8 +14,11 @@ import jp.co.soramitsu.common.data.network.runtime.binding.Phase
 import jp.co.soramitsu.common.data.network.runtime.binding.bindEquilibriumAssetRates
 import jp.co.soramitsu.common.data.network.runtime.binding.bindExtrinsicStatusEventRecords
 import jp.co.soramitsu.common.data.network.runtime.binding.bindOrNull
+import jp.co.soramitsu.common.utils.Calls
+import jp.co.soramitsu.common.data.network.runtime.binding.getTyped
 import jp.co.soramitsu.common.utils.Modules
 import jp.co.soramitsu.common.utils.orZero
+import jp.co.soramitsu.common.utils.staking
 import jp.co.soramitsu.common.utils.system
 import jp.co.soramitsu.common.utils.tokens
 import jp.co.soramitsu.common.utils.u64ArgumentFromStorageKey
@@ -24,15 +27,19 @@ import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.core.models.ChainAssetType
 import jp.co.soramitsu.core.rpc.RpcCalls
 import jp.co.soramitsu.core.rpc.calls.getBlock
+import jp.co.soramitsu.core.runtime.storage.returnType
 import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 import jp.co.soramitsu.runtime.storage.source.queryNonNull
+import jp.co.soramitsu.shared_utils.extensions.fromHex
 import jp.co.soramitsu.shared_utils.runtime.AccountId
 import jp.co.soramitsu.shared_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.shared_utils.runtime.definitions.registry.TypeRegistry
 import jp.co.soramitsu.shared_utils.runtime.definitions.types.composite.DictEnum
+import jp.co.soramitsu.shared_utils.runtime.definitions.types.composite.Struct
+import jp.co.soramitsu.shared_utils.runtime.definitions.types.fromHexOrNull
 import jp.co.soramitsu.shared_utils.runtime.definitions.types.primitives.FixedByteArray
 import jp.co.soramitsu.shared_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.shared_utils.runtime.metadata.module
@@ -176,14 +183,13 @@ class WssSubstrateSource(
         chain: Chain,
         transfer: Transfer,
         additional: (suspend ExtrinsicBuilder.() -> Unit)?,
-        batchAll: Boolean,
-        allowDeath: Boolean
+        batchAll: Boolean
     ): BigInteger {
         return extrinsicService.estimateFee(
             chain = chain,
             useBatchAll = batchAll,
             formExtrinsic = {
-                transfer(chain, transfer, this.runtime.typeRegistry, allowDeath)
+                transfer(chain, transfer, this.runtime.typeRegistry)
                 additional?.invoke(this)
             }
         )
@@ -195,8 +201,7 @@ class WssSubstrateSource(
         transfer: Transfer,
         tip: BigInteger?,
         additional: (suspend ExtrinsicBuilder.() -> Unit)?,
-        batchAll: Boolean,
-        allowDeath: Boolean
+        batchAll: Boolean
     ): String {
         return extrinsicService.submitExtrinsic(
             chain = chain,
@@ -204,7 +209,7 @@ class WssSubstrateSource(
             useBatchAll = batchAll,
             tip = tip,
             formExtrinsic = {
-                transfer(chain, transfer, this.runtime.typeRegistry, allowDeath)
+                transfer(chain, transfer, this.runtime.typeRegistry)
                 additional?.invoke(this)
             }
         ).getOrThrow()
@@ -237,6 +242,28 @@ class WssSubstrateSource(
         }
     }
 
+    override suspend fun getControllerAccount(chainId: ChainId, currentAccountId: AccountId): AccountId? {
+        return remoteStorageSource.query(
+            chainId = chainId,
+            keyBuilder = { runtime -> runtime.metadata.staking().storage("Bonded").storageKey(runtime, currentAccountId) },
+            binding = { scale, _ -> scale?.fromHex() }
+        )
+    }
+
+    override suspend fun getStashAccount(chainId: ChainId, currentAccountId: AccountId): AccountId? {
+        return remoteStorageSource.query(
+            chainId = chainId,
+            keyBuilder = { runtime -> runtime.metadata.staking().storage("Ledger").storageKey(runtime, currentAccountId) },
+            binding = { scale, runtime ->
+                scale ?: return@query null
+                val type = runtime.metadata.staking().storage("Ledger").returnType()
+                val dynamicInstance = type.fromHexOrNull(runtime, scale) ?: return@query null
+
+                (dynamicInstance as? Struct.Instance)?.getTyped("stash") ?: return@query null
+            }
+        )
+    }
+
     private fun buildExtrinsics(
         runtime: RuntimeSnapshot,
         statuses: Map<Int, EventRecord<ExtrinsicStatusEvent>>,
@@ -253,12 +280,14 @@ class WssSubstrateSource(
         }.filterNotNull()
     }
 
-    private fun ExtrinsicBuilder.transfer(chain: Chain, transfer: Transfer, typeRegistry: TypeRegistry, allowDeath: Boolean): ExtrinsicBuilder {
+    private fun ExtrinsicBuilder.transfer(chain: Chain, transfer: Transfer, typeRegistry: TypeRegistry): ExtrinsicBuilder {
         val accountId = chain.accountIdOf(transfer.recipient)
         val useDefaultTransfer =
             transfer.chainAsset.currency == null || transfer.chainAsset.typeExtra == null || transfer.chainAsset.typeExtra == ChainAssetType.Normal
+
         if (useDefaultTransfer) {
-            return if (allowDeath) {
+            val chainCanTransferAllowDeath = this.runtime.metadata.module(Modules.BALANCES).calls?.contains(Calls.BALANCES_TRANSFER_ALLOW_DEATH) ?: false
+            return if (chainCanTransferAllowDeath) {
                 defaultTransferAllowDeath(accountId, transfer, typeRegistry)
             } else {
                 defaultTransfer(accountId, transfer, typeRegistry)
@@ -392,7 +421,7 @@ class WssSubstrateSource(
         }
         return call(
             moduleName = Modules.BALANCES,
-            callName = "transfer_allow_death",
+            callName = Calls.BALANCES_TRANSFER_ALLOW_DEATH,
             arguments = mapOf(
                 "dest" to dest,
                 "value" to transfer.amountInPlanks

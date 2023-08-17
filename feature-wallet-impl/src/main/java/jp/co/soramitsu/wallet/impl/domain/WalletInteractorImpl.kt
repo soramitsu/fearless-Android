@@ -14,7 +14,10 @@ import jp.co.soramitsu.common.domain.SelectedFiat
 import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
+import jp.co.soramitsu.common.utils.Modules
 import jp.co.soramitsu.common.utils.orZero
+import jp.co.soramitsu.common.utils.requireValue
+import jp.co.soramitsu.core.models.Asset.StakingType
 import jp.co.soramitsu.core.models.ChainId
 import jp.co.soramitsu.core.utils.isValidAddress
 import jp.co.soramitsu.coredb.model.AssetUpdateItem
@@ -25,7 +28,10 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.isPolkadotOrKusama
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import jp.co.soramitsu.runtime.multiNetwork.chainWithAsset
+import jp.co.soramitsu.runtime.multiNetwork.getRuntimeOrNull
 import jp.co.soramitsu.shared_utils.runtime.AccountId
+import jp.co.soramitsu.shared_utils.runtime.metadata.module
+import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.toAddress
 import jp.co.soramitsu.wallet.impl.data.repository.HistoryRepository
 import jp.co.soramitsu.wallet.impl.domain.interfaces.AddressBookRepository
 import jp.co.soramitsu.wallet.impl.domain.interfaces.TransactionFilter
@@ -33,6 +39,7 @@ import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.AssetWithStatus
+import jp.co.soramitsu.wallet.impl.domain.model.ControllerDeprecationWarning
 import jp.co.soramitsu.wallet.impl.domain.model.Fee
 import jp.co.soramitsu.wallet.impl.domain.model.Operation
 import jp.co.soramitsu.wallet.impl.domain.model.OperationsPageChange
@@ -122,14 +129,15 @@ class WalletInteractorImpl(
             .filter { it.isNotEmpty() }
     }
 
-    private fun defaultAssetListSort() = compareByDescending<AssetWithStatus> { it.asset.total.orZero() > BigDecimal.ZERO }
-        .thenByDescending { it.asset.fiatAmount.orZero() }
-        .thenBy { it.asset.token.configuration.isTestNet }
-        .thenByDescending { it.asset.token.configuration.chainId.isPolkadotOrKusama() }
-        .thenBy { it.asset.token.configuration.chainName }
-        .thenBy { it.asset.token.configuration.symbol }
-        .thenByDescending { it.asset.token.configuration.isUtility }
-        .thenByDescending { it.asset.token.configuration.isNative == true }
+    private fun defaultAssetListSort() =
+        compareByDescending<AssetWithStatus> { it.asset.total.orZero() > BigDecimal.ZERO }
+            .thenByDescending { it.asset.fiatAmount.orZero() }
+            .thenBy { it.asset.token.configuration.isTestNet }
+            .thenByDescending { it.asset.token.configuration.chainId.isPolkadotOrKusama() }
+            .thenBy { it.asset.token.configuration.chainName }
+            .thenBy { it.asset.token.configuration.symbol }
+            .thenByDescending { it.asset.token.configuration.isUtility }
+            .thenByDescending { it.asset.token.configuration.isNative == true }
 
     override suspend fun syncAssetsRates(): Result<Unit> {
         return runCatching {
@@ -143,26 +151,44 @@ class WalletInteractorImpl(
             val (chain, chainAsset) = chainRegistry.chainWithAsset(chainId, chainAssetId)
             val accountId = metaAccount.accountId(chain)!!
 
-            walletRepository.assetFlow(metaAccount.id, accountId, chainAsset, chain.minSupportedVersion)
+            walletRepository.assetFlow(
+                metaAccount.id,
+                accountId,
+                chainAsset,
+                chain.minSupportedVersion
+            )
         }
     }
 
     override suspend fun getCurrentAsset(chainId: ChainId, chainAssetId: String): Asset {
+        return kotlin.runCatching { getCurrentAssetOrNull(chainId, chainAssetId)!! }.requireValue()
+    }
+
+    override suspend fun getCurrentAssetOrNull(chainId: ChainId, chainAssetId: String): Asset? {
         val metaAccount = accountRepository.getSelectedMetaAccount()
         val (chain, chainAsset) = chainRegistry.chainWithAsset(chainId, chainAssetId)
 
-        return walletRepository.getAsset(metaAccount.id, metaAccount.accountId(chain)!!, chainAsset, chain.minSupportedVersion)!!
+        return walletRepository.getAsset(
+            metaAccount.id,
+            metaAccount.accountId(chain)!!,
+            chainAsset,
+            chain.minSupportedVersion
+        )
     }
 
-    override fun operationsFirstPageFlow(chainId: ChainId, chainAssetId: String): Flow<OperationsPageChange> {
+    override fun operationsFirstPageFlow(
+        chainId: ChainId,
+        chainAssetId: String
+    ): Flow<OperationsPageChange> {
         return accountRepository.selectedMetaAccountFlow()
             .flatMapLatest { metaAccount ->
                 val (chain, chainAsset) = chainRegistry.chainWithAsset(chainId, chainAssetId)
                 val accountId = metaAccount.accountId(chain)!!
 
-                historyRepository.operationsFirstPageFlow(accountId, chain, chainAsset).withIndex().map { (index, cursorPage) ->
-                    OperationsPageChange(cursorPage, accountChanged = index == 0)
-                }
+                historyRepository.operationsFirstPageFlow(accountId, chain, chainAsset).withIndex()
+                    .map { (index, cursorPage) ->
+                        OperationsPageChange(cursorPage, accountChanged = index == 0)
+                    }
             }
     }
 
@@ -177,7 +203,13 @@ class WalletInteractorImpl(
             val (chain, chainAsset) = chainRegistry.chainWithAsset(chainId, chainAssetId)
             val accountId = metaAccount.accountId(chain)!!
 
-            historyRepository.syncOperationsFirstPage(pageSize, filters, accountId, chain, chainAsset)
+            historyRepository.syncOperationsFirstPage(
+                pageSize,
+                filters,
+                accountId,
+                chain,
+                chainAsset
+            )
         }
     }
 
@@ -213,11 +245,12 @@ class WalletInteractorImpl(
             }
     }
 
-    override suspend fun validateSendAddress(chainId: ChainId, address: String): Boolean = withContext(Dispatchers.Default) {
-        val chain = chainRegistry.getChain(chainId)
+    override suspend fun validateSendAddress(chainId: ChainId, address: String): Boolean =
+        withContext(Dispatchers.Default) {
+            val chain = chainRegistry.getChain(chainId)
 
-        chain.isValidAddress(address)
-    }
+            chain.isValidAddress(address)
+        }
 
     override suspend fun isAddressFromPhishingList(address: String): Boolean {
         return walletRepository.isAddressFromPhishingList(address)
@@ -260,7 +293,8 @@ class WalletInteractorImpl(
         return if (address != null && pubKey != null && currencyId != null) {
             "$QR_PREFIX_SUBSTRATE:$address:$pubKey:$name:$currencyId"
         } else {
-            address ?: throw IllegalArgumentException("There is no address found to getQrCodeSharingSoraString")
+            address
+                ?: throw IllegalArgumentException("There is no address found to getQrCodeSharingSoraString")
         }
     }
 
@@ -288,11 +322,13 @@ class WalletInteractorImpl(
 
     override suspend fun getChain(chainId: ChainId) = chainRegistry.getChain(chainId)
 
-    override suspend fun getMetaAccountSecrets(metaId: Long?) = accountRepository.getMetaAccountSecrets(metaId)
+    override suspend fun getMetaAccountSecrets(metaId: Long?) =
+        accountRepository.getMetaAccountSecrets(metaId)
 
     override suspend fun getSelectedMetaAccount() = accountRepository.getSelectedMetaAccount()
 
-    override suspend fun getChainAddressForSelectedMetaAccount(chainId: ChainId) = getSelectedMetaAccount().address(getChain(chainId))
+    override suspend fun getChainAddressForSelectedMetaAccount(chainId: ChainId) =
+        getSelectedMetaAccount().address(getChain(chainId))
 
     override suspend fun markAssetAsHidden(chainId: ChainId, chainAssetId: String) {
         manageAssetHidden(chainId, chainAssetId, true)
@@ -302,7 +338,11 @@ class WalletInteractorImpl(
         manageAssetHidden(chainId, chainAssetId, false)
     }
 
-    private suspend fun manageAssetHidden(chainId: ChainId, chainAssetId: String, isHidden: Boolean) {
+    private suspend fun manageAssetHidden(
+        chainId: ChainId,
+        chainAssetId: String,
+        isHidden: Boolean
+    ) {
         val metaAccount = accountRepository.getSelectedMetaAccount()
         val chain = chainRegistry.getChain(chainId)
         val accountId = metaAccount.accountId(chain)
@@ -348,14 +388,18 @@ class WalletInteractorImpl(
 
     override fun getChains(): Flow<List<Chain>> = chainRegistry.currentChains
 
-    override fun getOperationAddressWithChainIdFlow(limit: Int?, chainId: ChainId): Flow<Set<String>> =
+    override fun getOperationAddressWithChainIdFlow(
+        limit: Int?,
+        chainId: ChainId
+    ): Flow<Set<String>> =
         historyRepository.getOperationAddressWithChainIdFlow(limit, chainId)
 
     override suspend fun saveAddress(name: String, address: String, selectedChainId: String) {
         addressBookRepository.saveAddress(name, address, selectedChainId)
     }
 
-    override fun observeAddressBook(chainId: ChainId) = addressBookRepository.observeAddressBook(chainId)
+    override fun observeAddressBook(chainId: ChainId) =
+        addressBookRepository.observeAddressBook(chainId)
 
     override fun saveChainId(walletId: Long, chainId: ChainId?) {
         preferences.putString(PREFS_WALLET_SELECTED_CHAIN_ID + walletId, chainId)
@@ -386,9 +430,72 @@ class WalletInteractorImpl(
         }
     }
 
-    override suspend fun getEquilibriumAccountInfo(asset: CoreAsset, accountId: AccountId): EqAccountInfo? =
+    override suspend fun getEquilibriumAccountInfo(
+        asset: CoreAsset,
+        accountId: AccountId
+    ): EqAccountInfo? =
         walletRepository.getEquilibriumAccountInfo(asset, accountId)
 
     override suspend fun getEquilibriumAssetRates(chainAsset: CoreAsset): Map<BigInteger, EqOraclePricePoint?> =
         walletRepository.getEquilibriumAssetRates(chainAsset)
+
+    override suspend fun checkControllerDeprecations(): List<ControllerDeprecationWarning> {
+        val currentAccount = accountRepository.getSelectedMetaAccount()
+        val chains = chainRegistry.chainsById.first()
+        val allRelayChainStakingAssets = chains.values
+            .map { it.assets }
+            .flatten()
+            .asSequence()
+            .filter { it.staking == StakingType.RELAYCHAIN }
+            .toList()
+
+        val relayStakingChains = allRelayChainStakingAssets.map { it.chainId }
+
+        val chainsWithDeprecatedControllerAccount = relayStakingChains.filter {
+            chainRegistry.getRuntimeOrNull(it)?.metadata?.module(Modules.STAKING)?.calls?.get("set_controller")?.arguments?.isEmpty() == true
+        }
+
+        return chainsWithDeprecatedControllerAccount.mapNotNull { chainId ->
+            val chain = chains[chainId] ?: return@mapNotNull null
+            val accountId = currentAccount.accountId(chain) ?: return@mapNotNull null
+
+            // checking current account is stash
+
+            val controllerAccount = walletRepository.getControllerAccount(chainId, accountId)
+
+            val currentAccountIsStashAndController =
+                controllerAccount != null && controllerAccount.contentEquals(accountId) // the case is resolved
+            if (currentAccountIsStashAndController) {
+                return@mapNotNull null
+            }
+
+            val currentAccountHasAnotherController =
+                controllerAccount != null && !controllerAccount.contentEquals(accountId) // user needs to fix it
+            if (currentAccountHasAnotherController) {
+                return@mapNotNull ControllerDeprecationWarning.ChangeController(chainId, chain.name)
+            }
+
+            // checking current account is controller
+            val currentAccountIsNotStash = controllerAccount == null
+
+            if (currentAccountIsNotStash) {
+                val stash = walletRepository.getStashAccount(chainId, accountId)
+                // we've found the stash
+                if (stash != null) {
+                    return@mapNotNull ControllerDeprecationWarning.ImportStash(
+                        chainId,
+                        stash.toAddress(chain.addressPrefix.toShort())
+                    )
+                }
+            }
+
+            return@mapNotNull null
+        }
+    }
+
+    override suspend fun canUseAsset(chainId: String, chainAssetId: String): Boolean {
+        val hasAsset = getCurrentAssetOrNull(chainId, chainAssetId) != null
+        val hasRuntime = chainRegistry.getRuntimeOrNull(chainId) != null
+        return hasAsset && hasRuntime
+    }
 }

@@ -186,6 +186,7 @@ object Modules {
 
 object Calls {
     const val BALANCES_TRANSFER = "transfer"
+    const val BALANCES_TRANSFER_ALLOW_DEATH = "transfer_allow_death"
     const val BALANCES_TRANSFER_KEEP_ALIVE = "transfer_keep_alive"
 
     val TRANSFERS = setOf(BALANCES_TRANSFER, BALANCES_TRANSFER_KEEP_ALIVE)

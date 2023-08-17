@@ -89,8 +89,7 @@ class BulkRetriever(
 
             val request = QueryStorageAtRequest(chunk, at)
 
-            val chunkValues = socketService.executeAsync(request, mapper = pojoList<QueryStorageAtResponse>().nonNull())
-                .first().changesAsMap()
+            val chunkValues = kotlin.runCatching { socketService.executeAsync(request, mapper = pojoList<QueryStorageAtResponse>().nonNull()) }.getOrNull()?.first()?.changesAsMap().orEmpty()
 
             acc.putAll(chunkValues)
 

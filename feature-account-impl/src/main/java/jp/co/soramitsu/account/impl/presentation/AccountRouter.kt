@@ -11,6 +11,7 @@ import jp.co.soramitsu.common.navigation.DelayedNavigation
 import jp.co.soramitsu.common.navigation.PinRequired
 import jp.co.soramitsu.common.navigation.SecureRouter
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import kotlinx.coroutines.flow.Flow
 
 interface AccountRouter : SecureRouter {
 
@@ -43,6 +44,8 @@ interface AccountRouter : SecureRouter {
 
     fun back()
 
+    fun backWithResult(vararg results: Pair<String, Any?>)
+
     fun openSelectWallet()
 
     fun openNodes(chainId: ChainId)
@@ -68,7 +71,7 @@ interface AccountRouter : SecureRouter {
     @PinRequired
     fun openExportJsonPasswordDestination(metaId: Long, chainId: ChainId, isExportWallet: Boolean = false): DelayedNavigation
 
-    fun openConfirmMnemonicOnExport(mnemonic: List<String>)
+    fun openConfirmMnemonicOnExport(mnemonic: List<String>, metaId: Long)
 
     fun openExportJsonConfirm(payload: ExportJsonConfirmPayload)
 
@@ -90,12 +93,16 @@ interface AccountRouter : SecureRouter {
 
     fun openGetSoraCard()
 
-    fun openCreateWalletDialog()
+    fun openCreateWalletDialog(isFromGoogleBackup: Boolean)
 
     fun openCreateBackupPasswordDialog(payload: CreateBackupPasswordPayload)
+
+    fun openCreateBackupPasswordDialogWithResult(payload: CreateBackupPasswordPayload): Flow<Int>
 
     fun openMnemonicAgreementsDialog(
         isFromGoogleBackup: Boolean,
         accountName: String
     )
+
+    fun openImportRemoteWalletDialog()
 }

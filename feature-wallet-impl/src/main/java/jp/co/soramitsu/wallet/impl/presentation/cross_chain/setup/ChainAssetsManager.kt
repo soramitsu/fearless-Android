@@ -129,7 +129,7 @@ class ChainAssetsManager @Inject constructor(
         val supportedXcmAssetSymbols = xcmEntitiesFetcher.getAvailableAssets(
             originChainId = originChainId,
             destinationChainId = null
-        ).map { it.uppercase() }
+        ).map { it.symbol.uppercase() }
 
         val xcmAssets = walletInteractor.assetsFlow().first()
             .map { it.asset.token.configuration }

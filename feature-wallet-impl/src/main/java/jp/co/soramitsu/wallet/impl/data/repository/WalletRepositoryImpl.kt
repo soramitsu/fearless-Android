@@ -49,6 +49,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.withContext
 import jp.co.soramitsu.core.models.Asset as CoreAsset
@@ -229,9 +230,7 @@ class WalletRepositoryImpl(
         additional: (suspend ExtrinsicBuilder.() -> Unit)?,
         batchAll: Boolean
     ): Fee {
-        val runtimeVersion = chainRegistry.getRemoteRuntimeVersion(chain.id) ?: 0
-        val allowDeath = runtimeVersion >= 9420
-        val fee = substrateSource.getTransferFee(chain, transfer, additional, batchAll, allowDeath)
+        val fee = substrateSource.getTransferFee(chain, transfer, additional, batchAll)
 
         return Fee(
             transferAmount = transfer.amount,
@@ -248,9 +247,7 @@ class WalletRepositoryImpl(
         additional: (suspend ExtrinsicBuilder.() -> Unit)?,
         batchAll: Boolean
     ): String {
-        val runtimeVersion = chainRegistry.getRemoteRuntimeVersion(chain.id) ?: 0
-        val allowDeath = runtimeVersion >= 9420
-        val operationHash = substrateSource.performTransfer(accountId, chain, transfer, tip, additional, batchAll, allowDeath)
+        val operationHash = substrateSource.performTransfer(accountId, chain, transfer, tip, additional, batchAll)
         val accountAddress = chain.addressOf(accountId)
 
         val operation = createOperation(
@@ -416,5 +413,13 @@ class WalletRepositoryImpl(
 
     override fun chainRegistrySyncUp() {
         chainRegistry.syncUp()
+    }
+
+    override suspend fun getControllerAccount(chainId: ChainId, accountId: AccountId): AccountId? {
+        return substrateSource.getControllerAccount(chainId, accountId)
+    }
+
+    override suspend fun getStashAccount(chainId: ChainId, accountId: AccountId): AccountId? {
+        return substrateSource.getStashAccount(chainId, accountId)
     }
 }

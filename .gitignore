@@ -13,3 +13,4 @@ app/*.apk
 /coverage
 
 fearless.jks
+/buildSrc/build

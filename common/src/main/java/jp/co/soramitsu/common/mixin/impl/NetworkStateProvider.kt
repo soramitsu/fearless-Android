@@ -2,12 +2,14 @@ package jp.co.soramitsu.common.mixin.impl
 
 import jp.co.soramitsu.common.compose.component.NetworkIssueItemState
 import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
+import jp.co.soramitsu.core.models.ChainId
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 
 class NetworkStateProvider : NetworkStateMixin {
 
     private val connectionPoolProblems = MutableStateFlow<Set<NetworkIssueItemState>>(emptySet())
+    private val chainsSyncProblems = MutableStateFlow<Set<NetworkIssueItemState>>(emptySet())
     private val assetsUpdateProblems = MutableStateFlow<Set<NetworkIssueItemState>>(emptySet())
 
     private val _showConnectingBarFlow = MutableStateFlow(false)
@@ -15,9 +17,10 @@ class NetworkStateProvider : NetworkStateMixin {
 
     override val networkIssuesFlow = combine(
         connectionPoolProblems,
-        assetsUpdateProblems
-    ) { connectionPoolProblems, assetsUpdateProblems ->
-        connectionPoolProblems + assetsUpdateProblems
+        assetsUpdateProblems,
+        chainsSyncProblems
+    ) { connectionPoolProblems, assetsUpdateProblems, chainsSyncProblems ->
+        connectionPoolProblems + assetsUpdateProblems + chainsSyncProblems
     }
 
     private val _chainConnectionsFlow = MutableStateFlow<Map<String, Boolean>>(emptyMap())
@@ -43,5 +46,16 @@ class NetworkStateProvider : NetworkStateMixin {
         val hasConnectionPoolProblems = connectionPoolProblems.value.any { it.assetId == assetId }
         val hasAssetUpdateProblems = assetsUpdateProblems.value.any { it.assetId == assetId }
         return hasConnectionPoolProblems && hasAssetUpdateProblems
+    }
+
+    override fun notifyChainSyncProblem(issue: NetworkIssueItemState) {
+        val previousSet = chainsSyncProblems.value
+        val newSet = previousSet + issue
+        chainsSyncProblems.value = newSet
+    }
+
+    override fun notifyChainSyncSuccess(id: ChainId) {
+        val newSet = chainsSyncProblems.value.toMutableSet().apply { removeIf { it.chainId == id } }
+        chainsSyncProblems.value = newSet
     }
 }

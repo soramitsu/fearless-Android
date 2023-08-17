@@ -17,8 +17,8 @@ import jp.co.soramitsu.common.mixin.impl.observeBrowserEvents
 import jp.co.soramitsu.common.presentation.FiatCurrenciesChooserBottomSheetDialog
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
 import jp.co.soramitsu.feature_account_impl.databinding.FragmentProfileBinding
+import jp.co.soramitsu.oauth.base.sdk.contract.SoraCardContract
 import jp.co.soramitsu.oauth.base.sdk.contract.SoraCardResult
-import jp.co.soramitsu.oauth.base.sdk.signin.SoraCardSignInContract
 
 @AndroidEntryPoint
 class ProfileFragment : BaseFragment<ProfileViewModel>() {
@@ -31,7 +31,7 @@ class ProfileFragment : BaseFragment<ProfileViewModel>() {
     override val viewModel: ProfileViewModel by viewModels()
 
     private val soraCardSignIn = registerForActivityResult(
-        SoraCardSignInContract()
+        SoraCardContract()
     ) { result ->
         when (result) {
             is SoraCardResult.Failure -> {}
@@ -44,6 +44,9 @@ class ProfileFragment : BaseFragment<ProfileViewModel>() {
                     kycStatus = result.status.toString()
                 )
             }
+
+            SoraCardResult.Logout -> {} // todo
+            is SoraCardResult.NavigateTo -> {} // todo
         }
     }
 

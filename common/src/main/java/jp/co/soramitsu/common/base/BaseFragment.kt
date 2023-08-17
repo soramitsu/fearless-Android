@@ -39,6 +39,17 @@ abstract class BaseFragment<T : BaseViewModel> : Fragment {
         }
 
         viewModel.messageLiveData.observeEvent(::showMessage)
+
+        viewModel.errorDialogStateLiveData.observeEvent { errorDialogState ->
+            ErrorDialog(
+                title = errorDialogState.title,
+                message = errorDialogState.message,
+                positiveButtonText = errorDialogState.positiveButtonText,
+                negativeButtonText = errorDialogState.negativeButtonText,
+                positiveClick = errorDialogState.positiveClick,
+                isHideable = errorDialogState.isHideable
+            ).show(childFragmentManager)
+        }
     }
 
     protected inline fun onBackPressed(crossinline action: () -> Unit) {

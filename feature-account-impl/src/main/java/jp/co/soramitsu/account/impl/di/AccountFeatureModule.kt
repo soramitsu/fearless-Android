@@ -5,7 +5,6 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import javax.inject.Singleton
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.interfaces.AssetNotNeedAccountUseCase
@@ -50,6 +49,7 @@ import jp.co.soramitsu.coredb.dao.TokenPriceDao
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.shared_utils.encrypt.json.JsonSeedDecoder
 import jp.co.soramitsu.shared_utils.encrypt.json.JsonSeedEncoder
+import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
 @Module

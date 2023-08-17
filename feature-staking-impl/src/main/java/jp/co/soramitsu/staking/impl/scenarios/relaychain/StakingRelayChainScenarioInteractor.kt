@@ -177,6 +177,20 @@ class StakingRelayChainScenarioInteractor(
             }
     }
 
+    fun stakingStateFlow(chainId: ChainId): Flow<StakingState> {
+        return jp.co.soramitsu.common.utils.flowOf {
+            val chain = stakingInteractor.getChain(chainId)
+            val asset = requireNotNull(chain.utilityAsset)
+            chain to asset
+        }.flatMapLatest { (chain, asset) ->
+            accountRepository.selectedMetaAccountFlow().mapNotNull {
+                it.accountId(chain)
+            }.flatMapLatest { accountId ->
+                stakingRelayChainScenarioRepository.stakingStateFlow(chain, asset, accountId)
+            }
+        }
+    }
+
     fun observeStashSummary(
         stashState: StakingState.Stash.None
     ): Flow<StakeSummary<StashNoneStatus>> = observeStakeSummary(stashState) {

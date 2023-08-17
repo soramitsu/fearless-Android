@@ -3,9 +3,9 @@ package jp.co.soramitsu.runtime.multiNetwork.runtime
 import android.util.Log
 import jp.co.soramitsu.core.runtime.ChainConnection
 import jp.co.soramitsu.coredb.dao.ChainDao
+import jp.co.soramitsu.runtime.network.subscriptionFlowCatching
 import jp.co.soramitsu.shared_utils.wsrpc.request.runtime.chain.SubscribeRuntimeVersionRequest
 import jp.co.soramitsu.shared_utils.wsrpc.request.runtime.chain.runtimeVersionChange
-import jp.co.soramitsu.shared_utils.wsrpc.subscriptionFlow
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -22,17 +22,27 @@ class RuntimeVersionSubscription(
 ) : CoroutineScope by CoroutineScope(Dispatchers.IO + SupervisorJob()) {
 
     init {
-        connection.socketService.subscriptionFlow(SubscribeRuntimeVersionRequest)
-            .map { it.runtimeVersionChange().specVersion }
-            .onEach { runtimeVersion ->
-                chainDao.updateRemoteRuntimeVersion(chainId, runtimeVersion)
+        runCatching {
+            connection.socketService.subscriptionFlowCatching(SubscribeRuntimeVersionRequest)
+                .map { result -> result.map { it.runtimeVersionChange().specVersion } }
+                .onEach { runtimeVersionResult ->
+                    runtimeVersionResult.onSuccess { runtimeVersion ->
+                        chainDao.updateRemoteRuntimeVersion(
+                            chainId,
+                            runtimeVersion
+                        )
+                    }.onFailure { throw it }
 
-                runtimeSyncService.applyRuntimeVersion(chainId)
-            }
-            .catch {
-                Log.e("RuntimeVersionSubscription", "Failed to subscribe runtime version for chain: $chainId. Error: $it")
-                it.printStackTrace()
-            }
-            .launchIn(this)
+                    runtimeSyncService.applyRuntimeVersion(chainId)
+                }
+                .catch {
+                    Log.e(
+                        "RuntimeVersionSubscription",
+                        "Failed to subscribe runtime version for chain: $chainId. Error: $it"
+                    )
+                    it.printStackTrace()
+                }
+                .launchIn(this)
+        }
     }
 }

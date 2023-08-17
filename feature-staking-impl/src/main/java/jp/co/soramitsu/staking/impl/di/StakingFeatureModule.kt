@@ -488,8 +488,9 @@ class StakingFeatureModule {
     @Singleton
     fun provideControllerInteractor(
         sharedState: StakingSharedState,
-        extrinsicService: ExtrinsicService
-    ) = ControllerInteractor(extrinsicService, sharedState)
+        extrinsicService: ExtrinsicService,
+        stakingInteractor: StakingInteractor
+    ) = ControllerInteractor(extrinsicService, sharedState, stakingInteractor)
 
     @Provides
     @Singleton
