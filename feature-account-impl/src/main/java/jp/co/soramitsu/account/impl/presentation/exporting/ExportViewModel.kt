@@ -20,7 +20,7 @@ abstract class ExportViewModel(
     protected val accountInteractor: AccountInteractor,
     protected val resourceManager: ResourceManager,
     private val chainRegistry: ChainRegistry,
-    private val metaId: Long,
+    protected val metaId: Long,
     private val chainId: ChainId,
     val isExportFromWallet: Boolean = false,
     val exportSource: ExportSource

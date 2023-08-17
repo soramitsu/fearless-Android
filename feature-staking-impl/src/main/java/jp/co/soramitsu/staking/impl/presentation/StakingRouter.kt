@@ -174,4 +174,8 @@ interface StakingRouter {
     fun openAlertFromStartSelectValidatorsScreen(payload: AlertViewState, key: String)
 
     fun listenAlertResultFlowFromStartSelectValidatorsScreen(key: String): Flow<Result<Unit>>
+
+    fun openImportAccountScreenFromWallet(blockChainType: Int)
+
+    fun openManageControllerAccount(chainId: ChainId)
 }

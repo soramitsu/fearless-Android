@@ -22,7 +22,7 @@ import jp.co.soramitsu.common.compose.component.BottomSheetScreen
 import jp.co.soramitsu.common.compose.component.ButtonViewState
 import jp.co.soramitsu.common.compose.component.DropDown
 import jp.co.soramitsu.common.compose.component.DropDownViewState
-import jp.co.soramitsu.common.compose.component.ExapandableText
+import jp.co.soramitsu.common.compose.component.ExpandableText
 import jp.co.soramitsu.common.compose.component.FeeInfo
 import jp.co.soramitsu.common.compose.component.FeeInfoViewState
 import jp.co.soramitsu.common.compose.component.InactiveDropDown
@@ -89,7 +89,7 @@ fun CreatePoolSetupScreen(
                 MarginVertical(margin = 12.dp)
                 AmountInput(state = state.amountInputViewState, onInput = screenInterface::onTokenAmountInput)
                 MarginVertical(margin = 12.dp)
-                ExapandableText(
+                ExpandableText(
                     title = stringResource(id = R.string.common_advanced),
                     initialState = false,
                     content = {

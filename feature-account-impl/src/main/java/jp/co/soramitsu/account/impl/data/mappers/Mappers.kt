@@ -97,7 +97,9 @@ fun mapMetaAccountLocalToMetaAccount(
             ethereumAddress = ethereumAddress,
             ethereumPublicKey = ethereumPublicKey,
             isSelected = isSelected,
-            name = name
+            name = name,
+            isBackedUp = isBackedUp,
+            googleBackupAddress = googleBackupAddress
         )
     }
     return metaAccount

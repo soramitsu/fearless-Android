@@ -11,13 +11,14 @@ import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.account.api.presentation.account.create.ChainAccountCreatePayload
 import jp.co.soramitsu.account.impl.presentation.view.advanced.encryption.EncryptionTypeChooserBottomSheetDialog
 import jp.co.soramitsu.account.impl.presentation.view.advanced.encryption.model.CryptoTypeModel
-import jp.co.soramitsu.common.BuildConfig
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.presentation.ErrorDialog
+import jp.co.soramitsu.common.utils.DEFAULT_DERIVATION_PATH
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet.Payload
 import jp.co.soramitsu.common.view.viewBinding
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.databinding.FragmentBackupMnemonicBinding
+import jp.co.soramitsu.shared_utils.encrypt.junction.BIP32JunctionDecoder
 
 @AndroidEntryPoint
 class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>(R.layout.fragment_backup_mnemonic) {
@@ -41,14 +42,17 @@ class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>(R.layout.fr
     private val launcher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
-        if (result.resultCode != Activity.RESULT_OK) {
-            viewModel.onGoogleLoginError()
-        } else {
-            with(binding) {
+        when (result.resultCode) {
+            Activity.RESULT_OK -> with(binding) {
                 viewModel.onGoogleSignInSuccess(
                     advancedBlockView.getSubstrateDerivationPath(),
-                    advancedBlockView.getEthereumDerivationPath()
+                    advancedBlockView.getEthereumDerivationPath().ifEmpty { BIP32JunctionDecoder.DEFAULT_DERIVATION_PATH }
                 )
+            }
+            Activity.RESULT_CANCELED -> { /* no action */ }
+            else -> {
+                val googleSignInStatus = result.data?.extras?.get("googleSignInStatus")
+                viewModel.onGoogleLoginError(googleSignInStatus.toString())
             }
         }
     }
@@ -63,7 +67,7 @@ class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>(R.layout.fr
                 viewModel.infoClicked()
             }
 
-            advancedBlockView.isVisible = !viewModel.isFromGoogleBackup
+            advancedBlockView.isVisible = viewModel.isShowAdvancedBlock
             advancedBlockView.setOnSubstrateEncryptionTypeClickListener {
                 viewModel.chooseEncryptionClicked()
             }
@@ -74,15 +78,15 @@ class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>(R.layout.fr
             nextBtn.setOnClickListener {
                 viewModel.onNextClick(
                     advancedBlockView.getSubstrateDerivationPath(),
-                    advancedBlockView.getEthereumDerivationPath(),
+                    advancedBlockView.getEthereumDerivationPath().ifEmpty { BIP32JunctionDecoder.DEFAULT_DERIVATION_PATH },
                     launcher
                 )
             }
-            googleBackupButton.isVisible = !viewModel.isFromGoogleBackup && BuildConfig.DEBUG
+            googleBackupLayout.isVisible = viewModel.isShowBackupWithGoogle
             googleBackupButton.setOnClickListener {
                 viewModel.onGoogleBackupClick(
                     advancedBlockView.getSubstrateDerivationPath(),
-                    advancedBlockView.getEthereumDerivationPath(),
+                    advancedBlockView.getEthereumDerivationPath().ifEmpty { BIP32JunctionDecoder.DEFAULT_DERIVATION_PATH },
                     launcher
                 )
             }

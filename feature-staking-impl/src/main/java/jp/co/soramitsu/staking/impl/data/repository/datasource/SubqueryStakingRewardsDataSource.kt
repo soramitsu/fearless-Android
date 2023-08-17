@@ -3,6 +3,7 @@ package jp.co.soramitsu.staking.impl.data.repository.datasource
 import jp.co.soramitsu.common.base.errors.RewardsNotSupportedWarning
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.sumByBigInteger
+import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.coredb.dao.StakingTotalRewardDao
 import jp.co.soramitsu.coredb.model.TotalRewardLocal
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
@@ -10,6 +11,8 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.shared_utils.extensions.toHexString
 import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.toAccountId
+import jp.co.soramitsu.staking.api.data.SyntheticStakingType
+import jp.co.soramitsu.staking.api.data.syntheticStakingType
 import jp.co.soramitsu.staking.impl.data.mappers.mapSubqueryHistoryToTotalReward
 import jp.co.soramitsu.staking.impl.data.mappers.mapTotalRewardLocalToTotalReward
 import jp.co.soramitsu.staking.impl.data.network.subquery.StakingApi
@@ -42,8 +45,13 @@ class SubqueryStakingRewardsDataSource(
         val chain = chainRegistry.getChain(chainId)
         val stakingUrl = chain.externalApi?.staking?.url
         val stakingType = chain.externalApi?.staking?.type
+        val syntheticStakingType = chain.utilityAsset?.syntheticStakingType()
 
         when {
+            syntheticStakingType == SyntheticStakingType.SORA -> {
+                return@withContext
+            }
+
             stakingUrl == null -> throw RewardsNotSupportedWarning()
             stakingType == Chain.ExternalApi.Section.Type.SUBQUERY -> {
                 syncSubquery(stakingUrl, accountAddress)

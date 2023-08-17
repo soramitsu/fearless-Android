@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AssetNotNeedAccountUseCase
+import jp.co.soramitsu.account.api.domain.interfaces.TotalBalanceUseCase
 import jp.co.soramitsu.account.api.domain.model.hasChainAccount
 import jp.co.soramitsu.account.api.presentation.actions.AddAccountBottomSheet
 import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
@@ -19,11 +20,16 @@ import jp.co.soramitsu.account.impl.presentation.AccountRouter
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressIcon
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.compose.component.ChangeBalanceViewState
+import jp.co.soramitsu.common.compose.component.WalletItemViewState
 import jp.co.soramitsu.common.data.network.BlockExplorerUrlBuilder
 import jp.co.soramitsu.common.list.headers.TextHeader
 import jp.co.soramitsu.common.list.toListWithHeaders
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
+import jp.co.soramitsu.common.utils.flowOf
+import jp.co.soramitsu.common.utils.formatAsChange
+import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.feature_account_impl.R
@@ -34,11 +40,14 @@ import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 private const val UPDATE_NAME_INTERVAL_SECONDS = 1L
@@ -49,13 +58,39 @@ class AccountDetailsViewModel @Inject constructor(
     private val accountRouter: AccountRouter,
     private val iconGenerator: AddressIconGenerator,
     private val resourceManager: ResourceManager,
+    private val totalBalanceUseCase: TotalBalanceUseCase,
     private val chainRegistry: ChainRegistry,
     private val externalAccountActions: ExternalAccountActions.Presentation,
     private val assetNotNeedAccount: AssetNotNeedAccountUseCase,
     private val savedStateHandle: SavedStateHandle
-) : BaseViewModel(), ExternalAccountActions by externalAccountActions {
+) : BaseViewModel(), AccountDetailsCallback, ExternalAccountActions by externalAccountActions {
 
-    private val metaId = savedStateHandle.get<Long>(ACCOUNT_ID_KEY)!!
+    private val walletId = savedStateHandle.get<Long>(ACCOUNT_ID_KEY)!!
+    private val wallet = flowOf {
+        interactor.getMetaAccount(walletId)
+    }
+    private val walletItem = wallet
+        .map { wallet ->
+
+            val icon = iconGenerator.createAddressIcon(
+                wallet.substrateAccountId,
+                AddressIconGenerator.SIZE_BIG
+            )
+
+            val balanceModel = totalBalanceUseCase(walletId)
+
+            WalletItemViewState(
+                id = walletId,
+                title = wallet.name,
+                isSelected = false,
+                walletIcon = icon,
+                balance = balanceModel.balance.formatFiat(balanceModel.fiatSymbol),
+                changeBalanceViewState = ChangeBalanceViewState(
+                    percentChange = balanceModel.rateChange?.formatAsChange().orEmpty(),
+                    fiatChange = balanceModel.balanceChange.abs().formatFiat(balanceModel.fiatSymbol)
+                )
+            )
+        }
 
     private val _showExportSourceChooser = MutableLiveData<Event<ExportSourceChooserPayload>>()
     val showExportSourceChooser: LiveData<Event<ExportSourceChooserPayload>> = _showExportSourceChooser
@@ -71,7 +106,7 @@ class AccountDetailsViewModel @Inject constructor(
 
     val accountNameFlow: MutableStateFlow<String> = MutableStateFlow("")
 
-    val chainAccountProjections = interactor.getChainProjectionsFlow(metaId)
+    val chainAccountProjections = interactor.getChainProjectionsFlow(walletId)
         .map { groupedList ->
             groupedList.mapKeys { (from, _) -> mapFromToTextHeader(from) }
                 .mapValues { (_, accounts) -> accounts.map { mapChainAccountProjectionToUi(it) } }
@@ -80,15 +115,26 @@ class AccountDetailsViewModel @Inject constructor(
         .inBackground()
         .share()
 
+    val state = combine(
+        walletItem,
+        chainAccountProjections
+    ) { walletItem, chainProjections ->
+        AccountDetailsState(
+            walletItem = walletItem,
+            chainProjections = chainProjections
+        )
+    }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, AccountDetailsState.Empty)
+
     init {
         launch {
-            accountNameFlow.emit(interactor.getMetaAccount(metaId).name)
+            accountNameFlow.emit(interactor.getMetaAccount(walletId).name)
         }
 
         syncNameChangesWithDb()
     }
 
-    fun backClicked() {
+    override fun onBackClick() {
         accountRouter.back()
     }
 
@@ -97,7 +143,7 @@ class AccountDetailsViewModel @Inject constructor(
         accountNameFlow
             .filter { it.isNotEmpty() }
             .debounce(UPDATE_NAME_INTERVAL_SECONDS.toDuration(DurationUnit.SECONDS))
-            .onEach { interactor.updateName(metaId, it) }
+            .onEach { interactor.updateName(walletId, it) }
             .launchIn(viewModelScope)
     }
 
@@ -142,10 +188,10 @@ class AccountDetailsViewModel @Inject constructor(
     fun exportClicked(chainId: ChainId) {
         viewModelScope.launch {
             val isEthereumBased = chainRegistry.getChain(chainId).isEthereumBased
-            val hasChainAccount = interactor.getMetaAccount(metaId).hasChainAccount(chainId)
+            val hasChainAccount = interactor.getMetaAccount(walletId).hasChainAccount(chainId)
             val sources = when {
-                hasChainAccount -> interactor.getChainAccountSecret(metaId, chainId).buildExportSourceTypes(isEthereumBased)
-                else -> interactor.getMetaAccountSecrets(metaId).buildExportSourceTypes(isEthereumBased)
+                hasChainAccount -> interactor.getChainAccountSecret(walletId, chainId).buildExportSourceTypes(isEthereumBased)
+                else -> interactor.getMetaAccountSecrets(walletId).buildExportSourceTypes(isEthereumBased)
             }
 
             _showExportSourceChooser.value = Event(ExportSourceChooserPayload(chainId, sources))
@@ -155,7 +201,7 @@ class AccountDetailsViewModel @Inject constructor(
     fun showImportChainAccountChooser(chainId: ChainId) {
         viewModelScope.launch {
             val name = chainRegistry.getChain(chainId).name
-            _showImportChainAccountChooser.postValue(Event(ImportChainAccountsPayload(chainId, metaId, name)))
+            _showImportChainAccountChooser.postValue(Event(ImportChainAccountsPayload(chainId, walletId, name)))
         }
     }
 
@@ -173,29 +219,32 @@ class AccountDetailsViewModel @Inject constructor(
 
     fun exportTypeSelected(selected: ExportSource, chainId: ChainId) {
         val destination = when (selected) {
-            is ExportSource.Json -> accountRouter.openExportJsonPasswordDestination(metaId, chainId)
-            is ExportSource.Seed -> accountRouter.getExportSeedDestination(metaId, chainId)
-            is ExportSource.Mnemonic -> accountRouter.getExportMnemonicDestination(metaId, chainId)
+            is ExportSource.Json -> accountRouter.openExportJsonPasswordDestination(walletId, chainId)
+            is ExportSource.Seed -> accountRouter.getExportSeedDestination(walletId, chainId)
+            is ExportSource.Mnemonic -> accountRouter.getExportMnemonicDestination(walletId, chainId)
         }
 
         accountRouter.withPinCodeCheckRequired(destination, pinCodeTitleRes = R.string.account_export)
     }
 
-    fun chainAccountOptionsClicked(item: AccountInChainUi) = launch {
-        if (item.hasAccount) {
-            val supportedExplorers = chainRegistry.getChain(item.chainId).explorers.getSupportedExplorers(BlockExplorerUrlBuilder.Type.ACCOUNT, item.address)
-            externalAccountActions.showExternalActions(ExternalAccountActions.Payload(item.address, item.chainId, item.chainName, supportedExplorers))
-        } else {
-            val utilityAsset = chainRegistry.getChain(item.chainId).utilityAsset
-            val payload = AddAccountBottomSheet.Payload(
-                metaId = metaId,
-                chainId = item.chainId,
-                chainName = item.chainName,
-                assetId = utilityAsset?.id.orEmpty(),
-                priceId = utilityAsset?.priceId,
-                markedAsNotNeed = item.markedAsNotNeed
-            )
-            accountRouter.openOptionsAddAccount(payload)
+    override fun chainAccountOptionsClicked(item: AccountInChainUi) {
+        launch {
+            if (item.hasAccount) {
+                val supportedExplorers =
+                    chainRegistry.getChain(item.chainId).explorers.getSupportedExplorers(BlockExplorerUrlBuilder.Type.ACCOUNT, item.address)
+                externalAccountActions.showExternalActions(ExternalAccountActions.Payload(item.address, item.chainId, item.chainName, supportedExplorers))
+            } else {
+                val utilityAsset = chainRegistry.getChain(item.chainId).utilityAsset
+                val payload = AddAccountBottomSheet.Payload(
+                    metaId = walletId,
+                    chainId = item.chainId,
+                    chainName = item.chainName,
+                    assetId = utilityAsset?.id.orEmpty(),
+                    priceId = utilityAsset?.priceId,
+                    markedAsNotNeed = item.markedAsNotNeed
+                )
+                accountRouter.openOptionsAddAccount(payload)
+            }
         }
     }
 

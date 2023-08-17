@@ -46,4 +46,5 @@ dependencies {
     api project(':core-api')
 
     api sharedFeaturesCoreDep
+    api sharedFeaturesBackupDep
 }

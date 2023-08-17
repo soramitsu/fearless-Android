@@ -20,5 +20,5 @@ data class AssetListItemViewState(
     val ecosystem: String?,
     val isTestnet: Boolean
 ) {
-    val key = listOf(ecosystem, chainAssetId, chainId, isHidden).joinToString()
+    val key = listOf(ecosystem, chainAssetId, chainId, isHidden, hasNetworkIssue).joinToString()
 }

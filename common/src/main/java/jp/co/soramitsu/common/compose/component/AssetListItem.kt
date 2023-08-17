@@ -18,7 +18,6 @@ import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterEnd
 import androidx.compose.ui.Alignment.Companion.CenterStart
@@ -53,11 +52,10 @@ fun AssetListItem(
     onClick: (AssetListItemViewState) -> Unit
 ) {
     val hasIssues = !state.hasAccount || state.hasNetworkIssue
-    val onClickHandler = remember { { onClick(state) } }
     BackgroundCornered(
         modifier = modifier
             .testTag("AssetListItem_${state.assetSymbol}_${state.assetName}")
-            .clickable(onClick = onClickHandler)
+            .clickable(onClick = { onClick(state) })
     ) {
         val assetRateColor = if (state.assetTokenRate.orEmpty().startsWith("+")) {
             MaterialTheme.customColors.greenText
@@ -337,7 +335,8 @@ fun AssetListItemShimmer(
 @Preview
 @Composable
 private fun PreviewAssetListItem() {
-    val assetIconUrl = "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Polkadot.svg"
+    val assetIconUrl =
+        "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Polkadot.svg"
     val assetChainUrlsMap = mapOf(
         "" to "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Karura.svg",
         "" to "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/kilt.svg",
@@ -372,10 +371,18 @@ private fun PreviewAssetListItem() {
         Box(modifier = Modifier.background(Color.Black)) {
             Column {
                 AssetListItem(state) {}
-                AssetListItem(state.copy(isTestnet = true, assetTransferableBalance = "123,456,123,456,123,456,789,456,789.01234")) {}
+                AssetListItem(
+                    state.copy(
+                        isTestnet = true,
+                        assetTransferableBalance = "123,456,123,456,123,456,789,456,789.01234"
+                    )
+                ) {}
                 AssetListItem(state.copy(hasAccount = false, isTestnet = true)) {}
                 AssetListItemShimmer(
-                    state = AssetListItemShimmerViewState(assetIconUrl, assetChainUrlsMap.values.toList())
+                    state = AssetListItemShimmerViewState(
+                        assetIconUrl,
+                        assetChainUrlsMap.values.toList()
+                    )
                 )
             }
         }

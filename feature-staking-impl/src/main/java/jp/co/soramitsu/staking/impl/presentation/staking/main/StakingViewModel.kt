@@ -62,6 +62,8 @@ import jp.co.soramitsu.staking.impl.presentation.staking.redeem.RedeemPayload
 import jp.co.soramitsu.staking.impl.scenarios.StakingPoolInteractor
 import jp.co.soramitsu.staking.impl.scenarios.parachain.StakingParachainScenarioInteractor
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenarioInteractor
+import jp.co.soramitsu.wallet.impl.presentation.model.ControllerDeprecationWarningModel
+import jp.co.soramitsu.wallet.impl.presentation.model.toModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.flow.Flow
@@ -212,12 +214,34 @@ class StakingViewModel @Inject constructor(
     init {
         stakingUpdateSystem.start()
             .launchIn(this)
-        viewModelScope.launch {
-            stakingSharedState.selectionItem.distinctUntilChanged().collect {
-                setupStakingSharedState.set(SetupStakingProcess.Initial(it.type))
-                stakingStateScope.coroutineContext.cancelChildren()
+
+        stakingSharedState.selectionItem.distinctUntilChanged().onEach {
+            setupStakingSharedState.set(SetupStakingProcess.Initial(it.type))
+            stakingStateScope.coroutineContext.cancelChildren()
+        }.launchIn(viewModelScope)
+
+        interactor.selectionStateFlow().onEach {
+            val warning = interactor.checkControllerDeprecations(it.first, it.second.chain)
+            warning?.let {
+                val model = warning.toModel(resourceManager)
+                showError(
+                    title = model.title,
+                    message = model.message,
+                    positiveButtonText = model.buttonText,
+                    negativeButtonText = null,
+                    positiveClick = {
+                        when (model.action) {
+                            ControllerDeprecationWarningModel.Action.ChangeController -> {
+                                router.openManageControllerAccount(model.chainId)
+                            }
+                            ControllerDeprecationWarningModel.Action.ImportStash -> {
+                                router.openImportAccountScreenFromWallet(0)
+                            }
+                        }
+                    }
+                )
             }
-        }
+        }.launchIn(viewModelScope)
     }
 
     private val selectedChain = interactor.selectedChainFlow()

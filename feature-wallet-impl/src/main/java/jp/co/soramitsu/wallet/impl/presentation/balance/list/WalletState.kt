@@ -13,7 +13,8 @@ data class WalletState(
     val multiToggleButtonState: MultiToggleButtonState<AssetType>,
     val balance: AssetBalanceViewState,
     val hasNetworkIssues: Boolean,
-    val soraCardState: SoraCardItemViewState?
+    val soraCardState: SoraCardItemViewState?,
+    val isBackedUp: Boolean
 ) : AssetListState(assets) {
     companion object {
         val default = WalletState(
@@ -21,7 +22,8 @@ data class WalletState(
             assets = emptyList(),
             balance = AssetBalanceViewState("", "", false, ChangeBalanceViewState("", "")),
             hasNetworkIssues = false,
-            soraCardState = null
+            soraCardState = null,
+            isBackedUp = true
         )
     }
 }

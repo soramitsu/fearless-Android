@@ -57,9 +57,11 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -128,7 +130,12 @@ class BalanceDetailViewModel @Inject constructor(
             AssetPayload(chainId = chainId, chainAssetId = asset.token.configuration.id)
         )
 
-        return@combine interactor.getCurrentAsset(chainId, asset.token.configuration.id)
+        return@combine interactor.getCurrentAssetOrNull(chainId, asset.token.configuration.id)
+    }.distinctUntilChanged().mapNotNull {
+        if(it == null) {
+            showError("Failed to load balance of the asset, try to change node or come back later")
+        }
+        it
     }.share()
 
     private fun isBuyEnabled(): Boolean {

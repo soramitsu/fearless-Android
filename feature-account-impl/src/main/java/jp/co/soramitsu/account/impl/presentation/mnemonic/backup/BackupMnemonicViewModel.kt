@@ -24,7 +24,9 @@ import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.MnemonicWordModel
 import jp.co.soramitsu.common.compose.component.mapMnemonicToMnemonicWords
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.utils.DEFAULT_DERIVATION_PATH
 import jp.co.soramitsu.common.utils.Event
+import jp.co.soramitsu.shared_utils.encrypt.junction.BIP32JunctionDecoder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -47,7 +49,8 @@ class BackupMnemonicViewModel @Inject constructor(
     CryptoTypeChooserMixin by cryptoTypeChooserMixin {
 
     private val payload = savedStateHandle.get<BackupMnemonicPayload>(BackupMnemonicScreenKeys.PAYLOAD_KEY)!!
-    val isFromGoogleBackup = payload.isFromGoogleBackup
+    val isShowAdvancedBlock = !payload.isFromGoogleBackup
+    val isShowBackupWithGoogle = !payload.isFromGoogleBackup && payload.chainAccountData == null
 
     val mnemonic = flow {
         emit(generateMnemonic())
@@ -75,7 +78,8 @@ class BackupMnemonicViewModel @Inject constructor(
             selectedEncryptionType = selectedEncryptionType.name,
             accountType = accountType,
             substrateDerivationPath = substrateDerivationPath,
-            ethereumDerivationPath = ethereumDerivationPath
+            ethereumDerivationPath = ethereumDerivationPath,
+            isFromGoogleBackup = payload.isFromGoogleBackup
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, BackupMnemonicState.Empty)
 
@@ -101,19 +105,27 @@ class BackupMnemonicViewModel @Inject constructor(
         _showInfoEvent.value = Event(Unit)
     }
 
-    override fun onNextClick(
-        launcher: ActivityResultLauncher<Intent>
-    ) {
+    override fun onNextClick(launcher: ActivityResultLauncher<Intent>) {
         viewModelScope.launch {
             val substrateDerivationPath = substrateDerivationPath.value
-            val ethereumDerivationPath = ethereumDerivationPath.value
+            val ethereumDerivationPath = ethereumDerivationPath.value.ifEmpty { BIP32JunctionDecoder.DEFAULT_DERIVATION_PATH }
 
-            if (isFromGoogleBackup) {
+            if (payload.isFromGoogleBackup) {
                 backupPhraseInGoogle(substrateDerivationPath, ethereumDerivationPath, launcher)
                 return@launch
             }
 
             openConfirmMnemonicOnCreate(substrateDerivationPath, ethereumDerivationPath)
+        }
+    }
+
+    override fun onBackupWithGoogleClick(
+        launcher: ActivityResultLauncher<Intent>
+    ) {
+        viewModelScope.launch {
+            val substrateDerivationPath = substrateDerivationPath.value
+            val ethereumDerivationPath = ethereumDerivationPath.value.ifEmpty { BIP32JunctionDecoder.DEFAULT_DERIVATION_PATH }
+            backupPhraseInGoogle(substrateDerivationPath, ethereumDerivationPath, launcher)
         }
     }
 
@@ -131,7 +143,7 @@ class BackupMnemonicViewModel @Inject constructor(
         launcher: ActivityResultLauncher<Intent>
     ) {
         viewModelScope.launch {
-            if (isFromGoogleBackup) {
+            if (payload.isFromGoogleBackup) {
                 backupPhraseInGoogle(substrateDerivationPath, ethereumDerivationPath, launcher)
                 return@launch
             }
@@ -176,6 +188,7 @@ class BackupMnemonicViewModel @Inject constructor(
         }
         val payload = ConfirmMnemonicPayload(
             mnemonic,
+            metaId = payload.chainAccountData?.metaId,
             createExtras
         )
 
@@ -204,8 +217,10 @@ class BackupMnemonicViewModel @Inject constructor(
             return
         }
 
-        val isAuthorized = backupService.authorize(launcher)
-        if (isAuthorized) {
+        if (payload.isFromGoogleBackup.not()) {
+            backupService.logout()
+        }
+        if (backupService.authorize(launcher)) {
             openCreateBackupPasswordDialog(
                 substrateDerivationPath,
                 ethereumDerivationPath
@@ -226,7 +241,7 @@ class BackupMnemonicViewModel @Inject constructor(
     override fun onGoogleSignInSuccess() {
         openCreateBackupPasswordDialog(
             substrateDerivationPath.value,
-            ethereumDerivationPath.value
+            ethereumDerivationPath.value.ifEmpty { BIP32JunctionDecoder.DEFAULT_DERIVATION_PATH }
         )
     }
 
@@ -242,17 +257,19 @@ class BackupMnemonicViewModel @Inject constructor(
 
         router.openCreateBackupPasswordDialog(
             payload = CreateBackupPasswordPayload(
+                walletId = null,
                 mnemonic = mnemonic,
                 accountName = payload.accountName,
                 cryptoType = cryptoTypeModel.cryptoType,
                 substrateDerivationPath = substrateDerivationPath,
-                ethereumDerivationPath = ethereumDerivationPath
+                ethereumDerivationPath = ethereumDerivationPath,
+                createAccount = true
             )
         )
     }
 
-    override fun onGoogleLoginError() {
-        // TODO: Implement onGoogleLoginError
+    override fun onGoogleLoginError(message: String) {
+        showError("GoogleLoginError\n$message")
     }
 
     private suspend fun generateMnemonic(): List<MnemonicWordModel> {

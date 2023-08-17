@@ -63,6 +63,7 @@ val black50 = Color(0x80000000)
 val purple = Color(0xFF7700EE)
 val backgroundBlack = Color(0xFF131313)
 val grayButtonBackground = Color(0xFF2b2b2b)
+val darkButtonBackground = Color(0xFF1C1A1B)
 val shimmerColor = Color(0x80DBDBDB)
 
 val accountIconLight = Color(0xFFEEEEEE)
@@ -86,6 +87,18 @@ val accentButtonColors = object : ButtonColors {
     @Composable
     override fun contentColor(enabled: Boolean): State<Color> {
         return rememberUpdatedState(if (enabled) white else white64)
+    }
+}
+
+val accentDarkButtonColors = object : ButtonColors {
+    @Composable
+    override fun backgroundColor(enabled: Boolean): State<Color> {
+        return rememberUpdatedState(if (enabled) colorAccentDark else colorAccentDark.copy(alpha = 0.5f))
+    }
+
+    @Composable
+    override fun contentColor(enabled: Boolean): State<Color> {
+        return rememberUpdatedState(if (enabled) white else white30)
     }
 }
 

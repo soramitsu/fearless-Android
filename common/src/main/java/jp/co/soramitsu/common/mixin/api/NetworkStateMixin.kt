@@ -1,6 +1,7 @@
 package jp.co.soramitsu.common.mixin.api
 
 import jp.co.soramitsu.common.compose.component.NetworkIssueItemState
+import jp.co.soramitsu.core.models.ChainId
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 
@@ -22,4 +23,6 @@ interface NetworkStateUi {
     fun notifyAssetsProblem(items: Set<NetworkIssueItemState>)
 
     fun isAssetHasProblems(assetId: String): Boolean
+    fun notifyChainSyncProblem(issue: NetworkIssueItemState)
+    fun notifyChainSyncSuccess(id: ChainId)
 }

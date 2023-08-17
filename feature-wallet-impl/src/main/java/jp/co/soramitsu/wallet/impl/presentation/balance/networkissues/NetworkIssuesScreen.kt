@@ -15,7 +15,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -27,7 +26,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.compose.component.BottomSheetScreen
 import jp.co.soramitsu.common.compose.component.GradientIcon
-import jp.co.soramitsu.common.compose.component.H2
 import jp.co.soramitsu.common.compose.component.H4
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.component.NetworkIssueItem
@@ -37,10 +35,9 @@ import jp.co.soramitsu.common.compose.component.TextButton
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.theme.alertYellow
 import jp.co.soramitsu.common.compose.theme.backgroundBlurColor
-import jp.co.soramitsu.common.compose.theme.black2
+import jp.co.soramitsu.common.compose.theme.colorAccent
 import jp.co.soramitsu.common.compose.theme.customButtonColors
 import jp.co.soramitsu.common.compose.theme.customTypography
-import jp.co.soramitsu.common.compose.theme.grayButtonBackground
 import jp.co.soramitsu.common.compose.theme.white
 import jp.co.soramitsu.feature_wallet_impl.R
 
@@ -69,6 +66,7 @@ fun NetworkIssuesScreen(
                         .clip(CircleShape)
                         .background(backgroundBlurColor)
                         .size(32.dp)
+                        .align(Alignment.TopEnd)
                 ) {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_close),
@@ -80,7 +78,7 @@ fun NetworkIssuesScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .align(Alignment.Center),
-                    text = stringResource(id = R.string.notification),
+                    text = stringResource(id = R.string.network_issue_stub),
                     textAlign = TextAlign.Center
                 )
             }
@@ -91,15 +89,10 @@ fun NetworkIssuesScreen(
                 modifier = Modifier.align(Alignment.CenterHorizontally),
                 contentPadding = PaddingValues(bottom = 6.dp)
             )
-            MarginVertical(margin = 16.dp)
-            H2(
-                text = stringResource(id = R.string.network_issue_stub),
-                modifier = Modifier.align(Alignment.CenterHorizontally),
-                color = black2
-            )
             MarginVertical(margin = 24.dp)
             LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.weight(1f)
             ) {
                 items(state.issues) { issueState ->
                     NetworkIssueItem(
@@ -111,11 +104,10 @@ fun NetworkIssuesScreen(
                     MarginVertical(margin = 12.dp)
                 }
             }
-            Surface(Modifier.weight(1f)) { }
             TextButton(
                 text = stringResource(id = R.string.common_close),
                 textStyle = MaterialTheme.customTypography.header4,
-                colors = customButtonColors(grayButtonBackground),
+                colors = customButtonColors(colorAccent),
                 onClick = onBackClicked,
                 modifier = Modifier
                     .fillMaxWidth()
