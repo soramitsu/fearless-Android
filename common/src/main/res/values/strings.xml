@@ -472,7 +472,7 @@
   <string name="no_access_to_google">No access to Google</string>
   <string name="node_selection_delete_node_title">Delete custom node?</string>
   <string name="notification">Notification</string>
-  <string name="onboarding_continue_with_google">Continue with Google</string>
+  <string name="onboarding_connect_with_google">Connect with Google</string>
   <string name="onboarding_create_account">Create an account</string>
   <string name="onboarding_create_wallet">Create a wallet</string>
   <string name="onboarding_ethereum_derivation_path_hint">Example: //44//60//0/0/0</string>
