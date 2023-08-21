@@ -54,6 +54,7 @@ interface WalletScreenInterface : AssetsListInterface {
     fun soraCardClose()
     fun onNetworkIssuesClicked()
     fun onBackupClicked()
+    fun onBackupCloseClick()
     fun assetTypeChanged(type: AssetType)
     fun onRefresh()
 }
@@ -107,7 +108,8 @@ fun WalletScreen(
             val backupBanner: @Composable (() -> Unit)? = takeIf { !data.isBackedUp }?.let {
                 {
                     BannerBackup(
-                        onBackupClick = callback::onBackupClicked
+                        onBackupClick = callback::onBackupClicked,
+                        onCloseClick = callback::onBackupCloseClick,
                     )
                 }
             }
@@ -196,6 +198,7 @@ private fun PreviewWalletScreen() {
         override fun onBalanceClicked() {}
         override fun onNetworkIssuesClicked() {}
         override fun onBackupClicked() {}
+        override fun onBackupCloseClick() {}
         override fun assetTypeChanged(type: AssetType) {}
         override fun assetClicked(asset: AssetListItemViewState) {}
         override fun actionItemClicked(actionType: ActionItemType, chainId: ChainId, chainAssetId: String, swipeableState: SwipeableState<SwipeState>) {}

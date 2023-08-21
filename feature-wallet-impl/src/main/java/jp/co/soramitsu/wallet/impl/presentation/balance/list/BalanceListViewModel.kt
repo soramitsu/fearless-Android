@@ -1,5 +1,6 @@
 package jp.co.soramitsu.wallet.impl.presentation.balance.list
 
+import android.widget.LinearLayout
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.SwipeableState
 import androidx.lifecycle.LiveData
@@ -10,7 +11,7 @@ import java.math.BigDecimal
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
-import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.TotalBalanceUseCase
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.presentation.actions.AddAccountBottomSheet
@@ -113,7 +114,7 @@ class BalanceListViewModel @Inject constructor(
     private val router: WalletRouter,
     private val getAvailableFiatCurrencies: GetAvailableFiatCurrencies,
     private val selectedFiat: SelectedFiat,
-    private val accountRepository: AccountRepository,
+    private val accountInteractor: AccountInteractor,
     private val updatesMixin: UpdatesMixin,
     private val networkStateMixin: NetworkStateMixin,
     private val resourceManager: ResourceManager,
@@ -149,7 +150,7 @@ class BalanceListViewModel @Inject constructor(
             }
         }
 
-    private val currentMetaAccountFlow = accountRepository.selectedMetaAccountFlow()
+    private val currentMetaAccountFlow = accountInteractor.selectedMetaAccountFlow()
 
     private val assetTypeSelectorState = MutableStateFlow(
         MultiToggleButtonState(
@@ -585,7 +586,7 @@ class BalanceListViewModel @Inject constructor(
                 return@launch
             }
             if (!asset.hasAccount) {
-                val meta = accountRepository.getSelectedMetaAccount()
+                val meta = accountInteractor.selectedMetaAccount()
                 val payload = AddAccountBottomSheet.Payload(
                     metaId = meta.id,
                     chainId = asset.chainId,
@@ -648,8 +649,26 @@ class BalanceListViewModel @Inject constructor(
 
     override fun onBackupClicked() {
         launch {
-            val selectedMetaAccount = accountRepository.getSelectedMetaAccount()
+            val selectedMetaAccount = accountInteractor.selectedMetaAccount()
             router.openBackupWalletScreen(selectedMetaAccount.id)
+        }
+    }
+
+    override fun onBackupCloseClick() {
+        showError(
+            title = resourceManager.getString(jp.co.soramitsu.feature_account_impl.R.string.backup_not_backed_up_title),
+            message = resourceManager.getString(jp.co.soramitsu.feature_account_impl.R.string.backup_not_backed_up_message),
+            positiveButtonText = resourceManager.getString(jp.co.soramitsu.feature_account_impl.R.string.backup_not_backed_up_confirm),
+            negativeButtonText = resourceManager.getString(jp.co.soramitsu.feature_account_impl.R.string.common_cancel),
+            buttonsOrientation = LinearLayout.HORIZONTAL,
+            positiveClick = { considerWalletBackedUp() }
+        )
+    }
+
+    private fun considerWalletBackedUp() {
+        launch {
+            val meta = accountInteractor.selectedMetaAccount()
+            accountInteractor.updateWalletBackedUp(meta.id)
         }
     }
 
