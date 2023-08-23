@@ -22,6 +22,7 @@ import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
 import jp.co.soramitsu.common.utils.ethereumAddressToHex
 import jp.co.soramitsu.common.utils.orZero
+import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.core.crypto.mapCryptoTypeToEncryption
 import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.coredb.dao.OperationDao
@@ -299,7 +300,7 @@ class WalletRepositoryImpl(
             val keypairSchema = secrets[MetaAccountSecrets.EthereumKeypair] ?: error("")
             val privateKey = keypairSchema[KeyPairSchema.PrivateKey]
 
-            ethereumSource.performTransfer(chain, transfer, privateKey.toHexString(true))
+            ethereumSource.performTransfer(chain, transfer, privateKey.toHexString(true)).requireValue() // handle error
         } else {
             substrateSource.performTransfer(accountId, chain, transfer, tip, additional, batchAll)
         }
@@ -364,7 +365,7 @@ class WalletRepositoryImpl(
 
     override suspend fun getTotalBalance(chainAsset: jp.co.soramitsu.core.models.Asset, chain: Chain, accountId: ByteArray): BigInteger {
         return if (chain.isEthereumChain) {
-            ethereumSource.getTotalBalance(chainAsset, chain, accountId)
+            ethereumSource.getTotalBalance(chainAsset, chain, accountId).requireValue() // handle errors
         } else {
             substrateSource.getTotalBalance(chainAsset, accountId)
         }

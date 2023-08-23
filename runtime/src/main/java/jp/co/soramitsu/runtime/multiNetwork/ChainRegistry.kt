@@ -26,6 +26,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.NodeId
 import jp.co.soramitsu.runtime.multiNetwork.connection.ConnectionPool
+import jp.co.soramitsu.runtime.multiNetwork.connection.EthereumConnectionPool
 import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeProvider
 import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeProviderPool
 import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeSubscriptionPool
@@ -55,7 +56,8 @@ class ChainRegistry @Inject constructor(
     private val chainSyncService: ChainSyncService,
     private val runtimeSyncService: RuntimeSyncService,
     private val updatesMixin: UpdatesMixin,
-    private val networkStateMixin: NetworkStateMixin
+    private val networkStateMixin: NetworkStateMixin,
+    private val ethereumConnectionPool: EthereumConnectionPool
 ) : IChainRegistry, CoroutineScope by CoroutineScope(Dispatchers.Default),
     UpdatesProviderUi by updatesMixin {
 
@@ -82,7 +84,6 @@ class ChainRegistry @Inject constructor(
             }
             chainDao.joinChainInfoFlow().mapList(::mapChainLocalToChain).diffed()
                 .collect { (removed, addedOrModified, all) ->
-                    var i = 0
                     launch {
                         runCatching {
                             removed.forEach {
@@ -94,8 +95,16 @@ class ChainRegistry @Inject constructor(
                             }
                             updatesMixin.startChainsSyncUp(addedOrModified.filter { it.nodes.isNotEmpty() }
                                 .map { it.id })
-                            addedOrModified.filter { !it.isEthereumChain }.filter { /*it.disabled*/ it.nodes.isNotEmpty() }
+                            addedOrModified
+                                .filter { /*it.disabled*/ it.nodes.isNotEmpty() }
                                 .forEach { chain ->
+                                    if (chain.isEthereumChain) {
+                                        Log.d("&&&", "eth ${chain.name}")
+                                        ethereumConnectionPool.setupConnection(chain).onFailure { Log.d("&&&", "error setup connection on ${chain.name} error $it") }
+                                        Log.d("&&&", "done setup eth ${chain.name}")
+                                        return@forEach
+                                    }
+
                                     runCatching {
                                         val connection = connectionPool.setupConnection(
                                             chain,
@@ -110,7 +119,7 @@ class ChainRegistry @Inject constructor(
                                         runtimeSyncService.registerChain(chain)
                                         runtimeProviderPool.setupRuntimeProvider(chain)
                                     }.onFailure { networkStateMixin.notifyChainSyncProblem(chain.toSyncIssue()) }
-                                        .onSuccess { networkStateMixin.notifyChainSyncSuccess(chain.id); i++ }
+                                        .onSuccess { networkStateMixin.notifyChainSyncSuccess(chain.id) }
                                 }
                             all
                         }.onFailure {
@@ -218,7 +227,7 @@ suspend fun ChainRegistry.getRuntimeOrNull(chainId: ChainId): RuntimeSnapshot? {
 suspend fun ChainRegistry.getRuntimeCatching(chainId: ChainId): Result<RuntimeSnapshot> {
     val providerResult = kotlin.runCatching { getRuntimeProvider(chainId) }
 
-    return if(providerResult.isFailure){
+    return if (providerResult.isFailure) {
         Result.failure(providerResult.requireException())
     } else {
         kotlin.runCatching { providerResult.requireValue().get() }
