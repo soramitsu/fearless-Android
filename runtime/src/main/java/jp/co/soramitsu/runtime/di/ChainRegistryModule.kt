@@ -19,6 +19,7 @@ import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainSyncService
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.ChainFetcher
 import jp.co.soramitsu.runtime.multiNetwork.connection.ConnectionPool
+import jp.co.soramitsu.runtime.multiNetwork.connection.EthereumConnectionPool
 import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeFilesCache
 import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeProviderPool
 import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeSubscriptionPool
@@ -127,6 +128,10 @@ class ChainRegistryModule {
 
     @Provides
     @Singleton
+    fun provideEthereumPool() = EthereumConnectionPool()
+
+    @Provides
+    @Singleton
     fun provideChainRegistry(
         runtimeProviderPool: RuntimeProviderPool,
         chainConnectionPool: ConnectionPool,
@@ -135,7 +140,8 @@ class ChainRegistryModule {
         chainSyncService: ChainSyncService,
         runtimeSyncService: RuntimeSyncService,
         updatesMixin: UpdatesMixin,
-        networkStateMixin: NetworkStateMixin
+        networkStateMixin: NetworkStateMixin,
+        ethereumConnectionPool: EthereumConnectionPool
     ): ChainRegistry = ChainRegistry(
         runtimeProviderPool,
         chainConnectionPool,
@@ -144,6 +150,7 @@ class ChainRegistryModule {
         chainSyncService,
         runtimeSyncService,
         updatesMixin,
-        networkStateMixin
+        networkStateMixin,
+        ethereumConnectionPool
     )
 }
