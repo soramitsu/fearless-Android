@@ -6,16 +6,13 @@ import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.accountId
 import jp.co.soramitsu.account.api.domain.model.address
-import jp.co.soramitsu.common.data.network.StorageSubscriptionBuilder
 import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
 import jp.co.soramitsu.common.data.network.runtime.binding.ExtrinsicStatusEvent
+import jp.co.soramitsu.common.data.network.runtime.binding.SimpleBalanceData
 import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
 import jp.co.soramitsu.common.utils.requireException
 import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.core.models.Asset
-import jp.co.soramitsu.common.data.network.runtime.binding.SimpleBalanceData
-import jp.co.soramitsu.common.utils.diffed
-import jp.co.soramitsu.common.utils.second
 import jp.co.soramitsu.core.updater.UpdateSystem
 import jp.co.soramitsu.core.updater.Updater
 import jp.co.soramitsu.core.utils.utilityAsset
@@ -24,8 +21,6 @@ import jp.co.soramitsu.coredb.model.OperationLocal
 import jp.co.soramitsu.runtime.ext.addressOf
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
-import jp.co.soramitsu.runtime.multiNetwork.getRuntimeOrNull
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.getSocket
 import jp.co.soramitsu.runtime.multiNetwork.getSocketOrNull
 import jp.co.soramitsu.runtime.multiNetwork.toSyncIssue
@@ -37,29 +32,24 @@ import jp.co.soramitsu.shared_utils.wsrpc.request.runtime.storage.storageChange
 import jp.co.soramitsu.wallet.api.data.cache.AssetCache
 import jp.co.soramitsu.wallet.api.data.cache.updateAsset
 import jp.co.soramitsu.wallet.impl.data.mappers.mapOperationStatusToOperationLocalStatus
+import jp.co.soramitsu.wallet.impl.data.network.blockchain.EthereumRemoteSource
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.SubstrateRemoteSource
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.bindings.TransferExtrinsic
 import jp.co.soramitsu.wallet.impl.data.network.model.constructBalanceKey
 import jp.co.soramitsu.wallet.impl.data.network.model.handleBalanceResponse
 import jp.co.soramitsu.wallet.impl.domain.model.Operation
-import jp.co.soramitsu.wallet.impl.data.network.blockchain.fetchEthBalance
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flatMapMerge
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.withContext
-import org.web3j.protocol.Web3j
-import org.web3j.protocol.core.Ethereum
-import org.web3j.protocol.http.HttpService
 
 private const val RUNTIME_AWAITING_TIMEOUT = 10_000L
 
@@ -71,13 +61,8 @@ class BalancesUpdateSystem(
     private val substrateSource: SubstrateRemoteSource,
     private val operationDao: OperationDao,
     private val networkStateMixin: NetworkStateMixin,
+    private val ethereumRemoteSource: EthereumRemoteSource
 ) : UpdateSystem {
-
-    companion object {
-        private const val ETHEREUM_BALANCES_UPDATE_DELAY = 30_000L
-    }
-
-    private val ethereumBalancesSubscriptionJob: MutableMap<ChainId, Job?> = mutableMapOf()
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private fun subscribeFlow(): Flow<Updater.SideEffect> {
@@ -87,18 +72,25 @@ class BalancesUpdateSystem(
         ) { chains, metaAccount ->
             chains to metaAccount
         }.flatMapLatest { (chains, metaAccount) ->
-            val chainsFLow = chains.map { chain ->
+            val chainsFLow = chains.mapNotNull { chain ->
                 if (chain.isEthereumChain) {
-                    ethereumBalancesSubscriptionJob[chain.id]?.cancel()
-                    ethereumBalancesSubscriptionJob[chain.id] = Job()
-                    return@map withContext(Dispatchers.Default + ethereumBalancesSubscriptionJob[chain.id]!!) {
-                        subscribeEthereumBalance(
-                            chain,
-                            metaAccount
-                        )
-                    }
+                    ethereumRemoteSource.subscribeEthereumBalance(chain, metaAccount)
+                        .onFailure { logError(chain, it) }
+                        .getOrNull()
+                        ?.onEachFailure { logError(chain, it) }
+                        ?.onEach {
+                            val (asset, balanceData) = it.getOrNull() ?: return@onEach
+                            val accountId = metaAccount.accountId(chain) ?: return@onEach
+                            assetCache.updateAsset(
+                                metaAccount.id,
+                                accountId,
+                                asset,
+                                balanceData
+                            )
+                        }
+                } else {
+                    subscribeChainBalances(chain, metaAccount).onEachFailure { logError(chain, it) }
                 }
-                subscribeChainBalances(chain, metaAccount).onEachFailure { logError(chain, it) }
             }
 
             combine(chainsFLow) { }.transform { }
@@ -183,15 +175,6 @@ class BalancesUpdateSystem(
                     }
                 }
         return chainUpdateFlow
-    }
-
-    private fun subscribeEthereumBalance(chain: Chain, account: MetaAccount): Flow<Updater.SideEffect> = flow {
-        val web3 = Web3j.build(HttpService(chain.nodes.first().url))
-        while (ethereumBalancesSubscriptionJob[chain.id]?.isActive == true) {
-            fetchEthereumBalances(chain, listOf(account), web3)
-            emit(Updater.SideEffect.Nothing)
-            delay(ETHEREUM_BALANCES_UPDATE_DELAY)
-        }
     }
 
     private fun singleUpdateFlow(): Flow<Unit> {
@@ -297,18 +280,15 @@ class BalancesUpdateSystem(
         }
     }
 
-    private suspend fun fetchEthereumBalances(chain: Chain, addedOrModified: List<MetaAccount>) {
-        val web3 = Web3j.build(HttpService(chain.nodes.first().url))
-        fetchEthereumBalances(chain, addedOrModified, web3)
-        web3.shutdown()
-    }
-
-    private suspend fun fetchEthereumBalances(chain: Chain, accounts: List<MetaAccount>, eth: Ethereum) {
+    private suspend fun fetchEthereumBalances(
+        chain: Chain,
+        accounts: List<MetaAccount>
+    ) {
         accounts.forEach { account ->
             val address = account.address(chain) ?: return@forEach
             val accountId = account.accountId(chain) ?: return@forEach
             chain.assets.forEach { asset ->
-                val balance = eth.fetchEthBalance(asset, address)
+                val balance = ethereumRemoteSource.fetchEthBalance(asset, address)
                 val balanceData = SimpleBalanceData(balance)
 
                 assetCache.updateAsset(

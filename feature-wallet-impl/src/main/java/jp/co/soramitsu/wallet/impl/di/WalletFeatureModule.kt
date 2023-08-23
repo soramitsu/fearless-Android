@@ -40,6 +40,7 @@ import jp.co.soramitsu.coredb.dao.TokenPriceDao
 import jp.co.soramitsu.feature_wallet_impl.BuildConfig
 import jp.co.soramitsu.runtime.di.REMOTE_STORAGE_SOURCE
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.multiNetwork.connection.EthereumConnectionPool
 import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeFilesCache
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 import jp.co.soramitsu.wallet.api.data.cache.AssetCache
@@ -137,7 +138,8 @@ class WalletFeatureModule {
     )
 
     @Provides
-    fun provideEthereumRemoteSource(): EthereumRemoteSource = EthereumRemoteSource()
+    fun provideEthereumRemoteSource(ethereumConnectionPool: EthereumConnectionPool): EthereumRemoteSource =
+        EthereumRemoteSource(ethereumConnectionPool)
 
     @Provides
     fun provideTokenRepository(
@@ -341,7 +343,8 @@ class WalletFeatureModule {
         assetCache: AssetCache,
         substrateSource: SubstrateRemoteSource,
         operationDao: OperationDao,
-        networkStateMixin: NetworkStateMixin
+        networkStateMixin: NetworkStateMixin,
+        ethereumRemoteSource: EthereumRemoteSource
     ): UpdateSystem = BalancesUpdateSystem(
         chainRegistry,
         accountRepository,
@@ -349,7 +352,8 @@ class WalletFeatureModule {
         assetCache,
         substrateSource,
         operationDao,
-        networkStateMixin
+        networkStateMixin,
+        ethereumRemoteSource
     )
 
     @Provides
