@@ -8,15 +8,12 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.math.BigDecimal
-import java.util.Locale
-import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.TotalBalanceUseCase
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.presentation.actions.AddAccountBottomSheet
 import jp.co.soramitsu.common.AlertViewState
-import jp.co.soramitsu.common.BuildConfig
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.address.createAddressModel
@@ -31,7 +28,6 @@ import jp.co.soramitsu.common.compose.component.NetworkIssueItemState
 import jp.co.soramitsu.common.compose.component.SwipeState
 import jp.co.soramitsu.common.compose.component.ToolbarHomeIconState
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState
-import jp.co.soramitsu.common.data.network.OptionsProvider
 import jp.co.soramitsu.common.data.network.coingecko.FiatChooserEvent
 import jp.co.soramitsu.common.data.network.coingecko.FiatCurrency
 import jp.co.soramitsu.common.domain.FiatCurrencies
@@ -55,10 +51,9 @@ import jp.co.soramitsu.common.utils.sumByBigDecimal
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.feature_wallet_impl.R
-import jp.co.soramitsu.oauth.base.sdk.SoraCardEnvironmentType
-import jp.co.soramitsu.oauth.base.sdk.SoraCardKycCredentials
 import jp.co.soramitsu.oauth.base.sdk.contract.SoraCardCommonVerification
 import jp.co.soramitsu.oauth.base.sdk.contract.SoraCardContractData
+import jp.co.soramitsu.oauth.base.sdk.contract.SoraCardResult
 import jp.co.soramitsu.oauth.common.domain.KycRepository
 import jp.co.soramitsu.runtime.ext.ecosystem
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainEcosystem
@@ -70,6 +65,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.addressByteOrNull
 import jp.co.soramitsu.soracard.api.domain.SoraCardInteractor
 import jp.co.soramitsu.soracard.impl.presentation.SoraCardItemViewState
+import jp.co.soramitsu.soracard.impl.presentation.createSoraCardContract
 import jp.co.soramitsu.wallet.impl.domain.ChainInteractor
 import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
@@ -92,7 +88,6 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
@@ -222,6 +217,7 @@ class BalanceListViewModel @Inject constructor(
     init {
         observeNetworkState()
         observeFiatSymbolChange()
+        observeSoraCardAvailability()
     }
 
     private fun observeFiatSymbolChange() {
@@ -364,14 +360,14 @@ class BalanceListViewModel @Inject constructor(
         .thenBy { it.chainId.defaultChainSort() }
         .thenBy { it.chainName }
 
-    //    private val soraCardState = combine(
-//        interactor.observeIsShowSoraCard(),
-//        soraCardInteractor.subscribeSoraCardInfo()
-//    ) { isShow, soraCardInfo ->
-//        val kycStatus = soraCardInfo?.kycStatus?.let(::mapKycStatus)
-//        SoraCardItemViewState(kycStatus, soraCardInfo, null, isShow)
-//    }
-    private val soraCardState = flowOf(SoraCardItemViewState())
+    private val soraCardState = combine(
+        soraCardInteractor.subscribeSoraCardStatus(),
+        interactor.observeIsShowSoraCard()
+    ) { soraCardStatus, isShow ->
+        println("!!! soraCardStatus = ${soraCardStatus.name}, isShow = $isShow")
+        val kycStatus = mapKycStatus(soraCardStatus)
+        SoraCardItemViewState(kycStatus, isShow)
+    }
 
     val state = combine(
         assetStates,
@@ -423,8 +419,16 @@ class BalanceListViewModel @Inject constructor(
         )
     }.stateIn(scope = this, started = SharingStarted.Eagerly, initialValue = LoadingState.Loading())
 
+    private var currentSoraCardContractData: SoraCardContractData? = null
+
     init {
-        updateSoraCardStatus()
+        observeSoraCardAvailability()
+
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                soraCardInteractor.checkSoraCardPending()
+            }
+        }
 
         router.chainSelectorPayloadFlow.map { chainId ->
             val walletId = interactor.getSelectedMetaAccount().id
@@ -441,17 +445,24 @@ class BalanceListViewModel @Inject constructor(
         }
     }
 
+    private fun observeSoraCardAvailability() {
+        soraCardInteractor.subscribeToSoraCardAvailabilityFlow().onEach {
+            currentSoraCardContractData = createSoraCardContract(
+                userAvailableXorAmount = it.xorBalance.toDouble(),
+                isEnoughXorAvailable = it.enoughXor
+            )
+        }.launchIn(viewModelScope)
+    }
+
     override fun onRefresh() {
         refresh()
     }
 
     private fun refresh() {
-        updateSoraCardStatus()
         sync()
     }
 
     fun onResume() {
-        updateSoraCardStatus()
         viewModelScope.launch {
             interactor.selectedMetaAccountFlow().collect {
                 checkControllerDeprecations()
@@ -481,24 +492,6 @@ class BalanceListViewModel @Inject constructor(
                     }
                 }
             )
-        }
-    }
-
-    private fun updateSoraCardStatus() {
-        viewModelScope.launch {
-            val soraCardInfo = soraCardInteractor.getSoraCardInfo() ?: return@launch
-            val accessTokenExpirationTime = soraCardInfo.accessTokenExpirationTime
-            val accessTokenExpired =
-                accessTokenExpirationTime < TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis())
-
-            if (!accessTokenExpired) {
-                kycRepository.getKycLastFinalStatus(soraCardInfo.accessToken)
-                    .onSuccess { kycStatus ->
-                        soraCardInteractor.updateSoraCardKycStatus(
-                            kycStatus = kycStatus?.toString().orEmpty()
-                        )
-                    }
-            }
         }
     }
 
@@ -686,7 +679,9 @@ class BalanceListViewModel @Inject constructor(
         if (state.value.soraCardState?.kycStatus == null) {
             router.openGetSoraCard()
         } else {
-            onSoraCardStatusClicked()
+            currentSoraCardContractData?.let { contractData ->
+                _launchSoraCardSignIn.value = Event(contractData)
+            }
         }
     }
 
@@ -756,8 +751,8 @@ class BalanceListViewModel @Inject constructor(
         showMessage(message)
     }
 
-    private fun mapKycStatus(kycStatus: String): String? {
-        return when (runCatching { SoraCardCommonVerification.valueOf(kycStatus) }.getOrNull()) {
+    private fun mapKycStatus(kycStatus: SoraCardCommonVerification): String? {
+        return when (kycStatus) {
             SoraCardCommonVerification.Pending -> {
                 resourceManager.getString(SoraCardR.string.kyc_result_verification_in_progress)
             }
@@ -774,49 +769,34 @@ class BalanceListViewModel @Inject constructor(
                 resourceManager.getString(SoraCardR.string.verification_failed_title)
             }
 
-            else -> {
+            SoraCardCommonVerification.NotFound -> {
                 null
             }
         }
     }
 
-    private fun onSoraCardStatusClicked() {
-        _launchSoraCardSignIn.value = Event(
-            SoraCardContractData(
-                locale = Locale.ENGLISH,
-                apiKey = BuildConfig.SORA_CARD_API_KEY,
-                domain = BuildConfig.SORA_CARD_DOMAIN,
-                environment = when {
-                    BuildConfig.DEBUG -> SoraCardEnvironmentType.TEST
-                    else -> SoraCardEnvironmentType.PRODUCTION
-                },
-                kycCredentials = SoraCardKycCredentials(
-                    endpointUrl = BuildConfig.SORA_CARD_KYC_ENDPOINT_URL,
-                    username = BuildConfig.SORA_CARD_KYC_USERNAME,
-                    password = BuildConfig.SORA_CARD_KYC_PASSWORD
-                ),
-                client = OptionsProvider.header,
-                userAvailableXorAmount = 0.0, // userAvailableXorAmount,
-                areAttemptsPaidSuccessfully = false, // will be available in Phase 2
-                isEnoughXorAvailable = false, // isEnoughXorAvailable,
-                isIssuancePaid = false // will be available in Phase 2
-            )
-        )
-    }
+    fun handleSoraCardResult(soraCardResult: SoraCardResult) {
+        when (soraCardResult) {
+            is SoraCardResult.Canceled -> {}
+            is SoraCardResult.Failure -> {
+                soraCardInteractor.setStatus(soraCardResult.status)
+            }
 
-    fun updateSoraCardInfo(
-        accessToken: String,
-        refreshToken: String,
-        accessTokenExpirationTime: Long,
-        kycStatus: String
-    ) {
-        launch {
-            soraCardInteractor.updateSoraCardInfo(
-                accessToken,
-                refreshToken,
-                accessTokenExpirationTime,
-                kycStatus
-            )
+            is SoraCardResult.Success -> {
+                soraCardInteractor.setStatus(soraCardResult.status)
+            }
+
+            is SoraCardResult.Logout -> {
+                soraCardInteractor.setLogout()
+            }
+
+            is SoraCardResult.NavigateTo -> {
+//                when (soraCardResult.screen) {
+//                    OutwardsScreen.DEPOSIT -> walletRouter.openQrCodeFlow(isLaunchedFromSoraCard = true)
+//                    OutwardsScreen.SWAP -> polkaswapRouter.showSwap(tokenToId = SubstrateOptionsProvider.feeAssetId)
+//                    OutwardsScreen.BUY -> assetsRouter.showBuyCrypto()
+//                }
+            }
         }
     }
 }

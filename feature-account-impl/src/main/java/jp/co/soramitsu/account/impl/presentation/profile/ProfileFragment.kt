@@ -18,7 +18,6 @@ import jp.co.soramitsu.common.presentation.FiatCurrenciesChooserBottomSheetDialo
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
 import jp.co.soramitsu.feature_account_impl.databinding.FragmentProfileBinding
 import jp.co.soramitsu.oauth.base.sdk.contract.SoraCardContract
-import jp.co.soramitsu.oauth.base.sdk.contract.SoraCardResult
 
 @AndroidEntryPoint
 class ProfileFragment : BaseFragment<ProfileViewModel>() {
@@ -30,24 +29,8 @@ class ProfileFragment : BaseFragment<ProfileViewModel>() {
 
     override val viewModel: ProfileViewModel by viewModels()
 
-    private val soraCardSignIn = registerForActivityResult(
-        SoraCardContract()
-    ) { result ->
-        when (result) {
-            is SoraCardResult.Failure -> {}
-            is SoraCardResult.Canceled -> {}
-            is SoraCardResult.Success -> {
-                viewModel.updateSoraCardInfo(
-                    accessToken = result.accessToken,
-                    refreshToken = result.refreshToken,
-                    accessTokenExpirationTime = result.accessTokenExpirationTime,
-                    kycStatus = result.status.toString()
-                )
-            }
-
-            SoraCardResult.Logout -> {} // todo
-            is SoraCardResult.NavigateTo -> {} // todo
-        }
+    private val soraCardSignIn = registerForActivityResult(SoraCardContract()) {
+        viewModel.handleSoraCardResult(it)
     }
 
     override fun onCreateView(

@@ -11,9 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
-import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Surface
@@ -115,30 +113,30 @@ fun WalletScreen(
             }
             val banners = listOfNotNull(buyXorBanner, backupBanner)
             val bannersCount = banners.size
-            val bannersCarousel: @Composable (() -> Unit)? = banners.takeIf { it.isNotEmpty() }?.let {
-                {
-                    val pagerState = rememberPagerState { bannersCount }
-
-                    HorizontalPager(
-                        modifier = Modifier.fillMaxWidth(),
-                        state = pagerState,
-                        pageSpacing = 8.dp,
-                        pageContent = { page ->
-                            banners[page].invoke()
-                        }
-                    )
-
-                    MarginVertical(margin = 8.dp)
-                    if (bannersCount > 1) {
-                        BannerPageIndicator(bannersCount, pagerState)
-                        MarginVertical(margin = 8.dp)
-                    }
-                }
-            }
-            val header: @Composable (() -> Unit)? = {
+//            val bannersCarousel: @Composable (() -> Unit)? = banners.takeIf { it.isNotEmpty() }?.let {
+//                {
+//                    val pagerState = rememberPagerState { bannersCount }
+//
+//                    HorizontalPager(
+//                        modifier = Modifier.fillMaxWidth(),
+//                        state = pagerState,
+//                        pageSpacing = 8.dp,
+//                        pageContent = { page ->
+//                            banners[page].invoke()
+//                        }
+//                    )
+//
+//                    MarginVertical(margin = 8.dp)
+//                    if (bannersCount > 1) {
+//                        BannerPageIndicator(bannersCount, pagerState)
+//                        MarginVertical(margin = 8.dp)
+//                    }
+//                }
+//            }
+            val header: @Composable (() -> Unit) = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     soraCardBanner?.invoke()
-                    bannersCarousel?.invoke()
+//                    bannersCarousel?.invoke()
                 }
             }
             AssetsList(
@@ -237,7 +235,7 @@ private fun PreviewWalletScreen() {
                         assets = assets,
                         balance = AssetBalanceViewState("TRANSFERABLE BALANCE", "ADDRESS", true, ChangeBalanceViewState("+100%", "+50$")),
                         hasNetworkIssues = true,
-                        soraCardState = SoraCardItemViewState(null, null, null, true),
+                        soraCardState = SoraCardItemViewState(null, true),
                         isBackedUp = false
                     ),
                     callback = emptyCallback

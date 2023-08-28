@@ -3,6 +3,12 @@ package jp.co.soramitsu.coredb.migrations
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
+val Migration_57_58 = object : Migration(57, 58) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+        database.execSQL("DROP TABLE IF EXISTS sora_card")
+    }
+}
+
 val Migration_56_57 = object : Migration(56, 57) {
     override fun migrate(database: SupportSQLiteDatabase) {
         database.execSQL("ALTER TABLE meta_accounts ADD COLUMN `isBackedUp` INTEGER NOT NULL DEFAULT 0")

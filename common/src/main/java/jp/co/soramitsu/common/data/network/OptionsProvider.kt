@@ -1,6 +1,8 @@
 package jp.co.soramitsu.common.data.network
 
 object OptionsProvider {
+
+
     var CURRENT_VERSION_CODE: Int = 0
     var CURRENT_VERSION_NAME: String = ""
     var APPLICATION_ID: String = ""

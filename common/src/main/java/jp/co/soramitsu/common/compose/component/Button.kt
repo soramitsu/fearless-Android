@@ -364,6 +364,13 @@ fun ButtonPreview() {
                 onClick = {}
             )
             MarginVertical(margin = 16.dp)
+            TransparentButton(
+                modifier = Modifier.height(52.dp),
+                text = "Disabled transparent",
+                enabled = false,
+                onClick = {}
+            )
+            MarginVertical(margin = 16.dp)
             GoogleButton(onClick = {})
             MarginVertical(margin = 16.dp)
             GoogleButton(

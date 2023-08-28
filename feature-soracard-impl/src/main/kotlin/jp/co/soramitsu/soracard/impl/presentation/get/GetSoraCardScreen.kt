@@ -48,33 +48,27 @@ import jp.co.soramitsu.common.compose.component.TransparentButton
 import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
 import jp.co.soramitsu.common.compose.theme.backgroundBlack
 import jp.co.soramitsu.common.compose.theme.errorRed
-import jp.co.soramitsu.common.utils.formatCryptoDetail
-import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.feature_soracard_impl.R
 import jp.co.soramitsu.oauth.base.extension.testTagAsId
-import jp.co.soramitsu.soracard.api.presentation.models.SoraCardInfo
 import jp.co.soramitsu.ui_core.resources.Dimens
 import jp.co.soramitsu.ui_core.theme.borderRadius
 import jp.co.soramitsu.ui_core.theme.customColors
 import jp.co.soramitsu.ui_core.theme.customTypography
-import jp.co.soramitsu.ui_core.theme.elevation
 import jp.co.soramitsu.oauth.R as SoraCardR
 
 data class GetSoraCardState(
     val xorBalance: BigDecimal = BigDecimal.ZERO,
     val enoughXor: Boolean = false,
     val percent: BigDecimal = BigDecimal.ZERO,
-    val needInXor: BigDecimal = BigDecimal.ZERO,
-    val needInEur: BigDecimal = BigDecimal.ZERO,
-    val xorRatioAvailable: Boolean = false,
-    val soraCardInfo: SoraCardInfo? = null
+    val needInXor: String = "",
+    val needInEur: String = "",
+    val xorRatioAvailable: Boolean = false
 )
 
 interface GetSoraCardScreenInterface {
     fun onEnableCard()
     fun onGetMoreXor()
     fun onSeeBlacklist()
-    fun onAlreadyHaveCard()
     fun onNavigationClick()
 }
 
@@ -194,6 +188,7 @@ fun GetSoraCardScreen(
                     color = MaterialTheme.customColors.accentPrimary,
                 )
 
+                val buttonsEnabled = state.xorRatioAvailable
                 MarginVertical(margin = 16.dp)
                 if (state.enoughXor) {
                     AccentButton(
@@ -202,6 +197,7 @@ fun GetSoraCardScreen(
                             .padding(horizontal = 8.dp)
                             .height(48.dp),
                         onClick = callbacks::onEnableCard,
+                        enabled = buttonsEnabled,
                         text = stringResource(R.string.common_continue)
                     )
                 } else {
@@ -212,6 +208,7 @@ fun GetSoraCardScreen(
                             .padding(horizontal = 8.dp)
                             .height(48.dp),
                         onClick = callbacks::onGetMoreXor,
+                        enabled = buttonsEnabled,
                         text = stringResource(SoraCardR.string.details_get_more_xor)
                     )
                 }
@@ -224,7 +221,8 @@ fun GetSoraCardScreen(
                         .padding(horizontal = 8.dp)
                         .height(48.dp),
                     text = stringResource(SoraCardR.string.details_already_have_card),
-                    onClick = callbacks::onAlreadyHaveCard
+                    enabled = buttonsEnabled,
+                    onClick = callbacks::onEnableCard
                 )
 
                 MarginVertical(margin = 8.dp)
@@ -338,8 +336,8 @@ private fun FreeCardIssuance(
                     else -> {
                         stringResource(
                             SoraCardR.string.details_need_xor_desription,
-                            state.needInXor.formatCryptoDetail(),
-                            state.needInEur.formatFiat()
+                            state.needInXor,
+                            state.needInEur
                         )
                     }
                 }
@@ -378,7 +376,6 @@ private fun PreviewGetSoraCardScreen() {
         override fun onEnableCard() {}
         override fun onGetMoreXor() {}
         override fun onSeeBlacklist() {}
-        override fun onAlreadyHaveCard() {}
         override fun onNavigationClick() {}
     }
     FearlessAppTheme(darkTheme = true) {

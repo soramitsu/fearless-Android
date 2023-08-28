@@ -24,8 +24,8 @@ buildscript {
 
         progressButtonsVersion = '2.1.0'
         xNetworkingVersion = '0.0.60'
-        soraCardVersion = '0.1.9'
-        soraUiCoreVersion = '0.0.72'
+        soraCardVersion = '0.1.33'
+        soraUiCoreVersion = '0.1.0'
 
         daggerVersion = '2.47'
         javaxInjectVersion = '1'
@@ -68,8 +68,8 @@ buildscript {
         androidxCoreVersion = '1.8.0'
 
         composeVersion = '1.4.3'
-        composeFoundationVersion = '1.5.0-beta03'
-        composeCompilerVersion = '1.4.4'
+        composeFoundationVersion = '1.4.3' // '1.5.0-beta03' - was used for google
+        composeCompilerVersion = '1.4.6'
 
         appcompatVersion = '1.6.1'
         recyclerviewVersion = '1.2.0'
@@ -118,8 +118,8 @@ buildscript {
                 "androidx.lifecycle:lifecycle-viewmodel-compose:2.6.1",
                 "com.valentinilk.shimmer:compose-shimmer:1.0.4",
                 "androidx.constraintlayout:constraintlayout-compose:1.0.1",
-                "com.google.accompanist:accompanist-swiperefresh:0.28.0",
-                "com.google.accompanist:accompanist-webview:0.28.0",
+                "com.google.accompanist:accompanist-swiperefresh:0.30.0",
+                "com.google.accompanist:accompanist-webview:0.30.0",
                 "io.coil-kt:coil-compose:$coilVersion",
                 "androidx.navigation:navigation-compose:$navControllerVersion",
                 "androidx.hilt:hilt-navigation-compose:1.0.0"

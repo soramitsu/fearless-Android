@@ -6,7 +6,6 @@ import androidx.lifecycle.liveData
 import androidx.lifecycle.map
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.util.Locale
 import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.TotalBalanceUseCase
@@ -14,12 +13,10 @@ import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.account.impl.presentation.AccountRouter
 import jp.co.soramitsu.account.impl.presentation.language.mapper.mapLanguageToLanguageModel
-import jp.co.soramitsu.common.BuildConfig
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
-import jp.co.soramitsu.common.data.network.OptionsProvider
 import jp.co.soramitsu.common.data.network.coingecko.FiatChooserEvent
 import jp.co.soramitsu.common.data.network.coingecko.FiatCurrency
 import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
@@ -29,19 +26,20 @@ import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
 import jp.co.soramitsu.feature_account_impl.R
-import jp.co.soramitsu.oauth.base.sdk.SoraCardEnvironmentType
-import jp.co.soramitsu.oauth.base.sdk.SoraCardKycCredentials
 import jp.co.soramitsu.oauth.base.sdk.contract.SoraCardCommonVerification
 import jp.co.soramitsu.oauth.base.sdk.contract.SoraCardContractData
+import jp.co.soramitsu.oauth.base.sdk.contract.SoraCardResult
 import jp.co.soramitsu.soracard.api.domain.SoraCardInteractor
 import jp.co.soramitsu.soracard.impl.presentation.SoraCardItemViewState
+import jp.co.soramitsu.soracard.impl.presentation.createSoraCardContract
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import jp.co.soramitsu.oauth.R as SoraCardR
@@ -91,13 +89,29 @@ class ProfileViewModel @Inject constructor(
         it.any { it.hasAccount.not() }
     }.stateIn(this, SharingStarted.Eagerly, false)
 
-//    private val soraCardState = soraCardInteractor.subscribeSoraCardInfo().map {
-//        val kycStatus = it?.kycStatus?.let(::mapKycStatus)
-//        SoraCardItemViewState(kycStatus, it, null, true)
-//    }
-    private val soraCardState = flowOf(SoraCardItemViewState())
+    private val soraCardState = soraCardInteractor.subscribeSoraCardStatus().map {
+        println("!!! ProfileVM: subscribeSoraCardStatus = ${it.name}")
+        val kycStatus = mapKycStatus(it)
+        SoraCardItemViewState(kycStatus, true)
+    }
 
     val hideZeroBalancesState: Flow<Boolean> = walletInteractor.observeHideZeroBalanceEnabledForCurrentWallet()
+
+    private var currentSoraCardContractData: SoraCardContractData? = null
+
+    init {
+        observeSoraCardAvailability()
+    }
+
+    private fun observeSoraCardAvailability() {
+        soraCardInteractor.subscribeToSoraCardAvailabilityFlow().onEach {
+            println("!!! ProfileVM: subscribeToSoraCardAvailabilityFlow = ${it.enoughXor}")
+            currentSoraCardContractData = createSoraCardContract(
+                userAvailableXorAmount = it.xorBalance.toDouble(),
+                isEnoughXorAvailable = it.enoughXor
+            )
+        }.launchIn(viewModelScope)
+    }
 
     fun aboutClicked() {
         router.openAboutScreen()
@@ -158,77 +172,65 @@ class ProfileViewModel @Inject constructor(
             if (soraCardState?.kycStatus == null) {
                 router.openGetSoraCard()
             } else {
-                onSoraCardStatusClicked()
+                currentSoraCardContractData?.let { contractData ->
+                    _launchSoraCardSignIn.value = Event(contractData)
+                }
             }
         }
     }
 
-    private fun onSoraCardStatusClicked() {
-        launch {
-            val soraCardState = soraCardState.firstOrNull()
-            _launchSoraCardSignIn.value = Event(
-                SoraCardContractData(
-                    locale = Locale.ENGLISH,
-                    apiKey = BuildConfig.SORA_CARD_API_KEY,
-                    domain = BuildConfig.SORA_CARD_DOMAIN,
-                    environment = when {
-                        BuildConfig.DEBUG -> SoraCardEnvironmentType.TEST
-                        else -> SoraCardEnvironmentType.PRODUCTION
-                    },
-                    kycCredentials = SoraCardKycCredentials(
-                        endpointUrl = BuildConfig.SORA_CARD_KYC_ENDPOINT_URL,
-                        username = BuildConfig.SORA_CARD_KYC_USERNAME,
-                        password = BuildConfig.SORA_CARD_KYC_PASSWORD
-                    ),
-                    client = OptionsProvider.header,
-                    userAvailableXorAmount = 0.0, // userAvailableXorAmount,
-                    areAttemptsPaidSuccessfully = false, // will be available in Phase 2
-                    isEnoughXorAvailable = false, // isEnoughXorAvailable,
-                    isIssuancePaid = false // will be available in Phase 2
-                )
-            )
-        }
-    }
-
-    private fun mapKycStatus(kycStatus: String): String? {
-        return when (runCatching { SoraCardCommonVerification.valueOf(kycStatus) }.getOrNull()) {
+    private fun mapKycStatus(kycStatus: SoraCardCommonVerification): String? {
+        return when (kycStatus) {
             SoraCardCommonVerification.Pending -> {
                 resourceManager.getString(SoraCardR.string.kyc_result_verification_in_progress)
             }
+
             SoraCardCommonVerification.Successful -> {
                 resourceManager.getString(R.string.sora_card_verification_successful)
             }
+
             SoraCardCommonVerification.Rejected -> {
                 resourceManager.getString(SoraCardR.string.verification_rejected_title)
             }
+
             SoraCardCommonVerification.Failed -> {
                 resourceManager.getString(SoraCardR.string.verification_failed_title)
             }
-            else -> {
+
+            SoraCardCommonVerification.NotFound -> {
                 null
             }
-        }
-    }
-
-    fun updateSoraCardInfo(
-        accessToken: String,
-        refreshToken: String,
-        accessTokenExpirationTime: Long,
-        kycStatus: String
-    ) {
-        launch {
-            soraCardInteractor.updateSoraCardInfo(
-                accessToken,
-                refreshToken,
-                accessTokenExpirationTime,
-                kycStatus
-            )
         }
     }
 
     fun onHideZeroBalancesClick() {
         viewModelScope.launch {
             walletInteractor.toggleHideZeroBalancesForCurrentWallet()
+        }
+    }
+
+    fun handleSoraCardResult(soraCardResult: SoraCardResult) {
+        when (soraCardResult) {
+            is SoraCardResult.Canceled -> {}
+            is SoraCardResult.Failure -> {
+                soraCardInteractor.setStatus(soraCardResult.status)
+            }
+
+            is SoraCardResult.Success -> {
+                soraCardInteractor.setStatus(soraCardResult.status)
+            }
+
+            is SoraCardResult.Logout -> {
+                soraCardInteractor.setLogout()
+            }
+
+            is SoraCardResult.NavigateTo -> {
+//                when (soraCardResult.screen) {
+//                    OutwardsScreen.DEPOSIT -> walletRouter.openQrCodeFlow(isLaunchedFromSoraCard = true)
+//                    OutwardsScreen.SWAP -> polkaswapRouter.showSwap(tokenToId = SubstrateOptionsProvider.feeAssetId)
+//                    OutwardsScreen.BUY -> assetsRouter.showBuyCrypto()
+//                }
+            }
         }
     }
 }
