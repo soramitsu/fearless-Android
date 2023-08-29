@@ -4,6 +4,7 @@ import java.math.BigDecimal
 import java.math.RoundingMode
 import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.common.BuildConfig
 import jp.co.soramitsu.common.utils.formatCrypto
 import jp.co.soramitsu.common.utils.formatFiat
@@ -18,6 +19,7 @@ import jp.co.soramitsu.soracard.api.domain.SoraCardRepository
 import jp.co.soramitsu.soracard.api.presentation.models.SoraCardAvailabilityInfo
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
+import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.compareByTotal
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
@@ -26,6 +28,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 
@@ -64,8 +67,8 @@ internal class SoraCardInteractorImpl @Inject constructor(
         .map { asset ->
             val xorEuroPrice = getXorEuroPrice(asset.token.configuration.priceId) ?: return@map errorInfoState(BigDecimal.ZERO)
 
-            val demeterStakedFarmed = BigDecimal.ZERO
-            val poolBalance = BigDecimal.ZERO
+            val demeterStakedFarmed = obtainDemeterStaked().firstOrNull().orZero()
+            val poolBalance = obtainPoolBalance().firstOrNull().orZero()
 
             val totalXorBalance = asset.total.orZero().plus(poolBalance).plus(demeterStakedFarmed)
 
@@ -99,6 +102,40 @@ internal class SoraCardInteractorImpl @Inject constructor(
                 errorInfoState(totalXorBalance)
             }
         }
+
+    private fun obtainDemeterStaked(): Flow<BigDecimal> {
+        return combine(
+            chainRegistry.chainFlow(soraCardChainId).distinctUntilChanged(),
+            accountRepository.selectedMetaAccountFlow().distinctUntilChanged(),
+            ::Pair
+        )
+            .map { (chain, metaAccount) ->
+                println("!!! obtainDemeterStaked() map chain: $chain")
+                println("!!! obtainDemeterStaked() map metaAccount: $metaAccount")
+                val xorAsset = chain.assets.firstOrNull { it.isUtility } ?: error("XOR asset not found")
+                val soraAddress = metaAccount.address(chain) ?: error("SORA address not specified")
+                val stakedFarmedAmountInPlanks = soraCardRepository.getStakedFarmedAmountOfAsset(soraAddress, xorAsset)
+                val stakedFarmedAmount = xorAsset.amountFromPlanks(stakedFarmedAmountInPlanks)
+                stakedFarmedAmount
+            }
+    }
+
+    private fun obtainPoolBalance(): Flow<BigDecimal> {
+        return combine(
+            chainRegistry.chainFlow(soraCardChainId).distinctUntilChanged(),
+            accountRepository.selectedMetaAccountFlow().distinctUntilChanged(),
+            ::Pair
+        )
+            .map { (chain, metaAccount) ->
+                println("!!! obtainPoolBalance() map chain: $chain")
+                println("!!! obtainPoolBalance() map metaAccount: $metaAccount")
+                val xorAsset = chain.assets.firstOrNull { it.isUtility } ?: error("XOR asset not found")
+                val soraAddress = metaAccount.address(chain) ?: error("SORA address not specified")
+                val pooledAmount = soraCardRepository.getXorPooledAmount(soraAddress, xorAsset)
+                println("!!! obtainPoolBalance() map pooledAmount = $pooledAmount")
+                pooledAmount
+            }
+    }
 
     private fun errorInfoState(balance: BigDecimal) = SoraCardAvailabilityInfo(
         xorBalance = balance,

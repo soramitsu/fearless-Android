@@ -62,7 +62,7 @@ data class GetSoraCardState(
     val percent: BigDecimal = BigDecimal.ZERO,
     val needInXor: String = "",
     val needInEur: String = "",
-    val xorRatioAvailable: Boolean = false
+    val xorRatioAvailable: Boolean? = null
 )
 
 interface GetSoraCardScreenInterface {
@@ -188,7 +188,7 @@ fun GetSoraCardScreen(
                     color = MaterialTheme.customColors.accentPrimary,
                 )
 
-                val buttonsEnabled = state.xorRatioAvailable
+                val buttonsEnabled = state.xorRatioAvailable == true
                 MarginVertical(margin = 16.dp)
                 if (state.enoughXor) {
                     AccentButton(
@@ -208,7 +208,6 @@ fun GetSoraCardScreen(
                             .padding(horizontal = 8.dp)
                             .height(48.dp),
                         onClick = callbacks::onGetMoreXor,
-                        enabled = buttonsEnabled,
                         text = stringResource(SoraCardR.string.details_get_more_xor)
                     )
                 }
@@ -327,6 +326,9 @@ private fun FreeCardIssuance(
                     .padding(top = Dimens.x3, bottom = Dimens.x1),
                 percent = state.percent.toFloat(),
                 label = when {
+                    state.xorRatioAvailable == null -> {
+                        ""
+                    }
                     !state.xorRatioAvailable -> {
                         stringResource(R.string.common_error_general_title)
                     }
