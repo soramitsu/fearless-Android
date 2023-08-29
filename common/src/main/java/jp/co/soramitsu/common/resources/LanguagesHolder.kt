@@ -10,8 +10,9 @@ class LanguagesHolder {
         private val RUSSIAN = Language("ru")
         private val ENGLISH = Language("en")
         private val JAPANESE = Language("ja")
+        private val CHINESE = Language("zh")
 
-        private val availableLanguages = mutableListOf(RUSSIAN, ENGLISH, JAPANESE)
+        private val availableLanguages = mutableListOf(RUSSIAN, ENGLISH, JAPANESE, CHINESE)
     }
 
     fun getEnglishLang(): Language {
