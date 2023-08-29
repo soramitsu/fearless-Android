@@ -42,7 +42,8 @@ import jp.co.soramitsu.ui_core.theme.customTypography
 
 @Composable
 fun BannerBackup(
-    onBackupClick: () -> Unit
+    onBackupClick: () -> Unit,
+    onCloseClick: () -> Unit
 ) {
     Box(
         modifier = Modifier
@@ -59,6 +60,13 @@ fun BannerBackup(
             iconRes = R.drawable.ic_fearless_bird,
             color = colorAccentDark,
             background = backgroundBlack
+        )
+        NavigationIconButton(
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(10.dp),
+            navigationIconResId = R.drawable.ic_cross_32,
+            onNavigationClick = onCloseClick
         )
         Column(
             modifier = Modifier
@@ -140,6 +148,7 @@ fun HaloIconBackup(
 @Composable
 private fun BannerBackupPreview() {
     BannerBackup(
-        onBackupClick = {}
+        onBackupClick = {},
+        onCloseClick = {}
     )
 }

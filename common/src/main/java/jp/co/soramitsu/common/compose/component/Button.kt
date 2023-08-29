@@ -130,7 +130,7 @@ fun GrayButton(text: String, enabled: Boolean = true, modifier: Modifier = Modif
 @Composable
 fun GoogleButton(
     modifier: Modifier = Modifier,
-    text: String = stringResource(id = R.string.onboarding_continue_with_google),
+    text: String = stringResource(id = R.string.onboarding_connect_with_google),
     backgroundColor: Color = Color.Unspecified,
     borderColor: Color = white64,
     onClick: () -> Unit
