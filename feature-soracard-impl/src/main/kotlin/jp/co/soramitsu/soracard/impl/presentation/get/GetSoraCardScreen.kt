@@ -190,7 +190,7 @@ fun GetSoraCardScreen(
 
                 val buttonsEnabled = state.xorRatioAvailable == true
                 MarginVertical(margin = 16.dp)
-                if (state.enoughXor) {
+                if (state.enoughXor || state.xorRatioAvailable == null) {
                     AccentButton(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -325,6 +325,7 @@ private fun FreeCardIssuance(
                     .fillMaxWidth()
                     .padding(top = Dimens.x3, bottom = Dimens.x1),
                 percent = state.percent.toFloat(),
+                loading = state.xorRatioAvailable == null,
                 label = when {
                     state.xorRatioAvailable == null -> {
                         ""
