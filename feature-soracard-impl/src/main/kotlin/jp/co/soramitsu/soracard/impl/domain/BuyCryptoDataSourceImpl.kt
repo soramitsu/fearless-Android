@@ -1,5 +1,6 @@
 package jp.co.soramitsu.soracard.impl.domain
 
+import jp.co.soramitsu.common.config.BuildConfigWrapper
 import jp.co.soramitsu.soracard.api.domain.BuyCryptoDataSource
 import jp.co.soramitsu.soracard.api.presentation.models.PaymentOrder
 import jp.co.soramitsu.soracard.api.presentation.models.PaymentOrderInfo
@@ -40,7 +41,7 @@ class BuyCryptoDataSourceImpl(
     }
 
     private val paymentOrderWebSocket: WebSocket = WebSocket(
-        url = "BuildConfig.X1_PAYMENT_STATUS_URL",
+        url = BuildConfigWrapper.soraCardX1StatusUrl,
         listener = webSocketListener,
         json = json,
         logging = false,

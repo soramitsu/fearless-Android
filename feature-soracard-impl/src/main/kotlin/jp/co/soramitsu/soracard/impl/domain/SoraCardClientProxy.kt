@@ -36,7 +36,7 @@ import android.content.Context
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
-import jp.co.soramitsu.common.BuildConfig
+import jp.co.soramitsu.common.config.BuildConfigWrapper
 import jp.co.soramitsu.oauth.clients.ClientsFacade
 import jp.co.soramitsu.soracard.impl.presentation.createSoraCardBasicContract
 
@@ -49,7 +49,7 @@ internal class SoraCardClientProxy @Inject constructor(
         clientsFacade.init(
             createSoraCardBasicContract(),
             context,
-            BuildConfig.SORACARD_BACKEND_URL,
+            BuildConfigWrapper.soraCardBackEndUrl,
         )
     }
 

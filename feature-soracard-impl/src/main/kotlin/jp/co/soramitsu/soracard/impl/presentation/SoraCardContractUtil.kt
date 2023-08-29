@@ -2,6 +2,7 @@ package jp.co.soramitsu.soracard.impl.presentation
 
 import java.util.Locale
 import jp.co.soramitsu.common.BuildConfig
+import jp.co.soramitsu.common.config.BuildConfigWrapper
 import jp.co.soramitsu.common.data.network.OptionsProvider
 import jp.co.soramitsu.oauth.base.sdk.SoraCardEnvironmentType
 import jp.co.soramitsu.oauth.base.sdk.SoraCardKycCredentials
@@ -34,6 +35,6 @@ fun createSoraCardContract(
         areAttemptsPaidSuccessfully = false, // will be available in Phase 2
         isEnoughXorAvailable = isEnoughXorAvailable,
         isIssuancePaid = false, // will be available in Phase 2
-        soraBackEndUrl = BuildConfig.SORACARD_BACKEND_URL
+        soraBackEndUrl = BuildConfigWrapper.soraCardBackEndUrl
     )
 }

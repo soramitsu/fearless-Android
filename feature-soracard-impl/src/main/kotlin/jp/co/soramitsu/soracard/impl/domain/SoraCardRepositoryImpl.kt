@@ -5,6 +5,7 @@ import java.math.BigInteger
 import java.math.RoundingMode
 import javax.inject.Inject
 import javax.inject.Named
+import jp.co.soramitsu.common.config.BuildConfigWrapper
 import jp.co.soramitsu.common.data.network.runtime.binding.fromHexOrIncompatible
 import jp.co.soramitsu.common.data.network.runtime.binding.storageReturnType
 import jp.co.soramitsu.common.utils.orZero
@@ -48,7 +49,7 @@ class SoraCardRepositoryImpl @Inject constructor(
         return if (xorEurPrice != null && cacheExpired.not()) {
             xorEurPrice
         } else {
-            val soraPrice = soraCardApi.getXorEuroPrice()
+            val soraPrice = soraCardApi.getXorEuroPrice(BuildConfigWrapper.soraCardEuroRateUrl)
             val newValue = soraPrice?.price?.toBigDecimalOrNull()
             cachedXorEuroPrice = newValue to System.currentTimeMillis()
 
