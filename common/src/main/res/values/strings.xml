@@ -468,8 +468,8 @@
   <string name="nft_stub_text">NFTs are going to be here soon</string>
   <string name="nft_stub_title">Sumimasen!</string>
   <string name="nfts_stub">NFTs</string>
-  <string name="node">Node</string>
   <string name="no_access_to_google">No access to Google</string>
+  <string name="node">Node</string>
   <string name="node_selection_delete_node_title">Delete custom node?</string>
   <string name="notification">Notification</string>
   <string name="onboarding_connect_with_google">Connect with Google</string>
