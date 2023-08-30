@@ -1,4 +1,4 @@
-@Library('jenkins-library')
+@Library('jenkins-library@feature/duty-SUP-5355-Add-fearless-android-CI-variables')
 
 // Job properties
 def jobParams = [
