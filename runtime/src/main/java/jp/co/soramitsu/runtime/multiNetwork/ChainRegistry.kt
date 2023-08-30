@@ -88,6 +88,10 @@ class ChainRegistry @Inject constructor(
                         runCatching {
                             removed.forEach {
                                 val chainId = it.id
+                                if (it.isEthereumChain) {
+                                    ethereumConnectionPool.stop(chainId)
+                                    return@forEach
+                                }
                                 runtimeProviderPool.removeRuntimeProvider(chainId)
                                 runtimeSubscriptionPool.removeSubscription(chainId)
                                 runtimeSyncService.unregisterChain(chainId)
@@ -99,9 +103,11 @@ class ChainRegistry @Inject constructor(
                                 .filter { /*it.disabled*/ it.nodes.isNotEmpty() }
                                 .forEach { chain ->
                                     if (chain.isEthereumChain) {
-                                        Log.d("&&&", "eth ${chain.name}")
-                                        ethereumConnectionPool.setupConnection(chain).onFailure { Log.d("&&&", "error setup connection on ${chain.name} error $it") }
-                                        Log.d("&&&", "done setup eth ${chain.name}")
+                                        ethereumConnectionPool.setupConnection(
+                                            chain,
+                                            onSelectedNodeChange = { chainId, newNodeUrl ->
+                                                launch { notifyNodeSwitched(NodeId(chainId to newNodeUrl)) }
+                                            })
                                         return@forEach
                                     }
 
@@ -175,8 +181,14 @@ class ChainRegistry @Inject constructor(
         .mapList(::mapNodeLocalToNode)
 
     suspend fun switchNode(id: NodeId) {
-        connectionPool.getConnection(id.chainId).socketService.switchUrl(id.nodeUrl)
-        notifyNodeSwitched(id)
+        val chain = getChain(id.chainId)
+        if (chain.isEthereumChain) {
+            val connection = ethereumConnectionPool.get(chain.id)
+            connection?.switchNode(id.nodeUrl)
+        } else {
+            connectionPool.getConnection(id.chainId).socketService.switchUrl(id.nodeUrl)
+            notifyNodeSwitched(id)
+        }
     }
 
     private suspend fun notifyNodeSwitched(id: NodeId) {
