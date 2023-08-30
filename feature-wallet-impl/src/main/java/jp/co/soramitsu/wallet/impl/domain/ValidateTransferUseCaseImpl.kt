@@ -3,6 +3,7 @@ package jp.co.soramitsu.wallet.impl.domain
 import java.math.BigInteger
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.accountId
+import jp.co.soramitsu.common.utils.isZero
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.sumByBigDecimal
 import jp.co.soramitsu.core.models.ChainAssetType
@@ -69,6 +70,29 @@ class ValidateTransferUseCaseImpl(
         val validationChecks = when {
             chainAsset.type == ChainAssetType.Equilibrium -> {
                 getEquilibriumValidationChecks(asset, recipientAccountId, originChain, ownAddress, amountInPlanks, fee, tip)
+            }
+
+            originChain.isEthereumChain -> {
+                val metaAccount = accountRepository.getSelectedMetaAccount()
+                val utilityAsset = originChain.utilityAsset?.id?.let {
+                    walletRepository.getAsset(
+                        metaAccount.id,
+                        metaAccount.accountId(originChain)!!,
+                        chainAsset,
+                        originChain.minSupportedVersion
+                    )
+                }
+                val utilityAssetBalance = utilityAsset?.transferableInPlanks.orZero()
+                val originChainUtilityAsset = originChain.utilityAsset
+                val totalRecipientUtilityAssetBalanceInPlanks = kotlin.runCatching { originChainUtilityAsset?.let { walletRepository.getTotalBalance(it, destinationChain, recipientAccountId) } }.getOrNull().orZero()
+                val resultedBalance = (asset.freeInPlanks ?: transferable) - (amountInPlanks + fee + tip)
+
+                mapOf(
+                    TransferValidationResult.InsufficientBalance to (amountInPlanks + fee + tip > transferable),
+                    TransferValidationResult.ExistentialDepositWarning to (resultedBalance < assetExistentialDeposit),
+                    TransferValidationResult.InsufficientUtilityAssetBalance to (fee + tip > utilityAssetBalance),
+                    TransferValidationResult.DeadRecipientEthereum to (!asset.token.configuration.isUtility && totalRecipientUtilityAssetBalanceInPlanks.isZero())
+                )
             }
 
             chainAsset.isUtility -> {

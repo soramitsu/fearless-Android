@@ -3,6 +3,7 @@ package jp.co.soramitsu.wallet.api.domain
 import java.math.BigInteger
 import jp.co.soramitsu.common.base.errors.ValidationException
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.validation.DeadRecipientEthereumException
 import jp.co.soramitsu.common.validation.DeadRecipientException
 import jp.co.soramitsu.common.validation.ExistentialDepositCrossedException
 import jp.co.soramitsu.common.validation.SpendInsufficientBalanceException
@@ -42,6 +43,7 @@ enum class TransferValidationResult {
     ExistentialDepositWarning,
     UtilityExistentialDepositWarning,
     DeadRecipient,
+    DeadRecipientEthereum,
     InvalidAddress,
     TransferToTheSameAddress,
     WaitForFee
@@ -59,5 +61,6 @@ fun ValidationException.Companion.fromValidationResult(result: TransferValidatio
         TransferValidationResult.InvalidAddress -> TransferAddressNotValidException(resourceManager)
         TransferValidationResult.WaitForFee -> WaitForFeeCalculationException(resourceManager)
         TransferValidationResult.TransferToTheSameAddress -> TransferToTheSameAddressException(resourceManager)
+        TransferValidationResult.DeadRecipientEthereum -> DeadRecipientEthereumException(resourceManager)
     }
 }
