@@ -3,14 +3,23 @@ package jp.co.soramitsu.runtime.multiNetwork.connection
 import android.util.Log
 import java.net.ConnectException
 import java.util.concurrent.ConcurrentHashMap
+import jp.co.soramitsu.common.BuildConfig
+import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
+import jp.co.soramitsu.common.utils.failure
+import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.core.models.ChainNode
-import jp.co.soramitsu.core.utils.cycle
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.runtime.multiNetwork.toSyncIssue
+import jp.co.soramitsu.runtime.storage.NodesSettingsStorage
 import org.web3j.protocol.Web3j
 import org.web3j.protocol.websocket.WebSocketService
 
-class EthereumConnectionPool {
+class EthereumConnectionPool(
+    private val networkStateMixin: NetworkStateMixin,
+    private val socketFactory: EthereumWebSocketFactory,
+    private val nodesSettingsStorage: NodesSettingsStorage,
+) {
 
     companion object {
         private const val SOCKET_URL_PREFIX = "wss"
@@ -18,17 +27,43 @@ class EthereumConnectionPool {
 
     private val pool = ConcurrentHashMap<ChainId, EthereumWebSocketConnection>()
 
-    fun setupConnection(chain: Chain) = kotlin.runCatching {
-        require(chain.isEthereumChain)
+    suspend fun setupConnection(
+        chain: Chain,
+        onSelectedNodeChange: (chainId: ChainId, newNodeUrl: String) -> Unit
+    ) {
+        val setupResult = kotlin.runCatching {
+            require(chain.isEthereumChain)
 
-        val wsNodes = chain.nodes.filter { it.url.startsWith(SOCKET_URL_PREFIX) }
+            val wsNodes = chain.nodes.filter { it.url.startsWith(SOCKET_URL_PREFIX) }
 
-        if (wsNodes.isEmpty()) {
-            throw MissingWssNodesException(chain.name, chain.id)
+            if (wsNodes.isEmpty()) {
+                throw MissingWssNodesException(chain.name, chain.id)
+            }
+
+            val connection =
+                EthereumWebSocketConnection(
+                    chain,
+                    socketFactory,
+                    autoBalanceEnabled = {
+                        nodesSettingsStorage.getIsAutoSelectNodes(chain.id)
+                    },
+                    onSelectedNodeChange = onSelectedNodeChange
+                )
+            pool[chain.id] = connection
+            connection.connect()
         }
 
-        val connection = EthereumWebSocketConnection(chain)
-        pool[chain.id] = connection
+        if (setupResult.isFailure) {
+            networkStateMixin.notifyChainSyncProblem(chain.toSyncIssue())
+            return
+        }
+
+        if (setupResult.requireValue().isFailure) {
+            networkStateMixin.notifyChainSyncProblem(chain.toSyncIssue())
+            return
+        }
+
+        networkStateMixin.notifyChainSyncSuccess(chain.id)
     }
 
     fun get(chainId: String): EthereumWebSocketConnection? {
@@ -46,63 +81,99 @@ class EthereumConnectionPool {
 class MissingWssNodesException(chainName: String, chainId: String) :
     RuntimeException("There are no wss nodes in chain $chainName, chainId: $chainId")
 
-class EthereumWebSocketConnection(private val chain: Chain) {
+class EthereumWebSocketConnection(
+    private val chain: Chain,
+    private val socketFactory: EthereumWebSocketFactory,
+    private val autoBalanceEnabled: () -> Boolean,
+    private val onSelectedNodeChange: (chainId: ChainId, newNodeUrl: String) -> Unit
+) {
 
     companion object {
         private const val SOCKET_URL_PREFIX = "wss"
+        private const val BLAST_NODE_KEYWORD = "blastapi"
     }
 
-    private val wsNodes: List<ChainNode> =
-        chain.nodes.asSequence().filter { it.url.startsWith(SOCKET_URL_PREFIX) }.toList().map {
-            if (it.url.contains("blastapi")) {
-                it.copy(url = it.url.plus("ff5c9e1b-c5c8-4861-951c-d59ce8f5b22f"))
-            } else it
-        }
-
-    private val availableNodesCycle = wsNodes.cycle().iterator()
-
+    private val wsNodes: List<ChainNode> = formatWithApiKeys(chain)
 
     private var _web3j: Web3j? = null
-    val web3j = _web3j
+    val web3j
+        get() = _web3j
 
     private var _service: WebSocketService? = null
-    val service = _service
+    val service
+        get() = _service
+
+    val switchRelay = NodesSwitchRelay(wsNodes)
 
     init {
         if (wsNodes.isEmpty()) {
             throw MissingWssNodesException(chain.name, chain.id)
         }
-
-        connect(availableNodesCycle.next())
     }
 
-    private fun connect(node: ChainNode) {
-        _service = WebSocketService(node.url, false)
+    suspend fun connect(): Result<Any> {
+        return if (autoBalanceEnabled()) {
+            switchRelay { node ->
+                connectInternal(node)
+            }
+        } else {
+            val firstNode = wsNodes.first()
+            connectInternal(firstNode)
+        }.onSuccess { onSelectedNodeChange(chain.id, it.url) }
+    }
+
+    private fun connectInternal(node: ChainNode): Result<ChainNode> {
+        _web3j?.shutdown()
+        _service = socketFactory.create(node.url)
 
         try {
             _service!!.connect({
-
+                hashCode()
             }, {
-                Log.d("&&&", "${chain.name} connection got error $it")
+                hashCode()
             }, {
 
             })
         } catch (exception: ConnectException) {
-            Log.d("&&&", "${chain.name} service connect exception node ${node.url} $exception")
-            tryNextNode()
+            hashCode()
+            return Result.failure("Node ${node.name} : ${node.url} connect failed $exception")
         }
-        _web3j?.shutdown()
-        _web3j = Web3j.build(service)
-        // test node
-        val response = kotlin.runCatching { _web3j!!.ethBlockNumber().send() }
-        if (response.isFailure) {
-            Log.d("&&&", "${chain.name} node testing failure ${response.exceptionOrNull()}")
-            tryNextNode()
+
+        _web3j = Web3j.build(_service)
+
+        val response = kotlin.runCatching { _web3j?.ethBlockNumber()?.send() }
+        return if (response.isFailure) {
+            Result.failure("Node ${node.name} : ${node.url} connect failed $response.exceptionOrNull()")
+        } else {
+            Result.success(node)
         }
     }
 
-    private fun tryNextNode() {
-        val nextNode = availableNodesCycle.next()
-        connect(nextNode)
+    private fun formatWithApiKeys(chain: Chain): List<ChainNode> {
+        return chain.nodes.filter { it.url.startsWith(SOCKET_URL_PREFIX) }.map {
+            if (it.url.contains(BLAST_NODE_KEYWORD)) {
+                it.copy(url = it.url.plus(blastApiKeys[chain.id].orEmpty()))
+            } else {
+                it
+            }
+        }
     }
+
+    fun switchNode(nodeUrl: String) {
+        val node = wsNodes.firstOrNull { it.url == nodeUrl || it.url.contains(nodeUrl) }
+        node?.let { connectInternal(it) }
+    }
+}
+
+private val blastApiKeys = mapOf(
+    "1" to BuildConfig.ETHEREUM_API_KEY,
+    "38" to BuildConfig.BSC_API_KEY,
+    "11155111" to BuildConfig.SEPOLIA_API_KEY,
+    "5" to BuildConfig.GOERLI_API_KEY,
+    "unknown" to BuildConfig.POLYGON_API_KEY
+)
+//wss://eth-mainnet.blastapi.io/f69cfb36-090a-4e29-ab21-95aeda2027a7
+
+class EthereumWebSocketFactory {
+    fun create(url: String) = WebSocketService(url, false)
 }
