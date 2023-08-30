@@ -1034,6 +1034,7 @@
   <string name="wallet_send_balance_minimal">Minimal balance</string>
   <string name="wallet_send_confirm_transfer">Confirm transfer</string>
   <string name="wallet_send_dead_recipient_message">Your transfer will fail since the final amount on the destination account will be less than the minimal balance. Please try to increase the amount.</string>
+  <string name="wallet_send_eth_dead_recipient_message">Insufficient Ethereum balance in the recipient\'s account prevents the completion of ERC20 token transfer. Please ensure the receiver has enough Ethereum to proceed with the transfer.</string>
   <string name="wallet_send_existential_warning_message">Your transfer will remove the account from blockstore since it will make the total balance lower than the minimal balance.</string>
   <string name="wallet_send_existential_warning_title">The transfer will remove the account</string>
   <string name="wallet_send_navigation_title">Send %s</string>
