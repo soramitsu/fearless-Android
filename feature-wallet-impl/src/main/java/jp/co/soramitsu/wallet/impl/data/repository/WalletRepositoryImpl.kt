@@ -8,7 +8,6 @@ import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.accountId
 import jp.co.soramitsu.common.compose.component.NetworkIssueItemState
 import jp.co.soramitsu.common.compose.component.NetworkIssueType
-import jp.co.soramitsu.common.data.Keypair
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.coingecko.CoingeckoApi
 import jp.co.soramitsu.common.data.network.config.AppConfigRemote
@@ -18,10 +17,8 @@ import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
 import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
-import jp.co.soramitsu.common.utils.ethereumAddressToHex
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.requireValue
-import jp.co.soramitsu.core.crypto.mapCryptoTypeToEncryption
 import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.coredb.dao.OperationDao
 import jp.co.soramitsu.coredb.dao.PhishingDao
@@ -63,8 +60,6 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.withContext
-import org.web3j.protocol.core.Response
-import org.web3j.utils.Numeric
 import jp.co.soramitsu.core.models.Asset as CoreAsset
 
 class WalletRepositoryImpl(
@@ -81,7 +76,6 @@ class WalletRepositoryImpl(
     private val availableFiatCurrencies: GetAvailableFiatCurrencies,
     private val updatesMixin: UpdatesMixin,
     private val remoteConfigFetcher: RemoteConfigFetcher,
-    private val ethGasService: EthGasService,
     private val accountRepository: AccountRepository
 ) : WalletRepository, UpdatesProviderUi by updatesMixin {
 
@@ -99,7 +93,8 @@ class WalletRepositoryImpl(
             val chainAccounts = meta.chainAccounts.values.toList()
             val updatedAssets = assetsLocal.mapNotNull { asset ->
                 mapAssetLocalToAsset(chainsById, asset)?.let {
-                    val hasChainAccount = asset.asset.chainId in chainAccounts.mapNotNull { it.chain?.id }
+                    val hasChainAccount =
+                        asset.asset.chainId in chainAccounts.mapNotNull { it.chain?.id }
                     AssetWithStatus(
                         asset = it,
                         hasAccount = !it.accountId.contentEquals(emptyAccountIdValue),
@@ -138,7 +133,7 @@ class WalletRepositoryImpl(
             val notUpdatedAssetsByUniqueAccounts = assetsByUniqueAccounts.filter { unique ->
                 !updatedAssets.any {
                     it.asset.token.configuration.chainToSymbol == unique.asset.token.configuration.chainToSymbol &&
-                        it.asset.accountId.contentEquals(unique.asset.accountId)
+                            it.asset.accountId.contentEquals(unique.asset.accountId)
                 }
             }
             val notUpdatedAssets = assetsByChain.filter {
@@ -206,14 +201,24 @@ class WalletRepositoryImpl(
         updatesMixin.finishUpdateTokens(priceIds)
     }
 
-    override fun assetFlow(metaId: Long, accountId: AccountId, chainAsset: CoreAsset, minSupportedVersion: String?): Flow<Asset> {
+    override fun assetFlow(
+        metaId: Long,
+        accountId: AccountId,
+        chainAsset: CoreAsset,
+        minSupportedVersion: String?
+    ): Flow<Asset> {
         return assetCache.observeAsset(metaId, accountId, chainAsset.chainId, chainAsset.id)
             .mapNotNull { it }
             .mapNotNull { mapAssetLocalToAsset(it, chainAsset, minSupportedVersion) }
             .distinctUntilChanged()
     }
 
-    override suspend fun getAsset(metaId: Long, accountId: AccountId, chainAsset: CoreAsset, minSupportedVersion: String?): Asset? {
+    override suspend fun getAsset(
+        metaId: Long,
+        accountId: AccountId,
+        chainAsset: CoreAsset,
+        minSupportedVersion: String?
+    ): Asset? {
         val assetLocal = assetCache.getAsset(metaId, accountId, chainAsset.chainId, chainAsset.id)
 
         return assetLocal?.let { mapAssetLocalToAsset(it, chainAsset, minSupportedVersion) }
@@ -279,7 +284,7 @@ class WalletRepositoryImpl(
     }
 
     private fun subscribeOnEthereumTransferFee(transfer: Transfer, chain: Chain): Flow<BigInteger> {
-        return ethGasService.listenGas(transfer, chain)
+        return ethereumSource.listenGas(transfer, chain)
     }
 
     override suspend fun performTransfer(
@@ -293,11 +298,13 @@ class WalletRepositoryImpl(
     ): String {
         val operationHash = if (chain.isEthereumChain) {
             val currentMetaAccount = accountRepository.getSelectedMetaAccount()
-            val secrets = accountRepository.getMetaAccountSecrets(currentMetaAccount.id) ?: error("There are no secrets for metaId: ${currentMetaAccount.id}")
+            val secrets = accountRepository.getMetaAccountSecrets(currentMetaAccount.id)
+                ?: error("There are no secrets for metaId: ${currentMetaAccount.id}")
             val keypairSchema = secrets[MetaAccountSecrets.EthereumKeypair] ?: error("")
             val privateKey = keypairSchema[KeyPairSchema.PrivateKey]
 
-            ethereumSource.performTransfer(chain, transfer, privateKey.toHexString(true)).requireValue() // handle error
+            ethereumSource.performTransfer(chain, transfer, privateKey.toHexString(true))
+                .requireValue() // handle error
         } else {
             substrateSource.performTransfer(accountId, chain, transfer, tip, additional, batchAll)
         }
@@ -338,11 +345,24 @@ class WalletRepositoryImpl(
         val existentialDepositInPlanks = walletConstants.existentialDeposit(chainAsset).orZero()
         val existentialDeposit = chainAsset.amountFromPlanks(existentialDepositInPlanks)
 
-        val utilityAssetLocal = assetCache.getAsset(metaId, accountId, chainAsset.chainId, chain.utilityAsset?.id.orEmpty())!!
-        val utilityAsset = chain.utilityAsset?.let { mapAssetLocalToAsset(utilityAssetLocal, it, chain.minSupportedVersion) }
+        val utilityAssetLocal = assetCache.getAsset(
+            metaId,
+            accountId,
+            chainAsset.chainId,
+            chain.utilityAsset?.id.orEmpty()
+        )!!
+        val utilityAsset = chain.utilityAsset?.let {
+            mapAssetLocalToAsset(
+                utilityAssetLocal,
+                it,
+                chain.minSupportedVersion
+            )
+        }
 
-        val utilityExistentialDepositInPlanks = chain.utilityAsset?.let { walletConstants.existentialDeposit(it) }.orZero()
-        val utilityExistentialDeposit = chain.utilityAsset?.amountFromPlanks(utilityExistentialDepositInPlanks).orZero()
+        val utilityExistentialDepositInPlanks =
+            chain.utilityAsset?.let { walletConstants.existentialDeposit(it) }.orZero()
+        val utilityExistentialDeposit =
+            chain.utilityAsset?.amountFromPlanks(utilityExistentialDepositInPlanks).orZero()
 
         val tipInPlanks = kotlin.runCatching { walletConstants.tip(chain.id) }.getOrNull()
         val tip = tipInPlanks?.let { chain.utilityAsset?.amountFromPlanks(it) }
@@ -360,9 +380,14 @@ class WalletRepositoryImpl(
         )
     }
 
-    override suspend fun getTotalBalance(chainAsset: jp.co.soramitsu.core.models.Asset, chain: Chain, accountId: ByteArray): BigInteger {
+    override suspend fun getTotalBalance(
+        chainAsset: jp.co.soramitsu.core.models.Asset,
+        chain: Chain,
+        accountId: ByteArray
+    ): BigInteger {
         return if (chain.isEthereumChain) {
-            ethereumSource.getTotalBalance(chainAsset, chain, accountId).requireValue() // handle errors
+            ethereumSource.getTotalBalance(chainAsset, chain, accountId)
+                .requireValue() // handle errors
         } else {
             substrateSource.getTotalBalance(chainAsset, accountId)
         }
@@ -370,29 +395,31 @@ class WalletRepositoryImpl(
 
     override suspend fun updatePhishingAddresses() = withContext(Dispatchers.Default) {
         val phishingAddresses = phishingApi.getPhishingAddresses()
-        val phishingLocal = CSVReaderHeaderAware(phishingAddresses.byteStream().bufferedReader()).mapNotNull {
-            try {
-                PhishingLocal(
-                    name = it[0],
-                    address = it[1],
-                    type = it[2],
-                    subtype = it[3]
-                )
-            } catch (e: Exception) {
-                e.printStackTrace()
-                null
+        val phishingLocal =
+            CSVReaderHeaderAware(phishingAddresses.byteStream().bufferedReader()).mapNotNull {
+                try {
+                    PhishingLocal(
+                        name = it[0],
+                        address = it[1],
+                        type = it[2],
+                        subtype = it[3]
+                    )
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    null
+                }
             }
-        }
 
         phishingDao.clearTable()
         phishingDao.insert(phishingLocal)
     }
 
-    override suspend fun isAddressFromPhishingList(address: String) = withContext(Dispatchers.Default) {
-        val phishingAddresses = phishingDao.getAllAddresses().map { it.lowercase() }
+    override suspend fun isAddressFromPhishingList(address: String) =
+        withContext(Dispatchers.Default) {
+            val phishingAddresses = phishingDao.getAllAddresses().map { it.lowercase() }
 
-        phishingAddresses.contains(address.lowercase())
-    }
+            phishingAddresses.contains(address.lowercase())
+        }
 
     override suspend fun getPhishingInfo(address: String): PhishingLocal? {
         return phishingDao.getPhishingInfo(address)
@@ -444,7 +471,10 @@ class WalletRepositoryImpl(
         )
     }
 
-    override suspend fun getSingleAssetPriceCoingecko(priceId: String, currency: String): BigDecimal? {
+    override suspend fun getSingleAssetPriceCoingecko(
+        priceId: String,
+        currency: String
+    ): BigDecimal? {
         coingeckoCache[priceId]?.get(currency)?.let { (cacheUntilMillis, cachedValue) ->
             if (System.currentTimeMillis() <= cacheUntilMillis) {
                 return cachedValue
@@ -463,7 +493,10 @@ class WalletRepositoryImpl(
         return apiValue
     }
 
-    private suspend fun getAssetPriceCoingecko(vararg priceId: String, currencyId: String): Map<String, Map<String, BigDecimal>> {
+    private suspend fun getAssetPriceCoingecko(
+        vararg priceId: String,
+        currencyId: String
+    ): Map<String, Map<String, BigDecimal>> {
         return apiCall { coingeckoApi.getAssetPrice(priceId.joinToString(","), currencyId, true) }
     }
 

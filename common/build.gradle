@@ -45,6 +45,21 @@ android {
         buildConfigField "String", "POLKADOT_JS_PLUS_EXTENSION", "\"http://polkadotjs.plus/\""
 
         buildConfigField "String", "SORA_CARD_BLACKLIST",  "\"https://soracard.com/blacklist/\""
+
+        buildConfigField "String", "X1_PAYMENT_STATUS_URL", "\"wss://backend.dev.sora-card.tachi.soramitsu.co.jp/ws/x1-payment-status\""
+        buildConfigField "String", "SORA_XOR_EURO_URL",  "\"https://backend.dev.sora-card.tachi.soramitsu.co.jp/prices/xor_euro\""
+
+        buildConfigField "String", "SORA_CARD_API_KEY", readSecretInQuotes("SORA_CARD_API_KEY")
+        buildConfigField "String", "SORA_CARD_DOMAIN",  readSecretInQuotes("SORA_CARD_DOMAIN")
+        buildConfigField "String", "SORA_CARD_KYC_ENDPOINT_URL",  readSecretInQuotes("SORA_CARD_KYC_ENDPOINT_URL")
+        buildConfigField "String", "SORA_CARD_KYC_USERNAME", readSecretInQuotes("SORA_CARD_KYC_USERNAME")
+        buildConfigField "String", "SORA_CARD_KYC_PASSWORD",  readSecretInQuotes("SORA_CARD_KYC_PASSWORD")
+
+        buildConfigField "String", "ETHEREUM_API_KEY", readSecretInQuotes("ETHEREUM_API_KEY")
+        buildConfigField "String", "BSC_API_KEY", readSecretInQuotes("BSC_API_KEY")
+        buildConfigField "String", "SEPOLIA_API_KEY", readSecretInQuotes("SEPOLIA_API_KEY")
+        buildConfigField "String", "GOERLI_API_KEY", readSecretInQuotes("GOERLI_API_KEY")
+        buildConfigField "String", "POLYGON_API_KEY", readSecretInQuotes("POLYGON_API_KEY")
     }
 
     buildTypes {
