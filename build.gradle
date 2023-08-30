@@ -8,7 +8,7 @@ buildscript {
         versionCode = 109
 
         // SDK and tools
-        compileSdkVersion = 33
+        compileSdkVersion = 34
         minSdkVersion = 24
         targetSdkVersion = 33
 
@@ -24,7 +24,7 @@ buildscript {
 
         progressButtonsVersion = '2.1.0'
         xNetworkingVersion = '0.0.60'
-        soraCardVersion = '0.1.33'
+        soraCardVersion = '0.2.2'
         soraUiCoreVersion = '0.1.0'
 
         daggerVersion = '2.47'
@@ -67,8 +67,7 @@ buildscript {
 
         androidxCoreVersion = '1.8.0'
 
-        composeVersion = '1.4.3'
-        composeFoundationVersion = '1.4.3' // '1.5.0-beta03' - was used for google
+        composeVersion = '1.5.0'
         composeCompilerVersion = '1.4.6'
 
         appcompatVersion = '1.6.1'
@@ -108,7 +107,7 @@ buildscript {
                 "androidx.compose.ui:ui:$composeVersion",
                 "androidx.compose.runtime:runtime-livedata:$composeVersion",
                 "androidx.compose.compiler:compiler:$composeCompilerVersion",
-                "androidx.compose.foundation:foundation:$composeFoundationVersion",
+                "androidx.compose.foundation:foundation:$composeVersion",
                 "androidx.compose.material:material:$composeVersion",
                 "com.google.android.material:compose-theme-adapter:1.2.1",
                 "androidx.compose.animation:animation:$composeVersion",
@@ -126,9 +125,6 @@ buildscript {
         ]
         composeDebug = [
                 "androidx.compose.ui:ui-tooling:$composeVersion",
-                //fix compose preview https://stackoverflow.com/a/71830120
-                "androidx.customview:customview:1.2.0-alpha02",
-                "androidx.customview:customview-poolingcontainer:1.0.0"
         ]
 
         lifecycleProcessDep = "androidx.lifecycle:lifecycle-process:$lifecycleVersion"
