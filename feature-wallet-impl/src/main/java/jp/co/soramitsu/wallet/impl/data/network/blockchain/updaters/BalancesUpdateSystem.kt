@@ -10,6 +10,7 @@ import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
 import jp.co.soramitsu.common.data.network.runtime.binding.ExtrinsicStatusEvent
 import jp.co.soramitsu.common.data.network.runtime.binding.SimpleBalanceData
 import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
+import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.requireException
 import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.core.models.Asset
@@ -288,7 +289,7 @@ class BalancesUpdateSystem(
             val address = account.address(chain) ?: return@forEach
             val accountId = account.accountId(chain) ?: return@forEach
             chain.assets.forEach { asset ->
-                val balance = ethereumRemoteSource.fetchEthBalance(asset, address)
+                val balance = kotlin.runCatching { ethereumRemoteSource.fetchEthBalance(asset, address) }.getOrNull().orZero()
                 val balanceData = SimpleBalanceData(balance)
 
                 assetCache.updateAsset(

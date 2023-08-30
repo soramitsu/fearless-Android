@@ -181,6 +181,8 @@ buildscript {
 
         jUnitDep = "junit:junit:$junitVersion"
         mockitoDep = "org.mockito:mockito-inline:$mockitoVersion"
+        mockitoCoreDep = "org.mockito:mockito-core:2.23.0"
+        mockitoKotlinDep = "org.mockito.kotlin:mockito-kotlin:4.1.0"
         robolectricDep = "org.robolectric:robolectric:$robolectricVersion"
         robolectricMultidexDep = "org.robolectric:shadows-multidex:$robolectricVersion"
         archCoreTestDep = "androidx.arch.core:core-testing:$architectureComponentVersion"
@@ -205,6 +207,8 @@ buildscript {
         withoutJavaWS = { exclude group: 'org.java-websocket', module: 'Java-WebSocket' }
 
         serializationDep = "org.jetbrains.kotlinx:kotlinx-serialization-json:$serializationVersion"
+
+        coroutinesTest = "org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutinesVersion"
     }
 
     repositories {
