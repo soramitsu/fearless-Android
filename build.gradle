@@ -34,7 +34,7 @@ buildscript {
         roomVersion = '2.5.1'
 
         retrofitVersion = '2.9.0'
-        okhttpVersion = '5.0.0-alpha.11'
+        okhttpVersion = '4.11.0'
         gsonVersion = '2.10.1'
 
         navControllerVersion = '2.5.3'
