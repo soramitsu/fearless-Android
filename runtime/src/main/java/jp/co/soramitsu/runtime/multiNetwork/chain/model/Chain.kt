@@ -51,9 +51,9 @@ data class Chain(
     ) {
         data class Section(val type: Type, val url: String) {
             enum class Type {
-                SUBQUERY, SORA, SUBSQUID, GIANTSQUID, GITHUB, UNKNOWN;
+                SUBQUERY, SORA, SUBSQUID, GIANTSQUID, GITHUB, UNKNOWN, ETHERSCAN;
 
-                fun isHistory() = this in listOf(SUBQUERY, SORA, SUBSQUID, GIANTSQUID)
+                fun isHistory() = this in listOf(SUBQUERY, SORA, SUBSQUID, GIANTSQUID, ETHERSCAN)
             }
         }
     }
