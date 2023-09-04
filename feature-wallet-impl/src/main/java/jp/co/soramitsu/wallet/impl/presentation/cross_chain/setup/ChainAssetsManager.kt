@@ -5,9 +5,9 @@ import jp.co.soramitsu.common.compose.component.SelectorState
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.core.models.ChainId
 import jp.co.soramitsu.feature_wallet_impl.R
+import jp.co.soramitsu.wallet.api.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
-import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.ChainItemState
 import jp.co.soramitsu.xcm.domain.XcmEntitiesFetcher
 import kotlinx.coroutines.CoroutineScope
@@ -20,7 +20,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
-import jp.co.soramitsu.wallet.api.presentation.WalletRouter as WalletRouterApi
 
 class ChainAssetsManager @Inject constructor(
     private val walletInteractor: WalletInteractor,
@@ -169,12 +168,12 @@ class ChainAssetsManager @Inject constructor(
     }
 
     private fun observeAssetIdResult(): Flow<String> {
-        return router.observeResult<String>(WalletRouterApi.KEY_ASSET_ID)
+        return router.observeResult<String>(WalletRouter.KEY_ASSET_ID)
             .onEach(::updateAssetId)
     }
 
     private fun observeChainIdResult(chainType: ChainType): Flow<String> {
-        return router.observeResult<String>(WalletRouterApi.KEY_CHAIN_ID)
+        return router.observeResult<String>(WalletRouter.KEY_CHAIN_ID)
             .onEach { chainId ->
                 when (chainType) {
                     ChainType.Origin -> {

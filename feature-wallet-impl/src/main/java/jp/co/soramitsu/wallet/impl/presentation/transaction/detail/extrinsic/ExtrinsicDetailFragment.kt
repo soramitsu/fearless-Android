@@ -15,6 +15,7 @@ import jp.co.soramitsu.account.api.presentation.actions.ExternalViewCallback
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.databinding.FragmentExtrinsicDetailsBinding
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.wallet.impl.presentation.model.ExtrinsicDetailsPayload
 
 @AndroidEntryPoint
 class ExtrinsicDetailFragment : BaseFragment<ExtrinsicDetailViewModel>(R.layout.fragment_extrinsic_details) {

@@ -51,10 +51,10 @@ import jp.co.soramitsu.common.utils.sumByBigDecimal
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.feature_wallet_impl.R
+import jp.co.soramitsu.oauth.base.sdk.contract.OutwardsScreen
 import jp.co.soramitsu.oauth.base.sdk.contract.SoraCardCommonVerification
 import jp.co.soramitsu.oauth.base.sdk.contract.SoraCardContractData
 import jp.co.soramitsu.oauth.base.sdk.contract.SoraCardResult
-import jp.co.soramitsu.oauth.common.domain.KycRepository
 import jp.co.soramitsu.runtime.ext.ecosystem
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainEcosystem
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
@@ -64,19 +64,20 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.getWithToken
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.addressByteOrNull
 import jp.co.soramitsu.soracard.api.domain.SoraCardInteractor
+import jp.co.soramitsu.soracard.api.presentation.SoraCardRouter
 import jp.co.soramitsu.soracard.impl.presentation.SoraCardItemViewState
 import jp.co.soramitsu.soracard.impl.presentation.createSoraCardContract
+import jp.co.soramitsu.wallet.api.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.domain.ChainInteractor
 import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.domain.model.AssetWithStatus
 import jp.co.soramitsu.wallet.impl.domain.model.WalletAccount
-import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
-import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.toChainItemState
 import jp.co.soramitsu.wallet.impl.presentation.balance.list.model.AssetType
 import jp.co.soramitsu.wallet.impl.presentation.balance.list.model.BalanceListItemModel
 import jp.co.soramitsu.wallet.impl.presentation.balance.list.model.toAssetState
+import jp.co.soramitsu.wallet.impl.presentation.model.AssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.model.ControllerDeprecationWarningModel
 import jp.co.soramitsu.wallet.impl.presentation.model.toModel
 import kotlinx.coroutines.Dispatchers
@@ -88,6 +89,7 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
@@ -104,6 +106,7 @@ private const val CURRENT_ICON_SIZE = 40
 class BalanceListViewModel @Inject constructor(
     private val interactor: WalletInteractor,
     private val soraCardInteractor: SoraCardInteractor,
+    private val soraCardRouter: SoraCardRouter,
     private val chainInteractor: ChainInteractor,
     private val addressIconGenerator: AddressIconGenerator,
     private val router: WalletRouter,
@@ -115,7 +118,6 @@ class BalanceListViewModel @Inject constructor(
     private val resourceManager: ResourceManager,
     private val clipboardManager: ClipboardManager,
     private val currentAccountAddress: CurrentAccountAddressUseCase,
-    private val kycRepository: KycRepository,
     private val getTotalBalance: TotalBalanceUseCase
 ) : BaseViewModel(), UpdatesProviderUi by updatesMixin, NetworkStateUi by networkStateMixin,
     WalletScreenInterface {
@@ -647,6 +649,10 @@ class BalanceListViewModel @Inject constructor(
         }
     }
 
+    override fun onBannerBuyXorClicked() {
+        soraCardRouter.showBuyCrypto()
+    }
+
     override fun onBackupCloseClick() {
         showError(
             title = resourceManager.getString(jp.co.soramitsu.feature_account_impl.R.string.backup_not_backed_up_title),
@@ -791,11 +797,24 @@ class BalanceListViewModel @Inject constructor(
             }
 
             is SoraCardResult.NavigateTo -> {
-//                when (soraCardResult.screen) {
-//                    OutwardsScreen.DEPOSIT -> walletRouter.openQrCodeFlow(isLaunchedFromSoraCard = true)
-//                    OutwardsScreen.SWAP -> polkaswapRouter.showSwap(tokenToId = SubstrateOptionsProvider.feeAssetId)
-//                    OutwardsScreen.BUY -> assetsRouter.showBuyCrypto()
-//                }
+                when (soraCardResult.screen) {
+                    OutwardsScreen.DEPOSIT -> {
+                        launch {
+                            soraCardInteractor.xorAssetFlow().firstOrNull()?.token?.configuration?.let {
+                                val assetPayload = AssetPayload(it.chainId, it.id)
+                                router.openReceive(assetPayload)
+                            }
+                        }
+                    }
+                    OutwardsScreen.SWAP -> {
+                        launch {
+                            soraCardInteractor.xorAssetFlow().firstOrNull()?.token?.configuration?.let {
+                                router.openSwapTokensScreen(it.chainId, null, it.id)
+                            }
+                        }
+                    }
+                    OutwardsScreen.BUY -> soraCardRouter.showBuyCrypto()
+                }
             }
         }
     }

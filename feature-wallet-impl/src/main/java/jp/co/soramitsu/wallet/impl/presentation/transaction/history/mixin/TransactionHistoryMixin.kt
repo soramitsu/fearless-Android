@@ -1,6 +1,6 @@
 package jp.co.soramitsu.wallet.impl.presentation.transaction.history.mixin
 
-import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
+import jp.co.soramitsu.wallet.impl.presentation.model.AssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.model.OperationModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow

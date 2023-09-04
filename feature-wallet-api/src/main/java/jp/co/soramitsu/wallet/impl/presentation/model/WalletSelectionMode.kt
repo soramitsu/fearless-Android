@@ -1,4 +1,4 @@
-package jp.co.soramitsu.wallet.impl.presentation.balance.walletselector.light
+package jp.co.soramitsu.wallet.impl.presentation.model
 
 enum class WalletSelectionMode {
     CurrentWallet,

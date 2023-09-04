@@ -6,6 +6,7 @@ import jp.co.soramitsu.common.utils.StateMachine
 import jp.co.soramitsu.wallet.impl.presentation.beacon.main.BeaconStateMachine.Event
 import jp.co.soramitsu.wallet.impl.presentation.beacon.main.BeaconStateMachine.SideEffect
 import jp.co.soramitsu.wallet.impl.presentation.beacon.main.BeaconStateMachine.State
+import jp.co.soramitsu.wallet.impl.presentation.model.DAppMetadataModel
 
 class BeaconStateMachine : StateMachine<State, Event, SideEffect>(State.Initializing) {
 

@@ -26,13 +26,17 @@ import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
 import jp.co.soramitsu.feature_account_impl.R
+import jp.co.soramitsu.oauth.base.sdk.contract.OutwardsScreen
 import jp.co.soramitsu.oauth.base.sdk.contract.SoraCardCommonVerification
 import jp.co.soramitsu.oauth.base.sdk.contract.SoraCardContractData
 import jp.co.soramitsu.oauth.base.sdk.contract.SoraCardResult
 import jp.co.soramitsu.soracard.api.domain.SoraCardInteractor
+import jp.co.soramitsu.soracard.api.presentation.SoraCardRouter
 import jp.co.soramitsu.soracard.impl.presentation.SoraCardItemViewState
 import jp.co.soramitsu.soracard.impl.presentation.createSoraCardContract
+import jp.co.soramitsu.wallet.api.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
+import jp.co.soramitsu.wallet.impl.presentation.model.AssetPayload
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -51,7 +55,9 @@ class ProfileViewModel @Inject constructor(
     private val interactor: AccountInteractor,
     private val walletInteractor: WalletInteractor,
     private val soraCardInteractor: SoraCardInteractor,
+    private val soraCardRouter: SoraCardRouter,
     private val router: AccountRouter,
+    private val walletRouter: WalletRouter,
     private val addressIconGenerator: AddressIconGenerator,
     private val externalAccountActions: ExternalAccountActions.Presentation,
     getTotalBalance: TotalBalanceUseCase,
@@ -225,11 +231,24 @@ class ProfileViewModel @Inject constructor(
             }
 
             is SoraCardResult.NavigateTo -> {
-//                when (soraCardResult.screen) {
-//                    OutwardsScreen.DEPOSIT -> walletRouter.openQrCodeFlow(isLaunchedFromSoraCard = true)
-//                    OutwardsScreen.SWAP -> polkaswapRouter.showSwap(tokenToId = SubstrateOptionsProvider.feeAssetId)
-//                    OutwardsScreen.BUY -> assetsRouter.showBuyCrypto()
-//                }
+                when (soraCardResult.screen) {
+                    OutwardsScreen.DEPOSIT -> {
+                        launch {
+                            soraCardInteractor.xorAssetFlow().firstOrNull()?.token?.configuration?.let {
+                                val assetPayload = AssetPayload(it.chainId, it.id)
+                                walletRouter.openReceive(assetPayload)
+                            }
+                        }
+                    }
+                    OutwardsScreen.SWAP -> {
+                        launch {
+                            soraCardInteractor.xorAssetFlow().firstOrNull()?.token?.configuration?.let {
+                                soraCardRouter.openSwapTokensScreen(it.chainId, null, it.id)
+                            }
+                        }
+                    }
+                    OutwardsScreen.BUY -> soraCardRouter.showBuyCrypto()
+                }
             }
         }
     }

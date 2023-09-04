@@ -113,7 +113,7 @@ dependencies {
     implementation zXingEmbeddedDep
 
     implementation insetterDep
-
+//
     implementation jnaDep
     implementation beaconDep, withoutJna
 

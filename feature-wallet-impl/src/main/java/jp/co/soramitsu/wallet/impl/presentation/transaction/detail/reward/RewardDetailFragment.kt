@@ -18,6 +18,7 @@ import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.databinding.FragmentRewardSlashDetailsBinding
 import jp.co.soramitsu.wallet.impl.presentation.model.OperationParcelizeModel
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.wallet.impl.presentation.model.RewardDetailsPayload
 
 @AndroidEntryPoint
 class RewardDetailFragment : BaseFragment<RewardDetailViewModel>(R.layout.fragment_reward_slash_details) {

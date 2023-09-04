@@ -12,9 +12,9 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.ChainEcosystem
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.defaultChainSort
 import jp.co.soramitsu.wallet.api.domain.model.XcmChainType
+import jp.co.soramitsu.wallet.api.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.domain.ChainInteractor
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
-import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.presentation.send.SendSharedState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -22,7 +22,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import jp.co.soramitsu.wallet.api.presentation.WalletRouter as WalletRouterApi
 
 @HiltViewModel
 class ChainSelectViewModel @Inject constructor(
@@ -194,8 +193,8 @@ class ChainSelectViewModel @Inject constructor(
             sharedSendState.update(assetId = assetId, chainId = chainId)
         }
         walletRouter.backWithResult(
-            WalletRouterApi.KEY_CHAIN_ID to chainId,
-            WalletRouterApi.KEY_ASSET_ID to assetId
+            WalletRouter.KEY_CHAIN_ID to chainId,
+            WalletRouter.KEY_ASSET_ID to assetId
         )
     }
 

@@ -14,7 +14,7 @@ import jp.co.soramitsu.common.view.dialog.warningDialog
 import jp.co.soramitsu.common.view.viewBinding
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.databinding.FragmentSignBeaconTransactionBinding
-import jp.co.soramitsu.wallet.impl.presentation.beacon.main.DAppMetadataModel
+import jp.co.soramitsu.wallet.impl.presentation.model.DAppMetadataModel
 
 const val SIGN_PAYLOAD_KEY = "SIGN_PAYLOAD_KEY"
 

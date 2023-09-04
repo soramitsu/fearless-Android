@@ -1,8 +1,8 @@
-package jp.co.soramitsu.wallet.impl.presentation.cross_chain
+package jp.co.soramitsu.wallet.impl.presentation.model
 
 import android.os.Parcelable
-import kotlinx.parcelize.Parcelize
 import java.math.BigDecimal
+import kotlinx.parcelize.Parcelize
 
 @Parcelize
 class CrossChainTransferDraft(

@@ -8,10 +8,10 @@ import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.utils.formatCrypto
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.common.utils.orZero
+import jp.co.soramitsu.wallet.api.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.wallet.impl.domain.XcmInteractor
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
-import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.presentation.model.AssetModel
 import jp.co.soramitsu.wallet.impl.presentation.send.SendSharedState
 import kotlinx.coroutines.flow.Flow
@@ -20,7 +20,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import jp.co.soramitsu.wallet.api.presentation.WalletRouter as WalletRouterApi
 
 @HiltViewModel
 class AssetSelectViewModel @Inject constructor(
@@ -101,8 +100,8 @@ class AssetSelectViewModel @Inject constructor(
         }
 
         walletRouter.backWithResult(
-            WalletRouterApi.KEY_CHAIN_ID to assetItemState.chainId,
-            WalletRouterApi.KEY_ASSET_ID to assetItemState.id
+            WalletRouter.KEY_CHAIN_ID to assetItemState.chainId,
+            WalletRouter.KEY_ASSET_ID to assetItemState.id
         )
     }
 

@@ -1,6 +1,5 @@
 package jp.co.soramitsu.wallet.impl.presentation.beacon.main
 
-import android.os.Parcelable
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -23,11 +22,12 @@ import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.formatCryptoDetail
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.feature_wallet_impl.R
+import jp.co.soramitsu.wallet.api.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.domain.beacon.BeaconInteractor
-import jp.co.soramitsu.wallet.impl.domain.beacon.SignStatus
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
-import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.presentation.beacon.main.BeaconStateMachine.SideEffect
+import jp.co.soramitsu.wallet.impl.presentation.model.DAppMetadataModel
+import jp.co.soramitsu.wallet.impl.presentation.model.SignStatus
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -36,15 +36,6 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import kotlinx.parcelize.Parcelize
-
-@Parcelize
-class DAppMetadataModel(
-    val url: String?,
-    val address: String,
-    val icon: String?,
-    val name: String
-) : Parcelable
 
 @HiltViewModel
 class BeaconViewModel @Inject constructor(

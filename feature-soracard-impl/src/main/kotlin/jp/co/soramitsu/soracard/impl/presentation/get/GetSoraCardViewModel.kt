@@ -10,19 +10,25 @@ import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
+import jp.co.soramitsu.oauth.base.sdk.contract.OutwardsScreen
 import jp.co.soramitsu.oauth.base.sdk.contract.SoraCardContractData
 import jp.co.soramitsu.oauth.base.sdk.contract.SoraCardResult
 import jp.co.soramitsu.soracard.api.domain.SoraCardInteractor
 import jp.co.soramitsu.soracard.api.presentation.SoraCardRouter
 import jp.co.soramitsu.soracard.impl.presentation.createSoraCardContract
+import jp.co.soramitsu.wallet.api.presentation.WalletRouter
+import jp.co.soramitsu.wallet.impl.presentation.model.AssetPayload
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 
 @HiltViewModel
 class GetSoraCardViewModel @Inject constructor(
     private val interactor: SoraCardInteractor,
     private val router: SoraCardRouter,
+    private val walletRouter: WalletRouter,
     private val resourceManager: ResourceManager
 ) : BaseViewModel(), GetSoraCardScreenInterface {
 
@@ -87,11 +93,26 @@ class GetSoraCardViewModel @Inject constructor(
             }
 
             is SoraCardResult.NavigateTo -> {
-//                when (soraCardResult.screen) {
-//                    OutwardsScreen.DEPOSIT -> walletRouter.openQrCodeFlow(isLaunchedFromSoraCard = true)
-//                    OutwardsScreen.SWAP -> polkaswapRouter.showSwap(tokenToId = SubstrateOptionsProvider.feeAssetId)
-//                    OutwardsScreen.BUY -> assetsRouter.showBuyCrypto()
-//                }
+                when (soraCardResult.screen) {
+                    OutwardsScreen.DEPOSIT -> {
+                        launch {
+                            interactor.xorAssetFlow().firstOrNull()?.token?.configuration?.let {
+                                val assetPayload = AssetPayload(it.chainId, it.id)
+                                walletRouter.openReceive(assetPayload)
+                            }
+                        }
+                    }
+
+                    OutwardsScreen.SWAP -> {
+                        launch {
+                            interactor.xorAssetFlow().firstOrNull()?.let { xorAsset ->
+                                router.openSwapTokensScreen(interactor.soraCardChainId, null, xorAsset.token.configuration.id)
+                            }
+                        }
+                    }
+
+                    OutwardsScreen.BUY -> router.showBuyCrypto()
+                }
             }
         }
         router.back() // ??? check neediness

@@ -2,7 +2,7 @@ package jp.co.soramitsu.wallet.impl.presentation.model
 
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
-import jp.co.soramitsu.feature_wallet_impl.R
+import jp.co.soramitsu.feature_wallet_api.R
 
 enum class OperationStatusAppearance(
     @DrawableRes val icon: Int,

@@ -1,9 +1,8 @@
-package jp.co.soramitsu.wallet.impl.presentation.send
+package jp.co.soramitsu.wallet.impl.presentation.model
 
 import android.os.Parcelable
 import java.math.BigDecimal
 import jp.co.soramitsu.common.utils.orZero
-import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
 import kotlinx.android.parcel.IgnoredOnParcel
 import kotlinx.parcelize.Parcelize
 
