@@ -26,6 +26,7 @@ private fun mapSectionTypeRemoteToSectionType(section: String) = when (section) 
     "giantsquid" -> Chain.ExternalApi.Section.Type.GIANTSQUID
     "github" -> Chain.ExternalApi.Section.Type.GITHUB
     "sora" -> Chain.ExternalApi.Section.Type.SORA
+    "etherscan" -> Chain.ExternalApi.Section.Type.ETHERSCAN
     else -> Chain.ExternalApi.Section.Type.UNKNOWN
 }
 
