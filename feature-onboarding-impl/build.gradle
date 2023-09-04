@@ -74,5 +74,8 @@ dependencies {
     testImplementation jUnitDep
     testImplementation mockitoDep
 
+    implementation zXingCoreDep
+    implementation zXingEmbeddedDep
+
     implementation sharedFeaturesBackupDep
 }

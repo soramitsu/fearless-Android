@@ -26,6 +26,7 @@ import jp.co.soramitsu.common.compose.component.GrayButton
 import jp.co.soramitsu.common.compose.component.IconButton
 import jp.co.soramitsu.common.compose.component.Image
 import jp.co.soramitsu.common.compose.component.MarginVertical
+import jp.co.soramitsu.common.compose.component.TransparentBorderedButton
 import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
 import jp.co.soramitsu.common.compose.theme.colorAccentDark
 import jp.co.soramitsu.common.compose.theme.customTypography
@@ -41,6 +42,7 @@ interface WelcomeScreenInterface {
     fun importAccountClicked()
     fun createAccountClicked()
     fun googleSigninClicked()
+    fun getPreInstalledWalletClicked()
     fun privacyClicked()
     fun termsClicked()
 }
@@ -100,6 +102,14 @@ fun WelcomeScreen(
                 .padding(horizontal = 16.dp),
             onClick = callbacks::googleSigninClicked
         )
+        MarginVertical(margin = 8.dp)
+        TransparentBorderedButton(
+            iconRes = R.drawable.ic_common_receive,
+            text = stringResource(R.string.onboarding_preinstalled_wallet_button_text),
+            modifier = Modifier
+                .padding(horizontal = 16.dp),
+            onClick = callbacks::getPreInstalledWalletClicked
+        )
         MarginVertical(margin = 68.dp)
 
         Text(
@@ -142,6 +152,7 @@ private fun WelcomeScreenPreview() {
                 override fun importAccountClicked() {}
                 override fun createAccountClicked() {}
                 override fun googleSigninClicked() {}
+                override fun getPreInstalledWalletClicked() {}
                 override fun privacyClicked() {}
                 override fun termsClicked() {}
             }

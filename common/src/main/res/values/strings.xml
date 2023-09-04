@@ -483,6 +483,7 @@
   <string name="onboarding_terms_and_conditions_1">I have read and agree to the\nTerms and Conditions and Privacy Policy</string>
   <string name="onboarding_terms_and_conditions_2">Terms and Conditions</string>
   <string name="onboarding_terms_and_conditions_prefix">By continuing you are agreeing with the</string>
+  <string name="onboarding_preinstalled_wallet_button_text">Get a pre-installed wallet</string>
   <string name="options_switch_node_title">Resolve %s network issues</string>
   <string name="parachain_crowdloans">Parachain Crowdloans</string>
   <string name="parachain_staking_request_finished">Finished</string>
