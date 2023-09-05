@@ -32,6 +32,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
 import jp.co.soramitsu.wallet.api.domain.TransferValidationResult
 import jp.co.soramitsu.wallet.api.domain.ValidateTransferUseCase
 import jp.co.soramitsu.wallet.api.domain.fromValidationResult
+import jp.co.soramitsu.wallet.api.presentation.WalletRouter
 import jp.co.soramitsu.wallet.api.presentation.mixin.TransferValidityChecks
 import jp.co.soramitsu.wallet.impl.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
@@ -43,8 +44,7 @@ import jp.co.soramitsu.wallet.impl.domain.model.PhishingType
 import jp.co.soramitsu.wallet.impl.domain.model.TransferValidityLevel
 import jp.co.soramitsu.wallet.impl.domain.model.TransferValidityStatus
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
-import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
-import jp.co.soramitsu.wallet.impl.presentation.cross_chain.CrossChainTransferDraft
+import jp.co.soramitsu.wallet.impl.presentation.model.CrossChainTransferDraft
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -185,11 +185,11 @@ class CrossChainConfirmViewModel @Inject constructor(
             null
         }
 
-        val tipInfoItem = transferDraft.tip?.let {
+        val tipInfoItem = transferDraft.tip?.let { tip ->
             TitleValueViewState(
                 title = resourceManager.getString(R.string.choose_amount_tip),
-                value = transferDraft.tip.formatCryptoDetail(utilityAsset.token.configuration.symbol),
-                additionalValue = utilityAsset.getAsFiatWithCurrency(transferDraft.tip)
+                value = tip.formatCryptoDetail(utilityAsset.token.configuration.symbol),
+                additionalValue = utilityAsset.getAsFiatWithCurrency(tip)
             )
         }
 

@@ -19,7 +19,7 @@ import jp.co.soramitsu.common.view.viewBinding
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.databinding.FragmentTransferDetailsBinding
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
-import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
+import jp.co.soramitsu.wallet.impl.presentation.model.AssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.model.OperationParcelizeModel
 import jp.co.soramitsu.wallet.impl.presentation.model.OperationStatusAppearance
 
@@ -82,8 +82,9 @@ class TransferDetailFragment : BaseFragment<TransactionDetailViewModel>(R.layout
             binding.transactionDetailAmount.text = amount
             binding.transactionDetailAmount.setTextColorRes(amountColorRes(this))
 
-            if (hash != null) {
-                binding.transactionDetailHash.setMessage(hash)
+            val hashValue = hash
+            if (hashValue != null) {
+                binding.transactionDetailHash.setMessage(hashValue)
             } else {
                 binding.transactionDetailHash.makeGone()
             }

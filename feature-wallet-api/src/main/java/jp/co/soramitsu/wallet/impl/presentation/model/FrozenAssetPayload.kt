@@ -1,4 +1,4 @@
-package jp.co.soramitsu.wallet.impl.presentation.balance.detail.frozen
+package jp.co.soramitsu.wallet.impl.presentation.model
 
 import android.os.Parcelable
 import kotlinx.parcelize.Parcelize

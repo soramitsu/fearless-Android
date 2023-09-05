@@ -3,6 +3,7 @@ package jp.co.soramitsu.soracard.impl.presentation.get
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -30,6 +32,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -45,33 +48,27 @@ import jp.co.soramitsu.common.compose.component.TransparentButton
 import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
 import jp.co.soramitsu.common.compose.theme.backgroundBlack
 import jp.co.soramitsu.common.compose.theme.errorRed
-import jp.co.soramitsu.common.utils.formatCryptoDetail
-import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.feature_soracard_impl.R
-import jp.co.soramitsu.soracard.api.presentation.models.SoraCardInfo
-import jp.co.soramitsu.ui_core.component.text.HtmlText
+import jp.co.soramitsu.oauth.base.extension.testTagAsId
 import jp.co.soramitsu.ui_core.resources.Dimens
 import jp.co.soramitsu.ui_core.theme.borderRadius
 import jp.co.soramitsu.ui_core.theme.customColors
 import jp.co.soramitsu.ui_core.theme.customTypography
-import jp.co.soramitsu.ui_core.theme.elevation
 import jp.co.soramitsu.oauth.R as SoraCardR
 
 data class GetSoraCardState(
     val xorBalance: BigDecimal = BigDecimal.ZERO,
     val enoughXor: Boolean = false,
     val percent: BigDecimal = BigDecimal.ZERO,
-    val needInXor: BigDecimal = BigDecimal.ZERO,
-    val needInEur: BigDecimal = BigDecimal.ZERO,
-    val xorRatioUnavailable: Boolean = false,
-    val soraCardInfo: SoraCardInfo? = null
+    val needInXor: String = "",
+    val needInEur: String = "",
+    val xorRatioAvailable: Boolean? = null
 )
 
 interface GetSoraCardScreenInterface {
     fun onEnableCard()
     fun onGetMoreXor()
-    fun onSeeBlacklist(url: String)
-    fun onAlreadyHaveCard()
+    fun onSeeBlacklist()
     fun onNavigationClick()
 }
 
@@ -118,10 +115,9 @@ fun GetSoraCardScreen(
             .padding(horizontal = Dimens.x2)
             .padding(bottom = Dimens.x5)
     ) {
-        Card(
+        ContentCard(
             modifier = Modifier.fillMaxSize(),
-            cornerRadius = 12.dp,
-            elevation = 0.dp
+            cornerRadius = 12.dp
         ) {
             Column(
                 modifier = Modifier
@@ -133,7 +129,7 @@ fun GetSoraCardScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .wrapContentHeight(),
-                    painter = painterResource(R.drawable.ic_sora_card),
+                    painter = painterResource(R.drawable.sora_card),
                     contentDescription = null,
                     contentScale = ContentScale.FillWidth
                 )
@@ -165,16 +161,43 @@ fun GetSoraCardScreen(
                 FreeCardIssuance(state)
 
                 MarginVertical(margin = 16.dp)
-                BlacklistedCountries(onSeeListClicked = callbacks::onSeeBlacklist)
+                Text(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = Dimens.x1),
+                    text = stringResource(SoraCardR.string.unsupported_countries_disclaimer),
+                    style = MaterialTheme.customTypography.paragraphXS.copy(
+                        textAlign = TextAlign.Center,
+                        color = Color.White,
+                        fontSize = 12.sp
+                    )
+                )
+                Text(
+                    modifier = Modifier
+                        .wrapContentWidth()
+                        .align(Alignment.CenterHorizontally)
+                        .testTagAsId("SoraCardResidents")
+                        .padding(horizontal = Dimens.x1)
+                        .clickable(onClick = callbacks::onSeeBlacklist),
+                    text = stringResource(SoraCardR.string.unsupported_countries_link),
+                    style = MaterialTheme.customTypography.paragraphXS.copy(
+                        textAlign = TextAlign.Center,
+                        textDecoration = TextDecoration.Underline,
+                        fontSize = 12.sp
+                    ),
+                    color = MaterialTheme.customColors.accentPrimary,
+                )
 
+                val buttonsEnabled = state.xorRatioAvailable == true
                 MarginVertical(margin = 16.dp)
-                if (state.enoughXor) {
+                if (state.enoughXor || state.xorRatioAvailable == null) {
                     AccentButton(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 8.dp)
                             .height(48.dp),
                         onClick = callbacks::onEnableCard,
+                        enabled = buttonsEnabled,
                         text = stringResource(R.string.common_continue)
                     )
                 } else {
@@ -197,7 +220,8 @@ fun GetSoraCardScreen(
                         .padding(horizontal = 8.dp)
                         .height(48.dp),
                     text = stringResource(SoraCardR.string.details_already_have_card),
-                    onClick = callbacks::onAlreadyHaveCard
+                    enabled = buttonsEnabled,
+                    onClick = callbacks::onEnableCard
                 )
 
                 MarginVertical(margin = 8.dp)
@@ -207,32 +231,13 @@ fun GetSoraCardScreen(
 }
 
 @Composable
-private fun BlacklistedCountries(
-    onSeeListClicked: (String) -> Unit
-) {
-    HtmlText(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 8.dp),
-        text = stringResource(R.string.sora_card_blacklisted_countires_warning),
-        style = MaterialTheme.customTypography.paragraphXS.copy(
-            textAlign = TextAlign.Center,
-            color = Color.White,
-            fontSize = 12.sp
-        ),
-        onUrlClick = onSeeListClicked
-    )
-}
-
-@Composable
 private fun AnnualFee() {
-    Card(
+    ContentCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 8.dp),
         cornerRadius = 12.dp,
-        backgroundColor = backgroundBlack,
-        elevation = 0.dp
+        backgroundColor = backgroundBlack
     ) {
         Row(
             modifier = Modifier
@@ -263,13 +268,12 @@ private fun AnnualFee() {
 private fun FreeCardIssuance(
     state: GetSoraCardState
 ) {
-    Card(
+    ContentCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 8.dp),
         cornerRadius = 12.dp,
-        backgroundColor = backgroundBlack,
-        elevation = 0.dp
+        backgroundColor = backgroundBlack
     ) {
         Column(
             modifier = Modifier
@@ -321,8 +325,12 @@ private fun FreeCardIssuance(
                     .fillMaxWidth()
                     .padding(top = Dimens.x3, bottom = Dimens.x1),
                 percent = state.percent.toFloat(),
+                loading = state.xorRatioAvailable == null,
                 label = when {
-                    state.xorRatioUnavailable -> {
+                    state.xorRatioAvailable == null -> {
+                        ""
+                    }
+                    !state.xorRatioAvailable -> {
                         stringResource(R.string.common_error_general_title)
                     }
                     state.enoughXor -> {
@@ -331,8 +339,8 @@ private fun FreeCardIssuance(
                     else -> {
                         stringResource(
                             SoraCardR.string.details_need_xor_desription,
-                            state.needInXor.formatCryptoDetail(),
-                            state.needInEur.formatFiat()
+                            state.needInXor,
+                            state.needInEur
                         )
                     }
                 }
@@ -342,21 +350,22 @@ private fun FreeCardIssuance(
 }
 
 @Composable
-fun Card(
+fun ContentCard(
     modifier: Modifier = Modifier,
-    elevation: Dp = MaterialTheme.elevation.l,
-    cornerRadius: Dp = MaterialTheme.borderRadius.xl,
+    cornerRadius: Dp = MaterialTheme.borderRadius.s,
     backgroundColor: Color = MaterialTheme.customColors.bgSurface,
     content: @Composable () -> Unit
 ) {
     androidx.compose.material.Card(
-        modifier = modifier.shadow(
-            elevation = elevation,
-            ambientColor = MaterialTheme.customColors.elevation,
-            spotColor = MaterialTheme.customColors.elevation,
-            shape = RoundedCornerShape(cornerRadius)
-        ),
+        modifier = modifier
+            .shadow(
+                elevation = 24.dp,
+                ambientColor = MaterialTheme.customColors.elevation,
+                spotColor = MaterialTheme.customColors.elevation,
+                shape = RoundedCornerShape(cornerRadius)
+            ),
         shape = RoundedCornerShape(cornerRadius),
+        elevation = 0.dp,
         backgroundColor = backgroundColor
     ) {
         content()
@@ -369,8 +378,7 @@ private fun PreviewGetSoraCardScreen() {
     val empty = object : GetSoraCardScreenInterface {
         override fun onEnableCard() {}
         override fun onGetMoreXor() {}
-        override fun onSeeBlacklist(url: String) {}
-        override fun onAlreadyHaveCard() {}
+        override fun onSeeBlacklist() {}
         override fun onNavigationClick() {}
     }
     FearlessAppTheme(darkTheme = true) {

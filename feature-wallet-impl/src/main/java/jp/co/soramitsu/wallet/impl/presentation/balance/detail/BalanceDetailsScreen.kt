@@ -24,6 +24,9 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.Divider
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
@@ -42,8 +45,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
-import com.google.accompanist.swiperefresh.SwipeRefresh
-import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import jp.co.soramitsu.common.compose.component.ActionBar
 import jp.co.soramitsu.common.compose.component.ActionBarShimmer
 import jp.co.soramitsu.common.compose.component.ActionBarViewState
@@ -257,6 +258,7 @@ private fun ActionBar(actionBarLoadingState: LoadingState<ActionBarViewState>, a
     }
 }
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 private fun TransactionHistory(
     nestedScrollConnection: ExpandableLazyListNestedScrollConnection,
@@ -266,11 +268,15 @@ private fun TransactionHistory(
     onRefresh: () -> Unit,
     listState: LazyListState
 ) {
-    SwipeRefresh(
-        state = rememberSwipeRefreshState(history is TransactionHistoryUi.State.Refreshing),
-        swipeEnabled = false,
-        onRefresh = onRefresh
-    ) {
+    Box(
+        modifier = Modifier.pullRefresh(
+            rememberPullRefreshState(
+                refreshing = history is TransactionHistoryUi.State.Refreshing,
+                onRefresh = onRefresh
+            )
+        )
+    )
+    {
         when (history) {
             is TransactionHistoryUi.State.Data -> {
                 val transactions = history.items
@@ -298,6 +304,7 @@ private fun TransactionHistory(
                                     textAlign = TextAlign.Start
                                 )
                             }
+
                             is OperationModel -> {
                                 TransactionItem(
                                     item = item,
@@ -308,9 +315,11 @@ private fun TransactionHistory(
                     }
                 }
             }
+
             is TransactionHistoryUi.State.EmptyProgress -> {
                 ShimmerTransactionHistory()
             }
+
             is TransactionHistoryUi.State.Empty -> {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally
@@ -325,6 +334,7 @@ private fun TransactionHistory(
                     MarginVertical(margin = 120.dp)
                 }
             }
+
             else -> Unit
         }
     }

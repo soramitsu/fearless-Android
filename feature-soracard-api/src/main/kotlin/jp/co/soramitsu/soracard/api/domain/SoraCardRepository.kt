@@ -1,23 +1,13 @@
 package jp.co.soramitsu.soracard.api.domain
 
-import jp.co.soramitsu.soracard.api.presentation.models.SoraCardInfo
-import kotlinx.coroutines.flow.Flow
 import java.math.BigDecimal
+import java.math.BigInteger
+import jp.co.soramitsu.core.models.Asset
 
 interface SoraCardRepository {
-
-    fun subscribeSoraCardInfo(): Flow<SoraCardInfo?>
-
-    suspend fun getSoraCardInfo(): SoraCardInfo?
-
-    suspend fun updateSoraCardKycStatus(kycStatus: String)
-
-    suspend fun updateSoraCardInfo(
-        accessToken: String,
-        refreshToken: String,
-        accessTokenExpirationTime: Long,
-        kycStatus: String
-    )
-
     suspend fun getXorEuroPrice(): BigDecimal?
+
+    suspend fun getStakedFarmedAmountOfAsset(address: String, asset: Asset): BigInteger
+
+    suspend fun getXorPooledAmount(address: String, asset: Asset): BigDecimal
 }

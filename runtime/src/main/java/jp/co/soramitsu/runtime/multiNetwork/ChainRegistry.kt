@@ -33,6 +33,7 @@ import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeSyncService
 import jp.co.soramitsu.shared_utils.runtime.RuntimeSnapshot
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -148,6 +149,10 @@ class ChainRegistry @Inject constructor(
 
     override suspend fun getChain(chainId: ChainId): Chain {
         return chainsById.first().getValue(chainId)
+    }
+
+    fun chainFlow(chainId: ChainId): Flow<Chain> {
+        return chainsById.map { it.getValue(chainId) }
     }
 
     override suspend fun getChains(): List<IChain> {

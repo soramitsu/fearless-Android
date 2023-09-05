@@ -48,6 +48,9 @@ dependencies {
     implementation compose
     debugImplementation composeDebug
 
+    implementation jnaDep
+    implementation beaconDep, withoutJna
+
     api project(':core-api')
     api project(':core-db')
 

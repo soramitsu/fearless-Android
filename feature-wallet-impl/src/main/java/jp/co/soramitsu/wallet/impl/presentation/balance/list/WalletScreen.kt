@@ -57,6 +57,7 @@ interface WalletScreenInterface : AssetsListInterface {
     fun onBackupCloseClick()
     fun assetTypeChanged(type: AssetType)
     fun onRefresh()
+    fun onBannerBuyXorClicked()
 }
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -101,7 +102,7 @@ fun WalletScreen(
             val buyXorBanner: @Composable (() -> Unit)? = takeIf { false }?.let {
                 {
                     BannerBuyXor(
-                        onBuyXorClick = {}
+                        onBuyXorClick = callback::onBannerBuyXorClicked
                     )
                 }
             }
@@ -135,7 +136,7 @@ fun WalletScreen(
                     }
                 }
             }
-            val header: @Composable (() -> Unit)? = {
+            val header: @Composable (() -> Unit) = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     soraCardBanner?.invoke()
                     bannersCarousel?.invoke()
@@ -203,6 +204,7 @@ private fun PreviewWalletScreen() {
         override fun assetClicked(asset: AssetListItemViewState) {}
         override fun actionItemClicked(actionType: ActionItemType, chainId: ChainId, chainAssetId: String, swipeableState: SwipeableState<SwipeState>) {}
         override fun onRefresh() {}
+        override fun onBannerBuyXorClicked() {}
     }
 
     val assets: List<AssetListItemViewState> = listOf(
@@ -237,7 +239,7 @@ private fun PreviewWalletScreen() {
                         assets = assets,
                         balance = AssetBalanceViewState("TRANSFERABLE BALANCE", "ADDRESS", true, ChangeBalanceViewState("+100%", "+50$")),
                         hasNetworkIssues = true,
-                        soraCardState = SoraCardItemViewState(null, null, null, true),
+                        soraCardState = SoraCardItemViewState(null, true),
                         isBackedUp = false
                     ),
                     callback = emptyCallback

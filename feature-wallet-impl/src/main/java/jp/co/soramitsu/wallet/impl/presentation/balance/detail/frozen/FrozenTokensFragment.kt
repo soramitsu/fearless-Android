@@ -10,6 +10,7 @@ import androidx.fragment.app.viewModels
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
+import jp.co.soramitsu.wallet.impl.presentation.model.FrozenAssetPayload
 
 const val FROZEN_ASSET_PAYLOAD = "FROZEN_ASSET_PAYLOAD"
 

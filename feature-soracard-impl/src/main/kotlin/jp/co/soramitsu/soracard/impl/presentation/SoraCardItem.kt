@@ -3,9 +3,9 @@ package jp.co.soramitsu.soracard.impl.presentation
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -21,23 +21,19 @@ import androidx.compose.ui.graphics.ShaderBrush
 import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.imageResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.R
-import jp.co.soramitsu.common.compose.component.H5
 import jp.co.soramitsu.common.compose.component.Image
-import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.theme.soraRed
-import jp.co.soramitsu.soracard.api.presentation.models.SoraCardInfo
 import jp.co.soramitsu.ui_core.component.button.FilledButton
 import jp.co.soramitsu.ui_core.component.button.properties.Order
 import jp.co.soramitsu.ui_core.component.button.properties.Size
 
 data class SoraCardItemViewState(
     val kycStatus: String? = null,
-    val soraCardInfo: SoraCardInfo? = null,
-    val cardLastDigits: String? = null,
     val visible: Boolean = false
 )
 
@@ -52,7 +48,7 @@ fun SoraCardItem(
     Box(
         Modifier
             .fillMaxWidth()
-            .height(80.dp)
+            .aspectRatio(343f/207f)
             .background(
                 color = soraRed,
                 shape = RoundedCornerShape(12.dp)
@@ -79,20 +75,22 @@ fun SoraCardItem(
             res = R.drawable.logo_soracard_text,
             modifier = Modifier
                 .testTag("sora_logo_text")
-                .padding(top = 8.dp, start = 12.dp)
+                .padding(top = 18.dp, start = 13.dp)
                 .align(Alignment.TopStart)
         )
-        Image(
-            res = R.drawable.logo_mc,
+        androidx.compose.foundation.Image(
+            painter = painterResource(id = R.drawable.logo_mc),
+            contentDescription = null,
             modifier = Modifier
                 .testTag("mc_logo")
-                .padding(start = 10.dp, bottom = 6.dp)
-                .align(Alignment.BottomStart)
+                .padding(start = 12.dp, bottom = 12.dp)
+                .align(Alignment.BottomStart),
         )
         Image(
             res = R.drawable.ic_sora_logo,
             modifier = Modifier
-                .padding(top = 4.dp)
+                .padding(vertical = 18.dp)
+                .fillMaxSize()
                 .testTag("sora_logo")
                 .align(Alignment.TopCenter)
         )
@@ -100,36 +98,26 @@ fun SoraCardItem(
             res = R.drawable.ic_paypass,
             modifier = Modifier
                 .testTag("mc_logo")
-                .padding(8.dp)
-                .align(Alignment.BottomEnd)
+                .padding(13.dp)
+                .align(Alignment.CenterEnd)
         )
 
-        if (state?.cardLastDigits.isNullOrEmpty()) {
-            Image(
-                res = R.drawable.ic_close_16_white_circle,
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(8.dp)
-                    .wrapContentSize()
-                    .clickable(onClick = onClose)
-            )
-        } else {
-            H5(
-                text = "** ${state?.cardLastDigits}",
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(top = 4.dp, end = 11.dp)
-                    .wrapContentSize()
-            )
-        }
+        Image(
+            res = R.drawable.ic_close_48,
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(10.dp)
+                .wrapContentSize()
+                .clickable(onClick = onClose)
+        )
 
         FilledButton(
             modifier = Modifier
-                .padding(bottom = 6.dp)
+                .padding(bottom = 24.dp)
                 .padding(horizontal = 16.dp)
                 .testTag("sora_card_status")
                 .align(Alignment.BottomCenter),
-            size = Size.ExtraSmall,
+            size = Size.Large,
             order = Order.SECONDARY,
             onClick = onClick,
             text = state?.kycStatus ?: stringResource(id = R.string.sora_card_get_sora_card),
@@ -140,12 +128,7 @@ fun SoraCardItem(
 
 @Preview
 @Composable
-private fun SoraCardItemItemPreview() {
-    Column {
-        val state = SoraCardItemViewState(null, null, "3455", false)
-        SoraCardItem(state = state, {}, {})
-        MarginVertical(margin = 8.dp)
-        val state2 = SoraCardItemViewState(null, null, null, false)
-        SoraCardItem(state = state2, {}, {})
-    }
+private fun SoraCardItemPreview() {
+    val state = SoraCardItemViewState(null, false)
+    SoraCardItem(state = state, {}, {})
 }

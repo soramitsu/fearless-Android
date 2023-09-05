@@ -8,7 +8,7 @@ buildscript {
         versionCode = 109
 
         // SDK and tools
-        compileSdkVersion = 33
+        compileSdkVersion = 34
         minSdkVersion = 24
         targetSdkVersion = 33
 
@@ -24,8 +24,8 @@ buildscript {
 
         progressButtonsVersion = '2.1.0'
         xNetworkingVersion = '0.0.60'
-        soraCardVersion = '0.1.9'
-        soraUiCoreVersion = '0.0.72'
+        soraCardVersion = '0.2.4'
+        soraUiCoreVersion = '0.1.2'
 
         daggerVersion = '2.47'
         javaxInjectVersion = '1'
@@ -34,7 +34,7 @@ buildscript {
         roomVersion = '2.5.1'
 
         retrofitVersion = '2.9.0'
-        okhttpVersion = '5.0.0-alpha.11'
+        okhttpVersion = '4.11.0'
         gsonVersion = '2.10.1'
 
         navControllerVersion = '2.5.3'
@@ -67,9 +67,8 @@ buildscript {
 
         androidxCoreVersion = '1.8.0'
 
-        composeVersion = '1.4.3'
-        composeFoundationVersion = '1.5.0-beta03'
-        composeCompilerVersion = '1.4.4'
+        composeVersion = '1.5.0'
+        composeCompilerVersion = '1.4.6'
 
         appcompatVersion = '1.6.1'
         recyclerviewVersion = '1.2.0'
@@ -108,7 +107,7 @@ buildscript {
                 "androidx.compose.ui:ui:$composeVersion",
                 "androidx.compose.runtime:runtime-livedata:$composeVersion",
                 "androidx.compose.compiler:compiler:$composeCompilerVersion",
-                "androidx.compose.foundation:foundation:$composeFoundationVersion",
+                "androidx.compose.foundation:foundation:$composeVersion",
                 "androidx.compose.material:material:$composeVersion",
                 "com.google.android.material:compose-theme-adapter:1.2.1",
                 "androidx.compose.animation:animation:$composeVersion",
@@ -118,17 +117,14 @@ buildscript {
                 "androidx.lifecycle:lifecycle-viewmodel-compose:2.6.1",
                 "com.valentinilk.shimmer:compose-shimmer:1.0.4",
                 "androidx.constraintlayout:constraintlayout-compose:1.0.1",
-                "com.google.accompanist:accompanist-swiperefresh:0.28.0",
-                "com.google.accompanist:accompanist-webview:0.28.0",
+                "com.google.accompanist:accompanist-swiperefresh:0.30.0",
+                "com.google.accompanist:accompanist-webview:0.30.0",
                 "io.coil-kt:coil-compose:$coilVersion",
                 "androidx.navigation:navigation-compose:$navControllerVersion",
                 "androidx.hilt:hilt-navigation-compose:1.0.0"
         ]
         composeDebug = [
                 "androidx.compose.ui:ui-tooling:$composeVersion",
-                //fix compose preview https://stackoverflow.com/a/71830120
-                "androidx.customview:customview:1.2.0-alpha02",
-                "androidx.customview:customview-poolingcontainer:1.0.0"
         ]
 
         lifecycleProcessDep = "androidx.lifecycle:lifecycle-process:$lifecycleVersion"

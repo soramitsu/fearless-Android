@@ -115,36 +115,36 @@ import jp.co.soramitsu.staking.impl.presentation.validators.parcel.ValidatorDeta
 import jp.co.soramitsu.success.presentation.SuccessFragment
 import jp.co.soramitsu.success.presentation.SuccessRouter
 import jp.co.soramitsu.wallet.api.domain.model.XcmChainType
-import jp.co.soramitsu.wallet.impl.domain.beacon.SignStatus
+import jp.co.soramitsu.wallet.api.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.domain.model.PhishingType
-import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
-import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.presentation.addressbook.CreateContactFragment
 import jp.co.soramitsu.wallet.impl.presentation.balance.assetselector.AssetSelectFragment
 import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.ChainSelectFragment
 import jp.co.soramitsu.wallet.impl.presentation.balance.detail.BalanceDetailFragment
-import jp.co.soramitsu.wallet.impl.presentation.balance.detail.frozen.FrozenAssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.balance.detail.frozen.FrozenTokensFragment
 import jp.co.soramitsu.wallet.impl.presentation.balance.optionswallet.OptionsWalletFragment
-import jp.co.soramitsu.wallet.impl.presentation.balance.walletselector.light.WalletSelectionMode
 import jp.co.soramitsu.wallet.impl.presentation.balance.walletselector.light.WalletSelectorFragment
 import jp.co.soramitsu.wallet.impl.presentation.beacon.main.BeaconFragment
-import jp.co.soramitsu.wallet.impl.presentation.beacon.main.DAppMetadataModel
 import jp.co.soramitsu.wallet.impl.presentation.beacon.sign.SignBeaconTransactionFragment
 import jp.co.soramitsu.wallet.impl.presentation.beacon.sign.TransactionRawDataFragment
-import jp.co.soramitsu.wallet.impl.presentation.cross_chain.CrossChainTransferDraft
 import jp.co.soramitsu.wallet.impl.presentation.cross_chain.confirm.CrossChainConfirmFragment
 import jp.co.soramitsu.wallet.impl.presentation.cross_chain.setup.CrossChainSetupFragment
 import jp.co.soramitsu.wallet.impl.presentation.history.AddressHistoryFragment
+import jp.co.soramitsu.wallet.impl.presentation.model.AssetPayload
+import jp.co.soramitsu.wallet.impl.presentation.model.CrossChainTransferDraft
+import jp.co.soramitsu.wallet.impl.presentation.model.DAppMetadataModel
+import jp.co.soramitsu.wallet.impl.presentation.model.ExtrinsicDetailsPayload
+import jp.co.soramitsu.wallet.impl.presentation.model.FrozenAssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.model.OperationParcelizeModel
+import jp.co.soramitsu.wallet.impl.presentation.model.RewardDetailsPayload
+import jp.co.soramitsu.wallet.impl.presentation.model.SignStatus
+import jp.co.soramitsu.wallet.impl.presentation.model.TransferDraft
+import jp.co.soramitsu.wallet.impl.presentation.model.WalletSelectionMode
 import jp.co.soramitsu.wallet.impl.presentation.receive.ReceiveFragment
-import jp.co.soramitsu.wallet.impl.presentation.send.TransferDraft
 import jp.co.soramitsu.wallet.impl.presentation.send.confirm.ConfirmSendFragment
 import jp.co.soramitsu.wallet.impl.presentation.send.setup.SendSetupFragment
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.extrinsic.ExtrinsicDetailFragment
-import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.extrinsic.ExtrinsicDetailsPayload
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.reward.RewardDetailFragment
-import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.reward.RewardDetailsPayload
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.swap.SwapDetailFragment
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.transfer.TransferDetailFragment
 import kotlin.coroutines.coroutineContext
@@ -610,7 +610,7 @@ class Navigator :
     }
 
     override val currentStackEntryLifecycle: Lifecycle
-        get() = navController!!.currentBackStackEntry!!.getLifecycle()
+        get() = navController!!.currentBackStackEntry!!.lifecycle
 
     override fun openControllerAccount() {
         navController?.navigate(R.id.action_stakingBalanceFragment_to_setControllerAccountFragment)
@@ -1140,7 +1140,7 @@ class Navigator :
     override val educationalStoriesCompleted: Flow<Boolean>
         get() {
             return combineLiveData(
-                navController?.currentBackStackEntry?.getLifecycle()?.onResumeObserver() ?: return flowOf(false),
+                navController?.currentBackStackEntry?.lifecycle?.onResumeObserver() ?: return flowOf(false),
                 navController?.currentBackStackEntry?.savedStateHandle?.getLiveData<Boolean>(StoryFragment.KEY_STORY) ?: return flowOf(false),
                 combiner = { (isResumed: Boolean, storiesCompleted: Boolean) ->
                     isResumed && storiesCompleted
@@ -1213,7 +1213,7 @@ class Navigator :
 
     override fun alertResultFlow(key: String): Flow<Result<Unit>> {
         val currentEntry = navController?.currentBackStackEntry
-        val onResumeObserver = currentEntry?.getLifecycle()?.onResumeObserver()
+        val onResumeObserver = currentEntry?.lifecycle?.onResumeObserver()
 
         return (onResumeObserver?.asFlow() ?: emptyFlow()).map {
             if (currentEntry?.savedStateHandle?.contains(key) == true) {
@@ -1228,7 +1228,7 @@ class Navigator :
 
     override fun listenAlertResultFlowFromStartSelectValidatorsScreen(key: String): Flow<Result<Unit>> {
         val currentEntry = navController?.getBackStackEntry(R.id.startSelectValidatorsFragment)
-        val onResumeObserver = currentEntry?.getLifecycle()?.onResumeObserver()
+        val onResumeObserver = currentEntry?.lifecycle?.onResumeObserver()
 
         return (onResumeObserver?.asFlow() ?: emptyFlow()).map {
             if (currentEntry?.savedStateHandle?.contains(key) == true) {
@@ -1243,7 +1243,7 @@ class Navigator :
 
     override fun listenAlertResultFlowFromNetworkIssuesScreen(key: String): Flow<Result<Unit>> {
         val currentEntry = navController?.getBackStackEntry(R.id.networkIssuesFragment)
-        val onResumeObserver = currentEntry?.getLifecycle()?.onResumeObserver()
+        val onResumeObserver = currentEntry?.lifecycle?.onResumeObserver()
 
         return (onResumeObserver?.asFlow() ?: emptyFlow()).map {
             if (currentEntry?.savedStateHandle?.contains(key) == true) {
