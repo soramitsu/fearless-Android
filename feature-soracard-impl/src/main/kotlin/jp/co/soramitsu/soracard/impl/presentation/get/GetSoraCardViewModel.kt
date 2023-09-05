@@ -115,6 +115,5 @@ class GetSoraCardViewModel @Inject constructor(
                 }
             }
         }
-        router.back() // ??? check neediness
     }
 }
