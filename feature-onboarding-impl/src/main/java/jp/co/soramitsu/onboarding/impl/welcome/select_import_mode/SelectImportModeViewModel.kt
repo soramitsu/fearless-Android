@@ -38,4 +38,8 @@ class SelectImportModeViewModel @Inject constructor(
     override fun onGoogleLoginError(message: String) {
         showError("GoogleLoginError\n$message")
     }
+
+    override fun onPreinstalledImportClick() {
+        router.backWithResult(SelectImportModeDialog.RESULT_IMPORT_MODE to ImportMode.Preinstalled)
+    }
 }

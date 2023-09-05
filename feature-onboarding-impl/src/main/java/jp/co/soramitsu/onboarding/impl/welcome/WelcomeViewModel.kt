@@ -14,8 +14,8 @@ import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.mixin.api.Browserable
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.onboarding.impl.OnboardingRouter
+import jp.co.soramitsu.account.api.domain.PendulumPreInstalledAccountsScenario
 import jp.co.soramitsu.onboarding.impl.welcome.WelcomeFragment.Companion.KEY_PAYLOAD
-import jp.co.soramitsu.shared_utils.extensions.fromHex
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -31,7 +31,8 @@ class WelcomeViewModel @Inject constructor(
     private val router: OnboardingRouter,
     private val appLinksProvider: AppLinksProvider,
     savedStateHandle: SavedStateHandle,
-    private val backupService: BackupService
+    private val backupService: BackupService,
+    private val pendulumPreInstalledAccountsScenario: PendulumPreInstalledAccountsScenario
 ) : BaseViewModel(), Browserable, WelcomeScreenInterface {
 
     private val payload = savedStateHandle.get<WelcomeFragmentPayload>(KEY_PAYLOAD)!!
@@ -124,9 +125,14 @@ class WelcomeViewModel @Inject constructor(
             return
         }
 
-        val mnemonicResult = kotlin.runCatching {
-            val bytes = result.fromHex()
-            String(bytes)
-        }.getOrElse { showError("Can't decode qr code.") }
+        viewModelScope.launch {
+            pendulumPreInstalledAccountsScenario.import(result)
+                .onFailure {
+                    showError(it)
+                }
+                .onSuccess {
+                    router.openCreatePincode()
+                }
+        }
     }
 }

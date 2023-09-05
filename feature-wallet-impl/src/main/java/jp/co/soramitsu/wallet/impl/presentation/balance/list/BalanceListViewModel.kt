@@ -11,6 +11,7 @@ import java.math.BigDecimal
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
+import jp.co.soramitsu.account.api.domain.PendulumPreInstalledAccountsScenario
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.TotalBalanceUseCase
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
@@ -66,6 +67,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.defaultChainSort
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.getWithToken
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.pendulumChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.addressByteOrNull
 import jp.co.soramitsu.soracard.api.domain.SoraCardInteractor
@@ -121,7 +123,8 @@ class BalanceListViewModel @Inject constructor(
     private val clipboardManager: ClipboardManager,
     private val currentAccountAddress: CurrentAccountAddressUseCase,
     private val kycRepository: KycRepository,
-    private val getTotalBalance: TotalBalanceUseCase
+    private val getTotalBalance: TotalBalanceUseCase,
+    private val pendulumPreInstalledAccountsScenario: PendulumPreInstalledAccountsScenario
 ) : BaseViewModel(), UpdatesProviderUi by updatesMixin, NetworkStateUi by networkStateMixin,
     WalletScreenInterface {
 
@@ -151,6 +154,11 @@ class BalanceListViewModel @Inject constructor(
         }
 
     private val currentMetaAccountFlow = accountInteractor.selectedMetaAccountFlow()
+        .onEach {
+            if (pendulumPreInstalledAccountsScenario.isPendulumMode(it.id)) {
+                selectedChainId.value = pendulumChainId
+            }
+        }
 
     private val assetTypeSelectorState = MutableStateFlow(
         MultiToggleButtonState(
@@ -433,7 +441,11 @@ class BalanceListViewModel @Inject constructor(
         }.launchIn(this)
 
         interactor.selectedMetaAccountFlow().map { wallet ->
-            selectedChainId.value = interactor.getSavedChainId(wallet.id)
+            if (pendulumPreInstalledAccountsScenario.isPendulumMode(wallet.id)) {
+                selectedChainId.value = pendulumChainId
+            } else {
+                selectedChainId.value = interactor.getSavedChainId(wallet.id)
+            }
         }.launchIn(this)
 
         if (!interactor.isShowGetSoraCard()) {
