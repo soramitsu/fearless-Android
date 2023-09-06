@@ -47,11 +47,11 @@ android {
 
         buildConfigField "String", "SORA_CARD_BLACKLIST",  "\"https://soracard.com/blacklist/\""
 
-        buildConfigField "String", "BLAST_API_ETHEREUM_KEY", readSecretInQuotes("BLAST_API_ETHEREUM_KEY")
-        buildConfigField "String", "BLAST_API_BSC_KEY", readSecretInQuotes("BLAST_API_BSC_KEY")
-        buildConfigField "String", "BLAST_API_SEPOLIA_KEY", readSecretInQuotes("BLAST_API_SEPOLIA_KEY")
-        buildConfigField "String", "BLAST_API_GOERLI_KEY", readSecretInQuotes("BLAST_API_GOERLI_KEY")
-        buildConfigField "String", "BLAST_API_POLYGON_KEY", readSecretInQuotes("BLAST_API_POLYGON_KEY")
+        buildConfigField "String", "BLAST_API_ETHEREUM_KEY", readSecretInQuotes("FL_BLAST_API_ETHEREUM_KEY")
+        buildConfigField "String", "BLAST_API_BSC_KEY", readSecretInQuotes("FL_BLAST_API_BSC_KEY")
+        buildConfigField "String", "BLAST_API_SEPOLIA_KEY", readSecretInQuotes("FL_BLAST_API_SEPOLIA_KEY")
+        buildConfigField "String", "BLAST_API_GOERLI_KEY", readSecretInQuotes("FL_BLAST_API_GOERLI_KEY")
+        buildConfigField "String", "BLAST_API_POLYGON_KEY", readSecretInQuotes("FL_BLAST_API_POLYGON_KEY")
     }
 
     buildTypes {
