@@ -1,6 +1,5 @@
 package jp.co.soramitsu.wallet.impl.data.network.subquery
 
-import com.google.gson.JsonObject
 import jp.co.soramitsu.common.data.network.subquery.GiantsquidResponse
 import jp.co.soramitsu.common.data.network.subquery.SubQueryResponse
 import jp.co.soramitsu.common.data.network.subquery.SubsquidResponse

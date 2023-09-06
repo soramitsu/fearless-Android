@@ -8,7 +8,6 @@ import jp.co.soramitsu.shared_utils.runtime.AccountId
 import jp.co.soramitsu.wallet.impl.data.network.subquery.OperationsHistoryApi
 import jp.co.soramitsu.wallet.impl.domain.interfaces.TransactionFilter
 import jp.co.soramitsu.wallet.impl.domain.model.Operation
-import kotlin.time.Duration.Companion.seconds
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 
@@ -41,7 +40,7 @@ class EtherscanHistorySource(
                 Operation(
                     id = element.hash,
                     address = accountAddress,
-                    time = element.timeStampMillis.toDuration(DurationUnit.SECONDS).inWholeMilliseconds,
+                    time = element.timeStamp.toDuration(DurationUnit.SECONDS).inWholeMilliseconds,
                     chainAsset = chainAsset,
                     type = Operation.Type.Transfer(
                         hash = element.hash,
