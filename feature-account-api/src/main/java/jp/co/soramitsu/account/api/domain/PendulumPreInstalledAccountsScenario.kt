@@ -1,6 +1,7 @@
 package jp.co.soramitsu.account.api.domain
 
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.common.BuildConfig
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.utils.DEFAULT_DERIVATION_PATH
 import jp.co.soramitsu.core.models.CryptoType
@@ -47,9 +48,9 @@ class PendulumPreInstalledAccountsScenario(
     }
 
     fun isFeatureEnabled(): Boolean {
-        return preferences.contains(PENDULUM_FEATURE_TOGGLE_KEY) && preferences.getBoolean(
+        return BuildConfig.DEBUG || (preferences.contains(PENDULUM_FEATURE_TOGGLE_KEY) && preferences.getBoolean(
             PENDULUM_FEATURE_TOGGLE_KEY,
             false
-        )
+        ))
     }
 }
