@@ -7,6 +7,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import jp.co.soramitsu.account.api.domain.PendulumPreInstalledAccountsScenario
 import jp.co.soramitsu.account.api.domain.model.ImportMode
 import jp.co.soramitsu.backup.BackupService
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -14,7 +15,6 @@ import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.mixin.api.Browserable
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.onboarding.impl.OnboardingRouter
-import jp.co.soramitsu.account.api.domain.PendulumPreInstalledAccountsScenario
 import jp.co.soramitsu.onboarding.impl.welcome.WelcomeFragment.Companion.KEY_PAYLOAD
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
@@ -37,7 +37,12 @@ class WelcomeViewModel @Inject constructor(
 
     private val payload = savedStateHandle.get<WelcomeFragmentPayload>(KEY_PAYLOAD)!!
 
-    val state = MutableStateFlow(WelcomeState(isBackVisible = payload.displayBack))
+    val state = MutableStateFlow(
+        WelcomeState(
+            isBackVisible = payload.displayBack,
+            preinstalledFeatureEnabled = pendulumPreInstalledAccountsScenario.isFeatureEnabled()
+        )
+    )
 
     private val _events = Channel<WelcomeEvent>(
         capacity = Int.MAX_VALUE,

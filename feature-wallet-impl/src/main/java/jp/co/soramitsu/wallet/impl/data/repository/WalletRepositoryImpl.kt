@@ -3,6 +3,7 @@ package jp.co.soramitsu.wallet.impl.data.repository
 import com.opencsv.CSVReaderHeaderAware
 import java.math.BigDecimal
 import java.math.BigInteger
+import jp.co.soramitsu.account.api.domain.PendulumPreInstalledAccountsScenario
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.accountId
 import jp.co.soramitsu.common.compose.component.NetworkIssueItemState
@@ -11,6 +12,7 @@ import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.coingecko.CoingeckoApi
 import jp.co.soramitsu.common.data.network.config.AppConfigRemote
 import jp.co.soramitsu.common.data.network.config.RemoteConfigFetcher
+import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
@@ -49,7 +51,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.withContext
 import jp.co.soramitsu.core.models.Asset as CoreAsset
@@ -66,7 +67,8 @@ class WalletRepositoryImpl(
     private val chainRegistry: ChainRegistry,
     private val availableFiatCurrencies: GetAvailableFiatCurrencies,
     private val updatesMixin: UpdatesMixin,
-    private val remoteConfigFetcher: RemoteConfigFetcher
+    private val remoteConfigFetcher: RemoteConfigFetcher,
+    private val preferences: Preferences
 ) : WalletRepository, UpdatesProviderUi by updatesMixin {
 
     companion object {
@@ -421,5 +423,15 @@ class WalletRepositoryImpl(
 
     override suspend fun getStashAccount(chainId: ChainId, accountId: AccountId): AccountId? {
         return substrateSource.getStashAccount(chainId, accountId)
+    }
+
+    override suspend fun fetchFeatureToggle() {
+        val configResult = kotlin.runCatching {
+            remoteConfigFetcher.getFeatureToggle()
+        }.getOrNull() ?: return
+
+        val (pendulumCaseEnabled) = configResult
+
+        preferences.putBoolean(PendulumPreInstalledAccountsScenario.PENDULUM_FEATURE_TOGGLE_KEY, pendulumCaseEnabled)
     }
 }

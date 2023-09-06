@@ -33,7 +33,8 @@ import jp.co.soramitsu.common.compose.theme.customTypography
 import jp.co.soramitsu.feature_onboarding_impl.R
 
 data class WelcomeState(
-    val isBackVisible: Boolean = false
+    val isBackVisible: Boolean = false,
+    val preinstalledFeatureEnabled: Boolean = false
 )
 
 interface WelcomeScreenInterface {
@@ -102,14 +103,16 @@ fun WelcomeScreen(
                 .padding(horizontal = 16.dp),
             onClick = callbacks::googleSigninClicked
         )
-        MarginVertical(margin = 8.dp)
-        TransparentBorderedButton(
-            iconRes = R.drawable.ic_common_receive,
-            text = stringResource(R.string.onboarding_preinstalled_wallet_button_text),
-            modifier = Modifier
-                .padding(horizontal = 16.dp),
-            onClick = callbacks::getPreInstalledWalletClicked
-        )
+        if (state.preinstalledFeatureEnabled) {
+            MarginVertical(margin = 8.dp)
+            TransparentBorderedButton(
+                iconRes = R.drawable.ic_common_receive,
+                text = stringResource(R.string.onboarding_preinstalled_wallet_button_text),
+                modifier = Modifier
+                    .padding(horizontal = 16.dp),
+                onClick = callbacks::getPreInstalledWalletClicked
+            )
+        }
         MarginVertical(margin = 68.dp)
 
         Text(

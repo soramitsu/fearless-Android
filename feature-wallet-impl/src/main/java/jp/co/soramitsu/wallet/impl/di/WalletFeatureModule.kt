@@ -158,7 +158,8 @@ class WalletFeatureModule {
         chainRegistry: ChainRegistry,
         availableFiatCurrencies: GetAvailableFiatCurrencies,
         updatesMixin: UpdatesMixin,
-        remoteConfigFetcher: RemoteConfigFetcher
+        remoteConfigFetcher: RemoteConfigFetcher,
+        preferences: Preferences
     ): WalletRepository = WalletRepositoryImpl(
         substrateSource,
         operationsDao,
@@ -171,7 +172,8 @@ class WalletFeatureModule {
         chainRegistry,
         availableFiatCurrencies,
         updatesMixin,
-        remoteConfigFetcher
+        remoteConfigFetcher,
+        preferences
     )
 
     @Provides

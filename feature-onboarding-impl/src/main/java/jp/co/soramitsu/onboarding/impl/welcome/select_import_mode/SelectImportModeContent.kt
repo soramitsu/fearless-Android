@@ -22,6 +22,10 @@ import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
 import jp.co.soramitsu.common.compose.theme.white08
 import jp.co.soramitsu.feature_onboarding_impl.R
 
+data class SelectImportModeState(
+    val preinstalledFeatureEnabled: Boolean
+)
+
 interface SelectImportModeScreenInterface {
 
     fun onCancelClick()
@@ -43,6 +47,7 @@ interface SelectImportModeScreenInterface {
 
 @Composable
 fun SelectImportModeContent(
+    state: SelectImportModeState,
     callback: SelectImportModeScreenInterface
 ) {
     BottomSheetScreen {
@@ -84,14 +89,16 @@ fun SelectImportModeContent(
                 borderColor = Color.Unspecified,
                 onClick = callback::onGoogleClick
             )
-            MarginVertical(margin = 8.dp)
-            TransparentBorderedButton(
-                iconRes = R.drawable.ic_common_receive,
-                text = stringResource(id = R.string.onboarding_preinstalled_wallet_button_text),
-                backgroundColor = white08,
-                borderColor = Color.Unspecified,
-                onClick = callback::onPreinstalledImportClick
-            )
+            if (state.preinstalledFeatureEnabled) {
+                MarginVertical(margin = 8.dp)
+                TransparentBorderedButton(
+                    iconRes = R.drawable.ic_common_receive,
+                    text = stringResource(id = R.string.onboarding_preinstalled_wallet_button_text),
+                    backgroundColor = white08,
+                    borderColor = Color.Unspecified,
+                    onClick = callback::onPreinstalledImportClick
+                )
+            }
             MarginVertical(margin = 8.dp)
             AccentButton(
                 text = stringResource(id = R.string.common_cancel),
@@ -109,15 +116,16 @@ fun SelectImportModeContent(
 @Preview
 private fun PreviewSelectImportModeContent() {
     FearlessAppTheme {
-        SelectImportModeContent(object : SelectImportModeScreenInterface {
-            override fun onCancelClick() {}
-            override fun onGoogleClick() {}
-            override fun onMnemonicPhraseClick() {}
-            override fun onRawSeedClick() {}
-            override fun onJsonClick() {}
-            override fun onGoogleLoginError(message: String) {}
-            override fun onGoogleSignInSuccess() {}
-            override fun onPreinstalledImportClick() {}
-        })
+        SelectImportModeContent(
+            SelectImportModeState(true), object : SelectImportModeScreenInterface {
+                override fun onCancelClick() {}
+                override fun onGoogleClick() {}
+                override fun onMnemonicPhraseClick() {}
+                override fun onRawSeedClick() {}
+                override fun onJsonClick() {}
+                override fun onGoogleLoginError(message: String) {}
+                override fun onGoogleSignInSuccess() {}
+                override fun onPreinstalledImportClick() {}
+            })
     }
 }

@@ -12,6 +12,11 @@ class PendulumPreInstalledAccountsScenario(
     private val preferences: Preferences
 ) {
 
+    companion object{
+        private const val PENDULUM_CASE_KEY_PREFIX = "pendulum_mode"
+        const val PENDULUM_FEATURE_TOGGLE_KEY = "pendulumCaseEnabled"
+    }
+
     suspend fun import(qrContent: String): Result<Any> {
         val mnemonic = kotlin.runCatching {
             val bytes = qrContent.fromHex()
@@ -34,10 +39,17 @@ class PendulumPreInstalledAccountsScenario(
     }
 
     private fun markAccountImportedForPendulum(walletId: Long) {
-        preferences.putBoolean("pendulum_mode-$walletId", true)
+        preferences.putBoolean("$PENDULUM_CASE_KEY_PREFIX-$walletId", true)
     }
 
     fun isPendulumMode(walletId: Long): Boolean {
-        return preferences.contains("pendulum_mode-$walletId")
+        return isFeatureEnabled() && preferences.contains("$PENDULUM_CASE_KEY_PREFIX-$walletId")
+    }
+
+    fun isFeatureEnabled(): Boolean {
+        return preferences.contains(PENDULUM_FEATURE_TOGGLE_KEY) && preferences.getBoolean(
+            PENDULUM_FEATURE_TOGGLE_KEY,
+            false
+        )
     }
 }
