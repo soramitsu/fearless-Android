@@ -10,7 +10,7 @@ data class EtherscanHistoryResponse(
 
 data class EtherscanHistoryElement(
     val blockNumber: String,
-    val timeStampMillis: Long,
+    val timeStamp: Long,
     val hash: String,
     val nonce: String,
     val blockHash: String,
