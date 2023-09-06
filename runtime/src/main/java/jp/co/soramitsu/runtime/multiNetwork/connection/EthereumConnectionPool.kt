@@ -1,6 +1,5 @@
 package jp.co.soramitsu.runtime.multiNetwork.connection
 
-import android.util.Log
 import java.net.ConnectException
 import java.util.concurrent.ConcurrentHashMap
 import jp.co.soramitsu.common.BuildConfig
@@ -166,11 +165,11 @@ class EthereumWebSocketConnection(
 }
 
 private val blastApiKeys = mapOf(
-    "1" to BuildConfig.ETHEREUM_API_KEY,
-    "38" to BuildConfig.BSC_API_KEY,
-    "11155111" to BuildConfig.SEPOLIA_API_KEY,
-    "5" to BuildConfig.GOERLI_API_KEY,
-    "unknown" to BuildConfig.POLYGON_API_KEY
+    "1" to BuildConfig.BLAST_API_ETHEREUM_KEY,
+    "38" to BuildConfig.BLAST_API_BSC_KEY,
+    "11155111" to BuildConfig.BLAST_API_SEPOLIA_KEY,
+    "5" to BuildConfig.BLAST_API_GOERLI_KEY,
+    "unknown" to BuildConfig.BLAST_API_POLYGON_KEY
 )
 //wss://eth-mainnet.blastapi.io/f69cfb36-090a-4e29-ab21-95aeda2027a7
 
