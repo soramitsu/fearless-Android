@@ -33,12 +33,18 @@ private fun mapSectionTypeRemoteToSectionType(section: String) = when (section) 
 private fun mapExplorerTypeRemoteToExplorerType(explorer: String) = when (explorer) {
     "polkascan" -> Chain.Explorer.Type.POLKASCAN
     "subscan" -> Chain.Explorer.Type.SUBSCAN
+    "etherscan" -> Chain.Explorer.Type.ETHERSCAN
     else -> Chain.Explorer.Type.UNKNOWN
 }
 
 private fun mapSectionTypeToSectionTypeLocal(sectionType: Chain.ExternalApi.Section.Type): String = sectionType.name
-private fun mapSectionTypeLocalToSectionType(sectionType: String): Chain.ExternalApi.Section.Type = enumValueOf(sectionType)
-private fun mapExplorerTypeLocalToExplorerType(explorerType: String): Chain.Explorer.Type = enumValueOf(explorerType)
+private fun mapSectionTypeLocalToSectionType(sectionType: String): Chain.ExternalApi.Section.Type = runCatching {
+    enumValueOf<Chain.ExternalApi.Section.Type>(sectionType)
+}.getOrDefault(Chain.ExternalApi.Section.Type.UNKNOWN)
+
+private fun mapExplorerTypeLocalToExplorerType(explorerType: String): Chain.Explorer.Type = runCatching {
+    enumValueOf<Chain.Explorer.Type>(explorerType)
+}.getOrDefault(Chain.Explorer.Type.UNKNOWN)
 
 private fun mapStakingStringToStakingType(stakingString: String?): Asset.StakingType {
     return when (stakingString) {
