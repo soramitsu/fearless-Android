@@ -50,7 +50,7 @@ data class Chain(
     ) {
         data class Section(val type: Type, val url: String) {
             enum class Type {
-                SUBQUERY, SORA, SUBSQUID, GIANTSQUID, GITHUB, UNKNOWN, ETHERSCAN;
+                SUBQUERY, SORA, SUBSQUID, GIANTSQUID, ETHERSCAN, UNKNOWN, GITHUB;
 
                 fun isHistory() = this in listOf(SUBQUERY, SORA, SUBSQUID, GIANTSQUID, ETHERSCAN)
             }
@@ -59,7 +59,7 @@ data class Chain(
 
     data class Explorer(val type: Type, val types: List<String>, val url: String) {
         enum class Type {
-            POLKASCAN, SUBSCAN, UNKNOWN;
+            POLKASCAN, SUBSCAN, ETHERSCAN, UNKNOWN;
 
             val capitalizedName: String = name.lowercase().replaceFirstChar { it.titlecase() }
         }
