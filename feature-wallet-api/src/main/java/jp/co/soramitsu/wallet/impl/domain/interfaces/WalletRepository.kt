@@ -86,4 +86,5 @@ interface WalletRepository {
     suspend fun getSingleAssetPriceCoingecko(priceId: String, currency: String): BigDecimal?
     suspend fun getControllerAccount(chainId: ChainId, accountId: AccountId): AccountId?
     suspend fun getStashAccount(chainId: ChainId, accountId: AccountId): AccountId?
+    suspend fun fetchFeatureToggle()
 }

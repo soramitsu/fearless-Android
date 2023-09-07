@@ -76,6 +76,7 @@ class RootViewModel @Inject constructor(
                 }
 
                 else -> {
+                    interactor.fetchFeatureToggle()
                     runBalancesUpdate()
                 }
             }

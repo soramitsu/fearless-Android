@@ -1,8 +1,10 @@
 package jp.co.soramitsu.onboarding.impl.welcome
 
+import android.Manifest
 import android.app.Activity
 import android.os.Bundle
 import android.view.View
+import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.PaddingValues
@@ -14,13 +16,18 @@ import androidx.compose.runtime.getValue
 import androidx.core.os.bundleOf
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
+import com.journeyapps.barcodescanner.ScanOptions
 import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.account.api.presentation.account.create.ChainAccountCreatePayload
 import jp.co.soramitsu.common.base.BaseComposeFragment
 import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
 import jp.co.soramitsu.common.mixin.impl.observeBrowserEvents
+import jp.co.soramitsu.common.presentation.askPermissionsSafely
+import jp.co.soramitsu.common.scan.ScanTextContract
+import jp.co.soramitsu.common.scan.ScannerActivity
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class WelcomeFragment : BaseComposeFragment<WelcomeViewModel>() {
@@ -52,6 +59,12 @@ class WelcomeFragment : BaseComposeFragment<WelcomeViewModel>() {
         }
     }
 
+    private val barcodeLauncher: ActivityResultLauncher<ScanOptions> = registerForActivityResult(
+        ScanTextContract()
+    ) { result ->
+        viewModel.onQrScanResult(result)
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
@@ -65,6 +78,7 @@ class WelcomeFragment : BaseComposeFragment<WelcomeViewModel>() {
     private fun handleEvents(event: WelcomeEvent) {
         when (event) {
             WelcomeEvent.AuthorizeGoogle -> handleAuthorizeGoogleEvent()
+            WelcomeEvent.ScanQR -> requestCameraPermission()
         }
     }
 
@@ -83,5 +97,24 @@ class WelcomeFragment : BaseComposeFragment<WelcomeViewModel>() {
                 callbacks = viewModel
             )
         }
+    }
+
+    private fun requestCameraPermission() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            val result = askPermissionsSafely(Manifest.permission.CAMERA)
+
+            if (result.isSuccess) {
+                initiateCameraScanner()
+            }
+        }
+    }
+
+    private fun initiateCameraScanner() {
+        val options = ScanOptions()
+            .setDesiredBarcodeFormats(ScanOptions.ALL_CODE_TYPES)
+            .setPrompt("")
+            .setBeepEnabled(false)
+            .setCaptureActivity(ScannerActivity::class.java)
+        barcodeLauncher.launch(options)
     }
 }

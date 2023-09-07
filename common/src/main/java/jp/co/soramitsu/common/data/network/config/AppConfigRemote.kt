@@ -31,3 +31,9 @@ data class AvailableDexId(
     @SerializedName("assetId")
     val assetId: String
 )
+
+
+data class FeatureToggleConfig(
+    @SerializedName("pendulum_case_enabled")
+    val pendulumCaseEnabled: Boolean,
+)

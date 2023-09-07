@@ -3,6 +3,8 @@ package jp.co.soramitsu.onboarding.impl.welcome.select_import_mode
 import android.widget.FrameLayout
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.core.os.bundleOf
 import androidx.fragment.app.viewModels
 import com.google.android.material.bottomsheet.BottomSheetBehavior
@@ -16,7 +18,9 @@ class SelectImportModeDialog : BaseComposeBottomSheetDialogFragment<SelectImport
 
     @Composable
     override fun Content(padding: PaddingValues) {
+        val state by viewModel.state.collectAsState()
         SelectImportModeContent(
+            state,
             callback = viewModel
         )
     }

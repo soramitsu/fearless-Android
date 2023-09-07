@@ -17,13 +17,11 @@ class RootFeatureModule {
     @Provides
     fun provideRootInteractor(
         walletRepository: WalletRepository,
-        @Named("BalancesUpdateSystem") walletUpdateSystem: UpdateSystem,
-        preferences: Preferences
+        @Named("BalancesUpdateSystem") walletUpdateSystem: UpdateSystem
     ): RootInteractor {
         return RootInteractor(
             walletUpdateSystem,
-            walletRepository,
-            preferences
+            walletRepository
         )
     }
 }

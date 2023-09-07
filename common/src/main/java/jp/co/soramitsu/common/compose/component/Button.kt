@@ -57,11 +57,22 @@ data class ButtonViewState(
 
 @Composable
 fun AccentButton(state: ButtonViewState, modifier: Modifier = Modifier, onClick: () -> Unit) {
-    TextButton(text = state.text, enabled = state.enabled, colors = accentButtonColors, modifier = modifier, onClick = onClick)
+    TextButton(
+        text = state.text,
+        enabled = state.enabled,
+        colors = accentButtonColors,
+        modifier = modifier,
+        onClick = onClick
+    )
 }
 
 @Composable
-fun AccentButton(modifier: Modifier = Modifier, text: String, enabled: Boolean = true, onClick: () -> Unit) {
+fun AccentButton(
+    modifier: Modifier = Modifier,
+    text: String,
+    enabled: Boolean = true,
+    onClick: () -> Unit
+) {
     TextButton(
         text = text,
         enabled = enabled,
@@ -111,12 +122,27 @@ fun AccentButton(
 }
 
 @Composable
-fun AccentDarkDisabledButton(state: ButtonViewState, modifier: Modifier = Modifier, onClick: () -> Unit) {
-    TextButton(text = state.text, enabled = state.enabled, colors = accentDarkDisabledButtonColors, modifier = modifier, onClick = onClick)
+fun AccentDarkDisabledButton(
+    state: ButtonViewState,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
+    TextButton(
+        text = state.text,
+        enabled = state.enabled,
+        colors = accentDarkDisabledButtonColors,
+        modifier = modifier,
+        onClick = onClick
+    )
 }
 
 @Composable
-fun GrayButton(text: String, enabled: Boolean = true, modifier: Modifier = Modifier, onClick: () -> Unit) {
+fun GrayButton(
+    text: String,
+    enabled: Boolean = true,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
     TextButton(
         text = text,
         enabled = enabled,
@@ -131,6 +157,25 @@ fun GrayButton(text: String, enabled: Boolean = true, modifier: Modifier = Modif
 fun GoogleButton(
     modifier: Modifier = Modifier,
     text: String = stringResource(id = R.string.onboarding_connect_with_google),
+    backgroundColor: Color = Color.Unspecified,
+    borderColor: Color = white64,
+    onClick: () -> Unit
+) {
+    TransparentBorderedButton(
+        iconRes = R.drawable.ic_google_30,
+        text = text,
+        modifier = modifier,
+        backgroundColor = backgroundColor,
+        borderColor = borderColor,
+        onClick = onClick
+    )
+}
+
+@Composable
+fun TransparentBorderedButton(
+    modifier: Modifier = Modifier,
+    iconRes: Int,
+    text: String,
     backgroundColor: Color = Color.Unspecified,
     borderColor: Color = white64,
     onClick: () -> Unit
@@ -154,7 +199,7 @@ fun GoogleButton(
             ) {
                 Image(
                     modifier = Modifier.padding(end = 8.dp),
-                    res = R.drawable.ic_google_30
+                    res = iconRes
                 )
                 Text(
                     text = text,
@@ -165,9 +210,21 @@ fun GoogleButton(
     }
 }
 
+
 @Composable
-fun TransparentButton(text: String, enabled: Boolean = true, modifier: Modifier = Modifier, onClick: () -> Unit) {
-    TextButton(text = text, enabled = enabled, colors = customButtonColors(Color.Unspecified, colorAccentDark), modifier = modifier, onClick = onClick)
+fun TransparentButton(
+    text: String,
+    enabled: Boolean = true,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
+    TextButton(
+        text = text,
+        enabled = enabled,
+        colors = customButtonColors(Color.Unspecified, colorAccentDark),
+        modifier = modifier,
+        onClick = onClick
+    )
 }
 
 @Composable
@@ -179,7 +236,14 @@ fun TextButton(
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
-    FearlessButton(text = text, enabled = enabled, textStyle = textStyle, colors = colors, modifier = modifier, onClick = onClick)
+    FearlessButton(
+        text = text,
+        enabled = enabled,
+        textStyle = textStyle,
+        colors = colors,
+        modifier = modifier,
+        onClick = onClick
+    )
 }
 
 @Composable
@@ -229,7 +293,12 @@ fun FearlessButton(
         shape = FearlessCorneredShape(),
         colors = colors,
         enabled = enabled,
-        contentPadding = PaddingValues(vertical = 0.dp, horizontal = ButtonDefaults.TextButtonContentPadding.calculateLeftPadding(LayoutDirection.Ltr))
+        contentPadding = PaddingValues(
+            vertical = 0.dp,
+            horizontal = ButtonDefaults.TextButtonContentPadding.calculateLeftPadding(
+                LayoutDirection.Ltr
+            )
+        )
     ) {
         Text(
             text = text,
@@ -375,6 +444,12 @@ fun ButtonPreview() {
             MarginVertical(margin = 16.dp)
             AccentDarkDisabledButton(
                 state = ButtonViewState("Dark Button text"),
+                onClick = {}
+            )
+            MarginVertical(margin = 16.dp)
+            TransparentBorderedButton(
+                iconRes = R.drawable.ic_scan,
+                text = "Get a pre-installed wallet",
                 onClick = {}
             )
         }
