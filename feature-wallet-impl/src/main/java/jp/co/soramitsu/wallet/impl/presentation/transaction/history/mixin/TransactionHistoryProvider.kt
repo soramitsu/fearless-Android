@@ -6,6 +6,7 @@ import jp.co.soramitsu.common.data.model.CursorPage
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.daysFromMillis
 import jp.co.soramitsu.feature_wallet_impl.R
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.wallet.impl.data.mappers.mapOperationToOperationModel
 import jp.co.soramitsu.wallet.impl.data.mappers.mapOperationToParcel
 import jp.co.soramitsu.wallet.impl.data.network.subquery.HistoryNotSupportedException
@@ -176,7 +177,7 @@ class TransactionHistoryProvider(
         }
     }
 
-    override fun transactionClicked(transactionModel: OperationModel, assetPayload: AssetPayload) {
+    override fun transactionClicked(transactionModel: OperationModel, assetPayload: AssetPayload, chainHistoryType: Chain.ExternalApi.Section.Type?) {
         launch {
             val operations = currentData
 
@@ -185,7 +186,7 @@ class TransactionHistoryProvider(
             withContext(Dispatchers.Main) {
                 when (val operation = mapOperationToParcel(clickedOperation, resourceManager)) {
                     is OperationParcelizeModel.Transfer -> {
-                        router.openTransferDetail(operation, assetPayload)
+                        router.openTransferDetail(operation, assetPayload, chainHistoryType)
                     }
 
                     is OperationParcelizeModel.Extrinsic -> {

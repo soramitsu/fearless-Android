@@ -25,13 +25,18 @@ import jp.co.soramitsu.wallet.impl.presentation.model.OperationStatusAppearance
 
 const val KEY_TRANSACTION = "KEY_DRAFT"
 const val KEY_ASSET_PAYLOAD = "KEY_ASSET_PAYLOAD"
+const val KEY_HISTORY_TYPE = "KEY_HISTORY_TYPE"
 
 @AndroidEntryPoint
 class TransferDetailFragment : BaseFragment<TransactionDetailViewModel>(R.layout.fragment_transfer_details) {
 
     companion object {
-        fun getBundle(operation: OperationParcelizeModel.Transfer, assetPayload: AssetPayload) =
-            bundleOf(KEY_TRANSACTION to operation, KEY_ASSET_PAYLOAD to assetPayload)
+        fun getBundle(operation: OperationParcelizeModel.Transfer, assetPayload: AssetPayload, chainHistoryType: Chain.ExternalApi.Section.Type?) =
+            bundleOf(
+                KEY_TRANSACTION to operation,
+                KEY_ASSET_PAYLOAD to assetPayload,
+                KEY_HISTORY_TYPE to chainHistoryType
+            )
     }
 
     private val binding by viewBinding(FragmentTransferDetailsBinding::bind)
@@ -158,7 +163,7 @@ class TransferDetailFragment : BaseFragment<TransactionDetailViewModel>(R.layout
         showExternalActionsSheet(
             copyLabelRes = R.string.transaction_details_copy_hash,
             value = hash,
-            explorers = viewModel.getSupportedExplorers(BlockExplorerUrlBuilder.Type.EXTRINSIC, hash),
+            explorers = viewModel.getSupportedExplorers(viewModel.historyType, hash),
             externalViewCallback = viewModel::openUrl
         )
     }

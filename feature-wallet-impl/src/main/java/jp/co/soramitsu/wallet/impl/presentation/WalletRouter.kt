@@ -10,6 +10,7 @@ import jp.co.soramitsu.common.navigation.PinRequired
 import jp.co.soramitsu.common.navigation.SecureRouter
 import jp.co.soramitsu.common.navigation.payload.WalletSelectorPayload
 import jp.co.soramitsu.common.presentation.StoryGroupModel
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.wallet.api.domain.model.XcmChainType
 import jp.co.soramitsu.wallet.impl.domain.beacon.SignStatus
@@ -71,7 +72,7 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
 
     fun finishSendFlow()
 
-    fun openTransferDetail(transaction: OperationParcelizeModel.Transfer, assetPayload: AssetPayload)
+    fun openTransferDetail(transaction: OperationParcelizeModel.Transfer, assetPayload: AssetPayload, chainHistoryType: Chain.ExternalApi.Section.Type?)
 
     fun openSwapDetail(operation: OperationParcelizeModel.Swap)
 
