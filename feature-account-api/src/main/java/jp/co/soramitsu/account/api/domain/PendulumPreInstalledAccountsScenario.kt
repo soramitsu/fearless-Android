@@ -26,7 +26,7 @@ class PendulumPreInstalledAccountsScenario(
         return kotlin.runCatching {
             accountRepository.importFromMnemonic(
                 mnemonic = mnemonic,
-                accountName = "Pendulum ${mnemonic.split(' ').first()}",
+                accountName = "Pendulum wallet",
                 substrateDerivationPath = "",
                 ethereumDerivationPath = BIP32JunctionDecoder.DEFAULT_DERIVATION_PATH,
                 selectedEncryptionType = CryptoType.SR25519,
