@@ -1,6 +1,5 @@
 package jp.co.soramitsu.wallet.impl.presentation.transaction.history.mixin
 
-import android.util.Log
 import jp.co.soramitsu.account.api.presentation.account.AddressDisplayUseCase
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.data.model.CursorPage
@@ -108,7 +107,6 @@ class TransactionHistoryProvider(
         if (firstPageSyncJob?.isCancelled == false || firstPageSyncJob?.isCompleted == false) return
 
         firstPageSyncJob = launch {
-            Log.d("&&&", "syncFirstOperationsPage request")
             walletInteractor.syncOperationsFirstPage(
                 chainId = assetPayload.chainId,
                 chainAssetId = assetPayload.chainAssetId,

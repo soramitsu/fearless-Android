@@ -54,8 +54,16 @@ private fun mapStakingStringToStakingType(stakingString: String?): Asset.Staking
         else -> Asset.StakingType.UNSUPPORTED
     }
 }
+private fun mapEthereumTypeStringToEthereumType(ethereumTypeString: String?): Asset.EthereumType? {
+    return when (ethereumTypeString) {
+        "erc20" -> Asset.EthereumType.ERC20
+        "normal" -> Asset.EthereumType.NORMAL
+        else -> null
+    }
+}
 
 private fun mapStakingTypeToLocal(stakingType: Asset.StakingType): String = stakingType.name
+private fun mapEthereumTypeToLocal(ethereumType: Asset.EthereumType?): String? = ethereumType?.name?.lowercase()
 private fun mapStakingTypeFromLocal(stakingTypeLocal: String): Asset.StakingType = enumValueOf(stakingTypeLocal)
 
 private fun ChainExternalApiRemote.Explorer.toExplorer() = Chain.Explorer(
@@ -154,7 +162,8 @@ private fun ChainRemote.assetConfigs(): List<Asset>? {
                 currencyId = chainAsset.currencyId,
                 existentialDeposit = chainAsset.existentialDeposit,
                 color = chainAsset.color,
-                isNative = chainAsset.isNative
+                isNative = chainAsset.isNative,
+                ethereumType = mapEthereumTypeStringToEthereumType(chainAsset.ethereumType)
             )
         }
     }
@@ -190,7 +199,8 @@ fun mapChainLocalToChain(chainLocal: JoinedChainInfo): Chain {
             currencyId = it.currencyId,
             existentialDeposit = it.existentialDeposit,
             color = it.color,
-            isNative = it.isNative
+            isNative = it.isNative,
+            ethereumType = mapEthereumTypeStringToEthereumType(it.ethereumType)
         )
     }
 
@@ -258,7 +268,8 @@ fun mapChainToChainLocal(chain: Chain): JoinedChainInfo {
             currencyId = it.currencyId,
             existentialDeposit = it.existentialDeposit,
             color = it.color,
-            isNative = it.isNative
+            isNative = it.isNative,
+            ethereumType = mapEthereumTypeToLocal(it.ethereumType)
         )
     }
 

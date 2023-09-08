@@ -1,6 +1,7 @@
 package jp.co.soramitsu.wallet.impl.data.historySource
 
 import jp.co.soramitsu.common.data.model.CursorPage
+import jp.co.soramitsu.common.utils.isNotZero
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.shared_utils.extensions.toHexString
@@ -25,10 +26,27 @@ class EtherscanHistorySource(
         accountAddress: String
     ): CursorPage<Operation> {
         return kotlin.runCatching {
-            walletOperationsApi.getEtherscanOperationsHistory(
-                url = historyUrl,
-                address = accountId.toHexString(true)
-            )
+            when (chainAsset.ethereumType) {
+                Asset.EthereumType.NORMAL -> {
+                    walletOperationsApi.getEtherscanOperationsHistory(
+                        url = historyUrl,
+                        address = accountId.toHexString(true)
+                    )
+                        .let { response -> response.copy(result = response.result.filter { it.contractAddress.isEmpty() && it.value.isNotZero() }) }
+                }
+
+                Asset.EthereumType.ERC20 -> {
+                    walletOperationsApi.getEtherscanOperationsHistory(
+                        url = historyUrl,
+                        action = "tokentx",
+                        contractAddress = chainAsset.id,
+                        address = accountId.toHexString(true)
+                    )
+                        .let { response -> response.copy(result = response.result.filter { it.contractAddress.lowercase() == chainAsset.id.lowercase() && it.value.isNotZero() }) }
+                }
+
+                else -> throw IllegalArgumentException()
+            }
         }.fold(onSuccess = {
             val operations = it.result.map { element ->
                 val status = if (element.isError == 0) {

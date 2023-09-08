@@ -126,15 +126,8 @@ class EthereumWebSocketConnection(
         _service = socketFactory.create(node.url)
 
         try {
-            _service!!.connect({
-                hashCode()
-            }, {
-                hashCode()
-            }, {
-
-            })
+            _service!!.connect()
         } catch (exception: ConnectException) {
-            hashCode()
             return Result.failure("Node ${node.name} : ${node.url} connect failed $exception")
         }
 
@@ -171,7 +164,6 @@ private val blastApiKeys = mapOf(
     "5" to BuildConfig.BLAST_API_GOERLI_KEY,
     "unknown" to BuildConfig.BLAST_API_POLYGON_KEY
 )
-//wss://eth-mainnet.blastapi.io/f69cfb36-090a-4e29-ab21-95aeda2027a7
 
 class EthereumWebSocketFactory {
     fun create(url: String) = WebSocketService(url, false)
