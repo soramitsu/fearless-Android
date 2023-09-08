@@ -17,6 +17,7 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
@@ -44,6 +45,7 @@ class TransactionDetailViewModel @Inject constructor(
 
     val operation = savedStateHandle.get<OperationParcelizeModel.Transfer>(KEY_TRANSACTION)!!
     val assetPayload = savedStateHandle.get<AssetPayload>(KEY_ASSET_PAYLOAD)!!
+    val historyType = savedStateHandle.get<Chain.ExternalApi.Section.Type?>(KEY_HISTORY_TYPE)!!
 
     private val _showExternalViewEvent = MutableLiveData<Event<ExternalActionsSource>>()
     val showExternalTransactionActionsEvent: LiveData<Event<ExternalActionsSource>> = _showExternalViewEvent
@@ -60,6 +62,13 @@ class TransactionDetailViewModel @Inject constructor(
 
     private val chainExplorers = flow { emit(chainRegistry.getChain(assetPayload.chainId).explorers) }.share()
 
+    fun getSupportedExplorers(historyType: Chain.ExternalApi.Section.Type, value: String): Map<Chain.Explorer.Type, String> {
+        val explorerUrlType: BlockExplorerUrlBuilder.Type = when (historyType) {
+            Chain.ExternalApi.Section.Type.ETHERSCAN -> BlockExplorerUrlBuilder.Type.TX
+            else -> BlockExplorerUrlBuilder.Type.EXTRINSIC
+        }
+        return chainExplorers.replayCache.firstOrNull()?.getSupportedExplorers(explorerUrlType, value).orEmpty()
+    }
     fun getSupportedExplorers(type: BlockExplorerUrlBuilder.Type, value: String) =
         chainExplorers.replayCache.firstOrNull()?.getSupportedExplorers(type, value).orEmpty()
 
