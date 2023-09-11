@@ -2,6 +2,7 @@ package jp.co.soramitsu.wallet.impl.presentation.history
 
 import androidx.lifecycle.SavedStateHandle
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressIcon
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -16,7 +17,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
-import javax.inject.Inject
 
 @HiltViewModel
 class AddressHistoryViewModel @Inject constructor(
@@ -47,7 +47,7 @@ class AddressHistoryViewModel @Inject constructor(
 
             Address(
                 name = addressBook.firstOrNull { it.address == address }?.name.orEmpty(),
-                address = address,
+                address = address.trim(),
                 image = accountImage ?: placeholder,
                 chainId = chainId,
                 isSavedToContacts = address in addressBook.map { it.address }
@@ -62,7 +62,7 @@ class AddressHistoryViewModel @Inject constructor(
             }
             Address(
                 name = contact.name.orEmpty(),
-                address = contact.address,
+                address = contact.address.trim(),
                 image = accountImage ?: placeholder,
                 chainId = contact.chainId,
                 isSavedToContacts = true

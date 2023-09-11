@@ -85,7 +85,7 @@ class CreateContactViewModel @Inject constructor(
     override fun onCreateContactClick() {
         val selectedChainId = chainIdFlow.value ?: return
         val name = state.value.contactNameInput
-        val address = state.value.contactAddressInput
+        val address = state.value.contactAddressInput.trim()
         launch {
             val isValid = walletInteractor.validateSendAddress(selectedChainId, address)
             if (isValid) {
