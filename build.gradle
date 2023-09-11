@@ -203,7 +203,8 @@ buildscript {
         sharedFeaturesXcmDep = "jp.co.soramitsu.shared_features:xcm:$sharedFeaturesVersion"
         sharedFeaturesBackupDep = "jp.co.soramitsu.shared_features:backup:$sharedFeaturesVersion"
 
-        web3jDep = "org.web3j:core:4.8.7-android"
+        web3jDep = "org.web3j:core:4.8.8-android"
+
         withoutJavaWS = { exclude group: 'org.java-websocket', module: 'Java-WebSocket' }
 
         serializationDep = "org.jetbrains.kotlinx:kotlinx-serialization-json:$serializationVersion"

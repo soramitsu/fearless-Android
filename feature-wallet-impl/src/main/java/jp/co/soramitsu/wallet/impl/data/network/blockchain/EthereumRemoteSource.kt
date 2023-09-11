@@ -140,7 +140,7 @@ class EthereumRemoteSource(private val ethereumConnectionPool: EthereumConnectio
             }
                 .getOrElse { return@withContext Result.failure("Error ethEstimateGas for chain ${chain.name}, ${chain.id}, error: $it") }
 
-            val maxFeePerGas = (baseFee + priorityFee) * estimatedGas
+            val maxFeePerGas = baseFee + priorityFee
             val chainId = chain.id.requireHexPrefix().drop(2).toLong()
             val raw = if (transfer.chainAsset.isUtility) {
                 RawTransaction.createEtherTransaction(
@@ -177,7 +177,7 @@ class EthereumRemoteSource(private val ethereumConnectionPool: EthereumConnectio
             val transactionHash = kotlin.runCatching {
                 web3.ethSendRawTransaction(signed.toHexString(true)).send().resultOrThrow()
             }
-                .getOrElse { return@withContext Result.failure("Error ethSendRawTransaction for chain ${chain.name}, ${chain.id}, error: $it") }
+                .getOrElse { return@withContext Result.failure("Error ethSendRawTransaction for chain ${chain.name}, ${chain.id}, error: ${it.message ?: it}") }
 
             return@withContext Result.success(transactionHash)
         }

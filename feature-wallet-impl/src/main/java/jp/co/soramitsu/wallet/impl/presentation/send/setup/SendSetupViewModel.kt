@@ -179,12 +179,13 @@ class SendSetupViewModel @Inject constructor(
     private val amountInputFocusFlow = MutableStateFlow(false)
 
     private val addressInputFlow = MutableStateFlow(initSendToAddress.orEmpty())
+    private val addressInputTrimmedFlow = addressInputFlow.map { it.trim() }
 
     private val isSoftKeyboardOpenFlow = MutableStateFlow(false)
     private val heightDiffDpFlow = MutableStateFlow(0.dp)
 
     private val isInputAddressValidFlow =
-        combine(addressInputFlow, chainIdFlow) { addressInput, chainId ->
+        combine(addressInputTrimmedFlow, chainIdFlow) { addressInput, chainId ->
             when (chainId) {
                 null -> false
                 else -> walletInteractor.validateSendAddress(chainId, addressInput)
@@ -235,7 +236,7 @@ class SendSetupViewModel @Inject constructor(
     }.stateIn(this, SharingStarted.Eagerly, defaultAmountInputState)
 
     private val feeAmountFlow = combine(
-        addressInputFlow,
+        addressInputTrimmedFlow,
         isInputAddressValidFlow,
         enteredAmountBigDecimalFlow,
         assetFlow.mapNotNull { it }
@@ -287,7 +288,7 @@ class SendSetupViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, FeeInfoViewState.default)
 
     private val isWarningExpanded = MutableStateFlow(false)
-    private val phishingModelFlow = addressInputFlow.map {
+    private val phishingModelFlow = addressInputTrimmedFlow.map {
         walletInteractor.getPhishingInfo(it)
     }
     private val warningInfoStateFlow = combine(
@@ -335,7 +336,7 @@ class SendSetupViewModel @Inject constructor(
 
     val state = combine(
         selectedChain,
-        addressInputFlow,
+        addressInputTrimmedFlow,
         chainSelectorStateFlow,
         amountInputViewState,
         feeInfoViewStateFlow,
@@ -435,7 +436,7 @@ class SendSetupViewModel @Inject constructor(
 
             val amount = enteredAmountBigDecimalFlow.value
             val inPlanks = asset.token.planksFromAmount(amount).orZero()
-            val recipientAddress = addressInputFlow.value
+            val recipientAddress = addressInputTrimmedFlow.firstOrNull() ?: return@launch
             val selfAddress =
                 currentAccountAddress(asset.token.configuration.chainId) ?: return@launch
             val fee = feeInPlanksFlow.value
@@ -489,18 +490,16 @@ class SendSetupViewModel @Inject constructor(
     }
 
     private suspend fun buildTransferDraft(): TransferDraft? {
-        val recipientAddress = addressInputFlow.firstOrNull() ?: return null
+        val recipientAddress = addressInputTrimmedFlow.firstOrNull() ?: return null
         val feeAmount = feeAmountFlow.firstOrNull() ?: return null
         val tip = tipAmountFlow.firstOrNull()
 
         val amount = enteredAmountBigDecimalFlow.value
 
-        val chainId = sharedState.chainId
-        val assetId = sharedState.assetId
-        val payload = when {
-            chainId == null || assetId == null -> null
-            else -> AssetPayload(chainId, assetId)
-        } ?: return null
+        val chainId = sharedState.chainId ?: return null
+        val assetId = sharedState.assetId ?: return null
+
+        val payload = AssetPayload(chainId, assetId)
 
         return TransferDraft(amount, feeAmount, payload, recipientAddress, tip)
     }
