@@ -182,7 +182,8 @@ class BalanceDetailViewModel @Inject constructor(
         LoadingState.Loading(),
         TitleValueViewState(title = resourceManager.getString(R.string.assetdetails_balance_transferable)),
         TitleValueViewState(title = resourceManager.getString(R.string.assetdetails_balance_locked)),
-        TransactionHistoryUi.State.EmptyProgress
+        TransactionHistoryUi.State.EmptyProgress,
+        false
     )
 
     val state = combine(
@@ -237,12 +238,15 @@ class BalanceDetailViewModel @Inject constructor(
             }
         )
 
+        val filtersEnabled = balanceModel.token.configuration.ethereumType == null
+
         BalanceDetailsState(
             actionBarViewState = actionBarState,
             balance = LoadingState.Loaded(balanceState),
             transferableViewState = newTransferableState,
             lockedViewState = newLockedState,
-            transactionHistory = transactionHistory
+            transactionHistory = transactionHistory,
+            filtersEnabled = filtersEnabled
         )
     }.stateIn(scope = this, started = SharingStarted.Eagerly, initialValue = defaultState)
 
