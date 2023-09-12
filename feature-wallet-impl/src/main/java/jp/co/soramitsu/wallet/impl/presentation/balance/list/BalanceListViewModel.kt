@@ -67,6 +67,8 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.defaultChainSort
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.getWithToken
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.pendulumChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraTestChainId
 import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.addressByteOrNull
 import jp.co.soramitsu.soracard.api.domain.SoraCardInteractor
 import jp.co.soramitsu.soracard.impl.presentation.SoraCardItemViewState
@@ -697,31 +699,62 @@ class BalanceListViewModel @Inject constructor(
 
     fun qrCodeScanned(content: String) {
         viewModelScope.launch {
-            val result = interactor.tryReadAddressFromSoraFormat(content) ?: content
-            val qrTokenId = interactor.tryReadTokenIdFromSoraFormat(content)
-            val payloadFromQr = qrTokenId?.let {
-                val addressChains = interactor.getChains().first()
-                    .filter { it.addressPrefix.toShort() == result.addressByteOrNull() }
-                    .filter { it.assets.any { it.currencyId == qrTokenId } }
-                if (addressChains.size == 1) {
-                    val chain = addressChains[0]
-                    val soraAsset = chain.assets.firstOrNull {
-                        it.currencyId == qrTokenId
-                    }
-
-                    soraAsset?.let {
-                        AssetPayload(it.chainId, it.id)
-                    }
+            val soraAddress = interactor.tryReadSoraAddressFromUrl(content)
+            if (soraAddress != null) {
+                openSendTokenToSora(soraAddress)
+            } else {
+                val soraAddressOrContent = interactor.tryReadAddressFromSoraFormat(content) ?: content
+                val qrTokenId = interactor.tryReadTokenIdFromSoraFormat(content)
+                if (qrTokenId != null) {
+                    openSendSoraTokenTo(qrTokenId, soraAddressOrContent)
                 } else {
-                    null
+                    router.openSend(
+                        assetPayload = null,
+                        initialSendToAddress = soraAddressOrContent
+                    )
                 }
             }
-            router.openSend(
-                assetPayload = payloadFromQr,
-                initialSendToAddress = result,
-                currencyId = qrTokenId
-            )
         }
+    }
+
+    private suspend fun openSendSoraTokenTo(qrTokenId: String, soraAddress: String) {
+        val soraTokenChains = interactor.getChains().first()
+            .filter { it.addressPrefix.toShort() == soraAddress.addressByteOrNull() }
+            .filter { it.assets.any { it.currencyId == qrTokenId } }
+
+        val payloadFromQr = if (soraTokenChains.size == 1) {
+            val chain = soraTokenChains[0]
+            val soraAsset = chain.assets.firstOrNull {
+                it.currencyId == qrTokenId
+            }
+
+            soraAsset?.let {
+                AssetPayload(it.chainId, it.id)
+            }
+        } else {
+            null
+        }
+
+        router.openSend(
+            assetPayload = payloadFromQr,
+            initialSendToAddress = soraAddress,
+            currencyId = qrTokenId
+        )
+    }
+
+    private suspend fun openSendTokenToSora(soraAddress: String) {
+        val soraChainId = if (BuildConfig.DEBUG) soraTestChainId else soraMainChainId
+        val soraChain = interactor.getChain(soraChainId)
+        val sendAsset = soraChain.assets.firstOrNull { it.symbol.lowercase() == "usdt" }
+
+        val payload = sendAsset?.let {
+            AssetPayload(it.chainId, it.id)
+        }
+        router.openSend(
+            assetPayload = payload,
+            initialSendToAddress = soraAddress,
+            currencyId = sendAsset?.currencyId
+        )
     }
 
     fun openWalletSelector() {

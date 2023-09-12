@@ -82,6 +82,8 @@ interface WalletInteractor {
 
     fun tryReadAddressFromSoraFormat(content: String): String?
 
+    suspend fun tryReadSoraAddressFromUrl(content: String): String?
+
     fun tryReadTokenIdFromSoraFormat(content: String): String?
 
     suspend fun getChain(chainId: ChainId): Chain

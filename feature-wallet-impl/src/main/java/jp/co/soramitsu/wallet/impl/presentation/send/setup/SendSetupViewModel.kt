@@ -36,7 +36,10 @@ import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.core.utils.isValidAddress
 import jp.co.soramitsu.core.utils.utilityAsset
+import jp.co.soramitsu.feature_wallet_impl.BuildConfig
 import jp.co.soramitsu.feature_wallet_impl.R
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraTestChainId
 import jp.co.soramitsu.wallet.api.domain.TransferValidationResult
 import jp.co.soramitsu.wallet.api.domain.ValidateTransferUseCase
 import jp.co.soramitsu.wallet.api.domain.fromValidationResult
@@ -546,7 +549,18 @@ class SendSetupViewModel @Inject constructor(
 
     fun qrCodeScanned(content: String) {
         viewModelScope.launch {
-            val result = walletInteractor.tryReadAddressFromSoraFormat(content) ?: content
+            val tryReadSoraAddressFromUrl = walletInteractor.tryReadSoraAddressFromUrl(content)
+            if (tryReadSoraAddressFromUrl != null) {
+
+                val soraChainId = if (BuildConfig.DEBUG) soraTestChainId else soraMainChainId
+                val soraChain = walletInteractor.getChain(soraChainId)
+                soraChain.assets.firstOrNull { it.symbol.lowercase() == "usdt" }?.let { asset ->
+                    sharedState.update(soraChainId, asset.id)
+                }
+            }
+            val result = tryReadSoraAddressFromUrl
+                ?: walletInteractor.tryReadAddressFromSoraFormat(content)
+                ?: content
 
             addressInputFlow.value = result
         }
