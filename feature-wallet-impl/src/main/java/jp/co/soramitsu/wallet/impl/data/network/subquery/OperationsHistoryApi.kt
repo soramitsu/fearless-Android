@@ -1,5 +1,6 @@
 package jp.co.soramitsu.wallet.impl.data.network.subquery
 
+import jp.co.soramitsu.common.BuildConfig
 import jp.co.soramitsu.common.data.network.subquery.GiantsquidResponse
 import jp.co.soramitsu.common.data.network.subquery.SubQueryResponse
 import jp.co.soramitsu.common.data.network.subquery.SubsquidResponse
@@ -49,5 +50,6 @@ interface OperationsHistoryApi {
         @Query("page") page: Int = 1,
         @Query("offset") offset: Int = 1000,
         @Query("sort") sort: String = "desc",
+        @Query("apikey") apiKey: String = BuildConfig.ETHERSCAN_API_KEY
     ): EtherscanHistoryResponse
 }

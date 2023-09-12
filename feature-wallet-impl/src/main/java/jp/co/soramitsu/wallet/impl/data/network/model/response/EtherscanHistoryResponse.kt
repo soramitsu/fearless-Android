@@ -3,7 +3,7 @@ package jp.co.soramitsu.wallet.impl.data.network.model.response
 import java.math.BigInteger
 
 data class EtherscanHistoryResponse(
-    val status: String,
+    val status: Int,
     val message: String,
     val result: List<EtherscanHistoryElement>
 )

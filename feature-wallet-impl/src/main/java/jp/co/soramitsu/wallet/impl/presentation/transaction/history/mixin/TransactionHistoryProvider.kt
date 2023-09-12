@@ -26,6 +26,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
@@ -56,6 +57,8 @@ class TransactionHistoryProvider(
     private val _state =
         MutableStateFlow<TransactionHistoryUi.State>(TransactionHistoryUi.State.Refreshing)
 
+    private val reloadHistoryEvent = MutableSharedFlow<Unit>()
+
     override fun state(): StateFlow<TransactionHistoryUi.State> = _state
 
     private val _sideEffects: MutableSharedFlow<TransactionHistoryUi.SideEffect> =
@@ -66,12 +69,16 @@ class TransactionHistoryProvider(
     init {
         launch {
             assetPayloadStateFlow.onEach {
-                reloadHistory()
+                reloadHistoryEvent.emit(Unit)
             }.launchIn(this)
 
             historyFiltersProvider.filtersFlow().onEach {
-                reloadHistory()
+                reloadHistoryEvent.emit(Unit)
             }.launchIn(this)
+
+            reloadHistoryEvent.debounce(50).collect {
+                reloadHistory()
+            }
         }
     }
 

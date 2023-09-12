@@ -56,6 +56,7 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flatMapMerge
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.withIndex
 import kotlinx.coroutines.withContext
@@ -180,16 +181,17 @@ class WalletInteractorImpl(
         chainId: ChainId,
         chainAssetId: String
     ): Flow<OperationsPageChange> {
-        return accountRepository.selectedMetaAccountFlow()
-            .flatMapLatest { metaAccount ->
-                val (chain, chainAsset) = chainRegistry.chainWithAsset(chainId, chainAssetId)
-                val accountId = metaAccount.accountId(chain)!!
+        return flow {
+            emit(accountRepository.getSelectedMetaAccount())
+        }.flatMapLatest { metaAccount ->
+            val (chain, chainAsset) = chainRegistry.chainWithAsset(chainId, chainAssetId)
+            val accountId = metaAccount.accountId(chain)!!
 
-                historyRepository.operationsFirstPageFlow(accountId, chain, chainAsset).withIndex()
-                    .map { (index, cursorPage) ->
-                        OperationsPageChange(cursorPage, accountChanged = index == 0)
-                    }
-            }
+            historyRepository.operationsFirstPageFlow(accountId, chain, chainAsset).withIndex()
+                .map { (index, cursorPage) ->
+                    OperationsPageChange(cursorPage, accountChanged = index == 0)
+                }
+        }
     }
 
     override suspend fun syncOperationsFirstPage(

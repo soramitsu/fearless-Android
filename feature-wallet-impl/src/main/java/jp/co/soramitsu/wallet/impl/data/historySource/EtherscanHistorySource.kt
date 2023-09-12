@@ -26,7 +26,7 @@ class EtherscanHistorySource(
         accountAddress: String
     ): CursorPage<Operation> {
         return kotlin.runCatching {
-            when (chainAsset.ethereumType) {
+            val response = when (chainAsset.ethereumType) {
                 Asset.EthereumType.NORMAL -> {
                     walletOperationsApi.getEtherscanOperationsHistory(
                         url = historyUrl,
@@ -47,6 +47,10 @@ class EtherscanHistorySource(
 
                 else -> throw IllegalArgumentException()
             }
+            if (response.status != 1) {
+                throw RuntimeException("Etherscan exception: code: ${response.status}, message: ${response.message}")
+            }
+            response
         }.fold(onSuccess = {
             val operations = it.result.map { element ->
                 val status = if (element.isError == 0) {
