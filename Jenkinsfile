@@ -1,4 +1,4 @@
-@Library('jenkins-library')
+@Library('jenkins-library@duty/SUP-5552-Add-ETHERSCAN_API_KEY')
 
 // Job properties
 def jobParams = [
