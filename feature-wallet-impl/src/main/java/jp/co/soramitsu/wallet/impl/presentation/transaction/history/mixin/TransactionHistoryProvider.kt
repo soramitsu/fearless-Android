@@ -68,6 +68,10 @@ class TransactionHistoryProvider(
 
     init {
         launch {
+            reloadHistoryEvent.debounce(100).collect {
+                reloadHistory()
+            }
+
             assetPayloadStateFlow.onEach {
                 reloadHistoryEvent.emit(Unit)
             }.launchIn(this)
@@ -75,11 +79,11 @@ class TransactionHistoryProvider(
             historyFiltersProvider.filtersFlow().onEach {
                 reloadHistoryEvent.emit(Unit)
             }.launchIn(this)
-
-            reloadHistoryEvent.debounce(50).collect {
-                reloadHistory()
-            }
         }
+    }
+
+    suspend fun tryReloadHistory() {
+        reloadHistoryEvent.emit(Unit)
     }
 
     private suspend fun reloadHistory() {
@@ -184,7 +188,11 @@ class TransactionHistoryProvider(
         }
     }
 
-    override fun transactionClicked(transactionModel: OperationModel, assetPayload: AssetPayload, chainHistoryType: Chain.ExternalApi.Section.Type?) {
+    override fun transactionClicked(
+        transactionModel: OperationModel,
+        assetPayload: AssetPayload,
+        chainHistoryType: Chain.ExternalApi.Section.Type?
+    ) {
         launch {
             val operations = currentData
 

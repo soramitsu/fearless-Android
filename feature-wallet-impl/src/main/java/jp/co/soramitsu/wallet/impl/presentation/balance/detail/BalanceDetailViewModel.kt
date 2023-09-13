@@ -1,5 +1,7 @@
 package jp.co.soramitsu.wallet.impl.presentation.balance.detail
 
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
@@ -83,6 +85,7 @@ class BalanceDetailViewModel @Inject constructor(
     private val xcmService: XcmService
 ) : BaseViewModel(),
     BalanceDetailsScreenInterface,
+    DefaultLifecycleObserver,
     ExternalAccountActions by externalAccountActions,
     BuyMixin by buyMixin {
 
@@ -140,6 +143,13 @@ class BalanceDetailViewModel @Inject constructor(
         }
         it
     }.share()
+
+    override fun onResume(owner: LifecycleOwner) {
+        super.onResume(owner)
+        viewModelScope.launch {
+            transactionHistoryProvider.tryReloadHistory()
+        }
+    }
 
     private fun isBuyEnabled(): Boolean {
         return buyMixin.isBuyEnabled(
