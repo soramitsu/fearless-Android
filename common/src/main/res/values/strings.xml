@@ -406,6 +406,7 @@
   <string name="import_ethereum_recovery">Restore JSON for ETH-based accounts</string>
   <string name="import_json_invalid_format_message">Please make sure that your input contains a valid JSON.</string>
   <string name="import_json_invalid_format_title">Restore JSON is invalid</string>
+  <string name="import_json_invalid_import_type_message">Your JSON file isn\'t valid. You\'re trying to import ETH based chain accounts instead of Substrate ones. Please use a proper JSON file to import Substrate chain accounts at first.</string>
   <string name="import_json_invalid_password">Please make sure your password is correct and try again.</string>
   <string name="import_json_invalid_password_title">Keystore decryption failed</string>
   <string name="import_json_paste">Paste JSON</string>
