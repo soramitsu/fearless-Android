@@ -44,18 +44,18 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 data class SuccessViewState(
     val message: String,
     val tableItems: List<TitleValueViewState>,
-    val isShowSubscanButtons: Boolean
+    val explorer: Pair<Chain.Explorer.Type, String>?
 ) {
     companion object {
         const val CODE_HASH_CLICK = 2
-        val default = SuccessViewState("", emptyList(), false)
+        val default = SuccessViewState("", emptyList(), null)
     }
 }
 
 interface SuccessScreenInterface {
     fun onClose()
     fun onItemClick(code: Int)
-    fun onSubscanClick()
+    fun onExplorerClick()
     fun onShareClick()
 }
 
@@ -110,18 +110,22 @@ fun SuccessContent(
                     items = state.tableItems,
                     onItemClick = callback::onItemClick
                 )
-                if (state.isShowSubscanButtons) {
+                if (state.explorer != null) {
                     MarginVertical(margin = 16.dp)
                     Row {
                         GrayButton(
-                            text = Chain.Explorer.Type.SUBSCAN.capitalizedName,
-                            modifier = Modifier.weight(1f).height(48.dp),
-                            onClick = callback::onSubscanClick
+                            text = state.explorer.first.capitalizedName,
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(48.dp),
+                            onClick = callback::onExplorerClick
                         )
                         MarginHorizontal(margin = 12.dp)
                         AccentButton(
                             text = stringResource(R.string.common_share),
-                            modifier = Modifier.weight(1f).height(48.dp),
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(48.dp),
                             onClick = callback::onShareClick
                         )
                     }
@@ -149,13 +153,13 @@ private fun SuccessPreview() {
                 valueColor = greenText
             )
         ),
-        true
+        Chain.Explorer.Type.SUBSCAN to "url"
     )
 
     val emptyCallback = object : SuccessScreenInterface {
         override fun onClose() {}
         override fun onItemClick(code: Int) {}
-        override fun onSubscanClick() {}
+        override fun onExplorerClick() {}
         override fun onShareClick() {}
     }
 
