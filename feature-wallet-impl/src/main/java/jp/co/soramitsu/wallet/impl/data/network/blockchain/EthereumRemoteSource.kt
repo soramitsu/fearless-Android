@@ -267,10 +267,11 @@ class EthereumRemoteSource(private val ethereumConnectionPool: EthereumConnectio
         return wsService.subscribeNewHeads()
             .map { it.params.result?.baseFeePerGas }
             .onStart {
-                web3j.ethGetBlockByNumber(DefaultBlockParameterName.LATEST, false)
+                val block = web3j.ethGetBlockByNumber(DefaultBlockParameterName.LATEST, false)
                     .send()
                     .block
                     .baseFeePerGas
+                emit(block)
             }
             .map { baseFeePerGas ->
 

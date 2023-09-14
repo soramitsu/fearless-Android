@@ -131,7 +131,10 @@ fun ConfirmSendContent(
                         text = state.buttonState.text.takeIf { isInitialLoading.not() }.orEmpty(),
                         enabled = state.buttonState.enabled,
                         loading = isInitialLoading,
-                        onClick = { }
+                        onClick = {
+                            keyboardController?.hide()
+                            callback.onNextClick()
+                        }
                     )
 
                     MarginVertical(margin = 12.dp)
