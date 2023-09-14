@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -114,13 +115,13 @@ fun SuccessContent(
                     Row {
                         GrayButton(
                             text = Chain.Explorer.Type.SUBSCAN.capitalizedName,
-                            modifier = Modifier.weight(1f),
+                            modifier = Modifier.weight(1f).height(48.dp),
                             onClick = callback::onSubscanClick
                         )
                         MarginHorizontal(margin = 12.dp)
                         AccentButton(
                             text = stringResource(R.string.common_share),
-                            modifier = Modifier.weight(1f),
+                            modifier = Modifier.weight(1f).height(48.dp),
                             onClick = callback::onShareClick
                         )
                     }
