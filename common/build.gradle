@@ -53,6 +53,8 @@ android {
         buildConfigField "String", "BLAST_API_GOERLI_KEY", readSecretInQuotes("FL_BLAST_API_GOERLI_KEY")
         buildConfigField "String", "BLAST_API_POLYGON_KEY", readSecretInQuotes("FL_BLAST_API_POLYGON_KEY")
         buildConfigField "String", "ETHERSCAN_API_KEY", readSecretInQuotes("FL_ETHERSCAN_API_KEY")
+        buildConfigField "String", "BSCSCAN_API_KEY", readSecretInQuotes("FL_BSCSCAN_API_KEY")
+        buildConfigField "String", "POLYGONSCAN_API_KEY", readSecretInQuotes("FL_POLYGONSCAN_API_KEY")
     }
 
     buildTypes {
