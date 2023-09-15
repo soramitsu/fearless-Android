@@ -8,11 +8,13 @@ import jp.co.soramitsu.common.utils.failure
 import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.core.models.ChainNode
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.BSCChainId
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.BSCTestnetChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ethereumChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.goerliChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polygonChainId
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.polygonTestnetChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.sepoliaChainId
 import jp.co.soramitsu.runtime.multiNetwork.toSyncIssue
 import jp.co.soramitsu.runtime.storage.NodesSettingsStorage
@@ -165,9 +167,11 @@ class EthereumWebSocketConnection(
 private val blastApiKeys = mapOf(
     ethereumChainId to BuildConfig.BLAST_API_ETHEREUM_KEY,
     BSCChainId to BuildConfig.BLAST_API_BSC_KEY,
+    BSCTestnetChainId to BuildConfig.BLAST_API_BSC_KEY,
     sepoliaChainId to BuildConfig.BLAST_API_SEPOLIA_KEY,
     goerliChainId to BuildConfig.BLAST_API_GOERLI_KEY,
-    polygonChainId to BuildConfig.BLAST_API_POLYGON_KEY
+    polygonChainId to BuildConfig.BLAST_API_POLYGON_KEY,
+    polygonTestnetChainId to BuildConfig.BLAST_API_POLYGON_KEY
 )
 
 class EthereumWebSocketFactory {

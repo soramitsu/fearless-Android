@@ -21,10 +21,12 @@ const val ternoaChainId = "6859c81ca95ef624c9dfe4dc6e3381c33e5d6509e35e147092bfb
 const val pendulumChainId = "5d3c298622d5634ed019bf61ea4b71655030015bde9beb0d6a24743714462c86"
 
 const val ethereumChainId = "1"
-const val BSCChainId = "56"
+const val BSCChainId = "38"
+const val BSCTestnetChainId = "97"
 const val sepoliaChainId = "11155111"
 const val goerliChainId = "5"
 const val polygonChainId = "137"
+const val polygonTestnetChainId = "80001"
 
 const val genshiroChainId = "9b8cefc0eb5c568b527998bdd76c184e2b76ae561be76e4667072230217ea243"
 
