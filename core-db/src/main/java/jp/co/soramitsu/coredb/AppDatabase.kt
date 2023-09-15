@@ -85,7 +85,7 @@ import jp.co.soramitsu.coredb.model.chain.ChainTypesLocal
 import jp.co.soramitsu.coredb.model.chain.MetaAccountLocal
 
 @Database(
-    version = 57,
+    version = 58,
     entities = [
         AccountLocal::class,
         AddressBookContact::class,
