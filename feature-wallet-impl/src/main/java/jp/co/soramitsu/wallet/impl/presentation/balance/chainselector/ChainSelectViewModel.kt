@@ -83,7 +83,8 @@ class ChainSelectViewModel @Inject constructor(
                     val chainsWithAsset = chains.filter {
                         when (val chainEcosystem = it.ecosystem()) {
                             ChainEcosystem.POLKADOT,
-                            ChainEcosystem.KUSAMA -> {
+                            ChainEcosystem.KUSAMA,
+                            ChainEcosystem.ETHEREUM -> {
                                 chainEcosystem == chainOfTheAsset.ecosystem() && it.assets.any { it.symbol == symbol }
                             }
                             ChainEcosystem.STANDALONE -> {

@@ -77,7 +77,8 @@ class SearchAssetsViewModel @Inject constructor(
         chains.groupBy { if (it.isTestNet) ChainEcosystem.STANDALONE else it.ecosystem() }.forEach { (ecosystem, ecosystemChains) ->
             when (ecosystem) {
                 ChainEcosystem.POLKADOT,
-                ChainEcosystem.KUSAMA -> {
+                ChainEcosystem.KUSAMA,
+                ChainEcosystem.ETHEREUM -> {
                     val ecosystemAssets = assets.filter {
                         it.asset.token.configuration.chainId in ecosystemChains.map { it.id }
                     }
