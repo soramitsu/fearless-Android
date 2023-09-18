@@ -60,7 +60,7 @@ class SuccessViewModel @Inject constructor(
 
     private val explorerPairFlow = chainExplorers.map {
         operationHash ?: return@map null
-        it.firstNotNullOf { explorerItem ->
+        it.firstNotNullOfOrNull { explorerItem ->
             when (explorerItem.type) {
                 Chain.Explorer.Type.POLKASCAN,
                 Chain.Explorer.Type.SUBSCAN -> {
