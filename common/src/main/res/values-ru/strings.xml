@@ -179,7 +179,7 @@
   <string name="common_error_internal">Внутренняя ошибка</string>
   <string name="common_error_network">Возникла ошибка при обмене данными с удаленным сервером</string>
   <string name="common_event">Событие</string>
-  <string name="common_existential_warning_message">Эта операция приведет к тому, что счет опустится ниже экзистенциального депозита, что приведет к его деактивации (счет будет стерт из состояния блокчейна для экономии места). Если вы решите продолжить, вы потеряете все средства, которые находятся ниже суммы экзистенциального депозита, установленного сетью. За подробной информацией обращайтесь к официальной документации сети (например, Polkadot Wiki). Fearless Wallet является полностью не опекунским приложением и не контролирует и не знает о любых ваших действиях в самой сети. ПРОДОЛЖАЙТЕ ТОЛЬКО В ТОМ СЛУЧАЕ, ЕСЛИ ВЫ ПОЛНОСТЬЮ СОГЛАСНЫ И ПОНИМАЕТЕ ПОСЛЕДСТВИЯ.</string>
+  <string name="common_existential_warning_message">Эта операция приведет к тому, что счет опустится ниже экзистенциального депозита %s, что приведет к его деактивации (счет будет стерт из состояния блокчейна для экономии места). Если вы решите продолжить, вы потеряете все средства, которые находятся ниже суммы экзистенциального депозита, установленного сетью. За подробной информацией обращайтесь к официальной документации сети (например, Polkadot Wiki). Fearless Wallet является полностью не опекунским приложением и не контролирует и не знает о любых ваших действиях в самой сети. ПРОДОЛЖАЙТЕ ТОЛЬКО В ТОМ СЛУЧАЕ, ЕСЛИ ВЫ ПОЛНОСТЬЮ СОГЛАСНЫ И ПОНИМАЕТЕ ПОСЛЕДСТВИЯ.</string>
   <string name="common_existential_warning_title">Операция сделает аккаунт неактивным</string>
   <string name="common_filter_sort_header">Сортировать по:</string>
   <string name="common_friend_bonus">Бонус для вашего друга</string>
@@ -338,7 +338,6 @@
   <string name="error_invalid_address">Неверный адрес для выбранной сети</string>
   <string name="error_message_enter_the_name">Введите имя…</string>
   <string name="error_message_enter_the_url_address">Введите URL-адрес…</string>
-  <string name="eth_import_message">Добавить аккаунты Moonbeam и Moonriver?</string>
   <string name="eth_import_title">ETH аккаунты</string>
   <string name="ethereum_crypto_type">Тип криптографической пары ключей Ethereum</string>
   <string name="ethereum_secret_derivation_path">Путь деривации секрета Ethereum</string>
