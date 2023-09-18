@@ -36,27 +36,26 @@ interface ValidateTransferUseCase {
     ): Result<TransferValidationResult>
 }
 
-enum class TransferValidationResult {
-    Valid,
-    InsufficientBalance,
-    InsufficientUtilityAssetBalance,
-    ExistentialDepositWarning,
-    UtilityExistentialDepositWarning,
-    DeadRecipient,
-    DeadRecipientEthereum,
-    InvalidAddress,
-    TransferToTheSameAddress,
-    WaitForFee
+sealed class TransferValidationResult {
+    object Valid : TransferValidationResult()
+    object InsufficientBalance : TransferValidationResult()
+    object InsufficientUtilityAssetBalance : TransferValidationResult()
+    class ExistentialDepositWarning(val edAmount: String) : TransferValidationResult()
+    class UtilityExistentialDepositWarning(val edAmount: String) : TransferValidationResult()
+    object DeadRecipient : TransferValidationResult()
+    object DeadRecipientEthereum : TransferValidationResult()
+    object InvalidAddress : TransferValidationResult()
+    object TransferToTheSameAddress : TransferValidationResult()
+    object WaitForFee : TransferValidationResult()
 }
 
-// TODO create errors for utility asset (UtilityExistentialDepositWarning, InsufficientUtilityAssetBalance)
 fun ValidationException.Companion.fromValidationResult(result: TransferValidationResult, resourceManager: ResourceManager): ValidationException? {
     return when (result) {
         TransferValidationResult.Valid -> null
         TransferValidationResult.InsufficientBalance -> SpendInsufficientBalanceException(resourceManager)
         TransferValidationResult.InsufficientUtilityAssetBalance -> SpendInsufficientBalanceException(resourceManager)
-        TransferValidationResult.ExistentialDepositWarning -> ExistentialDepositCrossedException(resourceManager)
-        TransferValidationResult.UtilityExistentialDepositWarning -> ExistentialDepositCrossedException(resourceManager)
+        is TransferValidationResult.ExistentialDepositWarning -> ExistentialDepositCrossedException(resourceManager, result.edAmount)
+        is TransferValidationResult.UtilityExistentialDepositWarning -> ExistentialDepositCrossedException(resourceManager, result.edAmount)
         TransferValidationResult.DeadRecipient -> DeadRecipientException(resourceManager)
         TransferValidationResult.InvalidAddress -> TransferAddressNotValidException(resourceManager)
         TransferValidationResult.WaitForFee -> WaitForFeeCalculationException(resourceManager)

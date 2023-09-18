@@ -16,6 +16,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.wallet.api.domain.ExistentialDepositUseCase
 import jp.co.soramitsu.wallet.api.domain.TransferValidationResult
 import jp.co.soramitsu.wallet.api.domain.ValidateTransferUseCase
+import jp.co.soramitsu.wallet.api.presentation.formatters.formatCryptoFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletConstants
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
@@ -48,6 +49,7 @@ class ValidateTransferUseCaseImpl(
         val destinationAsset = destinationChain.assets.firstOrNull { it.symbol == asset.token.configuration.symbol }
         val transferable = asset.transferableInPlanks
         val assetExistentialDeposit = existentialDepositUseCase(chainAsset)
+        val assetEdFormatted = assetExistentialDeposit.formatCryptoFromPlanks(chainAsset)
         val tip = if (chainAsset.isUtility && originChain.isEthereumChain.not()) walletConstants.tip(chainId).orZero() else BigInteger.ZERO
 
         val validateAddressResult = kotlin.runCatching { destinationChain.isValidAddress(recipientAddress) }
@@ -89,7 +91,7 @@ class ValidateTransferUseCaseImpl(
 
                 mapOf(
                     TransferValidationResult.InsufficientBalance to (amountInPlanks + fee + tip > transferable),
-                    TransferValidationResult.ExistentialDepositWarning to (resultedBalance < assetExistentialDeposit),
+                    TransferValidationResult.ExistentialDepositWarning(assetEdFormatted) to (resultedBalance < assetExistentialDeposit),
                     TransferValidationResult.InsufficientUtilityAssetBalance to (fee + tip > utilityAssetBalance),
                     TransferValidationResult.DeadRecipientEthereum to (!asset.token.configuration.isUtility && totalRecipientUtilityAssetBalanceInPlanks.isZero())
                 )
@@ -100,7 +102,7 @@ class ValidateTransferUseCaseImpl(
 
                 mapOf(
                     TransferValidationResult.InsufficientBalance to (amountInPlanks + fee + tip > transferable),
-                    TransferValidationResult.ExistentialDepositWarning to (resultedBalance < assetExistentialDeposit),
+                    TransferValidationResult.ExistentialDepositWarning(assetEdFormatted) to (resultedBalance < assetExistentialDeposit),
                     TransferValidationResult.DeadRecipient to (totalRecipientBalanceInPlanks + amountInPlanks < assetExistentialDeposit)
                 )
             }
@@ -118,11 +120,12 @@ class ValidateTransferUseCaseImpl(
                 val utilityAssetBalance = utilityAsset?.transferableInPlanks.orZero()
                 val utilityAssetExistentialDeposit = originChain.utilityAsset?.let { existentialDepositUseCase(it) }.orZero()
 
+                val utilityEdFormatted = utilityAsset?.token?.configuration?.let { utilityAssetExistentialDeposit.formatCryptoFromPlanks(it) }.orEmpty()
                 mapOf(
                     TransferValidationResult.InsufficientBalance to (amountInPlanks > transferable),
                     TransferValidationResult.InsufficientUtilityAssetBalance to (fee + tip > utilityAssetBalance),
-                    TransferValidationResult.ExistentialDepositWarning to (transferable - amountInPlanks < assetExistentialDeposit),
-                    TransferValidationResult.UtilityExistentialDepositWarning to (utilityAssetBalance - (fee + tip) < utilityAssetExistentialDeposit),
+                    TransferValidationResult.ExistentialDepositWarning(assetEdFormatted) to (transferable - amountInPlanks < assetExistentialDeposit),
+                    TransferValidationResult.UtilityExistentialDepositWarning(utilityEdFormatted) to (utilityAssetBalance - (fee + tip) < utilityAssetExistentialDeposit),
                     TransferValidationResult.DeadRecipient to (totalRecipientBalanceInPlanks + amountInPlanks < assetExistentialDeposit)
                 )
             }
@@ -161,14 +164,14 @@ class ValidateTransferUseCaseImpl(
             chainAsset.isUtility -> {
                 val resultedBalance = (asset.freeInPlanks ?: transferable) - (amountInPlanks + fee + tip)
                 mapOf(
-                    TransferValidationResult.ExistentialDepositWarning to (resultedBalance < assetExistentialDeposit),
+                    TransferValidationResult.ExistentialDepositWarning(assetExistentialDeposit.formatCryptoFromPlanks(asset.token.configuration)) to (resultedBalance < assetExistentialDeposit),
                     TransferValidationResult.DeadRecipient to (totalRecipientBalanceInPlanks + amountInPlanks < destinationExistentialDeposit)
                 )
             }
 
             else -> {
                 mapOf(
-                    TransferValidationResult.ExistentialDepositWarning to (transferable - amountInPlanks < assetExistentialDeposit),
+                    TransferValidationResult.ExistentialDepositWarning(assetExistentialDeposit.formatCryptoFromPlanks(asset.token.configuration)) to (transferable - amountInPlanks < assetExistentialDeposit),
                     TransferValidationResult.DeadRecipient to (totalRecipientBalanceInPlanks + amountInPlanks < destinationExistentialDeposit)
                 )
             }
@@ -239,7 +242,7 @@ class ValidateTransferUseCaseImpl(
         val ownNewTotalInPlanks = asset.token.configuration.planksFromAmount(ownNewTotal)
 
         return mapOf(
-            TransferValidationResult.ExistentialDepositWarning to (ownNewTotalInPlanks < assetExistentialDeposit),
+            TransferValidationResult.ExistentialDepositWarning(assetExistentialDeposit.formatCryptoFromPlanks(asset.token.configuration)) to (ownNewTotalInPlanks < assetExistentialDeposit),
             TransferValidationResult.DeadRecipient to (recipientNewTotalInPlanks < assetExistentialDeposit)
         )
     }
