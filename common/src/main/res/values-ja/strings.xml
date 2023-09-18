@@ -366,7 +366,6 @@
   <string name="error_invalid_address">選択したチェーンのアドレスが無効です</string>
   <string name="error_message_enter_the_name">名前を入力してください…</string>
   <string name="error_message_enter_the_url_address">URLアドレスを入力してください…</string>
-  <string name="eth_import_message">ムーンビーム(Moonbeam)とムーンリバー(Moonriver)のアカウントを追加しますか？</string>
   <string name="eth_import_title">ETHアカウント</string>
   <string name="ethereum_crypto_type">イーサリアム(Ethereum)キー・ペアの暗号方式</string>
   <string name="ethereum_secret_derivation_path">イーサリアム(Ethereum)の秘密の派生経路</string>
@@ -463,8 +462,10 @@
   <string name="network_status_connected">接続済み</string>
   <string name="network_status_connecting">接続しています...</string>
   <string name="network_url_address">URLアドレス</string>
+  <string name="nft_collection_title">コレクション</string>
   <string name="nft_stub_text">NFTがもうすぐ登場します</string>
   <string name="nft_stub_title">失礼しました</string>
+  <string name="nft_tokenid_title">トークンID</string>
   <string name="nfts_stub">NFTs</string>
   <string name="no_access_to_google">Googleにアクセスできません</string>
   <string name="node">ノード</string>

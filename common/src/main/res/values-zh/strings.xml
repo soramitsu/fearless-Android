@@ -205,7 +205,7 @@
   <string name="common_error_internal">发生内部错误</string>
   <string name="common_error_network">与远程服务器通信时发生错误</string>
   <string name="common_event">事件</string>
-  <string name="common_existential_warning_message">此交易将导致账户余额低于存在性存款，从而使其被清除（该账户将从区块链状态中删除以节省空间）。如果您选择继续，您将失去低于网络设置的存在性存款金额的任何资金。有关详细信息，请参阅官方网络文档（例如 Polkadot Wiki）。Fearless 钱包是一个完全非托管的应用程序，对于网络上的任何操作都没有控制权或知情权。只有在您完全同意并理解相关影响后才能继续。</string>
+  <string name="common_existential_warning_message">此交易将导致账户余额低于存在性存款（%s），从而使其被清除（账户将从区块链状态中删除以节省空间）。如果您选择继续，您将失去低于网络设置的存在性存款金额的任何资金。有关详细信息，请参阅官方网络文档（例如 Polkadot Wiki）。Fearless 钱包是一个完全非托管的应用程序，对网络上的任何操作都没有控制权或知识。只有在您完全同意并理解相关影响后才能继续。</string>
   <string name="common_existential_warning_title">此操作将删除账户</string>
   <string name="common_filter_sort_header">排序方式：</string>
   <string name="common_friend_bonus">给你的朋友的奖金</string>
@@ -264,7 +264,7 @@
   <string name="common_skip_process">跳过流程</string>
   <string name="common_sort_by">排序按照</string>
   <string name="common_staking">质押</string>
-  <string name="common_till_date">直到%s</string>
+  <string name="common_till_date">截止到 %s</string>
   <string name="common_time_left">剩余时间</string>
   <string name="common_title_cross_chain">跨链</string>
   <string name="common_title_frozen_token">锁定的%s</string>
@@ -366,7 +366,6 @@
   <string name="error_invalid_address">所选链的地址无效</string>
   <string name="error_message_enter_the_name">输入名称...</string>
   <string name="error_message_enter_the_url_address">输入URL地址...</string>
-  <string name="eth_import_message">添加Moonbeam和Moonriver账户吗？</string>
   <string name="eth_import_title">以太坊账户</string>
   <string name="ethereum_crypto_type">以太坊密钥对加密类型</string>
   <string name="ethereum_secret_derivation_path">以太坊密钥派生路径</string>
@@ -404,6 +403,7 @@
   <string name="import_ethereum_recovery">恢复基于ETH的账户的JSON</string>
   <string name="import_json_invalid_format_message">请确保您的输入包含有效的JSON。</string>
   <string name="import_json_invalid_format_title">恢复的JSON无效</string>
+  <string name="import_json_invalid_import_type_message">你的JSON文件无效。你正在尝试导入基于ETH的链账户，而不是Substrate的账户。请先使用正确的JSON文件来导入Substrate链账户。</string>
   <string name="import_json_invalid_password">请确保您的密码正确，并重试。</string>
   <string name="import_json_invalid_password_title">密钥库解密失败</string>
   <string name="import_json_paste">粘贴JSON</string>
@@ -463,8 +463,11 @@
   <string name="network_status_connected">已连接</string>
   <string name="network_status_connecting">正在连接...</string>
   <string name="network_url_address">URL地址</string>
+  <string name="nft_collection_title">收藏品</string>
+  <string name="nft_owner_title">拥有</string>
   <string name="nft_stub_text">NFTs 很快就会到来</string>
   <string name="nft_stub_title">对不起！</string>
+  <string name="nft_tokenid_title">代币ID</string>
   <string name="nfts_stub">NFTs</string>
   <string name="no_access_to_google">无法访问谷歌</string>
   <string name="node">节点</string>
@@ -474,6 +477,7 @@
   <string name="onboarding_create_account">创建一个账户</string>
   <string name="onboarding_create_wallet">创建一个钱包</string>
   <string name="onboarding_ethereum_derivation_path_hint">示例：//44//60//0/0/0</string>
+  <string name="onboarding_preinstalled_wallet_button_text">获取预装钱包</string>
   <string name="onboarding_privacy_policy">隐私政策</string>
   <string name="onboarding_restore_account">导入账户</string>
   <string name="onboarding_restore_wallet">我已经有一个钱包了</string>
@@ -1028,6 +1032,7 @@
   <string name="wallet_send_balance_minimal">最低余额</string>
   <string name="wallet_send_confirm_transfer">确认转账</string>
   <string name="wallet_send_dead_recipient_message">您的转账将失败，因为目标账户上的最终金额将低于最低余额。请尝试增加金额。</string>
+  <string name="wallet_send_eth_dead_recipient_message">接收方账户中的以太币余额不足，导致无法完成ERC20代币转账。请确保接收方有足够的以太币来进行转账。</string>
   <string name="wallet_send_existential_warning_message">您的转账将从区块存储中移除该账户，因为这将使总余额低于最低余额要求。</string>
   <string name="wallet_send_existential_warning_title">转账将删除账户</string>
   <string name="wallet_send_navigation_title">发送%s</string>
