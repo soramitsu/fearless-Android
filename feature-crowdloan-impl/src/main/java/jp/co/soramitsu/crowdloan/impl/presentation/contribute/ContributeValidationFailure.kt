@@ -16,8 +16,8 @@ fun contributeValidationFailure(
                 resourceManager.getString(R.string.common_not_enough_funds_message)
         }
 
-        ContributeValidationFailure.ExistentialDepositCrossed -> {
-            resourceManager.getString(R.string.common_existential_warning_title) to resourceManager.getString(R.string.common_existential_warning_message)
+        is ContributeValidationFailure.ExistentialDepositCrossed -> {
+            resourceManager.getString(R.string.common_existential_warning_title) to resourceManager.getString(R.string.common_existential_warning_message, reason.edAmount)
         }
 
         ContributeValidationFailure.CrowdloanEnded -> {
