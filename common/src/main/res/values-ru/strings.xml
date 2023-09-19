@@ -593,6 +593,7 @@
   <string name="scan_qr_upload_button_title">Из галереи</string>
   <string name="search_contacts">Контакты</string>
   <string name="search_header_my_accounts">мои аккаунты</string>
+  <string name="search_network_hint">Поиск по сети</string>
   <string name="search_recipient_hint">Адрес аккаунта или имя аккаунта</string>
   <string name="search_recipient_no_results">Нет результатов</string>
   <string name="select_collator_having_relevant_minimum_bond">Релевантный минимальный стейк</string>

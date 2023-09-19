@@ -661,6 +661,7 @@
   <string name="scan_qr_upload_button_title">从相册上传</string>
   <string name="search_contacts">联系人</string>
   <string name="search_header_my_accounts">我的账户</string>
+  <string name="search_network_hint">按网络搜索</string>
   <string name="search_recipient_hint">账户地址或账户名称</string>
   <string name="search_recipient_no_results">无搜索结果</string>
   <string name="select_another_network_description">地址与目标网络不匹配。您应该选择另一个网络。</string>

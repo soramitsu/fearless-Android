@@ -658,6 +658,7 @@
   <string name="scan_qr_upload_button_title">写真からアップロード</string>
   <string name="search_contacts">連絡先</string>
   <string name="search_header_my_accounts">私のアカウント</string>
+  <string name="search_network_hint">ネットワークで検索</string>
   <string name="search_recipient_hint">アカウントのアドレスまたはアカウント名</string>
   <string name="search_recipient_no_results">検索結果がありません</string>
   <string name="select_another_network_description">アドレスが宛先ネットワークと一致しません。別のネットワークを選択してください</string>

@@ -402,6 +402,7 @@
   <string name="identity_twitter_title">Twitter</string>
   <string name="identity_web_title">Web</string>
   <string name="import_account_exists_title">Account already exists</string>
+  <string name="import_eth_json_invalid_import_type_message">Your JSON file isn\'t valid. You\'re trying to import Substrate based chain accounts instead of ETH ones. Please use a proper JSON file to import ETH chain accounts.</string>
   <string name="import_ethereum_recovery">Restore JSON for ETH-based accounts</string>
   <string name="import_json_invalid_format_message">Please make sure that your input contains a valid JSON.</string>
   <string name="import_json_invalid_format_title">Restore JSON is invalid</string>
@@ -665,6 +666,7 @@
   <string name="scan_qr_upload_button_title">Upload from gallery</string>
   <string name="search_contacts">Contacts</string>
   <string name="search_header_my_accounts">My accounts</string>
+  <string name="search_network_hint">Search by network</string>
   <string name="search_recipient_hint">Account address or account name</string>
   <string name="search_recipient_no_results">No search results</string>
   <string name="select_another_network_description">The address doesn\'t match the destination network. You should select another network</string>
