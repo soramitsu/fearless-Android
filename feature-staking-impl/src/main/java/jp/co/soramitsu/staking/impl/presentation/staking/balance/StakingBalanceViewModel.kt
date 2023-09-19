@@ -81,8 +81,9 @@ class StakingBalanceViewModel @Inject constructor(
     val shouldBlockStakeMore = stakingBalanceModelLiveData.map {
         val isParachain = assetFlow.first().token.configuration.staking == Asset.StakingType.PARACHAIN
         val isUnstakingFullAmount = (it.staked.amount - it.unstaking.amount).isZero()
+        val isReadyForUnlockFullAmount = (it.staked.amount - it.redeemable.amount).isZero()
         val stakeIsZero = it.staked.amount.isZero()
-        val isFullUnstake = isUnstakingFullAmount || stakeIsZero
+        val isFullUnstake = isUnstakingFullAmount || stakeIsZero || isReadyForUnlockFullAmount
 
         isFullUnstake.and(isParachain)
     }.onStart { emit(true) }.asLiveData()
