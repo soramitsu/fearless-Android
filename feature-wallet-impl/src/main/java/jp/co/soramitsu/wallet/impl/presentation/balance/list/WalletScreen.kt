@@ -40,6 +40,7 @@ import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
 import jp.co.soramitsu.common.compose.theme.white16
 import jp.co.soramitsu.common.compose.theme.white50
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState
+import jp.co.soramitsu.common.utils.rememberForeverLazyListState
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.soracard.impl.presentation.SoraCardItem
 import jp.co.soramitsu.soracard.impl.presentation.SoraCardItemViewState
@@ -144,7 +145,8 @@ fun WalletScreen(
             AssetsList(
                 data = data,
                 callback = callback,
-                header = header
+                header = header,
+                listState = rememberForeverLazyListState("wallet_screen")
             )
         }
     }
