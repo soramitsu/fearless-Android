@@ -261,7 +261,7 @@ class SendSetupViewModel @Inject constructor(
     private val utilityAssetFlow = assetFlow.mapNotNull { it }.flatMapLatest { asset ->
         val chain = walletInteractor.getChain(asset.token.configuration.chainId)
         walletInteractor.assetFlow(chain.id, chain.utilityAsset?.id.orEmpty())
-    }
+    }.share()
 
     private val feeInfoViewStateFlow: Flow<FeeInfoViewState> = combine(
         feeAmountFlow,
@@ -459,7 +459,7 @@ class SendSetupViewModel @Inject constructor(
         }
     }
 
-    private val tipFlow = chainIdFlow.map { it?.let { walletConstants.tip(it) } }
+    private val tipFlow = chainIdFlow.map { it?.let { walletConstants.tip(it) } }.share()
     private val tipAmountFlow = combine(tipFlow, assetFlow) { tip: BigInteger?, asset: Asset? ->
         tip?.let {
             asset?.token?.amountFromPlanks(it)
