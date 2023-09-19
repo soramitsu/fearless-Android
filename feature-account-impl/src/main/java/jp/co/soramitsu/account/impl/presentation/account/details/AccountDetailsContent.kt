@@ -11,6 +11,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.rememberNestedScrollInteropConnection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -57,7 +59,9 @@ internal fun AccountDetailsContent(
     state: AccountDetailsState,
     callback: AccountDetailsCallback
 ) {
-    Column {
+    Column(
+        modifier = Modifier.nestedScroll(rememberNestedScrollInteropConnection())
+    ) {
         Toolbar(
             modifier = Modifier.padding(bottom = 12.dp),
             state = ToolbarViewState(
