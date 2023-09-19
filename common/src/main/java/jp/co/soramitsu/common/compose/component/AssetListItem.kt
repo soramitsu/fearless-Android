@@ -19,7 +19,6 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.Alignment.Companion.CenterEnd
 import androidx.compose.ui.Alignment.Companion.CenterStart
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
@@ -35,8 +34,7 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.valentinilk.shimmer.shimmer
 import jp.co.soramitsu.common.R
-import jp.co.soramitsu.common.compose.theme.FearlessTheme
-import jp.co.soramitsu.common.compose.theme.alertYellow
+import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
 import jp.co.soramitsu.common.compose.theme.bold
 import jp.co.soramitsu.common.compose.theme.customColors
 import jp.co.soramitsu.common.compose.theme.customTypography
@@ -51,7 +49,6 @@ fun AssetListItem(
     modifier: Modifier = Modifier,
     onClick: (AssetListItemViewState) -> Unit
 ) {
-    val hasIssues = !state.hasAccount || state.hasNetworkIssue
     BackgroundCornered(
         modifier = modifier
             .testTag("AssetListItem_${state.assetSymbol}_${state.assetName}")
@@ -108,18 +105,16 @@ fun AssetListItem(
                             MarginHorizontal(margin = 4.dp)
                             TestnetBadge()
                         }
-                        if (hasIssues.not()) {
-                            Spacer(
-                                modifier = Modifier
-                                    .height(1.dp)
-                                    .weight(1.0f)
-                            )
-                            AssetChainsBadge(
-                                urls = state.assetChainUrls.values.toList(),
-                                modifier = Modifier
-                                    .testTag("AssetListItem_${state.assetSymbol}_chains")
-                            )
-                        }
+                        Spacer(
+                            modifier = Modifier
+                                .height(1.dp)
+                                .weight(1.0f)
+                        )
+                        AssetChainsBadge(
+                            urls = state.assetChainUrls.values.toList(),
+                            modifier = Modifier
+                                .testTag("AssetListItem_${state.assetSymbol}_chains")
+                        )
                     }
                     Row {
                         Text(
@@ -130,28 +125,26 @@ fun AssetListItem(
                                 .align(CenterVertically)
                                 .testTag("AssetListItem_${state.assetSymbol}_symbol")
                         )
-                        if (hasIssues.not()) {
-                            Spacer(
-                                modifier = Modifier
-                                    .height(1.dp)
-                                    .weight(1.0f)
+                        Spacer(
+                            modifier = Modifier
+                                .height(1.dp)
+                                .weight(1.0f)
+                        )
+                        if (state.assetTransferableBalance == null) {
+                            Shimmer(
+                                Modifier
+                                    .padding(top = 8.dp, bottom = 4.dp)
+                                    .size(height = 16.dp, width = 54.dp)
                             )
-                            if (state.assetTransferableBalance == null) {
-                                Shimmer(
-                                    Modifier
-                                        .padding(top = 8.dp, bottom = 4.dp)
-                                        .size(height = 16.dp, width = 54.dp)
-                                )
-                            } else {
-                                Text(
-                                    text = state.assetTransferableBalance,
-                                    style = MaterialTheme.customTypography.header3.copy(textAlign = TextAlign.End),
-                                    modifier = Modifier
-                                        .padding(vertical = 4.dp)
-                                        .padding(start = 4.dp)
-                                        .testTag("AssetListItem_${state.assetSymbol}_transferable")
-                                )
-                            }
+                        } else {
+                            Text(
+                                text = state.assetTransferableBalance,
+                                style = MaterialTheme.customTypography.header3.copy(textAlign = TextAlign.End),
+                                modifier = Modifier
+                                    .padding(vertical = 4.dp)
+                                    .padding(start = 4.dp)
+                                    .testTag("AssetListItem_${state.assetSymbol}_transferable")
+                            )
                         }
                     }
                     Row {
@@ -171,35 +164,20 @@ fun AssetListItem(
                                 .padding(start = 4.dp)
                                 .testTag("AssetListItem_${state.assetSymbol}_change_percent")
                         )
-                        if (hasIssues.not()) {
-                            Spacer(
-                                modifier = Modifier
-                                    .height(1.dp)
-                                    .weight(1.0f)
-                            )
-                            Text(
-                                text = state.assetTransferableBalanceFiat.orEmpty(),
-                                style = MaterialTheme.customTypography.body1,
-                                modifier = Modifier
-                                    .alpha(0.64f)
-                                    .padding(start = 4.dp)
-                                    .testTag("AssetListItem_${state.assetSymbol}_transferable_fiat")
-                            )
-                        }
+                        Spacer(
+                            modifier = Modifier
+                                .height(1.dp)
+                                .weight(1.0f)
+                        )
+                        Text(
+                            text = state.assetTransferableBalanceFiat.orEmpty(),
+                            style = MaterialTheme.customTypography.body1,
+                            modifier = Modifier
+                                .alpha(0.64f)
+                                .padding(start = 4.dp)
+                                .testTag("AssetListItem_${state.assetSymbol}_transferable_fiat")
+                        )
                     }
-                }
-
-                if (hasIssues) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_alert_16),
-                        tint = alertYellow,
-                        modifier = Modifier
-                            .padding(vertical = 8.dp)
-                            .size(24.dp)
-                            .align(CenterEnd)
-                            .testTag("AssetListItem_${state.assetSymbol}_alert_icon"),
-                        contentDescription = null
-                    )
                 }
             }
         }
@@ -361,23 +339,22 @@ private fun PreviewAssetListItem() {
         chainAssetId = "",
         isSupported = true,
         isHidden = false,
-        hasAccount = true,
         priceId = null,
-        hasNetworkIssue = false,
         ecosystem = "Polkadot",
         isTestnet = false
     )
-    FearlessTheme {
+    FearlessAppTheme {
         Box(modifier = Modifier.background(Color.Black)) {
             Column {
                 AssetListItem(state) {}
+                MarginVertical(margin = 8.dp)
                 AssetListItem(
                     state.copy(
                         isTestnet = true,
                         assetTransferableBalance = "123,456,123,456,123,456,789,456,789.01234"
                     )
                 ) {}
-                AssetListItem(state.copy(hasAccount = false, isTestnet = true)) {}
+                MarginVertical(margin = 8.dp)
                 AssetListItemShimmer(
                     state = AssetListItemShimmerViewState(
                         assetIconUrl,

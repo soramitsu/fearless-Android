@@ -174,9 +174,7 @@ private fun AssetItemSwipeBoxPreview() {
         chainAssetId = "",
         isSupported = true,
         isHidden = false,
-        hasAccount = true,
         priceId = null,
-        hasNetworkIssue = false,
         ecosystem = "Polkadot",
         isTestnet = false
     )
