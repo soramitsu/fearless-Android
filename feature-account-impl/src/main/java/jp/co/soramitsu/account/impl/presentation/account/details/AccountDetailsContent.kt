@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.account.impl.presentation.importing.remote_backup.views.CompactWalletItemViewState
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.compose.component.CapsTitle2
+import jp.co.soramitsu.common.compose.component.CorneredInput
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.component.SelectorState
 import jp.co.soramitsu.common.compose.component.SelectorWithBorder
@@ -25,11 +26,14 @@ import jp.co.soramitsu.common.compose.component.ToolbarViewState
 import jp.co.soramitsu.common.compose.component.WalletItem
 import jp.co.soramitsu.common.compose.component.WalletItemViewState
 import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
+import jp.co.soramitsu.common.compose.theme.black05
+import jp.co.soramitsu.common.compose.theme.white24
 import jp.co.soramitsu.common.list.headers.TextHeader
 
 data class AccountDetailsState(
     val walletItem: WalletItemViewState?,
-    val chainProjections: List<Any?>
+    val chainProjections: List<Any?>,
+    val searchQuery: String? = null
 ) {
     companion object {
         val Empty = AccountDetailsState(
@@ -44,6 +48,8 @@ interface AccountDetailsCallback {
     fun onBackClick()
 
     fun chainAccountOptionsClicked(item: AccountInChainUi)
+
+    fun onSearchInput(input: String)
 }
 
 @Composable
@@ -71,6 +77,18 @@ internal fun AccountDetailsContent(
                 onSelected = {}
             )
         }
+        MarginVertical(4.dp)
+
+        CorneredInput(
+            modifier = Modifier.padding(horizontal = 16.dp),
+            textModifier = Modifier.height(48.dp),
+            backgroundColor = black05,
+            borderColor = white24,
+            state = state.searchQuery,
+            onInput = callback::onSearchInput,
+            hintLabel = stringResource(id = R.string.search_network_hint)
+        )
+        MarginVertical(4.dp)
 
         LazyColumn(
             modifier = Modifier.weight(1f),
@@ -126,6 +144,7 @@ private fun PreviewAccountDetailsContent() {
             callback = object : AccountDetailsCallback {
                 override fun onBackClick() {}
                 override fun chainAccountOptionsClicked(item: AccountInChainUi) {}
+                override fun onSearchInput(input: String) {}
             }
         )
     }

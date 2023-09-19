@@ -104,24 +104,33 @@ class AccountDetailsViewModel @Inject constructor(
     private val _openPlayMarket = MutableLiveData<Event<Unit>>()
     val openPlayMarket: LiveData<Event<Unit>> = _openPlayMarket
 
-    val accountNameFlow: MutableStateFlow<String> = MutableStateFlow("")
+    private val enteredQueryFlow = MutableStateFlow("")
+    val accountNameFlow = MutableStateFlow("")
 
-    val chainAccountProjections = interactor.getChainProjectionsFlow(walletId)
-        .map { groupedList ->
-            groupedList.mapKeys { (from, _) -> mapFromToTextHeader(from) }
-                .mapValues { (_, accounts) -> accounts.map { mapChainAccountProjectionToUi(it) } }
-                .toListWithHeaders()
-        }
+    val chainAccountProjections = combine(
+        interactor.getChainProjectionsFlow(walletId),
+        enteredQueryFlow
+    ) { groupedList, query ->
+        groupedList.mapKeys { (from, _) -> mapFromToTextHeader(from) }
+            .mapValues { (_, accounts) ->
+                accounts.filter { it.chain.name.lowercase().contains(query.lowercase()) }
+                    .map { mapChainAccountProjectionToUi(it) }
+            }
+            .filter { it.value.isNotEmpty() }
+            .toListWithHeaders()
+    }
         .inBackground()
         .share()
 
     val state = combine(
         walletItem,
-        chainAccountProjections
-    ) { walletItem, chainProjections ->
+        chainAccountProjections,
+        enteredQueryFlow
+    ) { walletItem, chainProjections, query ->
         AccountDetailsState(
             walletItem = walletItem,
-            chainProjections = chainProjections
+            chainProjections = chainProjections,
+            searchQuery = query
         )
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, AccountDetailsState.Empty)
@@ -136,6 +145,10 @@ class AccountDetailsViewModel @Inject constructor(
 
     override fun onBackClick() {
         accountRouter.back()
+    }
+
+    override fun onSearchInput(input: String) {
+        enteredQueryFlow.value = input
     }
 
     @OptIn(FlowPreview::class)
