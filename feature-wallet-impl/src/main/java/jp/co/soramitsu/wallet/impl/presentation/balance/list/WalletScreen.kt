@@ -36,10 +36,11 @@ import jp.co.soramitsu.common.compose.component.MultiToggleButtonState
 import jp.co.soramitsu.common.compose.component.NetworkIssuesBadge
 import jp.co.soramitsu.common.compose.component.NftStub
 import jp.co.soramitsu.common.compose.component.SwipeState
-import jp.co.soramitsu.common.compose.theme.FearlessTheme
+import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
 import jp.co.soramitsu.common.compose.theme.white16
 import jp.co.soramitsu.common.compose.theme.white50
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState
+import jp.co.soramitsu.common.utils.rememberForeverLazyListState
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.soracard.impl.presentation.SoraCardItem
 import jp.co.soramitsu.soracard.impl.presentation.SoraCardItemViewState
@@ -144,7 +145,8 @@ fun WalletScreen(
             AssetsList(
                 data = data,
                 callback = callback,
-                header = header
+                header = header,
+                listState = rememberForeverLazyListState("wallet_screen")
             )
         }
     }
@@ -220,15 +222,13 @@ private fun PreviewWalletScreen() {
             chainAssetId = "",
             isSupported = true,
             isHidden = false,
-            hasAccount = true,
             priceId = null,
-            hasNetworkIssue = false,
             ecosystem = "Polkadot",
             isTestnet = false
         )
     )
 
-    FearlessTheme {
+    FearlessAppTheme(true) {
         Surface(Modifier.background(Color.Black)) {
             Column {
                 WalletScreen(

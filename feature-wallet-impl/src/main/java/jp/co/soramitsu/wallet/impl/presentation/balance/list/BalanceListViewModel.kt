@@ -15,8 +15,6 @@ import jp.co.soramitsu.account.api.domain.PendulumPreInstalledAccountsScenario
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.TotalBalanceUseCase
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
-import jp.co.soramitsu.account.api.presentation.actions.AddAccountBottomSheet
-import jp.co.soramitsu.common.AlertViewState
 import jp.co.soramitsu.common.BuildConfig
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
@@ -167,6 +165,14 @@ class BalanceListViewModel @Inject constructor(
         )
     )
 
+    private val showNetworkIssues = combine(
+        interactor.assetsFlow().debounce(100L),
+        networkIssuesFlow,
+        selectedChainId
+    ) { assets: List<AssetWithStatus>, networkIssues: Set<NetworkIssueItemState>, selectedChainId: ChainId? ->
+        selectedChainId == null && (networkIssues.isNotEmpty() || assets.any { it.hasAccount.not() })
+    }
+
     @OptIn(FlowPreview::class)
     private val assetStates = combine(
         interactor.assetsFlow().debounce(100L),
@@ -268,7 +274,13 @@ class BalanceListViewModel @Inject constructor(
         val result = mutableListOf<BalanceListItemModel>()
         ecosystemAssets.groupBy { it.asset.token.configuration.symbol }
             .forEach { (symbol, symbolAssets) ->
-                val tokenChains = ecosystemChains.getWithToken(symbol)
+                val chainsWithIssuesIds = symbolAssets.filter { it.hasAccount.not() }.map { it.asset.token.configuration.chainId }
+                    .plus(networkIssues.map { it.chainId })
+
+                val tokenChains = ecosystemChains.getWithToken(symbol).filter { chain ->
+                    chain.id !in chainsWithIssuesIds
+                }
+
                 if (tokenChains.isEmpty()) return@forEach
 
                 val mainChain = tokenChains.sortedWith(
@@ -280,10 +292,6 @@ class BalanceListViewModel @Inject constructor(
                 val showChain = tokenChains.firstOrNull { it.id == selectedChainId } ?: mainChain
                 val showChainAsset =
                     showChain?.assets?.firstOrNull { it.symbol == symbol } ?: return@forEach
-
-                val hasNetworkIssue = networkIssues.any { it.chainId in tokenChains.map { it.id } }
-
-                val hasChainWithoutAccount = symbolAssets.any { it.hasAccount.not() }
 
                 val assetIdsWithBalance = symbolAssets.filter {
                     it.asset.total.orZero() > BigDecimal.ZERO
@@ -323,8 +331,6 @@ class BalanceListViewModel @Inject constructor(
                     transferable = assetTransferable,
                     chainUrls = assetChainUrls,
                     isHidden = isHidden,
-                    hasChainWithoutAccount = hasChainWithoutAccount,
-                    hasNetworkIssue = hasNetworkIssue,
                     ecosystem = ecosystem
                 )
                 result.add(model)
@@ -352,9 +358,7 @@ class BalanceListViewModel @Inject constructor(
                     chainAssetId = chainAsset.id,
                     isSupported = true,
                     isHidden = false,
-                    hasAccount = true,
                     priceId = chainAsset.priceId,
-                    hasNetworkIssue = false,
                     ecosystem = ChainEcosystem.POLKADOT.name,
                     isTestnet = chainAsset.isTestNet ?: false
                 )
@@ -382,17 +386,19 @@ class BalanceListViewModel @Inject constructor(
 //    }
     private val soraCardState = flowOf(SoraCardItemViewState())
 
-    val state = combine(
+    val state = jp.co.soramitsu.common.utils.combine(
         assetStates,
         assetTypeSelectorState,
         selectedChainId,
         soraCardState,
-        currentMetaAccountFlow
+        currentMetaAccountFlow,
+        showNetworkIssues
     ) { assetsListItemStates: List<AssetListItemViewState>,
         multiToggleButtonState: MultiToggleButtonState<AssetType>,
         selectedChainId: ChainId?,
         soraCardState: SoraCardItemViewState,
-        currentMetaAccount: MetaAccount ->
+        currentMetaAccount: MetaAccount,
+        showNetworkIssues: Boolean ->
 
         val selectedChainAddress = selectedChainId?.let {
             currentAccountAddress(chainId = it)
@@ -408,12 +414,11 @@ class BalanceListViewModel @Inject constructor(
             )
         )
 
-        val hasNetworkIssues = assetsListItemStates.any { it.hasNetworkIssue }
         WalletState(
             assets = assetsListItemStates,
             multiToggleButtonState = multiToggleButtonState,
             balance = balanceState,
-            hasNetworkIssues = hasNetworkIssues,
+            hasNetworkIssues = showNetworkIssues,
             soraCardState = soraCardState,
             isBackedUp = currentMetaAccount.isBackedUp
         )
@@ -580,37 +585,6 @@ class BalanceListViewModel @Inject constructor(
 
     override fun assetClicked(asset: AssetListItemViewState) {
         launch {
-            if (asset.hasNetworkIssue) {
-                val chain = interactor.getChain(asset.chainId)
-                if (chain.nodes.size > 1) {
-                    router.openNodes(asset.chainId)
-                } else {
-                    val payload = AlertViewState(
-                        title = resourceManager.getString(
-                            R.string.staking_main_network_title,
-                            chain.name
-                        ),
-                        message = resourceManager.getString(R.string.network_issue_unavailable),
-                        buttonText = resourceManager.getString(R.string.top_up),
-                        iconRes = R.drawable.ic_alert_16
-                    )
-                    router.openAlert(payload)
-                }
-                return@launch
-            }
-            if (!asset.hasAccount) {
-                val meta = accountInteractor.selectedMetaAccount()
-                val payload = AddAccountBottomSheet.Payload(
-                    metaId = meta.id,
-                    chainId = asset.chainId,
-                    chainName = asset.assetChainName,
-                    assetId = asset.chainAssetId,
-                    priceId = asset.priceId,
-                    markedAsNotNeed = false
-                )
-                router.openOptionsAddAccount(payload)
-                return@launch
-            }
             if (asset.isSupported.not()) {
                 _showUnsupportedChainAlert.value = Event(Unit)
                 return@launch

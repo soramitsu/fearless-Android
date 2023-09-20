@@ -15,9 +15,9 @@ class SpendInsufficientBalanceException(resourceManager: ResourceManager) : Vali
     resourceManager.getString(R.string.choose_amount_error_too_big)
 )
 
-class ExistentialDepositCrossedException(resourceManager: ResourceManager) : ValidationWarning(
+class ExistentialDepositCrossedException(resourceManager: ResourceManager, edAmount: String) : ValidationWarning(
     resourceManager.getString(R.string.common_existential_warning_title),
-    resourceManager.getString(R.string.common_existential_warning_message),
+    resourceManager.getString(R.string.common_existential_warning_message, edAmount),
     resourceManager.getString(R.string.common_proceed),
     resourceManager.getString(R.string.common_cancel)
 )

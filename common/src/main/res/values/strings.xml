@@ -206,7 +206,7 @@
   <string name="common_error_internal">Internal error occurred</string>
   <string name="common_error_network">Error occurred while communicating with the remote server</string>
   <string name="common_event">Event</string>
-  <string name="common_existential_warning_message">This transaction will result in the account going below the Existential Deposit, which will cause it to be reaped (the account will be wiped from the blockchain\'s state to conserve space). If you choose to continue you will lose any funds that are below the existential deposit amount set by the network. For detailed information please refer to the official network documentation (e.g., the Polkadot Wiki). Fearless Wallet is a fully non-custodial application and has no control or knowledge of any of your actions on the network itself. ONLY CONTINUE IF YOU FULLY AGREE TO AND UNDERSTAND THE IMPLICATIONS.</string>
+  <string name="common_existential_warning_message">This transaction will result in the account going below the Existential Deposit (%s), which will cause it to be reaped (the account will be wiped from the blockchain\'s state to conserve space). If you choose to continue you will lose any funds that are below the existential deposit amount set by the network. For detailed information please refer to the official network documentation (e.g., the Polkadot Wiki). Fearless Wallet is a fully non-custodial application and has no control or knowledge of any of your actions on the network itself. ONLY CONTINUE IF YOU FULLY AGREE TO AND UNDERSTAND THE IMPLICATIONS.</string>
   <string name="common_existential_warning_title">This operation will remove the account</string>
   <string name="common_filter_sort_header">Sort by:</string>
   <string name="common_friend_bonus">Bonus for your friend</string>
@@ -368,7 +368,6 @@
   <string name="error_invalid_address">Invalid address for selected chain</string>
   <string name="error_message_enter_the_name">Enter the name…</string>
   <string name="error_message_enter_the_url_address">Enter the URL address…</string>
-  <string name="eth_import_message">Add Moonbeam and Moonriver accounts?</string>
   <string name="eth_import_title">ETH accounts</string>
   <string name="ethereum_crypto_type">Ethereum keypair crypto type</string>
   <string name="ethereum_secret_derivation_path">Ethereum secret derivation path</string>
@@ -403,6 +402,7 @@
   <string name="identity_twitter_title">Twitter</string>
   <string name="identity_web_title">Web</string>
   <string name="import_account_exists_title">Account already exists</string>
+  <string name="import_eth_json_invalid_import_type_message">Your JSON file isn\'t valid. You\'re trying to import Substrate based chain accounts instead of ETH ones. Please use a proper JSON file to import ETH chain accounts.</string>
   <string name="import_ethereum_recovery">Restore JSON for ETH-based accounts</string>
   <string name="import_json_invalid_format_message">Please make sure that your input contains a valid JSON.</string>
   <string name="import_json_invalid_format_title">Restore JSON is invalid</string>
@@ -466,8 +466,11 @@
   <string name="network_status_connected">Connected</string>
   <string name="network_status_connecting">Connecting…</string>
   <string name="network_url_address">URL address</string>
+  <string name="nft_collection_title">Collection</string>
+  <string name="nft_owner_title">Owned</string>
   <string name="nft_stub_text">NFTs are going to be here soon</string>
   <string name="nft_stub_title">Sumimasen!</string>
+  <string name="nft_tokenid_title">Token ID</string>
   <string name="nfts_stub">NFTs</string>
   <string name="no_access_to_google">No access to Google</string>
   <string name="node">Node</string>
@@ -477,6 +480,7 @@
   <string name="onboarding_create_account">Create an account</string>
   <string name="onboarding_create_wallet">Create a wallet</string>
   <string name="onboarding_ethereum_derivation_path_hint">Example: //44//60//0/0/0</string>
+  <string name="onboarding_preinstalled_wallet_button_text">Get a pre-installed wallet</string>
   <string name="onboarding_privacy_policy">Privacy Policy</string>
   <string name="onboarding_restore_account">Import account</string>
   <string name="onboarding_restore_wallet">I already have a wallet</string>
@@ -484,7 +488,6 @@
   <string name="onboarding_terms_and_conditions_1">I have read and agree to the\nTerms and Conditions and Privacy Policy</string>
   <string name="onboarding_terms_and_conditions_2">Terms and Conditions</string>
   <string name="onboarding_terms_and_conditions_prefix">By continuing you are agreeing with the</string>
-  <string name="onboarding_preinstalled_wallet_button_text">Get a pre-installed wallet</string>
   <string name="options_switch_node_title">Resolve %s network issues</string>
   <string name="parachain_crowdloans">Parachain Crowdloans</string>
   <string name="parachain_staking_request_finished">Finished</string>
@@ -663,6 +666,7 @@
   <string name="scan_qr_upload_button_title">Upload from gallery</string>
   <string name="search_contacts">Contacts</string>
   <string name="search_header_my_accounts">My accounts</string>
+  <string name="search_network_hint">Search by network</string>
   <string name="search_recipient_hint">Account address or account name</string>
   <string name="search_recipient_no_results">No search results</string>
   <string name="select_another_network_description">The address doesn\'t match the destination network. You should select another network</string>
