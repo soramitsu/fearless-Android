@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -18,8 +19,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.account.impl.presentation.importing.remote_backup.views.CompactWalletItemViewState
 import jp.co.soramitsu.common.R
+import jp.co.soramitsu.common.compose.component.B0
 import jp.co.soramitsu.common.compose.component.CapsTitle2
 import jp.co.soramitsu.common.compose.component.CorneredInput
+import jp.co.soramitsu.common.compose.component.GradientIcon
+import jp.co.soramitsu.common.compose.component.H3
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.component.SelectorState
 import jp.co.soramitsu.common.compose.component.SelectorWithBorder
@@ -28,8 +32,10 @@ import jp.co.soramitsu.common.compose.component.ToolbarViewState
 import jp.co.soramitsu.common.compose.component.WalletItem
 import jp.co.soramitsu.common.compose.component.WalletItemViewState
 import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
+import jp.co.soramitsu.common.compose.theme.alertYellow
 import jp.co.soramitsu.common.compose.theme.black05
 import jp.co.soramitsu.common.compose.theme.white24
+import jp.co.soramitsu.common.compose.theme.white50
 import jp.co.soramitsu.common.list.headers.TextHeader
 
 data class AccountDetailsState(
@@ -65,7 +71,7 @@ internal fun AccountDetailsContent(
         Toolbar(
             modifier = Modifier.padding(bottom = 12.dp),
             state = ToolbarViewState(
-                title = stringResource(R.string.common_title_wallet),
+                title = stringResource(R.string.common_details_wallet).lowercase().replaceFirstChar { it.titlecase() },
                 navigationIcon = R.drawable.ic_arrow_back_24dp
             ),
             onNavigationClick = callback::onBackClick
@@ -94,40 +100,67 @@ internal fun AccountDetailsContent(
         )
         MarginVertical(4.dp)
 
-        LazyColumn(
-            modifier = Modifier.weight(1f),
-            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 16.dp, top = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            items(state.chainProjections) { item ->
-                when (item) {
-                    is TextHeader -> {
-                        Box(
-                            modifier = Modifier.height(32.dp),
-                            contentAlignment = Alignment.CenterStart
-                        ) {
-                            CapsTitle2(
-                                text = item.content
+        if (state.searchQuery != null && state.chainProjections.isEmpty()) {
+            MarginVertical(margin = 20.dp)
+            EmptyResultContent()
+        } else {
+            LazyColumn(
+                modifier = Modifier.weight(1f),
+                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 16.dp, top = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(state.chainProjections) { item ->
+                    when (item) {
+                        is TextHeader -> {
+                            Box(
+                                modifier = Modifier.height(32.dp),
+                                contentAlignment = Alignment.CenterStart
+                            ) {
+                                CapsTitle2(
+                                    text = item.content
+                                )
+                            }
+                        }
+
+                        is AccountInChainUi -> {
+                            SelectorWithBorder(
+                                state = SelectorState(
+                                    title = item.chainName,
+                                    subTitle = item.address,
+                                    iconUrl = item.chainIcon,
+                                    actionIcon = R.drawable.ic_dots_horizontal_24
+                                ),
+                                onClick = {
+                                    callback.chainAccountOptionsClicked(item)
+                                }
                             )
                         }
-                    }
-
-                    is AccountInChainUi -> {
-                        SelectorWithBorder(
-                            state = SelectorState(
-                                title = item.chainName,
-                                subTitle = item.address,
-                                iconUrl = item.chainIcon,
-                                actionIcon = R.drawable.ic_dots_horizontal_24
-                            ),
-                            onClick = {
-                                callback.chainAccountOptionsClicked(item)
-                            }
-                        )
                     }
                 }
             }
         }
+    }
+}
+
+@Composable
+fun EmptyResultContent() {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        GradientIcon(
+            iconRes = R.drawable.ic_alert_24,
+            color = alertYellow,
+            modifier = Modifier.align(Alignment.CenterHorizontally),
+            contentPadding = PaddingValues(bottom = 4.dp)
+        )
+
+        H3(text = stringResource(id = R.string.common_search_assets_alert_title))
+        B0(
+            text = stringResource(id = R.string.accounts_not_found),
+            color = white50
+        )
     }
 }
 
