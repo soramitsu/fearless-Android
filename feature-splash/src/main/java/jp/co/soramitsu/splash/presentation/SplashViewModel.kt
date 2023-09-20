@@ -45,7 +45,7 @@ class SplashViewModel @Inject constructor(
             }
         )
 
-    private fun openInitialDestination() {
+    fun openInitialDestination() {
         viewModelScope.launch {
             if (repository.isAccountSelected()) {
                 if (repository.isCodeSet()) {
