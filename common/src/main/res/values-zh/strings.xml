@@ -400,6 +400,7 @@
   <string name="identity_twitter_title">推特</string>
   <string name="identity_web_title">网页</string>
   <string name="import_account_exists_title">账户已存在</string>
+  <string name="import_eth_json_invalid_import_type_message">你的JSON文件无效。你正在尝试导入基于Substrate的链账户，而不是以太坊账户。请使用正确的JSON文件来导入以太坊链账户。</string>
   <string name="import_ethereum_recovery">恢复基于ETH的账户的JSON</string>
   <string name="import_json_invalid_format_message">请确保您的输入包含有效的JSON。</string>
   <string name="import_json_invalid_format_title">恢复的JSON无效</string>

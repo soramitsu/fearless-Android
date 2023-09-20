@@ -400,9 +400,11 @@
   <string name="identity_twitter_title">Twitter</string>
   <string name="identity_web_title">ウェブ</string>
   <string name="import_account_exists_title">アカウントはすでに存在しています</string>
+  <string name="import_eth_json_invalid_import_type_message">JSONファイルが無効です。 ETHアカウントではなく、Substrateベースのチェーン・アカウントをインポートしようとしています。 ETHチェーン・アカウントをインポートするのに適切なJSONファイルを使用してください</string>
   <string name="import_ethereum_recovery">ETHベースのアカウントのJSONを復元する</string>
   <string name="import_json_invalid_format_message">入力に有効なJSONが含まれていることを確認してください</string>
   <string name="import_json_invalid_format_title">リカバリJSONが無効です</string>
+  <string name="import_json_invalid_import_type_message">JSONファイルが無効です。 Substrateアカウントではなく、ETHベースのチェーン・アカウントをインポートしようとしています。 最初にSubstrateチェーン・アカウントをインポートするのに適切なJSONファイルを使用してください</string>
   <string name="import_json_invalid_password">パスワードが正しいことを確認して、もう一度お試しください</string>
   <string name="import_json_invalid_password_title">キーストアの復号化に失敗しました</string>
   <string name="import_json_paste">JSONを貼り付け</string>
@@ -463,6 +465,7 @@
   <string name="network_status_connecting">接続しています...</string>
   <string name="network_url_address">URLアドレス</string>
   <string name="nft_collection_title">コレクション</string>
+  <string name="nft_owner_title">所有</string>
   <string name="nft_stub_text">NFTがもうすぐ登場します</string>
   <string name="nft_stub_title">失礼しました</string>
   <string name="nft_tokenid_title">トークンID</string>
@@ -475,6 +478,7 @@
   <string name="onboarding_create_account">アカウントを作成する</string>
   <string name="onboarding_create_wallet">ウォレットを作成</string>
   <string name="onboarding_ethereum_derivation_path_hint">例： //44//60//0/0/0</string>
+  <string name="onboarding_preinstalled_wallet_button_text">プリインストールされたウォレットを取得</string>
   <string name="onboarding_privacy_policy">個人情報保護方針</string>
   <string name="onboarding_restore_account">アカウントをインポート</string>
   <string name="onboarding_restore_wallet">すでにウォレットを持っている</string>
@@ -1030,6 +1034,7 @@
   <string name="wallet_send_balance_minimal">最少限の残高</string>
   <string name="wallet_send_confirm_transfer">送信を確認</string>
   <string name="wallet_send_dead_recipient_message">宛先アカウントの最終金額が既存の預金より少ないため、送信は失敗します。量を増やしてみてください</string>
+  <string name="wallet_send_eth_dead_recipient_message">受信者のアカウントのイーサリアム残高が不十分な場合、ERC20トークン転送が完了しません。受信者が転送を続行するのに十分なイーサリアムを持っていることを確認してください</string>
   <string name="wallet_send_existential_warning_message">送信すると、残高が最少預金よりも少なくなるため、ブロックストアからアカウントが削除されます</string>
   <string name="wallet_send_existential_warning_title">送信するとアカウントが削除されます</string>
   <string name="wallet_send_navigation_title">送信 %s</string>
