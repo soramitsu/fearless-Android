@@ -1,6 +1,6 @@
 package jp.co.soramitsu.wallet.impl.domain.validation
 
-import jp.co.soramitsu.common.utils.formatCrypto
+import jp.co.soramitsu.common.utils.formatCryptoDetail
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.validation.Validation
 import jp.co.soramitsu.common.validation.ValidationStatus
@@ -27,7 +27,7 @@ class ExistentialDepositValidation<P, E>(
         val extraAmount = extraAmountProducer(value)
 
         return validOrWarning(totalBalance - fee - extraAmount >= existentialDeposit) {
-            errorProducer.invoke(existentialDeposit.formatCrypto(token.configuration.symbol))
+            errorProducer.invoke(existentialDeposit.formatCryptoDetail(token.configuration.symbol))
         }
     }
 }

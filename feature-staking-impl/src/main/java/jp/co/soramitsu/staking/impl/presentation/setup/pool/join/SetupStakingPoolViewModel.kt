@@ -36,7 +36,6 @@ import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSharedStatePr
 import jp.co.soramitsu.staking.impl.scenarios.StakingPoolInteractor
 import jp.co.soramitsu.wallet.api.domain.ExistentialDepositUseCase
 import jp.co.soramitsu.wallet.api.presentation.formatters.formatCryptoDetailFromPlanks
-import jp.co.soramitsu.wallet.api.presentation.formatters.formatCryptoFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
@@ -191,7 +190,7 @@ class SetupStakingPoolViewModel @Inject constructor(
 
         return when {
             amountInPlanks + feeInPlanks >= transferableInPlanks -> Result.failure(StakeInsufficientBalanceException(resourceManager))
-            transferableInPlanks - amountInPlanks - feeInPlanks <= existentialDeposit -> Result.failure(ExistentialDepositCrossedException(resourceManager, existentialDeposit.formatCryptoFromPlanks(asset.token.configuration)))
+            transferableInPlanks - amountInPlanks - feeInPlanks <= existentialDeposit -> Result.failure(ExistentialDepositCrossedException(resourceManager, existentialDeposit.formatCryptoDetailFromPlanks(asset.token.configuration)))
             amountInPlanks < minToJoinInPlanks -> Result.failure(AmountTooLowToStakeException(resourceManager, minToJoinFormatted))
             else -> Result.success(Unit)
         }
