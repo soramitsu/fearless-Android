@@ -45,7 +45,7 @@ class SubqueryRewardCalculator(
     }
 
     private suspend fun calculateSubsquidMaxAPY(stakingUrl: String): BigDecimal {
-        return getSubsquidRewards(stakingUrl).maxOf { it.value.orZero() }.fractionToPercentage()
+        return getSubsquidRewards(stakingUrl).maxOf { it.value.orZero() }
     }
 
     private suspend fun calculateSubqueryMaxAPY(stakingUrl: String): BigDecimal {
