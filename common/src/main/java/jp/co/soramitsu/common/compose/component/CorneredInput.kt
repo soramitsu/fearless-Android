@@ -3,6 +3,8 @@ package jp.co.soramitsu.common.compose.component
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -16,6 +18,8 @@ import jp.co.soramitsu.common.compose.theme.white08
 
 @Composable
 fun CorneredInput(
+    modifier: Modifier = Modifier,
+    textModifier: Modifier = Modifier.height(32.dp),
     backgroundColor: Color = white04,
     borderColor: Color = white08,
     state: String?,
@@ -23,11 +27,12 @@ fun CorneredInput(
     onInput: (String) -> Unit
 ) {
     BackgroundCorneredWithBorder(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         backgroundColor = backgroundColor,
         borderColor = borderColor
     ) {
         TextFieldHint(
+            modifier = textModifier,
             state = state,
             onInput = onInput,
             Hint = { SearchHint(hintLabel) }
@@ -57,8 +62,11 @@ private fun SearchHint(text: String?) {
 @Preview
 @Composable
 private fun PreviewCorneredInput() {
-    Column() {
+    Column {
         CorneredInput(state = "", onInput = {})
-        CorneredInput(state = "AAAAAA", onInput = {})
+        MarginVertical(margin = 4.dp)
+        CorneredInput(modifier = Modifier.padding(horizontal = 8.dp), state = "", onInput = {})
+        MarginVertical(margin = 4.dp)
+        CorneredInput(textModifier = Modifier.height(48.dp), state = "AAAAAA", onInput = {})
     }
 }

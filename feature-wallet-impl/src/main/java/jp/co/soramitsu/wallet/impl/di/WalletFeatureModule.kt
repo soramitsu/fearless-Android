@@ -40,6 +40,7 @@ import jp.co.soramitsu.coredb.dao.TokenPriceDao
 import jp.co.soramitsu.feature_wallet_impl.BuildConfig
 import jp.co.soramitsu.runtime.di.REMOTE_STORAGE_SOURCE
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.multiNetwork.connection.EthereumConnectionPool
 import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeFilesCache
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 import jp.co.soramitsu.wallet.api.data.cache.AssetCache
@@ -52,6 +53,7 @@ import jp.co.soramitsu.wallet.api.presentation.mixin.fee.FeeLoaderProvider
 import jp.co.soramitsu.wallet.impl.data.buyToken.MoonPayProvider
 import jp.co.soramitsu.wallet.impl.data.buyToken.RampProvider
 import jp.co.soramitsu.wallet.impl.data.historySource.HistorySourceProvider
+import jp.co.soramitsu.wallet.impl.data.network.blockchain.EthereumRemoteSource
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.SubstrateRemoteSource
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.WssSubstrateSource
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.updaters.BalancesUpdateSystem
@@ -135,6 +137,10 @@ class WalletFeatureModule {
     )
 
     @Provides
+    fun provideEthereumRemoteSource(ethereumConnectionPool: EthereumConnectionPool): EthereumRemoteSource =
+        EthereumRemoteSource(ethereumConnectionPool)
+
+    @Provides
     fun provideTokenRepository(
         tokenPriceDao: TokenPriceDao
     ): TokenRepository = TokenRepositoryImpl(
@@ -148,6 +154,7 @@ class WalletFeatureModule {
     @Singleton
     fun provideWalletRepository(
         substrateSource: SubstrateRemoteSource,
+        ethereumRemoteSource: EthereumRemoteSource,
         operationsDao: OperationDao,
         httpExceptionHandler: HttpExceptionHandler,
         phishingApi: PhishingApi,
@@ -159,9 +166,11 @@ class WalletFeatureModule {
         availableFiatCurrencies: GetAvailableFiatCurrencies,
         updatesMixin: UpdatesMixin,
         remoteConfigFetcher: RemoteConfigFetcher,
-        preferences: Preferences
+        preferences: Preferences,
+        accountRepository: AccountRepository
     ): WalletRepository = WalletRepositoryImpl(
         substrateSource,
+        ethereumRemoteSource,
         operationsDao,
         httpExceptionHandler,
         phishingApi,
@@ -173,7 +182,8 @@ class WalletFeatureModule {
         availableFiatCurrencies,
         updatesMixin,
         remoteConfigFetcher,
-        preferences
+        preferences,
+        accountRepository
     )
 
     @Provides
@@ -273,14 +283,14 @@ class WalletFeatureModule {
         existentialDepositUseCase: ExistentialDepositUseCase,
         walletConstants: WalletConstants,
         chainRegistry: ChainRegistry,
-        walletInteractor: WalletInteractor,
-        substrateSource: SubstrateRemoteSource
+        accountRepository: AccountRepository,
+        walletRepository: WalletRepository
     ): ValidateTransferUseCase = ValidateTransferUseCaseImpl(
         existentialDepositUseCase,
         walletConstants,
         chainRegistry,
-        walletInteractor,
-        substrateSource
+        accountRepository,
+        walletRepository
     )
 
     @Provides
@@ -328,7 +338,8 @@ class WalletFeatureModule {
         assetCache: AssetCache,
         substrateSource: SubstrateRemoteSource,
         operationDao: OperationDao,
-        networkStateMixin: NetworkStateMixin
+        networkStateMixin: NetworkStateMixin,
+        ethereumRemoteSource: EthereumRemoteSource
     ): UpdateSystem = BalancesUpdateSystem(
         chainRegistry,
         accountRepository,
@@ -336,7 +347,8 @@ class WalletFeatureModule {
         assetCache,
         substrateSource,
         operationDao,
-        networkStateMixin
+        networkStateMixin,
+        ethereumRemoteSource
     )
 
     @Provides

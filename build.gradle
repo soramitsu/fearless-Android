@@ -82,7 +82,7 @@ buildscript {
         minifyRelease = true
         beaconVersion = "3.2.4"
 
-        sharedFeaturesVersion = "1.1.1.11-20230811.091740-2"
+        sharedFeaturesVersion = "1.1.1.12-SNAPSHOT"
 
         coilDep = "io.coil-kt:coil:$coilVersion"
         coilSvg = "io.coil-kt:coil-svg:$coilVersion"
@@ -137,6 +137,7 @@ buildscript {
 
         coroutinesDep = "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion"
         coroutinesAndroidDep = "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutinesVersion"
+        coroutinesRxDep = "org.jetbrains.kotlinx:kotlinx-coroutines-rx2:$coroutinesVersion"
 
         // viewModelScope
         viewModelKtxDep = "androidx.lifecycle:lifecycle-viewmodel-ktx:$architectureComponentVersion"
@@ -180,6 +181,8 @@ buildscript {
 
         jUnitDep = "junit:junit:$junitVersion"
         mockitoDep = "org.mockito:mockito-inline:$mockitoVersion"
+        mockitoCoreDep = "org.mockito:mockito-core:2.23.0"
+        mockitoKotlinDep = "org.mockito.kotlin:mockito-kotlin:4.1.0"
         robolectricDep = "org.robolectric:robolectric:$robolectricVersion"
         robolectricMultidexDep = "org.robolectric:shadows-multidex:$robolectricVersion"
         archCoreTestDep = "androidx.arch.core:core-testing:$architectureComponentVersion"
@@ -200,7 +203,13 @@ buildscript {
         sharedFeaturesXcmDep = "jp.co.soramitsu.shared_features:xcm:$sharedFeaturesVersion"
         sharedFeaturesBackupDep = "jp.co.soramitsu.shared_features:backup:$sharedFeaturesVersion"
 
+        web3jDep = "org.web3j:core:4.8.8-android"
+
+        withoutJavaWS = { exclude group: 'org.java-websocket', module: 'Java-WebSocket' }
+
         serializationDep = "org.jetbrains.kotlinx:kotlinx-serialization-json:$serializationVersion"
+
+        coroutinesTest = "org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutinesVersion"
     }
 
     repositories {

@@ -4,22 +4,23 @@ import android.content.Context
 import android.util.AttributeSet
 import androidx.core.view.isVisible
 import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.Observer
+import jp.co.soramitsu.account.api.presentation.importing.ImportAccountType
+import jp.co.soramitsu.account.impl.presentation.importing.source.model.ImportError
+import jp.co.soramitsu.account.impl.presentation.importing.source.model.ImportSource
+import jp.co.soramitsu.account.impl.presentation.importing.source.model.JsonImportSource
 import jp.co.soramitsu.common.utils.EventObserver
 import jp.co.soramitsu.common.utils.bindTo
 import jp.co.soramitsu.common.utils.nameInputFilters
 import jp.co.soramitsu.common.view.InputField
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.databinding.ImportSourceJsonBinding
-import jp.co.soramitsu.account.api.presentation.importing.ImportAccountType
-import jp.co.soramitsu.account.impl.presentation.importing.source.model.ImportSource
-import jp.co.soramitsu.account.impl.presentation.importing.source.model.JsonImportSource
 
 class JsonImportView @JvmOverloads constructor(
     context: Context,
     private val isChainAccount: Boolean = false,
     attrs: AttributeSet? = null,
-    defStyleAttr: Int = 0
+    defStyleAttr: Int = 0,
+    private val showImportError: (importError: ImportError) -> Unit = {}
 ) : ImportSourceView(R.layout.import_source_json, context, attrs, defStyleAttr) {
 
     private val binding: ImportSourceJsonBinding = ImportSourceJsonBinding.bind(this)
@@ -31,7 +32,7 @@ class JsonImportView @JvmOverloads constructor(
         init()
     }
 
-    constructor(context: Context, importAccountType: ImportAccountType, isChainAccount: Boolean) : this(context, isChainAccount) {
+    constructor(context: Context, importAccountType: ImportAccountType, isChainAccount: Boolean, onShowImportError: (importError: ImportError) -> Unit) : this(context, isChainAccount, showImportError = onShowImportError) {
         init(importAccountType)
     }
 
@@ -50,18 +51,26 @@ class JsonImportView @JvmOverloads constructor(
         }
     }
 
-    override fun observeSource(source: ImportSource, lifecycleOwner: LifecycleOwner) {
+    override fun observeSource(source: ImportSource, blockchainType: ImportAccountType, lifecycleOwner: LifecycleOwner) {
         require(source is JsonImportSource)
 
-        source.jsonContentLiveData.observe(
-            lifecycleOwner,
-            Observer(binding.importJsonContent::setMessage)
-        )
+        source.blockchainTypeFlow.value = blockchainType
+
+        source.jsonContentLiveData.observe(lifecycleOwner) {
+            binding.importJsonContent.setMessage(it)
+        }
 
         source.showJsonInputOptionsEvent.observe(
             lifecycleOwner,
             EventObserver {
                 showJsonInputOptionsSheet(source)
+            }
+        )
+
+        source.showImportErrorEvent.observe(
+            lifecycleOwner,
+            EventObserver {
+                showImportError.invoke(it)
             }
         )
 

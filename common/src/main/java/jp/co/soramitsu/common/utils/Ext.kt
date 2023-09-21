@@ -74,7 +74,8 @@ fun CoroutineScope.childScope(supervised: Boolean = true): CoroutineScope {
 fun Int.asBoolean() = this != 0
 
 private val CAMEL_CASE_REGEX = "(?<=[a-z])(?=[A-Z])".toRegex()
-fun String.camelCaseToCapitalizedWords() = CAMEL_CASE_REGEX.split(this).joinToString(separator = " ") { it.capitalize() }
+fun String.camelCaseToCapitalizedWords() =
+    CAMEL_CASE_REGEX.split(this).joinToString(separator = " ") { it.capitalize() }
 
 inline fun <T1, T2, T3, T4, T5, T6, R> combine(
     flow: Flow<T1>,
@@ -85,7 +86,14 @@ inline fun <T1, T2, T3, T4, T5, T6, R> combine(
     flow6: Flow<T6>,
     crossinline transform: suspend (T1, T2, T3, T4, T5, T6) -> R
 ): Flow<R> {
-    return kotlinx.coroutines.flow.combine(flow, flow2, flow3, flow4, flow5, flow6) { args: Array<*> ->
+    return kotlinx.coroutines.flow.combine(
+        flow,
+        flow2,
+        flow3,
+        flow4,
+        flow5,
+        flow6
+    ) { args: Array<*> ->
         @Suppress("UNCHECKED_CAST")
         transform(
             args[0] as T1,
@@ -108,7 +116,15 @@ inline fun <T1, T2, T3, T4, T5, T6, T7, R> combine(
     flow7: Flow<T7>,
     crossinline transform: suspend (T1, T2, T3, T4, T5, T6, T7) -> R
 ): Flow<R> {
-    return kotlinx.coroutines.flow.combine(flow, flow2, flow3, flow4, flow5, flow6, flow7) { args: Array<*> ->
+    return kotlinx.coroutines.flow.combine(
+        flow,
+        flow2,
+        flow3,
+        flow4,
+        flow5,
+        flow6,
+        flow7
+    ) { args: Array<*> ->
         @Suppress("UNCHECKED_CAST")
         transform(
             args[0] as T1,
@@ -133,7 +149,16 @@ inline fun <T1, T2, T3, T4, T5, T6, T7, T8, R> combine(
     flow8: Flow<T8>,
     crossinline transform: suspend (T1, T2, T3, T4, T5, T6, T7, T8) -> R
 ): Flow<R> {
-    return kotlinx.coroutines.flow.combine(flow, flow2, flow3, flow4, flow5, flow6, flow7, flow8) { args: Array<*> ->
+    return kotlinx.coroutines.flow.combine(
+        flow,
+        flow2,
+        flow3,
+        flow4,
+        flow5,
+        flow6,
+        flow7,
+        flow8
+    ) { args: Array<*> ->
         @Suppress("UNCHECKED_CAST")
         transform(
             args[0] as T1,
@@ -160,7 +185,17 @@ inline fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, R> combine(
     flow9: Flow<T9>,
     crossinline transform: suspend (T1, T2, T3, T4, T5, T6, T7, T8, T9) -> R
 ): Flow<R> {
-    return kotlinx.coroutines.flow.combine(flow, flow2, flow3, flow4, flow5, flow6, flow7, flow8, flow9) { args: Array<*> ->
+    return kotlinx.coroutines.flow.combine(
+        flow,
+        flow2,
+        flow3,
+        flow4,
+        flow5,
+        flow6,
+        flow7,
+        flow8,
+        flow9
+    ) { args: Array<*> ->
         @Suppress("UNCHECKED_CAST")
         transform(
             args[0] as T1,
@@ -189,7 +224,18 @@ inline fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, R> combine(
     flow10: Flow<T10>,
     crossinline transform: suspend (T1, T2, T3, T4, T5, T6, T7, T8, T9, T10) -> R
 ): Flow<R> {
-    return kotlinx.coroutines.flow.combine(flow, flow2, flow3, flow4, flow5, flow6, flow7, flow8, flow9, flow10) { args: Array<*> ->
+    return kotlinx.coroutines.flow.combine(
+        flow,
+        flow2,
+        flow3,
+        flow4,
+        flow5,
+        flow6,
+        flow7,
+        flow8,
+        flow9,
+        flow10
+    ) { args: Array<*> ->
         @Suppress("UNCHECKED_CAST")
         transform(
             args[0] as T1,
@@ -220,7 +266,19 @@ inline fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, R> combine(
     flow11: Flow<T11>,
     crossinline transform: suspend (T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11) -> R
 ): Flow<R> {
-    return kotlinx.coroutines.flow.combine(flow, flow2, flow3, flow4, flow5, flow6, flow7, flow8, flow9, flow10, flow11) { args: Array<*> ->
+    return kotlinx.coroutines.flow.combine(
+        flow,
+        flow2,
+        flow3,
+        flow4,
+        flow5,
+        flow6,
+        flow7,
+        flow8,
+        flow9,
+        flow10,
+        flow11
+    ) { args: Array<*> ->
         @Suppress("UNCHECKED_CAST")
         transform(
             args[0] as T1,
@@ -253,7 +311,20 @@ inline fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, R> combine(
     flow12: Flow<T12>,
     crossinline transform: suspend (T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12) -> R
 ): Flow<R> {
-    return kotlinx.coroutines.flow.combine(flow, flow2, flow3, flow4, flow5, flow6, flow7, flow8, flow9, flow10, flow11, flow12) { args: Array<*> ->
+    return kotlinx.coroutines.flow.combine(
+        flow,
+        flow2,
+        flow3,
+        flow4,
+        flow5,
+        flow6,
+        flow7,
+        flow8,
+        flow9,
+        flow10,
+        flow11,
+        flow12
+    ) { args: Array<*> ->
         @Suppress("UNCHECKED_CAST")
         transform(
             args[0] as T1,
@@ -288,7 +359,21 @@ inline fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, R> combine(
     flow13: Flow<T13>,
     crossinline transform: suspend (T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13) -> R
 ): Flow<R> {
-    return kotlinx.coroutines.flow.combine(flow, flow2, flow3, flow4, flow5, flow6, flow7, flow8, flow9, flow10, flow11, flow12, flow13) { args: Array<*> ->
+    return kotlinx.coroutines.flow.combine(
+        flow,
+        flow2,
+        flow3,
+        flow4,
+        flow5,
+        flow6,
+        flow7,
+        flow8,
+        flow9,
+        flow10,
+        flow11,
+        flow12,
+        flow13
+    ) { args: Array<*> ->
         @Suppress("UNCHECKED_CAST")
         transform(
             args[0] as T1,
@@ -313,3 +398,7 @@ val String.Companion.ZERO: String
 
 val Char.Companion.ZERO: Char
     get() = '0'
+
+fun <T> Result.Companion.failure(message: String): Result<T> {
+    return Result.failure<T>(RuntimeException(message))
+}

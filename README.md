@@ -66,5 +66,23 @@ X1_ENDPOINT_URL_DEBUG
 X1_WIDGET_ID_DEBUG
 ````
 
+### Ethereum properties
+
+Set of params required to deliver Ethereum connection
+
+````
+// Ethereum blast api nodes keys
+FL_BLAST_API_ETHEREUM_KEY
+FL_BLAST_API_BSC_KEY
+FL_BLAST_API_SEPOLIA_KEY
+FL_BLAST_API_GOERLI_KEY
+FL_BLAST_API_POLYGON_KEY
+
+// Ethereum history providers api keys
+FL_ANDROID_ETHERSCAN_API_KEY
+FL_ANDROID_BSCSCAN_API_KEY
+FL_ANDROID_POLYGONSCAN_API_KEY
+````
+
 ## License
 Fearless Wallet Android is available under the Apache 2.0 license. See the LICENSE file for more info.

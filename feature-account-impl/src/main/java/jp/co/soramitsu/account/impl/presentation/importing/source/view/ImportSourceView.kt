@@ -6,10 +6,11 @@ import android.view.View
 import androidx.annotation.LayoutRes
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.lifecycle.LifecycleOwner
-import jp.co.soramitsu.common.utils.bindTo
-import jp.co.soramitsu.common.view.InputField
+import jp.co.soramitsu.account.api.presentation.importing.ImportAccountType
 import jp.co.soramitsu.account.impl.presentation.importing.ImportAccountViewModel
 import jp.co.soramitsu.account.impl.presentation.importing.source.model.ImportSource
+import jp.co.soramitsu.common.utils.bindTo
+import jp.co.soramitsu.common.view.InputField
 
 abstract class ImportSourceView @JvmOverloads constructor(
     @LayoutRes layoutId: Int,
@@ -24,7 +25,7 @@ abstract class ImportSourceView @JvmOverloads constructor(
         View.inflate(context, layoutId, this)
     }
 
-    abstract fun observeSource(source: ImportSource, lifecycleOwner: LifecycleOwner)
+    abstract fun observeSource(source: ImportSource, blockchainType: ImportAccountType, lifecycleOwner: LifecycleOwner)
 
     fun observeCommon(viewModel: ImportAccountViewModel, lifecycleOwner: LifecycleOwner) {
         nameInputView.content.bindTo(viewModel.nameLiveData, lifecycleOwner)

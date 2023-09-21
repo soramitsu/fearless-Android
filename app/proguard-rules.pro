@@ -35,6 +35,7 @@
 -keep class jp.co.soramitsu.core.** { *; }
 
 -keep class net.jpountz.** { *; }
+-keep class org.web3j.** { *; }
 
 #for beacon sdk
 

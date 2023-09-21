@@ -25,7 +25,7 @@ class SendSharedState {
 
     fun updateAddress(address: String) {
         clearAddress()
-        _addressFlow.value = address
+        _addressFlow.value = address.trim()
     }
 
     fun clear() {

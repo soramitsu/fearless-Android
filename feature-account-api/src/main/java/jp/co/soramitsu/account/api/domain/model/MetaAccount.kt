@@ -131,7 +131,7 @@ fun MetaAccount.chainAddress(chain: Chain): String? {
     }
 }
 
-fun MetaAccount.accountId(chain: IChain): ByteArray? {
+fun MetaAccount.accountId(chain: Chain): ByteArray? {
     return when {
         hasChainAccount(chain.id) -> chainAccounts.getValue(chain.id).accountId
         chain.isEthereumBased -> ethereumAddress

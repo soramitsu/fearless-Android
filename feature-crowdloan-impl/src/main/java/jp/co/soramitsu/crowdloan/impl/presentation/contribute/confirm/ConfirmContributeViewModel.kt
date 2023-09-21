@@ -4,7 +4,10 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
+import javax.inject.Named
 import jp.co.soramitsu.account.api.domain.interfaces.SelectedAccountUseCase
+import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressModel
@@ -50,8 +53,6 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import javax.inject.Inject
-import javax.inject.Named
 
 @HiltViewModel
 class ConfirmContributeViewModel @Inject constructor(
@@ -60,7 +61,7 @@ class ConfirmContributeViewModel @Inject constructor(
     private val resourceManager: ResourceManager,
     private val chainRegistry: ChainRegistry,
     @Named("CrowdloanAssetUseCase") assetUseCase: AssetUseCase,
-    accountUseCase: SelectedAccountUseCase,
+    private val accountUseCase: SelectedAccountUseCase,
     addressModelGenerator: AddressIconGenerator,
     private val validationExecutor: ValidationExecutor,
     private val validationSystem: ContributeValidationSystem,
@@ -207,15 +208,19 @@ class ConfirmContributeViewModel @Inject constructor(
                         payload.metadata.isAstar && (it as? AstarBonusPayload)?.referralCode.isNullOrEmpty().not() -> {
                             additionalOnChainSubmission(it, flowName, payload.amount, customContributeManager)
                         }
+
                         payload.metadata.isInterlay && (it as? InterlayBonusPayload)?.referralCode.isNullOrEmpty().not() -> {
                             additionalOnChainSubmission(it, flowName, payload.amount, customContributeManager)
                         }
+
                         payload.metadata.isMoonbeam && ethAddress?.second == true -> {
                             additionalOnChainSubmission(it, flowName, payload.amount, customContributeManager)
                         }
+
                         payload.metadata.isAcala && payload.contributionType == LcDOT -> {
                             additionalOnChainSubmission(it, flowName, payload.amount, customContributeManager)
                         }
+
                         else -> {
                             null
                         }
@@ -228,9 +233,14 @@ class ConfirmContributeViewModel @Inject constructor(
                     val recipient = contributionInteractor.getAcalaStatement(apiUrl).proxyAddress
                     val maxAllowedStatusLevel = if (suppressWarnings) TransferValidityLevel.Warning else TransferValidityLevel.Ok
                     val fee = feeFlow.firstOrNull()?.feeModel?.fee ?: return@launch
+
+                    val chainId = assetFlow.first().token.configuration.chainId
+                    val chain = chainRegistry.getChain(chainId)
+                    val currentAddress = requireNotNull(contributionInteractor.getSelectedMetaAccount().address(chain))
                     contributionInteractor.performTransfer(
                         transfer = Transfer(
                             recipient = recipient,
+                            sender = currentAddress,
                             amount = payload.amount,
                             chainAsset = assetFlow.first().token.configuration
                         ),
@@ -280,6 +290,7 @@ class ConfirmContributeViewModel @Inject constructor(
             val bonusUrl = payload.metadata.flow?.data?.getString(FLOW_BONUS_URL) ?: payload.metadata.website
             openBrowserEvent.postValue(Event(bonusUrl))
         }
+
         else -> Unit
     }
 }

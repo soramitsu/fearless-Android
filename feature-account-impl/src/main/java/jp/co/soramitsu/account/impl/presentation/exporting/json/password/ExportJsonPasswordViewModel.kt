@@ -4,6 +4,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.model.hasChainAccount
 import jp.co.soramitsu.account.api.presentation.exporting.ExportSource
@@ -20,7 +21,6 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @HiltViewModel
 class ExportJsonPasswordViewModel @Inject constructor(
@@ -130,6 +130,8 @@ class ExportJsonPasswordViewModel @Inject constructor(
             }
             if (payload != null) {
                 router.openExportJsonConfirm(payload)
+            } else {
+                nextProgress.value = false
             }
         }
     }

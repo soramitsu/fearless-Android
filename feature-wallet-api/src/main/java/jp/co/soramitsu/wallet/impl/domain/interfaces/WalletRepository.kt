@@ -46,6 +46,13 @@ interface WalletRepository {
         batchAll: Boolean = false
     ): Fee
 
+    suspend fun observeTransferFee(
+        chain: Chain,
+        transfer: Transfer,
+        additional: (suspend ExtrinsicBuilder.() -> Unit)? = null,
+        batchAll: Boolean = false
+    ): Flow<Fee>
+
     suspend fun performTransfer(
         accountId: AccountId,
         chain: Chain,
@@ -87,4 +94,6 @@ interface WalletRepository {
     suspend fun getControllerAccount(chainId: ChainId, accountId: AccountId): AccountId?
     suspend fun getStashAccount(chainId: ChainId, accountId: AccountId): AccountId?
     suspend fun fetchFeatureToggle()
+
+    suspend fun getTotalBalance(chainAsset: jp.co.soramitsu.core.models.Asset, chain: Chain, accountId: ByteArray): BigInteger
 }

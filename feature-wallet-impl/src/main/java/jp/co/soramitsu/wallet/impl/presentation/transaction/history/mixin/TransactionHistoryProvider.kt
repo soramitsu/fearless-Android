@@ -6,6 +6,7 @@ import jp.co.soramitsu.common.data.model.CursorPage
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.daysFromMillis
 import jp.co.soramitsu.feature_wallet_impl.R
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.wallet.impl.data.mappers.mapOperationToOperationModel
 import jp.co.soramitsu.wallet.impl.data.mappers.mapOperationToParcel
 import jp.co.soramitsu.wallet.impl.data.network.subquery.HistoryNotSupportedException
@@ -21,9 +22,11 @@ import jp.co.soramitsu.wallet.impl.presentation.transaction.filter.HistoryFilter
 import jp.co.soramitsu.wallet.impl.presentation.transaction.history.model.DayHeader
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
@@ -51,22 +54,36 @@ class TransactionHistoryProvider(
 
     private val currentData: MutableSet<Operation> = mutableSetOf()
 
-    private val _state = MutableStateFlow<TransactionHistoryUi.State>(TransactionHistoryUi.State.Refreshing)
+    private val _state =
+        MutableStateFlow<TransactionHistoryUi.State>(TransactionHistoryUi.State.Refreshing)
+
+    private val reloadHistoryEvent = MutableSharedFlow<Unit>()
+
     override fun state(): StateFlow<TransactionHistoryUi.State> = _state
 
-    private val _sideEffects: MutableSharedFlow<TransactionHistoryUi.SideEffect> = MutableSharedFlow()
+    private val _sideEffects: MutableSharedFlow<TransactionHistoryUi.SideEffect> =
+        MutableSharedFlow()
+
     override fun sideEffects() = _sideEffects
 
     init {
         launch {
-            assetPayloadStateFlow.onEach {
+            reloadHistoryEvent.debounce(100).collect {
                 reloadHistory()
+            }
+
+            assetPayloadStateFlow.onEach {
+                reloadHistoryEvent.emit(Unit)
             }.launchIn(this)
 
             historyFiltersProvider.filtersFlow().onEach {
-                reloadHistory()
+                reloadHistoryEvent.emit(Unit)
             }.launchIn(this)
         }
+    }
+
+    suspend fun tryReloadHistory() {
+        reloadHistoryEvent.emit(Unit)
     }
 
     private suspend fun reloadHistory() {
@@ -87,26 +104,42 @@ class TransactionHistoryProvider(
     }
 
     private suspend fun awaitOperationsFirstPage(assetPayload: AssetPayload): CursorPage<Operation> {
-        return walletInteractor.operationsFirstPageFlow(assetPayload.chainId, assetPayload.chainAssetId)
+        return walletInteractor.operationsFirstPageFlow(
+            assetPayload.chainId,
+            assetPayload.chainAssetId
+        )
             .distinctUntilChangedBy { it.cursorPage }
             .map { it.cursorPage }
             .first()
     }
 
-    override suspend fun syncFirstOperationsPage(assetPayload: AssetPayload): Result<*> {
-        return walletInteractor.syncOperationsFirstPage(
-            chainId = assetPayload.chainId,
-            chainAssetId = assetPayload.chainAssetId,
-            pageSize = PAGE_SIZE,
-            filters = historyFiltersProvider.currentFilters()
-        ).onFailure { throwable ->
-            val message = when (throwable) {
-                is HistoryNotSupportedException -> resourceManager.getString(R.string.wallet_transaction_history_unsupported_message)
-                else -> resourceManager.getString(R.string.wallet_transaction_history_error_message)
+    private var firstPageSyncJob: Job? = null
+
+    override suspend fun syncFirstOperationsPage(assetPayload: AssetPayload) {
+        if (firstPageSyncJob?.isCancelled == false || firstPageSyncJob?.isCompleted == false) return
+
+        firstPageSyncJob = launch {
+            walletInteractor.syncOperationsFirstPage(
+                chainId = assetPayload.chainId,
+                chainAssetId = assetPayload.chainAssetId,
+                pageSize = PAGE_SIZE,
+                filters = historyFiltersProvider.currentFilters()
+            ).onFailure { throwable ->
+                val message = when (throwable) {
+                    is HistoryNotSupportedException -> resourceManager.getString(R.string.wallet_transaction_history_unsupported_message)
+                    else -> resourceManager.getString(R.string.wallet_transaction_history_error_message)
+                }
+                _sideEffects.emit(
+                    TransactionHistoryUi.SideEffect.Error(
+                        throwable.localizedMessage ?: throwable.localizedMessage
+                    )
+                )
+                _state.emit(TransactionHistoryUi.State.Empty(message))
             }
-            _sideEffects.emit(TransactionHistoryUi.SideEffect.Error(throwable.localizedMessage ?: throwable.localizedMessage))
-            _state.emit(TransactionHistoryUi.State.Empty(message))
+
+            firstPageSyncJob?.cancel()
         }
+
     }
 
     var nextPageLoading = false
@@ -138,7 +171,11 @@ class TransactionHistoryProvider(
             )
                 .onFailure {
                     nextPageLoading = false
-                    _sideEffects.emit(TransactionHistoryUi.SideEffect.Error(it.localizedMessage ?: it.localizedMessage))
+                    _sideEffects.emit(
+                        TransactionHistoryUi.SideEffect.Error(
+                            it.localizedMessage ?: it.localizedMessage
+                        )
+                    )
                 }.onSuccess {
                     nextCursor = it.nextCursor
                     if (it.isEmpty()) {
@@ -151,7 +188,11 @@ class TransactionHistoryProvider(
         }
     }
 
-    override fun transactionClicked(transactionModel: OperationModel, assetPayload: AssetPayload) {
+    override fun transactionClicked(
+        transactionModel: OperationModel,
+        assetPayload: AssetPayload,
+        chainHistoryType: Chain.ExternalApi.Section.Type?
+    ) {
         launch {
             val operations = currentData
 
@@ -160,15 +201,25 @@ class TransactionHistoryProvider(
             withContext(Dispatchers.Main) {
                 when (val operation = mapOperationToParcel(clickedOperation, resourceManager)) {
                     is OperationParcelizeModel.Transfer -> {
-                        router.openTransferDetail(operation, assetPayload)
+                        router.openTransferDetail(operation, assetPayload, chainHistoryType)
                     }
 
                     is OperationParcelizeModel.Extrinsic -> {
-                        router.openExtrinsicDetail(ExtrinsicDetailsPayload(operation, assetPayload.chainId))
+                        router.openExtrinsicDetail(
+                            ExtrinsicDetailsPayload(
+                                operation,
+                                assetPayload.chainId
+                            )
+                        )
                     }
 
                     is OperationParcelizeModel.Reward -> {
-                        router.openRewardDetail(RewardDetailsPayload(operation, assetPayload.chainId))
+                        router.openRewardDetail(
+                            RewardDetailsPayload(
+                                operation,
+                                assetPayload.chainId
+                            )
+                        )
                     }
 
                     is OperationParcelizeModel.Swap -> {
