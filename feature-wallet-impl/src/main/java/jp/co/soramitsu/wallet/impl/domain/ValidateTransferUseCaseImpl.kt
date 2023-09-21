@@ -6,6 +6,7 @@ import jp.co.soramitsu.common.utils.sumByBigDecimal
 import jp.co.soramitsu.core.models.ChainAssetType
 import jp.co.soramitsu.core.models.ChainId
 import jp.co.soramitsu.core.utils.isValidAddress
+import jp.co.soramitsu.core.utils.removedXcPrefix
 import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
@@ -43,7 +44,7 @@ class ValidateTransferUseCaseImpl(
         val originChain = chainRegistry.getChain(chainId)
         val destinationChain = chainRegistry.getChain(destinationChainId)
         val chainAsset = asset.token.configuration
-        val destinationAsset = destinationChain.assets.firstOrNull { it.symbol == asset.token.configuration.symbol }
+        val destinationAsset = destinationChain.assets.firstOrNull { it.symbol.removedXcPrefix() == asset.token.configuration.symbol.removedXcPrefix() }
         val transferable = asset.transferableInPlanks
         val assetExistentialDeposit = existentialDepositUseCase(chainAsset)
         val tip = if (chainAsset.isUtility) walletConstants.tip(chainId).orZero() else BigInteger.ZERO
