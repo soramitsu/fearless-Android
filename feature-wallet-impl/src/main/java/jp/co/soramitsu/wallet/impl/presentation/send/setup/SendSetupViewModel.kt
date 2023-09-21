@@ -31,6 +31,7 @@ import jp.co.soramitsu.common.utils.combine
 import jp.co.soramitsu.common.utils.formatCrypto
 import jp.co.soramitsu.common.utils.formatCryptoDetail
 import jp.co.soramitsu.common.utils.formatFiat
+import jp.co.soramitsu.common.utils.greaterThen
 import jp.co.soramitsu.common.utils.isNotZero
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.requireValue
@@ -105,6 +106,8 @@ class SendSetupViewModel @Inject constructor(
     val payload: AssetPayload? = savedStateHandle[SendSetupFragment.KEY_PAYLOAD]
     private val initSendToAddress: String? = savedStateHandle[SendSetupFragment.KEY_INITIAL_ADDRESS]
     private val tokenCurrencyId: String? = savedStateHandle[SendSetupFragment.KEY_TOKEN_ID]
+    private val initSendToAmount: BigDecimal? = savedStateHandle[SendSetupFragment.KEY_INITIAL_AMOUNT]
+    private val lockSendToAmount: Boolean = savedStateHandle.get<Boolean>(SendSetupFragment.KEY_LOCK_AMOUNT) == true
 
     val isInitConditionsCorrect = if (initSendToAddress.isNullOrEmpty() && payload == null) {
         error("Required data (asset or address) not specified")
@@ -112,7 +115,7 @@ class SendSetupViewModel @Inject constructor(
         true
     }
 
-    private val initialAmount = BigDecimal.ZERO
+    private val initialAmount = initSendToAmount.orZero()
     private val confirmedValidations = mutableListOf<TransferValidationResult>()
 
     private val chainIdFlow = sharedState.chainIdFlow
@@ -205,14 +208,16 @@ class SendSetupViewModel @Inject constructor(
 
     private val enteredAmountBigDecimalFlow = MutableStateFlow(initialAmount)
     private val visibleAmountFlow = MutableStateFlow(initialAmount)
-    private val initialAmountFlow = MutableStateFlow<BigDecimal?>(null)
+    private val initialAmountFlow = MutableStateFlow(initialAmount.takeIf { it.isNotZero() })
+    private val lockAmountInputFlow = MutableStateFlow(lockSendToAmount)
 
     private val amountInputViewState: Flow<AmountInputViewState> = combine(
         visibleAmountFlow,
         initialAmountFlow,
         assetFlow,
-        amountInputFocusFlow
-    ) { amount, initialAmount, asset, isAmountInputFocused ->
+        amountInputFocusFlow,
+        lockAmountInputFlow
+    ) { amount, initialAmount, asset, isAmountInputFocused, isLockAmountInput ->
         if (asset == null) {
             defaultAmountInputState
         } else {
@@ -231,9 +236,10 @@ class SendSetupViewModel @Inject constructor(
                 tokenAmount = amount,
                 isActive = true,
                 isFocused = isAmountInputFocused,
-                allowAssetChoose = true,
+                allowAssetChoose = isLockAmountInput.not(),
                 precision = asset.token.configuration.precision,
-                initial = initialAmount
+                initial = initialAmount,
+                inputEnabled = isLockAmountInput.not()
             )
         }
     }.stateIn(this, SharingStarted.Eagerly, defaultAmountInputState)
@@ -549,7 +555,7 @@ class SendSetupViewModel @Inject constructor(
 
     fun qrCodeScanned(content: String) {
         viewModelScope.launch {
-            val tryReadSoraAddressFromUrl = walletInteractor.tryReadSoraAddressFromUrl(content)
+            val tryReadSoraAddressFromUrl = walletInteractor.tryReadSoraAddressAndAmountFromUrl(content)
             if (tryReadSoraAddressFromUrl != null) {
 
                 val soraChainId = if (BuildConfig.DEBUG) soraTestChainId else soraMainChainId
@@ -558,11 +564,16 @@ class SendSetupViewModel @Inject constructor(
                     sharedState.update(soraChainId, asset.id)
                 }
             }
-            val result = tryReadSoraAddressFromUrl
+            val result = tryReadSoraAddressFromUrl?.first
                 ?: walletInteractor.tryReadAddressFromSoraFormat(content)
                 ?: content
 
             addressInputFlow.value = result
+
+            val amount = tryReadSoraAddressFromUrl?.second ?: BigDecimal.ZERO
+            lockAmountInputFlow.value = amount.greaterThen(BigDecimal.ZERO)
+            initialAmountFlow.value = amount
+            onAmountInput(amount)
         }
     }
 
