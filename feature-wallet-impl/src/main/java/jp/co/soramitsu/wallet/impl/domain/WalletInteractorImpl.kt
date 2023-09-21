@@ -1,5 +1,6 @@
 package jp.co.soramitsu.wallet.impl.domain
 
+import android.net.Uri
 import java.math.BigDecimal
 import java.math.BigInteger
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
@@ -28,6 +29,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.ChainEcosystem
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.isPolkadotOrKusama
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId
 import jp.co.soramitsu.runtime.multiNetwork.chainWithAsset
 import jp.co.soramitsu.shared_utils.runtime.AccountId
 import jp.co.soramitsu.shared_utils.runtime.metadata.module
@@ -313,6 +315,22 @@ class WalletInteractorImpl(
     override fun tryReadAddressFromSoraFormat(content: String): String? {
         val list = content.split(":")
         return list.getOrNull(1)
+    }
+
+    override suspend fun tryReadSoraAddressAndAmountFromUrl(content: String): Pair<String, BigDecimal?>? {
+        return try {
+            val uri = Uri.parse(content)
+            val address = uri.getQueryParameter("wallAdd")
+            val amount = uri.getQueryParameter("amount")
+            val amountDecimal = runCatching { BigDecimal(amount) }.getOrNull()
+
+            address?.takeIf {
+                getChain(soraMainChainId).isValidAddress(address)
+            }?.let { it to amountDecimal }
+
+        } catch (e: Exception) {
+            null
+        }
     }
 
     override fun tryReadTokenIdFromSoraFormat(content: String): String? {
