@@ -4,8 +4,8 @@ apply plugin: "detekt-setup"
 buildscript {
     ext {
         // App version
-        versionName = '2.4.3'
-        versionCode = 110
+        versionName = '3.0.1'
+        versionCode = 111
 
         // SDK and tools
         compileSdkVersion = 33
