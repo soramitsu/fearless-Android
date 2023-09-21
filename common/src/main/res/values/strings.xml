@@ -50,6 +50,7 @@
   <string name="account_template">%s account</string>
   <string name="accounts_add_account">Add an account</string>
   <string name="accounts_for_export">Accounts to export</string>
+  <string name="accounts_not_found">No accounts were found</string>
   <string name="accounts_with_changed_key">Accounts with a changed key</string>
   <string name="accounts_with_one_key">Account with shared secret</string>
   <string name="add_node_button_title">Add node</string>
