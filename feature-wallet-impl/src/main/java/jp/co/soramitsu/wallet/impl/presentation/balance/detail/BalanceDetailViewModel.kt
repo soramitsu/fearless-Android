@@ -263,13 +263,15 @@ class BalanceDetailViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             router.chainSelectorPayloadFlow.collect { chainId ->
+                if (selectedChainId.value != chainId) {
+                    transactionHistoryProvider.tryReloadHistory()
+                }
                 chainId?.let { selectedChainId.value = chainId }
             }
             transactionHistoryProvider.sideEffects().collect {
                 when (it) {
                     is TransactionHistoryUi.SideEffect.Error -> showError(
-                        it.message
-                            ?: resourceManager.getString(R.string.common_undefined_error_message)
+                        it.message ?: resourceManager.getString(R.string.common_undefined_error_message)
                     )
                 }
             }
