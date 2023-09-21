@@ -121,7 +121,7 @@ class SubqueryRewardCalculator(
         }
         val collatorApyMap = response.fold({
             it.data.stakers.mapNotNull { element ->
-                element.stashId?.let { it.fromHex().toHexString(false) to element.apr24h?.percentageToFraction() }
+                element.stashId?.let { it.fromHex().toHexString(false) to element.apr24h }
             }.toMap()
         }, {
             Log.e(
