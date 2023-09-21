@@ -45,7 +45,7 @@ class SubqueryRewardCalculator(
     }
 
     private suspend fun calculateSubsquidMaxAPY(stakingUrl: String): BigDecimal {
-        return getSubsquidRewards(stakingUrl).maxOf { it.value.orZero() }.fractionToPercentage()
+        return getSubsquidRewards(stakingUrl).maxOf { it.value.orZero() }
     }
 
     private suspend fun calculateSubqueryMaxAPY(stakingUrl: String): BigDecimal {
@@ -121,7 +121,7 @@ class SubqueryRewardCalculator(
         }
         val collatorApyMap = response.fold({
             it.data.stakers.mapNotNull { element ->
-                element.stashId?.let { it.fromHex().toHexString(false) to element.apr24h?.percentageToFraction() }
+                element.stashId?.let { it.fromHex().toHexString(false) to element.apr24h }
             }.toMap()
         }, {
             Log.e(

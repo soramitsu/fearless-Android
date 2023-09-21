@@ -14,8 +14,8 @@ import jp.co.soramitsu.common.data.network.runtime.binding.Phase
 import jp.co.soramitsu.common.data.network.runtime.binding.bindEquilibriumAssetRates
 import jp.co.soramitsu.common.data.network.runtime.binding.bindExtrinsicStatusEventRecords
 import jp.co.soramitsu.common.data.network.runtime.binding.bindOrNull
-import jp.co.soramitsu.common.utils.Calls
 import jp.co.soramitsu.common.data.network.runtime.binding.getTyped
+import jp.co.soramitsu.common.utils.Calls
 import jp.co.soramitsu.common.utils.Modules
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.staking

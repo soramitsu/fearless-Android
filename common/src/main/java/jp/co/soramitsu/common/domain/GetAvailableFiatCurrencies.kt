@@ -1,12 +1,14 @@
 package jp.co.soramitsu.common.domain
 
+import java.util.Calendar
 import jp.co.soramitsu.common.data.network.coingecko.CoingeckoApi
 import jp.co.soramitsu.common.data.network.coingecko.FiatCurrency
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import java.util.Calendar
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.withContext
 
 typealias FiatCurrencies = List<FiatCurrency>
 
@@ -18,9 +20,9 @@ class GetAvailableFiatCurrencies(private val coingeckoApi: CoingeckoApi) {
 
     operator fun get(index: String): FiatCurrency? = cache.value.firstOrNull { it.id == index }
 
-    suspend operator fun invoke(): FiatCurrencies {
+    suspend operator fun invoke(): FiatCurrencies = withContext(Dispatchers.IO) {
         sync()
-        return cache.value
+        return@withContext cache.value
     }
 
     fun flow(): Flow<FiatCurrencies> = cache

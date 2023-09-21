@@ -6,6 +6,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import jp.co.soramitsu.account.api.domain.PendulumPreInstalledAccountsScenario
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.TotalBalanceUseCase
 import jp.co.soramitsu.account.api.domain.model.ImportMode
@@ -44,7 +45,8 @@ class SelectWalletViewModel @Inject constructor(
     private val updatesMixin: UpdatesMixin,
     private val getTotalBalance: TotalBalanceUseCase,
     private val backupService: BackupService,
-    private val resourceManager: ResourceManager
+    private val resourceManager: ResourceManager,
+    private val pendulumPreInstalledAccountsScenario: PendulumPreInstalledAccountsScenario
 ) : BaseViewModel(), UpdatesProviderUi by updatesMixin {
 
     private val accountsFlow = accountListingMixin.accountsFlow(AddressIconGenerator.SIZE_BIG)
@@ -69,6 +71,7 @@ class SelectWalletViewModel @Inject constructor(
         .share()
     private val selectedWalletItem = MutableStateFlow<WalletItemViewState?>(null)
     val googleAuthorizeLiveData = MutableLiveData<Event<Unit>>()
+    val importPreInstalledWalletLiveData = MutableLiveData<Event<Unit>>()
 
     val state = combine(
         walletItemsFlow,
@@ -114,13 +117,19 @@ class SelectWalletViewModel @Inject constructor(
     }
 
     private fun handleSelectedImportMode(importMode: ImportMode) {
-        if (importMode == ImportMode.Google) {
-            googleAuthorizeLiveData.value = Event(Unit)
-        } else {
-            router.openImportAccountScreen(
-                blockChainType = SUBSTRATE_BLOCKCHAIN_TYPE,
-                importMode = importMode
-            )
+        when (importMode) {
+            ImportMode.Google -> {
+                googleAuthorizeLiveData.value = Event(Unit)
+            }
+            ImportMode.Preinstalled -> {
+                importPreInstalledWalletLiveData.value = Event(Unit)
+            }
+            else -> {
+                router.openImportAccountScreen(
+                    blockChainType = SUBSTRATE_BLOCKCHAIN_TYPE,
+                    importMode = importMode
+                )
+            }
         }
     }
 
@@ -151,5 +160,22 @@ class SelectWalletViewModel @Inject constructor(
 
     fun onGoogleLoginError(message: String?) {
         showError("GoogleLoginError: ${message.orEmpty()}")
+    }
+
+    fun onQrScanResult(result: String?) {
+        if (result == null) {
+            showError("Can't scan qr code")
+            return
+        }
+
+        viewModelScope.launch {
+            pendulumPreInstalledAccountsScenario.import(result)
+                .onFailure {
+                    showError(it)
+                }
+                .onSuccess {
+                    router.back()
+                }
+        }
     }
 }

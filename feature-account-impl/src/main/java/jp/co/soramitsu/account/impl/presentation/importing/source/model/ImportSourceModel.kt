@@ -9,6 +9,7 @@ import androidx.lifecycle.MutableLiveData
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.model.ImportJsonData
 import jp.co.soramitsu.account.api.presentation.accountSource.AccountSource
+import jp.co.soramitsu.account.api.presentation.importing.ImportAccountType
 import jp.co.soramitsu.account.impl.data.mappers.mapCryptoTypeToCryptoTypeModel
 import jp.co.soramitsu.account.impl.presentation.importing.FileReader
 import jp.co.soramitsu.account.impl.presentation.view.advanced.encryption.model.CryptoTypeModel
@@ -17,13 +18,17 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.isNotEmpty
 import jp.co.soramitsu.common.utils.sendEvent
+import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.shared_utils.encrypt.json.JsonSeedDecodingException.IncorrectPasswordException
 import jp.co.soramitsu.shared_utils.encrypt.json.JsonSeedDecodingException.InvalidJsonException
 import jp.co.soramitsu.shared_utils.exceptions.Bip39Exception
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import org.bouncycastle.util.encoders.DecoderException
+
+class WrongBlockchainImportJsonException : Exception()
 
 class ImportError(
     @StringRes val titleRes: Int = R.string.common_error_general_title,
@@ -62,11 +67,14 @@ class JsonImportSource(
     private val scope: CoroutineScope
 ) : ImportSource(R.string.recovery_json, R.string.recover_json_hint, R.drawable.ic_save_type_json), FileRequester {
 
+    val blockchainTypeFlow = MutableStateFlow<ImportAccountType?>(null)
     val jsonContentLiveData = MutableLiveData<String>()
     val passwordLiveData = MutableLiveData<String>()
 
     private val _showJsonInputOptionsEvent = MutableLiveData<Event<Unit>>()
     val showJsonInputOptionsEvent: LiveData<Event<Unit>> = _showJsonInputOptionsEvent
+    private val _showImportErrorEvent = MutableLiveData<Event<ImportError>>()
+    val showImportErrorEvent: LiveData<Event<ImportError>> = _showImportErrorEvent
 
     override val chooseJsonFileEvent = MutableLiveData<Event<RequestCode>>()
 
@@ -82,14 +90,21 @@ class JsonImportSource(
 
     override fun handleError(throwable: Throwable): ImportError? {
         return when (throwable) {
+            is WrongBlockchainImportJsonException -> ImportError(
+                titleRes = R.string.import_json_invalid_format_title,
+                messageRes = R.string.import_json_invalid_import_type_message
+            )
+
             is IncorrectPasswordException -> ImportError(
                 titleRes = R.string.import_json_invalid_password_title,
                 messageRes = R.string.import_json_invalid_password
             )
+
             is InvalidJsonException -> ImportError(
                 titleRes = R.string.import_json_invalid_format_title,
                 messageRes = R.string.import_json_invalid_format_message
             )
+
             else -> null
         }
     }
@@ -115,13 +130,45 @@ class JsonImportSource(
     }
 
     private fun jsonReceived(newJson: String) {
-        jsonContentLiveData.value = newJson
-
         scope.launch {
             val result = interactor.processAccountJson(newJson)
 
-            if (result.isSuccess) {
-                handleParsedImportData(result.getOrThrow())
+            runCatching {
+                val jsonResult = result.getOrThrow()
+                val parsedJsonEncryptionType = jsonResult.encryptionType
+                val importBlockchainType = blockchainTypeFlow.value
+
+                checkJsonForBlockchainType(importBlockchainType, parsedJsonEncryptionType)
+
+                jsonContentLiveData.value = newJson
+
+                handleParsedImportData(jsonResult)
+            }.onFailure {
+                handleError(it)?.let { importError ->
+                    _showImportErrorEvent.value = Event(importError)
+                }
+            }
+        }
+    }
+
+    @Throws(WrongBlockchainImportJsonException::class, InvalidJsonException::class)
+    private fun checkJsonForBlockchainType(importBlockchainType: ImportAccountType?, parsedJsonEncryptionType: CryptoType?) {
+        importBlockchainType ?: return
+        parsedJsonEncryptionType ?: return
+
+        when (importBlockchainType) {
+            ImportAccountType.Substrate -> when (parsedJsonEncryptionType) {
+                CryptoType.SR25519,
+                CryptoType.ED25519 -> return
+
+                CryptoType.ECDSA -> throw WrongBlockchainImportJsonException()
+            }
+
+            ImportAccountType.Ethereum -> when (parsedJsonEncryptionType) {
+                CryptoType.SR25519,
+                CryptoType.ED25519 -> throw InvalidJsonException()
+
+                CryptoType.ECDSA -> return
             }
         }
     }

@@ -68,6 +68,8 @@ interface WalletInteractor {
 
     suspend fun getTransferFee(transfer: Transfer): Fee
 
+    suspend fun observeTransferFee(transfer: Transfer): Flow<Fee>
+
     suspend fun performTransfer(
         transfer: Transfer,
         fee: BigDecimal,
@@ -79,6 +81,8 @@ interface WalletInteractor {
     suspend fun createFileInTempStorageAndRetrieveAsset(fileName: String): Result<File>
 
     fun tryReadAddressFromSoraFormat(content: String): String?
+
+    suspend fun tryReadSoraAddressFromUrl(content: String): String?
 
     fun tryReadTokenIdFromSoraFormat(content: String): String?
 

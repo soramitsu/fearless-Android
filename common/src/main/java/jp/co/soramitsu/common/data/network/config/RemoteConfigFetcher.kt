@@ -12,4 +12,7 @@ interface RemoteConfigFetcher {
 
     @GET(BuildConfig.POLKASWAP_CONFIG_URL)
     suspend fun getPolkaswapConfig(): PolkaswapRemoteConfig
+
+    @GET(BuildConfig.FEATURE_TOGGLE_URL)
+    suspend fun getFeatureToggle(): FeatureToggleConfig
 }

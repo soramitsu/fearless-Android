@@ -1,6 +1,5 @@
 package jp.co.soramitsu.app.root.domain
 
-import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.domain.model.toDomain
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.core.updater.UpdateSystem
@@ -12,8 +11,7 @@ import kotlinx.coroutines.flow.flowOf
 
 class RootInteractor(
     private val updateSystem: UpdateSystem,
-    private val walletRepository: WalletRepository,
-    private val preferences: Preferences
+    private val walletRepository: WalletRepository
 ) {
 
     fun runBalancesUpdate(): Flow<Updater.SideEffect> = updateSystem.start().inBackground()
@@ -31,4 +29,6 @@ class RootInteractor(
     suspend fun getRemoteConfig() = walletRepository.getRemoteConfig().map { it.toDomain() }
 
     fun chainRegistrySyncUp() = walletRepository.chainRegistrySyncUp()
+
+    suspend fun fetchFeatureToggle() = walletRepository.fetchFeatureToggle()
 }

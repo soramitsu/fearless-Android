@@ -123,15 +123,18 @@ fun ConfirmSendContent(
                     InfoTable(items = state.tableItems, onItemClick = callback::onItemClick)
                     MarginVertical(margin = 12.dp)
 
+                    val isInitialLoading = state.feeInfoItem == null
                     AccentButton(
-                        state = state.buttonState,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp),
+                        text = state.buttonState.text.takeIf { isInitialLoading.not() }.orEmpty(),
+                        enabled = state.buttonState.enabled,
+                        loading = isInitialLoading,
                         onClick = {
                             keyboardController?.hide()
                             callback.onNextClick()
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(48.dp)
+                        }
                     )
 
                     MarginVertical(margin = 12.dp)

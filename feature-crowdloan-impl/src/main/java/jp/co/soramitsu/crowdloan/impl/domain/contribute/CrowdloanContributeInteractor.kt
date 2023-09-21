@@ -173,4 +173,6 @@ class CrowdloanContributeInteractor(
     suspend fun saveEthAddress(paraId: ParaId, address: String, etheriumAddress: String) {
         crowdloanRepository.saveEthAddress(paraId, address, etheriumAddress)
     }
+
+    suspend fun getSelectedMetaAccount() = accountRepository.getSelectedMetaAccount()
 }

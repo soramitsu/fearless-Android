@@ -190,7 +190,7 @@ class SetupStakingPoolViewModel @Inject constructor(
 
         return when {
             amountInPlanks + feeInPlanks >= transferableInPlanks -> Result.failure(StakeInsufficientBalanceException(resourceManager))
-            transferableInPlanks - amountInPlanks - feeInPlanks <= existentialDeposit -> Result.failure(ExistentialDepositCrossedException(resourceManager))
+            transferableInPlanks - amountInPlanks - feeInPlanks <= existentialDeposit -> Result.failure(ExistentialDepositCrossedException(resourceManager, existentialDeposit.formatCryptoDetailFromPlanks(asset.token.configuration)))
             amountInPlanks < minToJoinInPlanks -> Result.failure(AmountTooLowToStakeException(resourceManager, minToJoinFormatted))
             else -> Result.success(Unit)
         }

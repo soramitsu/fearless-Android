@@ -47,7 +47,7 @@ class BalanceDetailFragment : BaseComposeFragment<BalanceDetailViewModel>() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
+        lifecycle.addObserver(viewModel)
         subscribe(viewModel)
 
         hideKeyboard()

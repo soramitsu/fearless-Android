@@ -1,4 +1,4 @@
-package jp.co.soramitsu.wallet.impl.presentation.common
+package jp.co.soramitsu.common.presentation
 
 import androidx.fragment.app.Fragment
 import jp.co.soramitsu.android_foundation.core.PermissionResult

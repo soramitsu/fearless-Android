@@ -166,7 +166,15 @@ class AccountRepositoryImpl(
         substrateDerivationPath: String,
         ethereumDerivationPath: String
     ) {
-        saveChainAccountFromMnemonic(metaId, chainId, accountName, mnemonicWords, cryptoType, substrateDerivationPath, ethereumDerivationPath)
+        saveChainAccountFromMnemonic(
+            metaId,
+            chainId,
+            accountName,
+            mnemonicWords,
+            cryptoType,
+            substrateDerivationPath,
+            ethereumDerivationPath
+        )
     }
 
     override suspend fun createAccount(
@@ -201,7 +209,8 @@ class AccountRepositoryImpl(
     }
 
     override suspend fun getAccount(address: String): Account {
-        val account = accountDao.getAccount(address) ?: throw NoSuchElementException("No account found for address $address")
+        val account = accountDao.getAccount(address)
+            ?: throw NoSuchElementException("No account found for address $address")
         return mapAccountLocalToAccount(account)
     }
 
@@ -253,7 +262,15 @@ class AccountRepositoryImpl(
         substrateDerivationPath: String,
         ethereumDerivationPath: String
     ) {
-        saveChainAccountFromMnemonic(metaId, chainId, accountName, mnemonicWords, cryptoType, substrateDerivationPath, ethereumDerivationPath)
+        saveChainAccountFromMnemonic(
+            metaId,
+            chainId,
+            accountName,
+            mnemonicWords,
+            cryptoType,
+            substrateDerivationPath,
+            ethereumDerivationPath
+        )
     }
 
     override suspend fun importFromSeed(
@@ -279,7 +296,8 @@ class AccountRepositoryImpl(
                 decodedDerivationPath?.junctions.orEmpty()
             )
 
-            val ethereumKeypair = ethSeedBytes?.let { EthereumKeypairFactory.createWithPrivateKey(it) }
+            val ethereumKeypair =
+                ethSeedBytes?.let { EthereumKeypairFactory.createWithPrivateKey(it) }
 
             val position = metaAccountDao.getNextPosition()
 
@@ -395,7 +413,8 @@ class AccountRepositoryImpl(
 
             val position = metaAccountDao.getNextPosition()
 
-            val ethereumKeypair = ethKeys?.let { EthereumKeypairFactory.createWithPrivateKey(it.privateKey) }
+            val ethereumKeypair =
+                ethKeys?.let { EthereumKeypairFactory.createWithPrivateKey(it.privateKey) }
 
             val secretsV2 = MetaAccountSecrets(
                 substrateKeyPair = substrateKeys,
@@ -522,7 +541,10 @@ class AccountRepositoryImpl(
         return accountDataSource.getSecuritySource(accountAddress)!!
     }
 
-    override suspend fun getChainAccountSecrets(metaId: Long?, chainId: ChainId): EncodableStruct<ChainAccountSecrets>? {
+    override suspend fun getChainAccountSecrets(
+        metaId: Long?,
+        chainId: ChainId
+    ): EncodableStruct<ChainAccountSecrets>? {
         return (metaId?.let { getMetaAccount(it) } ?: getSelectedMetaAccount()).let { metaAccount ->
             if (metaAccount.hasChainAccount((chainId))) {
                 metaAccount.chainAccounts[chainId]?.accountId?.let { accountId ->
@@ -539,59 +561,64 @@ class AccountRepositoryImpl(
         return storeV2.getMetaAccountSecrets(id)
     }
 
-    override suspend fun generateRestoreJson(metaId: Long, chainId: ChainId, password: String) = withContext(Dispatchers.Default) {
-        val chain = chainRegistry.getChain(chainId)
-        val metaAccount = getMetaAccount(metaId)
+    override suspend fun generateRestoreJson(metaId: Long, chainId: ChainId, password: String) =
+        withContext(Dispatchers.Default) {
+            val chain = chainRegistry.getChain(chainId)
+            val metaAccount = getMetaAccount(metaId)
 
-        val hasChainAccount = metaAccount.hasChainAccount(chainId)
-        val (keypairSchema, seed) = if (hasChainAccount) {
-            val secrets = getChainAccountSecrets(metaId, chainId)
+            val hasChainAccount = metaAccount.hasChainAccount(chainId)
+            val (keypairSchema, seed) = if (hasChainAccount) {
+                val secrets = getChainAccountSecrets(metaId, chainId)
 
-            val keypairSchema = secrets?.get(ChainAccountSecrets.Keypair)
+                val keypairSchema = secrets?.get(ChainAccountSecrets.Keypair)
 
-            val seed = secrets?.get(ChainAccountSecrets.Seed)
-            keypairSchema to seed
-        } else {
-            val secrets = getMetaAccountSecrets(metaId)
-
-            val keypairSchema = if (chain.isEthereumBased) {
-                secrets?.get(MetaAccountSecrets.EthereumKeypair)
+                val seed = secrets?.get(ChainAccountSecrets.Seed)
+                keypairSchema to seed
             } else {
-                secrets?.get(MetaAccountSecrets.SubstrateKeypair)
+                val secrets = getMetaAccountSecrets(metaId)
+
+                val keypairSchema = if (chain.isEthereumBased) {
+                    secrets?.get(MetaAccountSecrets.EthereumKeypair)
+                } else {
+                    secrets?.get(MetaAccountSecrets.SubstrateKeypair)
+                }
+
+                val seed = secrets?.get(MetaAccountSecrets.Seed)
+                keypairSchema to seed
             }
 
-            val seed = secrets?.get(MetaAccountSecrets.Seed)
-            keypairSchema to seed
-        }
+            val publicKey = keypairSchema?.get(KeyPairSchema.PublicKey)
+            val privateKey = keypairSchema?.get(KeyPairSchema.PrivateKey)
 
-        val publicKey = keypairSchema?.get(KeyPairSchema.PublicKey)
-        val privateKey = keypairSchema?.get(KeyPairSchema.PrivateKey)
+            val nonce = keypairSchema?.get(KeyPairSchema.Nonce)
+            val keypair = when {
+                publicKey == null -> null
+                privateKey == null -> null
+                else -> Keypair(
+                    publicKey = publicKey,
+                    privateKey = privateKey,
+                    nonce = nonce
+                )
+            } ?: throw IllegalArgumentException("No keypair found")
+            val address = metaAccount.address(chain)
+                ?: throw IllegalArgumentException("No address specified for chain ${chain.name}")
 
-        val nonce = keypairSchema?.get(KeyPairSchema.Nonce)
-        val keypair = when {
-            publicKey == null -> null
-            privateKey == null -> null
-            else -> Keypair(
-                publicKey = publicKey,
-                privateKey = privateKey,
-                nonce = nonce
+            val cryptoType = mapCryptoTypeToEncryption(metaAccount.cryptoType(chain))
+            val multiChainEncryption =
+                if (chain.isEthereumBased) MultiChainEncryption.Ethereum else MultiChainEncryption.Substrate(
+                    cryptoType
+                )
+
+            jsonSeedEncoder.generate(
+                keypair = keypair,
+                seed = seed,
+                password = password,
+                name = metaAccount.name,
+                multiChainEncryption = multiChainEncryption,
+                genesisHash = chain.id,
+                address = address
             )
-        } ?: throw IllegalArgumentException("No keypair found")
-        val address = metaAccount.address(chain) ?: throw IllegalArgumentException("No address specified for chain ${chain.name}")
-
-        val cryptoType = mapCryptoTypeToEncryption(metaAccount.cryptoType(chain))
-        val multiChainEncryption = if (chain.isEthereumBased) MultiChainEncryption.Ethereum else MultiChainEncryption.Substrate(cryptoType)
-
-        jsonSeedEncoder.generate(
-            keypair = keypair,
-            seed = seed,
-            password = password,
-            name = metaAccount.name,
-            multiChainEncryption = multiChainEncryption,
-            genesisHash = chain.id,
-            address = address
-        )
-    }
+        }
 
     override suspend fun isAccountExists(accountId: AccountId): Boolean {
         return accountDataSource.accountExists(accountId)
@@ -640,7 +667,8 @@ class AccountRepositoryImpl(
                 SubstrateJunctionDecoder.decode(it)
             }
 
-            val derivationResult = SubstrateSeedFactory.deriveSeed32(mnemonicWords, decodedDerivationPath?.password)
+            val derivationResult =
+                SubstrateSeedFactory.deriveSeed32(mnemonicWords, decodedDerivationPath?.password)
 
             val keys = SubstrateKeypairFactory.generate(
                 encryptionType = mapCryptoTypeToEncryption(cryptoType),
@@ -651,9 +679,16 @@ class AccountRepositoryImpl(
             val mnemonic = MnemonicCreator.fromWords(mnemonicWords)
 
             val (ethereumKeypair: Keypair?, ethereumDerivationPathOrDefault: String?) = if (withEth) {
-                val decodedEthereumDerivationPath = BIP32JunctionDecoder.decode(ethereumDerivationPath)
-                val ethereumSeed = EthereumSeedFactory.deriveSeed32(mnemonicWords, password = decodedEthereumDerivationPath.password).seed
-                val ethereumKeypair = EthereumKeypairFactory.generate(ethereumSeed, junctions = decodedEthereumDerivationPath.junctions)
+                val decodedEthereumDerivationPath =
+                    BIP32JunctionDecoder.decode(ethereumDerivationPath)
+                val ethereumSeed = EthereumSeedFactory.deriveSeed32(
+                    mnemonicWords,
+                    password = decodedEthereumDerivationPath.password
+                ).seed
+                val ethereumKeypair = EthereumKeypairFactory.generate(
+                    ethereumSeed,
+                    junctions = decodedEthereumDerivationPath.junctions
+                )
 
                 ethereumKeypair to ethereumDerivationPath
             } else {
@@ -705,7 +740,8 @@ class AccountRepositoryImpl(
             SubstrateJunctionDecoder.decode(it)
         }
 
-        val derivationResult = SubstrateSeedFactory.deriveSeed32(mnemonicWords, decodedDerivationPath?.password)
+        val derivationResult =
+            SubstrateSeedFactory.deriveSeed32(mnemonicWords, decodedDerivationPath?.password)
 
         val keys = SubstrateKeypairFactory.generate(
             encryptionType = mapCryptoTypeToEncryption(cryptoType),
@@ -716,8 +752,14 @@ class AccountRepositoryImpl(
         val mnemonic = MnemonicCreator.fromWords(mnemonicWords)
 
         val decodedEthereumDerivationPath = BIP32JunctionDecoder.decode(ethereumDerivationPath)
-        val ethereumSeed = EthereumSeedFactory.deriveSeed32(mnemonicWords, password = decodedEthereumDerivationPath.password).seed
-        val ethereumKeypair = EthereumKeypairFactory.generate(ethereumSeed, junctions = decodedEthereumDerivationPath.junctions)
+        val ethereumSeed = EthereumSeedFactory.deriveSeed32(
+            mnemonicWords,
+            password = decodedEthereumDerivationPath.password
+        ).seed
+        val ethereumKeypair = EthereumKeypairFactory.generate(
+            ethereumSeed,
+            junctions = decodedEthereumDerivationPath.junctions
+        )
 
         val ethereumBased = chainRegistry.getChain(chainId).isEthereumBased
         val keyPair = when {

@@ -5,9 +5,12 @@ import it.airgap.beaconsdk.core.internal.utils.onEachFailure
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.accountId
+import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
 import jp.co.soramitsu.common.data.network.runtime.binding.ExtrinsicStatusEvent
+import jp.co.soramitsu.common.data.network.runtime.binding.SimpleBalanceData
 import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
+import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.requireException
 import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.core.models.Asset
@@ -19,7 +22,6 @@ import jp.co.soramitsu.coredb.model.OperationLocal
 import jp.co.soramitsu.runtime.ext.addressOf
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
-import jp.co.soramitsu.runtime.multiNetwork.getRuntimeOrNull
 import jp.co.soramitsu.runtime.multiNetwork.getSocket
 import jp.co.soramitsu.runtime.multiNetwork.getSocketOrNull
 import jp.co.soramitsu.runtime.multiNetwork.toSyncIssue
@@ -31,6 +33,7 @@ import jp.co.soramitsu.shared_utils.wsrpc.request.runtime.storage.storageChange
 import jp.co.soramitsu.wallet.api.data.cache.AssetCache
 import jp.co.soramitsu.wallet.api.data.cache.updateAsset
 import jp.co.soramitsu.wallet.impl.data.mappers.mapOperationStatusToOperationLocalStatus
+import jp.co.soramitsu.wallet.impl.data.network.blockchain.EthereumRemoteSource
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.SubstrateRemoteSource
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.bindings.TransferExtrinsic
 import jp.co.soramitsu.wallet.impl.data.network.model.constructBalanceKey
@@ -44,6 +47,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flatMapMerge
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.withContext
@@ -58,6 +62,7 @@ class BalancesUpdateSystem(
     private val substrateSource: SubstrateRemoteSource,
     private val operationDao: OperationDao,
     private val networkStateMixin: NetworkStateMixin,
+    private val ethereumRemoteSource: EthereumRemoteSource
 ) : UpdateSystem {
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -68,8 +73,25 @@ class BalancesUpdateSystem(
         ) { chains, metaAccount ->
             chains to metaAccount
         }.flatMapLatest { (chains, metaAccount) ->
-            val chainsFLow = chains.map { chain ->
-                subscribeChainBalances(chain, metaAccount).onEachFailure { logError(chain, it) }
+            val chainsFLow = chains.mapNotNull { chain ->
+                if (chain.isEthereumChain) {
+                    ethereumRemoteSource.subscribeEthereumBalance(chain, metaAccount)
+                        .onFailure { logError(chain, it) }
+                        .getOrNull()
+                        ?.onEachFailure { logError(chain, it) }
+                        ?.onEach {
+                            val (asset, balanceData) = it.getOrNull() ?: return@onEach
+                            val accountId = metaAccount.accountId(chain) ?: return@onEach
+                            assetCache.updateAsset(
+                                metaAccount.id,
+                                accountId,
+                                asset,
+                                balanceData
+                            )
+                        }
+                } else {
+                    subscribeChainBalances(chain, metaAccount).onEachFailure { logError(chain, it) }
+                }
             }
 
             combine(chainsFLow) { }.transform { }
@@ -162,6 +184,11 @@ class BalancesUpdateSystem(
             accountRepository.allMetaAccountsFlow()
         ) { chains, accounts ->
             chains.forEach singleChainUpdate@{ chain ->
+                if (chain.isEthereumChain) {
+                    fetchEthereumBalances(chain, accounts)
+                    return@singleChainUpdate
+                }
+
                 runCatching {
                     val runtime =
                         runCatching { chainRegistry.getRuntimeOrNull(chain.id) }.getOrNull()
@@ -251,6 +278,27 @@ class BalancesUpdateSystem(
             result = 31 * result + metaAccountId.hashCode()
             result = 31 * result + accountId.contentHashCode()
             return result
+        }
+    }
+
+    private suspend fun fetchEthereumBalances(
+        chain: Chain,
+        accounts: List<MetaAccount>
+    ) {
+        accounts.forEach { account ->
+            val address = account.address(chain) ?: return@forEach
+            val accountId = account.accountId(chain) ?: return@forEach
+            chain.assets.forEach { asset ->
+                val balance = kotlin.runCatching { ethereumRemoteSource.fetchEthBalance(asset, address) }.getOrNull().orZero()
+                val balanceData = SimpleBalanceData(balance)
+
+                assetCache.updateAsset(
+                    metaId = account.id,
+                    accountId = accountId,
+                    asset = asset,
+                    balanceData = balanceData
+                )
+            }
         }
     }
 

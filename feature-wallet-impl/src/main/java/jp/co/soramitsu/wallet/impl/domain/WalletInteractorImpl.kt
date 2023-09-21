@@ -1,5 +1,6 @@
 package jp.co.soramitsu.wallet.impl.domain
 
+import android.net.Uri
 import java.math.BigDecimal
 import java.math.BigInteger
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
@@ -15,6 +16,7 @@ import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
 import jp.co.soramitsu.common.utils.Modules
+import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.core.models.Asset.StakingType
@@ -27,8 +29,8 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.ChainEcosystem
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.isPolkadotOrKusama
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId
 import jp.co.soramitsu.runtime.multiNetwork.chainWithAsset
-import jp.co.soramitsu.runtime.multiNetwork.getRuntimeOrNull
 import jp.co.soramitsu.shared_utils.runtime.AccountId
 import jp.co.soramitsu.shared_utils.runtime.metadata.module
 import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.toAddress
@@ -56,6 +58,7 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flatMapMerge
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.withIndex
 import kotlinx.coroutines.withContext
@@ -180,16 +183,17 @@ class WalletInteractorImpl(
         chainId: ChainId,
         chainAssetId: String
     ): Flow<OperationsPageChange> {
-        return accountRepository.selectedMetaAccountFlow()
-            .flatMapLatest { metaAccount ->
-                val (chain, chainAsset) = chainRegistry.chainWithAsset(chainId, chainAssetId)
-                val accountId = metaAccount.accountId(chain)!!
+        return flow {
+            emit(accountRepository.getSelectedMetaAccount())
+        }.flatMapLatest { metaAccount ->
+            val (chain, chainAsset) = chainRegistry.chainWithAsset(chainId, chainAssetId)
+            val accountId = metaAccount.accountId(chain)!!
 
-                historyRepository.operationsFirstPageFlow(accountId, chain, chainAsset).withIndex()
-                    .map { (index, cursorPage) ->
-                        OperationsPageChange(cursorPage, accountChanged = index == 0)
-                    }
-            }
+            historyRepository.operationsFirstPageFlow(accountId, chain, chainAsset).withIndex()
+                .map { (index, cursorPage) ->
+                    OperationsPageChange(cursorPage, accountChanged = index == 0)
+                }
+        }
     }
 
     override suspend fun syncOperationsFirstPage(
@@ -263,7 +267,13 @@ class WalletInteractorImpl(
     override suspend fun getTransferFee(transfer: Transfer): Fee {
         val chain = chainRegistry.getChain(transfer.chainAsset.chainId)
 
-        return walletRepository.getTransferFee(chain, transfer)
+        return walletRepository.getTransferFee(chain = chain, transfer = transfer)
+    }
+
+    override suspend fun observeTransferFee(transfer: Transfer): Flow<Fee> {
+        val chain = chainRegistry.getChain(transfer.chainAsset.chainId)
+
+        return walletRepository.observeTransferFee(chain = chain, transfer = transfer)
     }
 
     override suspend fun performTransfer(
@@ -305,6 +315,20 @@ class WalletInteractorImpl(
     override fun tryReadAddressFromSoraFormat(content: String): String? {
         val list = content.split(":")
         return list.getOrNull(1)
+    }
+
+    override suspend fun tryReadSoraAddressFromUrl(content: String): String? {
+        return try {
+            val uri = Uri.parse(content)
+            val address = uri.getQueryParameter("wallAdd")
+
+            address?.takeIf {
+                getChain(soraMainChainId).isValidAddress(address)
+            }
+
+        } catch (e: Exception) {
+            null
+        }
     }
 
     override fun tryReadTokenIdFromSoraFormat(content: String): String? {
@@ -399,7 +423,7 @@ class WalletInteractorImpl(
     }
 
     override fun observeAddressBook(chainId: ChainId) =
-        addressBookRepository.observeAddressBook(chainId)
+        addressBookRepository.observeAddressBook(chainId).mapList { it.copy(address = it.address.trim()) }
 
     override fun saveChainId(walletId: Long, chainId: ChainId?) {
         preferences.putString(PREFS_WALLET_SELECTED_CHAIN_ID + walletId, chainId)

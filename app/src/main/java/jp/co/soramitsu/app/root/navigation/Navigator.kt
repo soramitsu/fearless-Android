@@ -78,6 +78,7 @@ import jp.co.soramitsu.polkaswap.api.presentation.models.TransactionSettingsMode
 import jp.co.soramitsu.polkaswap.impl.presentation.swap_preview.SwapPreviewFragment
 import jp.co.soramitsu.polkaswap.impl.presentation.swap_tokens.SwapTokensFragment
 import jp.co.soramitsu.polkaswap.impl.presentation.transaction_settings.TransactionSettingsFragment
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.soracard.api.presentation.SoraCardRouter
 import jp.co.soramitsu.splash.SplashRouter
@@ -863,8 +864,8 @@ class Navigator :
         navController?.popBackStack()
     }
 
-    override fun openTransferDetail(transaction: OperationParcelizeModel.Transfer, assetPayload: AssetPayload) {
-        val bundle = TransferDetailFragment.getBundle(transaction, assetPayload)
+    override fun openTransferDetail(transaction: OperationParcelizeModel.Transfer, assetPayload: AssetPayload, chainHistoryType: Chain.ExternalApi.Section.Type?) {
+        val bundle = TransferDetailFragment.getBundle(transaction, assetPayload, chainHistoryType)
 
         navController?.navigate(R.id.open_transfer_detail, bundle)
     }

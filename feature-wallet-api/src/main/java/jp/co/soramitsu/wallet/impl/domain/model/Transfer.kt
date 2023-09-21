@@ -6,6 +6,7 @@ import java.math.BigDecimal
 import java.math.BigInteger
 
 class Transfer(
+    val sender: String,
     val recipient: String,
     val amount: BigDecimal,
     val chainAsset: Asset

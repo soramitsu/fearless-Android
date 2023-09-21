@@ -26,6 +26,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.NodeId
 import jp.co.soramitsu.runtime.multiNetwork.connection.ConnectionPool
+import jp.co.soramitsu.runtime.multiNetwork.connection.EthereumConnectionPool
 import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeProvider
 import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeProviderPool
 import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeSubscriptionPool
@@ -55,7 +56,8 @@ class ChainRegistry @Inject constructor(
     private val chainSyncService: ChainSyncService,
     private val runtimeSyncService: RuntimeSyncService,
     private val updatesMixin: UpdatesMixin,
-    private val networkStateMixin: NetworkStateMixin
+    private val networkStateMixin: NetworkStateMixin,
+    private val ethereumConnectionPool: EthereumConnectionPool
 ) : IChainRegistry, CoroutineScope by CoroutineScope(Dispatchers.Default),
     UpdatesProviderUi by updatesMixin {
 
@@ -82,11 +84,14 @@ class ChainRegistry @Inject constructor(
             }
             chainDao.joinChainInfoFlow().mapList(::mapChainLocalToChain).diffed()
                 .collect { (removed, addedOrModified, all) ->
-                    var i = 0
                     launch {
                         runCatching {
                             removed.forEach {
                                 val chainId = it.id
+                                if (it.isEthereumChain) {
+                                    ethereumConnectionPool.stop(chainId)
+                                    return@forEach
+                                }
                                 runtimeProviderPool.removeRuntimeProvider(chainId)
                                 runtimeSubscriptionPool.removeSubscription(chainId)
                                 runtimeSyncService.unregisterChain(chainId)
@@ -94,8 +99,18 @@ class ChainRegistry @Inject constructor(
                             }
                             updatesMixin.startChainsSyncUp(addedOrModified.filter { it.nodes.isNotEmpty() }
                                 .map { it.id })
-                            addedOrModified.filter { /*it.disabled*/ it.nodes.isNotEmpty() }
+                            addedOrModified
+                                .filter { /*it.disabled*/ it.nodes.isNotEmpty() }
                                 .forEach { chain ->
+                                    if (chain.isEthereumChain) {
+                                        ethereumConnectionPool.setupConnection(
+                                            chain,
+                                            onSelectedNodeChange = { chainId, newNodeUrl ->
+                                                launch { notifyNodeSwitched(NodeId(chainId to newNodeUrl)) }
+                                            })
+                                        return@forEach
+                                    }
+
                                     runCatching {
                                         val connection = connectionPool.setupConnection(
                                             chain,
@@ -110,7 +125,7 @@ class ChainRegistry @Inject constructor(
                                         runtimeSyncService.registerChain(chain)
                                         runtimeProviderPool.setupRuntimeProvider(chain)
                                     }.onFailure { networkStateMixin.notifyChainSyncProblem(chain.toSyncIssue()) }
-                                        .onSuccess { networkStateMixin.notifyChainSyncSuccess(chain.id); i++ }
+                                        .onSuccess { networkStateMixin.notifyChainSyncSuccess(chain.id) }
                                 }
                             all
                         }.onFailure {
@@ -127,8 +142,16 @@ class ChainRegistry @Inject constructor(
 
     override fun getConnection(chainId: String) = connectionPool.getConnection(chainId)
 
+    @Deprecated(
+        "Since we have ethereum chains, which don't have runtime, we must use the function with nullable return value",
+        ReplaceWith("getRuntimeOrNull(chainId)")
+    )
     override suspend fun getRuntime(chainId: ChainId): RuntimeSnapshot {
         return getRuntimeProvider(chainId).get()
+    }
+
+    suspend fun getRuntimeOrNull(chainId: ChainId): RuntimeSnapshot? {
+        return kotlin.runCatching { getRuntimeProvider(chainId).get() }.getOrNull()
     }
 
     fun getConnectionOrNull(chainId: String) = connectionPool.getConnectionOrNull(chainId)
@@ -158,8 +181,14 @@ class ChainRegistry @Inject constructor(
         .mapList(::mapNodeLocalToNode)
 
     suspend fun switchNode(id: NodeId) {
-        connectionPool.getConnection(id.chainId).socketService.switchUrl(id.nodeUrl)
-        notifyNodeSwitched(id)
+        val chain = getChain(id.chainId)
+        if (chain.isEthereumChain) {
+            val connection = ethereumConnectionPool.get(chain.id)
+            connection?.switchNode(id.nodeUrl)
+        } else {
+            connectionPool.getConnection(id.chainId).socketService.switchUrl(id.nodeUrl)
+            notifyNodeSwitched(id)
+        }
     }
 
     private suspend fun notifyNodeSwitched(id: NodeId) {
@@ -210,7 +239,7 @@ suspend fun ChainRegistry.getRuntimeOrNull(chainId: ChainId): RuntimeSnapshot? {
 suspend fun ChainRegistry.getRuntimeCatching(chainId: ChainId): Result<RuntimeSnapshot> {
     val providerResult = kotlin.runCatching { getRuntimeProvider(chainId) }
 
-    return if(providerResult.isFailure){
+    return if (providerResult.isFailure) {
         Result.failure(providerResult.requireException())
     } else {
         kotlin.runCatching { providerResult.requireValue().get() }
