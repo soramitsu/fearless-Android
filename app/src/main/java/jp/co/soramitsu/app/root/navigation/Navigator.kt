@@ -1242,6 +1242,21 @@ class Navigator :
         }.filterNotNull()
     }
 
+    override fun listenAlertResultFlowFromStartChangeValidatorsScreen(key: String): Flow<Result<Unit>> {
+        val currentEntry = navController?.getBackStackEntry(R.id.startChangeValidatorsFragment)
+        val onResumeObserver = currentEntry?.getLifecycle()?.onResumeObserver()
+
+        return (onResumeObserver?.asFlow() ?: emptyFlow()).map {
+            if (currentEntry?.savedStateHandle?.contains(key) == true) {
+                val result = currentEntry.savedStateHandle.get<Result<Unit>?>(key)
+                currentEntry.savedStateHandle.set<Result<Unit>?>(key, null)
+                result
+            } else {
+                null
+            }
+        }.filterNotNull()
+    }
+
     override fun listenAlertResultFlowFromNetworkIssuesScreen(key: String): Flow<Result<Unit>> {
         val currentEntry = navController?.getBackStackEntry(R.id.networkIssuesFragment)
         val onResumeObserver = currentEntry?.getLifecycle()?.onResumeObserver()
@@ -1259,6 +1274,13 @@ class Navigator :
 
     override fun openAlertFromStartSelectValidatorsScreen(payload: AlertViewState, key: String) {
         openAlert(payload, key, R.id.startSelectValidatorsFragment)
+    }
+
+    override fun openAlertFromStartChangeValidatorsScreen(
+        payload: AlertViewState,
+        keyAlertResult: String
+    ) {
+        openAlert(payload, keyAlertResult, R.id.startChangeValidatorsFragment)
     }
 
     override fun openWebViewer(title: String, url: String) {

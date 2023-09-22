@@ -178,4 +178,6 @@ interface StakingRouter {
     fun openImportAccountScreenFromWallet(blockChainType: Int)
 
     fun openManageControllerAccount(chainId: ChainId)
+    fun openAlertFromStartChangeValidatorsScreen(payload: AlertViewState, keyAlertResult: String)
+    fun listenAlertResultFlowFromStartChangeValidatorsScreen(key: String): Flow<Result<Unit>>
 }
