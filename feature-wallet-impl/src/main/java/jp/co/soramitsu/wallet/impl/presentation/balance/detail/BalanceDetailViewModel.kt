@@ -65,6 +65,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -116,6 +117,7 @@ class BalanceDetailViewModel @Inject constructor(
         }
         .map { it.filterNotNull() }
         .mapList { mapAssetToAssetModel(it) }
+        .share()
 
     private val assetModelFlow = combine(
         assetModelsFlow,
@@ -132,16 +134,19 @@ class BalanceDetailViewModel @Inject constructor(
             it.token.configuration.symbol == assetSymbol && it.token.configuration.chainId == chainId
         }
 
-        assetPayload.emit(
-            AssetPayload(chainId = chainId, chainAssetId = asset.token.configuration.id)
-        )
-
         return@combine interactor.getCurrentAssetOrNull(chainId, asset.token.configuration.id)
     }.distinctUntilChanged().mapNotNull {
         if (it == null) {
             showError("Failed to load balance of the asset, try to change node or come back later")
         }
         it
+    }.onEach {
+        assetPayload.emit(
+            AssetPayload(
+                chainId = it.token.configuration.chainId,
+                chainAssetId = it.token.configuration.id
+            )
+        )
     }.share()
 
     override fun onResume(owner: LifecycleOwner) {
@@ -263,15 +268,13 @@ class BalanceDetailViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             router.chainSelectorPayloadFlow.collect { chainId ->
-                if (selectedChainId.value != chainId) {
-                    transactionHistoryProvider.tryReloadHistory()
-                }
                 chainId?.let { selectedChainId.value = chainId }
             }
             transactionHistoryProvider.sideEffects().collect {
                 when (it) {
                     is TransactionHistoryUi.SideEffect.Error -> showError(
-                        it.message ?: resourceManager.getString(R.string.common_undefined_error_message)
+                        it.message
+                            ?: resourceManager.getString(R.string.common_undefined_error_message)
                     )
                 }
             }

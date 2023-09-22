@@ -67,19 +67,17 @@ class TransactionHistoryProvider(
     override fun sideEffects() = _sideEffects
 
     init {
-        launch {
-            reloadHistoryEvent.debounce(100).collect {
-                reloadHistory()
-            }
+        reloadHistoryEvent.debounce(100).onEach {
+            reloadHistory()
+        }.launchIn(this)
 
-            assetPayloadStateFlow.onEach {
-                reloadHistoryEvent.emit(Unit)
-            }.launchIn(this)
+        assetPayloadStateFlow.onEach {
+            reloadHistoryEvent.emit(Unit)
+        }.launchIn(this)
 
-            historyFiltersProvider.filtersFlow().onEach {
-                reloadHistoryEvent.emit(Unit)
-            }.launchIn(this)
-        }
+        historyFiltersProvider.filtersFlow().onEach {
+            reloadHistoryEvent.emit(Unit)
+        }.launchIn(this)
     }
 
     suspend fun tryReloadHistory() {
