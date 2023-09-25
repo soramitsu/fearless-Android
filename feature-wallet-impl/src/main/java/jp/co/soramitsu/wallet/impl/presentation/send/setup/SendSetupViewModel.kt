@@ -36,7 +36,10 @@ import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.core.utils.isValidAddress
 import jp.co.soramitsu.core.utils.utilityAsset
+import jp.co.soramitsu.feature_wallet_impl.BuildConfig
 import jp.co.soramitsu.feature_wallet_impl.R
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraTestChainId
 import jp.co.soramitsu.wallet.api.domain.TransferValidationResult
 import jp.co.soramitsu.wallet.api.domain.ValidateTransferUseCase
 import jp.co.soramitsu.wallet.api.domain.fromValidationResult
@@ -53,6 +56,7 @@ import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.ChainItemState
 import jp.co.soramitsu.wallet.impl.presentation.send.SendSharedState
 import jp.co.soramitsu.wallet.impl.presentation.send.TransferDraft
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -62,6 +66,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
@@ -92,8 +97,10 @@ class SendSetupViewModel @Inject constructor(
     private val _openScannerEvent = MutableLiveData<Event<Unit>>()
     val openScannerEvent: LiveData<Event<Unit>> = _openScannerEvent
 
-    private val _openValidationWarningEvent = MutableLiveData<Event<Pair<TransferValidationResult, ValidationWarning>>>()
-    val openValidationWarningEvent: LiveData<Event<Pair<TransferValidationResult, ValidationWarning>>> = _openValidationWarningEvent
+    private val _openValidationWarningEvent =
+        MutableLiveData<Event<Pair<TransferValidationResult, ValidationWarning>>>()
+    val openValidationWarningEvent: LiveData<Event<Pair<TransferValidationResult, ValidationWarning>>> =
+        _openValidationWarningEvent
 
     val payload: AssetPayload? = savedStateHandle[SendSetupFragment.KEY_PAYLOAD]
     private val initSendToAddress: String? = savedStateHandle[SendSetupFragment.KEY_INITIAL_ADDRESS]
@@ -175,16 +182,18 @@ class SendSetupViewModel @Inject constructor(
     private val amountInputFocusFlow = MutableStateFlow(false)
 
     private val addressInputFlow = MutableStateFlow(initSendToAddress.orEmpty())
+    private val addressInputTrimmedFlow = addressInputFlow.map { it.trim() }
 
     private val isSoftKeyboardOpenFlow = MutableStateFlow(false)
     private val heightDiffDpFlow = MutableStateFlow(0.dp)
 
-    private val isInputAddressValidFlow = combine(addressInputFlow, chainIdFlow) { addressInput, chainId ->
-        when (chainId) {
-            null -> false
-            else -> walletInteractor.validateSendAddress(chainId, addressInput)
-        }
-    }.stateIn(this, SharingStarted.Eagerly, false)
+    private val isInputAddressValidFlow =
+        combine(addressInputTrimmedFlow, chainIdFlow) { addressInput, chainId ->
+            when (chainId) {
+                null -> false
+                else -> walletInteractor.validateSendAddress(chainId, addressInput)
+            }
+        }.stateIn(this, SharingStarted.Eagerly, false)
 
     private val chainSelectorStateFlow = selectedChainItem.map {
         SelectorState(
@@ -208,12 +217,16 @@ class SendSetupViewModel @Inject constructor(
             defaultAmountInputState
         } else {
             val tokenBalance = asset.transferable.formatCrypto(asset.token.configuration.symbol)
-            val fiatAmount = amount.applyFiatRate(asset.token.fiatRate)?.formatFiat(asset.token.fiatSymbol)
+            val fiatAmount =
+                amount.applyFiatRate(asset.token.fiatRate)?.formatFiat(asset.token.fiatSymbol)
 
             AmountInputViewState(
                 tokenName = asset.token.configuration.symbol,
                 tokenImage = asset.token.configuration.iconUrl,
-                totalBalance = resourceManager.getString(R.string.common_transferable_format, tokenBalance),
+                totalBalance = resourceManager.getString(
+                    R.string.common_transferable_format,
+                    tokenBalance
+                ),
                 fiatAmount = fiatAmount,
                 tokenAmount = amount,
                 isActive = true,
@@ -226,7 +239,7 @@ class SendSetupViewModel @Inject constructor(
     }.stateIn(this, SharingStarted.Eagerly, defaultAmountInputState)
 
     private val feeAmountFlow = combine(
-        addressInputFlow,
+        addressInputTrimmedFlow,
         isInputAddressValidFlow,
         enteredAmountBigDecimalFlow,
         assetFlow.mapNotNull { it }
@@ -237,13 +250,15 @@ class SendSetupViewModel @Inject constructor(
             else -> currentAccountAddress(asset.token.configuration.chainId) ?: return@combine null
         }
 
-        val transfer = Transfer(
+        Transfer(
             recipient = feeRequestAddress,
+            sender = requireNotNull(currentAccountAddress.invoke(asset.token.configuration.chainId)),
             amount = enteredAmount,
             chainAsset = asset.token.configuration
         )
-        val fee = walletInteractor.getTransferFee(transfer)
-        fee.feeAmount
+    }.flatMapLatest {
+        it?.let { transfer -> walletInteractor.observeTransferFee(transfer).map { it.feeAmount } }
+            ?: flowOf(null)
     }
         .retry(RETRY_TIMES)
         .catch {
@@ -261,21 +276,22 @@ class SendSetupViewModel @Inject constructor(
     private val utilityAssetFlow = assetFlow.mapNotNull { it }.flatMapLatest { asset ->
         val chain = walletInteractor.getChain(asset.token.configuration.chainId)
         walletInteractor.assetFlow(chain.id, chain.utilityAsset?.id.orEmpty())
-    }
+    }.share()
 
     private val feeInfoViewStateFlow: Flow<FeeInfoViewState> = combine(
         feeAmountFlow,
         utilityAssetFlow
     ) { feeAmount, utilityAsset ->
         val feeFormatted = feeAmount?.formatCryptoDetail(utilityAsset.token.configuration.symbol)
-        val feeFiat = feeAmount?.applyFiatRate(utilityAsset.token.fiatRate)?.formatFiat(utilityAsset.token.fiatSymbol)
+        val feeFiat = feeAmount?.applyFiatRate(utilityAsset.token.fiatRate)
+            ?.formatFiat(utilityAsset.token.fiatSymbol)
 
         FeeInfoViewState(feeAmount = feeFormatted, feeAmountFiat = feeFiat)
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, FeeInfoViewState.default)
 
     private val isWarningExpanded = MutableStateFlow(false)
-    private val phishingModelFlow = addressInputFlow.map {
+    private val phishingModelFlow = addressInputTrimmedFlow.map {
         walletInteractor.getPhishingInfo(it)
     }
     private val warningInfoStateFlow = combine(
@@ -300,7 +316,11 @@ class SendSetupViewModel @Inject constructor(
         return when (type) {
             PhishingType.SCAM -> resourceManager.getString(R.string.scam_warning_message, "DOT")
             PhishingType.EXCHANGE -> resourceManager.getString(R.string.exchange_warning_message)
-            PhishingType.DONATION -> resourceManager.getString(R.string.donation_warning_message_format, "DOT")
+            PhishingType.DONATION -> resourceManager.getString(
+                R.string.donation_warning_message_format,
+                "DOT"
+            )
+
             PhishingType.SANCTIONS -> resourceManager.getString(R.string.sanction_warning_message)
             else -> resourceManager.getString(R.string.scam_warning_message, "DOT")
         }
@@ -319,7 +339,7 @@ class SendSetupViewModel @Inject constructor(
 
     val state = combine(
         selectedChain,
-        addressInputFlow,
+        addressInputTrimmedFlow,
         chainSelectorStateFlow,
         amountInputViewState,
         feeInfoViewStateFlow,
@@ -342,7 +362,11 @@ class SendSetupViewModel @Inject constructor(
                 input = address,
                 image = when {
                     isAddressValid.not() -> R.drawable.ic_address_placeholder
-                    else -> addressIconGenerator.createAddressIcon(chain?.isEthereumBased == true, address, AddressIconGenerator.SIZE_BIG)
+                    else -> addressIconGenerator.createAddressIcon(
+                        chain?.isEthereumBased == true,
+                        address,
+                        AddressIconGenerator.SIZE_BIG
+                    )
                 }
             ),
             chainSelectorState = chainSelectorState,
@@ -384,6 +408,7 @@ class SendSetupViewModel @Inject constructor(
                         else -> router.openSelectChainAsset(chain.id)
                     }
                 }
+
                 else -> router.openSelectChain(
                     filterChainIds = addressChains.map { it.id },
                     chooserMode = false,
@@ -414,8 +439,9 @@ class SendSetupViewModel @Inject constructor(
 
             val amount = enteredAmountBigDecimalFlow.value
             val inPlanks = asset.token.planksFromAmount(amount).orZero()
-            val recipientAddress = addressInputFlow.value
-            val selfAddress = currentAccountAddress(asset.token.configuration.chainId) ?: return@launch
+            val recipientAddress = addressInputTrimmedFlow.firstOrNull() ?: return@launch
+            val selfAddress =
+                currentAccountAddress(asset.token.configuration.chainId) ?: return@launch
             val fee = feeInPlanksFlow.value
             val destinationChainId = asset.token.configuration.chainId
             val validationProcessResult = validateTransferUseCase(
@@ -459,7 +485,7 @@ class SendSetupViewModel @Inject constructor(
         }
     }
 
-    private val tipFlow = chainIdFlow.map { it?.let { walletConstants.tip(it) } }
+    private val tipFlow = chainIdFlow.map { it?.let { walletConstants.tip(it) } }.share()
     private val tipAmountFlow = combine(tipFlow, assetFlow) { tip: BigInteger?, asset: Asset? ->
         tip?.let {
             asset?.token?.amountFromPlanks(it)
@@ -467,25 +493,27 @@ class SendSetupViewModel @Inject constructor(
     }
 
     private suspend fun buildTransferDraft(): TransferDraft? {
-        val recipientAddress = addressInputFlow.firstOrNull() ?: return null
+        val recipientAddress = addressInputTrimmedFlow.firstOrNull() ?: return null
         val feeAmount = feeAmountFlow.firstOrNull() ?: return null
         val tip = tipAmountFlow.firstOrNull()
 
         val amount = enteredAmountBigDecimalFlow.value
 
-        val chainId = sharedState.chainId
-        val assetId = sharedState.assetId
-        val payload = when {
-            chainId == null || assetId == null -> null
-            else -> AssetPayload(chainId, assetId)
-        } ?: return null
+        val chainId = sharedState.chainId ?: return null
+        val assetId = sharedState.assetId ?: return null
+
+        val payload = AssetPayload(chainId, assetId)
 
         return TransferDraft(amount, feeAmount, payload, recipientAddress, tip)
     }
 
     override fun onChainClick() {
         sharedState.assetId?.let { assetId ->
-            router.openSelectChain(assetId = assetId, chainId = sharedState.chainId, chooserMode = false)
+            router.openSelectChain(
+                assetId = assetId,
+                chainId = sharedState.chainId,
+                chooserMode = false
+            )
         }
     }
 
@@ -521,7 +549,18 @@ class SendSetupViewModel @Inject constructor(
 
     fun qrCodeScanned(content: String) {
         viewModelScope.launch {
-            val result = walletInteractor.tryReadAddressFromSoraFormat(content) ?: content
+            val tryReadSoraAddressFromUrl = walletInteractor.tryReadSoraAddressFromUrl(content)
+            if (tryReadSoraAddressFromUrl != null) {
+
+                val soraChainId = if (BuildConfig.DEBUG) soraTestChainId else soraMainChainId
+                val soraChain = walletInteractor.getChain(soraChainId)
+                soraChain.assets.firstOrNull { it.symbol.lowercase() == "usdt" }?.let { asset ->
+                    sharedState.update(soraChainId, asset.id)
+                }
+            }
+            val result = tryReadSoraAddressFromUrl
+                ?: walletInteractor.tryReadAddressFromSoraFormat(content)
+                ?: content
 
             addressInputFlow.value = result
         }
@@ -550,9 +589,11 @@ class SendSetupViewModel @Inject constructor(
             val allAmount = asset.transferable
             val amountToTransfer = (allAmount * input.toBigDecimal()) - utilityTipReserve
 
-            val selfAddress = sharedState.chainId?.let { currentAccountAddress(it) } ?: return@launch
+            val selfAddress =
+                sharedState.chainId?.let { currentAccountAddress(it) } ?: return@launch
             val transfer = Transfer(
                 recipient = selfAddress,
+                sender = selfAddress,
                 amount = amountToTransfer,
                 chainAsset = asset.token.configuration
             )
@@ -562,13 +603,19 @@ class SendSetupViewModel @Inject constructor(
                 else -> walletInteractor.getTransferFee(transfer).feeAmount
             }
 
-            val quickAmountWithoutExtraPays = amountToTransfer - utilityFeeReserve * SLIPPAGE_TOLERANCE.toBigDecimal()
+            val quickAmountWithoutExtraPays =
+                amountToTransfer - utilityFeeReserve * SLIPPAGE_TOLERANCE.toBigDecimal()
 
             if (quickAmountWithoutExtraPays < BigDecimal.ZERO) {
                 return@launch
             }
-            visibleAmountFlow.value = quickAmountWithoutExtraPays.setScale(5, RoundingMode.HALF_DOWN)
-            initialAmountFlow.value = quickAmountWithoutExtraPays.setScale(5, RoundingMode.HALF_DOWN)
+            val scaledAmount = quickAmountWithoutExtraPays.setScale(5, RoundingMode.HALF_DOWN)
+            if (initialAmountFlow.value == scaledAmount) {
+                initialAmountFlow.value = null
+                delay(70)
+            }
+            visibleAmountFlow.value = scaledAmount
+            initialAmountFlow.value = scaledAmount
             enteredAmountBigDecimalFlow.value = quickAmountWithoutExtraPays
         }
     }

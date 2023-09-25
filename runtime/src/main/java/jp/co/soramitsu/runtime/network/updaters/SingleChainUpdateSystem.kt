@@ -6,7 +6,6 @@ import jp.co.soramitsu.core.updater.UpdateSystem
 import jp.co.soramitsu.core.updater.Updater
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
-import jp.co.soramitsu.runtime.multiNetwork.getRuntime
 import jp.co.soramitsu.runtime.multiNetwork.getSocket
 import jp.co.soramitsu.shared_utils.wsrpc.request.runtime.storage.subscribeUsing
 import kotlinx.coroutines.Dispatchers

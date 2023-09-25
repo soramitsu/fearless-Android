@@ -9,6 +9,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountAlreadyExistsException
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
+import jp.co.soramitsu.account.api.domain.model.ImportMode
 import jp.co.soramitsu.account.api.domain.model.ImportMode.Google
 import jp.co.soramitsu.account.api.domain.model.ImportMode.Json
 import jp.co.soramitsu.account.api.domain.model.ImportMode.MnemonicPhrase
@@ -91,6 +92,7 @@ class ImportAccountViewModel @Inject constructor(
                 RawSeed -> sourceTypes.firstOrNull { it is RawSeedImportSource }
                 Json -> sourceTypes.firstOrNull { it is JsonImportSource }
                 Google -> null
+                ImportMode.Preinstalled -> null
             } ?: sourceTypes.first()
         }
     private val _selectedSourceTypeLiveData = MutableLiveData(initialSelectedSourceType)

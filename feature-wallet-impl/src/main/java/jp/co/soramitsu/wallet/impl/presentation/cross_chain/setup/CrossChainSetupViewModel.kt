@@ -642,7 +642,9 @@ class CrossChainSetupViewModel @Inject constructor(
 
     fun qrCodeScanned(content: String) {
         viewModelScope.launch {
-            val result = walletInteractor.tryReadAddressFromSoraFormat(content) ?: content
+            val result = walletInteractor.tryReadSoraAddressFromUrl(content)
+                ?: walletInteractor.tryReadAddressFromSoraFormat(content)
+                ?: content
 
             selectedWalletIdFlow.value = null
             addressInputFlow.value = result
@@ -667,6 +669,7 @@ class CrossChainSetupViewModel @Inject constructor(
             val selfAddress = originChainId?.let { currentAccountAddress(it) } ?: return@launch
             val transfer = Transfer(
                 recipient = selfAddress,
+                sender = selfAddress,
                 amount = amountToTransfer,
                 chainAsset = asset.token.configuration
             )

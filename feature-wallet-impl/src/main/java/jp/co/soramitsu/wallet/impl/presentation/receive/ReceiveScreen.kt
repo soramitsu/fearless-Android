@@ -3,30 +3,21 @@ package jp.co.soramitsu.wallet.impl.presentation.receive
 import android.graphics.Bitmap
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
-import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.compose.component.AccentButton
 import jp.co.soramitsu.common.compose.component.B0
@@ -34,9 +25,7 @@ import jp.co.soramitsu.common.compose.component.BottomSheetScreen
 import jp.co.soramitsu.common.compose.component.GrayButton
 import jp.co.soramitsu.common.compose.component.H2
 import jp.co.soramitsu.common.compose.component.H3
-import jp.co.soramitsu.common.compose.component.MarginHorizontal
 import jp.co.soramitsu.common.compose.component.MarginVertical
-import jp.co.soramitsu.common.compose.theme.customTypography
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.utils.formatting.shortenAddress
 import jp.co.soramitsu.feature_wallet_impl.R
@@ -129,38 +118,6 @@ private fun ReceiveContent(
                 .height(48.dp),
             onClick = shareClicked
         )
-        MarginVertical(margin = 12.dp)
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Start
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.ic_info_14),
-                alignment = Alignment.TopStart,
-                contentDescription = null
-            )
-            MarginHorizontal(margin = 10.dp)
-            Text(
-                text = buildAnnotatedString {
-                    withStyle(
-                        style = SpanStyle(
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White.copy(alpha = 0.5f)
-                        )
-                    ) {
-                        append(stringResource(id = R.string.common_note).uppercase())
-                    }
-                    append(" ")
-                    withStyle(
-                        style = SpanStyle(color = Color.White.copy(alpha = 0.5f))
-                    ) {
-                        append(stringResource(id = R.string.common_receive_alert_description))
-                    }
-                },
-                style = MaterialTheme.customTypography.body2,
-                modifier = Modifier.weight(1f)
-            )
-        }
         MarginVertical(margin = 12.dp)
     }
 }

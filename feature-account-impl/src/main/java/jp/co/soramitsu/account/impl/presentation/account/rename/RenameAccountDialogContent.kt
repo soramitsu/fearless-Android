@@ -36,13 +36,13 @@ import jp.co.soramitsu.common.compose.theme.customColors
 import jp.co.soramitsu.common.compose.theme.darkButtonBackground
 
 data class RenameAccountState(
-    val walletNickname: TextInputViewState,
+    val walletNickname: TextInputViewState?,
     val isSaveEnabled: Boolean,
     val heightDiffDp: Dp
 ) {
     companion object {
         val Empty = RenameAccountState(
-            walletNickname = TextInputViewState(text = "", hint = "Wallet name"),
+            walletNickname = null,
             isSaveEnabled = false,
             heightDiffDp = 0.dp
         )
@@ -92,13 +92,24 @@ fun RenameAccountDialogContent(
                     textAlign = TextAlign.Center
                 )
                 MarginVertical(margin = 16.dp)
-                TextInput(
-                    modifier = Modifier.focusRequester(focusRequester),
-                    state = state.walletNickname,
-                    onInput = callback::accountNameChanged,
-                    borderColor = colorAccentDark,
-                    backgroundColor = darkButtonBackground
-                )
+                val walletNickname = state.walletNickname
+                if (walletNickname == null) { // loading
+                    TextInput(
+                        modifier = Modifier.focusRequester(focusRequester),
+                        state = TextInputViewState("", "Wallet name"),
+                        onInput = callback::accountNameChanged,
+                        borderColor = colorAccentDark,
+                        backgroundColor = darkButtonBackground
+                    )
+                } else {
+                    TextInput(
+                        modifier = Modifier.focusRequester(focusRequester),
+                        state = walletNickname,
+                        onInput = callback::accountNameChanged,
+                        borderColor = colorAccentDark,
+                        backgroundColor = darkButtonBackground
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.weight(1f))

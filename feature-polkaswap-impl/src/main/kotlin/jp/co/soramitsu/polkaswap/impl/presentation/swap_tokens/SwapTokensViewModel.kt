@@ -1,5 +1,6 @@
 package jp.co.soramitsu.polkaswap.impl.presentation.swap_tokens
 
+import android.util.Log
 import androidx.annotation.StringRes
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -8,6 +9,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.math.BigDecimal
 import java.math.BigInteger
+import java.math.RoundingMode
 import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.base.errors.ValidationException
@@ -17,6 +19,7 @@ import jp.co.soramitsu.common.presentation.dataOrNull
 import jp.co.soramitsu.common.presentation.map
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
+import jp.co.soramitsu.common.utils.MAX_DECIMALS_8
 import jp.co.soramitsu.common.utils.applyFiatRate
 import jp.co.soramitsu.common.utils.combine
 import jp.co.soramitsu.common.utils.flowOf
@@ -48,6 +51,7 @@ import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.catch
@@ -191,7 +195,7 @@ class SwapTokensViewModel @Inject constructor(
                 details ?: return@map null
                 val fromAsset = fromAsset.value ?: return@map null
                 val toAsset = toAsset.value ?: return@map null
-                fillSecondInputField(details.amount)
+                fillSecondInputField(details.amount.setScale(MAX_DECIMALS_8, RoundingMode.HALF_DOWN))
                 detailsToViewState(resourceManager, amountInput.value, fromAsset, toAsset, details, desired ?: return@map null)
             },
             onFailure = { throwable ->
@@ -632,7 +636,7 @@ class SwapTokensViewModel @Inject constructor(
                     val newNetworkFee = networkFeeLoadingState.dataOrNull() ?: return@collectLatest
 
                     val newResult = amount.minus(newNetworkFee).minus(newDetails.liquidityProviderFee).takeIf { it >= BigDecimal.ZERO }.orZero()
-                    enteredFromAmountFlow.value = newResult
+                    enteredFromAmountFlow.value = newResult.setScale(MAX_DECIMALS_8, RoundingMode.HALF_DOWN)
                     awaitNewFeeJob?.cancel()
                 }
             }

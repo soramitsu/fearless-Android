@@ -14,7 +14,8 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.ChainExternalApiRemote
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.ChainRemote
 
-private const val ETHEREUM_OPTION = "ethereumBased"
+private const val ETHEREUM_BASED_OPTION = "ethereumBased"
+private const val ETHEREUM_OPTION = "ethereum"
 private const val CROWDLOAN_OPTION = "crowdloans"
 private const val TESTNET_OPTION = "testnet"
 private const val NOMINATION_POOL_OPTION = "poolStaking"
@@ -25,18 +26,25 @@ private fun mapSectionTypeRemoteToSectionType(section: String) = when (section) 
     "giantsquid" -> Chain.ExternalApi.Section.Type.GIANTSQUID
     "github" -> Chain.ExternalApi.Section.Type.GITHUB
     "sora" -> Chain.ExternalApi.Section.Type.SORA
+    "etherscan" -> Chain.ExternalApi.Section.Type.ETHERSCAN
     else -> Chain.ExternalApi.Section.Type.UNKNOWN
 }
 
 private fun mapExplorerTypeRemoteToExplorerType(explorer: String) = when (explorer) {
     "polkascan" -> Chain.Explorer.Type.POLKASCAN
     "subscan" -> Chain.Explorer.Type.SUBSCAN
+    "etherscan" -> Chain.Explorer.Type.ETHERSCAN
     else -> Chain.Explorer.Type.UNKNOWN
 }
 
 private fun mapSectionTypeToSectionTypeLocal(sectionType: Chain.ExternalApi.Section.Type): String = sectionType.name
-private fun mapSectionTypeLocalToSectionType(sectionType: String): Chain.ExternalApi.Section.Type = enumValueOf(sectionType)
-private fun mapExplorerTypeLocalToExplorerType(explorerType: String): Chain.Explorer.Type = enumValueOf(explorerType)
+private fun mapSectionTypeLocalToSectionType(sectionType: String): Chain.ExternalApi.Section.Type = runCatching {
+    enumValueOf<Chain.ExternalApi.Section.Type>(sectionType)
+}.getOrDefault(Chain.ExternalApi.Section.Type.UNKNOWN)
+
+private fun mapExplorerTypeLocalToExplorerType(explorerType: String): Chain.Explorer.Type = runCatching {
+    enumValueOf<Chain.Explorer.Type>(explorerType)
+}.getOrDefault(Chain.Explorer.Type.UNKNOWN)
 
 private fun mapStakingStringToStakingType(stakingString: String?): Asset.StakingType {
     return when (stakingString) {
@@ -46,8 +54,17 @@ private fun mapStakingStringToStakingType(stakingString: String?): Asset.Staking
         else -> Asset.StakingType.UNSUPPORTED
     }
 }
+private fun mapEthereumTypeStringToEthereumType(ethereumTypeString: String?): Asset.EthereumType? {
+    return when (ethereumTypeString) {
+        "erc20" -> Asset.EthereumType.ERC20
+        "bep20" -> Asset.EthereumType.BEP20
+        "normal" -> Asset.EthereumType.NORMAL
+        else -> null
+    }
+}
 
 private fun mapStakingTypeToLocal(stakingType: Asset.StakingType): String = stakingType.name
+private fun mapEthereumTypeToLocal(ethereumType: Asset.EthereumType?): String? = ethereumType?.name?.lowercase()
 private fun mapStakingTypeFromLocal(stakingTypeLocal: String): Asset.StakingType = enumValueOf(stakingTypeLocal)
 
 private fun ChainExternalApiRemote.Explorer.toExplorer() = Chain.Explorer(
@@ -116,10 +133,11 @@ fun ChainRemote.toChain(): Chain {
         icon = this.icon.orEmpty(),
         externalApi = externalApi,
         addressPrefix = this.addressPrefix,
-        isEthereumBased = ETHEREUM_OPTION in optionsOrEmpty,
+        isEthereumBased = ETHEREUM_OPTION in optionsOrEmpty || ETHEREUM_BASED_OPTION in optionsOrEmpty,
         isTestNet = TESTNET_OPTION in optionsOrEmpty,
         hasCrowdloans = CROWDLOAN_OPTION in optionsOrEmpty,
-        supportStakingPool = NOMINATION_POOL_OPTION in optionsOrEmpty
+        supportStakingPool = NOMINATION_POOL_OPTION in optionsOrEmpty,
+        isEthereumChain = ETHEREUM_OPTION in optionsOrEmpty
     )
 }
 
@@ -145,7 +163,8 @@ private fun ChainRemote.assetConfigs(): List<Asset>? {
                 currencyId = chainAsset.currencyId,
                 existentialDeposit = chainAsset.existentialDeposit,
                 color = chainAsset.color,
-                isNative = chainAsset.isNative
+                isNative = chainAsset.isNative,
+                ethereumType = mapEthereumTypeStringToEthereumType(chainAsset.ethereumType)
             )
         }
     }
@@ -181,7 +200,8 @@ fun mapChainLocalToChain(chainLocal: JoinedChainInfo): Chain {
             currencyId = it.currencyId,
             existentialDeposit = it.existentialDeposit,
             color = it.color,
-            isNative = it.isNative
+            isNative = it.isNative,
+            ethereumType = mapEthereumTypeStringToEthereumType(it.ethereumType)
         )
     }
 
@@ -216,7 +236,8 @@ fun mapChainLocalToChain(chainLocal: JoinedChainInfo): Chain {
             isEthereumBased = isEthereumBased,
             isTestNet = isTestNet,
             hasCrowdloans = hasCrowdloans,
-            supportStakingPool = supportStakingPool
+            supportStakingPool = supportStakingPool,
+            isEthereumChain = isEthereumChain
         )
     }
 }
@@ -248,7 +269,8 @@ fun mapChainToChainLocal(chain: Chain): JoinedChainInfo {
             currencyId = it.currencyId,
             existentialDeposit = it.existentialDeposit,
             color = it.color,
-            isNative = it.isNative
+            isNative = it.isNative,
+            ethereumType = mapEthereumTypeToLocal(it.ethereumType)
         )
     }
 
@@ -281,7 +303,8 @@ fun mapChainToChainLocal(chain: Chain): JoinedChainInfo {
             isEthereumBased = isEthereumBased,
             isTestNet = isTestNet,
             hasCrowdloans = hasCrowdloans,
-            supportStakingPool = supportStakingPool
+            supportStakingPool = supportStakingPool,
+            isEthereumChain = isEthereumChain
         )
     }
 

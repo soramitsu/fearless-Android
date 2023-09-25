@@ -4,5 +4,6 @@ enum class ImportMode {
     MnemonicPhrase,
     RawSeed,
     Json,
-    Google
+    Google,
+    Preinstalled
 }

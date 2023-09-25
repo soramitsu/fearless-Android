@@ -108,14 +108,12 @@ fun PoolsStakingInfo(state: StakingAssetInfoViewState.StakingPool) {
                     MarginVertical(margin = 16.dp)
                     TitleToValue(state = state.existingPools, testTag = "existingPools")
                     MarginVertical(margin = 16.dp)
-                    TitleToValue(state = state.maxMembersInPool, testTag = "maxMembersInPool")
+                    TitleToValue(state = state.maxPoolsMembers, testTag = "maxPoolsMembers")
                 }
                 Column(modifier = Modifier.weight(1f)) {
                     TitleToValue(state = state.minToCreate, testTag = "minToCreate")
                     MarginVertical(margin = 16.dp)
                     TitleToValue(state = state.possiblePools, testTag = "possiblePools")
-                    MarginVertical(margin = 16.dp)
-                    TitleToValue(state = state.maxPoolsMembers, testTag = "maxPoolsMembers")
                 }
             }
         }
@@ -134,7 +132,6 @@ private fun StakingAssetInfoPreview() {
         minToCreate = TitleValueViewState("Min. to create a pool", "0.0016 KSM"),
         existingPools = TitleValueViewState("Existing pools", "59"),
         possiblePools = TitleValueViewState("Possible pools", "64"),
-        maxMembersInPool = TitleValueViewState("Max members in pool", "65536"),
         maxPoolsMembers = TitleValueViewState("Max pools members", "16")
     )
     FearlessTheme {
@@ -147,7 +144,6 @@ private fun StakingAssetInfoPreview() {
                     minToCreate = TitleValueViewState("Min. to create a pool", null),
                     existingPools = TitleValueViewState("Existing pools", null),
                     possiblePools = TitleValueViewState("Possible pools", null),
-                    maxMembersInPool = TitleValueViewState("Max members in pool", null),
                     maxPoolsMembers = TitleValueViewState("Max pools members", null)
                 )
             )

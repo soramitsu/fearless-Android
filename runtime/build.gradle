@@ -12,7 +12,7 @@ android {
         targetSdkVersion rootProject.targetSdkVersion
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        buildConfigField "String", "CHAINS_URL", "\"https://raw.githubusercontent.com/soramitsu/shared-features-utils/develop-free/chains/v2/chains_dev.json\""
+        buildConfigField "String", "CHAINS_URL", "\"https://raw.githubusercontent.com/soramitsu/shared-features-utils/develop-free/chains/v3/chains_dev.json\""
         buildConfigField "String", "TYPES_URL", "\"https://raw.githubusercontent.com/soramitsu/shared-features-utils/develop-free/chains/all_chains_types_android.json\""
         buildConfigField "String", "APP_VERSION_NAME", "\"${rootProject.versionName}\""
     }
@@ -23,7 +23,7 @@ android {
         }
 
         release {
-            buildConfigField "String", "CHAINS_URL", "\"https://raw.githubusercontent.com/soramitsu/shared-features-utils/master/chains/v2/chains.json\""
+            buildConfigField "String", "CHAINS_URL", "\"https://raw.githubusercontent.com/soramitsu/shared-features-utils/master/chains/v3/chains.json\""
             buildConfigField "String", "TYPES_URL", "\"https://raw.githubusercontent.com/soramitsu/shared-features-utils/master/chains/all_chains_types_android.json\""
         }
     }
@@ -65,4 +65,6 @@ dependencies {
     androidTestImplementation androidJunitDep
 
     api sharedFeaturesCoreDep
+
+    implementation web3jDep, withoutJavaWS
 }

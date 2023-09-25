@@ -80,7 +80,8 @@ data class BalanceDetailsState(
     val balance: LoadingState<AssetBalanceViewState>,
     val transferableViewState: TitleValueViewState,
     val lockedViewState: TitleValueViewState,
-    val transactionHistory: TransactionHistoryUi.State
+    val transactionHistory: TransactionHistoryUi.State,
+    val filtersEnabled: Boolean
 )
 
 interface BalanceDetailsScreenInterface {
@@ -196,13 +197,14 @@ fun BalanceDetailsScreen(
                         H5(
                             text = stringResource(id = R.string.common_all_transactions),
                             textAlign = TextAlign.Start,
-                            modifier = Modifier
-                                .weight(1f)
+                            modifier = Modifier.weight(1f)
                         )
-                        Image(
-                            res = R.drawable.ic_filter_list_24,
-                            modifier = Modifier.clickable(onClick = callback::filterClicked)
-                        )
+                        if (state.filtersEnabled) {
+                            Image(
+                                res = R.drawable.ic_filter_list_24,
+                                modifier = Modifier.clickable(onClick = callback::filterClicked)
+                            )
+                        }
                     }
                     MarginVertical(margin = 12.dp)
                     Divider(
@@ -416,12 +418,13 @@ private fun PreviewBalanceDetailScreenContent() {
             )
         ),
         balance = LoadingState.Loaded(assetBalanceViewState),
-        transactionHistory = TransactionHistoryUi.State.Empty(),
         transferableViewState = TitleValueViewState(title = stringResource(R.string.assetdetails_balance_transferable)),
         lockedViewState = TitleValueViewState(
             title = stringResource(R.string.assetdetails_balance_locked),
             clickState = TitleValueViewState.ClickState.Title(R.drawable.ic_info_14, 1)
-        )
+        ),
+        transactionHistory = TransactionHistoryUi.State.Empty(),
+        filtersEnabled = true
     )
 
     val empty = object : BalanceDetailsScreenInterface {

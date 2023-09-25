@@ -7,6 +7,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import jp.co.soramitsu.account.api.domain.PendulumPreInstalledAccountsScenario
 import jp.co.soramitsu.account.api.domain.model.ImportMode
 import jp.co.soramitsu.backup.BackupService
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -30,12 +31,18 @@ class WelcomeViewModel @Inject constructor(
     private val router: OnboardingRouter,
     private val appLinksProvider: AppLinksProvider,
     savedStateHandle: SavedStateHandle,
-    private val backupService: BackupService
+    private val backupService: BackupService,
+    private val pendulumPreInstalledAccountsScenario: PendulumPreInstalledAccountsScenario
 ) : BaseViewModel(), Browserable, WelcomeScreenInterface {
 
     private val payload = savedStateHandle.get<WelcomeFragmentPayload>(KEY_PAYLOAD)!!
 
-    val state = MutableStateFlow(WelcomeState(isBackVisible = payload.displayBack))
+    val state = MutableStateFlow(
+        WelcomeState(
+            isBackVisible = payload.displayBack,
+            preinstalledFeatureEnabled = pendulumPreInstalledAccountsScenario.isFeatureEnabled()
+        )
+    )
 
     private val _events = Channel<WelcomeEvent>(
         capacity = Int.MAX_VALUE,
@@ -57,14 +64,19 @@ class WelcomeViewModel @Inject constructor(
     override fun createAccountClicked() {
         router.openCreateAccountFromOnboarding()
     }
+
     override fun googleSigninClicked() {
         _events.trySend(WelcomeEvent.AuthorizeGoogle)
     }
 
+    override fun getPreInstalledWalletClicked() {
+        _events.trySend(WelcomeEvent.ScanQR)
+    }
+
     override fun importAccountClicked() {
-            router.openSelectImportModeForResult()
-                .onEach(::handleSelectedImportMode)
-                .launchIn(viewModelScope)
+        router.openSelectImportModeForResult()
+            .onEach(::handleSelectedImportMode)
+            .launchIn(viewModelScope)
     }
 
     private fun handleSelectedImportMode(importMode: ImportMode) {
@@ -110,5 +122,22 @@ class WelcomeViewModel @Inject constructor(
 
     override fun backClicked() {
         router.back()
+    }
+
+    fun onQrScanResult(result: String?) {
+        if (result == null) {
+            showError("Can't scan qr code")
+            return
+        }
+
+        viewModelScope.launch {
+            pendulumPreInstalledAccountsScenario.import(result)
+                .onFailure {
+                    showError(it)
+                }
+                .onSuccess {
+                    router.openCreatePincode()
+                }
+        }
     }
 }

@@ -14,5 +14,6 @@ class ChainAssetRemote(
     val isNative: Boolean?,
     val staking: String?,
     val purchaseProviders: List<String>?,
-    val type: String?
+    val type: String?,
+    val ethereumType: String?
 )

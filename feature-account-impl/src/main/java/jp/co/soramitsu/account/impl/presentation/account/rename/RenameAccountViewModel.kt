@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -29,17 +30,19 @@ class RenameAccountViewModel @Inject constructor(
 
     private val walletId = savedStateHandle.get<Long>(RenameAccountDialog.WALLET_ID_KEY) ?: error("Not specified walletId for rename")
 
-    private val walletNickname = MutableStateFlow("")
+    private val walletNickname = MutableStateFlow<String?>(null)
     private val isSaveEnabled = walletNickname.map {
-        it.isNotBlank()
+        it.isNullOrBlank().not()
     }
     private val heightDiffDpFlow = MutableStateFlow(0.dp)
 
-    private val walletNameInputViewState = walletNickname.map { walletNickname ->
-        TextInputViewState(
-            text = walletNickname,
-            hint = resourceManager.getString(R.string.wallet_name)
-        )
+    private val walletNameInputViewState = walletNickname.mapNotNull { walletNickname ->
+        walletNickname?.let {
+            TextInputViewState(
+                text = walletNickname,
+                hint = resourceManager.getString(R.string.wallet_name)
+            )
+        }
     }
 
     val state = combine(
@@ -66,9 +69,11 @@ class RenameAccountViewModel @Inject constructor(
     }
 
     override fun onSaveClicked() {
-        launch {
-            interactor.updateAccountName(walletId, walletNickname.value)
-            router.back()
+        walletNickname.value?.let {
+            launch {
+                interactor.updateAccountName(walletId, it)
+                router.back()
+            }
         }
     }
 

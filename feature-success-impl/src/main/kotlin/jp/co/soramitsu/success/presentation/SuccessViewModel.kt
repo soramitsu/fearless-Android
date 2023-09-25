@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -26,7 +27,6 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @HiltViewModel
 class SuccessViewModel @Inject constructor(
@@ -58,18 +58,31 @@ class SuccessViewModel @Inject constructor(
         }
     }.share()
 
-    private val subscanUrlFlow = chainExplorers.map {
+    private val explorerPairFlow = chainExplorers.map {
         operationHash ?: return@map null
-        it.firstOrNull { it.type == Chain.Explorer.Type.SUBSCAN }?.let {
-            BlockExplorerUrlBuilder(it.url, it.types).build(BlockExplorerUrlBuilder.Type.EXTRINSIC, operationHash)
+        it.firstNotNullOfOrNull { explorerItem ->
+            when (explorerItem.type) {
+                Chain.Explorer.Type.POLKASCAN,
+                Chain.Explorer.Type.SUBSCAN -> {
+                    BlockExplorerUrlBuilder(explorerItem.url, explorerItem.types).build(BlockExplorerUrlBuilder.Type.EXTRINSIC, operationHash)
+                }
+
+                Chain.Explorer.Type.ETHERSCAN -> {
+                    BlockExplorerUrlBuilder(explorerItem.url, explorerItem.types).build(BlockExplorerUrlBuilder.Type.TX, operationHash)
+                }
+
+                Chain.Explorer.Type.UNKNOWN -> null
+            }?.let { url ->
+                explorerItem.type to url
+            }
         }
     }
 
-    val state: StateFlow<SuccessViewState> = subscanUrlFlow.map { url ->
+    val state: StateFlow<SuccessViewState> = explorerPairFlow.map { explorer ->
         SuccessViewState(
             message = customMessage ?: resourceManager.getString(R.string.return_to_app_message),
             tableItems = getInfoTableItems(),
-            isShowSubscanButtons = url.isNullOrEmpty().not()
+            explorer = explorer
         )
     }.stateIn(this, SharingStarted.Eagerly, SuccessViewState.default)
 
@@ -96,9 +109,9 @@ class SuccessViewModel @Inject constructor(
         }
     }
 
-    override fun onSubscanClick() {
+    override fun onExplorerClick() {
         launch {
-            subscanUrlFlow.first()?.let { url ->
+            explorerPairFlow.first()?.let { (_, url) ->
                 openUrl(url)
             }
         }
@@ -106,7 +119,7 @@ class SuccessViewModel @Inject constructor(
 
     override fun onShareClick() {
         launch {
-            subscanUrlFlow.first()?.let { url ->
+            explorerPairFlow.first()?.let { (_, url) ->
                 _shareUrlEvent.value = Event(url)
             }
         }

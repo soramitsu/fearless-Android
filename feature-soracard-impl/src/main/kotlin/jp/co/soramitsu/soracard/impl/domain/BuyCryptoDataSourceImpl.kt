@@ -1,6 +1,5 @@
 package jp.co.soramitsu.soracard.impl.domain
 
-import jp.co.soramitsu.common.BuildConfig
 import jp.co.soramitsu.soracard.api.domain.BuyCryptoDataSource
 import jp.co.soramitsu.soracard.api.presentation.models.PaymentOrder
 import jp.co.soramitsu.soracard.api.presentation.models.PaymentOrderInfo
@@ -11,7 +10,6 @@ import jp.co.soramitsu.soracard.impl.data.websocket.WebSocketResponse
 import jp.co.soramitsu.xnetworking.networkclient.SoramitsuHttpClientProvider
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -42,7 +40,7 @@ class BuyCryptoDataSourceImpl(
     }
 
     private val paymentOrderWebSocket: WebSocket = WebSocket(
-        url = BuildConfig.X1_PAYMENT_STATUS_URL,
+        url = "BuildConfig.X1_PAYMENT_STATUS_URL",
         listener = webSocketListener,
         json = json,
         logging = false,

@@ -56,6 +56,8 @@ class AssetsAccountInfo(
     val balance: BigInteger
 ) : AssetBalanceData
 
+class SimpleBalanceData(val balance: BigInteger) : AssetBalanceData
+
 class AccountInfo(
     val nonce: BigInteger,
     val data: AccountData

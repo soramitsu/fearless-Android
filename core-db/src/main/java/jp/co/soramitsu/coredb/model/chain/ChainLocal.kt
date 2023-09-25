@@ -17,7 +17,8 @@ class ChainLocal(
     val isEthereumBased: Boolean,
     val isTestNet: Boolean,
     val hasCrowdloans: Boolean,
-    val supportStakingPool: Boolean
+    val supportStakingPool: Boolean,
+    val isEthereumChain: Boolean
 ) {
 
     class ExternalApi(

@@ -14,6 +14,7 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.core.os.bundleOf
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.journeyapps.barcodescanner.ScanOptions
@@ -24,7 +25,7 @@ import jp.co.soramitsu.common.presentation.ErrorDialog
 import jp.co.soramitsu.common.scan.ScanTextContract
 import jp.co.soramitsu.common.scan.ScannerActivity
 import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
-import jp.co.soramitsu.wallet.impl.presentation.common.askPermissionsSafely
+import jp.co.soramitsu.common.presentation.askPermissionsSafely
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
