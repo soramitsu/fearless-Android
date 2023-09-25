@@ -148,6 +148,7 @@ class WalletInteractorImpl(
         }
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     override fun assetFlow(chainId: ChainId, chainAssetId: String): Flow<Asset> {
         return accountRepository.selectedMetaAccountFlow().flatMapLatest { metaAccount ->
 

@@ -51,7 +51,7 @@ class EtherscanHistorySource(
                     )
                         .let { response -> response.copy(result = response.result.filter { it.contractAddress.isEmpty() && it.value.isNotZero() }) }
                 }
-
+                Asset.EthereumType.BEP20,
                 Asset.EthereumType.ERC20 -> {
                     walletOperationsApi.getEtherscanOperationsHistory(
                         url = historyUrl,

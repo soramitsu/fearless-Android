@@ -164,7 +164,7 @@ fun AmountInput(
                     textStyle = MaterialTheme.customTypography.displayS.copy(textAlign = TextAlign.End, color = textColorState),
                     enabled = state.inputEnabled,
                     precision = state.precision,
-                    initial = state.initial,
+                    initial = state.tokenAmount,
                     onValueChanged = onInput,
                     focusRequester = focusRequester,
                     cursorColor = colorAccentDark,

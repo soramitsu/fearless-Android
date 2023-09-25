@@ -57,6 +57,7 @@ private fun mapStakingStringToStakingType(stakingString: String?): Asset.Staking
 private fun mapEthereumTypeStringToEthereumType(ethereumTypeString: String?): Asset.EthereumType? {
     return when (ethereumTypeString) {
         "erc20" -> Asset.EthereumType.ERC20
+        "bep20" -> Asset.EthereumType.BEP20
         "normal" -> Asset.EthereumType.NORMAL
         else -> null
     }

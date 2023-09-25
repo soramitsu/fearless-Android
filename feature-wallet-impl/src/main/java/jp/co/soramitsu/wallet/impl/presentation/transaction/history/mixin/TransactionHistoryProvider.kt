@@ -23,12 +23,12 @@ import jp.co.soramitsu.wallet.impl.presentation.transaction.history.model.DayHea
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChangedBy
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -67,50 +67,52 @@ class TransactionHistoryProvider(
     override fun sideEffects() = _sideEffects
 
     init {
-        launch {
-            reloadHistoryEvent.debounce(100).collect {
-                reloadHistory()
-            }
+        reloadHistoryEvent.debounce(100).onEach {
+            reloadHistory()
+        }.launchIn(this)
 
-            assetPayloadStateFlow.onEach {
-                reloadHistoryEvent.emit(Unit)
-            }.launchIn(this)
+        assetPayloadStateFlow.onEach {
+            reloadHistoryEvent.emit(Unit)
+        }.launchIn(this)
 
-            historyFiltersProvider.filtersFlow().onEach {
-                reloadHistoryEvent.emit(Unit)
-            }.launchIn(this)
-        }
+        historyFiltersProvider.filtersFlow().onEach {
+            reloadHistoryEvent.emit(Unit)
+        }.launchIn(this)
     }
 
     suspend fun tryReloadHistory() {
         reloadHistoryEvent.emit(Unit)
     }
 
+    private var operationsObserveJob: Job? = null
+
     private suspend fun reloadHistory() {
         nextCursor = null
         currentData.clear()
         _state.emit(TransactionHistoryUi.State.EmptyProgress)
+        val asset = assetPayloadStateFlow.value
 
-        syncFirstOperationsPage(assetPayloadStateFlow.value)
-        val cached = awaitOperationsFirstPage(assetPayloadStateFlow.value)
-        nextCursor = cached.nextCursor
+        syncFirstOperationsPage(asset)
+        operationsObserveJob?.cancel()
+        operationsObserveJob = observeOperationsFirstPage(asset).onEach { page ->
+            nextCursor = page.nextCursor
 
-        if (cached.items.isEmpty()) {
-            _state.emit(TransactionHistoryUi.State.Empty())
-        } else {
-            currentData.addAll(cached.items)
-            _state.emit(TransactionHistoryUi.State.Data(transformData(cached.items)))
-        }
+            if (page.items.isEmpty()) {
+                _state.emit(TransactionHistoryUi.State.Empty())
+            } else {
+                currentData.addAll(page.items)
+                _state.emit(TransactionHistoryUi.State.Data(transformData(page.items)))
+            }
+        }.launchIn(this)
     }
 
-    private suspend fun awaitOperationsFirstPage(assetPayload: AssetPayload): CursorPage<Operation> {
+    private fun observeOperationsFirstPage(assetPayload: AssetPayload): Flow<CursorPage<Operation>> {
         return walletInteractor.operationsFirstPageFlow(
             assetPayload.chainId,
             assetPayload.chainAssetId
         )
             .distinctUntilChangedBy { it.cursorPage }
             .map { it.cursorPage }
-            .first()
     }
 
     private var firstPageSyncJob: Job? = null

@@ -16,18 +16,16 @@ import jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState
 import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
 import jp.co.soramitsu.common.mixin.api.NetworkStateUi
 import jp.co.soramitsu.common.utils.Event
-import jp.co.soramitsu.common.utils.isZero
 import jp.co.soramitsu.common.utils.orZero
-import jp.co.soramitsu.common.utils.sumByBigDecimal
 import jp.co.soramitsu.runtime.ext.ecosystem
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainEcosystem
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.defaultChainSort
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.getWithToken
 import jp.co.soramitsu.wallet.impl.domain.ChainInteractor
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.domain.model.AssetWithStatus
+import jp.co.soramitsu.wallet.impl.presentation.AssetListHelper
 import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.presentation.balance.list.model.BalanceListItemModel
@@ -72,14 +70,26 @@ class SearchAssetsViewModel @Inject constructor(
                         it.asset.token.configuration.chainId in ecosystemChains.map { it.id }
                     }
 
-                    val items = processAssets(ecosystemAssets, ecosystemChains, networkIssues, hideZeroBalancesEnabled, ecosystem)
+                    val items = AssetListHelper.processAssets(
+                        ecosystemAssets = ecosystemAssets,
+                        ecosystemChains = ecosystemChains,
+                        networkIssues = networkIssues,
+                        hideZeroBalancesEnabled = hideZeroBalancesEnabled,
+                        ecosystem = ecosystem
+                    )
                     balanceListItems.addAll(items)
                 }
 
                 ChainEcosystem.STANDALONE -> {
                     ecosystemChains.forEach { chain ->
                         val chainAssets = assets.filter { it.asset.token.configuration.chainId == chain.id }
-                        val items = processAssets(chainAssets, listOf(chain), networkIssues, hideZeroBalancesEnabled, ecosystem)
+                        val items = AssetListHelper.processAssets(
+                            ecosystemAssets = chainAssets,
+                            ecosystemChains = listOf(chain),
+                            networkIssues = networkIssues,
+                            hideZeroBalancesEnabled = hideZeroBalancesEnabled,
+                            ecosystem = ecosystem
+                        )
                         balanceListItems.addAll(items)
                     }
                 }
@@ -178,68 +188,6 @@ class SearchAssetsViewModel @Inject constructor(
         enteredAssetQueryFlow.value = query
     }
 
-    private fun processAssets(
-        ecosystemAssets: List<AssetWithStatus>,
-        ecosystemChains: List<Chain>,
-        networkIssues: Set<NetworkIssueItemState>,
-        hideZeroBalancesEnabled: Boolean,
-        ecosystem: ChainEcosystem
-    ): List<BalanceListItemModel> {
-        val result = mutableListOf<BalanceListItemModel>()
-        ecosystemAssets.groupBy { it.asset.token.configuration.symbol }.forEach { (symbol, symbolAssets) ->
-            val chainsWithIssuesIds = symbolAssets.filter { it.hasAccount.not() }.map { it.asset.token.configuration.chainId }
-                .plus(networkIssues.map { it.chainId })
-
-            val tokenChains = ecosystemChains.getWithToken(symbol).filter { chain ->
-                chain.id !in chainsWithIssuesIds
-            }
-
-            if (tokenChains.isEmpty()) return@forEach
-
-            val showChain = tokenChains.sortedWith(
-                compareByDescending<Chain> {
-                    it.assets.firstOrNull { it.symbol == symbol }?.isUtility ?: false
-                }.thenByDescending { it.parentId == null }
-            ).firstOrNull()
-
-            val showChainAsset = showChain?.assets?.firstOrNull { it.symbol == symbol } ?: return@forEach
-
-            val assetIdsWithBalance = symbolAssets.filter {
-                it.asset.total.orZero() > BigDecimal.ZERO
-            }.groupBy(
-                keySelector = { it.asset.token.configuration.chainId },
-                valueTransform = { it.asset.token.configuration.id }
-            )
-            val assetChainUrls = ecosystemChains.getWithToken(symbol, assetIdsWithBalance).associate { it.id to it.icon }
-
-            val assetTransferable = symbolAssets.sumByBigDecimal { it.asset.transferable }
-            val assetTotal = symbolAssets.sumByBigDecimal { it.asset.total.orZero() }
-            val assetTotalFiat = symbolAssets.sumByBigDecimal { it.asset.fiatAmount.orZero() }
-
-            val isZeroBalance = assetTotal.isZero()
-
-            val assetDisabledByUser = symbolAssets.any { it.asset.enabled == false }
-            val assetManagedByUser = symbolAssets.any { it.asset.enabled != null }
-
-            val isHidden = assetDisabledByUser || (!assetManagedByUser && isZeroBalance && hideZeroBalancesEnabled)
-
-            val token = symbolAssets.first().asset.token
-
-            val model = BalanceListItemModel(
-                asset = showChainAsset,
-                chain = showChain,
-                token = token,
-                total = assetTotal,
-                fiatAmount = assetTotalFiat,
-                transferable = assetTransferable,
-                chainUrls = assetChainUrls,
-                isHidden = isHidden,
-                ecosystem = ecosystem
-            )
-            result.add(model)
-        }
-        return result
-    }
 
     private fun defaultBalanceListItemSort() = compareByDescending<BalanceListItemModel> { it.total > BigDecimal.ZERO }
         .thenByDescending { it.fiatAmount.orZero() }
