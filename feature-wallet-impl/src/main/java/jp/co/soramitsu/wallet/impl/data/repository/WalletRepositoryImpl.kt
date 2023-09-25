@@ -3,7 +3,6 @@ package jp.co.soramitsu.wallet.impl.data.repository
 import com.opencsv.CSVReaderHeaderAware
 import java.math.BigDecimal
 import java.math.BigInteger
-import jp.co.soramitsu.account.api.domain.PendulumPreInstalledAccountsScenario
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.accountId
@@ -13,9 +12,9 @@ import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.coingecko.CoingeckoApi
 import jp.co.soramitsu.common.data.network.config.AppConfigRemote
 import jp.co.soramitsu.common.data.network.config.RemoteConfigFetcher
-import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.secrets.v2.KeyPairSchema
 import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
+import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
@@ -519,16 +518,6 @@ class WalletRepositoryImpl(
 
     override suspend fun getStashAccount(chainId: ChainId, accountId: AccountId): AccountId? {
         return substrateSource.getStashAccount(chainId, accountId)
-    }
-
-    override suspend fun fetchFeatureToggle() {
-        val configResult = kotlin.runCatching {
-            remoteConfigFetcher.getFeatureToggle()
-        }.getOrNull() ?: return
-
-        val (pendulumCaseEnabled) = configResult
-
-        preferences.putBoolean(PendulumPreInstalledAccountsScenario.PENDULUM_FEATURE_TOGGLE_KEY, pendulumCaseEnabled)
     }
 }
 

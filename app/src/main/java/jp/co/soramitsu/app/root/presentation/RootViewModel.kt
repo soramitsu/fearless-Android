@@ -64,6 +64,7 @@ class RootViewModel @Inject constructor(
 
     private fun checkAppVersion() {
         viewModelScope.launch {
+            interactor.fetchFeatureToggle()
             val appConfigResult = interactor.getRemoteConfig()
             when {
                 appConfigResult.isFailure -> {
@@ -76,7 +77,6 @@ class RootViewModel @Inject constructor(
                 }
 
                 else -> {
-                    interactor.fetchFeatureToggle()
                     runBalancesUpdate()
                 }
             }
