@@ -14,18 +14,18 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.core.os.bundleOf
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.journeyapps.barcodescanner.ScanOptions
 import dagger.hilt.android.AndroidEntryPoint
 import java.lang.Integer.max
+import java.math.BigDecimal
 import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
 import jp.co.soramitsu.common.presentation.ErrorDialog
+import jp.co.soramitsu.common.presentation.askPermissionsSafely
 import jp.co.soramitsu.common.scan.ScanTextContract
 import jp.co.soramitsu.common.scan.ScannerActivity
 import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
-import jp.co.soramitsu.common.presentation.askPermissionsSafely
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
@@ -34,11 +34,21 @@ class SendSetupFragment : BaseComposeBottomSheetDialogFragment<SendSetupViewMode
     companion object {
         const val KEY_PAYLOAD = "payload"
         const val KEY_INITIAL_ADDRESS = "KEY_INITIAL_ADDRESS"
+        const val KEY_INITIAL_AMOUNT = "KEY_INITIAL_AMOUNT"
+        const val KEY_LOCK_AMOUNT = "KEY_LOCK_AMOUNT"
         const val KEY_TOKEN_ID = "KEY_TOKEN_ID"
         fun getBundle(payload: AssetPayload?, initSendToAddress: String?, currencyId: String?) = bundleOf(
             KEY_PAYLOAD to payload,
             KEY_INITIAL_ADDRESS to initSendToAddress,
             KEY_TOKEN_ID to currencyId
+        )
+
+        fun getBundle(payload: AssetPayload?, initSendToAddress: String?, currencyId: String?, amount: BigDecimal?) = bundleOf(
+            KEY_PAYLOAD to payload,
+            KEY_INITIAL_ADDRESS to initSendToAddress,
+            KEY_TOKEN_ID to currencyId,
+            KEY_INITIAL_AMOUNT to amount,
+            KEY_LOCK_AMOUNT to true
         )
     }
 

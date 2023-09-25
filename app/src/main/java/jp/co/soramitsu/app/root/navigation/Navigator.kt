@@ -12,6 +12,7 @@ import androidx.navigation.NavController
 import androidx.navigation.NavDeepLinkRequest
 import androidx.navigation.NavOptions
 import it.airgap.beaconsdk.blockchain.substrate.data.SubstrateSignerPayload
+import java.math.BigDecimal
 import jp.co.soramitsu.account.api.domain.model.ImportMode
 import jp.co.soramitsu.account.api.presentation.account.create.ChainAccountCreatePayload
 import jp.co.soramitsu.account.api.presentation.actions.AddAccountBottomSheet
@@ -696,6 +697,12 @@ class Navigator :
 
     override fun openSend(assetPayload: AssetPayload?, initialSendToAddress: String?, currencyId: String?) {
         val bundle = SendSetupFragment.getBundle(assetPayload, initialSendToAddress, currencyId)
+
+        navController?.navigate(R.id.sendSetupFragment, bundle)
+    }
+
+    override fun openLockedAmountSend(assetPayload: AssetPayload?, initialSendToAddress: String?, currencyId: String?, amount: BigDecimal) {
+        val bundle = SendSetupFragment.getBundle(assetPayload, initialSendToAddress, currencyId, amount)
 
         navController?.navigate(R.id.sendSetupFragment, bundle)
     }

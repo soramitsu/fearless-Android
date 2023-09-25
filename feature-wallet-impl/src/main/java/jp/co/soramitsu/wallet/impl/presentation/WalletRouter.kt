@@ -2,6 +2,7 @@ package jp.co.soramitsu.wallet.impl.presentation
 
 import android.graphics.drawable.Drawable
 import it.airgap.beaconsdk.blockchain.substrate.data.SubstrateSignerPayload
+import java.math.BigDecimal
 import jp.co.soramitsu.account.api.domain.model.ImportMode
 import jp.co.soramitsu.account.api.presentation.actions.AddAccountBottomSheet
 import jp.co.soramitsu.common.AlertViewState
@@ -30,6 +31,7 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
     fun openAssetDetails(assetPayload: AssetPayload)
 
     fun openSend(assetPayload: AssetPayload?, initialSendToAddress: String? = null, currencyId: String? = null)
+    fun openLockedAmountSend(assetPayload: AssetPayload?, initialSendToAddress: String? = null, currencyId: String? = null, amount: BigDecimal)
 
     fun openCrossChainSend(assetPayload: AssetPayload?)
 
