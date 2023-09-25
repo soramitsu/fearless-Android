@@ -1,5 +1,6 @@
 package jp.co.soramitsu.app.root.domain
 
+import jp.co.soramitsu.account.api.domain.PendulumPreInstalledAccountsScenario
 import jp.co.soramitsu.common.domain.model.toDomain
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.core.updater.UpdateSystem
@@ -11,7 +12,8 @@ import kotlinx.coroutines.flow.flowOf
 
 class RootInteractor(
     private val updateSystem: UpdateSystem,
-    private val walletRepository: WalletRepository
+    private val walletRepository: WalletRepository,
+    private val pendulumPreInstalledAccountsScenario: PendulumPreInstalledAccountsScenario
 ) {
 
     fun runBalancesUpdate(): Flow<Updater.SideEffect> = updateSystem.start().inBackground()
@@ -30,5 +32,5 @@ class RootInteractor(
 
     fun chainRegistrySyncUp() = walletRepository.chainRegistrySyncUp()
 
-    suspend fun fetchFeatureToggle() = walletRepository.fetchFeatureToggle()
+    suspend fun fetchFeatureToggle() = pendulumPreInstalledAccountsScenario.fetchFeatureToggle()
 }
