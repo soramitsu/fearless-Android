@@ -40,7 +40,8 @@ class ChainSyncServiceTest {
                 currencyId = null,
                 existentialDeposit = null,
                 color = null,
-                isNative = null
+                isNative = null,
+                ethereumType = null
             )
         ),
         nodes = listOf(

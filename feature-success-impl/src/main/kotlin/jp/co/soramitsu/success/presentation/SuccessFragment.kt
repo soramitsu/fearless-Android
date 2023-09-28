@@ -35,7 +35,7 @@ class SuccessFragment : BaseComposeBottomSheetDialogFragment<SuccessViewModel>()
 
         fun getBundle(
             operationHash: String?,
-            chainId: ChainId,
+            chainId: ChainId?,
             customMessage: String?,
             hasSuccessResult: Boolean = true
         ) = bundleOf(

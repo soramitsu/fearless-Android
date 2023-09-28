@@ -11,6 +11,9 @@ import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import androidx.navigation.NavDeepLinkRequest
 import androidx.navigation.NavOptions
+import co.jp.soramitsu.walletconnect.domain.WalletConnectRouter
+import co.jp.soramitsu.walletconnect.model.ChainChooseResult
+import co.jp.soramitsu.walletconnect.model.ChainChooseState
 import it.airgap.beaconsdk.blockchain.substrate.data.SubstrateSignerPayload
 import java.math.BigDecimal
 import jp.co.soramitsu.account.api.domain.model.ImportMode
@@ -152,6 +155,11 @@ import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.reward.Reward
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.reward.RewardDetailsPayload
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.swap.SwapDetailFragment
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.transfer.TransferDetailFragment
+import jp.co.soramitsu.walletconnect.impl.presentation.WalletConnectFragment
+import jp.co.soramitsu.walletconnect.impl.presentation.chainschooser.ChainChooseFragment
+import jp.co.soramitsu.walletconnect.impl.presentation.connectioninfo.ConnectionInfoFragment
+import jp.co.soramitsu.walletconnect.impl.presentation.requestpreview.RequestPreviewFragment
+import jp.co.soramitsu.walletconnect.impl.presentation.sessionrequest.SessionRequestFragment
 import kotlin.coroutines.coroutineContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -184,7 +192,8 @@ class Navigator :
     CrowdloanRouter,
     PolkaswapRouter,
     SuccessRouter,
-    SoraCardRouter {
+    SoraCardRouter,
+    WalletConnectRouter {
 
     private var navController: NavController? = null
     private var activity: AppCompatActivity? = null
@@ -726,6 +735,18 @@ class Navigator :
         navController?.navigate(R.id.sendSetupFragment, bundle)
     }
 
+    override fun openWalletConnect(pairingTopic: String?) {
+        val bundle = WalletConnectFragment.getBundle(pairingTopic)
+
+        navController?.navigate(R.id.walletConnectFragment, bundle)
+    }
+
+    override fun openWalletConnectSessionRequest(sessionRequestTopic: String) {
+        val bundle = SessionRequestFragment.getBundle(sessionRequestTopic)
+
+        navController?.navigate(R.id.sessionRequestFragment, bundle)
+    }
+
     override fun openLockedAmountSend(assetPayload: AssetPayload?, initialSendToAddress: String?, currencyId: String?, amount: BigDecimal?) {
         val bundle = SendSetupFragment.getBundle(assetPayload, initialSendToAddress, currencyId, amount, true)
 
@@ -803,6 +824,45 @@ class Navigator :
             showAllChains = showAllChains
         )
         navController?.navigate(R.id.chainSelectFragment, bundle)
+    }
+
+    override fun openConnectionsScreen() {
+        println("!!! openConnectionsScreen")
+        navController?.navigate(R.id.connectionsFragment)
+    }
+
+    override fun openSelectMultipleChains(
+        items: List<String>,
+        selected: List<String>,
+        isViewMode: Boolean
+    ) {
+        println("!!! openSelectMultipleChains items: ${items.joinToString { it }}")
+        val bundle = ChainChooseFragment.getBundle(
+            state = ChainChooseState(items, selected, isViewMode)
+        )
+        navController?.navigate(R.id.chainChooseFragment, bundle)
+    }
+
+    override fun openSelectMultipleChainsForResult(
+        items: List<String>,
+        selected: List<String>
+    ): Flow<ChainChooseResult> {
+        val bundle = ChainChooseFragment.getBundle(state = ChainChooseState(items, selected))
+        return openWithResult(
+            destinationId = R.id.chainChooseFragment,
+            bundle = bundle,
+            resultKey = ChainChooseFragment.RESULT
+        )
+    }
+
+    override fun openConnectionDetails(topic: String) {
+        val bundle = ConnectionInfoFragment.getBundle(topic)
+        navController?.navigate(R.id.connectionInfoFragment, bundle)
+    }
+
+    override fun openRequestPreview(topic: String) {
+        val bundle = RequestPreviewFragment.getBundle(topic)
+        navController?.navigate(R.id.requestPreviewFragment, bundle)
     }
 
     override fun openSelectChain(
@@ -898,7 +958,7 @@ class Navigator :
         navController?.navigate(R.id.confirmCrossChainSendFragment, bundle)
     }
 
-    override fun openOperationSuccess(operationHash: String?, chainId: ChainId) {
+    override fun openOperationSuccess(operationHash: String?, chainId: ChainId?) {
         openOperationSuccess(operationHash, chainId, null)
     }
 
@@ -935,11 +995,7 @@ class Navigator :
         navController?.navigate(R.id.polkaswapDisclaimerFragment, bundle)
     }
 
-    override fun openOperationSuccess(
-        operationHash: String?,
-        chainId: ChainId,
-        customMessage: String?
-    ) {
+    override fun openOperationSuccess(operationHash: String?, chainId: ChainId?, customMessage: String?) {
         val bundle = SuccessFragment.getBundle(operationHash, chainId, customMessage)
 
         navController?.navigate(R.id.successSheetFragment, bundle)

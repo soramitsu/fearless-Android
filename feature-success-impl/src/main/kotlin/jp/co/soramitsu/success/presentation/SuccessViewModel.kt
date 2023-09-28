@@ -25,6 +25,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -76,6 +77,8 @@ class SuccessViewModel @Inject constructor(
                 explorerItem.type to url
             }
         }
+    }.onStart {
+        emit(Pair(Chain.Explorer.Type.UNKNOWN, ""))
     }
 
     val state: StateFlow<SuccessViewState> = explorerPairFlow.map { explorer ->
@@ -86,18 +89,20 @@ class SuccessViewModel @Inject constructor(
         )
     }.stateIn(this, SharingStarted.Eagerly, SuccessViewState.default)
 
-    private fun getInfoTableItems() = listOf(
-        TitleValueViewState(
-            title = resourceManager.getString(R.string.hash),
-            value = operationHash?.shortenHash(),
-            clickState = TitleValueViewState.ClickState.Value(R.drawable.ic_copy_filled_24, SuccessViewState.CODE_HASH_CLICK)
-        ),
-        TitleValueViewState(
-            title = resourceManager.getString(R.string.all_done_alert_result_stub),
-            value = resourceManager.getString(R.string.all_done_alert_success_stub),
-            valueColor = greenText
+    private fun getInfoTableItems() = operationHash?.let {
+        listOf(
+            TitleValueViewState(
+                title = resourceManager.getString(R.string.hash),
+                value = operationHash.shortenHash(),
+                clickState = TitleValueViewState.ClickState.Value(R.drawable.ic_copy_filled_24, SuccessViewState.CODE_HASH_CLICK)
+            ),
+            TitleValueViewState(
+                title = resourceManager.getString(R.string.all_done_alert_result_stub),
+                value = resourceManager.getString(R.string.all_done_alert_success_stub),
+                valueColor = greenText
+            )
         )
-    )
+    }.orEmpty()
 
     override fun onClose() {
         router.back()
