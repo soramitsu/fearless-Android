@@ -75,6 +75,10 @@ dependencies {
     implementation project(':feature-soracard-impl')
     implementation project(':runtime-permission')
 
+    implementation(platform(libs.walletconnectBomDep))
+    implementation(libs.walletconnectCoreDep)
+    implementation(libs.walletconnectWeb3WalletDep)
+
     implementation kotlinDep
 
     implementation androidDep

@@ -6,7 +6,7 @@
     android:layout_height="48dp"
     android:clipChildren="true"
     android:foreground="?android:attr/selectableItemBackground"
-    tools:background="@color/black"
+    tools:background="@drawable/drawable_background_image"
     tools:parentTag="androidx.constraintlayout.widget.ConstraintLayout">
 
     <ImageView

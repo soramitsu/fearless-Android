@@ -3,6 +3,7 @@ package jp.co.soramitsu.app.root.presentation
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import com.walletconnect.web3.wallet.client.Wallet
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.util.Date
 import java.util.Timer
@@ -17,13 +18,16 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.core.runtime.ChainConnection
 import jp.co.soramitsu.core.updater.Updater
+import jp.co.soramitsu.walletconnect.impl.presentation.WCDelegate
 import kotlin.concurrent.timerTask
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 @HiltViewModel
@@ -53,6 +57,9 @@ class RootViewModel @Inject constructor(
     private val _closeApp = MutableLiveData<Event<Unit>>()
     val closeApp: LiveData<Event<Unit>> = _closeApp
 
+    private val _startWC = MutableLiveData<Event<Unit>>()
+    val startWC: LiveData<Event<Unit>> = _startWC
+
     private var timer = Timer()
     private var timerTask: TimerTask? = null
 
@@ -63,6 +70,7 @@ class RootViewModel @Inject constructor(
             interactor.fetchFeatureToggle()
         }
         checkAppVersion()
+        observeWalletConnectEvents()
     }
 
     private fun checkAppVersion() {
@@ -173,4 +181,35 @@ class RootViewModel @Inject constructor(
             checkAppVersion()
         }
     }
+
+    private fun observeWalletConnectEvents() {
+        WCDelegate.walletEvents.onEach {
+            if (it is Wallet.Model.ConnectionState) {
+                println("!! RootModel WCDelegate.walletEvent: $it")
+            } else {
+                println("!!! RootModel WCDelegate.walletEvent: $it")
+            }
+            when (it) {
+                is Wallet.Model.SessionProposal -> {
+                    handleSessionProposal(it)
+                }
+                is Wallet.Model.SessionRequest -> {
+                    handleSessionRequest(it)
+                }
+                else -> {}
+            }
+        }.stateIn(this, SharingStarted.Eagerly, null)
+
+
+    }
+
+    private fun handleSessionRequest(sessionRequest: Wallet.Model.SessionRequest) {
+        return rootRouter.openWalletConnectSessionRequest(sessionRequest.topic)
+    }
+
+    private fun handleSessionProposal(sessionProposal: Wallet.Model.SessionProposal) {
+        return rootRouter.openWalletConnect(sessionProposal.pairingTopic)
+    }
+
+
 }

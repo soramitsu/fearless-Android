@@ -105,4 +105,6 @@ interface AccountRouter : SecureRouter {
     )
 
     fun openImportRemoteWalletDialog()
+
+    fun openConnectionsScreen()
 }

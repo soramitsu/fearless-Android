@@ -16,7 +16,7 @@ class ChainsRepository(private val chainDao: ChainDao) {
         }
     }
 
-    suspend fun getChainsById(): Map<ChainId, Chain> = withContext(Dispatchers.IO) {
+    suspend fun     getChainsById(): Map<ChainId, Chain> = withContext(Dispatchers.IO) {
         val local = chainDao.getJoinChainInfo()
         local.map { mapChainLocalToChain(it) }.associateBy { it.id }
     }

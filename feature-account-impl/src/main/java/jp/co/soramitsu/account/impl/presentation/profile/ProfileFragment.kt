@@ -57,6 +57,7 @@ class ProfileFragment : BaseFragment<ProfileViewModel>() {
             polkaswapDisclaimerTv.setOnClickListener { viewModel.polkaswapDisclaimerClicked() }
             profileSoraCard.setOnClickListener { viewModel.onSoraCardClicked() }
             hideZeroBalancesContainer.setOnClickListener { viewModel.onHideZeroBalancesClick() }
+            profileWalletConnect.setOnClickListener { viewModel.onWalletConnectClick() }
 
             viewModel.hasMissingAccountsFlow.observe {
                 missingAccountsIcon.isVisible = it
