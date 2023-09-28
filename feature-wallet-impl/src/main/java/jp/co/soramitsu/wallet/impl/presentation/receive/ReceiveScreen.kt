@@ -4,6 +4,8 @@ import android.graphics.Bitmap
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -163,7 +165,6 @@ private fun ReceiveContent(
             color = Color.White.copy(alpha = 0.5f)
         )
         MarginVertical(margin = 24.dp)
-//        Spacer(modifier = Modifier.weight(1f))
         AccentButton(
             text = stringResource(id = R.string.common_copy),
             modifier = Modifier

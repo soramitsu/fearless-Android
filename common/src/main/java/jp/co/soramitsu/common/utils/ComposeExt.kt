@@ -33,8 +33,20 @@ fun Modifier.toggleableWithNoIndication(value: Boolean, role: Role? = null, onVa
     )
 }
 
-@Suppress("DEPRECATION")
 fun String.withNoFontPadding(): AnnotatedString {
+    val theText = this
+    return buildAnnotatedString {
+        withStyle(
+            style = ParagraphStyle(
+                platformStyle = PlatformParagraphStyle(false)
+            )
+        ) {
+            append(text = theText)
+        }
+    }
+}
+
+fun AnnotatedString.withNoFontPadding(): AnnotatedString {
     val theText = this
     return buildAnnotatedString {
         withStyle(

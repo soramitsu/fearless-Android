@@ -7,7 +7,6 @@ import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.utils.makeGone
@@ -36,7 +35,7 @@ class ProfileOptionItemView @JvmOverloads constructor(
     init {
         View.inflate(context, R.layout.view_profile_option_item, this)
 
-        background = with(context) { addRipple(ContextCompat.getDrawable(context, R.color.black)) }
+        background = with(context) { addRipple() }
 
         isFocusable = true
         isClickable = true

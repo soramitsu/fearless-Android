@@ -65,7 +65,7 @@ fun InfoTableItem(state: TitleValueViewState, onClick: (Int) -> Unit = {}) {
         MarginHorizontal(margin = 16.dp)
         Row(
             modifier = Modifier
-                .fillMaxWidth()
+                .weight(1f)
                 .align(Alignment.CenterVertically)
                 .then(valueClickModifier)
         ) {

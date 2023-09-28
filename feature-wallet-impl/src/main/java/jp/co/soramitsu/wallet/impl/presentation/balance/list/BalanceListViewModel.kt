@@ -6,6 +6,8 @@ import androidx.compose.material.SwipeableState
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import com.walletconnect.web3.wallet.client.Wallet
+import com.walletconnect.web3.wallet.client.Web3Wallet
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.math.BigDecimal
 import java.util.concurrent.TimeUnit
@@ -66,6 +68,7 @@ import jp.co.soramitsu.soracard.impl.presentation.SoraCardItemViewState
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.updaters.BalanceUpdateTrigger
 import jp.co.soramitsu.wallet.impl.domain.ChainInteractor
 import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
+import jp.co.soramitsu.wallet.impl.domain.QR_PREFIX_WALLET_CONNECT
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.domain.model.AssetWithStatus
 import jp.co.soramitsu.wallet.impl.domain.model.WalletAccount
@@ -632,25 +635,45 @@ class BalanceListViewModel @Inject constructor(
 
     fun qrCodeScanned(content: String) {
         viewModelScope.launch {
-            val cbdcFormat = interactor.tryReadCBDCAddressFormat(content)
-            if (cbdcFormat != null) {
-                router.openCBDCSend(cbdcQrInfo = cbdcFormat)
+            if (content.startsWith(QR_PREFIX_WALLET_CONNECT)) {
+                sendWalletConnectPair(pairingUri = content)
             } else {
-                val soraFormat =
-                    interactor.tryReadSoraFormat(content)
-                if (soraFormat != null) {
-                    val amount =
-                        soraFormat.amount?.let { runCatching { BigDecimal(it) }.getOrNull() }
-                    openSendSoraTokenTo(soraFormat.tokenId, soraFormat.address, amount)
+                val cbdcFormat = interactor.tryReadCBDCAddressFormat(content)
+                if (cbdcFormat != null) {
+                    router.openCBDCSend(cbdcQrInfo = cbdcFormat)
                 } else {
-                    router.openSend(
-                        assetPayload = null,
-                        initialSendToAddress = content,
-                        amount = null
-                    )
+                    val soraFormat =
+                        interactor.tryReadSoraFormat(content)
+                    if (soraFormat != null) {
+                        val amount =
+                            soraFormat.amount?.let { runCatching { BigDecimal(it) }.getOrNull() }
+                        openSendSoraTokenTo(soraFormat.tokenId, soraFormat.address, amount)
+                    } else {
+                        router.openSend(
+                            assetPayload = null,
+                            initialSendToAddress = content,
+                            amount = null
+                        )
+                    }
                 }
             }
         }
+    }
+
+    private fun sendWalletConnectPair(pairingUri: String) {
+        val pairingParams = Wallet.Params.Pair(pairingUri)
+        Web3Wallet.pair(
+            params = pairingParams,
+            onSuccess = {
+                println("!!! Web3Wallet.pair success, params: $it")
+            },
+            onError = { error ->
+                println("!!! Web3Wallet.pair onError: ${error.throwable.message}")
+                error.throwable.printStackTrace()
+//                viewModelScope.launch {
+//                    _pairingStateSharedFlow.emit(PairingState.Error(error.throwable.message ?: ""))
+//                }
+            })
     }
 
     private suspend fun openSendSoraTokenTo(

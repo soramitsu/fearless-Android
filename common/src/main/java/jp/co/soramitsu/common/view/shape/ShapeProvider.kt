@@ -37,7 +37,7 @@ fun Context.getIdleDrawable(): Drawable = getCutCornerDrawable(strokeColorRes = 
 fun Context.getSelectedDrawable(): Drawable = getCutCornerDrawable(strokeColorRes = R.color.colorAccent)
 
 fun Context.getCutCornerDrawable(
-    @ColorRes fillColorRes: Int = R.color.black,
+    @ColorRes fillColorRes: Int = R.color.backgroundBlurColor, // R.color.zxing_transparent,
     @ColorRes strokeColorRes: Int? = null,
     cornerSizeInDp: Int = 10,
     strokeSizeInDp: Int = 1
