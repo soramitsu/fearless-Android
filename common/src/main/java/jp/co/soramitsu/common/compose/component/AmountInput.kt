@@ -57,6 +57,16 @@ data class AmountInputViewState(
     val initial: BigDecimal?
 ) {
     companion object {
+        val defaultObj = AmountInputViewState(
+            tokenName = null,
+            tokenImage = null,
+            totalBalance = "0",
+            fiatAmount = "$0",
+            tokenAmount = BigDecimal.ZERO,
+            initial = null
+        )
+
+        @Deprecated("use defaultObj with copy")
         fun default(resourceManager: ResourceManager, @StringRes totalBalanceFormat: Int = R.string.common_balance_format): AmountInputViewState {
             return AmountInputViewState(
                 tokenName = null,
@@ -80,7 +90,8 @@ fun AmountInput(
     focusRequester: FocusRequester? = null,
     onInput: (BigDecimal?) -> Unit = {},
     onInputFocusChange: (Boolean) -> Unit = {},
-    onTokenClick: () -> Unit = {}
+    onTokenClick: () -> Unit = {},
+    onKeyboardDone: () -> Unit = {}
 ) {
     val textColorState = when {
         state.tokenAmount.isZero() -> {
@@ -178,7 +189,8 @@ fun AmountInput(
                             textAlign = TextAlign.End,
                             color = black2
                         )
-                    }
+                    },
+                    onKeyboardDone = onKeyboardDone
                 )
             }
             MarginVertical(margin = 4.dp)

@@ -66,7 +66,6 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.pendulumChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraTestChainId
-import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.addressByteOrNull
 import jp.co.soramitsu.soracard.api.domain.SoraCardInteractor
 import jp.co.soramitsu.soracard.impl.presentation.SoraCardItemViewState
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.updaters.BalanceUpdateTrigger
@@ -630,49 +629,45 @@ class BalanceListViewModel @Inject constructor(
             val soraAddressWithAmount = interactor.tryReadSoraAddressAndAmountFromUrl(content)
             if (soraAddressWithAmount != null) {
                 val (soraAddress, amountDecimal) = soraAddressWithAmount
-                openSendTokenToSora(soraAddress, amountDecimal)
+                openSendCBDCOnSora(soraAddress, amountDecimal)
             } else {
-                val soraAddressOrContent =
-                    interactor.tryReadAddressFromSoraFormat(content) ?: content
-                val qrTokenId = interactor.tryReadTokenIdFromSoraFormat(content)
-                if (qrTokenId != null) {
-                    openSendSoraTokenTo(qrTokenId, soraAddressOrContent)
+                val soraFormat =
+                    interactor.tryReadSoraFormat(content)
+                if (soraFormat != null) {
+                    val amount = soraFormat.amount?.let { runCatching { BigDecimal(it) }.getOrNull() }
+                    openSendSoraTokenTo(soraFormat.tokenId, soraFormat.address, amount)
                 } else {
                     router.openSend(
                         assetPayload = null,
-                        initialSendToAddress = soraAddressOrContent
+                        initialSendToAddress = content,
+                        amount = null
                     )
                 }
             }
         }
     }
 
-    private suspend fun openSendSoraTokenTo(qrTokenId: String, soraAddress: String) {
-        val soraTokenChains = interactor.getChains().first()
-            .filter { it.addressPrefix.toShort() == soraAddress.addressByteOrNull() }
-            .filter { it.assets.any { it.currencyId == qrTokenId } }
-
-        val payloadFromQr = if (soraTokenChains.size == 1) {
-            val chain = soraTokenChains[0]
-            val soraAsset = chain.assets.firstOrNull {
-                it.currencyId == qrTokenId
-            }
-
-            soraAsset?.let {
-                AssetPayload(it.chainId, it.id)
-            }
-        } else {
-            null
+    private suspend fun openSendSoraTokenTo(qrTokenId: String, soraAddress: String, amount: BigDecimal?) {
+        val soraChainId = if (BuildConfig.DEBUG) soraTestChainId else soraMainChainId
+        val soraChain = interactor.getChains().first().firstOrNull {
+            it.id == soraChainId
+        }
+        val soraAsset = soraChain?.assets?.firstOrNull {
+            it.currencyId == qrTokenId
+        }
+        val payloadFromQr = soraAsset?.let {
+            AssetPayload(it.chainId, it.id)
         }
 
-        router.openSend(
+        router.openLockedAmountSend(
             assetPayload = payloadFromQr,
             initialSendToAddress = soraAddress,
-            currencyId = qrTokenId
+            currencyId = qrTokenId,
+            amount = amount
         )
     }
 
-    private suspend fun openSendTokenToSora(soraAddress: String, amount: BigDecimal?) {
+    private suspend fun openSendCBDCOnSora(soraAddress: String, amount: BigDecimal?) {
         val soraChainId = if (BuildConfig.DEBUG) soraTestChainId else soraMainChainId
         val soraChain = interactor.getChain(soraChainId)
         val sendAsset = soraChain.assets.firstOrNull { it.symbol.lowercase() == "usdt" }
@@ -680,20 +675,12 @@ class BalanceListViewModel @Inject constructor(
         val payload = sendAsset?.let {
             AssetPayload(it.chainId, it.id)
         }
-        if (amount == null) {
-            router.openSend(
-                assetPayload = payload,
-                initialSendToAddress = soraAddress,
-                currencyId = sendAsset?.currencyId
-            )
-        } else {
-            router.openLockedAmountSend(
-                assetPayload = payload,
-                initialSendToAddress = soraAddress,
-                currencyId = sendAsset?.currencyId,
-                amount = amount
-            )
-        }
+        router.openLockedAmountSend(
+            assetPayload = payload,
+            initialSendToAddress = soraAddress,
+            currencyId = sendAsset?.currencyId,
+            amount = amount
+        )
     }
 
     fun openWalletSelector() {

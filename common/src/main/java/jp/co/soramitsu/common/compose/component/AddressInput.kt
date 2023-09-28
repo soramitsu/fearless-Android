@@ -102,7 +102,7 @@ fun AddressInput(
                     onClick = onPaste
                 )
             }
-            if (state.input.isNotEmpty()) {
+            if (state.input.isNotEmpty() && state.editable) {
                 Image(
                     res = R.drawable.ic_close_16_circle,
                     modifier = Modifier

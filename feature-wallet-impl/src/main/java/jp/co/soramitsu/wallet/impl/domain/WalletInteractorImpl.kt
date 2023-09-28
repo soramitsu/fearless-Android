@@ -1,6 +1,7 @@
 package jp.co.soramitsu.wallet.impl.domain
 
 import android.net.Uri
+import android.util.Log
 import java.math.BigDecimal
 import java.math.BigInteger
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
@@ -46,6 +47,7 @@ import jp.co.soramitsu.wallet.impl.domain.model.Fee
 import jp.co.soramitsu.wallet.impl.domain.model.Operation
 import jp.co.soramitsu.wallet.impl.domain.model.OperationsPageChange
 import jp.co.soramitsu.wallet.impl.domain.model.PhishingModel
+import jp.co.soramitsu.wallet.impl.domain.model.QrContentSora
 import jp.co.soramitsu.wallet.impl.domain.model.Transfer
 import jp.co.soramitsu.wallet.impl.domain.model.WalletAccount
 import jp.co.soramitsu.wallet.impl.domain.model.toPhishingModel
@@ -291,7 +293,7 @@ class WalletInteractorImpl(
         }
     }
 
-    override suspend fun getQrCodeSharingSoraString(chainId: ChainId, assetId: String): String {
+    override suspend fun getQrCodeSharingSoraString(chainId: ChainId, assetId: String, amount: String): String {
         val metaAccount = accountRepository.getSelectedMetaAccount()
         val chain = chainRegistry.getChain(chainId)
         val asset = chain.assets.firstOrNull { it.id == assetId }
@@ -302,7 +304,13 @@ class WalletInteractorImpl(
         val currencyId = asset?.currencyId
 
         return if (address != null && pubKey != null && currencyId != null) {
-            "$QR_PREFIX_SUBSTRATE:$address:$pubKey:$name:$currencyId"
+            val amountPart = if (BigDecimal(amount) > BigDecimal.ZERO) {
+                ":$amount"
+            } else {
+                ""
+            }
+//            substrate:[user address]:[user public key]:[user name]:[token id]:<amount>
+            "$QR_PREFIX_SUBSTRATE:$address:$pubKey:$name:$currencyId$amountPart"
         } else {
             address
                 ?: throw IllegalArgumentException("There is no address found to getQrCodeSharingSoraString")
@@ -338,9 +346,30 @@ class WalletInteractorImpl(
         }
     }
 
-    override fun tryReadTokenIdFromSoraFormat(content: String): String? {
+    override fun tryReadSoraFormat(content: String): QrContentSora? {
+//        substrate:[user address]:[user public key]:[user name]:[token id]:<amount>
         val list = content.split(":")
-        return list.getOrNull(4)
+        return if (list[0] != QR_PREFIX_SUBSTRATE) {
+            null
+        } else {
+            try {
+                QrContentSora(
+                    address = list[1],
+                    publicKey = list[2],
+                    userName = list[3],
+                    tokenId = list[4],
+                    amount = list.getOrNull(5)
+                )
+            } catch (e: Exception) {
+                Log.e("WalletInteractorImpl", "Error read QR content", e)
+                null
+            }
+        }
+    }
+
+    override fun tryReadAddressFromSoraFormat(content: String): String? {
+        val list = content.split(":")
+        return list.getOrNull(1)
     }
 
     override suspend fun updateAssets(newItems: List<AssetUpdateItem>) {

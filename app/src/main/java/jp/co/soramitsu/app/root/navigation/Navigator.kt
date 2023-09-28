@@ -697,14 +697,14 @@ class Navigator :
         navController?.navigate(R.id.open_collator_details, CollatorDetailsFragment.getBundle(collatorDetails))
     }
 
-    override fun openSend(assetPayload: AssetPayload?, initialSendToAddress: String?, currencyId: String?) {
-        val bundle = SendSetupFragment.getBundle(assetPayload, initialSendToAddress, currencyId)
+    override fun openSend(assetPayload: AssetPayload?, initialSendToAddress: String?, currencyId: String?, amount: BigDecimal?) {
+        val bundle = SendSetupFragment.getBundle(assetPayload, initialSendToAddress, currencyId, amount, false)
 
         navController?.navigate(R.id.sendSetupFragment, bundle)
     }
 
-    override fun openLockedAmountSend(assetPayload: AssetPayload?, initialSendToAddress: String?, currencyId: String?, amount: BigDecimal) {
-        val bundle = SendSetupFragment.getBundle(assetPayload, initialSendToAddress, currencyId, amount)
+    override fun openLockedAmountSend(assetPayload: AssetPayload?, initialSendToAddress: String?, currencyId: String?, amount: BigDecimal?) {
+        val bundle = SendSetupFragment.getBundle(assetPayload, initialSendToAddress, currencyId, amount, true)
 
         navController?.navigate(R.id.sendSetupFragment, bundle)
     }
