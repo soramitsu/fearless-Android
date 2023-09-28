@@ -21,6 +21,7 @@ import jp.co.soramitsu.wallet.impl.domain.model.Fee
 import jp.co.soramitsu.wallet.impl.domain.model.Operation
 import jp.co.soramitsu.wallet.impl.domain.model.OperationsPageChange
 import jp.co.soramitsu.wallet.impl.domain.model.PhishingModel
+import jp.co.soramitsu.wallet.impl.domain.model.QrContentSora
 import jp.co.soramitsu.wallet.impl.domain.model.Transfer
 import jp.co.soramitsu.wallet.impl.domain.model.TransferValidityStatus
 import jp.co.soramitsu.wallet.impl.domain.model.WalletAccount
@@ -76,15 +77,15 @@ interface WalletInteractor {
         tipInPlanks: BigInteger?
     ): Result<String>
 
-    suspend fun getQrCodeSharingSoraString(chainId: ChainId, assetId: String): String
+    suspend fun getQrCodeSharingSoraString(chainId: ChainId, assetId: String, amount: String): String
 
     suspend fun createFileInTempStorageAndRetrieveAsset(fileName: String): Result<File>
 
     fun tryReadAddressFromSoraFormat(content: String): String?
 
-    suspend fun tryReadSoraAddressAndAmountFromUrl(content: String): Pair<String, BigDecimal?>?
+    fun tryReadSoraFormat(content: String): QrContentSora?
 
-    fun tryReadTokenIdFromSoraFormat(content: String): String?
+    suspend fun tryReadSoraAddressAndAmountFromUrl(content: String): Pair<String, BigDecimal?>?
 
     suspend fun getChain(chainId: ChainId): Chain
 

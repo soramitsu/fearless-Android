@@ -19,9 +19,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.material.Icon
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
@@ -56,6 +58,7 @@ import jp.co.soramitsu.common.compose.theme.backgroundBlack
 import jp.co.soramitsu.common.compose.theme.black05
 import jp.co.soramitsu.common.compose.theme.colorAccentDark
 import jp.co.soramitsu.common.compose.theme.white24
+import jp.co.soramitsu.common.utils.isZero
 import jp.co.soramitsu.feature_wallet_impl.R
 
 data class SendSetupViewState(
@@ -67,7 +70,8 @@ data class SendSetupViewState(
     val warningInfoState: WarningInfoState?,
     val buttonState: ButtonViewState,
     val isSoftKeyboardOpen: Boolean,
-    val heightDiffDp: Dp
+    val heightDiffDp: Dp,
+    val isInputLocked: Boolean
 )
 
 interface SendSetupScreenInterface {
@@ -93,7 +97,12 @@ fun SendSetupContent(
     callback: SendSetupScreenInterface
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
-    val showQuickInput = state.amountInputState.isFocused && state.isSoftKeyboardOpen
+    val showQuickInput = state.amountInputState.isFocused && state.isSoftKeyboardOpen && state.isInputLocked.not()
+
+    val focusRequester = remember { FocusRequester() }
+    if (state.isInputLocked && state.amountInputState.tokenAmount.isZero()) {
+        focusRequester.requestFocus()
+    }
 
     BottomSheetScreen {
         Box(
@@ -101,17 +110,22 @@ fun SendSetupContent(
                 .fillMaxSize()
                 .padding(bottom = state.heightDiffDp)
         ) {
+            val bottomPadding = if (state.isInputLocked) {
+                50.dp
+            } else {
+                130.dp
+            }
             Column(
                 modifier = Modifier
                     .padding(horizontal = 16.dp)
-                    .padding(bottom = 130.dp)
+                    .padding(bottom = bottomPadding)
                     .fillMaxWidth()
             ) {
                 ToolbarBottomSheet(
                     title = stringResource(id = R.string.send_fund),
                     onNavigationClick = callback::onNavigationClick
                 )
-                MarginVertical(margin = 20.dp)
+                MarginVertical(margin = 16.dp)
                 AddressInput(
                     state = state.addressInputState,
                     onInput = callback::onAddressInput,
@@ -124,7 +138,8 @@ fun SendSetupContent(
                     borderColorFocused = colorAccentDark,
                     onInput = callback::onAmountInput,
                     onInputFocusChange = callback::onAmountFocusChanged,
-                    onTokenClick = callback::onTokenClick
+                    onTokenClick = callback::onTokenClick,
+                    focusRequester = focusRequester
                 )
 
                 MarginVertical(margin = 12.dp)
@@ -148,15 +163,17 @@ fun SendSetupContent(
                     .align(Alignment.BottomCenter)
                     .imePadding()
             ) {
-                LazyRow(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally)
-                ) {
-                    item { Badge(R.drawable.ic_scan, R.string.chip_qr, callback::onQrClick) }
-                    item { Badge(R.drawable.ic_history_16, R.string.chip_history, callback::onHistoryClick) }
-                    item { Badge(R.drawable.ic_copy_16, R.string.chip_paste, callback::onPasteClick) }
+                if (state.isInputLocked.not()) {
+                    LazyRow(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally)
+                    ) {
+                        item { Badge(R.drawable.ic_scan, R.string.chip_qr, callback::onQrClick) }
+                        item { Badge(R.drawable.ic_history_16, R.string.chip_history, callback::onHistoryClick) }
+                        item { Badge(R.drawable.ic_copy_16, R.string.chip_paste, callback::onPasteClick) }
+                    }
+                    MarginVertical(margin = 12.dp)
                 }
-                MarginVertical(margin = 12.dp)
                 AccentDarkDisabledButton(
                     state = state.buttonState,
                     onClick = {
@@ -227,7 +244,8 @@ private fun SendSetupPreview() {
         warningInfoState = null,
         buttonState = ButtonViewState("Continue", true),
         isSoftKeyboardOpen = false,
-        heightDiffDp = 0.dp
+        heightDiffDp = 0.dp,
+        isInputLocked = false
     )
 
     val emptyCallback = object : SendSetupScreenInterface {
