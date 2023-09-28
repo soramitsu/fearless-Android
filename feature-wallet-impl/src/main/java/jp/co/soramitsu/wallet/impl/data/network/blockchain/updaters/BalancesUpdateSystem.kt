@@ -1,6 +1,7 @@
 package jp.co.soramitsu.wallet.impl.data.network.blockchain.updaters
 
 import android.util.Log
+import it.airgap.beaconsdk.core.internal.utils.failure
 import it.airgap.beaconsdk.core.internal.utils.onEachFailure
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
@@ -43,11 +44,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flatMapMerge
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.withContext
@@ -65,6 +67,8 @@ class BalancesUpdateSystem(
     private val ethereumRemoteSource: EthereumRemoteSource
 ) : UpdateSystem {
 
+    private val trigger = BalanceUpdateTrigger.observe()
+
     @OptIn(ExperimentalCoroutinesApi::class)
     private fun subscribeFlow(): Flow<Updater.SideEffect> {
         return combine(
@@ -73,28 +77,29 @@ class BalancesUpdateSystem(
         ) { chains, metaAccount ->
             chains to metaAccount
         }.flatMapLatest { (chains, metaAccount) ->
-            val chainsFLow = chains.mapNotNull { chain ->
+            val chainsFlow = chains.map { chain ->
                 if (chain.isEthereumChain) {
-                    ethereumRemoteSource.subscribeEthereumBalance(chain, metaAccount)
-                        .onFailure { logError(chain, it) }
-                        .getOrNull()
-                        ?.onEachFailure { logError(chain, it) }
-                        ?.onEach {
-                            val (asset, balanceData) = it.getOrNull() ?: return@onEach
-                            val accountId = metaAccount.accountId(chain) ?: return@onEach
-                            assetCache.updateAsset(
-                                metaAccount.id,
-                                accountId,
-                                asset,
-                                balanceData
-                            )
-                        }
+                    listenEthereumBalancesByTrigger(chain, metaAccount)
                 } else {
                     subscribeChainBalances(chain, metaAccount).onEachFailure { logError(chain, it) }
                 }
             }
 
-            combine(chainsFLow) { }.transform { }
+            combine(chainsFlow) { }.transform { }
+        }
+    }
+
+    private fun listenEthereumBalancesByTrigger(
+        chain: Chain,
+        metaAccount: MetaAccount
+    ): Flow<Result<Any>> {
+        return trigger.map { triggeredChainId ->
+            val specificChainTriggered = triggeredChainId != null
+            val currentChainTriggered = triggeredChainId == chain.id
+
+            if (specificChainTriggered && currentChainTriggered.not()) return@map Result.failure()
+
+            kotlin.runCatching { fetchEthereumBalances(chain, listOf(metaAccount)) }
         }
     }
 
@@ -127,7 +132,7 @@ class BalancesUpdateSystem(
                             runtime
                         ).onFailure { return@flatMapMerge flowOf(Result.failure<Any>(it)) }
                             .getOrNull()
-                            ?: return@flatMapMerge flowOf(Result.failure<Any>(RuntimeException("Can't get account id for meta account ${metaAccount.name}, chain: ${chain.name}")))
+                            ?: return@flatMapMerge flowOf(Result.failure<Any>(RuntimeException("Can't build storage keys for meta account ${metaAccount.name}, chain: ${chain.name}")))
 
                     val socketService = runCatching { chainRegistry.getSocketOrNull(chain.id) }
                         .onFailure { return@flatMapMerge flowOf(Result.failure<Any>(it)) }
@@ -181,30 +186,30 @@ class BalancesUpdateSystem(
     private fun singleUpdateFlow(): Flow<Unit> {
         return combine(
             chainRegistry.syncedChains,
-            accountRepository.allMetaAccountsFlow()
+            accountRepository.allMetaAccountsFlow().filterNot { it.isEmpty() }
         ) { chains, accounts ->
-            chains.forEach singleChainUpdate@{ chain ->
-                if (chain.isEthereumChain) {
-                    fetchEthereumBalances(chain, accounts)
-                    return@singleChainUpdate
-                }
+            chains.sortedByDescending { it.isEthereumChain }.forEach { chain ->
 
+                if (chain.isEthereumChain) {
+                    kotlin.runCatching {
+                        fetchEthereumBalances(chain, accounts)
+                    }
+                    return@forEach
+                }
                 runCatching {
                     val runtime =
                         runCatching { chainRegistry.getRuntimeOrNull(chain.id) }.getOrNull()
-                            ?: return@singleChainUpdate
-
+                            ?: return@forEach
                     val runtimeVersion = chainRegistry.getRemoteRuntimeVersion(chain.id) ?: 0
                     val socketService =
                         runCatching { chainRegistry.getSocket(chain.id) }.getOrNull()
-                            ?: return@singleChainUpdate
-
+                            ?: return@forEach
                     val storageKeys =
                         accounts.mapNotNull { metaAccount ->
                             buildStorageKeys(chain, metaAccount, runtime)
+                                .onFailure { }
                                 .getOrNull()?.toList()
                         }.flatten()
-
                     val queryResults = withContext(Dispatchers.IO) {
                         bulkRetriever.queryKeys(
                             socketService,
@@ -233,7 +238,7 @@ class BalancesUpdateSystem(
                 }
                     .onFailure {
                         logError(chain, it)
-                        return@singleChainUpdate
+                        return@forEach
                     }
             }
         }.onStart { emit(Unit) }.flowOn(Dispatchers.Default)
@@ -247,11 +252,12 @@ class BalancesUpdateSystem(
         val accountId = metaAccount.accountId(chain)
             ?: return Result.failure(RuntimeException("Can't get account id for meta account ${metaAccount.name}, chain: ${chain.name}"))
 
-        return Result.success(chain.assets.mapNotNull { asset ->
+        val storageKeys = chain.assets.map { asset ->
             constructBalanceKey(runtime, asset, accountId)?.let {
                 StorageKeyWithMetadata(asset, metaAccount.id, accountId, it)
             }
-        })
+        }
+        return Result.success(storageKeys.filterNotNull())
     }
 
     data class StorageKeyWithMetadata(
@@ -289,9 +295,10 @@ class BalancesUpdateSystem(
             val address = account.address(chain) ?: return@forEach
             val accountId = account.accountId(chain) ?: return@forEach
             chain.assets.forEach { asset ->
-                val balance = kotlin.runCatching { ethereumRemoteSource.fetchEthBalance(asset, address) }.getOrNull().orZero()
+                val balance =
+                    kotlin.runCatching { ethereumRemoteSource.fetchEthBalance(asset, address) }
+                        .getOrNull().orZero()
                 val balanceData = SimpleBalanceData(balance)
-
                 assetCache.updateAsset(
                     metaId = account.id,
                     accountId = accountId,
@@ -335,7 +342,7 @@ class BalancesUpdateSystem(
             withContext(Dispatchers.IO) { operationDao.insertAll(local) }
         }.onFailure {
             Log.d(
-                "PaymentUpdater",
+                "BalancesUpdateSystem",
                 "Failed to fetch transfers for chain ${chain.name} (${chain.id}) $it "
             )
         }

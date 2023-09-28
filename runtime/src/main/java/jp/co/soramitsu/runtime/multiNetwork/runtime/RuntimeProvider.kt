@@ -12,6 +12,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.first
@@ -49,6 +50,19 @@ class RuntimeProvider(
     suspend fun getOrNull(): RuntimeSnapshot? {
         return if (runtimeFlow.replayCache.isEmpty()) {
             null
+        } else {
+            runtimeFlow.first().runtime
+        }
+    }
+
+    suspend fun getOrNullWithTimeout(shouldWait: Boolean = true): RuntimeSnapshot? {
+        return if (runtimeFlow.replayCache.isEmpty()) {
+            if (shouldWait) {
+                delay(3000L)
+                getOrNullWithTimeout(false)
+            } else {
+                null
+            }
         } else {
             runtimeFlow.first().runtime
         }

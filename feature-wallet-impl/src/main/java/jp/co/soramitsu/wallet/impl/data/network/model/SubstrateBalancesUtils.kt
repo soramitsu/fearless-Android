@@ -56,7 +56,7 @@ fun constructBalanceKey(
     return keyConstructionResult
         .onFailure {
             Log.d(
-                "PaymentUpdater",
+                "BalancesUpdateSystem",
                 "Failed to construct storage key for asset ${asset.symbol} (${asset.id}) $it "
             )
         }
