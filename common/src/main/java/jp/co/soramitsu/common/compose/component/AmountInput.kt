@@ -28,6 +28,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import java.math.BigDecimal
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.theme.black05
@@ -40,7 +41,6 @@ import jp.co.soramitsu.common.utils.MAX_DECIMALS_8
 import jp.co.soramitsu.common.utils.isZero
 import jp.co.soramitsu.ui_core.component.input.number.BasicNumberInput
 import jp.co.soramitsu.ui_core.theme.customTypography
-import java.math.BigDecimal
 
 data class AmountInputViewState(
     val tokenName: String? = null,
@@ -53,6 +53,7 @@ data class AmountInputViewState(
     val isFocused: Boolean = false,
     val allowAssetChoose: Boolean = false,
     val precision: Int = MAX_DECIMALS_8,
+    val inputEnabled: Boolean = true,
     val initial: BigDecimal?
 ) {
     companion object {
@@ -161,7 +162,7 @@ fun AmountInput(
                         .wrapContentHeight(),
                     onFocusChanged = onInputFocusChange,
                     textStyle = MaterialTheme.customTypography.displayS.copy(textAlign = TextAlign.End, color = textColorState),
-                    enabled = true,
+                    enabled = state.inputEnabled,
                     precision = state.precision,
                     initial = state.tokenAmount,
                     onValueChanged = onInput,
