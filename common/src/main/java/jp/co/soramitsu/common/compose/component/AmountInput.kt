@@ -166,6 +166,7 @@ fun AmountInput(
                         )
                     }
                 }
+                val usePrecision = maxOf(state.precision, state.tokenAmount.precision())
                 BasicNumberInput(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -174,7 +175,7 @@ fun AmountInput(
                     onFocusChanged = onInputFocusChange,
                     textStyle = MaterialTheme.customTypography.displayS.copy(textAlign = TextAlign.End, color = textColorState),
                     enabled = state.inputEnabled,
-                    precision = state.precision,
+                    precision = usePrecision,
                     initial = state.tokenAmount,
                     onValueChanged = onInput,
                     focusRequester = focusRequester,

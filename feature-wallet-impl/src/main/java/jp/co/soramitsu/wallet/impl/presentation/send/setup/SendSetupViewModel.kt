@@ -603,10 +603,10 @@ class SendSetupViewModel @Inject constructor(
         }
     }
 
-    private suspend fun handleSoraQr(tryReadSoraQr: QrContentSora) {
+    private suspend fun handleSoraQr(qrContentSora: QrContentSora) {
         initialAmountFlow.value = null
-        val soraTokenId = tryReadSoraQr.tokenId
-        val soraAmount = tryReadSoraQr.amount
+        val soraTokenId = qrContentSora.tokenId
+        val soraAmount = qrContentSora.amount
 
         val soraChainId = if (BuildConfig.DEBUG) soraTestChainId else soraMainChainId
         val soraChain = walletInteractor.getChain(soraChainId)
@@ -614,7 +614,7 @@ class SendSetupViewModel @Inject constructor(
             sharedState.update(soraChainId, asset.id)
         }
 
-        addressInputFlow.value = tryReadSoraQr.address
+        addressInputFlow.value = qrContentSora.address
 
         val amount = runCatching { BigDecimal(soraAmount) }.getOrNull().orZero()
         lockInputFlow.value = true
