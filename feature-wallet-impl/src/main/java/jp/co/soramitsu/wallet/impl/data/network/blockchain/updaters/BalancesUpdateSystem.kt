@@ -11,7 +11,6 @@ import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
 import jp.co.soramitsu.common.data.network.runtime.binding.ExtrinsicStatusEvent
 import jp.co.soramitsu.common.data.network.runtime.binding.SimpleBalanceData
 import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
-import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.requireException
 import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.core.models.Asset
@@ -183,64 +182,70 @@ class BalancesUpdateSystem(
         return chainUpdateFlow
     }
 
-    private fun singleUpdateFlow(): Flow<Unit> {
-        return combine(
-            chainRegistry.syncedChains,
-            accountRepository.allMetaAccountsFlow().filterNot { it.isEmpty() }
-        ) { chains, accounts ->
-            chains.sortedByDescending { it.isEthereumChain }.forEach { chain ->
+    private val ethBalancesFlow = combine(chainRegistry.syncedChains,
+        accountRepository.allMetaAccountsFlow().filterNot { it.isEmpty() }) { chains, accounts ->
+        val filtered = chains.filter { it.isEthereumChain }
+        filtered.forEach { chain ->
+            fetchEthereumBalances(chain, accounts)
+        }
+    }
 
-                if (chain.isEthereumChain) {
-                    kotlin.runCatching {
-                        fetchEthereumBalances(chain, accounts)
-                    }
+    private val substrateBalancesFlow = combine(chainRegistry.syncedChains,
+        accountRepository.allMetaAccountsFlow().filterNot { it.isEmpty() }) { chains, accounts ->
+        val filtered = chains.filterNot { it.isEthereumChain }
+        filtered.forEach { chain ->
+            runCatching {
+                val runtime =
+                    runCatching { chainRegistry.getRuntimeOrNull(chain.id) }.getOrNull()
+                        ?: return@forEach
+                val runtimeVersion = chainRegistry.getRemoteRuntimeVersion(chain.id) ?: 0
+                val socketService =
+                    runCatching { chainRegistry.getSocket(chain.id) }.getOrNull()
+                        ?: return@forEach
+                val storageKeys =
+                    accounts.mapNotNull { metaAccount ->
+                        buildStorageKeys(chain, metaAccount, runtime)
+                            .onFailure { }
+                            .getOrNull()?.toList()
+                    }.flatten()
+                val queryResults = withContext(Dispatchers.IO) {
+                    bulkRetriever.queryKeys(
+                        socketService,
+                        storageKeys.map { it.key }
+                    )
+                }
+
+                storageKeys.map { keyWithMetadata ->
+                    val hexRaw =
+                        queryResults[keyWithMetadata.key]
+
+                    val balanceData = handleBalanceResponse(
+                        runtime,
+                        keyWithMetadata.asset.typeExtra,
+                        hexRaw,
+                        runtimeVersion
+                    ).onFailure { logError(chain, it) }
+
+                    assetCache.updateAsset(
+                        keyWithMetadata.metaAccountId,
+                        keyWithMetadata.accountId,
+                        keyWithMetadata.asset,
+                        balanceData.getOrNull()
+                    )
+                }
+            }
+                .onFailure {
+                    logError(chain, it)
                     return@forEach
                 }
-                runCatching {
-                    val runtime =
-                        runCatching { chainRegistry.getRuntimeOrNull(chain.id) }.getOrNull()
-                            ?: return@forEach
-                    val runtimeVersion = chainRegistry.getRemoteRuntimeVersion(chain.id) ?: 0
-                    val socketService =
-                        runCatching { chainRegistry.getSocket(chain.id) }.getOrNull()
-                            ?: return@forEach
-                    val storageKeys =
-                        accounts.mapNotNull { metaAccount ->
-                            buildStorageKeys(chain, metaAccount, runtime)
-                                .onFailure { }
-                                .getOrNull()?.toList()
-                        }.flatten()
-                    val queryResults = withContext(Dispatchers.IO) {
-                        bulkRetriever.queryKeys(
-                            socketService,
-                            storageKeys.map { it.key }
-                        )
-                    }
+        }
+    }
 
-                    storageKeys.map { keyWithMetadata ->
-                        val hexRaw =
-                            queryResults[keyWithMetadata.key]
-
-                        val balanceData = handleBalanceResponse(
-                            runtime,
-                            keyWithMetadata.asset.typeExtra,
-                            hexRaw,
-                            runtimeVersion
-                        ).onFailure { logError(chain, it) }
-
-                        assetCache.updateAsset(
-                            keyWithMetadata.metaAccountId,
-                            keyWithMetadata.accountId,
-                            keyWithMetadata.asset,
-                            balanceData.getOrNull()
-                        )
-                    }
-                }
-                    .onFailure {
-                        logError(chain, it)
-                        return@forEach
-                    }
-            }
+    private fun singleUpdateFlow(): Flow<Unit> {
+         return combine(
+            ethBalancesFlow,
+            substrateBalancesFlow
+        ) { _,_ ->
         }.onStart { emit(Unit) }.flowOn(Dispatchers.Default)
     }
 
@@ -297,7 +302,13 @@ class BalancesUpdateSystem(
             chain.assets.forEach { asset ->
                 val balance =
                     kotlin.runCatching { ethereumRemoteSource.fetchEthBalance(asset, address) }
-                        .getOrNull().orZero()
+                        .onFailure {
+                            Log.d(
+                                "BalanceUpdateSystem",
+                                "fetchEthBalance error ${it.message} ${it.localizedMessage} $it"
+                            )
+                        }
+                        .getOrNull() ?: return@forEach
                 val balanceData = SimpleBalanceData(balance)
                 assetCache.updateAsset(
                     metaId = account.id,
