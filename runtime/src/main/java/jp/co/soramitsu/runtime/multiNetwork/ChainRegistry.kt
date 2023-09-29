@@ -151,7 +151,7 @@ class ChainRegistry @Inject constructor(
     }
 
     suspend fun getRuntimeOrNull(chainId: ChainId): RuntimeSnapshot? {
-        return kotlin.runCatching { getRuntimeProvider(chainId).get() }.getOrNull()
+        return kotlin.runCatching { getRuntimeProvider(chainId).getOrNullWithTimeout() }.getOrNull()
     }
 
     fun getConnectionOrNull(chainId: String) = connectionPool.getConnectionOrNull(chainId)

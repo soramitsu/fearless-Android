@@ -38,6 +38,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraTestChainId
+import jp.co.soramitsu.wallet.impl.data.network.blockchain.updaters.BalanceUpdateTrigger
 import jp.co.soramitsu.wallet.impl.domain.ChainInteractor
 import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
@@ -297,6 +298,16 @@ class BalanceDetailViewModel @Inject constructor(
         viewModelScope.launch {
             val deferredAssetSync = async { interactor.syncAssetsRates() }
             deferredAssetSync.await().exceptionOrNull()?.message?.let(::showMessage)
+        }
+    }
+
+    override fun onRefresh() {
+        viewModelScope.launch {
+            val chainId = selectedChainId.value
+            BalanceUpdateTrigger.invoke(chainId)
+
+            sync()
+            transactionHistoryProvider.tryReloadHistory()
         }
     }
 

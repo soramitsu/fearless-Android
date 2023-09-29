@@ -23,6 +23,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Divider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -42,8 +44,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
-import com.google.accompanist.swiperefresh.SwipeRefresh
-import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import jp.co.soramitsu.common.compose.component.ActionBar
 import jp.co.soramitsu.common.compose.component.ActionBarShimmer
 import jp.co.soramitsu.common.compose.component.ActionBarViewState
@@ -71,6 +71,7 @@ import jp.co.soramitsu.common.utils.formatDaysSinceEpoch
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.wallet.impl.presentation.balance.detail.frozen.ExpandableLazyListNestedScrollConnection
+import jp.co.soramitsu.wallet.impl.presentation.balance.list.PullRefreshBox
 import jp.co.soramitsu.wallet.impl.presentation.model.OperationModel
 import jp.co.soramitsu.wallet.impl.presentation.transaction.history.mixin.TransactionHistoryUi
 import jp.co.soramitsu.wallet.impl.presentation.transaction.history.model.DayHeader
@@ -92,6 +93,19 @@ interface BalanceDetailsScreenInterface {
     fun sync()
     fun transactionsScrolled(index: Int)
     fun tableItemClicked(itemId: Int)
+    fun onRefresh()
+}
+
+@Composable
+fun BalanceDetailsScreenWithRefreshBox(
+    state: BalanceDetailsState,
+    callback: BalanceDetailsScreenInterface
+) {
+    PullRefreshBox(
+        onRefresh = callback::onRefresh
+    ) {
+        BalanceDetailsScreen(state, callback)
+    }
 }
 
 @Composable
@@ -120,7 +134,10 @@ fun BalanceDetailsScreen(
         }
     }
 
-    BoxWithConstraints(modifier = Modifier.fillMaxSize()) parent@{
+    BoxWithConstraints(
+        modifier = Modifier
+            .fillMaxSize()
+    ) parent@{
         parentHeight.value = this@parent.maxHeight
 
         Column(Modifier.fillMaxSize()) {
@@ -130,6 +147,8 @@ fun BalanceDetailsScreen(
                     .padding(bottom = 12.dp)
                     .fillMaxSize()
             ) {
+                Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+
                 MarginVertical(margin = 16.dp)
                 AssetBalance(
                     balanceLoadingState = state.balance,
@@ -139,7 +158,10 @@ fun BalanceDetailsScreen(
                 BackgroundCornered {
                     Column {
                         InfoTableItem(state = state.transferableViewState)
-                        InfoTableItem(state = state.lockedViewState, onClick = callback::tableItemClicked)
+                        InfoTableItem(
+                            state = state.lockedViewState,
+                            onClick = callback::tableItemClicked
+                        )
                         Divider(
                             color = white08,
                             modifier = Modifier
@@ -151,7 +173,7 @@ fun BalanceDetailsScreen(
                             actionItemClicked = callback::actionItemClicked
                         )
                     }
-                }
+                }}
                 MarginVertical(margin = 16.dp)
                 BoxWithConstraints(
                     modifier = Modifier
@@ -178,11 +200,12 @@ fun BalanceDetailsScreen(
                     nestedScrollConnection.onPostFling(Velocity.Zero, Velocity(0f, it))
                 })
         ) {
-            val alpha = if (nestedScrollConnection.expandPercent.isNaN() || nestedScrollConnection.expandPercent < 0f) {
-                0f
-            } else {
-                nestedScrollConnection.expandPercent
-            }
+            val alpha =
+                if (nestedScrollConnection.expandPercent.isNaN() || nestedScrollConnection.expandPercent < 0f) {
+                    0f
+                } else {
+                    nestedScrollConnection.expandPercent
+                }
             val background = black.copy(alpha = alpha)
             BackgroundCornered(modifier = Modifier.height(height.value)) {
                 Column(
@@ -219,8 +242,7 @@ fun BalanceDetailsScreen(
                         listState = listState,
                         history = state.transactionHistory,
                         transactionClicked = callback::transactionClicked,
-                        height = height,
-                        onRefresh = callback::sync
+                        height = height
                     )
                 }
             }
@@ -237,6 +259,7 @@ private fun AssetBalance(
         is LoadingState.Loading -> {
             AssetBalanceShimmer()
         }
+
         is LoadingState.Loaded -> {
             AssetBalance(state = balanceLoadingState.data, onAddressClick = onAddressClick)
         }
@@ -244,11 +267,15 @@ private fun AssetBalance(
 }
 
 @Composable
-private fun ActionBar(actionBarLoadingState: LoadingState<ActionBarViewState>, actionItemClicked: (ActionItemType, String, String) -> Unit) {
+private fun ActionBar(
+    actionBarLoadingState: LoadingState<ActionBarViewState>,
+    actionItemClicked: (ActionItemType, String, String) -> Unit
+) {
     when (actionBarLoadingState) {
         is LoadingState.Loading -> {
             ActionBarShimmer(fillMaxWidth = true)
         }
+
         is LoadingState.Loaded -> {
             ActionBar(
                 state = actionBarLoadingState.data,
@@ -265,71 +292,69 @@ private fun TransactionHistory(
     history: TransactionHistoryUi.State,
     height: MutableState<Dp>,
     transactionClicked: (OperationModel) -> Unit,
-    onRefresh: () -> Unit,
     listState: LazyListState
 ) {
-    SwipeRefresh(
-        state = rememberSwipeRefreshState(history is TransactionHistoryUi.State.Refreshing),
-        swipeEnabled = false,
-        onRefresh = onRefresh
-    ) {
-        when (history) {
-            is TransactionHistoryUi.State.Data -> {
-                val transactions = history.items
-                LazyColumn(
-                    modifier = Modifier
-                        .height(height.value)
-                        .nestedScroll(nestedScrollConnection),
-                    state = listState,
-                    verticalArrangement = Arrangement.spacedBy(15.dp)
-                ) {
-                    items(transactions, key = {
-                        when (it) {
-                            is OperationModel -> it.id
-                            is DayHeader -> it.daysSinceEpoch
-                            else -> it.hashCode()
+    when (history) {
+        is TransactionHistoryUi.State.Data -> {
+            val transactions = history.items
+            LazyColumn(
+                modifier = Modifier
+                    .height(height.value)
+                    .nestedScroll(nestedScrollConnection),
+                state = listState,
+                verticalArrangement = Arrangement.spacedBy(15.dp)
+            ) {
+                items(transactions, key = {
+                    when (it) {
+                        is OperationModel -> it.id
+                        is DayHeader -> it.daysSinceEpoch
+                        else -> it.hashCode()
+                    }
+                }) { item ->
+                    when (item) {
+                        is DayHeader -> {
+                            CapsTitle2(
+                                text = item.daysSinceEpoch
+                                    .formatDaysSinceEpoch(LocalContext.current)
+                                    .orEmpty()
+                                    .uppercase(),
+                                textAlign = TextAlign.Start
+                            )
                         }
-                    }) { item ->
-                        when (item) {
-                            is DayHeader -> {
-                                CapsTitle2(
-                                    text = item.daysSinceEpoch
-                                        .formatDaysSinceEpoch(LocalContext.current)
-                                        .orEmpty()
-                                        .uppercase(),
-                                    textAlign = TextAlign.Start
-                                )
-                            }
-                            is OperationModel -> {
-                                TransactionItem(
-                                    item = item,
-                                    transactionClicked = transactionClicked
-                                )
-                            }
+
+                        is OperationModel -> {
+                            TransactionItem(
+                                item = item,
+                                transactionClicked = transactionClicked
+                            )
                         }
                     }
                 }
             }
-            is TransactionHistoryUi.State.EmptyProgress -> {
-                ShimmerTransactionHistory()
-            }
-            is TransactionHistoryUi.State.Empty -> {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    MarginVertical(margin = 12.dp)
-                    H5(
-                        modifier = Modifier.fillMaxWidth(),
-                        text = stringResource(id = R.string.transfers_empty),
-                        color = gray2,
-                        textAlign = TextAlign.Center
-                    )
-                    MarginVertical(margin = 120.dp)
-                }
-            }
-            else -> Unit
         }
+
+        is TransactionHistoryUi.State.EmptyProgress -> {
+            ShimmerTransactionHistory()
+        }
+
+        is TransactionHistoryUi.State.Empty -> {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                MarginVertical(margin = 12.dp)
+                H5(
+                    modifier = Modifier.fillMaxWidth(),
+                    text = stringResource(id = R.string.transfers_empty),
+                    color = gray2,
+                    textAlign = TextAlign.Center
+                )
+                MarginVertical(margin = 120.dp)
+            }
+        }
+
+        else -> Unit
     }
+
 }
 
 @Composable
@@ -414,7 +439,11 @@ private fun PreviewBalanceDetailScreenContent() {
             ActionBarViewState(
                 chainAssetId = "0x123",
                 chainId = "0x123",
-                actionItems = listOf(ActionItemType.SEND, ActionItemType.RECEIVE, ActionItemType.SWAP)
+                actionItems = listOf(
+                    ActionItemType.SEND,
+                    ActionItemType.RECEIVE,
+                    ActionItemType.SWAP
+                )
             )
         ),
         balance = LoadingState.Loaded(assetBalanceViewState),
@@ -430,12 +459,19 @@ private fun PreviewBalanceDetailScreenContent() {
     val empty = object : BalanceDetailsScreenInterface {
         override fun onAddressClick() {}
 
-        override fun actionItemClicked(actionType: ActionItemType, chainId: ChainId, chainAssetId: String) {}
+        override fun actionItemClicked(
+            actionType: ActionItemType,
+            chainId: ChainId,
+            chainAssetId: String
+        ) {
+        }
+
         override fun filterClicked() {}
         override fun transactionClicked(transactionModel: OperationModel) {}
         override fun sync() {}
         override fun transactionsScrolled(index: Int) {}
         override fun tableItemClicked(itemId: Int) = Unit
+        override fun onRefresh() = Unit
     }
 
     return FearlessTheme {

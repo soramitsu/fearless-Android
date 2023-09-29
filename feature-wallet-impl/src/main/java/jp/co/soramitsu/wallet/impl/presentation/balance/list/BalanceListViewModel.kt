@@ -69,6 +69,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraTestChainId
 import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.addressByteOrNull
 import jp.co.soramitsu.soracard.api.domain.SoraCardInteractor
 import jp.co.soramitsu.soracard.impl.presentation.SoraCardItemViewState
+import jp.co.soramitsu.wallet.impl.data.network.blockchain.updaters.BalanceUpdateTrigger
 import jp.co.soramitsu.wallet.impl.domain.ChainInteractor
 import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
@@ -387,6 +388,9 @@ class BalanceListViewModel @Inject constructor(
 
     override fun onRefresh() {
         refresh()
+        viewModelScope.launch {
+            BalanceUpdateTrigger.invoke()
+        }
     }
 
     private fun refresh() {
@@ -627,7 +631,8 @@ class BalanceListViewModel @Inject constructor(
             if (soraAddress != null) {
                 openSendTokenToSora(soraAddress)
             } else {
-                val soraAddressOrContent = interactor.tryReadAddressFromSoraFormat(content) ?: content
+                val soraAddressOrContent =
+                    interactor.tryReadAddressFromSoraFormat(content) ?: content
                 val qrTokenId = interactor.tryReadTokenIdFromSoraFormat(content)
                 if (qrTokenId != null) {
                     openSendSoraTokenTo(qrTokenId, soraAddressOrContent)
