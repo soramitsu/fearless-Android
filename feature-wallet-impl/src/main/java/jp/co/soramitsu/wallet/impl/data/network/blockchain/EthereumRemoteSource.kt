@@ -1,5 +1,6 @@
 package jp.co.soramitsu.wallet.impl.data.network.blockchain
 
+import android.util.Log
 import java.math.BigInteger
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.address
@@ -254,8 +255,9 @@ class EthereumRemoteSource(private val ethereumConnectionPool: EthereumConnectio
                     }.getOrNull() ?: return@forEach
                 }
             }
-
+            Log.d("&&&", "send batch for ${chain.name}")
             val response = kotlin.runCatching { batch.send() }.getOrNull() ?: return@withContext emptyList()
+            Log.d("&&&", "got responses for ${chain.name}")
             response.responses.mapNotNull {
                 val metadata =
                     requestsWithMetadata.firstOrNull { request -> request.first == it.id }

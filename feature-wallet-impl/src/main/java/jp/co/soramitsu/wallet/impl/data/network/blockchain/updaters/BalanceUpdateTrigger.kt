@@ -16,9 +16,9 @@ object BalanceUpdateTrigger {
     }
 
     suspend operator fun invoke(chainId: ChainId? = null) {
-        val currentTime = getTimeMillis()
-        if (lastUpdateTime != null && currentTime - lastUpdateTime!! <= 30_000L) return
+//        val currentTime = getTimeMillis()
+//        if (lastUpdateTime != null && currentTime - lastUpdateTime!! <= 30_000L) return
         flow.emit(chainId)
-        lastUpdateTime = getTimeMillis()
+//        lastUpdateTime = getTimeMillis()
     }
 }

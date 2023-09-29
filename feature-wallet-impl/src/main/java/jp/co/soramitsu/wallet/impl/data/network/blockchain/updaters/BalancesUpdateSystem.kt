@@ -1,6 +1,7 @@
 package jp.co.soramitsu.wallet.impl.data.network.blockchain.updaters
 
 import android.util.Log
+import io.ktor.util.date.getTimeMillis
 import it.airgap.beaconsdk.core.internal.utils.failure
 import it.airgap.beaconsdk.core.internal.utils.onEachFailure
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
@@ -40,6 +41,8 @@ import jp.co.soramitsu.wallet.impl.data.network.model.handleBalanceResponse
 import jp.co.soramitsu.wallet.impl.domain.model.Operation
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNot
@@ -48,8 +51,10 @@ import kotlinx.coroutines.flow.flatMapMerge
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.transform
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.web3j.utils.Numeric
 
@@ -182,64 +187,77 @@ class BalancesUpdateSystem(
         return chainUpdateFlow
     }
 
+    private var balanceUpdateJob: Job? = null
+
     private fun singleUpdateFlow(): Flow<Unit> {
         return combine(
             chainRegistry.syncedChains,
             accountRepository.allMetaAccountsFlow().filterNot { it.isEmpty() }
+                .onEach { acc ->Log.d("&&&&", "accounts onEach ${acc.size} ${acc.firstOrNull { it.isSelected }?.name}") }
         ) { chains, accounts ->
-            chains.sortedByDescending { it.isEthereumChain }.forEach { chain ->
-
-                if (chain.isEthereumChain) {
-                    kotlin.runCatching {
-                        fetchEthereumBalances(chain, accounts)
-                    }
-                    return@forEach
+            coroutineScope {
+                if (balanceUpdateJob != null && balanceUpdateJob?.isCancelled == false) {
+                    balanceUpdateJob?.cancel()
                 }
-                runCatching {
-                    val runtime =
-                        runCatching { chainRegistry.getRuntimeOrNull(chain.id) }.getOrNull()
-                            ?: return@forEach
-                    val runtimeVersion = chainRegistry.getRemoteRuntimeVersion(chain.id) ?: 0
-                    val socketService =
-                        runCatching { chainRegistry.getSocket(chain.id) }.getOrNull()
-                            ?: return@forEach
-                    val storageKeys =
-                        accounts.mapNotNull { metaAccount ->
-                            buildStorageKeys(chain, metaAccount, runtime)
-                                .onFailure { }
-                                .getOrNull()?.toList()
-                        }.flatten()
-                    val queryResults = withContext(Dispatchers.IO) {
-                        bulkRetriever.queryKeys(
-                            socketService,
-                            storageKeys.map { it.key }
-                        )
-                    }
+                balanceUpdateJob = launch {
+                    chains.sortedByDescending { it.isEthereumChain }.forEach { chain ->
 
-                    storageKeys.map { keyWithMetadata ->
-                        val hexRaw =
-                            queryResults[keyWithMetadata.key]
+                        if (chain.isEthereumChain) {
 
-                        val balanceData = handleBalanceResponse(
-                            runtime,
-                            keyWithMetadata.asset.typeExtra,
-                            hexRaw,
-                            runtimeVersion
-                        ).onFailure { logError(chain, it) }
+                            kotlin.runCatching {
+                                fetchEthereumBalances(chain, accounts.filter { it.isSelected })
+                            }
+                            return@forEach
+                        }
+                        runCatching {
+                            val runtime =
+                                runCatching { chainRegistry.getRuntimeOrNull(chain.id) }.getOrNull()
+                                    ?: return@forEach
+                            val runtimeVersion = chainRegistry.getRemoteRuntimeVersion(chain.id) ?: 0
+                            val socketService =
+                                runCatching { chainRegistry.getSocket(chain.id) }.getOrNull()
+                                    ?: return@forEach
+                            val storageKeys =
+                                accounts.mapNotNull { metaAccount ->
+                                    buildStorageKeys(chain, metaAccount, runtime)
+                                        .onFailure { }
+                                        .getOrNull()?.toList()
+                                }.flatten()
+                            val queryResults = withContext(Dispatchers.IO) {
+                                bulkRetriever.queryKeys(
+                                    socketService,
+                                    storageKeys.map { it.key }
+                                )
+                            }
 
-                        assetCache.updateAsset(
-                            keyWithMetadata.metaAccountId,
-                            keyWithMetadata.accountId,
-                            keyWithMetadata.asset,
-                            balanceData.getOrNull()
-                        )
+                            storageKeys.map { keyWithMetadata ->
+                                val hexRaw =
+                                    queryResults[keyWithMetadata.key]
+
+                                val balanceData = handleBalanceResponse(
+                                    runtime,
+                                    keyWithMetadata.asset.typeExtra,
+                                    hexRaw,
+                                    runtimeVersion
+                                ).onFailure { logError(chain, it) }
+
+                                assetCache.updateAsset(
+                                    keyWithMetadata.metaAccountId,
+                                    keyWithMetadata.accountId,
+                                    keyWithMetadata.asset,
+                                    balanceData.getOrNull()
+                                )
+                            }
+                        }
+                            .onFailure {
+                                logError(chain, it)
+                                return@forEach
+                            }
                     }
                 }
-                    .onFailure {
-                        logError(chain, it)
-                        return@forEach
-                    }
             }
+
+
         }.onStart { emit(Unit) }.flowOn(Dispatchers.Default)
     }
 
@@ -286,26 +304,64 @@ class BalancesUpdateSystem(
         }
     }
 
+    private val mutableMap: MutableMap<String, Long> = mutableMapOf()
+
     private suspend fun fetchEthereumBalances(
         chain: Chain,
         accounts: List<MetaAccount>
     ) {
-        val responses = ethereumRemoteSource.fetchEthBalances(chain, accounts)
-        responses.forEach { (response, assetId, metaAccount) ->
-            val asset = chain.assetsById.getOrDefault(assetId, null) ?: return@forEach
-            val accountId = metaAccount.accountId(chain) ?: return@forEach
-            (response.result as? String)?.let {
-                val balance =
-                    kotlin.runCatching { Numeric.decodeQuantity(it) }.getOrNull() ?: return@forEach
-
-                assetCache.updateAsset(
-                    metaId = metaAccount.id,
-                    accountId = accountId,
-                    asset = asset,
-                    balanceData = SimpleBalanceData(balance)
-                )
-            }
+        val filteredAccounts = accounts.filter {
+            val lastUpdatedTime = mutableMap.getOrDefault("${it.id}_${chain.id}", null) ?: 0
+            getTimeMillis() - lastUpdatedTime >= 30_000
         }
+        Log.d("&&&", " fetch ${chain.name} balance for accounts ${filteredAccounts.size} ${filteredAccounts.firstOrNull{it.isSelected}?.name}")
+        val sorted = ethereumRemoteSource.fetchEthBalances(chain, filteredAccounts)
+            .sortedByDescending { it.third.isSelected }
+        Log.d("&&&", " ${chain.name} sortedResponses count ${sorted.size}")
+        val responses = sorted
+            .mapNotNull {(response, assetId, metaAccount)->
+                if(response.hasError()){
+                    Log.d("&&&", "response.hasError ${response.error}  on chain ${chain.name}, ${assetId} \n${response.error.message} \n" +
+                            "${response.error.data}")
+                }
+                val a1 = response.result as? String
+                if(a1 == null) {
+                    Log.d("&&&", "cannot cast ${response.result} to String on chain ${chain.name}, ${assetId}")
+                    return@mapNotNull null
+                }
+                val a2 = kotlin.runCatching { Numeric.decodeQuantity(a1) }.onFailure { Log.d("&&&", "decodeQuantity error on chain ${chain.name}, ${assetId} \n$it") }.getOrNull()
+                if(a2 == null){
+                    Log.d("&&&", "cannot decodeQuantity ${a1} on chain ${chain.name}, ${assetId}")
+                    return@mapNotNull null
+                }
+                val balance = kotlin.runCatching { Numeric.decodeQuantity(response.result as String) }.getOrNull() ?: return@mapNotNull null
+                val asset = chain.assetsById.getOrDefault(assetId, null)
+                if(asset == null) {
+                    Log.d("&&&", "cannot find asset on chain ${chain.name}, ${assetId}")
+                    return@mapNotNull null
+                }
+            Triple(balance, asset, metaAccount)
+        }
+        Log.d("&&&", " ${chain.name} mapped ${responses.size} send to db")
+        filteredAccounts.forEach {
+            mutableMap["${it.id}_${chain.id}"] = getTimeMillis()
+        }
+        assetCache.updateFromBatch(chain, responses)
+//        responses.forEach { (response, assetId, metaAccount) ->
+//            val asset = chain.assetsById.getOrDefault(assetId, null) ?: return@forEach
+//            val accountId = metaAccount.accountId(chain) ?: return@forEach
+//            (response.result as? String)?.let {
+//                val balance =
+//                    kotlin.runCatching { Numeric.decodeQuantity(it) }.getOrNull() ?: return@forEach
+//
+//                assetCache.updateAsset(
+//                    metaId = metaAccount.id,
+//                    accountId = accountId,
+//                    asset = asset,
+//                    balanceData = SimpleBalanceData(balance)
+//                )
+//            }
+//        }
     }
 
     override fun start(): Flow<Updater.SideEffect> {

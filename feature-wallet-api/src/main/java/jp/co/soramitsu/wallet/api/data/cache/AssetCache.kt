@@ -1,6 +1,10 @@
 package jp.co.soramitsu.wallet.api.data.cache
 
+import android.util.Log
+import java.math.BigInteger
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.account.api.domain.model.MetaAccount
+import jp.co.soramitsu.account.api.domain.model.accountId
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
 import jp.co.soramitsu.core.models.Asset
@@ -11,6 +15,7 @@ import jp.co.soramitsu.coredb.dao.emptyAccountIdValue
 import jp.co.soramitsu.coredb.model.AssetLocal
 import jp.co.soramitsu.coredb.model.AssetUpdateItem
 import jp.co.soramitsu.coredb.model.TokenPriceLocal
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.shared_utils.runtime.AccountId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
@@ -42,11 +47,23 @@ class AssetCache(
 
             val cachedAsset = assetDao.getAsset(metaId, accountId, chainId, assetId)?.asset
             when {
-                cachedAsset == null -> assetDao.insertAsset(builder.invoke(AssetLocal.createEmpty(accountId, assetId, chainId, metaId, priceId)))
+                cachedAsset == null -> assetDao.insertAsset(
+                    builder.invoke(
+                        AssetLocal.createEmpty(
+                            accountId,
+                            assetId,
+                            chainId,
+                            metaId,
+                            priceId
+                        )
+                    )
+                )
+
                 cachedAsset.accountId.contentEquals(emptyAccountIdValue) -> {
                     assetDao.deleteAsset(metaId, emptyAccountIdValue, chainId, assetId)
                     assetDao.insertAsset(builder.invoke(cachedAsset.copy(accountId = accountId)))
                 }
+
                 else -> assetDao.updateAsset(builder.invoke(cachedAsset))
             }
             updatesMixin.finishUpdateAsset(metaId, chainId, accountId, assetId)
@@ -70,7 +87,8 @@ class AssetCache(
         builder: (local: TokenPriceLocal) -> TokenPriceLocal
     ) = withContext(Dispatchers.IO) {
         assetUpdateMutex.withLock {
-            val tokenPriceLocal = tokenPriceDao.getTokenPrice(priceId) ?: TokenPriceLocal.createEmpty(priceId)
+            val tokenPriceLocal =
+                tokenPriceDao.getTokenPrice(priceId) ?: TokenPriceLocal.createEmpty(priceId)
 
             val newToken = builder.invoke(tokenPriceLocal)
 
@@ -83,7 +101,13 @@ class AssetCache(
         updateModel.listIterator().forEach {
             val cached = assetDao.getAsset(it.metaId, it.accountId, it.chainId, it.id)?.asset
             if (cached == null) {
-                val initial = AssetLocal.createEmpty(it.accountId, it.id, it.chainId, it.metaId, it.tokenPriceId)
+                val initial = AssetLocal.createEmpty(
+                    it.accountId,
+                    it.id,
+                    it.chainId,
+                    it.metaId,
+                    it.tokenPriceId
+                )
                 val newAsset = initial.copy(
                     sortIndex = it.sortIndex,
                     enabled = it.enabled
@@ -97,6 +121,33 @@ class AssetCache(
         }
         assetUpdateMutex.withLock {
             assetDao.updateAssets(onlyUpdates)
+        }
+    }
+
+    suspend fun updateFromBatch(
+        chain: Chain,
+        responses: List<Triple<BigInteger, Asset, MetaAccount>>,
+    ) {
+        withContext(Dispatchers.IO) {
+            val existingAssets = assetDao.getAssets(chain.id)
+            val assets = responses.mapNotNull { (balance, asset, metaAccount) ->
+                val accountId = metaAccount.accountId(chain) ?: return@mapNotNull null
+                asset.priceId?.let { tokenPriceDao.ensureTokenPrice(it) }
+                val existingAsset =
+                    existingAssets.firstOrNull { it.id == asset.id && it.accountId.contentEquals(
+                        accountId
+                    ) && it.metaId == metaAccount.id }
+                val newAsset = existingAsset ?: AssetLocal.createEmpty(
+                    accountId,
+                    asset.id,
+                    asset.chainId,
+                    metaAccount.id,
+                    asset.priceId
+                )
+                newAsset.copy(freeInPlanks = balance)
+            }
+            assetDao.insertAssets(assets)
+            Log.d("&&&", "${chain.name} ${assets.size} balances inserted")
         }
     }
 }

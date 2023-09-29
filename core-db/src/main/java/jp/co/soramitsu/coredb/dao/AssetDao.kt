@@ -65,6 +65,9 @@ abstract class AssetDao : AssetReadOnlyCache {
     @Query(RETRIEVE_ACCOUNT_ASSETS_QUERY)
     abstract override suspend fun getAssets(metaId: Long): List<AssetWithToken>
 
+    @Query("select * from assets where chainId = :chainId")
+    abstract suspend fun getAssets(chainId: String): List<AssetLocal>
+
     override fun observeAsset(metaId: Long, accountId: AccountId, chainId: String, assetId: String): Flow<AssetWithToken> =
         observeAssetWithEmpty(metaId, accountId, chainId, assetId, emptyAccountIdValue)
             .flowOn(Dispatchers.IO)
@@ -106,6 +109,9 @@ abstract class AssetDao : AssetReadOnlyCache {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     abstract suspend fun insertAsset(asset: AssetLocal)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    abstract suspend fun insertAssets(assets: List<AssetLocal>)
 
     @Update(entity = AssetLocal::class)
     abstract suspend fun updateAssets(item: List<AssetUpdateItem>): Int
