@@ -295,7 +295,8 @@ class BalancesUpdateSystem(
             val asset = chain.assetsById.getOrDefault(assetId, null) ?: return@forEach
             val accountId = metaAccount.accountId(chain) ?: return@forEach
             (response.result as? String)?.let {
-                val balance = Numeric.decodeQuantity(it)
+                val balance =
+                    kotlin.runCatching { Numeric.decodeQuantity(it) }.getOrNull() ?: return@forEach
 
                 assetCache.updateAsset(
                     metaId = metaAccount.id,

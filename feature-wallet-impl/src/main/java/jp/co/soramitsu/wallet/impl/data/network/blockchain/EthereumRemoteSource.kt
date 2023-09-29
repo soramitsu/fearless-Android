@@ -247,13 +247,15 @@ class EthereumRemoteSource(private val ethereumConnectionPool: EthereumConnectio
             accounts.forEach { metaAccount ->
                 val address = metaAccount.address(chain) ?: return@forEach
                 chain.assets.forEach { asset ->
-                    val request = service.getBalanceRequest(asset, address)
-                    requestsWithMetadata.add(Triple(request.id, asset.id, metaAccount))
-                    batch.add(request)
+                    kotlin.runCatching {
+                        val request = service.getBalanceRequest(asset, address)
+                        requestsWithMetadata.add(Triple(request.id, asset.id, metaAccount))
+                        batch.add(request)
+                    }.getOrNull() ?: return@forEach
                 }
             }
 
-            val response = batch.send()
+            val response = kotlin.runCatching { batch.send() }.getOrNull() ?: return@withContext emptyList()
             response.responses.mapNotNull {
                 val metadata =
                     requestsWithMetadata.firstOrNull { request -> request.first == it.id }
