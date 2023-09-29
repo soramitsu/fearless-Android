@@ -17,7 +17,6 @@ android {
 
         buildConfigField "String", "APP_VERSION_NAME", "\"${rootProject.versionName}\""
 
-        buildConfigField "String", "APP_CONFIG_URL", "\"https://raw.githubusercontent.com/soramitsu/fearless-utils/android/2.0.8/android_app_configuration.json\""
         buildConfigField "String", "POLKASWAP_CONFIG_URL", "\"https://raw.githubusercontent.com/soramitsu/fearless-utils/ios/v3-jsonupd/polkaswapSettings.json\""
         buildConfigField "String", "FEATURE_TOGGLE_URL", "\"https://raw.githubusercontent.com/soramitsu/shared-features-utils/master/appConfigs/feature_toggle\""
 
@@ -72,6 +71,7 @@ android {
             buildConfigField "String", "SORA_CARD_KYC_PASSWORD", readSecretInQuotes("SORA_CARD_KYC_PASSWORD_TEST")
 
             buildConfigField "String", "WEB_CLIENT_ID", readSecretInQuotes("WEB_CLIENT_ID_DEBUG")
+            buildConfigField "String", "APP_CONFIG_URL", "\"https://raw.githubusercontent.com/soramitsu/shared-features-utils/develop-free/appVersionSupport/android_app_support_dev.json\""
         }
         release {
             buildConfigField "String", "FIAT_CONFIG_URL", "\"https://raw.githubusercontent.com/soramitsu/shared-features-utils/master/fiat/fiats.json\""
@@ -87,6 +87,7 @@ android {
             buildConfigField "String", "SORA_CARD_KYC_PASSWORD", readSecretInQuotes("SORA_CARD_KYC_PASSWORD_PROD")
 
             buildConfigField "String", "WEB_CLIENT_ID", readSecretInQuotes("WEB_CLIENT_ID_RELEASE")
+            buildConfigField "String", "APP_CONFIG_URL", "\"https://raw.githubusercontent.com/soramitsu/shared-features-utils/develop-free/appVersionSupport/android_app_support.json\""
         }
     }
 
