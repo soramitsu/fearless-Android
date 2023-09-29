@@ -94,7 +94,7 @@ class ReceiveViewModel @Inject constructor(
             AmountInputViewState(
                 tokenName = asset.token.configuration.symbol,
                 tokenImage = asset.token.configuration.iconUrl,
-                totalBalance = resourceManager.getString(R.string.common_balance_format, tokenBalance),
+                totalBalance = resourceManager.getString(R.string.common_transferable_format, tokenBalance),
                 fiatAmount = fiatAmount,
                 tokenAmount = amount,
                 precision = asset.token.configuration.precision,
