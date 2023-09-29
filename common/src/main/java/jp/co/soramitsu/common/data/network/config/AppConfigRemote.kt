@@ -6,8 +6,8 @@ import java.math.BigInteger
 data class AppConfigRemote(
     @SerializedName("min_supported_version")
     val minSupportedVersion: String,
-    @SerializedName("exсluded_versions")
-    val excludedVersions: List<String>
+    @SerializedName("excluded_versions")
+    val excludedVersions: List<String>?
 )
 
 data class PolkaswapRemoteConfig(

@@ -6,15 +6,15 @@ import jp.co.soramitsu.common.domain.before
 
 data class AppConfig(
     val minSupportedVersion: AppVersion,
-    val excludedVersions: List<AppVersion>
+    val excludedVersions: List<AppVersion>?
 ) {
     val isCurrentVersionSupported: Boolean
         get() {
             val appVersion = AppVersion.current()
-            val excluded = excludedVersions.contains(appVersion)
+            val excluded = excludedVersions?.contains(appVersion) == true
             val beforeMin = appVersion.before(minSupportedVersion)
             return excluded.not() && beforeMin.not()
         }
 }
 
-fun AppConfigRemote.toDomain() = AppConfig(AppVersion.fromString(minSupportedVersion), excludedVersions.map(AppVersion::fromString))
+fun AppConfigRemote.toDomain() = AppConfig(AppVersion.fromString(minSupportedVersion), excludedVersions?.map(AppVersion::fromString))
