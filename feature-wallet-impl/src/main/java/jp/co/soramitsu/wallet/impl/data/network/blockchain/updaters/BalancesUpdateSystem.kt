@@ -6,12 +6,10 @@ import it.airgap.beaconsdk.core.internal.utils.onEachFailure
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.accountId
-import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
 import jp.co.soramitsu.common.data.network.runtime.binding.ExtrinsicStatusEvent
 import jp.co.soramitsu.common.data.network.runtime.binding.SimpleBalanceData
 import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
-import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.requireException
 import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.core.models.Asset
@@ -53,6 +51,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.withContext
+import org.web3j.utils.Numeric
 
 private const val RUNTIME_AWAITING_TIMEOUT = 10_000L
 
@@ -291,19 +290,18 @@ class BalancesUpdateSystem(
         chain: Chain,
         accounts: List<MetaAccount>
     ) {
-        accounts.forEach { account ->
-            val address = account.address(chain) ?: return@forEach
-            val accountId = account.accountId(chain) ?: return@forEach
-            chain.assets.forEach { asset ->
-                val balance =
-                    kotlin.runCatching { ethereumRemoteSource.fetchEthBalance(asset, address) }
-                        .getOrNull().orZero()
-                val balanceData = SimpleBalanceData(balance)
+        val responses = ethereumRemoteSource.fetchEthBalances(chain, accounts)
+        responses.forEach { (response, assetId, metaAccount) ->
+            val asset = chain.assetsById.getOrDefault(assetId, null) ?: return@forEach
+            val accountId = metaAccount.accountId(chain) ?: return@forEach
+            (response.result as? String)?.let {
+                val balance = Numeric.decodeQuantity(it)
+
                 assetCache.updateAsset(
-                    metaId = account.id,
+                    metaId = metaAccount.id,
                     accountId = accountId,
                     asset = asset,
-                    balanceData = balanceData
+                    balanceData = SimpleBalanceData(balance)
                 )
             }
         }
@@ -320,7 +318,6 @@ class BalancesUpdateSystem(
             error
         )
     }
-
 
     private suspend fun fetchTransfers(blockHash: String, chain: Chain, accountId: AccountId) {
         runCatching {

@@ -33,11 +33,14 @@ import org.web3j.crypto.Credentials
 import org.web3j.crypto.RawTransaction
 import org.web3j.crypto.TransactionEncoder
 import org.web3j.protocol.Web3jService
+import org.web3j.protocol.core.BatchRequest
 import org.web3j.protocol.core.DefaultBlockParameterName
 import org.web3j.protocol.core.Ethereum
 import org.web3j.protocol.core.Request
 import org.web3j.protocol.core.Response
 import org.web3j.protocol.core.methods.request.Transaction
+import org.web3j.protocol.core.methods.response.EthCall
+import org.web3j.protocol.core.methods.response.EthGetBalance
 import org.web3j.protocol.core.methods.response.EthSubscribe
 import org.web3j.utils.Convert
 import org.web3j.utils.Numeric
@@ -229,6 +232,37 @@ class EthereumRemoteSource(private val ethereumConnectionPool: EthereumConnectio
         return web3.fetchEthBalance(asset, address)
     }
 
+    suspend fun fetchEthBalances(
+        chain: Chain,
+        accounts: List<MetaAccount>
+    ): List<Triple<Response<*>, String, MetaAccount>> {
+        return withContext(Dispatchers.Default) {
+            val connection = ethereumConnectionPool.get(chain.id)
+            val service = connection?.service
+                ?: throw RuntimeException("There is no connection created for chain ${chain.id}")
+
+            val batch = BatchRequest(service)
+            val requestsWithMetadata: MutableList<Triple<Long, String, MetaAccount>> =
+                mutableListOf()
+            accounts.forEach { metaAccount ->
+                val address = metaAccount.address(chain) ?: return@forEach
+                chain.assets.forEach { asset ->
+                    val request = service.getBalanceRequest(asset, address)
+                    requestsWithMetadata.add(Triple(request.id, asset.id, metaAccount))
+                    batch.add(request)
+                }
+            }
+
+            val response = batch.send()
+            response.responses.mapNotNull {
+                val metadata =
+                    requestsWithMetadata.firstOrNull { request -> request.first == it.id }
+                        ?: return@mapNotNull null
+                Triple(it, metadata.second, metadata.third)
+            }
+        }
+    }
+
     private suspend fun Ethereum.fetchEthBalance(asset: Asset, address: String): BigInteger {
         return if (asset.isUtility) {
             withContext(Dispatchers.IO) {
@@ -258,6 +292,40 @@ class EthereumRemoteSource(private val ethereumConnectionPool: EthereumConnectio
             Numeric.decodeQuantity(erc20BalanceWei)
         }
     }
+
+    private fun Web3jService.getBalanceRequest(
+        asset: Asset,
+        address: String
+    ): Request<*, *> {
+        return if (asset.isUtility) {
+            Request(
+                "eth_getBalance",
+                listOf(address, DefaultBlockParameterName.LATEST),
+                this,
+                EthGetBalance::class.java
+            )
+        } else {
+            val erc20GetBalanceFunction = Function(
+                "balanceOf",
+                listOf(Address(address)),
+                emptyList()
+            )
+
+            Request(
+                "eth_call",
+                listOf(
+                    Transaction.createEthCallTransaction(
+                        null,
+                        asset.id,
+                        FunctionEncoder.encode(erc20GetBalanceFunction)
+                    ), DefaultBlockParameterName.LATEST
+                ),
+                this,
+                EthCall::class.java
+            )
+        }
+    }
+
 
     fun listenGas(transfer: Transfer, chain: Chain): Flow<BigInteger> {
         val connection = requireNotNull(ethereumConnectionPool.get(chain.id))
