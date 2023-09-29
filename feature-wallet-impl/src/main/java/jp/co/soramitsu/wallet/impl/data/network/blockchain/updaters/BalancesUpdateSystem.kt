@@ -193,7 +193,6 @@ class BalancesUpdateSystem(
         return combine(
             chainRegistry.syncedChains,
             accountRepository.allMetaAccountsFlow().filterNot { it.isEmpty() }
-                .onEach { acc ->Log.d("&&&&", "accounts onEach ${acc.size} ${acc.firstOrNull { it.isSelected }?.name}") }
         ) { chains, accounts ->
             coroutineScope {
                 if (balanceUpdateJob != null && balanceUpdateJob?.isCancelled == false) {
@@ -314,35 +313,17 @@ class BalancesUpdateSystem(
             val lastUpdatedTime = mutableMap.getOrDefault("${it.id}_${chain.id}", null) ?: 0
             getTimeMillis() - lastUpdatedTime >= 30_000
         }
-        Log.d("&&&", " fetch ${chain.name} balance for accounts ${filteredAccounts.size} ${filteredAccounts.firstOrNull{it.isSelected}?.name}")
+
         val sorted = ethereumRemoteSource.fetchEthBalances(chain, filteredAccounts)
             .sortedByDescending { it.third.isSelected }
-        Log.d("&&&", " ${chain.name} sortedResponses count ${sorted.size}")
+
         val responses = sorted
             .mapNotNull {(response, assetId, metaAccount)->
-                if(response.hasError()){
-                    Log.d("&&&", "response.hasError ${response.error}  on chain ${chain.name}, ${assetId} \n${response.error.message} \n" +
-                            "${response.error.data}")
-                }
-                val a1 = response.result as? String
-                if(a1 == null) {
-                    Log.d("&&&", "cannot cast ${response.result} to String on chain ${chain.name}, ${assetId}")
-                    return@mapNotNull null
-                }
-                val a2 = kotlin.runCatching { Numeric.decodeQuantity(a1) }.onFailure { Log.d("&&&", "decodeQuantity error on chain ${chain.name}, ${assetId} \n$it") }.getOrNull()
-                if(a2 == null){
-                    Log.d("&&&", "cannot decodeQuantity ${a1} on chain ${chain.name}, ${assetId}")
-                    return@mapNotNull null
-                }
                 val balance = kotlin.runCatching { Numeric.decodeQuantity(response.result as String) }.getOrNull() ?: return@mapNotNull null
-                val asset = chain.assetsById.getOrDefault(assetId, null)
-                if(asset == null) {
-                    Log.d("&&&", "cannot find asset on chain ${chain.name}, ${assetId}")
-                    return@mapNotNull null
-                }
-            Triple(balance, asset, metaAccount)
+                val asset = chain.assetsById.getOrDefault(assetId, null) ?: return@mapNotNull null
+                Triple(balance, asset, metaAccount)
         }
-        Log.d("&&&", " ${chain.name} mapped ${responses.size} send to db")
+
         filteredAccounts.forEach {
             mutableMap["${it.id}_${chain.id}"] = getTimeMillis()
         }

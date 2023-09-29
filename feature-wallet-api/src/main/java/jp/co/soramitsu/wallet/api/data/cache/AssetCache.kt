@@ -147,7 +147,6 @@ class AssetCache(
                 newAsset.copy(freeInPlanks = balance)
             }
             assetDao.insertAssets(assets)
-            Log.d("&&&", "${chain.name} ${assets.size} balances inserted")
         }
     }
 }

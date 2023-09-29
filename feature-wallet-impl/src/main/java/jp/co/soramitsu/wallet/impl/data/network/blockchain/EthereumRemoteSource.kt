@@ -255,9 +255,7 @@ class EthereumRemoteSource(private val ethereumConnectionPool: EthereumConnectio
                     }.getOrNull() ?: return@forEach
                 }
             }
-            Log.d("&&&", "send batch for ${chain.name}")
             val response = kotlin.runCatching { batch.send() }.getOrNull() ?: return@withContext emptyList()
-            Log.d("&&&", "got responses for ${chain.name}")
             response.responses.mapNotNull {
                 val metadata =
                     requestsWithMetadata.firstOrNull { request -> request.first == it.id }
@@ -383,6 +381,7 @@ class EthereumRemoteSource(private val ethereumConnectionPool: EthereumConnectio
                 val gasLimit = kotlin.runCatching {
                     val response = web3j.ethEstimateGas(call).send()
                     if (response.hasError()) {
+                        Log.d("&&&", "ethEstimateGas ${response.error.code} ${response.error.message}")
                         throw GasServiceException("Failed to ethEstimateGas on chain ${chain.name}: ${response.error}")
                     }
                     response.amountUsed
