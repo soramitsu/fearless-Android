@@ -32,6 +32,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.isPolkadotOrKusama
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId
 import jp.co.soramitsu.runtime.multiNetwork.chainWithAsset
+import jp.co.soramitsu.shared_utils.extensions.toHexString
 import jp.co.soramitsu.shared_utils.runtime.AccountId
 import jp.co.soramitsu.shared_utils.runtime.metadata.module
 import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.toAddress
@@ -299,18 +300,18 @@ class WalletInteractorImpl(
         val asset = chain.assets.firstOrNull { it.id == assetId }
 
         val address = metaAccount.address(chain)
-        val pubKey = metaAccount.accountId(chain)
+        val pubKey = metaAccount.accountId(chain)?.toHexString(withPrefix = true)
         val name = metaAccount.name
         val currencyId = asset?.currencyId
 
         return if (address != null && pubKey != null && currencyId != null) {
-            val amountPart = if (BigDecimal(amount) > BigDecimal.ZERO) {
+            val optionalAmount = if (BigDecimal(amount) > BigDecimal.ZERO) {
                 ":$amount"
             } else {
                 ""
             }
 //            substrate:[user address]:[user public key]:[user name]:[token id]:<amount>
-            "$QR_PREFIX_SUBSTRATE:$address:$pubKey:$name:$currencyId$amountPart"
+            "$QR_PREFIX_SUBSTRATE:$address:$pubKey:$name:$currencyId$optionalAmount"
         } else {
             address
                 ?: throw IllegalArgumentException("There is no address found to getQrCodeSharingSoraString")
