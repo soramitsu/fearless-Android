@@ -626,10 +626,9 @@ class BalanceListViewModel @Inject constructor(
 
     fun qrCodeScanned(content: String) {
         viewModelScope.launch {
-            val soraAddressWithAmount = interactor.tryReadSoraAddressAndAmountFromUrl(content)
-            if (soraAddressWithAmount != null) {
-                val (soraAddress, amountDecimal) = soraAddressWithAmount
-                openSendCBDCOnSora(soraAddress, amountDecimal)
+            val cbdcFormat = interactor.tryReadCBDCAddressFormat(content)
+            if (cbdcFormat != null) {
+                router.openCBDCSend(cbdcQrInfo = cbdcFormat)
             } else {
                 val soraFormat =
                     interactor.tryReadSoraFormat(content)
@@ -663,22 +662,6 @@ class BalanceListViewModel @Inject constructor(
             assetPayload = payloadFromQr,
             initialSendToAddress = soraAddress,
             currencyId = qrTokenId,
-            amount = amount
-        )
-    }
-
-    private suspend fun openSendCBDCOnSora(soraAddress: String, amount: BigDecimal?) {
-        val soraChainId = if (BuildConfig.DEBUG) soraTestChainId else soraMainChainId
-        val soraChain = interactor.getChain(soraChainId)
-        val sendAsset = soraChain.assets.firstOrNull { it.symbol.lowercase() == "usdt" }
-
-        val payload = sendAsset?.let {
-            AssetPayload(it.chainId, it.id)
-        }
-        router.openLockedAmountSend(
-            assetPayload = payload,
-            initialSendToAddress = soraAddress,
-            currencyId = sendAsset?.currencyId,
             amount = amount
         )
     }

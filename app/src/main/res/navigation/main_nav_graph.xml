@@ -685,6 +685,11 @@
         android:label="sendSetupFragment" />
 
     <dialog
+        android:id="@+id/cbdcSendSetupFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.send.setupcbdc.CBDCSendSetupFragment"
+        android:label="cbdcSendSetupFragment" />
+
+    <dialog
         android:id="@+id/crossChainFragment"
         android:name="jp.co.soramitsu.wallet.impl.presentation.cross_chain.setup.CrossChainSetupFragment"
         android:label="crossChainFragment" />

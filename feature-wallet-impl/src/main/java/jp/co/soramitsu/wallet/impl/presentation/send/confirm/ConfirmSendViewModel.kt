@@ -30,11 +30,13 @@ import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
+import jp.co.soramitsu.shared_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.wallet.api.domain.TransferValidationResult
 import jp.co.soramitsu.wallet.api.domain.ValidateTransferUseCase
 import jp.co.soramitsu.wallet.api.domain.fromValidationResult
 import jp.co.soramitsu.wallet.api.presentation.mixin.TransferValidityChecks
 import jp.co.soramitsu.wallet.impl.data.mappers.mapAssetToAssetModel
+import jp.co.soramitsu.wallet.impl.data.network.blockchain.extrinsic.remark
 import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
 import jp.co.soramitsu.wallet.impl.domain.interfaces.NotValidTransferStatus
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
@@ -44,6 +46,7 @@ import jp.co.soramitsu.wallet.impl.domain.model.TransferValidityLevel
 import jp.co.soramitsu.wallet.impl.domain.model.TransferValidityStatus
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
+import jp.co.soramitsu.wallet.impl.presentation.send.CBDCTransferDraft
 import jp.co.soramitsu.wallet.impl.presentation.send.TransferDraft
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -125,8 +128,15 @@ class ConfirmSendViewModel @Inject constructor(
                 .map(::mapAssetToAssetModel)
         }
 
+    private val cbdcRemarkAdditional: (suspend ExtrinsicBuilder.() -> Unit)? =
+        (transferDraft as? CBDCTransferDraft)?.cbdcAddressId?.let { cbdcAddressId ->
+            {
+                remark(cbdcAddressId)
+            }
+        }
+
     private val feeFlow = assetFlow.map { createTransfer(it.token.configuration) }
-        .flatMapLatest { interactor.observeTransferFee(it) }
+        .flatMapLatest { interactor.observeTransferFee(it, cbdcRemarkAdditional) }
         .map { it.feeAmount }
         .onStart { transferDraft.fee }
 
@@ -161,10 +171,10 @@ class ConfirmSendViewModel @Inject constructor(
             additionalValue = assetModel.getAsFiatWithCurrency(transferDraft.amount)
         )
 
-        val tipInfoItem = transferDraft.tip?.let {
+        val tipInfoItem = transferDraft.tip?.let { tip ->
             TitleValueViewState(
                 title = resourceManager.getString(R.string.choose_amount_tip),
-                value = transferDraft.tip.formatCryptoDetail(utilityAsset.token.configuration.symbol),
+                value = tip.formatCryptoDetail(utilityAsset.token.configuration.symbol),
                 additionalValue = utilityAsset.getAsFiatWithCurrency(transferDraft.tip)
             )
         }
@@ -297,7 +307,7 @@ class ConfirmSendViewModel @Inject constructor(
 
             val tipInPlanks = transferDraft.tip?.let { token.planksFromAmount(it) }
             val result = withContext(Dispatchers.Default) {
-                interactor.performTransfer(createTransfer(token), transferDraft.fee, tipInPlanks)
+                interactor.performTransfer(createTransfer(token), transferDraft.fee, tipInPlanks, cbdcRemarkAdditional)
             }
             if (result.isSuccess) {
                 val operationHash = result.getOrNull()

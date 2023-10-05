@@ -1,5 +1,6 @@
 package jp.co.soramitsu.common.compose.component
 
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -30,7 +31,8 @@ data class SelectorState(
     val subTitle: String?,
     val iconUrl: String?,
     val actionIcon: Int? = R.drawable.ic_arrow_down,
-    val clickable: Boolean = true
+    val clickable: Boolean = true,
+    @DrawableRes val iconOverrideResId: Int? = null
 ) {
     companion object {
         val default = SelectorState("Network", null, null)
@@ -60,7 +62,16 @@ fun SelectorWithBorder(
                 .fillMaxSize()
                 .padding(12.dp)
         ) {
-            state.iconUrl?.let {
+            if (state.iconOverrideResId != null) {
+                Image(
+                    modifier = Modifier
+                        .size(32.dp)
+                        .align(Alignment.CenterVertically),
+                    res = state.iconOverrideResId,
+                    contentDescription = state.title
+                )
+                MarginHorizontal(8.dp)
+            } else if (state.iconUrl != null) {
                 AsyncImage(
                     model = getImageRequest(LocalContext.current, state.iconUrl),
                     contentDescription = state.title,
