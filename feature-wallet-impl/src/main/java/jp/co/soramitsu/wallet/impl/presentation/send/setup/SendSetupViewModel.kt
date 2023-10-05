@@ -78,8 +78,6 @@ import kotlinx.coroutines.flow.retry
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-private const val RETRY_TIMES = 3L
-
 @HiltViewModel
 class SendSetupViewModel @Inject constructor(
     private val sharedState: SendSharedState,
@@ -95,6 +93,7 @@ class SendSetupViewModel @Inject constructor(
 ) : BaseViewModel(), SendSetupScreenInterface {
     companion object {
         const val SLIPPAGE_TOLERANCE = 1.35
+        const val RETRY_TIMES = 3L
     }
 
     private val _openScannerEvent = MutableLiveData<Event<Unit>>()
@@ -277,6 +276,7 @@ class SendSetupViewModel @Inject constructor(
         .retry(RETRY_TIMES)
         .catch {
             println("Error: $it")
+            it.printStackTrace()
             emit(null)
         }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
@@ -566,26 +566,11 @@ class SendSetupViewModel @Inject constructor(
 
     fun qrCodeScanned(content: String) {
         viewModelScope.launch {
-            // 1 read CBDC url - lock
-            val tryReadSoraAddressFromUrl = walletInteractor.tryReadSoraAddressAndAmountFromUrl(content)
-            if (tryReadSoraAddressFromUrl != null) {
-
-                val soraChainId = if (BuildConfig.DEBUG) soraTestChainId else soraMainChainId
-                val soraChain = walletInteractor.getChain(soraChainId)
-                soraChain.assets.firstOrNull { it.symbol.lowercase() == "usdt" }?.let { asset ->
-                    sharedState.update(soraChainId, asset.id)
-                }
-
-                addressInputFlow.value = tryReadSoraAddressFromUrl.first
-
-                val amount = tryReadSoraAddressFromUrl.second.orZero()
-                lockInputFlow.value = true
-                lockAmountInputFlow.value = amount.greaterThen(BigDecimal.ZERO)
-                initialAmountFlow.value = amount
-                onAmountInput(amount)
+            val cbdcQrContent = walletInteractor.tryReadCBDCAddressFormat(content)
+            if (cbdcQrContent != null) {
+                router.back()
+                router.openCBDCSend(cbdcQrInfo = cbdcQrContent)
             } else {
-
-                // 2 read SORA - fill
                 val soraQrContent = walletInteractor.tryReadSoraFormat(content)
                 if (soraQrContent != null) {
                     handleSoraQr(soraQrContent)

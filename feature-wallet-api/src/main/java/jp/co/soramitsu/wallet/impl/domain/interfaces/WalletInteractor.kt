@@ -13,6 +13,7 @@ import jp.co.soramitsu.coredb.model.AddressBookContact
 import jp.co.soramitsu.coredb.model.AssetUpdateItem
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.shared_utils.runtime.AccountId
+import jp.co.soramitsu.shared_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.shared_utils.scale.EncodableStruct
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.AssetWithStatus
@@ -21,6 +22,7 @@ import jp.co.soramitsu.wallet.impl.domain.model.Fee
 import jp.co.soramitsu.wallet.impl.domain.model.Operation
 import jp.co.soramitsu.wallet.impl.domain.model.OperationsPageChange
 import jp.co.soramitsu.wallet.impl.domain.model.PhishingModel
+import jp.co.soramitsu.wallet.impl.domain.model.QrContentCBDC
 import jp.co.soramitsu.wallet.impl.domain.model.QrContentSora
 import jp.co.soramitsu.wallet.impl.domain.model.Transfer
 import jp.co.soramitsu.wallet.impl.domain.model.TransferValidityStatus
@@ -67,14 +69,15 @@ interface WalletInteractor {
 
     suspend fun getPhishingInfo(address: String): PhishingModel?
 
-    suspend fun getTransferFee(transfer: Transfer): Fee
+    suspend fun getTransferFee(transfer: Transfer, additional: (suspend ExtrinsicBuilder.() -> Unit)? = null): Fee
 
-    suspend fun observeTransferFee(transfer: Transfer): Flow<Fee>
+    suspend fun observeTransferFee(transfer: Transfer, additional: (suspend ExtrinsicBuilder.() -> Unit)? = null): Flow<Fee>
 
     suspend fun performTransfer(
         transfer: Transfer,
         fee: BigDecimal,
-        tipInPlanks: BigInteger?
+        tipInPlanks: BigInteger?,
+        additional: (suspend ExtrinsicBuilder.() -> Unit)? = null
     ): Result<String>
 
     suspend fun getQrCodeSharingSoraString(chainId: ChainId, assetId: String, amount: String): String
@@ -85,7 +88,7 @@ interface WalletInteractor {
 
     fun tryReadSoraFormat(content: String): QrContentSora?
 
-    suspend fun tryReadSoraAddressAndAmountFromUrl(content: String): Pair<String, BigDecimal?>?
+    suspend fun tryReadCBDCAddressFormat(content: String): QrContentCBDC?
 
     suspend fun getChain(chainId: ChainId): Chain
 
