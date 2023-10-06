@@ -162,7 +162,8 @@ class CBDCSendSetupViewModel @Inject constructor(
         subTitle = "Bokolo Cash",
         iconUrl = null,
         iconOverrideResId = R.drawable.ic_bokolocash,
-        clickable = false
+        clickable = false,
+        actionIcon = null
     )
 
     private val amountInputViewState: Flow<AmountInputViewState> = combine(
