@@ -301,7 +301,7 @@ class WalletInteractorImpl(
         }
     }
 
-    override suspend fun getQrCodeSharingSoraString(chainId: ChainId, assetId: String, amount: String): String {
+    override suspend fun getQrCodeSharingSoraString(chainId: ChainId, assetId: String, amount: BigDecimal?): String {
         val metaAccount = accountRepository.getSelectedMetaAccount()
         val chain = chainRegistry.getChain(chainId)
         val asset = chain.assets.firstOrNull { it.id == assetId }
@@ -312,7 +312,7 @@ class WalletInteractorImpl(
         val currencyId = asset?.currencyId
 
         return if (address != null && pubKey != null && currencyId != null) {
-            val optionalAmount = if (BigDecimal(amount) > BigDecimal.ZERO) {
+            val optionalAmount = if (amount.orZero() > BigDecimal.ZERO) {
                 ":$amount"
             } else {
                 ""

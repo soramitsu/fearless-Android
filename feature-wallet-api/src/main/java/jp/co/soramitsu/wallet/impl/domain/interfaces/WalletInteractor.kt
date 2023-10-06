@@ -80,7 +80,7 @@ interface WalletInteractor {
         additional: (suspend ExtrinsicBuilder.() -> Unit)? = null
     ): Result<String>
 
-    suspend fun getQrCodeSharingSoraString(chainId: ChainId, assetId: String, amount: String): String
+    suspend fun getQrCodeSharingSoraString(chainId: ChainId, assetId: String, amount: BigDecimal?): String
 
     suspend fun createFileInTempStorageAndRetrieveAsset(fileName: String): Result<File>
 
