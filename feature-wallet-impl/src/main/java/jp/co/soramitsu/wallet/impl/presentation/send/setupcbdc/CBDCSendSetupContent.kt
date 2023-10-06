@@ -109,7 +109,7 @@ fun CBCDSendSetupContent(
 
                 MarginVertical(margin = 12.dp)
                 SelectorWithBorder(
-                    state = state.chainSelectorState,
+                    state = state.chainSelectorState
                 )
                 state.warningInfoState?.let {
                     MarginVertical(margin = 8.dp)

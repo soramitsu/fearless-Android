@@ -212,7 +212,8 @@ class SendSetupViewModel @Inject constructor(
                 title = resourceManager.getString(R.string.common_network),
                 subTitle = it?.title,
                 iconUrl = it?.imageUrl,
-                clickable = isLock.not()
+                clickable = isLock.not(),
+                actionIcon = if (isLock) null else R.drawable.ic_arrow_down
             )
         }.stateIn(this, SharingStarted.Eagerly, SelectorState.default)
 
