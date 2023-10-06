@@ -6,7 +6,10 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.lang.Integer.max
+import java.lang.Integer.min
 import java.math.BigDecimal
+import java.math.RoundingMode
 import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.AmountInputViewState
@@ -25,7 +28,6 @@ import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.common.utils.write
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraKusamaChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraTestChainId
 import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
@@ -60,6 +62,10 @@ class ReceiveViewModel @Inject constructor(
     private val currentAccountAddress: CurrentAccountAddressUseCase,
     private val savedStateHandle: SavedStateHandle
 ) : BaseViewModel(), ReceiveScreenInterface {
+    companion object {
+        const val BOKOLO_CASH_TOKEN_ID = "0x00eacaea6599a04358fda986388ef0bb0c17a553ec819d5de2900c0af0862502"
+        const val BOKOLO_MAX_SCALE = 2
+    }
 
     private val assetPayload = savedStateHandle.get<AssetPayload>(ReceiveFragment.KEY_ASSET_PAYLOAD)!!
 
@@ -91,27 +97,51 @@ class ReceiveViewModel @Inject constructor(
             val tokenBalance = asset.transferable.formatCrypto(asset.token.configuration.symbol)
             val fiatAmount = amount.applyFiatRate(asset.token.fiatRate)?.formatFiat(asset.token.fiatSymbol)
 
+            val inputPrecision = if (asset.token.configuration.currencyId == BOKOLO_CASH_TOKEN_ID) {
+                max(amount.scale(), BOKOLO_MAX_SCALE)
+            } else {
+                asset.token.configuration.precision
+            }
+
+            val inputAmount = if (asset.token.configuration.currencyId == BOKOLO_CASH_TOKEN_ID) {
+                amount.setScale(min(amount.scale(), BOKOLO_MAX_SCALE), RoundingMode.DOWN)
+            } else {
+                amount
+            }
+
             AmountInputViewState(
                 tokenName = asset.token.configuration.symbol,
                 tokenImage = asset.token.configuration.iconUrl,
                 totalBalance = resourceManager.getString(R.string.common_transferable_format, tokenBalance),
                 fiatAmount = fiatAmount,
-                tokenAmount = amount,
-                precision = asset.token.configuration.precision,
+                tokenAmount = inputAmount,
+                precision = inputPrecision,
                 initial = initialAmount.takeIf { it.isNotZero() }
             )
         }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, defaultAmountInputState)
 
-    private val qrBitmapFlow = amountInputViewState.mapNotNull {
-        val amount = it.tokenAmount.toString()
-        if (assetPayload.chainId in listOf(soraKusamaChainId, soraTestChainId, soraMainChainId)) {
-            interactor.getQrCodeSharingSoraString(assetPayload.chainId, assetPayload.chainAssetId, amount)
+    private val qrBitmapFlow = combine(
+        receiveTypeSelectorState,
+        amountInputViewState
+    ) { receiveType, inputState ->
+        if (assetPayload.chainId in listOf(soraTestChainId, soraMainChainId)) {
+            val asset = assetFlow.firstOrNull()
+            val amount =
+                if (receiveType.currentSelection == ReceiveToggleType.Receive) {
+                    null
+                } else if (asset?.token?.configuration?.currencyId == BOKOLO_CASH_TOKEN_ID) {
+                    inputState.tokenAmount.setScale(BOKOLO_MAX_SCALE, RoundingMode.DOWN)
+                } else {
+                    inputState.tokenAmount
+                }
+            val qrCodeSharingSoraString = interactor.getQrCodeSharingSoraString(assetPayload.chainId, assetPayload.chainAssetId, amount)
+            qrCodeSharingSoraString
         } else {
             currentAccountAddress.invoke(assetPayload.chainId)
         }
-    }.map {qrString ->
-        qrCodeGenerator.generateQrBitmap(qrString)
+    }.mapNotNull { qrString ->
+        qrString?.let { qrCodeGenerator.generateQrBitmap(it) }
     }
 
     val state = combine(

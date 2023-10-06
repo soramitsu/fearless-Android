@@ -57,7 +57,7 @@ fun SelectorWithBorder(
         modifier = modifier
             .fillMaxWidth()
             .clip(shape)
-            .clickable(enabled = state.clickable) { onClick() }
+            .clickable(enabled = state.clickable, onClick = onClick)
             .height(64.dp)
     ) {
         Row(
@@ -136,6 +136,9 @@ private fun SelectorWithBorderPreview() {
         Column(Modifier.widthIn(max = 200.dp)) {
             SelectorWithBorder(
                 state = state
+            )
+            SelectorWithBorder(
+                state = state.copy(iconOverrideResId = R.drawable.ic_wallet)
             )
             SelectorWithBorder(
                 state = state.copy(iconUrl = null, subTitleIcon = R.drawable.ic_alert_16)
