@@ -381,7 +381,7 @@ class CBDCSendSetupViewModel @Inject constructor(
             val transferDraft = buildTransferDraft() ?: return@launch
             val phishingType = phishingModelFlow.firstOrNull()?.type
             val overrides = mapOf(
-                ConfirmSendFragment.KEY_OVERRIDE_ICON_RES_ID to R.drawable.ic_bokolocash_2,
+                ConfirmSendFragment.KEY_OVERRIDE_ICON_RES_ID to R.drawable.ic_bokolocash,
                 ConfirmSendFragment.KEY_OVERRIDE_TO_VALUE to cbdcQrInfo.recipientId
             )
             val additionalRemark = cbdcQrInfo.recipientId
