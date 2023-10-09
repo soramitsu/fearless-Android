@@ -46,7 +46,6 @@ import jp.co.soramitsu.wallet.impl.domain.model.TransferValidityLevel
 import jp.co.soramitsu.wallet.impl.domain.model.TransferValidityStatus
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
-import jp.co.soramitsu.wallet.impl.presentation.send.CBDCTransferDraft
 import jp.co.soramitsu.wallet.impl.presentation.send.TransferDraft
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -84,6 +83,8 @@ class ConfirmSendViewModel @Inject constructor(
 
     private val transferDraft = savedStateHandle.get<TransferDraft>(ConfirmSendFragment.KEY_DRAFT) ?: error("Required data not provided for send confirmation")
     private val phishingType = savedStateHandle.get<PhishingType>(ConfirmSendFragment.KEY_PHISHING_TYPE)
+    private val overrides = savedStateHandle.get<Map<String, Any?>>(ConfirmSendFragment.KEY_OVERRIDES).orEmpty()
+    private val additionalRemark = savedStateHandle.get<String>(ConfirmSendFragment.KEY_ADDITIONAL_REMARK)
 
     private val _openValidationWarningEvent = MutableLiveData<Event<Pair<TransferValidationResult, ValidationWarning>>>()
     val openValidationWarningEvent: LiveData<Event<Pair<TransferValidationResult, ValidationWarning>>> = _openValidationWarningEvent
@@ -128,15 +129,13 @@ class ConfirmSendViewModel @Inject constructor(
                 .map(::mapAssetToAssetModel)
         }
 
-    private val cbdcRemarkAdditional: (suspend ExtrinsicBuilder.() -> Unit)? =
-        (transferDraft as? CBDCTransferDraft)?.cbdcAddressId?.let { cbdcAddressId ->
-            {
-                remark(cbdcAddressId)
-            }
+    private val additional: (suspend ExtrinsicBuilder.() -> Unit)? =
+        additionalRemark?.let {
+            { remark(additionalRemark) }
         }
 
     private val feeFlow = assetFlow.map { createTransfer(it.token.configuration) }
-        .flatMapLatest { interactor.observeTransferFee(it, cbdcRemarkAdditional) }
+        .flatMapLatest { interactor.observeTransferFee(it, additional) }
         .map { it.feeAmount }
         .onStart { transferDraft.fee }
 
@@ -157,10 +156,22 @@ class ConfirmSendViewModel @Inject constructor(
         )
 
         val isRecipientNameSpecified = !recipient.name.isNullOrEmpty()
+        val hasOverriddenToValue = overrides.containsKey(ConfirmSendFragment.KEY_OVERRIDE_TO_VALUE)
+
+        val toValue = when {
+            hasOverriddenToValue -> overrides[ConfirmSendFragment.KEY_OVERRIDE_TO_VALUE] as String
+            isRecipientNameSpecified -> recipient.name
+            else -> recipient.address.shortenAddress()
+        }
+        val toAdditionalValue = when {
+            hasOverriddenToValue -> null
+            isRecipientNameSpecified -> recipient.address.shortenAddress()
+            else -> null
+        }
         val toInfoItem = TitleValueViewState(
             title = resourceManager.getString(R.string.choose_amount_to),
-            value = if (isRecipientNameSpecified) recipient.name else recipient.address.shortenAddress(),
-            additionalValue = if (isRecipientNameSpecified) recipient.address.shortenAddress() else null,
+            value = toValue,
+            additionalValue = toAdditionalValue,
             clickState = phishingType?.let { TitleValueViewState.ClickState.Value(R.drawable.ic_alert_16, ConfirmSendViewState.CODE_WARNING_CLICK) }
         )
 
@@ -185,7 +196,10 @@ class ConfirmSendViewModel @Inject constructor(
             additionalValue = utilityAsset.getAsFiatWithCurrency(fee)
         )
 
+        val iconOverrideResId = overrides[ConfirmSendFragment.KEY_OVERRIDE_ICON_RES_ID] as? Int
+
         ConfirmSendViewState(
+            iconOverrideResId = iconOverrideResId,
             chainIconUrl = asset.token.configuration.chainIcon ?: asset.token.configuration.iconUrl,
             fromInfoItem = fromInfoItem,
             toInfoItem = toInfoItem,
@@ -307,7 +321,7 @@ class ConfirmSendViewModel @Inject constructor(
 
             val tipInPlanks = transferDraft.tip?.let { token.planksFromAmount(it) }
             val result = withContext(Dispatchers.Default) {
-                interactor.performTransfer(createTransfer(token), transferDraft.fee, tipInPlanks, cbdcRemarkAdditional)
+                interactor.performTransfer(createTransfer(token), transferDraft.fee, tipInPlanks, additional)
             }
             if (result.isSuccess) {
                 val operationHash = result.getOrNull()

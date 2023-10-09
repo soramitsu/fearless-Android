@@ -848,8 +848,8 @@ class Navigator :
         navController?.navigate(R.id.action_mainFragment_to_filterFragment)
     }
 
-    override fun openSendConfirm(transferDraft: TransferDraft, phishingType: PhishingType?) {
-        val bundle = ConfirmSendFragment.getBundle(transferDraft, phishingType)
+    override fun openSendConfirm(transferDraft: TransferDraft, phishingType: PhishingType?, overrides: Map<String, Any?>, additionalRemark: String?) {
+        val bundle = ConfirmSendFragment.getBundle(transferDraft, phishingType, overrides, additionalRemark)
 
         navController?.navigate(R.id.confirmSendFragment, bundle)
     }

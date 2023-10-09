@@ -52,8 +52,8 @@ import jp.co.soramitsu.wallet.impl.domain.model.Transfer
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
 import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
-import jp.co.soramitsu.wallet.impl.presentation.send.CBDCTransferDraft
 import jp.co.soramitsu.wallet.impl.presentation.send.TransferDraft
+import jp.co.soramitsu.wallet.impl.presentation.send.confirm.ConfirmSendFragment
 import jp.co.soramitsu.wallet.impl.presentation.send.setup.SendSetupViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -380,8 +380,13 @@ class CBDCSendSetupViewModel @Inject constructor(
         launch {
             val transferDraft = buildTransferDraft() ?: return@launch
             val phishingType = phishingModelFlow.firstOrNull()?.type
+            val overrides = mapOf(
+                ConfirmSendFragment.KEY_OVERRIDE_ICON_RES_ID to R.drawable.ic_bokolocash_2,
+                ConfirmSendFragment.KEY_OVERRIDE_TO_VALUE to cbdcQrInfo.recipientId
+            )
+            val additionalRemark = cbdcQrInfo.recipientId
 
-            router.openSendConfirm(transferDraft, phishingType)
+            router.openSendConfirm(transferDraft, phishingType, overrides, additionalRemark)
         }
     }
 
@@ -391,13 +396,12 @@ class CBDCSendSetupViewModel @Inject constructor(
             AssetPayload(it.chainId, it.id)
         }.firstOrNull() ?: return null
 
-        return CBDCTransferDraft(
+        return TransferDraft(
             amount = cbdcQrInfo.transactionAmount,
             fee = feeAmount,
             assetPayload = payload,
             recipientAddress = CBDC_BRIDGE,
-            tip = null,
-            cbdcAddressId = cbdcQrInfo.recipientId
+            tip = null
         )
     }
 
