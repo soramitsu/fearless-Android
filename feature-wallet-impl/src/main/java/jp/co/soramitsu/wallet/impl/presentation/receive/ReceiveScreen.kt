@@ -4,8 +4,6 @@ import android.graphics.Bitmap
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -70,7 +68,7 @@ fun ReceiveScreen(
 ) {
     BottomSheetScreen(
         modifier = Modifier.nestedScroll(rememberNestedScrollInteropConnection())
-            .fillMaxSize()
+            .fillMaxWidth()
     ) {
         when (state) {
             is LoadingState.Loading -> {}
@@ -113,7 +111,7 @@ private fun ReceiveContent(
     Column(
         modifier = Modifier
             .padding(horizontal = 16.dp)
-            .fillMaxSize()
+            .fillMaxWidth()
             .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -157,7 +155,7 @@ private fun ReceiveContent(
             color = Color.White.copy(alpha = 0.5f)
         )
         MarginVertical(margin = 24.dp)
-        Spacer(modifier = Modifier.weight(1f))
+//        Spacer(modifier = Modifier.weight(1f))
         AccentButton(
             text = stringResource(id = R.string.common_copy),
             modifier = Modifier
