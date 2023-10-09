@@ -81,7 +81,7 @@ class CBDCSendSetupViewModel @Inject constructor(
     private val validateTransferUseCase: ValidateTransferUseCase
 ) : BaseViewModel(), CBDCSendSetupScreenInterface {
     companion object {
-        const val CBDC_BRIDGE = "cnSftmQkwkLoX2JEVDZ6xKScLDDiCHZoEZvgnUCrwZgrzEEpy"
+        const val CBDC_BRIDGE = "cnRW3S6XXtQJtYDRdL7sF6o1PMWihqRrZ9R5KiXsNyJRsqBVW"
         const val BOKOLO_CASH_TOKEN_ID = "0x00eacaea6599a04358fda986388ef0bb0c17a553ec819d5de2900c0af0862502"
 
     }
