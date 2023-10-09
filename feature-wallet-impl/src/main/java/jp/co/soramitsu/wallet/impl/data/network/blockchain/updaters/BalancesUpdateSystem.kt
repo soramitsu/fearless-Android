@@ -107,13 +107,6 @@ class BalancesUpdateSystem(
         chain: Chain,
         metaAccount: MetaAccount
     ): Flow<Result<Any>> {
-        val runtimeVersion =
-            kotlin.runCatching {
-                chainRegistry.getRemoteRuntimeVersion(
-                    chain.id
-                )
-            }
-                .getOrNull() ?: 0
         val chainUpdateFlow =
             chainRegistry.getRuntimeProvider(chain.id).observeWithTimeout(RUNTIME_AWAITING_TIMEOUT)
                 .flatMapMerge { runtimeResult ->
@@ -158,8 +151,7 @@ class BalancesUpdateSystem(
                                 val balanceData = handleBalanceResponse(
                                     runtime,
                                     keyWithMetadata.asset.typeExtra,
-                                    hexRaw?.second,
-                                    runtimeVersion
+                                    hexRaw?.second
                                 ).onFailure { logError(chain, it) }
 
                                 assetCache.updateAsset(
@@ -198,7 +190,6 @@ class BalancesUpdateSystem(
                 val runtime =
                     runCatching { chainRegistry.getRuntimeOrNull(chain.id) }.getOrNull()
                         ?: return@forEach
-                val runtimeVersion = chainRegistry.getRemoteRuntimeVersion(chain.id) ?: 0
                 val socketService =
                     runCatching { chainRegistry.getSocket(chain.id) }.getOrNull()
                         ?: return@forEach
@@ -222,8 +213,7 @@ class BalancesUpdateSystem(
                     val balanceData = handleBalanceResponse(
                         runtime,
                         keyWithMetadata.asset.typeExtra,
-                        hexRaw,
-                        runtimeVersion
+                        hexRaw
                     ).onFailure { logError(chain, it) }
 
                     assetCache.updateAsset(

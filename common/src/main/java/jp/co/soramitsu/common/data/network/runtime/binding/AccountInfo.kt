@@ -95,7 +95,7 @@ class DataPoint(
 fun bindAccountData(dynamicInstance: Struct.Instance?) = AccountData(
     free = (dynamicInstance?.get("free") as? BigInteger).orZero(),
     reserved = (dynamicInstance?.get("reserved") as? BigInteger).orZero(),
-    miscFrozen = (dynamicInstance?.get("miscFrozen") as? BigInteger).orZero(),
+    miscFrozen = (dynamicInstance?.get("miscFrozen") as? BigInteger) ?: (dynamicInstance?.get("frozen") as? BigInteger).orZero(),
     feeFrozen = (dynamicInstance?.get("feeFrozen") as? BigInteger).orZero()
 )
 
