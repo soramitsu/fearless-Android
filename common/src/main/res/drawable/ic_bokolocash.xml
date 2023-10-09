@@ -10,9 +10,6 @@
       <clip-path
           android:pathData="M12,0C18.6,0 24,5.4 24,12C24,18.6 18.6,24 12,24C5.4,24 0,18.6 0,12C0,5.4 5.4,0 12,0Z"/>
       <path
-          android:pathData="M12,0C18.6,0 24,5.4 24,12C24,18.6 18.6,24 12,24C5.4,24 0,18.6 0,12C0,5.4 5.4,0 12,0Z"
-          android:fillColor="#ffffff"/>
-      <path
           android:pathData="M12,24C18.6,24 24,18.6 24,12C24,5.4 18.6,0 12,0C5.4,0 0,5.4 0,12C0,18.6 5.4,24 12,24Z"
           android:fillColor="#000000"/>
       <path
