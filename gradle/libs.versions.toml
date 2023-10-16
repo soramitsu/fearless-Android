@@ -18,6 +18,9 @@ dagger = "2.47"
 android_plugin = "7.4.2"
 sharedFeaturesVersion = "1.1.1.13-SNAPSHOT"
 web3j = "4.8.8-android"
+coil = "2.2.2"
+shimmer = "1.0.4"
+hilt = "1.0.0"
 
 [libraries]
 google-services = { module = "com.google.gms:google-services", version.ref = "googleServices" }
@@ -65,10 +68,16 @@ sharedFeaturesBackupDep = { module = "jp.co.soramitsu.shared_features:backup", v
 
 web3jDep = { module = "org.web3j:core", version.ref = "web3j" }
 
+coil = { module = "io.coil-kt:coil", version.ref = "coil" }
+coilSvg = { module = "io.coil-kt:coil-svg", version.ref = "coil" }
+composeCoil = { module = "io.coil-kt:coil-compose", version.ref="coil" }
+shimmers = { module = "com.valentinilk.shimmer:compose-shimmer", version.ref="shimmer" }
+hiltNavigationCompose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "hilt" }
+
 [bundles]
 compose = [
     "compose-runtime", "compose-ui", "compose-runtimeLiveData", "compose-compiler",
     "compose-foundation", "compose-material", "compose-themeAdapter", "compose-animation",
-    "compose-animationGraphics", "compose-uiToolingPreview"
+    "compose-animationGraphics", "compose-uiToolingPreview", "composeCoil", "shimmers", "hiltNavigationCompose"
 ]
 coroutines = ["coroutines-core", "coroutines-android"]

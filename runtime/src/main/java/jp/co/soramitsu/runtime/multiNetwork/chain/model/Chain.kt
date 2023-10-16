@@ -46,7 +46,8 @@ data class Chain(
     val hasCrowdloans: Boolean,
     override val parentId: String?,
     val supportStakingPool: Boolean,
-    val isEthereumChain: Boolean
+    val isEthereumChain: Boolean,
+    val supportNft: Boolean
 ) : IChain {
     val assetsById = assets.associateBy(CoreAsset::id)
 
@@ -152,3 +153,15 @@ fun List<Chain>.getWithToken(symbol: String, filter: Map<ChainId, List<String>>?
         asset.symbol == symbol && allowAsset
     }
 }
+
+val Chain.alchemyNftId: String?
+    get() =
+        when(id){
+            ethereumChainId -> "eth-mainnet"
+            sepoliaChainId -> "eth-sepolia"
+            goerliChainId -> "eth-goerli"
+            BSCChainId -> null
+            BSCTestnetChainId -> null
+            polygonChainId -> "polygon-mainnet"
+            else -> null
+        }

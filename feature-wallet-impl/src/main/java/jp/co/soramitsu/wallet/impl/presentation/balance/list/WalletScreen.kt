@@ -42,6 +42,8 @@ import jp.co.soramitsu.common.compose.theme.white50
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState
 import jp.co.soramitsu.common.data.network.runtime.binding.cast
 import jp.co.soramitsu.common.utils.rememberForeverLazyListState
+import jp.co.soramitsu.nft.impl.presentation.list.NftList
+import jp.co.soramitsu.nft.impl.presentation.list.NftListScreenPreview
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.soracard.impl.presentation.SoraCardItem
 import jp.co.soramitsu.soracard.impl.presentation.SoraCardItemViewState
@@ -83,11 +85,7 @@ fun WalletScreen(
             onToggleChange = callback::assetTypeChanged
         )
         if (data.multiToggleButtonState.currentSelection == AssetType.NFTs) {
-            NftStub(
-                Modifier
-                    .fillMaxSize()
-                    .padding(bottom = 80.dp)
-            )
+            NftList()
         } else {
             val header = Banners(data, callback)
             AssetsList(

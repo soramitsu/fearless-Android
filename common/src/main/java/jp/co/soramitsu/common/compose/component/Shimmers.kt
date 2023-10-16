@@ -63,6 +63,14 @@ fun ShimmerRectangle(modifier: Modifier = Modifier) {
     }
 }
 
+@Composable
+fun RoundedRect(modifier: Modifier){
+    Box(
+        modifier = modifier
+            .background(shimmerColor, RoundedCornerShape(size = 50.dp))
+    )
+}
+
 @Preview
 @Composable
 private fun ShimmerPreview() {
