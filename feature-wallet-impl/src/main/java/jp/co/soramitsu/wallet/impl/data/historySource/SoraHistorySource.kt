@@ -9,11 +9,11 @@ import jp.co.soramitsu.shared_utils.runtime.AccountId
 import jp.co.soramitsu.wallet.impl.data.mappers.toOperation
 import jp.co.soramitsu.wallet.impl.domain.interfaces.TransactionFilter
 import jp.co.soramitsu.wallet.impl.domain.model.Operation
-import jp.co.soramitsu.xnetworking.networkclient.SoramitsuNetworkClient
+import jp.co.soramitsu.xnetworking.basic.networkclient.SoramitsuNetworkClient
+import jp.co.soramitsu.xnetworking.basic.txhistory.TxHistoryItem
+import jp.co.soramitsu.xnetworking.basic.txhistory.TxHistoryResult
 import jp.co.soramitsu.xnetworking.sorawallet.mainconfig.SoraRemoteConfigBuilder
-import jp.co.soramitsu.xnetworking.txhistory.TxHistoryItem
-import jp.co.soramitsu.xnetworking.txhistory.TxHistoryResult
-import jp.co.soramitsu.xnetworking.txhistory.client.sorawallet.SubQueryClientForSoraWalletFactory
+import jp.co.soramitsu.xnetworking.sorawallet.txhistory.client.SubQueryClientForSoraWalletFactory
 
 class SoraHistorySource(
     private val soramitsuNetworkClient: SoramitsuNetworkClient,

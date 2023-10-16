@@ -16,8 +16,8 @@ import jp.co.soramitsu.soracard.impl.domain.BuyCryptoDataSourceImpl
 import jp.co.soramitsu.soracard.impl.domain.BuyCryptoRepositoryImpl
 import jp.co.soramitsu.soracard.impl.domain.SoraCardInteractorImpl
 import jp.co.soramitsu.soracard.impl.domain.SoraCardRepositoryImpl
-import jp.co.soramitsu.xnetworking.networkclient.SoramitsuHttpClientProvider
-import jp.co.soramitsu.xnetworking.networkclient.SoramitsuHttpClientProviderImpl
+import jp.co.soramitsu.xnetworking.basic.networkclient.SoramitsuHttpClientProvider
+import jp.co.soramitsu.xnetworking.basic.networkclient.SoramitsuHttpClientProviderImpl
 import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)

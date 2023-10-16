@@ -108,7 +108,9 @@ dependencies {
     implementation retrofitDep
 
     implementation wsDep
-    implementation xNetworkingDep
+    implementation xNetworkingBasicDep
+    implementation xNetworkingFearlessDep, withoutBasic
+    implementation xNetworkingSorawalletDep, withoutBasic
 
     implementation zXingCoreDep
     implementation zXingEmbeddedDep

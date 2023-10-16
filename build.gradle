@@ -23,7 +23,7 @@ buildscript {
         biometricVersion = '1.1.0'
 
         progressButtonsVersion = '2.1.0'
-        xNetworkingVersion = '0.0.60'
+        xNetworkingVersion = '0.2.3'
         soraCardVersion = '0.1.9'
         soraUiCoreVersion = '0.1.4'
 
@@ -171,7 +171,10 @@ buildscript {
 
         soraCardDep = "jp.co.soramitsu:android-sora-card:$soraCardVersion"
         wsDep = "com.neovisionaries:nv-websocket-client:$wsVersion"
-        xNetworkingDep = "jp.co.soramitsu:XNetworking-android:$xNetworkingVersion"
+        withoutBasic = { exclude group: 'jp.co.soramitsu.xnetworking', module: 'basic' }
+        xNetworkingSorawalletDep = "jp.co.soramitsu.xnetworking:sorawallet-android:$xNetworkingVersion"
+        xNetworkingFearlessDep = "jp.co.soramitsu.xnetworking:fearlesswallet-android:$xNetworkingVersion"
+        xNetworkingBasicDep = "jp.co.soramitsu.xnetworking:basic-android:$xNetworkingVersion"
         soraUiCoreDep = "jp.co.soramitsu:ui-core:$soraUiCoreVersion"
 
         shimmerDep = "com.facebook.shimmer:shimmer:$shimmerVersion"
