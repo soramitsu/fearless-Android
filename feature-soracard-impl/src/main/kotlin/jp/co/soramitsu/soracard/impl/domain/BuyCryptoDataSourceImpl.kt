@@ -7,7 +7,7 @@ import jp.co.soramitsu.soracard.impl.data.websocket.WebSocket
 import jp.co.soramitsu.soracard.impl.data.websocket.WebSocketListener
 import jp.co.soramitsu.soracard.impl.data.websocket.WebSocketRequest
 import jp.co.soramitsu.soracard.impl.data.websocket.WebSocketResponse
-import jp.co.soramitsu.xnetworking.networkclient.SoramitsuHttpClientProvider
+import jp.co.soramitsu.xnetworking.basic.networkclient.SoramitsuHttpClientProvider
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.serialization.encodeToString

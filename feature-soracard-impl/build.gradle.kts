@@ -49,9 +49,14 @@ dependencies {
     implementation(libs.fragmentKtx)
     implementation(libs.material)
     implementation(libs.kotlinx.serialization.json)
-    implementation(libs.xnetworking.android)
     implementation(libs.retrofit)
     implementation(libs.gson)
+    implementation(libs.xnetworking.basic)
+    val withoutBasic: (ExternalModuleDependency).() -> Unit = {
+        exclude(group = "jp.co.soramitsu.xnetworking", module = "basic")
+    }
+    implementation(libs.xnetworking.fearless, withoutBasic)
+    implementation(libs.xnetworking.sorawallet, withoutBasic)
 
     implementation(libs.sora.ui)
     implementation(libs.sora.card)
