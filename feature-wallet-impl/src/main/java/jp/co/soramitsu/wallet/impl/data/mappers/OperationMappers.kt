@@ -24,7 +24,7 @@ import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
 import jp.co.soramitsu.wallet.impl.presentation.model.OperationModel
 import jp.co.soramitsu.wallet.impl.presentation.model.OperationParcelizeModel
 import jp.co.soramitsu.wallet.impl.presentation.model.OperationStatusAppearance
-import jp.co.soramitsu.xnetworking.txhistory.TxHistoryItem
+import jp.co.soramitsu.xnetworking.basic.txhistory.TxHistoryItem
 import java.math.BigInteger
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
