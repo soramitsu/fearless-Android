@@ -20,9 +20,11 @@ import jp.co.soramitsu.common.compose.component.TitleValueViewState
 import jp.co.soramitsu.common.data.network.BlockExplorerUrlBuilder
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
+import jp.co.soramitsu.common.utils.applyFiatRate
 import jp.co.soramitsu.common.utils.combine
 import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.common.utils.formatCryptoDetail
+import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.formatting.shortenAddress
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.requireException
@@ -191,7 +193,14 @@ class ConfirmSendViewModel @Inject constructor(
         }
 
         val isSendBokoloCash = asset.token.configuration.currencyId == bokoloCashTokenId
-        val feeInfoItem = if (isSendBokoloCash && utilityAsset.transferable < fee) {
+
+        val showFeeAsset = if (isSendBokoloCash && utilityAsset.transferable < fee) {
+            asset
+        } else {
+            utilityAsset
+        }
+
+        val assetFeeAmount = if (isSendBokoloCash && utilityAsset.transferable < fee) {
             val swapDetails = polkaswapInteractor.calcDetails(
                 availableDexPaths = listOf(0),
                 tokenFrom = asset,
@@ -201,19 +210,19 @@ class ConfirmSendViewModel @Inject constructor(
                 slippageTolerance = 1.5,
                 market = Market.SMART
             )
-            val feeRequiredTokens = swapDetails.getOrNull()?.amount
-            TitleValueViewState(
-                title = resourceManager.getString(R.string.common_network_fee),
-                value = feeRequiredTokens?.formatCryptoDetail(asset.token.configuration.symbol),
-                additionalValue = asset.getAsFiatWithCurrency(feeRequiredTokens)
-            )
+            swapDetails.getOrNull()?.amount
         } else {
-            TitleValueViewState(
-                title = resourceManager.getString(R.string.common_network_fee),
-                value = fee.formatCryptoDetail(utilityAsset.token.configuration.symbol),
-                additionalValue = utilityAsset.getAsFiatWithCurrency(fee)
-            )
+            fee
         }
+
+        val feeFormatted = assetFeeAmount?.formatCryptoDetail(showFeeAsset.token.configuration.symbol)
+        val feeFiat = assetFeeAmount?.applyFiatRate(showFeeAsset.token.fiatRate)?.formatFiat(showFeeAsset.token.fiatSymbol)
+
+        val feeInfoItem = TitleValueViewState(
+            title = resourceManager.getString(R.string.common_network_fee),
+            value = feeFormatted,
+            additionalValue = feeFiat
+        )
 
         val iconOverrideResId = overrides[ConfirmSendFragment.KEY_OVERRIDE_ICON_RES_ID] as? Int
 
