@@ -12,7 +12,7 @@ def pipeline = new org.android.AppPipeline(
     sonarProjectName: 'fearless-android',
     sonarProjectKey:  'fearless:fearless-android',
     pushReleaseNotes: false,
-    testCmd:          'runTest --info',
+    testCmd:          'runTest',
     dockerImage:      'build-tools/android-build-box-jdk17:latest',
     publishCmd:       'publishReleaseApk',
     jobParams:        jobParams,
