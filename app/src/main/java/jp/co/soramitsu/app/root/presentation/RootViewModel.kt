@@ -59,26 +59,19 @@ class RootViewModel @Inject constructor(
     private var shouldHandleResumeInternetConnection = false
 
     init {
+        viewModelScope.launch {
+            interactor.fetchFeatureToggle()
+        }
         checkAppVersion()
     }
 
     private fun checkAppVersion() {
         viewModelScope.launch {
-            interactor.fetchFeatureToggle()
             val appConfigResult = interactor.getRemoteConfig()
-            when {
-                appConfigResult.isFailure -> {
-                    shouldHandleResumeInternetConnection = true
-                    _showNoInternetConnectionAlert.value = Event(Unit)
-                }
-
-                appConfigResult.getOrNull()?.isCurrentVersionSupported == false -> {
-                    _showUnsupportedAppVersionAlert.value = Event(Unit)
-                }
-
-                else -> {
-                    runBalancesUpdate()
-                }
+            if (appConfigResult.getOrNull()?.isCurrentVersionSupported == false) {
+                _showUnsupportedAppVersionAlert.value = Event(Unit)
+            } else {
+                runBalancesUpdate()
             }
         }
     }
@@ -173,5 +166,11 @@ class RootViewModel @Inject constructor(
 
     fun retryLoadConfigClicked() {
         checkAppVersion()
+    }
+
+    fun onNetworkAvailable() {
+        viewModelScope.launch {
+            checkAppVersion()
+        }
     }
 }
