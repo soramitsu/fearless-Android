@@ -403,7 +403,7 @@ class WssSubstrateSource(
             "amount" to transfer.amountInPlanks,
 
             "desired_xor_amount" to transfer.estimateFeeInPlanks.orZero(),
-            "max_amount_in" to transfer.maxAmountInInPlanks.orZero(), //fee * xorToTokenRate
+            "max_amount_in" to transfer.maxAmountInInPlanks.orZero(),
 
             "selected_source_types" to emptyList<DictEnum.Entry<Any?>>(),
             "filter_mode" to DictEnum.Entry(

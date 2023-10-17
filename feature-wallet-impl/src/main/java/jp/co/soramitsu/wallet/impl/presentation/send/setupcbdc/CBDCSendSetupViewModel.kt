@@ -57,6 +57,7 @@ import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.presentation.send.TransferDraft
 import jp.co.soramitsu.wallet.impl.presentation.send.confirm.ConfirmSendFragment
 import jp.co.soramitsu.wallet.impl.presentation.send.confirm.FEE_CORRECTION
+import jp.co.soramitsu.wallet.impl.presentation.send.confirm.FEE_RESERVE_TOLERANCE
 import jp.co.soramitsu.wallet.impl.presentation.send.setup.SendSetupViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -258,7 +259,7 @@ class CBDCSendSetupViewModel @Inject constructor(
                 slippageTolerance = 1.5,
                 market = Market.SMART
             )
-            swapDetails.getOrNull()?.amount
+            swapDetails.getOrNull()?.amount?.let { it * FEE_RESERVE_TOLERANCE }
         }
 
         val feeFormatted = assetFeeAmount?.formatCryptoDetail(showFeeAsset.token.configuration.symbol)
