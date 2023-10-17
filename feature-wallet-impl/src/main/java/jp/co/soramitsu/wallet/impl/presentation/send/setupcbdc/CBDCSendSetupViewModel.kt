@@ -361,7 +361,7 @@ class CBDCSendSetupViewModel @Inject constructor(
         viewModelScope.launch {
             val asset = assetFlow.value ?: return@launch
 
-            val amount = cbdcQrInfo.transactionAmount
+            val amount = enteredAmountBigDecimalFlow.value
             val inPlanks = asset.token.planksFromAmount(amount).orZero()
             val recipientAddress = CBDC_BRIDGE
             val selfAddress = currentAccountAddress(chainId) ?: return@launch
@@ -419,7 +419,7 @@ class CBDCSendSetupViewModel @Inject constructor(
         }.firstOrNull() ?: return null
 
         return TransferDraft(
-            amount = cbdcQrInfo.transactionAmount,
+            amount = enteredAmountBigDecimalFlow.value,
             fee = feeAmount,
             assetPayload = payload,
             recipientAddress = CBDC_BRIDGE,
