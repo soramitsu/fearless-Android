@@ -458,8 +458,7 @@ class SendSetupViewModel @Inject constructor(
             val amount = enteredAmountBigDecimalFlow.value
             val inPlanks = asset.token.planksFromAmount(amount).orZero()
             val recipientAddress = addressInputTrimmedFlow.firstOrNull() ?: return@launch
-            val selfAddress =
-                currentAccountAddress(asset.token.configuration.chainId) ?: return@launch
+            val selfAddress = currentAccountAddress(asset.token.configuration.chainId) ?: return@launch
             val fee = feeInPlanksFlow.value
             val destinationChainId = asset.token.configuration.chainId
             val validationProcessResult = validateTransferUseCase(
