@@ -36,13 +36,15 @@ import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.feature_wallet_impl.BuildConfig
 import jp.co.soramitsu.feature_wallet_impl.R
+import jp.co.soramitsu.polkaswap.api.domain.PolkaswapInteractor
+import jp.co.soramitsu.polkaswap.api.models.Market
+import jp.co.soramitsu.polkaswap.api.models.WithDesired
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.bokoloCashTokenId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraTestChainId
-import jp.co.soramitsu.shared_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.wallet.api.domain.TransferValidationResult
 import jp.co.soramitsu.wallet.api.domain.ValidateTransferUseCase
 import jp.co.soramitsu.wallet.api.domain.fromValidationResult
-import jp.co.soramitsu.wallet.impl.data.network.blockchain.extrinsic.remark
 import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
@@ -54,6 +56,7 @@ import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.presentation.send.TransferDraft
 import jp.co.soramitsu.wallet.impl.presentation.send.confirm.ConfirmSendFragment
+import jp.co.soramitsu.wallet.impl.presentation.send.confirm.FEE_CORRECTION
 import jp.co.soramitsu.wallet.impl.presentation.send.setup.SendSetupViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -75,6 +78,7 @@ class CBDCSendSetupViewModel @Inject constructor(
     val savedStateHandle: SavedStateHandle,
     private val resourceManager: ResourceManager,
     private val walletInteractor: WalletInteractor,
+    private val polkaswapInteractor: PolkaswapInteractor,
     private val router: WalletRouter,
     private val addressIconGenerator: AddressIconGenerator,
     private val currentAccountAddress: CurrentAccountAddressUseCase,
@@ -82,8 +86,6 @@ class CBDCSendSetupViewModel @Inject constructor(
 ) : BaseViewModel(), CBDCSendSetupScreenInterface {
     companion object {
         const val CBDC_BRIDGE = "cnRW3S6XXtQJtYDRdL7sF6o1PMWihqRrZ9R5KiXsNyJRsqBVW"
-        const val BOKOLO_CASH_TOKEN_ID = "0x00eacaea6599a04358fda986388ef0bb0c17a553ec819d5de2900c0af0862502"
-
     }
 
     private val _openValidationWarningEvent =
@@ -140,7 +142,7 @@ class CBDCSendSetupViewModel @Inject constructor(
         val chainId = if (BuildConfig.DEBUG) soraTestChainId else soraMainChainId
         val chain = walletInteractor.getChain(chainId)
         chain.assets.firstOrNull {
-            it.currencyId == BOKOLO_CASH_TOKEN_ID
+            it.currencyId == bokoloCashTokenId
         }?.let {
             walletInteractor.getCurrentAsset(it.chainId, it.id)
         }
@@ -198,21 +200,18 @@ class CBDCSendSetupViewModel @Inject constructor(
         }
     }.stateIn(this, SharingStarted.Eagerly, defaultAmountInputState)
 
-    private val additional: (suspend ExtrinsicBuilder.() -> Unit) = {
-        remark(cbdcQrInfo.recipientId)
-    }
-
     private val feeAmountFlow: StateFlow<BigDecimal?> = assetFlow.map { asset ->
         asset?.token?.configuration?.let { chainAsset ->
             Transfer(
                 recipient = CBDC_BRIDGE,
                 sender = requireNotNull(currentAccountAddress.invoke(chainAsset.chainId)),
                 amount = cbdcQrInfo.transactionAmount,
-                chainAsset = chainAsset
+                chainAsset = chainAsset,
+                comment = cbdcQrInfo.recipientId
             )
         }
     }.flatMapLatest { transfer ->
-        transfer?.let { walletInteractor.observeTransferFee(transfer, additional).map { it.feeAmount } }
+        transfer?.let { walletInteractor.observeTransferFee(transfer).map { it.feeAmount } }
             ?: flowOf(null)
     }
         .retry(SendSetupViewModel.RETRY_TIMES)
@@ -236,11 +235,34 @@ class CBDCSendSetupViewModel @Inject constructor(
 
     private val feeInfoViewStateFlow: Flow<FeeInfoViewState> = combine(
         feeAmountFlow,
-        utilityAssetFlow
-    ) { feeAmount, utilityAsset ->
-        val feeFormatted = feeAmount?.formatCryptoDetail(utilityAsset.token.configuration.symbol)
-        val feeFiat = feeAmount?.applyFiatRate(utilityAsset.token.fiatRate)
-            ?.formatFiat(utilityAsset.token.fiatSymbol)
+        utilityAssetFlow,
+        assetFlow
+    ) { feeAmount, utilityAsset, asset ->
+        asset ?: return@combine FeeInfoViewState.default
+        feeAmount ?: return@combine FeeInfoViewState.default
+        val showFeeAsset = if (utilityAsset.transferable > feeAmount) {
+            utilityAsset
+        } else {
+            asset
+        }
+
+        val assetFeeAmount = if (utilityAsset.transferable > feeAmount) {
+            feeAmount
+        } else {
+            val swapDetails = polkaswapInteractor.calcDetails(
+                availableDexPaths = listOf(0),
+                tokenFrom = asset,
+                tokenTo = utilityAsset,
+                amount = feeAmount + FEE_CORRECTION,
+                desired = WithDesired.OUTPUT,
+                slippageTolerance = 1.5,
+                market = Market.SMART
+            )
+            swapDetails.getOrNull()?.amount
+        }
+
+        val feeFormatted = assetFeeAmount?.formatCryptoDetail(showFeeAsset.token.configuration.symbol)
+        val feeFiat = assetFeeAmount?.applyFiatRate(showFeeAsset.token.fiatRate)?.formatFiat(showFeeAsset.token.fiatSymbol)
 
         FeeInfoViewState(feeAmount = feeFormatted, feeAmountFiat = feeFiat)
     }
