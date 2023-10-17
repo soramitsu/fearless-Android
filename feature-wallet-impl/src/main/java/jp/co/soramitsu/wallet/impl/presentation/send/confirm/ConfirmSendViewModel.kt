@@ -5,6 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.math.BigDecimal
 import javax.inject.Inject
 import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.common.AlertViewState
@@ -28,15 +29,17 @@ import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.feature_wallet_impl.R
+import jp.co.soramitsu.polkaswap.api.domain.PolkaswapInteractor
+import jp.co.soramitsu.polkaswap.api.models.Market
+import jp.co.soramitsu.polkaswap.api.models.WithDesired
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.bokoloCashTokenId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
-import jp.co.soramitsu.shared_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.wallet.api.domain.TransferValidationResult
 import jp.co.soramitsu.wallet.api.domain.ValidateTransferUseCase
 import jp.co.soramitsu.wallet.api.domain.fromValidationResult
 import jp.co.soramitsu.wallet.api.presentation.mixin.TransferValidityChecks
 import jp.co.soramitsu.wallet.impl.data.mappers.mapAssetToAssetModel
-import jp.co.soramitsu.wallet.impl.data.network.blockchain.extrinsic.remark
 import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
 import jp.co.soramitsu.wallet.impl.domain.interfaces.NotValidTransferStatus
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
@@ -63,10 +66,12 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 private const val ICON_IN_DP = 24
+val FEE_CORRECTION = BigDecimal("0.001")
 
 @HiltViewModel
 class ConfirmSendViewModel @Inject constructor(
     private val interactor: WalletInteractor,
+    private val polkaswapInteractor: PolkaswapInteractor,
     private val router: WalletRouter,
     private val addressIconGenerator: AddressIconGenerator,
     private val chainRegistry: ChainRegistry,
@@ -84,7 +89,7 @@ class ConfirmSendViewModel @Inject constructor(
     private val transferDraft = savedStateHandle.get<TransferDraft>(ConfirmSendFragment.KEY_DRAFT) ?: error("Required data not provided for send confirmation")
     private val phishingType = savedStateHandle.get<PhishingType>(ConfirmSendFragment.KEY_PHISHING_TYPE)
     private val overrides = savedStateHandle.get<Map<String, Any?>>(ConfirmSendFragment.KEY_OVERRIDES).orEmpty()
-    private val additionalRemark = savedStateHandle.get<String>(ConfirmSendFragment.KEY_ADDITIONAL_REMARK)
+    private val transferComment = savedStateHandle.get<String>(ConfirmSendFragment.KEY_TRANSFER_COMMENT)
 
     private val _openValidationWarningEvent = MutableLiveData<Event<Pair<TransferValidationResult, ValidationWarning>>>()
     val openValidationWarningEvent: LiveData<Event<Pair<TransferValidationResult, ValidationWarning>>> = _openValidationWarningEvent
@@ -126,16 +131,10 @@ class ConfirmSendViewModel @Inject constructor(
         .mapNotNull { it }
         .flatMapLatest { assetId ->
             interactor.assetFlow(transferDraft.assetPayload.chainId, assetId)
-                .map(::mapAssetToAssetModel)
-        }
-
-    private val additional: (suspend ExtrinsicBuilder.() -> Unit)? =
-        additionalRemark?.let {
-            { remark(additionalRemark) }
         }
 
     private val feeFlow = assetFlow.map { createTransfer(it.token.configuration) }
-        .flatMapLatest { interactor.observeTransferFee(it, additional) }
+        .flatMapLatest { interactor.observeTransferFee(it) }
         .map { it.feeAmount }
         .onStart { transferDraft.fee }
 
@@ -190,11 +189,30 @@ class ConfirmSendViewModel @Inject constructor(
             )
         }
 
-        val feeInfoItem = TitleValueViewState(
-            title = resourceManager.getString(R.string.common_network_fee),
-            value = fee.formatCryptoDetail(utilityAsset.token.configuration.symbol),
-            additionalValue = utilityAsset.getAsFiatWithCurrency(fee)
-        )
+        val isSendBokoloCash = asset.token.configuration.currencyId == bokoloCashTokenId
+        val feeInfoItem = if (isSendBokoloCash && utilityAsset.transferable < fee) {
+            val swapDetails = polkaswapInteractor.calcDetails(
+                availableDexPaths = listOf(0),
+                tokenFrom = asset,
+                tokenTo = utilityAsset,
+                amount = fee + FEE_CORRECTION,
+                desired = WithDesired.OUTPUT,
+                slippageTolerance = 1.5,
+                market = Market.SMART
+            )
+            val feeRequiredTokens = swapDetails.getOrNull()?.amount
+            TitleValueViewState(
+                title = resourceManager.getString(R.string.common_network_fee),
+                value = feeRequiredTokens?.formatCryptoDetail(asset.token.configuration.symbol),
+                additionalValue = asset.getAsFiatWithCurrency(feeRequiredTokens)
+            )
+        } else {
+            TitleValueViewState(
+                title = resourceManager.getString(R.string.common_network_fee),
+                value = fee.formatCryptoDetail(utilityAsset.token.configuration.symbol),
+                additionalValue = utilityAsset.getAsFiatWithCurrency(fee)
+            )
+        }
 
         val iconOverrideResId = overrides[ConfirmSendFragment.KEY_OVERRIDE_ICON_RES_ID] as? Int
 
@@ -321,7 +339,7 @@ class ConfirmSendViewModel @Inject constructor(
 
             val tipInPlanks = transferDraft.tip?.let { token.planksFromAmount(it) }
             val result = withContext(Dispatchers.Default) {
-                interactor.performTransfer(createTransfer(token), transferDraft.fee, tipInPlanks, additional)
+                interactor.performTransfer(createTransfer(token), transferDraft.fee, tipInPlanks)
             }
             if (result.isSuccess) {
                 val operationHash = result.getOrNull()
@@ -355,12 +373,36 @@ class ConfirmSendViewModel @Inject constructor(
     private suspend fun createTransfer(token: Asset): Transfer {
         val currentAddress = currentAccountAddress(transferDraft.assetPayload.chainId)
         requireNotNull(currentAddress)
+
+        val isSendBokoloCash = token.currencyId == bokoloCashTokenId
+        val utilityAsset = utilityAssetFlow.firstOrNull() ?: error("Utility asset not configured")
+        val asset = assetFlow.firstOrNull() ?: error("Asset not configured")
+        val fee = feeFlow.firstOrNull() ?: error("Fee not calculated")
+
+        val feeRequiredTokens = if (isSendBokoloCash && utilityAsset.transferable < fee) {
+            val swapDetails = polkaswapInteractor.calcDetails(
+                availableDexPaths = listOf(0),
+                tokenFrom = asset,
+                tokenTo = utilityAsset,
+                amount = fee + FEE_CORRECTION,
+                desired = WithDesired.OUTPUT,
+                slippageTolerance = 1.5,
+                market = Market.SMART
+            )
+            swapDetails.getOrNull()?.amount
+        } else {
+            null
+        }
+
         return with(transferDraft) {
             Transfer(
                 recipient = recipientAddress,
                 sender = currentAddress,
                 amount = amount,
-                chainAsset = token
+                chainAsset = token,
+                comment = transferComment,
+                estimateFee = fee,
+                maxAmountIn = feeRequiredTokens
             )
         }
     }

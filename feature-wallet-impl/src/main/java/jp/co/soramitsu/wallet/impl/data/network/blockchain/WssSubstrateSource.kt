@@ -31,6 +31,7 @@ import jp.co.soramitsu.core.runtime.storage.returnType
 import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.bokoloCashTokenId
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 import jp.co.soramitsu.runtime.storage.source.queryNonNull
 import jp.co.soramitsu.shared_utils.extensions.fromHex
@@ -283,6 +284,11 @@ class WssSubstrateSource(
 
     private fun ExtrinsicBuilder.transfer(chain: Chain, transfer: Transfer, typeRegistry: TypeRegistry): ExtrinsicBuilder {
         val accountId = chain.accountIdOf(transfer.recipient)
+
+        if (transfer.chainAsset.currencyId == bokoloCashTokenId) {
+            return xorlessTransfer(accountId, transfer)
+        }
+
         val useDefaultTransfer =
             transfer.chainAsset.currency == null || transfer.chainAsset.typeExtra == null || transfer.chainAsset.typeExtra == ChainAssetType.Normal
 
@@ -384,6 +390,39 @@ class WssSubstrateSource(
             "amount" to transfer.amountInPlanks
         )
     )
+    private fun ExtrinsicBuilder.xorlessTransfer(
+        recipientAccountId: AccountId,
+        transfer: Transfer
+    ) = call(
+        moduleName = "LiquidityProxy",
+        callName = "xorless_transfer",
+        arguments = mapOf(
+            "dex_id" to BigInteger.ZERO,
+            "asset_id" to Struct.Instance(
+                mapOf("code" to transfer.chainAsset.currencyId?.fromHex()?.toList()?.map { it.toInt().toBigInteger() })
+            ),
+            "receiver" to recipientAccountId,
+            "amount" to transfer.amountInPlanks,
+
+            "desired_xor_amount" to transfer.estimateFeeInPlanks.orZero(),
+            "max_amount_in" to transfer.maxAmountInInPlanks.orZero(), //fee * xorToTokenRate
+
+            "selected_source_types" to emptyList<DictEnum.Entry<Any?>>(),
+            "filter_mode" to DictEnum.Entry(
+                name = "Disabled",
+                value = null
+            ),
+            "additional_data" to transfer.comment?.toByteArray()
+        ).also {
+            it.forEach { t, u ->
+                if (t in listOf("amount", "desired_xor_amount", "max_amount_in", "additional_data")) {
+                    println("!!! xorlessTransfer's $t: $u")
+                }
+            }
+        }
+    )
+    // dexId, assetId, receiver, amount, desiredXorAmount, maxAmountIn,
+    // selectedSourceTypes, filterMode, additionalData)
 
     private fun ExtrinsicBuilder.defaultTransfer(
         accountId: AccountId,

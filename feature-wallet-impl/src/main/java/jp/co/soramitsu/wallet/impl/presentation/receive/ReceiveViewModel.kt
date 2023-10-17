@@ -28,6 +28,7 @@ import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.common.utils.write
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.bokoloCashTokenId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraTestChainId
 import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
@@ -63,7 +64,6 @@ class ReceiveViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle
 ) : BaseViewModel(), ReceiveScreenInterface {
     companion object {
-        const val BOKOLO_CASH_TOKEN_ID = "0x00eacaea6599a04358fda986388ef0bb0c17a553ec819d5de2900c0af0862502"
         const val BOKOLO_MAX_SCALE = 2
     }
 
@@ -97,13 +97,13 @@ class ReceiveViewModel @Inject constructor(
             val tokenBalance = asset.transferable.formatCrypto(asset.token.configuration.symbol)
             val fiatAmount = amount.applyFiatRate(asset.token.fiatRate)?.formatFiat(asset.token.fiatSymbol)
 
-            val inputPrecision = if (asset.token.configuration.currencyId == BOKOLO_CASH_TOKEN_ID) {
+            val inputPrecision = if (asset.token.configuration.currencyId == bokoloCashTokenId) {
                 max(amount.scale(), BOKOLO_MAX_SCALE)
             } else {
                 asset.token.configuration.precision
             }
 
-            val inputAmount = if (asset.token.configuration.currencyId == BOKOLO_CASH_TOKEN_ID) {
+            val inputAmount = if (asset.token.configuration.currencyId == bokoloCashTokenId) {
                 amount.setScale(min(amount.scale(), BOKOLO_MAX_SCALE), RoundingMode.DOWN)
             } else {
                 amount
@@ -130,7 +130,7 @@ class ReceiveViewModel @Inject constructor(
             val amount =
                 if (receiveType.currentSelection == ReceiveToggleType.Receive) {
                     null
-                } else if (asset?.token?.configuration?.currencyId == BOKOLO_CASH_TOKEN_ID) {
+                } else if (asset?.token?.configuration?.currencyId == bokoloCashTokenId) {
                     inputState.tokenAmount.setScale(BOKOLO_MAX_SCALE, RoundingMode.DOWN)
                 } else {
                     inputState.tokenAmount
