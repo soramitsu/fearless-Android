@@ -40,6 +40,9 @@ import jp.co.soramitsu.core.utils.isValidAddress
 import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.feature_wallet_impl.BuildConfig
 import jp.co.soramitsu.feature_wallet_impl.R
+import jp.co.soramitsu.polkaswap.api.domain.PolkaswapInteractor
+import jp.co.soramitsu.polkaswap.api.models.Market
+import jp.co.soramitsu.polkaswap.api.models.WithDesired
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraTestChainId
 import jp.co.soramitsu.wallet.api.domain.TransferValidationResult
@@ -59,6 +62,7 @@ import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.ChainItemState
 import jp.co.soramitsu.wallet.impl.presentation.send.SendSharedState
 import jp.co.soramitsu.wallet.impl.presentation.send.TransferDraft
+import jp.co.soramitsu.wallet.impl.presentation.send.confirm.FEE_CORRECTION
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -84,6 +88,7 @@ class SendSetupViewModel @Inject constructor(
     val savedStateHandle: SavedStateHandle,
     private val resourceManager: ResourceManager,
     private val walletInteractor: WalletInteractor,
+    private val polkaswapInteractor: PolkaswapInteractor,
     private val walletConstants: WalletConstants,
     private val router: WalletRouter,
     private val clipboardManager: ClipboardManager,
@@ -295,11 +300,34 @@ class SendSetupViewModel @Inject constructor(
 
     private val feeInfoViewStateFlow: Flow<FeeInfoViewState> = combine(
         feeAmountFlow,
-        utilityAssetFlow
-    ) { feeAmount, utilityAsset ->
-        val feeFormatted = feeAmount?.formatCryptoDetail(utilityAsset.token.configuration.symbol)
-        val feeFiat = feeAmount?.applyFiatRate(utilityAsset.token.fiatRate)
-            ?.formatFiat(utilityAsset.token.fiatSymbol)
+        utilityAssetFlow,
+        assetFlow
+    ) { feeAmount, utilityAsset, asset ->
+        asset ?: return@combine FeeInfoViewState.default
+        feeAmount ?: return@combine FeeInfoViewState.default
+        val showFeeAsset = if (utilityAsset.transferable > feeAmount) {
+            utilityAsset
+        } else {
+            asset
+        }
+
+        val assetFeeAmount = if (utilityAsset.transferable > feeAmount) {
+            feeAmount
+        } else {
+            val swapDetails = polkaswapInteractor.calcDetails(
+                availableDexPaths = listOf(0),
+                tokenFrom = asset,
+                tokenTo = utilityAsset,
+                amount = feeAmount + FEE_CORRECTION,
+                desired = WithDesired.OUTPUT,
+                slippageTolerance = 1.5,
+                market = Market.SMART
+            )
+            swapDetails.getOrNull()?.amount
+        }
+
+        val feeFormatted = assetFeeAmount?.formatCryptoDetail(showFeeAsset.token.configuration.symbol)
+        val feeFiat = assetFeeAmount?.applyFiatRate(showFeeAsset.token.fiatRate)?.formatFiat(showFeeAsset.token.fiatSymbol)
 
         FeeInfoViewState(feeAmount = feeFormatted, feeAmountFiat = feeFiat)
     }
