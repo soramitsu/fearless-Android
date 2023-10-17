@@ -335,7 +335,7 @@ class WalletInteractorImpl(
 
         val pushPaymentData = Parser.parseWithoutTagValidation(mastercardPushPaymentString)
         return QrContentCBDC(
-            transactionAmount = pushPaymentData.transactionAmount?.toBigDecimal().orZero(),
+            transactionAmount = if (pushPaymentData.transactionAmount > 0) pushPaymentData.transactionAmount.toBigDecimal() else BigDecimal.ZERO,
             transactionCurrencyCode = pushPaymentData.transactionCurrencyCode,
             description = pushPaymentData.additionalData?.purpose,
             name = pushPaymentData.merchantName,
