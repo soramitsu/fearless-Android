@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -74,7 +75,7 @@ fun CBCDSendSetupContent(
 
     val focusRequester = remember { FocusRequester() }
     if (state.amountInputState.tokenAmount.isZero()) {
-        focusRequester.requestFocus()
+        LaunchedEffect(Unit) { focusRequester.requestFocus() }
     }
 
     BottomSheetScreen {
