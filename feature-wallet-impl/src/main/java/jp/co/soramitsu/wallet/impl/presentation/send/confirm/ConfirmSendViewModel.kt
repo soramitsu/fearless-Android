@@ -335,12 +335,13 @@ class ConfirmSendViewModel @Inject constructor(
     private fun performTransfer() {
         launch {
             val token = assetFlow.firstOrNull()?.token?.configuration ?: return@launch
+            val fee = feeFlow.firstOrNull() ?: return@launch
 
             transferSubmittingFlow.value = true
 
             val tipInPlanks = transferDraft.tip?.let { token.planksFromAmount(it) }
             val result = withContext(Dispatchers.Default) {
-                interactor.performTransfer(createTransfer(token), transferDraft.fee, tipInPlanks)
+                interactor.performTransfer(createTransfer(token, fee), fee, tipInPlanks)
             }
             if (result.isSuccess) {
                 val operationHash = result.getOrNull()
@@ -371,7 +372,7 @@ class ConfirmSendViewModel @Inject constructor(
         return addressIconGenerator.createAddressModel(address, ICON_IN_DP, accountName)
     }
 
-    private suspend fun createTransfer(token: Asset, fee: BigDecimal? = null): Transfer {
+    private suspend fun createTransfer(token: Asset, fee: BigDecimal = transferDraft.fee): Transfer {
         val currentAddress = currentAccountAddress(transferDraft.assetPayload.chainId)
         requireNotNull(currentAddress)
 
@@ -384,7 +385,7 @@ class ConfirmSendViewModel @Inject constructor(
                 availableDexPaths = listOf(0),
                 tokenFrom = asset,
                 tokenTo = utilityAsset,
-                amount = fee.orZero() + FEE_CORRECTION,
+                amount = fee + FEE_CORRECTION,
                 desired = WithDesired.OUTPUT,
                 slippageTolerance = 1.5,
                 market = Market.SMART
