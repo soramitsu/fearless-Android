@@ -70,6 +70,7 @@ import kotlinx.coroutines.withContext
 
 private const val ICON_IN_DP = 24
 val FEE_CORRECTION = BigDecimal("0.001")
+val FEE_RESERVE_TOLERANCE = BigDecimal("1.2")
 
 @HiltViewModel
 class ConfirmSendViewModel @Inject constructor(
@@ -210,7 +211,7 @@ class ConfirmSendViewModel @Inject constructor(
                 slippageTolerance = 1.5,
                 market = Market.SMART
             )
-            swapDetails.getOrNull()?.amount
+            swapDetails.getOrNull()?.amount?.let { it * FEE_RESERVE_TOLERANCE }
         } else {
             fee
         }
@@ -399,7 +400,7 @@ class ConfirmSendViewModel @Inject constructor(
                 slippageTolerance = 1.5,
                 market = Market.SMART
             )
-            swapDetails.getOrNull()?.amount
+            swapDetails.getOrNull()?.amount?.let { it * FEE_RESERVE_TOLERANCE }
         } else {
             null
         }
@@ -411,8 +412,8 @@ class ConfirmSendViewModel @Inject constructor(
                 amount = amount,
                 chainAsset = token,
                 comment = transferComment,
-                estimateFee = fee,
-                maxAmountIn = feeRequiredTokens
+                estimateFee = fee + FEE_CORRECTION,
+                maxAmountIn = feeRequiredTokens?.let { it * FEE_RESERVE_TOLERANCE }
             )
         }
     }

@@ -29,6 +29,7 @@ import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
 import jp.co.soramitsu.wallet.impl.presentation.send.confirm.FEE_CORRECTION
+import jp.co.soramitsu.wallet.impl.presentation.send.confirm.FEE_RESERVE_TOLERANCE
 
 class ValidateTransferUseCaseImpl(
     private val existentialDepositUseCase: ExistentialDepositUseCase,
@@ -164,7 +165,7 @@ class ValidateTransferUseCaseImpl(
                             market = Market.SMART
                         )
                     }
-                    swapDetails?.getOrNull()?.amount?.let { utilityAsset.token.planksFromAmount(it) }
+                    swapDetails?.getOrNull()?.amount?.let { utilityAsset.token.planksFromAmount(it * FEE_RESERVE_TOLERANCE) }
                 } else {
                     null
                 }
