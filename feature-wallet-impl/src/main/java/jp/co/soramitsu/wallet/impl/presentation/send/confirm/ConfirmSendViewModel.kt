@@ -24,6 +24,7 @@ import jp.co.soramitsu.common.utils.combine
 import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.common.utils.formatCryptoDetail
 import jp.co.soramitsu.common.utils.formatting.shortenAddress
+import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.requireException
 import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.core.models.Asset
@@ -370,21 +371,20 @@ class ConfirmSendViewModel @Inject constructor(
         return addressIconGenerator.createAddressModel(address, ICON_IN_DP, accountName)
     }
 
-    private suspend fun createTransfer(token: Asset): Transfer {
+    private suspend fun createTransfer(token: Asset, fee: BigDecimal? = null): Transfer {
         val currentAddress = currentAccountAddress(transferDraft.assetPayload.chainId)
         requireNotNull(currentAddress)
 
         val isSendBokoloCash = token.currencyId == bokoloCashTokenId
         val utilityAsset = utilityAssetFlow.firstOrNull() ?: error("Utility asset not configured")
         val asset = assetFlow.firstOrNull() ?: error("Asset not configured")
-        val fee = feeFlow.firstOrNull() ?: error("Fee not calculated")
 
-        val feeRequiredTokens = if (isSendBokoloCash && utilityAsset.transferable < fee) {
+        val feeRequiredTokens = if (isSendBokoloCash && utilityAsset.transferable < fee.orZero()) {
             val swapDetails = polkaswapInteractor.calcDetails(
                 availableDexPaths = listOf(0),
                 tokenFrom = asset,
                 tokenTo = utilityAsset,
-                amount = fee + FEE_CORRECTION,
+                amount = fee.orZero() + FEE_CORRECTION,
                 desired = WithDesired.OUTPUT,
                 slippageTolerance = 1.5,
                 market = Market.SMART
