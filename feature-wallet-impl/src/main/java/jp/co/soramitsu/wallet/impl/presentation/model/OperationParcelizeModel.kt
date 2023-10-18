@@ -1,10 +1,10 @@
 package jp.co.soramitsu.wallet.impl.presentation.model
 
 import android.os.Parcelable
+import java.math.BigInteger
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.Operation
 import kotlinx.parcelize.Parcelize
-import java.math.BigInteger
 
 sealed class OperationParcelizeModel : Parcelable {
 
@@ -37,7 +37,6 @@ sealed class OperationParcelizeModel : Parcelable {
         val hash: String?,
         val isIncome: Boolean,
         val amount: String,
-        val total: String,
         val receiver: String,
         val sender: String,
         val fee: String,

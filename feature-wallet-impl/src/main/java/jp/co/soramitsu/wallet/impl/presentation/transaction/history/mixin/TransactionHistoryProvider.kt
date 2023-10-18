@@ -200,8 +200,11 @@ class TransactionHistoryProvider(
 
             val clickedOperation = operations.first { it.id == transactionModel.id }
 
+            val chain = walletInteractor.getChain(assetPayload.chainId)
+            val utilityAsset = chain.assets.firstOrNull { it.isUtility }
+
             withContext(Dispatchers.Main) {
-                when (val operation = mapOperationToParcel(clickedOperation, resourceManager)) {
+                when (val operation = mapOperationToParcel(clickedOperation, resourceManager, utilityAsset)) {
                     is OperationParcelizeModel.Transfer -> {
                         router.openTransferDetail(operation, assetPayload, chainHistoryType)
                     }
