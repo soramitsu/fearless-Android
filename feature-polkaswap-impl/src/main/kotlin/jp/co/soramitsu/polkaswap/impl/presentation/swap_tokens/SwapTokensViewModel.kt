@@ -484,7 +484,7 @@ class SwapTokensViewModel @Inject constructor(
             isToFeeAsset.not() && feeAsset.transferable <= fee -> {
                 UnableToPayFeeException(resourceManager)
             }
-            isToFeeAsset && feeAsset.transferable <= fee && (toTokenAmount - fee) <= feeAsset.transferable -> {
+            isToFeeAsset && feeAsset.transferable + toTokenAmount <= fee -> {
                 NotEnoughResultedAmountToPayFeeException(resourceManager)
             }
             isFromFeeAsset && available <= amountToSwap + fee -> {
