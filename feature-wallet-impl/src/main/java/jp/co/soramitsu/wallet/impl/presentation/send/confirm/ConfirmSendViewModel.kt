@@ -69,8 +69,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 private const val ICON_IN_DP = 24
-val FEE_CORRECTION = BigDecimal("0.001")
-val FEE_RESERVE_TOLERANCE = BigDecimal("1.2")
+val FEE_CORRECTION = BigDecimal("0.01")
+val FEE_RESERVE_TOLERANCE = BigDecimal("1.5")
 
 @HiltViewModel
 class ConfirmSendViewModel @Inject constructor(
@@ -206,7 +206,7 @@ class ConfirmSendViewModel @Inject constructor(
                 availableDexPaths = listOf(0),
                 tokenFrom = asset,
                 tokenTo = utilityAsset,
-                amount = fee + FEE_CORRECTION,
+                amount = fee,
                 desired = WithDesired.OUTPUT,
                 slippageTolerance = 1.5,
                 market = Market.SMART
@@ -395,7 +395,7 @@ class ConfirmSendViewModel @Inject constructor(
                 availableDexPaths = listOf(0),
                 tokenFrom = asset,
                 tokenTo = utilityAsset,
-                amount = fee + FEE_CORRECTION,
+                amount = fee,
                 desired = WithDesired.OUTPUT,
                 slippageTolerance = 1.5,
                 market = Market.SMART

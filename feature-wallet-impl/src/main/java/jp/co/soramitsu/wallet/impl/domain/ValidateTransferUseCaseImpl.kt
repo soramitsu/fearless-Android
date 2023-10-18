@@ -28,7 +28,6 @@ import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
-import jp.co.soramitsu.wallet.impl.presentation.send.confirm.FEE_CORRECTION
 import jp.co.soramitsu.wallet.impl.presentation.send.confirm.FEE_RESERVE_TOLERANCE
 
 class ValidateTransferUseCaseImpl(
@@ -159,7 +158,7 @@ class ValidateTransferUseCaseImpl(
                             availableDexPaths = listOf(0),
                             tokenFrom = asset,
                             tokenTo = utilityAsset,
-                            amount = asset.token.amountFromPlanks(fee) + FEE_CORRECTION,
+                            amount = asset.token.amountFromPlanks(fee),
                             desired = WithDesired.OUTPUT,
                             slippageTolerance = 1.5,
                             market = Market.SMART

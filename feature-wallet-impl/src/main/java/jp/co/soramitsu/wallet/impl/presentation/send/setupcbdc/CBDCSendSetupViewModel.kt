@@ -56,7 +56,6 @@ import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.presentation.send.TransferDraft
 import jp.co.soramitsu.wallet.impl.presentation.send.confirm.ConfirmSendFragment
-import jp.co.soramitsu.wallet.impl.presentation.send.confirm.FEE_CORRECTION
 import jp.co.soramitsu.wallet.impl.presentation.send.confirm.FEE_RESERVE_TOLERANCE
 import jp.co.soramitsu.wallet.impl.presentation.send.setup.SendSetupViewModel
 import kotlinx.coroutines.flow.Flow
@@ -254,7 +253,7 @@ class CBDCSendSetupViewModel @Inject constructor(
                 availableDexPaths = listOf(0),
                 tokenFrom = asset,
                 tokenTo = utilityAsset,
-                amount = feeAmount + FEE_CORRECTION,
+                amount = feeAmount,
                 desired = WithDesired.OUTPUT,
                 slippageTolerance = 1.5,
                 market = Market.SMART

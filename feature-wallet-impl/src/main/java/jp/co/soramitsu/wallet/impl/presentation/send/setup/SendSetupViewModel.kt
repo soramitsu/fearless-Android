@@ -63,7 +63,6 @@ import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.ChainItemState
 import jp.co.soramitsu.wallet.impl.presentation.send.SendSharedState
 import jp.co.soramitsu.wallet.impl.presentation.send.TransferDraft
-import jp.co.soramitsu.wallet.impl.presentation.send.confirm.FEE_CORRECTION
 import jp.co.soramitsu.wallet.impl.presentation.send.confirm.FEE_RESERVE_TOLERANCE
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -319,7 +318,7 @@ class SendSetupViewModel @Inject constructor(
                 availableDexPaths = listOf(0),
                 tokenFrom = asset,
                 tokenTo = utilityAsset,
-                amount = feeAmount + FEE_CORRECTION,
+                amount = feeAmount,
                 desired = WithDesired.OUTPUT,
                 slippageTolerance = 1.5,
                 market = Market.SMART
