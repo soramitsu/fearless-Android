@@ -312,13 +312,15 @@ class WalletRepositoryImpl(
         }
 
         val accountAddress = chain.addressOf(accountId)
+        val utilityAsset = chain.assets.firstOrNull { it.isUtility }
 
         val operation = createOperation(
             operationHash,
             transfer,
             accountAddress,
             fee,
-            OperationLocal.Source.APP
+            OperationLocal.Source.APP,
+            utilityAsset
         )
 
         operationDao.insert(operation)
@@ -445,7 +447,8 @@ class WalletRepositoryImpl(
         transfer: Transfer,
         senderAddress: String,
         fee: BigDecimal,
-        source: OperationLocal.Source
+        source: OperationLocal.Source,
+        utilityAsset: jp.co.soramitsu.core.models.Asset?
     ) =
         OperationLocal.manualTransfer(
             hash = hash,
@@ -455,7 +458,7 @@ class WalletRepositoryImpl(
             amount = transfer.amountInPlanks,
             senderAddress = senderAddress,
             receiverAddress = transfer.recipient,
-            fee = transfer.chainAsset.planksFromAmount(fee),
+            fee = utilityAsset?.planksFromAmount(fee),
             status = OperationLocal.Status.PENDING,
             source = source
         )
