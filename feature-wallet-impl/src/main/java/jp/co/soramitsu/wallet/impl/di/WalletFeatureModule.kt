@@ -41,6 +41,7 @@ import jp.co.soramitsu.feature_wallet_impl.BuildConfig
 import jp.co.soramitsu.polkaswap.api.domain.PolkaswapInteractor
 import jp.co.soramitsu.runtime.di.REMOTE_STORAGE_SOURCE
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.runtime.multiNetwork.connection.EthereumConnectionPool
 import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeFilesCache
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
@@ -168,7 +169,8 @@ class WalletFeatureModule {
         updatesMixin: UpdatesMixin,
         remoteConfigFetcher: RemoteConfigFetcher,
         preferences: Preferences,
-        accountRepository: AccountRepository
+        accountRepository: AccountRepository,
+        chainsRepository: ChainsRepository
     ): WalletRepository = WalletRepositoryImpl(
         substrateSource,
         ethereumRemoteSource,
@@ -184,7 +186,8 @@ class WalletFeatureModule {
         updatesMixin,
         remoteConfigFetcher,
         preferences,
-        accountRepository
+        accountRepository,
+        chainsRepository
     )
 
     @Provides
@@ -229,7 +232,8 @@ class WalletFeatureModule {
         preferences: Preferences,
         selectedFiat: SelectedFiat,
         updatesMixin: UpdatesMixin,
-        xcmEntitiesFetcher: XcmEntitiesFetcher
+        xcmEntitiesFetcher: XcmEntitiesFetcher,
+        chainsRepository: ChainsRepository
     ): WalletInteractor = WalletInteractorImpl(
         walletRepository,
         addressBookRepository,
@@ -240,7 +244,8 @@ class WalletFeatureModule {
         preferences,
         selectedFiat,
         updatesMixin,
-        xcmEntitiesFetcher
+        xcmEntitiesFetcher,
+        chainsRepository
     )
 
     @Provides

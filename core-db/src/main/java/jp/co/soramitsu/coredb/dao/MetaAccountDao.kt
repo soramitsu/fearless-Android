@@ -67,6 +67,19 @@ interface MetaAccountDao {
     @Transaction
     fun selectedMetaAccountInfoFlow(): Flow<RelationJoinedMetaAccountInfo?>
 
+    @Query("SELECT * FROM meta_accounts WHERE isSelected = 1")
+    @Transaction
+    suspend fun selectedMetaAccountInfo(): RelationJoinedMetaAccountInfo
+
+    @Query("SELECT * FROM meta_accounts WHERE isSelected = 1")
+    fun selectedLightMetaAccountFlow(): Flow<MetaAccountLocal?>
+
+    @Query("SELECT * FROM meta_accounts WHERE isSelected = 1")
+    suspend fun getSelectedLightMetaAccount(): MetaAccountLocal
+
+    @Query("SELECT * FROM meta_accounts WHERE id = :metaId")
+    suspend fun getLightMetaAccount(metaId: Long): MetaAccountLocal
+
     @Query("SELECT EXISTS ($FIND_BY_ADDRESS_QUERY)")
     fun isMetaAccountExists(accountId: AccountId): Boolean
 
