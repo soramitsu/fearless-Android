@@ -31,6 +31,7 @@ import jp.co.soramitsu.coredb.model.PhishingLocal
 import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.ext.addressOf
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.shared_utils.extensions.toHexString
@@ -78,7 +79,8 @@ class WalletRepositoryImpl(
     private val updatesMixin: UpdatesMixin,
     private val remoteConfigFetcher: RemoteConfigFetcher,
     private val preferences: Preferences,
-    private val accountRepository: AccountRepository
+    private val accountRepository: AccountRepository,
+    private val chainsRepository: ChainsRepository
 ) : WalletRepository, UpdatesProviderUi by updatesMixin {
 
     companion object {
@@ -161,7 +163,7 @@ class WalletRepositoryImpl(
     }
 
     override suspend fun getAssets(metaId: Long): List<Asset> = withContext(Dispatchers.Default) {
-        val chainsById = chainRegistry.chainsById.first()
+        val chainsById = chainsRepository.getChainsById()
         val assetsLocal = assetCache.getAssets(metaId)
 
         assetsLocal.mapNotNull {
@@ -185,7 +187,7 @@ class WalletRepositoryImpl(
     }
 
     override suspend fun syncAssetsRates(currencyId: String) {
-        val chains = chainRegistry.currentChains.first()
+        val chains = chainsRepository.getChains()
         val priceIds = chains.map { it.assets.mapNotNull { it.priceId } }.flatten().toSet()
         val priceStats = getAssetPriceCoingecko(*priceIds.toTypedArray(), currencyId = currencyId)
 

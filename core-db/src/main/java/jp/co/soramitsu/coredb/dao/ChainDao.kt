@@ -77,7 +77,12 @@ abstract class ChainDao {
     abstract suspend fun getNode(chainId: String, nodeUrl: String): ChainNodeLocal
 
     @Query("UPDATE chain_nodes SET name = :nodeName, url = :nodeUrl WHERE chainId = :chainId and url = :prevNodeUrl")
-    abstract suspend fun updateNode(chainId: String, prevNodeUrl: String, nodeName: String, nodeUrl: String)
+    abstract suspend fun updateNode(
+        chainId: String,
+        prevNodeUrl: String,
+        nodeName: String,
+        nodeUrl: String
+    )
 
     @Insert(onConflict = OnConflictStrategy.ABORT)
     protected abstract suspend fun insertChainAssets(assets: List<ChainAssetLocal>)
@@ -88,6 +93,9 @@ abstract class ChainDao {
     @Query("SELECT * FROM chains")
     @Transaction
     abstract suspend fun getJoinChainInfo(): List<JoinedChainInfo>
+
+    @Query("SELECT * FROM chains WHERE id = :chainId")
+    abstract suspend fun getJoinChainInfo(chainId: String): JoinedChainInfo
 
     @Query("SELECT * FROM chains")
     @Transaction
@@ -104,12 +112,21 @@ abstract class ChainDao {
         if (isRuntimeInfoExists(chainId)) {
             updateRemoteRuntimeVersionUnsafe(chainId, remoteVersion)
         } else {
-            insertRuntimeInfo(ChainRuntimeInfoLocal(chainId, syncedVersion = 0, remoteVersion = remoteVersion))
+            insertRuntimeInfo(
+                ChainRuntimeInfoLocal(
+                    chainId,
+                    syncedVersion = 0,
+                    remoteVersion = remoteVersion
+                )
+            )
         }
     }
 
     @Query("UPDATE chain_runtimes SET remoteVersion = :remoteVersion WHERE chainId = :chainId")
-    protected abstract suspend fun updateRemoteRuntimeVersionUnsafe(chainId: String, remoteVersion: Int)
+    protected abstract suspend fun updateRemoteRuntimeVersionUnsafe(
+        chainId: String,
+        remoteVersion: Int
+    )
 
     @Query("SELECT EXISTS (SELECT * FROM chain_runtimes WHERE chainId = :chainId)")
     protected abstract suspend fun isRuntimeInfoExists(chainId: String): Boolean

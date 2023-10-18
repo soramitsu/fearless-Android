@@ -44,14 +44,26 @@ class HistoryRepository(
             if (historyUrl == null || historyType?.isHistory() != true) {
                 throw HistoryNotSupportedException()
             }
-            if (historyType in listOf(Chain.ExternalApi.Section.Type.GIANTSQUID, Chain.ExternalApi.Section.Type.SUBSQUID) && chainAsset.isUtility.not()) {
+            if (historyType in listOf(
+                    Chain.ExternalApi.Section.Type.GIANTSQUID,
+                    Chain.ExternalApi.Section.Type.SUBSQUID
+                ) && chainAsset.isUtility.not()
+            ) {
                 throw HistoryNotSupportedException()
             }
 
             val accountAddress = chain.addressOf(accountId)
 
             val historySource = historySourceProvider(historyUrl, historyType)
-            val operations = historySource?.getOperations(pageSize, cursor, filters, accountId, chain, chainAsset, accountAddress)
+            val operations = historySource?.getOperations(
+                pageSize,
+                cursor,
+                filters,
+                accountId,
+                chain,
+                chainAsset,
+                accountAddress
+            )
             return@withContext operations ?: CursorPage(
                 null,
                 emptyList()
@@ -65,16 +77,19 @@ class HistoryRepository(
         accountId: AccountId,
         chain: Chain,
         chainAsset: Asset
-    ) {
+    ) = withContext(Dispatchers.IO) {
         val accountAddress = chain.addressOf(accountId)
         val page = kotlin.runCatching {
             getOperations(pageSize, cursor = null, filters, accountId, chain, chainAsset)
         }.getOrDefault(CursorPage(null, emptyList()))
 
-        val elements = page.map { mapOperationToOperationLocalDb(it, OperationLocal.Source.SUBQUERY) }
+        val elements =
+            page.map { mapOperationToOperationLocalDb(it, OperationLocal.Source.SUBQUERY) }
 
         operationDao.insertFromSubquery(accountAddress, chain.id, chainAsset.id, elements)
+
         cursorStorage.saveCursor(chain.id, chainAsset.id, accountId, page.nextCursor)
+
     }
 
     fun operationsFirstPageFlow(
@@ -83,7 +98,6 @@ class HistoryRepository(
         chainAsset: Asset
     ): Flow<CursorPage<Operation>> {
         val accountAddress = chain.addressOf(accountId)
-
         return operationDao.observe(accountAddress, chain.id, chainAsset.id)
             .mapList {
                 mapOperationLocalToOperation(it, chainAsset, chain)
