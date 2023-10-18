@@ -43,6 +43,7 @@ import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.polkaswap.api.domain.PolkaswapInteractor
 import jp.co.soramitsu.polkaswap.api.models.Market
 import jp.co.soramitsu.polkaswap.api.models.WithDesired
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.bokoloCashTokenId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraTestChainId
 import jp.co.soramitsu.wallet.api.domain.TransferValidationResult
@@ -306,15 +307,14 @@ class SendSetupViewModel @Inject constructor(
     ) { feeAmount, utilityAsset, asset ->
         asset ?: return@combine FeeInfoViewState.default
         feeAmount ?: return@combine FeeInfoViewState.default
-        val showFeeAsset = if (utilityAsset.transferable > feeAmount) {
-            utilityAsset
-        } else {
+        val isSendBokoloCash = asset.token.configuration.currencyId == bokoloCashTokenId
+        val showFeeAsset = if (isSendBokoloCash && utilityAsset.transferable < feeAmount) {
             asset
+        } else {
+            utilityAsset
         }
 
-        val assetFeeAmount = if (utilityAsset.transferable > feeAmount) {
-            feeAmount
-        } else {
+        val assetFeeAmount = if (isSendBokoloCash && utilityAsset.transferable < feeAmount) {
             val swapDetails = polkaswapInteractor.calcDetails(
                 availableDexPaths = listOf(0),
                 tokenFrom = asset,
@@ -325,6 +325,8 @@ class SendSetupViewModel @Inject constructor(
                 market = Market.SMART
             )
             swapDetails.getOrNull()?.amount?.let { it * FEE_RESERVE_TOLERANCE }
+        } else {
+            feeAmount
         }
 
         val feeFormatted = assetFeeAmount?.formatCryptoDetail(showFeeAsset.token.configuration.symbol)
