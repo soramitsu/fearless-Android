@@ -152,11 +152,11 @@ class ValidateTransferUseCaseImpl(
 
             else -> {
                 val metaAccount = accountRepository.getSelectedMetaAccount()
-                val utilityAsset = originChain.utilityAsset?.id?.let {
+                val utilityAsset = originChain.utilityAsset?.let {
                     walletRepository.getAsset(
                         metaAccount.id,
                         metaAccount.accountId(originChain)!!,
-                        chainAsset,
+                        it,
                         originChain.minSupportedVersion
                     )
                 }
