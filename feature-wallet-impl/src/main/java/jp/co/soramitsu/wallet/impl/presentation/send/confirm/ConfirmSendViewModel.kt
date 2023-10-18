@@ -211,7 +211,7 @@ class ConfirmSendViewModel @Inject constructor(
                 slippageTolerance = 1.5,
                 market = Market.SMART
             )
-            swapDetails.getOrNull()?.amount?.let { it * FEE_RESERVE_TOLERANCE }
+            swapDetails.getOrNull()?.amount
         } else {
             fee
         }
@@ -400,7 +400,7 @@ class ConfirmSendViewModel @Inject constructor(
                 slippageTolerance = 1.5,
                 market = Market.SMART
             )
-            swapDetails.getOrNull()?.amount?.let { it * FEE_RESERVE_TOLERANCE }
+            swapDetails.getOrNull()?.amount
         } else {
             null
         }
