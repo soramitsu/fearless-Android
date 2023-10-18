@@ -368,8 +368,13 @@ class WalletInteractorImpl(
         val mastercardPushPaymentString = URLDecoder.decode(qrParamValue, "UTF-8")
 
         val pushPaymentData = Parser.parseWithoutTagValidation(mastercardPushPaymentString)
+        val transactionAmount = if (pushPaymentData.transactionAmount != null && pushPaymentData.transactionAmount > 0) {
+            pushPaymentData.transactionAmount.toBigDecimal()
+        } else {
+            BigDecimal.ZERO
+        }
         return QrContentCBDC(
-            transactionAmount = if (pushPaymentData.transactionAmount > 0) pushPaymentData.transactionAmount.toBigDecimal() else BigDecimal.ZERO,
+            transactionAmount = transactionAmount,
             transactionCurrencyCode = pushPaymentData.transactionCurrencyCode,
             description = pushPaymentData.additionalData?.purpose,
             name = pushPaymentData.merchantName,
