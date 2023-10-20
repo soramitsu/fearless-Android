@@ -413,16 +413,8 @@ class WssSubstrateSource(
                 value = null
             ),
             "additional_data" to transfer.comment?.toByteArray()
-        ).also {
-            it.forEach { t, u ->
-                if (t in listOf("amount", "desired_xor_amount", "max_amount_in", "additional_data")) {
-                    println("!!! xorlessTransfer's $t: $u")
-                }
-            }
-        }
+        )
     )
-    // dexId, assetId, receiver, amount, desiredXorAmount, maxAmountIn,
-    // selectedSourceTypes, filterMode, additionalData)
 
     private fun ExtrinsicBuilder.defaultTransfer(
         accountId: AccountId,
