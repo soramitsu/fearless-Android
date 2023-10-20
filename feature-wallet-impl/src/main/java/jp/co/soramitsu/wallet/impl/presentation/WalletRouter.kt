@@ -64,6 +64,8 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
 
     fun openSelectAsset(selectedAssetId: String)
 
+    fun openSelectAsset(chainId: ChainId, selectedAssetId: String?, excludeAssetId: String?)
+
     fun openSelectAsset(chainId: ChainId, selectedAssetId: String?, isFilterXcmAssets: Boolean)
 
     fun openFilter()

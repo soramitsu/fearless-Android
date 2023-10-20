@@ -57,6 +57,7 @@ interface ReceiveScreenInterface {
     fun copyClicked()
     fun backClicked()
     fun shareClicked()
+    fun tokenClicked()
     fun receiveChanged(type: ReceiveToggleType)
     fun onAmountInput(amount: BigDecimal?)
 }
@@ -67,7 +68,8 @@ fun ReceiveScreen(
     callback: ReceiveScreenInterface
 ) {
     BottomSheetScreen(
-        modifier = Modifier.nestedScroll(rememberNestedScrollInteropConnection())
+        modifier = Modifier
+            .nestedScroll(rememberNestedScrollInteropConnection())
             .fillMaxWidth()
     ) {
         when (state) {
@@ -79,7 +81,8 @@ fun ReceiveScreen(
                     shareClicked = callback::shareClicked,
                     backClicked = callback::backClicked,
                     receiveToggleChanged = callback::receiveChanged,
-                    onAmountInput = callback::onAmountInput
+                    onAmountInput = callback::onAmountInput,
+                    onTokenSelectClicked = callback::tokenClicked
                 )
             }
         }
@@ -93,6 +96,7 @@ private fun ReceiveContent(
     copyClicked: () -> Unit,
     shareClicked: () -> Unit,
     backClicked: () -> Unit,
+    onTokenSelectClicked: () -> Unit,
     receiveToggleChanged: (ReceiveToggleType) -> Unit,
     onAmountInput: (BigDecimal?) -> Unit
 ) {
@@ -127,6 +131,10 @@ private fun ReceiveContent(
             AmountInput(
                 state = state.amountInputViewState,
                 onInput = onAmountInput,
+                onTokenClick = {
+                    keyboardController?.hide()
+                    onTokenSelectClicked()
+                },
                 onKeyboardDone = { keyboardController?.hide() }
             )
             MarginVertical(margin = 16.dp)
@@ -201,6 +209,7 @@ private fun ReceiveScreenPreview() {
             override fun copyClicked() {}
             override fun backClicked() {}
             override fun shareClicked() {}
+            override fun tokenClicked() {}
             override fun receiveChanged(type: ReceiveToggleType) {}
             override fun onAmountInput(amount: BigDecimal?) {}
         }
