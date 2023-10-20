@@ -11,6 +11,7 @@ import jp.co.soramitsu.core.models.ChainId
 import jp.co.soramitsu.core.utils.isValidAddress
 import jp.co.soramitsu.core.utils.removedXcPrefix
 import jp.co.soramitsu.core.utils.utilityAsset
+import jp.co.soramitsu.polkaswap.api.domain.InsufficientLiquidityException
 import jp.co.soramitsu.polkaswap.api.domain.PolkaswapInteractor
 import jp.co.soramitsu.polkaswap.api.models.Market
 import jp.co.soramitsu.polkaswap.api.models.WithDesired
@@ -136,6 +137,10 @@ class ValidateTransferUseCaseImpl(
                             slippageTolerance = 1.5,
                             market = Market.SMART
                         )
+                    }?.onFailure {
+                        if (it is InsufficientLiquidityException) {
+                            return@runCatching TransferValidationResult.InsufficientBalance
+                        }
                     }
                     swapDetails?.getOrNull()?.amount?.let { utilityAsset.token.planksFromAmount(it * FEE_RESERVE_TOLERANCE) }
                 } else {
