@@ -246,7 +246,7 @@ allprojects {
         google()
         mavenLocal()
         maven { url "https://nexus.iroha.tech/repository/maven-soramitsu/" }
-        maven { url 'https://jitpack.io' }
+        maven { url "https://jitpack.io" }
         mavenCentral()
 
         maven {
