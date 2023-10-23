@@ -266,7 +266,3 @@ tasks.register('clean', Delete) {
 task runTest(type: GradleBuild) {
     tasks = ['clean', 'detektAll', 'runModuleTests', 'jacocoTestReport']
 }
-
-tasks.named("sonar") {
-    dependsOn -= tasks.withType(Test)
-}
