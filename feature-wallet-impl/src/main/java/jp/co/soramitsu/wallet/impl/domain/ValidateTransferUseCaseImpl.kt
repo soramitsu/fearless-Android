@@ -117,11 +117,11 @@ class ValidateTransferUseCaseImpl(
 
             chainAsset.currencyId == bokoloCashTokenId -> { // xorlessTransfer
                 val metaAccount = accountRepository.getSelectedMetaAccount()
-                val utilityAsset = originChain.utilityAsset?.id?.let {
+                val utilityAsset: Asset? = originChain.utilityAsset?.let {
                     walletRepository.getAsset(
                         metaAccount.id,
                         metaAccount.accountId(originChain)!!,
-                        chainAsset,
+                        it,
                         originChain.minSupportedVersion
                     )
                 }
