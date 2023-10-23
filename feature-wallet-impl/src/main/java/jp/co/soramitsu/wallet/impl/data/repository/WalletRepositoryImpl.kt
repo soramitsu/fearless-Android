@@ -91,7 +91,7 @@ class WalletRepositoryImpl(
 
     override fun assetsFlow(meta: MetaAccount): Flow<List<AssetWithStatus>> {
         return combine(
-            chainRegistry.chainsById,
+            chainsRepository.chainsByIdFlow(),
             assetCache.observeAssets(meta.id)
         ) { chainsById, assetsLocal ->
             val chainAccounts = meta.chainAccounts.values.toList()

@@ -120,13 +120,8 @@ class WalletInteractorImpl(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     override fun assetsFlow(): Flow<List<AssetWithStatus>> {
-        return updatesMixin.tokenRatesUpdate.map {
-            it.isNotEmpty()
-        }
-            .distinctUntilChanged()
+        return accountRepository.selectedMetaAccountFlow()
             .flatMapLatest {
-                accountRepository.selectedMetaAccountFlow()
-            }.flatMapLatest {
                 walletRepository.assetsFlow(it)
             }
             .filter { it.isNotEmpty() }
@@ -359,11 +354,12 @@ class WalletInteractorImpl(
         val mastercardPushPaymentString = URLDecoder.decode(qrParamValue, "UTF-8")
 
         val pushPaymentData = Parser.parseWithoutTagValidation(mastercardPushPaymentString)
-        val transactionAmount = if (pushPaymentData.transactionAmount != null && pushPaymentData.transactionAmount > 0) {
-            pushPaymentData.transactionAmount.toBigDecimal()
-        } else {
-            BigDecimal.ZERO
-        }
+        val transactionAmount =
+            if (pushPaymentData.transactionAmount != null && pushPaymentData.transactionAmount > 0) {
+                pushPaymentData.transactionAmount.toBigDecimal()
+            } else {
+                BigDecimal.ZERO
+            }
         return QrContentCBDC(
             transactionAmount = transactionAmount,
             transactionCurrencyCode = pushPaymentData.transactionCurrencyCode,
