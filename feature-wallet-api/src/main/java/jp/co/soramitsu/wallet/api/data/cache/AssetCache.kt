@@ -42,12 +42,37 @@ class AssetCache(
 
             val cachedAsset = assetDao.getAsset(metaId, accountId, chainId, assetId)?.asset
             when {
-                cachedAsset == null -> assetDao.insertAsset(builder.invoke(AssetLocal.createEmpty(accountId, assetId, chainId, metaId, priceId)))
+                cachedAsset == null -> assetDao.insertAsset(
+                    builder.invoke(
+                        AssetLocal.createEmpty(
+                            accountId,
+                            assetId,
+                            chainId,
+                            metaId,
+                            priceId
+                        )
+                    )
+                )
+
                 cachedAsset.accountId.contentEquals(emptyAccountIdValue) -> {
                     assetDao.deleteAsset(metaId, emptyAccountIdValue, chainId, assetId)
                     assetDao.insertAsset(builder.invoke(cachedAsset.copy(accountId = accountId)))
                 }
-                else -> assetDao.updateAsset(builder.invoke(cachedAsset))
+
+                else -> {
+                    val updatedAsset = builder.invoke(cachedAsset)
+                    if (cachedAsset.bondedInPlanks == updatedAsset.bondedInPlanks &&
+                        cachedAsset.feeFrozenInPlanks == updatedAsset.feeFrozenInPlanks &&
+                        cachedAsset.miscFrozenInPlanks == updatedAsset.miscFrozenInPlanks &&
+                        cachedAsset.freeInPlanks == updatedAsset.freeInPlanks &&
+                        cachedAsset.redeemableInPlanks == updatedAsset.redeemableInPlanks &&
+                        cachedAsset.reservedInPlanks == updatedAsset.reservedInPlanks &&
+                        cachedAsset.unbondingInPlanks == updatedAsset.unbondingInPlanks
+                    ) {
+                        return@withLock
+                    }
+                    assetDao.updateAsset(updatedAsset)
+                }
             }
             updatesMixin.finishUpdateAsset(metaId, chainId, accountId, assetId)
         }
@@ -70,7 +95,8 @@ class AssetCache(
         builder: (local: TokenPriceLocal) -> TokenPriceLocal
     ) = withContext(Dispatchers.IO) {
         assetUpdateMutex.withLock {
-            val tokenPriceLocal = tokenPriceDao.getTokenPrice(priceId) ?: TokenPriceLocal.createEmpty(priceId)
+            val tokenPriceLocal =
+                tokenPriceDao.getTokenPrice(priceId) ?: TokenPriceLocal.createEmpty(priceId)
 
             val newToken = builder.invoke(tokenPriceLocal)
 
@@ -83,7 +109,13 @@ class AssetCache(
         updateModel.listIterator().forEach {
             val cached = assetDao.getAsset(it.metaId, it.accountId, it.chainId, it.id)?.asset
             if (cached == null) {
-                val initial = AssetLocal.createEmpty(it.accountId, it.id, it.chainId, it.metaId, it.tokenPriceId)
+                val initial = AssetLocal.createEmpty(
+                    it.accountId,
+                    it.id,
+                    it.chainId,
+                    it.metaId,
+                    it.tokenPriceId
+                )
                 val newAsset = initial.copy(
                     sortIndex = it.sortIndex,
                     enabled = it.enabled
