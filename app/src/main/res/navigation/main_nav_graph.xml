@@ -7,6 +7,10 @@
 
     <include app:graph="@navigation/onboarding_nav_graph" />
 
+    <deepLink
+        app:action="android.intent.action.VIEW"
+        app:uri="fearless-wallet-wc://request" />
+
     <action
         android:id="@+id/action_to_onboardingNavGraph"
         app:destination="@id/onboarding_nav_graph"
@@ -708,6 +712,11 @@
         android:id="@+id/chainSelectFragment"
         android:name="jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.ChainSelectFragment"
         android:label="chainSelectFragment" />
+
+    <dialog
+        android:id="@+id/walletConnectFragment"
+        android:name="jp.co.soramitsu.walletconnect.impl.presentation.WalletConnectFragment"
+        android:label="walletConnectFragment"/>
 
     <dialog
         android:id="@+id/swapTokensFragment"

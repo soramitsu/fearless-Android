@@ -202,4 +202,10 @@ class ProfileViewModel @Inject constructor(
             walletInteractor.toggleHideZeroBalancesForCurrentWallet()
         }
     }
+
+    fun onWalletConnectClick() {
+        viewModelScope.launch {
+
+        }
+    }
 }

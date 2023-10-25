@@ -168,6 +168,9 @@ dependencies {
     implementation project(':feature-soracard-api')
     implementation project(':feature-soracard-impl')
 
+    implementation project(':feature-walletconnect-api')
+    implementation project(':feature-walletconnect-impl')
+
     implementation kotlinDep
 
     implementation androidDep
@@ -211,6 +214,10 @@ dependencies {
 
     implementation compose
     debugImplementation composeDebug
+
+    implementation(platform(libs.walletconnectBomDep))
+    implementation(libs.walletconnectCoreDep)
+    implementation(libs.walletconnectWeb3WalletDep)
 
     androidTestImplementation androidTestRunnerDep
     androidTestImplementation androidTestRulesDep

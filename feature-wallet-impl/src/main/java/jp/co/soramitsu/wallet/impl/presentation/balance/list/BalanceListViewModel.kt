@@ -66,6 +66,7 @@ import jp.co.soramitsu.soracard.impl.presentation.SoraCardItemViewState
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.updaters.BalanceUpdateTrigger
 import jp.co.soramitsu.wallet.impl.domain.ChainInteractor
 import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
+import jp.co.soramitsu.wallet.impl.domain.QR_PREFIX_WALLET_CONNECT
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.domain.model.AssetWithStatus
 import jp.co.soramitsu.wallet.impl.domain.model.WalletAccount
@@ -632,22 +633,28 @@ class BalanceListViewModel @Inject constructor(
 
     fun qrCodeScanned(content: String) {
         viewModelScope.launch {
-            val cbdcFormat = interactor.tryReadCBDCAddressFormat(content)
-            if (cbdcFormat != null) {
-                router.openCBDCSend(cbdcQrInfo = cbdcFormat)
+            if (content.startsWith(QR_PREFIX_WALLET_CONNECT)) {
+                router.openWalletConnect(
+                    content = content
+                )
             } else {
-                val soraFormat =
-                    interactor.tryReadSoraFormat(content)
-                if (soraFormat != null) {
-                    val amount =
-                        soraFormat.amount?.let { runCatching { BigDecimal(it) }.getOrNull() }
-                    openSendSoraTokenTo(soraFormat.tokenId, soraFormat.address, amount)
+                val cbdcFormat = interactor.tryReadCBDCAddressFormat(content)
+                if (cbdcFormat != null) {
+                    router.openCBDCSend(cbdcQrInfo = cbdcFormat)
                 } else {
-                    router.openSend(
-                        assetPayload = null,
-                        initialSendToAddress = content,
-                        amount = null
-                    )
+                    val soraFormat =
+                        interactor.tryReadSoraFormat(content)
+                    if (soraFormat != null) {
+                        val amount =
+                            soraFormat.amount?.let { runCatching { BigDecimal(it) }.getOrNull() }
+                        openSendSoraTokenTo(soraFormat.tokenId, soraFormat.address, amount)
+                    } else {
+                        router.openSend(
+                            assetPayload = null,
+                            initialSendToAddress = content,
+                            amount = null
+                        )
+                    }
                 }
             }
         }

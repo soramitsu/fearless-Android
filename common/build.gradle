@@ -54,6 +54,7 @@ android {
         buildConfigField "String", "ETHERSCAN_API_KEY", readSecretInQuotes("FL_ANDROID_ETHERSCAN_API_KEY")
         buildConfigField "String", "BSCSCAN_API_KEY", readSecretInQuotes("FL_ANDROID_BSCSCAN_API_KEY")
         buildConfigField "String", "POLYGONSCAN_API_KEY", readSecretInQuotes("FL_ANDROID_POLYGONSCAN_API_KEY")
+        buildConfigField "String", "WALLET_CONNECT_PROJECT_ID", readSecretInQuotes("FL_WALLET_CONNECT_PROJECT_ID")
     }
 
     buildTypes {

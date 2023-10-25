@@ -208,7 +208,7 @@ buildscript {
 
         web3jDep = "org.web3j:core:4.8.8-android"
 
-        withoutJavaWS = { exclude group: 'org.java-websocket', module: 'Java-WebSocket' }
+        withoutJavaWS = { exclude module: 'java-websocket-lib' }
 
         serializationDep = "org.jetbrains.kotlinx:kotlinx-serialization-json:$serializationVersion"
 

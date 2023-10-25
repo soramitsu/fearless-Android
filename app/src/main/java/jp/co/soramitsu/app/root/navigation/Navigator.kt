@@ -151,6 +151,7 @@ import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.reward.Reward
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.reward.RewardDetailsPayload
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.swap.SwapDetailFragment
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.transfer.TransferDetailFragment
+import jp.co.soramitsu.walletconnect.impl.presentation.WalletConnectFragment
 import kotlin.coroutines.coroutineContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -701,6 +702,12 @@ class Navigator :
         val bundle = SendSetupFragment.getBundle(assetPayload, initialSendToAddress, currencyId, amount, false)
 
         navController?.navigate(R.id.sendSetupFragment, bundle)
+    }
+
+    override fun openWalletConnect(content: String) {
+        val bundle = WalletConnectFragment.getBundle(content)
+
+        navController?.navigate(R.id.walletConnectFragment, bundle)
     }
 
     override fun openLockedAmountSend(assetPayload: AssetPayload?, initialSendToAddress: String?, currencyId: String?, amount: BigDecimal?) {

@@ -1,11 +1,13 @@
 plugins {
     id("com.android.library")
+    id("dagger.hilt.android.plugin")
     id("kotlin-android")
+    id("kotlin-kapt")
     id("kotlin-parcelize")
-    id("kotlinx-serialization")
 }
 
 android {
+    namespace = "co.jp.soramitsu.feature_walletconnect_api"
     compileSdk = rootProject.ext["compileSdkVersion"] as Int
 
     defaultConfig {
@@ -17,23 +19,15 @@ android {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
     }
-
     kotlinOptions {
         jvmTarget = "1.8"
     }
-
-    namespace = "jp.co.soramitsu.feature_soracard_api"
 }
 
 dependencies {
-    implementation(libs.bundles.coroutines)
-    implementation(libs.kotlinx.serialization.json)
-    implementation(libs.sora.card) {
-        exclude(module = "java-websocket-lib")
-    }
-
-    implementation(projects.runtime)
-    implementation(projects.featureWalletApi)
+    implementation(libs.hilt.android)
+    kapt(libs.hilt.compiler)
+    implementation(libs.bundles.compose)
+    implementation(libs.fragmentKtx)
+    implementation(libs.material)
 }
-
-

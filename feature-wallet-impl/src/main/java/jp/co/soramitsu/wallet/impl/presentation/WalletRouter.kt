@@ -34,6 +34,7 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
     fun openSend(assetPayload: AssetPayload?, initialSendToAddress: String? = null, currencyId: String? = null, amount: BigDecimal? = null)
     fun openLockedAmountSend(assetPayload: AssetPayload?, initialSendToAddress: String? = null, currencyId: String? = null, amount: BigDecimal?)
     fun openCBDCSend(cbdcQrInfo: QrContentCBDC)
+    fun openWalletConnect(content: String)
 
     fun openCrossChainSend(assetPayload: AssetPayload?)
 

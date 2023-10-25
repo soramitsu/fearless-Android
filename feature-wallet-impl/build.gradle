@@ -121,7 +121,7 @@ dependencies {
     implementation jnaDep
     implementation beaconDep, withoutJna
 
-    implementation soraCardDep
+    implementation soraCardDep, withoutJavaWS
 
     implementation shimmerDep
 
@@ -136,5 +136,5 @@ dependencies {
     implementation sharedFeaturesXcmDep
     implementation sharedFeaturesBackupDep
 
-    implementation web3jDep, withoutJavaWS
+    implementation web3jDep
 }
