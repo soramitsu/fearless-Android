@@ -413,7 +413,8 @@ class SendSetupViewModel @Inject constructor(
                         AddressIconGenerator.SIZE_BIG
                     )
                 },
-                editable = isInputLocked.not()
+                editable = false,
+                showClear = isInputLocked.not()
             ),
             chainSelectorState = chainSelectorState,
             amountInputState = amountInputState,

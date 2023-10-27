@@ -297,7 +297,8 @@ class CBDCSendSetupViewModel @Inject constructor(
                 accountAddress = CBDC_BRIDGE,
                 sizeInDp = AddressIconGenerator.SIZE_BIG
             ),
-            editable = false
+            editable = false,
+            showClear = false
         )
     }
 

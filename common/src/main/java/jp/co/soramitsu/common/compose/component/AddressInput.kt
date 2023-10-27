@@ -31,7 +31,8 @@ data class AddressInputState(
     val title: String,
     val input: String,
     val image: Any,
-    val editable: Boolean = true
+    val editable: Boolean = true,
+    val showClear: Boolean = true
 )
 
 @Composable
@@ -102,7 +103,7 @@ fun AddressInput(
                     onClick = onPaste
                 )
             }
-            if (state.input.isNotEmpty() && state.editable) {
+            if (state.input.isNotEmpty() && state.showClear) {
                 Image(
                     res = R.drawable.ic_close_16_circle,
                     modifier = Modifier
