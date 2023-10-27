@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
@@ -16,7 +17,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.material.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -130,7 +130,8 @@ fun SendSetupContent(
                 AddressInput(
                     state = state.addressInputState,
                     onInput = callback::onAddressInput,
-                    onInputClear = callback::onAddressInputClear
+                    onInputClear = callback::onAddressInputClear,
+                    onPaste = callback::onPasteClick
                 )
 
                 MarginVertical(margin = 12.dp)
@@ -165,13 +166,24 @@ fun SendSetupContent(
                     .imePadding()
             ) {
                 if (state.isInputLocked.not()) {
-                    LazyRow(
-                        modifier = Modifier.fillMaxWidth(),
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp),
                         horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally)
                     ) {
-                        item { Badge(R.drawable.ic_scan, R.string.chip_qr, callback::onQrClick) }
-                        item { Badge(R.drawable.ic_history_16, R.string.chip_history, callback::onHistoryClick) }
-                        item { Badge(R.drawable.ic_copy_16, R.string.chip_paste, callback::onPasteClick) }
+                        Badge(
+                            modifier = Modifier.weight(1f),
+                            iconResId = R.drawable.ic_scan,
+                            labelResId = R.string.chip_qr,
+                            onClick = callback::onQrClick
+                        )
+                        Badge(
+                            modifier = Modifier.weight(1f),
+                            iconResId = R.drawable.ic_history_16,
+                            labelResId = R.string.chip_history,
+                            onClick = callback::onHistoryClick
+                        )
                     }
                     MarginVertical(margin = 12.dp)
                 }
@@ -203,11 +215,13 @@ fun SendSetupContent(
 
 @Composable
 private fun Badge(
+    modifier: Modifier = Modifier,
     @DrawableRes iconResId: Int,
     @StringRes labelResId: Int,
     onClick: () -> Unit
 ) {
     ColoredButton(
+        modifier = modifier,
         backgroundColor = black05,
         border = BorderStroke(1.dp, white24),
         contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
