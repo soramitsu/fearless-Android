@@ -72,7 +72,8 @@ data class SendSetupViewState(
     val buttonState: ButtonViewState,
     val isSoftKeyboardOpen: Boolean,
     val heightDiffDp: Dp,
-    val isInputLocked: Boolean
+    val isInputLocked: Boolean,
+    val quickAmountInputValues: List<QuickAmountInput> = QuickAmountInput.values().asList()
 )
 
 interface SendSetupScreenInterface {
@@ -199,9 +200,9 @@ fun SendSetupContent(
                         .height(48.dp)
                 )
                 MarginVertical(margin = 12.dp)
-                if (showQuickInput) {
+                if (showQuickInput && state.quickAmountInputValues.isNotEmpty()) {
                     QuickInput(
-                        values = QuickAmountInput.values(),
+                        values = state.quickAmountInputValues.toTypedArray(),
                         onQuickAmountInput = {
                             keyboardController?.hide()
                             callback.onQuickAmountInput(it)
