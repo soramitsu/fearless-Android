@@ -20,6 +20,7 @@ import jp.co.soramitsu.common.compose.component.AddressInputState
 import jp.co.soramitsu.common.compose.component.AmountInputViewState
 import jp.co.soramitsu.common.compose.component.ButtonViewState
 import jp.co.soramitsu.common.compose.component.FeeInfoViewState
+import jp.co.soramitsu.common.compose.component.QuickAmountInput
 import jp.co.soramitsu.common.compose.component.SelectorState
 import jp.co.soramitsu.common.compose.component.ToolbarViewState
 import jp.co.soramitsu.common.compose.component.WarningInfoState
@@ -391,14 +392,23 @@ class SendSetupViewModel @Inject constructor(
         buttonStateFlow,
         isSoftKeyboardOpenFlow,
         heightDiffDpFlow,
-        lockInputFlow
-    ) { chain, address, chainSelectorState, amountInputState, feeInfoState, warningInfoState, buttonState, isSoftKeyboardOpen, heightDiffDp, isInputLocked ->
+        lockInputFlow,
+        assetFlow
+    ) { chain, address, chainSelectorState, amountInputState, feeInfoState, warningInfoState, buttonState, isSoftKeyboardOpen, heightDiffDp, isInputLocked, asset ->
         val isAddressValid = when (chain) {
             null -> false
             else -> walletInteractor.validateSendAddress(chain.id, address)
         }
 
         confirmedValidations.clear()
+
+        val quickAmountInputValues = QuickAmountInput.values().filter {
+            if (it == QuickAmountInput.MAX) {
+                asset?.token?.configuration?.currencyId != bokoloCashTokenId
+            } else {
+                true
+            }
+        }
 
         SendSetupViewState(
             toolbarState = toolbarViewState,
@@ -423,7 +433,8 @@ class SendSetupViewModel @Inject constructor(
             buttonState = buttonState,
             isSoftKeyboardOpen = isSoftKeyboardOpen,
             heightDiffDp = heightDiffDp,
-            isInputLocked = isInputLocked
+            isInputLocked = isInputLocked,
+            quickAmountInputValues = quickAmountInputValues,
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, defaultState)
 
