@@ -402,12 +402,10 @@ class SendSetupViewModel @Inject constructor(
 
         confirmedValidations.clear()
 
-        val quickAmountInputValues = QuickAmountInput.values().filter {
-            if (it == QuickAmountInput.MAX) {
-                asset?.token?.configuration?.currencyId != bokoloCashTokenId
-            } else {
-                true
-            }
+        val quickAmountInputValues = if (asset?.token?.configuration?.currencyId == bokoloCashTokenId) {
+            emptyList()
+        } else {
+            QuickAmountInput.values().toList()
         }
 
         SendSetupViewState(
