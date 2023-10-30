@@ -8,7 +8,7 @@ buildscript {
         versionCode = 126
 
         // SDK and tools
-        compileSdkVersion = 33
+        compileSdkVersion = 34
         minSdkVersion = 24
         targetSdkVersion = 33
 
@@ -37,7 +37,7 @@ buildscript {
         okhttpVersion = '5.0.0-alpha.11'
         gsonVersion = '2.10.1'
 
-        navControllerVersion = '2.5.3'
+        navControllerVersion = '2.7.0'
 
         junitVersion = '4.13.2'
         mockitoVersion = '5.2.0'
