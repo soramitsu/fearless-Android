@@ -8,7 +8,6 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.math.BigDecimal
-import java.util.Locale
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.PendulumPreInstalledAccountsScenario
@@ -29,7 +28,6 @@ import jp.co.soramitsu.common.compose.component.NetworkIssueItemState
 import jp.co.soramitsu.common.compose.component.SwipeState
 import jp.co.soramitsu.common.compose.component.ToolbarHomeIconState
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState
-import jp.co.soramitsu.common.data.network.OptionsProvider
 import jp.co.soramitsu.common.data.network.coingecko.FiatChooserEvent
 import jp.co.soramitsu.common.data.network.coingecko.FiatCurrency
 import jp.co.soramitsu.common.domain.FiatCurrencies
@@ -51,8 +49,6 @@ import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.feature_wallet_impl.R
-import jp.co.soramitsu.oauth.base.sdk.SoraCardEnvironmentType
-import jp.co.soramitsu.oauth.base.sdk.SoraCardKycCredentials
 import jp.co.soramitsu.oauth.base.sdk.contract.SoraCardCommonVerification
 import jp.co.soramitsu.oauth.base.sdk.contract.SoraCardContractData
 import jp.co.soramitsu.oauth.common.domain.KycRepository
@@ -725,27 +721,6 @@ class BalanceListViewModel @Inject constructor(
     }
 
     private fun onSoraCardStatusClicked() {
-        _launchSoraCardSignIn.value = Event(
-            SoraCardContractData(
-                locale = Locale.ENGLISH,
-                apiKey = BuildConfig.SORA_CARD_API_KEY,
-                domain = BuildConfig.SORA_CARD_DOMAIN,
-                environment = when {
-                    BuildConfig.DEBUG -> SoraCardEnvironmentType.TEST
-                    else -> SoraCardEnvironmentType.PRODUCTION
-                },
-                kycCredentials = SoraCardKycCredentials(
-                    endpointUrl = BuildConfig.SORA_CARD_KYC_ENDPOINT_URL,
-                    username = BuildConfig.SORA_CARD_KYC_USERNAME,
-                    password = BuildConfig.SORA_CARD_KYC_PASSWORD
-                ),
-                client = OptionsProvider.header,
-                userAvailableXorAmount = 0.0, // userAvailableXorAmount,
-                areAttemptsPaidSuccessfully = false, // will be available in Phase 2
-                isEnoughXorAvailable = false, // isEnoughXorAvailable,
-                isIssuancePaid = false // will be available in Phase 2
-            )
-        )
     }
 
     fun updateSoraCardInfo(

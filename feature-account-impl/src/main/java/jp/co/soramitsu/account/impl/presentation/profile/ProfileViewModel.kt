@@ -6,7 +6,6 @@ import androidx.lifecycle.liveData
 import androidx.lifecycle.map
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.util.Locale
 import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.TotalBalanceUseCase
@@ -14,12 +13,10 @@ import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.account.impl.presentation.AccountRouter
 import jp.co.soramitsu.account.impl.presentation.language.mapper.mapLanguageToLanguageModel
-import jp.co.soramitsu.common.BuildConfig
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
-import jp.co.soramitsu.common.data.network.OptionsProvider
 import jp.co.soramitsu.common.data.network.coingecko.FiatChooserEvent
 import jp.co.soramitsu.common.data.network.coingecko.FiatCurrency
 import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
@@ -29,8 +26,6 @@ import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
 import jp.co.soramitsu.feature_account_impl.R
-import jp.co.soramitsu.oauth.base.sdk.SoraCardEnvironmentType
-import jp.co.soramitsu.oauth.base.sdk.SoraCardKycCredentials
 import jp.co.soramitsu.oauth.base.sdk.contract.SoraCardCommonVerification
 import jp.co.soramitsu.oauth.base.sdk.contract.SoraCardContractData
 import jp.co.soramitsu.soracard.api.domain.SoraCardInteractor
@@ -164,30 +159,6 @@ class ProfileViewModel @Inject constructor(
     }
 
     private fun onSoraCardStatusClicked() {
-        launch {
-            val soraCardState = soraCardState.firstOrNull()
-            _launchSoraCardSignIn.value = Event(
-                SoraCardContractData(
-                    locale = Locale.ENGLISH,
-                    apiKey = BuildConfig.SORA_CARD_API_KEY,
-                    domain = BuildConfig.SORA_CARD_DOMAIN,
-                    environment = when {
-                        BuildConfig.DEBUG -> SoraCardEnvironmentType.TEST
-                        else -> SoraCardEnvironmentType.PRODUCTION
-                    },
-                    kycCredentials = SoraCardKycCredentials(
-                        endpointUrl = BuildConfig.SORA_CARD_KYC_ENDPOINT_URL,
-                        username = BuildConfig.SORA_CARD_KYC_USERNAME,
-                        password = BuildConfig.SORA_CARD_KYC_PASSWORD
-                    ),
-                    client = OptionsProvider.header,
-                    userAvailableXorAmount = 0.0, // userAvailableXorAmount,
-                    areAttemptsPaidSuccessfully = false, // will be available in Phase 2
-                    isEnoughXorAvailable = false, // isEnoughXorAvailable,
-                    isIssuancePaid = false // will be available in Phase 2
-                )
-            )
-        }
     }
 
     private fun mapKycStatus(kycStatus: String): String? {
