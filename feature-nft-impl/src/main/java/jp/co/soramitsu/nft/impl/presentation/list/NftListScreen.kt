@@ -24,7 +24,7 @@ data class NftScreenState(
 ) {
     sealed class ListState {
         data class Content(
-            val items: List<NftListItem>
+            val items: List<NftCollectionListItem>
         ) : ListState()
 
         object Loading : ListState()
@@ -32,7 +32,7 @@ data class NftScreenState(
     }
 }
 
-data class NftListItem(
+data class NftCollectionListItem(
     val id: String,
     val image: String,
     val chain: String,
@@ -58,7 +58,7 @@ fun NftList(state: NftScreenState, screenInterface: NftListScreenInterface) {
     val settingsBarState =
         remember { mutableStateOf(NftSettingsState(NftAppearanceType.Grid, state.filtersSelected)) }
 
-    Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+    Column {
         MarginVertical(margin = 8.dp)
         Row(horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
             NftSettingsBar(
@@ -83,7 +83,7 @@ fun NftList(state: NftScreenState, screenInterface: NftListScreenInterface) {
 @Composable
 fun NftListScreenPreview() {
     val items = listOf(
-        NftListItem(
+        NftCollectionListItem(
             "1",
             "https://public.nftstatic.com/static/nft/res/nft-cex/S3/1681135249863_5vfn4v8dfmche8vzqlhcotiwj2z8vn2g.png",
             "BNB Chain",
@@ -91,7 +91,7 @@ fun NftListScreenPreview() {
             1,
             290
         ),
-        NftListItem(
+        NftCollectionListItem(
             "1",
             "https://public.nftstatic.com/static/nft/res/nft-cex/S3/1681135249863_5vfn4v8dfmche8vzqlhcotiwj2z8vn2g.png",
             "BNB Chain",
@@ -99,7 +99,7 @@ fun NftListScreenPreview() {
             1,
             290
         ),
-        NftListItem(
+        NftCollectionListItem(
             "1",
             "https://public.nftstatic.com/static/nft/res/nft-cex/S3/1681135249863_5vfn4v8dfmche8vzqlhcotiwj2z8vn2g.png",
             "BNB Chain",

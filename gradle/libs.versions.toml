@@ -21,6 +21,7 @@ web3j = "4.8.8-android"
 coil = "2.2.2"
 shimmer = "1.0.4"
 hilt = "1.0.0"
+retrofitVersion = "2.9.0"
 
 [libraries]
 google-services = { module = "com.google.gms:google-services", version.ref = "googleServices" }
@@ -73,6 +74,9 @@ coilSvg = { module = "io.coil-kt:coil-svg", version.ref = "coil" }
 composeCoil = { module = "io.coil-kt:coil-compose", version.ref="coil" }
 shimmers = { module = "com.valentinilk.shimmer:compose-shimmer", version.ref="shimmer" }
 hiltNavigationCompose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "hilt" }
+
+gsonConverter = { module = "com.squareup.retrofit2:converter-gson", version.ref = "retrofitVersion" }
+scalarsConverter = { module = "com.squareup.retrofit2:converter-scalars", version.ref = "retrofitVersion" }
 
 [bundles]
 compose = [

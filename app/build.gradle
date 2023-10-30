@@ -173,6 +173,9 @@ dependencies {
     implementation project(':feature-soracard-api')
     implementation project(':feature-soracard-impl')
 
+    implementation project(':feature-nft-api')
+    implementation project(':feature-nft-impl')
+
     implementation kotlinDep
 
     implementation androidDep

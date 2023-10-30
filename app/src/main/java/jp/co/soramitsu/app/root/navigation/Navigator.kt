@@ -69,6 +69,7 @@ import jp.co.soramitsu.crowdloan.impl.presentation.contribute.custom.CustomContr
 import jp.co.soramitsu.crowdloan.impl.presentation.contribute.custom.model.CustomContributePayload
 import jp.co.soramitsu.crowdloan.impl.presentation.contribute.select.CrowdloanContributeFragment
 import jp.co.soramitsu.crowdloan.impl.presentation.contribute.select.parcel.ContributePayload
+import jp.co.soramitsu.nft.impl.presentation.NftRouter
 import jp.co.soramitsu.onboarding.impl.OnboardingRouter
 import jp.co.soramitsu.onboarding.impl.welcome.WelcomeFragment
 import jp.co.soramitsu.onboarding.impl.welcome.select_import_mode.SelectImportModeDialog
@@ -183,7 +184,8 @@ class Navigator :
     CrowdloanRouter,
     PolkaswapRouter,
     SuccessRouter,
-    SoraCardRouter {
+    SoraCardRouter,
+    NftRouter {
 
     private var navController: NavController? = null
     private var activity: AppCompatActivity? = null
@@ -1384,5 +1386,9 @@ class Navigator :
 
     override fun openGetMoreXor() {
         navController?.navigate(R.id.getMoreXorFragment)
+    }
+
+    override fun openNftFilters() {
+
     }
 }

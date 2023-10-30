@@ -55,6 +55,9 @@ dependencies {
         exclude(group = "org.java-websocket", module = "Java-WebSocket")
     }
 
+    implementation(libs.gsonConverter)
+    implementation(libs.scalarsConverter)
+
     implementation(projects.common)
     implementation(projects.runtime)
     implementation(projects.featureNftApi)

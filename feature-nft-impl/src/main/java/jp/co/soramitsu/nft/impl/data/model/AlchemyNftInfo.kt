@@ -1,19 +1,28 @@
 package jp.co.soramitsu.nft.impl.data.model
 
 import java.math.BigInteger
+import jp.co.soramitsu.core.models.ChainId
 
 data class NftCollection(
     val name: String, //AlchemyNftInfo.contractMetadata.openSea.collectionName
     val image: String,
-    val nfts: List<Nft>
+    val description: String?,
+    val chainId: ChainId,
+    val chainName: String,
+    val type: String?,
+    val nfts: List<Nft>,
+    val collectionSize: Int
 )
 
 data class Nft(
     val title: String,
     val description: String,
     val thumbnail: String,
-    val image: String,
-)
+    val owned: String?,
+    val tokenId: String?,
+
+    )
+
 data class AlchemyNftResponse(
     val ownedNfts: List<AlchemyNftInfo>
 )
@@ -31,7 +40,7 @@ data class AlchemyNftInfo(
 )
 
 data class AlchemyNftSpamInfo(
-    val isSpam: String?,
+    val isSpam: Boolean?,
     val classifications: List<String>?,
 )
 
@@ -53,6 +62,8 @@ data class AlchemyNftMetadata(
     val description: String?,
     val backgroundColor: String?,
     val poster: String?,
+    val image: String?,
+    val externalUrl: String?
 )
 
 data class AlchemyNftMediaInfo(
@@ -95,5 +106,5 @@ data class AlchemyNftOpenseaInfo(
     val externalUrl: String?,
     val twitterUsername: String?,
     val bannerImageUrl: String?,
-    val lastIngestedAt : String?,
+    val lastIngestedAt: String?,
 )

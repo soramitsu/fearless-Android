@@ -11,6 +11,7 @@ interface AlchemyNftApi {
         @Url url: String,
         @Query("owner") owner: String,
         @Query("withMetadata") withMetadata: Boolean = true,
-        @Query("pageSize") pageSize: Int = 100
+        @Query("pageSize") pageSize: Int = 100,
+        @Query("excludeFilters[]") excludeFilters: List<String> = listOf("SPAM")
     ): AlchemyNftResponse
 }

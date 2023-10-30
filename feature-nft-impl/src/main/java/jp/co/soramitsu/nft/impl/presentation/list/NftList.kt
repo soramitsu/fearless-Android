@@ -1,7 +1,6 @@
 package jp.co.soramitsu.nft.impl.presentation.list
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -28,15 +27,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.valentinilk.shimmer.shimmer
 import jp.co.soramitsu.common.R
-import jp.co.soramitsu.common.compose.component.B0
 import jp.co.soramitsu.common.compose.component.B1
 import jp.co.soramitsu.common.compose.component.B2
 import jp.co.soramitsu.common.compose.component.BackgroundCornered
@@ -49,7 +45,6 @@ import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.component.RoundedRect
 import jp.co.soramitsu.common.compose.component.getImageRequest
 import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
-import jp.co.soramitsu.common.compose.theme.black2
 import jp.co.soramitsu.common.compose.theme.black50
 import jp.co.soramitsu.common.compose.theme.shimmerColor
 import jp.co.soramitsu.common.compose.theme.white
@@ -102,7 +97,7 @@ fun NftEmptyState() {
 }
 
 @Composable
-fun NftList(items: List<NftListItem>, appearanceType: NftAppearanceType) {
+fun NftList(items: List<NftCollectionListItem>, appearanceType: NftAppearanceType) {
     when (appearanceType) {
         NftAppearanceType.Grid -> {
             LazyVerticalGrid(
@@ -131,7 +126,7 @@ fun NftList(items: List<NftListItem>, appearanceType: NftAppearanceType) {
 }
 
 @Composable
-private fun GridItem(item: NftListItem) {
+private fun GridItem(item: NftCollectionListItem) {
     BackgroundCornered {
         Column(modifier = Modifier.padding(8.dp)) {
             Box(modifier = Modifier.align(Alignment.CenterHorizontally)) {
@@ -160,7 +155,7 @@ private fun GridItem(item: NftListItem) {
 }
 
 @Composable
-private fun ListItem(item: NftListItem) {
+private fun ListItem(item: NftCollectionListItem) {
     BackgroundCornered(modifier = Modifier.fillMaxWidth()) {
         Row(modifier = Modifier.padding(8.dp)) {
             AsyncImage(
@@ -308,7 +303,7 @@ private fun ListItemShimmer() {
 @Composable
 fun NftListPreview() {
     val items = listOf(
-        NftListItem(
+        NftCollectionListItem(
             "1",
             "https://public.nftstatic.com/static/nft/res/nft-cex/S3/1681135249863_5vfn4v8dfmche8vzqlhcotiwj2z8vn2g.png",
             "BNB Chain",
@@ -316,7 +311,7 @@ fun NftListPreview() {
             1,
             290
         ),
-        NftListItem(
+        NftCollectionListItem(
             "1",
             "https://public.nftstatic.com/static/nft/res/nft-cex/S3/1681135249863_5vfn4v8dfmche8vzqlhcotiwj2z8vn2g.png",
             "BNB Chain",
@@ -324,7 +319,7 @@ fun NftListPreview() {
             1,
             290
         ),
-        NftListItem(
+        NftCollectionListItem(
             "1",
             "https://public.nftstatic.com/static/nft/res/nft-cex/S3/1681135249863_5vfn4v8dfmche8vzqlhcotiwj2z8vn2g.png",
             "BNB Chain",
