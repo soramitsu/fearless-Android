@@ -3,6 +3,7 @@ package jp.co.soramitsu.app
 import android.app.Application
 import android.content.Context
 import android.content.res.Configuration
+import android.util.Log
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
 import com.walletconnect.android.relay.ConnectionType
@@ -39,10 +40,11 @@ open class App : Application() {
         OptionsProvider.CURRENT_VERSION_NAME = BuildConfig.VERSION_NAME
         OptionsProvider.CURRENT_BUILD_TYPE = BuildConfig.BUILD_TYPE
 
-        setupWalletConnect()
+//        setupWalletConnect()
     }
 
-    private fun setupWalletConnect() {
+    fun setupWalletConnect() {
+        Log.d("&&&", "CoreClient start WC initialization")
         val connectionType = ConnectionType.AUTOMATIC // ConnectionType.AUTOMATIC or ConnectionType.MANUAL
         val projectId = jp.co.soramitsu.common.BuildConfig.WALLET_CONNECT_PROJECT_ID // Project ID at https://cloud.walletconnect.com/
         val relayUrl = "relay.walletconnect.com"
@@ -77,5 +79,7 @@ open class App : Application() {
             println("!!! error Web3Wallet.initialize = ${error.throwable.message}")
             error.throwable.printStackTrace()
         }
+
+        Log.d("&&&", "CoreClient finish WC initialization")
     }
 }

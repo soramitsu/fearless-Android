@@ -3,11 +3,19 @@ package jp.co.soramitsu.app.root.presentation
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import com.walletconnect.android.Core
+import com.walletconnect.android.CoreClient
+import com.walletconnect.android.relay.ConnectionType
+import com.walletconnect.android.relay.NetworkClientTimeout
+import com.walletconnect.web3.wallet.client.Wallet
+import com.walletconnect.web3.wallet.client.Web3Wallet
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.util.Date
 import java.util.Timer
 import java.util.TimerTask
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
+import jp.co.soramitsu.app.App
 import jp.co.soramitsu.app.R
 import jp.co.soramitsu.app.root.domain.RootInteractor
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -21,10 +29,12 @@ import kotlin.concurrent.timerTask
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @HiltViewModel
 class RootViewModel @Inject constructor(
@@ -53,12 +63,19 @@ class RootViewModel @Inject constructor(
     private val _closeApp = MutableLiveData<Event<Unit>>()
     val closeApp: LiveData<Event<Unit>> = _closeApp
 
+    private val _startWC = MutableLiveData<Event<Unit>>()
+    val startWC: LiveData<Event<Unit>> = _startWC
+
     private var timer = Timer()
     private var timerTask: TimerTask? = null
 
     private var shouldHandleResumeInternetConnection = false
 
     init {
+        viewModelScope.launch {
+            delay(10_000)
+            _startWC.value = Event(Unit)
+        }
         viewModelScope.launch {
             interactor.fetchFeatureToggle()
         }

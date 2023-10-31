@@ -25,7 +25,9 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import dagger.hilt.android.AndroidEntryPoint
+import java.time.Duration
 import javax.inject.Inject
+import jp.co.soramitsu.app.App
 import jp.co.soramitsu.app.R
 import jp.co.soramitsu.app.root.navigation.Navigator
 import jp.co.soramitsu.common.PLAY_MARKET_APP_URI
@@ -36,6 +38,10 @@ import jp.co.soramitsu.common.utils.observe
 import jp.co.soramitsu.common.utils.showToast
 import jp.co.soramitsu.common.utils.updatePadding
 import jp.co.soramitsu.common.view.bottomSheet.AlertBottomSheet
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @AndroidEntryPoint
 class RootActivity : BaseActivity<RootViewModel>(), LifecycleObserver {
@@ -171,6 +177,13 @@ class RootActivity : BaseActivity<RootViewModel>(), LifecycleObserver {
                 showNoInternetConnectionAlert()
             }
         )
+
+        viewModel.startWC.observe(this, EventObserver {
+            lifecycleScope.launch {
+//                    delay(10_000)
+                    (application as App).setupWalletConnect()
+            }
+        })
     }
 
     private fun showUnsupportedAppVersionAlert() {
