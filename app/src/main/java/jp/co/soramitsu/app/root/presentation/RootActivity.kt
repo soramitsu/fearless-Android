@@ -181,7 +181,7 @@ class RootActivity : BaseActivity<RootViewModel>(), LifecycleObserver {
         viewModel.startWC.observe(this, EventObserver {
             lifecycleScope.launch {
 //                    delay(10_000)
-                    (application as App).setupWalletConnect()
+//                    (application as App).setupWalletConnect()
             }
         })
     }

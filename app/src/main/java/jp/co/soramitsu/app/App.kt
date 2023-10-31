@@ -40,7 +40,7 @@ open class App : Application() {
         OptionsProvider.CURRENT_VERSION_NAME = BuildConfig.VERSION_NAME
         OptionsProvider.CURRENT_BUILD_TYPE = BuildConfig.BUILD_TYPE
 
-//        setupWalletConnect()
+        setupWalletConnect()
     }
 
     fun setupWalletConnect() {
@@ -79,7 +79,6 @@ open class App : Application() {
             println("!!! error Web3Wallet.initialize = ${error.throwable.message}")
             error.throwable.printStackTrace()
         }
-
         Log.d("&&&", "CoreClient finish WC initialization")
     }
 }

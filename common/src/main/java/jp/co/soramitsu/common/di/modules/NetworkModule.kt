@@ -9,6 +9,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import java.io.File
 import java.util.concurrent.TimeUnit
+import javax.inject.Named
 import javax.inject.Singleton
 import jp.co.soramitsu.common.BuildConfig
 import jp.co.soramitsu.common.data.network.AndroidLogger
@@ -47,7 +48,7 @@ class NetworkModule {
     }
 
     @Provides
-    @Singleton
+    @Named("FearlessOkHttp")
     fun provideOkHttpClient(
         context: Context
     ): OkHttpClient {
@@ -72,7 +73,7 @@ class NetworkModule {
     @Provides
     @Singleton
     fun provideApiCreator(
-        okHttpClient: OkHttpClient
+        @Named("FearlessOkHttp") okHttpClient: OkHttpClient
     ): NetworkApiCreator {
         return NetworkApiCreator(okHttpClient, "https://placeholder.com")
     }

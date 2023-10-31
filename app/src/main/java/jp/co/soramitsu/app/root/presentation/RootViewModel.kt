@@ -1,5 +1,6 @@
 package jp.co.soramitsu.app.root.presentation
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
@@ -74,7 +75,10 @@ class RootViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             delay(10_000)
-            _startWC.value = Event(Unit)
+            withContext(Dispatchers.IO){
+//                CoreClient.Relay.connect( { e -> Log.d("&&&", "CoreClient connect error $e")})
+            }
+//            _startWC.value = Event(Unit)
         }
         viewModelScope.launch {
             interactor.fetchFeatureToggle()
