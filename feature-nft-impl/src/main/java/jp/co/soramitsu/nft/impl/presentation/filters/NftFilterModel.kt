@@ -23,5 +23,5 @@ data class NftFilterModel(
 }
 
 enum class NftFilter {
-    Spam, Airdrop
+    Spam, Airdrops
 }

@@ -55,17 +55,15 @@ fun NftList() {
 
 @Composable
 fun NftList(state: NftScreenState, screenInterface: NftListScreenInterface) {
-    val settingsBarState =
-        remember { mutableStateOf(NftSettingsState(NftAppearanceType.Grid, state.filtersSelected)) }
+    val appearanceType = remember { mutableStateOf(NftAppearanceType.Grid) }
 
     Column {
         MarginVertical(margin = 8.dp)
         Row(horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
             NftSettingsBar(
-                settingsBarState.value,
+                NftSettingsState(appearanceType.value, state.filtersSelected),
                 appearanceSelected = {
-                    settingsBarState.value =
-                        settingsBarState.value.copy(collectionAppearanceType = it)
+                    appearanceType.value = it
                 },
                 filtersClicked = screenInterface::filtersClicked
             )
@@ -74,7 +72,7 @@ fun NftList(state: NftScreenState, screenInterface: NftListScreenInterface) {
         MarginVertical(margin = 6.dp)
         NftList(
             state = state.listState,
-            appearanceType = settingsBarState.value.collectionAppearanceType
+            appearanceType = appearanceType.value
         )
     }
 }

@@ -22,6 +22,7 @@ coil = "2.2.2"
 shimmer = "1.0.4"
 hilt = "1.0.0"
 retrofitVersion = "2.9.0"
+composeLifecycleVersion = "2.6.2"
 
 [libraries]
 google-services = { module = "com.google.gms:google-services", version.ref = "googleServices" }
@@ -53,6 +54,8 @@ compose-themeAdapter = { module = "com.google.android.material:compose-theme-ada
 compose-animation = { module = "androidx.compose.animation:animation", version.ref = "compose" }
 compose-animationGraphics = { module = "androidx.compose.animation:animation-graphics", version.ref = "compose" }
 compose-uiToolingPreview = { module = "androidx.compose.ui:ui-tooling-preview", version.ref = "compose" }
+compose-lifecycleViewModel = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "composeLifecycleVersion" }
+compose-runtimeLifecycle = { module = "androidx.lifecycle:lifecycle-runtime-compose", version.ref = "composeLifecycleVersion"}
 
 fragmentKtx = { module = "androidx.fragment:fragment-ktx", version.ref = "fragmentKtx" }
 material = { module = "com.google.android.material:material", version.ref = "material" }
@@ -82,6 +85,7 @@ scalarsConverter = { module = "com.squareup.retrofit2:converter-scalars", versio
 compose = [
     "compose-runtime", "compose-ui", "compose-runtimeLiveData", "compose-compiler",
     "compose-foundation", "compose-material", "compose-themeAdapter", "compose-animation",
-    "compose-animationGraphics", "compose-uiToolingPreview", "composeCoil", "shimmers", "hiltNavigationCompose"
+    "compose-animationGraphics", "compose-uiToolingPreview", "composeCoil", "shimmers",
+    "hiltNavigationCompose", "compose-lifecycleViewModel", "compose-runtimeLifecycle"
 ]
 coroutines = ["coroutines-core", "coroutines-android"]

@@ -11,8 +11,8 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.alchemyNftId
 
 class NftRepository(private val alchemyNftApi: AlchemyNftApi) {
 
-    suspend fun getNfts(chain: Chain, address: String): List<NftCollection> {
-        val response = alchemyNftApi.getNfts(url = chain.getUrl(), owner = address)
+    suspend fun getNfts(chain: Chain, address: String, filters: List<String>): List<NftCollection> {
+        val response = alchemyNftApi.getNfts(url = chain.getUrl(), owner = address, excludeFilters = filters)
 
         val groupedResponse = response.ownedNfts.groupBy { it.contract?.address }
 

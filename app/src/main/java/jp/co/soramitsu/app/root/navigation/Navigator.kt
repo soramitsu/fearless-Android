@@ -2,6 +2,7 @@ package jp.co.soramitsu.app.root.navigation
 
 import android.graphics.drawable.Drawable
 import android.os.Bundle
+import android.util.Log
 import androidx.annotation.IdRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.net.toUri
@@ -70,6 +71,9 @@ import jp.co.soramitsu.crowdloan.impl.presentation.contribute.custom.model.Custo
 import jp.co.soramitsu.crowdloan.impl.presentation.contribute.select.CrowdloanContributeFragment
 import jp.co.soramitsu.crowdloan.impl.presentation.contribute.select.parcel.ContributePayload
 import jp.co.soramitsu.nft.impl.presentation.NftRouter
+import jp.co.soramitsu.nft.impl.presentation.filters.NftFilter
+import jp.co.soramitsu.nft.impl.presentation.filters.NftFilterModel
+import jp.co.soramitsu.nft.impl.presentation.filters.NftFiltersFragment
 import jp.co.soramitsu.onboarding.impl.OnboardingRouter
 import jp.co.soramitsu.onboarding.impl.welcome.WelcomeFragment
 import jp.co.soramitsu.onboarding.impl.welcome.select_import_mode.SelectImportModeDialog
@@ -1388,7 +1392,32 @@ class Navigator :
         navController?.navigate(R.id.getMoreXorFragment)
     }
 
-    override fun openNftFilters() {
+    override fun openNftFilters(value: NftFilterModel) {
+        val bundle = NftFiltersFragment.getBundle(value, R.id.mainFragment)
+        navController?.navigate(R.id.nftFiltersFragment, bundle)
+    }
 
+    override fun setNftFiltersResult(key: String, result: NftFilterModel, resultDestinationId: Int) {
+        val resultBackStackEntry = navController?.getBackStackEntry(resultDestinationId) ?: navController?.previousBackStackEntry
+        resultBackStackEntry?.savedStateHandle?.set(
+            key,
+            result.bundle
+        )
+    }
+
+    override fun nftFiltersResultFlow(key: String): Flow<NftFilterModel> {
+        val currentEntry = navController?.currentBackStackEntry
+        val onResumeObserver = currentEntry?.getLifecycle()?.onResumeObserver()
+
+        return (onResumeObserver?.asFlow() ?: emptyFlow()).map {
+            if (currentEntry?.savedStateHandle?.contains(key) == true) {
+
+                val result = currentEntry.savedStateHandle.get<Bundle>(key)
+                currentEntry.savedStateHandle.set<NftFilterModel?>(key, null)
+                result?.let { bundle -> NftFilterModel.fromBundle(bundle) }
+            } else {
+                null
+            }
+        }.filterNotNull()
     }
 }

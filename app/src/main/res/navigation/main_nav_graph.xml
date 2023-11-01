@@ -745,6 +745,11 @@
         android:name="jp.co.soramitsu.wallet.impl.presentation.balance.assetselector.AssetSelectFragment"
         android:label="assetSelectFragment" />
 
+    <dialog
+        android:id="@+id/nftFiltersFragment"
+        android:name="jp.co.soramitsu.nft.impl.presentation.filters.NftFiltersFragment"
+        android:label="nftFiltersFragment" />
+
     <action
         android:id="@+id/openStartChangeValidatorsFragment"
         app:destination="@id/startChangeValidatorsFragment"
