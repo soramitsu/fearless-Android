@@ -6,9 +6,9 @@ import io.ktor.client.plugins.websocket.webSocket
 import io.ktor.websocket.Frame
 import io.ktor.websocket.close
 import io.ktor.websocket.readText
-import jp.co.soramitsu.xnetworking.networkclient.NetworkClientConfig
-import jp.co.soramitsu.xnetworking.networkclient.SoramitsuHttpClientProvider
-import jp.co.soramitsu.xnetworking.networkclient.WebSocketClientConfig
+import jp.co.soramitsu.xnetworking.basic.networkclient.NetworkClientConfig
+import jp.co.soramitsu.xnetworking.basic.networkclient.SoramitsuHttpClientProvider
+import jp.co.soramitsu.xnetworking.basic.networkclient.WebSocketClientConfig
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
