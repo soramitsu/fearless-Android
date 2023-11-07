@@ -59,21 +59,6 @@ class BalanceListFragment : BaseComposeFragment<BalanceListViewModel>() {
     private val soraCardSignIn = registerForActivityResult(
         SoraCardContract()
     ) { result ->
-        when (result) {
-            is SoraCardResult.Failure -> {}
-            is SoraCardResult.Canceled -> {}
-            is SoraCardResult.Success -> {
-                viewModel.updateSoraCardInfo(
-                    accessToken = result.accessToken,
-                    refreshToken = result.refreshToken,
-                    accessTokenExpirationTime = result.accessTokenExpirationTime,
-                    kycStatus = result.status.toString()
-                )
-            }
-
-            SoraCardResult.Logout -> TODO()
-            is SoraCardResult.NavigateTo -> TODO()
-        }
     }
 
     override fun onResume() {
