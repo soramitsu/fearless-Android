@@ -1,5 +1,6 @@
 package jp.co.soramitsu.wallet.impl.data.historySource
 
+import android.util.Log
 import jp.co.soramitsu.common.data.model.CursorPage
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
@@ -12,12 +13,12 @@ import jp.co.soramitsu.wallet.impl.domain.model.Operation
 import jp.co.soramitsu.xnetworking.basic.networkclient.SoramitsuNetworkClient
 import jp.co.soramitsu.xnetworking.basic.txhistory.TxHistoryItem
 import jp.co.soramitsu.xnetworking.basic.txhistory.TxHistoryResult
+import jp.co.soramitsu.xnetworking.fearlesswallet.txhistory.client.TxHistoryClientForFearlessWalletFactory
 import jp.co.soramitsu.xnetworking.sorawallet.mainconfig.SoraRemoteConfigBuilder
-import jp.co.soramitsu.xnetworking.sorawallet.txhistory.client.SubQueryClientForSoraWalletFactory
 
 class SoraHistorySource(
     private val soramitsuNetworkClient: SoramitsuNetworkClient,
-    private val soraSubqueryFactory: SubQueryClientForSoraWalletFactory,
+    private val soraTxHistoryFactory: TxHistoryClientForFearlessWalletFactory,
     private val soraProdRemoteConfigBuilder: SoraRemoteConfigBuilder,
     private val soraStageRemoteConfigBuilder: SoraRemoteConfigBuilder
 ) : HistorySource {
@@ -33,19 +34,28 @@ class SoraHistorySource(
         val soraStartPage = 1L
         val page = cursor?.toLongOrNull() ?: soraStartPage
 
-        val subQueryClientForSora = when (chain.id) {
-            soraMainChainId -> soraSubqueryFactory.create(soramitsuNetworkClient, pageSize, soraProdRemoteConfigBuilder)
-            soraTestChainId -> soraSubqueryFactory.create(soramitsuNetworkClient, pageSize, soraStageRemoteConfigBuilder)
+        val client = when (chain.id) {
+            soraMainChainId -> soraTxHistoryFactory.createSubSquid(soramitsuNetworkClient, pageSize)
+            soraTestChainId -> soraTxHistoryFactory.createSubSquid(soramitsuNetworkClient, pageSize)
             else -> return CursorPage(soraStartPage.toString(), emptyList())
         }
-
-        val soraHistory: TxHistoryResult<TxHistoryItem>? = subQueryClientForSora.getTransactionHistoryPaged(
+        val url = "https://squid.subsquid.io/sora/v/v4/graphql"
+        val soraHistory: TxHistoryResult<TxHistoryItem> = kotlin.runCatching { client.getTransactionHistoryPaged(
             accountAddress,
-            page
-        )
+            "sora",
+            page,
+            url
+        ) }.onFailure { Log.d("&&&", "sora history error: ${it}") }.getOrNull()!!
 
         val soraHistoryItems: List<TxHistoryItem> = soraHistory?.items.orEmpty()
-        val soraOperations = soraHistoryItems.mapNotNull { it.toOperation(chain, chainAsset, accountAddress, filters) }
+        val soraOperations = soraHistoryItems.mapNotNull {
+            it.toOperation(
+                chain,
+                chainAsset,
+                accountAddress,
+                filters
+            )
+        }
         return CursorPage(page.inc().toString(), soraOperations)
     }
 }
