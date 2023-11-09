@@ -111,51 +111,9 @@ class GetSoraCardViewModel @Inject constructor(
     }
 
     override fun onEnableCard() {
-        _launchSoraCardRegistration.value = Event(
-            SoraCardContractData(
-                locale = Locale.ENGLISH,
-                apiKey = BuildConfig.SORA_CARD_API_KEY,
-                domain = BuildConfig.SORA_CARD_DOMAIN,
-                kycCredentials = SoraCardKycCredentials(
-                    endpointUrl = BuildConfig.SORA_CARD_KYC_ENDPOINT_URL,
-                    username = BuildConfig.SORA_CARD_KYC_USERNAME,
-                    password = BuildConfig.SORA_CARD_KYC_PASSWORD
-                ),
-                environment = when {
-                    BuildConfig.DEBUG -> SoraCardEnvironmentType.TEST
-                    else -> SoraCardEnvironmentType.PRODUCTION
-                },
-                client = OptionsProvider.header,
-                userAvailableXorAmount = 0.0, // userAvailableXorAmount,
-                areAttemptsPaidSuccessfully = false, // will be available in Phase 2
-                isEnoughXorAvailable = false, // isEnoughXorAvailable,
-                isIssuancePaid = false // will be available in Phase 2
-            )
-        )
     }
 
     override fun onAlreadyHaveCard() {
-        _launchSoraCardSignIn.value = Event(
-            SoraCardContractData(
-                locale = Locale.ENGLISH,
-                apiKey = BuildConfig.SORA_CARD_API_KEY,
-                domain = BuildConfig.SORA_CARD_DOMAIN,
-                environment = when {
-                    BuildConfig.DEBUG -> SoraCardEnvironmentType.TEST
-                    else -> SoraCardEnvironmentType.PRODUCTION
-                },
-                kycCredentials = SoraCardKycCredentials(
-                    endpointUrl = BuildConfig.SORA_CARD_KYC_ENDPOINT_URL,
-                    username = BuildConfig.SORA_CARD_KYC_USERNAME,
-                    password = BuildConfig.SORA_CARD_KYC_PASSWORD
-                ),
-                client = OptionsProvider.header,
-                userAvailableXorAmount = 0.0, // userAvailableXorAmount,
-                areAttemptsPaidSuccessfully = false, // will be available in Phase 2
-                isEnoughXorAvailable = false, // isEnoughXorAvailable,
-                isIssuancePaid = false // will be available in Phase 2
-            )
-        )
     }
 
     override fun onNavigationClick() {

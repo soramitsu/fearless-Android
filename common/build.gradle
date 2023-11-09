@@ -153,6 +153,9 @@ dependencies {
     implementation progressButtonDep
 
     implementation wsDep
+    implementation xNetworkingBasicDep
+    implementation xNetworkingFearlessDep, withoutBasic
+    implementation xNetworkingSorawalletDep, withoutBasic
 
     implementation compose
     debugImplementation composeDebug

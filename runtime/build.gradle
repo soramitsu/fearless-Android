@@ -66,5 +66,5 @@ dependencies {
 
     api sharedFeaturesCoreDep
 
-    implementation web3jDep, withoutJavaWS
+    implementation web3jDep
 }

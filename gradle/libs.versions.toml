@@ -7,7 +7,7 @@ googleServices = "4.3.15"
 material = "1.8.0"
 coroutines = "1.6.4"
 soraUiCore = "0.1.4"
-soraCard = "0.1.9"
+soraCard = "0.1.64"
 kotlinxSerializationjson = "1.5.1"
 xNetworking = "0.2.3"
 retrofit = "2.9.0"
@@ -16,6 +16,7 @@ detekt = "1.23.0"
 kotlin = "1.8.10"
 dagger = "2.47"
 android_plugin = "7.4.2"
+#web3j = "4.8.8-android"
 
 [libraries]
 google-services = { module = "com.google.gms:google-services", version.ref = "googleServices" }
@@ -56,6 +57,7 @@ coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-androi
 
 detekt-formatting = { module = "io.gitlab.arturbosch.detekt:detekt-formatting", version.ref = "detekt" }
 detekt-cli = { module = "io.gitlab.arturbosch.detekt:detekt-cli", version.ref = "detekt" }
+
 
 [bundles]
 compose = [

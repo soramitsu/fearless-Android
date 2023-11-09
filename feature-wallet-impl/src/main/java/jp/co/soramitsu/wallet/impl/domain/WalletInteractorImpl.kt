@@ -314,8 +314,12 @@ class WalletInteractorImpl(
     }
 
     override fun tryReadAddressFromSoraFormat(content: String): String? {
-        val list = content.split(":")
-        return list.getOrNull(1)
+        return try {
+            val list = content.split(":")
+            list.getOrNull(1)
+        } catch (e: Exception) {
+            null
+        }
     }
 
     override suspend fun tryReadSoraAddressAndAmountFromUrl(content: String): Pair<String, BigDecimal?>? {

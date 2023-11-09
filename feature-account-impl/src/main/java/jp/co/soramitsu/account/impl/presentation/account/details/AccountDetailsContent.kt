@@ -128,7 +128,9 @@ internal fun AccountDetailsContent(
                                     title = item.chainName,
                                     subTitle = item.address,
                                     iconUrl = item.chainIcon,
-                                    actionIcon = R.drawable.ic_dots_horizontal_24
+                                    actionIcon = R.drawable.ic_dots_horizontal_24,
+                                    enabled = item.enabled,
+                                    subTitleIcon = R.drawable.ic_alert_16.takeIf { item.hasAccount.not() }
                                 ),
                                 onClick = {
                                     callback.chainAccountOptionsClicked(item)

@@ -66,7 +66,7 @@ class CollatorDetailsViewModel @Inject constructor(
         val rewardApr = rewardCalculator.getApyFor(collator.accountIdHex.fromHex())
 
         CollatorDetailsModel(
-            "0x${collator.accountIdHex}",
+            collator.accountIdHex,
             iconGenerator.createEthereumAddressModel(collator.accountIdHex, AddressIconGenerator.SIZE_MEDIUM).image,
             collator.identity?.let { identity ->
                 IdentityModel(
