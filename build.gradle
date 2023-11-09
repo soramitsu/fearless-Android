@@ -1,5 +1,6 @@
 apply from: './scripts/secrets.gradle'
 apply plugin: "detekt-setup"
+apply plugin: "org.sonarqube"
 
 buildscript {
     ext {
@@ -24,6 +25,7 @@ buildscript {
 
         progressButtonsVersion = '2.1.0'
         xNetworkingVersion = '0.2.3'
+
         soraCardVersion = '0.1.64'
         soraUiCoreVersion = '0.1.4'
 
@@ -229,6 +231,8 @@ buildscript {
         classpath "com.google.firebase:firebase-appdistribution-gradle:$firebaseAppDistrVersion"
         classpath "com.github.triplet.gradle:play-publisher:$playPublisherVersion"
         classpath "com.google.dagger:hilt-android-gradle-plugin:$daggerVersion"
+        classpath 'org.jacoco:org.jacoco.core:0.8.8'
+        classpath "org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:3.3"
     }
 
     configurations.all {
@@ -261,5 +265,5 @@ tasks.register('clean', Delete) {
 }
 
 task runTest(type: GradleBuild) {
-    tasks = ['clean', 'detektAll', 'runModuleTests']
+    tasks = ['clean', 'detektAll', 'runModuleTests', 'jacocoTestReport']
 }
