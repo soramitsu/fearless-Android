@@ -26,12 +26,10 @@ class RuntimeVersionSubscription(
             connection.socketService.subscriptionFlowCatching(SubscribeRuntimeVersionRequest)
                 .map { result -> result.map { it.runtimeVersionChange().specVersion } }
                 .onEach { runtimeVersionResult ->
-                    runtimeVersionResult.onSuccess { runtimeVersion ->
-                        chainDao.updateRemoteRuntimeVersion(
-                            chainId,
-                            runtimeVersion
-                        )
-                    }.onFailure { throw it }
+                    chainDao.updateRemoteRuntimeVersion(
+                        chainId,
+                        runtimeVersionResult.getOrNull() ?: 1
+                    )
 
                     runtimeSyncService.applyRuntimeVersion(chainId)
                 }
