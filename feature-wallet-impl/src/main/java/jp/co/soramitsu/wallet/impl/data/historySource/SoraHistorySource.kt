@@ -40,13 +40,16 @@ class SoraHistorySource(
             else -> return CursorPage(soraStartPage.toString(), emptyList())
         }
         val url = "https://squid.subsquid.io/sora/v/v4/graphql"
-        val soraHistory: TxHistoryResult<TxHistoryItem> = kotlin.runCatching { client.getTransactionHistoryPaged(
+        val soraHistory = kotlin.runCatching { client.getTransactionHistoryPaged(
             accountAddress,
             "sora",
             page,
             url
-        ) }.onFailure { Log.d("&&&", "sora history error: ${it}") }.getOrNull()!!
-
+        ) }.onFailure {
+            hashCode()
+            Log.d("&&&", "sora history error: ${it}")
+        }.getOrNull()
+        Log.d("&&&", "page size: $pageSize result size:${soraHistory?.items?.size}")
         val soraHistoryItems: List<TxHistoryItem> = soraHistory?.items.orEmpty()
         val soraOperations = soraHistoryItems.mapNotNull {
             it.toOperation(
@@ -56,6 +59,7 @@ class SoraHistorySource(
                 filters
             )
         }
+        Log.d("&&&", "mapped size: ${soraOperations.size}")
         return CursorPage(page.inc().toString(), soraOperations)
     }
 }

@@ -28,7 +28,8 @@ import jp.co.soramitsu.wallet.impl.presentation.model.OperationStatusAppearance
 import jp.co.soramitsu.xnetworking.basic.txhistory.TxHistoryItem
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
-
+// VAL
+const val SORA_REWARD_ASSET_ID = "24d0809e-0a4c-42ea-bdd8-dc7a518f389c"
 fun mapOperationStatusToOperationLocalStatus(status: Operation.Status) = when (status) {
     Operation.Status.PENDING -> OperationLocal.Status.PENDING
     Operation.Status.COMPLETED -> OperationLocal.Status.COMPLETED
@@ -176,6 +177,7 @@ fun TxHistoryItem.toOperation(chain: Chain, chainAsset: Asset, accountAddress: S
     val timeInMillis = timestamp.toLongOrNull()?.secondsToMillis() ?: 0
     val isTransferAllowed = filters.contains(TransactionFilter.TRANSFER) && method == "transfer"
     val isSwapAllowed = filters.contains(TransactionFilter.EXTRINSIC) && method == "swap"
+    val isRewardAllowed = filters.contains(TransactionFilter.REWARD) && method == "rewarded" && chainAsset.id == SORA_REWARD_ASSET_ID
 
     return when {
         isTransferAllowed -> {
@@ -226,6 +228,23 @@ fun TxHistoryItem.toOperation(chain: Chain, chainAsset: Asset, accountAddress: S
                     targetAssetAmount = targetAsset?.planksFromAmount(targetAssetAmount),
                     networkFee = chainAsset.planksFromAmount(networkFee.toBigDecimal().orZero()),
                     status = Operation.Status.fromSuccess(success)
+                )
+            )
+        }
+        isRewardAllowed -> {
+            val currencyId = data?.firstOrNull { it.paramName == "assetId" }?.paramValue
+            if (currencyId != chainAsset.currencyId) return null
+
+            Operation(
+                id = id,
+                address = accountAddress,
+                time = timeInMillis,
+                chainAsset = chainAsset,
+                type = Operation.Type.Reward(
+                    amount = chainAsset.planksFromAmount(data?.firstOrNull { it.paramName == "amount" }?.paramValue?.toBigDecimal().orZero()),
+                            isReward = true,
+                            era = data?.firstOrNull { it.paramName == "amount" }?.paramValue?.toIntOrNull() ?: 0,
+                            validator = null
                 )
             )
         }
