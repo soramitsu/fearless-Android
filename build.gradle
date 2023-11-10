@@ -5,7 +5,7 @@ buildscript {
     ext {
         // App version
         versionName = '3.0.4'
-        versionCode = 129
+        versionCode = 130
 
         // SDK and tools
         compileSdkVersion = 34
@@ -82,7 +82,7 @@ buildscript {
         minifyRelease = true
         beaconVersion = "3.2.4"
 
-        sharedFeaturesVersion = "1.1.1.13-SNAPSHOT"
+        sharedFeaturesVersion = "1.1.1.13-FLW"
 
         coilDep = "io.coil-kt:coil:$coilVersion"
         coilSvg = "io.coil-kt:coil-svg:$coilVersion"
