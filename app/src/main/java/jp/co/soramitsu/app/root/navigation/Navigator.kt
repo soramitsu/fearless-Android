@@ -12,6 +12,7 @@ import androidx.navigation.NavController
 import androidx.navigation.NavDeepLinkRequest
 import androidx.navigation.NavOptions
 import it.airgap.beaconsdk.blockchain.substrate.data.SubstrateSignerPayload
+import java.math.BigDecimal
 import jp.co.soramitsu.account.api.domain.model.ImportMode
 import jp.co.soramitsu.account.api.presentation.account.create.ChainAccountCreatePayload
 import jp.co.soramitsu.account.api.presentation.actions.AddAccountBottomSheet
@@ -611,7 +612,7 @@ class Navigator :
     }
 
     override val currentStackEntryLifecycle: Lifecycle
-        get() = navController!!.currentBackStackEntry!!.getLifecycle()
+        get() = navController!!.currentBackStackEntry!!.lifecycle
 
     override fun openControllerAccount() {
         navController?.navigate(R.id.action_stakingBalanceFragment_to_setControllerAccountFragment)
@@ -696,6 +697,12 @@ class Navigator :
 
     override fun openSend(assetPayload: AssetPayload?, initialSendToAddress: String?, currencyId: String?) {
         val bundle = SendSetupFragment.getBundle(assetPayload, initialSendToAddress, currencyId)
+
+        navController?.navigate(R.id.sendSetupFragment, bundle)
+    }
+
+    override fun openLockedAmountSend(assetPayload: AssetPayload?, initialSendToAddress: String?, currencyId: String?, amount: BigDecimal) {
+        val bundle = SendSetupFragment.getBundle(assetPayload, initialSendToAddress, currencyId, amount)
 
         navController?.navigate(R.id.sendSetupFragment, bundle)
     }
@@ -1141,7 +1148,7 @@ class Navigator :
     override val educationalStoriesCompleted: Flow<Boolean>
         get() {
             return combineLiveData(
-                navController?.currentBackStackEntry?.getLifecycle()?.onResumeObserver() ?: return flowOf(false),
+                navController?.currentBackStackEntry?.lifecycle?.onResumeObserver() ?: return flowOf(false),
                 navController?.currentBackStackEntry?.savedStateHandle?.getLiveData<Boolean>(StoryFragment.KEY_STORY) ?: return flowOf(false),
                 combiner = { (isResumed: Boolean, storiesCompleted: Boolean) ->
                     isResumed && storiesCompleted
@@ -1214,7 +1221,7 @@ class Navigator :
 
     override fun alertResultFlow(key: String): Flow<Result<Unit>> {
         val currentEntry = navController?.currentBackStackEntry
-        val onResumeObserver = currentEntry?.getLifecycle()?.onResumeObserver()
+        val onResumeObserver = currentEntry?.lifecycle?.onResumeObserver()
 
         return (onResumeObserver?.asFlow() ?: emptyFlow()).map {
             if (currentEntry?.savedStateHandle?.contains(key) == true) {
@@ -1229,7 +1236,7 @@ class Navigator :
 
     override fun listenAlertResultFlowFromStartSelectValidatorsScreen(key: String): Flow<Result<Unit>> {
         val currentEntry = navController?.getBackStackEntry(R.id.startSelectValidatorsFragment)
-        val onResumeObserver = currentEntry?.getLifecycle()?.onResumeObserver()
+        val onResumeObserver = currentEntry?.lifecycle?.onResumeObserver()
 
         return (onResumeObserver?.asFlow() ?: emptyFlow()).map {
             if (currentEntry?.savedStateHandle?.contains(key) == true) {
@@ -1244,7 +1251,7 @@ class Navigator :
 
     override fun listenAlertResultFlowFromStartChangeValidatorsScreen(key: String): Flow<Result<Unit>> {
         val currentEntry = navController?.getBackStackEntry(R.id.startChangeValidatorsFragment)
-        val onResumeObserver = currentEntry?.getLifecycle()?.onResumeObserver()
+        val onResumeObserver = currentEntry?.lifecycle?.onResumeObserver()
 
         return (onResumeObserver?.asFlow() ?: emptyFlow()).map {
             if (currentEntry?.savedStateHandle?.contains(key) == true) {
@@ -1259,7 +1266,7 @@ class Navigator :
 
     override fun listenAlertResultFlowFromNetworkIssuesScreen(key: String): Flow<Result<Unit>> {
         val currentEntry = navController?.getBackStackEntry(R.id.networkIssuesFragment)
-        val onResumeObserver = currentEntry?.getLifecycle()?.onResumeObserver()
+        val onResumeObserver = currentEntry?.lifecycle?.onResumeObserver()
 
         return (onResumeObserver?.asFlow() ?: emptyFlow()).map {
             if (currentEntry?.savedStateHandle?.contains(key) == true) {

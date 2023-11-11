@@ -12,7 +12,6 @@ import jp.co.soramitsu.shared_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.shared_utils.runtime.metadata.module
 import jp.co.soramitsu.shared_utils.runtime.metadata.storage
 import jp.co.soramitsu.shared_utils.runtime.metadata.storageKey
-import jp.co.soramitsu.wallet.api.data.cache.bind9420AccountInfo
 import jp.co.soramitsu.wallet.api.data.cache.bindAccountInfoOrDefault
 import jp.co.soramitsu.wallet.api.data.cache.bindAssetsAccountData
 import jp.co.soramitsu.wallet.api.data.cache.bindEquilibriumAccountData
@@ -66,19 +65,14 @@ fun constructBalanceKey(
 fun handleBalanceResponse(
     runtime: RuntimeSnapshot,
     assetType: ChainAssetType?,
-    scale: String?,
-    runtimeVersion: Int
+    scale: String?
 ): Result<AssetBalanceData> {
     return runCatching {
         when (assetType) {
             null,
             ChainAssetType.Normal,
             ChainAssetType.SoraUtilityAsset -> {
-                if (runtimeVersion >= 9420) {
-                    bind9420AccountInfo(scale, runtime)
-                } else {
-                    bindAccountInfoOrDefault(scale, runtime)
-                }
+                bindAccountInfoOrDefault(scale, runtime)
             }
 
             ChainAssetType.OrmlChain,

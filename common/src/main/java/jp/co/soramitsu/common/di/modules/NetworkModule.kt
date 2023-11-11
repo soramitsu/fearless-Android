@@ -21,6 +21,7 @@ import jp.co.soramitsu.shared_utils.wsrpc.SocketService
 import jp.co.soramitsu.shared_utils.wsrpc.logging.Logger
 import jp.co.soramitsu.shared_utils.wsrpc.recovery.Reconnector
 import jp.co.soramitsu.shared_utils.wsrpc.request.RequestExecutor
+import jp.co.soramitsu.xnetworking.basic.networkclient.SoramitsuNetworkClient
 import okhttp3.Cache
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -116,4 +117,9 @@ class NetworkModule {
     @Provides
     @Singleton
     fun provideJsonMapper() = Gson()
+
+//    @Provides
+//    @Singleton
+//    fun provideSoramitsuNetworkClient(): SoramitsuNetworkClient =
+//        SoramitsuNetworkClient(logging = BuildConfig.DEBUG)
 }

@@ -22,6 +22,7 @@ import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.theme.black05
 import jp.co.soramitsu.common.compose.theme.black2
+import jp.co.soramitsu.common.compose.theme.black3
 import jp.co.soramitsu.common.compose.theme.white24
 import jp.co.soramitsu.common.utils.withNoFontPadding
 
@@ -30,7 +31,9 @@ data class SelectorState(
     val subTitle: String?,
     val iconUrl: String?,
     val actionIcon: Int? = R.drawable.ic_arrow_down,
-    val clickable: Boolean = true
+    val clickable: Boolean = true,
+    val enabled: Boolean = true,
+    val subTitleIcon: Int? = null
 ) {
     companion object {
         val default = SelectorState("Network", null, null)
@@ -64,6 +67,7 @@ fun SelectorWithBorder(
                 AsyncImage(
                     model = getImageRequest(LocalContext.current, state.iconUrl),
                     contentDescription = state.title,
+                    alpha = if (state.enabled) 1f else 0.5f,
                     modifier = Modifier
                         .size(32.dp)
                         .align(Alignment.CenterVertically)
@@ -77,11 +81,26 @@ fun SelectorWithBorder(
             ) {
                 H5(
                     text = state.title.withNoFontPadding(),
-                    color = black2
+                    color = if (state.enabled) black2 else black3
                 )
 
-                state.subTitle?.let {
-                    B1(text = state.subTitle)
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    state.subTitleIcon?.let {
+                        Image(
+                            modifier = Modifier.padding(top = 2.dp),
+                            res = state.subTitleIcon
+                        )
+                        MarginHorizontal(margin = 4.dp)
+                    }
+
+                    state.subTitle?.let {
+                        B1(
+                            text = state.subTitle,
+                            color = if (state.enabled) Color.Unspecified else black2
+                        )
+                    }
                 }
             }
 
@@ -108,7 +127,7 @@ private fun SelectorWithBorderPreview() {
                 state = state
             )
             SelectorWithBorder(
-                state = state.copy(iconUrl = null)
+                state = state.copy(iconUrl = null, subTitleIcon = R.drawable.ic_alert_16)
             )
             SelectorWithBorder(
                 state = state.copy(subTitle = null)

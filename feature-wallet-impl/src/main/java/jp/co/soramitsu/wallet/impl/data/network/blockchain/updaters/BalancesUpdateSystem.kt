@@ -11,9 +11,11 @@ import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
 import jp.co.soramitsu.common.data.network.runtime.binding.ExtrinsicStatusEvent
 import jp.co.soramitsu.common.data.network.runtime.binding.SimpleBalanceData
 import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
+import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.requireException
 import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.core.models.Asset
+import jp.co.soramitsu.core.models.ChainAssetType
 import jp.co.soramitsu.core.updater.UpdateSystem
 import jp.co.soramitsu.core.updater.Updater
 import jp.co.soramitsu.core.utils.utilityAsset
@@ -31,6 +33,7 @@ import jp.co.soramitsu.shared_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.shared_utils.wsrpc.request.runtime.storage.SubscribeStorageRequest
 import jp.co.soramitsu.shared_utils.wsrpc.request.runtime.storage.storageChange
 import jp.co.soramitsu.wallet.api.data.cache.AssetCache
+import jp.co.soramitsu.wallet.api.data.cache.bindEquilibriumAccountData
 import jp.co.soramitsu.wallet.api.data.cache.updateAsset
 import jp.co.soramitsu.wallet.impl.data.mappers.mapOperationStatusToOperationLocalStatus
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.EthereumRemoteSource
@@ -107,13 +110,6 @@ class BalancesUpdateSystem(
         chain: Chain,
         metaAccount: MetaAccount
     ): Flow<Result<Any>> {
-        val runtimeVersion =
-            kotlin.runCatching {
-                chainRegistry.getRemoteRuntimeVersion(
-                    chain.id
-                )
-            }
-                .getOrNull() ?: 0
         val chainUpdateFlow =
             chainRegistry.getRuntimeProvider(chain.id).observeWithTimeout(RUNTIME_AWAITING_TIMEOUT)
                 .flatMapMerge { runtimeResult ->
@@ -151,28 +147,52 @@ class BalancesUpdateSystem(
                             val storageChange = subscriptionChange.storageChange()
                             val storageKeyToHex = storageChange.changes.map { it[0]!! to it[1] }
 
-                            storageKeys.map { keyWithMetadata ->
-                                val hexRaw =
-                                    storageKeyToHex.firstOrNull { it.first == keyWithMetadata.key }
+                            if (chain.utilityAsset != null && chain.utilityAsset!!.typeExtra == ChainAssetType.Equilibrium) {
+                                val storageKeyToHexRaw =
+                                    storageKeyToHex.singleOrNull() ?: return@combine Result.success(
+                                        Unit
+                                    )
+                                val eqHexRaw = storageKeyToHexRaw.second
+                                val balanceData = bindEquilibriumAccountData(eqHexRaw, runtime)
+                                val balances = balanceData?.data?.balances.orEmpty()
+                                chain.assets.forEach { asset ->
+                                    val balance = balances.getOrDefault(
+                                        asset.currencyId?.toBigInteger().orZero(), null
+                                    ).orZero()
+                                    val metadata =
+                                        storageKeys.firstOrNull { it.key == storageKeyToHexRaw.first }
+                                            ?: return@forEach
+                                    assetCache.updateAsset(
+                                        metadata.metaAccountId,
+                                        metadata.accountId,
+                                        asset,
+                                        SimpleBalanceData(balance)
+                                    )
+                                }
+                                return@combine Result.success(Unit)
+                            }
+
+                            storageKeyToHex.mapNotNull { (key, hexRaw) ->
+                                val metadata = storageKeys.firstOrNull { it.key == key }
+                                    ?: return@mapNotNull null
 
                                 val balanceData = handleBalanceResponse(
                                     runtime,
-                                    keyWithMetadata.asset.typeExtra,
-                                    hexRaw?.second,
-                                    runtimeVersion
+                                    metadata.asset.typeExtra,
+                                    hexRaw
                                 ).onFailure { logError(chain, it) }
 
                                 assetCache.updateAsset(
-                                    keyWithMetadata.metaAccountId,
-                                    keyWithMetadata.accountId,
-                                    keyWithMetadata.asset,
+                                    metadata.metaAccountId,
+                                    metadata.accountId,
+                                    metadata.asset,
                                     balanceData.getOrNull()
                                 )
 
                                 fetchTransfers(
                                     storageChange.block,
                                     chain,
-                                    keyWithMetadata.accountId
+                                    metadata.accountId
                                 )
                             }
                         }
@@ -198,7 +218,6 @@ class BalancesUpdateSystem(
                 val runtime =
                     runCatching { chainRegistry.getRuntimeOrNull(chain.id) }.getOrNull()
                         ?: return@forEach
-                val runtimeVersion = chainRegistry.getRemoteRuntimeVersion(chain.id) ?: 0
                 val socketService =
                     runCatching { chainRegistry.getSocket(chain.id) }.getOrNull()
                         ?: return@forEach
@@ -222,8 +241,7 @@ class BalancesUpdateSystem(
                     val balanceData = handleBalanceResponse(
                         runtime,
                         keyWithMetadata.asset.typeExtra,
-                        hexRaw,
-                        runtimeVersion
+                        hexRaw
                     ).onFailure { logError(chain, it) }
 
                     assetCache.updateAsset(
@@ -242,10 +260,10 @@ class BalancesUpdateSystem(
     }
 
     private fun singleUpdateFlow(): Flow<Unit> {
-         return combine(
+        return combine(
             ethBalancesFlow,
             substrateBalancesFlow
-        ) { _,_ ->
+        ) { _, _ ->
         }.onStart { emit(Unit) }.flowOn(Dispatchers.Default)
     }
 
@@ -256,6 +274,23 @@ class BalancesUpdateSystem(
     ): Result<List<StorageKeyWithMetadata>> {
         val accountId = metaAccount.accountId(chain)
             ?: return Result.failure(RuntimeException("Can't get account id for meta account ${metaAccount.name}, chain: ${chain.name}"))
+
+        if (chain.utilityAsset != null && chain.utilityAsset?.typeExtra == ChainAssetType.Equilibrium) {
+            val equilibriumStorageKeys = listOf(
+                constructBalanceKey(
+                    runtime,
+                    requireNotNull(chain.utilityAsset),
+                    accountId
+                )?.let {
+                    StorageKeyWithMetadata(
+                        requireNotNull(chain.utilityAsset),
+                        metaAccount.id,
+                        accountId,
+                        it
+                    )
+                })
+            return Result.success(equilibriumStorageKeys.filterNotNull())
+        }
 
         val storageKeys = chain.assets.map { asset ->
             constructBalanceKey(runtime, asset, accountId)?.let {
@@ -289,6 +324,10 @@ class BalancesUpdateSystem(
             result = 31 * result + metaAccountId.hashCode()
             result = 31 * result + accountId.contentHashCode()
             return result
+        }
+
+        override fun toString(): String {
+            return "StorageKeyWithMetadata(asset=${asset.name}, metaAccountId=$metaAccountId, key='$key')"
         }
     }
 

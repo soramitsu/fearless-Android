@@ -314,18 +314,24 @@ class WalletInteractorImpl(
     }
 
     override fun tryReadAddressFromSoraFormat(content: String): String? {
-        val list = content.split(":")
-        return list.getOrNull(1)
+        return try {
+            val list = content.split(":")
+            list.getOrNull(1)
+        } catch (e: Exception) {
+            null
+        }
     }
 
-    override suspend fun tryReadSoraAddressFromUrl(content: String): String? {
+    override suspend fun tryReadSoraAddressAndAmountFromUrl(content: String): Pair<String, BigDecimal?>? {
         return try {
             val uri = Uri.parse(content)
             val address = uri.getQueryParameter("wallAdd")
+            val amount = uri.getQueryParameter("amount")
+            val amountDecimal = runCatching { BigDecimal(amount) }.getOrNull()
 
             address?.takeIf {
                 getChain(soraMainChainId).isValidAddress(address)
-            }
+            }?.let { it to amountDecimal }
 
         } catch (e: Exception) {
             null

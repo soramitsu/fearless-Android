@@ -1,21 +1,22 @@
 [versions]
-compose = "1.4.3"
-composeFoundation = "1.5.0-beta03"
+compose = "1.5.1"
+composeFoundation = "1.5.1"
 fragmentKtx = "1.5.6"
 composeThemeAdapter = "1.2.1"
 googleServices = "4.3.15"
 material = "1.8.0"
 coroutines = "1.6.4"
 soraUiCore = "0.1.4"
-soraCard = "0.1.9"
+soraCard = "0.1.64"
 kotlinxSerializationjson = "1.5.1"
-xNetworking = "0.0.60"
+xNetworking = "0.2.3"
 retrofit = "2.9.0"
 gson = "2.10.1"
 detekt = "1.23.0"
 kotlin = "1.8.10"
 dagger = "2.47"
 android_plugin = "7.4.2"
+#web3j = "4.8.8-android"
 
 [libraries]
 google-services = { module = "com.google.gms:google-services", version.ref = "googleServices" }
@@ -27,8 +28,9 @@ gradleplugins-hiltAndroid = { module = "com.google.dagger:hilt-android-gradle-pl
 sora-ui = { module = "jp.co.soramitsu:ui-core", version.ref = "soraUiCore" }
 sora-card = { module = "jp.co.soramitsu:android-sora-card", version.ref = "soraCard" }
 
-xnetworking-android = { module = "jp.co.soramitsu:XNetworking-android", version.ref = "xNetworking" }
-
+xnetworking-fearless = { module = "jp.co.soramitsu.xnetworking:fearlesswallet-android", version.ref = "xNetworking" }
+xnetworking-basic = { module = "jp.co.soramitsu.xnetworking:basic-android", version.ref = "xNetworking" }
+xnetworking-sorawallet = { module = "jp.co.soramitsu.xnetworking:sorawallet-android", version.ref = "xNetworking" }
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerializationjson" }
@@ -55,6 +57,7 @@ coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-androi
 
 detekt-formatting = { module = "io.gitlab.arturbosch.detekt:detekt-formatting", version.ref = "detekt" }
 detekt-cli = { module = "io.gitlab.arturbosch.detekt:detekt-cli", version.ref = "detekt" }
+
 
 [bundles]
 compose = [

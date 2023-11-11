@@ -4,11 +4,11 @@ apply plugin: "detekt-setup"
 buildscript {
     ext {
         // App version
-        versionName = '3.0.3'
-        versionCode = 118
+        versionName = '3.0.4'
+        versionCode = 131
 
         // SDK and tools
-        compileSdkVersion = 33
+        compileSdkVersion = 34
         minSdkVersion = 24
         targetSdkVersion = 33
 
@@ -23,8 +23,8 @@ buildscript {
         biometricVersion = '1.1.0'
 
         progressButtonsVersion = '2.1.0'
-        xNetworkingVersion = '0.0.60'
-        soraCardVersion = '0.1.9'
+        xNetworkingVersion = '0.2.3'
+        soraCardVersion = '0.1.64'
         soraUiCoreVersion = '0.1.4'
 
         daggerVersion = '2.47'
@@ -37,7 +37,7 @@ buildscript {
         okhttpVersion = '5.0.0-alpha.11'
         gsonVersion = '2.10.1'
 
-        navControllerVersion = '2.5.3'
+        navControllerVersion = '2.7.0'
 
         junitVersion = '4.13.2'
         mockitoVersion = '5.2.0'
@@ -67,8 +67,8 @@ buildscript {
 
         androidxCoreVersion = '1.8.0'
 
-        composeVersion = '1.4.3'
-        composeFoundationVersion = '1.5.0-beta03'
+        composeVersion = '1.5.1'
+        composeFoundationVersion = '1.5.1'
         composeCompilerVersion = '1.4.4'
 
         appcompatVersion = '1.6.1'
@@ -82,7 +82,7 @@ buildscript {
         minifyRelease = true
         beaconVersion = "3.2.4"
 
-        sharedFeaturesVersion = "1.1.1.13-SNAPSHOT"
+        sharedFeaturesVersion = "1.1.1.13-FLW"
 
         coilDep = "io.coil-kt:coil:$coilVersion"
         coilSvg = "io.coil-kt:coil-svg:$coilVersion"
@@ -171,7 +171,10 @@ buildscript {
 
         soraCardDep = "jp.co.soramitsu:android-sora-card:$soraCardVersion"
         wsDep = "com.neovisionaries:nv-websocket-client:$wsVersion"
-        xNetworkingDep = "jp.co.soramitsu:XNetworking-android:$xNetworkingVersion"
+        withoutBasic = { exclude group: 'jp.co.soramitsu.xnetworking', module: 'basic' }
+        xNetworkingSorawalletDep = "jp.co.soramitsu.xnetworking:sorawallet-android:$xNetworkingVersion"
+        xNetworkingFearlessDep = "jp.co.soramitsu.xnetworking:fearlesswallet-android:$xNetworkingVersion"
+        xNetworkingBasicDep = "jp.co.soramitsu.xnetworking:basic-android:$xNetworkingVersion"
         soraUiCoreDep = "jp.co.soramitsu:ui-core:$soraUiCoreVersion"
 
         shimmerDep = "com.facebook.shimmer:shimmer:$shimmerVersion"
@@ -205,7 +208,7 @@ buildscript {
 
         web3jDep = "org.web3j:core:4.8.8-android"
 
-        withoutJavaWS = { exclude group: 'org.java-websocket', module: 'Java-WebSocket' }
+        withoutJavaWS = { exclude module: 'java-websocket-lib' }
 
         serializationDep = "org.jetbrains.kotlinx:kotlinx-serialization-json:$serializationVersion"
 

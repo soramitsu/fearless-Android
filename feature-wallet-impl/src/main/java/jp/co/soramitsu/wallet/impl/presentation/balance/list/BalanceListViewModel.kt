@@ -627,9 +627,10 @@ class BalanceListViewModel @Inject constructor(
 
     fun qrCodeScanned(content: String) {
         viewModelScope.launch {
-            val soraAddress = interactor.tryReadSoraAddressFromUrl(content)
-            if (soraAddress != null) {
-                openSendTokenToSora(soraAddress)
+            val soraAddressWithAmount = interactor.tryReadSoraAddressAndAmountFromUrl(content)
+            if (soraAddressWithAmount != null) {
+                val (soraAddress, amountDecimal) = soraAddressWithAmount
+                openSendTokenToSora(soraAddress, amountDecimal)
             } else {
                 val soraAddressOrContent =
                     interactor.tryReadAddressFromSoraFormat(content) ?: content
@@ -671,7 +672,7 @@ class BalanceListViewModel @Inject constructor(
         )
     }
 
-    private suspend fun openSendTokenToSora(soraAddress: String) {
+    private suspend fun openSendTokenToSora(soraAddress: String, amount: BigDecimal?) {
         val soraChainId = if (BuildConfig.DEBUG) soraTestChainId else soraMainChainId
         val soraChain = interactor.getChain(soraChainId)
         val sendAsset = soraChain.assets.firstOrNull { it.symbol.lowercase() == "usdt" }
@@ -679,11 +680,20 @@ class BalanceListViewModel @Inject constructor(
         val payload = sendAsset?.let {
             AssetPayload(it.chainId, it.id)
         }
-        router.openSend(
-            assetPayload = payload,
-            initialSendToAddress = soraAddress,
-            currencyId = sendAsset?.currencyId
-        )
+        if (amount == null) {
+            router.openSend(
+                assetPayload = payload,
+                initialSendToAddress = soraAddress,
+                currencyId = sendAsset?.currencyId
+            )
+        } else {
+            router.openLockedAmountSend(
+                assetPayload = payload,
+                initialSendToAddress = soraAddress,
+                currencyId = sendAsset?.currencyId,
+                amount = amount
+            )
+        }
     }
 
     fun openWalletSelector() {
@@ -730,27 +740,6 @@ class BalanceListViewModel @Inject constructor(
     }
 
     private fun onSoraCardStatusClicked() {
-        _launchSoraCardSignIn.value = Event(
-            SoraCardContractData(
-                locale = Locale.ENGLISH,
-                apiKey = BuildConfig.SORA_CARD_API_KEY,
-                domain = BuildConfig.SORA_CARD_DOMAIN,
-                environment = when {
-                    BuildConfig.DEBUG -> SoraCardEnvironmentType.TEST
-                    else -> SoraCardEnvironmentType.PRODUCTION
-                },
-                kycCredentials = SoraCardKycCredentials(
-                    endpointUrl = BuildConfig.SORA_CARD_KYC_ENDPOINT_URL,
-                    username = BuildConfig.SORA_CARD_KYC_USERNAME,
-                    password = BuildConfig.SORA_CARD_KYC_PASSWORD
-                ),
-                client = OptionsProvider.header,
-                userAvailableXorAmount = 0.0, // userAvailableXorAmount,
-                areAttemptsPaidSuccessfully = false, // will be available in Phase 2
-                isEnoughXorAvailable = false, // isEnoughXorAvailable,
-                isIssuancePaid = false // will be available in Phase 2
-            )
-        )
     }
 
     fun updateSoraCardInfo(

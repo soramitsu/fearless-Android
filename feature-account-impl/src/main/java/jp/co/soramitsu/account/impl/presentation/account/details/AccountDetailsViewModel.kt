@@ -184,6 +184,8 @@ class AccountDetailsViewModel @Inject constructor(
             else -> resourceManager.getDrawable(R.drawable.ic_warning_filled)
         }
 
+        val hasAddress = projection?.address != null
+
         AccountInChainUi(
             chainId = chain.id,
             chainName = chain.name,
@@ -194,7 +196,8 @@ class AccountDetailsViewModel @Inject constructor(
             accountFrom = accountInChain.from,
             isSupported = accountInChain.chain.isSupported,
             hasAccount = accountInChain.hasAccount,
-            markedAsNotNeed = accountInChain.markedAsNotNeed
+            markedAsNotNeed = accountInChain.markedAsNotNeed,
+            enabled = hasAddress
         )
     }
 

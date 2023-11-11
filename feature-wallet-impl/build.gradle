@@ -63,6 +63,7 @@ android {
 }
 
 dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation project(':core-db')
     implementation project(':common')
     implementation project(':feature-wallet-api')
@@ -108,7 +109,9 @@ dependencies {
     implementation retrofitDep
 
     implementation wsDep
-    implementation xNetworkingDep
+    implementation xNetworkingBasicDep
+    implementation xNetworkingFearlessDep, withoutBasic
+    implementation xNetworkingSorawalletDep, withoutBasic
 
     implementation zXingCoreDep
     implementation zXingEmbeddedDep
@@ -118,7 +121,7 @@ dependencies {
     implementation jnaDep
     implementation beaconDep, withoutJna
 
-    implementation soraCardDep
+    implementation soraCardDep, withoutJavaWS
 
     implementation shimmerDep
 
@@ -133,5 +136,5 @@ dependencies {
     implementation sharedFeaturesXcmDep
     implementation sharedFeaturesBackupDep
 
-    implementation web3jDep, withoutJavaWS
+    implementation web3jDep
 }

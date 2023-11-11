@@ -34,21 +34,6 @@ class GetSoraCardFragment : BaseComposeFragment<GetSoraCardViewModel>() {
     }
 
     private fun handleSoraCardResult(result: SoraCardResult) {
-        when (result) {
-            is SoraCardResult.Failure -> {}
-            is SoraCardResult.Canceled -> {}
-            is SoraCardResult.Success -> {
-                viewModel.updateSoraCardInfo(
-                    accessToken = result.accessToken,
-                    refreshToken = result.refreshToken,
-                    accessTokenExpirationTime = result.accessTokenExpirationTime,
-                    kycStatus = result.status.toString()
-                )
-            }
-
-            SoraCardResult.Logout -> {}
-            is SoraCardResult.NavigateTo -> {}
-        }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
