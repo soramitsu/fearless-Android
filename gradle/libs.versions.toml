@@ -1,6 +1,6 @@
 [versions]
-compose = "1.4.3"
-composeFoundation = "1.5.0-beta03"
+compose = "1.5.1"
+composeFoundation = "1.5.1"
 fragmentKtx = "1.5.6"
 composeThemeAdapter = "1.2.1"
 googleServices = "4.3.15"

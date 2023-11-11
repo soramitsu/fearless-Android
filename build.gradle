@@ -6,7 +6,7 @@ buildscript {
     ext {
         // App version
         versionName = '3.0.4'
-        versionCode = 128
+        versionCode = 131
 
         // SDK and tools
         compileSdkVersion = 34
@@ -69,8 +69,8 @@ buildscript {
 
         androidxCoreVersion = '1.8.0'
 
-        composeVersion = '1.4.3'
-        composeFoundationVersion = '1.5.0-beta03'
+        composeVersion = '1.5.1'
+        composeFoundationVersion = '1.5.1'
         composeCompilerVersion = '1.4.4'
 
         appcompatVersion = '1.6.1'
@@ -84,7 +84,7 @@ buildscript {
         minifyRelease = true
         beaconVersion = "3.2.4"
 
-        sharedFeaturesVersion = "1.1.1.13-SNAPSHOT"
+        sharedFeaturesVersion = "1.1.1.13-FLW"
 
         coilDep = "io.coil-kt:coil:$coilVersion"
         coilSvg = "io.coil-kt:coil-svg:$coilVersion"
