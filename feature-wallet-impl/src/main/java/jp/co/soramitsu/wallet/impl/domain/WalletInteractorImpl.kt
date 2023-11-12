@@ -32,7 +32,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId
 import jp.co.soramitsu.runtime.multiNetwork.chainWithAsset
 import jp.co.soramitsu.shared_utils.runtime.AccountId
-import jp.co.soramitsu.shared_utils.runtime.metadata.module
+import jp.co.soramitsu.shared_utils.runtime.metadata.moduleOrNull
 import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.toAddress
 import jp.co.soramitsu.wallet.impl.data.repository.HistoryRepository
 import jp.co.soramitsu.wallet.impl.domain.interfaces.AddressBookRepository
@@ -483,7 +483,7 @@ class WalletInteractorImpl(
         val relayStakingChains = allRelayChainStakingAssets.map { it.chainId }
 
         val chainsWithDeprecatedControllerAccount = relayStakingChains.filter {
-            chainRegistry.getRuntimeOrNull(it)?.metadata?.module(Modules.STAKING)?.calls?.get("set_controller")?.arguments?.isEmpty() == true
+            chainRegistry.getRuntimeOrNull(it)?.metadata?.moduleOrNull(Modules.STAKING)?.calls?.get("set_controller")?.arguments?.isEmpty() == true
         }
 
         return chainsWithDeprecatedControllerAccount.mapNotNull { chainId ->
