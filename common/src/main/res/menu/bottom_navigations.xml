@@ -17,6 +17,12 @@
         app:showAsAction="ifRoom" />
 
     <item
+        android:id="@+id/swapTokensFragmentPlaceholderForFAB"
+        android:enabled="false"
+        android:title="@string/common_action_swap"
+        app:showAsAction="ifRoom" />
+
+    <item
         android:id="@+id/stakingFragment"
         android:enabled="true"
         android:icon="@drawable/ic_nav_staking"

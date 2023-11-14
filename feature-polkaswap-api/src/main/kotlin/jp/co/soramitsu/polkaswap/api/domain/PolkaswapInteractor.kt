@@ -4,6 +4,7 @@ import java.math.BigDecimal
 import java.math.BigInteger
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.polkaswap.api.domain.models.SwapDetails
+import jp.co.soramitsu.polkaswap.api.models.DisclaimerVisibilityStatus
 import jp.co.soramitsu.polkaswap.api.models.Market
 import jp.co.soramitsu.polkaswap.api.models.WithDesired
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
@@ -18,6 +19,10 @@ interface PolkaswapInteractor {
 
     val polkaswapChainId: String
     var hasReadDisclaimer: Boolean
+
+    fun updateDisclaimerVisibilityStatus(status: DisclaimerVisibilityStatus)
+
+    fun observeDisclaimerVisibilityStatus(): Flow<DisclaimerVisibilityStatus>
 
     suspend fun getAsset(assetId: String): Asset?
     suspend fun getAvailableDexes(): List<BigInteger>
