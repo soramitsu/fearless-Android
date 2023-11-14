@@ -6,6 +6,10 @@ apply plugin: 'kotlin-parcelize'
 apply from: '../tests.gradle'
 apply from: '../scripts/secrets.gradle'
 
+kotlin {
+    jvmToolchain(11)
+}
+
 android {
     compileSdkVersion rootProject.compileSdkVersion
 
@@ -29,8 +33,6 @@ android {
 
     kotlinOptions {
         freeCompilerArgs = ["-Xallow-result-return-type"]
-
-        jvmTarget = '1.8'
     }
 
     composeOptions {
@@ -38,10 +40,6 @@ android {
         kotlinCompilerVersion kotlinVersion
     }
 
-    compileOptions {
-        sourceCompatibility 1.8
-        targetCompatibility 1.8
-    }
     namespace 'jp.co.soramitsu.feature_staking_impl'
 }
 

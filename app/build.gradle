@@ -10,6 +10,10 @@ apply plugin: 'com.google.firebase.appdistribution'
 apply plugin: "com.github.triplet.play"
 apply from: "../scripts/versions.gradle"
 
+kotlin {
+    jvmToolchain(11)
+}
+
 android {
     compileSdk rootProject.compileSdkVersion
     defaultConfig {
@@ -36,7 +40,7 @@ android {
     }
     buildTypes {
         debug {
-            minifyEnabled minifyRelease
+            minifyEnabled false
             proguardFiles 'proguard-rules.pro'
             applicationIdSuffix '.debug'
             versionNameSuffix '-debug'
@@ -102,15 +106,8 @@ android {
         }
     }
 
-    compileOptions {
-        sourceCompatibility 1.8
-        targetCompatibility 1.8
-    }
-
     kotlinOptions {
         freeCompilerArgs = ["-Xallow-result-return-type"]
-
-        jvmTarget = '1.8'
     }
     composeOptions {
         kotlinCompilerExtensionVersion composeCompilerVersion

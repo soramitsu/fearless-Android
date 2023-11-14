@@ -100,3 +100,42 @@
 # Needed by google-play-services when linking against an older platform version
 
 -dontwarn com.google.android.gms.**
+
+# This is generated automatically by the Android Gradle plugin.
+-dontwarn androidx.camera.extensions.impl.InitializerImpl$OnExtensionsDeinitializedCallback
+-dontwarn androidx.camera.extensions.impl.InitializerImpl$OnExtensionsInitializedCallback
+-dontwarn lombok.NonNull
+-dontwarn okhttp3.internal.Util
+-dontwarn org.jetbrains.kotlin.compiler.plugin.CliOption
+-dontwarn org.jetbrains.kotlin.compiler.plugin.CommandLineProcessor
+-dontwarn org.jetbrains.kotlin.compiler.plugin.ComponentRegistrar
+-dontwarn org.jetbrains.kotlin.diagnostics.DiagnosticFactory0
+-dontwarn org.jetbrains.kotlin.diagnostics.DiagnosticFactory1
+-dontwarn org.jetbrains.kotlin.diagnostics.DiagnosticFactory2
+-dontwarn org.jetbrains.kotlin.diagnostics.DiagnosticFactory3
+-dontwarn org.jetbrains.kotlin.diagnostics.Errors$Initializer
+-dontwarn org.jetbrains.kotlin.diagnostics.PositioningStrategies
+-dontwarn org.jetbrains.kotlin.diagnostics.PositioningStrategy
+-dontwarn org.jetbrains.kotlin.diagnostics.Severity
+-dontwarn org.jetbrains.kotlin.diagnostics.rendering.CommonRenderers
+-dontwarn org.jetbrains.kotlin.diagnostics.rendering.ContextIndependentParameterRenderer
+-dontwarn org.jetbrains.kotlin.diagnostics.rendering.DefaultErrorMessages$Extension
+-dontwarn org.jetbrains.kotlin.diagnostics.rendering.DiagnosticFactoryToRendererMap
+-dontwarn org.jetbrains.kotlin.diagnostics.rendering.DiagnosticParameterRenderer
+-dontwarn org.jetbrains.kotlin.diagnostics.rendering.Renderers
+-dontwarn org.jetbrains.kotlin.diagnostics.rendering.SmartDescriptorRenderer
+-dontwarn org.jetbrains.kotlin.diagnostics.rendering.SmartTypeRenderer
+-dontwarn org.slf4j.impl.StaticLoggerBinder
+-dontwarn org.w3c.dom.events.DocumentEvent
+-dontwarn org.w3c.dom.events.Event
+-dontwarn org.w3c.dom.events.EventException
+-dontwarn org.w3c.dom.events.EventListener
+-dontwarn org.w3c.dom.events.EventTarget
+-dontwarn org.w3c.dom.events.MutationEvent
+-dontwarn org.w3c.dom.ls.LSSerializerFilter
+-dontwarn org.w3c.dom.ranges.DocumentRange
+-dontwarn org.w3c.dom.ranges.Range
+-dontwarn org.w3c.dom.traversal.DocumentTraversal
+-dontwarn org.w3c.dom.traversal.NodeFilter
+-dontwarn org.w3c.dom.traversal.NodeIterator
+-dontwarn org.webrtc.Dav1dDecoder

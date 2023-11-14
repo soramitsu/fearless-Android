@@ -6,6 +6,10 @@ plugins {
     id("kotlin-parcelize")
 }
 
+kotlin {
+    jvmToolchain(11)
+}
+
 android {
     compileSdk = rootProject.ext["compileSdkVersion"] as Int
 
@@ -24,18 +28,10 @@ android {
         compose = true
     }
 
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
-    }
-
     composeOptions {
         kotlinCompilerExtensionVersion = rootProject.ext["composeCompilerVersion"] as String
     }
 
-    kotlinOptions {
-        jvmTarget = "1.8"
-    }
     namespace = "jp.co.soramitsu.feature_success_impl"
 }
 

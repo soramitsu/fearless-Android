@@ -4,6 +4,10 @@ apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
 apply plugin: 'kotlin-parcelize'
 
+kotlin {
+    jvmToolchain(11)
+}
+
 android {
     compileSdkVersion rootProject.compileSdkVersion
 
@@ -30,8 +34,6 @@ android {
 
     kotlinOptions {
         freeCompilerArgs = ["-Xallow-result-return-type"]
-
-        jvmTarget = '1.8'
 
     }
     namespace 'jp.co.soramitsu.runtime'

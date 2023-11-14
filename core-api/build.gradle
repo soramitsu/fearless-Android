@@ -1,6 +1,10 @@
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 
+kotlin {
+    jvmToolchain(11)
+}
+
 android {
     compileSdkVersion rootProject.compileSdkVersion
 
@@ -12,15 +16,8 @@ android {
 
     }
 
-    compileOptions {
-        sourceCompatibility 1.8
-        targetCompatibility 1.8
-    }
-
     kotlinOptions {
         freeCompilerArgs = ["-Xallow-result-return-type"]
-
-        jvmTarget = '1.8'
     }
     namespace 'jp.co.soramitsu.core'
 }

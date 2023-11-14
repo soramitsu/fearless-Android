@@ -6,6 +6,10 @@ apply plugin: 'kotlin-parcelize'
 apply from: '../tests.gradle'
 apply from: '../scripts/secrets.gradle'
 
+kotlin {
+    jvmToolchain(11)
+}
+
 android {
     compileSdkVersion rootProject.compileSdkVersion
 
@@ -46,15 +50,8 @@ android {
         compose = true
     }
 
-    compileOptions {
-        sourceCompatibility 1.8
-        targetCompatibility 1.8
-    }
-
     kotlinOptions {
         freeCompilerArgs = ["-Xallow-result-return-type"]
-
-        jvmTarget = '1.8'
     }
     composeOptions {
         kotlinCompilerExtensionVersion composeCompilerVersion
