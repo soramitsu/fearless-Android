@@ -22,6 +22,9 @@ class SoraHistorySource(
     private val soraProdRemoteConfigBuilder: SoraRemoteConfigBuilder,
     private val soraStageRemoteConfigBuilder: SoraRemoteConfigBuilder
 ) : HistorySource {
+
+    private val client = soraTxHistoryFactory.createSubSquid(soramitsuNetworkClient, 100)
+
     override suspend fun getOperations(
         pageSize: Int,
         cursor: String?,
@@ -33,12 +36,8 @@ class SoraHistorySource(
     ): CursorPage<Operation> {
         val soraStartPage = 1L
         val page = cursor?.toLongOrNull() ?: soraStartPage
+        Log.d("&&&", "loading page #$page, cursor $cursor")
 
-        val client = when (chain.id) {
-            soraMainChainId -> soraTxHistoryFactory.createSubSquid(soramitsuNetworkClient, pageSize)
-            soraTestChainId -> soraTxHistoryFactory.createSubSquid(soramitsuNetworkClient, pageSize)
-            else -> return CursorPage(soraStartPage.toString(), emptyList())
-        }
         val url = "https://squid.subsquid.io/sora/v/v4/graphql"
         val soraHistory = kotlin.runCatching { client.getTransactionHistoryPaged(
             accountAddress,
@@ -51,14 +50,14 @@ class SoraHistorySource(
         }.getOrNull()
         Log.d("&&&", "page size: $pageSize result size:${soraHistory?.items?.size}")
         val soraHistoryItems: List<TxHistoryItem> = soraHistory?.items.orEmpty()
-        val soraOperations = soraHistoryItems.mapNotNull {
+        val soraOperations = runCatching { soraHistoryItems.mapNotNull {
             it.toOperation(
                 chain,
                 chainAsset,
                 accountAddress,
                 filters
             )
-        }
+        } }.onFailure { Log.d("&&&", "mapping error: $it") }.getOrNull() ?: emptyList()
         Log.d("&&&", "mapped size: ${soraOperations.size}")
         return CursorPage(page.inc().toString(), soraOperations)
     }

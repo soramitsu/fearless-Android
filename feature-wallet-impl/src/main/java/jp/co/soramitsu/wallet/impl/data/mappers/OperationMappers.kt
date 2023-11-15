@@ -28,19 +28,22 @@ import jp.co.soramitsu.wallet.impl.presentation.model.OperationStatusAppearance
 import jp.co.soramitsu.xnetworking.basic.txhistory.TxHistoryItem
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
+
 // VAL
 const val SORA_REWARD_ASSET_ID = "24d0809e-0a4c-42ea-bdd8-dc7a518f389c"
+
 fun mapOperationStatusToOperationLocalStatus(status: Operation.Status) = when (status) {
     Operation.Status.PENDING -> OperationLocal.Status.PENDING
     Operation.Status.COMPLETED -> OperationLocal.Status.COMPLETED
     Operation.Status.FAILED -> OperationLocal.Status.FAILED
 }
 
-private fun mapOperationStatusLocalToOperationStatus(status: OperationLocal.Status) = when (status) {
-    OperationLocal.Status.PENDING -> Operation.Status.PENDING
-    OperationLocal.Status.COMPLETED -> Operation.Status.COMPLETED
-    OperationLocal.Status.FAILED -> Operation.Status.FAILED
-}
+private fun mapOperationStatusLocalToOperationStatus(status: OperationLocal.Status) =
+    when (status) {
+        OperationLocal.Status.PENDING -> Operation.Status.PENDING
+        OperationLocal.Status.COMPLETED -> Operation.Status.COMPLETED
+        OperationLocal.Status.FAILED -> Operation.Status.FAILED
+    }
 
 private val Operation.Type.operationAmount
     get() = when (this) {
@@ -168,16 +171,25 @@ fun mapOperationLocalToOperation(
             address = address,
             type = operationType,
             time = time,
-            chainAsset = chain.assets.firstOrNull { it.id == operationLocal.chainAssetId } ?: chainAsset
+            chainAsset = chain.assets.firstOrNull { it.id == operationLocal.chainAssetId }
+                ?: chainAsset
         )
     }
 }
 
-fun TxHistoryItem.toOperation(chain: Chain, chainAsset: Asset, accountAddress: String, filters: Set<TransactionFilter>): Operation? {
+fun TxHistoryItem.toOperation(
+    chain: Chain,
+    chainAsset: Asset,
+    accountAddress: String,
+    filters: Set<TransactionFilter>
+): Operation? {
     val timeInMillis = timestamp.toLongOrNull()?.secondsToMillis() ?: 0
     val isTransferAllowed = filters.contains(TransactionFilter.TRANSFER) && method == "transfer"
     val isSwapAllowed = filters.contains(TransactionFilter.EXTRINSIC) && method == "swap"
-    val isRewardAllowed = filters.contains(TransactionFilter.REWARD) && method == "rewarded" && chainAsset.id == SORA_REWARD_ASSET_ID
+    val isRewardAllowed =
+        filters.contains(TransactionFilter.REWARD) && method.lowercase() == "rewarded" && chainAsset.id == SORA_REWARD_ASSET_ID
+    val stakingAllowed =
+        filters.contains(TransactionFilter.EXTRINSIC) && module == "staking" && method != "rewarded"
 
     return when {
         isTransferAllowed -> {
@@ -192,7 +204,10 @@ fun TxHistoryItem.toOperation(chain: Chain, chainAsset: Asset, accountAddress: S
                 type = Operation.Type.Transfer(
                     hash = blockHash,
                     myAddress = data?.firstOrNull { it.paramName == "from" }?.paramValue.orEmpty(),
-                    amount = chainAsset.planksFromAmount(data?.firstOrNull { it.paramName == "amount" }?.paramValue?.toBigDecimal().orZero()),
+                    amount = chainAsset.planksFromAmount(
+                        data?.firstOrNull { it.paramName == "amount" }?.paramValue?.toBigDecimal()
+                            .orZero()
+                    ),
                     receiver = data?.firstOrNull { it.paramName == "to" }?.paramValue.orEmpty(),
                     sender = data?.firstOrNull { it.paramName == "from" }?.paramValue.orEmpty(),
                     status = Operation.Status.fromSuccess(success),
@@ -200,18 +215,26 @@ fun TxHistoryItem.toOperation(chain: Chain, chainAsset: Asset, accountAddress: S
                 )
             )
         }
+
         isSwapAllowed -> {
             val baseCurrencyId = data?.firstOrNull { it.paramName == "baseAssetId" }?.paramValue
             val targetCurrencyId = data?.firstOrNull { it.paramName == "targetAssetId" }?.paramValue
             if (chainAsset.currencyId !in listOf(baseCurrencyId, targetCurrencyId)) return null
 
-            val baseAsset = chain.assets.firstOrNull { it.currencyId == baseCurrencyId } ?: return null
-            val baseAssetAmount = data?.firstOrNull { it.paramName == "baseAssetAmount" }?.paramValue?.toBigDecimal().orZero()
+            val baseAsset =
+                chain.assets.firstOrNull { it.currencyId == baseCurrencyId } ?: return null
+            val baseAssetAmount =
+                data?.firstOrNull { it.paramName == "baseAssetAmount" }?.paramValue?.toBigDecimal()
+                    .orZero()
 
             val targetAsset = chain.assets.firstOrNull { it.currencyId == targetCurrencyId }
-            val targetAssetAmount = data?.firstOrNull { it.paramName == "targetAssetAmount" }?.paramValue?.toBigDecimal().orZero()
+            val targetAssetAmount =
+                data?.firstOrNull { it.paramName == "targetAssetAmount" }?.paramValue?.toBigDecimal()
+                    .orZero()
 
-            val liquidityProviderFee = data?.firstOrNull { it.paramName == "liquidityProviderFee" }?.paramValue?.toBigDecimal().orZero()
+            val liquidityProviderFee =
+                data?.firstOrNull { it.paramName == "liquidityProviderFee" }?.paramValue?.toBigDecimal()
+                    .orZero()
 
             Operation(
                 id = id,
@@ -231,24 +254,48 @@ fun TxHistoryItem.toOperation(chain: Chain, chainAsset: Asset, accountAddress: S
                 )
             )
         }
-        isRewardAllowed -> {
-            val currencyId = data?.firstOrNull { it.paramName == "assetId" }?.paramValue
-            if (currencyId != chainAsset.currencyId) return null
 
+        isRewardAllowed -> {
             Operation(
                 id = id,
                 address = accountAddress,
                 time = timeInMillis,
                 chainAsset = chainAsset,
                 type = Operation.Type.Reward(
-                    amount = chainAsset.planksFromAmount(data?.firstOrNull { it.paramName == "amount" }?.paramValue?.toBigDecimal().orZero()),
-                            isReward = true,
-                            era = data?.firstOrNull { it.paramName == "amount" }?.paramValue?.toIntOrNull() ?: 0,
-                            validator = null
+                    amount = chainAsset.planksFromAmount(
+                        data?.firstOrNull { it.paramName == "amount" }?.paramValue?.toBigDecimal()
+                            .orZero()
+                    ),
+                    isReward = true,
+                    era = data?.firstOrNull { it.paramName == "era" }?.paramValue?.toIntOrNull()
+                        ?: 0,
+                    validator = null
                 )
             )
         }
+
+        stakingAllowed -> {
+            Operation(
+                id = id,
+                address = accountAddress,
+                time = timeInMillis,
+                chainAsset = chainAsset,
+                type = Operation.Type.Extrinsic(
+                    hash = blockHash,
+                    module = module,
+                    call = method,
+                    status = Operation.Status.fromSuccess(success),
+                    fee = runCatching {
+                        chainAsset.planksFromAmount(
+                            networkFee.toBigDecimal().orZero()
+                        )
+                    }.getOrNull().orZero()
+                )
+            )
+        }
+
         else -> null
+
     }
 }
 
@@ -318,7 +365,8 @@ private fun formatDetailsAmount(chainAsset: Asset, reward: Operation.Type.Reward
 
 private fun formatSwapInfo(chainAsset: Asset, swap: Operation.Type.Swap): String {
     val baseAmountFormatted = swap.baseAssetAmount.formatCryptoFromPlanks(chainAsset)
-    val targetAmountFormatted = swap.targetAsset?.let { swap.targetAssetAmount.orZero().formatCryptoFromPlanks(it) }
+    val targetAmountFormatted =
+        swap.targetAsset?.let { swap.targetAssetAmount.orZero().formatCryptoFromPlanks(it) }
     return baseAmountFormatted + swap.targetAsset?.let { " ➝ $targetAmountFormatted" }.orEmpty()
 }
 
@@ -334,7 +382,9 @@ private fun mapStatusToStatusAppearance(status: Operation.Status): OperationStat
     }
 }
 
-private fun Operation.Type.Extrinsic.formatted() = listOf(module, call).associateWith { formatted(it) }
+private fun Operation.Type.Extrinsic.formatted() =
+    listOf(module, call).associateWith { formatted(it) }
+
 private fun Operation.Type.Extrinsic.formattedAndReplaced() = listOf(module, call).associateWith {
     when (it) {
         call -> when {
@@ -342,6 +392,7 @@ private fun Operation.Type.Extrinsic.formattedAndReplaced() = listOf(module, cal
             module == Modules.CROWDLOAN && formatted(call) == "Contribute" -> "Contribute fee"
             else -> formatted(call)
         }
+
         else -> formatted(it)
     }
 }
@@ -386,7 +437,10 @@ suspend fun mapOperationToOperationModel(
                     amountColor = amountColor,
                     header = nameIdentifier.nameOrAddress(operationType.displayAddress),
                     statusAppearance = statusAppearance,
-                    operationIcon = iconGenerator.createAddressIcon(operationType.displayAddress, AddressIconGenerator.SIZE_BIG),
+                    operationIcon = iconGenerator.createAddressIcon(
+                        operationType.displayAddress,
+                        AddressIconGenerator.SIZE_BIG
+                    ),
                     subHeader = resourceManager.getString(R.string.transfer_title),
                     type = operationType.toModel()
                 )
@@ -398,10 +452,12 @@ suspend fun mapOperationToOperationModel(
                     time = time,
                     amount = operationType.fee.formatFee(chainAsset),
                     amountColor = if (operationType.status == Operation.Status.FAILED) gray2 else white,
-                    header = operationType.formattedAndReplaced()[operationType.call] ?: operationType.call,
+                    header = operationType.formattedAndReplaced()[operationType.call]
+                        ?: operationType.call,
                     statusAppearance = statusAppearance,
                     operationIcon = null,
-                    subHeader = operationType.formattedAndReplaced()[operationType.module] ?: operationType.module,
+                    subHeader = operationType.formattedAndReplaced()[operationType.module]
+                        ?: operationType.module,
                     type = operationType.toModel(),
                     assetIconUrl = chainAsset.iconUrl
                 )
@@ -444,9 +500,8 @@ fun mapOperationToParcel(
     with(operation) {
         return when (val operationType = operation.type) {
             is Operation.Type.Transfer -> {
-
-                val operationFee = operationType.fee
-                val feeFormatted = if (operationFee == null || utilityAsset == null) {
+                val operationFee = operationType.fee ?: BigInteger.ZERO 
+                val feeFormatted = if (utilityAsset == null) {
                     resourceManager.getString(R.string.common_unknown)
                 } else {
                     operationFee.formatFee(utilityAsset)
@@ -482,8 +537,10 @@ fun mapOperationToParcel(
                     time = time,
                     originAddress = address,
                     hash = operationType.hash,
-                    module = operationType.formattedAndReplaced()[operationType.module] ?: operationType.module,
-                    call = operationType.formattedAndReplaced()[operationType.call] ?: operationType.call,
+                    module = operationType.formattedAndReplaced()[operationType.module]
+                        ?: operationType.module,
+                    call = operationType.formattedAndReplaced()[operationType.call]
+                        ?: operationType.call,
                     fee = operationType.fee.formatFee(chainAsset),
                     statusAppearance = mapStatusToStatusAppearance(operationType.operationStatus)
                 )
