@@ -43,6 +43,7 @@ fun constructBalanceKey(
             ChainAssetType.SoraAsset,
             ChainAssetType.AssetId,
             ChainAssetType.Token2,
+            ChainAssetType.Xcm,
             ChainAssetType.LiquidCrowdloan -> runtime.metadata.tokens().storage("Accounts")
                 .storageKey(runtime, accountId, currency)
 
@@ -85,6 +86,7 @@ fun handleBalanceResponse(
             ChainAssetType.VSToken,
             ChainAssetType.AssetId,
             ChainAssetType.Token2,
+            ChainAssetType.Xcm,
             ChainAssetType.Stable -> {
                 bindOrmlTokensAccountDataOrDefault(scale, runtime)
             }
