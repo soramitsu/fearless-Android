@@ -156,11 +156,11 @@ class ChainRegistry @Inject constructor(
 
     fun getConnectionOrNull(chainId: String) = connectionPool.getConnectionOrNull(chainId)
 
-    fun getRuntimeProvider(chainId: String): RuntimeProvider {
+    suspend fun getRuntimeProvider(chainId: String): RuntimeProvider {
         return runtimeProviderPool.getRuntimeProvider(chainId)
     }
 
-    fun getRuntimeProviderOrNull(chainId: String): RuntimeProvider? {
+    suspend fun getRuntimeProviderOrNull(chainId: String): RuntimeProvider? {
         return runtimeProviderPool.getRuntimeProviderOrNull(chainId)
     }
 
@@ -249,7 +249,7 @@ suspend fun ChainRegistry.getRuntimeCatching(chainId: ChainId): Result<RuntimeSn
 fun ChainRegistry.getSocket(chainId: ChainId) = getConnection(chainId).socketService
 fun ChainRegistry.getSocketOrNull(chainId: ChainId) = getConnectionOrNull(chainId)?.socketService
 
-fun ChainRegistry.getService(chainId: ChainId) = ChainService(
+suspend fun ChainRegistry.getService(chainId: ChainId) = ChainService(
     runtimeProvider = getRuntimeProvider(chainId),
     connection = getConnection(chainId)
 )
