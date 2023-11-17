@@ -96,6 +96,7 @@ class WssSubstrateSource(
         ChainAssetType.SoraAsset,
         ChainAssetType.AssetId,
         ChainAssetType.Token2,
+        ChainAssetType.Xcm,
         ChainAssetType.Stable -> {
             getOrmlTokensAccountData(chainAsset, accountId)
         }
@@ -307,6 +308,7 @@ class WssSubstrateSource(
             ChainAssetType.VSToken,
             ChainAssetType.Token2,
             ChainAssetType.AssetId,
+            ChainAssetType.Xcm,
             ChainAssetType.Stable -> ormlAssetTransfer(accountId, transfer)
 
             ChainAssetType.Equilibrium -> equilibriumAssetTransfer(accountId, transfer)
