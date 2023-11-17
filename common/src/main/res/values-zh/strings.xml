@@ -50,6 +50,7 @@
   <string name="account_template">%s账户</string>
   <string name="accounts_add_account">添加一个账户</string>
   <string name="accounts_for_export">要导出的账户</string>
+  <string name="accounts_not_found">未找到任何账户</string>
   <string name="accounts_with_changed_key">已更改密钥的账户</string>
   <string name="accounts_with_one_key">共享密钥的账户</string>
   <string name="add_node_button_title">添加节点</string>
@@ -59,14 +60,14 @@
   <string name="alert_add_ethereum_message">添加Moonbeam和Moonriver账户？</string>
   <string name="alert_add_ethereum_title">ETH账户</string>
   <string name="alert_oversubscribed_alert_message">在这个时间段，你将无法从验证人那里获得奖励。</string>
-  <string name="alert_oversubscribed_alert_title">超额认购</string>
+  <string name="alert_oversubscribed_alert_title">超额抵押</string>
   <string name="alert_suggested_validators">算法验证人推荐并不构成金融咨询或建议。质押是一项高风险活动，算法验证人推荐并不能完全消除这种风险。\n\n由算法推荐的验证人仍然可能被惩罚。由算法推荐的验证人也可以在被推荐和/或选择之后随时更改其参数（例如佣金率等）。\n\n您可能因为这些原因或其他原因而失去代币或奖励。请在进行尽职调查并慎重考虑所涉及风险后，根据自己的判断和谨慎使用质押代币和验证人推荐。</string>
   <string name="all_done">全部完成</string>
   <string name="all_done_alert_result_stub">结果</string>
   <string name="all_done_alert_success_stub">成功</string>
   <string name="already_have_account">我已经有一个账户</string>
   <string name="app_version_unsupported_text">我们不再支持这个版本的应用程序。请更新它。</string>
-  <string name="applied_fearless_wallet_bonus">Fearless钱包奖金已申请</string>
+  <string name="applied_fearless_wallet_bonus">Fearless钱包奖励已生效</string>
   <string name="apply_fearless_referal_wallet">点击即可推荐 Fearless Wallet 以获得奖金</string>
   <string name="apply_fearless_wallet_bonus">点按即可申请Fearless钱包奖金</string>
   <string name="assetdetails_balance_locked">锁定的</string>
@@ -151,7 +152,7 @@
   <string name="common_amount_low">金额太低</string>
   <string name="common_and">和</string>
   <string name="common_applied">已应用</string>
-  <string name="common_apply">申请</string>
+  <string name="common_apply">应用</string>
   <string name="common_available_format">可用：%s</string>
   <string name="common_backup_your_wallet">备份你的钱包</string>
   <string name="common_balance">余额</string>
@@ -244,6 +245,7 @@
   <string name="common_proceed">继续</string>
   <string name="common_read">阅读</string>
   <string name="common_receive_alert_description">这是Polkadot钱包。请只在Polkadot区块链上发送资产。</string>
+  <string name="common_request">请求</string>
   <string name="common_reset">重置</string>
   <string name="common_retry">重试</string>
   <string name="common_route">路径</string>
@@ -683,7 +685,7 @@
   <string name="share_referral_code">分享推荐码</string>
   <string name="social_media">社交媒体</string>
   <string name="sora_card_annual_service_fee">0欧元年度服务费</string>
-  <string name="sora_card_blacklisted_countires_title">不符合申请条件</string>
+  <string name="sora_card_blacklisted_countires_title">申请被排除</string>
   <string name="sora_card_blacklisted_countires_warning"><![CDATA[目前，来自<b>某些国家的居民<br>无法申请</b>SORA卡片。<br><a href=\"https://soracard.com/blacklist/\">查看名单</a>]]></string>
   <string name="sora_card_enable_card_title">启用卡片</string>
   <string name="sora_card_get_sora_card">获取SORA卡</string>
@@ -817,7 +819,7 @@
   <string name="staking_recommended_collators_empty_text">您的质押金额低于算法建议的所有验证人最低要求。请增加质押金额或手动选择一个验证人。</string>
   <string name="staking_recommended_custom_title">选择自定义验证人</string>
   <string name="staking_recommended_feature_1">最赚钱</string>
-  <string name="staking_recommended_feature_2">未超额认购</string>
+  <string name="staking_recommended_feature_2">未超额抵押</string>
   <string name="staking_recommended_feature_3">拥有链上身份</string>
   <string name="staking_recommended_feature_4">未惩罚</string>
   <string name="staking_recommended_feature_5">每个身份仅限 2 个验证人</string>
@@ -920,9 +922,9 @@
   <string name="staking_validator_apy_percent">预计奖励（% APY）</string>
   <string name="staking_validator_estimated_reward">预计奖励</string>
   <string name="staking_validator_info_title">验证人信息</string>
-  <string name="staking_validator_my_oversubscribed_message">超额认购。在这个时间段，您将无法从验证人那里获得奖励。</string>
+  <string name="staking_validator_my_oversubscribed_message">超额抵押。在这个时间段，您将无法从验证人那里获得奖励。</string>
   <string name="staking_validator_nominators">提名人</string>
-  <string name="staking_validator_other_oversubscribed_message">超额认购。只有最高质押的提名人才能获得奖励支付。</string>
+  <string name="staking_validator_other_oversubscribed_message">超额抵押。只有最高质押的提名人才能获得奖励支付。</string>
   <string name="staking_validator_own_stake">自己的</string>
   <string name="staking_validator_search_empty_title">没有搜索结果。\n请确保您输入了完整的账户地址</string>
   <string name="staking_validator_slashed_desc">验证人在网络中因不当行为（例如离线、攻击网络或运行修改过的软件）而被惩罚。</string>
@@ -941,7 +943,7 @@
   <string name="staking_your_nominated_format">已提名：%s</string>
   <string name="staking_your_not_allocated_description">其他没有您的质押分配而活跃的人。</string>
   <string name="staking_your_not_elected_format">未当选（%s）。</string>
-  <string name="staking_your_oversubscribed_message">您的代币已分配给超额认购的验证人。在本时间段内，您将无法获得奖励。</string>
+  <string name="staking_your_oversubscribed_message">您的代币已分配给超额抵押的验证人。在本时间段内，您将无法获得奖励。</string>
   <string name="staking_your_stake">你的质押</string>
   <string name="staking_your_validators">你的验证人</string>
   <string name="staking_your_validators_changing_title">你的验证人将在下一个时间段发生变化。</string>
@@ -966,7 +968,7 @@
   <string name="switch_node">切换节点</string>
   <string name="switch_node_autoselect_title">自动选择节点</string>
   <string name="tabbar_crowdloan_attention">请检查众贷选项卡\n需要注意</string>
-  <string name="tabbar_extrinsics_title">外部交易</string>
+  <string name="tabbar_extrinsics_title">外部信息</string>
   <string name="tabbar_governance_title">治理</string>
   <string name="tabbar_polkaswap_title">Polkaswap</string>
   <string name="tabbar_profile_title">个人资料</string>
@@ -997,6 +999,7 @@
   <string name="username_setup_choose_title_2_0">钱包昵称</string>
   <string name="username_setup_hint">此名称仅会显示给您，并且仅在您的移动设备上本地存储。</string>
   <string name="username_setup_title_2_0">创建一个新的钱包</string>
+  <string name="validator_info_comission_title">佣金</string>
   <string name="validator_not_elected_description">此账户尚未被网络选中参与当前时间段</string>
   <string name="validators_list_empty_message">未找到验证人。请尝试更改过滤器。</string>
   <string name="view_in">在%s中查看</string>
