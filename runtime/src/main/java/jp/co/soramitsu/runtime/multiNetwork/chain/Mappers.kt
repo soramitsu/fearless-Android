@@ -196,7 +196,7 @@ fun mapChainLocalToChain(chainLocal: JoinedChainInfo): Chain {
             isTestNet = chainLocal.chain.isTestNet,
             supportStakingPool = chainLocal.chain.supportStakingPool,
             isUtility = it.isUtility ?: false,
-            type = it.type?.let { ChainAssetType.valueOf(it) },
+            type = it.type?.let { runCatching { ChainAssetType.valueOf(it) }.getOrNull() },
             currencyId = it.currencyId,
             existentialDeposit = it.existentialDeposit,
             color = it.color,
