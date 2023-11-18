@@ -3,7 +3,6 @@ package jp.co.soramitsu.common.view
 import android.annotation.SuppressLint
 import android.content.Context
 import android.util.AttributeSet
-import com.google.android.material.bottomappbar.BottomAppBarTopEdgeTreatment
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.shape.MaterialShapeDrawable
 import com.google.android.material.shape.ShapeAppearanceModel
@@ -27,21 +26,15 @@ class BottomNavigationViewWithFAB @JvmOverloads constructor(
             R.styleable.FabBottomNavigationView_fab_cradle_margin, 0f
         )
 
-        val fabCradleRoundedCornerRadius = viewAttrs.getDimension(
-            R.styleable.FabBottomNavigationView_fab_cradle_rounded_corner_radius, 0f
-        )
-
         val cradleVerticalOffset = viewAttrs.getDimension(
             R.styleable.FabBottomNavigationView_cradle_vertical_offset, 0f
         )
 
-        val topCurvedEdgeTreatment = BottomAppBarTopEdgeTreatment(
+        val topCurvedEdgeTreatment = BottomNavigationWithFABTopEdgeTreatment(
+            fabSize,
             fabCradleMargin,
-            fabCradleRoundedCornerRadius,
             cradleVerticalOffset
         )
-
-        topCurvedEdgeTreatment.fabDiameter = fabSize
 
         val shapeAppearanceModel = ShapeAppearanceModel.Builder()
             .setTopEdge(topCurvedEdgeTreatment)

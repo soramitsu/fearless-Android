@@ -249,10 +249,12 @@ suspend fun ChainRegistry.getRuntimeCatching(chainId: ChainId): Result<RuntimeSn
 fun ChainRegistry.getSocket(chainId: ChainId) = getConnection(chainId).socketService
 fun ChainRegistry.getSocketOrNull(chainId: ChainId) = getConnectionOrNull(chainId)?.socketService
 
-suspend fun ChainRegistry.getService(chainId: ChainId) = ChainService(
-    runtimeProvider = getRuntimeProvider(chainId),
-    connection = getConnection(chainId)
-)
+suspend fun ChainRegistry.getService(chainId: ChainId): ChainService {
+    return ChainService(
+        runtimeProvider = getRuntimeProvider(chainId),
+        connection = getConnection(chainId)
+    )
+}
 
 fun Chain.toSyncIssue(): NetworkIssueItemState {
     return NetworkIssueItemState(

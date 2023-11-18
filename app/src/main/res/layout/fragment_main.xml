@@ -27,12 +27,14 @@
         app:labelVisibilityMode="unlabeled"
         app:elevation="0dp"
         app:fab_size="@dimen/floating_action_button_size"
-        app:fab_cradle_margin="@dimen/x1_5" />
+        app:fab_cradle_margin="@dimen/x1"
+        app:cradle_vertical_offset="-16dp"/>
 
     <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
         android:id="@+id/fabMain"
         android:layout_width="@dimen/floating_action_button_size"
         android:layout_height="@dimen/floating_action_button_size"
+        android:translationY="16dp"
         app:icon="@drawable/ic_polkaswap_fab"
         app:iconSize="@dimen/floating_action_button_icon_size"
         app:iconTint="@color/white"
