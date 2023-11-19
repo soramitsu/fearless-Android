@@ -739,6 +739,9 @@ class Navigator :
     }
 
     override fun openSwapTokensScreen(chainId: String?, assetIdFrom: String?, assetIdTo: String?) {
+        if (navController?.currentDestination?.id == R.id.swapTokensFragment)
+            return
+
         val bundle = SwapTokensFragment.getBundle(chainId, assetIdFrom, assetIdTo)
 
         navController?.navigate(R.id.swapTokensFragment, bundle)
@@ -859,6 +862,9 @@ class Navigator :
     }
 
     override fun openPolkaswapDisclaimer(disclaimerAppearanceSource: DisclaimerAppearanceSource) {
+        if (navController?.currentDestination?.id == R.id.polkaswapDisclaimerFragment)
+            return
+
         val bundle = PolkaswapDisclaimerFragment.getBundle(disclaimerAppearanceSource)
 
         navController?.navigate(R.id.polkaswapDisclaimerFragment, bundle)
