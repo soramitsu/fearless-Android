@@ -9,12 +9,12 @@
         <shape
             android:shape="ring"
             android:useLevel="false"
-            android:thickness="16dp"
+            android:thickness="12dp"
             android:innerRadius="28dp" >
 
             <gradient
                 android:type="radial"
-                android:gradientRadius="55%p"
+                android:gradientRadius="50%p"
 
                 android:startColor="#FF0066"
                 android:endColor="@android:color/transparent"/>

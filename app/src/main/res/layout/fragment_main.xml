@@ -22,12 +22,13 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
+        android:backgroundTint="@color/black80"
         app:menu="@menu/bottom_navigations"
         app:itemIconTint="@drawable/bottom_navigation_tint_color_selector"
         app:labelVisibilityMode="unlabeled"
         app:elevation="0dp"
         app:fab_size="@dimen/floating_action_button_size"
-        app:fab_cradle_margin="@dimen/x1"
+        app:fab_cradle_margin="@dimen/x1_5"
         app:cradle_vertical_offset="-16dp"/>
 
     <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
@@ -37,8 +38,7 @@
         android:translationY="16dp"
         app:icon="@drawable/ic_polkaswap_fab"
         app:iconSize="@dimen/floating_action_button_icon_size"
-        app:iconTint="@color/white"
-        app:iconTintMode="multiply"
+        app:iconTint="@null"
         app:backgroundTint="@android:color/transparent"
         app:elevation="@dimen/x2"
         app:pressedTranslationZ="@dimen/x2"
