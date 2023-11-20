@@ -1,4 +1,4 @@
-@Library('jenkins-library')
+@Library('jenkins-library@feature/DOPS-2587-add-deepsecrets')
 
 // Job properties
 def jobParams = [
