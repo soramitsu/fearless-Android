@@ -1,6 +1,5 @@
 package jp.co.soramitsu.wallet.impl.presentation.transaction.history.mixin
 
-import android.util.Log
 import io.ktor.util.collections.ConcurrentSet
 import jp.co.soramitsu.account.api.presentation.account.AddressDisplayUseCase
 import jp.co.soramitsu.common.address.AddressIconGenerator
@@ -143,7 +142,7 @@ class TransactionHistoryProvider(
                     )
                     _state.emit(TransactionHistoryUi.State.Empty(message))
                 }.onSuccess {
-
+                    nextCursor = it.nextCursor
                 }
 
                 firstPageSyncJob?.cancel()
@@ -152,7 +151,7 @@ class TransactionHistoryProvider(
 
     }
 
-    var nextPageLoading = false
+    private var nextPageLoading = false
 
     override fun scrolled(currentIndex: Int, assetPayload: AssetPayload) {
         val pageLoaded = currentData.size / PAGE_SIZE
@@ -163,37 +162,43 @@ class TransactionHistoryProvider(
         val isIndexEnoughToLoadNextPage = currentIndex >= currentPageOffset
 
         if (hasDataToLoad.not() ||
+            isIndexEnoughToLoadNextPage.not() ||
+            isNextPageLoaded ||
             nextPageLoading
         ) {
             return
         }
 
         launch {
-            nextPageLoading = true
-            walletInteractor.getOperations(
-                assetPayload.chainId,
-                assetPayload.chainAssetId,
-                PAGE_SIZE,
-                nextCursor,
-                historyFiltersProvider.currentFilters()
-            )
-                .onFailure {
-                    nextPageLoading = false
-                    _sideEffects.emit(
-                        TransactionHistoryUi.SideEffect.Error(
-                            it.localizedMessage ?: it.localizedMessage
-                        )
-                    )
-                }.onSuccess {
-                    nextCursor = it.nextCursor
-                    if (it.isEmpty()) {
-                        return@onSuccess
-                    }
-                    currentData.addAll(it.items)
-                    nextPageLoading = false
-                    _state.emit(TransactionHistoryUi.State.Data(transformData(currentData)))
-                }
+            loadNextPage(assetPayload)
         }
+    }
+
+    private suspend fun loadNextPage(assetPayload: AssetPayload) {
+        nextPageLoading = true
+        walletInteractor.getOperations(
+            assetPayload.chainId,
+            assetPayload.chainAssetId,
+            PAGE_SIZE,
+            nextCursor,
+            historyFiltersProvider.currentFilters()
+        )
+            .onFailure {
+                nextPageLoading = false
+                _sideEffects.emit(
+                    TransactionHistoryUi.SideEffect.Error(
+                        it.localizedMessage ?: it.localizedMessage
+                    )
+                )
+            }.onSuccess {
+                nextCursor = it.nextCursor
+                nextPageLoading = false
+                if (it.isEmpty()) {
+                    return@onSuccess
+                }
+                currentData.addAll(it.items)
+                _state.emit(TransactionHistoryUi.State.Data(transformData(currentData)))
+            }
     }
 
     override fun transactionClicked(

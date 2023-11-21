@@ -32,6 +32,9 @@ import kotlin.time.toDuration
 // VAL
 const val SORA_REWARD_ASSET_ID = "24d0809e-0a4c-42ea-bdd8-dc7a518f389c"
 
+// XOR
+const val SORA_STAKING_ASSET_ID = "b774c386-5cce-454a-a845-1ec0381538ec"
+
 fun mapOperationStatusToOperationLocalStatus(status: Operation.Status) = when (status) {
     Operation.Status.PENDING -> OperationLocal.Status.PENDING
     Operation.Status.COMPLETED -> OperationLocal.Status.COMPLETED
@@ -184,12 +187,14 @@ fun TxHistoryItem.toOperation(
     filters: Set<TransactionFilter>
 ): Operation? {
     val timeInMillis = timestamp.toLongOrNull()?.secondsToMillis() ?: 0
-    val isTransferAllowed = filters.contains(TransactionFilter.TRANSFER) && method == "transfer"
-    val isSwapAllowed = filters.contains(TransactionFilter.EXTRINSIC) && method == "swap"
+    val isTransferAllowed =
+        filters.contains(TransactionFilter.TRANSFER) && method.lowercase() == "transfer"
+    val isSwapAllowed =
+        filters.contains(TransactionFilter.EXTRINSIC) && method.lowercase() == "swap"
     val isRewardAllowed =
         filters.contains(TransactionFilter.REWARD) && method.lowercase() == "rewarded" && chainAsset.id == SORA_REWARD_ASSET_ID
     val stakingAllowed =
-        filters.contains(TransactionFilter.EXTRINSIC) && module == "staking" && method != "rewarded"
+        filters.contains(TransactionFilter.EXTRINSIC) && module.lowercase() == "staking" && method.lowercase() != "rewarded" && chainAsset.id == SORA_STAKING_ASSET_ID
 
     return when {
         isTransferAllowed -> {
@@ -211,7 +216,7 @@ fun TxHistoryItem.toOperation(
                     receiver = data?.firstOrNull { it.paramName == "to" }?.paramValue.orEmpty(),
                     sender = data?.firstOrNull { it.paramName == "from" }?.paramValue.orEmpty(),
                     status = Operation.Status.fromSuccess(success),
-                    fee = chainAsset.planksFromAmount(networkFee.toBigDecimal().orZero())
+                    fee = runCatching { networkFee.toBigInteger() }.getOrNull()
                 )
             )
         }
@@ -249,7 +254,8 @@ fun TxHistoryItem.toOperation(
                     selectedMarket = data?.firstOrNull { it.paramName == "selectedMarket" }?.paramValue,
                     targetAsset = targetAsset,
                     targetAssetAmount = targetAsset?.planksFromAmount(targetAssetAmount),
-                    networkFee = chainAsset.planksFromAmount(networkFee.toBigDecimal().orZero()),
+                    networkFee = runCatching { networkFee.toBigInteger().orZero() }.getOrNull()
+                        .orZero(),
                     status = Operation.Status.fromSuccess(success)
                 )
             )
@@ -285,11 +291,7 @@ fun TxHistoryItem.toOperation(
                     module = module,
                     call = method,
                     status = Operation.Status.fromSuccess(success),
-                    fee = runCatching {
-                        chainAsset.planksFromAmount(
-                            networkFee.toBigDecimal().orZero()
-                        )
-                    }.getOrNull().orZero()
+                    fee = runCatching { networkFee.toBigInteger().orZero() }.getOrNull().orZero()
                 )
             )
         }
