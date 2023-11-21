@@ -29,5 +29,5 @@
 
     <dimen name="floating_action_button_size">56dp</dimen>
     <!-- [fab_image_max_size] is 10dp less than [floating_action_button_size] -->
-    <dimen name="floating_action_button_icon_size">80dp</dimen>
+    <dimen name="floating_action_button_icon_size">86dp</dimen>
 </resources>
