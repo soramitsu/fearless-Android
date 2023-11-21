@@ -123,12 +123,14 @@ sealed class StakeViewState<S>(
     initialManageActions: Set<ManageStakeAction>
 ) : StakingViewStateOld() {
 
-    val assetFlow = currentAssetFlow.filter { it.token.configuration.chainId == stakeState.chain.id }
+    val assetFlow =
+        currentAssetFlow.filter { it.token.configuration.chainId == stakeState.chain.id }
 
     val manageStakingActionsButtonVisible = initialManageActions.isNotEmpty()
 
     private val _showManageActionsEvent = MutableLiveData<Event<ManageStakingBottomSheet.Payload>>()
-    val showManageActionsEvent: LiveData<Event<ManageStakingBottomSheet.Payload>> = _showManageActionsEvent
+    val showManageActionsEvent: LiveData<Event<ManageStakingBottomSheet.Payload>> =
+        _showManageActionsEvent
 
     private val availableManageActionsFlow = MutableStateFlow(initialManageActions)
 
@@ -147,18 +149,24 @@ sealed class StakeViewState<S>(
     init {
         scope.launch {
             assetFlow.collect {
-                val supportedValidatorsLoadingBlockExplorerTypes = setOf(Chain.ExternalApi.Section.Type.SUBQUERY, Chain.ExternalApi.Section.Type.SUBSQUID)
+                val supportedValidatorsLoadingBlockExplorerTypes = setOf(
+                    Chain.ExternalApi.Section.Type.SUBQUERY,
+                    Chain.ExternalApi.Section.Type.SUBSQUID
+                )
                 if (stakeState.chain.externalApi?.staking?.type !in supportedValidatorsLoadingBlockExplorerTypes) {
-                    availableManageActionsFlow.value = initialManageActions.toMutableSet().apply { remove(ManageStakeAction.PAYOUTS) }
+                    availableManageActionsFlow.value = initialManageActions.toMutableSet()
+                        .apply { remove(ManageStakeAction.PAYOUTS) }
                 } else {
-                    availableManageActionsFlow.value = initialManageActions.toMutableSet().apply { add(ManageStakeAction.PAYOUTS) }
+                    availableManageActionsFlow.value =
+                        initialManageActions.toMutableSet().apply { add(ManageStakeAction.PAYOUTS) }
                 }
             }
         }
     }
 
     fun moreActionsClicked() {
-        _showManageActionsEvent.value = Event(ManageStakingBottomSheet.Payload(availableManageActionsFlow.value))
+        _showManageActionsEvent.value =
+            Event(ManageStakingBottomSheet.Payload(availableManageActionsFlow.value))
     }
 
     val stakeSummaryFlow = combine(assetFlow, summaryFlowProvider(stakeState)) { asset, summary ->
@@ -181,13 +189,17 @@ sealed class StakeViewState<S>(
 
     protected fun syncStakingRewards() {
         scope.launch {
-            val syncResult = stakingInteractor.syncStakingRewards(stakeState.chain.id, stakeState.rewardsAddress)
+            val syncResult =
+                stakingInteractor.syncStakingRewards(stakeState.chain.id, stakeState.rewardsAddress)
 
             syncResult.exceptionOrNull()?.let { errorDisplayer(it) }
         }
     }
 
-    protected open suspend fun buildStakeSummaryModel(asset: Asset, summary: StakeSummary<S>): StakeSummaryModel<S> {
+    protected open suspend fun buildStakeSummaryModel(
+        asset: Asset,
+        summary: StakeSummary<S>
+    ): StakeSummaryModel<S> {
         val token = asset.token
         val tokenType = token.configuration
 
@@ -197,7 +209,10 @@ sealed class StakeViewState<S>(
             totalStakedFiat = token.fiatAmount(summary.totalStaked)?.formatFiat(token.fiatSymbol),
             totalRewards = summary.totalReward.formatCryptoDetail(tokenType.symbol),
             totalRewardsFiat = token.fiatAmount(summary.totalReward)?.formatFiat(token.fiatSymbol),
-            currentEraDisplay = resourceManager.getString(R.string.staking_era_title, summary.currentEra)
+            currentEraDisplay = resourceManager.getString(
+                R.string.staking_era_title,
+                summary.currentEra
+            )
         )
     }
 
@@ -222,7 +237,10 @@ class ValidatorViewState(
 ) : StakeViewState<ValidatorStatus>(
     validatorState, currentAssetFlow, stakingInteractor,
     resourceManager, scope, router, errorDisplayer,
-    summaryFlowProvider = { relayChainScenarioInteractor.observeValidatorSummary(validatorState).shareIn(scope, SharingStarted.Eagerly, replay = 1) },
+    summaryFlowProvider = {
+        relayChainScenarioInteractor.observeValidatorSummary(validatorState)
+            .shareIn(scope, SharingStarted.Eagerly, replay = 1)
+    },
     statusMessageProvider = { getValidatorStatusTitleAndMessage(resourceManager, it) },
     initialManageActions = ManageStakeAction.values().toSet() - ManageStakeAction.VALIDATORS
 ) {
@@ -257,7 +275,10 @@ class StashNoneViewState(
 ) : StakeViewState<StashNoneStatus>(
     stashState, currentAssetFlow, stakingInteractor,
     resourceManager, scope, router, errorDisplayer,
-    summaryFlowProvider = { relayChainScenarioInteractor.observeStashSummary(stashState).shareIn(scope, SharingStarted.Eagerly, replay = 1) },
+    summaryFlowProvider = {
+        relayChainScenarioInteractor.observeStashSummary(stashState)
+            .shareIn(scope, SharingStarted.Eagerly, replay = 1)
+    },
     statusMessageProvider = { getStashStatusTitleAndMessage(resourceManager, it) },
     initialManageActions = ManageStakeAction.values().toSet() - ManageStakeAction.PAYOUTS
 ) {
@@ -302,7 +323,7 @@ open class NominatorViewState(
 
 @Deprecated("All ViewStates should be provided and created in staking type aware ViewModels")
 class SoraNominatorViewState(
-    private val nominatorState: StakingState.Stash.Nominator,
+    nominatorState: StakingState.Stash.Nominator,
     currentAssetFlow: Flow<Asset>,
     stakingInteractor: StakingInteractor,
     relayChainScenarioInteractor: StakingRelayChainScenarioInteractor,
@@ -311,12 +332,31 @@ class SoraNominatorViewState(
     scope: CoroutineScope,
     router: StakingRouter,
     errorDisplayer: (Throwable) -> Unit
-) : NominatorViewState(nominatorState, currentAssetFlow, stakingInteractor, relayChainScenarioInteractor, resourceManager, scope, router, errorDisplayer) {
+) : NominatorViewState(
+    nominatorState,
+    currentAssetFlow,
+    stakingInteractor,
+    relayChainScenarioInteractor,
+    resourceManager,
+    scope,
+    router,
+    errorDisplayer
+) {
 
-    override suspend fun buildStakeSummaryModel(asset: Asset, summary: StakeSummary<NominatorStatus>): StakeSummaryModel<NominatorStatus> {
+    override suspend fun buildStakeSummaryModel(
+        asset: Asset,
+        summary: StakeSummary<NominatorStatus>
+    ): StakeSummaryModel<NominatorStatus> {
         val rewardToken = soraStakingRewardsScenario.getRewardAsset()
+        val totalRewards = summary.totalReward.formatCryptoDetail(rewardToken.configuration.symbol)
+        val rewardsFiat = rewardToken.fiatAmount(summary.totalReward)
+            ?.formatFiat(rewardToken.fiatSymbol)
+
         return super.buildStakeSummaryModel(asset, summary)
-            .copy(totalRewards = "N/A", totalRewardsFiat = rewardToken.fiatAmount(summary.totalReward)?.formatFiat(rewardToken.fiatSymbol))
+            .copy(
+                totalRewards = totalRewards,
+                totalRewardsFiat = rewardsFiat
+            )
     }
 }
 
@@ -377,7 +417,8 @@ sealed class WelcomeViewState(
     val enteredAmountFlow = MutableStateFlow("")
 
     protected val parsedAmountFlow =
-        enteredAmountFlow.mapNotNull { it.toBigDecimalOrNull() ?: BigDecimal.ZERO }.stateIn(scope, SharingStarted.Eagerly, BigDecimal.ZERO)
+        enteredAmountFlow.mapNotNull { it.toBigDecimalOrNull() ?: BigDecimal.ZERO }
+            .stateIn(scope, SharingStarted.Eagerly, BigDecimal.ZERO)
 
     protected abstract val rewardCalculator: Deferred<RewardCalculator>
 
@@ -386,23 +427,29 @@ sealed class WelcomeViewState(
     abstract fun infoActionClicked()
     abstract fun nextClicked()
 
-    protected val _showRewardEstimationEvent = MutableLiveData<Event<StakingRewardEstimationBottomSheet.Payload>>()
-    val showRewardEstimationEvent: LiveData<Event<StakingRewardEstimationBottomSheet.Payload>> = _showRewardEstimationEvent
+    protected val _showRewardEstimationEvent =
+        MutableLiveData<Event<StakingRewardEstimationBottomSheet.Payload>>()
+    val showRewardEstimationEvent: LiveData<Event<StakingRewardEstimationBottomSheet.Payload>> =
+        _showRewardEstimationEvent
 
     protected suspend fun rewardCalculator(): RewardCalculator {
         return rewardCalculator.await()
     }
 
-    val assetLiveData = currentAssetFlow.map { mapAssetToAssetModel(it, resourceManager) }.asLiveData(scope)
+    val assetLiveData =
+        currentAssetFlow.map { mapAssetToAssetModel(it, resourceManager) }.asLiveData(scope)
 
-    val amountFiat = parsedAmountFlow.combine(currentAssetFlow) { amount, asset -> asset.token.fiatAmount(amount)?.formatFiat(asset.token.fiatSymbol) }
+    val amountFiat = parsedAmountFlow.combine(currentAssetFlow) { amount, asset ->
+        asset.token.fiatAmount(amount)?.formatFiat(asset.token.fiatSymbol)
+    }
         .asLiveData(scope)
 
     init {
         scope.launch {
-            setupStakingSharedState.setupStakingProcess.filterIsInstance<SetupStakingProcess.Initial>().collect {
-                enteredAmountFlow.value = it.defaultAmount.toString()
-            }
+            setupStakingSharedState.setupStakingProcess.filterIsInstance<SetupStakingProcess.Initial>()
+                .collect {
+                    enteredAmountFlow.value = it.defaultAmount.toString()
+                }
         }
     }
 }
@@ -429,20 +476,26 @@ open class RelaychainWelcomeViewState(
     validationSystem,
     validationExecutor
 ) {
-    val chainId = currentAssetFlow.filter { it.token.configuration.staking == CoreAsset.StakingType.RELAYCHAIN }.map { it.token.configuration.chainId }
+    val chainId =
+        currentAssetFlow.filter { it.token.configuration.staking == CoreAsset.StakingType.RELAYCHAIN }
+            .map { it.token.configuration.chainId }
 
-    override val rewardCalculator = scope.async { rewardCalculatorFactory.create(currentAssetFlow.first().token.configuration) }
+    override val rewardCalculator =
+        scope.async { rewardCalculatorFactory.create(currentAssetFlow.first().token.configuration) }
 
-    override val returns: Flow<ReturnsModel> = currentAssetFlow.combine(parsedAmountFlow) { asset, amount ->
-        val chainId = asset.token.configuration.chainId
-        val monthly = rewardCalculator().calculateReturns(amount, PERIOD_MONTH, true, chainId)
-        val yearly = rewardCalculator().calculateReturns(amount, PERIOD_YEAR, true, chainId)
+    override val returns: Flow<ReturnsModel> =
+        currentAssetFlow.combine(parsedAmountFlow) { asset, amount ->
+            val chainId = asset.token.configuration.chainId
+            val monthly = rewardCalculator().calculateReturns(amount, PERIOD_MONTH, true, chainId)
+            val yearly = rewardCalculator().calculateReturns(amount, PERIOD_YEAR, true, chainId)
 
-        val monthlyEstimation = mapPeriodReturnsToRewardEstimation(monthly, asset.token, resourceManager)
-        val yearlyEstimation = mapPeriodReturnsToRewardEstimation(yearly, asset.token, resourceManager)
+            val monthlyEstimation =
+                mapPeriodReturnsToRewardEstimation(monthly, asset.token, resourceManager)
+            val yearlyEstimation =
+                mapPeriodReturnsToRewardEstimation(yearly, asset.token, resourceManager)
 
-        ReturnsModel(monthlyEstimation, yearlyEstimation)
-    }.cancellable().shareIn(scope, SharingStarted.Eagerly, replay = 1)
+            ReturnsModel(monthlyEstimation, yearlyEstimation)
+        }.cancellable().shareIn(scope, SharingStarted.Eagerly, replay = 1)
 
     override fun infoActionClicked() {
         scope.launch {
@@ -472,9 +525,20 @@ open class RelaychainWelcomeViewState(
                 validationSystem = validationSystem,
                 payload = payload,
                 errorDisplayer = { it.message?.let(errorDisplayer) },
-                validationFailureTransformer = { welcomeStakingValidationFailure(it, resourceManager) }
+                validationFailureTransformer = {
+                    welcomeStakingValidationFailure(
+                        it,
+                        resourceManager
+                    )
+                }
             ) {
-                setupStakingSharedState.set(currentSetupProgress.fullFlow(SetupStakingProcess.SetupStep.Stash(amount)))
+                setupStakingSharedState.set(
+                    currentSetupProgress.fullFlow(
+                        SetupStakingProcess.SetupStep.Stash(
+                            amount
+                        )
+                    )
+                )
 
                 router.openSetupStaking()
             }
@@ -508,16 +572,19 @@ class ParachainWelcomeViewState(
 
     override val rewardCalculator = scope.async { rewardCalculatorFactory.createSubquery() }
 
-    override val returns: Flow<ReturnsModel> = currentAssetFlow.combine(parsedAmountFlow) { asset, amount ->
-        val chainId = asset.token.configuration.chainId
-        val monthly = rewardCalculator().calculateReturns(amount, PERIOD_MONTH, true, chainId)
-        val yearly = rewardCalculator().calculateReturns(amount, PERIOD_YEAR, true, chainId)
+    override val returns: Flow<ReturnsModel> =
+        currentAssetFlow.combine(parsedAmountFlow) { asset, amount ->
+            val chainId = asset.token.configuration.chainId
+            val monthly = rewardCalculator().calculateReturns(amount, PERIOD_MONTH, true, chainId)
+            val yearly = rewardCalculator().calculateReturns(amount, PERIOD_YEAR, true, chainId)
 
-        val monthlyEstimation = mapPeriodReturnsToRewardEstimation(monthly, asset.token, resourceManager)
-        val yearlyEstimation = mapPeriodReturnsToRewardEstimation(yearly, asset.token, resourceManager)
+            val monthlyEstimation =
+                mapPeriodReturnsToRewardEstimation(monthly, asset.token, resourceManager)
+            val yearlyEstimation =
+                mapPeriodReturnsToRewardEstimation(yearly, asset.token, resourceManager)
 
-        ReturnsModel(monthlyEstimation, yearlyEstimation)
-    }.distinctUntilChanged().cancellable().shareIn(scope, SharingStarted.Eagerly, replay = 1)
+            ReturnsModel(monthlyEstimation, yearlyEstimation)
+        }.distinctUntilChanged().cancellable().shareIn(scope, SharingStarted.Eagerly, replay = 1)
 
     override fun infoActionClicked() {
         scope.launch {
@@ -541,7 +608,13 @@ class ParachainWelcomeViewState(
     override fun nextClicked() {
         scope.launch {
             val amount = parsedAmountFlow.first()
-            setupStakingSharedState.set(currentSetupProgress.fullFlow(SetupStakingProcess.SetupStep.Parachain(amount)))
+            setupStakingSharedState.set(
+                currentSetupProgress.fullFlow(
+                    SetupStakingProcess.SetupStep.Parachain(
+                        amount
+                    )
+                )
+            )
             router.openSetupStaking()
         }
     }
@@ -569,20 +642,26 @@ class StakingPoolWelcomeViewState(
     validationSystem,
     validationExecutor
 ) {
-    val chainId = currentAssetFlow.filter { it.token.configuration.staking == CoreAsset.StakingType.RELAYCHAIN }.map { it.token.configuration.chainId }
+    val chainId =
+        currentAssetFlow.filter { it.token.configuration.staking == CoreAsset.StakingType.RELAYCHAIN }
+            .map { it.token.configuration.chainId }
 
-    override val rewardCalculator = scope.async { rewardCalculatorFactory.create(currentAssetFlow.first().token.configuration) }
+    override val rewardCalculator =
+        scope.async { rewardCalculatorFactory.create(currentAssetFlow.first().token.configuration) }
 
-    override val returns: Flow<ReturnsModel> = currentAssetFlow.combine(parsedAmountFlow) { asset, amount ->
-        val chainId = asset.token.configuration.chainId
-        val monthly = rewardCalculator().calculateReturns(amount, PERIOD_MONTH, true, chainId)
-        val yearly = rewardCalculator().calculateReturns(amount, PERIOD_YEAR, true, chainId)
+    override val returns: Flow<ReturnsModel> =
+        currentAssetFlow.combine(parsedAmountFlow) { asset, amount ->
+            val chainId = asset.token.configuration.chainId
+            val monthly = rewardCalculator().calculateReturns(amount, PERIOD_MONTH, true, chainId)
+            val yearly = rewardCalculator().calculateReturns(amount, PERIOD_YEAR, true, chainId)
 
-        val monthlyEstimation = mapPeriodReturnsToRewardEstimation(monthly, asset.token, resourceManager)
-        val yearlyEstimation = mapPeriodReturnsToRewardEstimation(yearly, asset.token, resourceManager)
+            val monthlyEstimation =
+                mapPeriodReturnsToRewardEstimation(monthly, asset.token, resourceManager)
+            val yearlyEstimation =
+                mapPeriodReturnsToRewardEstimation(yearly, asset.token, resourceManager)
 
-        ReturnsModel(monthlyEstimation, yearlyEstimation)
-    }.cancellable().shareIn(scope, SharingStarted.Eagerly, replay = 1)
+            ReturnsModel(monthlyEstimation, yearlyEstimation)
+        }.cancellable().shareIn(scope, SharingStarted.Eagerly, replay = 1)
 
     override fun infoActionClicked() {
         scope.launch {
@@ -632,18 +711,21 @@ class SoraWelcomeViewState(
     validationSystem,
     validationExecutor
 ) {
-    override val returns: Flow<ReturnsModel> = currentAssetFlow.combine(parsedAmountFlow) { asset, amount ->
-        val rewardAsset = soraStakingRewardsScenario.getRewardAsset()
+    override val returns: Flow<ReturnsModel> =
+        currentAssetFlow.combine(parsedAmountFlow) { asset, amount ->
+            val rewardAsset = soraStakingRewardsScenario.getRewardAsset()
 
-        val chainId = asset.token.configuration.chainId
-        val monthly = rewardCalculator().calculateReturns(amount, PERIOD_MONTH, true, chainId)
-        val yearly = rewardCalculator().calculateReturns(amount, PERIOD_YEAR, true, chainId)
+            val chainId = asset.token.configuration.chainId
+            val monthly = rewardCalculator().calculateReturns(amount, PERIOD_MONTH, true, chainId)
+            val yearly = rewardCalculator().calculateReturns(amount, PERIOD_YEAR, true, chainId)
 
-        val monthlyEstimation = mapPeriodReturnsToRewardEstimation(monthly, rewardAsset, resourceManager)
-        val yearlyEstimation = mapPeriodReturnsToRewardEstimation(yearly, rewardAsset, resourceManager)
+            val monthlyEstimation =
+                mapPeriodReturnsToRewardEstimation(monthly, rewardAsset, resourceManager)
+            val yearlyEstimation =
+                mapPeriodReturnsToRewardEstimation(yearly, rewardAsset, resourceManager)
 
-        ReturnsModel(monthlyEstimation, yearlyEstimation)
-    }.cancellable().shareIn(scope, SharingStarted.Eagerly, replay = 1)
+            ReturnsModel(monthlyEstimation, yearlyEstimation)
+        }.cancellable().shareIn(scope, SharingStarted.Eagerly, replay = 1)
 }
 
 @Deprecated("All ViewStates should be provided and created in staking type aware ViewModels")
@@ -666,58 +748,87 @@ class DelegatorViewState(
     initialManageActions = ManageStakeAction.values().toSet()
 ) {
 
-    val delegations = currentAssetFlow.filter { it.token.configuration.staking == CoreAsset.StakingType.PARACHAIN }.map { asset ->
-        val chainId = asset.token.configuration.chainId
-        val collatorsIds = delegatorState.delegations.map { it.collatorId }
-        val chain = stakingInteractor.getSelectedChain()
+    val delegations =
+        currentAssetFlow.filter { it.token.configuration.staking == CoreAsset.StakingType.PARACHAIN }
+            .map { asset ->
+                val chainId = asset.token.configuration.chainId
+                val collatorsIds = delegatorState.delegations.map { it.collatorId }
+                val chain = stakingInteractor.getSelectedChain()
 
-        val collatorsNamesMap = parachainScenarioInteractor.getIdentities(collatorsIds).let { map ->
-            map.map {
-                chain.accountFromMapKey(it.key) to it.value
-            }
-        }.toMap()
-        val candidateInfos = parachainScenarioInteractor.getCandidateInfos(chainId, collatorsIds)
+                val collatorsNamesMap =
+                    parachainScenarioInteractor.getIdentities(collatorsIds).let { map ->
+                        map.map {
+                            chain.accountFromMapKey(it.key) to it.value
+                        }
+                    }.toMap()
+                val candidateInfos =
+                    parachainScenarioInteractor.getCandidateInfos(chainId, collatorsIds)
 
-        val readyToUnlockCollatorIds = parachainScenarioInteractor.getCollatorIdsWithReadyToUnlockingTokens(collatorsIds, delegatorState.accountId)
-        val apyMap = rewardCalculatorFactory.createSubquery().getApy(delegatorState.delegations.map { it.collatorId })
+                val readyToUnlockCollatorIds =
+                    parachainScenarioInteractor.getCollatorIdsWithReadyToUnlockingTokens(
+                        collatorsIds,
+                        delegatorState.accountId
+                    )
+                val apyMap = rewardCalculatorFactory.createSubquery()
+                    .getApy(delegatorState.delegations.map { it.collatorId })
 
-        delegatorState.delegations.mapNotNull { collator ->
-            val collatorIdHex = collator.collatorId.toHexString(false)
-            val identity = collatorsNamesMap[collatorIdHex]
-            val candidateInfo = candidateInfos[collatorIdHex] ?: return@mapNotNull null
+                delegatorState.delegations.mapNotNull { collator ->
+                    val collatorIdHex = collator.collatorId.toHexString(false)
+                    val identity = collatorsNamesMap[collatorIdHex]
+                    val candidateInfo = candidateInfos[collatorIdHex] ?: return@mapNotNull null
 
-            val staked = asset.token.amountFromPlanks(collator.delegatedAmountInPlanks)
-            val rewarded = asset.token.amountFromPlanks(collator.rewardedAmountInPlanks)
-            val rewardApy = apyMap[collatorIdHex].orZero()
+                    val staked = asset.token.amountFromPlanks(collator.delegatedAmountInPlanks)
+                    val rewarded = asset.token.amountFromPlanks(collator.rewardedAmountInPlanks)
+                    val rewardApy = apyMap[collatorIdHex].orZero()
 
-            val currentBlock = stakingInteractor.currentBlockNumber()
-            val currentRound = parachainScenarioInteractor.getCurrentRound(chainId).getOrNull() ?: return@mapNotNull null
-            val hoursInRound = parachainScenarioInteractor.hoursInRound[chainId] ?: 0
-            val millisecondsTillTheEndOfRound = calculateTimeTillTheEndOfRound(currentRound, currentBlock, hoursInRound)
+                    val currentBlock = stakingInteractor.currentBlockNumber()
+                    val currentRound =
+                        parachainScenarioInteractor.getCurrentRound(chainId).getOrNull()
+                            ?: return@mapNotNull null
+                    val hoursInRound = parachainScenarioInteractor.hoursInRound[chainId] ?: 0
+                    val millisecondsTillTheEndOfRound =
+                        calculateTimeTillTheEndOfRound(currentRound, currentBlock, hoursInRound)
 
-            val leaveCandidatesDelayInRounds = parachainScenarioInteractor.getLeaveCandidatesDelay().getOrNull() ?: return@mapNotNull null
-            val roundWhenCandidateWillLeave = (candidateInfo.status as? CandidateInfoStatus.LEAVING)?.leavingBlock?.let { it + leaveCandidatesDelayInRounds }
-            val roundsTillCandidateWillLeave = roundWhenCandidateWillLeave?.let { it - currentRound.current.toLong() }
-            val hoursTillCandidateWillLeave = roundsTillCandidateWillLeave?.times(hoursInRound)
-            val millisecondsTillCandidateWillLeave = hoursTillCandidateWillLeave?.times(60)?.times(60)?.times(1000)
+                    val leaveCandidatesDelayInRounds =
+                        parachainScenarioInteractor.getLeaveCandidatesDelay().getOrNull()
+                            ?: return@mapNotNull null
+                    val roundWhenCandidateWillLeave =
+                        (candidateInfo.status as? CandidateInfoStatus.LEAVING)?.leavingBlock?.let { it + leaveCandidatesDelayInRounds }
+                    val roundsTillCandidateWillLeave =
+                        roundWhenCandidateWillLeave?.let { it - currentRound.current.toLong() }
+                    val hoursTillCandidateWillLeave =
+                        roundsTillCandidateWillLeave?.times(hoursInRound)
+                    val millisecondsTillCandidateWillLeave =
+                        hoursTillCandidateWillLeave?.times(60)?.times(60)?.times(1000)
 
-            val isReadyToUnlock = readyToUnlockCollatorIds.any { it.contentEquals(collator.collatorId) }
+                    val isReadyToUnlock =
+                        readyToUnlockCollatorIds.any { it.contentEquals(collator.collatorId) }
 
-            CollatorDelegationModel(
-                collatorId = collator.collatorId,
-                collatorAddress = collator.collatorId.toHexString(true),
-                collatorName = identity?.display ?: collatorIdHex,
-                staked = staked.formatCryptoDetail(asset.token.configuration.symbol),
-                stakedFiat = staked.applyFiatRate(asset.token.fiatRate)?.formatFiat(asset.token.fiatSymbol),
-                rewardApy = rewardApy.formatAsPercentage(),
-                rewardedFiat = rewarded.applyFiatRate(asset.token.fiatRate)?.formatFiat(asset.token.fiatSymbol),
-                status = candidateInfo.toModelStatus(millisecondsTillTheEndOfRound, millisecondsTillCandidateWillLeave, isReadyToUnlock),
-                candidateInfo
-            )
-        }
-    }.withLoading().cancellable()
+                    CollatorDelegationModel(
+                        collatorId = collator.collatorId,
+                        collatorAddress = collator.collatorId.toHexString(true),
+                        collatorName = identity?.display ?: collatorIdHex,
+                        staked = staked.formatCryptoDetail(asset.token.configuration.symbol),
+                        stakedFiat = staked.applyFiatRate(asset.token.fiatRate)
+                            ?.formatFiat(asset.token.fiatSymbol),
+                        rewardApy = rewardApy.formatAsPercentage(),
+                        rewardedFiat = rewarded.applyFiatRate(asset.token.fiatRate)
+                            ?.formatFiat(asset.token.fiatSymbol),
+                        status = candidateInfo.toModelStatus(
+                            millisecondsTillTheEndOfRound,
+                            millisecondsTillCandidateWillLeave,
+                            isReadyToUnlock
+                        ),
+                        candidateInfo
+                    )
+                }
+            }.withLoading().cancellable()
 
-    private fun calculateTimeTillTheEndOfRound(currentRound: Round, currentBlock: BigInteger, hoursInRound: Int): Long {
+    private fun calculateTimeTillTheEndOfRound(
+        currentRound: Round,
+        currentBlock: BigInteger,
+        hoursInRound: Int
+    ): Long {
         val currentRoundFinishAtBlock = currentRound.first + currentRound.length
         val blocksTillTheEndOfRound = currentRoundFinishAtBlock - currentBlock
         val secondsInRound = (hoursInRound * 60 * 60).toBigDecimal()
@@ -789,9 +900,15 @@ fun CandidateInfo.toModelStatus(
 ): DelegatorViewState.CollatorDelegationModel.Status {
     return when {
         isReadyToUnlock -> DelegatorViewState.CollatorDelegationModel.Status.ReadyToUnlock
-        status == CandidateInfoStatus.ACTIVE -> DelegatorViewState.CollatorDelegationModel.Status.Active(millisecondsTillTheEndOfRound)
+        status == CandidateInfoStatus.ACTIVE -> DelegatorViewState.CollatorDelegationModel.Status.Active(
+            millisecondsTillTheEndOfRound
+        )
+
         status == CandidateInfoStatus.EMPTY -> DelegatorViewState.CollatorDelegationModel.Status.Inactive
-        status is CandidateInfoStatus.LEAVING -> DelegatorViewState.CollatorDelegationModel.Status.Leaving(millisecondsTillCandidateWillLeave)
+        status is CandidateInfoStatus.LEAVING -> DelegatorViewState.CollatorDelegationModel.Status.Leaving(
+            millisecondsTillCandidateWillLeave
+        )
+
         status == CandidateInfoStatus.IDLE -> DelegatorViewState.CollatorDelegationModel.Status.Idle
         else -> DelegatorViewState.CollatorDelegationModel.Status.Idle
     }

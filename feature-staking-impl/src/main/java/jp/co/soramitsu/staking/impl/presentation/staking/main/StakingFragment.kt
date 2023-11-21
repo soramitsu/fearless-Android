@@ -406,14 +406,14 @@ class StakingFragment : BaseFragment<StakingViewModel>(R.layout.fragment_staking
                     setElectionStatus(mapStatus(summary))
                     setTotalStaked(summary.totalStaked)
                     setRewardsApr(summary.totalRewards)
-
+                    showRewardsAprFiat()
+                    summary.totalRewardsFiat?.let { setRewardsAprFiat(it) } ?: hideRewardsAprFiat()
                     if (summary.totalStakedFiat == null) {
                         hideTotalStakeFiat()
                     } else {
                         showTotalStakedFiat()
                         setTotalStakedFiat(summary.totalStakedFiat)
                     }
-                    hideRewardsAprFiat()
                 }
                 is LoadingState.Loading -> {}
             }

@@ -12,6 +12,7 @@ import jp.co.soramitsu.common.data.network.subquery.SubsquidLastRoundId
 import jp.co.soramitsu.common.data.network.subquery.SubsquidRelayRewardAmountResponse
 import jp.co.soramitsu.common.data.network.subquery.SubsquidResponse
 import jp.co.soramitsu.common.data.network.subquery.SubsquidRewardResponse
+import jp.co.soramitsu.common.data.network.subquery.SubsquidSoraStakingRewards
 import jp.co.soramitsu.common.data.network.subquery.TransactionHistoryRemote
 import jp.co.soramitsu.staking.impl.data.network.subquery.request.GiantsquidRewardAmountRequest
 import jp.co.soramitsu.staking.impl.data.network.subquery.request.StakingAllCollatorsApyRequest
@@ -25,6 +26,7 @@ import jp.co.soramitsu.staking.impl.data.network.subquery.request.SubsquidDelega
 import jp.co.soramitsu.staking.impl.data.network.subquery.request.SubsquidEthRewardAmountRequest
 import jp.co.soramitsu.staking.impl.data.network.subquery.request.SubsquidLastRoundIdRequest
 import jp.co.soramitsu.staking.impl.data.network.subquery.request.SubsquidRelayRewardAmountRequest
+import jp.co.soramitsu.staking.impl.data.network.subquery.request.SubsquidSoraStakingRewardsRequest
 import retrofit2.http.Body
 import retrofit2.http.POST
 import retrofit2.http.Url
@@ -102,4 +104,10 @@ interface StakingApi {
         @Url url: String,
         @Body body: SubsquidLastRoundIdRequest
     ): SubsquidResponse<SubsquidLastRoundId>
+
+    @POST
+    suspend fun getSoraRewards(
+        @Url url: String,
+        @Body body: SubsquidSoraStakingRewardsRequest
+    ): SubsquidResponse<SubsquidSoraStakingRewards>
 }
