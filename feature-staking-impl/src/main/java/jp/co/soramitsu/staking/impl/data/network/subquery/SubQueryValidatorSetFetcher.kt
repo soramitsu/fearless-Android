@@ -28,6 +28,9 @@ class SubQueryValidatorSetFetcher(
             stakingType == Chain.ExternalApi.Section.Type.SUBQUERY -> {
                 getSubqueryValidators(stakingUrl, stashAccountAddress, historicalRange)
             }
+            stakingType == Chain.ExternalApi.Section.Type.SORA -> {
+                getSubqueryValidators(stakingUrl, stashAccountAddress, historicalRange)
+            }
             stakingType == Chain.ExternalApi.Section.Type.SUBSQUID -> {
                 getSubsquidCollators(stakingUrl, stashAccountAddress, historicalRange)
             }
@@ -35,7 +38,7 @@ class SubQueryValidatorSetFetcher(
         }
     }
 
-    private suspend fun getSubsquidCollators(
+    private fun getSubsquidCollators(
         stakingUrl: String,
         stashAccountAddress: String,
         historicalRange: List<BigInteger>
@@ -44,6 +47,25 @@ class SubQueryValidatorSetFetcher(
     }
 
     private suspend fun getSubqueryValidators(
+        stakingUrl: String,
+        stashAccountAddress: String,
+        historicalRange: List<BigInteger>
+    ): List<String> {
+        val validatorsInfos = stakingApi.getValidatorsInfo(
+            stakingUrl,
+            StakingEraValidatorInfosRequest(
+                eraFrom = historicalRange.first(),
+                eraTo = historicalRange.last(),
+                accountAddress = stashAccountAddress
+            )
+        )
+
+        return validatorsInfos.data.query?.eraValidatorInfos?.nodes?.map(
+            Node::address
+        )?.distinct().orEmpty()
+    }
+
+    private suspend fun getSoraValidators(
         stakingUrl: String,
         stashAccountAddress: String,
         historicalRange: List<BigInteger>

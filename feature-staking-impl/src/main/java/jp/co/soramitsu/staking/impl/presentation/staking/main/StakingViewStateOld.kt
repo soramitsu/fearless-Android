@@ -151,7 +151,8 @@ sealed class StakeViewState<S>(
             assetFlow.collect {
                 val supportedValidatorsLoadingBlockExplorerTypes = setOf(
                     Chain.ExternalApi.Section.Type.SUBQUERY,
-                    Chain.ExternalApi.Section.Type.SUBSQUID
+                    Chain.ExternalApi.Section.Type.SUBSQUID,
+                    Chain.ExternalApi.Section.Type.SORA
                 )
                 if (stakeState.chain.externalApi?.staking?.type !in supportedValidatorsLoadingBlockExplorerTypes) {
                     availableManageActionsFlow.value = initialManageActions.toMutableSet()
