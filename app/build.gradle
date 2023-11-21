@@ -34,17 +34,22 @@ android {
             keyPassword "00000000"
         }
     }
+
+    // Minify is needed for QAs to see app performance as end-users do; devs mostly don't need
+    // so, R8D8 shrinker is enabled only for remote builds
+    def shouldEnableR8D8 = System.getenv("BRANCH_NAME") != null
+
     buildTypes {
         debug {
-            minifyEnabled minifyRelease
+            minifyEnabled shouldEnableR8D8
             proguardFiles 'proguard-rules.pro'
             applicationIdSuffix '.debug'
             versionNameSuffix '-debug'
             signingConfig signingConfigs.debug
         }
         release {
-            minifyEnabled minifyRelease
-            shrinkResources true
+            minifyEnabled shouldEnableR8D8
+            shrinkResources shouldEnableR8D8
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.ci
         }
