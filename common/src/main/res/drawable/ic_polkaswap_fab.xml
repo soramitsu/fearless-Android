@@ -2,21 +2,19 @@
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item
-        android:width="86dp"
-        android:height="86dp"
+        android:width="120dp"
+        android:height="120dp"
         android:gravity="center">
 
         <shape
-            android:shape="ring"
-            android:useLevel="false"
-            android:thickness="15dp"
-            android:innerRadius="28dp" >
+            android:shape="oval"
+
+            android:useLevel="false" >
 
             <gradient
                 android:type="radial"
-                android:gradientRadius="50%p"
-
-                android:startColor="#FF0000"
+                android:gradientRadius="42dp"
+                android:startColor="@color/colorAccentDark"
                 android:endColor="@android:color/transparent"/>
         </shape>
     </item>
