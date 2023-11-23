@@ -471,6 +471,7 @@
   <string name="nft_stub_text">NFTs 很快就会到来</string>
   <string name="nft_stub_title">对不起！</string>
   <string name="nft_tokenid_title">代币ID</string>
+  <string name="nfts_collection_count" formatted="false">数量：%d/%d</string>
   <string name="nfts_stub">NFTs</string>
   <string name="no_access_to_google">无法访问谷歌</string>
   <string name="node">节点</string>
@@ -684,6 +685,7 @@
   <string name="settings_hide_zero_balances">隐藏零余额</string>
   <string name="share_referral_code">分享推荐码</string>
   <string name="social_media">社交媒体</string>
+  <string name="sora_bridge_low_amount_alert">目前，为了确保SORA网络的稳定性和安全性，跨链桥转账的最低金额为0.05 KSM。感谢您的理解。</string>
   <string name="sora_card_annual_service_fee">0欧元年度服务费</string>
   <string name="sora_card_blacklisted_countires_title">申请被排除</string>
   <string name="sora_card_blacklisted_countires_warning"><![CDATA[目前，来自<b>某些国家的居民<br>无法申请</b>SORA卡片。<br><a href=\"https://soracard.com/blacklist/\">查看名单</a>]]></string>

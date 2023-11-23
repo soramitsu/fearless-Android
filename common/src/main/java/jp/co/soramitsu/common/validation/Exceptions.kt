@@ -15,6 +15,11 @@ class SpendInsufficientBalanceException(resourceManager: ResourceManager) : Vali
     resourceManager.getString(R.string.choose_amount_error_too_big)
 )
 
+class SubstrateBridgeMinimumAmountRequired(resourceManager: ResourceManager) : ValidationException(
+    resourceManager.getString(R.string.common_warning),
+    resourceManager.getString(R.string.sora_bridge_low_amount_alert)
+)
+
 class ExistentialDepositCrossedException(resourceManager: ResourceManager, edAmount: String) : ValidationWarning(
     resourceManager.getString(R.string.common_existential_warning_title),
     resourceManager.getString(R.string.common_existential_warning_message, edAmount),

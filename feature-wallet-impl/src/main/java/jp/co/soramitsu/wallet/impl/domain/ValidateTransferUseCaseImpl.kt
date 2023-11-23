@@ -8,6 +8,7 @@ import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.sumByBigDecimal
 import jp.co.soramitsu.core.models.ChainAssetType
 import jp.co.soramitsu.core.models.ChainId
+import jp.co.soramitsu.core.models.isSoraBasedChain
 import jp.co.soramitsu.core.utils.isValidAddress
 import jp.co.soramitsu.core.utils.removedXcPrefix
 import jp.co.soramitsu.core.utils.utilityAsset
@@ -77,11 +78,11 @@ class ValidateTransferUseCaseImpl(
 
             originChain.isEthereumChain -> {
                 val metaAccount = accountRepository.getSelectedMetaAccount()
-                val utilityAsset = originChain.utilityAsset?.id?.let {
+                val utilityAsset = originChain.utilityAsset?.let {
                     walletRepository.getAsset(
                         metaAccount.id,
                         metaAccount.accountId(originChain)!!,
-                        chainAsset,
+                        it,
                         originChain.minSupportedVersion
                     )
                 }
@@ -95,6 +96,32 @@ class ValidateTransferUseCaseImpl(
                     TransferValidationResult.ExistentialDepositWarning(assetEdFormatted) to (resultedBalance < assetExistentialDeposit),
                     TransferValidationResult.InsufficientUtilityAssetBalance to (fee + tip > utilityAssetBalance),
                     TransferValidationResult.DeadRecipientEthereum to (!asset.token.configuration.isUtility && totalRecipientUtilityAssetBalanceInPlanks.isZero())
+                )
+            }
+
+            destinationChain.isSoraBasedChain() -> {
+                val metaAccount = accountRepository.getSelectedMetaAccount()
+                val utilityAsset = originChain.utilityAsset?.let {
+                    walletRepository.getAsset(
+                        metaAccount.id,
+                        metaAccount.accountId(originChain)!!,
+                        it,
+                        originChain.minSupportedVersion
+                    )
+                }
+                val utilityAssetBalance = utilityAsset?.transferableInPlanks.orZero()
+                val utilityAssetExistentialDeposit = originChain.utilityAsset?.let { existentialDepositUseCase(it) }.orZero()
+
+                val utilityEdFormatted = utilityAsset?.token?.configuration?.let { utilityAssetExistentialDeposit.formatCryptoDetailFromPlanks(it) }.orEmpty()
+
+                val substrateBridgeIncomingTransferMinAmount = BigInteger("50000000000")
+                mapOf(
+                    TransferValidationResult.SubstrateBridgeMinimumAmountRequired to (amountInPlanks < substrateBridgeIncomingTransferMinAmount),
+                    TransferValidationResult.InsufficientBalance to (amountInPlanks > transferable),
+                    TransferValidationResult.InsufficientUtilityAssetBalance to (fee + tip > utilityAssetBalance),
+                    TransferValidationResult.ExistentialDepositWarning(assetEdFormatted) to (transferable - amountInPlanks < assetExistentialDeposit),
+                    TransferValidationResult.UtilityExistentialDepositWarning(utilityEdFormatted) to (utilityAssetBalance - (fee + tip) < utilityAssetExistentialDeposit),
+                    TransferValidationResult.DeadRecipient to (totalRecipientBalanceInPlanks + amountInPlanks < assetExistentialDeposit)
                 )
             }
 

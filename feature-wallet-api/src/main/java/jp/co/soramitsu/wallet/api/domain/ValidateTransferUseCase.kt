@@ -7,6 +7,7 @@ import jp.co.soramitsu.common.validation.DeadRecipientEthereumException
 import jp.co.soramitsu.common.validation.DeadRecipientException
 import jp.co.soramitsu.common.validation.ExistentialDepositCrossedException
 import jp.co.soramitsu.common.validation.SpendInsufficientBalanceException
+import jp.co.soramitsu.common.validation.SubstrateBridgeMinimumAmountRequired
 import jp.co.soramitsu.common.validation.TransferAddressNotValidException
 import jp.co.soramitsu.common.validation.TransferToTheSameAddressException
 import jp.co.soramitsu.common.validation.WaitForFeeCalculationException
@@ -40,6 +41,7 @@ sealed class TransferValidationResult {
     object Valid : TransferValidationResult()
     object InsufficientBalance : TransferValidationResult()
     object InsufficientUtilityAssetBalance : TransferValidationResult()
+    object SubstrateBridgeMinimumAmountRequired: TransferValidationResult()
     data class ExistentialDepositWarning(val edAmount: String) : TransferValidationResult()
     data class UtilityExistentialDepositWarning(val edAmount: String) : TransferValidationResult()
     object DeadRecipient : TransferValidationResult()
@@ -54,6 +56,7 @@ fun ValidationException.Companion.fromValidationResult(result: TransferValidatio
         TransferValidationResult.Valid -> null
         TransferValidationResult.InsufficientBalance -> SpendInsufficientBalanceException(resourceManager)
         TransferValidationResult.InsufficientUtilityAssetBalance -> SpendInsufficientBalanceException(resourceManager)
+        TransferValidationResult.SubstrateBridgeMinimumAmountRequired -> SubstrateBridgeMinimumAmountRequired(resourceManager)
         is TransferValidationResult.ExistentialDepositWarning -> ExistentialDepositCrossedException(resourceManager, result.edAmount)
         is TransferValidationResult.UtilityExistentialDepositWarning -> ExistentialDepositCrossedException(resourceManager, result.edAmount)
         TransferValidationResult.DeadRecipient -> DeadRecipientException(resourceManager)
