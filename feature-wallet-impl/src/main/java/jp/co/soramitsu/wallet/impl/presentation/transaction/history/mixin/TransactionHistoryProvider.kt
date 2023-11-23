@@ -121,7 +121,7 @@ class TransactionHistoryProvider(
     private var firstPageSyncJob: Job? = null
 
     override suspend fun syncFirstOperationsPage(assetPayload: AssetPayload) {
-        if (firstPageSyncJob?.isCancelled == false || firstPageSyncJob?.isCompleted == false) return
+        if (firstPageSyncJob?.isActive == true || firstPageSyncJob?.isCompleted == false) return
 
         firstPageSyncJob = coroutineScope {
             launch {
