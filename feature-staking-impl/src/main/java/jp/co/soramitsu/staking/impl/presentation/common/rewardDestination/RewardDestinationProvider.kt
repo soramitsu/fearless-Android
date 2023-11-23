@@ -49,19 +49,27 @@ class RewardDestinationProvider(
 ) : RewardDestinationMixin.Presentation {
 
     override val rewardReturnsLiveData = MutableLiveData<RewardDestinationEstimations>()
-    override val showDestinationChooserEvent = MutableLiveData<Event<DynamicListBottomSheet.Payload<AddressModel>>>()
+    override val showDestinationChooserEvent =
+        MutableLiveData<Event<DynamicListBottomSheet.Payload<AddressModel>>>()
 
-    override val rewardDestinationModelFlow = MutableSharedFlow<RewardDestinationModel>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST).apply {
+    override val rewardDestinationModelFlow = MutableSharedFlow<RewardDestinationModel>(
+        replay = 1,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST
+    ).apply {
         tryEmit(RewardDestinationModel.Restake)
     }
 
     override val openBrowserEvent = MutableLiveData<Event<String>>()
 
-    private val initialRewardDestination = MutableSharedFlow<RewardDestinationModel>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+    private val initialRewardDestination = MutableSharedFlow<RewardDestinationModel>(
+        replay = 1,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST
+    )
 
-    override val rewardDestinationChangedFlow = initialRewardDestination.combine(rewardDestinationModelFlow) { initial, current ->
-        initial != current
-    }.onStart { emit(false) }
+    override val rewardDestinationChangedFlow =
+        initialRewardDestination.combine(rewardDestinationModelFlow) { initial, current ->
+            initial != current
+        }.onStart { emit(false) }
 
     override val canRestake = sharedState.assetWithChain.map {
         it.asset.syntheticStakingType() != SyntheticStakingType.SORA
@@ -79,16 +87,29 @@ class RewardDestinationProvider(
 
     private suspend fun selectPayout() {
         interactor.getSelectedAccountProjection()?.let { currentAccount ->
-            rewardDestinationModelFlow.emit(RewardDestinationModel.Payout(generateDestinationModel(currentAccount)))
+            rewardDestinationModelFlow.emit(
+                RewardDestinationModel.Payout(
+                    generateDestinationModel(
+                        currentAccount
+                    )
+                )
+            )
         }
     }
 
     override fun payoutTargetClicked(scope: CoroutineScope) {
         scope.launch {
-            val selectedDestination = rewardDestinationModelFlow.first() as? RewardDestinationModel.Payout ?: return@launch
+            val selectedDestination =
+                rewardDestinationModelFlow.first() as? RewardDestinationModel.Payout
+                    ?: return@launch
             val accountsInNetwork = accountsInCurrentNetwork()
 
-            showDestinationChooserEvent.value = Event(DynamicListBottomSheet.Payload(accountsInNetwork, selectedDestination.destination))
+            showDestinationChooserEvent.value = Event(
+                DynamicListBottomSheet.Payload(
+                    accountsInNetwork,
+                    selectedDestination.destination
+                )
+            )
         }
     }
 
@@ -121,7 +142,11 @@ class RewardDestinationProvider(
         rewardDestinationModelFlow.emit(rewardDestinationModel)
     }
 
-    override suspend fun updateReturns(rewardCalculator: RewardCalculator, asset: Asset, amount: BigDecimal) {
+    override suspend fun updateReturns(
+        rewardCalculator: RewardCalculator,
+        asset: Asset,
+        amount: BigDecimal
+    ) {
         val chainId = sharedState.chainId()
         val restakeReturns = rewardCalculator.calculateReturns(amount, DAYS_IN_YEAR, true, chainId)
 
@@ -131,10 +156,21 @@ class RewardDestinationProvider(
         } else {
             asset.token
         }
-        val restakeEstimations = mapPeriodReturnsToRewardEstimation(restakeReturns, rewardAsset, resourceManager, RewardSuffix.APY)
-        val payoutEstimations = mapPeriodReturnsToRewardEstimation(payoutReturns, rewardAsset, resourceManager, RewardSuffix.APR)
+        val restakeEstimations = mapPeriodReturnsToRewardEstimation(
+            restakeReturns,
+            rewardAsset,
+            resourceManager,
+            RewardSuffix.APY
+        )
+        val payoutEstimations = mapPeriodReturnsToRewardEstimation(
+            payoutReturns,
+            rewardAsset,
+            resourceManager,
+            RewardSuffix.APR
+        )
 
-        rewardReturnsLiveData.value = RewardDestinationEstimations(restakeEstimations, payoutEstimations)
+        rewardReturnsLiveData.value =
+            RewardDestinationEstimations(restakeEstimations, payoutEstimations)
     }
 
     private suspend fun mapRewardDestinationToRewardDestinationModel(rewardDestination: RewardDestination): RewardDestinationModel {
@@ -142,7 +178,8 @@ class RewardDestinationProvider(
             RewardDestination.Restake -> RewardDestinationModel.Restake
             is RewardDestination.Payout -> {
                 val chain = sharedState.chain()
-                val addressModel = generateDestinationModel(chain.addressOf(rewardDestination.targetAccountId))
+                val addressModel =
+                    generateDestinationModel(chain.addressOf(rewardDestination.targetAccountId))
 
                 RewardDestinationModel.Payout(addressModel)
             }
@@ -155,10 +192,18 @@ class RewardDestinationProvider(
     }
 
     private suspend fun generateDestinationModel(account: StakingAccount): AddressModel {
-        return addressIconGenerator.createAddressModel(account.address, AddressIconGenerator.SIZE_MEDIUM, account.name)
+        return addressIconGenerator.createAddressModel(
+            account.address,
+            AddressIconGenerator.SIZE_MEDIUM,
+            account.name
+        )
     }
 
     private suspend fun generateDestinationModel(address: String): AddressModel {
-        return addressIconGenerator.createAddressModel(address, AddressIconGenerator.SIZE_MEDIUM, accountDisplayUseCase(address))
+        return addressIconGenerator.createAddressModel(
+            address,
+            AddressIconGenerator.SIZE_MEDIUM,
+            accountDisplayUseCase(address)
+        )
     }
 }

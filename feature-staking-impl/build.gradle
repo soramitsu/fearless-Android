@@ -92,4 +92,7 @@ dependencies {
 
     implementation compose
     debugImplementation composeDebug
+
+    implementation gsonConvertedDep
+    implementation scalarsConverterDep
 }

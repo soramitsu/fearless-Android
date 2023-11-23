@@ -12,6 +12,8 @@ import jp.co.soramitsu.staking.api.domain.api.IdentityRepository
 import jp.co.soramitsu.staking.api.domain.model.Exposure
 import jp.co.soramitsu.staking.api.domain.model.Validator
 import jp.co.soramitsu.staking.impl.data.repository.StakingConstantsRepository
+import jp.co.soramitsu.staking.impl.domain.error.accountIdNotFound
+import jp.co.soramitsu.staking.impl.domain.rewards.RewardCalculationTarget
 import jp.co.soramitsu.staking.impl.domain.rewards.RewardCalculatorFactory
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenarioRepository
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.getActiveElectedValidatorsExposures
@@ -51,19 +53,32 @@ class ValidatorProvider(
         val identities = identityRepository.getIdentitiesFromIds(chain, requestedValidatorIds)
         val slashes = stakingRepository.getSlashes(chainId, requestedValidatorIds)
 
+        val calculationTargets = electedValidatorExposures.keys.mapNotNull { accountIdHex ->
+            val exposure = electedValidatorExposures[accountIdHex] ?: accountIdNotFound(accountIdHex)
+            val prefs = validatorPrefs[accountIdHex] ?: return@mapNotNull null
+
+            RewardCalculationTarget(
+                accountIdHex = accountIdHex,
+                totalStake = exposure.total,
+                nominatorStakes = exposure.others,
+                ownStake = exposure.own,
+                commission = prefs.commission
+            )
+        }
+
         val rewardCalculator = when (chainId) {
             soraMainChainId -> {
                 val utilityAsset = chain.utilityAsset ?: error("Utility asset not specified for chain ${chain.name} - ${chain.id}")
-                rewardCalculatorFactory.createSoraWithCustomValidatorsSettings(electedValidatorExposures, validatorPrefs, utilityAsset)
+                rewardCalculatorFactory.createSora(utilityAsset, calculationTargets)
             }
 
             ternoaChainId -> {
                 val utilityAsset = chain.utilityAsset ?: error("Utility asset not specified for chain ${chain.name} - ${chain.id}")
-                rewardCalculatorFactory.createTernoaWithCustomValidatorsSettings(electedValidatorExposures, validatorPrefs, utilityAsset)
+                rewardCalculatorFactory.createTernoa(utilityAsset, calculationTargets)
             }
 
             else -> {
-                rewardCalculatorFactory.createManual(electedValidatorExposures, validatorPrefs, chainId)
+                rewardCalculatorFactory.createManual(chainId, calculationTargets)
             }
         }
 

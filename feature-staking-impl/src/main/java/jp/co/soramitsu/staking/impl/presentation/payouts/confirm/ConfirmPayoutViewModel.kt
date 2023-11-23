@@ -28,11 +28,14 @@ import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
 import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.addressByte
 import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.toAddress
+import jp.co.soramitsu.staking.api.data.SyntheticStakingType
+import jp.co.soramitsu.staking.api.data.syntheticStakingType
 import jp.co.soramitsu.staking.api.domain.model.RewardDestination
 import jp.co.soramitsu.staking.api.domain.model.StakingState
 import jp.co.soramitsu.staking.impl.data.model.Payout
 import jp.co.soramitsu.staking.impl.domain.StakingInteractor
 import jp.co.soramitsu.staking.impl.domain.payout.PayoutInteractor
+import jp.co.soramitsu.staking.impl.domain.rewards.SoraStakingRewardsScenario
 import jp.co.soramitsu.staking.impl.domain.validations.payout.MakePayoutPayload
 import jp.co.soramitsu.staking.impl.domain.validations.payout.PayoutValidationFailure
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
@@ -59,7 +62,8 @@ class ConfirmPayoutViewModel @Inject constructor(
     private val validationSystem: ValidationSystem<MakePayoutPayload, PayoutValidationFailure>,
     private val validationExecutor: ValidationExecutor,
     private val resourceManager: ResourceManager,
-    private val savedStateHandle: SavedStateHandle
+    private val savedStateHandle: SavedStateHandle,
+    private val soraRewardScenario: SoraStakingRewardsScenario
 ) : BaseViewModel(),
     ExternalAccountActions.Presentation by externalAccountActions,
     FeeLoaderMixin by feeLoaderMixin,
@@ -67,7 +71,13 @@ class ConfirmPayoutViewModel @Inject constructor(
 
     private val payload = savedStateHandle.get<ConfirmPayoutPayload>(ConfirmPayoutFragment.KEY_PAYOUTS)!!
 
-    private val assetFlow = interactor.currentAssetFlow()
+    private val tokenFlow = interactor.currentAssetFlow().map {
+        if(it.token.configuration.syntheticStakingType() == SyntheticStakingType.SORA){
+            soraRewardScenario.getRewardAsset()
+        } else {
+            it.token
+        }
+    }
         .share()
 
     private val stakingStateFlow = relayChainInteractor.selectedAccountStakingStateFlow()
@@ -78,11 +88,10 @@ class ConfirmPayoutViewModel @Inject constructor(
     private val _showNextProgress = MutableLiveData(false)
     val showNextProgress: LiveData<Boolean> = _showNextProgress
 
-    val totalRewardDisplay = assetFlow.map {
-        val token = it.token
-        val totalReward = token.amountFromPlanks(payload.totalRewardInPlanks)
-        val inToken = totalReward.formatCryptoDetail(token.configuration.symbol)
-        val inFiat = token.fiatAmount(totalReward)?.formatFiat(token.fiatSymbol)
+    val totalRewardDisplay = tokenFlow.map {
+        val totalReward = it.amountFromPlanks(payload.totalRewardInPlanks)
+        val inToken = totalReward.formatCryptoDetail(it.configuration.symbol)
+        val inFiat = it.fiatAmount(totalReward)?.formatFiat(it.fiatSymbol)
 
         inToken to inFiat
     }
@@ -137,7 +146,7 @@ class ConfirmPayoutViewModel @Inject constructor(
 
     private fun sendTransactionIfValid() = feeLoaderMixin.requireFee(this) { fee ->
         launch {
-            val tokenType = assetFlow.first().token.configuration
+            val tokenType = tokenFlow.first().configuration
             val accountAddress = stakingStateFlow.first().accountAddress
             val amount = tokenType.amountFromPlanks(payload.totalRewardInPlanks)
 
@@ -193,7 +202,7 @@ class ConfirmPayoutViewModel @Inject constructor(
 
     private fun maybeShowExternalActions(addressProducer: () -> String?) = launch {
         val address = addressProducer() ?: return@launch
-        val chainId = assetFlow.first().token.configuration.chainId
+        val chainId = tokenFlow.first().configuration.chainId
         val chain = chainRegistry.getChain(chainId)
         val supportedExplorers = chain.explorers.getSupportedExplorers(BlockExplorerUrlBuilder.Type.ACCOUNT, address)
         val externalActionsPayload = ExternalAccountActions.Payload(
