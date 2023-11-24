@@ -217,6 +217,8 @@ dependencies {
     implementation compose
     debugImplementation composeDebug
 
+    implementation soraUiCoreDep
+
     androidTestImplementation androidTestRunnerDep
     androidTestImplementation androidTestRulesDep
     androidTestImplementation androidJunitDep

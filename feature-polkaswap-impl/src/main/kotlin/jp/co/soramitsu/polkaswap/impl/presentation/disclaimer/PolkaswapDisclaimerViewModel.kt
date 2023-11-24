@@ -1,5 +1,6 @@
 package jp.co.soramitsu.polkaswap.impl.presentation.disclaimer
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -8,6 +9,8 @@ import jp.co.soramitsu.common.compose.theme.colorAccent
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_polkaswap_impl.R
 import jp.co.soramitsu.polkaswap.api.domain.PolkaswapInteractor
+import jp.co.soramitsu.polkaswap.api.models.DisclaimerAppearanceSource
+import jp.co.soramitsu.polkaswap.api.models.DisclaimerVisibilityStatus
 import jp.co.soramitsu.polkaswap.api.presentation.PolkaswapRouter
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -18,7 +21,8 @@ import kotlinx.coroutines.flow.stateIn
 class PolkaswapDisclaimerViewModel @Inject constructor(
     private val resourceManager: ResourceManager,
     private val polkaswapInteractor: PolkaswapInteractor,
-    private val polkaswapRouter: PolkaswapRouter
+    private val polkaswapRouter: PolkaswapRouter,
+    private val savedStateHandle: SavedStateHandle
 ) : BaseViewModel(), DisclaimerScreenInterface {
 
     companion object {
@@ -76,7 +80,15 @@ class PolkaswapDisclaimerViewModel @Inject constructor(
     }
 
     override fun onContinueClick() {
-        polkaswapInteractor.hasReadDisclaimer = true
+        val source = savedStateHandle.get<DisclaimerAppearanceSource>(
+            PolkaswapDisclaimerFragment.KEY_NAVIGATION_SOURCE
+        ) ?: return
+
+        polkaswapInteractor.updateDisclaimerVisibilityStatus(
+            DisclaimerVisibilityStatus(
+                source to true
+            )
+        )
         polkaswapRouter.back()
     }
 

@@ -26,7 +26,7 @@ class SwapTokensFragment : BaseComposeBottomSheetDialogFragment<SwapTokensViewMo
         const val KEY_SELECTED_ASSET_FROM_ID = "KEY_SELECTED_ASSET_FROM_ID"
         const val KEY_SELECTED_ASSET_TO_ID = "KEY_SELECTED_ASSET_TO_ID"
 
-        fun getBundle(selectedChainId: String, assetIdFrom: String?, assetIdTo: String?) = bundleOf(
+        fun getBundle(selectedChainId: String?, assetIdFrom: String?, assetIdTo: String?) = bundleOf(
             KEY_SELECTED_CHAIN_ID to selectedChainId,
             KEY_SELECTED_ASSET_FROM_ID to assetIdFrom,
             KEY_SELECTED_ASSET_TO_ID to assetIdTo

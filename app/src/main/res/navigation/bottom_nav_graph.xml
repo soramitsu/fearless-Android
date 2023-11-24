@@ -17,6 +17,11 @@
         android:name="jp.co.soramitsu.crowdloan.impl.presentation.main.CrowdloanFragment"
         android:label="CrowdloanFragment" />
 
+    <dialog
+        android:id="@+id/swapTokensFragment"
+        android:name="jp.co.soramitsu.polkaswap.impl.presentation.swap_tokens.SwapTokensFragment"
+        android:label="SwapTokensFragment" />
+
     <fragment
         android:id="@+id/stakingFragment"
         tools:layout="@layout/fragment_staking"
