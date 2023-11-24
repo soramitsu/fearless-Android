@@ -30,10 +30,10 @@ import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 
 // VAL
-const val SORA_REWARD_ASSET_ID = "24d0809e-0a4c-42ea-bdd8-dc7a518f389c"
+const val SORA_REWARD_ASSET_ID = "0x0200040000000000000000000000000000000000000000000000000000000000"
 
 // XOR
-const val SORA_STAKING_ASSET_ID = "b774c386-5cce-454a-a845-1ec0381538ec"
+const val SORA_STAKING_CURRENCY_ID = "0x0200000000000000000000000000000000000000000000000000000000000000"
 
 fun mapOperationStatusToOperationLocalStatus(status: Operation.Status) = when (status) {
     Operation.Status.PENDING -> OperationLocal.Status.PENDING
@@ -192,9 +192,9 @@ fun TxHistoryItem.toOperation(
     val isSwapAllowed =
         filters.contains(TransactionFilter.EXTRINSIC) && method.lowercase() == "swap"
     val isRewardAllowed =
-        filters.contains(TransactionFilter.REWARD) && method.lowercase() == "rewarded" && chainAsset.id == SORA_REWARD_ASSET_ID
+        filters.contains(TransactionFilter.REWARD) && method.lowercase() == "rewarded" && chainAsset.currencyId == SORA_REWARD_ASSET_ID
     val stakingAllowed =
-        filters.contains(TransactionFilter.EXTRINSIC) && module.lowercase() == "staking" && method.lowercase() != "rewarded" && chainAsset.id == SORA_STAKING_ASSET_ID
+        filters.contains(TransactionFilter.EXTRINSIC) && module.lowercase() == "staking" && method.lowercase() != "rewarded" && chainAsset.currencyId == SORA_STAKING_CURRENCY_ID
 
     return when {
         isTransferAllowed -> {

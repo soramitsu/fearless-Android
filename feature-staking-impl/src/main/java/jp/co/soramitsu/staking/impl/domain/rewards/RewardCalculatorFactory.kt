@@ -110,7 +110,7 @@ class RewardCalculatorFactory(
         val syntheticType = asset.syntheticStakingType()
 
         val allElectedValidators = getRewardCalculationTargets(asset)
-        hashCode()
+
         return when {
             syntheticType == SyntheticStakingType.SORA -> createSora(
                 asset,
