@@ -138,7 +138,6 @@
   <string name="common_action_cross_chain">Cross-Chain</string>
   <string name="common_action_hide">Hide</string>
   <string name="common_action_receive">Receive</string>
-  <string name="common_request">Request</string>
   <string name="common_action_send">Send</string>
   <string name="common_action_show">Show</string>
   <string name="common_action_swap">Swap</string>

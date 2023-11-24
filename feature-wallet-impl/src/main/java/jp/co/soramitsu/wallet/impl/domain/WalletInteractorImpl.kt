@@ -410,11 +410,6 @@ class WalletInteractorImpl(
         }
     }
 
-    override fun tryReadAddressFromSoraFormat(content: String): String? {
-        val list = content.split(":")
-        return list.getOrNull(1)
-    }
-
     override suspend fun updateAssets(newItems: List<AssetUpdateItem>) {
         walletRepository.updateAssets(newItems)
     }
