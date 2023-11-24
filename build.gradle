@@ -24,7 +24,7 @@ buildscript {
         biometricVersion = '1.1.0'
 
         progressButtonsVersion = '2.1.0'
-        xNetworkingVersion = '0.2.5-temp6'
+        xNetworkingVersion = '0.2.5-temp7'
 
         soraCardVersion = '0.1.9'
         soraUiCoreVersion = '0.1.4'
