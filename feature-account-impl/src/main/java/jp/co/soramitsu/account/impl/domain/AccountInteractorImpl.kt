@@ -7,10 +7,12 @@ import jp.co.soramitsu.account.api.domain.model.Account
 import jp.co.soramitsu.account.api.domain.model.ImportJsonData
 import jp.co.soramitsu.account.api.domain.model.LightMetaAccount
 import jp.co.soramitsu.account.api.domain.model.MetaAccountOrdering
+import jp.co.soramitsu.account.api.domain.model.accountId
 import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.core.model.Language
 import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.shared_utils.runtime.AccountId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
@@ -308,5 +310,11 @@ class AccountInteractorImpl(
 
     override suspend fun updateWalletOnGoogleBackupDelete(metaId: Long) {
         accountRepository.updateWalletOnGoogleBackupDelete(metaId)
+    }
+
+    override suspend fun updateFavoriteChain(chainId: ChainId, isFavorite: Boolean) {
+        val selectedMetaAccount = accountRepository.getSelectedMetaAccount()
+
+        accountRepository.updateFavoriteChain(selectedMetaAccount.id, chainId, isFavorite)
     }
 }

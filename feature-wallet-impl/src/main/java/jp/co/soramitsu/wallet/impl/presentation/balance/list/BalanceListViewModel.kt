@@ -1,5 +1,6 @@
 package jp.co.soramitsu.wallet.impl.presentation.balance.list
 
+import android.widget.Filter
 import android.widget.LinearLayout
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.SwipeableState
@@ -23,8 +24,10 @@ import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.ActionItemType
 import jp.co.soramitsu.common.compose.component.AssetBalanceViewState
 import jp.co.soramitsu.common.compose.component.ChainSelectorViewState
+import jp.co.soramitsu.common.compose.component.ChainSelectorViewStateWithFilters
 import jp.co.soramitsu.common.compose.component.ChangeBalanceViewState
 import jp.co.soramitsu.common.compose.component.MainToolbarViewState
+import jp.co.soramitsu.common.compose.component.MainToolbarViewStateWithFilters
 import jp.co.soramitsu.common.compose.component.MultiToggleButtonState
 import jp.co.soramitsu.common.compose.component.NetworkIssueItemState
 import jp.co.soramitsu.common.compose.component.SwipeState
@@ -33,6 +36,7 @@ import jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState
 import jp.co.soramitsu.common.data.network.OptionsProvider
 import jp.co.soramitsu.common.data.network.coingecko.FiatChooserEvent
 import jp.co.soramitsu.common.data.network.coingecko.FiatCurrency
+import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.domain.FiatCurrencies
 import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
 import jp.co.soramitsu.common.domain.SelectedFiat
@@ -44,6 +48,7 @@ import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
+import jp.co.soramitsu.common.utils.combine
 import jp.co.soramitsu.common.utils.formatAsChange
 import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.inBackground
@@ -179,12 +184,44 @@ class BalanceListViewModel @Inject constructor(
         interactor.assetsFlow().debounce(100L),
         chainInteractor.getChainsFlow(),
         selectedChainId,
+        currentMetaAccountFlow,
         networkIssuesFlow,
+        interactor.observeSelectedAccountChainSelectFilter(),
         interactor.observeHideZeroBalanceEnabledForCurrentWallet()
-    ) { assets: List<AssetWithStatus>, chains: List<Chain>, selectedChainId: ChainId?, networkIssues: Set<NetworkIssueItemState>, hideZeroBalancesEnabled ->
+    ) {
+        assets: List<AssetWithStatus>,
+        chains: List<Chain>,
+        selectedChainId: ChainId?,
+        currentMetaAccountFlow: MetaAccount,
+        networkIssues: Set<NetworkIssueItemState>,
+        appliedFilterAsString: String,
+        hideZeroBalancesEnabled: Boolean ->
+
+        val filter = ChainSelectorViewStateWithFilters.Filter.values().find {
+            it.name == appliedFilterAsString
+        } ?: ChainSelectorViewStateWithFilters.Filter.All
+
         val balanceListItems = mutableListOf<BalanceListItemModel>()
 
-        chains.groupBy { if (it.isTestNet) ChainEcosystem.STANDALONE else it.ecosystem() }
+        val selectedAccountFavoriteChains = currentMetaAccountFlow.favoriteChains
+
+        val chainsWithFavoriteInfo = chains.map { chain ->
+            chain to (selectedAccountFavoriteChains.get(chain.id)?.isFavorite == true)
+        }
+
+        when(filter) {
+            ChainSelectorViewStateWithFilters.Filter.All -> chainsWithFavoriteInfo.map { it.first }
+
+            ChainSelectorViewStateWithFilters.Filter.Favorite ->
+                chainsWithFavoriteInfo.filter { (_, isFavorite) -> isFavorite }.map { it.first }
+
+            ChainSelectorViewStateWithFilters.Filter.Popular ->
+                chainsWithFavoriteInfo.filter { (chain, _) ->
+                    chain.rank != null
+                }.sortedBy { (chain, _) ->
+                    chain.rank
+                }.map { it.first }
+        }.groupBy { if (it.isTestNet) ChainEcosystem.STANDALONE else it.ecosystem() }
             .forEach { (ecosystem, ecosystemChains) ->
                 when (ecosystem) {
                     ChainEcosystem.POLKADOT,
@@ -353,13 +390,21 @@ class BalanceListViewModel @Inject constructor(
 
     val toolbarState = combine(
         currentAddressModelFlow(),
+        interactor.observeSelectedAccountChainSelectFilter(),
         selectedChainItemFlow
-    ) { addressModel, chain ->
+    ) { addressModel, filter, chain ->
         LoadingState.Loaded(
-            MainToolbarViewState(
+            MainToolbarViewStateWithFilters(
                 title = addressModel.nameOrAddress,
                 homeIconState = ToolbarHomeIconState(walletIcon = addressModel.image),
-                selectorViewState = ChainSelectorViewState(chain?.title, chain?.id)
+                selectorViewState = ChainSelectorViewStateWithFilters(
+                    selectedChainName = chain?.title,
+                    selectedChainId = chain?.id,
+                    selectedChainImageUrl = chain?.imageUrl,
+                    filterApplied = ChainSelectorViewStateWithFilters.Filter.values().find {
+                        it.name == filter
+                    } ?: ChainSelectorViewStateWithFilters.Filter.All
+                )
             )
         )
     }.stateIn(scope = this, started = SharingStarted.Eagerly, initialValue = LoadingState.Loading())
@@ -705,7 +750,7 @@ class BalanceListViewModel @Inject constructor(
     }
 
     fun openSelectChain() {
-        router.openSelectChain(selectedChainId.value)
+        router.openSelectChain(selectedChainId.value, isFilteringEnabled = true)
     }
 
     private fun copyToClipboard(text: String) {

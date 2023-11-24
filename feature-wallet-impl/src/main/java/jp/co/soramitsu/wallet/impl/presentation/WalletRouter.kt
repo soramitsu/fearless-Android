@@ -50,7 +50,8 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
         chooserMode: Boolean = true,
         currencyId: String? = null,
         showAllChains: Boolean = true,
-        isSelectAsset: Boolean = true
+        isSelectAsset: Boolean = true,
+        isFilteringEnabled: Boolean = false
     )
 
     fun openSelectChainForXcm(

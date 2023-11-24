@@ -55,6 +55,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flatMapMerge
@@ -69,6 +70,7 @@ private const val PREFS_WALLET_SELECTED_CHAIN_ID = "wallet_selected_chain_id"
 private const val PREFS_SORA_CARD_HIDDEN_SESSIONS_COUNT = "prefs_sora_card_hidden_sessions_count"
 private const val SORA_CARD_HIDDEN_SESSIONS_LIMIT = 5
 private const val HIDE_ZERO_BALANCES_PREFS_KEY = "hideZeroBalances"
+private const val CHAIN_SELECT_FILTER_APPLIED = "chain_select_filter_applied"
 
 class WalletInteractorImpl(
     private val walletRepository: WalletRepository,
@@ -528,5 +530,25 @@ class WalletInteractorImpl(
         val hasAsset = getCurrentAssetOrNull(chainId, chainAssetId) != null
         val hasRuntime = chainRegistry.getRuntimeOrNull(chainId) != null
         return hasAsset && hasRuntime
+    }
+
+    override suspend fun saveChainSelectFilter(walletId: Long, filter: String) {
+        val key = getChainSelectFilterAppliedKey(walletId)
+        preferences.putString(key, filter)
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    override fun observeSelectedAccountChainSelectFilter(): Flow<String> {
+        return accountRepository.selectedMetaAccountFlow().map {
+            it.id
+        }.distinctUntilChanged().flatMapLatest {
+            val key = getChainSelectFilterAppliedKey(it)
+
+            preferences.stringFlow(key).filterNotNull()
+        }
+    }
+
+    private fun getChainSelectFilterAppliedKey(walletId: Long): String {
+        return "${CHAIN_SELECT_FILTER_APPLIED}_$walletId"
     }
 }

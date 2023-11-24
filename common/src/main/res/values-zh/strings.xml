@@ -154,6 +154,7 @@
   <string name="common_applied">已应用</string>
   <string name="common_apply">应用</string>
   <string name="common_available_format">可用：%s</string>
+  <string name="common_available_networks">可用网络</string>
   <string name="common_backup_your_wallet">备份你的钱包</string>
   <string name="common_balance">余额</string>
   <string name="common_balance_format">余额：%s</string>
@@ -225,8 +226,10 @@
   <string name="common_max">最大</string>
   <string name="common_min_received">最小接收量</string>
   <string name="common_module">模块</string>
+  <string name="common_my_networks">我的网络</string>
   <string name="common_network">网络</string>
   <string name="common_network_fee">网络费用</string>
+  <string name="common_network_management">网络管理</string>
   <string name="common_next">下一个</string>
   <string name="common_no">否</string>
   <string name="common_no_screenshot_message">请勿截屏，这可能会被第三方恶意软件收集。</string>
@@ -463,6 +466,9 @@
   <string name="network_issue_stub">网络问题</string>
   <string name="network_issue_unavailable">网络不可用，您可以等待或请求社区支持。</string>
   <string name="network_issues_resolve_option_title">解决方案</string>
+  <string name="network_management_all">全部</string>
+  <string name="network_management_popular">受欢迎的</string>
+  <string name="network_managment_favourite">收藏</string>
   <string name="network_status_connected">已连接</string>
   <string name="network_status_connecting">正在连接...</string>
   <string name="network_url_address">URL地址</string>
@@ -471,6 +477,7 @@
   <string name="nft_stub_text">NFTs 很快就会到来</string>
   <string name="nft_stub_title">对不起！</string>
   <string name="nft_tokenid_title">代币ID</string>
+  <string name="nfts_collection_count" formatted="false">数量：%d/%d</string>
   <string name="nfts_stub">NFTs</string>
   <string name="no_access_to_google">无法访问谷歌</string>
   <string name="node">节点</string>
@@ -684,6 +691,7 @@
   <string name="settings_hide_zero_balances">隐藏零余额</string>
   <string name="share_referral_code">分享推荐码</string>
   <string name="social_media">社交媒体</string>
+  <string name="sora_bridge_low_amount_alert">目前，为了确保SORA网络的稳定性和安全性，跨链桥转账的最低金额为0.05 KSM。感谢您的理解。</string>
   <string name="sora_card_annual_service_fee">0欧元年度服务费</string>
   <string name="sora_card_blacklisted_countires_title">申请被排除</string>
   <string name="sora_card_blacklisted_countires_warning"><![CDATA[目前，来自<b>某些国家的居民<br>无法申请</b>SORA卡片。<br><a href=\"https://soracard.com/blacklist/\">查看名单</a>]]></string>

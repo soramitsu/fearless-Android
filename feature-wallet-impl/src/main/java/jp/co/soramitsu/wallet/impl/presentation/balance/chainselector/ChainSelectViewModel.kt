@@ -1,11 +1,12 @@
 package jp.co.soramitsu.wallet.impl.presentation.balance.chainselector
 
 import androidx.lifecycle.SavedStateHandle
-import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.compose.component.ChainSelectorViewState
+import jp.co.soramitsu.common.compose.component.ChainSelectorViewStateWithFilters
 import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.runtime.ext.ecosystem
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainEcosystem
@@ -16,11 +17,22 @@ import jp.co.soramitsu.wallet.impl.domain.ChainInteractor
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.presentation.send.SendSharedState
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.merge
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.transformLatest
+import kotlinx.coroutines.flow.zip
 import kotlinx.coroutines.launch
 import jp.co.soramitsu.wallet.api.presentation.WalletRouter as WalletRouterApi
 
@@ -32,7 +44,7 @@ class ChainSelectViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val sharedSendState: SendSharedState,
     private val accountInteractor: AccountInteractor
-) : BaseViewModel() {
+) : BaseViewModel(), ChainSelectScreenContract {
 
     private val initialSelectedChainId: ChainId? = savedStateHandle[ChainSelectFragment.KEY_SELECTED_CHAIN_ID]
     private val selectedChainId = MutableStateFlow(initialSelectedChainId)
@@ -43,6 +55,7 @@ class ChainSelectViewModel @Inject constructor(
     private val showAllChains: Boolean = savedStateHandle[ChainSelectFragment.KEY_SHOW_ALL_CHAINS] ?: true
     private val tokenCurrencyId: String? = savedStateHandle[ChainSelectFragment.KEY_CURRENCY_ID]
     private val isSelectAsset: Boolean = savedStateHandle[ChainSelectFragment.KEY_SELECT_ASSET] ?: true
+    private val isFilteringEnabled: Boolean = savedStateHandle[ChainSelectFragment.KEY_FILTERING_ENABLED] ?: false
 
     // XCM
     private val xcmChainType: XcmChainType? =
@@ -53,6 +66,9 @@ class ChainSelectViewModel @Inject constructor(
         savedStateHandle[ChainSelectFragment.KEY_XCM_ASSET_SYMBOL]
 
     private var choiceDone = false
+
+    private val cachedMetaAccountFlow = accountInteractor.selectedMetaAccountFlow()
+        .stateIn(this, SharingStarted.Eagerly, null)
 
     private val allChainsFlow = if (xcmChainType == null) {
         chainInteractor.getChainsFlow()
@@ -112,7 +128,7 @@ class ChainSelectViewModel @Inject constructor(
         } else {
             chains
         }
-        filtered?.map { it.toChainItemState() }
+        filtered
     }.stateIn(this, SharingStarted.Eagerly, null)
 
     private val symbolFlow = allChainsFlow.map { chains ->
@@ -123,26 +139,106 @@ class ChainSelectViewModel @Inject constructor(
 
     private val enteredChainQueryFlow = MutableStateFlow("")
 
-    val state = combine(chainsFlow, selectedChainId, enteredChainQueryFlow) { chainItems, selectedChainId, searchQuery ->
-        val chains = chainItems
-            ?.filter {
-                val condition = it.tokenSymbols.values.any { it.contains(searchQuery, true) }
+    private val filterFlow = MutableSharedFlow<ChainSelectorViewStateWithFilters.Filter>(
+        replay = 1,
+        extraBufferCapacity = 0,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST
+    )
 
-                searchQuery.isEmpty() || it.title.contains(searchQuery, true) || condition
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val filterCombinedFlow =
+        walletInteractor.observeSelectedAccountChainSelectFilter()
+            .map { savedState ->
+                ChainSelectorViewStateWithFilters.Filter.values().find {
+                    it.name == savedState
+                } ?: ChainSelectorViewStateWithFilters.Filter.All
+            }.transformLatest {
+                emit(it)
+                emitAll(filterFlow)
+            }.distinctUntilChanged()
+
+    val state = combine(
+        chainsFlow,
+        filterCombinedFlow,
+        cachedMetaAccountFlow,
+        selectedChainId,
+        enteredChainQueryFlow
+    ) {
+      chainsPreFiltered,
+      filter,
+      selectedMetaAccount,
+      selectedChainId,
+      searchQuery ->
+
+        println("This is checkpoint: filter.combine - $filter")
+
+        val selectedAccountFavoriteChains = selectedMetaAccount?.favoriteChains
+
+        val chainsWithFavoriteInfo = chainsPreFiltered?.map { chain ->
+            chain to (selectedAccountFavoriteChains?.get(chain.id)?.isFavorite == true)
+        }
+
+        val chainItems = when(filter) {
+            ChainSelectorViewStateWithFilters.Filter.All -> chainsWithFavoriteInfo
+
+            ChainSelectorViewStateWithFilters.Filter.Favorite ->
+                chainsWithFavoriteInfo?.filter { (_, isFavorite) -> isFavorite }
+
+            ChainSelectorViewStateWithFilters.Filter.Popular ->
+                chainsWithFavoriteInfo?.filter { (chain, _) ->
+                    chain.rank != null
+                }?.sortedBy { (chain, _) ->
+                    chain.rank
+                }
+        }?.map { (chain, isFavorite) ->
+            chain.toChainItemState().run {
+                if (!isFilteringEnabled)
+                    return@run this
+
+                this.toFilteredDecorator(isFavorite)
             }
-            ?.sortedWith(compareBy<ChainItemState> { it.id.defaultChainSort() }.thenBy { it.title })
+        }
 
-        ChainSelectScreenViewState(
-            chains = chains,
+        val resultingChains = chainItems
+            ?.filter {
+                val condition = it.tokenSymbols.values.any {
+                    it.contains(searchQuery, true)
+                }
+
+                searchQuery.isEmpty() ||
+                it.title.contains(searchQuery, true) ||
+                condition
+            }
+            ?.sortedWith(
+                compareBy<ChainSelectScreenContract.State.ItemState> {
+                    it.id.defaultChainSort()
+                }.thenBy {
+                    it.title
+                }
+            )
+
+        ChainSelectScreenContract.State.Impl(
+            chains = resultingChains,
             selectedChainId = selectedChainId,
             searchQuery = searchQuery,
             showAllChains = showAllChains
-        )
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, ChainSelectScreenViewState.default)
+        ).run {
+            if (!isFilteringEnabled)
+                return@run this
 
-    fun onChainSelected(chainItemState: ChainItemState?) {
+            ChainSelectScreenContract.State.Impl.FilteringDecorator(filter, this)
+        }
+    }.stateIn(this, SharingStarted.Eagerly, ChainSelectScreenContract.State.Impl.default)
+
+    override fun onBackButtonClick() {
+        walletRouter.back()
+    }
+
+    override fun onChainSelected(chainItemState: ChainSelectScreenContract.State.ItemState?) {
         choiceDone = true
         val chainId = chainItemState?.id
+
+        saveAppliedFilter()
 
         if (selectedChainId.value == chainId) {
             if (chooserMode) {
@@ -189,6 +285,17 @@ class ChainSelectViewModel @Inject constructor(
         }
     }
 
+    private fun saveAppliedFilter() {
+        val walletId = cachedMetaAccountFlow.value?.id ?: return
+
+        launch {
+            walletInteractor.saveChainSelectFilter(
+                walletId,
+                filterFlow.replayCache.firstOrNull()?.toString().orEmpty()
+            )
+        }
+    }
+
     private fun assetSpecified(assetId: String?, chainId: ChainId) {
         choiceDone = true
         if (assetId != null) {
@@ -200,11 +307,27 @@ class ChainSelectViewModel @Inject constructor(
         )
     }
 
-    fun onSearchInput(input: String) {
+    override fun onFilterApplied(filter: ChainSelectorViewStateWithFilters.Filter) {
+        filterFlow.tryEmit(filter)
+    }
+
+    override fun onChainMarkedFavorite(chainItemState: ChainSelectScreenContract.State.ItemState) {
+        if (chainItemState !is ChainSelectScreenContract.State.ItemState.Impl.FilteringDecorator)
+            return
+
+        launch {
+            accountInteractor.updateFavoriteChain(
+                chainId = chainItemState.id,
+                isFavorite = !chainItemState.isMarkedAsFavorite
+            )
+        }
+    }
+
+    override fun onSearchInput(input: String) {
         enteredChainQueryFlow.value = input
     }
 
-    fun onDialogClose() {
+    override fun onDialogClose() {
         if (!choiceDone && sharedSendState.assetId == null) {
             walletRouter.popOutOfSend()
         }
