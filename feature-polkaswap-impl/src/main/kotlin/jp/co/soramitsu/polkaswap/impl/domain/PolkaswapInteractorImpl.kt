@@ -16,6 +16,8 @@ import jp.co.soramitsu.polkaswap.api.data.PolkaswapRepository
 import jp.co.soramitsu.polkaswap.api.domain.InsufficientLiquidityException
 import jp.co.soramitsu.polkaswap.api.domain.PolkaswapInteractor
 import jp.co.soramitsu.polkaswap.api.domain.models.SwapDetails
+import jp.co.soramitsu.polkaswap.api.models.DisclaimerAppearanceSource
+import jp.co.soramitsu.polkaswap.api.models.DisclaimerVisibilityStatus
 import jp.co.soramitsu.polkaswap.api.models.Market
 import jp.co.soramitsu.polkaswap.api.models.WithDesired
 import jp.co.soramitsu.polkaswap.api.models.backStrings
@@ -35,6 +37,8 @@ import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
 
 class PolkaswapInteractorImpl @Inject constructor(
@@ -54,6 +58,29 @@ class PolkaswapInteractorImpl @Inject constructor(
             sharedPreferences.putBoolean(PolkaswapInteractor.HAS_READ_DISCLAIMER_KEY, value)
         }
 
+    /**
+     * [DisclaimerAppearanceSource.BottomAppBarAction] is used because it is the most earliest
+     * appearance source that user can interact with
+     */
+    private var disclaimerAppearanceSource: DisclaimerAppearanceSource = DisclaimerAppearanceSource.None
+
+    override fun updateDisclaimerVisibilityStatus(status: DisclaimerVisibilityStatus) {
+        disclaimerAppearanceSource = status.source
+        sharedPreferences.putBoolean(PolkaswapInteractor.HAS_READ_DISCLAIMER_KEY, status.visibility)
+    }
+
+    override fun observeDisclaimerVisibilityStatus(): Flow<DisclaimerVisibilityStatus> {
+        val disclaimerVisiblityStatusFlow = sharedPreferences.booleanFlow(
+            PolkaswapInteractor.HAS_READ_DISCLAIMER_KEY, false
+        ).distinctUntilChanged() // important to save, since it is used for navigation
+
+        return disclaimerVisiblityStatusFlow.map {
+            DisclaimerVisibilityStatus(
+                disclaimerAppearanceSource to it
+            )
+        }
+    }
+
     override fun observeHasReadDisclaimer(): Flow<Boolean> {
         return sharedPreferences.booleanFlow(PolkaswapInteractor.HAS_READ_DISCLAIMER_KEY, false)
     }
@@ -71,7 +98,7 @@ class PolkaswapInteractorImpl @Inject constructor(
         val metaAccount = accountRepository.getSelectedMetaAccount()
         val (chain, chainAsset) = chainRegistry.chainWithAsset(polkaswapChainId, assetId)
 
-        return walletRepository.getAsset(metaAccount.id, metaAccount.accountId(chain)!!, chainAsset, chain.minSupportedVersion)!!
+        return walletRepository.getAsset(metaAccount.id, metaAccount.accountId(chain)!!, chainAsset, chain.minSupportedVersion)
     }
 
     override suspend fun getAvailableDexes(): List<BigInteger> {

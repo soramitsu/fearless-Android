@@ -72,10 +72,12 @@ import jp.co.soramitsu.crowdloan.impl.presentation.contribute.select.parcel.Cont
 import jp.co.soramitsu.onboarding.impl.OnboardingRouter
 import jp.co.soramitsu.onboarding.impl.welcome.WelcomeFragment
 import jp.co.soramitsu.onboarding.impl.welcome.select_import_mode.SelectImportModeDialog
+import jp.co.soramitsu.polkaswap.api.models.DisclaimerAppearanceSource
 import jp.co.soramitsu.polkaswap.api.presentation.PolkaswapRouter
 import jp.co.soramitsu.polkaswap.api.presentation.models.SwapDetailsParcelModel
 import jp.co.soramitsu.polkaswap.api.presentation.models.SwapDetailsViewState
 import jp.co.soramitsu.polkaswap.api.presentation.models.TransactionSettingsModel
+import jp.co.soramitsu.polkaswap.impl.presentation.disclaimer.PolkaswapDisclaimerFragment
 import jp.co.soramitsu.polkaswap.impl.presentation.swap_preview.SwapPreviewFragment
 import jp.co.soramitsu.polkaswap.impl.presentation.swap_tokens.SwapTokensFragment
 import jp.co.soramitsu.polkaswap.impl.presentation.transaction_settings.TransactionSettingsFragment
@@ -736,7 +738,10 @@ class Navigator :
             .onEach { removeSavedStateHandle(resultKey) }
     }
 
-    override fun openSwapTokensScreen(chainId: String, assetIdFrom: String?, assetIdTo: String?) {
+    override fun openSwapTokensScreen(chainId: String?, assetIdFrom: String?, assetIdTo: String?) {
+        if (navController?.currentDestination?.id == R.id.swapTokensFragment)
+            return
+
         val bundle = SwapTokensFragment.getBundle(chainId, assetIdFrom, assetIdTo)
 
         navController?.navigate(R.id.swapTokensFragment, bundle)
@@ -858,8 +863,13 @@ class Navigator :
         openOperationSuccess(operationHash, chainId, null)
     }
 
-    override fun openPolkaswapDisclaimer() {
-        navController?.navigate(R.id.polkaswapDisclaimerFragment)
+    override fun openPolkaswapDisclaimer(disclaimerAppearanceSource: DisclaimerAppearanceSource) {
+        if (navController?.currentDestination?.id == R.id.polkaswapDisclaimerFragment)
+            return
+
+        val bundle = PolkaswapDisclaimerFragment.getBundle(disclaimerAppearanceSource)
+
+        navController?.navigate(R.id.polkaswapDisclaimerFragment, bundle)
     }
 
     override fun openOperationSuccess(operationHash: String?, chainId: ChainId, customMessage: String?) {

@@ -69,6 +69,10 @@ class MainFragment : BaseFragment<MainViewModel>(R.layout.fragment_main) {
         navController!!.addOnDestinationChangedListener { _, destination, _ ->
             backCallback.isEnabled = !isAtHomeTab(destination)
         }
+
+        binding.fabMain.setOnClickListener {
+            viewModel.navigateToSwapScreen()
+        }
     }
 
     override fun subscribe(viewModel: MainViewModel) {

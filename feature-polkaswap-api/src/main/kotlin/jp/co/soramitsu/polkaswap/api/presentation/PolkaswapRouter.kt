@@ -1,5 +1,6 @@
 package jp.co.soramitsu.polkaswap.api.presentation
 
+import jp.co.soramitsu.polkaswap.api.models.DisclaimerAppearanceSource
 import jp.co.soramitsu.polkaswap.api.presentation.models.SwapDetailsParcelModel
 import jp.co.soramitsu.polkaswap.api.presentation.models.SwapDetailsViewState
 import jp.co.soramitsu.polkaswap.api.presentation.models.TransactionSettingsModel
@@ -30,7 +31,7 @@ interface PolkaswapRouter {
 
     fun openOperationSuccess(operationHash: String?, chainId: ChainId)
 
-    fun openPolkaswapDisclaimer()
+    fun openPolkaswapDisclaimer(disclaimerAppearanceSource: DisclaimerAppearanceSource)
 
     fun openWebViewer(title: String, url: String)
 }
