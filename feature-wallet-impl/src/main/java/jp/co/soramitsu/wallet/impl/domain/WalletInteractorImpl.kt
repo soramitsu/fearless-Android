@@ -544,7 +544,11 @@ class WalletInteractorImpl(
         }.distinctUntilChanged().flatMapLatest {
             val key = getChainSelectFilterAppliedKey(it)
 
-            preferences.stringFlow(key).filterNotNull()
+            preferences.stringFlow(key) {
+                // emit empty string on start as indication that no filter is used
+                // as opposed to null which was thrown for random reasons
+                return@stringFlow ""
+            }.filterNotNull()
         }
     }
 
