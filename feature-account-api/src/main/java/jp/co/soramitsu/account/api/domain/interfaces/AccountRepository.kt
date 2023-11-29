@@ -182,4 +182,7 @@ interface AccountRepository {
     suspend fun getChain(chainId: ChainId): Chain
 
     fun allMetaAccountsFlow(): StateFlow<List<MetaAccount>>
+    fun selectedLightMetaAccountFlow(): Flow<LightMetaAccount>
+    suspend fun getSelectedLightMetaAccount(): LightMetaAccount
+    suspend fun getLightMetaAccount(metaId: Long): LightMetaAccount
 }

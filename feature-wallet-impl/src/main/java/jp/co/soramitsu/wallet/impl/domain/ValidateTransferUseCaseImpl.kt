@@ -12,9 +12,14 @@ import jp.co.soramitsu.core.models.isSoraBasedChain
 import jp.co.soramitsu.core.utils.isValidAddress
 import jp.co.soramitsu.core.utils.removedXcPrefix
 import jp.co.soramitsu.core.utils.utilityAsset
+import jp.co.soramitsu.polkaswap.api.domain.InsufficientLiquidityException
+import jp.co.soramitsu.polkaswap.api.domain.PolkaswapInteractor
+import jp.co.soramitsu.polkaswap.api.models.Market
+import jp.co.soramitsu.polkaswap.api.models.WithDesired
 import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.bokoloCashTokenId
 import jp.co.soramitsu.wallet.api.domain.ExistentialDepositUseCase
 import jp.co.soramitsu.wallet.api.domain.TransferValidationResult
 import jp.co.soramitsu.wallet.api.domain.ValidateTransferUseCase
@@ -24,13 +29,15 @@ import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
+import jp.co.soramitsu.wallet.impl.presentation.send.confirm.FEE_RESERVE_TOLERANCE
 
 class ValidateTransferUseCaseImpl(
     private val existentialDepositUseCase: ExistentialDepositUseCase,
     private val walletConstants: WalletConstants,
     private val chainRegistry: ChainRegistry,
     private val accountRepository: AccountRepository,
-    private val walletRepository: WalletRepository
+    private val walletRepository: WalletRepository,
+    private val polkaswapInteractor: PolkaswapInteractor
 ) : ValidateTransferUseCase {
 
     override suspend fun invoke(
@@ -131,6 +138,45 @@ class ValidateTransferUseCaseImpl(
                 mapOf(
                     TransferValidationResult.InsufficientBalance to (amountInPlanks + fee + tip > transferable),
                     TransferValidationResult.ExistentialDepositWarning(assetEdFormatted) to (resultedBalance < assetExistentialDeposit),
+                    TransferValidationResult.DeadRecipient to (totalRecipientBalanceInPlanks + amountInPlanks < assetExistentialDeposit)
+                )
+            }
+
+            chainAsset.currencyId == bokoloCashTokenId -> { // xorlessTransfer
+                val metaAccount = accountRepository.getSelectedMetaAccount()
+                val utilityAsset: Asset? = originChain.utilityAsset?.let {
+                    walletRepository.getAsset(
+                        metaAccount.id,
+                        metaAccount.accountId(originChain)!!,
+                        it,
+                        originChain.minSupportedVersion
+                    )
+                }
+
+                val feeRequiredTokenInPlanks = if (utilityAsset?.transferableInPlanks.orZero() < fee) {
+                    val swapDetails = utilityAsset?.let {
+                        polkaswapInteractor.calcDetails(
+                            availableDexPaths = listOf(0),
+                            tokenFrom = asset,
+                            tokenTo = utilityAsset,
+                            amount = asset.token.amountFromPlanks(fee),
+                            desired = WithDesired.OUTPUT,
+                            slippageTolerance = 1.5,
+                            market = Market.SMART
+                        )
+                    }?.onFailure {
+                        if (it is InsufficientLiquidityException) {
+                            return@runCatching TransferValidationResult.InsufficientBalance
+                        }
+                    }
+                    swapDetails?.getOrNull()?.amount?.let { utilityAsset.token.planksFromAmount(it * FEE_RESERVE_TOLERANCE) }
+                } else {
+                    null
+                }
+
+                mapOf(
+                    TransferValidationResult.InsufficientBalance to (amountInPlanks + feeRequiredTokenInPlanks.orZero() > transferable),
+                    TransferValidationResult.ExistentialDepositWarning(assetEdFormatted) to (transferable - amountInPlanks - feeRequiredTokenInPlanks.orZero() < assetExistentialDeposit),
                     TransferValidationResult.DeadRecipient to (totalRecipientBalanceInPlanks + amountInPlanks < assetExistentialDeposit)
                 )
             }

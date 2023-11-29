@@ -81,7 +81,6 @@ class TransferDetailFragment : BaseFragment<TransactionDetailViewModel>(R.layout
             } else {
                 showOutgoungViews()
                 binding.transactionDetailFee.text = fee
-                binding.transactionDetailTotal.text = total
             }
 
             binding.transactionDetailAmount.text = amount
@@ -124,21 +123,15 @@ class TransferDetailFragment : BaseFragment<TransactionDetailViewModel>(R.layout
 
     private fun hideOutgoingViews() {
         binding.transactionDetailFee.makeGone()
-        binding.transactionDetailTotalLabel.makeGone()
         binding.transactionDetailFeeLabel.makeGone()
-        binding.transactionDetailTotal.makeGone()
         binding.transactionDetailDivider4.makeInvisible()
-        binding.transactionDetailDivider5.makeInvisible()
     }
 
     private fun showOutgoungViews() {
         with(binding) {
             transactionDetailFee.makeVisible()
-            transactionDetailTotalLabel.makeVisible()
             transactionDetailFeeLabel.makeVisible()
-            transactionDetailTotal.makeVisible()
             transactionDetailDivider4.makeVisible()
-            transactionDetailDivider5.makeVisible()
         }
     }
 

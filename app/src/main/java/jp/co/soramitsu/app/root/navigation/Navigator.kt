@@ -121,6 +121,7 @@ import jp.co.soramitsu.success.presentation.SuccessRouter
 import jp.co.soramitsu.wallet.api.domain.model.XcmChainType
 import jp.co.soramitsu.wallet.impl.domain.beacon.SignStatus
 import jp.co.soramitsu.wallet.impl.domain.model.PhishingType
+import jp.co.soramitsu.wallet.impl.domain.model.QrContentCBDC
 import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.presentation.addressbook.CreateContactFragment
@@ -145,6 +146,7 @@ import jp.co.soramitsu.wallet.impl.presentation.receive.ReceiveFragment
 import jp.co.soramitsu.wallet.impl.presentation.send.TransferDraft
 import jp.co.soramitsu.wallet.impl.presentation.send.confirm.ConfirmSendFragment
 import jp.co.soramitsu.wallet.impl.presentation.send.setup.SendSetupFragment
+import jp.co.soramitsu.wallet.impl.presentation.send.setupcbdc.CBDCSendSetupFragment
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.extrinsic.ExtrinsicDetailFragment
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.extrinsic.ExtrinsicDetailsPayload
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.reward.RewardDetailFragment
@@ -697,16 +699,22 @@ class Navigator :
         navController?.navigate(R.id.open_collator_details, CollatorDetailsFragment.getBundle(collatorDetails))
     }
 
-    override fun openSend(assetPayload: AssetPayload?, initialSendToAddress: String?, currencyId: String?) {
-        val bundle = SendSetupFragment.getBundle(assetPayload, initialSendToAddress, currencyId)
+    override fun openSend(assetPayload: AssetPayload?, initialSendToAddress: String?, currencyId: String?, amount: BigDecimal?) {
+        val bundle = SendSetupFragment.getBundle(assetPayload, initialSendToAddress, currencyId, amount, false)
 
         navController?.navigate(R.id.sendSetupFragment, bundle)
     }
 
-    override fun openLockedAmountSend(assetPayload: AssetPayload?, initialSendToAddress: String?, currencyId: String?, amount: BigDecimal) {
-        val bundle = SendSetupFragment.getBundle(assetPayload, initialSendToAddress, currencyId, amount)
+    override fun openLockedAmountSend(assetPayload: AssetPayload?, initialSendToAddress: String?, currencyId: String?, amount: BigDecimal?) {
+        val bundle = SendSetupFragment.getBundle(assetPayload, initialSendToAddress, currencyId, amount, true)
 
         navController?.navigate(R.id.sendSetupFragment, bundle)
+    }
+
+    override fun openCBDCSend(cbdcQrInfo: QrContentCBDC) {
+        val bundle = CBDCSendSetupFragment.getBundle(cbdcQrInfo)
+
+        navController?.navigate(R.id.cbdcSendSetupFragment, bundle)
     }
 
     override fun openCrossChainSend(assetPayload: AssetPayload?) {
@@ -845,8 +853,8 @@ class Navigator :
         navController?.navigate(R.id.action_mainFragment_to_filterFragment)
     }
 
-    override fun openSendConfirm(transferDraft: TransferDraft, phishingType: PhishingType?) {
-        val bundle = ConfirmSendFragment.getBundle(transferDraft, phishingType)
+    override fun openSendConfirm(transferDraft: TransferDraft, phishingType: PhishingType?, overrides: Map<String, Any?>, transferComment: String?) {
+        val bundle = ConfirmSendFragment.getBundle(transferDraft, phishingType, overrides, transferComment)
 
         navController?.navigate(R.id.confirmSendFragment, bundle)
     }

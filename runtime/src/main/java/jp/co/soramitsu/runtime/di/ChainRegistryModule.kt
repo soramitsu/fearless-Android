@@ -17,6 +17,7 @@ import jp.co.soramitsu.core.runtime.RuntimeFactory
 import jp.co.soramitsu.coredb.dao.ChainDao
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainSyncService
+import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.ChainFetcher
 import jp.co.soramitsu.runtime.multiNetwork.connection.ConnectionPool
 import jp.co.soramitsu.runtime.multiNetwork.connection.EthereumConnectionPool
@@ -168,4 +169,7 @@ class ChainRegistryModule {
         networkStateMixin,
         ethereumConnectionPool
     )
+
+    @Provides
+    fun provideChainsRepository(chainDao: ChainDao): ChainsRepository = ChainsRepository(chainDao)
 }

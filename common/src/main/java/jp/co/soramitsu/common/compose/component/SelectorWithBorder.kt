@@ -1,5 +1,6 @@
 package jp.co.soramitsu.common.compose.component
 
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -33,7 +34,8 @@ data class SelectorState(
     val actionIcon: Int? = R.drawable.ic_arrow_down,
     val clickable: Boolean = true,
     val enabled: Boolean = true,
-    val subTitleIcon: Int? = null
+    val subTitleIcon: Int? = null,
+    @DrawableRes val iconOverrideResId: Int? = null
 ) {
     companion object {
         val default = SelectorState("Network", null, null)
@@ -55,7 +57,7 @@ fun SelectorWithBorder(
         modifier = modifier
             .fillMaxWidth()
             .clip(shape)
-            .clickable(enabled = state.clickable) { onClick() }
+            .clickable(enabled = state.clickable, onClick = onClick)
             .height(64.dp)
     ) {
         Row(
@@ -63,7 +65,16 @@ fun SelectorWithBorder(
                 .fillMaxSize()
                 .padding(12.dp)
         ) {
-            state.iconUrl?.let {
+            if (state.iconOverrideResId != null) {
+                Image(
+                    modifier = Modifier
+                        .size(32.dp)
+                        .align(Alignment.CenterVertically),
+                    res = state.iconOverrideResId,
+                    contentDescription = state.title
+                )
+                MarginHorizontal(8.dp)
+            } else if (state.iconUrl != null) {
                 AsyncImage(
                     model = getImageRequest(LocalContext.current, state.iconUrl),
                     contentDescription = state.title,
@@ -125,6 +136,9 @@ private fun SelectorWithBorderPreview() {
         Column(Modifier.widthIn(max = 200.dp)) {
             SelectorWithBorder(
                 state = state
+            )
+            SelectorWithBorder(
+                state = state.copy(iconOverrideResId = R.drawable.ic_wallet)
             )
             SelectorWithBorder(
                 state = state.copy(iconUrl = null, subTitleIcon = R.drawable.ic_alert_16)
