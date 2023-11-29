@@ -237,6 +237,7 @@ class BeaconInteractor(
         )
     }
 
+
     private suspend fun signRawPayload(payload: SubstrateSignerPayload.Raw): String {
         val currentMetaAccount = accountRepository.getSelectedMetaAccount()
         val secrets = accountRepository.getMetaAccountSecrets(currentMetaAccount.id) ?: error("There are no secrets for metaId: ${currentMetaAccount.id}")

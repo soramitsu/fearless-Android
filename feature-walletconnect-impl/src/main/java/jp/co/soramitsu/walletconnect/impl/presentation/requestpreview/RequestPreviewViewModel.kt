@@ -10,21 +10,22 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.interfaces.TotalBalanceUseCase
-import jp.co.soramitsu.account.api.domain.model.TotalBalance
 import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
-import jp.co.soramitsu.common.compose.component.ChangeBalanceViewState
 import jp.co.soramitsu.common.compose.component.GradientIconState
-import jp.co.soramitsu.common.compose.component.InfoItemViewState
 import jp.co.soramitsu.common.compose.component.TitleValueViewState
 import jp.co.soramitsu.common.compose.component.WalletItemViewState
-import jp.co.soramitsu.common.compose.theme.colorAccentDark
+import jp.co.soramitsu.common.data.Keypair
+import jp.co.soramitsu.common.data.secrets.v2.KeyPairSchema
+import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.flowOf
-import jp.co.soramitsu.common.utils.formatAsChange
-import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.inBackground
+import jp.co.soramitsu.core.crypto.mapCryptoTypeToEncryption
+import jp.co.soramitsu.core.extrinsic.ExtrinsicService
+import jp.co.soramitsu.runtime.ext.accountIdOf
+import jp.co.soramitsu.shared_utils.extensions.toHexString
 import jp.co.soramitsu.walletconnect.impl.presentation.WCDelegate
 import jp.co.soramitsu.walletconnect.impl.presentation.address
 import jp.co.soramitsu.walletconnect.impl.presentation.caip2id
@@ -34,7 +35,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -47,7 +48,8 @@ class RequestPreviewViewModel @Inject constructor(
     private val walletConnectRouter: WalletConnectRouter,
     private val resourceManager: ResourceManager,
     private val accountRepository: AccountRepository,
-    private val addressIconGenerator: AddressIconGenerator
+    private val addressIconGenerator: AddressIconGenerator,
+    private val extrinsicService: ExtrinsicService
 ) : RequestPreviewScreenInterface, BaseViewModel() {
 
     private val topic: String = savedStateHandle[RequestPreviewFragment.PAYLOAD_TOPIC_KEY] ?: error("No topic provided for request preview screen")
@@ -72,10 +74,6 @@ class RequestPreviewViewModel @Inject constructor(
         allMetaAccountsFlow,
         requestChainFlow
     ) { allMetaAccounts, requestChain ->
-//        val requestChain = walletConnectInteractor.getChains().firstOrNull { chain ->
-//            chain.caip2id == recentSession.chainId
-//        }
-
         val requestAddress = recentSession.request.address
 
         val requestedWallet = requestChain?.let {
@@ -97,18 +95,11 @@ class RequestPreviewViewModel @Inject constructor(
             AddressIconGenerator.SIZE_BIG
         )
 
-        val balanceModel = TotalBalance.Empty
-
         WalletItemViewState(
             id = requestedWallet.id,
             title = requestedWallet.name,
             isSelected = false,
-            walletIcon = requestedWalletIcon,
-//            balance = balanceModel.balance.formatFiat(balanceModel.fiatSymbol),
-//            changeBalanceViewState = ChangeBalanceViewState(
-//                percentChange = balanceModel.rateChange?.formatAsChange().orEmpty(),
-//                fiatChange = balanceModel.balanceChange.abs().formatFiat(balanceModel.fiatSymbol)
-//            )
+            walletIcon = requestedWalletIcon
         )
     }
         .inBackground()
@@ -174,27 +165,51 @@ class RequestPreviewViewModel @Inject constructor(
     override fun onSignClick() {
         println("!!! RequestPreviewViewModel onSignClick")
 
-//        val jsonRpcResponse = Wallet.Model.JsonRpcResponse.JsonRpcResult(requestId, result)
-//        val response = Wallet.Params.SessionRequestResponse(sessionTopic, jsonRpcResponse)
-//        Web3Wallet.respondSessionRequest(response) { error -> }
+        val message = recentSession.request.message
+        println("!!! RequestPreviewViewModel message to sign = $message")
 
-        Web3Wallet.respondSessionRequest(
-            params = Wallet.Params.SessionRequestResponse(
-                sessionTopic = topic,
-                jsonRpcResponse = Wallet.Model.JsonRpcResponse.JsonRpcResult(
-                    id = recentSession.request.id,
-                    result = recentSession.request.params
+        launch(Dispatchers.IO) {
+            requestChainFlow.firstOrNull()?.let { chain ->
+                val address = recentSession.request.address ?: return@launch
+                val accountId = chain.accountIdOf(address)
+                val metaAccount = accountRepository.findMetaAccount(accountId) ?: return@launch
+                val encryption = mapCryptoTypeToEncryption(metaAccount.substrateCryptoType)
+
+                val secrets = accountRepository.getMetaAccountSecrets(metaAccount.id) ?: error("There are no secrets for metaId: ${metaAccount.id}")
+                val keypairSchema = secrets[MetaAccountSecrets.SubstrateKeypair]
+                val publicKey = keypairSchema[KeyPairSchema.PublicKey]
+                val privateKey = keypairSchema[KeyPairSchema.PrivateKey]
+                val nonce = keypairSchema[KeyPairSchema.Nonce]
+
+                val keypair = Keypair(publicKey, privateKey, nonce)
+
+                val result = extrinsicService.createSignature(
+                    encryption = encryption,
+                    keypair = keypair,
+                    message = recentSession.request.message.toByteArray().toHexString(true)
                 )
-            ),
-            onSuccess = {
-                println("!!! Web3Wallet.respondSessionRequest onSuccess")
 
-            },
-            onError = {
-                println("!!! Web3Wallet.respondSessionRequest onError: ${it.throwable.message}")
-                it.throwable.printStackTrace()
+                println("!!! RequestPreviewViewModel sign result = $result")
+
+                Web3Wallet.respondSessionRequest(
+                    params = Wallet.Params.SessionRequestResponse(
+                        sessionTopic = topic,
+                        jsonRpcResponse = Wallet.Model.JsonRpcResponse.JsonRpcResult(
+                            id = recentSession.request.id,
+                            result = result
+                        )
+                    ),
+                    onSuccess = {
+                        println("!!! Web3Wallet.respondSessionRequest onSuccess")
+
+                    },
+                    onError = {
+                        println("!!! Web3Wallet.respondSessionRequest onError: ${it.throwable.message}")
+                        it.throwable.printStackTrace()
+                    }
+                )
             }
-        )
+        }
     }
 
     override fun onTableItemClick(id: Int) {
