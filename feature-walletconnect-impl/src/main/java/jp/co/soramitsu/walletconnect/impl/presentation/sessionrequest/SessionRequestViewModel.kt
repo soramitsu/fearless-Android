@@ -7,8 +7,6 @@ import co.jp.soramitsu.walletconnect.domain.WalletConnectRouter
 import com.walletconnect.web3.wallet.client.Wallet
 import com.walletconnect.web3.wallet.client.Web3Wallet
 import dagger.hilt.android.lifecycle.HiltViewModel
-import io.ipfs.multibase.CharEncoding
-import java.nio.charset.Charset
 import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.interfaces.TotalBalanceUseCase
@@ -23,13 +21,11 @@ import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.common.utils.formatAsChange
 import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.inBackground
-import jp.co.soramitsu.shared_utils.extensions.fromHex
 import jp.co.soramitsu.walletconnect.impl.presentation.WCDelegate
 import jp.co.soramitsu.walletconnect.impl.presentation.address
 import jp.co.soramitsu.walletconnect.impl.presentation.caip2id
 import jp.co.soramitsu.walletconnect.impl.presentation.dappUrl
 import jp.co.soramitsu.walletconnect.impl.presentation.message
-import jp.co.soramitsu.walletconnect.impl.presentation.state.WalletConnectMethod
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -37,8 +33,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import org.json.JSONArray
-import org.json.JSONObject
 
 @HiltViewModel
 class SessionRequestViewModel @Inject constructor(
