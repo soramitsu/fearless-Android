@@ -19,7 +19,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -34,7 +33,6 @@ import coil.compose.AsyncImage
 import jp.co.soramitsu.common.compose.component.B0
 import jp.co.soramitsu.common.compose.component.BackgroundCorneredWithBorder
 import jp.co.soramitsu.common.compose.component.CapsTitle
-import jp.co.soramitsu.common.compose.component.ChainSelectorViewState
 import jp.co.soramitsu.common.compose.component.ChainSelectorViewStateWithFilters
 import jp.co.soramitsu.common.compose.component.CorneredInput
 import jp.co.soramitsu.common.compose.component.GradientIcon
@@ -43,7 +41,6 @@ import jp.co.soramitsu.common.compose.component.H4
 import jp.co.soramitsu.common.compose.component.Image
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.component.NavigationIconButton
-import jp.co.soramitsu.common.compose.component.TextButton
 import jp.co.soramitsu.common.compose.component.getImageRequest
 import jp.co.soramitsu.common.compose.theme.alertYellow
 import jp.co.soramitsu.common.compose.theme.black05
@@ -72,55 +69,58 @@ fun ChainSelectContent(
 
         MarginVertical(margin = 16.dp)
 
-        CorneredInput(state = state.searchQuery, onInput = contract::onSearchInput)
+        CorneredInput(
+            state = state.searchQuery,
+            hintLabel = stringResource(id = R.string.common_search),
+            onInput = contract::onSearchInput
+        )
 
         val chains = state.chains
-        when {
-            chains == null -> {}
 
-            state !is ChainSelectScreenContract.State.Impl.FilteringDecorator &&
-            chains.isEmpty() -> {
-                MarginVertical(margin = 16.dp)
-                Column(
-                    horizontalAlignment = CenterHorizontally,
-                    modifier = Modifier
-                        .weight(1f)
-                        .align(CenterHorizontally)
-                ) {
-                    NewEmptyResultContent()
+        LazyColumn(modifier = Modifier.weight(1f)) {
+            if (state is ChainSelectScreenContract.State.Impl.FilteringDecorator) {
+                item {
+                    ChainsFilter(
+                        selectedFilter = state.selectedFilter,
+                        onClick = contract::onFilterApplied
+                    )
                 }
             }
 
-            else -> {
-                LazyColumn(modifier = Modifier.weight(1f)) {
-                    if (state is ChainSelectScreenContract.State.Impl.FilteringDecorator) {
-                        item {
-                            ChainsFilter(
-                                appliedFilter = state.appliedFilter,
-                                onClick = contract::onFilterApplied
-                            )
-                        }
-                    }
+            if (state.showAllChains && chains?.isNotEmpty() == true) {
+                if (state.showAllChains) {
+                    val appliedFilter =
+                        state.castOrNull<ChainSelectScreenContract.State.Impl.FilteringDecorator>()
+                            ?.appliedFilter ?: ChainSelectorViewStateWithFilters.Filter.All
 
-                    if (state.showAllChains) {
-                        val appliedFilter =
-                            state.castOrNull<ChainSelectScreenContract.State.Impl.FilteringDecorator>()
-                                ?.appliedFilter ?: ChainSelectorViewStateWithFilters.Filter.All
-                        
-                        item {
-                            ChainAllItem(
-                                appliedFilter = appliedFilter,
-                                isSelected = state.selectedChainId == null,
-                                onSelected = contract::onChainSelected
-                            )
-                        }
-                    }
+                    val selectedFilter =
+                        state.castOrNull<ChainSelectScreenContract.State.Impl.FilteringDecorator>()
+                            ?.selectedFilter ?: ChainSelectorViewStateWithFilters.Filter.All
 
-                    items(chains.map { it.markSelected(isSelected = it.id == state.selectedChainId) }) { chain ->
-                        ChainItem(
-                            state = chain,
-                            contract = contract
+                    item {
+                        ChainAllItem(
+                            appliedFilter = appliedFilter,
+                            selectedFilter = selectedFilter,
+                            isSelected = state.selectedChainId == null,
+                            onSelected = contract::onChainSelected
                         )
+                    }
+                }
+
+                items(chains!!.map { it.markSelected(isSelected = it.id == state.selectedChainId) }) { chain ->
+                    ChainItem(
+                        state = chain,
+                        contract = contract
+                    )
+                }
+            } else {
+                item {
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .align(CenterHorizontally)
+                    ) {
+                        EmptyResultContent()
                     }
                 }
             }
@@ -150,7 +150,7 @@ fun ChainSelectToolbar(
 }
 
 @Composable
-fun NewEmptyResultContent() {
+fun EmptyResultContent() {
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -173,7 +173,7 @@ fun NewEmptyResultContent() {
 
 @Composable
 inline fun ChainsFilter(
-    appliedFilter: ChainSelectorViewStateWithFilters.Filter,
+    selectedFilter: ChainSelectorViewStateWithFilters.Filter,
     crossinline onClick: (ChainSelectorViewStateWithFilters.Filter) -> Unit
 ) {
     Row(
@@ -182,7 +182,7 @@ inline fun ChainsFilter(
         modifier = Modifier.height(56.dp)
     ) {
         for (filter in ChainSelectorViewStateWithFilters.Filter.values()) {
-            val filterBorderColor = if (appliedFilter === filter)
+            val filterBorderColor = if (selectedFilter === filter)
                 MaterialTheme.customColors.colorAccent else
                 black05
 
@@ -218,16 +218,17 @@ inline fun ChainsFilter(
 @Composable
 fun ChainAllItem(
     appliedFilter: ChainSelectorViewStateWithFilters.Filter,
+    selectedFilter: ChainSelectorViewStateWithFilters.Filter,
     isSelected: Boolean,
     onSelected: (ChainSelectScreenContract.State.ItemState?) -> Unit
 ) {
-    val imageRes = when(appliedFilter) {
+    val imageRes = when(selectedFilter) {
         ChainSelectorViewStateWithFilters.Filter.All -> R.drawable.ic_all_chains
         ChainSelectorViewStateWithFilters.Filter.Popular -> R.drawable.ic_popular_chains
         ChainSelectorViewStateWithFilters.Filter.Favorite -> R.drawable.ic_favorite_enabled
     }
 
-    val titleRes = when(appliedFilter) {
+    val titleRes = when(selectedFilter) {
         ChainSelectorViewStateWithFilters.Filter.All -> stringResource(id = R.string.chain_selection_all_networks)
         ChainSelectorViewStateWithFilters.Filter.Popular -> stringResource(id = R.string.network_management_popular)
         ChainSelectorViewStateWithFilters.Filter.Favorite -> stringResource(id = R.string.network_managment_favourite)
@@ -255,7 +256,10 @@ fun ChainAllItem(
             modifier = Modifier.weight(1f)
         )
 
-        if (isSelected) {
+        val isChainMarkedAsSelected = isSelected &&
+                appliedFilter === selectedFilter
+
+        if (isChainMarkedAsSelected) {
             Image(
                 res = R.drawable.ic_marked,
                 modifier = Modifier
@@ -371,6 +375,7 @@ private fun SelectChainScreenPreview() {
         ).toFilteredDecorator(true)
     )
     val state = ChainSelectScreenContract.State.Impl.FilteringDecorator(
+        ChainSelectorViewStateWithFilters.Filter.Favorite,
         ChainSelectorViewStateWithFilters.Filter.Favorite,
         ChainSelectScreenContract.State.Impl(
             chains = items,

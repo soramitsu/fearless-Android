@@ -18,7 +18,6 @@ import jp.co.soramitsu.runtime.ext.hexAccountIdOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.shared_utils.extensions.toHexString
-import kotlinx.coroutines.flow.onEach
 
 fun mapCryptoTypeToCryptoTypeModel(
     resourceManager: ResourceManager,

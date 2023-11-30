@@ -1,6 +1,5 @@
 package jp.co.soramitsu.wallet.impl.presentation.balance.list
 
-import android.widget.Filter
 import android.widget.LinearLayout
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.SwipeableState
@@ -36,7 +35,6 @@ import jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState
 import jp.co.soramitsu.common.data.network.OptionsProvider
 import jp.co.soramitsu.common.data.network.coingecko.FiatChooserEvent
 import jp.co.soramitsu.common.data.network.coingecko.FiatCurrency
-import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.domain.FiatCurrencies
 import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
 import jp.co.soramitsu.common.domain.SelectedFiat
@@ -206,7 +204,7 @@ class BalanceListViewModel @Inject constructor(
         val selectedAccountFavoriteChains = currentMetaAccountFlow.favoriteChains
 
         val chainsWithFavoriteInfo = chains.map { chain ->
-            chain to (selectedAccountFavoriteChains.get(chain.id)?.isFavorite == true)
+            chain to (selectedAccountFavoriteChains[chain.id]?.isFavorite == true)
         }
 
         when(filter) {
@@ -750,7 +748,7 @@ class BalanceListViewModel @Inject constructor(
     }
 
     fun openSelectChain() {
-        router.openSelectChain(selectedChainId.value, isFilteringEnabled = true)
+        router.openSelectChain(selectedChainId.value, showAllChains = false, isFilteringEnabled = true)
     }
 
     private fun copyToClipboard(text: String) {

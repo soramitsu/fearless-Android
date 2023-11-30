@@ -5,8 +5,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.common.base.BaseViewModel
-import jp.co.soramitsu.common.compose.component.ChainSelectorViewState
 import jp.co.soramitsu.common.compose.component.ChainSelectorViewStateWithFilters
+import jp.co.soramitsu.common.utils.combine
 import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.runtime.ext.ecosystem
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainEcosystem
@@ -17,22 +17,11 @@ import jp.co.soramitsu.wallet.impl.domain.ChainInteractor
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.presentation.send.SendSharedState
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.channels.BufferOverflow
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.emitAll
-import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.merge
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.transformLatest
-import kotlinx.coroutines.flow.zip
 import kotlinx.coroutines.launch
 import jp.co.soramitsu.wallet.api.presentation.WalletRouter as WalletRouterApi
 
@@ -139,38 +128,27 @@ class ChainSelectViewModel @Inject constructor(
 
     private val enteredChainQueryFlow = MutableStateFlow("")
 
-    private val filterFlow = MutableSharedFlow<ChainSelectorViewStateWithFilters.Filter>(
-        replay = 1,
-        extraBufferCapacity = 0,
-        onBufferOverflow = BufferOverflow.DROP_OLDEST
-    )
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    private val filterCombinedFlow =
-        walletInteractor.observeSelectedAccountChainSelectFilter()
-            .map { savedState ->
-                ChainSelectorViewStateWithFilters.Filter.values().find {
-                    it.name == savedState
-                } ?: ChainSelectorViewStateWithFilters.Filter.All
-            }.transformLatest {
-                emit(it)
-                emitAll(filterFlow)
-            }.distinctUntilChanged()
+    private val filterFlow = MutableStateFlow<ChainSelectorViewStateWithFilters.Filter?>(null)
 
     val state = combine(
         chainsFlow,
-        filterCombinedFlow,
+        walletInteractor.observeSelectedAccountChainSelectFilter(),
+        filterFlow,
         cachedMetaAccountFlow,
         selectedChainId,
         enteredChainQueryFlow
     ) {
       chainsPreFiltered,
-      filter,
+      savedFilterAsString,
+      userInputFilter,
       selectedMetaAccount,
       selectedChainId,
       searchQuery ->
 
-        println("This is checkpoint: filter.combine - $filter")
+        val savedFilter =
+            ChainSelectorViewStateWithFilters.Filter.values().find {
+                it.name == savedFilterAsString
+            } ?: ChainSelectorViewStateWithFilters.Filter.All
 
         val selectedAccountFavoriteChains = selectedMetaAccount?.favoriteChains
 
@@ -178,7 +156,7 @@ class ChainSelectViewModel @Inject constructor(
             chain to (selectedAccountFavoriteChains?.get(chain.id)?.isFavorite == true)
         }
 
-        val chainItems = when(filter) {
+        val chainItems = when(userInputFilter ?: savedFilter) {
             ChainSelectorViewStateWithFilters.Filter.All -> chainsWithFavoriteInfo
 
             ChainSelectorViewStateWithFilters.Filter.Favorite ->
@@ -217,16 +195,23 @@ class ChainSelectViewModel @Inject constructor(
                 }
             )
 
+        val shouldShowAllChains =
+            (!showAllChains || isFilteringEnabled && resultingChains?.isNotEmpty() != true).not()
+
         ChainSelectScreenContract.State.Impl(
             chains = resultingChains,
             selectedChainId = selectedChainId,
             searchQuery = searchQuery,
-            showAllChains = showAllChains
+            showAllChains = shouldShowAllChains
         ).run {
             if (!isFilteringEnabled)
                 return@run this
 
-            ChainSelectScreenContract.State.Impl.FilteringDecorator(filter, this)
+            ChainSelectScreenContract.State.Impl.FilteringDecorator(
+                appliedFilter = savedFilter,
+                selectedFilter = userInputFilter ?: savedFilter,
+                state = this
+            )
         }
     }.stateIn(this, SharingStarted.Eagerly, ChainSelectScreenContract.State.Impl.default)
 

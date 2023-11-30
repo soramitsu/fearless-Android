@@ -25,6 +25,7 @@ interface ChainSelectScreenContract {
 
             data class FilteringDecorator(
                 val appliedFilter: ChainSelectorViewStateWithFilters.Filter,
+                val selectedFilter: ChainSelectorViewStateWithFilters.Filter,
                 private val state: State,
             ): State by state
         }
