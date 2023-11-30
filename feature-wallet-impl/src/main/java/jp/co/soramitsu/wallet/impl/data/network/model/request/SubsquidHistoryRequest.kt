@@ -3,11 +3,17 @@ package jp.co.soramitsu.wallet.impl.data.network.model.request
 class SubsquidHistoryRequest(
     accountAddress: String,
     limit: Int = 100,
-    offset: Int = 0
+    offset: String? = null
 ) {
     val query = """
     query MyQuery {
-      historyElements(where: {address_eq: "$accountAddress"}, orderBy: timestamp_DESC, limit: $limit, offset: $offset) {
+  historyElementsConnection(where: {address_eq: "$accountAddress"}, orderBy: timestamp_DESC, first: $limit, after: $offset) {
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+    edges {
+      node {
         timestamp
         id
         extrinsicIdx
@@ -39,5 +45,8 @@ class SubsquidHistoryRequest(
         }
       }
     }
+  }
+}
+
     """.trimIndent()
 }
