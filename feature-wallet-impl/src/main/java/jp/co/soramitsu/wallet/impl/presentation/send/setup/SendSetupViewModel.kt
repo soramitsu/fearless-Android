@@ -213,7 +213,7 @@ class SendSetupViewModel @Inject constructor(
         }.stateIn(this, SharingStarted.Eagerly, false)
 
     private val chainSelectorStateFlow =
-        combine(selectedChainItem, lockInputFlow) { it: ChainItemState?, isLock: Boolean ->
+        combine(selectedChainItem, lockInputFlow) { it: ChainSelectScreenContract.State.ItemState?, isLock: Boolean ->
             SelectorState(
                 title = resourceManager.getString(R.string.common_network),
                 subTitle = it?.title,

@@ -77,17 +77,15 @@ fun ChainSelectContent(
 
         val chains = state.chains
 
-        LazyColumn(modifier = Modifier.weight(1f)) {
-            if (state is ChainSelectScreenContract.State.Impl.FilteringDecorator) {
-                item {
-                    ChainsFilter(
-                        selectedFilter = state.selectedFilter,
-                        onClick = contract::onFilterApplied
-                    )
-                }
-            }
+        if (state is ChainSelectScreenContract.State.Impl.FilteringDecorator) {
+            ChainsFilter(
+                selectedFilter = state.selectedFilter,
+                onClick = contract::onFilterApplied
+            )
+        }
 
-            if (state.showAllChains && chains?.isNotEmpty() == true) {
+        if (state.showAllChains && chains?.isNotEmpty() == true) {
+            LazyColumn(modifier = Modifier.weight(1f)) {
                 if (state.showAllChains) {
                     val appliedFilter =
                         state.castOrNull<ChainSelectScreenContract.State.Impl.FilteringDecorator>()
@@ -107,23 +105,15 @@ fun ChainSelectContent(
                     }
                 }
 
-                items(chains!!.map { it.markSelected(isSelected = it.id == state.selectedChainId) }) { chain ->
+                items(chains.map { it.markSelected(isSelected = it.id == state.selectedChainId) }) { chain ->
                     ChainItem(
                         state = chain,
                         contract = contract
                     )
                 }
-            } else {
-                item {
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .align(CenterHorizontally)
-                    ) {
-                        EmptyResultContent()
-                    }
-                }
             }
+        } else {
+            EmptyResultContent()
         }
 
         MarginVertical(margin = 16.dp)
@@ -154,7 +144,7 @@ fun EmptyResultContent() {
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.Center
     ) {
         GradientIcon(
             iconRes = jp.co.soramitsu.common.R.drawable.ic_alert_24,
@@ -163,7 +153,12 @@ fun EmptyResultContent() {
             contentPadding = PaddingValues(bottom = 4.dp)
         )
 
+        MarginVertical(margin = 16.dp)
+
         H3(text = stringResource(id = jp.co.soramitsu.common.R.string.common_search_assets_alert_title))
+
+        MarginVertical(margin = 16.dp)
+
         B0(
             text = stringResource(id = jp.co.soramitsu.common.R.string.common_search_assets_alert_description),
             color = white50
@@ -391,15 +386,25 @@ private fun SelectChainScreenPreview() {
             contract = object : ChainSelectScreenContract {
                 override fun onBackButtonClick() {}
 
-                override fun onFilterApplied(filter: ChainSelectorViewStateWithFilters.Filter) {}
+                override fun onFilterApplied(filter: ChainSelectorViewStateWithFilters.Filter) {
+                    /* DO NOTHING */
+                }
 
-                override fun onChainMarkedFavorite(chainItemState: ChainSelectScreenContract.State.ItemState) {}
+                override fun onChainMarkedFavorite(chainItemState: ChainSelectScreenContract.State.ItemState) {
+                    /* DO NOTHING */
+                }
 
-                override fun onChainSelected(chainItemState: ChainSelectScreenContract.State.ItemState?) {}
+                override fun onChainSelected(chainItemState: ChainSelectScreenContract.State.ItemState?) {
+                    /* DO NOTHING */
+                }
 
-                override fun onSearchInput(input: String) {}
+                override fun onSearchInput(input: String) {
+                    /* DO NOTHING */
+                }
 
-                override fun onDialogClose() {}
+                override fun onDialogClose() {
+                    /* DO NOTHING */
+                }
             }
         )
     }

@@ -171,7 +171,7 @@ class BalanceListViewModel @Inject constructor(
         interactor.assetsFlow(),
         chainInteractor.getChainsFlow(),
         selectedChainId,
-        currentMetaAccountFlow,
+        interactor.selectedMetaAccountFlow(),
         networkIssuesFlow,
         interactor.observeSelectedAccountChainSelectFilter(),
         interactor.observeHideZeroBalanceEnabledForCurrentWallet()
@@ -730,7 +730,7 @@ class BalanceListViewModel @Inject constructor(
     }
 
     fun openSelectChain() {
-        router.openSelectChain(selectedChainId.value, showAllChains = false, isFilteringEnabled = true)
+        router.openSelectChain(selectedChainId.value, isFilteringEnabled = true)
     }
 
     private fun copyToClipboard(text: String) {

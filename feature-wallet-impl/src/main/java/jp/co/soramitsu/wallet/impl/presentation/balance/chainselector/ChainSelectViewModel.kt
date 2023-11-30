@@ -156,7 +156,9 @@ class ChainSelectViewModel @Inject constructor(
             chain to (selectedAccountFavoriteChains?.get(chain.id)?.isFavorite == true)
         }
 
-        val chainItems = when(userInputFilter ?: savedFilter) {
+        val filterInUse = userInputFilter ?: savedFilter
+
+        val chainItems = when(filterInUse) {
             ChainSelectorViewStateWithFilters.Filter.All -> chainsWithFavoriteInfo
 
             ChainSelectorViewStateWithFilters.Filter.Favorite ->
@@ -209,7 +211,7 @@ class ChainSelectViewModel @Inject constructor(
 
             ChainSelectScreenContract.State.Impl.FilteringDecorator(
                 appliedFilter = savedFilter,
-                selectedFilter = userInputFilter ?: savedFilter,
+                selectedFilter = filterInUse,
                 state = this
             )
         }
@@ -293,7 +295,7 @@ class ChainSelectViewModel @Inject constructor(
     }
 
     override fun onFilterApplied(filter: ChainSelectorViewStateWithFilters.Filter) {
-        filterFlow.tryEmit(filter)
+        filterFlow.value = filter
     }
 
     override fun onChainMarkedFavorite(chainItemState: ChainSelectScreenContract.State.ItemState) {
