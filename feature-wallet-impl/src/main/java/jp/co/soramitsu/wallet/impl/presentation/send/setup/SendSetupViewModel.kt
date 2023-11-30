@@ -20,6 +20,7 @@ import jp.co.soramitsu.common.compose.component.AddressInputState
 import jp.co.soramitsu.common.compose.component.AmountInputViewState
 import jp.co.soramitsu.common.compose.component.ButtonViewState
 import jp.co.soramitsu.common.compose.component.FeeInfoViewState
+import jp.co.soramitsu.common.compose.component.QuickAmountInput
 import jp.co.soramitsu.common.compose.component.SelectorState
 import jp.co.soramitsu.common.compose.component.ToolbarViewState
 import jp.co.soramitsu.common.compose.component.WarningInfoState
@@ -33,12 +34,17 @@ import jp.co.soramitsu.common.utils.formatCryptoDetail
 import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.greaterThen
 import jp.co.soramitsu.common.utils.isNotZero
+import jp.co.soramitsu.common.utils.isZero
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.core.utils.isValidAddress
 import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.feature_wallet_impl.BuildConfig
 import jp.co.soramitsu.feature_wallet_impl.R
+import jp.co.soramitsu.polkaswap.api.domain.PolkaswapInteractor
+import jp.co.soramitsu.polkaswap.api.models.Market
+import jp.co.soramitsu.polkaswap.api.models.WithDesired
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.bokoloCashTokenId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraTestChainId
 import jp.co.soramitsu.wallet.api.domain.TransferValidationResult
@@ -49,6 +55,7 @@ import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletConstants
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.PhishingType
+import jp.co.soramitsu.wallet.impl.domain.model.QrContentSora
 import jp.co.soramitsu.wallet.impl.domain.model.Transfer
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
@@ -76,14 +83,13 @@ import kotlinx.coroutines.flow.retry
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-private const val RETRY_TIMES = 3L
-
 @HiltViewModel
 class SendSetupViewModel @Inject constructor(
     private val sharedState: SendSharedState,
     val savedStateHandle: SavedStateHandle,
     private val resourceManager: ResourceManager,
     private val walletInteractor: WalletInteractor,
+    private val polkaswapInteractor: PolkaswapInteractor,
     private val walletConstants: WalletConstants,
     private val router: WalletRouter,
     private val clipboardManager: ClipboardManager,
@@ -93,6 +99,7 @@ class SendSetupViewModel @Inject constructor(
 ) : BaseViewModel(), SendSetupScreenInterface {
     companion object {
         const val SLIPPAGE_TOLERANCE = 1.35
+        const val RETRY_TIMES = 3L
     }
 
     private val _openScannerEvent = MutableLiveData<Event<Unit>>()
@@ -171,7 +178,8 @@ class SendSetupViewModel @Inject constructor(
         warningInfoState = null,
         defaultButtonState,
         isSoftKeyboardOpen = false,
-        heightDiffDp = 0.dp
+        heightDiffDp = 0.dp,
+        isInputLocked = false
     )
 
     private val assetFlow: StateFlow<Asset?> =
@@ -187,8 +195,14 @@ class SendSetupViewModel @Inject constructor(
     private val addressInputFlow = MutableStateFlow(initSendToAddress.orEmpty())
     private val addressInputTrimmedFlow = addressInputFlow.map { it.trim() }
 
-    private val isSoftKeyboardOpenFlow = MutableStateFlow(false)
+    private val isSoftKeyboardOpenFlow = MutableStateFlow(lockSendToAmount && initialAmount.isZero() )
     private val heightDiffDpFlow = MutableStateFlow(0.dp)
+
+    private val enteredAmountBigDecimalFlow = MutableStateFlow(initialAmount)
+    private val visibleAmountFlow = MutableStateFlow(initialAmount)
+    private val initialAmountFlow = MutableStateFlow(initialAmount.takeIf { it.isNotZero() })
+    private val lockAmountInputFlow = MutableStateFlow(initialAmount.isNotZero())
+    private val lockInputFlow = MutableStateFlow(lockSendToAmount)
 
     private val isInputAddressValidFlow =
         combine(addressInputTrimmedFlow, chainIdFlow) { addressInput, chainId ->
@@ -198,26 +212,26 @@ class SendSetupViewModel @Inject constructor(
             }
         }.stateIn(this, SharingStarted.Eagerly, false)
 
-    private val chainSelectorStateFlow = selectedChainItem.map {
-        SelectorState(
-            title = resourceManager.getString(R.string.common_network),
-            subTitle = it?.title,
-            iconUrl = it?.imageUrl
-        )
-    }.stateIn(this, SharingStarted.Eagerly, SelectorState.default)
+    private val chainSelectorStateFlow =
+        combine(selectedChainItem, lockInputFlow) { it: ChainItemState?, isLock: Boolean ->
+            SelectorState(
+                title = resourceManager.getString(R.string.common_network),
+                subTitle = it?.title,
+                iconUrl = it?.imageUrl,
+                clickable = isLock.not(),
+                actionIcon = if (isLock) null else R.drawable.ic_arrow_down
+            )
+        }.stateIn(this, SharingStarted.Eagerly, SelectorState.default)
 
-    private val enteredAmountBigDecimalFlow = MutableStateFlow(initialAmount)
-    private val visibleAmountFlow = MutableStateFlow(initialAmount)
-    private val initialAmountFlow = MutableStateFlow(initialAmount.takeIf { it.isNotZero() })
-    private val lockAmountInputFlow = MutableStateFlow(lockSendToAmount)
 
     private val amountInputViewState: Flow<AmountInputViewState> = combine(
         visibleAmountFlow,
         initialAmountFlow,
         assetFlow,
         amountInputFocusFlow,
-        lockAmountInputFlow
-    ) { amount, initialAmount, asset, isAmountInputFocused, isLockAmountInput ->
+        lockAmountInputFlow,
+        lockInputFlow
+    ) { amount, initialAmount, asset, isAmountInputFocused, isLockAmountInput, isLockInput ->
         if (asset == null) {
             defaultAmountInputState
         } else {
@@ -236,10 +250,10 @@ class SendSetupViewModel @Inject constructor(
                 tokenAmount = amount,
                 isActive = true,
                 isFocused = isAmountInputFocused,
-                allowAssetChoose = isLockAmountInput.not(),
+                allowAssetChoose = isLockInput.not(),
                 precision = asset.token.configuration.precision,
                 initial = initialAmount,
-                inputEnabled = isLockAmountInput.not()
+                inputEnabled = isLockInput.not() || isLockAmountInput.not()
             )
         }
     }.stateIn(this, SharingStarted.Eagerly, defaultAmountInputState)
@@ -269,6 +283,7 @@ class SendSetupViewModel @Inject constructor(
         .retry(RETRY_TIMES)
         .catch {
             println("Error: $it")
+            it.printStackTrace()
             emit(null)
         }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
@@ -286,11 +301,35 @@ class SendSetupViewModel @Inject constructor(
 
     private val feeInfoViewStateFlow: Flow<FeeInfoViewState> = combine(
         feeAmountFlow,
-        utilityAssetFlow
-    ) { feeAmount, utilityAsset ->
-        val feeFormatted = feeAmount?.formatCryptoDetail(utilityAsset.token.configuration.symbol)
-        val feeFiat = feeAmount?.applyFiatRate(utilityAsset.token.fiatRate)
-            ?.formatFiat(utilityAsset.token.fiatSymbol)
+        utilityAssetFlow,
+        assetFlow
+    ) { feeAmount, utilityAsset, asset ->
+        asset ?: return@combine FeeInfoViewState.default
+        feeAmount ?: return@combine FeeInfoViewState.default
+        val isSendBokoloCash = asset.token.configuration.currencyId == bokoloCashTokenId
+        val showFeeAsset = if (isSendBokoloCash && utilityAsset.transferable < feeAmount) {
+            asset
+        } else {
+            utilityAsset
+        }
+
+        val assetFeeAmount = if (isSendBokoloCash && utilityAsset.transferable < feeAmount) {
+            val swapDetails = polkaswapInteractor.calcDetails(
+                availableDexPaths = listOf(0),
+                tokenFrom = asset,
+                tokenTo = utilityAsset,
+                amount = feeAmount,
+                desired = WithDesired.OUTPUT,
+                slippageTolerance = 1.5,
+                market = Market.SMART
+            )
+            swapDetails.getOrNull()?.amount
+        } else {
+            feeAmount
+        }
+
+        val feeFormatted = assetFeeAmount?.formatCryptoDetail(showFeeAsset.token.configuration.symbol)
+        val feeFiat = assetFeeAmount?.applyFiatRate(showFeeAsset.token.fiatRate)?.formatFiat(showFeeAsset.token.fiatSymbol)
 
         FeeInfoViewState(feeAmount = feeFormatted, feeAmountFiat = feeFiat)
     }
@@ -352,14 +391,22 @@ class SendSetupViewModel @Inject constructor(
         warningInfoStateFlow,
         buttonStateFlow,
         isSoftKeyboardOpenFlow,
-        heightDiffDpFlow
-    ) { chain, address, chainSelectorState, amountInputState, feeInfoState, warningInfoState, buttonState, isSoftKeyboardOpen, heightDiffDp ->
+        heightDiffDpFlow,
+        lockInputFlow,
+        assetFlow
+    ) { chain, address, chainSelectorState, amountInputState, feeInfoState, warningInfoState, buttonState, isSoftKeyboardOpen, heightDiffDp, isInputLocked, asset ->
         val isAddressValid = when (chain) {
             null -> false
             else -> walletInteractor.validateSendAddress(chain.id, address)
         }
 
         confirmedValidations.clear()
+
+        val quickAmountInputValues = if (asset?.token?.configuration?.currencyId == bokoloCashTokenId) {
+            emptyList()
+        } else {
+            QuickAmountInput.values().toList()
+        }
 
         SendSetupViewState(
             toolbarState = toolbarViewState,
@@ -373,7 +420,9 @@ class SendSetupViewModel @Inject constructor(
                         address,
                         AddressIconGenerator.SIZE_BIG
                     )
-                }
+                },
+                editable = false,
+                showClear = isInputLocked.not()
             ),
             chainSelectorState = chainSelectorState,
             amountInputState = amountInputState,
@@ -381,7 +430,9 @@ class SendSetupViewModel @Inject constructor(
             warningInfoState = warningInfoState,
             buttonState = buttonState,
             isSoftKeyboardOpen = isSoftKeyboardOpen,
-            heightDiffDp = heightDiffDp
+            heightDiffDp = heightDiffDp,
+            isInputLocked = isInputLocked,
+            quickAmountInputValues = quickAmountInputValues,
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, defaultState)
 
@@ -446,8 +497,7 @@ class SendSetupViewModel @Inject constructor(
             val amount = enteredAmountBigDecimalFlow.value
             val inPlanks = asset.token.planksFromAmount(amount).orZero()
             val recipientAddress = addressInputTrimmedFlow.firstOrNull() ?: return@launch
-            val selfAddress =
-                currentAccountAddress(asset.token.configuration.chainId) ?: return@launch
+            val selfAddress = currentAccountAddress(asset.token.configuration.chainId) ?: return@launch
             val fee = feeInPlanksFlow.value
             val destinationChainId = asset.token.configuration.chainId
             val validationProcessResult = validateTransferUseCase(
@@ -555,26 +605,48 @@ class SendSetupViewModel @Inject constructor(
 
     fun qrCodeScanned(content: String) {
         viewModelScope.launch {
-            val tryReadSoraAddressFromUrl = walletInteractor.tryReadSoraAddressAndAmountFromUrl(content)
-            if (tryReadSoraAddressFromUrl != null) {
+            val cbdcQrContent = walletInteractor.tryReadCBDCAddressFormat(content)
+            if (cbdcQrContent != null) {
+                router.back()
+                router.openCBDCSend(cbdcQrInfo = cbdcQrContent)
+            } else {
+                val soraQrContent = walletInteractor.tryReadSoraFormat(content)
+                if (soraQrContent != null) {
+                    handleSoraQr(soraQrContent)
+                } else {
 
-                val soraChainId = if (BuildConfig.DEBUG) soraTestChainId else soraMainChainId
-                val soraChain = walletInteractor.getChain(soraChainId)
-                soraChain.assets.firstOrNull { it.symbol.lowercase() == "usdt" }?.let { asset ->
-                    sharedState.update(soraChainId, asset.id)
+                    // 3 fill QR content
+
+                    addressInputFlow.value = content
+                    lockAmountInputFlow.value = false
+                    lockInputFlow.value = false
+                    initialAmountFlow.value = null
+                    onAmountInput(BigDecimal.ZERO)
                 }
             }
-            val result = tryReadSoraAddressFromUrl?.first
-                ?: walletInteractor.tryReadAddressFromSoraFormat(content)
-                ?: content
-
-            addressInputFlow.value = result
-
-            val amount = tryReadSoraAddressFromUrl?.second ?: BigDecimal.ZERO
-            lockAmountInputFlow.value = amount.greaterThen(BigDecimal.ZERO)
-            initialAmountFlow.value = amount
-            onAmountInput(amount)
         }
+    }
+
+    private suspend fun handleSoraQr(qrContentSora: QrContentSora) {
+        initialAmountFlow.value = null
+        val soraTokenId = qrContentSora.tokenId
+        val soraAmount = qrContentSora.amount
+
+        val soraChainId = if (BuildConfig.DEBUG) soraTestChainId else soraMainChainId
+        val soraChain = walletInteractor.getChain(soraChainId)
+        soraChain.assets.firstOrNull { it.currencyId == soraTokenId }?.let { asset ->
+            sharedState.update(soraChainId, asset.id)
+        }
+
+        addressInputFlow.value = qrContentSora.address
+
+        val amount = runCatching { BigDecimal(soraAmount) }.getOrNull().orZero()
+        lockInputFlow.value = true
+        lockAmountInputFlow.value = amount.greaterThen(BigDecimal.ZERO)
+
+        delay(300) // need for 'initialAmountFlow.value = null' being applied to UI before next
+        initialAmountFlow.value = amount
+        onAmountInput(amount)
     }
 
     fun setSoftKeyboardOpen(isOpen: Boolean) {

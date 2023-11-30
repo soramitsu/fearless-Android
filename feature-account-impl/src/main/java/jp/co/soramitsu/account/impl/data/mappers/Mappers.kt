@@ -66,7 +66,8 @@ fun mapMetaAccountLocalToLightMetaAccount(
         ethereumAddress = ethereumAddress,
         ethereumPublicKey = ethereumPublicKey,
         isSelected = isSelected,
-        name = name
+        name = name,
+        isBackedUp = isBackedUp
     )
 }
 

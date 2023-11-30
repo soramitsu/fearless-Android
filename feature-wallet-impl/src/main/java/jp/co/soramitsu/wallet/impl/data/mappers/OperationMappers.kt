@@ -1,5 +1,6 @@
 package jp.co.soramitsu.wallet.impl.data.mappers
 
+import java.math.BigInteger
 import jp.co.soramitsu.account.api.presentation.account.AddressDisplayUseCase
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressIcon
@@ -25,7 +26,6 @@ import jp.co.soramitsu.wallet.impl.presentation.model.OperationModel
 import jp.co.soramitsu.wallet.impl.presentation.model.OperationParcelizeModel
 import jp.co.soramitsu.wallet.impl.presentation.model.OperationStatusAppearance
 import jp.co.soramitsu.xnetworking.basic.txhistory.TxHistoryItem
-import java.math.BigInteger
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 
@@ -419,15 +419,19 @@ private fun Operation.Type.toModel(): OperationModel.Type {
 
 fun mapOperationToParcel(
     operation: Operation,
-    resourceManager: ResourceManager
+    resourceManager: ResourceManager,
+    utilityAsset: Asset?
 ): OperationParcelizeModel {
     with(operation) {
         return when (val operationType = operation.type) {
             is Operation.Type.Transfer -> {
-                val feeOrZero = operationType.fee ?: BigInteger.ZERO
-                val feeFormatted = operationType.fee?.formatFee(chainAsset) ?: resourceManager.getString(R.string.common_unknown)
 
-                val total = operationType.amount + feeOrZero
+                val operationFee = operationType.fee
+                val feeFormatted = if (operationFee == null || utilityAsset == null) {
+                    resourceManager.getString(R.string.common_unknown)
+                } else {
+                    operationFee.formatFee(utilityAsset)
+                }
 
                 OperationParcelizeModel.Transfer(
                     time = time,
@@ -438,7 +442,6 @@ fun mapOperationToParcel(
                     sender = operationType.sender,
                     fee = feeFormatted,
                     isIncome = operationType.isIncome,
-                    total = total.formatCryptoDetailFromPlanks(chainAsset).formatSigned(operationType.isIncome),
                     statusAppearance = mapStatusToStatusAppearance(operationType.operationStatus)
                 )
             }

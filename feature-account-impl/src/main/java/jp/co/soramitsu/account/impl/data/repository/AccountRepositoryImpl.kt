@@ -108,12 +108,24 @@ class AccountRepositoryImpl(
         return accountDataSource.getSelectedMetaAccount()
     }
 
+    override suspend fun getSelectedLightMetaAccount(): LightMetaAccount {
+        return accountDataSource.getSelectedLightMetaAccount()
+    }
+
+    override suspend fun getLightMetaAccount(metaId: Long): LightMetaAccount {
+        return accountDataSource.getLightMetaAccount(metaId)
+    }
+
     override suspend fun getMetaAccount(metaId: Long): MetaAccount {
         return accountDataSource.getMetaAccount(metaId)
     }
 
     override fun selectedMetaAccountFlow(): Flow<MetaAccount> {
         return accountDataSource.selectedMetaAccountFlow()
+    }
+
+    override fun selectedLightMetaAccountFlow(): Flow<LightMetaAccount> {
+        return accountDataSource.selectedLightMetaAccount()
     }
 
     override suspend fun findMetaAccount(accountId: ByteArray): MetaAccount? {
