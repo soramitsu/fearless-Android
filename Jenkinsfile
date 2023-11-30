@@ -1,4 +1,4 @@
-@Library('jenkins-library')
+@Library('jenkins-library@feature/2890/upload-android-app-to-nexus')
 
 // Job properties
 def jobParams = [
@@ -7,7 +7,9 @@ def jobParams = [
 
 def pipeline = new org.android.AppPipeline(
     steps:            this,
-    sonar:            true,
+    sonar:            false,
+    test:             false,
+    dojo:             false, 
     sonarCommand:     './gradlew sonar -x :core-db:compileDebugUnitTestKotlin -x :core-db:compileDebugAndroidTestKotlin -x :feature-crowdloan-impl:compileDebugAndroidTestKotlin -x :runtime:compileDebugUnitTestKotlin -x :app:kaptDebugAndroidTestKotlin -x :app:compileDebugAndroidTestKotlin -Dsonar.coverage.jacoco.xmlReportPaths=**/coverage/*.xml',
     sonarProjectName: 'fearless-android',
     sonarProjectKey:  'fearless:fearless-android',
