@@ -77,12 +77,12 @@ fun WalletScreen(
             MarginVertical(margin = 6.dp)
             NetworkIssuesBadge(onClick = callback::onNetworkIssuesClicked)
         }
-        MarginVertical(margin = 24.dp)
+        MarginVertical(margin = 16.dp)
         MultiToggleButton(
             state = data.multiToggleButtonState,
             onToggleChange = callback::assetTypeChanged
         )
-        MarginVertical(margin = 16.dp)
+        MarginVertical(margin = 4.dp)
         if (data.multiToggleButtonState.currentSelection == AssetType.NFTs) {
             NftStub(
                 Modifier
