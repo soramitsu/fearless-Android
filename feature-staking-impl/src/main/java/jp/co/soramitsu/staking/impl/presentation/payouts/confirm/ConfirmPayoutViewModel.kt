@@ -146,7 +146,7 @@ class ConfirmPayoutViewModel @Inject constructor(
 
     private fun sendTransactionIfValid() = feeLoaderMixin.requireFee(this) { fee ->
         launch {
-            val tokenType = tokenFlow.first().configuration
+            val tokenType = interactor.currentAssetFlow().first().token.configuration
             val accountAddress = stakingStateFlow.first().accountAddress
             val amount = tokenType.amountFromPlanks(payload.totalRewardInPlanks)
 
