@@ -40,6 +40,7 @@ import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
 import jp.co.soramitsu.common.compose.theme.white16
 import jp.co.soramitsu.common.compose.theme.white50
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState
+import jp.co.soramitsu.common.data.network.runtime.binding.cast
 import jp.co.soramitsu.common.utils.rememberForeverLazyListState
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.soracard.impl.presentation.SoraCardItem
@@ -60,7 +61,6 @@ interface WalletScreenInterface : AssetsListInterface {
     fun onRefresh()
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun WalletScreen(
     data: WalletState,
@@ -82,7 +82,6 @@ fun WalletScreen(
             state = data.multiToggleButtonState,
             onToggleChange = callback::assetTypeChanged
         )
-        MarginVertical(margin = 4.dp)
         if (data.multiToggleButtonState.currentSelection == AssetType.NFTs) {
             NftStub(
                 Modifier
@@ -90,64 +89,78 @@ fun WalletScreen(
                     .padding(bottom = 80.dp)
             )
         } else {
-            val soraCardBanner: @Composable (() -> Unit)? = data.soraCardState?.takeIf { it.visible }?.let {
-                {
-                    SoraCardItem(
-                        state = data.soraCardState,
-                        onClose = callback::soraCardClose,
-                        onClick = callback::soraCardClicked
-                    )
-                }
-            }
-            val buyXorBanner: @Composable (() -> Unit)? = takeIf { false }?.let {
-                {
-                    BannerBuyXor(
-                        onBuyXorClick = {}
-                    )
-                }
-            }
-            val backupBanner: @Composable (() -> Unit)? = takeIf { !data.isBackedUp }?.let {
-                {
-                    BannerBackup(
-                        onBackupClick = callback::onBackupClicked,
-                        onCloseClick = callback::onBackupCloseClick,
-                    )
-                }
-            }
-            val banners = listOfNotNull(buyXorBanner, backupBanner)
-            val bannersCount = banners.size
-            val bannersCarousel: @Composable (() -> Unit)? = banners.takeIf { it.isNotEmpty() }?.let {
-                {
-                    val pagerState = rememberPagerState { bannersCount }
-
-                    HorizontalPager(
-                        modifier = Modifier.fillMaxWidth(),
-                        state = pagerState,
-                        pageSpacing = 8.dp,
-                        pageContent = { page ->
-                            banners[page].invoke()
-                        }
-                    )
-
-                    MarginVertical(margin = 8.dp)
-                    if (bannersCount > 1) {
-                        BannerPageIndicator(bannersCount, pagerState)
-                        MarginVertical(margin = 8.dp)
-                    }
-                }
-            }
-            val header: @Composable (() -> Unit)? = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    soraCardBanner?.invoke()
-                    bannersCarousel?.invoke()
-                }
-            }
+            val header = Banners(data, callback)
             AssetsList(
                 data = data,
                 callback = callback,
                 header = header,
                 listState = rememberForeverLazyListState("wallet_screen")
             )
+        }
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun Banners(data: WalletState, callback: WalletScreenInterface): @Composable (() -> Unit)? {
+    val soraCardBanner: @Composable (() -> Unit)? =
+        if (data.soraCardState?.visible == true) {
+            {
+                SoraCardItem(
+                    state = data.soraCardState,
+                    onClose = callback::soraCardClose,
+                    onClick = callback::soraCardClicked
+                )
+            }
+        } else {
+            null
+        }
+    // todo what is logic for buy xor banner appearance?
+    val buyXorBanner: @Composable (() -> Unit)? = if (false) {
+        {
+            BannerBuyXor(
+                onBuyXorClick = {}
+            )
+        }
+    } else null
+
+    val backupBanner: @Composable (() -> Unit)? = if (!data.isBackedUp) {
+        {
+            BannerBackup(
+                onBackupClick = callback::onBackupClicked,
+                onCloseClick = callback::onBackupCloseClick,
+            )
+        }
+    } else {
+        null
+    }
+    val banners = listOfNotNull(buyXorBanner, backupBanner)
+    val bannersCount = banners.size
+    val bannersCarousel: @Composable (() -> Unit)? =
+        banners.takeIf { it.isNotEmpty() }?.let {
+            {
+                val pagerState = rememberPagerState { bannersCount }
+                HorizontalPager(
+                    modifier = Modifier.fillMaxWidth(),
+                    state = pagerState,
+                    pageSpacing = 8.dp,
+                    pageContent = { page ->
+                        banners[page].invoke()
+                    }
+                )
+
+                if (bannersCount > 1) {
+                    BannerPageIndicator(bannersCount, pagerState)
+                    MarginVertical(margin = 8.dp)
+                }
+            }
+        }
+    return if(soraCardBanner == null && bannersCarousel == null) {null} else {
+        {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                soraCardBanner?.invoke()
+                bannersCarousel?.invoke()
+            }
         }
     }
 }
@@ -203,7 +216,14 @@ private fun PreviewWalletScreen() {
         override fun onBackupCloseClick() {}
         override fun assetTypeChanged(type: AssetType) {}
         override fun assetClicked(asset: AssetListItemViewState) {}
-        override fun actionItemClicked(actionType: ActionItemType, chainId: ChainId, chainAssetId: String, swipeableState: SwipeableState<SwipeState>) {}
+        override fun actionItemClicked(
+            actionType: ActionItemType,
+            chainId: ChainId,
+            chainAssetId: String,
+            swipeableState: SwipeableState<SwipeState>
+        ) {
+        }
+
         override fun onRefresh() {}
     }
 
@@ -233,9 +253,17 @@ private fun PreviewWalletScreen() {
             Column {
                 WalletScreen(
                     data = WalletState(
-                        multiToggleButtonState = MultiToggleButtonState(AssetType.Currencies, listOf(AssetType.Currencies, AssetType.NFTs)),
+                        multiToggleButtonState = MultiToggleButtonState(
+                            AssetType.Currencies,
+                            listOf(AssetType.Currencies, AssetType.NFTs)
+                        ),
                         assets = assets,
-                        balance = AssetBalanceViewState("TRANSFERABLE BALANCE", "ADDRESS", true, ChangeBalanceViewState("+100%", "+50$")),
+                        balance = AssetBalanceViewState(
+                            "TRANSFERABLE BALANCE",
+                            "ADDRESS",
+                            true,
+                            ChangeBalanceViewState("+100%", "+50$")
+                        ),
                         hasNetworkIssues = true,
                         soraCardState = SoraCardItemViewState(null, null, null, true),
                         isBackedUp = false
