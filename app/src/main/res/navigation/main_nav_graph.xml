@@ -723,6 +723,11 @@
         android:label="requestPreviewFragment" />
 
    <dialog
+        android:id="@+id/rawDataFragment"
+        android:name="jp.co.soramitsu.walletconnect.impl.presentation.transactionrawdata.RawDataFragment"
+        android:label="rawDataFragment" />
+
+   <dialog
         android:id="@+id/connectionInfoFragment"
         android:name="jp.co.soramitsu.walletconnect.impl.presentation.connectioninfo.ConnectionInfoFragment"
         android:label="connectionInfoFragment" />

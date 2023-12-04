@@ -14,4 +14,6 @@ interface WalletConnectRouter {
     fun openSelectMultipleChainsForResult(items: List<String>, selected: List<String>): Flow<ChainChooseResult>
 
     fun openRequestPreview(topic: String)
+
+    fun openRawData(payload: String)
 }

@@ -130,7 +130,7 @@ class RequestPreviewViewModel @Inject constructor(
             TitleValueViewState(
                 "Transaction raw data",
                 value = "",
-                clickState =  TitleValueViewState.ClickState.Value(R.drawable.ic_right_arrow_24_align_right, 1)
+                clickState =  TitleValueViewState.ClickState.Value(R.drawable.ic_right_arrow_24_align_right, TRANSACTION_RAW_DATA_CLICK_ID)
             )
         )
 
@@ -213,8 +213,18 @@ class RequestPreviewViewModel @Inject constructor(
     }
 
     override fun onTableItemClick(id: Int) {
-        if (id == 1) {
-            println("!!! RequestPreviewViewModel onTransactionRawDataClick")
+        if (id == TRANSACTION_RAW_DATA_CLICK_ID) {
+            walletConnectRouter.openRawData(recentSession.request.message)
         }
+    }
+
+    override fun onTableRowClick(id: Int) {
+        if (id == TRANSACTION_RAW_DATA_CLICK_ID) {
+            walletConnectRouter.openRawData(recentSession.request.message)
+        }
+    }
+
+    companion object {
+        private const val TRANSACTION_RAW_DATA_CLICK_ID = 1
     }
 }

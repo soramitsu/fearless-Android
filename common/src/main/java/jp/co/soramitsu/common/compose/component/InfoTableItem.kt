@@ -24,14 +24,19 @@ import jp.co.soramitsu.common.utils.clickableWithNoIndication
 import jp.co.soramitsu.common.utils.formatting.shortenAddress
 
 @Composable
-fun InfoTableItem(state: TitleValueViewState, onClick: (Int) -> Unit = {}) {
+fun InfoTableItem(state: TitleValueViewState, onClick: (Int) -> Unit = {}, onRowClick: ((Int) -> Unit)? = null) {
+    val rowClickModifier = if (onRowClick != null && state.value != null && (state.clickState != null)) {
+        Modifier.clickableWithNoIndication { onRowClick(state.clickState.identifier) }
+    } else {
+        Modifier
+    }
     Row(
-        modifier = Modifier
+        modifier = rowClickModifier
             .fillMaxWidth()
             .heightIn(min = 55.dp)
             .padding(vertical = 6.dp, horizontal = 16.dp)
     ) {
-        val titleClickModifier = if (state.value != null && (state.clickState as? TitleValueViewState.ClickState.Title) != null) {
+        val titleClickModifier = if (onRowClick == null && state.value != null && (state.clickState as? TitleValueViewState.ClickState.Title) != null) {
             Modifier.clickableWithNoIndication { onClick(state.clickState.identifier) }
         } else {
             Modifier
@@ -57,7 +62,7 @@ fun InfoTableItem(state: TitleValueViewState, onClick: (Int) -> Unit = {}) {
                 )
             }
         }
-        val valueClickModifier = if (state.value != null && (state.clickState as? TitleValueViewState.ClickState.Value) != null) {
+        val valueClickModifier = if (onRowClick == null && state.value != null && (state.clickState as? TitleValueViewState.ClickState.Value) != null) {
             Modifier.clickableWithNoIndication { onClick(state.clickState.identifier) }
         } else {
             Modifier

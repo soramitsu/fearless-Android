@@ -62,6 +62,7 @@ interface RequestPreviewScreenInterface {
     fun onClose()
     fun onSignClick()
     fun onTableItemClick(id: Int)
+    fun onTableRowClick(id: Int)
 }
 
 @Composable
@@ -109,7 +110,8 @@ fun RequestPreviewContent(state: RequestPreviewViewState, callback: RequestPrevi
                 MarginVertical(margin = 16.dp)
 
                 InfoTable(items = state.tableItems,
-                    onItemClick = callback::onTableItemClick)
+                    onItemClick = callback::onTableItemClick,
+                    onRowClick = callback::onTableRowClick)
             }
 
             Column(
@@ -172,6 +174,7 @@ private fun RequestPreviewPreview() {
         override fun onClose() {}
         override fun onSignClick() {}
         override fun onTableItemClick(id: Int) {}
+        override fun onTableRowClick(id: Int) {}
     }
 
     FearlessTheme {
