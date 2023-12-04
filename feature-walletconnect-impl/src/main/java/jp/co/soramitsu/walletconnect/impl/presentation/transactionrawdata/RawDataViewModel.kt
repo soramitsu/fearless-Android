@@ -5,13 +5,11 @@ import co.jp.soramitsu.walletconnect.domain.WalletConnectRouter
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 import org.json.JSONObject
 
 @HiltViewModel
@@ -31,8 +29,6 @@ class RawDataViewModel @Inject constructor(
         .stateIn(this, SharingStarted.Eagerly, RawDataViewState.default)
 
     override fun onClose() {
-//        launch(Dispatchers.Main) {
-            walletConnectRouter.back()
-//        }
+        walletConnectRouter.back()
     }
 }
