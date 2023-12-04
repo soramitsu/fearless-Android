@@ -183,7 +183,7 @@ class StakingRelayChainScenarioRepository(
         getElectedValidatorsExposure(chainId, it)
     }.runCatching { this }.getOrDefault(emptyFlow())
 
-    private suspend fun getElectedValidatorsExposure(chainId: ChainId, eraIndex: EraIndex): Map<String, Exposure> = localStorage.queryByPrefix(
+    private suspend fun getElectedValidatorsExposure(chainId: ChainId, eraIndex: EraIndex): Map<String, Exposure> = remoteStorage.queryByPrefix(
         chainId = chainId,
         prefixKeyBuilder = { it.metadata.moduleOrNull(Modules.STAKING)?.storage("ErasStakers")?.storageKey(it, eraIndex) },
         keyExtractor = { it.accountIdFromMapKey() }
