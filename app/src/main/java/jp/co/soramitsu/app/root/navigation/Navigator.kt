@@ -160,6 +160,7 @@ import jp.co.soramitsu.walletconnect.impl.presentation.chainschooser.ChainChoose
 import jp.co.soramitsu.walletconnect.impl.presentation.connectioninfo.ConnectionInfoFragment
 import jp.co.soramitsu.walletconnect.impl.presentation.requestpreview.RequestPreviewFragment
 import jp.co.soramitsu.walletconnect.impl.presentation.sessionrequest.SessionRequestFragment
+import jp.co.soramitsu.walletconnect.impl.presentation.transactionrawdata.RawDataFragment
 import kotlin.coroutines.coroutineContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -860,6 +861,11 @@ class Navigator :
     override fun openRequestPreview(topic: String) {
         val bundle = RequestPreviewFragment.getBundle(topic)
         navController?.navigate(R.id.requestPreviewFragment, bundle)
+    }
+
+    override fun openRawData(payload: String) {
+        val bundle = RawDataFragment.getBundle(payload)
+        navController?.navigate(R.id.rawDataFragment, bundle)
     }
 
     override fun openSelectChain(
