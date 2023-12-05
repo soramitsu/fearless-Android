@@ -89,6 +89,7 @@ class EthereumRemoteSource(private val ethereumConnectionPool: EthereumConnectio
             val amountInPlanks = Convert.toWei(transfer.amount, Convert.Unit.ETHER).toBigInteger()
 
             val transaction = if (transfer.chainAsset.isUtility) {
+
                 Transaction.createEtherTransaction(
                     transfer.sender,
                     nonce,
@@ -173,6 +174,7 @@ class EthereumRemoteSource(private val ethereumConnectionPool: EthereumConnectio
             }
 
             val signed = TransactionEncoder.signMessage(raw, cred)
+//            yeah
 
             val transactionHash = kotlin.runCatching {
                 web3.ethSendRawTransaction(signed.toHexString(true)).send().resultOrThrow()
