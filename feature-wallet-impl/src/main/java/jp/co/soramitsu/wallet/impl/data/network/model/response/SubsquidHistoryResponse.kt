@@ -2,6 +2,20 @@ package jp.co.soramitsu.wallet.impl.data.network.model.response
 
 import java.math.BigInteger
 
+class SubsquidHistoryElementsConnectionResponse(
+    val historyElementsConnection: HistoryElementsConnection
+)
+
+class HistoryElementsConnection(val pageInfo: SubsquidPageInfo,
+                                val edges: List<SubsquidHistoryEdge>)
+
+class SubsquidPageInfo(
+    val hasNextPage: Boolean,
+    val endCursor: String
+)
+
+class SubsquidHistoryEdge(val node: SubsquidHistoryResponse.HistoryElement)
+
 class SubsquidHistoryResponse(val historyElements: Array<HistoryElement>) {
     class HistoryElement(
         val id: String,

@@ -24,7 +24,7 @@ buildscript {
         biometricVersion = '1.1.0'
 
         progressButtonsVersion = '2.1.0'
-        xNetworkingVersion = '0.2.3'
+        xNetworkingVersion = '0.2.5-temp7'
 
         soraCardVersion = '0.1.9'
         soraUiCoreVersion = '0.1.4'
@@ -84,7 +84,7 @@ buildscript {
         minifyRelease = true
         beaconVersion = "3.2.4"
 
-        sharedFeaturesVersion = "1.1.1.15-FLW"
+        sharedFeaturesVersion = "1.1.1.16-FLW"
 
         coilDep = "io.coil-kt:coil:$coilVersion"
         coilSvg = "io.coil-kt:coil-svg:$coilVersion"

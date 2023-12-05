@@ -9,8 +9,6 @@ import jp.co.soramitsu.common.compose.theme.colorAccent
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_polkaswap_impl.R
 import jp.co.soramitsu.polkaswap.api.domain.PolkaswapInteractor
-import jp.co.soramitsu.polkaswap.api.models.DisclaimerAppearanceSource
-import jp.co.soramitsu.polkaswap.api.models.DisclaimerVisibilityStatus
 import jp.co.soramitsu.polkaswap.api.presentation.PolkaswapRouter
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -80,16 +78,9 @@ class PolkaswapDisclaimerViewModel @Inject constructor(
     }
 
     override fun onContinueClick() {
-        val source = savedStateHandle.get<DisclaimerAppearanceSource>(
-            PolkaswapDisclaimerFragment.KEY_NAVIGATION_SOURCE
-        ) ?: return
-
-        polkaswapInteractor.updateDisclaimerVisibilityStatus(
-            DisclaimerVisibilityStatus(
-                source to true
-            )
-        )
-        polkaswapRouter.back()
+        val resultDestinationId = savedStateHandle.get<Int>(PolkaswapDisclaimerFragment.KEY_RESULT_DESTINATION) ?: return
+        polkaswapInteractor.hasReadDisclaimer = true
+        polkaswapRouter.backWithResult(resultDestinationId, PolkaswapDisclaimerFragment.KEY_DISCLAIMER_READ_RESULT to true)
     }
 
     override fun onHasReadChecked() {
@@ -97,6 +88,6 @@ class PolkaswapDisclaimerViewModel @Inject constructor(
     }
 
     override fun onBackClick() {
-        polkaswapRouter.back()
+        polkaswapRouter.backWithResult(PolkaswapDisclaimerFragment.KEY_DISCLAIMER_READ_RESULT to false)
     }
 }

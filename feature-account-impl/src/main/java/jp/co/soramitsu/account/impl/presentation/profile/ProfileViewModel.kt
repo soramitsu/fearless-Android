@@ -28,7 +28,6 @@ import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomShe
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.oauth.base.sdk.contract.SoraCardCommonVerification
 import jp.co.soramitsu.oauth.base.sdk.contract.SoraCardContractData
-import jp.co.soramitsu.polkaswap.api.models.DisclaimerAppearanceSource
 import jp.co.soramitsu.soracard.api.domain.SoraCardInteractor
 import jp.co.soramitsu.soracard.impl.presentation.SoraCardItemViewState
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
@@ -145,7 +144,7 @@ class ProfileViewModel @Inject constructor(
     }
 
     fun polkaswapDisclaimerClicked() {
-        router.openPolkaswapDisclaimer(DisclaimerAppearanceSource.ProfileFragment)
+        router.openPolkaswapDisclaimerFromProfile()
     }
 
     fun onSoraCardClicked() {

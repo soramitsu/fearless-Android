@@ -8,6 +8,7 @@ import jp.co.soramitsu.coredb.model.OperationLocal
 import jp.co.soramitsu.runtime.ext.addressOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId
 import jp.co.soramitsu.shared_utils.runtime.AccountId
 import jp.co.soramitsu.wallet.impl.data.historySource.HistorySourceProvider
 import jp.co.soramitsu.wallet.impl.data.mappers.mapOperationLocalToOperation
@@ -47,7 +48,7 @@ class HistoryRepository(
             if (historyType in listOf(
                     Chain.ExternalApi.Section.Type.GIANTSQUID,
                     Chain.ExternalApi.Section.Type.SUBSQUID
-                ) && chainAsset.isUtility.not()
+                ) && chainAsset.isUtility.not() && chain.id != soraMainChainId
             ) {
                 throw HistoryNotSupportedException()
             }
@@ -77,19 +78,31 @@ class HistoryRepository(
         accountId: AccountId,
         chain: Chain,
         chainAsset: Asset
-    ) = withContext(Dispatchers.IO) {
+    ): CursorPage<Operation> {
         val accountAddress = chain.addressOf(accountId)
-        val page = kotlin.runCatching {
-            getOperations(pageSize, cursor = null, filters, accountId, chain, chainAsset)
-        }.getOrDefault(CursorPage(null, emptyList()))
+        val elements: MutableList<OperationLocal> = mutableListOf()
 
-        val elements =
-            page.map { mapOperationToOperationLocalDb(it, OperationLocal.Source.SUBQUERY) }
+        var page: CursorPage<Operation> = CursorPage(null, emptyList())
+        var nextCursor: String? = null
+        var hasNextPage = true
 
+        while (elements.size <= pageSize.div(2) && hasNextPage) {
+            page = kotlin.runCatching {
+                getOperations(pageSize, cursor = nextCursor, filters, accountId, chain, chainAsset)
+            }.getOrDefault(CursorPage(null, emptyList()))
+            nextCursor = page.nextCursor
+            hasNextPage = nextCursor != null
+            elements.addAll(page.map {
+                mapOperationToOperationLocalDb(
+                    it,
+                    OperationLocal.Source.SUBQUERY
+                )
+            })
+        }
         operationDao.insertFromSubquery(accountAddress, chain.id, chainAsset.id, elements)
 
         cursorStorage.saveCursor(chain.id, chainAsset.id, accountId, page.nextCursor)
-
+        return page
     }
 
     fun operationsFirstPageFlow(

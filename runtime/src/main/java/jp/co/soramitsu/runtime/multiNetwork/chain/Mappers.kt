@@ -143,7 +143,7 @@ fun ChainRemote.toChain(): Chain {
 
 private fun ChainRemote.assetConfigs(): List<Asset>? {
     return assets?.mapNotNull { chainAsset ->
-        chainAsset.id?.let {
+        runCatching { chainAsset.id?.let {
             Asset(
                 id = chainAsset.id,
                 name = chainAsset.name,
@@ -166,7 +166,7 @@ private fun ChainRemote.assetConfigs(): List<Asset>? {
                 isNative = chainAsset.isNative,
                 ethereumType = mapEthereumTypeStringToEthereumType(chainAsset.ethereumType)
             )
-        }
+        }}.getOrNull()
     }
 }
 

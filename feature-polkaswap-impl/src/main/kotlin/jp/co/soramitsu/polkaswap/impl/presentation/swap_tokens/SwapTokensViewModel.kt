@@ -1,6 +1,8 @@
 package jp.co.soramitsu.polkaswap.impl.presentation.swap_tokens
 
 import androidx.annotation.StringRes
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
@@ -36,7 +38,6 @@ import jp.co.soramitsu.polkaswap.api.domain.InsufficientLiquidityException
 import jp.co.soramitsu.polkaswap.api.domain.PathUnavailableException
 import jp.co.soramitsu.polkaswap.api.domain.PolkaswapInteractor
 import jp.co.soramitsu.polkaswap.api.domain.models.SwapDetails
-import jp.co.soramitsu.polkaswap.api.models.DisclaimerAppearanceSource
 import jp.co.soramitsu.polkaswap.api.models.Market
 import jp.co.soramitsu.polkaswap.api.models.WithDesired
 import jp.co.soramitsu.polkaswap.api.presentation.PolkaswapRouter
@@ -110,6 +111,9 @@ class SwapTokensViewModel @Inject constructor(
     private val isLoading = MutableStateFlow(false)
     private var initialFee = BigDecimal.ZERO
     private val availableDexPathsFlow: MutableStateFlow<List<Int>?> = MutableStateFlow(null)
+
+    private val isSoftKeyboardOpenFlow = MutableStateFlow(false)
+    private val heightDiffDpFlow = MutableStateFlow(0.dp)
 
     @OptIn(FlowPreview::class)
     private val poolReservesFlow = combine(fromAsset, toAsset, selectedMarket) { fromAsset, toAsset, selectedMarket ->
@@ -226,8 +230,10 @@ class SwapTokensViewModel @Inject constructor(
         swapDetailsViewState,
         networkFeeViewStateFlow,
         isLoading,
-        polkaswapInteractor.observeHasReadDisclaimer()
-    ) { fromAmountInput, toAmountInput, selectedMarket, swapDetails, networkFeeState, isLoading, hasReadDisclaimer ->
+        polkaswapInteractor.observeHasReadDisclaimer(),
+        isSoftKeyboardOpenFlow,
+        heightDiffDpFlow
+    ) { fromAmountInput, toAmountInput, selectedMarket, swapDetails, networkFeeState, isLoading, hasReadDisclaimer, isSoftKeyboardOpen, heightDiffDp ->
         SwapTokensContentViewState(
             fromAmountInputViewState = fromAmountInput,
             toAmountInputViewState = toAmountInput,
@@ -235,7 +241,9 @@ class SwapTokensViewModel @Inject constructor(
             swapDetailsViewState = swapDetails,
             networkFeeViewState = networkFeeState,
             isLoading = isLoading,
-            hasReadDisclaimer = hasReadDisclaimer
+            hasReadDisclaimer = hasReadDisclaimer,
+            isSoftKeyboardOpen = isSoftKeyboardOpen,
+            heightDiffDp = heightDiffDp
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, SwapTokensContentViewState.default(resourceManager))
 
@@ -623,8 +631,8 @@ class SwapTokensViewModel @Inject constructor(
             val result = if (isFeeAsset) amount.minus(fee) else amount
             val amountFrom = result.takeIf { it >= BigDecimal.ZERO }.orZero()
 
-            enteredFromAmountFlow.value = amountFrom
-            initFromAmountFlow.value = amountFrom
+            enteredFromAmountFlow.value = amountFrom.setScale(MAX_DECIMALS_8, RoundingMode.HALF_DOWN)
+            initFromAmountFlow.value = amountFrom.setScale(MAX_DECIMALS_8, RoundingMode.HALF_DOWN)
 
             if (isFeeAsset.not()) return@launch
 
@@ -636,6 +644,7 @@ class SwapTokensViewModel @Inject constructor(
 
                     val newResult = amount.minus(newNetworkFee).minus(newDetails.liquidityProviderFee).takeIf { it >= BigDecimal.ZERO }.orZero()
                     enteredFromAmountFlow.value = newResult.setScale(MAX_DECIMALS_8, RoundingMode.HALF_DOWN)
+                    initFromAmountFlow.value = newResult.setScale(MAX_DECIMALS_8, RoundingMode.HALF_DOWN)
                     awaitNewFeeJob?.cancel()
                 }
             }
@@ -644,6 +653,14 @@ class SwapTokensViewModel @Inject constructor(
     }
 
     override fun onDisclaimerClick() {
-        polkaswapRouter.openPolkaswapDisclaimer(DisclaimerAppearanceSource.SwapTokensFragment)
+        polkaswapRouter.openPolkaswapDisclaimerFromSwapTokensFragment()
+    }
+
+    fun setSoftKeyboardOpen(isOpen: Boolean) {
+        isSoftKeyboardOpenFlow.value = isOpen
+    }
+
+    fun setHeightDiffDp(value: Dp) {
+        heightDiffDpFlow.value = value
     }
 }
