@@ -916,8 +916,7 @@ class Navigator :
     }
 
     override fun openPolkaswapDisclaimerFromMainScreen() {
-        val bundle =
-            PolkaswapDisclaimerFragment.getBundle(R.id.mainFragment)
+        val bundle = PolkaswapDisclaimerFragment.getBundle(R.id.mainFragment)
 
         navController?.navigate(R.id.polkaswapDisclaimerFragment, bundle)
     }
