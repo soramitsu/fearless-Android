@@ -1,5 +1,6 @@
 package jp.co.soramitsu.wallet.impl.presentation.transaction.history.mixin
 
+import io.ktor.util.collections.ConcurrentSet
 import jp.co.soramitsu.account.api.presentation.account.AddressDisplayUseCase
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.data.model.CursorPage
@@ -23,6 +24,7 @@ import jp.co.soramitsu.wallet.impl.presentation.transaction.history.model.DayHea
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -52,7 +54,7 @@ class TransactionHistoryProvider(
 
     private var nextCursor: String? = null
 
-    private val currentData: MutableSet<Operation> = mutableSetOf()
+    private val currentData = ConcurrentSet<Operation>()
 
     private val _state =
         MutableStateFlow<TransactionHistoryUi.State>(TransactionHistoryUi.State.Refreshing)
@@ -87,6 +89,7 @@ class TransactionHistoryProvider(
     private var operationsObserveJob: Job? = null
 
     private suspend fun reloadHistory() {
+        nextPageLoading = false
         nextCursor = null
         currentData.clear()
         _state.emit(TransactionHistoryUi.State.EmptyProgress)
@@ -118,41 +121,45 @@ class TransactionHistoryProvider(
     private var firstPageSyncJob: Job? = null
 
     override suspend fun syncFirstOperationsPage(assetPayload: AssetPayload) {
-        if (firstPageSyncJob?.isCancelled == false || firstPageSyncJob?.isCompleted == false) return
+        if (firstPageSyncJob?.isActive == true || firstPageSyncJob?.isCompleted == false) return
 
-        firstPageSyncJob = launch {
-            walletInteractor.syncOperationsFirstPage(
-                chainId = assetPayload.chainId,
-                chainAssetId = assetPayload.chainAssetId,
-                pageSize = PAGE_SIZE,
-                filters = historyFiltersProvider.currentFilters()
-            ).onFailure { throwable ->
-                val message = when (throwable) {
-                    is HistoryNotSupportedException -> resourceManager.getString(R.string.wallet_transaction_history_unsupported_message)
-                    else -> resourceManager.getString(R.string.wallet_transaction_history_error_message)
-                }
-                _sideEffects.emit(
-                    TransactionHistoryUi.SideEffect.Error(
-                        throwable.localizedMessage ?: throwable.localizedMessage
+        firstPageSyncJob = coroutineScope {
+            launch {
+                walletInteractor.syncOperationsFirstPage(
+                    chainId = assetPayload.chainId,
+                    chainAssetId = assetPayload.chainAssetId,
+                    pageSize = PAGE_SIZE,
+                    filters = historyFiltersProvider.currentFilters()
+                ).onFailure { throwable ->
+                    val message = when (throwable) {
+                        is HistoryNotSupportedException -> resourceManager.getString(R.string.wallet_transaction_history_unsupported_message)
+                        else -> resourceManager.getString(R.string.wallet_transaction_history_error_message)
+                    }
+                    _sideEffects.emit(
+                        TransactionHistoryUi.SideEffect.Error(
+                            throwable.localizedMessage ?: throwable.localizedMessage
+                        )
                     )
-                )
-                _state.emit(TransactionHistoryUi.State.Empty(message))
-            }
+                    _state.emit(TransactionHistoryUi.State.Empty(message))
+                }.onSuccess {
+                    nextCursor = it.nextCursor
+                }
 
-            firstPageSyncJob?.cancel()
+                firstPageSyncJob?.cancel()
+            }
         }
 
     }
 
-    var nextPageLoading = false
+    private var nextPageLoading = false
 
     override fun scrolled(currentIndex: Int, assetPayload: AssetPayload) {
         val pageLoaded = currentData.size / PAGE_SIZE
         val currentPage = (currentIndex / PAGE_SIZE) + 1
         val currentPageOffset = (PAGE_SIZE * currentPage) - NEXT_PAGE_LOADING_OFFSET
-        val isIndexEnoughToLoadNextPage = currentIndex >= currentPageOffset
-        val isNextPageLoaded = pageLoaded > currentPage
         val hasDataToLoad = nextCursor != null
+        val isNextPageLoaded = pageLoaded > currentPage
+        val isIndexEnoughToLoadNextPage = currentIndex >= currentPageOffset
 
         if (hasDataToLoad.not() ||
             isIndexEnoughToLoadNextPage.not() ||
@@ -163,31 +170,35 @@ class TransactionHistoryProvider(
         }
 
         launch {
-            nextPageLoading = true
-            walletInteractor.getOperations(
-                assetPayload.chainId,
-                assetPayload.chainAssetId,
-                PAGE_SIZE,
-                nextCursor,
-                historyFiltersProvider.currentFilters()
-            )
-                .onFailure {
-                    nextPageLoading = false
-                    _sideEffects.emit(
-                        TransactionHistoryUi.SideEffect.Error(
-                            it.localizedMessage ?: it.localizedMessage
-                        )
-                    )
-                }.onSuccess {
-                    nextCursor = it.nextCursor
-                    if (it.isEmpty()) {
-                        return@onSuccess
-                    }
-                    currentData.addAll(it.items)
-                    _state.emit(TransactionHistoryUi.State.Data(transformData(currentData)))
-                    nextPageLoading = false
-                }
+            loadNextPage(assetPayload)
         }
+    }
+
+    private suspend fun loadNextPage(assetPayload: AssetPayload) {
+        nextPageLoading = true
+        walletInteractor.getOperations(
+            assetPayload.chainId,
+            assetPayload.chainAssetId,
+            PAGE_SIZE,
+            nextCursor,
+            historyFiltersProvider.currentFilters()
+        )
+            .onFailure {
+                nextPageLoading = false
+                _sideEffects.emit(
+                    TransactionHistoryUi.SideEffect.Error(
+                        it.localizedMessage ?: it.localizedMessage
+                    )
+                )
+            }.onSuccess {
+                nextCursor = it.nextCursor
+                nextPageLoading = false
+                if (it.isEmpty()) {
+                    return@onSuccess
+                }
+                currentData.addAll(it.items)
+                _state.emit(TransactionHistoryUi.State.Data(transformData(currentData)))
+            }
     }
 
     override fun transactionClicked(
@@ -200,8 +211,11 @@ class TransactionHistoryProvider(
 
             val clickedOperation = operations.first { it.id == transactionModel.id }
 
+            val chain = walletInteractor.getChain(assetPayload.chainId)
+            val utilityAsset = chain.assets.firstOrNull { it.isUtility }
+
             withContext(Dispatchers.Main) {
-                when (val operation = mapOperationToParcel(clickedOperation, resourceManager)) {
+                when (val operation = mapOperationToParcel(clickedOperation, resourceManager, utilityAsset)) {
                     is OperationParcelizeModel.Transfer -> {
                         router.openTransferDetail(operation, assetPayload, chainHistoryType)
                     }
@@ -237,7 +251,7 @@ class TransactionHistoryProvider(
 
         val operations = data.map {
             mapOperationToOperationModel(it, accountIdentifier, resourceManager, iconGenerator)
-        }
+        }.sortedByDescending { it.time }
 
         return regroup(operations)
     }

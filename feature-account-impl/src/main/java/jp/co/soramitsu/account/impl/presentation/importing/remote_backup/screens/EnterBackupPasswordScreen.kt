@@ -19,6 +19,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.FocusState
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.rememberNestedScrollInteropConnection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
@@ -60,8 +62,7 @@ interface EnterBackupPasswordCallback {
 @Composable
 internal fun EnterBackupPasswordScreen(
     state: EnterBackupPasswordState,
-    callback: EnterBackupPasswordCallback,
-    modifier: Modifier = Modifier
+    callback: EnterBackupPasswordCallback
 ) {
     var focusedState by remember { mutableStateOf(false) }
     val focusRequester = remember { FocusRequester() }
@@ -80,12 +81,10 @@ internal fun EnterBackupPasswordScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
+            .nestedScroll(rememberNestedScrollInteropConnection())
             .padding(bottom = state.heightDiffDp)
     ) {
-        Column(
-            modifier = modifier
-                .imePadding()
-        ) {
+        Column {
             Toolbar(
                 modifier = Modifier.padding(bottom = 12.dp),
                 state = ToolbarViewState(

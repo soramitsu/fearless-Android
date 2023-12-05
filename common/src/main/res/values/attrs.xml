@@ -86,4 +86,10 @@
         <attr name="icon" />
         <attr name="actionIcon" />
     </declare-styleable>
+
+    <declare-styleable name="FabBottomNavigationView">
+        <attr name="fab_size" format="dimension"/>
+        <attr name="fab_cradle_margin" format="dimension"/>
+        <attr name="cradle_vertical_offset" format="dimension"/>
+    </declare-styleable>
 </resources>

@@ -38,8 +38,10 @@ import jp.co.soramitsu.coredb.dao.OperationDao
 import jp.co.soramitsu.coredb.dao.PhishingDao
 import jp.co.soramitsu.coredb.dao.TokenPriceDao
 import jp.co.soramitsu.feature_wallet_impl.BuildConfig
+import jp.co.soramitsu.polkaswap.api.domain.PolkaswapInteractor
 import jp.co.soramitsu.runtime.di.REMOTE_STORAGE_SOURCE
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.runtime.multiNetwork.connection.EthereumConnectionPool
 import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeFilesCache
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
@@ -88,9 +90,9 @@ import jp.co.soramitsu.wallet.impl.presentation.transaction.filter.HistoryFilter
 import jp.co.soramitsu.xcm.XcmService
 import jp.co.soramitsu.xcm.domain.XcmEntitiesFetcher
 import jp.co.soramitsu.xnetworking.basic.networkclient.SoramitsuNetworkClient
+import jp.co.soramitsu.xnetworking.fearlesswallet.txhistory.client.TxHistoryClientForFearlessWalletFactory
 import jp.co.soramitsu.xnetworking.sorawallet.mainconfig.SoraRemoteConfigBuilder
 import jp.co.soramitsu.xnetworking.sorawallet.mainconfig.SoraRemoteConfigProvider
-import jp.co.soramitsu.xnetworking.sorawallet.txhistory.client.SubQueryClientForSoraWalletFactory
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -167,7 +169,8 @@ class WalletFeatureModule {
         updatesMixin: UpdatesMixin,
         remoteConfigFetcher: RemoteConfigFetcher,
         preferences: Preferences,
-        accountRepository: AccountRepository
+        accountRepository: AccountRepository,
+        chainsRepository: ChainsRepository
     ): WalletRepository = WalletRepositoryImpl(
         substrateSource,
         ethereumRemoteSource,
@@ -183,7 +186,8 @@ class WalletFeatureModule {
         updatesMixin,
         remoteConfigFetcher,
         preferences,
-        accountRepository
+        accountRepository,
+        chainsRepository
     )
 
     @Provides
@@ -205,14 +209,14 @@ class WalletFeatureModule {
         walletOperationsHistoryApi: OperationsHistoryApi,
         chainRegistry: ChainRegistry,
         soramitsuNetworkClient: SoramitsuNetworkClient,
-        subQueryClientForSoraWalletFactory: SubQueryClientForSoraWalletFactory,
+        txHistoryClientForFearlessWalletFactory: TxHistoryClientForFearlessWalletFactory,
         @Named("prod") soraProdRemoteConfigBuilder: SoraRemoteConfigBuilder,
         @Named("stage") soraStageRemoteConfigBuilder: SoraRemoteConfigBuilder
     ) = HistorySourceProvider(
         walletOperationsHistoryApi,
         chainRegistry,
         soramitsuNetworkClient,
-        subQueryClientForSoraWalletFactory,
+        txHistoryClientForFearlessWalletFactory,
         soraProdRemoteConfigBuilder,
         soraStageRemoteConfigBuilder
     )
@@ -228,7 +232,8 @@ class WalletFeatureModule {
         preferences: Preferences,
         selectedFiat: SelectedFiat,
         updatesMixin: UpdatesMixin,
-        xcmEntitiesFetcher: XcmEntitiesFetcher
+        xcmEntitiesFetcher: XcmEntitiesFetcher,
+        chainsRepository: ChainsRepository
     ): WalletInteractor = WalletInteractorImpl(
         walletRepository,
         addressBookRepository,
@@ -239,7 +244,8 @@ class WalletFeatureModule {
         preferences,
         selectedFiat,
         updatesMixin,
-        xcmEntitiesFetcher
+        xcmEntitiesFetcher,
+        chainsRepository
     )
 
     @Provides
@@ -284,13 +290,15 @@ class WalletFeatureModule {
         walletConstants: WalletConstants,
         chainRegistry: ChainRegistry,
         accountRepository: AccountRepository,
-        walletRepository: WalletRepository
+        walletRepository: WalletRepository,
+        polkaswapInteractor: PolkaswapInteractor
     ): ValidateTransferUseCase = ValidateTransferUseCaseImpl(
         existentialDepositUseCase,
         walletConstants,
         chainRegistry,
         accountRepository,
-        walletRepository
+        walletRepository,
+        polkaswapInteractor
     )
 
     @Provides
@@ -428,9 +436,9 @@ class WalletFeatureModule {
 
     @Singleton
     @Provides
-    fun provideSubQueryClientForSoraWalletFactory(
+    fun provideTxHistoryClientForFearlessWalletFactory(
         @ApplicationContext context: Context
-    ): SubQueryClientForSoraWalletFactory = SubQueryClientForSoraWalletFactory(context)
+    ): TxHistoryClientForFearlessWalletFactory = TxHistoryClientForFearlessWalletFactory(context)
 
     @Singleton
     @Provides

@@ -37,18 +37,13 @@ class SendSetupFragment : BaseComposeBottomSheetDialogFragment<SendSetupViewMode
         const val KEY_INITIAL_AMOUNT = "KEY_INITIAL_AMOUNT"
         const val KEY_LOCK_AMOUNT = "KEY_LOCK_AMOUNT"
         const val KEY_TOKEN_ID = "KEY_TOKEN_ID"
-        fun getBundle(payload: AssetPayload?, initSendToAddress: String?, currencyId: String?) = bundleOf(
-            KEY_PAYLOAD to payload,
-            KEY_INITIAL_ADDRESS to initSendToAddress,
-            KEY_TOKEN_ID to currencyId
-        )
 
-        fun getBundle(payload: AssetPayload?, initSendToAddress: String?, currencyId: String?, amount: BigDecimal?) = bundleOf(
+        fun getBundle(payload: AssetPayload?, initSendToAddress: String?, currencyId: String?, amount: BigDecimal?, lockInput: Boolean) = bundleOf(
             KEY_PAYLOAD to payload,
             KEY_INITIAL_ADDRESS to initSendToAddress,
             KEY_TOKEN_ID to currencyId,
             KEY_INITIAL_AMOUNT to amount,
-            KEY_LOCK_AMOUNT to true
+            KEY_LOCK_AMOUNT to lockInput
         )
     }
 

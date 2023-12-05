@@ -1,5 +1,6 @@
 package jp.co.soramitsu.polkaswap.impl.presentation.disclaimer
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -18,7 +19,8 @@ import kotlinx.coroutines.flow.stateIn
 class PolkaswapDisclaimerViewModel @Inject constructor(
     private val resourceManager: ResourceManager,
     private val polkaswapInteractor: PolkaswapInteractor,
-    private val polkaswapRouter: PolkaswapRouter
+    private val polkaswapRouter: PolkaswapRouter,
+    private val savedStateHandle: SavedStateHandle
 ) : BaseViewModel(), DisclaimerScreenInterface {
 
     companion object {
@@ -76,8 +78,9 @@ class PolkaswapDisclaimerViewModel @Inject constructor(
     }
 
     override fun onContinueClick() {
+        val resultDestinationId = savedStateHandle.get<Int>(PolkaswapDisclaimerFragment.KEY_RESULT_DESTINATION) ?: return
         polkaswapInteractor.hasReadDisclaimer = true
-        polkaswapRouter.back()
+        polkaswapRouter.backWithResult(resultDestinationId, PolkaswapDisclaimerFragment.KEY_DISCLAIMER_READ_RESULT to true)
     }
 
     override fun onHasReadChecked() {
@@ -85,6 +88,6 @@ class PolkaswapDisclaimerViewModel @Inject constructor(
     }
 
     override fun onBackClick() {
-        polkaswapRouter.back()
+        polkaswapRouter.backWithResult(PolkaswapDisclaimerFragment.KEY_DISCLAIMER_READ_RESULT to false)
     }
 }

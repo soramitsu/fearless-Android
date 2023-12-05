@@ -29,6 +29,7 @@ const val polygonChainId = "137"
 const val polygonTestnetChainId = "80001"
 
 const val genshiroChainId = "9b8cefc0eb5c568b527998bdd76c184e2b76ae561be76e4667072230217ea243"
+const val bokoloCashTokenId = "0x00eacaea6599a04358fda986388ef0bb0c17a553ec819d5de2900c0af0862502"
 
 data class Chain(
     override val id: ChainId,

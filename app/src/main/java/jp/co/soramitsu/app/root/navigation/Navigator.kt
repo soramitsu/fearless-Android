@@ -76,6 +76,7 @@ import jp.co.soramitsu.polkaswap.api.presentation.PolkaswapRouter
 import jp.co.soramitsu.polkaswap.api.presentation.models.SwapDetailsParcelModel
 import jp.co.soramitsu.polkaswap.api.presentation.models.SwapDetailsViewState
 import jp.co.soramitsu.polkaswap.api.presentation.models.TransactionSettingsModel
+import jp.co.soramitsu.polkaswap.impl.presentation.disclaimer.PolkaswapDisclaimerFragment
 import jp.co.soramitsu.polkaswap.impl.presentation.swap_preview.SwapPreviewFragment
 import jp.co.soramitsu.polkaswap.impl.presentation.swap_tokens.SwapTokensFragment
 import jp.co.soramitsu.polkaswap.impl.presentation.transaction_settings.TransactionSettingsFragment
@@ -119,6 +120,7 @@ import jp.co.soramitsu.success.presentation.SuccessRouter
 import jp.co.soramitsu.wallet.api.domain.model.XcmChainType
 import jp.co.soramitsu.wallet.impl.domain.beacon.SignStatus
 import jp.co.soramitsu.wallet.impl.domain.model.PhishingType
+import jp.co.soramitsu.wallet.impl.domain.model.QrContentCBDC
 import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.presentation.addressbook.CreateContactFragment
@@ -143,6 +145,7 @@ import jp.co.soramitsu.wallet.impl.presentation.receive.ReceiveFragment
 import jp.co.soramitsu.wallet.impl.presentation.send.TransferDraft
 import jp.co.soramitsu.wallet.impl.presentation.send.confirm.ConfirmSendFragment
 import jp.co.soramitsu.wallet.impl.presentation.send.setup.SendSetupFragment
+import jp.co.soramitsu.wallet.impl.presentation.send.setupcbdc.CBDCSendSetupFragment
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.extrinsic.ExtrinsicDetailFragment
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.extrinsic.ExtrinsicDetailsPayload
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.reward.RewardDetailFragment
@@ -512,6 +515,18 @@ class Navigator :
         back()
     }
 
+    override fun backWithResult(resultDestinationId: Int, vararg results: Pair<String, Any?>) {
+        val savedStateHandle =
+            runCatching{ navController?.getBackStackEntry(resultDestinationId)?.savedStateHandle }.getOrNull()
+
+        if (savedStateHandle != null) {
+            results.forEach { (key, value) ->
+                savedStateHandle[key] = value
+            }
+        }
+        back()
+    }
+
     override fun openSelectImportModeForResult(): Flow<ImportMode> {
         val bundle = SelectImportModeDialog.getBundle()
         return openWithResult(
@@ -695,16 +710,22 @@ class Navigator :
         navController?.navigate(R.id.open_collator_details, CollatorDetailsFragment.getBundle(collatorDetails))
     }
 
-    override fun openSend(assetPayload: AssetPayload?, initialSendToAddress: String?, currencyId: String?) {
-        val bundle = SendSetupFragment.getBundle(assetPayload, initialSendToAddress, currencyId)
+    override fun openSend(assetPayload: AssetPayload?, initialSendToAddress: String?, currencyId: String?, amount: BigDecimal?) {
+        val bundle = SendSetupFragment.getBundle(assetPayload, initialSendToAddress, currencyId, amount, false)
 
         navController?.navigate(R.id.sendSetupFragment, bundle)
     }
 
-    override fun openLockedAmountSend(assetPayload: AssetPayload?, initialSendToAddress: String?, currencyId: String?, amount: BigDecimal) {
-        val bundle = SendSetupFragment.getBundle(assetPayload, initialSendToAddress, currencyId, amount)
+    override fun openLockedAmountSend(assetPayload: AssetPayload?, initialSendToAddress: String?, currencyId: String?, amount: BigDecimal?) {
+        val bundle = SendSetupFragment.getBundle(assetPayload, initialSendToAddress, currencyId, amount, true)
 
         navController?.navigate(R.id.sendSetupFragment, bundle)
+    }
+
+    override fun openCBDCSend(cbdcQrInfo: QrContentCBDC) {
+        val bundle = CBDCSendSetupFragment.getBundle(cbdcQrInfo)
+
+        navController?.navigate(R.id.cbdcSendSetupFragment, bundle)
     }
 
     override fun openCrossChainSend(assetPayload: AssetPayload?) {
@@ -736,10 +757,21 @@ class Navigator :
             .onEach { removeSavedStateHandle(resultKey) }
     }
 
-    override fun openSwapTokensScreen(chainId: String, assetIdFrom: String?, assetIdTo: String?) {
+    override fun openSwapTokensScreen(chainId: String?, assetIdFrom: String?, assetIdTo: String?) {
+        if (navController?.currentDestination?.id == R.id.swapTokensFragment)
+            return
+
         val bundle = SwapTokensFragment.getBundle(chainId, assetIdFrom, assetIdTo)
 
         navController?.navigate(R.id.swapTokensFragment, bundle)
+    }
+
+    override fun openPolkaswapDisclaimerFromSwapTokensFragment() {
+        val bundle = PolkaswapDisclaimerFragment.getBundle(
+            R.id.swapTokensFragment
+        )
+
+        navController?.navigate(R.id.polkaswapDisclaimerFragment, bundle)
     }
 
     override fun showBuyCrypto() {
@@ -840,8 +872,8 @@ class Navigator :
         navController?.navigate(R.id.action_mainFragment_to_filterFragment)
     }
 
-    override fun openSendConfirm(transferDraft: TransferDraft, phishingType: PhishingType?) {
-        val bundle = ConfirmSendFragment.getBundle(transferDraft, phishingType)
+    override fun openSendConfirm(transferDraft: TransferDraft, phishingType: PhishingType?, overrides: Map<String, Any?>, transferComment: String?) {
+        val bundle = ConfirmSendFragment.getBundle(transferDraft, phishingType, overrides, transferComment)
 
         navController?.navigate(R.id.confirmSendFragment, bundle)
     }
@@ -856,11 +888,45 @@ class Navigator :
         openOperationSuccess(operationHash, chainId, null)
     }
 
-    override fun openPolkaswapDisclaimer() {
-        navController?.navigate(R.id.polkaswapDisclaimerFragment)
+    override fun openPolkaswapDisclaimerFromProfile() {
+        val bundle = PolkaswapDisclaimerFragment.getBundle(
+            R.id.profileFragment
+        )
+
+        navController?.navigate(R.id.polkaswapDisclaimerFragment, bundle)
     }
 
-    override fun openOperationSuccess(operationHash: String?, chainId: ChainId, customMessage: String?) {
+    override fun listenPolkaswapDisclaimerResultFlowFromMainScreen(): Flow<Boolean> {
+        val currentEntry = runCatching { navController?.getBackStackEntry(R.id.mainFragment) }.getOrNull()
+        val onResumeObserver = currentEntry?.lifecycle?.onResumeObserver()
+
+        return (onResumeObserver?.asFlow() ?: emptyFlow()).map {
+            if (currentEntry?.savedStateHandle?.contains(PolkaswapDisclaimerFragment.KEY_DISCLAIMER_READ_RESULT) == true) {
+                val result =
+                    currentEntry.savedStateHandle.get<Boolean?>(PolkaswapDisclaimerFragment.KEY_DISCLAIMER_READ_RESULT)
+                currentEntry.savedStateHandle.set<Boolean?>(
+                    PolkaswapDisclaimerFragment.KEY_DISCLAIMER_READ_RESULT,
+                    null
+                )
+                result
+            } else {
+                null
+            }
+        }.filterNotNull()
+    }
+
+    override fun openPolkaswapDisclaimerFromMainScreen() {
+        val bundle =
+            PolkaswapDisclaimerFragment.getBundle(R.id.mainFragment)
+
+        navController?.navigate(R.id.polkaswapDisclaimerFragment, bundle)
+    }
+
+    override fun openOperationSuccess(
+        operationHash: String?,
+        chainId: ChainId,
+        customMessage: String?
+    ) {
         val bundle = SuccessFragment.getBundle(operationHash, chainId, customMessage)
 
         navController?.navigate(R.id.successSheetFragment, bundle)

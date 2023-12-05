@@ -65,11 +65,8 @@ private fun mapEthereumTypeStringToEthereumType(ethereumTypeString: String?): As
 }
 
 private fun mapStakingTypeToLocal(stakingType: Asset.StakingType): String = stakingType.name
-private fun mapEthereumTypeToLocal(ethereumType: Asset.EthereumType?): String? =
-    ethereumType?.name?.lowercase()
-
-private fun mapStakingTypeFromLocal(stakingTypeLocal: String): Asset.StakingType =
-    enumValueOf(stakingTypeLocal)
+private fun mapEthereumTypeToLocal(ethereumType: Asset.EthereumType?): String? = ethereumType?.name?.lowercase()
+private fun mapStakingTypeFromLocal(stakingTypeLocal: String): Asset.StakingType = enumValueOf(stakingTypeLocal)
 
 private fun ChainExternalApiRemote.Explorer.toExplorer() = Chain.Explorer(
     type = mapExplorerTypeRemoteToExplorerType(type),
@@ -204,7 +201,7 @@ fun mapChainLocalToChain(chainLocal: JoinedChainInfo): Chain {
             isTestNet = chainLocal.chain.isTestNet,
             supportStakingPool = chainLocal.chain.supportStakingPool,
             isUtility = it.isUtility ?: false,
-            type = it.type?.let { ChainAssetType.valueOf(it) },
+            type = it.type?.let { runCatching { ChainAssetType.valueOf(it) }.getOrNull() },
             currencyId = it.currencyId,
             existentialDeposit = it.existentialDeposit,
             color = it.color,

@@ -18,6 +18,8 @@ interface PolkaswapRouter {
 
     fun backWithResult(vararg results: Pair<String, Any?>)
 
+    fun backWithResult(resultDestinationId: Int, vararg results: Pair<String, Any?>)
+
     fun back()
 
     fun closeSwap()
@@ -30,7 +32,9 @@ interface PolkaswapRouter {
 
     fun openOperationSuccess(operationHash: String?, chainId: ChainId)
 
-    fun openPolkaswapDisclaimer()
+    fun openPolkaswapDisclaimerFromSwapTokensFragment()
+
+    fun openPolkaswapDisclaimerFromMainScreen()
 
     fun openWebViewer(title: String, url: String)
 }
