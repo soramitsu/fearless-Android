@@ -8,17 +8,17 @@ import androidx.core.os.bundleOf
 import androidx.fragment.app.viewModels
 import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
-import jp.co.soramitsu.polkaswap.api.models.DisclaimerAppearanceSource
 
 @AndroidEntryPoint
 class PolkaswapDisclaimerFragment : BaseComposeBottomSheetDialogFragment<PolkaswapDisclaimerViewModel>() {
 
     companion object {
 
-        const val KEY_NAVIGATION_SOURCE= "KEY_NAVIGATION_SOURCE"
+        const val KEY_RESULT_DESTINATION= "KEY_RESULT_DESTINATION"
+        const val KEY_DISCLAIMER_READ_RESULT= "KEY_DISCLAIMER_READ_RESULT"
 
-        fun getBundle(disclaimerAppearanceSource: DisclaimerAppearanceSource) = bundleOf(
-            KEY_NAVIGATION_SOURCE to disclaimerAppearanceSource
+        fun getBundle(resultDestinationScreenId: Int) = bundleOf(
+                    KEY_RESULT_DESTINATION to resultDestinationScreenId
         )
     }
 

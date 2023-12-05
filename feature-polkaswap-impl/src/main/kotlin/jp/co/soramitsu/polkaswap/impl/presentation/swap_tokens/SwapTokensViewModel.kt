@@ -38,7 +38,6 @@ import jp.co.soramitsu.polkaswap.api.domain.InsufficientLiquidityException
 import jp.co.soramitsu.polkaswap.api.domain.PathUnavailableException
 import jp.co.soramitsu.polkaswap.api.domain.PolkaswapInteractor
 import jp.co.soramitsu.polkaswap.api.domain.models.SwapDetails
-import jp.co.soramitsu.polkaswap.api.models.DisclaimerAppearanceSource
 import jp.co.soramitsu.polkaswap.api.models.Market
 import jp.co.soramitsu.polkaswap.api.models.WithDesired
 import jp.co.soramitsu.polkaswap.api.presentation.PolkaswapRouter
@@ -654,7 +653,7 @@ class SwapTokensViewModel @Inject constructor(
     }
 
     override fun onDisclaimerClick() {
-        polkaswapRouter.openPolkaswapDisclaimer(DisclaimerAppearanceSource.SwapTokensFragment)
+        polkaswapRouter.openPolkaswapDisclaimerFromSwapTokensFragment()
     }
 
     fun setSoftKeyboardOpen(isOpen: Boolean) {

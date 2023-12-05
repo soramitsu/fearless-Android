@@ -10,7 +10,6 @@ import jp.co.soramitsu.account.impl.presentation.node.details.NodeDetailsPayload
 import jp.co.soramitsu.common.navigation.DelayedNavigation
 import jp.co.soramitsu.common.navigation.PinRequired
 import jp.co.soramitsu.common.navigation.SecureRouter
-import jp.co.soramitsu.polkaswap.api.models.DisclaimerAppearanceSource
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.coroutines.flow.Flow
 
@@ -90,7 +89,7 @@ interface AccountRouter : SecureRouter {
 
     fun openOptionsAddAccount(payload: AddAccountBottomSheet.Payload)
 
-    fun openPolkaswapDisclaimer(disclaimerAppearanceSource: DisclaimerAppearanceSource)
+    fun openPolkaswapDisclaimerFromProfile()
 
     fun openGetSoraCard()
 
