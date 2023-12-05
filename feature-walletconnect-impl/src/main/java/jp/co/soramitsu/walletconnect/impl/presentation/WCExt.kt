@@ -31,7 +31,10 @@ val Wallet.Model.SessionRequest.JSONRPCRequest.message: String
     get() = when (method) {
     WalletConnectMethod.PolkadotSignMessage.method -> JSONObject(params).get("message").toString()
     WalletConnectMethod.PolkadotSignTransaction.method -> JSONObject(params).get("transactionPayload").toString()
-    WalletConnectMethod.EthereumPersonalSign.method -> JSONArray(params).get(0).toString().fromHex().toString(Charset.forName(CharEncoding.UTF_8))
+    WalletConnectMethod.EthereumPersonalSign.method -> {
+        println("!!! Wallet.Model.SessionRequest.JSONRPCRequest.message: ${JSONArray(params).get(0)}")
+        JSONArray(params).get(0).toString().fromHex().toString(Charset.forName(CharEncoding.UTF_8))
+    }
     WalletConnectMethod.EthereumSignTransaction.method -> JSONArray(params).get(0).toString()
     WalletConnectMethod.EthereumSignTypeData.method -> JSONArray(params).get(1).toString()
     WalletConnectMethod.EthereumSignTypeDataV4.method -> JSONArray(params).get(1).toString()
