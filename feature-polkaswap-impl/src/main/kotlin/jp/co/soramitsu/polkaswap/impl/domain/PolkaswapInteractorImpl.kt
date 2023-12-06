@@ -22,6 +22,7 @@ import jp.co.soramitsu.polkaswap.api.models.backStrings
 import jp.co.soramitsu.polkaswap.api.models.toFilters
 import jp.co.soramitsu.polkaswap.api.presentation.models.toModel
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraTestChainId
@@ -31,10 +32,12 @@ import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
 import kotlin.math.max
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.merge
 
 class PolkaswapInteractorImpl @Inject constructor(
@@ -42,7 +45,8 @@ class PolkaswapInteractorImpl @Inject constructor(
     private val walletRepository: WalletRepository,
     private val accountRepository: AccountRepository,
     private val polkaswapRepository: PolkaswapRepository,
-    private val sharedPreferences: Preferences
+    private val sharedPreferences: Preferences,
+    private val chainsRepository: ChainsRepository
 ) : PolkaswapInteractor {
 
     override var polkaswapChainId = soraMainChainId
@@ -72,6 +76,22 @@ class PolkaswapInteractorImpl @Inject constructor(
         val (chain, chainAsset) = chainRegistry.chainWithAsset(polkaswapChainId, assetId)
 
         return walletRepository.getAsset(metaAccount.id, metaAccount.accountId(chain)!!, chainAsset, chain.minSupportedVersion)
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    override fun assetFlow(chainAssetId: String): Flow<Asset> {
+        return accountRepository.selectedMetaAccountFlow().flatMapLatest { metaAccount ->
+
+            val (chain, chainAsset) = chainsRepository.chainWithAsset(polkaswapChainId, chainAssetId)
+            val accountId = metaAccount.accountId(chain)!!
+
+            walletRepository.assetFlow(
+                metaAccount.id,
+                accountId,
+                chainAsset,
+                chain.minSupportedVersion
+            )
+        }
     }
 
     override suspend fun getAvailableDexes(): List<BigInteger> {
