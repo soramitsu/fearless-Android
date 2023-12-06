@@ -99,9 +99,9 @@ interface SwapTokensCallbacks {
 
     fun onPreviewClick()
 
-    fun onFromAmountChange(amount: BigDecimal?)
+    fun onFromAmountChange(amount: BigDecimal)
 
-    fun onToAmountChange(amount: BigDecimal?)
+    fun onToAmountChange(amount: BigDecimal)
 
     fun onMarketSettingsClick()
 
@@ -434,8 +434,8 @@ fun SwapTokensContentPreview() {
             override fun onChangeTokensClick() {}
             override fun onBackClick() {}
             override fun onPreviewClick() {}
-            override fun onFromAmountChange(amount: BigDecimal?) {}
-            override fun onToAmountChange(amount: BigDecimal?) {}
+            override fun onFromAmountChange(amount: BigDecimal) {}
+            override fun onToAmountChange(amount: BigDecimal) {}
             override fun onMarketSettingsClick() {}
             override fun onFromTokenSelect() {}
             override fun onToTokenSelect() {}

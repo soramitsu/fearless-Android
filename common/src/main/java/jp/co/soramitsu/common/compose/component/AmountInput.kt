@@ -85,7 +85,7 @@ fun AmountInput(
     borderColor: Color = white24,
     borderColorFocused: Color = Color.Unspecified,
     focusRequester: FocusRequester? = null,
-    onInput: (BigDecimal?) -> Unit = {},
+    onInput: (BigDecimal) -> Unit = {},
     onInputFocusChange: (Boolean) -> Unit = {},
     onTokenClick: () -> Unit = {},
     onKeyboardDone: () -> Unit = {}
