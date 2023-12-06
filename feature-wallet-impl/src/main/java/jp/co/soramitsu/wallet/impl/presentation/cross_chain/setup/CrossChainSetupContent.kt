@@ -228,8 +228,7 @@ private fun CrossChainPreview() {
             "$170000",
             BigDecimal("0.980"),
             "Amount",
-            allowAssetChoose = true,
-            initial = null
+            allowAssetChoose = true
         ),
         originChainSelectorState = SelectorState("Origin network", null, null),
         destinationChainSelectorState = SelectorState("Destination network", null, null),

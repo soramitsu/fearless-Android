@@ -417,7 +417,6 @@ fun SwapTokensContentPreview() {
             title = "title",
             tokenName = "tokenName",
             fiatAmount = "fialtAmount",
-            initial = BigDecimal.ZERO,
             totalBalance = "totalBalance"
         )
         val state = SwapTokensContentViewState(

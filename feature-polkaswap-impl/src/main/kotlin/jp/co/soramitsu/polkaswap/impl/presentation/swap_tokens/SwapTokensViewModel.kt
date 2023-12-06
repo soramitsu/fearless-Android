@@ -379,8 +379,7 @@ class SwapTokensViewModel @Inject constructor(
                 tokenAmount = amount,
                 title = title,
                 isFocused = isFocused,
-                allowAssetChoose = true,
-                initial = initialAmount
+                allowAssetChoose = true
             )
         }
 
@@ -396,8 +395,7 @@ class SwapTokensViewModel @Inject constructor(
             title = title,
             isFocused = isFocused,
             allowAssetChoose = true,
-            precision = asset.token.configuration.precision,
-            initial = initialAmount
+            precision = asset.token.configuration.precision
         )
     }
 

@@ -102,8 +102,7 @@ class SetupStakingPoolViewModel @Inject constructor(
             tokenImage = asset.token.configuration.iconUrl,
             totalBalance = resourceManager.getString(R.string.common_balance_format, tokenBalance),
             fiatAmount = fiatAmount,
-            tokenAmount = amount,
-            initial = initialAmount.takeIf { it.isNotZero() }
+            tokenAmount = amount
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, defaultAmountInputState)
 
@@ -211,8 +210,7 @@ class SetupStakingPoolViewModel @Inject constructor(
             tokenImage = "",
             totalBalance = resourceManager.getString(R.string.common_balance_format, "..."),
             fiatAmount = "",
-            tokenAmount = initialAmount,
-            initial = null
+            tokenAmount = initialAmount
         )
 
     private val defaultAccountInfoState
