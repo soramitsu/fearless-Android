@@ -547,6 +547,15 @@ class Navigator :
         navController?.navigate(R.id.swapPreviewFragment, bundle)
     }
 
+    override fun openSwapPreviewForResult(swapDetailsViewState: SwapDetailsViewState, parcelModel: SwapDetailsParcelModel): Flow<Int> {
+        val bundle = SwapPreviewFragment.getBundle(swapDetailsViewState, parcelModel)
+        return openWithResult(
+            destinationId = R.id.swapPreviewFragment,
+            bundle = bundle,
+            resultKey = SwapPreviewFragment.KEY_SWAP_DETAILS_RESULT
+        )
+    }
+
     override fun openSelectMarketDialog() {
         navController?.navigate(R.id.selectMarketFragment)
     }

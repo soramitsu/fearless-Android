@@ -1,5 +1,6 @@
 package jp.co.soramitsu.polkaswap.impl.presentation.swap_tokens
 
+import android.app.Activity
 import androidx.annotation.StringRes
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -50,7 +51,6 @@ import jp.co.soramitsu.wallet.api.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -115,7 +115,6 @@ class SwapTokensViewModel @Inject constructor(
     private val isSoftKeyboardOpenFlow = MutableStateFlow(false)
     private val heightDiffDpFlow = MutableStateFlow(0.dp)
 
-    @OptIn(FlowPreview::class)
     private val poolReservesFlow = combine(fromAsset, toAsset, selectedMarket) { fromAsset, toAsset, selectedMarket ->
         if (fromAsset == null || toAsset == null) return@combine null
 
@@ -472,8 +471,25 @@ class SwapTokensViewModel @Inject constructor(
                 requireNotNull(networkFeeViewStateFlow.value.dataOrNull())
             )
             isLoading.value = false
-            polkaswapRouter.openSwapPreviewDialog(requireNotNull(swapDetailsViewState.value), detailsParcelModel)
+            polkaswapRouter.openSwapPreviewForResult(requireNotNull(swapDetailsViewState.value), detailsParcelModel)
+                .onEach(::handleSwapPreviewResult)
+                .launchIn(viewModelScope)
         }
+    }
+
+    private fun handleSwapPreviewResult(result: Int) {
+        if (result == Activity.RESULT_OK) {
+            resetFieldsState()
+        } else {
+            /* nothing */
+        }
+    }
+
+    private fun resetFieldsState() {
+        enteredFromAmountFlow.value = BigDecimal.ZERO
+        enteredToAmountFlow.value = BigDecimal.ZERO
+        initFromAmountFlow.value = BigDecimal.ZERO
+        initToAmountFlow.value = BigDecimal.ZERO
     }
 
     private suspend fun validate(swapDetails: SwapDetails): Throwable? {
