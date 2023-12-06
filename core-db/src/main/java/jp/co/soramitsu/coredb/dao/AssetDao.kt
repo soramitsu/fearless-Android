@@ -115,4 +115,22 @@ abstract class AssetDao : AssetReadOnlyCache {
 
     @Query("DELETE FROM assets WHERE metaId = :metaId AND accountId = :accountId AND chainId = :chainId AND id = :assetId")
     abstract fun deleteAsset(metaId: Long, accountId: AccountId, chainId: String, assetId: String)
+
+    @Query(
+        """
+            SELECT * FROM assets 
+            LEFT JOIN token_price ON assets.tokenPriceId = token_price.priceId 
+            WHERE assets.id = :id
+        """
+    )
+    abstract suspend fun getAssets(id: String): List<AssetWithToken>
+
+    @Query(
+        """
+            SELECT * FROM assets 
+            LEFT JOIN token_price ON assets.tokenPriceId = token_price.priceId 
+            WHERE assets.id = :id
+        """
+    )
+    abstract fun observeAssets(id: String): Flow<List<AssetWithToken>>
 }

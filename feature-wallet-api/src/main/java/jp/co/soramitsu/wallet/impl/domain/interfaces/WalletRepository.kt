@@ -6,6 +6,7 @@ import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.common.data.network.config.AppConfigRemote
 import jp.co.soramitsu.common.data.network.runtime.binding.EqAccountInfo
 import jp.co.soramitsu.common.data.network.runtime.binding.EqOraclePricePoint
+import jp.co.soramitsu.coredb.model.AssetLocal
 import jp.co.soramitsu.coredb.model.AssetUpdateItem
 import jp.co.soramitsu.coredb.model.PhishingLocal
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
@@ -109,4 +110,6 @@ interface WalletRepository {
         chain: Chain,
         accountId: ByteArray
     ): BigInteger
+
+    fun observeChainsPerAsset(assetId: String): Flow<Map<Chain, Asset?>>
 }

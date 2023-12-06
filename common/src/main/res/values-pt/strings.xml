@@ -153,6 +153,9 @@
   <string name="common_and">E</string>
   <string name="common_applied">Aplicado</string>
   <string name="common_apply">Aplicar</string>
+  <string name="common_assets_filters_fiat">Saldo Fiat</string>
+  <string name="common_assets_filters_name">Nome</string>
+  <string name="common_assets_filters_popularity">Popularidade</string>
   <string name="common_available_format">Disponível: %s</string>
   <string name="common_backup_your_wallet">Faça backup da sua carteira</string>
   <string name="common_balance">Saldo</string>

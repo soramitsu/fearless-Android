@@ -6,6 +6,8 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
+import jp.co.soramitsu.coredb.model.AssetLocal
+import jp.co.soramitsu.coredb.model.AssetWithToken
 import jp.co.soramitsu.coredb.model.chain.ChainAssetLocal
 import jp.co.soramitsu.coredb.model.chain.ChainExplorerLocal
 import jp.co.soramitsu.coredb.model.chain.ChainLocal
@@ -14,6 +16,7 @@ import jp.co.soramitsu.coredb.model.chain.ChainRuntimeInfoLocal
 import jp.co.soramitsu.coredb.model.chain.ChainTypesLocal
 import jp.co.soramitsu.coredb.model.chain.JoinedChainInfo
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 
 @Dao
 abstract class ChainDao {
@@ -142,4 +145,16 @@ abstract class ChainDao {
 
     @Query("SELECT * FROM chain_assets")
     abstract suspend fun getAssetsConfigs(): List<ChainAssetLocal>
+
+    @Transaction
+    @Query(
+        """
+            SELECT * FROM chains
+            JOIN assets ON chains.id = assets.chainId
+            LEFT JOIN token_price ON token_price.priceId = assets.tokenPriceId
+            WHERE assets.tokenPriceId = (SELECT tokenPriceId FROM assets WHERE assets.id = :assetId)
+        """
+    )
+    abstract fun observeChainsWithBalance(assetId: String): Flow<Map<JoinedChainInfo, AssetWithToken>>
+
 }

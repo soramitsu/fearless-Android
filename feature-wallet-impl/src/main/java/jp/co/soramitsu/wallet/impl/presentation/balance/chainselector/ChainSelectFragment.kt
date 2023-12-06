@@ -37,14 +37,16 @@ class ChainSelectFragment : BaseComposeBottomSheetDialogFragment<ChainSelectView
             chainId: ChainId? = null,
             chooserMode: Boolean = false,
             isSelectAsset: Boolean = true,
-            isFilteringEnabled: Boolean = false
+            isFilteringEnabled: Boolean = false,
+            showAllChains: Boolean = false
         ) = bundleOf(
             KEY_SELECTED_ASSET_ID to assetId,
             KEY_SELECTED_CHAIN_ID to chainId,
             KEY_CHOOSER_MODE to chooserMode,
             KEY_SHOW_ALL_CHAINS to false,
             KEY_SELECT_ASSET to isSelectAsset,
-            KEY_FILTERING_ENABLED to isFilteringEnabled
+            KEY_FILTERING_ENABLED to isFilteringEnabled,
+            KEY_SHOW_ALL_CHAINS to showAllChains
         )
 
         fun getBundle(

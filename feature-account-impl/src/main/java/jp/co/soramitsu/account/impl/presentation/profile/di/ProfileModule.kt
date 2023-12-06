@@ -7,7 +7,9 @@ import dagger.hilt.components.SingletonComponent
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.coredb.dao.AssetDao
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.account.api.domain.interfaces.AssetBalanceUseCase
 import jp.co.soramitsu.account.api.domain.interfaces.TotalBalanceUseCase
+import jp.co.soramitsu.account.impl.domain.AssetBalanceUseCaseImpl
 import jp.co.soramitsu.account.impl.domain.TotalBalanceUseCaseImpl
 import jp.co.soramitsu.coredb.dao.ChainDao
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
@@ -16,6 +18,11 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 @InstallIn(SingletonComponent::class)
 @Module(includes = [ViewModelModule::class])
 class ProfileModule {
+
+    @Provides
+    fun provideAssetBalanceUseCase(assetDao: AssetDao, chainsRepository: ChainsRepository): AssetBalanceUseCase {
+        return AssetBalanceUseCaseImpl(assetDao, chainsRepository)
+    }
 
     @Provides
     fun provideTotalBalanceUseCase(accountRepository: AccountRepository, assetDao: AssetDao, chainsRepository: ChainsRepository): TotalBalanceUseCase {

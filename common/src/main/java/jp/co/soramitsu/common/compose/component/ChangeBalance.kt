@@ -16,7 +16,8 @@ import jp.co.soramitsu.common.compose.theme.customTypography
 
 data class ChangeBalanceViewState(
     val percentChange: String,
-    val fiatChange: String
+    val fiatChange: String,
+    val percentFiatChange: String? = null,
 )
 
 @Composable
@@ -37,6 +38,17 @@ fun ChangeBalance(
             ),
             modifier = Modifier.testTag("balance_change_percent")
         )
+        state.percentFiatChange?.let {
+            Text(
+                text = it,
+                style = MaterialTheme.customTypography.body1.copy(
+                    color = balanceChangeStatusColor
+                ),
+                modifier = Modifier
+                    .padding(start = 4.dp)
+                    .testTag("balance_change_percent")
+            )
+        }
         Text(
             text = "(${state.fiatChange})",
             style = MaterialTheme.customTypography.body1.copy(color = black2),
@@ -57,7 +69,8 @@ private fun ChangeBalancePreview() {
         ChangeBalance(
             state = ChangeBalanceViewState(
                 percentChange = percentChange,
-                fiatChange = assetBalanceFiat
+                fiatChange = assetBalanceFiat,
+                percentFiatChange = "($1.12)"
             )
         )
     }

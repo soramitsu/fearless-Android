@@ -275,7 +275,7 @@ fun MainToolbarShimmer(
 }
 
 @Composable
-private fun ToolbarHomeIcon(state: ToolbarHomeIconState, onClick: () -> Unit) {
+fun ToolbarHomeIcon(state: ToolbarHomeIconState, onClick: () -> Unit) {
     when {
         state.navigationIcon != null -> painterResource(id = state.navigationIcon)
         state.walletIcon != null -> rememberAsyncImagePainter(model = state.walletIcon)

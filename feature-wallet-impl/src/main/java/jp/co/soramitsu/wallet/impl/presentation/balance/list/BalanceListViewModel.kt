@@ -565,12 +565,7 @@ class BalanceListViewModel @Inject constructor(
                 return@launch
             }
 
-            val payload = AssetPayload(
-                chainId = state.chainId,
-                chainAssetId = state.chainAssetId
-            )
-
-            router.openAssetDetails(payload)
+            router.openAssetIntermediateDetails(state.chainAssetId)
         }
     }
 
