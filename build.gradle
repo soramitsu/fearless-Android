@@ -27,7 +27,7 @@ buildscript {
         xNetworkingVersion = '0.2.5-temp7'
 
         soraCardVersion = '0.1.9'
-        soraUiCoreVersion = '0.1.4'
+        soraUiCoreVersion = '0.2.17'
 
         daggerVersion = '2.47'
         javaxInjectVersion = '1'
