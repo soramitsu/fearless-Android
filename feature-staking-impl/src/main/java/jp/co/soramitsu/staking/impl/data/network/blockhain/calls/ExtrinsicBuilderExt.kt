@@ -1,5 +1,6 @@
 package jp.co.soramitsu.staking.impl.data.network.blockhain.calls
 
+import java.math.BigInteger
 import jp.co.soramitsu.core.models.MultiAddress
 import jp.co.soramitsu.core.models.bindMultiAddress
 import jp.co.soramitsu.shared_utils.extensions.fromHex
@@ -8,7 +9,6 @@ import jp.co.soramitsu.shared_utils.runtime.definitions.types.composite.DictEnum
 import jp.co.soramitsu.shared_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.staking.api.domain.model.RewardDestination
 import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindRewardDestination
-import java.math.BigInteger
 
 fun ExtrinsicBuilder.setController(controllerAddress: MultiAddress): ExtrinsicBuilder {
     return call(

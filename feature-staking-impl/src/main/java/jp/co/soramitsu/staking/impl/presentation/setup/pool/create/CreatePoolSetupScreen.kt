@@ -15,6 +15,7 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import java.math.BigDecimal
 import jp.co.soramitsu.common.compose.component.AccentButton
 import jp.co.soramitsu.common.compose.component.AmountInput
 import jp.co.soramitsu.common.compose.component.AmountInputViewState
@@ -33,7 +34,6 @@ import jp.co.soramitsu.common.compose.component.Toolbar
 import jp.co.soramitsu.common.compose.component.ToolbarViewState
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.feature_staking_impl.R
-import java.math.BigDecimal
 
 data class CreatePoolSetupViewState(
     val poolNameInputViewState: TextInputViewState,
@@ -142,8 +142,7 @@ private fun CreatePoolSetupScreenPreview() {
             tokenImage = "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Karura.svg",
             totalBalance = "Balance: 20.0",
             fiatAmount = "$120.0",
-            tokenAmount = BigDecimal.ONE,
-            initial = null
+            tokenAmount = BigDecimal.ONE
         ),
         "7",
         "⚡️Everlight☀️",

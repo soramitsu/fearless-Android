@@ -60,8 +60,7 @@ class StakingPoolViewModel(
         tokenImage = "",
         totalBalance = resourceManager.getString(R.string.common_balance_format, "..."),
         fiatAmount = "",
-        tokenAmount = initialValue,
-        initial = initialValue
+        tokenAmount = initialValue
     )
     private val currentAssetFlow = stakingInteractor.currentAssetFlow().filter { it.token.configuration.supportStakingPool }
 
@@ -90,8 +89,7 @@ class StakingPoolViewModel(
             tokenImage = asset.token.configuration.iconUrl,
             totalBalance = resourceManager.getString(R.string.common_balance_format, tokenBalance),
             fiatAmount = fiatAmount,
-            tokenAmount = amount.orZero(),
-            initial = initialValue
+            tokenAmount = amount.orZero()
         )
     }.stateIn(baseViewModel.stakingStateScope, SharingStarted.Eagerly, defaultAmountInputState)
 

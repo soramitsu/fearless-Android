@@ -48,6 +48,7 @@ import jp.co.soramitsu.coredb.dao.AssetDao
 import jp.co.soramitsu.coredb.dao.MetaAccountDao
 import jp.co.soramitsu.coredb.dao.TokenPriceDao
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.shared_utils.encrypt.json.JsonSeedDecoder
 import jp.co.soramitsu.shared_utils.encrypt.json.JsonSeedEncoder
 
@@ -116,18 +117,18 @@ class AccountFeatureModule {
         secretStoreV1: SecretStoreV1,
         accountDataMigration: AccountDataMigration,
         metaAccountDao: MetaAccountDao,
-        chainRegistry: ChainRegistry,
-        secretStoreV2: SecretStoreV2
+        secretStoreV2: SecretStoreV2,
+        chainsRepository: ChainsRepository
     ): AccountDataSource {
         return AccountDataSourceImpl(
             preferences,
             encryptedPreferences,
             jsonMapper,
             metaAccountDao,
-            chainRegistry,
             secretStoreV2,
             secretStoreV1,
-            accountDataMigration
+            accountDataMigration,
+            chainsRepository
         )
     }
 

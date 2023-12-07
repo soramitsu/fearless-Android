@@ -99,8 +99,7 @@ private fun SetupStakingScreenPreview() {
             tokenImage = "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Karura.svg",
             totalBalance = "Balance: 20.0",
             fiatAmount = "$120.0",
-            tokenAmount = BigDecimal.ONE,
-            initial = null
+            tokenAmount = BigDecimal.ONE
         ),
         FeeInfoViewState(
             feeAmount = "0.0051 KSM",

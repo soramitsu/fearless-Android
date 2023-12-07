@@ -685,6 +685,11 @@
         android:label="sendSetupFragment" />
 
     <dialog
+        android:id="@+id/cbdcSendSetupFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.send.setupcbdc.CBDCSendSetupFragment"
+        android:label="cbdcSendSetupFragment" />
+
+    <dialog
         android:id="@+id/crossChainFragment"
         android:name="jp.co.soramitsu.wallet.impl.presentation.cross_chain.setup.CrossChainSetupFragment"
         android:label="crossChainFragment" />
@@ -909,7 +914,7 @@
         app:popEnterAnim="?android:attr/fragmentOpenEnterAnimation"
         app:popExitAnim="?android:attr/fragmentOpenExitAnimation"
         app:popUpTo="@id/swapTokensFragment"
-        app:popUpToInclusive="true" />
+        app:popUpToInclusive="false" />
 
     <fragment
         android:id="@+id/confirmStakingFragment"

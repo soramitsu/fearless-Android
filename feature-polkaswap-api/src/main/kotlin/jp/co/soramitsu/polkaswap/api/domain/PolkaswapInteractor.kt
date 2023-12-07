@@ -20,6 +20,7 @@ interface PolkaswapInteractor {
     var hasReadDisclaimer: Boolean
 
     suspend fun getAsset(assetId: String): Asset?
+    fun assetFlow(chainAssetId: String): Flow<Asset>
     suspend fun getAvailableDexes(): List<BigInteger>
     fun observePoolReserves(fromTokenId: String, toTokenId: String, market: Market): Flow<String>
 

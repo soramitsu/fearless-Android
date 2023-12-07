@@ -4,9 +4,12 @@ import java.math.BigDecimal
 import java.math.BigInteger
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.common.model.AssetKey
+import jp.co.soramitsu.common.utils.applyFiatRate
+import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.shared_utils.runtime.AccountId
+import kotlin.math.max
 import jp.co.soramitsu.core.models.Asset as CoreAsset
 
 data class Asset(
@@ -84,7 +87,7 @@ data class Asset(
     val frozen = locked + reserved
 
     val total = calculateTotalBalance(freeInPlanks, reservedInPlanks)?.let { token.amountFromPlanks(it) }
-    val availableForStaking = free - frozen
+    val availableForStaking: BigDecimal = maxOf(free - frozen, BigDecimal.ZERO)
 
     val transferable = free - locked
     val transferableInPlanks = freeInPlanks?.let { it - miscFrozenInPlanks.orZero().max(feeFrozenInPlanks.orZero()) }.orZero()
@@ -96,6 +99,9 @@ data class Asset(
     val fiatAmount = total?.let { token.fiatRate?.multiply(total) }
 
     val uniqueKey = AssetKey(metaId, token.configuration.chainId, accountId, token.configuration.id)
+
+    fun getAsFiatWithCurrency(value: BigDecimal?) =
+        token.fiatRate?.let { value?.applyFiatRate(it).orZero().formatFiat(token.fiatSymbol) }
 }
 
 fun calculateTotalBalance(

@@ -1,11 +1,12 @@
 apply from: './scripts/secrets.gradle'
 apply plugin: "detekt-setup"
+apply plugin: "org.sonarqube"
 
 buildscript {
     ext {
         // App version
-        versionName = '3.0.4'
-        versionCode = 131
+        versionName = '3.1.1'
+        versionCode = 135
 
         // SDK and tools
         compileSdkVersion = 34
@@ -23,9 +24,10 @@ buildscript {
         biometricVersion = '1.1.0'
 
         progressButtonsVersion = '2.1.0'
-        xNetworkingVersion = '0.2.3'
-        soraCardVersion = '0.1.64'
-        soraUiCoreVersion = '0.1.4'
+        xNetworkingVersion = '0.2.5-temp7'
+
+        soraCardVersion = '0.1.9'
+        soraUiCoreVersion = '0.2.17'
 
         daggerVersion = '2.47'
         javaxInjectVersion = '1'
@@ -82,7 +84,7 @@ buildscript {
         minifyRelease = true
         beaconVersion = "3.2.4"
 
-        sharedFeaturesVersion = "1.1.1.13-FLW"
+        sharedFeaturesVersion = "1.1.1.16-FLW"
 
         coilDep = "io.coil-kt:coil:$coilVersion"
         coilSvg = "io.coil-kt:coil-svg:$coilVersion"
@@ -229,6 +231,8 @@ buildscript {
         classpath "com.google.firebase:firebase-appdistribution-gradle:$firebaseAppDistrVersion"
         classpath "com.github.triplet.gradle:play-publisher:$playPublisherVersion"
         classpath "com.google.dagger:hilt-android-gradle-plugin:$daggerVersion"
+        classpath 'org.jacoco:org.jacoco.core:0.8.8'
+        classpath "org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:3.3"
     }
 
     configurations.all {
@@ -261,5 +265,5 @@ tasks.register('clean', Delete) {
 }
 
 task runTest(type: GradleBuild) {
-    tasks = ['clean', 'detektAll', 'runModuleTests']
+    tasks = ['clean', 'detektAll', 'runModuleTests', 'jacocoTestReport']
 }

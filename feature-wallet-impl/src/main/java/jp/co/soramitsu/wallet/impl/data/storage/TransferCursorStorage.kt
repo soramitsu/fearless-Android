@@ -2,6 +2,7 @@ package jp.co.soramitsu.wallet.impl.data.storage
 
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.shared_utils.extensions.toHexString
 import jp.co.soramitsu.shared_utils.runtime.AccountId
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
@@ -42,5 +43,5 @@ class TransferCursorStorage(
             }
         }.first()
 
-    private fun cursorKey(chainId: String, chainAssetId: String, accountId: AccountId) = "$TRANSACTIONS_CURSOR_KEY:$accountId:$chainId:$chainAssetId"
+    private fun cursorKey(chainId: String, chainAssetId: String, accountId: AccountId) = "$TRANSACTIONS_CURSOR_KEY:${accountId.toHexString()}:$chainId:$chainAssetId"
 }

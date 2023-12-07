@@ -247,6 +247,7 @@
   <string name="common_proceed">Proceed</string>
   <string name="common_read">Read</string>
   <string name="common_receive_alert_description">This is Polkadot wallet. Please only send assets\non the Polkadot blockchain.</string>
+  <string name="common_request">Request</string>
   <string name="common_reset">Reset</string>
   <string name="common_retry">Retry</string>
   <string name="common_route">Route</string>
@@ -472,6 +473,7 @@
   <string name="nft_stub_text">NFTs are going to be here soon</string>
   <string name="nft_stub_title">Sumimasen!</string>
   <string name="nft_tokenid_title">Token ID</string>
+  <string name="nfts_collection_count" formatted="false">Quantity: %d/%d</string>
   <string name="nfts_stub">NFTs</string>
   <string name="no_access_to_google">No access to Google</string>
   <string name="node">Node</string>
@@ -687,6 +689,7 @@
   <string name="settings_hide_zero_balances">Hide zero balances</string>
   <string name="share_referral_code">Share referral code</string>
   <string name="social_media">Social Media</string>
+  <string name="sora_bridge_low_amount_alert">Currently, there\'s a min. amount 0.05 KSM for bridging to ensure the stability and security of the SORA Network. We appreciate your understanding.</string>
   <string name="sora_card_annual_service_fee">0 € annual service fee</string>
   <string name="sora_card_blacklisted_countires_title">Excluded of application</string>
   <string name="sora_card_blacklisted_countires_warning"><![CDATA[Residents from <b>certain countries<br>can not apply</b> for SORA Card at this moment<br><a href=\"https://soracard.com/blacklist/\">See the list</a>]]></string>
@@ -1003,6 +1006,7 @@
   <string name="username_setup_choose_title_2_0">Wallet nickname</string>
   <string name="username_setup_hint">This name will be displayed only to you and stored locally on your mobile device.</string>
   <string name="username_setup_title_2_0">Create a new wallet</string>
+  <string name="validator_info_comission_title">Comission</string>
   <string name="validator_not_elected_description">This account has not been elected by the network to participate in the current era</string>
   <string name="validators_list_empty_message">No validators found. Please try to change filters</string>
   <string name="view_in">View in %s</string>

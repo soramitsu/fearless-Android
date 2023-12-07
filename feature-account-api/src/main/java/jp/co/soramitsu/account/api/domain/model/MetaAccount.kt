@@ -22,6 +22,7 @@ interface LightMetaAccount {
     val ethereumPublicKey: ByteArray?
     val isSelected: Boolean
     val name: String
+    val isBackedUp: Boolean
 }
 
 fun LightMetaAccount(
@@ -32,7 +33,8 @@ fun LightMetaAccount(
     ethereumAddress: ByteArray?,
     ethereumPublicKey: ByteArray?,
     isSelected: Boolean,
-    name: String
+    name: String,
+    isBackedUp: Boolean
 ) = object : LightMetaAccount {
     override val id: Long = id
     override val substratePublicKey: ByteArray = substratePublicKey
@@ -42,6 +44,7 @@ fun LightMetaAccount(
     override val ethereumPublicKey: ByteArray? = ethereumPublicKey
     override val isSelected: Boolean = isSelected
     override val name: String = name
+    override val isBackedUp: Boolean = isBackedUp
 }
 
 data class MetaAccount(
@@ -53,7 +56,7 @@ data class MetaAccount(
     override val ethereumAddress: ByteArray?,
     override val ethereumPublicKey: ByteArray?,
     override val isSelected: Boolean,
-    val isBackedUp: Boolean,
+    override val isBackedUp: Boolean,
     val googleBackupAddress: String?,
     override val name: String
 ) : LightMetaAccount {

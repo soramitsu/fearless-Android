@@ -57,4 +57,7 @@ interface AccountDataSource : SecretStoreV1 {
     suspend fun deleteMetaAccount(metaId: Long)
 
     fun observeAllMetaAccounts(): Flow<List<MetaAccount>>
+    fun selectedLightMetaAccount(): Flow<LightMetaAccount>
+    suspend fun getSelectedLightMetaAccount(): LightMetaAccount
+    suspend fun getLightMetaAccount(metaId: Long): LightMetaAccount
 }

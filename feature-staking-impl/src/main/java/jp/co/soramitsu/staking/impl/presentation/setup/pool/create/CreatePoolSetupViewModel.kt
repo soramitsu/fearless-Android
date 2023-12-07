@@ -80,8 +80,7 @@ class CreatePoolSetupViewModel @Inject constructor(
         tokenImage = "",
         totalBalance = resourceManager.getString(R.string.common_balance_format, "..."),
         fiatAmount = "",
-        tokenAmount = initialAmount,
-        initial = initialAmount.takeIf { it.isNotZero() }
+        tokenAmount = initialAmount
     )
 
     private val defaultScreenState = CreatePoolSetupViewState(
@@ -108,8 +107,7 @@ class CreatePoolSetupViewModel @Inject constructor(
             totalBalance = resourceManager.getString(R.string.common_balance_format, tokenBalance),
             fiatAmount = fiatAmount,
             tokenAmount = amount,
-            precision = asset.token.configuration.precision,
-            initial = initialAmount.takeIf { it.isNotZero() }
+            precision = asset.token.configuration.precision
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, defaultAmountInputState)
 
