@@ -15,7 +15,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -26,12 +25,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import jp.co.soramitsu.common.compose.component.AccentButton
 import jp.co.soramitsu.common.compose.component.BackgroundCornered
 import jp.co.soramitsu.common.compose.component.BottomSheetScreen
 import jp.co.soramitsu.common.compose.component.ColoredTextButton
 import jp.co.soramitsu.common.compose.component.GrayButton
-import jp.co.soramitsu.common.compose.component.H1
 import jp.co.soramitsu.common.compose.component.H2
 import jp.co.soramitsu.common.compose.component.H4
 import jp.co.soramitsu.common.compose.component.H6
@@ -90,16 +89,20 @@ fun StartStakingPoolScreen(
             MarginVertical(margin = 16.dp)
             WhatIsStakingCard(instructionsClick)
             MarginVertical(margin = 16.dp)
+
+            val formattedTitle = stringResource(id = R.string.staking_pool_start_earn_reward_title, state.assetName.uppercase())
+            val startValueIndex = formattedTitle.indexOf(state.assetName.uppercase())
+            val endValueIndex = startValueIndex + state.assetName.uppercase().length
+
             H2(
-                text = stringResource(id = R.string.staking_pool_start_earn_reward_title),
+                text = buildAnnotatedString {
+                    withStyle(style = SpanStyle(color = black2)) {
+                        append(formattedTitle)
+                    }
+                    addStyle(SpanStyle(color = colorAccentDark, fontSize = 30.sp), startValueIndex, endValueIndex)
+                },
                 textAlign = TextAlign.Center,
                 color = black2
-            )
-            MarginVertical(margin = 8.dp)
-            H1(
-                text = state.assetName.uppercase(),
-                modifier = Modifier.align(CenterHorizontally),
-                color = colorAccentDark
             )
             MarginVertical(margin = 24.dp)
             SingleValueInfoCard(R.drawable.ic_chart, R.string.staking_pool_rewards_delay_text, state.rewardsPayoutDelay)
