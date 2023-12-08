@@ -31,7 +31,7 @@ android {
     kotlinOptions {
         freeCompilerArgs = ["-Xallow-result-return-type"]
 
-        jvmTarget = '1.8'
+        jvmTarget = '11'
 
     }
     namespace 'jp.co.soramitsu.runtime'
