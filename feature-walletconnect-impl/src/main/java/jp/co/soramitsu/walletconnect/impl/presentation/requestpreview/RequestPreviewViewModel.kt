@@ -4,12 +4,13 @@ import androidx.lifecycle.SavedStateHandle
 import co.jp.soramitsu.feature_walletconnect_impl.R
 import co.jp.soramitsu.walletconnect.domain.WalletConnectInteractor
 import co.jp.soramitsu.walletconnect.domain.WalletConnectRouter
+import com.walletconnect.android.cacao.signature.SignatureType
+import com.walletconnect.android.utils.cacao.sign
 import com.walletconnect.web3.wallet.client.Wallet
 import com.walletconnect.web3.wallet.client.Web3Wallet
+import com.walletconnect.web3.wallet.utils.CacaoSigner
 import dagger.hilt.android.lifecycle.HiltViewModel
-import io.ipfs.multibase.CharEncoding
 import java.math.BigInteger
-import java.nio.charset.Charset
 import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.interfaces.TotalBalanceUseCase
@@ -20,16 +21,13 @@ import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.GradientIconState
 import jp.co.soramitsu.common.compose.component.TitleValueViewState
 import jp.co.soramitsu.common.compose.component.WalletItemViewState
-import jp.co.soramitsu.common.data.Keypair
 import jp.co.soramitsu.common.data.secrets.v2.KeyPairSchema
 import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.common.utils.inBackground
-import jp.co.soramitsu.core.crypto.mapCryptoTypeToEncryption
 import jp.co.soramitsu.core.extrinsic.ExtrinsicService
 import jp.co.soramitsu.runtime.ext.accountIdOf
-import jp.co.soramitsu.shared_utils.encrypt.SignatureWrapper
 import jp.co.soramitsu.shared_utils.extensions.toHexString
 import jp.co.soramitsu.walletconnect.impl.presentation.WCDelegate
 import jp.co.soramitsu.walletconnect.impl.presentation.address
@@ -45,22 +43,10 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonObject
-import org.bouncycastle.util.encoders.Hex
 import org.json.JSONObject
-import org.web3j.abi.FunctionEncoder
-import org.web3j.abi.TypeReference
-import org.web3j.abi.datatypes.Address
-import org.web3j.abi.datatypes.Bool
-import org.web3j.abi.datatypes.Function
-import org.web3j.abi.datatypes.generated.Uint256
 import org.web3j.crypto.Credentials
-import org.web3j.crypto.ECKeyPair
 import org.web3j.crypto.RawTransaction
-import org.web3j.crypto.Sign
 import org.web3j.crypto.TransactionEncoder
-import org.web3j.protocol.core.methods.request.Transaction
 import org.web3j.utils.Numeric
 
 @HiltViewModel
@@ -312,36 +298,15 @@ class RequestPreviewViewModel @Inject constructor(
     private fun s(ethSignTransactionMessage: String): String = JSONObject(ethSignTransactionMessage).getString("nonce")
 
     private suspend fun getEthPersonalSignResult(metaAccount: MetaAccount): String {
-        val encryption = mapCryptoTypeToEncryption(metaAccount.substrateCryptoType)
-
         val secrets = accountRepository.getMetaAccountSecrets(metaAccount.id) ?: error("There are no secrets for metaId: ${metaAccount.id}")
-        val keypairSchema = secrets[MetaAccountSecrets.SubstrateKeypair]
-        val publicKey = keypairSchema[KeyPairSchema.PublicKey]
-        val privateKey = keypairSchema[KeyPairSchema.PrivateKey]
-        val nonce = keypairSchema[KeyPairSchema.Nonce]
+        val keypairSchema = secrets[MetaAccountSecrets.EthereumKeypair]
+        val privateKey = keypairSchema?.get(KeyPairSchema.PrivateKey) ?: throw IllegalArgumentException("no eth keypair")
 
-        val keypair = Keypair(publicKey, privateKey, nonce)
-
-        val result = extrinsicService.createSignature(
-            encryption = encryption,
-            keypair = keypair,
-            message = recentSession.request.message.toByteArray().toHexString(true)
-        )
-
-        val ethPersonalSignMessage = "\u0019Ethereum Signed Message:\n" + recentSession.request.message.length + recentSession.request.message
-        println("!!! RequestPreviewViewModel ethPersonalSignMessage = $ethPersonalSignMessage")
-        println("!!! RequestPreviewViewModel ethPersonalSignMessageBA = ${ethPersonalSignMessage.toByteArray().joinToString { it.toString() }}")
-        val getEthereumMessageHash = Sign.getEthereumMessageHash(recentSession.request.message.toByteArray())
-        println("!!! RequestPreviewViewModel getEthereumMessageHashBA = ${getEthereumMessageHash.joinToString { it.toString() }}")
-        println("!!! RequestPreviewViewModel getEthereumMessageHash = ${getEthereumMessageHash.toString(Charset.forName(CharEncoding.UTF_8))}")
-        println("!!! RequestPreviewViewModel getEthereumMessageHash hex = ${getEthereumMessageHash.toHexString(true)}")
-
-        val privateKeyInt = BigInteger(Hex.toHexString(keypair.privateKey), 16)
-        val publicKeyInt = Sign.publicKeyFromPrivate(privateKeyInt)
-
-        val signatureData = Sign.signPrefixedMessage(recentSession.request.message.toByteArray(), ECKeyPair(privateKeyInt, publicKeyInt))
-        val signaturePrefixed = SignatureWrapper.Ecdsa(v = signatureData.v, r = signatureData.r, s = signatureData.s)
-        return signaturePrefixed.signature.toHexString(true)
+        return CacaoSigner.sign(
+            recentSession.request.message,
+            privateKey,
+            SignatureType.EIP191
+        ).s
     }
 
     override fun onTableItemClick(id: Int) {
