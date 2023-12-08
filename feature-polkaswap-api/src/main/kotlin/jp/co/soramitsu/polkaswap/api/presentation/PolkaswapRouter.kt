@@ -27,6 +27,7 @@ interface PolkaswapRouter {
     fun openTransactionSettingsDialog(initialSettings: TransactionSettingsModel)
 
     fun openSwapPreviewDialog(swapDetailsViewState: SwapDetailsViewState, parcelModel: SwapDetailsParcelModel)
+    fun openSwapPreviewForResult(swapDetailsViewState: SwapDetailsViewState, parcelModel: SwapDetailsParcelModel): Flow<Int>
 
     fun openSelectMarketDialog()
 

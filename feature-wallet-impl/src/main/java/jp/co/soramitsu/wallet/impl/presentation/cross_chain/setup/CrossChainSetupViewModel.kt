@@ -149,8 +149,7 @@ class CrossChainSetupViewModel @Inject constructor(
         totalBalance = resourceManager.getString(R.string.common_transferable_format, "..."),
         fiatAmount = "",
         tokenAmount = initialAmount,
-        allowAssetChoose = false,
-        initial = initialAmount.takeIf { it.isNotZero() }
+        allowAssetChoose = false
     )
 
     private val defaultButtonState = ButtonViewState(
@@ -218,8 +217,7 @@ class CrossChainSetupViewModel @Inject constructor(
                 isActive = true,
                 isFocused = isAmountInputFocused,
                 allowAssetChoose = true,
-                precision = asset.token.configuration.precision,
-                initial = initialAmount
+                precision = asset.token.configuration.precision
             )
         }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, defaultAmountInputState)

@@ -73,8 +73,7 @@ private fun EnterAmountScreenPreview() {
             "1003 KSM",
             "$170000",
             BigDecimal("0.980"),
-            "Amount",
-            initial = null
+            "Amount"
         ),
         FeeInfoViewState(
             "Network Fee",

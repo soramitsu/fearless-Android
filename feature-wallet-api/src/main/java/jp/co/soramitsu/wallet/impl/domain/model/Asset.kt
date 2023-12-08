@@ -9,6 +9,7 @@ import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.shared_utils.runtime.AccountId
+import kotlin.math.max
 import jp.co.soramitsu.core.models.Asset as CoreAsset
 
 data class Asset(
@@ -86,7 +87,7 @@ data class Asset(
     val frozen = locked + reserved
 
     val total = calculateTotalBalance(freeInPlanks, reservedInPlanks)?.let { token.amountFromPlanks(it) }
-    val availableForStaking = free - frozen
+    val availableForStaking: BigDecimal = maxOf(free - frozen, BigDecimal.ZERO)
 
     val transferable = free - locked
     val transferableInPlanks = freeInPlanks?.let { it - miscFrozenInPlanks.orZero().max(feeFrozenInPlanks.orZero()) }.orZero()

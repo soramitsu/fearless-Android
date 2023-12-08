@@ -199,8 +199,7 @@ private fun ReceiveScreenPreview() {
                 amountInputViewState = AmountInputViewState(
                     totalBalance = "totalBalance",
                     fiatAmount = null,
-                    tokenAmount = BigDecimal.ONE,
-                    initial = BigDecimal.ONE
+                    tokenAmount = BigDecimal.ONE
                 ),
                 requestAllowed = true
             )
