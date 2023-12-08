@@ -175,6 +175,26 @@ fun H2(
 }
 
 @Composable
+fun H2(
+    modifier: Modifier = Modifier,
+    text: AnnotatedString,
+    textAlign: TextAlign? = null,
+    color: Color = Color.Unspecified,
+    overflow: TextOverflow = TextOverflow.Clip,
+    maxLines: Int = Int.MAX_VALUE
+) {
+    Text(
+        textAlign = textAlign,
+        text = text,
+        style = MaterialTheme.customTypography.header2,
+        modifier = modifier,
+        color = color,
+        overflow = overflow,
+        maxLines = maxLines
+    )
+}
+
+@Composable
 fun H3(
     modifier: Modifier = Modifier,
     text: AnnotatedString,
