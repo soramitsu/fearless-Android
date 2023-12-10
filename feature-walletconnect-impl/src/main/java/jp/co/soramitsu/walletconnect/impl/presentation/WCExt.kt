@@ -36,8 +36,8 @@ val Wallet.Model.SessionRequest.JSONRPCRequest.message: String
         JSONArray(params).get(0).toString().fromHex().toString(Charset.forName(CharEncoding.UTF_8))
     }
     WalletConnectMethod.EthereumSignTransaction.method -> JSONArray(params).get(0).toString()
-    WalletConnectMethod.EthereumSignTypeData.method -> JSONArray(params).get(1).toString()
-    WalletConnectMethod.EthereumSignTypeDataV4.method -> JSONArray(params).get(1).toString()
+    WalletConnectMethod.EthereumSignTypedData.method -> JSONArray(params).get(1).toString()
+    WalletConnectMethod.EthereumSignTypedDataV4.method -> JSONArray(params).get(1).toString()
 
     WalletConnectMethod.EthereumSendTransaction.method -> JSONArray(params).get(1).toString() //insufficient funds check
 
@@ -52,8 +52,8 @@ val Wallet.Model.SessionRequest.JSONRPCRequest.address: String?
         WalletConnectMethod.PolkadotSignTransaction.method -> JSONObject(params).get("address")
         WalletConnectMethod.EthereumPersonalSign.method -> JSONArray(params).get(1)
         WalletConnectMethod.EthereumSignTransaction.method -> (JSONArray(params).get(0) as? JSONObject)?.get("from")
-        WalletConnectMethod.EthereumSignTypeData.method -> JSONArray(params).get(0)
-        WalletConnectMethod.EthereumSignTypeDataV4.method -> JSONArray(params).get(0)
+        WalletConnectMethod.EthereumSignTypedData.method -> JSONArray(params).get(0)
+        WalletConnectMethod.EthereumSignTypedDataV4.method -> JSONArray(params).get(0)
         "eth_sign" -> JSONArray(params).get(0) // not supported ?
         else -> null
     } as String?
