@@ -28,6 +28,7 @@ import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.core.extrinsic.ExtrinsicService
 import jp.co.soramitsu.runtime.ext.accountIdOf
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.shared_utils.extensions.toHexString
 import jp.co.soramitsu.walletconnect.impl.presentation.WCDelegate
 import jp.co.soramitsu.walletconnect.impl.presentation.address
@@ -36,11 +37,14 @@ import jp.co.soramitsu.walletconnect.impl.presentation.dappUrl
 import jp.co.soramitsu.walletconnect.impl.presentation.message
 import jp.co.soramitsu.walletconnect.impl.presentation.state.WalletConnectMethod
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.json.JSONObject
@@ -69,34 +73,29 @@ class RequestPreviewViewModel @Inject constructor(
 
     private val recentSession = sessions.sortedByDescending { it.request.id }[0]
 
-    val requestChainFlow = flowOf {
-        walletConnectInteractor.getChains().firstOrNull { chain ->
-            chain.caip2id == recentSession.chainId
+    val requestChainFlow = MutableSharedFlow<Chain?>()
+        .onStart {
+            val value: Chain? = walletConnectInteractor.getChains().firstOrNull { chain ->
+                chain.caip2id == recentSession.chainId
+            }
+            emit(value)
         }
-    }
+        .stateIn(this, SharingStarted.Eagerly, null)
 
-    val allMetaAccountsFlow = flowOf {
-        accountRepository.allMetaAccounts()
-    }
-
-    private val requestWalletItemFlow: SharedFlow<WalletItemViewState?> = combine(
-        allMetaAccountsFlow,
-        requestChainFlow
-    ) { allMetaAccounts, requestChain ->
+    private val requestWalletItemFlow: SharedFlow<WalletItemViewState?> = requestChainFlow.filterNotNull().map { requestChain ->
         val requestAddress = recentSession.request.address
 
-        val requestedWallet = requestChain?.let {
-            allMetaAccounts.firstOrNull { wallet ->
-                wallet.address(requestChain) == requestAddress
-            }
+        val requestedWallet = accountRepository.allMetaAccounts().firstOrNull { wallet ->
+            wallet.address(requestChain) == requestAddress
         }
 
         if (requestedWallet == null) {
             launch(Dispatchers.Main) {
+                println("!!! RPVM Wallet with requested address not found")
                 walletConnectRouter.back()
                 showError("Wallet with requested address not found")
             }
-            return@combine null
+            return@map null
         }
 
         val requestedWalletIcon = addressIconGenerator.createAddressIcon(
@@ -114,14 +113,9 @@ class RequestPreviewViewModel @Inject constructor(
         .inBackground()
         .share()
 
-    val state = combine(requestWalletItemFlow, requestChainFlow) { requestWallet, requestChain ->
+    val state = combine(requestWalletItemFlow, requestChainFlow.filterNotNull()) { requestWallet, requestChain ->
         println("!!! SessionRequestViewModel sessions = $sessions")
-        val requestChainIcon = requestChain?.icon
-        val icon = if (requestChainIcon == null) {
-            GradientIconState.Local(R.drawable.ic_fearless_logo)
-        } else {
-            GradientIconState.Remote(requestChainIcon, "EE0077")
-        }
+        val icon = GradientIconState.Remote(requestChain.icon, "EE0077")
 
         val tableItems = listOf(
             TitleValueViewState(
@@ -134,12 +128,12 @@ class RequestPreviewViewModel @Inject constructor(
             ),
             TitleValueViewState(
                 "Network",
-                requestChain?.name
+                requestChain.name
             ),
             TitleValueViewState(
                 "Transaction raw data",
                 value = "",
-                clickState =  TitleValueViewState.ClickState.Value(R.drawable.ic_right_arrow_24_align_right, TRANSACTION_RAW_DATA_CLICK_ID)
+                clickState = TitleValueViewState.ClickState.Value(R.drawable.ic_right_arrow_24_align_right, TRANSACTION_RAW_DATA_CLICK_ID)
             )
         )
 
@@ -178,47 +172,46 @@ class RequestPreviewViewModel @Inject constructor(
         println("!!! RequestPreviewViewModel requestId: ${recentSession.request.id} message to sign = $message")
 
         launch(Dispatchers.IO) {
-            requestChainFlow.firstOrNull()?.let { chain ->
+            val chain = requestChainFlow.value ?: return@launch
 
-                val address = recentSession.request.address ?: return@launch
-                val accountId = chain.accountIdOf(address)
-                val metaAccount = accountRepository.findMetaAccount(accountId) ?: return@launch
+            val address = recentSession.request.address ?: return@launch
+            val accountId = chain.accountIdOf(address)
+            val metaAccount = accountRepository.findMetaAccount(accountId) ?: return@launch
 
-                val signPrefixedMessageSignature = getSignResult(metaAccount)
+            val signPrefixedMessageSignature = getSignResult(metaAccount)
 
 
-                println("!!! RequestPreviewViewModel signPrefixedMessageSignature = $signPrefixedMessageSignature")
+            println("!!! RequestPreviewViewModel signPrefixedMessageSignature = $signPrefixedMessageSignature")
 
 //                Sign.signPrefixedMessage(recentSession.request.message.toByteArray(), ECKeyPair(privateKeyInt, publicKeyInt)).let { it.r + it.v + it.s }.toHexString(true)
 
-                val jsonRpcResponse = if (signPrefixedMessageSignature == null) {
-                    Wallet.Model.JsonRpcResponse.JsonRpcError(
-                        id = recentSession.request.id,
-                        code = 4001,
-                        message = "Error perform sign"
-                    )
-                } else {
-                    Wallet.Model.JsonRpcResponse.JsonRpcResult(
-                        id = recentSession.request.id,
+            val jsonRpcResponse = if (signPrefixedMessageSignature == null) {
+                Wallet.Model.JsonRpcResponse.JsonRpcError(
+                    id = recentSession.request.id,
+                    code = 4001,
+                    message = "Error perform sign"
+                )
+            } else {
+                Wallet.Model.JsonRpcResponse.JsonRpcResult(
+                    id = recentSession.request.id,
 
-                        result = signPrefixedMessageSignature
-                    )
-                }
-                Web3Wallet.respondSessionRequest(
-                    params = Wallet.Params.SessionRequestResponse(
-                        sessionTopic = topic,
-                        jsonRpcResponse = jsonRpcResponse
-                    ),
-                    onSuccess = {
-                        println("!!! Web3Wallet.respondSessionRequest onSuccess: $it")
-
-                    },
-                    onError = {
-                        println("!!! Web3Wallet.respondSessionRequest onError: ${it.throwable.message}")
-                        it.throwable.printStackTrace()
-                    }
+                    result = signPrefixedMessageSignature
                 )
             }
+            Web3Wallet.respondSessionRequest(
+                params = Wallet.Params.SessionRequestResponse(
+                    sessionTopic = topic,
+                    jsonRpcResponse = jsonRpcResponse
+                ),
+                onSuccess = {
+                    println("!!! Web3Wallet.respondSessionRequest onSuccess: $it")
+
+                },
+                onError = {
+                    println("!!! Web3Wallet.respondSessionRequest onError: ${it.throwable.message}")
+                    it.throwable.printStackTrace()
+                }
+            )
         }
     }
 
@@ -226,6 +219,7 @@ class RequestPreviewViewModel @Inject constructor(
         WalletConnectMethod.EthereumPersonalSign.method -> {
             getEthPersonalSignResult(metaAccount)
         }
+
         WalletConnectMethod.EthereumSignTransaction.method -> {
             getEthSignTransactionResult(metaAccount)
         }
@@ -243,6 +237,7 @@ class RequestPreviewViewModel @Inject constructor(
         val ethSignTransactionMessage = recentSession.request.message
 
         println("!!! RequestPreviewViewModel getEthSignTransactionResult = $ethSignTransactionMessage")
+
         val secrets = accountRepository.getMetaAccountSecrets(metaAccount.id) ?: error("There are no secrets for metaId: ${metaAccount.id}")
         val keypairSchema = secrets[MetaAccountSecrets.SubstrateKeypair]
         val privateKey = keypairSchema[KeyPairSchema.PrivateKey]
@@ -257,45 +252,17 @@ class RequestPreviewViewModel @Inject constructor(
         val gasLimit: BigInteger? = JSONObject(ethSignTransactionMessage).getString("gasLimit").decodeNumericQuantity()
         val value: BigInteger? = JSONObject(ethSignTransactionMessage).getString("value").decodeNumericQuantity()
 
-        requestChainFlow.firstOrNull()?.let { chain ->
-
-            val raw = if (false) {
-                RawTransaction.createEtherTransaction(
-                    /* chainId = */ chain.id.toLong(),
-                    /* nonce = */ nonce,
-                    /* gasLimit = */ gasLimit,
-                    /* to = */ to,
-                    /* value = */ value,
-                    /* maxPriorityFeePerGas = */ gasPrice, //maxPriorityFeePerGas
-                    /* maxFeePerGas = */ gasPrice //maxFeePerGas
-                )
-            } else {
-                RawTransaction.createTransaction(
-                    /* nonce = */ nonce,
-                    /* gasPrice = */ gasPrice,
-                    /* gasLimit = */ gasLimit,
-                    /* to = */ to,
-                    /* value = */ value,
-                    /* data = */ data.orEmpty()
-                )
-//                RawTransaction.createTransaction(
-//                    /* chainId = */ chain.id.toLong(),
-//                    /* nonce = */ nonce,
-//                    /* gasLimit = */ gasLimit,
-//                    /* to = */ to,
-//                    /* value = */ value,
-//                    /* data = */ data,
-//                    /* maxPriorityFeePerGas = */ gasPrice,
-//                    /* maxFeePerGas = */ gasPrice
-//                )
-            }
-            val signed = TransactionEncoder.signMessage(raw, cred)
-            return signed.toHexString(true)
-        }
-        return "signed.toHexString(true)"
+        val raw = RawTransaction.createTransaction(
+            /* nonce = */ nonce,
+            /* gasPrice = */ gasPrice,
+            /* gasLimit = */ gasLimit,
+            /* to = */ to,
+            /* value = */ value,
+            /* data = */ data.orEmpty()
+        )
+        val signed = TransactionEncoder.signMessage(raw, cred)
+        return signed.toHexString(true)
     }
-
-    private fun s(ethSignTransactionMessage: String): String = JSONObject(ethSignTransactionMessage).getString("nonce")
 
     private suspend fun getEthPersonalSignResult(metaAccount: MetaAccount): String {
         val secrets = accountRepository.getMetaAccountSecrets(metaAccount.id) ?: error("There are no secrets for metaId: ${metaAccount.id}")
