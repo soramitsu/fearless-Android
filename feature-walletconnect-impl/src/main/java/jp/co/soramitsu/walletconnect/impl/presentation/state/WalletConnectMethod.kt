@@ -6,6 +6,6 @@ enum class WalletConnectMethod(val method: String) {
     EthereumSignTransaction("eth_signTransaction"),
     EthereumSendTransaction("eth_sendTransaction"),
     EthereumPersonalSign("personal_sign"),
-    EthereumSignTypeData("eth_signTypedData"),
-    EthereumSignTypeDataV4("eth_signTypedData_v4")
+    EthereumSignTypedData("eth_signTypedData"),
+    EthereumSignTypedDataV4("eth_signTypedData_v4")
 }
