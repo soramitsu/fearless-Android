@@ -172,6 +172,7 @@ class ConnectionInfoViewModel @Inject constructor(
             onError = {
                 println("!!! ConnectionInfoViewModel Web3Wallet.disconnectSession onError, ${it.throwable.message}")
                 it.throwable.printStackTrace()
+                // TODO show error screen with popUp option and instruction message on what needs to be done to fix error
             }
         )
     }
