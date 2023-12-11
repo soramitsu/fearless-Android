@@ -1,6 +1,7 @@
 package jp.co.soramitsu.walletconnect.impl.presentation.sessionrequest
 
 import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.viewModelScope
 import co.jp.soramitsu.feature_walletconnect_impl.R
 import co.jp.soramitsu.walletconnect.domain.WalletConnectInteractor
 import co.jp.soramitsu.walletconnect.domain.WalletConnectRouter
@@ -143,11 +144,18 @@ class SessionRequestViewModel @Inject constructor(
                 println("!!! Web3Wallet.respondSessionRequest onSuccess")
                 isClosing = false
 
+                viewModelScope.launch(Dispatchers.Main.immediate) {
+                    walletConnectRouter.back()
+                }
             },
             onError = {
                 isClosing = false
                 println("!!! Web3Wallet.respondSessionRequest onError: ${it.throwable.message}")
                 it.throwable.printStackTrace()
+
+                viewModelScope.launch(Dispatchers.Main.immediate) {
+                    // TODO show error screen with popUp option and instruction message on what needs to be done to fix error
+                }
             }
         )
 

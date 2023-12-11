@@ -275,6 +275,7 @@ class WalletConnectViewModel @Inject constructor(
                 onError = {
                     println("!!! WalletConnectViewModel onApproveClick onError = ${it.throwable.message}")
                     it.throwable.printStackTrace()
+                    // TODO show error screen with popUp option and instruction message on what needs to be done to fix error
                 }
             )
         }
@@ -302,6 +303,7 @@ class WalletConnectViewModel @Inject constructor(
                 onError = {
                     println("!!! WalletConnectViewModel Web3Wallet.rejectSession error = ${it.throwable.message}")
                     it.throwable.printStackTrace()
+                    // TODO show error screen with popUp option and instruction message on what needs to be done to fix error
                 })
         }
     }
