@@ -737,12 +737,18 @@ class Navigator :
     }
 
     override fun openWalletConnect(pairingTopic: String?) {
+        if (navController?.currentDestination?.id == R.id.walletConnectFragment)
+            return
+
         val bundle = WalletConnectFragment.getBundle(pairingTopic)
 
         navController?.navigate(R.id.walletConnectFragment, bundle)
     }
 
     override fun openWalletConnectSessionRequest(sessionRequestTopic: String) {
+        if (navController?.currentDestination?.id == R.id.sessionRequestFragment)
+            return
+
         val bundle = SessionRequestFragment.getBundle(sessionRequestTopic)
 
         navController?.navigate(R.id.sessionRequestFragment, bundle)
@@ -1007,16 +1013,17 @@ class Navigator :
     override fun openOperationSuccessAndPopUpToNearestRelatedScreen(operationHash: String?, chainId: ChainId?, customMessage: String?) {
         val bundle = SuccessFragment.getBundle(operationHash, chainId, customMessage)
 
-        val latestAvailableWalletConnectRelatedScreenPopUpOptions = navController?.currentBackStack?.replayCache?.firstOrNull()?.last {
-            it.destination.id == R.id.connectionsFragment ||
-            it.destination.id == R.id.mainFragment
-        }?.let {
-            NavOptions.Builder()
-                .setPopUpTo(it.destination.id, false)
-                .build()
-        }
+        val latestAvailableWalletConnectRelatedDestinationId =
+            navController?.currentBackStack?.replayCache?.firstOrNull()?.last {
+                it.destination.id == R.id.connectionsFragment ||
+                it.destination.id == R.id.mainFragment
+            }?.destination?.id ?: R.id.mainFragment
 
-        navController?.navigate(R.id.successSheetFragment, bundle, latestAvailableWalletConnectRelatedScreenPopUpOptions)
+        val navOptions = NavOptions.Builder()
+            .setPopUpTo(latestAvailableWalletConnectRelatedDestinationId, false)
+            .build()
+
+        navController?.navigate(R.id.successSheetFragment, bundle, navOptions)
     }
 
     override fun finishSendFlow() {
