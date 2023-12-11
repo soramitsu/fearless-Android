@@ -263,9 +263,12 @@ class WalletConnectViewModel @Inject constructor(
                 ),
                 onSuccess = {
                     println("!!! WalletConnectViewModel onApproveClick onSuccess = $it")
-                    launch(Dispatchers.Main) {
-                        walletConnectRouter.back()
-                        walletConnectRouter.openOperationSuccess(null, null, resourceManager.getString(R.string.connection_approve_success_message))
+                    viewModelScope.launch(Dispatchers.Main.immediate) {
+                        walletConnectRouter.openOperationSuccessAndPopUpToNearestRelatedScreen(
+                            null,
+                            null,
+                            resourceManager.getString(R.string.connection_approve_success_message)
+                        )
                     }
                     WCDelegate.refreshConnections()
                 },
@@ -288,9 +291,12 @@ class WalletConnectViewModel @Inject constructor(
                 onSuccess = {
                     println("!!! WalletConnectViewModel Web3Wallet.rejectSession success")
                     WCDelegate.refreshConnections()
-                    launch(Dispatchers.Main) {
-                        walletConnectRouter.back()
-                        walletConnectRouter.openOperationSuccess(null, null, "Rejected")
+                    viewModelScope.launch(Dispatchers.Main.immediate) {
+                        walletConnectRouter.openOperationSuccessAndPopUpToNearestRelatedScreen(
+                            null,
+                            null,
+                            "Rejected"
+                        )
                     }
                 },
                 onError = {
@@ -312,7 +318,7 @@ class WalletConnectViewModel @Inject constructor(
         }
     }
 
-    fun handleSelectedChains(state: ChainChooseResult) {
+    private fun handleSelectedChains(state: ChainChooseResult) {
         println("!!! WalletConnectViewModel handleSelectedChains got chains: ${state.selectedChainIds}")
         selectedOptionalNetworkIds.value = state.selectedChainIds
     }
