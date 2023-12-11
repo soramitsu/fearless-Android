@@ -2,6 +2,7 @@ package jp.co.soramitsu.walletconnect.impl.presentation.connectioninfo
 
 import androidx.core.net.toUri
 import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.viewModelScope
 import co.jp.soramitsu.feature_walletconnect_impl.R
 import co.jp.soramitsu.walletconnect.domain.WalletConnectInteractor
 import co.jp.soramitsu.walletconnect.domain.WalletConnectRouter
@@ -160,9 +161,12 @@ class ConnectionInfoViewModel @Inject constructor(
             onSuccess = {
                 println("!!! ConnectionInfoViewModel Web3Wallet.disconnectSession onSuccess, $it")
                 WCDelegate.refreshConnections()
-                launch(Dispatchers.Main) {
-                    walletConnectRouter.back()
-                    walletConnectRouter.openOperationSuccess(null, null, resourceManager.getString(R.string.connection_disconnect_success_message))
+                viewModelScope.launch(Dispatchers.Main.immediate) {
+                    walletConnectRouter.openOperationSuccessAndPopUpToNearestRelatedScreen(
+                        null,
+                        null,
+                        resourceManager.getString(R.string.connection_disconnect_success_message)
+                    )
                 }
             },
             onError = {

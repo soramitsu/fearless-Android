@@ -1,5 +1,6 @@
 package jp.co.soramitsu.app.root.navigation
 
+import android.annotation.SuppressLint
 import android.graphics.drawable.Drawable
 import android.os.Bundle
 import androidx.annotation.IdRes
@@ -1005,6 +1006,22 @@ class Navigator :
         val bundle = SuccessFragment.getBundle(operationHash, chainId, customMessage)
 
         navController?.navigate(R.id.successSheetFragment, bundle)
+    }
+
+    @SuppressLint("RestrictedApi")
+    override fun openOperationSuccessAndPopUpToNearestRelatedScreen(operationHash: String?, chainId: ChainId?, customMessage: String?) {
+        val bundle = SuccessFragment.getBundle(operationHash, chainId, customMessage)
+
+        val latestAvailableWalletConnectRelatedScreenPopUpOptions = navController?.currentBackStack?.replayCache?.firstOrNull()?.last {
+            it.destination.id == R.id.connectionsFragment ||
+            it.destination.id == R.id.mainFragment
+        }?.let {
+            NavOptions.Builder()
+                .setPopUpTo(it.destination.id, false)
+                .build()
+        }
+
+        navController?.navigate(R.id.successSheetFragment, bundle, latestAvailableWalletConnectRelatedScreenPopUpOptions)
     }
 
     override fun finishSendFlow() {
