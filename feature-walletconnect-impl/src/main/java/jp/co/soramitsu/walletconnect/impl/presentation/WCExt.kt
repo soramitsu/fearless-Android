@@ -29,22 +29,16 @@ val Core.Model.AppMetaData?.dappUrl: String?
 
 val Wallet.Model.SessionRequest.JSONRPCRequest.message: String
     get() = when (method) {
-    WalletConnectMethod.PolkadotSignMessage.method -> JSONObject(params).get("message").toString()
-    WalletConnectMethod.PolkadotSignTransaction.method -> JSONObject(params).get("transactionPayload").toString()
-    WalletConnectMethod.EthereumPersonalSign.method -> {
-        println("!!! Wallet.Model.SessionRequest.JSONRPCRequest.message: ${JSONArray(params).get(0)}")
-        JSONArray(params).get(0).toString().fromHex().toString(Charset.forName(CharEncoding.UTF_8))
+        WalletConnectMethod.PolkadotSignMessage.method -> JSONObject(params).get("message").toString()
+        WalletConnectMethod.PolkadotSignTransaction.method -> JSONObject(params).get("transactionPayload").toString()
+        WalletConnectMethod.EthereumPersonalSign.method -> JSONArray(params).get(0).toString().fromHex().toString(Charset.forName(CharEncoding.UTF_8))
+        WalletConnectMethod.EthereumSignTransaction.method -> JSONArray(params).get(0).toString()
+        WalletConnectMethod.EthereumSignTypedData.method -> JSONArray(params).get(1).toString()
+        WalletConnectMethod.EthereumSignTypedDataV4.method -> JSONArray(params).get(1).toString()
+        WalletConnectMethod.EthereumSendTransaction.method -> JSONArray(params).get(1).toString() //insufficient funds check
+        WalletConnectMethod.EthereumSign.method -> JSONArray(params).get(1).toString().fromHex().toString(Charset.forName(CharEncoding.UTF_8))
+        else -> "${method}'s params: $params"
     }
-    WalletConnectMethod.EthereumSignTransaction.method -> JSONArray(params).get(0).toString()
-    WalletConnectMethod.EthereumSignTypedData.method -> JSONArray(params).get(1).toString()
-    WalletConnectMethod.EthereumSignTypedDataV4.method -> JSONArray(params).get(1).toString()
-
-    WalletConnectMethod.EthereumSendTransaction.method -> JSONArray(params).get(1).toString() //insufficient funds check
-
-    "eth_sign" -> JSONArray(params).get(1).toString().fromHex().toString(Charset.forName(CharEncoding.UTF_8)) // not supported ?
-
-    else -> "${method}'s message"
-}
 
 val Wallet.Model.SessionRequest.JSONRPCRequest.address: String?
     get() = when (method) {
@@ -54,6 +48,6 @@ val Wallet.Model.SessionRequest.JSONRPCRequest.address: String?
         WalletConnectMethod.EthereumSignTransaction.method -> (JSONArray(params).get(0) as? JSONObject)?.get("from")
         WalletConnectMethod.EthereumSignTypedData.method -> JSONArray(params).get(0)
         WalletConnectMethod.EthereumSignTypedDataV4.method -> JSONArray(params).get(0)
-        "eth_sign" -> JSONArray(params).get(0) // not supported ?
+        WalletConnectMethod.EthereumSign.method -> JSONArray(params).get(0)
         else -> null
     } as String?
