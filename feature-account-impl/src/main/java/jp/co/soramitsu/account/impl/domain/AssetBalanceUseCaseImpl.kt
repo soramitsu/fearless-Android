@@ -4,6 +4,7 @@ import jp.co.soramitsu.account.api.domain.interfaces.AssetBalanceUseCase
 import jp.co.soramitsu.account.api.domain.model.AssetBalance
 import jp.co.soramitsu.common.utils.DOLLAR_SIGN
 import jp.co.soramitsu.common.utils.applyFiatRate
+import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.fractionToPercentage
 import jp.co.soramitsu.common.utils.isZero
 import jp.co.soramitsu.common.utils.orZero
@@ -41,27 +42,31 @@ class AssetBalanceUseCaseImpl(
                 .firstOrNull { it.id == current.asset.id }
                 ?: return@fold AssetBalance.Empty
 
-            val total =
+            val currentAssetTotal =
                 current.asset.freeInPlanks.orZero() + current.asset.reservedInPlanks.orZero()
-            val totalDecimal = total.toBigDecimal(scale = chainAsset.precision)
-            val fiatAmount = totalDecimal.applyFiatRate(current.token?.fiatRate)
+            val currentAssetTotalDecimal = currentAssetTotal.toBigDecimal(scale = chainAsset.precision)
+            val currentFiatAmount = currentAssetTotalDecimal.applyFiatRate(current.token?.fiatRate)
 
-            val totalBalanceToAdd = fiatAmount ?: BigDecimal.ZERO
-            val balanceChangeToAdd = fiatAmount?.multiply(current.token?.recentRateChange.orZero())
+            val totalFiatBalanceToAdd = currentFiatAmount ?: BigDecimal.ZERO
+            val balanceFiatChangeToAdd = currentFiatAmount?.multiply(current.token?.recentRateChange.orZero())
                 ?.percentageToFraction().orZero()
 
-            val balance = acc.balance + totalBalanceToAdd
-            val balanceChange = acc.balanceChange + balanceChangeToAdd
-            val rate = when {
-                balance.isZero() -> BigDecimal.ZERO
-                else -> balanceChange.divide(balance, RoundingMode.HALF_UP).fractionToPercentage()
+            val assetBalance = acc.assetBalance + currentAssetTotalDecimal
+            val fiatBalance = acc.fiatBalance + totalFiatBalanceToAdd
+
+            val fiatBalanceChange = acc.fiatBalanceChange + balanceFiatChangeToAdd
+            val rateChange = when {
+                fiatBalance.isZero() -> BigDecimal.ZERO
+                else -> fiatBalanceChange.divide(fiatBalance, RoundingMode.HALF_UP).fractionToPercentage()
             }
 
             AssetBalance(
-                balance = balance,
+                assetBalance = assetBalance,
+                rateChange = rateChange,
+                assetSymbol = chainAsset.symbol,
+                fiatBalance = fiatBalance,
+                fiatBalanceChange = fiatBalanceChange,
                 fiatSymbol = current.token?.fiatSymbol ?: fiatCurrency ?: DOLLAR_SIGN,
-                balanceChange = balanceChange,
-                rateChange = rate
             )
         }
     }

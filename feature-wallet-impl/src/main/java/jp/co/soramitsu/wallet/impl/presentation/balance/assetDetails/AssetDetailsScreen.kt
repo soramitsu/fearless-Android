@@ -300,6 +300,8 @@ fun AssetDetailsItem(
             } else {
                 Text(
                     text = itemState.chainName.orEmpty(),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                     style = MaterialTheme.customTypography.header3
                         .copy(textAlign = TextAlign.End),
                 )
@@ -320,11 +322,13 @@ fun AssetDetailsItem(
                 } else {
                     Text(
                         text = itemState.assetRepresentation.orEmpty(),
+                        maxLines = 1,
                         style = MaterialTheme.customTypography.header3
                             .copy(textAlign = TextAlign.End),
                     )
                     Text(
                         text = itemState.fiatRepresentation.orEmpty(),
+                        maxLines = 1,
                         style = MaterialTheme.customTypography.body1,
                         modifier = Modifier.alpha(0.64f)
                     )

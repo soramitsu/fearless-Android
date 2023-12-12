@@ -13,6 +13,7 @@ import jp.co.soramitsu.common.compose.component.ToolbarHomeIconState
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.utils.applyFiatRate
 import jp.co.soramitsu.common.utils.formatAsChange
+import jp.co.soramitsu.common.utils.formatCrypto
 import jp.co.soramitsu.common.utils.formatCryptoDetail
 import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.feature_wallet_impl.R
@@ -134,12 +135,11 @@ class AssetDetailsViewModel @Inject constructor(
         ) { selectedTab, assetBalance, (chainsPerAssetToAsset, sorting) ->
             val assetBalanceState =
                 AssetBalanceViewState(
-                    transferableBalance = assetBalance.balance.formatFiat(assetBalance.fiatSymbol),
+                    transferableBalance = assetBalance.assetBalance.formatCrypto(assetBalance.assetSymbol),
                     changeViewState = ChangeBalanceViewState(
                         percentChange = assetBalance.rateChange?.formatAsChange().orEmpty(),
-                        fiatChange = assetBalance.balanceChange.abs()
-                            .formatFiat(assetBalance.fiatSymbol),
-                        percentFiatChange = "(${assetBalance.balanceChange.formatFiat(assetBalance.fiatSymbol)})"
+                        fiatChange = assetBalance.fiatBalance.formatFiat(assetBalance.fiatSymbol),
+                        percentFiatChange = "(${assetBalance.fiatBalanceChange.formatFiat(assetBalance.fiatSymbol)})"
                     ),
                     address = "" // implies invisible address state
                 )
@@ -153,7 +153,7 @@ class AssetDetailsViewModel @Inject constructor(
                     chainId = chain.id,
                     iconUrl = chain.icon,
                     chainName = chain.name,
-                    assetRepresentation = totalBalance?.formatCryptoDetail(asset.token.configuration.symbol),
+                    assetRepresentation = totalBalance?.formatCrypto(asset.token.configuration.symbol),
                     fiatRepresentation = totalFiatBalance?.formatFiat()
                 )
             }

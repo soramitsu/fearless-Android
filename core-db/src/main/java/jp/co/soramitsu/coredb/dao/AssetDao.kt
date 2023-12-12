@@ -120,7 +120,7 @@ abstract class AssetDao : AssetReadOnlyCache {
         """
             SELECT * FROM assets 
             LEFT JOIN token_price ON assets.tokenPriceId = token_price.priceId 
-            WHERE assets.id = :id
+            WHERE assets.tokenPriceId = (SELECT tokenPriceId FROM assets WHERE assets.id = :id)
         """
     )
     abstract suspend fun getAssets(id: String): List<AssetWithToken>
@@ -129,7 +129,7 @@ abstract class AssetDao : AssetReadOnlyCache {
         """
             SELECT * FROM assets 
             LEFT JOIN token_price ON assets.tokenPriceId = token_price.priceId 
-            WHERE assets.id = :id
+            WHERE assets.tokenPriceId = (SELECT tokenPriceId FROM assets WHERE assets.id = :id)
         """
     )
     abstract fun observeAssets(id: String): Flow<List<AssetWithToken>>
