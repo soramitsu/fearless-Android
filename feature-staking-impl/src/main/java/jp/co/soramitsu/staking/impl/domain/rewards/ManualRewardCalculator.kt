@@ -4,6 +4,7 @@ import java.math.BigDecimal
 import java.math.BigInteger
 import jp.co.soramitsu.common.utils.fractionToPercentage
 import jp.co.soramitsu.common.utils.median
+import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.sumByBigInteger
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.shared_utils.extensions.toHexString
@@ -29,7 +30,8 @@ open class ManualRewardCalculator(
     val totalIssuance: BigInteger
 ) : RewardCalculator {
 
-    private val totalStaked = validators.sumByBigInteger(RewardCalculationTarget::totalStake).toDouble()
+    private val totalStaked =
+        validators.sumByBigInteger(RewardCalculationTarget::totalStake).toDouble()
 
     private val stakedPortion = totalStaked / totalIssuance.toDouble()
 
@@ -58,7 +60,8 @@ open class ManualRewardCalculator(
     }
 
     private fun calculateValidatorAPY(validator: RewardCalculationTarget): Double {
-        val yearlyRewardPercentage = averageValidatorRewardPercentage * averageValidatorStake / validator.totalStake.toDouble()
+        val yearlyRewardPercentage =
+            averageValidatorRewardPercentage * averageValidatorStake / validator.totalStake.toDouble()
 
         return yearlyRewardPercentage * (1 - validator.commission.toDouble())
     }
@@ -80,7 +83,10 @@ open class ManualRewardCalculator(
         chainId = chainId
     ).gainPercentage
 
-    override suspend fun calculateAvgAPY() = expectedAPY.toBigDecimal().fractionToPercentage()
+    override suspend fun calculateAvgAPY(): BigDecimal {
+        return runCatching { expectedAPY.toBigDecimal().fractionToPercentage() }.getOrNull()
+            .orZero()
+    }
 
     override suspend fun getApyFor(targetId: ByteArray): BigDecimal {
         val apy = apyByValidator[targetId.toHexString()] ?: expectedAPY
@@ -136,11 +142,20 @@ open class ManualRewardCalculator(
         )
     }
 
-    private fun calculateSimpleReward(amount: Double, days: Int, dailyPercentage: Double): BigDecimal {
+    private fun calculateSimpleReward(
+        amount: Double,
+        days: Int,
+        dailyPercentage: Double
+    ): BigDecimal {
         return amount.toBigDecimal() * dailyPercentage.toBigDecimal() * days.toBigDecimal()
     }
 
-    private fun calculateCompoundReward(amount: Double, days: Int, dailyPercentage: Double): BigDecimal {
-        return amount.toBigDecimal() * ((1 + dailyPercentage).toBigDecimal().pow(days)) - amount.toBigDecimal()
+    private fun calculateCompoundReward(
+        amount: Double,
+        days: Int,
+        dailyPercentage: Double
+    ): BigDecimal {
+        return amount.toBigDecimal() * ((1 + dailyPercentage).toBigDecimal()
+            .pow(days)) - amount.toBigDecimal()
     }
 }
