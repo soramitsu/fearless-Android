@@ -29,6 +29,8 @@ import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.core.extrinsic.ExtrinsicService
 import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.shared_utils.encrypt.SignatureWrapper
+import jp.co.soramitsu.shared_utils.extensions.fromHex
 import jp.co.soramitsu.shared_utils.extensions.toHexString
 import jp.co.soramitsu.walletconnect.impl.presentation.WCDelegate
 import jp.co.soramitsu.walletconnect.impl.presentation.address
@@ -50,9 +52,12 @@ import kotlinx.coroutines.launch
 import org.json.JSONObject
 import org.web3j.crypto.Credentials
 import org.web3j.crypto.RawTransaction
+import org.web3j.crypto.Sign
 import org.web3j.crypto.StructuredDataEncoder
 import org.web3j.crypto.TransactionDecoder
 import org.web3j.crypto.TransactionEncoder
+import org.web3j.protocol.Web3j
+import org.web3j.protocol.core.methods.response.Web3Sha3
 import org.web3j.utils.Numeric
 
 @HiltViewModel
@@ -252,17 +257,18 @@ class RequestPreviewViewModel @Inject constructor(
 
     private suspend fun getEthSignTypedResult(metaAccount: MetaAccount): String {
         val ethSignTypedMessage = recentSession.request.message
-        val message = StructuredDataEncoder(ethSignTypedMessage).hashStructuredData().toHexString()
+        val message = StructuredDataEncoder(ethSignTypedMessage).hashStructuredData()
 
         val secrets = accountRepository.getMetaAccountSecrets(metaAccount.id) ?: error("There are no secrets for metaId: ${metaAccount.id}")
-        val keypairSchema = secrets[MetaAccountSecrets.SubstrateKeypair]
-        val privateKey = keypairSchema[KeyPairSchema.PrivateKey]
+        val keypairSchema = secrets[MetaAccountSecrets.EthereumKeypair]
+        val privateKey = keypairSchema?.get(KeyPairSchema.PrivateKey)
 
-        return return CacaoSigner.sign(
-            ethSignTypedMessage,
-            privateKey,
-            SignatureType.EIP191
-        ).s
+        val cred = Credentials.create(privateKey?.toHexString())
+
+        val signatureData = Sign.signMessage(message, cred.ecKeyPair, false)
+        val signatureWrapper = SignatureWrapper.Ecdsa(signatureData.v, signatureData.r, signatureData.s)
+
+        return signatureWrapper.signature.toHexString(true)
     }
 
     private suspend fun getEthSignTransactionResult(metaAccount: MetaAccount): String {
