@@ -49,12 +49,13 @@ open class BaseViewModel : ViewModel(), CoroutineScope {
     }
 
     fun showError(
-        title: String,
+        title: String? = null,
         message: String,
         positiveButtonText: String? = null,
         negativeButtonText: String? = null,
         buttonsOrientation: Int = LinearLayout.VERTICAL,
         positiveClick: () -> Unit = emptyClick,
+        negativeClick: () -> Unit = emptyClick,
         onBackClick: () -> Unit = emptyClick,
         isHideable: Boolean = true
     ) {
@@ -66,6 +67,7 @@ open class BaseViewModel : ViewModel(), CoroutineScope {
                 negativeButtonText = negativeButtonText,
                 buttonsOrientation = buttonsOrientation,
                 positiveClick = positiveClick,
+                negativeClick = negativeClick,
                 onBackClick = onBackClick,
                 isHideable = isHideable
             )

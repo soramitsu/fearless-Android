@@ -77,6 +77,7 @@ abstract class BaseComposeBottomSheetDialogFragment<T : BaseViewModel> : BottomS
                 positiveButtonText = errorDialogState.positiveButtonText,
                 negativeButtonText = errorDialogState.negativeButtonText,
                 positiveClick = errorDialogState.positiveClick,
+                negativeClick = errorDialogState.negativeClick,
                 onBackClick = errorDialogState.onBackClick,
                 isHideable = errorDialogState.isHideable
             )
@@ -84,12 +85,13 @@ abstract class BaseComposeBottomSheetDialogFragment<T : BaseViewModel> : BottomS
     }
 
     private fun showErrorDialog(
-        title: String,
+        title: String? = null,
         message: String,
         positiveButtonText: String? = requireContext().resources.getString(R.string.common_ok),
         negativeButtonText: String? = null,
         buttonsOrientation: Int = LinearLayout.VERTICAL,
         positiveClick: () -> Unit = emptyClick,
+        negativeClick: () -> Unit = emptyClick,
         onBackClick: () -> Unit = emptyClick,
         isHideable: Boolean = true
     ) {
@@ -100,6 +102,7 @@ abstract class BaseComposeBottomSheetDialogFragment<T : BaseViewModel> : BottomS
             positiveButtonText = positiveButtonText,
             negativeButtonText = negativeButtonText,
             positiveClick = positiveClick,
+            negativeClick = negativeClick,
             onBackClick = onBackClick,
             isHideable = isHideable
         ).show(childFragmentManager)

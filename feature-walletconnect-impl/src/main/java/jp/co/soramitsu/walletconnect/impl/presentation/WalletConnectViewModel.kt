@@ -26,6 +26,7 @@ import jp.co.soramitsu.common.utils.formatAsChange
 import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.mapValuesNotNull
+import jp.co.soramitsu.walletconnect.impl.presentation.state.WalletConnectMethod
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -54,11 +55,6 @@ class WalletConnectViewModel @Inject constructor(
     private val selectedOptionalNetworkIds = MutableStateFlow<Set<String>>(emptySet())
     private val selectedWalletIds = MutableStateFlow<Set<Long>>(setOf())
 
-//        .onStart {
-//        val selectedWalletId = accountRepository.getSelectedLightMetaAccount().id
-//        emit(setOf(selectedWalletId))
-//    }
-
     private val accountsFlow = accountListingMixin.accountsFlow(AddressIconGenerator.SIZE_BIG)
 
     private val walletItemsFlow: SharedFlow<List<WalletItemViewState>> = combine(accountsFlow, selectedWalletIds) { accounts, selectedWalletIds ->
@@ -82,18 +78,11 @@ class WalletConnectViewModel @Inject constructor(
         .share()
 
     val state: StateFlow<WalletConnectViewState> = walletItemsFlow.map { walletItems ->
-        println("!!! WalletConnectViewModel pairingStateSharedFlow = $proposal")
-
         val chains = walletConnectInteractor.getChains()
 
         val proposalRequiredChains = proposal.requiredNamespaces.flatMap { it.value.chains.orEmpty() }
         val requiredChains = chains.filter {
             it.caip2id in proposalRequiredChains
-        }
-
-        println("!!! WalletConnectViewModel requiredChains : proposalChains = ${requiredChains.size} : ${proposalRequiredChains.size}")
-        if (requiredChains.size < proposalRequiredChains.size) {
-            showError("Неподдерживаемая сеть")
         }
 
         val proposalOptionalChains = proposal.optionalNamespaces.flatMap { it.value.chains.orEmpty() }
@@ -114,7 +103,7 @@ class WalletConnectViewModel @Inject constructor(
             title = resourceManager.getString(R.string.connection_optional_networks),
             subTitle = optionalChainNames,
             iconUrl = null,
-        )
+        ).takeIf { optionalChains.isNotEmpty() }
 
         val requiredMethods = proposal.requiredNamespaces.flatMap { it.value.methods }
         val requiredEvents = proposal.requiredNamespaces.flatMap { it.value.events }
@@ -139,21 +128,28 @@ class WalletConnectViewModel @Inject constructor(
         val optionalMethods = proposal.optionalNamespaces.flatMap { it.value.methods }
         val optionalEvents = proposal.optionalNamespaces.flatMap { it.value.events }
 
-        val optionalInfoItems = listOf(
-            InfoItemViewState(
-                title = resourceManager.getString(R.string.connection_methods),
-                subtitle = optionalMethods.joinToString { it }
-            ),
-            InfoItemViewState(
-                title = resourceManager.getString(R.string.connection_events),
-                subtitle = optionalEvents.joinToString { it }
-            )
-        )
+        val optionalInfoItems = mutableListOf<InfoItemViewState>()
 
+        if (optionalMethods.isNotEmpty()) {
+            optionalInfoItems.add(
+                InfoItemViewState(
+                    title = resourceManager.getString(R.string.connection_methods),
+                    subtitle = optionalMethods.joinToString { it }
+                )
+            )
+        }
+        if (optionalEvents.isNotEmpty()) {
+            optionalInfoItems.add(
+                InfoItemViewState(
+                    title = resourceManager.getString(R.string.connection_events),
+                    subtitle = optionalEvents.joinToString { it }
+                )
+            )
+        }
         val optionalPermissions = InfoItemSetViewState(
             title = optionalChainNames,
             infoItems = optionalInfoItems
-        )
+        ).takeIf { optionalInfoItems.isNotEmpty() }
 
         WalletConnectViewState(
             sessionProposal = proposal,
@@ -167,25 +163,56 @@ class WalletConnectViewModel @Inject constructor(
 
     init {
         launch {
+            checkChainsSupported()
+
             val initialSelectedWalletId = accountRepository.getSelectedLightMetaAccount().id
             selectedWalletIds.value = setOf(initialSelectedWalletId)
         }
+    }
 
-        WCDelegate.walletEvents.onEach {
-            println("!!! WalletConnectViewModel WCDelegate.walletEvents: $it")
-        }.stateIn(this, SharingStarted.Eagerly, null)
+    private suspend fun checkChainsSupported() {
+        val chains = walletConnectInteractor.getChains()
+
+        val proposalRequiredChains = proposal.requiredNamespaces.flatMap { it.value.chains.orEmpty() }
+        val supportedChains = chains.filter {
+            it.caip2id in proposalRequiredChains
+        }
+
+        if (supportedChains.size < proposalRequiredChains.size) {
+            showError(
+                title = resourceManager.getString(R.string.common_error_general_title),
+                message = resourceManager.getString(R.string.connection_chains_not_supported_error),
+                positiveButtonText = resourceManager.getString(R.string.common_close),
+                positiveClick = ::rejectSessionSilent,
+                onBackClick = ::rejectSessionSilent
+            )
+        }
     }
 
     override fun onClose() {
-        println("!!! WalletConnectViewModel onClose")
         launch(Dispatchers.Main) {
             walletConnectRouter.back()
         }
     }
 
     override fun onApproveClick() {
-        println("!!! WalletConnectViewModel onApproveClick")
+        val requiredMethods = proposal.requiredNamespaces.flatMap { it.value.methods }
+        val isAllMethodsSupported = WalletConnectMethod.values().map { it.method }.containsAll(requiredMethods)
 
+        if (isAllMethodsSupported) {
+            approveSession()
+        } else {
+            showError(
+                message = resourceManager.getString(R.string.connection_methods_not_supported_warning),
+                positiveButtonText = resourceManager.getString(R.string.connection_approve),
+                negativeButtonText = resourceManager.getString(R.string.connection_reject),
+                positiveClick = ::approveSession,
+                negativeClick = ::rejectSession
+            )
+        }
+    }
+
+    private fun approveSession() {
         val selectedWalletIds = selectedWalletIds.value
         val selectedOptionalChainIds = selectedOptionalNetworkIds.value
 
@@ -262,7 +289,6 @@ class WalletConnectViewModel @Inject constructor(
                     relayProtocol = proposal.relayProtocol
                 ),
                 onSuccess = {
-                    println("!!! WalletConnectViewModel onApproveClick onSuccess = $it")
                     viewModelScope.launch(Dispatchers.Main.immediate) {
                         walletConnectRouter.openOperationSuccessAndPopUpToNearestRelatedScreen(
                             null,
@@ -273,16 +299,23 @@ class WalletConnectViewModel @Inject constructor(
                     WCDelegate.refreshConnections()
                 },
                 onError = {
-                    println("!!! WalletConnectViewModel onApproveClick onError = ${it.throwable.message}")
-                    it.throwable.printStackTrace()
-                    // TODO show error screen with popUp option and instruction message on what needs to be done to fix error
+                    showError(
+                        title = resourceManager.getString(R.string.common_error_general_title),
+                        message = it.throwable.message.orEmpty(),
+                        positiveButtonText = resourceManager.getString(R.string.common_close),
+                        positiveClick = ::rejectSessionSilent,
+                        onBackClick = ::rejectSessionSilent
+                    )
                 }
             )
         }
     }
 
     override fun onRejectClicked() {
-        println("!!! WalletConnectViewModel onRejectClicked")
+        rejectSession()
+    }
+
+    private fun rejectSession() {
         WCDelegate.sessionProposalEvent?.let {
             Web3Wallet.rejectSession(
                 params = Wallet.Params.SessionReject(
@@ -290,29 +323,39 @@ class WalletConnectViewModel @Inject constructor(
                     "User rejected"
                 ),
                 onSuccess = {
-                    println("!!! WalletConnectViewModel Web3Wallet.rejectSession success")
                     WCDelegate.refreshConnections()
                     viewModelScope.launch(Dispatchers.Main.immediate) {
                         walletConnectRouter.openOperationSuccessAndPopUpToNearestRelatedScreen(
                             null,
                             null,
-                            "Rejected"
+                            resourceManager.getString(R.string.common_rejected)
                         )
                     }
                 },
+                onError = {})
+        }
+    }
+
+    private fun rejectSessionSilent() {
+        WCDelegate.sessionProposalEvent?.let {
+            Web3Wallet.rejectSession(
+                params = Wallet.Params.SessionReject(
+                    it.first.proposerPublicKey,
+                    "Blockchain not supported by wallet"
+                ),
+                onSuccess = {
+                    onClose()
+                },
                 onError = {
-                    println("!!! WalletConnectViewModel Web3Wallet.rejectSession error = ${it.throwable.message}")
-                    it.throwable.printStackTrace()
-                    // TODO show error screen with popUp option and instruction message on what needs to be done to fix error
-                })
+                    onClose()
+                }
+            )
         }
     }
 
     override fun onOptionalNetworksClicked() {
-        println("!!! WalletConnectViewModel onOptionalNetworksClicked")
         val optionalChains = proposal.optionalNamespaces.flatMap { it.value.chains.orEmpty() }
         val selected = selectedOptionalNetworkIds.value
-        println("!!! WalletConnectViewModel onOptionalNetworksClicked selected size = ${selected.size}")
         if (optionalChains.isNotEmpty()) {
             walletConnectRouter.openSelectMultipleChainsForResult(optionalChains, selected.toList())
                 .onEach(::handleSelectedChains)
@@ -321,12 +364,10 @@ class WalletConnectViewModel @Inject constructor(
     }
 
     private fun handleSelectedChains(state: ChainChooseResult) {
-        println("!!! WalletConnectViewModel handleSelectedChains got chains: ${state.selectedChainIds}")
         selectedOptionalNetworkIds.value = state.selectedChainIds
     }
 
     override fun onRequiredNetworksClicked() {
-        println("!!! WalletConnectViewModel onRequiredNetworksClicked")
         val requiredNetworks = proposal.requiredNamespaces.flatMap { it.value.chains.orEmpty() }
 
         launch {
@@ -335,7 +376,6 @@ class WalletConnectViewModel @Inject constructor(
                 chain.caip2id in requiredNetworks
             }
 
-            println("!!! onRequiredNetworksClicked requiredProposalChains: ${requiredProposalChains.size} : ${requiredProposalChains.joinToString { it.name + ":" + it.id }}")
             if (requiredNetworks.isNotEmpty()) {
                 val selected = requiredProposalChains.map { it.id }
                 walletConnectRouter.openSelectMultipleChains(requiredNetworks, selected, isViewMode = true)
@@ -344,7 +384,6 @@ class WalletConnectViewModel @Inject constructor(
     }
 
     override fun onWalletSelected(item: WalletItemViewState) {
-        println("!!! WalletConnectViewModel onWalletSelected: $item")
         viewModelScope.launch {
             val currentIds = selectedWalletIds.value
 
