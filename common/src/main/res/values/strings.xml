@@ -139,6 +139,7 @@
   <string name="common_action_hide">Hide</string>
   <string name="common_action_receive">Receive</string>
   <string name="common_request">Request</string>
+  <string name="common_rejected">Rejected</string>
   <string name="common_action_send">Send</string>
   <string name="common_action_show">Show</string>
   <string name="common_action_swap">Swap</string>
@@ -303,6 +304,8 @@
   <string name="confirm_mnemonic_mismatch_error_message_2_0">Invalid mnemonic passphrase, please check the word order one more time</string>
   <string name="connection_add_already_exists_error">The node has been added previously. Please try another node.</string>
   <string name="connection_add_invalid_error">Can\'t establish connection with the node. Please try another one.</string>
+  <string name="connection_invalid_url_error_title">Warning: Wallet Connect SDK v1 Not Supported</string>
+  <string name="connection_invalid_url_error_message">Our App only supports Wallet Connect SDK v2 and does not support the deprecated SDK v1. Please use the appropriate version for a successful connection.</string>
   <string name="connection_add_unsupported_error">Unfortunately, the network is unsupported. Please try one of the following: %s.</string>
   <string name="connection_sign_this_message_question">Sign this message?</string>
   <string name="connection_details_title">Connection details</string>
@@ -313,6 +316,10 @@
   <string name="connection_optional_networks">Optional networks</string>
   <string name="connection_review_permissions">Review permissions</string>
   <string name="connection_methods">Methods</string>
+  <string name="connection_account_not_supported_warning">Cannot proceed: Your wallet does not have the necessary accounts. Please make sure you have the required accounts set up before continuing</string>
+  <string name="connection_methods_not_supported_warning">Certain methods requested by Wallet Connect are not currently supported by the App. Although the connection can be established, certain functionalities of the dApp may not be available.</string>
+  <string name="connection_events_not_supported_warning">Missing event notifications: the App does not support the necessary event notifications</string>
+  <string name="connection_chains_not_supported_error">Unable to connect to wallet: The requested blockchain network is not supported or available</string>
   <string name="connection_events">Events</string>
   <string name="connection_review_required_permissions">Review required permissions</string>
   <string name="connection_review_optional_permissions">Review optional permissions</string>

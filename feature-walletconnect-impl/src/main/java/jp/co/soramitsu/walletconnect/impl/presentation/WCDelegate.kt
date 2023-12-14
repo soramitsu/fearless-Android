@@ -53,7 +53,6 @@ object WCDelegate : Web3Wallet.WalletDelegate, CoreClient.CoreDelegate {
     }
 
     override fun onConnectionStateChange(state: Wallet.Model.ConnectionState) {
-//        println("!!! WCDelegate onConnectionStateChange")
         scope.launch {
             _walletEvents.emit(state)
         }

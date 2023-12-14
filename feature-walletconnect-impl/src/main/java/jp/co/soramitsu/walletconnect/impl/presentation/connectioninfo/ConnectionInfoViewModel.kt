@@ -1,6 +1,5 @@
 package jp.co.soramitsu.walletconnect.impl.presentation.connectioninfo
 
-import androidx.core.net.toUri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import co.jp.soramitsu.feature_walletconnect_impl.R
@@ -25,7 +24,6 @@ import jp.co.soramitsu.common.utils.formatAsChange
 import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.mapList
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.walletconnect.impl.presentation.WCDelegate
 import jp.co.soramitsu.walletconnect.impl.presentation.caip2id
 import jp.co.soramitsu.walletconnect.impl.presentation.dappUrl
@@ -33,7 +31,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -74,15 +71,12 @@ class ConnectionInfoViewModel @Inject constructor(
         walletItemsFlow,
         accountRepository.allMetaAccountsFlow()
     ) { walletItems, allMetaAccounts ->
-        println("!!! ConnectionInfoViewModel session = $session")
-
         val chains = walletConnectInteractor.getChains()
 
         val sessionNamespaceChains = session.namespaces.flatMap { it.value.chains.orEmpty() }
         val sessionChains = chains.filter {
             it.caip2id in sessionNamespaceChains
         }
-        println("!!! ConnectionInfoViewModel sessionChains = ${sessionChains.size}")
 
         val sessionChainNames: String = sessionChains.joinToString { it.name }
 
@@ -139,17 +133,7 @@ class ConnectionInfoViewModel @Inject constructor(
     }
         .stateIn(this, SharingStarted.Eagerly, ConnectInfoViewState.default)
 
-    init {
-        WCDelegate.walletEvents.onEach {
-            println("!!! ConnectionInfoViewModel WCDelegate.walletEvents: $it")
-        }.stateIn(this, SharingStarted.Eagerly, null)
-
-        println("!!! ConnectionInfoViewModel some WC: session.topic = ${session.topic}")
-        println("!!! ConnectionInfoViewModel some WC:         topic = $topic")
-    }
-
     override fun onClose() {
-        println("!!! ConnectionInfoViewModel onClose")
         launch(Dispatchers.Main) {
             walletConnectRouter.back()
         }
@@ -159,7 +143,6 @@ class ConnectionInfoViewModel @Inject constructor(
         Web3Wallet.disconnectSession(
             params = Wallet.Params.SessionDisconnect(topic),
             onSuccess = {
-                println("!!! ConnectionInfoViewModel Web3Wallet.disconnectSession onSuccess, $it")
                 WCDelegate.refreshConnections()
                 viewModelScope.launch(Dispatchers.Main.immediate) {
                     walletConnectRouter.openOperationSuccessAndPopUpToNearestRelatedScreen(
@@ -170,9 +153,7 @@ class ConnectionInfoViewModel @Inject constructor(
                 }
             },
             onError = {
-                println("!!! ConnectionInfoViewModel Web3Wallet.disconnectSession onError, ${it.throwable.message}")
-                it.throwable.printStackTrace()
-                // TODO show error screen with popUp option and instruction message on what needs to be done to fix error
+                showError(text = resourceManager.getString(R.string.common_try_again))
             }
         )
     }
