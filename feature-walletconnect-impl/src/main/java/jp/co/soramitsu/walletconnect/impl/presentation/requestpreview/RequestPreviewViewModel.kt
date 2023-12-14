@@ -14,7 +14,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import java.math.BigInteger
 import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
-import jp.co.soramitsu.account.api.domain.interfaces.TotalBalanceUseCase
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.common.address.AddressIconGenerator
@@ -30,9 +29,7 @@ import jp.co.soramitsu.core.extrinsic.ExtrinsicService
 import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.shared_utils.encrypt.SignatureWrapper
-import jp.co.soramitsu.shared_utils.extensions.fromHex
 import jp.co.soramitsu.shared_utils.extensions.toHexString
-import jp.co.soramitsu.walletconnect.impl.presentation.WCDelegate
 import jp.co.soramitsu.walletconnect.impl.presentation.address
 import jp.co.soramitsu.walletconnect.impl.presentation.caip2id
 import jp.co.soramitsu.walletconnect.impl.presentation.dappUrl
@@ -45,7 +42,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -54,10 +50,7 @@ import org.web3j.crypto.Credentials
 import org.web3j.crypto.RawTransaction
 import org.web3j.crypto.Sign
 import org.web3j.crypto.StructuredDataEncoder
-import org.web3j.crypto.TransactionDecoder
 import org.web3j.crypto.TransactionEncoder
-import org.web3j.protocol.Web3j
-import org.web3j.protocol.core.methods.response.Web3Sha3
 import org.web3j.utils.Numeric
 
 @HiltViewModel
@@ -79,7 +72,7 @@ class RequestPreviewViewModel @Inject constructor(
 
     private val recentSession = sessions.sortedByDescending { it.request.id }[0]
 
-    val requestChainFlow = MutableSharedFlow<Chain?>()
+    private val requestChainFlow = MutableSharedFlow<Chain?>()
         .onStart {
             val value: Chain? = walletConnectInteractor.getChains().firstOrNull { chain ->
                 chain.caip2id == recentSession.chainId
@@ -123,7 +116,6 @@ class RequestPreviewViewModel @Inject constructor(
         .share()
 
     val state = combine(requestWalletItemFlow, requestChainFlow.filterNotNull()) { requestWallet, requestChain ->
-        println("!!! SessionRequestViewModel sessions = $sessions")
         val icon = GradientIconState.Remote(requestChain.icon, "EE0077")
 
         val tableItems = listOf(
@@ -157,44 +149,22 @@ class RequestPreviewViewModel @Inject constructor(
     }
         .stateIn(this, SharingStarted.Eagerly, RequestPreviewViewState.default)
 
-    init {
-        WCDelegate.walletEvents.onEach {
-            println("!!! RequestPreviewViewModel WCDelegate.walletEvents: $it")
-        }.stateIn(this, SharingStarted.Eagerly, null)
-
-        println("!!! RequestPreviewViewModel some WC: session.topic = ${sessions[0].topic}")
-        println("!!! RequestPreviewViewModel some WC:         topic = $topic")
-    }
-
     override fun onClose() {
-        println("!!! RequestPreviewViewModel onClose")
-
         launch(Dispatchers.Main) {
             walletConnectRouter.back()
         }
     }
 
     override fun onSignClick() {
-        println("!!! RequestPreviewViewModel onSignClick")
-
-        val message = recentSession.request.message
-        println("!!! RequestPreviewViewModel requestId: ${recentSession.request.id} message to sign = $message")
-
         launch(Dispatchers.IO) {
             val chain = requestChainFlow.value ?: return@launch
-
             val address = recentSession.request.address ?: return@launch
             val accountId = chain.accountIdOf(address)
             val metaAccount = accountRepository.findMetaAccount(accountId) ?: return@launch
 
-            val signPrefixedMessageSignature = getSignResult(metaAccount)
+            val signResult = getSignResult(metaAccount)
 
-
-            println("!!! RequestPreviewViewModel signPrefixedMessageSignature = $signPrefixedMessageSignature")
-
-//                Sign.signPrefixedMessage(recentSession.request.message.toByteArray(), ECKeyPair(privateKeyInt, publicKeyInt)).let { it.r + it.v + it.s }.toHexString(true)
-
-            val jsonRpcResponse = if (signPrefixedMessageSignature == null) {
+            val jsonRpcResponse = if (signResult == null) {
                 Wallet.Model.JsonRpcResponse.JsonRpcError(
                     id = recentSession.request.id,
                     code = 4001,
@@ -203,8 +173,7 @@ class RequestPreviewViewModel @Inject constructor(
             } else {
                 Wallet.Model.JsonRpcResponse.JsonRpcResult(
                     id = recentSession.request.id,
-
-                    result = signPrefixedMessageSignature
+                    result = signResult
                 )
             }
             Web3Wallet.respondSessionRequest(
@@ -213,7 +182,6 @@ class RequestPreviewViewModel @Inject constructor(
                     jsonRpcResponse = jsonRpcResponse
                 ),
                 onSuccess = {
-                    println("!!! Web3Wallet.respondSessionRequest onSuccess: $it")
                     viewModelScope.launch(Dispatchers.Main.immediate) {
                         walletConnectRouter.openOperationSuccessAndPopUpToNearestRelatedScreen(
                             null,
@@ -223,9 +191,13 @@ class RequestPreviewViewModel @Inject constructor(
                     }
                 },
                 onError = {
-                    println("!!! Web3Wallet.respondSessionRequest onError: ${it.throwable.message}")
-                    it.throwable.printStackTrace()
-                    // TODO show error screen with popUp option and instruction message on what needs to be done to fix error
+                    viewModelScope.launch(Dispatchers.Main) {
+                        showError(
+                            title = resourceManager.getString(R.string.common_error_general_title),
+                            message = resourceManager.getString(R.string.common_try_again) + "\n" + it.throwable.message.orEmpty(),
+                            positiveButtonText = resourceManager.getString(R.string.common_ok)
+                        )
+                    }
                 }
             )
         }
@@ -273,8 +245,6 @@ class RequestPreviewViewModel @Inject constructor(
 
     private suspend fun getEthSignTransactionResult(metaAccount: MetaAccount): String {
         val ethSignTransactionMessage = recentSession.request.message
-
-        println("!!! RequestPreviewViewModel getEthSignTransactionResult = $ethSignTransactionMessage")
 
         val secrets = accountRepository.getMetaAccountSecrets(metaAccount.id) ?: error("There are no secrets for metaId: ${metaAccount.id}")
         val keypairSchema = secrets[MetaAccountSecrets.EthereumKeypair]
