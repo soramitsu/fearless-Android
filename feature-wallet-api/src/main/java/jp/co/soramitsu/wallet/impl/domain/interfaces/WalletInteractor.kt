@@ -150,7 +150,7 @@ interface WalletInteractor {
 
     fun selectedLightMetaAccountFlow(): Flow<LightMetaAccount>
 
-    fun observeChainsPerAsset(assetId: String): Flow<Map<Chain, Asset?>>
+    fun observeChainsPerAsset(accountMetaId: Long, assetId: String): Flow<Map<Chain, Asset?>>
 
     fun applyAssetSorting(sorting: AssetSorting)
 

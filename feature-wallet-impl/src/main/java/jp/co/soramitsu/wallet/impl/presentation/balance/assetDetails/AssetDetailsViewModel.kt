@@ -59,40 +59,43 @@ class AssetDetailsViewModel @Inject constructor(
         )
     }
 
-    private val cachedSelectedMetaAccount = interactor.selectedMetaAccountFlow()
+    private val cachedSelectedMetaAccount = interactor.selectedLightMetaAccountFlow()
         .flowOn(Dispatchers.IO).share()
 
-    private val cachedPerChainBalanceWithAssetFlow = assetIdFlow.flatMapLatest { assetId ->
-        interactor.observeChainsPerAsset(assetId).also { valuesFlow ->
-            launch {
-                val chainSelection = cachedSelectedMetaAccount.firstOrNull()?.id?.let {
-                    interactor.getSavedChainId(
-                        walletId = it
+    private val cachedPerChainBalanceWithAssetFlow =
+        combine(cachedSelectedMetaAccount, assetIdFlow) { selectedMetaAccount, assetId ->
+            selectedMetaAccount.id to assetId
+        }.flatMapLatest { (selectedMetaAccountId, assetId) ->
+            interactor.observeChainsPerAsset(selectedMetaAccountId, assetId).also { valuesFlow ->
+                launch {
+                    val chainSelection = cachedSelectedMetaAccount.firstOrNull()?.id?.let {
+                        interactor.getSavedChainId(
+                            walletId = it
+                        )
+                    }
+                    val valuesAsList = valuesFlow.first().toList()
+
+                    val assetPayload = AssetPayload(
+                        chainId = "",
+                        chainAssetId = assetId
                     )
-                }
-                val valuesAsList = valuesFlow.first().toList()
 
-                val assetPayload = AssetPayload(
-                    chainId = "",
-                    chainAssetId = assetId
-                )
+                    val resultingAssetPayload = when {
+                        chainSelection != null ->
+                            assetPayload.copy(chainId = chainSelection)
 
-                val resultingAssetPayload = when {
-                    chainSelection != null ->
-                        assetPayload.copy(chainId = chainSelection)
+                        valuesAsList.size == 1 ->
+                            assetPayload.copy(chainId = valuesAsList.first().first.id)
 
-                    valuesAsList.size == 1 ->
-                        assetPayload.copy(chainId = valuesAsList.first().first.id)
+                        else -> null
+                    }
 
-                    else -> null
-                }
-
-                resultingAssetPayload?.let {
-                    walletRouter.openAssetDetailsAndPopUpToBalancesList(it)
+                    resultingAssetPayload?.let {
+                        walletRouter.openAssetDetailsAndPopUpToBalancesList(it)
+                    }
                 }
             }
-        }
-    }.flowOn(Dispatchers.IO).share()
+        }.flowOn(Dispatchers.IO).share()
 
     val toolbarState: StateFlow<LoadingState<MainToolbarViewState>> = createToolbarState()
 
@@ -115,9 +118,12 @@ class AssetDetailsViewModel @Inject constructor(
     val contentState: StateFlow<AssetDetailsState> = createContentStateFlow()
 
     private fun createContentStateFlow(): StateFlow<AssetDetailsState> {
-        val assetBalanceFlow = assetIdFlow.flatMapLatest { assetId ->
-            getAssetBalance.observe(assetId)
-        }
+        val assetBalanceFlow =
+            combine(cachedSelectedMetaAccount, assetIdFlow) { selectedMetaAccount, assetId ->
+                selectedMetaAccount.id to assetId
+            }.flatMapLatest { (selectedAccountMetaId, assetId) ->
+                getAssetBalance.observe(selectedAccountMetaId, assetId)
+            }
 
         val assetSortingFlow = interactor.observeAssetSorting()
 

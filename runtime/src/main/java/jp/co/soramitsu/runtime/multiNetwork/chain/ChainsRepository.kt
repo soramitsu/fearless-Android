@@ -49,8 +49,8 @@ class ChainsRepository(private val chainDao: ChainDao) {
         mapChainLocalToChain(chainLocal)
     }
 
-    fun observeChainsPerAssetFlow(assetId: String): Flow<Map<JoinedChainInfo, AssetWithToken>> {
-        return chainDao.observeChainsWithBalance(assetId).onEach {
+    fun observeChainsPerAssetFlow(accountMetaId: Long, assetId: String): Flow<Map<JoinedChainInfo, AssetWithToken>> {
+        return chainDao.observeChainsWithBalance(accountMetaId, assetId).onEach {
             val t = it
             println(t)
         }

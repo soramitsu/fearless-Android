@@ -121,16 +121,18 @@ abstract class AssetDao : AssetReadOnlyCache {
             SELECT * FROM assets 
             LEFT JOIN token_price ON assets.tokenPriceId = token_price.priceId 
             WHERE assets.tokenPriceId = (SELECT tokenPriceId FROM assets WHERE assets.id = :id)
+            AND assets.metaId = :accountMetaId
         """
     )
-    abstract suspend fun getAssets(id: String): List<AssetWithToken>
+    abstract suspend fun getAssets(accountMetaId: Long, id: String): List<AssetWithToken>
 
     @Query(
         """
             SELECT * FROM assets 
             LEFT JOIN token_price ON assets.tokenPriceId = token_price.priceId 
             WHERE assets.tokenPriceId = (SELECT tokenPriceId FROM assets WHERE assets.id = :id)
+            AND assets.metaId = :accountMetaId
         """
     )
-    abstract fun observeAssets(id: String): Flow<List<AssetWithToken>>
+    abstract fun observeAssets(accountMetaId: Long, id: String): Flow<List<AssetWithToken>>
 }

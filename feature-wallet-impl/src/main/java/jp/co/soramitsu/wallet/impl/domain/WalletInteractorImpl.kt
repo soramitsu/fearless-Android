@@ -632,8 +632,8 @@ class WalletInteractorImpl(
         return "${CHAIN_SELECT_FILTER_APPLIED}_$walletId"
     }
 
-    override fun observeChainsPerAsset(assetId: String): Flow<Map<Chain, Asset?>> {
-        return walletRepository.observeChainsPerAsset(assetId)
+    override fun observeChainsPerAsset(accountMetaId: Long, assetId: String): Flow<Map<Chain, Asset?>> {
+        return walletRepository.observeChainsPerAsset(accountMetaId, assetId)
     }
 
     override fun applyAssetSorting(sorting: AssetSorting) {

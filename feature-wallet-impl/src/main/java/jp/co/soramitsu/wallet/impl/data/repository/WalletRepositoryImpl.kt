@@ -528,8 +528,8 @@ class WalletRepositoryImpl(
         return substrateSource.getStashAccount(chainId, accountId)
     }
 
-    override fun observeChainsPerAsset(assetId: String): Flow<Map<Chain, Asset?>> {
-        return chainsRepository.observeChainsPerAssetFlow(assetId).map {
+    override fun observeChainsPerAsset(accountMetaId: Long, assetId: String): Flow<Map<Chain, Asset?>> {
+        return chainsRepository.observeChainsPerAssetFlow(accountMetaId, assetId).map {
             val chains = it.keys.map { mapChainLocalToChain(it) }
             val chainsById = chains.associateBy { it.id }
             val assets = it.values.map { mapAssetLocalToAsset(chainsById, it) }

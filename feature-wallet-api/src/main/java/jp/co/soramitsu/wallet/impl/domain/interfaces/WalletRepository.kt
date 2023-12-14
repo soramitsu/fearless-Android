@@ -111,5 +111,5 @@ interface WalletRepository {
         accountId: ByteArray
     ): BigInteger
 
-    fun observeChainsPerAsset(assetId: String): Flow<Map<Chain, Asset?>>
+    fun observeChainsPerAsset(accountMetaId: Long, assetId: String): Flow<Map<Chain, Asset?>>
 }
