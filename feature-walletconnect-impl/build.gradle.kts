@@ -51,8 +51,6 @@ dependencies {
 
     implementation(projects.featureAccountApi)
     implementation(projects.featureAccountImpl)
-//    implementation(project(mapOf("path" to ":feature-account-api")))
-
 
     implementation(projects.common)
     implementation(projects.runtime)
@@ -61,4 +59,8 @@ dependencies {
     implementation(projects.coreApi)
     implementation(projects.featureWalletApi)
     implementation(projects.featureWalletImpl)
+
+    testImplementation(libs.junit)
+//            testImplementation mockitoDep
+//            testImplementation project(':test-shared')
 }
