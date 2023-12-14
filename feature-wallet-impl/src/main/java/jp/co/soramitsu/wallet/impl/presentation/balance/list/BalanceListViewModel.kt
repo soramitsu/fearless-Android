@@ -6,6 +6,7 @@ import androidx.compose.material.SwipeableState
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import com.walletconnect.android.internal.common.exception.MalformedWalletConnectUri
 import com.walletconnect.web3.wallet.client.Wallet
 import com.walletconnect.web3.wallet.client.Web3Wallet
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -664,16 +665,20 @@ class BalanceListViewModel @Inject constructor(
         val pairingParams = Wallet.Params.Pair(pairingUri)
         Web3Wallet.pair(
             params = pairingParams,
-            onSuccess = {
-                println("!!! Web3Wallet.pair success, params: $it")
-            },
             onError = { error ->
-                println("!!! Web3Wallet.pair onError: ${error.throwable.message}")
-                error.throwable.printStackTrace()
-//                viewModelScope.launch {
-//                    _pairingStateSharedFlow.emit(PairingState.Error(error.throwable.message ?: ""))
-//                }
-            })
+                viewModelScope.launch(Dispatchers.Main.immediate) {
+                    if (error.throwable is MalformedWalletConnectUri) {
+                        showError(
+                            title = resourceManager.getString(R.string.connection_invalid_url_error_title),
+                            message = resourceManager.getString(R.string.connection_invalid_url_error_message),
+                            positiveButtonText = resourceManager.getString(R.string.common_close)
+                        )
+                    } else {
+                        showError(error.throwable.message ?: "WalletConnect pairing error")
+                    }
+                }
+            }
+        )
     }
 
     private suspend fun openSendSoraTokenTo(

@@ -60,7 +60,6 @@ open class App : Application() {
             connectionType = connectionType,
             application = this,
             metaData = appMetaData,
-//            networkClientTimeout = NetworkClientTimeout(60, TimeUnit.SECONDS),
             onError = {
                 println("!!! error CoreClient.initialize = ${it.throwable.message}")
                 it.throwable.printStackTrace()
@@ -69,9 +68,7 @@ open class App : Application() {
 
         val initParams = Wallet.Params.Init(core = CoreClient)
 
-        Web3Wallet.initialize(initParams, onSuccess = {
-            println("!!! Web3Wallet.initialize = onSuccess")
-        }) { error ->
+        Web3Wallet.initialize(initParams) { error ->
             // Error will be thrown if there's an issue during initialization
             println("!!! error Web3Wallet.initialize = ${error.throwable.message}")
             error.throwable.printStackTrace()

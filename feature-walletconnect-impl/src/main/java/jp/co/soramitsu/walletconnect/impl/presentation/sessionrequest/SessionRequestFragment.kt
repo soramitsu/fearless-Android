@@ -36,7 +36,6 @@ class SessionRequestFragment : BaseComposeBottomSheetDialogFragment<SessionReque
     override fun onDismiss(dialog: DialogInterface) {
         super.onDismiss(dialog)
         viewModel.onClose()
-        println("!!! SessionRequestFragment onDismiss dialog = $dialog")
     }
 
     companion object {

@@ -25,6 +25,9 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import java.math.BigDecimal
 import java.math.BigInteger
+import java.math.MathContext
+import java.math.RoundingMode
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId
 import jp.co.soramitsu.core.models.Asset as CoreAsset
 
 class XcmInteractor(
@@ -96,13 +99,24 @@ class XcmInteractor(
             val originChain = chainRegistry.getChain(transfer.originChainId)
             val destinationChain = chainRegistry.getChain(transfer.destinationChainId)
             val selfAddress = currentAccountAddress(originChain.id) ?: throw IllegalStateException("No self address")
+
+            val ksmInSoraMainnetCurrencyId = "0x00117b0fa73c4672e03a7d9d774e3b3f91beb893e93d9a8d0430295f44225db8"
+            // todo remove this sora ksm check when https://github.com/sora-xor/sora2-network/issues/845 will be fixed
+            // if we transfer ksm asset from sora network - we have to convert precision 18 to 12
+            val roundedAmountInPlanks = if(transfer.originChainId == soraMainChainId && transfer.chainAsset.currencyId == ksmInSoraMainnetCurrencyId) {
+                val roundedAmount = transfer.amount.round(MathContext(12, RoundingMode.HALF_EVEN))
+                transfer.chainAsset.planksFromAmount(roundedAmount)
+            } else {
+                transfer.fullAmountInPlanks
+            }
+
             xcmService.transfer(
                 originChain = originChain,
                 destinationChain = destinationChain,
                 asset = transfer.chainAsset,
                 senderAccountId = originChain.accountIdOf(selfAddress),
                 address = transfer.recipient,
-                amount = transfer.fullAmountInPlanks
+                amount = roundedAmountInPlanks
             )
         }
     }

@@ -841,7 +841,6 @@ class Navigator :
         selected: List<String>,
         isViewMode: Boolean
     ) {
-        println("!!! openSelectMultipleChains items: ${items.joinToString { it }}")
         val bundle = ChainChooseFragment.getBundle(
             state = ChainChooseState(items, selected, isViewMode)
         )

@@ -58,7 +58,6 @@ import org.web3j.utils.Numeric
 @HiltViewModel
 class RequestPreviewViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    private val getTotalBalance: TotalBalanceUseCase,
     private val walletConnectInteractor: WalletConnectInteractor,
     private val walletConnectRouter: WalletConnectRouter,
     private val resourceManager: ResourceManager,
@@ -93,9 +92,12 @@ class RequestPreviewViewModel @Inject constructor(
 
         if (requestedWallet == null) {
             launch(Dispatchers.Main) {
-                println("!!! RPVM Wallet with requested address not found")
-                walletConnectRouter.back()
-                showError("Wallet with requested address not found")
+                showError(
+                    title = resourceManager.getString(R.string.common_error_general_title),
+                    message = resourceManager.getString(R.string.connection_account_not_supported_warning),
+                    positiveButtonText = resourceManager.getString(R.string.common_close),
+                    positiveClick = { walletConnectRouter.back() }
+                )
             }
             return@map null
         }

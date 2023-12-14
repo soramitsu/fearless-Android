@@ -184,11 +184,6 @@ class RootViewModel @Inject constructor(
 
     private fun observeWalletConnectEvents() {
         WCDelegate.walletEvents.onEach {
-            if (it is Wallet.Model.ConnectionState) {
-                println("!! RootModel WCDelegate.walletEvent: $it")
-            } else {
-                println("!!! RootModel WCDelegate.walletEvent: $it")
-            }
             when (it) {
                 is Wallet.Model.SessionProposal -> {
                     handleSessionProposal(it)
@@ -196,7 +191,9 @@ class RootViewModel @Inject constructor(
                 is Wallet.Model.SessionRequest -> {
                     handleSessionRequest(it)
                 }
-                else -> {}
+                else -> {
+                    println("!!! RootModel WCDelegate.walletEvent: $it")
+                }
             }
         }.stateIn(this, SharingStarted.Eagerly, null)
 

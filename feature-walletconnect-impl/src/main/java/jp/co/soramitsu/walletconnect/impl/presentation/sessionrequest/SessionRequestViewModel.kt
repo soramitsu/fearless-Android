@@ -22,7 +22,6 @@ import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.common.utils.formatAsChange
 import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.inBackground
-import jp.co.soramitsu.walletconnect.impl.presentation.WCDelegate
 import jp.co.soramitsu.walletconnect.impl.presentation.address
 import jp.co.soramitsu.walletconnect.impl.presentation.caip2id
 import jp.co.soramitsu.walletconnect.impl.presentation.dappUrl
@@ -31,7 +30,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -47,7 +45,16 @@ class SessionRequestViewModel @Inject constructor(
 ) : SessionRequestScreenInterface, BaseViewModel() {
     private val topic: String = savedStateHandle[SessionRequestFragment.SESSION_REQUEST_TOPIC_KEY] ?: error("No session info provided")
     private val sessions: List<Wallet.Model.SessionRequest> = Web3Wallet.getPendingListOfSessionRequests(topic).also {
-        if (it.isEmpty()) error("No session requests found")
+        if (it.isEmpty()) {
+            viewModelScope.launch(Dispatchers.Main) {
+                showError(
+                    title = resourceManager.getString(R.string.common_error_general_title),
+                    message = "No session requests found",
+                    positiveButtonText = resourceManager.getString(R.string.common_close),
+                    positiveClick = { walletConnectRouter.back() }
+                )
+            }
+        }
     }
 
     private val recentSession = sessions.sortedByDescending { it.request.id }[0]
@@ -68,8 +75,12 @@ class SessionRequestViewModel @Inject constructor(
 
         if (requestedWallet == null) {
             launch(Dispatchers.Main) {
-                walletConnectRouter.back()
-                showError("Wallet with requested address not found")
+                showError(
+                    title = resourceManager.getString(R.string.common_error_general_title),
+                    message = resourceManager.getString(R.string.connection_account_not_supported_warning),
+                    positiveButtonText = resourceManager.getString(R.string.common_close),
+                    positiveClick = { walletConnectRouter.back() }
+                )
             }
             return@map null
         }
@@ -97,8 +108,6 @@ class SessionRequestViewModel @Inject constructor(
         .share()
 
     val state = requestWalletItemFlow.map { requestWallet ->
-        println("!!! SessionRequestViewModel sessions = $sessions")
-
         requestWallet?.let {
             SessionRequestViewState(
                 connectionUrl = recentSession.peerMetaData?.dappUrl,
@@ -114,18 +123,9 @@ class SessionRequestViewModel @Inject constructor(
     }
         .stateIn(this, SharingStarted.Eagerly, SessionRequestViewState.default)
 
-    init {
-        WCDelegate.walletEvents.onEach {
-            println("!!! SessionRequestViewModel WCDelegate.walletEvents: $it")
-        }.stateIn(this, SharingStarted.Eagerly, null)
-
-        println("!!! SessionRequestViewModel some WC: session.topic = ${sessions[0].topic}")
-        println("!!! SessionRequestViewModel some WC:         topic = $topic")
-    }
 
     private var isClosing = false
     override fun onClose() {
-        println("!!! SessionRequestViewModel onClose, isClosing = $isClosing")
         if (isClosing) return
 
         isClosing = true
@@ -141,7 +141,6 @@ class SessionRequestViewModel @Inject constructor(
 
             ),
             onSuccess = {
-                println("!!! Web3Wallet.respondSessionRequest onSuccess")
                 isClosing = false
 
                 viewModelScope.launch(Dispatchers.Main.immediate) {
@@ -150,22 +149,19 @@ class SessionRequestViewModel @Inject constructor(
             },
             onError = {
                 isClosing = false
-                println("!!! Web3Wallet.respondSessionRequest onError: ${it.throwable.message}")
-                it.throwable.printStackTrace()
 
                 viewModelScope.launch(Dispatchers.Main.immediate) {
-                    // TODO show error screen with popUp option and instruction message on what needs to be done to fix error
+                    showError(text = resourceManager.getString(R.string.common_try_again))
                 }
             }
         )
 
-        launch(Dispatchers.Main) {
-            walletConnectRouter.back()
-        }
+//        launch(Dispatchers.Main) {
+//            walletConnectRouter.back()
+//        }
     }
 
     override fun onPreviewClick() {
         walletConnectRouter.openRequestPreview(topic)
-        println("!!! SessionRequestViewModel onPreviewClick")
     }
 }

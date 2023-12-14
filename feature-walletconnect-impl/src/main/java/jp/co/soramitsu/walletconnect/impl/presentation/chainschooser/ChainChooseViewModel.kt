@@ -94,7 +94,6 @@ class ChainChooseViewModel @Inject constructor(
             val selectedChainIds = state.value.chains?.filter { it.isSelected }?.map { it.id }.orEmpty().toSet()
 
             val result = ChainChooseResult(selectedChainIds)
-            println("!!! ChainChooseViewModel onDoneClicked result list = ${selectedChainIds.joinToString { it }}")
 
             walletRouter.backWithResult(
                 ChainChooseFragment.RESULT to result
