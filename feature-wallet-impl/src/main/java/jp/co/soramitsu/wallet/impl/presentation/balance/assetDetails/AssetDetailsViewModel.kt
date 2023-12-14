@@ -1,6 +1,7 @@
 package jp.co.soramitsu.wallet.impl.presentation.balance.assetDetails
 
 import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.account.api.domain.interfaces.AssetBalanceUseCase
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -14,7 +15,6 @@ import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.utils.applyFiatRate
 import jp.co.soramitsu.common.utils.formatAsChange
 import jp.co.soramitsu.common.utils.formatCrypto
-import jp.co.soramitsu.common.utils.formatCryptoDetail
 import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.wallet.impl.domain.interfaces.AssetSorting
@@ -29,12 +29,15 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.zip
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import javax.inject.Inject
@@ -56,19 +59,36 @@ class AssetDetailsViewModel @Inject constructor(
         )
     }
 
+    private val cachedSelectedMetaAccount = interactor.selectedMetaAccountFlow()
+        .flowOn(Dispatchers.IO).share()
+
     private val cachedPerChainBalanceWithAssetFlow = assetIdFlow.flatMapLatest { assetId ->
         interactor.observeChainsPerAsset(assetId).also { valuesFlow ->
             launch {
+                val chainSelection = cachedSelectedMetaAccount.firstOrNull()?.id?.let {
+                    interactor.getSavedChainId(
+                        walletId = it
+                    )
+                }
                 val valuesAsList = valuesFlow.first().toList()
-                if (valuesAsList.size == 1) {
-                    val assetPayload = valuesAsList.first().run {
-                        AssetPayload(
-                            chainId = first.id,
-                            chainAssetId = assetId
-                        )
-                    }
 
-                    walletRouter.openAssetDetailsAndPopUpToBalancesList(assetPayload)
+                val assetPayload = AssetPayload(
+                    chainId = "",
+                    chainAssetId = assetId
+                )
+
+                val resultingAssetPayload = when {
+                    chainSelection != null ->
+                        assetPayload.copy(chainId = chainSelection)
+
+                    valuesAsList.size == 1 ->
+                        assetPayload.copy(chainId = valuesAsList.first().first.id)
+
+                    else -> null
+                }
+
+                resultingAssetPayload?.let {
+                    walletRouter.openAssetDetailsAndPopUpToBalancesList(it)
                 }
             }
         }
@@ -77,9 +97,7 @@ class AssetDetailsViewModel @Inject constructor(
     val toolbarState: StateFlow<LoadingState<MainToolbarViewState>> = createToolbarState()
 
     private fun createToolbarState(): StateFlow<LoadingState<MainToolbarViewState>> {
-        val selectedMetaAccountFlow = interactor.selectedMetaAccountFlow()
-
-        return selectedMetaAccountFlow.map { selectedMetaAccount ->
+        return cachedSelectedMetaAccount.map { selectedMetaAccount ->
             LoadingState.Loaded(
                 MainToolbarViewState(
                     title = selectedMetaAccount.name,
@@ -138,8 +156,7 @@ class AssetDetailsViewModel @Inject constructor(
                     transferableBalance = assetBalance.assetBalance.formatCrypto(assetBalance.assetSymbol),
                     changeViewState = ChangeBalanceViewState(
                         percentChange = assetBalance.rateChange?.formatAsChange().orEmpty(),
-                        fiatChange = assetBalance.fiatBalance.formatFiat(assetBalance.fiatSymbol),
-                        percentFiatChange = "(${assetBalance.fiatBalanceChange.formatFiat(assetBalance.fiatSymbol)})"
+                        fiatChange = assetBalance.fiatBalance.formatFiat(assetBalance.fiatSymbol)
                     ),
                     address = "" // implies invisible address state
                 )
