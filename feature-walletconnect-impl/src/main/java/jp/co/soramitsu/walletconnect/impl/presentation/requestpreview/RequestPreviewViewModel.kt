@@ -277,10 +277,10 @@ class RequestPreviewViewModel @Inject constructor(
         println("!!! RequestPreviewViewModel getEthSignTransactionResult = $ethSignTransactionMessage")
 
         val secrets = accountRepository.getMetaAccountSecrets(metaAccount.id) ?: error("There are no secrets for metaId: ${metaAccount.id}")
-        val keypairSchema = secrets[MetaAccountSecrets.SubstrateKeypair]
-        val privateKey = keypairSchema[KeyPairSchema.PrivateKey]
+        val keypairSchema = secrets[MetaAccountSecrets.EthereumKeypair]
+        val privateKey = keypairSchema?.get(KeyPairSchema.PrivateKey)
 
-        val cred = Credentials.create(privateKey.toHexString())
+        val cred = Credentials.create(privateKey?.toHexString())
 
         val from: String = JSONObject(ethSignTransactionMessage).getString("from")
         val to: String = JSONObject(ethSignTransactionMessage).getString("to")
