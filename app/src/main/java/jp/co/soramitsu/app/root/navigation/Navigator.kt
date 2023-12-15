@@ -1407,7 +1407,7 @@ class Navigator :
 
     override fun nftFiltersResultFlow(key: String): Flow<NftFilterModel> {
         val currentEntry = navController?.currentBackStackEntry
-        val onResumeObserver = currentEntry?.getLifecycle()?.onResumeObserver()
+        val onResumeObserver = currentEntry?.lifecycle?.onResumeObserver()
 
         return (onResumeObserver?.asFlow() ?: emptyFlow()).map {
             if (currentEntry?.savedStateHandle?.contains(key) == true) {

@@ -94,6 +94,9 @@ data class Chain(
         if (isTestNet != other.isTestNet) return false
         if (hasCrowdloans != other.hasCrowdloans) return false
         if (parentId != other.parentId) return false
+        if (supportStakingPool != other.supportStakingPool) return false
+        if (isEthereumChain != other.isEthereumChain) return false
+        if (supportNft != other.supportNft) return false
 
         // custom comparison logic
         val defaultNodes = nodes.filter { it.isDefault }
@@ -120,6 +123,9 @@ data class Chain(
         result = 31 * result + isTestNet.hashCode()
         result = 31 * result + hasCrowdloans.hashCode()
         result = 31 * result + (parentId?.hashCode() ?: 0)
+        result = 31 * result + supportStakingPool.hashCode()
+        result = 31 * result + isEthereumChain.hashCode()
+        result = 31 * result + supportNft.hashCode()
         return result
     }
 }
