@@ -58,6 +58,8 @@ dependencies {
     implementation(libs.gsonConverter)
     implementation(libs.scalarsConverter)
 
+    implementation(libs.compose.navigation)
+
     implementation(projects.common)
     implementation(projects.runtime)
     implementation(projects.featureNftApi)

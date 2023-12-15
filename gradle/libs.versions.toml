@@ -23,6 +23,7 @@ shimmer = "1.0.4"
 hilt = "1.0.0"
 retrofitVersion = "2.9.0"
 composeLifecycleVersion = "2.6.2"
+composeNavigationVersion = "2.7.0"
 
 [libraries]
 google-services = { module = "com.google.gms:google-services", version.ref = "googleServices" }
@@ -56,6 +57,7 @@ compose-animationGraphics = { module = "androidx.compose.animation:animation-gra
 compose-uiToolingPreview = { module = "androidx.compose.ui:ui-tooling-preview", version.ref = "compose" }
 compose-lifecycleViewModel = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "composeLifecycleVersion" }
 compose-runtimeLifecycle = { module = "androidx.lifecycle:lifecycle-runtime-compose", version.ref = "composeLifecycleVersion"}
+compose-navigation = { module = "androidx.navigation:navigation-compose", version.ref = "composeNavigationVersion" }
 
 fragmentKtx = { module = "androidx.fragment:fragment-ktx", version.ref = "fragmentKtx" }
 material = { module = "com.google.android.material:material", version.ref = "material" }
