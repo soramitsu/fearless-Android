@@ -25,10 +25,17 @@ import jp.co.soramitsu.common.data.secrets.v2.KeyPairSchema
 import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.inBackground
+import jp.co.soramitsu.core.crypto.mapCryptoTypeToEncryption
+import jp.co.soramitsu.core.extrinsic.ExtrinsicBuilderFactory
 import jp.co.soramitsu.core.extrinsic.ExtrinsicService
+import jp.co.soramitsu.core.extrinsic.keypair_provider.KeypairProvider
 import jp.co.soramitsu.runtime.ext.accountIdOf
+import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.shared_utils.encrypt.MultiChainEncryption
 import jp.co.soramitsu.shared_utils.encrypt.SignatureWrapper
+import jp.co.soramitsu.shared_utils.encrypt.Signer
+import jp.co.soramitsu.shared_utils.extensions.fromHex
 import jp.co.soramitsu.shared_utils.extensions.toHexString
 import jp.co.soramitsu.walletconnect.impl.presentation.address
 import jp.co.soramitsu.walletconnect.impl.presentation.caip2id
@@ -61,7 +68,10 @@ class RequestPreviewViewModel @Inject constructor(
     private val resourceManager: ResourceManager,
     private val accountRepository: AccountRepository,
     private val addressIconGenerator: AddressIconGenerator,
-    private val extrinsicService: ExtrinsicService
+    private val extrinsicService: ExtrinsicService,
+    private val chainRegistry: ChainRegistry,
+    private val extrinsicBuilderFactory: ExtrinsicBuilderFactory,
+    private val keypairProvider: KeypairProvider
 ) : RequestPreviewScreenInterface, BaseViewModel() {
 
     private val topic: String = savedStateHandle[RequestPreviewFragment.PAYLOAD_TOPIC_KEY] ?: error("No topic provided for request preview screen")
@@ -218,6 +228,14 @@ class RequestPreviewViewModel @Inject constructor(
             getEthSignTypedResult(metaAccount)
         }
 
+        WalletConnectMethod.PolkadotSignTransaction.method -> {
+            getPolkadotSignTransaction()
+        }
+
+        WalletConnectMethod.PolkadotSignMessage.method -> {
+            getPolkadotSignMessage(metaAccount)
+        }
+
         else -> {
             null
         }
@@ -282,6 +300,62 @@ class RequestPreviewViewModel @Inject constructor(
             privateKey,
             SignatureType.EIP191
         ).s
+    }
+
+    private suspend fun getPolkadotSignTransaction(): String {
+        val params = JSONObject(recentSession.request.params)
+
+        val signPayload = JSONObject(params.getString("transactionPayload"))
+        val address = signPayload.getString("address")
+        val genesisHash = signPayload.getString("genesisHash").drop(2)
+        val tip = signPayload.getString("tip").decodeNumericQuantity()
+
+        val chain = chainRegistry.getChain(genesisHash)
+        val accountId = chain.accountIdOf(address)
+
+        val keypair = keypairProvider.getKeypairFor(chain, accountId)
+        val cryptoType = keypairProvider.getCryptoTypeFor(chain, accountId)
+        val extrinsicBuilder = extrinsicBuilderFactory.create(chain, keypair, cryptoType, tip)
+
+        val signature = extrinsicBuilder.build()
+
+        return JSONObject().apply {
+            put("id", 0)
+            put("signature", signature)
+        }.toString()
+    }
+
+    private suspend fun getPolkadotSignMessage(metaAccount: MetaAccount): String {
+        val signPayload = JSONObject(recentSession.request.params)
+        val address = signPayload.getString("address")
+        val data = signPayload.getString("message")
+
+        val allChains = walletConnectInteractor.getChains()
+
+        val chain = allChains.first { chain -> chain.caip2id == recentSession.chainId }
+        val accountId = chain.accountIdOf(address)
+        val keypair = keypairProvider.getKeypairFor(chain, accountId)
+
+        val multiChainEncryption = if (chain.isEthereumBased) {
+            MultiChainEncryption.Ethereum
+        } else {
+            val cryptoType = keypairProvider.getCryptoTypeFor(chain, accountId)
+            val encryption = mapCryptoTypeToEncryption(cryptoType)
+            MultiChainEncryption.Substrate(encryption)
+        }
+
+        val dataAsByteArray = runCatching {
+            data.fromHex()
+        }.getOrElse {
+            data.encodeToByteArray()
+        }
+
+        val signature = Signer.sign(multiChainEncryption, dataAsByteArray, keypair)
+
+        return JSONObject().apply {
+            put("id", recentSession.request.id)
+            put("signature", signature.signature.toHexString(true))
+        }.toString()
     }
 
     override fun onTableItemClick(id: Int) {
