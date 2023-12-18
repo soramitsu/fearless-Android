@@ -1,4 +1,4 @@
-@Library('jenkins-library@duty/fl_cred')
+@Library('jenkins-library')
 
 // Job properties
 def jobParams = [
