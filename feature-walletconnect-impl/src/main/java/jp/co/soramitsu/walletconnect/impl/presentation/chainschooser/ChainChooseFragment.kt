@@ -1,6 +1,5 @@
 package jp.co.soramitsu.walletconnect.impl.presentation.chainschooser
 
-import android.content.DialogInterface
 import android.widget.FrameLayout
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
@@ -15,15 +14,6 @@ import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
 
 @AndroidEntryPoint
 class ChainChooseFragment : BaseComposeBottomSheetDialogFragment<ChainChooseViewModel>() {
-    companion object {
-        const val KEY_STATE_ID = "KEY_STATE_ID"
-        const val RESULT = "chain_chooser_result"
-
-        fun getBundle(state: ChainChooseState) = bundleOf(
-            KEY_STATE_ID to state
-        )
-    }
-
     override val viewModel: ChainChooseViewModel by viewModels()
 
     @Composable
@@ -38,14 +28,18 @@ class ChainChooseFragment : BaseComposeBottomSheetDialogFragment<ChainChooseView
         )
     }
 
-    override fun onDismiss(dialog: DialogInterface) {
-        super.onDismiss(dialog)
-        viewModel.onDialogClose()
-    }
-
     override fun setupBehavior(behavior: BottomSheetBehavior<FrameLayout>) {
         behavior.state = BottomSheetBehavior.STATE_EXPANDED
         behavior.isHideable = viewModel.state.value.isViewMode
         behavior.skipCollapsed = true
+    }
+
+    companion object {
+        const val KEY_STATE_ID = "KEY_STATE_ID"
+        const val RESULT = "chain_chooser_result"
+
+        fun getBundle(state: ChainChooseState) = bundleOf(
+            KEY_STATE_ID to state
+        )
     }
 }

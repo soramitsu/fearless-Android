@@ -48,8 +48,6 @@ import jp.co.soramitsu.common.compose.theme.alertYellow
 import jp.co.soramitsu.common.compose.theme.black2
 import jp.co.soramitsu.common.compose.theme.black4
 import jp.co.soramitsu.common.compose.theme.white50
-import jp.co.soramitsu.common.utils.withNoFontPadding
-
 
 data class ConnectionsScreenViewState(
     val items: List<SessionItemState>,
@@ -93,6 +91,7 @@ fun ConnectionsContent(
                 state.items.isEmpty() && state.searchQuery.isNullOrEmpty() -> {
                     Spacer(Modifier.weight(1f))
                 }
+
                 state.items.isEmpty() -> {
                     MarginVertical(margin = 16.dp)
                     Column(
@@ -158,10 +157,7 @@ fun EmptyResultContent() {
 }
 
 @Composable
-fun SessionItem(
-    state: SessionItemState,
-    onClicked: (SessionItemState) -> Unit
-) {
+fun SessionItem(state: SessionItemState, onClicked: (SessionItemState) -> Unit) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
@@ -221,7 +217,7 @@ private fun SelectChainScreenPreview() {
         )
     )
     val state = ConnectionsScreenViewState(
-        items = emptyList(),// items,
+        items = emptyList(), // items,
         searchQuery = null
     )
     Column(

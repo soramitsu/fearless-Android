@@ -8,7 +8,6 @@ import androidx.compose.runtime.getValue
 import androidx.core.os.bundleOf
 import androidx.fragment.app.viewModels
 import com.google.android.material.bottomsheet.BottomSheetBehavior
-import com.walletconnect.web3.wallet.client.Wallet
 import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
 

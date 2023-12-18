@@ -41,8 +41,6 @@ data class RequestPreviewViewState(
     val tableItems: List<TitleValueViewState>,
     val wallet: WalletItemViewState
 ) {
-
-
     companion object {
         val default = RequestPreviewViewState(
             chainIcon = GradientIconState.Local(R.drawable.ic_fearless_logo),
@@ -68,7 +66,6 @@ interface RequestPreviewScreenInterface {
 @Composable
 fun RequestPreviewContent(state: RequestPreviewViewState, callback: RequestPreviewScreenInterface) {
     BottomSheetScreen {
-
         Column(
             modifier = Modifier
                 .padding(horizontal = 16.dp)
@@ -109,9 +106,11 @@ fun RequestPreviewContent(state: RequestPreviewViewState, callback: RequestPrevi
                 )
                 MarginVertical(margin = 16.dp)
 
-                InfoTable(items = state.tableItems,
+                InfoTable(
+                    items = state.tableItems,
                     onItemClick = callback::onTableItemClick,
-                    onRowClick = callback::onTableRowClick)
+                    onRowClick = callback::onTableRowClick
+                )
             }
 
             Column(
@@ -154,7 +153,7 @@ private fun RequestPreviewPreview() {
         TitleValueViewState(
             "Transaction raw data",
             value = "",
-            clickState =  TitleValueViewState.ClickState.Value(R.drawable.ic_right_arrow_24_align_right, 1)
+            clickState = TitleValueViewState.ClickState.Value(R.drawable.ic_right_arrow_24_align_right, 1)
         )
     )
 

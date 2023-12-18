@@ -55,7 +55,6 @@ interface RawDataScreenInterface {
 @Composable
 fun RawDataContent(state: RawDataViewState, callback: RawDataScreenInterface) {
     BottomSheetScreen {
-
         Column(
             modifier = Modifier
                 .padding(horizontal = 16.dp)
@@ -91,7 +90,8 @@ fun RawDataContent(state: RawDataViewState, callback: RawDataScreenInterface) {
                                 interactionSource = remember { MutableInteractionSource() },
                                 contentPadding = PaddingValues(0.dp)
                             )
-                        })
+                        }
+                    )
                 }
             }
             Column(
@@ -117,8 +117,8 @@ fun RawDataContent(state: RawDataViewState, callback: RawDataScreenInterface) {
 
 @Preview
 @Composable
+@Suppress("MagicNumber")
 private fun RawDataPreview() {
-
     val state = RawDataViewState(
         rawData = LoremIpsum(20).values.joinToString(separator = " ") { it }
     )

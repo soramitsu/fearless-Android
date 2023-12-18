@@ -11,9 +11,6 @@ import com.walletconnect.web3.wallet.client.Wallet
 import com.walletconnect.web3.wallet.client.Web3Wallet
 import com.walletconnect.web3.wallet.utils.CacaoSigner
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.math.BigDecimal
-import java.math.BigInteger
-import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.address
@@ -28,7 +25,6 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.core.crypto.mapCryptoTypeToEncryption
 import jp.co.soramitsu.core.extrinsic.ExtrinsicBuilderFactory
-import jp.co.soramitsu.core.extrinsic.ExtrinsicService
 import jp.co.soramitsu.core.extrinsic.keypair_provider.KeypairProvider
 import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.runtime.ext.accountIdOf
@@ -62,6 +58,9 @@ import org.web3j.crypto.Sign
 import org.web3j.crypto.StructuredDataEncoder
 import org.web3j.crypto.TransactionEncoder
 import org.web3j.utils.Numeric
+import java.math.BigDecimal
+import java.math.BigInteger
+import javax.inject.Inject
 
 @HiltViewModel
 class RequestPreviewViewModel @Inject constructor(
@@ -71,7 +70,6 @@ class RequestPreviewViewModel @Inject constructor(
     private val resourceManager: ResourceManager,
     private val accountRepository: AccountRepository,
     private val addressIconGenerator: AddressIconGenerator,
-    private val extrinsicService: ExtrinsicService,
     private val chainRegistry: ChainRegistry,
     private val extrinsicBuilderFactory: ExtrinsicBuilderFactory,
     private val keypairProvider: KeypairProvider
@@ -250,7 +248,7 @@ class RequestPreviewViewModel @Inject constructor(
         }
 
         WalletConnectMethod.PolkadotSignMessage.method -> {
-            getPolkadotSignMessage(metaAccount)
+            getPolkadotSignMessage()
         }
 
         else -> {
@@ -332,12 +330,12 @@ class RequestPreviewViewModel @Inject constructor(
         val value: BigInteger? = JSONObject(ethSignTransactionMessage).getString("value").decodeNumericQuantity()
 
         val raw = RawTransaction.createTransaction(
-            /* nonce = */ nonce,
-            /* gasPrice = */ gasPrice,
-            /* gasLimit = */ gasLimit,
-            /* to = */ to,
-            /* value = */ value,
-            /* data = */ data.orEmpty()
+            nonce,
+            gasPrice,
+            gasLimit,
+            to,
+            value,
+            data.orEmpty()
         )
         val signed = TransactionEncoder.signMessage(raw, cred)
         return signed.toHexString(true)
@@ -378,7 +376,7 @@ class RequestPreviewViewModel @Inject constructor(
         }.toString()
     }
 
-    private suspend fun getPolkadotSignMessage(metaAccount: MetaAccount): String {
+    private suspend fun getPolkadotSignMessage(): String {
         val signPayload = JSONObject(recentSession.request.params)
         val address = signPayload.getString("address")
         val data = signPayload.getString("message")

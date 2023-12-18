@@ -1,6 +1,5 @@
 package jp.co.soramitsu.walletconnect.impl.presentation.requestpreview
 
-import android.content.DialogInterface
 import android.widget.FrameLayout
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
@@ -25,7 +24,6 @@ class RequestPreviewFragment : BaseComposeBottomSheetDialogFragment<RequestPrevi
             callback = viewModel
         )
     }
-
 
     override fun setupBehavior(behavior: BottomSheetBehavior<FrameLayout>) {
         behavior.state = BottomSheetBehavior.STATE_EXPANDED

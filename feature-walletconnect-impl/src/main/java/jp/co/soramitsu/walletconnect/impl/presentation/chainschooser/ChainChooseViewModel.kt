@@ -5,12 +5,9 @@ import androidx.lifecycle.viewModelScope
 import co.jp.soramitsu.walletconnect.model.ChainChooseResult
 import co.jp.soramitsu.walletconnect.model.ChainChooseState
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.common.base.BaseViewModel
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.wallet.impl.domain.ChainInteractor
-import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import jp.co.soramitsu.walletconnect.impl.presentation.caip2id
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,11 +16,11 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @HiltViewModel
 class ChainChooseViewModel @Inject constructor(
     private val walletRouter: WalletRouter,
-    private val walletInteractor: WalletInteractor,
     chainInteractor: ChainInteractor,
     savedStateHandle: SavedStateHandle,
     private val accountInteractor: AccountInteractor
@@ -99,8 +96,5 @@ class ChainChooseViewModel @Inject constructor(
                 ChainChooseFragment.RESULT to result
             )
         }
-    }
-
-    fun onDialogClose() {
     }
 }

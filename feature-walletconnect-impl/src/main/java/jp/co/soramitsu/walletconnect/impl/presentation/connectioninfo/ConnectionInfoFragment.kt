@@ -25,7 +25,6 @@ class ConnectionInfoFragment : BaseComposeBottomSheetDialogFragment<ConnectionIn
         )
     }
 
-
     override fun setupBehavior(behavior: BottomSheetBehavior<FrameLayout>) {
         behavior.state = BottomSheetBehavior.STATE_EXPANDED
         behavior.isHideable = true

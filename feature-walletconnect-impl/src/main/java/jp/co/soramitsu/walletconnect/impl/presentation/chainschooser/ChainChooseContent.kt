@@ -1,8 +1,6 @@
 package jp.co.soramitsu.walletconnect.impl.presentation.chainschooser
 
-import android.os.Parcelable
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,13 +14,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.rememberNestedScrollInteropConnection
@@ -45,19 +40,9 @@ import jp.co.soramitsu.common.compose.component.getImageRequest
 import jp.co.soramitsu.common.compose.theme.alertYellow
 import jp.co.soramitsu.common.compose.theme.black4
 import jp.co.soramitsu.common.compose.theme.colorAccentDark
-import jp.co.soramitsu.common.compose.theme.transparent
 import jp.co.soramitsu.common.compose.theme.white50
 import jp.co.soramitsu.common.utils.clickableWithNoIndication
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
-import kotlinx.android.parcel.Parcelize
-
-
-//@Parcelize
-//data class ChainChooseState(
-//    val items: List<String>,
-//    val selected: List<String>
-//) : Parcelable
 
 data class ChainSelectScreenViewState(
     val items: List<String>?,
@@ -190,10 +175,7 @@ fun EmptyResultContent() {
 }
 
 @Composable
-fun ChainItem(
-    state: ChainItemState,
-    onSelected: (ChainItemState?) -> Unit
-) {
+fun ChainItem(state: ChainItemState, onSelected: (ChainItemState?) -> Unit) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier

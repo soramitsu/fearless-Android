@@ -8,7 +8,6 @@ import co.jp.soramitsu.walletconnect.domain.WalletConnectRouter
 import com.walletconnect.web3.wallet.client.Wallet
 import com.walletconnect.web3.wallet.client.Web3Wallet
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.interfaces.TotalBalanceUseCase
 import jp.co.soramitsu.account.api.domain.model.address
@@ -32,6 +31,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @HiltViewModel
 class SessionRequestViewModel @Inject constructor(
@@ -116,13 +116,11 @@ class SessionRequestViewModel @Inject constructor(
                     subtitle = recentSession.request.message,
                     singleLine = true
                 ),
-
                 wallet = it
             )
         } ?: SessionRequestViewState.default
     }
         .stateIn(this, SharingStarted.Eagerly, SessionRequestViewState.default)
-
 
     private var isClosing = false
     override fun onClose() {
@@ -138,7 +136,6 @@ class SessionRequestViewModel @Inject constructor(
                     code = 4001,
                     message = "User rejected request"
                 )
-
             ),
             onSuccess = {
                 isClosing = false

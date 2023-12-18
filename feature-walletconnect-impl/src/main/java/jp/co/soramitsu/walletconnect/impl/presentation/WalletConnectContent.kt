@@ -67,7 +67,6 @@ interface WalletConnectScreenInterface {
 @Composable
 fun WalletConnectContent(state: WalletConnectViewState, callback: WalletConnectScreenInterface) {
     BottomSheetScreen {
-
         Column(modifier = Modifier.nestedScroll(rememberNestedScrollInteropConnection())) {
             Toolbar(
                 state = ToolbarViewState(

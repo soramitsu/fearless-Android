@@ -4,12 +4,12 @@ import androidx.core.net.toUri
 import com.walletconnect.android.Core
 import com.walletconnect.web3.wallet.client.Wallet
 import io.ipfs.multibase.CharEncoding
-import java.nio.charset.Charset
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.shared_utils.extensions.fromHex
 import jp.co.soramitsu.walletconnect.impl.presentation.state.WalletConnectMethod
 import org.json.JSONArray
 import org.json.JSONObject
+import java.nio.charset.Charset
 
 enum class Caip2Namespace(val value: String) {
     EIP155("eip155"),
@@ -17,6 +17,7 @@ enum class Caip2Namespace(val value: String) {
 }
 
 // https://github.com/ChainAgnostic/CAIPs/blob/master/CAIPs/caip-2.md#syntax
+@Suppress("MagicNumber")
 val Chain.caip2id: String
     get() {
         val namespace = if (isEthereumChain) Caip2Namespace.EIP155 else Caip2Namespace.POLKADOT
@@ -37,7 +38,7 @@ val Wallet.Model.SessionRequest.JSONRPCRequest.message: String
         WalletConnectMethod.EthereumSignTypedDataV4.method -> JSONArray(params).get(1).toString()
         WalletConnectMethod.EthereumPersonalSign.method -> JSONArray(params).get(0).toString().fromHex().toString(Charset.forName(CharEncoding.UTF_8))
         WalletConnectMethod.EthereumSign.method -> JSONArray(params).get(1).toString().fromHex().toString(Charset.forName(CharEncoding.UTF_8))
-        else -> "${method}'s params: $params"
+        else -> "$method's params: $params"
     }
 
 val Wallet.Model.SessionRequest.JSONRPCRequest.address: String?
@@ -51,4 +52,4 @@ val Wallet.Model.SessionRequest.JSONRPCRequest.address: String?
         WalletConnectMethod.EthereumSignTypedDataV4.method -> JSONArray(params).get(0)
         WalletConnectMethod.EthereumSign.method -> JSONArray(params).get(0)
         else -> null
-    } as String?
+    } as? String

@@ -54,7 +54,6 @@ data class SessionRequestViewState(
     val wallet: WalletItemViewState
 ) {
 
-
     companion object {
         val default = SessionRequestViewState(
             message = InfoItemViewState.default,
@@ -77,7 +76,6 @@ interface SessionRequestScreenInterface {
 @Composable
 fun SessionRequestContent(state: SessionRequestViewState, callback: SessionRequestScreenInterface) {
     BottomSheetScreen {
-
         Column(
             modifier = Modifier
                 .padding(horizontal = 16.dp)
@@ -108,7 +106,6 @@ fun SessionRequestContent(state: SessionRequestViewState, callback: SessionReque
                     .verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-
                 GradientIcon(
                     modifier = Modifier.align(Alignment.CenterHorizontally),
                     iconRes = R.drawable.ic_fearless_logo,

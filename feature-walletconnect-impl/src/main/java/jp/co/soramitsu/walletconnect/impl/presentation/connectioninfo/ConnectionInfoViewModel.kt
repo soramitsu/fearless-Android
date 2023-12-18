@@ -8,7 +8,6 @@ import co.jp.soramitsu.walletconnect.domain.WalletConnectRouter
 import com.walletconnect.web3.wallet.client.Wallet
 import com.walletconnect.web3.wallet.client.Web3Wallet
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.TotalBalance
 import jp.co.soramitsu.account.api.domain.model.address
@@ -33,6 +32,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @HiltViewModel
 class ConnectionInfoViewModel @Inject constructor(
@@ -61,7 +61,6 @@ class ConnectionInfoViewModel @Inject constructor(
                 percentChange = balanceModel.rateChange?.formatAsChange().orEmpty(),
                 fiatChange = balanceModel.balanceChange.abs().formatFiat(balanceModel.fiatSymbol)
             )
-
         )
     }
         .inBackground()
@@ -115,6 +114,7 @@ class ConnectionInfoViewModel @Inject constructor(
         }
         val sessionWalletItems = walletItems.filter { it.id in sessionWalletsIds }
 
+        @Suppress("MagicNumber")
         val expireDate = resourceManager.formatDate(session.expiry * 1000)
 
         val sessionState = InfoItemViewState(

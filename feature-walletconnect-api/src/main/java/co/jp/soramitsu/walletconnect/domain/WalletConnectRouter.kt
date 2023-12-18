@@ -9,10 +9,24 @@ interface WalletConnectRouter {
 
     fun openOperationSuccess(operationHash: String?, chainId: ChainId?)
 
-    fun openOperationSuccess(operationHash: String?, chainId: ChainId?, customMessage: String?)
+    fun openOperationSuccess(
+        operationHash: String?,
+        chainId: ChainId?,
+        customMessage: String?
+    )
 
-    fun openOperationSuccessAndPopUpToNearestRelatedScreen(operationHash: String?, chainId: ChainId?, customMessage: String?)
-    fun openSelectMultipleChains(items: List<String>, selected: List<String>, isViewMode: Boolean = false)
+    fun openOperationSuccessAndPopUpToNearestRelatedScreen(
+        operationHash: String?,
+        chainId: ChainId?,
+        customMessage: String?
+    )
+
+    fun openSelectMultipleChains(
+        items: List<String>,
+        selected: List<String>,
+        isViewMode: Boolean = false
+    )
+
     fun openSelectMultipleChainsForResult(items: List<String>, selected: List<String>): Flow<ChainChooseResult>
 
     fun openRequestPreview(topic: String)

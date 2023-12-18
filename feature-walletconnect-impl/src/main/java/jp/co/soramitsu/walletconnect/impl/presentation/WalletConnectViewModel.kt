@@ -1,6 +1,5 @@
 package jp.co.soramitsu.walletconnect.impl.presentation
 
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import co.jp.soramitsu.feature_walletconnect_impl.R
 import co.jp.soramitsu.walletconnect.domain.WalletConnectInteractor
@@ -9,7 +8,6 @@ import co.jp.soramitsu.walletconnect.model.ChainChooseResult
 import com.walletconnect.web3.wallet.client.Wallet
 import com.walletconnect.web3.wallet.client.Web3Wallet
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.TotalBalance
 import jp.co.soramitsu.account.api.domain.model.address
@@ -38,18 +36,18 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @HiltViewModel
 class WalletConnectViewModel @Inject constructor(
     accountListingMixin: AccountListingMixin,
-    savedStateHandle: SavedStateHandle,
     private val walletConnectInteractor: WalletConnectInteractor,
     private val walletConnectRouter: WalletConnectRouter,
     private val resourceManager: ResourceManager,
     private val accountRepository: AccountRepository
 ) : WalletConnectScreenInterface, BaseViewModel() {
 
-    private val pairingTopic: String? = savedStateHandle[WalletConnectFragment.PAIRING_TOPIC_KEY]
+    //    private val pairingTopic: String? = savedStateHandle[WalletConnectFragment.PAIRING_TOPIC_KEY]
     private val proposal: Wallet.Model.SessionProposal = WCDelegate.sessionProposalEvent?.first ?: error("No proposal provided")
 
     private val selectedOptionalNetworkIds = MutableStateFlow<Set<String>>(emptySet())
@@ -279,7 +277,6 @@ class WalletConnectViewModel @Inject constructor(
                     events = (required.value.events + optional?.events.orEmpty()).distinct(),
                     methods = (required.value.methods + optional?.methods.orEmpty()).distinct()
                 )
-
             } + optionalSessionNamespaces.filter { it.key !in requiredSessionNamespaces.keys }
 
             Web3Wallet.approveSession(
@@ -332,7 +329,8 @@ class WalletConnectViewModel @Inject constructor(
                         )
                     }
                 },
-                onError = {})
+                onError = {}
+            )
         }
     }
 

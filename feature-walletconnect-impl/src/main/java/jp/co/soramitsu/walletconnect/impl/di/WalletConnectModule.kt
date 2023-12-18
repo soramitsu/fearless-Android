@@ -6,7 +6,6 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
-import jp.co.soramitsu.runtime.multiNetwork.connection.EthereumConnectionPool
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.EthereumRemoteSource
 import jp.co.soramitsu.walletconnect.impl.presentation.WalletConnectInteractorImpl
 
@@ -21,5 +20,4 @@ class WalletConnectModule {
         chainsRepository,
         ethereumSource
     )
-
 }

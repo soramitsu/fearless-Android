@@ -30,6 +30,7 @@ class ConnectionsFragment : BaseComposeBottomSheetDialogFragment<ConnectionsView
             viewModel.qrCodeScanned(it)
         }
     }
+
     @Composable
     override fun Content(padding: PaddingValues) {
         val state by viewModel.state.collectAsState()

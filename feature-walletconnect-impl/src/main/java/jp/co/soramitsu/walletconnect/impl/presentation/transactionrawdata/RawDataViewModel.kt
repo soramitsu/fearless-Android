@@ -3,7 +3,6 @@ package jp.co.soramitsu.walletconnect.impl.presentation.transactionrawdata
 import androidx.lifecycle.SavedStateHandle
 import co.jp.soramitsu.walletconnect.domain.WalletConnectRouter
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -11,6 +10,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import org.json.JSONObject
+import javax.inject.Inject
 
 @HiltViewModel
 class RawDataViewModel @Inject constructor(
