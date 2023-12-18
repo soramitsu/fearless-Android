@@ -26,6 +26,7 @@ android {
 
 dependencies {
     implementation(projects.runtime)
+    implementation(projects.featureWalletApi)
     implementation(libs.hilt.android)
     kapt(libs.hilt.compiler)
     implementation(libs.bundles.compose)

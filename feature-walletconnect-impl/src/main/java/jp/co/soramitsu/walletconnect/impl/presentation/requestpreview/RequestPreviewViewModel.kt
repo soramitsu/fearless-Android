@@ -11,6 +11,7 @@ import com.walletconnect.web3.wallet.client.Wallet
 import com.walletconnect.web3.wallet.client.Web3Wallet
 import com.walletconnect.web3.wallet.utils.CacaoSigner
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.math.BigDecimal
 import java.math.BigInteger
 import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
@@ -29,6 +30,7 @@ import jp.co.soramitsu.core.crypto.mapCryptoTypeToEncryption
 import jp.co.soramitsu.core.extrinsic.ExtrinsicBuilderFactory
 import jp.co.soramitsu.core.extrinsic.ExtrinsicService
 import jp.co.soramitsu.core.extrinsic.keypair_provider.KeypairProvider
+import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
@@ -37,6 +39,7 @@ import jp.co.soramitsu.shared_utils.encrypt.SignatureWrapper
 import jp.co.soramitsu.shared_utils.encrypt.Signer
 import jp.co.soramitsu.shared_utils.extensions.fromHex
 import jp.co.soramitsu.shared_utils.extensions.toHexString
+import jp.co.soramitsu.wallet.impl.domain.model.Transfer
 import jp.co.soramitsu.walletconnect.impl.presentation.address
 import jp.co.soramitsu.walletconnect.impl.presentation.caip2id
 import jp.co.soramitsu.walletconnect.impl.presentation.dappUrl
@@ -193,10 +196,20 @@ class RequestPreviewViewModel @Inject constructor(
                 ),
                 onSuccess = {
                     viewModelScope.launch(Dispatchers.Main.immediate) {
+                        val operationHash = signResult.takeIf {
+                            recentSession.request.method == WalletConnectMethod.EthereumSendTransaction.method
+                        }
+                        val chainId = chain.id.takeIf {
+                            recentSession.request.method == WalletConnectMethod.EthereumSendTransaction.method
+                        }
+                        val customMessage = resourceManager.getString(R.string.connection_approve_success_message).takeIf {
+                            recentSession.request.method != WalletConnectMethod.EthereumSendTransaction.method
+                        }
+
                         walletConnectRouter.openOperationSuccessAndPopUpToNearestRelatedScreen(
-                            null,
-                            null,
-                            resourceManager.getString(R.string.connection_approve_success_message)
+                            operationHash = operationHash,
+                            chainId = chainId,
+                            customMessage = customMessage
                         )
                     }
                 },
@@ -221,6 +234,10 @@ class RequestPreviewViewModel @Inject constructor(
 
         WalletConnectMethod.EthereumSignTransaction.method -> {
             getEthSignTransactionResult(metaAccount)
+        }
+
+        WalletConnectMethod.EthereumSendTransaction.method -> {
+            getEthSendTransactionResult(metaAccount)
         }
 
         WalletConnectMethod.EthereumSignTypedData.method,
@@ -259,6 +276,42 @@ class RequestPreviewViewModel @Inject constructor(
         val signatureWrapper = SignatureWrapper.Ecdsa(signatureData.v, signatureData.r, signatureData.s)
 
         return signatureWrapper.signature.toHexString(true)
+    }
+
+    private suspend fun getEthSendTransactionResult(metaAccount: MetaAccount): String {
+        val chain = requestChainFlow.value ?: error("No chain")
+        val secrets = accountRepository.getMetaAccountSecrets(metaAccount.id) ?: error("There are no secrets for metaId: ${metaAccount.id}")
+        val keypairSchema = secrets[MetaAccountSecrets.EthereumKeypair]
+        val privateKey = keypairSchema?.get(KeyPairSchema.PrivateKey)?.toHexString(true) ?: error("No credentials")
+
+        val ethSignTransactionMessage = recentSession.request.message
+
+        val from: String = JSONObject(ethSignTransactionMessage).getString("from")
+        val to: String = JSONObject(ethSignTransactionMessage).getString("to")
+        val data: String? = JSONObject(ethSignTransactionMessage).getString("data")
+        val nonce: BigInteger? = JSONObject(ethSignTransactionMessage).getString("nonce").decodeNumericQuantity()
+        val gasPrice: BigInteger? = JSONObject(ethSignTransactionMessage).getString("gasPrice").decodeNumericQuantity()
+        val gasLimit: BigInteger? = JSONObject(ethSignTransactionMessage).getString("gasLimit").decodeNumericQuantity()
+        val value: BigInteger? = JSONObject(ethSignTransactionMessage).getString("value").decodeNumericQuantity()
+
+        val transfer = Transfer(
+            sender = from,
+            recipient = to,
+            amount = BigDecimal.ZERO,
+            chainAsset = chain.utilityAsset!!
+        )
+
+        val transferResult = walletConnectInteractor.performTransfer(
+            chain = chain,
+            transfer = transfer,
+            privateKey = privateKey
+        )
+
+        transferResult.exceptionOrNull()?.let {
+            showError(it.message.orEmpty())
+        }
+
+        return transferResult.getOrNull().orEmpty()
     }
 
     private suspend fun getEthSignTransactionResult(metaAccount: MetaAccount): String {

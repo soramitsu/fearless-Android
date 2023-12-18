@@ -31,11 +31,11 @@ val Wallet.Model.SessionRequest.JSONRPCRequest.message: String
     get() = when (method) {
         WalletConnectMethod.PolkadotSignMessage.method -> JSONObject(params).get("message").toString()
         WalletConnectMethod.PolkadotSignTransaction.method -> JSONObject(params).get("transactionPayload").toString()
-        WalletConnectMethod.EthereumPersonalSign.method -> JSONArray(params).get(0).toString().fromHex().toString(Charset.forName(CharEncoding.UTF_8))
+        WalletConnectMethod.EthereumSendTransaction.method -> JSONArray(params).get(0).toString()
         WalletConnectMethod.EthereumSignTransaction.method -> JSONArray(params).get(0).toString()
         WalletConnectMethod.EthereumSignTypedData.method -> JSONArray(params).get(1).toString()
         WalletConnectMethod.EthereumSignTypedDataV4.method -> JSONArray(params).get(1).toString()
-        WalletConnectMethod.EthereumSendTransaction.method -> JSONArray(params).get(1).toString() //insufficient funds check
+        WalletConnectMethod.EthereumPersonalSign.method -> JSONArray(params).get(0).toString().fromHex().toString(Charset.forName(CharEncoding.UTF_8))
         WalletConnectMethod.EthereumSign.method -> JSONArray(params).get(1).toString().fromHex().toString(Charset.forName(CharEncoding.UTF_8))
         else -> "${method}'s params: $params"
     }
@@ -46,6 +46,7 @@ val Wallet.Model.SessionRequest.JSONRPCRequest.address: String?
         WalletConnectMethod.PolkadotSignTransaction.method -> JSONObject(params).get("address")
         WalletConnectMethod.EthereumPersonalSign.method -> JSONArray(params).get(1)
         WalletConnectMethod.EthereumSignTransaction.method -> (JSONArray(params).get(0) as? JSONObject)?.get("from")
+        WalletConnectMethod.EthereumSendTransaction.method -> (JSONArray(params).get(0) as? JSONObject)?.get("from")
         WalletConnectMethod.EthereumSignTypedData.method -> JSONArray(params).get(0)
         WalletConnectMethod.EthereumSignTypedDataV4.method -> JSONArray(params).get(0)
         WalletConnectMethod.EthereumSign.method -> JSONArray(params).get(0)

@@ -22,10 +22,8 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -77,9 +75,7 @@ class SuccessViewModel @Inject constructor(
                 explorerItem.type to url
             }
         }
-    }.onStart {
-        emit(Pair(Chain.Explorer.Type.UNKNOWN, ""))
-    }
+    }.stateIn(this, SharingStarted.Eagerly, Pair(Chain.Explorer.Type.UNKNOWN, ""))
 
     val state: StateFlow<SuccessViewState> = explorerPairFlow.map { explorer ->
         SuccessViewState(
@@ -116,7 +112,7 @@ class SuccessViewModel @Inject constructor(
 
     override fun onExplorerClick() {
         launch {
-            explorerPairFlow.first()?.let { (_, url) ->
+            explorerPairFlow.value?.let { (_, url) ->
                 openUrl(url)
             }
         }
@@ -124,7 +120,7 @@ class SuccessViewModel @Inject constructor(
 
     override fun onShareClick() {
         launch {
-            explorerPairFlow.first()?.let { (_, url) ->
+            explorerPairFlow.value?.let { (_, url) ->
                 _shareUrlEvent.value = Event(url)
             }
         }
