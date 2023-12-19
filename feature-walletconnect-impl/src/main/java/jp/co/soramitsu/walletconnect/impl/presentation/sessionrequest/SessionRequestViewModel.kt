@@ -152,10 +152,6 @@ class SessionRequestViewModel @Inject constructor(
                 }
             }
         )
-
-//        launch(Dispatchers.Main) {
-//            walletConnectRouter.back()
-//        }
     }
 
     override fun onPreviewClick() {

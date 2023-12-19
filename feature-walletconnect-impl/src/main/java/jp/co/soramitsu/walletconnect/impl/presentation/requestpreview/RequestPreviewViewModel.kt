@@ -200,14 +200,11 @@ class RequestPreviewViewModel @Inject constructor(
                         val chainId = chain.id.takeIf {
                             recentSession.request.method == WalletConnectMethod.EthereumSendTransaction.method
                         }
-                        val customMessage = resourceManager.getString(R.string.connection_approve_success_message).takeIf {
-                            recentSession.request.method != WalletConnectMethod.EthereumSendTransaction.method
-                        }
 
                         walletConnectRouter.openOperationSuccessAndPopUpToNearestRelatedScreen(
                             operationHash = operationHash,
                             chainId = chainId,
-                            customMessage = customMessage
+                            customMessage = null
                         )
                     }
                 },
