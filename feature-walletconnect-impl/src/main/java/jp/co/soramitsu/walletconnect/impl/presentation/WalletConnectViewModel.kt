@@ -296,13 +296,15 @@ class WalletConnectViewModel @Inject constructor(
                     WCDelegate.refreshConnections()
                 },
                 onError = {
-                    showError(
-                        title = resourceManager.getString(R.string.common_error_general_title),
-                        message = it.throwable.message.orEmpty(),
-                        positiveButtonText = resourceManager.getString(R.string.common_close),
-                        positiveClick = ::rejectSessionSilent,
-                        onBackClick = ::rejectSessionSilent
-                    )
+                    launch(Dispatchers.Main.immediate) {
+                        showError(
+                            title = resourceManager.getString(R.string.common_error_general_title),
+                            message = it.throwable.message.orEmpty(),
+                            positiveButtonText = resourceManager.getString(R.string.common_close),
+                            positiveClick = ::rejectSessionSilent,
+                            onBackClick = ::rejectSessionSilent
+                        )
+                    }
                 }
             )
         }
