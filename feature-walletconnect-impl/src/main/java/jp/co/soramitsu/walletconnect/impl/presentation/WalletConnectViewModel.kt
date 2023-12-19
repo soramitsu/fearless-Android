@@ -188,7 +188,7 @@ class WalletConnectViewModel @Inject constructor(
     }
 
     override fun onClose() {
-        launch(Dispatchers.Main) {
+        viewModelScope.launch(Dispatchers.Main) {
             walletConnectRouter.back()
         }
     }
@@ -296,7 +296,7 @@ class WalletConnectViewModel @Inject constructor(
                     WCDelegate.refreshConnections()
                 },
                 onError = {
-                    launch(Dispatchers.Main.immediate) {
+                    viewModelScope.launch(Dispatchers.Main.immediate) {
                         showError(
                             title = resourceManager.getString(R.string.common_error_general_title),
                             message = it.throwable.message.orEmpty(),

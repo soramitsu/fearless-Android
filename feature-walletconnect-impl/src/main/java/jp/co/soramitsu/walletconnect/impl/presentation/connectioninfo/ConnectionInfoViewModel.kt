@@ -153,7 +153,7 @@ class ConnectionInfoViewModel @Inject constructor(
                 }
             },
             onError = {
-                launch(Dispatchers.Main.immediate) {
+                viewModelScope.launch(Dispatchers.Main.immediate) {
                     showError(text = resourceManager.getString(R.string.common_try_again))
                 }
             }
