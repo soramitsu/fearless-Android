@@ -153,7 +153,11 @@
   <string name="common_and">和</string>
   <string name="common_applied">已应用</string>
   <string name="common_apply">应用</string>
+  <string name="common_assets_filters_fiat">法币余额</string>
+  <string name="common_assets_filters_name">名称</string>
+  <string name="common_assets_filters_popularity">人气</string>
   <string name="common_available_format">可用：%s</string>
+  <string name="common_available_networks">可用网络</string>
   <string name="common_backup_your_wallet">备份你的钱包</string>
   <string name="common_balance">余额</string>
   <string name="common_balance_format">余额：%s</string>
@@ -225,8 +229,10 @@
   <string name="common_max">最大</string>
   <string name="common_min_received">最小接收量</string>
   <string name="common_module">模块</string>
+  <string name="common_my_networks">我的网络</string>
   <string name="common_network">网络</string>
   <string name="common_network_fee">网络费用</string>
+  <string name="common_network_management">网络管理</string>
   <string name="common_next">下一个</string>
   <string name="common_no">否</string>
   <string name="common_no_screenshot_message">请勿截屏，这可能会被第三方恶意软件收集。</string>
@@ -463,6 +469,9 @@
   <string name="network_issue_stub">网络问题</string>
   <string name="network_issue_unavailable">网络不可用，您可以等待或请求社区支持。</string>
   <string name="network_issues_resolve_option_title">解决方案</string>
+  <string name="network_management_all">全部</string>
+  <string name="network_management_popular">受欢迎的</string>
+  <string name="network_managment_favourite">收藏</string>
   <string name="network_status_connected">已连接</string>
   <string name="network_status_connecting">正在连接...</string>
   <string name="network_url_address">URL地址</string>

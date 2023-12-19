@@ -153,6 +153,9 @@
   <string name="common_and">và</string>
   <string name="common_applied">Đã áp dụng</string>
   <string name="common_apply">Áp dụng</string>
+  <string name="common_assets_filters_fiat">Số dư tiền pháp định</string>
+  <string name="common_assets_filters_name">Tên</string>
+  <string name="common_assets_filters_popularity">Phổ biến</string>
   <string name="common_available_format">Có sẵn: %s</string>
   <string name="common_backup_your_wallet">Sao lưu ví của bạn</string>
   <string name="common_balance">Số dư</string>
@@ -227,6 +230,7 @@
   <string name="common_module">Module</string>
   <string name="common_network">Mạng</string>
   <string name="common_network_fee">Phí mạng</string>
+  <string name="common_network_management">Quản lý mạng</string>
   <string name="common_next">Kế tiếp</string>
   <string name="common_no">Không</string>
   <string name="common_no_screenshot_message">Không chụp ảnh màn hình vì có thể bị phần mềm độc hại của bên thứ ba thu thập</string>
@@ -463,6 +467,8 @@
   <string name="network_issue_stub">Sự cố mạng</string>
   <string name="network_issue_unavailable">Mạng không khả dụng, bạn có thể đợi hoặc đặt câu hỏi cho cộng đồng</string>
   <string name="network_issues_resolve_option_title">Tùy chọn giải quyết</string>
+  <string name="network_management_all">Tất cả</string>
+  <string name="network_management_popular">Phổ biến</string>
   <string name="network_status_connected">Đã kết nối</string>
   <string name="network_status_connecting">Đang kết nối...</string>
   <string name="network_url_address">Địa chỉ URL</string>

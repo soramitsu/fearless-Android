@@ -153,6 +153,9 @@
   <string name="common_and">E</string>
   <string name="common_applied">Aplicado</string>
   <string name="common_apply">Aplicar</string>
+  <string name="common_assets_filters_fiat">Saldo Fiat</string>
+  <string name="common_assets_filters_name">Nome</string>
+  <string name="common_assets_filters_popularity">Popularidade</string>
   <string name="common_available_format">Disponível: %s</string>
   <string name="common_backup_your_wallet">Faça backup da sua carteira</string>
   <string name="common_balance">Saldo</string>
@@ -229,6 +232,7 @@
   <string name="common_module">Módulo</string>
   <string name="common_network">Rede</string>
   <string name="common_network_fee">Taxa de rede</string>
+  <string name="common_network_management">Gerência de rede</string>
   <string name="common_next">Próximo</string>
   <string name="common_no">Não</string>
   <string name="common_no_screenshot_message">Não faça capturas de tela, que podem ser coletadas por malware de terceiros</string>
@@ -465,6 +469,9 @@
   <string name="network_issue_stub">Problemas de rede</string>
   <string name="network_issue_unavailable">A rede não está disponível, você pode aguardar ou solicitar suporte da comunidade</string>
   <string name="network_issues_resolve_option_title">Opção de resolução</string>
+  <string name="network_management_all">Todos</string>
+  <string name="network_management_popular">Popular</string>
+  <string name="network_managment_favourite">Favorito</string>
   <string name="network_status_connected">Conectado</string>
   <string name="network_status_connecting">Conectando...</string>
   <string name="network_url_address">Endereço URL</string>
