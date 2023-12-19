@@ -46,9 +46,17 @@ import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.common.utils.orZero
+import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.feature_wallet_impl.R
+import jp.co.soramitsu.nft.impl.domain.NftInteractor
+import jp.co.soramitsu.nft.impl.presentation.NftRouter
+import jp.co.soramitsu.nft.impl.presentation.filters.NftFilter
+import jp.co.soramitsu.nft.impl.presentation.filters.NftFilterModel
+import jp.co.soramitsu.nft.impl.presentation.filters.NftFiltersFragment
+import jp.co.soramitsu.nft.impl.presentation.list.NftCollectionListItem
+import jp.co.soramitsu.nft.impl.presentation.list.NftScreenState
 import jp.co.soramitsu.oauth.base.sdk.contract.SoraCardCommonVerification
 import jp.co.soramitsu.oauth.base.sdk.contract.SoraCardContractData
 import jp.co.soramitsu.oauth.common.domain.KycRepository
@@ -79,16 +87,20 @@ import jp.co.soramitsu.wallet.impl.presentation.balance.list.model.toAssetState
 import jp.co.soramitsu.wallet.impl.presentation.model.ControllerDeprecationWarningModel
 import jp.co.soramitsu.wallet.impl.presentation.model.toModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
@@ -116,7 +128,9 @@ class BalanceListViewModel @Inject constructor(
     private val currentAccountAddress: CurrentAccountAddressUseCase,
     private val kycRepository: KycRepository,
     private val getTotalBalance: TotalBalanceUseCase,
-    private val pendulumPreInstalledAccountsScenario: PendulumPreInstalledAccountsScenario
+    private val pendulumPreInstalledAccountsScenario: PendulumPreInstalledAccountsScenario,
+    private val nftInteractor: NftInteractor,
+    private val nftRouter: NftRouter
 ) : BaseViewModel(), UpdatesProviderUi by updatesMixin, NetworkStateUi by networkStateMixin,
     WalletScreenInterface {
 
@@ -227,6 +241,31 @@ class BalanceListViewModel @Inject constructor(
         assetStates
     }.onStart { emit(buildInitialAssetsList().toMutableList()) }.inBackground().share()
 
+    private val defaultFiltersState =
+        NftFilterModel(mapOf(NftFilter.Spam to true, NftFilter.Airdrops to false))
+
+    private val filtersFlow = nftRouter.nftFiltersResultFlow(NftFiltersFragment.KEY_RESULT)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, defaultFiltersState)
+
+    private val nftState: MutableStateFlow<NftScreenState> =
+        MutableStateFlow(NftScreenState(true, NftScreenState.ListState.Loading))
+
+    private val assetTypeState = combine(
+        assetTypeSelectorState,
+        assetStates,
+        nftState
+    ) { selectorState, assetStates, nftState ->
+        when (selectorState.currentSelection) {
+            AssetType.Currencies -> {
+                WalletAssetsState.Assets(assetStates)
+            }
+
+            AssetType.NFTs -> {
+                WalletAssetsState.NftAssets(nftState)
+            }
+        }
+    }
+
     private fun observeFiatSymbolChange() {
         combine(
             selectedFiat.flow(),
@@ -302,8 +341,8 @@ class BalanceListViewModel @Inject constructor(
     val state = MutableStateFlow(WalletState.default)
 
     private fun subscribeScreenState() {
-        assetStates.onEach {
-            state.value = state.value.copy(assets = it)
+        assetTypeState.onEach {
+            state.value = state.value.copy(assetsState = it)
         }.launchIn(this)
 
         assetTypeSelectorState.onEach {
@@ -321,9 +360,80 @@ class BalanceListViewModel @Inject constructor(
         showNetworkIssues.onEach {
             state.value = state.value.copy(hasNetworkIssues = it)
         }.launchIn(this)
+
         subscribeTotalBalance()
+        subscribeNft()
     }
 
+    @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
+    private fun subscribeNft() {
+        val accountFlow = currentMetaAccountFlow.onEach {
+            nftState.value = nftState.value.copy(listState = NftScreenState.ListState.Loading)
+        }
+        val pullToRefreshFlow = BalanceUpdateTrigger.observe().onEach {
+            nftState.value = nftState.value.copy(listState = NftScreenState.ListState.Loading)
+        }.onStart { emit(null) }
+        combine(
+            selectedChainId,
+            filtersFlow,
+            accountFlow,
+            pullToRefreshFlow
+        ) { selectedChainId, filtersModel, selectedMetaAccount, _ ->
+            val filters = filtersModel.items.entries.filter { it.value }.map { it.key }
+
+            Triple(selectedChainId, filters, selectedMetaAccount)
+        }
+            .debounce(200)
+            .mapLatest { (selectedChainId, filters, selectedMetaAccount) ->
+                val hasAnyFiltersChecked = filters.isNotEmpty()
+                val nftFetchResults =
+                    runCatching {
+                        nftInteractor.getNfts(
+                            filters,
+                            selectedChainId,
+                            selectedMetaAccount.id
+                        )
+                    }
+                        .onFailure { showError("Failed to load NFTs") }
+                        .getOrNull() ?: return@mapLatest NftScreenState(
+                        hasAnyFiltersChecked,
+                        NftScreenState.ListState.Empty
+                    )
+
+                val failures = nftFetchResults.filterValues { it.isFailure }
+                if (failures.isNotEmpty()) {
+                    val failedChainNames = failures.map { it.key.name }
+                    showError("Failed to load NFTs for ${failedChainNames.joinToString(", ")}")
+                }
+                val collections =
+                    nftFetchResults.filterValues { it.isSuccess }.map { it.value.requireValue() }
+                        .flatten()
+
+                val models = collections.map {
+                    NftCollectionListItem(
+                        id = it.name,
+                        image = it.image,
+                        chain = it.chainName,
+                        title = it.name,
+                        it.nfts.size,
+                        collectionSize = it.collectionSize
+                    )
+                }.sortedBy { it.title }
+
+                val listState =
+                    if (models.isEmpty()) {
+                        NftScreenState.ListState.Empty
+                    } else {
+                        NftScreenState.ListState.Content(models)
+                    }
+
+                NftScreenState(hasAnyFiltersChecked, listState)
+            }
+            .onEach { nftState.value = it }
+            .launchIn(this)
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
     private fun subscribeTotalBalance() {
         combine(
             selectedChainId.map { chainId -> chainId?.let { currentAccountAddress(it) }.orEmpty() },
@@ -528,6 +638,10 @@ class BalanceListViewModel @Inject constructor(
 
             router.openAssetDetails(payload)
         }
+    }
+
+    override fun filtersClicked() {
+        nftRouter.openNftFilters(filtersFlow.value)
     }
 
     private fun currentAddressModelFlow(): Flow<AddressModel> {

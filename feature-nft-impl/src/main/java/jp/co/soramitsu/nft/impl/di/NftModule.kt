@@ -27,6 +27,7 @@ import jp.co.soramitsu.nft.impl.data.serializtion.AlchemyNftTokenMetadataDeseria
 import jp.co.soramitsu.nft.impl.data.serializtion.OpenSeaDeserializer
 import jp.co.soramitsu.nft.impl.domain.NftInteractor
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -39,8 +40,8 @@ class NftModule {
     fun provideNftInteractor(
         nftRepository: NftRepository,
         accountRepository: AccountRepository,
-        chainRegistry: ChainRegistry
-    ) = NftInteractor(nftRepository, accountRepository, chainRegistry)
+        chainRepository: ChainsRepository
+    ) = NftInteractor(nftRepository, accountRepository, chainRepository)
 
 
     @Provides

@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -18,25 +19,25 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Divider
-import androidx.compose.material.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.valentinilk.shimmer.shimmer
 import jp.co.soramitsu.common.R
+import jp.co.soramitsu.common.compose.component.B0
 import jp.co.soramitsu.common.compose.component.B1
 import jp.co.soramitsu.common.compose.component.B2
 import jp.co.soramitsu.common.compose.component.BackgroundCornered
 import jp.co.soramitsu.common.compose.component.CapsTitle
+import jp.co.soramitsu.common.compose.component.GradientIcon
 import jp.co.soramitsu.common.compose.component.H3
 import jp.co.soramitsu.common.compose.component.H4Bold
 import jp.co.soramitsu.common.compose.component.H5Bold
@@ -47,7 +48,7 @@ import jp.co.soramitsu.common.compose.component.getImageRequest
 import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
 import jp.co.soramitsu.common.compose.theme.black50
 import jp.co.soramitsu.common.compose.theme.shimmerColor
-import jp.co.soramitsu.common.compose.theme.white
+import jp.co.soramitsu.common.compose.theme.warningOrange
 import jp.co.soramitsu.common.compose.theme.white16
 import jp.co.soramitsu.common.compose.theme.white50
 
@@ -64,34 +65,21 @@ fun NftList(state: NftScreenState.ListState, appearanceType: NftAppearanceType) 
 @Composable
 fun NftEmptyState() {
     Box(
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(bottom = 80.dp)
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Box(
-                Modifier
-                    .size(56.dp)
-                    .background(
-                        color = Color.White.copy(alpha = 0.08f),
-                        shape = RoundedCornerShape(100)
-                    )
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_screen_warning),
-                    tint = white,
-                    contentDescription = null,
-                    modifier = Modifier
-                        .alpha(0.16f)
-                        .padding(top = 10.dp)
-                        .align(Alignment.TopCenter)
-                )
-            }
+            GradientIcon(iconRes = R.drawable.ic_screen_warning, color = warningOrange)
             MarginVertical(margin = 16.dp)
-            H3(text = "Your NFT's are going to be here")
-//            MarginVertical(margin = 16.dp)
-//            B0(
-//                text = "Your NFT's are going to be here",
-//                color = black2
-//            )
+            H3(text = stringResource(id = R.string.nft_stub_title))
+            MarginVertical(margin = 16.dp)
+            B0(
+                text = stringResource(id = R.string.nft_list_empty_message),
+                color = white50,
+                textAlign = TextAlign.Center
+            )
         }
     }
 }
@@ -109,6 +97,7 @@ fun NftList(items: List<NftCollectionListItem>, appearanceType: NftAppearanceTyp
                 items(items) {
                     GridItem(it)
                 }
+                item { MarginVertical(margin = 80.dp) }
             }
         }
 
@@ -120,6 +109,7 @@ fun NftList(items: List<NftCollectionListItem>, appearanceType: NftAppearanceTyp
                 items(items) {
                     ListItem(it)
                 }
+                item { MarginVertical(margin = 80.dp) }
             }
         }
     }
@@ -134,7 +124,8 @@ private fun GridItem(item: NftCollectionListItem) {
                     model = getImageRequest(LocalContext.current, item.image),
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
-                    modifier = Modifier.clip(RoundedCornerShape(8.dp))
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(8.dp))
                         .size(152.dp)
                 )
                 B1(
@@ -162,7 +153,8 @@ private fun ListItem(item: NftCollectionListItem) {
                 model = getImageRequest(LocalContext.current, item.image),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
-                modifier = Modifier.clip(RoundedCornerShape(8.dp))
+                modifier = Modifier
+                    .clip(RoundedCornerShape(8.dp))
                     .size(64.dp)
                     .align(Alignment.CenterVertically)
             )
