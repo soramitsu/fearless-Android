@@ -43,15 +43,15 @@ import jp.co.soramitsu.common.compose.theme.colorAccentDark
 import jp.co.soramitsu.common.compose.theme.white50
 import jp.co.soramitsu.common.utils.clickableWithNoIndication
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.walletconnect.impl.presentation.caip2id
 
 data class ChainSelectScreenViewState(
-    val items: List<String>?,
     val chains: List<ChainItemState>?,
     val searchQuery: String? = null,
     val isViewMode: Boolean = false
 ) {
     companion object {
-        val default = ChainSelectScreenViewState(emptyList(), emptyList(), null)
+        val default = ChainSelectScreenViewState(emptyList())
     }
 }
 
@@ -78,13 +78,18 @@ fun ChainSelectContent(
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 if (state.isViewMode.not()) {
+                    val manageAllText = if (state.chains?.any { it.isSelected.not()} == true) {
+                        stringResource(id = R.string.common_select_all)
+                    } else {
+                        stringResource(id = R.string.staking_custom_deselect_button_title)
+                    }
                     B0(
                         modifier = Modifier
                             .align(Alignment.Companion.CenterStart)
                             .clickableWithNoIndication {
                                 onSelectAllClicked()
                             },
-                        text = stringResource(id = R.string.common_select_all),
+                        text = manageAllText,
                         color = colorAccentDark
                     )
                 }
@@ -139,17 +144,17 @@ fun ChainSelectContent(
 }
 
 data class ChainItemState(
-    val id: String,
+    val caip2id: String,
     val imageUrl: String?,
     val title: String,
     val isSelected: Boolean = false
 )
 
-fun Chain.toChainItemState() = ChainItemState(
-    id = id,
+fun Chain.toChainItemState(isSelected: Boolean) = ChainItemState(
+    caip2id = caip2id,
     imageUrl = icon,
     title = name,
-    isSelected = false,
+    isSelected = isSelected
 )
 
 @Composable
@@ -201,7 +206,7 @@ fun ChainItem(state: ChainItemState, onSelected: (ChainItemState?) -> Unit) {
             model = state.imageUrl?.let { getImageRequest(LocalContext.current, it) },
             contentDescription = null,
             modifier = Modifier
-                .testTag("ChainItem_image_${state.id}")
+                .testTag("ChainItem_image_${state.caip2id}")
                 .size(24.dp)
         )
         MarginHorizontal(margin = 10.dp)
@@ -214,19 +219,18 @@ fun ChainItem(state: ChainItemState, onSelected: (ChainItemState?) -> Unit) {
 private fun SelectChainScreenPreview() {
     val items = listOf(
         ChainItemState(
-            id = "1",
+            caip2id = "1",
             imageUrl = "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Moonriver.svg",
             title = "Kusama",
             isSelected = true
         ),
         ChainItemState(
-            id = "2",
+            caip2id = "2",
             imageUrl = "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Kusama.svg",
             title = "Moonriver"
         )
     )
     val state = ChainSelectScreenViewState(
-        items = listOf("Some chain", "Definetly second", "Third"),
         chains = items,
         searchQuery = null
     )

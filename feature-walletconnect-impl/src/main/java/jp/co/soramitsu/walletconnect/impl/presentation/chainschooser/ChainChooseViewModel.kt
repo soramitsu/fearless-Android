@@ -13,7 +13,6 @@ import jp.co.soramitsu.walletconnect.impl.presentation.caip2id
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -28,7 +27,10 @@ class ChainChooseViewModel @Inject constructor(
 
     private val initialState: ChainChooseState? = savedStateHandle[ChainChooseFragment.KEY_STATE_ID]
 
-    private val chainsFlow = chainInteractor.getChainsFlow().map { chains ->
+    private val enteredChainQueryFlow = MutableStateFlow("")
+    private val selectedChainIdsFlow = MutableStateFlow(initialState?.selected?.toSet().orEmpty())
+
+    private val chainsFlow = combine(chainInteractor.getChainsFlow(), selectedChainIdsFlow) { chains, selectedChainIds ->
         val meta = accountInteractor.selectedMetaAccount()
         val ethBasedChainAccounts = meta.chainAccounts.filter { it.value.chain?.isEthereumBased == true }
         val ethBasedChains = chains.filter { it.isEthereumBased }
@@ -41,24 +43,17 @@ class ChainChooseViewModel @Inject constructor(
         val needed = filtered.filter {
             it.caip2id in initialState?.items.orEmpty()
         }
-        needed.map { it.toChainItemState() }
+        needed.map { it.toChainItemState(isSelected = it.caip2id in selectedChainIds) }
     }.stateIn(this, SharingStarted.Eagerly, null)
 
-    private val enteredChainQueryFlow = MutableStateFlow("")
-    private val selectedChainIdsFlow = MutableStateFlow<Set<String>>(initialState?.selected?.toSet().orEmpty())
-
-    val state = combine(chainsFlow, enteredChainQueryFlow, selectedChainIdsFlow) { chainItems, searchQuery, selectedChainIds ->
+    val state = combine(chainsFlow, enteredChainQueryFlow) { chainItems, searchQuery ->
         val chains = chainItems
             ?.filter {
                 searchQuery.isEmpty() || it.title.contains(searchQuery, true)
             }
             ?.sortedBy { it.title }
-            ?.map {
-                it.copy(isSelected = it.id in selectedChainIds)
-            }
 
         ChainSelectScreenViewState(
-            items = initialState?.items,
             chains = chains,
             searchQuery = searchQuery,
             isViewMode = initialState?.isViewMode == true
@@ -66,7 +61,7 @@ class ChainChooseViewModel @Inject constructor(
     }.stateIn(viewModelScope, SharingStarted.Eagerly, ChainSelectScreenViewState.default)
 
     fun onChainSelected(chainItemState: ChainItemState?) {
-        val chainId = chainItemState?.id
+        val chainId = chainItemState?.caip2id
         val currentSelectedIds = selectedChainIdsFlow.value.toMutableSet()
         chainId?.let {
             val isAdded = currentSelectedIds.add(it)
@@ -82,13 +77,17 @@ class ChainChooseViewModel @Inject constructor(
     }
 
     fun onSelectAllClicked() {
-        val chains = chainsFlow.value.orEmpty()
-        selectedChainIdsFlow.value = chains.map { it.id }.toSet()
+        val allChainsSelected = chainsFlow.value?.any { it.isSelected.not() } == false
+        if (allChainsSelected) {
+            selectedChainIdsFlow.value = emptySet()
+        } else {
+            selectedChainIdsFlow.value = chainsFlow.value.orEmpty().map { it.caip2id }.toSet()
+        }
     }
 
     fun onDoneClicked() {
         launch {
-            val selectedChainIds = state.value.chains?.filter { it.isSelected }?.map { it.id }.orEmpty().toSet()
+            val selectedChainIds = state.value.chains?.filter { it.isSelected }?.map { it.caip2id }.orEmpty().toSet()
 
             val result = ChainChooseResult(selectedChainIds)
 

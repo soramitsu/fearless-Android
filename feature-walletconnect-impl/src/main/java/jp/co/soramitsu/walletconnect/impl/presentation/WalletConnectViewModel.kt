@@ -244,7 +244,7 @@ class WalletConnectViewModel @Inject constructor(
             } else {
                 proposal.optionalNamespaces.mapValuesNotNull { proposal ->
                     val optionalNamespaceSelectedChains = chains.filter { chain ->
-                        chain.caip2id in proposal.value.chains.orEmpty() && chain.id in selectedOptionalChainIds
+                        chain.caip2id in proposal.value.chains.orEmpty() && chain.caip2id in selectedOptionalChainIds
                     }
 
                     if (optionalNamespaceSelectedChains.isEmpty()) return@mapValuesNotNull null
