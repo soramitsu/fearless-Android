@@ -196,8 +196,6 @@ class RootViewModel @Inject constructor(
                 }
             }
         }.stateIn(this, SharingStarted.Eagerly, null)
-
-
     }
 
     private fun handleSessionRequest(sessionRequest: Wallet.Model.SessionRequest) {
@@ -207,6 +205,4 @@ class RootViewModel @Inject constructor(
     private fun handleSessionProposal(sessionProposal: Wallet.Model.SessionProposal) {
         return rootRouter.openWalletConnect(sessionProposal.pairingTopic)
     }
-
-
 }
