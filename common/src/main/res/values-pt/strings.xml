@@ -269,7 +269,7 @@
   <string name="common_skip_process">Saltar processo</string>
   <string name="common_sort_by">Ordenar por</string>
   <string name="common_staking">Staking</string>
-  <string name="common_till_date">até %@</string>
+  <string name="common_till_date">até %s</string>
   <string name="common_time_left">Tempo restante</string>
   <string name="common_title_cross_chain">Taxa entre cadeias</string>
   <string name="common_title_frozen_token">Bloqueado %s</string>

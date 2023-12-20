@@ -181,13 +181,13 @@ class ChainSelectViewModel @Inject constructor(
 
         val resultingChains = chainItems
             ?.filter {
-                val condition = it.tokenSymbols.values.any {
+                val hasQuerriedTokens = it.tokenSymbols.values.any {
                     it.contains(searchQuery, true)
                 }
 
                 searchQuery.isEmpty() ||
                 it.title.contains(searchQuery, true) ||
-                condition
+                hasQuerriedTokens
             }
             ?.sortedWith(
                 compareBy<ChainSelectScreenContract.State.ItemState> {
