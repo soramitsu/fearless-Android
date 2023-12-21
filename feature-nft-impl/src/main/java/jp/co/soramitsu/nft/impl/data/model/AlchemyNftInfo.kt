@@ -27,6 +27,11 @@ data class AlchemyNftResponse(
     val ownedNfts: List<AlchemyNftInfo>
 )
 
+data class AlchemyNftCollectionResponse(
+    val nfts: List<AlchemyNftInfo>,
+    val nextToken: String?
+)
+
 data class AlchemyNftInfo(
     val title: String?,
     val description: String?,
@@ -94,6 +99,16 @@ data class AlchemyNftCollection(
     val deployedBlockNumber: BigInteger?,
     val openSea: AlchemyNftOpenseaInfo?,
     val media: List<AlchemyNftMediaInfo>?,
+)
+
+data class AlchemyNftContractMetadata(
+    val name: String?,
+    val symbol: String?,
+    val totalSupply: String?,
+    val tokenType: String?,
+    val contractDeployer: String?,
+    val deployedBlockNumber: BigInteger?,
+    val openSea: AlchemyNftOpenseaInfo?
 )
 
 data class AlchemyNftOpenseaInfo(
