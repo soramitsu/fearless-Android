@@ -92,7 +92,7 @@ class RequestPreviewViewModel @Inject constructor(
         val requestAddress = recentSession.request.address
 
         val requestedWallet = accountRepository.allMetaAccounts().firstOrNull { wallet ->
-            wallet.address(requestChain) == requestAddress
+            wallet.address(requestChain).equals(requestAddress, true)
         }
 
         if (requestedWallet == null) {

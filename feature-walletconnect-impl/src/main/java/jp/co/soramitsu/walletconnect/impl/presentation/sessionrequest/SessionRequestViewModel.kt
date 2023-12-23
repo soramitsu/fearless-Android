@@ -69,7 +69,7 @@ class SessionRequestViewModel @Inject constructor(
 
         val requestedWallet = requestChain?.let {
             allMetaAccounts.firstOrNull { wallet ->
-                wallet.address(requestChain) == requestAddress
+                wallet.address(requestChain).equals(requestAddress, true)
             }
         }
 
