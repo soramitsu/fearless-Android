@@ -78,7 +78,7 @@ fun ChainSelectContent(
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 if (state.isViewMode.not()) {
-                    val manageAllText = if (state.chains?.any { it.isSelected.not()} == true) {
+                    val manageAllText = if (state.chains?.any { it.isSelected.not() } == true) {
                         stringResource(id = R.string.common_select_all)
                     } else {
                         stringResource(id = R.string.staking_custom_deselect_button_title)

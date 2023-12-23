@@ -50,7 +50,11 @@ class WalletConnectViewModel @Inject constructor(
     //    private val pairingTopic: String? = savedStateHandle[WalletConnectFragment.PAIRING_TOPIC_KEY]
     private val proposal: Wallet.Model.SessionProposal = WCDelegate.sessionProposalEvent?.first ?: error("No proposal provided")
 
-    private val selectedOptionalNetworkIds = MutableStateFlow(proposal.optionalNamespaces.flatMap { it.value.chains.orEmpty() }.toSet())
+    private val selectedOptionalNetworkIds = MutableStateFlow(
+        proposal.optionalNamespaces.flatMap {
+            it.value.chains.orEmpty()
+        }.toSet()
+    )
     private val selectedWalletIds = MutableStateFlow<Set<Long>>(setOf())
 
     private val accountsFlow = accountListingMixin.accountsFlow(AddressIconGenerator.SIZE_BIG)
