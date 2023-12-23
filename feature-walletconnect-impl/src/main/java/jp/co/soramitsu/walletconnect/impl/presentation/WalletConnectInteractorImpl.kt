@@ -4,7 +4,7 @@ import co.jp.soramitsu.walletconnect.domain.WalletConnectInteractor
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.EthereumRemoteSource
-import jp.co.soramitsu.wallet.impl.domain.model.Transfer
+import org.web3j.crypto.RawTransaction
 
 class WalletConnectInteractorImpl(
     private val chainsRepository: ChainsRepository,
@@ -13,11 +13,19 @@ class WalletConnectInteractorImpl(
 
     override suspend fun getChains(): List<Chain> = chainsRepository.getChains()
 
-    override suspend fun performTransfer(
+    override suspend fun signRawTransaction(
         chain: Chain,
-        transfer: Transfer,
+        rawTransaction: RawTransaction,
         privateKey: String
-    ): Result<String> = ethereumSource.performTransfer(
-        chain, transfer, privateKey
+    ): Result<String> = ethereumSource.signRawTransaction(
+        chain, rawTransaction, privateKey
+    )
+
+    override suspend fun sendRawTransaction(
+        chain: Chain,
+        rawTransaction: RawTransaction,
+        privateKey: String
+    ): Result<String> = ethereumSource.sendRawTransaction(
+        chain, rawTransaction, privateKey
     )
 }

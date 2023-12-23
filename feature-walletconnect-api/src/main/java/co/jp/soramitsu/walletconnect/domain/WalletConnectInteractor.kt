@@ -1,15 +1,21 @@
 package co.jp.soramitsu.walletconnect.domain
 
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
-import jp.co.soramitsu.wallet.impl.domain.model.Transfer
+import org.web3j.crypto.RawTransaction
 
 interface WalletConnectInteractor {
 
     suspend fun getChains(): List<Chain>
 
-    suspend fun performTransfer(
+    suspend fun signRawTransaction(
         chain: Chain,
-        transfer: Transfer,
+        rawTransaction: RawTransaction,
+        privateKey: String
+    ): Result<String>
+
+    suspend fun sendRawTransaction(
+        chain: Chain,
+        rawTransaction: RawTransaction,
         privateKey: String
     ): Result<String>
 }

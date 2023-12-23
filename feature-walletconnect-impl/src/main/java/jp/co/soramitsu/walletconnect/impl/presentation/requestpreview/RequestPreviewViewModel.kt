@@ -11,6 +11,8 @@ import com.walletconnect.web3.wallet.client.Wallet
 import com.walletconnect.web3.wallet.client.Web3Wallet
 import com.walletconnect.web3.wallet.utils.CacaoSigner
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.math.BigInteger
+import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.address
@@ -26,7 +28,6 @@ import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.core.crypto.mapCryptoTypeToEncryption
 import jp.co.soramitsu.core.extrinsic.ExtrinsicBuilderFactory
 import jp.co.soramitsu.core.extrinsic.keypair_provider.KeypairProvider
-import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
@@ -35,7 +36,6 @@ import jp.co.soramitsu.shared_utils.encrypt.SignatureWrapper
 import jp.co.soramitsu.shared_utils.encrypt.Signer
 import jp.co.soramitsu.shared_utils.extensions.fromHex
 import jp.co.soramitsu.shared_utils.extensions.toHexString
-import jp.co.soramitsu.wallet.impl.domain.model.Transfer
 import jp.co.soramitsu.walletconnect.impl.presentation.address
 import jp.co.soramitsu.walletconnect.impl.presentation.caip2id
 import jp.co.soramitsu.walletconnect.impl.presentation.dappUrl
@@ -56,11 +56,7 @@ import org.web3j.crypto.Credentials
 import org.web3j.crypto.RawTransaction
 import org.web3j.crypto.Sign
 import org.web3j.crypto.StructuredDataEncoder
-import org.web3j.crypto.TransactionEncoder
 import org.web3j.utils.Numeric
-import java.math.BigDecimal
-import java.math.BigInteger
-import javax.inject.Inject
 
 @HiltViewModel
 class RequestPreviewViewModel @Inject constructor(
@@ -173,7 +169,18 @@ class RequestPreviewViewModel @Inject constructor(
             val accountId = chain.accountIdOf(address)
             val metaAccount = accountRepository.findMetaAccount(accountId) ?: return@launch
 
-            val signResult = getSignResult(metaAccount)
+            val signResult = try {
+                getSignResult(metaAccount)
+            } catch (e: Exception) {
+                viewModelScope.launch(Dispatchers.Main) {
+                    showError(
+                        title = resourceManager.getString(R.string.common_error_general_title),
+                        message = resourceManager.getString(R.string.common_try_again) + "\n" + e.message.orEmpty(),
+                        positiveButtonText = resourceManager.getString(R.string.common_ok)
+                    )
+                }
+                return@launch
+            }
 
             val jsonRpcResponse = if (signResult == null) {
                 Wallet.Model.JsonRpcResponse.JsonRpcError(
@@ -257,6 +264,10 @@ class RequestPreviewViewModel @Inject constructor(
         return Numeric.decodeQuantity(this)
     }
 
+    private fun String.safeDecodeNumericQuantity(): BigInteger? {
+        return kotlin.runCatching { Numeric.decodeQuantity(this) }.getOrNull()
+    }
+
     private suspend fun getEthSignTypedResult(metaAccount: MetaAccount): String {
         val ethSignTypedMessage = recentSession.request.message
         val message = StructuredDataEncoder(ethSignTypedMessage).hashStructuredData()
@@ -276,66 +287,42 @@ class RequestPreviewViewModel @Inject constructor(
     private suspend fun getEthSendTransactionResult(metaAccount: MetaAccount): String {
         val chain = requestChainFlow.value ?: error("No chain")
         val secrets = accountRepository.getMetaAccountSecrets(metaAccount.id) ?: error("There are no secrets for metaId: ${metaAccount.id}")
-        val keypairSchema = secrets[MetaAccountSecrets.EthereumKeypair]
-        val privateKey = keypairSchema?.get(KeyPairSchema.PrivateKey)?.toHexString(true) ?: error("No credentials")
+        val keypairSchema = secrets[MetaAccountSecrets.EthereumKeypair] ?: error("There are no secrets for metaId: ${metaAccount.id}")
+        val privateKey = keypairSchema[KeyPairSchema.PrivateKey]
 
-        val ethSignTransactionMessage = recentSession.request.message
+        val raw = mapToRawTransaction(recentSession.request.message)
 
-        val from: String = JSONObject(ethSignTransactionMessage).getString("from")
-        val to: String = JSONObject(ethSignTransactionMessage).getString("to")
-        val data: String? = JSONObject(ethSignTransactionMessage).getString("data")
-        val nonce: BigInteger? = JSONObject(ethSignTransactionMessage).getString("nonce").decodeNumericQuantity()
-        val gasPrice: BigInteger? = JSONObject(ethSignTransactionMessage).getString("gasPrice").decodeNumericQuantity()
-        val gasLimit: BigInteger? = JSONObject(ethSignTransactionMessage).getString("gasLimit").decodeNumericQuantity()
-        val value: BigInteger? = JSONObject(ethSignTransactionMessage).getString("value").decodeNumericQuantity()
-
-        val transfer = Transfer(
-            sender = from,
-            recipient = to,
-            amount = BigDecimal.ZERO,
-            chainAsset = chain.utilityAsset!!
-        )
-
-        val transferResult = walletConnectInteractor.performTransfer(
-            chain = chain,
-            transfer = transfer,
-            privateKey = privateKey
-        )
-
-        transferResult.exceptionOrNull()?.let {
-            showError(it.message.orEmpty())
-        }
-
-        return transferResult.getOrNull().orEmpty()
+        return walletConnectInteractor.sendRawTransaction(
+            chain,
+            raw,
+            privateKey.toHexString()
+        ).getOrThrow()
     }
 
     private suspend fun getEthSignTransactionResult(metaAccount: MetaAccount): String {
-        val ethSignTransactionMessage = recentSession.request.message
-
+        val chain = requestChainFlow.value ?: error("No chain")
         val secrets = accountRepository.getMetaAccountSecrets(metaAccount.id) ?: error("There are no secrets for metaId: ${metaAccount.id}")
-        val keypairSchema = secrets[MetaAccountSecrets.EthereumKeypair]
-        val privateKey = keypairSchema?.get(KeyPairSchema.PrivateKey)
+        val keypairSchema = secrets[MetaAccountSecrets.EthereumKeypair] ?: error("There are no secrets for metaId: ${metaAccount.id}")
+        val privateKey = keypairSchema[KeyPairSchema.PrivateKey]
 
-        val cred = Credentials.create(privateKey?.toHexString())
+        val raw = mapToRawTransaction(recentSession.request.message)
 
-        val from: String = JSONObject(ethSignTransactionMessage).getString("from")
-        val to: String = JSONObject(ethSignTransactionMessage).getString("to")
-        val data: String? = JSONObject(ethSignTransactionMessage).getString("data")
-        val nonce: BigInteger? = JSONObject(ethSignTransactionMessage).getString("nonce").decodeNumericQuantity()
-        val gasPrice: BigInteger? = JSONObject(ethSignTransactionMessage).getString("gasPrice").decodeNumericQuantity()
-        val gasLimit: BigInteger? = JSONObject(ethSignTransactionMessage).getString("gasLimit").decodeNumericQuantity()
-        val value: BigInteger? = JSONObject(ethSignTransactionMessage).getString("value").decodeNumericQuantity()
+        return walletConnectInteractor.signRawTransaction(
+            chain,
+            raw,
+            privateKey.toHexString()
+        ).getOrThrow()
+    }
 
-        val raw = RawTransaction.createTransaction(
-            nonce,
-            gasPrice,
-            gasLimit,
-            to,
-            value,
-            data.orEmpty()
+    private fun mapToRawTransaction(request: String): RawTransaction = with(JSONObject(request)) {
+        RawTransaction.createTransaction(
+            optString("nonce").safeDecodeNumericQuantity(),
+            optString("gasPrice").safeDecodeNumericQuantity(),
+            optString("gasLimit").safeDecodeNumericQuantity(),
+            getString("to"),
+            optString("value").safeDecodeNumericQuantity(),
+            optString("data")
         )
-        val signed = TransactionEncoder.signMessage(raw, cred)
-        return signed.toHexString(true)
     }
 
     private suspend fun getEthPersonalSignResult(metaAccount: MetaAccount): String {

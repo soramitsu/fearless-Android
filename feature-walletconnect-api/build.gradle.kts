@@ -32,4 +32,8 @@ dependencies {
     implementation(libs.bundles.compose)
     implementation(libs.fragmentKtx)
     implementation(libs.material)
+
+    implementation(platform(libs.walletconnectBomDep))
+    implementation(libs.walletconnectCoreDep)
+    implementation(libs.walletconnectWeb3WalletDep)
 }
