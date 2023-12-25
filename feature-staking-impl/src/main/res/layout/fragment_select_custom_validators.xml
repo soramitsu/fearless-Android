@@ -5,8 +5,10 @@
     android:id="@+id/selectCustomValidatorsContainer"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    tools:background="@color/black">
+    android:background="@drawable/drawable_background_image"
+    android:backgroundTint="#63000000"
+    android:backgroundTintMode="src_atop"
+    android:orientation="vertical">
 
     <jp.co.soramitsu.common.view.Toolbar
         android:id="@+id/selectCustomValidatorsToolbar"
@@ -90,11 +92,11 @@
                 android:includeFontPadding="false"
                 android:paddingStart="12dp"
                 android:paddingTop="6dp"
-                android:visibility="gone"
                 android:paddingEnd="12dp"
                 android:paddingBottom="6dp"
                 android:text="@string/staking_recommended_feature_3"
-                android:textColor="@color/button_text_colors" />
+                android:textColor="@color/button_text_colors"
+                android:visibility="gone" />
 
             <TextView
                 android:id="@+id/selectCustomCollatorsRelevantBond"
@@ -107,10 +109,10 @@
                 android:paddingStart="12dp"
                 android:paddingTop="6dp"
                 android:paddingEnd="12dp"
-                android:visibility="gone"
                 android:paddingBottom="6dp"
                 android:text="@string/select_collator_having_relevant_minimum_bond"
-                android:textColor="@color/button_text_colors" />
+                android:textColor="@color/button_text_colors"
+                android:visibility="gone" />
         </LinearLayout>
     </HorizontalScrollView>
 

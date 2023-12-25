@@ -93,8 +93,6 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
 
     fun openBackupWalletScreen(metaAccountId: Long)
 
-    fun openExportWallet(metaAccountId: Long)
-
     fun openRenameWallet(metaAccountId: Long)
 
     fun openImportAccountScreen(blockChainType: Int, importMode: ImportMode)

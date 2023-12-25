@@ -21,7 +21,6 @@ import jp.co.soramitsu.account.impl.domain.account.details.AccountInChain
 import jp.co.soramitsu.account.impl.presentation.AccountRouter
 import jp.co.soramitsu.account.impl.presentation.account.create.CreateAccountDialog
 import jp.co.soramitsu.account.impl.presentation.account.details.AccountDetailsDialog
-import jp.co.soramitsu.account.impl.presentation.account.export.WalletExportFragment
 import jp.co.soramitsu.account.impl.presentation.account.exportaccounts.AccountsForExportFragment
 import jp.co.soramitsu.account.impl.presentation.account.rename.RenameAccountDialog
 import jp.co.soramitsu.account.impl.presentation.backup_wallet.BackupWalletDialog
@@ -1015,12 +1014,6 @@ class Navigator :
         val extras = BackupWalletDialog.getBundle(metaAccountId)
 
         navController?.navigate(R.id.backupWalletDialog, extras)
-    }
-
-    override fun openExportWallet(metaAccountId: Long) {
-        val extras = WalletExportFragment.getBundle(metaAccountId)
-
-        navController?.navigate(R.id.action_open_walletExportFragment, extras)
     }
 
     override fun openRenameWallet(metaAccountId: Long) {
