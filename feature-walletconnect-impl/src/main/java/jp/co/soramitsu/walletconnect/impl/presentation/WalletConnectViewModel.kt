@@ -60,19 +60,12 @@ class WalletConnectViewModel @Inject constructor(
     private val accountsFlow = accountListingMixin.accountsFlow(AddressIconGenerator.SIZE_BIG)
 
     private val walletItemsFlow: SharedFlow<List<WalletItemViewState>> = combine(accountsFlow, selectedWalletIds) { accounts, selectedWalletIds ->
-        val balanceModel = TotalBalance.Empty
-
         accounts.map {
             WalletItemViewState(
                 id = it.id,
                 title = it.name,
                 isSelected = if (selectedWalletIds.isEmpty()) it.isSelected else it.id in selectedWalletIds,
-                walletIcon = it.picture.value,
-                balance = balanceModel.balance.formatFiat(balanceModel.fiatSymbol),
-                changeBalanceViewState = ChangeBalanceViewState(
-                    percentChange = balanceModel.rateChange?.formatAsChange().orEmpty(),
-                    fiatChange = balanceModel.balanceChange.abs().formatFiat(balanceModel.fiatSymbol)
-                )
+                walletIcon = it.picture.value
             )
         }
     }
