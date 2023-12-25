@@ -2,21 +2,27 @@ package jp.co.soramitsu.nft.impl.domain
 
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.address
-import jp.co.soramitsu.common.utils.failure
-import jp.co.soramitsu.nft.impl.data.NftRepository
-import jp.co.soramitsu.nft.impl.data.model.NftCollection
-import jp.co.soramitsu.nft.impl.data.model.PaginationRequest
+import jp.co.soramitsu.nft.domain.NFTInteractor
+import jp.co.soramitsu.nft.impl.data.NftCollection
+import jp.co.soramitsu.nft.data.models.requests.PaginationRequest
+import jp.co.soramitsu.nft.impl.data.Nft
+import jp.co.soramitsu.nft.impl.domain.models.NFTTransferParams
 import jp.co.soramitsu.nft.impl.presentation.filters.NftFilter
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.alchemyNftId
+import jp.co.soramitsu.shared_utils.extensions.requireHexPrefix
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.map
+import java.math.BigDecimal
+import java.math.BigInteger
 
 class NftInteractor(
-    private val nftRepository: NftRepository,
+    val nftInteractor: NFTInteractor,
+    private val sendNFTUseCase: SendNFTUseCase,
     private val accountRepository: AccountRepository,
     private val chainsRepository: ChainsRepository
 ) {
@@ -26,54 +32,108 @@ class NftInteractor(
         selectedChainId: String?,
         metaAccountId: Long
     ): Map<Chain, Result<List<NftCollection>>> {
-        val metaAccount = accountRepository.getMetaAccount(metaAccountId)
-        val nftChains = getAllNftChains()
+        println("This is checkpoint: MyOlfNftInteractor.getNfts")
+        val result = nftInteractor.userOwnedNFTsFlow(
+            paginationRequestFlow = flow { emit(PaginationRequest.NextPage) },
+            chainSelectionFlow = flow { emit(selectedChainId) },
+            exclusionFiltersFlow = flow { emit(filters.map { it.name.uppercase() }) }
+        ).first()
 
-        val filtered = if (selectedChainId.isNullOrEmpty()) {
-            nftChains
-        } else {
-            nftChains.filter { it.id == selectedChainId }
+        return result.groupBy { it.chainId }.mapKeys { (chainId, _) ->
+            chainsRepository.getChain(chainId)
+        }.mapValues { (_, collections) ->
+            Result.success(
+                collections.map { collection ->
+                    NftCollection(
+                        name = collection.collectionName,
+                        image = collection.imageUrl,
+                        description = collection.description,
+                        chainId = collection.chainId,
+                        chainName = collection.chainName,
+                        type = collection.type,
+                        nfts = collection.tokens.map {
+                             Nft(
+                                 title = "${collection.collectionName} ${it.tokenId}",
+                                 description = "",
+                                 thumbnail = collection.imageUrl,
+                                 owned = "Mine",
+                                 tokenId = it.tokenId
+                             )
+                        },
+                        collectionSize = collection.collectionSize
+                    )
+                }
+            )
         }
-
-        val allChainsCollections = filtered.map { chain ->
-            val address = metaAccount.address(chain)
-                ?: return@map chain to Result.failure("Cannot find address for current wallet in ${chain.name}")
-
-            val nftsResult = runCatching {
-                nftRepository.getNfts(
-                    chain,
-                    address,
-                    filters.map { it.name.uppercase() })
-            }
-            chain to nftsResult
-        }.toMap()
-
-        return allChainsCollections
     }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    fun accountItemsFlow(
+        paginationRequestFlow: Flow<PaginationRequest>,
+        chainSelectionFlow: Flow<String?>,
+        exclusionFiltersFlow: Flow<List<String>>
+    ): Flow<List<MyNftCollection>> {
+        TODO("Please look at NFTInteractor")
+    }
+
+    data class MyNftCollection(
+        val chainId: ChainId,
+        val chainName: String,
+        val collectionName: String,
+        val description: String?,
+        val imageUrl: String,
+        val type: String?,
+        val tokens: List<TokenBalance>,
+        val collectionSize: Int
+    )
+
+    data class TokenBalance(
+        val tokenId: String?,
+        val balance: String?
+    )
 
     fun collectionItemsFlow(
         paginationRequestFlow: Flow<PaginationRequest>,
         chainSelectionFlow: Flow<String>,
         collectionSlugFlow: Flow<String>
     ): Flow<Result<NftCollection>> {
-        return flow {
-            val chainSelectionHelperFlow =
-                chainsRepository.chainsFlow().map {
-                    it.filter { it.supportNft && !it.alchemyNftId.isNullOrEmpty() }
-                }.combine(chainSelectionFlow) { chains, chainSelection ->
-                    chains.find { it.id == chainSelection } ?: error(
-                        """
-                            Chain with provided chainId of $chainSelection, is either not supported or does not support NFT operations
-                        """.trimIndent()
-                    )
-                }
+        TODO("Please look at NFTInteractor")
+    }
 
-            nftRepository.nftCollectionBySlug(
-                paginationRequestFlow = paginationRequestFlow,
-                chainSelectionFlow = chainSelectionHelperFlow,
-                collectionSlugFlow = collectionSlugFlow
-            ).collect(this)
+    suspend fun send(
+        chain: Chain,
+        receiver: String,
+        tokenId: String,
+        tokenType: String,
+    ): Result<String> {
+        val sender = accountRepository.getSelectedMetaAccount().address(chain)!!
+
+        val params = when(tokenType) {
+            "ERC721" -> NFTTransferParams.ERC721(
+                sender = sender,
+                receiver = receiver,
+                tokenId = BigInteger(tokenId.requireHexPrefix().drop(2), 16),
+                data = ByteArray(0)
+            )
+            "ERC1155" -> NFTTransferParams.ERC1155(
+                sender = sender,
+                receiver = receiver,
+                tokenId = tokenId.requireHexPrefix().drop(2).toBigInteger(),
+                amount = BigDecimal.ONE,
+                data = ByteArray(0)
+            )
+            else -> return Result.failure(
+                IllegalArgumentException(
+                    """
+                        Token provided is not supported.
+                    """.trimIndent()
+                )
+            )
         }
+
+        return sendNFTUseCase.invoke(
+            chain, params
+        )
     }
 
     private suspend fun getAllNftChains(): List<Chain> {

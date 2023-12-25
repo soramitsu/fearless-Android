@@ -16,6 +16,7 @@ import jp.co.soramitsu.coredb.dao.AddressBookDao
 import jp.co.soramitsu.coredb.dao.AssetDao
 import jp.co.soramitsu.coredb.dao.ChainDao
 import jp.co.soramitsu.coredb.dao.MetaAccountDao
+import jp.co.soramitsu.coredb.dao.NFTContractMetadataResponseDao
 import jp.co.soramitsu.coredb.dao.OperationDao
 import jp.co.soramitsu.coredb.dao.PhishingDao
 import jp.co.soramitsu.coredb.dao.SoraCardDao
@@ -62,6 +63,7 @@ import jp.co.soramitsu.coredb.migrations.Migration_55_56
 import jp.co.soramitsu.coredb.migrations.Migration_56_57
 import jp.co.soramitsu.coredb.migrations.Migration_57_58
 import jp.co.soramitsu.coredb.migrations.Migration_58_59
+import jp.co.soramitsu.coredb.migrations.Migration_59_60
 import jp.co.soramitsu.coredb.migrations.RemoveAccountForeignKeyFromAsset_17_18
 import jp.co.soramitsu.coredb.migrations.RemoveLegacyData_35_36
 import jp.co.soramitsu.coredb.migrations.RemoveStakingRewardsTable_22_23
@@ -70,6 +72,9 @@ import jp.co.soramitsu.coredb.model.AccountLocal
 import jp.co.soramitsu.coredb.model.AccountStakingLocal
 import jp.co.soramitsu.coredb.model.AddressBookContact
 import jp.co.soramitsu.coredb.model.AssetLocal
+import jp.co.soramitsu.coredb.model.NFTContractMetadataLocal
+import jp.co.soramitsu.coredb.model.NFTContractMetadataResponseLocal
+import jp.co.soramitsu.coredb.model.NFTOpenSeaLocal
 import jp.co.soramitsu.coredb.model.OperationLocal
 import jp.co.soramitsu.coredb.model.PhishingLocal
 import jp.co.soramitsu.coredb.model.SoraCardInfoLocal
@@ -86,7 +91,7 @@ import jp.co.soramitsu.coredb.model.chain.ChainTypesLocal
 import jp.co.soramitsu.coredb.model.chain.MetaAccountLocal
 
 @Database(
-    version = 59,
+    version = 60,
     entities = [
         AccountLocal::class,
         AddressBookContact::class,
@@ -106,7 +111,9 @@ import jp.co.soramitsu.coredb.model.chain.MetaAccountLocal
         ChainAccountLocal::class,
         ChainExplorerLocal::class,
         SoraCardInfoLocal::class,
-        ChainTypesLocal::class
+        ChainTypesLocal::class,
+
+        NFTContractMetadataResponseLocal::class
     ]
 )
 @TypeConverters(
@@ -165,6 +172,7 @@ abstract class AppDatabase : RoomDatabase() {
                     .addMigrations(Migration_56_57)
                     .addMigrations(Migration_57_58)
                     .addMigrations(Migration_58_59)
+                    .addMigrations(Migration_59_60)
                     .build()
             }
             return instance!!
@@ -194,4 +202,6 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun addressBookDao(): AddressBookDao
 
     abstract fun soraCardDao(): SoraCardDao
+
+    abstract fun nftContractMetadataResponsesDao(): NFTContractMetadataResponseDao
 }

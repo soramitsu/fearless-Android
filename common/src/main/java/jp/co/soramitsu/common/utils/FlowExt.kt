@@ -10,19 +10,25 @@ import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.view.SegmentedButtonView
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.DEFAULT_CONCURRENCY
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.flattenMerge
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.launch
 
@@ -189,4 +195,21 @@ fun MutableStateFlow<Boolean>.toggle() {
 
 fun <T> flowOf(producer: suspend () -> T) = flow {
     emit(producer())
+}
+
+@OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
+inline fun <Request, Response> List<Request>.concurrentRequestFlow(
+    crossinline block: suspend FlowCollector<Response>.(request: Request) -> Unit
+): Flow<Response> {
+    val concurrency = DEFAULT_CONCURRENCY
+
+    val chunkedFlow = chunked(concurrency).asFlow()
+
+    return chunkedFlow.transform { chunk ->
+        chunk.asFlow().map { requestData ->
+            flow {
+                block.invoke(this, requestData)
+            }
+        }.flattenMerge(concurrency).collect(this)
+    }
 }

@@ -3,6 +3,22 @@ package jp.co.soramitsu.coredb.migrations
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
+val Migration_59_60 = object : Migration(59, 60) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+        database.execSQL("DROP TABLE IF EXISTS nft_contract_metadata_response")
+        database.execSQL(
+            """
+                CREATE TABLE IF NOT EXISTS `nft_contract_metadata_response` (
+                `chainId` TEXT,
+                `address` TEXT,
+                
+                PRIMARY KEY(`chainId`, `address`))
+            """.trimIndent()
+        )
+        database.execSQL("CREATE INDEX IF NOT EXISTS `index_nft_contract_metadata_response_chainId_address` ON `nft_contract_metadata_response` (`chainId`, `address`)")
+    }
+}
+
 val Migration_58_59 = object : Migration(58, 59) {
     override fun migrate(database: SupportSQLiteDatabase) {
         database.execSQL("ALTER TABLE chains ADD COLUMN `supportNft` INTEGER NOT NULL DEFAULT 0")

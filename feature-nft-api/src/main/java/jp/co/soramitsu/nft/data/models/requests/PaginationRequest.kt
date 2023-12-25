@@ -1,4 +1,4 @@
-package jp.co.soramitsu.nft.impl.data.model
+package jp.co.soramitsu.nft.data.models.requests
 
 sealed interface PaginationRequest {
 
