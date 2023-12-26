@@ -6,24 +6,18 @@ import co.jp.soramitsu.feature_walletconnect_impl.R
 import co.jp.soramitsu.walletconnect.domain.WalletConnectInteractor
 import co.jp.soramitsu.walletconnect.domain.WalletConnectRouter
 import com.walletconnect.web3.wallet.client.Wallet
-import com.walletconnect.web3.wallet.client.Web3Wallet
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
-import jp.co.soramitsu.account.api.domain.model.TotalBalance
 import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.account.impl.presentation.account.mixin.api.AccountListingMixin
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
-import jp.co.soramitsu.common.compose.component.ChangeBalanceViewState
 import jp.co.soramitsu.common.compose.component.InfoItemSetViewState
 import jp.co.soramitsu.common.compose.component.InfoItemViewState
 import jp.co.soramitsu.common.compose.component.WalletItemViewState
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.common.utils.formatAsChange
-import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.mapList
-import jp.co.soramitsu.walletconnect.impl.presentation.WCDelegate
 import jp.co.soramitsu.walletconnect.impl.presentation.caip2id
 import jp.co.soramitsu.walletconnect.impl.presentation.dappUrl
 import kotlinx.coroutines.Dispatchers
@@ -44,7 +38,7 @@ class ConnectionInfoViewModel @Inject constructor(
     private val accountRepository: AccountRepository
 ) : ConnectionInfoScreenInterface, BaseViewModel() {
     private val topic: String = savedStateHandle[ConnectionInfoFragment.CONNECTION_TOPIC_KEY] ?: error("No connection info provided")
-    private val session: Wallet.Model.Session = Web3Wallet.getActiveSessionByTopic(topic) ?: error("No proposal provided")
+    private val session: Wallet.Model.Session = walletConnectInteractor.getActiveSessionByTopic(topic) ?: error("No proposal provided")
 
     private val accountsFlow = accountListingMixin.accountsFlow(AddressIconGenerator.SIZE_BIG)
 
@@ -133,10 +127,9 @@ class ConnectionInfoViewModel @Inject constructor(
     }
 
     override fun onDisconnectClick() {
-        Web3Wallet.disconnectSession(
-            params = Wallet.Params.SessionDisconnect(topic),
+        walletConnectInteractor.disconnectSession(
+            topic = topic,
             onSuccess = {
-                WCDelegate.refreshConnections()
                 viewModelScope.launch(Dispatchers.Main.immediate) {
                     walletConnectRouter.openOperationSuccessAndPopUpToNearestRelatedScreen(
                         null,

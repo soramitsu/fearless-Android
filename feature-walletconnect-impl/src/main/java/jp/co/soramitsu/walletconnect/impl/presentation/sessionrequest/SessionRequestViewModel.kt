@@ -6,7 +6,6 @@ import co.jp.soramitsu.feature_walletconnect_impl.R
 import co.jp.soramitsu.walletconnect.domain.WalletConnectInteractor
 import co.jp.soramitsu.walletconnect.domain.WalletConnectRouter
 import com.walletconnect.web3.wallet.client.Wallet
-import com.walletconnect.web3.wallet.client.Web3Wallet
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.interfaces.TotalBalanceUseCase
@@ -44,7 +43,7 @@ class SessionRequestViewModel @Inject constructor(
     private val addressIconGenerator: AddressIconGenerator
 ) : SessionRequestScreenInterface, BaseViewModel() {
     private val topic: String = savedStateHandle[SessionRequestFragment.SESSION_REQUEST_TOPIC_KEY] ?: error("No session info provided")
-    private val sessions: List<Wallet.Model.SessionRequest> = Web3Wallet.getPendingListOfSessionRequests(topic).also {
+    private val sessions: List<Wallet.Model.SessionRequest> = walletConnectInteractor.getPendingListOfSessionRequests(topic).also {
         if (it.isEmpty()) {
             viewModelScope.launch(Dispatchers.Main) {
                 showError(
@@ -128,15 +127,9 @@ class SessionRequestViewModel @Inject constructor(
 
         isClosing = true
 
-        Web3Wallet.respondSessionRequest(
-            params = Wallet.Params.SessionRequestResponse(
-                sessionTopic = topic,
-                jsonRpcResponse = Wallet.Model.JsonRpcResponse.JsonRpcError(
-                    id = recentSession.request.id,
-                    code = 4001,
-                    message = "User rejected request"
-                )
-            ),
+        walletConnectInteractor.rejectSessionRequest(
+            sessionTopic = topic,
+            requestId = recentSession.request.id,
             onSuccess = {
                 isClosing = false
 

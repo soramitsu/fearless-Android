@@ -1,21 +1,64 @@
 package co.jp.soramitsu.walletconnect.domain
 
+import com.walletconnect.web3.wallet.client.Wallet
+import jp.co.soramitsu.core.models.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
-import org.web3j.crypto.RawTransaction
 
+@Suppress("ComplexInterface")
 interface WalletConnectInteractor {
 
     suspend fun getChains(): List<Chain>
 
-    suspend fun signRawTransaction(
-        chain: Chain,
-        rawTransaction: RawTransaction,
-        privateKey: String
-    ): Result<String>
+    suspend fun checkChainsSupported(proposal: Wallet.Model.SessionProposal): Result<Boolean>
 
-    suspend fun sendRawTransaction(
+    suspend fun approveSession(
+        proposal: Wallet.Model.SessionProposal,
+        selectedWalletIds: Set<Long>,
+        selectedOptionalChainIds: Set<String>,
+        onSuccess: (Wallet.Params.SessionApprove) -> Unit = {},
+        onError: (Wallet.Model.Error) -> Unit
+    )
+
+    fun rejectSession(
+        proposal: Wallet.Model.SessionProposal,
+        onSuccess: (Wallet.Params.SessionReject) -> Unit = {},
+        onError: (Wallet.Model.Error) -> Unit
+    )
+
+    fun silentRejectSession(
+        proposal: Wallet.Model.SessionProposal,
+        onSuccess: (Wallet.Params.SessionReject) -> Unit = {},
+        onError: (Wallet.Model.Error) -> Unit
+    )
+
+    suspend fun onSignClick(
         chain: Chain,
-        rawTransaction: RawTransaction,
-        privateKey: String
-    ): Result<String>
+        topic: String,
+        recentSession: Wallet.Model.SessionRequest,
+        onSignError: (Exception) -> Unit,
+        onRequestSuccess: (operationHash: String?, chainId: ChainId?) -> Unit,
+        onRequestError: (Wallet.Model.Error) -> Unit
+    )
+
+    fun rejectSessionRequest(
+        sessionTopic: String,
+        requestId: Long,
+        onSuccess: (Wallet.Params.SessionRequestResponse) -> Unit = {},
+        onError: (Wallet.Model.Error) -> Unit
+    )
+
+    fun getActiveSessionByTopic(topic: String): Wallet.Model.Session?
+
+    fun getPendingListOfSessionRequests(topic: String): List<Wallet.Model.SessionRequest>
+    fun disconnectSession(
+        topic: String,
+        onSuccess: (Wallet.Params.SessionDisconnect) -> Unit = {},
+        onError: (Wallet.Model.Error) -> Unit
+    )
+
+    fun pair(
+        pairingUri: String,
+        onSuccess: (Wallet.Params.Pair) -> Unit = {},
+        onError: (Wallet.Model.Error) -> Unit = {}
+    )
 }

@@ -6,24 +6,17 @@ import co.jp.soramitsu.walletconnect.domain.WalletConnectInteractor
 import co.jp.soramitsu.walletconnect.domain.WalletConnectRouter
 import co.jp.soramitsu.walletconnect.model.ChainChooseResult
 import com.walletconnect.web3.wallet.client.Wallet
-import com.walletconnect.web3.wallet.client.Web3Wallet
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
-import jp.co.soramitsu.account.api.domain.model.TotalBalance
-import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.account.impl.presentation.account.mixin.api.AccountListingMixin
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
-import jp.co.soramitsu.common.compose.component.ChangeBalanceViewState
 import jp.co.soramitsu.common.compose.component.InfoItemSetViewState
 import jp.co.soramitsu.common.compose.component.InfoItemViewState
 import jp.co.soramitsu.common.compose.component.SelectorState
 import jp.co.soramitsu.common.compose.component.WalletItemViewState
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.common.utils.formatAsChange
-import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.inBackground
-import jp.co.soramitsu.common.utils.mapValuesNotNull
 import jp.co.soramitsu.walletconnect.impl.presentation.state.WalletConnectMethod
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -158,29 +151,20 @@ class WalletConnectViewModel @Inject constructor(
 
     init {
         launch {
-            checkChainsSupported()
+            walletConnectInteractor.checkChainsSupported(proposal).getOrNull()?.let { isSupported ->
+                if (isSupported.not()) {
+                    showError(
+                        title = resourceManager.getString(R.string.common_error_general_title),
+                        message = resourceManager.getString(R.string.connection_chains_not_supported_error),
+                        positiveButtonText = resourceManager.getString(R.string.common_close),
+                        positiveClick = ::callSilentRejectSession,
+                        onBackClick = ::callSilentRejectSession
+                    )
+                }
+            }
 
             val initialSelectedWalletId = accountRepository.getSelectedLightMetaAccount().id
             selectedWalletIds.value = setOf(initialSelectedWalletId)
-        }
-    }
-
-    private suspend fun checkChainsSupported() {
-        val chains = walletConnectInteractor.getChains()
-
-        val proposalRequiredChains = proposal.requiredNamespaces.flatMap { it.value.chains.orEmpty() }
-        val supportedChains = chains.filter {
-            it.caip2id in proposalRequiredChains
-        }
-
-        if (supportedChains.size < proposalRequiredChains.size) {
-            showError(
-                title = resourceManager.getString(R.string.common_error_general_title),
-                message = resourceManager.getString(R.string.connection_chains_not_supported_error),
-                positiveButtonText = resourceManager.getString(R.string.common_close),
-                positiveClick = ::rejectSessionSilent,
-                onBackClick = ::rejectSessionSilent
-            )
         }
     }
 
@@ -195,159 +179,84 @@ class WalletConnectViewModel @Inject constructor(
         val isAllMethodsSupported = WalletConnectMethod.values().map { it.method }.containsAll(requiredMethods)
 
         if (isAllMethodsSupported) {
-            approveSession()
+            callSessionApprove()
         } else {
             showError(
                 message = resourceManager.getString(R.string.connection_methods_not_supported_warning),
                 positiveButtonText = resourceManager.getString(R.string.connection_approve),
                 negativeButtonText = resourceManager.getString(R.string.connection_reject),
-                positiveClick = ::approveSession,
-                negativeClick = ::rejectSession
+                positiveClick = ::callSessionApprove,
+                negativeClick = ::callRejectSession
             )
         }
     }
 
-    private fun approveSession() {
-        val selectedWalletIds = selectedWalletIds.value
-        val selectedOptionalChainIds = selectedOptionalNetworkIds.value
-
+    private fun callSessionApprove() {
         launch(Dispatchers.IO) {
-            val chains = walletConnectInteractor.getChains()
-            val allMetaAccounts = accountRepository.allMetaAccounts()
+            val selectedWalletIds = selectedWalletIds.value
+            val selectedOptionalChainIds = selectedOptionalNetworkIds.value
+            walletConnectInteractor.approveSession(
+                proposal = proposal,
+                selectedWalletIds = selectedWalletIds,
+                selectedOptionalChainIds = selectedOptionalChainIds,
+                onSuccess = onApproveSessionSuccess(),
+                onError = ::onApproveSessionError
+            )
+        }
+    }
 
-            val requiredSessionNamespaces = proposal.requiredNamespaces.mapValues { proposal ->
-                val requiredNamespaceChains = chains.filter { chain ->
-                    chain.caip2id in proposal.value.chains.orEmpty()
-                }
+    private fun onApproveSessionSuccess(): (Wallet.Params.SessionApprove) -> Unit = {
+        viewModelScope.launch(Dispatchers.Main.immediate) {
+            walletConnectRouter.openOperationSuccessAndPopUpToNearestRelatedScreen(
+                null,
+                null,
+                resourceManager.getString(R.string.connection_approve_success_message)
+            )
+        }
+        WCDelegate.refreshConnections()
+    }
 
-                val requiredAccounts = selectedWalletIds.flatMap { walletId ->
-                    requiredNamespaceChains.mapNotNull { chain ->
-                        allMetaAccounts.firstOrNull { it.id == walletId }?.address(chain)?.let { address ->
-                            chain.caip2id + ":" + address
-                        }
-                    }
-                }
-
-                Wallet.Model.Namespace.Session(
-                    chains = proposal.value.chains,
-                    accounts = requiredAccounts,
-                    events = proposal.value.events,
-                    methods = proposal.value.methods
-                )
-            }
-
-            val optionalSessionNamespaces = if (selectedOptionalChainIds.isEmpty()) {
-                mapOf()
-            } else {
-                proposal.optionalNamespaces.mapValuesNotNull { proposal ->
-                    val optionalNamespaceSelectedChains = chains.filter { chain ->
-                        chain.caip2id in proposal.value.chains.orEmpty() && chain.caip2id in selectedOptionalChainIds
-                    }
-
-                    if (optionalNamespaceSelectedChains.isEmpty()) return@mapValuesNotNull null
-
-                    val optionalAccounts = selectedWalletIds.flatMap { walletId ->
-                        optionalNamespaceSelectedChains.mapNotNull { chain ->
-                            allMetaAccounts.firstOrNull { it.id == walletId }?.address(chain)?.let { address ->
-                                chain.caip2id + ":" + address
-                            }
-                        }
-                    }
-
-                    val sessionChains = optionalNamespaceSelectedChains.map { it.caip2id }
-
-                    Wallet.Model.Namespace.Session(
-                        chains = sessionChains,
-                        accounts = optionalAccounts,
-                        events = proposal.value.events,
-                        methods = proposal.value.methods
-                    )
-                }
-            }
-
-            val sessionNamespaces = requiredSessionNamespaces.mapValues { required ->
-                val optional = optionalSessionNamespaces[required.key]
-
-                Wallet.Model.Namespace.Session(
-                    chains = (required.value.chains.orEmpty() + optional?.chains.orEmpty()).distinct(),
-                    accounts = (required.value.accounts + optional?.accounts.orEmpty()).distinct(),
-                    events = (required.value.events + optional?.events.orEmpty()).distinct(),
-                    methods = (required.value.methods + optional?.methods.orEmpty()).distinct()
-                )
-            } + optionalSessionNamespaces.filter { it.key !in requiredSessionNamespaces.keys }
-
-            Web3Wallet.approveSession(
-                params = Wallet.Params.SessionApprove(
-                    proposerPublicKey = proposal.proposerPublicKey,
-                    namespaces = sessionNamespaces,
-                    relayProtocol = proposal.relayProtocol
-                ),
-                onSuccess = {
-                    viewModelScope.launch(Dispatchers.Main.immediate) {
-                        walletConnectRouter.openOperationSuccessAndPopUpToNearestRelatedScreen(
-                            null,
-                            null,
-                            resourceManager.getString(R.string.connection_approve_success_message)
-                        )
-                    }
-                    WCDelegate.refreshConnections()
-                },
-                onError = {
-                    viewModelScope.launch(Dispatchers.Main.immediate) {
-                        showError(
-                            title = resourceManager.getString(R.string.common_error_general_title),
-                            message = it.throwable.message.orEmpty(),
-                            positiveButtonText = resourceManager.getString(R.string.common_close),
-                            positiveClick = ::rejectSessionSilent,
-                            onBackClick = ::rejectSessionSilent
-                        )
-                    }
-                }
+    private fun onApproveSessionError(error: Wallet.Model.Error): () -> Unit = {
+        viewModelScope.launch(Dispatchers.Main.immediate) {
+            showError(
+                title = resourceManager.getString(R.string.common_error_general_title),
+                message = error.throwable.message.orEmpty(),
+                positiveButtonText = resourceManager.getString(R.string.common_close),
+                positiveClick = ::callSilentRejectSession,
+                onBackClick = ::callSilentRejectSession
             )
         }
     }
 
     override fun onRejectClicked() {
-        rejectSession()
+        callRejectSession()
     }
 
-    private fun rejectSession() {
-        WCDelegate.sessionProposalEvent?.let {
-            Web3Wallet.rejectSession(
-                params = Wallet.Params.SessionReject(
-                    it.first.proposerPublicKey,
-                    "User rejected"
-                ),
-                onSuccess = {
-                    WCDelegate.refreshConnections()
-                    viewModelScope.launch(Dispatchers.Main.immediate) {
-                        walletConnectRouter.openOperationSuccessAndPopUpToNearestRelatedScreen(
-                            null,
-                            null,
-                            resourceManager.getString(R.string.common_rejected)
-                        )
-                    }
-                },
-                onError = {}
+    private fun callRejectSession() {
+        walletConnectInteractor.rejectSession(
+            proposal = proposal,
+            onSuccess = onRejectSessionSuccess(),
+            onError = {}
+        )
+    }
+
+    private fun onRejectSessionSuccess(): (Wallet.Params.SessionReject) -> Unit = {
+        WCDelegate.refreshConnections()
+        viewModelScope.launch(Dispatchers.Main.immediate) {
+            walletConnectRouter.openOperationSuccessAndPopUpToNearestRelatedScreen(
+                null,
+                null,
+                resourceManager.getString(R.string.common_rejected)
             )
         }
     }
 
-    private fun rejectSessionSilent() {
-        WCDelegate.sessionProposalEvent?.let {
-            Web3Wallet.rejectSession(
-                params = Wallet.Params.SessionReject(
-                    it.first.proposerPublicKey,
-                    "Blockchain not supported by wallet"
-                ),
-                onSuccess = {
-                    onClose()
-                },
-                onError = {
-                    onClose()
-                }
-            )
-        }
+    private fun callSilentRejectSession() {
+        walletConnectInteractor.silentRejectSession(
+            proposal = proposal,
+            onSuccess = { onClose() },
+            onError = { onClose() }
+        )
     }
 
     override fun onOptionalNetworksClicked() {

@@ -6,9 +6,8 @@ import androidx.compose.material.SwipeableState
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import co.jp.soramitsu.walletconnect.domain.WalletConnectInteractor
 import com.walletconnect.android.internal.common.exception.MalformedWalletConnectUri
-import com.walletconnect.web3.wallet.client.Wallet
-import com.walletconnect.web3.wallet.client.Web3Wallet
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.math.BigDecimal
 import java.util.concurrent.TimeUnit
@@ -122,7 +121,8 @@ class BalanceListViewModel @Inject constructor(
     private val currentAccountAddress: CurrentAccountAddressUseCase,
     private val kycRepository: KycRepository,
     private val getTotalBalance: TotalBalanceUseCase,
-    private val pendulumPreInstalledAccountsScenario: PendulumPreInstalledAccountsScenario
+    private val pendulumPreInstalledAccountsScenario: PendulumPreInstalledAccountsScenario,
+    private val walletConnectInteractor: WalletConnectInteractor
 ) : BaseViewModel(), UpdatesProviderUi by updatesMixin, NetworkStateUi by networkStateMixin,
     WalletScreenInterface {
 
@@ -699,9 +699,8 @@ class BalanceListViewModel @Inject constructor(
     }
 
     private fun sendWalletConnectPair(pairingUri: String) {
-        val pairingParams = Wallet.Params.Pair(pairingUri)
-        Web3Wallet.pair(
-            params = pairingParams,
+        walletConnectInteractor.pair(
+            pairingUri = pairingUri,
             onError = { error ->
                 viewModelScope.launch(Dispatchers.Main.immediate) {
                     if (error.throwable is MalformedWalletConnectUri) {

@@ -4,9 +4,8 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import co.jp.soramitsu.feature_walletconnect_impl.R
+import co.jp.soramitsu.walletconnect.domain.WalletConnectInteractor
 import com.walletconnect.android.internal.common.exception.MalformedWalletConnectUri
-import com.walletconnect.web3.wallet.client.Wallet
-import com.walletconnect.web3.wallet.client.Web3Wallet
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -26,7 +25,8 @@ import javax.inject.Inject
 @HiltViewModel
 class ConnectionsViewModel @Inject constructor(
     private val walletRouter: WalletRouter,
-    private val resourceManager: ResourceManager
+    private val resourceManager: ResourceManager,
+    private val walletConnectInteractor: WalletConnectInteractor
 ) : BaseViewModel() {
 
     private val _openScannerEvent = MutableLiveData<Event<Unit>>()
@@ -81,9 +81,8 @@ class ConnectionsViewModel @Inject constructor(
     }
 
     private fun sendWalletConnectPair(pairingUri: String) {
-        val pairingParams = Wallet.Params.Pair(pairingUri)
-        Web3Wallet.pair(
-            params = pairingParams,
+        walletConnectInteractor.pair(
+            pairingUri = pairingUri,
             onSuccess = {
                 WCDelegate.refreshConnections()
             },
