@@ -3,12 +3,6 @@ package jp.co.soramitsu.coredb.migrations
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
-val Migration_59_60 = object : Migration(59, 60) {
-    override fun migrate(database: SupportSQLiteDatabase) {
-        database.execSQL("ALTER TABLE chains ADD COLUMN `rank` INTEGER AFTER `parentId`")
-    }
-}
-
 val Migration_58_59 = object : Migration(58, 59) {
     override fun migrate(database: SupportSQLiteDatabase) {
         database.execSQL("ALTER TABLE chains ADD COLUMN `rank` INTEGER NULL")
