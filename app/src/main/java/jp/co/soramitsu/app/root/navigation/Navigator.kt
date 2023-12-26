@@ -124,6 +124,7 @@ import jp.co.soramitsu.wallet.impl.domain.model.QrContentCBDC
 import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.presentation.addressbook.CreateContactFragment
+import jp.co.soramitsu.wallet.impl.presentation.balance.assetDetails.AssetDetailsFragment
 import jp.co.soramitsu.wallet.impl.presentation.balance.assetselector.AssetSelectFragment
 import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.ChainSelectFragment
 import jp.co.soramitsu.wallet.impl.presentation.balance.detail.BalanceDetailFragment
@@ -157,6 +158,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
@@ -791,13 +793,15 @@ class Navigator :
         assetId: String,
         chainId: ChainId?,
         chooserMode: Boolean,
-        isSelectAsset: Boolean
+        isSelectAsset: Boolean,
+        showAllChains: Boolean
     ) {
         val bundle = ChainSelectFragment.getBundle(
             assetId = assetId,
             chainId = chainId,
             chooserMode = chooserMode,
-            isSelectAsset = isSelectAsset
+            isSelectAsset = isSelectAsset,
+            showAllChains = showAllChains
         )
         navController?.navigate(R.id.chainSelectFragment, bundle)
     }
@@ -1039,10 +1043,36 @@ class Navigator :
         navController?.navigate(R.id.action_nodesFragment_to_nodeDetailsFragment, NodeDetailsFragment.getBundle(payload))
     }
 
+    override fun trackReturnToAssetDetailsFromChainSelector(): Flow<Unit>? {
+        return navController?.currentBackStackEntryFlow?.filter {
+            it.destination.id == R.id.assetDetailFragment
+        }?.distinctUntilChanged()?.map { /* DO NOTHING */ }
+    }
+
     override fun openAssetDetails(assetPayload: AssetPayload) {
         val bundle = BalanceDetailFragment.getBundle(assetPayload)
 
         navController?.navigate(R.id.action_mainFragment_to_balanceDetailFragment, bundle)
+    }
+
+    override fun openAssetDetailsAndPopUpToBalancesList(assetPayload: AssetPayload) {
+        val bundle = BalanceDetailFragment.getBundle(assetPayload)
+
+        val navOptions = NavOptions.Builder()
+            .setPopUpTo(R.id.mainFragment, false)
+            .build()
+
+        navController?.navigate(R.id.action_mainFragment_to_balanceDetailFragment, bundle, navOptions)
+    }
+
+    override fun openAssetIntermediateDetails(assetId: String) {
+        val bundle = AssetDetailsFragment.getBundle(assetId)
+
+        navController?.navigate(R.id.action_mainFragment_to_assetDetailFragment, bundle)
+    }
+
+    override fun openAssetIntermediateDetailsSort() {
+        navController?.navigate(R.id.assetDetailSortFragment)
     }
 
     override fun openAddressHistory(chainId: ChainId) {

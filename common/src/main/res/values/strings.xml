@@ -153,6 +153,9 @@
   <string name="common_and">and</string>
   <string name="common_applied">Applied</string>
   <string name="common_apply">Apply</string>
+  <string name="common_assets_filters_fiat">Fiat balance</string>
+  <string name="common_assets_filters_name">Name</string>
+  <string name="common_assets_filters_popularity">Popularity</string>
   <string name="common_available_format">Available: %s</string>
   <string name="common_available_networks">Available networks</string>
   <string name="common_backup_your_wallet">Backup your wallet</string>

@@ -1,6 +1,7 @@
 package jp.co.soramitsu.wallet.impl.presentation
 
 import android.graphics.drawable.Drawable
+import androidx.navigation.NavBackStackEntry
 import it.airgap.beaconsdk.blockchain.substrate.data.SubstrateSignerPayload
 import java.math.BigDecimal
 import jp.co.soramitsu.account.api.domain.model.ImportMode
@@ -26,10 +27,20 @@ import jp.co.soramitsu.wallet.impl.presentation.send.TransferDraft
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.extrinsic.ExtrinsicDetailsPayload
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.reward.RewardDetailsPayload
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.StateFlow
 import jp.co.soramitsu.wallet.api.presentation.WalletRouter as WalletRouterApi
 
 interface WalletRouter : SecureRouter, WalletRouterApi {
+
+    fun trackReturnToAssetDetailsFromChainSelector(): Flow<Unit>?
+
     fun openAssetDetails(assetPayload: AssetPayload)
+
+    fun openAssetDetailsAndPopUpToBalancesList(assetPayload: AssetPayload)
+
+    fun openAssetIntermediateDetails(assetId: String)
+
+    fun openAssetIntermediateDetailsSort()
 
     fun openSend(assetPayload: AssetPayload?, initialSendToAddress: String? = null, currencyId: String? = null, amount: BigDecimal? = null)
     fun openLockedAmountSend(assetPayload: AssetPayload?, initialSendToAddress: String? = null, currencyId: String? = null, amount: BigDecimal?)
@@ -43,7 +54,8 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
         assetId: String,
         chainId: ChainId? = null,
         chooserMode: Boolean = true,
-        isSelectAsset: Boolean = true
+        isSelectAsset: Boolean = true,
+        showAllChains: Boolean = false
     )
 
     fun openSelectChain(

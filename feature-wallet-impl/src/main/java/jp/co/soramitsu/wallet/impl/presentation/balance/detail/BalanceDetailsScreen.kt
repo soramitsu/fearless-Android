@@ -251,7 +251,7 @@ fun BalanceDetailsScreen(
 }
 
 @Composable
-private fun AssetBalance(
+fun AssetBalance(
     balanceLoadingState: LoadingState<AssetBalanceViewState>,
     onAddressClick: () -> Unit
 ) {
