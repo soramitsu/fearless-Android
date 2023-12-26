@@ -220,6 +220,7 @@
   <string name="common_friend_bonus">Bonus for your friend</string>
   <string name="common_got_it">Got it</string>
   <string name="common_history">History</string>
+  <string name="common_host">Host</string>
   <plurals name="common_hours_format">
     <item quantity="one">%d hour</item>
     <item quantity="other">%d hours</item>

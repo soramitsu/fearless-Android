@@ -17,8 +17,6 @@ import kotlinx.coroutines.launch
 
 object WCDelegate : Web3Wallet.WalletDelegate, CoreClient.CoreDelegate {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-    private val _coreEvents: MutableSharedFlow<Core.Model> = MutableSharedFlow()
-    val coreEvents: SharedFlow<Core.Model> = _coreEvents.asSharedFlow()
 
     private val _walletEvents: MutableSharedFlow<Wallet.Model> = MutableSharedFlow()
     val walletEvents: SharedFlow<Wallet.Model> = _walletEvents.asSharedFlow()
@@ -109,8 +107,5 @@ object WCDelegate : Web3Wallet.WalletDelegate, CoreClient.CoreDelegate {
     }
 
     override fun onPairingDelete(deletedPairing: Core.Model.DeletedPairing) {
-        scope.launch {
-            _coreEvents.emit(deletedPairing)
-        }
     }
 }

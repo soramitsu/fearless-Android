@@ -100,19 +100,19 @@ class RequestPreviewViewModel @Inject constructor(
 
         val tableItems = listOf(
             TitleValueViewState(
-                "dApp",
+                resourceManager.getString(R.string.common_dapp),
                 recentSession.peerMetaData?.name
             ),
             TitleValueViewState(
-                "Host",
+                resourceManager.getString(R.string.common_host),
                 recentSession.peerMetaData?.dappUrl
             ),
             TitleValueViewState(
-                "Network",
+                resourceManager.getString(R.string.common_network),
                 requestChain.name
             ),
             TitleValueViewState(
-                "Transaction raw data",
+                resourceManager.getString(R.string.common_transaction_raw_data),
                 value = "",
                 clickState = TitleValueViewState.ClickState.Value(R.drawable.ic_right_arrow_24_align_right, TRANSACTION_RAW_DATA_CLICK_ID)
             )
@@ -136,9 +136,9 @@ class RequestPreviewViewModel @Inject constructor(
     }
 
     override fun onSignClick() {
-        launch(Dispatchers.IO) {
-            val chain = requestChainFlow.value ?: return@launch
+        val chain = requestChainFlow.value ?: return
 
+        launch {
             walletConnectInteractor.onSignClick(
                 chain = chain,
                 topic = topic,
@@ -150,11 +150,8 @@ class RequestPreviewViewModel @Inject constructor(
         }
     }
 
-    private fun onRespondSessionRequestSuccess(
-        operationHash: String?,
-        chainId: ChainId?
-    ): (Wallet.Params.SessionRequestResponse) -> Unit = {
-        viewModelScope.launch(Dispatchers.Main.immediate) {
+    private fun onRespondSessionRequestSuccess(operationHash: String?, chainId: ChainId?) {
+        viewModelScope.launch(Dispatchers.Main) {
             walletConnectRouter.openOperationSuccessAndPopUpToNearestRelatedScreen(
                 operationHash = operationHash,
                 chainId = chainId,
@@ -163,7 +160,7 @@ class RequestPreviewViewModel @Inject constructor(
         }
     }
 
-    private fun onRespondRequestSessionError(error: Wallet.Model.Error): () -> Unit = {
+    private fun onRespondRequestSessionError(error: Wallet.Model.Error) {
         viewModelScope.launch(Dispatchers.Main) {
             showError(
                 title = resourceManager.getString(R.string.common_error_general_title),

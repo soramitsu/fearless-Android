@@ -27,6 +27,8 @@ import jp.co.soramitsu.shared_utils.extensions.fromHex
 import jp.co.soramitsu.shared_utils.extensions.toHexString
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.EthereumRemoteSource
 import jp.co.soramitsu.walletconnect.impl.presentation.state.WalletConnectMethod
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import org.web3j.crypto.Credentials
 import org.web3j.crypto.RawTransaction
@@ -74,7 +76,7 @@ class WalletConnectInteractorImpl(
         onError: (Wallet.Model.Error) -> Unit
     ) {
         val chains = getChains()
-        val allMetaAccounts = accountRepository.allMetaAccounts()
+        val allMetaAccounts = withContext(Dispatchers.IO) { accountRepository.allMetaAccounts() }
 
         val requiredSessionNamespaces = proposal.requiredNamespaces.mapValues { proposal ->
             val requiredNamespaceChains = chains.filter { chain ->
@@ -188,7 +190,7 @@ class WalletConnectInteractorImpl(
     ) {
         val address = recentSession.request.address ?: return
         val accountId = chain.accountIdOf(address)
-        val metaAccount = accountRepository.findMetaAccount(accountId) ?: return
+        val metaAccount = withContext(Dispatchers.IO) { accountRepository.findMetaAccount(accountId) } ?: return
 
         val signResult = try {
             getSignResult(metaAccount, recentSession)
@@ -282,7 +284,7 @@ class WalletConnectInteractorImpl(
         metaAccount: MetaAccount,
         recentSession: Wallet.Model.SessionRequest
     ): String {
-        val chainId = recentSession.chainId?.removePrefix("${Caip2Namespace.EIP155}:") ?: error("No chain")
+        val chainId = recentSession.chainId?.removePrefix("${Caip2Namespace.EIP155.value}:") ?: error("No chain")
 
         val secrets = accountRepository.getMetaAccountSecrets(metaAccount.id) ?: error("There are no secrets for metaId: ${metaAccount.id}")
         val keypairSchema = secrets[MetaAccountSecrets.EthereumKeypair] ?: error("There are no secrets for metaId: ${metaAccount.id}")
@@ -301,7 +303,7 @@ class WalletConnectInteractorImpl(
         metaAccount: MetaAccount,
         recentSession: Wallet.Model.SessionRequest
     ): String {
-        val chainId = recentSession.chainId?.removePrefix("${Caip2Namespace.EIP155}:") ?: error("No chain")
+        val chainId = recentSession.chainId?.removePrefix("${Caip2Namespace.EIP155.value}:") ?: error("No chain")
         val secrets = accountRepository.getMetaAccountSecrets(metaAccount.id) ?: error("There are no secrets for metaId: ${metaAccount.id}")
         val keypairSchema = secrets[MetaAccountSecrets.EthereumKeypair] ?: error("There are no secrets for metaId: ${metaAccount.id}")
         val privateKey = keypairSchema[KeyPairSchema.PrivateKey]

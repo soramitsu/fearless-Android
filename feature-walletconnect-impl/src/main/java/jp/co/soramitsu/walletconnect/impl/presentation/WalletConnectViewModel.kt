@@ -192,7 +192,7 @@ class WalletConnectViewModel @Inject constructor(
     }
 
     private fun callSessionApprove() {
-        launch(Dispatchers.IO) {
+        launch {
             val selectedWalletIds = selectedWalletIds.value
             val selectedOptionalChainIds = selectedOptionalNetworkIds.value
             walletConnectInteractor.approveSession(
