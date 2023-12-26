@@ -534,9 +534,6 @@ class WalletRepositoryImpl(
             val chainsById = chains.associateBy { it.id }
             val assets = it.values.map { mapAssetLocalToAsset(chainsById, it) }
             chains.zip(assets).toMap()
-        }.onEach {
-            val t = it
-            println(t)
         }
     }
 }

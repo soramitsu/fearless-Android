@@ -46,7 +46,7 @@ fun ChangeBalance(
                 ),
                 modifier = Modifier
                     .padding(start = 4.dp)
-                    .testTag("balance_change_percent")
+                    .testTag("fiat_balance_change_percent")
             )
         }
         Text(
