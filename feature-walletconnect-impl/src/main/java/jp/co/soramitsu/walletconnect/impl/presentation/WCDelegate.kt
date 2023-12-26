@@ -33,17 +33,14 @@ object WCDelegate : Web3Wallet.WalletDelegate, CoreClient.CoreDelegate {
 
     private val updateSessions = MutableStateFlow(Event(Unit))
     val activeSessionFlow = updateSessions.map {
-        println("!!! WCDelegate activeSessionFlow updateSessions: $it")
         Web3Wallet.getListOfActiveSessions()
     }
 
     fun refreshConnections() {
-        println("!!! WCDelegate refreshConnections")
         updateSessions.value = Event(Unit)
     }
 
     override fun onAuthRequest(authRequest: Wallet.Model.AuthRequest, verifyContext: Wallet.Model.VerifyContext) {
-        println("!!! WCDelegate onAuthRequest")
         authRequestEvent = Pair(authRequest, verifyContext)
 
         scope.launch {
@@ -58,7 +55,6 @@ object WCDelegate : Web3Wallet.WalletDelegate, CoreClient.CoreDelegate {
     }
 
     override fun onError(error: Wallet.Model.Error) {
-        println("!!! error WC Delegate")
         error.throwable.printStackTrace()
         scope.launch {
             _walletEvents.emit(error)
@@ -66,7 +62,6 @@ object WCDelegate : Web3Wallet.WalletDelegate, CoreClient.CoreDelegate {
     }
 
     override fun onSessionDelete(sessionDelete: Wallet.Model.SessionDelete) {
-        println("!!! WCDelegate onSessionDelete")
         refreshConnections()
         scope.launch {
             _walletEvents.emit(sessionDelete)
@@ -74,14 +69,12 @@ object WCDelegate : Web3Wallet.WalletDelegate, CoreClient.CoreDelegate {
     }
 
     override fun onSessionExtend(session: Wallet.Model.Session) {
-        println("!!! WCDelegate onSessionExtend")
     }
 
     override fun onSessionProposal(
         sessionProposal: Wallet.Model.SessionProposal,
         verifyContext: Wallet.Model.VerifyContext
     ) {
-        println("!!! WCDelegate onSessionProposal !!!")
         sessionProposalEvent = Pair(sessionProposal, verifyContext)
 
         scope.launch {
@@ -93,7 +86,6 @@ object WCDelegate : Web3Wallet.WalletDelegate, CoreClient.CoreDelegate {
         sessionRequest: Wallet.Model.SessionRequest,
         verifyContext: Wallet.Model.VerifyContext
     ) {
-        println("!!! WCDelegate onSessionRequest")
         // Once a Dapp sends the session request, it will be handled by the
         // onSessionRequest callback in the WalletDelegate
         sessionRequestEvent = Pair(sessionRequest, verifyContext)
@@ -104,7 +96,6 @@ object WCDelegate : Web3Wallet.WalletDelegate, CoreClient.CoreDelegate {
     }
 
     override fun onSessionSettleResponse(settleSessionResponse: Wallet.Model.SettledSessionResponse) {
-        println("!!! WCDelegate onSessionSettleResponse")
         refreshConnections()
         scope.launch {
             _walletEvents.emit(settleSessionResponse)
@@ -112,14 +103,12 @@ object WCDelegate : Web3Wallet.WalletDelegate, CoreClient.CoreDelegate {
     }
 
     override fun onSessionUpdateResponse(sessionUpdateResponse: Wallet.Model.SessionUpdateResponse) {
-        println("!!! WCDelegate onSessionUpdateResponse")
         scope.launch {
             _walletEvents.emit(sessionUpdateResponse)
         }
     }
 
     override fun onPairingDelete(deletedPairing: Core.Model.DeletedPairing) {
-        println("!!! WCDelegate onPairingDelete")
         scope.launch {
             _coreEvents.emit(deletedPairing)
         }

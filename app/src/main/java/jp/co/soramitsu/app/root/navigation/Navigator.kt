@@ -835,7 +835,6 @@ class Navigator :
     }
 
     override fun openConnectionsScreen() {
-        println("!!! openConnectionsScreen")
         navController?.navigate(R.id.connectionsFragment)
     }
 

@@ -60,7 +60,6 @@ open class App : Application() {
             application = this,
             metaData = appMetaData,
             onError = {
-                println("!!! error CoreClient.initialize = ${it.throwable.message}")
                 it.throwable.printStackTrace()
             }
         )
@@ -69,7 +68,6 @@ open class App : Application() {
 
         Web3Wallet.initialize(initParams) { error ->
             // Error will be thrown if there's an issue during initialization
-            println("!!! error Web3Wallet.initialize = ${error.throwable.message}")
             error.throwable.printStackTrace()
         }
     }

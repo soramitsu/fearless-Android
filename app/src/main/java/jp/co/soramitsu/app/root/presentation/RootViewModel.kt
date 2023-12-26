@@ -57,9 +57,6 @@ class RootViewModel @Inject constructor(
     private val _closeApp = MutableLiveData<Event<Unit>>()
     val closeApp: LiveData<Event<Unit>> = _closeApp
 
-    private val _startWC = MutableLiveData<Event<Unit>>()
-    val startWC: LiveData<Event<Unit>> = _startWC
-
     private var timer = Timer()
     private var timerTask: TimerTask? = null
 
@@ -191,9 +188,7 @@ class RootViewModel @Inject constructor(
                 is Wallet.Model.SessionRequest -> {
                     handleSessionRequest(it)
                 }
-                else -> {
-                    println("!!! RootModel WCDelegate.walletEvent: $it")
-                }
+                else -> {}
             }
         }.stateIn(this, SharingStarted.Eagerly, null)
     }
