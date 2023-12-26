@@ -4,7 +4,9 @@
     android:id="@+id/successRootView"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/black"
+    android:background="@drawable/drawable_background_image"
+    android:backgroundTint="#63000000"
+    android:backgroundTintMode="src_atop"
     android:clickable="true"
     android:fitsSystemWindows="true"
     android:focusable="true">

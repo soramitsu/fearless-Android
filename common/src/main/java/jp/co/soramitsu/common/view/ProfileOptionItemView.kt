@@ -36,7 +36,7 @@ class ProfileOptionItemView @JvmOverloads constructor(
     init {
         View.inflate(context, R.layout.view_profile_option_item, this)
 
-        background = with(context) { addRipple(ContextCompat.getDrawable(context, R.color.black)) }
+        background = with(context) { addRipple(ContextCompat.getDrawable(context, android.R.color.transparent)) }
 
         isFocusable = true
         isClickable = true

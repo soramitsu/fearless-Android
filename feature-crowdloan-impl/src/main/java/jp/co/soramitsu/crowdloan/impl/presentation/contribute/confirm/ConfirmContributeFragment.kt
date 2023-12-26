@@ -144,13 +144,13 @@ class ConfirmContributeFragment : BaseFragment<ConfirmContributeViewModel>() {
             with(binding) {
                 confirmContributeBonus.setVisible(true)
                 confirmContributeBonus.showValue(getString(R.string.label_link))
-                confirmContributeBonus.setValueColorRes(R.color.colorAccent)
+                confirmContributeBonus.setValueColorRes(R.color.colorAccentDark)
             }
         }
     }
 
     private fun getColor(bonus: BigDecimal?) = when {
         bonus == null || bonus <= BigDecimal.ZERO -> R.color.white
-        else -> R.color.colorAccent
+        else -> R.color.colorAccentDark
     }
 }

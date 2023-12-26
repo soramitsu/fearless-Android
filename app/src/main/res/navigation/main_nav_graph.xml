@@ -86,14 +86,6 @@
         app:destination="@id/exportJsonPasswordFragment" />
 
     <action
-        android:id="@+id/action_open_walletExportFragment"
-        app:destination="@id/walletExportFragment"
-        app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
-        app:exitAnim="?android:attr/fragmentOpenExitAnimation"
-        app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
-        app:popExitAnim="?android:attr/fragmentCloseExitAnimation" />
-
-    <action
         android:id="@+id/action_open_accountsForExportFragment"
         app:destination="@id/accountsForExportFragment"
         app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
@@ -289,12 +281,6 @@
         android:name="jp.co.soramitsu.account.impl.presentation.language.LanguagesFragment"
         android:label="LanguagesFragment"
         tools:layout="@layout/fragment_languages" />
-
-    <fragment
-        android:id="@+id/walletExportFragment"
-        android:name="jp.co.soramitsu.account.impl.presentation.account.export.WalletExportFragment"
-        android:label="WalletExportFragment"
-        tools:layout="@layout/fragment_wallet_export" />
 
     <fragment
         android:id="@+id/accountsForExportFragment"

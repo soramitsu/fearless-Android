@@ -16,7 +16,7 @@
         app:layout_constraintBottom_toBottomOf="@id/labeledTextText"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@id/labeledTextText"
-        tools:src="@color/colorAccent" />
+        tools:src="@color/colorAccentDark" />
 
     <TextView
         android:id="@+id/labeledTextLabel"

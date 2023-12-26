@@ -153,12 +153,12 @@
 
     <style name="BottomSheetDialog" parent="Theme.MaterialComponents.BottomSheetDialog">
         <item name="bottomSheetStyle">@style/bottomSheetStyleWrapper</item>
-        <item name="android:windowBackground">@color/bottomSheetBackground</item>
+        <item name="android:windowBackground">@color/backgroundBlurColor</item>
     </style>
 
     <style name="bottomSheetStyleWrapper" parent="Widget.MaterialComponents.BottomSheet.Modal">
         <item name="behavior_peekHeight">600dp</item>
-        <item name="backgroundTint">@color/black</item>
+        <item name="backgroundTint">@color/bottom_bar_grey</item>
         <item name="shapeAppearanceOverlay">@style/CustomShapeAppearanceBottomSheetDialog</item>
     </style>
 

@@ -54,8 +54,6 @@ interface AccountRouter : SecureRouter {
 
     fun openAccountDetails(metaAccountId: Long)
 
-    fun openExportWallet(metaAccountId: Long)
-
     fun openAccountsForExport(metaId: Long, from: AccountInChain.From)
 
     fun openNodeDetails(payload: NodeDetailsPayload)
