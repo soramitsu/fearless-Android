@@ -20,7 +20,7 @@ class AlchemyNftContractInfoDeserializer : JsonDeserializer<AlchemyNftContractIn
         typeOfT: Type?,
         context: JsonDeserializationContext?
     ): AlchemyNftContractInfo {
-        val address = json?.asJsonObject?.get("address")?.asString
+        val address = requireNotNull(json?.asJsonObject?.get("address")?.asString)
         return AlchemyNftContractInfo(address)
     }
 }

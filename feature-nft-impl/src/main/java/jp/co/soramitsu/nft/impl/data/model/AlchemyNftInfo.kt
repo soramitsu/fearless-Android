@@ -4,6 +4,7 @@ import java.math.BigInteger
 import jp.co.soramitsu.core.models.ChainId
 
 data class NftCollection(
+    val contractAddress: String,
     val name: String, //AlchemyNftInfo.contractMetadata.openSea.collectionName
     val image: String,
     val description: String?,
@@ -19,8 +20,7 @@ data class Nft(
     val description: String,
     val thumbnail: String,
     val owned: String?,
-    val tokenId: String?,
-
+    val tokenId: String?
     )
 
 data class AlchemyNftResponse(
@@ -38,7 +38,7 @@ data class AlchemyNftInfo(
     val media: List<AlchemyNftMediaInfo>?,
     val id: AlchemyNftId?,
     val balance: String?,
-    val contract: AlchemyNftContractInfo?,
+    val contract: AlchemyNftContractInfo,
     val metadata: AlchemyNftMetadata?,
     val spamInfo: AlchemyNftSpamInfo?,
     val contractMetadata: AlchemyNftCollection?,
@@ -50,7 +50,7 @@ data class AlchemyNftSpamInfo(
 )
 
 data class AlchemyNftContractInfo(
-    val address: String?,
+    val address: String,
 )
 
 data class AlchemyNftTokenMetadata(

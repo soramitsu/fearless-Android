@@ -1,5 +1,6 @@
 package jp.co.soramitsu.common.compose.component
 
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -18,6 +19,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material.ButtonColors
 import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.CircularProgressIndicator
+import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.material.TextButton
@@ -26,6 +28,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
@@ -71,6 +74,7 @@ fun AccentButton(
     modifier: Modifier = Modifier,
     text: String,
     enabled: Boolean = true,
+    @DrawableRes iconRes: Int? = null,
     onClick: () -> Unit
 ) {
     TextButton(
@@ -79,6 +83,7 @@ fun AccentButton(
         colors = accentDarkButtonColors,
         modifier = modifier,
         textStyle = MaterialTheme.customTypography.header4,
+        iconRes = iconRes,
         onClick = onClick
     )
 }
@@ -89,6 +94,7 @@ fun AccentButton(
     text: String,
     enabled: Boolean = true,
     loading: Boolean = false,
+    @DrawableRes iconRes: Int? = null,
     onClick: () -> Unit
 ) {
     if (loading) {
@@ -116,6 +122,7 @@ fun AccentButton(
             colors = accentDarkButtonColors,
             modifier = modifier,
             textStyle = MaterialTheme.customTypography.header4,
+            iconRes = iconRes,
             onClick = onClick
         )
     }
@@ -234,6 +241,7 @@ fun TextButton(
     textStyle: TextStyle = MaterialTheme.customTypography.header3,
     colors: ButtonColors,
     modifier: Modifier = Modifier,
+    @DrawableRes iconRes: Int? = null,
     onClick: () -> Unit
 ) {
     FearlessButton(
@@ -241,6 +249,7 @@ fun TextButton(
         enabled = enabled,
         textStyle = textStyle,
         colors = colors,
+        iconRes = iconRes,
         modifier = modifier,
         onClick = onClick
     )
@@ -279,6 +288,7 @@ fun FearlessButton(
     textStyle: TextStyle = MaterialTheme.customTypography.header3,
     colors: ButtonColors,
     modifier: Modifier = Modifier,
+    @DrawableRes iconRes: Int? = null,
     onClick: () -> Unit
 ) {
     val lastClickTimeState = rememberLastClickTime()
@@ -300,6 +310,10 @@ fun FearlessButton(
             )
         )
     ) {
+        iconRes?.let {
+            Icon(painter = painterResource(it), contentDescription = null,modifier = Modifier.size(16.dp))
+            MarginHorizontal(margin = 4.dp)
+        }
         Text(
             text = text,
             style = textStyle,

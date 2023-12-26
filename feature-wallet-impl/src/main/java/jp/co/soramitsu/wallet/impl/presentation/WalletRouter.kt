@@ -177,4 +177,6 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
     fun openImportRemoteWalletDialog()
 
     fun listenPolkaswapDisclaimerResultFlowFromMainScreen(): Flow<Boolean>
+
+    fun openNftCollection(contractAddress: String)
 }

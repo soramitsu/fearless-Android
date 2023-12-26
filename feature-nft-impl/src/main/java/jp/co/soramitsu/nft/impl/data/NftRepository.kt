@@ -1,5 +1,6 @@
 package jp.co.soramitsu.nft.impl.data
 
+import java.util.concurrent.atomic.AtomicReference
 import jp.co.soramitsu.common.data.network.runtime.binding.cast
 import jp.co.soramitsu.feature_nft_impl.BuildConfig
 import jp.co.soramitsu.nft.impl.data.model.AlchemyNftInfo
@@ -14,12 +15,15 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flow
-import java.util.concurrent.atomic.AtomicReference
 
 class NftRepository(private val alchemyNftApi: AlchemyNftApi) {
 
     suspend fun getNfts(chain: Chain, address: String, filters: List<String>): List<NftCollection> {
-        val response = alchemyNftApi.getNfts(url = chain.getNFTsUrl(), owner = address, excludeFilters = filters)
+        val response = alchemyNftApi.getNfts(
+            url = chain.getNFTsUrl(),
+            owner = address,
+            excludeFilters = filters
+        )
 
         val groupedResponse = response.ownedNfts.groupBy { it.contract?.address }
 
@@ -28,7 +32,9 @@ class NftRepository(private val alchemyNftApi: AlchemyNftApi) {
             .map { (contractAddress, nfts) ->
                 val contractMetadata = nfts.first().contractMetadata
                 val collectionName =
-                    contractMetadata?.openSea?.collectionName ?: nfts.firstOrNull { it.contractMetadata?.name != null }?.contractMetadata?.name ?: nfts.firstOrNull { it.title != null }?.title// contractMetadata?.name
+                    contractMetadata?.openSea?.collectionName
+                        ?: nfts.firstOrNull { it.contractMetadata?.name != null }?.contractMetadata?.name
+                        ?: nfts.firstOrNull { it.title != null }?.title// contractMetadata?.name
 
                 val mappedNfts = nfts.map {
                     it.toNft(collectionName, address)
@@ -38,6 +44,7 @@ class NftRepository(private val alchemyNftApi: AlchemyNftApi) {
                     ?: mappedNfts.firstOrNull()?.thumbnail).orEmpty()
 
                 NftCollection(
+                    contractAddress = contractAddress,
                     name = collectionName ?: contractAddress,
                     image = collectionImage,
                     description = contractMetadata?.openSea?.description,
@@ -53,6 +60,7 @@ class NftRepository(private val alchemyNftApi: AlchemyNftApi) {
             groupedResponse.filterKeys { it.isNullOrEmpty() }.values.flatten().map {
                 val nft = it.toNft(collectionName = null, address)
                 NftCollection(
+                    contractAddress = it.contract.address,
                     name = nft.title,
                     image = nft.thumbnail,
                     description = nft.description,
@@ -126,6 +134,7 @@ class NftRepository(private val alchemyNftApi: AlchemyNftApi) {
                         ?: mappedNfts.firstOrNull()?.thumbnail).orEmpty()
 
                     val collection = NftCollection(
+                        contractAddress = contractAddress,
                         name = collectionName ?: contractAddress,
                         image = collectionImage,
                         description = contractMetadata?.openSea?.description,
@@ -133,7 +142,8 @@ class NftRepository(private val alchemyNftApi: AlchemyNftApi) {
                         chainName = chain.name,
                         type = contractMetadata?.tokenType,
                         nfts = mappedNfts,
-                        collectionSize = contractMetadata?.totalSupply?.toIntOrNull() ?: mappedNfts.size
+                        collectionSize = contractMetadata?.totalSupply?.toIntOrNull()
+                            ?: mappedNfts.size
                     )
 
                     nextTokenId.set(response.nextToken)
@@ -157,6 +167,6 @@ fun AlchemyNftInfo.toNft(collectionName: String?, address: String): Nft {
         description = (description ?: contractMetadata?.openSea?.description).orEmpty(),
         thumbnail = (media?.firstOrNull()?.thumbnail ?: metadata?.image).orEmpty(),
         owned = if (!balance.isNullOrEmpty() && balance.toIntOrNull() != 0) address else null,
-        tokenId = id?.tokenId
+        tokenId = id?.tokenId,
     )
 }

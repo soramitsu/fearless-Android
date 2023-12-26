@@ -36,13 +36,14 @@ import retrofit2.converter.scalars.ScalarsConverterFactory
 @InstallIn(SingletonComponent::class)
 @Module
 class NftModule {
+
     @Provides
+    @Singleton
     fun provideNftInteractor(
         nftRepository: NftRepository,
         accountRepository: AccountRepository,
         chainRepository: ChainsRepository
     ) = NftInteractor(nftRepository, accountRepository, chainRepository)
-
 
     @Provides
     @Singleton

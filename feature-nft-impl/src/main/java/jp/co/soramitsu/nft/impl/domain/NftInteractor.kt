@@ -9,6 +9,7 @@ import jp.co.soramitsu.nft.impl.data.model.PaginationRequest
 import jp.co.soramitsu.nft.impl.presentation.filters.NftFilter
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.alchemyNftId
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -20,6 +21,8 @@ class NftInteractor(
     private val accountRepository: AccountRepository,
     private val chainsRepository: ChainsRepository
 ) {
+
+    private val loadedCollectionsByContractAddress: MutableMap<String, NftCollection> = mutableMapOf()
 
     suspend fun getNfts(
         filters: List<NftFilter>,
@@ -44,11 +47,23 @@ class NftInteractor(
                     chain,
                     address,
                     filters.map { it.name.uppercase() })
+            }.onSuccess {
+                it.forEach { remoteCollection ->
+                    loadedCollectionsByContractAddress[remoteCollection.contractAddress] = remoteCollection
+                }
             }
             chain to nftsResult
         }.toMap()
 
         return allChainsCollections
+    }
+
+    fun getCollection(contractAddress: String): NftCollection {
+        val local = loadedCollectionsByContractAddress.getOrElse(contractAddress) {
+            // todo load from alchemy
+            null
+        }
+        return local ?: throw IllegalStateException("Can't find collection with contract address: $contractAddress")
     }
 
     fun collectionItemsFlow(

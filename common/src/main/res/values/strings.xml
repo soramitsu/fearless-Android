@@ -477,7 +477,9 @@
   <string name="network_status_connected">Connected</string>
   <string name="network_status_connecting">Connecting…</string>
   <string name="network_url_address">URL address</string>
+  <string name="nft_collection_available_nfts">Available NFTs in the %s collection</string>
   <string name="nft_collection_title">Collection</string>
+  <string name="nft_collection_my_nfts">My NFTs</string>
   <string name="nft_list_empty_message">There aren\'t any NFTs yet. Buy or mint NFTs to see them here.</string>
   <string name="nft_owner_title">Owned</string>
   <string name="nft_stub_text">NFTs are going to be here soon</string>

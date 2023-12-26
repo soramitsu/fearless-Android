@@ -17,7 +17,9 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Divider
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -51,12 +53,13 @@ import jp.co.soramitsu.common.compose.theme.shimmerColor
 import jp.co.soramitsu.common.compose.theme.warningOrange
 import jp.co.soramitsu.common.compose.theme.white16
 import jp.co.soramitsu.common.compose.theme.white50
+import jp.co.soramitsu.common.utils.clickableSingle
 
 
 @Composable
-fun NftList(state: NftScreenState.ListState, appearanceType: NftAppearanceType) {
+fun NftList(state: NftScreenState.ListState, appearanceType: NftAppearanceType, onItemClick: (NftCollectionListItem) -> Unit) {
     when (state) {
-        is NftScreenState.ListState.Content -> NftList(state.items, appearanceType)
+        is NftScreenState.ListState.Content -> NftList(state.items, appearanceType, onItemClick)
         NftScreenState.ListState.Empty -> NftEmptyState()
         NftScreenState.ListState.Loading -> NftListShimmers(appearanceType)
     }
@@ -68,6 +71,7 @@ fun NftEmptyState() {
         contentAlignment = Alignment.Center,
         modifier = Modifier
             .fillMaxSize()
+            .verticalScroll(rememberScrollState())
             .padding(bottom = 80.dp)
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -85,7 +89,7 @@ fun NftEmptyState() {
 }
 
 @Composable
-fun NftList(items: List<NftCollectionListItem>, appearanceType: NftAppearanceType) {
+fun NftList(items: List<NftCollectionListItem>, appearanceType: NftAppearanceType, onClick: (NftCollectionListItem) -> Unit) {
     when (appearanceType) {
         NftAppearanceType.Grid -> {
             LazyVerticalGrid(
@@ -95,7 +99,7 @@ fun NftList(items: List<NftCollectionListItem>, appearanceType: NftAppearanceTyp
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 items(items) {
-                    GridItem(it)
+                    GridItem(it, onClick)
                 }
                 item { MarginVertical(margin = 80.dp) }
             }
@@ -107,7 +111,7 @@ fun NftList(items: List<NftCollectionListItem>, appearanceType: NftAppearanceTyp
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 items(items) {
-                    ListItem(it)
+                    ListItem(it, onClick)
                 }
                 item { MarginVertical(margin = 80.dp) }
             }
@@ -116,8 +120,8 @@ fun NftList(items: List<NftCollectionListItem>, appearanceType: NftAppearanceTyp
 }
 
 @Composable
-private fun GridItem(item: NftCollectionListItem) {
-    BackgroundCornered {
+private fun GridItem(item: NftCollectionListItem, onClick: (NftCollectionListItem) -> Unit) {
+    BackgroundCornered(modifier = Modifier.clickableSingle{ onClick(item) }) {
         Column(modifier = Modifier.padding(8.dp)) {
             Box(modifier = Modifier.align(Alignment.CenterHorizontally)) {
                 AsyncImage(
@@ -146,8 +150,8 @@ private fun GridItem(item: NftCollectionListItem) {
 }
 
 @Composable
-private fun ListItem(item: NftCollectionListItem) {
-    BackgroundCornered(modifier = Modifier.fillMaxWidth()) {
+private fun ListItem(item: NftCollectionListItem, onClick: (NftCollectionListItem) -> Unit) {
+    BackgroundCornered(modifier = Modifier.fillMaxWidth().clickableSingle { onClick(item) }) {
         Row(modifier = Modifier.padding(8.dp)) {
             AsyncImage(
                 model = getImageRequest(LocalContext.current, item.image),
@@ -323,21 +327,22 @@ fun NftListPreview() {
     val state = NftScreenState.ListState.Content(items)
     val loading = NftScreenState.ListState.Loading
     val empty = NftScreenState.ListState.Empty
+    val callback: (NftCollectionListItem) -> Unit = {}
    FearlessAppTheme {
        Column {
            Row {
-               NftList(state, appearanceType = NftAppearanceType.Grid)
+               NftList(state, appearanceType = NftAppearanceType.Grid, callback)
                MarginHorizontal(margin = 8.dp)
-               NftList(state, appearanceType = NftAppearanceType.List)
+               NftList(state, appearanceType = NftAppearanceType.List, callback)
            }
            MarginVertical(margin = 8.dp)
            Row {
-               NftList(loading, appearanceType = NftAppearanceType.Grid)
+               NftList(loading, appearanceType = NftAppearanceType.Grid, callback)
                MarginHorizontal(margin = 8.dp)
-               NftList(loading, appearanceType = NftAppearanceType.List)
+               NftList(loading, appearanceType = NftAppearanceType.List, callback)
            }
            MarginVertical(margin = 8.dp)
-           NftList(empty, appearanceType = NftAppearanceType.List)
+           NftList(empty, appearanceType = NftAppearanceType.List, callback)
        }
    }
 }
