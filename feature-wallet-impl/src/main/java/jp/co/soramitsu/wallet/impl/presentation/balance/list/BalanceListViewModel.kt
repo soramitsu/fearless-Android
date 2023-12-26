@@ -13,6 +13,7 @@ import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.PendulumPreInstalledAccountsScenario
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.TotalBalanceUseCase
+import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.common.BuildConfig
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
@@ -21,8 +22,10 @@ import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.ActionItemType
 import jp.co.soramitsu.common.compose.component.AssetBalanceViewState
 import jp.co.soramitsu.common.compose.component.ChainSelectorViewState
+import jp.co.soramitsu.common.compose.component.ChainSelectorViewStateWithFilters
 import jp.co.soramitsu.common.compose.component.ChangeBalanceViewState
 import jp.co.soramitsu.common.compose.component.MainToolbarViewState
+import jp.co.soramitsu.common.compose.component.MainToolbarViewStateWithFilters
 import jp.co.soramitsu.common.compose.component.MultiToggleButtonState
 import jp.co.soramitsu.common.compose.component.NetworkIssueItemState
 import jp.co.soramitsu.common.compose.component.SwipeState
@@ -41,6 +44,7 @@ import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
+import jp.co.soramitsu.common.utils.combine
 import jp.co.soramitsu.common.utils.formatAsChange
 import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.inBackground
@@ -167,16 +171,48 @@ class BalanceListViewModel @Inject constructor(
         interactor.assetsFlow(),
         chainInteractor.getChainsFlow(),
         selectedChainId,
+        interactor.selectedMetaAccountFlow(),
         networkIssuesFlow,
+        interactor.observeSelectedAccountChainSelectFilter(),
         interactor.observeHideZeroBalanceEnabledForCurrentWallet()
-    ) { assets: List<AssetWithStatus>, chains: List<Chain>, selectedChainId: ChainId?, networkIssues: Set<NetworkIssueItemState>, hideZeroBalancesEnabled ->
+    ) {
+            assets: List<AssetWithStatus>,
+            chains: List<Chain>,
+            selectedChainId: ChainId?,
+            currentMetaAccountFlow: MetaAccount,
+            networkIssues: Set<NetworkIssueItemState>,
+            appliedFilterAsString: String,
+            hideZeroBalancesEnabled: Boolean ->
+
+        val filter = ChainSelectorViewStateWithFilters.Filter.values().find {
+            it.name == appliedFilterAsString
+        } ?: ChainSelectorViewStateWithFilters.Filter.All
+
         val balanceListItems = mutableListOf<BalanceListItemModel>()
 
         val shouldShowNetworkIssues =
             selectedChainId == null && (networkIssues.isNotEmpty() || assets.any { it.hasAccount.not() })
         showNetworkIssues.value = shouldShowNetworkIssues
 
-        chains.groupBy { if (it.isTestNet) ChainEcosystem.STANDALONE else it.ecosystem() }
+        val selectedAccountFavoriteChains = currentMetaAccountFlow.favoriteChains
+
+        val chainsWithFavoriteInfo = chains.map { chain ->
+            chain to (selectedAccountFavoriteChains[chain.id]?.isFavorite == true)
+        }
+
+        when(filter) {
+            ChainSelectorViewStateWithFilters.Filter.All -> chainsWithFavoriteInfo.map { it.first }
+
+            ChainSelectorViewStateWithFilters.Filter.Favorite ->
+                chainsWithFavoriteInfo.filter { (_, isFavorite) -> isFavorite }.map { it.first }
+
+            ChainSelectorViewStateWithFilters.Filter.Popular ->
+                chainsWithFavoriteInfo.filter { (chain, _) ->
+                    chain.rank != null
+                }.sortedBy { (chain, _) ->
+                    chain.rank
+                }.map { it.first }
+        }.groupBy { if (it.isTestNet) ChainEcosystem.STANDALONE else it.ecosystem() }
             .forEach { (ecosystem, ecosystemChains) ->
                 when (ecosystem) {
                     ChainEcosystem.POLKADOT,
@@ -347,13 +383,21 @@ class BalanceListViewModel @Inject constructor(
 
     val toolbarState = combine(
         currentAddressModelFlow(),
+        interactor.observeSelectedAccountChainSelectFilter(),
         selectedChainItemFlow
-    ) { addressModel, chain ->
+    ) { addressModel, filter, chain ->
         LoadingState.Loaded(
-            MainToolbarViewState(
+            MainToolbarViewStateWithFilters(
                 title = addressModel.nameOrAddress,
                 homeIconState = ToolbarHomeIconState(walletIcon = addressModel.image),
-                selectorViewState = ChainSelectorViewState(chain?.title, chain?.id)
+                selectorViewState = ChainSelectorViewStateWithFilters(
+                    selectedChainName = chain?.title,
+                    selectedChainId = chain?.id,
+                    selectedChainImageUrl = chain?.imageUrl,
+                    filterApplied = ChainSelectorViewStateWithFilters.Filter.values().find {
+                        it.name == filter
+                    } ?: ChainSelectorViewStateWithFilters.Filter.All
+                )
             )
         )
     }.stateIn(
@@ -686,7 +730,7 @@ class BalanceListViewModel @Inject constructor(
     }
 
     fun openSelectChain() {
-        router.openSelectChain(selectedChainId.value)
+        router.openSelectChain(selectedChainId.value, isFilteringEnabled = true)
     }
 
     private fun copyToClipboard(text: String) {

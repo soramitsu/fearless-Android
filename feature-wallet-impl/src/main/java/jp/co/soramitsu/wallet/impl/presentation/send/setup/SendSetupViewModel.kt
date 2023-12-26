@@ -61,7 +61,7 @@ import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
 import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
-import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.ChainItemState
+import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.ChainSelectScreenContract
 import jp.co.soramitsu.wallet.impl.presentation.send.SendSharedState
 import jp.co.soramitsu.wallet.impl.presentation.send.TransferDraft
 import kotlinx.coroutines.delay
@@ -133,7 +133,7 @@ class SendSetupViewModel @Inject constructor(
 
     private val selectedChainItem = selectedChain.map { chain ->
         chain?.let {
-            ChainItemState(
+            ChainSelectScreenContract.State.ItemState.Impl(
                 id = chain.id,
                 imageUrl = chain.icon,
                 title = chain.name,
@@ -212,7 +212,7 @@ class SendSetupViewModel @Inject constructor(
         }.stateIn(this, SharingStarted.Eagerly, false)
 
     private val chainSelectorStateFlow =
-        combine(selectedChainItem, lockInputFlow) { it: ChainItemState?, isLock: Boolean ->
+        combine(selectedChainItem, lockInputFlow) { it: ChainSelectScreenContract.State.ItemState?, isLock: Boolean ->
             SelectorState(
                 title = resourceManager.getString(R.string.common_network),
                 subTitle = it?.title,

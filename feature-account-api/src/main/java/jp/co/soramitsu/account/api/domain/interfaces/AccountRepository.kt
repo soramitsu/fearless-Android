@@ -181,6 +181,8 @@ interface AccountRepository {
     suspend fun getSupportedBackupTypes(walletId: Long): Set<BackupAccountType>
     suspend fun getChain(chainId: ChainId): Chain
 
+    suspend fun updateFavoriteChain(metaAccountId: Long, chainId: ChainId, isFavorite: Boolean)
+
     fun allMetaAccountsFlow(): StateFlow<List<MetaAccount>>
     fun selectedLightMetaAccountFlow(): Flow<LightMetaAccount>
     suspend fun getSelectedLightMetaAccount(): LightMetaAccount

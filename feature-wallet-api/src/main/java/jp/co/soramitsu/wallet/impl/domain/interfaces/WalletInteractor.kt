@@ -136,5 +136,11 @@ interface WalletInteractor {
 
     suspend fun checkControllerDeprecations(): List<ControllerDeprecationWarning>
     suspend fun canUseAsset(chainId: String, chainAssetId: String): Boolean
+
+    suspend fun saveChainSelectFilter(walletId: Long, filter: String)
+
+    fun observeSelectedAccountChainSelectFilter(): Flow<String>
+
+
     fun selectedLightMetaAccountFlow(): Flow<LightMetaAccount>
 }

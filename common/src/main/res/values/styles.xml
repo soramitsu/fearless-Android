@@ -203,6 +203,7 @@
 
     <style name="CustomBottomSheetDialogTheme" parent="Theme.MaterialComponents.BottomSheetDialog">
         <item name="bottomSheetStyle">@style/CustomBottomSheetStyle</item>
+        <item name="android:windowSoftInputMode">adjustResize</item>
     </style>
 
     <style name="CustomBottomSheetStyle" parent="Widget.MaterialComponents.BottomSheet.Modal">

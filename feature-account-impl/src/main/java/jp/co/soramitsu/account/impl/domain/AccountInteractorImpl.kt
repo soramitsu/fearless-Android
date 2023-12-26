@@ -311,4 +311,10 @@ class AccountInteractorImpl(
     override suspend fun updateWalletOnGoogleBackupDelete(metaId: Long) {
         accountRepository.updateWalletOnGoogleBackupDelete(metaId)
     }
+
+    override suspend fun updateFavoriteChain(chainId: ChainId, isFavorite: Boolean) {
+        val selectedMetaAccount = accountRepository.getSelectedMetaAccount()
+
+        accountRepository.updateFavoriteChain(selectedMetaAccount.id, chainId, isFavorite)
+    }
 }

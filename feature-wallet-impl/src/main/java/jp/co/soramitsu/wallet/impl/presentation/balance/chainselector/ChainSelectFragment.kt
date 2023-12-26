@@ -25,6 +25,7 @@ class ChainSelectFragment : BaseComposeBottomSheetDialogFragment<ChainSelectView
         const val KEY_CHOOSER_MODE = "KEY_CHOOSER_MODE"
         const val KEY_SELECT_ASSET = "KEY_SELECT_ASSET"
         const val KEY_SHOW_ALL_CHAINS = "KEY_SHOW_ALL_CHAINS"
+        const val KEY_FILTERING_ENABLED = "KEY_FILTERING_ENABLED"
 
         // XCM
         const val KEY_XCM_CHAIN_TYPE = "KEY_XCM_CHAIN_TYPE"
@@ -35,13 +36,15 @@ class ChainSelectFragment : BaseComposeBottomSheetDialogFragment<ChainSelectView
             assetId: String,
             chainId: ChainId? = null,
             chooserMode: Boolean = false,
-            isSelectAsset: Boolean = true
+            isSelectAsset: Boolean = true,
+            isFilteringEnabled: Boolean = false
         ) = bundleOf(
             KEY_SELECTED_ASSET_ID to assetId,
             KEY_SELECTED_CHAIN_ID to chainId,
             KEY_CHOOSER_MODE to chooserMode,
             KEY_SHOW_ALL_CHAINS to false,
-            KEY_SELECT_ASSET to isSelectAsset
+            KEY_SELECT_ASSET to isSelectAsset,
+            KEY_FILTERING_ENABLED to isFilteringEnabled
         )
 
         fun getBundle(
@@ -50,21 +53,24 @@ class ChainSelectFragment : BaseComposeBottomSheetDialogFragment<ChainSelectView
             chooserMode: Boolean = true,
             currencyId: String?,
             showAllChains: Boolean = true,
-            isSelectAsset: Boolean = true
+            isSelectAsset: Boolean = true,
+            isFilteringEnabled: Boolean = false
         ) = bundleOf(
             KEY_SELECTED_CHAIN_ID to selectedChainId,
             KEY_FILTER_CHAIN_IDS to filterChainIds,
             KEY_CHOOSER_MODE to chooserMode,
             KEY_CURRENCY_ID to currencyId,
             KEY_SHOW_ALL_CHAINS to showAllChains,
-            KEY_SELECT_ASSET to isSelectAsset
+            KEY_SELECT_ASSET to isSelectAsset,
+            KEY_FILTERING_ENABLED to isFilteringEnabled
         )
 
         fun getBundleForXcmChains(
             selectedChainId: ChainId?,
             xcmChainType: XcmChainType,
             xcmSelectedOriginChainId: String? = null,
-            xcmAssetSymbol: String? = null
+            xcmAssetSymbol: String? = null,
+            isFilteringEnabled: Boolean = false
         ) = bundleOf(
             KEY_SELECTED_CHAIN_ID to selectedChainId,
             KEY_XCM_CHAIN_TYPE to xcmChainType,
@@ -72,7 +78,8 @@ class ChainSelectFragment : BaseComposeBottomSheetDialogFragment<ChainSelectView
             KEY_XCM_ASSET_SYMBOL to xcmAssetSymbol,
             KEY_SELECT_ASSET to false,
             KEY_SHOW_ALL_CHAINS to false,
-            KEY_CHOOSER_MODE to false
+            KEY_CHOOSER_MODE to false,
+            KEY_FILTERING_ENABLED to isFilteringEnabled
         )
     }
 
@@ -84,8 +91,7 @@ class ChainSelectFragment : BaseComposeBottomSheetDialogFragment<ChainSelectView
         BottomSheetScreen {
             ChainSelectContent(
                 state = state,
-                onChainSelected = viewModel::onChainSelected,
-                onSearchInput = viewModel::onSearchInput
+                contract = viewModel
             )
         }
     }

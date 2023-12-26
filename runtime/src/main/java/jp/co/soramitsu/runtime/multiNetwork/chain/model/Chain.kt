@@ -33,6 +33,7 @@ const val bokoloCashTokenId = "0x00eacaea6599a04358fda986388ef0bb0c17a553ec819d5
 
 data class Chain(
     override val id: ChainId,
+    val rank: Int?,
     val name: String,
     val minSupportedVersion: String?,
     override val assets: List<CoreAsset>,
@@ -82,6 +83,7 @@ data class Chain(
         other as Chain
 
         if (id != other.id) return false
+        if (rank != other.rank) return false
         if (name != other.name) return false
         if (minSupportedVersion != other.minSupportedVersion) return false
         if (assets != other.assets) return false
@@ -107,6 +109,7 @@ data class Chain(
 
     override fun hashCode(): Int {
         var result = id.hashCode()
+        result = 31 * result + (rank?.hashCode() ?: 0)
         result = 31 * result + name.hashCode()
         result = 31 * result + (minSupportedVersion?.hashCode() ?: 0)
         result = 31 * result + assets.hashCode()

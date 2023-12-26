@@ -154,6 +154,7 @@
   <string name="common_applied">Applied</string>
   <string name="common_apply">Apply</string>
   <string name="common_available_format">Available: %s</string>
+  <string name="common_available_networks">Available networks</string>
   <string name="common_backup_your_wallet">Backup your wallet</string>
   <string name="common_balance">Balance</string>
   <string name="common_balance_format">Balance: %s</string>
@@ -227,8 +228,10 @@
   <string name="common_max">max</string>
   <string name="common_min_received">Min received</string>
   <string name="common_module">Module</string>
+  <string name="common_my_networks">My networks</string>
   <string name="common_network">Network</string>
   <string name="common_network_fee">Network fee</string>
+  <string name="common_network_management">Network management</string>
   <string name="common_next">Next</string>
   <string name="common_no">No</string>
   <string name="common_no_screenshot_message">Do not take screenshots, they may be collected by third-party malware</string>
@@ -465,6 +468,9 @@
   <string name="network_issue_stub">Network Issues</string>
   <string name="network_issue_unavailable">The network is unavailable, you can wait or request community support</string>
   <string name="network_issues_resolve_option_title">Resolve Option</string>
+  <string name="network_management_all">All</string>
+  <string name="network_management_popular">Popular</string>
+  <string name="network_managment_favourite">Favourite</string>
   <string name="network_status_connected">Connected</string>
   <string name="network_status_connecting">Connecting…</string>
   <string name="network_url_address">URL address</string>

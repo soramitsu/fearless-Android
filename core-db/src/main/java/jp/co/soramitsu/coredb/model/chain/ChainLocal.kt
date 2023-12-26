@@ -8,6 +8,7 @@ import androidx.room.PrimaryKey
 class ChainLocal(
     @PrimaryKey val id: String,
     val parentId: String?,
+    val rank: Int?,
     val name: String,
     val minSupportedVersion: String?,
     val icon: String,

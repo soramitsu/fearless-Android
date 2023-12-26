@@ -64,6 +64,8 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flatMapMerge
 import kotlinx.coroutines.flow.flow
@@ -77,6 +79,7 @@ private const val PREFS_WALLET_SELECTED_CHAIN_ID = "wallet_selected_chain_id"
 private const val PREFS_SORA_CARD_HIDDEN_SESSIONS_COUNT = "prefs_sora_card_hidden_sessions_count"
 private const val SORA_CARD_HIDDEN_SESSIONS_LIMIT = 5
 private const val HIDE_ZERO_BALANCES_PREFS_KEY = "hideZeroBalances"
+private const val CHAIN_SELECT_FILTER_APPLIED = "chain_select_filter_applied"
 private const val ACCOUNT_ID_MIN_TAG = 26
 private const val ACCOUNT_ID_MAX_TAG = 51
 
@@ -596,5 +599,29 @@ class WalletInteractorImpl(
         val hasAsset = getCurrentAssetOrNull(chainId, chainAssetId) != null
         val hasRuntime = chainRegistry.getRuntimeOrNull(chainId) != null
         return hasAsset && hasRuntime
+    }
+
+    override suspend fun saveChainSelectFilter(walletId: Long, filter: String) {
+        val key = getChainSelectFilterAppliedKey(walletId)
+        preferences.putString(key, filter)
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    override fun observeSelectedAccountChainSelectFilter(): Flow<String> {
+        return accountRepository.selectedMetaAccountFlow().map {
+            it.id
+        }.distinctUntilChanged().flatMapLatest {
+            val key = getChainSelectFilterAppliedKey(it)
+
+            preferences.stringFlow(key) {
+                // emit empty string on start as indication that no filter is used
+                // as opposed to null which was thrown for random reasons
+                return@stringFlow ""
+            }.filterNotNull()
+        }
+    }
+
+    private fun getChainSelectFilterAppliedKey(walletId: Long): String {
+        return "${CHAIN_SELECT_FILTER_APPLIED}_$walletId"
     }
 }

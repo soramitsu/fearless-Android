@@ -808,7 +808,8 @@ class Navigator :
         chooserMode: Boolean,
         currencyId: String?,
         showAllChains: Boolean,
-        isSelectAsset: Boolean
+        isSelectAsset: Boolean,
+        isFilteringEnabled: Boolean
     ) {
         val bundle = ChainSelectFragment.getBundle(
             selectedChainId,
@@ -816,7 +817,8 @@ class Navigator :
             chooserMode,
             currencyId,
             showAllChains,
-            isSelectAsset
+            isSelectAsset,
+            isFilteringEnabled
         )
         navController?.navigate(R.id.chainSelectFragment, bundle)
     }

@@ -23,6 +23,7 @@ class ChainSyncServiceTest {
 
     private val REMOTE_CHAIN = ChainRemote(
         chainId = "0x00",
+        rank = null,
         name = "Test",
         assets = listOf(
             ChainAssetRemote(
