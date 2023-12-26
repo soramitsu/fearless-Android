@@ -51,8 +51,7 @@ open class BaseEnterAmountViewModel(
         tokenImage = "",
         totalBalance = resourceManager.getString(balanceHintRes, "..."),
         fiatAmount = "",
-        tokenAmount = initialAmount.orZero(),
-        initial = initialAmount
+        tokenAmount = initialAmount.orZero()
     )
 
     private val defaultButtonState = ButtonViewState(
@@ -85,8 +84,7 @@ open class BaseEnterAmountViewModel(
             fiatAmount = fiatAmount,
             tokenAmount = amount,
             isActive = isInputActive,
-            precision = asset.token.configuration.precision,
-            initial = initialAmount
+            precision = asset.token.configuration.precision
         )
     }.stateIn(this, SharingStarted.Eagerly, defaultAmountInputState)
 

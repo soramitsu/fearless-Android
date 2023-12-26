@@ -111,8 +111,7 @@ class CBDCSendSetupViewModel @Inject constructor(
         totalBalance = resourceManager.getString(R.string.common_transferable_format, "..."),
         fiatAmount = "",
         tokenAmount = initialAmount,
-        allowAssetChoose = false,
-        initial = initialAmount.takeIf { it.isNotZero() }
+        allowAssetChoose = false
     )
 
     private val defaultButtonState = ButtonViewState(
@@ -193,7 +192,6 @@ class CBDCSendSetupViewModel @Inject constructor(
                 isFocused = isAmountInputFocused,
                 allowAssetChoose = false,
                 precision = asset.token.configuration.precision,
-                initial = initialAmount,
                 inputEnabled = isLockAmountInput.not()
             )
         }

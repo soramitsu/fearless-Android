@@ -350,10 +350,10 @@ class BalanceDetailViewModel @Inject constructor(
             ActionItemType.SEND,
             ActionItemType.RECEIVE
         )
-        val isXcmSupportAsset = xcmService.isXcmSupportAsset(
+        val isXcmSupportAsset = runCatching { xcmService.isXcmSupportAsset(
             originChainId = selectedChainId,
             assetSymbol = asset.token.configuration.symbol
-        )
+        ) }.getOrNull() ?: false
 
         if (isXcmSupportAsset) {
             actionItems += ActionItemType.CROSS_CHAIN

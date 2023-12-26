@@ -72,7 +72,6 @@ import jp.co.soramitsu.crowdloan.impl.presentation.contribute.select.parcel.Cont
 import jp.co.soramitsu.onboarding.impl.OnboardingRouter
 import jp.co.soramitsu.onboarding.impl.welcome.WelcomeFragment
 import jp.co.soramitsu.onboarding.impl.welcome.select_import_mode.SelectImportModeDialog
-import jp.co.soramitsu.polkaswap.api.models.DisclaimerAppearanceSource
 import jp.co.soramitsu.polkaswap.api.presentation.PolkaswapRouter
 import jp.co.soramitsu.polkaswap.api.presentation.models.SwapDetailsParcelModel
 import jp.co.soramitsu.polkaswap.api.presentation.models.SwapDetailsViewState
@@ -516,6 +515,18 @@ class Navigator :
         back()
     }
 
+    override fun backWithResult(resultDestinationId: Int, vararg results: Pair<String, Any?>) {
+        val savedStateHandle =
+            runCatching{ navController?.getBackStackEntry(resultDestinationId)?.savedStateHandle }.getOrNull()
+
+        if (savedStateHandle != null) {
+            results.forEach { (key, value) ->
+                savedStateHandle[key] = value
+            }
+        }
+        back()
+    }
+
     override fun openSelectImportModeForResult(): Flow<ImportMode> {
         val bundle = SelectImportModeDialog.getBundle()
         return openWithResult(
@@ -534,6 +545,15 @@ class Navigator :
         val bundle = SwapPreviewFragment.getBundle(swapDetailsViewState, parcelModel)
 
         navController?.navigate(R.id.swapPreviewFragment, bundle)
+    }
+
+    override fun openSwapPreviewForResult(swapDetailsViewState: SwapDetailsViewState, parcelModel: SwapDetailsParcelModel): Flow<Int> {
+        val bundle = SwapPreviewFragment.getBundle(swapDetailsViewState, parcelModel)
+        return openWithResult(
+            destinationId = R.id.swapPreviewFragment,
+            bundle = bundle,
+            resultKey = SwapPreviewFragment.KEY_SWAP_DETAILS_RESULT
+        )
     }
 
     override fun openSelectMarketDialog() {
@@ -755,6 +775,14 @@ class Navigator :
         navController?.navigate(R.id.swapTokensFragment, bundle)
     }
 
+    override fun openPolkaswapDisclaimerFromSwapTokensFragment() {
+        val bundle = PolkaswapDisclaimerFragment.getBundle(
+            R.id.swapTokensFragment
+        )
+
+        navController?.navigate(R.id.polkaswapDisclaimerFragment, bundle)
+    }
+
     override fun showBuyCrypto() {
         navController?.navigate(R.id.buyCryptoFragment)
     }
@@ -871,16 +899,44 @@ class Navigator :
         openOperationSuccess(operationHash, chainId, null)
     }
 
-    override fun openPolkaswapDisclaimer(disclaimerAppearanceSource: DisclaimerAppearanceSource) {
-        if (navController?.currentDestination?.id == R.id.polkaswapDisclaimerFragment)
-            return
-
-        val bundle = PolkaswapDisclaimerFragment.getBundle(disclaimerAppearanceSource)
+    override fun openPolkaswapDisclaimerFromProfile() {
+        val bundle = PolkaswapDisclaimerFragment.getBundle(
+            R.id.profileFragment
+        )
 
         navController?.navigate(R.id.polkaswapDisclaimerFragment, bundle)
     }
 
-    override fun openOperationSuccess(operationHash: String?, chainId: ChainId, customMessage: String?) {
+    override fun listenPolkaswapDisclaimerResultFlowFromMainScreen(): Flow<Boolean> {
+        val currentEntry = runCatching { navController?.getBackStackEntry(R.id.mainFragment) }.getOrNull()
+        val onResumeObserver = currentEntry?.lifecycle?.onResumeObserver()
+
+        return (onResumeObserver?.asFlow() ?: emptyFlow()).map {
+            if (currentEntry?.savedStateHandle?.contains(PolkaswapDisclaimerFragment.KEY_DISCLAIMER_READ_RESULT) == true) {
+                val result =
+                    currentEntry.savedStateHandle.get<Boolean?>(PolkaswapDisclaimerFragment.KEY_DISCLAIMER_READ_RESULT)
+                currentEntry.savedStateHandle.set<Boolean?>(
+                    PolkaswapDisclaimerFragment.KEY_DISCLAIMER_READ_RESULT,
+                    null
+                )
+                result
+            } else {
+                null
+            }
+        }.filterNotNull()
+    }
+
+    override fun openPolkaswapDisclaimerFromMainScreen() {
+        val bundle = PolkaswapDisclaimerFragment.getBundle(R.id.mainFragment)
+
+        navController?.navigate(R.id.polkaswapDisclaimerFragment, bundle)
+    }
+
+    override fun openOperationSuccess(
+        operationHash: String?,
+        chainId: ChainId,
+        customMessage: String?
+    ) {
         val bundle = SuccessFragment.getBundle(operationHash, chainId, customMessage)
 
         navController?.navigate(R.id.successSheetFragment, bundle)

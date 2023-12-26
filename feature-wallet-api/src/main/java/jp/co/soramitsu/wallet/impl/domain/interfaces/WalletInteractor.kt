@@ -52,7 +52,7 @@ interface WalletInteractor {
         chainAssetId: String,
         pageSize: Int,
         filters: Set<TransactionFilter>
-    ): Result<*>
+    ): Result<CursorPage<Operation>>
 
     suspend fun getOperations(
         chainId: ChainId,

@@ -158,8 +158,7 @@ private fun CBDCSendSetupPreview() {
             "$170000",
             BigDecimal("0.980"),
             "Amount",
-            allowAssetChoose = true,
-            initial = null
+            allowAssetChoose = true
         ),
         chainSelectorState = SelectorState("Network", null, null),
         feeInfoState = FeeInfoViewState.default,

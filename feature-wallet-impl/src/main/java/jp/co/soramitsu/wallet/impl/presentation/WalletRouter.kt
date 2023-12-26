@@ -176,4 +176,6 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
     fun openCreateWalletDialog(isFromGoogleBackup: Boolean)
 
     fun openImportRemoteWalletDialog()
+
+    fun listenPolkaswapDisclaimerResultFlowFromMainScreen(): Flow<Boolean>
 }

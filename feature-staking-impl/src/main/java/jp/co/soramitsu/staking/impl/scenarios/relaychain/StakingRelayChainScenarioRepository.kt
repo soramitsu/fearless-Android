@@ -183,7 +183,7 @@ class StakingRelayChainScenarioRepository(
         getElectedValidatorsExposure(chainId, it)
     }.runCatching { this }.getOrDefault(emptyFlow())
 
-    private suspend fun getElectedValidatorsExposure(chainId: ChainId, eraIndex: EraIndex): Map<String, Exposure> = localStorage.queryByPrefix(
+    private suspend fun getElectedValidatorsExposure(chainId: ChainId, eraIndex: EraIndex): Map<String, Exposure> = remoteStorage.queryByPrefix(
         chainId = chainId,
         prefixKeyBuilder = { it.metadata.moduleOrNull(Modules.STAKING)?.storage("ErasStakers")?.storageKey(it, eraIndex) },
         keyExtractor = { it.accountIdFromMapKey() }
@@ -257,7 +257,7 @@ class StakingRelayChainScenarioRepository(
 
     suspend fun getRewardDestination(stakingState: StakingState.Stash) = localStorage.queryNonNull(
         keyBuilder = { it.metadata.staking().storage("Payee").storageKey(it, stakingState.stashId) },
-        binding = { scale, runtime -> bindRewardDestination(scale, runtime, stakingState.stashId, stakingState.controllerId) },
+        binding = { scale, runtime -> bindRewardDestination(scale, runtime, stakingState) },
         chainId = stakingState.chain.id
     )
 
@@ -426,5 +426,5 @@ suspend fun StakingRelayChainScenarioRepository.hoursInEra(chainId: ChainId): In
     return floor(HOURS_IN_DAY.toDouble() / erasPerDay.toDouble()).toInt()
 }
 
-suspend fun StakingRelayChainScenarioRepository.getActiveElectedValidatorsExposures(chainId: ChainId) =
+suspend fun StakingRelayChainScenarioRepository.getActiveElectedValidatorsExposures(chainId: ChainId): Map<String, Exposure> =
     electedExposuresInActiveEra(chainId).firstOrNull() ?: emptyMap()
