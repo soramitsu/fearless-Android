@@ -22,6 +22,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.rememberNestedScrollInteropConnection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.account.impl.presentation.importing.remote_backup.ImportRemoteWalletState
@@ -36,6 +37,7 @@ import jp.co.soramitsu.common.compose.component.TextInputViewState
 import jp.co.soramitsu.common.compose.component.Toolbar
 import jp.co.soramitsu.common.compose.component.ToolbarViewState
 import jp.co.soramitsu.common.compose.component.WalletItem
+import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
 import jp.co.soramitsu.common.compose.theme.colorAccentDark
 import jp.co.soramitsu.common.compose.theme.gray2
 import jp.co.soramitsu.common.compose.theme.white08
@@ -81,7 +83,7 @@ internal fun EnterBackupPasswordScreen(
         modifier = Modifier
             .fillMaxSize()
             .nestedScroll(rememberNestedScrollInteropConnection())
-            .padding(bottom = state.heightDiffDp)
+//            .padding(bottom = state.heightDiffDp)
     ) {
         Column {
             Toolbar(
@@ -134,5 +136,29 @@ internal fun EnterBackupPasswordScreen(
             )
             MarginVertical(12.dp)
         }
+    }
+}
+
+@Preview
+@Composable
+private fun PreviewEnterBackupPasswordScreen() {
+    FearlessAppTheme {
+        EnterBackupPasswordScreen(
+            state = EnterBackupPasswordState(
+                wallet = null,
+                passwordInputViewState = TextInputViewState(
+                    text = "password text",
+                    hint = "hint"
+                ),
+                isLoading = false,
+                heightDiffDp = 100.dp
+            ),
+            callback = object : EnterBackupPasswordCallback {
+                override fun onBackClick() {}
+                override fun onContinueClick() {}
+                override fun onPasswordChanged(password: String) {}
+                override fun onPasswordVisibilityClick() {}
+            }
+        )
     }
 }

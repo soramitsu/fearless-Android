@@ -70,7 +70,7 @@ fun CreateAccountDialogContent(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(bottom = state.heightDiffDp)
+//            .padding(bottom = state.heightDiffDp)
     ) {
         Column {
             Toolbar(

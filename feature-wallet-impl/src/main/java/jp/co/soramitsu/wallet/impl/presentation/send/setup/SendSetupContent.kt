@@ -111,7 +111,7 @@ fun SendSetupContent(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(bottom = state.heightDiffDp)
+//                .padding(bottom = state.heightDiffDp)
         ) {
             val bottomPadding = if (state.isInputLocked) {
                 50.dp

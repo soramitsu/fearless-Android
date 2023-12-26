@@ -160,7 +160,7 @@ fun SwapTokensContent(
         modifier = modifier
             .navigationBarsPadding()
             .imePadding()
-            .padding(bottom = state.heightDiffDp)
+//            .padding(bottom = state.heightDiffDp)
     ) {
         Row(
             modifier = Modifier.padding(bottom = 12.dp),
