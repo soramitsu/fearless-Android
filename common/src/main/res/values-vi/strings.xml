@@ -153,6 +153,9 @@
   <string name="common_and">và</string>
   <string name="common_applied">Đã áp dụng</string>
   <string name="common_apply">Áp dụng</string>
+  <string name="common_assets_filters_fiat">Số dư tiền pháp định</string>
+  <string name="common_assets_filters_name">Tên</string>
+  <string name="common_assets_filters_popularity">Phổ biến</string>
   <string name="common_available_format">Có sẵn: %s</string>
   <string name="common_backup_your_wallet">Sao lưu ví của bạn</string>
   <string name="common_balance">Số dư</string>

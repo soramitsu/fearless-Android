@@ -27,11 +27,13 @@ import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.core.models.Asset.StakingType
 import jp.co.soramitsu.core.models.ChainId
 import jp.co.soramitsu.core.utils.isValidAddress
+import jp.co.soramitsu.coredb.model.AssetLocal
 import jp.co.soramitsu.coredb.model.AssetUpdateItem
 import jp.co.soramitsu.runtime.ext.ecosystem
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainEcosystem
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
+import jp.co.soramitsu.runtime.multiNetwork.chain.mapChainLocalToChain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.isPolkadotOrKusama
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
@@ -41,8 +43,10 @@ import jp.co.soramitsu.shared_utils.runtime.AccountId
 import jp.co.soramitsu.shared_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.shared_utils.runtime.metadata.moduleOrNull
 import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.toAddress
+import jp.co.soramitsu.wallet.impl.data.mappers.mapAssetLocalToAsset
 import jp.co.soramitsu.wallet.impl.data.repository.HistoryRepository
 import jp.co.soramitsu.wallet.impl.domain.interfaces.AddressBookRepository
+import jp.co.soramitsu.wallet.impl.domain.interfaces.AssetSorting
 import jp.co.soramitsu.wallet.impl.domain.interfaces.TransactionFilter
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
@@ -62,6 +66,8 @@ import jp.co.soramitsu.xcm.domain.XcmEntitiesFetcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
@@ -82,6 +88,7 @@ private const val HIDE_ZERO_BALANCES_PREFS_KEY = "hideZeroBalances"
 private const val CHAIN_SELECT_FILTER_APPLIED = "chain_select_filter_applied"
 private const val ACCOUNT_ID_MIN_TAG = 26
 private const val ACCOUNT_ID_MAX_TAG = 51
+private const val ASSET_SORTING_KEY = "ASSET_SORTING_KEY"
 
 class WalletInteractorImpl(
     private val walletRepository: WalletRepository,
@@ -623,5 +630,23 @@ class WalletInteractorImpl(
 
     private fun getChainSelectFilterAppliedKey(walletId: Long): String {
         return "${CHAIN_SELECT_FILTER_APPLIED}_$walletId"
+    }
+
+    override fun observeChainsPerAsset(accountMetaId: Long, assetId: String): Flow<Map<Chain, Asset?>> {
+        return walletRepository.observeChainsPerAsset(accountMetaId, assetId)
+    }
+
+    override fun applyAssetSorting(sorting: AssetSorting) {
+        preferences.putString(ASSET_SORTING_KEY, sorting.name)
+    }
+
+    override fun observeAssetSorting(): Flow<AssetSorting> {
+        return preferences.stringFlow(ASSET_SORTING_KEY) {
+            AssetSorting.FiatBalance.toString()
+        }.map { sortingAsString ->
+            sortingAsString?.let {
+                AssetSorting.values().find { sorting -> sorting.name == it }
+            } ?: AssetSorting.FiatBalance
+        }
     }
 }

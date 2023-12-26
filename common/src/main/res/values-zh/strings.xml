@@ -153,6 +153,9 @@
   <string name="common_and">和</string>
   <string name="common_applied">已应用</string>
   <string name="common_apply">应用</string>
+  <string name="common_assets_filters_fiat">法币余额</string>
+  <string name="common_assets_filters_name">名称</string>
+  <string name="common_assets_filters_popularity">人气</string>
   <string name="common_available_format">可用：%s</string>
   <string name="common_available_networks">可用网络</string>
   <string name="common_backup_your_wallet">备份你的钱包</string>
