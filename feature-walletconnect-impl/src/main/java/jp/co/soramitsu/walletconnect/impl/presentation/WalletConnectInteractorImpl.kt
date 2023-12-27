@@ -2,6 +2,7 @@ package jp.co.soramitsu.walletconnect.impl.presentation
 
 import co.jp.soramitsu.walletconnect.domain.WalletConnectInteractor
 import com.walletconnect.android.cacao.signature.SignatureType
+import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.utils.cacao.sign
 import com.walletconnect.web3.wallet.client.Wallet
 import com.walletconnect.web3.wallet.client.Web3Wallet
@@ -26,7 +27,9 @@ import jp.co.soramitsu.shared_utils.encrypt.Signer
 import jp.co.soramitsu.shared_utils.extensions.fromHex
 import jp.co.soramitsu.shared_utils.extensions.toHexString
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.EthereumRemoteSource
+import jp.co.soramitsu.wallet.impl.data.network.blockchain.updaters.BalanceUpdateTrigger
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import org.web3j.crypto.Credentials
@@ -222,6 +225,11 @@ class WalletConnectInteractorImpl(
                 }
                 val chainId = chain.id.takeIf {
                     recentSession.request.method == WalletConnectMethod.EthereumSendTransaction.method
+                }
+                if (chain.isEthereumChain) {
+                    scope.launch {
+                        BalanceUpdateTrigger.invoke(chainId, true)
+                    }
                 }
                 onRequestSuccess(operationHash, chainId)
             },

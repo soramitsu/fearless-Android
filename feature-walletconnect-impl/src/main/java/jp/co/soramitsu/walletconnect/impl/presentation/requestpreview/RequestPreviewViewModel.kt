@@ -143,7 +143,7 @@ class RequestPreviewViewModel @Inject constructor(
         val chain = requestChainFlow.value ?: return
 
         isLoading.value = true
-        launch {
+        viewModelScope.launch {
             walletConnectInteractor.onSignClick(
                 chain = chain,
                 topic = topic,
