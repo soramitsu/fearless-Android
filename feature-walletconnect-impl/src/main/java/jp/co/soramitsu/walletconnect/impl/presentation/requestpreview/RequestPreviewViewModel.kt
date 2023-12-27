@@ -24,6 +24,7 @@ import jp.co.soramitsu.walletconnect.impl.presentation.dappUrl
 import jp.co.soramitsu.walletconnect.impl.presentation.message
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -52,6 +53,7 @@ class RequestPreviewViewModel @Inject constructor(
 
     private val recentSession = sessions.sortedByDescending { it.request.id }[0]
 
+    private val isLoading = MutableStateFlow(false)
     private val requestChainFlow = MutableSharedFlow<Chain?>()
         .onStart {
             val value: Chain? = walletConnectInteractor.getChains().firstOrNull { chain ->
@@ -95,7 +97,7 @@ class RequestPreviewViewModel @Inject constructor(
         .inBackground()
         .share()
 
-    val state = combine(requestWalletItemFlow, requestChainFlow.filterNotNull()) { requestWallet, requestChain ->
+    val state = combine(requestWalletItemFlow, requestChainFlow.filterNotNull(), isLoading) { requestWallet, requestChain, isLoading ->
         val icon = GradientIconState.Remote(requestChain.icon, "EE0077")
 
         val tableItems = listOf(
@@ -124,6 +126,7 @@ class RequestPreviewViewModel @Inject constructor(
                 method = recentSession.request.method,
                 tableItems = tableItems,
                 wallet = it,
+                loading = isLoading
             )
         } ?: RequestPreviewViewState.default
     }
@@ -136,8 +139,10 @@ class RequestPreviewViewModel @Inject constructor(
     }
 
     override fun onSignClick() {
+        if (isLoading.value) return
         val chain = requestChainFlow.value ?: return
 
+        isLoading.value = true
         launch {
             walletConnectInteractor.onSignClick(
                 chain = chain,
@@ -151,6 +156,7 @@ class RequestPreviewViewModel @Inject constructor(
     }
 
     private fun onRespondSessionRequestSuccess(operationHash: String?, chainId: ChainId?) {
+        isLoading.value = false
         viewModelScope.launch(Dispatchers.Main) {
             walletConnectRouter.openOperationSuccessAndPopUpToNearestRelatedScreen(
                 operationHash = operationHash,
@@ -161,6 +167,7 @@ class RequestPreviewViewModel @Inject constructor(
     }
 
     private fun onRespondRequestSessionError(error: Wallet.Model.Error) {
+        isLoading.value = false
         viewModelScope.launch(Dispatchers.Main) {
             showError(
                 title = resourceManager.getString(R.string.common_error_general_title),
@@ -171,6 +178,7 @@ class RequestPreviewViewModel @Inject constructor(
     }
 
     private fun onSignError(e: Exception) {
+        isLoading.value = false
         viewModelScope.launch(Dispatchers.Main) {
             showError(
                 title = resourceManager.getString(R.string.common_error_general_title),

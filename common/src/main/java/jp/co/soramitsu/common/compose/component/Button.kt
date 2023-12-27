@@ -154,6 +154,44 @@ fun GrayButton(
 }
 
 @Composable
+fun GrayButton(
+    modifier: Modifier = Modifier,
+    text: String,
+    enabled: Boolean = true,
+    loading: Boolean = false,
+    onClick: () -> Unit
+) {
+    if (loading) {
+        ShapeButton(
+            modifier = modifier,
+            backgroundColor = white08,
+            onClick = {}
+        ) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(16.dp),
+                strokeWidth = 1.dp,
+                color = white
+            )
+            MarginHorizontal(margin = 4.dp)
+            Text(
+                text = text,
+                style = MaterialTheme.customTypography.header4,
+                textAlign = TextAlign.Center
+            )
+        }
+    } else {
+        TextButton(
+            text = text,
+            enabled = enabled,
+            colors = customButtonColors(white08),
+            modifier = modifier,
+            textStyle = MaterialTheme.customTypography.header4,
+            onClick = onClick
+        )
+    }
+}
+
+@Composable
 fun GoogleButton(
     modifier: Modifier = Modifier,
     text: String = stringResource(id = R.string.onboarding_connect_with_google),

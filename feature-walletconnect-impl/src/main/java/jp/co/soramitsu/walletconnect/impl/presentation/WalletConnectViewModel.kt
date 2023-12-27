@@ -49,6 +49,8 @@ class WalletConnectViewModel @Inject constructor(
         }.toSet()
     )
     private val selectedWalletIds = MutableStateFlow<Set<Long>>(setOf())
+    private val isApproving = MutableStateFlow(false)
+    private val isRejecting = MutableStateFlow(false)
 
     private val accountsFlow = accountListingMixin.accountsFlow(AddressIconGenerator.SIZE_BIG)
 
@@ -65,7 +67,11 @@ class WalletConnectViewModel @Inject constructor(
         .inBackground()
         .share()
 
-    val state: StateFlow<WalletConnectViewState> = walletItemsFlow.map { walletItems ->
+    val state: StateFlow<WalletConnectViewState> = combine(
+        walletItemsFlow,
+        isApproving,
+        isRejecting
+    ) { walletItems, isApproving, isRejecting ->
         val chains = walletConnectInteractor.getChains()
 
         val proposalRequiredChains = proposal.requiredNamespaces.flatMap { it.value.chains.orEmpty() }
@@ -145,7 +151,9 @@ class WalletConnectViewModel @Inject constructor(
             optionalPermissions = optionalPermissions,
             requiredNetworksSelectorState = requiredNetworksSelectorState,
             optionalNetworksSelectorState = optionalNetworksSelectorState,
-            wallets = walletItems
+            wallets = walletItems,
+            approving = isApproving,
+            rejecting = isRejecting
         )
     }.stateIn(this, SharingStarted.Eagerly, WalletConnectViewState.default)
 
@@ -192,6 +200,9 @@ class WalletConnectViewModel @Inject constructor(
     }
 
     private fun callSessionApprove() {
+        if (isApproving.value) return
+        isApproving.value = true
+
         launch {
             val selectedWalletIds = selectedWalletIds.value
             val selectedOptionalChainIds = selectedOptionalNetworkIds.value
@@ -213,10 +224,12 @@ class WalletConnectViewModel @Inject constructor(
                 resourceManager.getString(R.string.connection_approve_success_message)
             )
         }
+        isApproving.value = false
         WCDelegate.refreshConnections()
     }
 
     private fun onApproveSessionError(error: Wallet.Model.Error): () -> Unit = {
+        isApproving.value = false
         viewModelScope.launch(Dispatchers.Main.immediate) {
             showError(
                 title = resourceManager.getString(R.string.common_error_general_title),
@@ -233,15 +246,21 @@ class WalletConnectViewModel @Inject constructor(
     }
 
     private fun callRejectSession() {
+        if (isRejecting.value) return
+        isRejecting.value = true
+
         walletConnectInteractor.rejectSession(
             proposal = proposal,
             onSuccess = onRejectSessionSuccess(),
-            onError = {}
+            onError = {
+                isRejecting.value = false
+            }
         )
     }
 
     private fun onRejectSessionSuccess(): (Wallet.Params.SessionReject) -> Unit = {
         WCDelegate.refreshConnections()
+        isRejecting.value = false
         viewModelScope.launch(Dispatchers.Main.immediate) {
             walletConnectRouter.openOperationSuccessAndPopUpToNearestRelatedScreen(
                 null,

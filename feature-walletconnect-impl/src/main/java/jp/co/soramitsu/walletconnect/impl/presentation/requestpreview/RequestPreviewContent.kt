@@ -39,7 +39,8 @@ data class RequestPreviewViewState(
     val chainIcon: GradientIconState,
     val method: String?,
     val tableItems: List<TitleValueViewState>,
-    val wallet: WalletItemViewState
+    val wallet: WalletItemViewState,
+    val loading: Boolean
 ) {
     companion object {
         val default = RequestPreviewViewState(
@@ -51,7 +52,8 @@ data class RequestPreviewViewState(
                 title = "",
                 walletIcon = R.drawable.ic_wallet,
                 isSelected = false
-            )
+            ),
+            loading = false
         )
     }
 }
@@ -120,11 +122,13 @@ fun RequestPreviewContent(state: RequestPreviewViewState, callback: RequestPrevi
                     .wrapContentHeight()
             ) {
                 MarginVertical(margin = 12.dp)
+
                 AccentButton(
-                    text = stringResource(id = R.string.common_sign),
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(48.dp),
+                    text = stringResource(id = R.string.common_sign),
+                    loading = state.loading,
                     onClick = callback::onSignClick
                 )
 
@@ -166,7 +170,8 @@ private fun RequestPreviewPreview() {
             title = "Wallet",
             walletIcon = R.drawable.ic_wallet,
             isSelected = false
-        )
+        ),
+        loading = false
     )
 
     val emptyCallback = object : RequestPreviewScreenInterface {

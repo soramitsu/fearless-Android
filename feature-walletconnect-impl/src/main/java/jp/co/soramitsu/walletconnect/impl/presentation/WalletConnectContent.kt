@@ -41,8 +41,11 @@ data class WalletConnectViewState(
     val optionalPermissions: InfoItemSetViewState?,
     val requiredNetworksSelectorState: SelectorState?,
     val optionalNetworksSelectorState: SelectorState?,
-    val wallets: List<WalletItemViewState>
+    val wallets: List<WalletItemViewState>,
+    val approving: Boolean,
+    val rejecting: Boolean
 ) {
+
     companion object {
         val default = WalletConnectViewState(
             sessionProposal = null,
@@ -50,7 +53,9 @@ data class WalletConnectViewState(
             optionalPermissions = null,
             requiredNetworksSelectorState = null,
             optionalNetworksSelectorState = null,
-            wallets = listOf()
+            wallets = listOf(),
+            approving = false,
+            rejecting = false
         )
     }
 }
@@ -144,6 +149,8 @@ fun WalletConnectContent(state: WalletConnectViewState, callback: WalletConnectS
                         .fillMaxWidth()
                         .height(48.dp)
                         .padding(horizontal = 16.dp),
+                    enabled = state.rejecting.not(),
+                    loading = state.approving,
                     onClick = callback::onApproveClick
                 )
 
@@ -154,6 +161,8 @@ fun WalletConnectContent(state: WalletConnectViewState, callback: WalletConnectS
                         .fillMaxWidth()
                         .height(48.dp)
                         .padding(horizontal = 16.dp),
+                    enabled = state.approving.not(),
+                    loading = state.rejecting,
                     onClick = callback::onRejectClicked
                 )
 
@@ -204,7 +213,9 @@ private fun WalletConnectPreview() {
             subTitle = "Soma Network Name",
             iconUrl = null
         ),
-        wallets = listOf()
+        wallets = listOf(),
+        approving = false,
+        rejecting = false
     )
 
     val emptyCallback = object : WalletConnectScreenInterface {
