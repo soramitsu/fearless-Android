@@ -131,10 +131,11 @@ class ConnectionInfoViewModel @Inject constructor(
             topic = topic,
             onSuccess = {
                 viewModelScope.launch(Dispatchers.Main.immediate) {
+                    val dappName = session.metaData?.name ?: resourceManager.getString(R.string.common_dapp)
                     walletConnectRouter.openOperationSuccessAndPopUpToNearestRelatedScreen(
                         null,
                         null,
-                        resourceManager.getString(R.string.connection_disconnect_success_message)
+                        resourceManager.getString(R.string.connection_disconnect_success_message, dappName)
                     )
                 }
             },

@@ -131,14 +131,14 @@ fun SessionRequestContent(state: SessionRequestViewState, callback: SessionReque
                     state = state.message
                 )
 
-                val fullText = stringResource(id = R.string.connection_sign_message_warning)
-                val warningText = fullText.split(":")[0] + ":"
-                val remainingText = fullText.removePrefix(warningText)
+                val warningText = stringResource(id = R.string.common_warning_capitalized_with_dots)
+                val remainingText = stringResource(id = R.string.connection_sign_message_warning)
                 val styledText = buildAnnotatedString {
                     withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, color = warningOrange)) {
                         append(warningText)
                     }
                     withStyle(style = SpanStyle()) {
+                        append(" ")
                         append(remainingText)
                     }
                 }.withNoFontPadding()

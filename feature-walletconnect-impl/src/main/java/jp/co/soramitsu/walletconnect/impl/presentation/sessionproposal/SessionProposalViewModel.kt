@@ -222,7 +222,7 @@ class SessionProposalViewModel @Inject constructor(
             walletConnectRouter.openOperationSuccessAndPopUpToNearestRelatedScreen(
                 null,
                 null,
-                resourceManager.getString(R.string.connection_approve_success_message)
+                resourceManager.getString(R.string.connection_approve_success_message, proposal.name)
             )
         }
         isApproving.value = false
