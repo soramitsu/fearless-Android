@@ -156,7 +156,7 @@ import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.reward.Reward
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.reward.RewardDetailsPayload
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.swap.SwapDetailFragment
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.transfer.TransferDetailFragment
-import jp.co.soramitsu.walletconnect.impl.presentation.WalletConnectFragment
+import jp.co.soramitsu.walletconnect.impl.presentation.sessionproposal.SessionProposalFragment
 import jp.co.soramitsu.walletconnect.impl.presentation.chainschooser.ChainChooseFragment
 import jp.co.soramitsu.walletconnect.impl.presentation.connectioninfo.ConnectionInfoFragment
 import jp.co.soramitsu.walletconnect.impl.presentation.requestpreview.RequestPreviewFragment
@@ -737,18 +737,16 @@ class Navigator :
         navController?.navigate(R.id.sendSetupFragment, bundle)
     }
 
-    override fun openWalletConnect(pairingTopic: String?) {
-        if (navController?.currentDestination?.id == R.id.walletConnectFragment)
-            return
+    override fun openWalletConnectSessionProposal(pairingTopic: String?) {
+        if (navController?.currentDestination?.id == R.id.sessionProposalFragment) return
 
-        val bundle = WalletConnectFragment.getBundle(pairingTopic)
+        val bundle = SessionProposalFragment.getBundle(pairingTopic)
 
-        navController?.navigate(R.id.walletConnectFragment, bundle)
+        navController?.navigate(R.id.sessionProposalFragment, bundle)
     }
 
     override fun openWalletConnectSessionRequest(sessionRequestTopic: String) {
-        if (navController?.currentDestination?.id == R.id.sessionRequestFragment)
-            return
+        if (navController?.currentDestination?.id == R.id.sessionRequestFragment) return
 
         val bundle = SessionRequestFragment.getBundle(sessionRequestTopic)
 

@@ -6,7 +6,6 @@ import com.walletconnect.web3.wallet.client.Wallet
 import io.ipfs.multibase.CharEncoding
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.shared_utils.extensions.fromHex
-import jp.co.soramitsu.walletconnect.impl.presentation.state.WalletConnectMethod
 import org.json.JSONArray
 import org.json.JSONObject
 import java.nio.charset.Charset

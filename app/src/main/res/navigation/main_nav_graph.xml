@@ -743,9 +743,9 @@
         android:label="connectionsFragment" />
 
     <dialog
-        android:id="@+id/walletConnectFragment"
-        android:name="jp.co.soramitsu.walletconnect.impl.presentation.WalletConnectFragment"
-        android:label="walletConnectFragment"/>
+        android:id="@+id/sessionProposalFragment"
+        android:name="jp.co.soramitsu.walletconnect.impl.presentation.sessionproposal.SessionProposalFragment"
+        android:label="sessionProposalFragment"/>
 
     <dialog
         android:id="@+id/sessionRequestFragment"

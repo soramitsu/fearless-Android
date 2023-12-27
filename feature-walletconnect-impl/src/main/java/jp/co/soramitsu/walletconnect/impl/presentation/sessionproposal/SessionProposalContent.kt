@@ -1,4 +1,4 @@
-package jp.co.soramitsu.walletconnect.impl.presentation
+package jp.co.soramitsu.walletconnect.impl.presentation.sessionproposal
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -35,7 +35,7 @@ import jp.co.soramitsu.common.compose.component.WalletItem
 import jp.co.soramitsu.common.compose.component.WalletItemViewState
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
 
-data class WalletConnectViewState(
+data class SessionProposalViewState(
     val sessionProposal: Wallet.Model.SessionProposal?,
     val requiredPermissions: InfoItemSetViewState?,
     val optionalPermissions: InfoItemSetViewState?,
@@ -47,7 +47,7 @@ data class WalletConnectViewState(
 ) {
 
     companion object {
-        val default = WalletConnectViewState(
+        val default = SessionProposalViewState(
             sessionProposal = null,
             requiredPermissions = null,
             optionalPermissions = null,
@@ -60,7 +60,7 @@ data class WalletConnectViewState(
     }
 }
 
-interface WalletConnectScreenInterface {
+interface SessionProposalScreenInterface {
     fun onClose()
     fun onApproveClick()
     fun onRejectClicked()
@@ -70,7 +70,7 @@ interface WalletConnectScreenInterface {
 }
 
 @Composable
-fun WalletConnectContent(state: WalletConnectViewState, callback: WalletConnectScreenInterface) {
+fun SessionProposalContent(state: SessionProposalViewState, callback: SessionProposalScreenInterface) {
     BottomSheetScreen {
         Column(modifier = Modifier.nestedScroll(rememberNestedScrollInteropConnection())) {
             Toolbar(
@@ -174,8 +174,8 @@ fun WalletConnectContent(state: WalletConnectViewState, callback: WalletConnectS
 
 @Preview
 @Composable
-private fun WalletConnectPreview() {
-    val state = WalletConnectViewState(
+private fun SessionProposalPreview() {
+    val state = SessionProposalViewState(
         sessionProposal = null,
         requiredPermissions = InfoItemSetViewState(
             title = "Some required chain name",
@@ -218,7 +218,7 @@ private fun WalletConnectPreview() {
         rejecting = false
     )
 
-    val emptyCallback = object : WalletConnectScreenInterface {
+    val emptyCallback = object : SessionProposalScreenInterface {
         override fun onClose() {}
         override fun onApproveClick() {}
         override fun onRejectClicked() {}
@@ -228,7 +228,7 @@ private fun WalletConnectPreview() {
     }
 
     FearlessTheme {
-        WalletConnectContent(
+        SessionProposalContent(
             state = state,
             callback = emptyCallback
         )

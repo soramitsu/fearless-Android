@@ -26,7 +26,6 @@ import jp.co.soramitsu.shared_utils.encrypt.Signer
 import jp.co.soramitsu.shared_utils.extensions.fromHex
 import jp.co.soramitsu.shared_utils.extensions.toHexString
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.EthereumRemoteSource
-import jp.co.soramitsu.walletconnect.impl.presentation.state.WalletConnectMethod
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONObject

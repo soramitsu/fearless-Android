@@ -6,6 +6,6 @@ interface RootRouter {
     fun openPincodeCheck()
 
     fun openNavGraph()
-    fun openWalletConnect(pairingTopic: String?)
+    fun openWalletConnectSessionProposal(pairingTopic: String?)
     fun openWalletConnectSessionRequest(sessionRequestTopic: String)
 }

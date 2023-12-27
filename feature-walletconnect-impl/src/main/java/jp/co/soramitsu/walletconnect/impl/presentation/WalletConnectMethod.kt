@@ -1,4 +1,4 @@
-package jp.co.soramitsu.walletconnect.impl.presentation.state
+package jp.co.soramitsu.walletconnect.impl.presentation
 
 enum class WalletConnectMethod(val method: String) {
     PolkadotSignTransaction("polkadot_signTransaction"),

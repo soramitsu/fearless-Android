@@ -198,6 +198,6 @@ class RootViewModel @Inject constructor(
     }
 
     private fun handleSessionProposal(sessionProposal: Wallet.Model.SessionProposal) {
-        return rootRouter.openWalletConnect(sessionProposal.pairingTopic)
+        return rootRouter.openWalletConnectSessionProposal(sessionProposal.pairingTopic)
     }
 }

@@ -1,4 +1,4 @@
-package jp.co.soramitsu.walletconnect.impl.presentation
+package jp.co.soramitsu.walletconnect.impl.presentation.sessionproposal
 
 import androidx.lifecycle.viewModelScope
 import co.jp.soramitsu.feature_walletconnect_impl.R
@@ -17,7 +17,9 @@ import jp.co.soramitsu.common.compose.component.SelectorState
 import jp.co.soramitsu.common.compose.component.WalletItemViewState
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.inBackground
-import jp.co.soramitsu.walletconnect.impl.presentation.state.WalletConnectMethod
+import jp.co.soramitsu.walletconnect.impl.presentation.WCDelegate
+import jp.co.soramitsu.walletconnect.impl.presentation.WalletConnectMethod
+import jp.co.soramitsu.walletconnect.impl.presentation.caip2id
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -25,22 +27,21 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class WalletConnectViewModel @Inject constructor(
+class SessionProposalViewModel @Inject constructor(
     accountListingMixin: AccountListingMixin,
     private val walletConnectInteractor: WalletConnectInteractor,
     private val walletConnectRouter: WalletConnectRouter,
     private val resourceManager: ResourceManager,
     private val accountRepository: AccountRepository
-) : WalletConnectScreenInterface, BaseViewModel() {
+) : SessionProposalScreenInterface, BaseViewModel() {
 
-    //    private val pairingTopic: String? = savedStateHandle[WalletConnectFragment.PAIRING_TOPIC_KEY]
+//    private val pairingTopic: String? = savedStateHandle[SessionProposalFragment.PAIRING_TOPIC_KEY]
     private val proposal: Wallet.Model.SessionProposal = WCDelegate.sessionProposalEvent?.first ?: error("No proposal provided")
 
     private val selectedOptionalNetworkIds = MutableStateFlow(
@@ -67,7 +68,7 @@ class WalletConnectViewModel @Inject constructor(
         .inBackground()
         .share()
 
-    val state: StateFlow<WalletConnectViewState> = combine(
+    val state: StateFlow<SessionProposalViewState> = combine(
         walletItemsFlow,
         isApproving,
         isRejecting
@@ -145,7 +146,7 @@ class WalletConnectViewModel @Inject constructor(
             infoItems = optionalInfoItems
         ).takeIf { optionalInfoItems.isNotEmpty() }
 
-        WalletConnectViewState(
+        SessionProposalViewState(
             sessionProposal = proposal,
             requiredPermissions = requiredPermissions,
             optionalPermissions = optionalPermissions,
@@ -155,7 +156,7 @@ class WalletConnectViewModel @Inject constructor(
             approving = isApproving,
             rejecting = isRejecting
         )
-    }.stateIn(this, SharingStarted.Eagerly, WalletConnectViewState.default)
+    }.stateIn(this, SharingStarted.Eagerly, SessionProposalViewState.default)
 
     init {
         launch {

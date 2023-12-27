@@ -33,7 +33,7 @@ import jp.co.soramitsu.common.compose.component.WalletItemViewState
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.theme.colorAccentDark
 import jp.co.soramitsu.common.compose.theme.customTypography
-import jp.co.soramitsu.walletconnect.impl.presentation.state.WalletConnectMethod
+import jp.co.soramitsu.walletconnect.impl.presentation.WalletConnectMethod
 
 data class RequestPreviewViewState(
     val chainIcon: GradientIconState,

@@ -1,4 +1,4 @@
-package jp.co.soramitsu.walletconnect.impl.presentation
+package jp.co.soramitsu.walletconnect.impl.presentation.sessionproposal
 
 import android.widget.FrameLayout
 import androidx.compose.foundation.layout.PaddingValues
@@ -12,14 +12,14 @@ import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
 
 @AndroidEntryPoint
-class WalletConnectFragment : BaseComposeBottomSheetDialogFragment<WalletConnectViewModel>() {
+class SessionProposalFragment : BaseComposeBottomSheetDialogFragment<SessionProposalViewModel>() {
 
-    override val viewModel: WalletConnectViewModel by viewModels()
+    override val viewModel: SessionProposalViewModel by viewModels()
 
     @Composable
     override fun Content(padding: PaddingValues) {
         val state by viewModel.state.collectAsState()
-        WalletConnectContent(
+        SessionProposalContent(
             state = state,
             callback = viewModel
         )
