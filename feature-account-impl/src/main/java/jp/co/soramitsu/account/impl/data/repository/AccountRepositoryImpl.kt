@@ -906,4 +906,6 @@ class AccountRepositoryImpl(
             )
         )
     }
+
+    override fun observeFavoriteChains(metaId: Long) = accountDataSource.observeFavoriteChains(metaId).map { list -> list.associate { it.chainId to it.isFavorite } }
 }
