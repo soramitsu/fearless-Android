@@ -39,6 +39,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.merge
+import kotlinx.coroutines.flow.onEach
 
 class PolkaswapInteractorImpl @Inject constructor(
     private val chainRegistry: ChainRegistry,
@@ -67,13 +68,13 @@ class PolkaswapInteractorImpl @Inject constructor(
     }
 
     override suspend fun getFeeAsset(): Asset? {
-        val chain = chainRegistry.getChain(polkaswapChainId)
+        val chain = chainsRepository.getChain(polkaswapChainId)
         return chain.utilityAsset?.id?.let { getAsset(it) }
     }
 
     override suspend fun getAsset(assetId: String): Asset? {
         val metaAccount = accountRepository.getSelectedMetaAccount()
-        val (chain, chainAsset) = chainRegistry.chainWithAsset(polkaswapChainId, assetId)
+        val (chain, chainAsset) = chainsRepository.chainWithAsset(polkaswapChainId, assetId)
 
         return walletRepository.getAsset(metaAccount.id, metaAccount.accountId(chain)!!, chainAsset, chain.minSupportedVersion)
     }
@@ -126,7 +127,7 @@ class PolkaswapInteractorImpl @Inject constructor(
         slippageTolerance: Double,
         market: Market
     ): Result<SwapDetails?> {
-        val polkaswapUtilityAssetId = chainRegistry.getChain(polkaswapChainId).utilityAsset?.id
+        val polkaswapUtilityAssetId = chainsRepository.getChain(polkaswapChainId).utilityAsset?.id
         val feeAsset = requireNotNull(polkaswapUtilityAssetId?.let { getAsset(it) })
 
         val curMarkets = if (market == Market.SMART) emptyList() else listOf(market)
