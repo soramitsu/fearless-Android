@@ -179,15 +179,7 @@ class ChainSelectViewModel @Inject constructor(
         }
 
         val resultingChains = chainItems
-            ?.filter {
-                val hasQuerriedTokens = it.tokenSymbols.values.any {
-                    it.contains(searchQuery, true)
-                }
-
-                searchQuery.isEmpty() ||
-                it.title.contains(searchQuery, true) ||
-                hasQuerriedTokens
-            }
+            ?.filter { searchQuery.isEmpty() || it.title.contains(searchQuery, true) }
             ?.sortedWith(
                 compareBy<ChainSelectScreenContract.State.ItemState> {
                     it.id.defaultChainSort()
