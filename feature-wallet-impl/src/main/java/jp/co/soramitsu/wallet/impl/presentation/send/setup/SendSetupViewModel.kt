@@ -51,6 +51,7 @@ import jp.co.soramitsu.wallet.api.domain.TransferValidationResult
 import jp.co.soramitsu.wallet.api.domain.ValidateTransferUseCase
 import jp.co.soramitsu.wallet.api.domain.fromValidationResult
 import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
+import jp.co.soramitsu.wallet.impl.domain.interfaces.TransactionFilter
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletConstants
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
@@ -64,6 +65,7 @@ import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.ChainSelectScreenContract
 import jp.co.soramitsu.wallet.impl.presentation.send.SendSharedState
 import jp.co.soramitsu.wallet.impl.presentation.send.TransferDraft
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -178,23 +180,35 @@ class SendSetupViewModel @Inject constructor(
         defaultButtonState,
         isSoftKeyboardOpen = false,
         heightDiffDp = 0.dp,
-        isInputLocked = false
+        isInputLocked = false,
+        isHistoryAvailable = false
     )
 
-    private val assetFlow: StateFlow<Asset?> =
-        sharedState.assetIdToChainIdFlow.map {
-            it?.let { (assetId, chainId) ->
-                walletInteractor.getCurrentAsset(chainId, assetId)
-            }
+    private val assetFlow: StateFlow<Asset?> = sharedState.assetIdToChainIdFlow.map {
+        it?.let { (assetId, chainId) ->
+            walletInteractor.getCurrentAsset(chainId, assetId)
         }
-            .stateIn(this, SharingStarted.Eagerly, null)
+    }
+        .stateIn(this, SharingStarted.Eagerly, null)
+
+    private val isHistoryAvailableFlow = sharedState.assetIdToChainIdFlow.mapNotNull { it }.map { (assetId, chainId) ->
+        walletInteractor.getOperations(
+            chainId = chainId,
+            chainAssetId = assetId,
+            pageSize = 1,
+            cursor = null,
+            filters = TransactionFilter.values().toSet()
+        )
+            .getOrNull()
+            .isNullOrEmpty().not()
+    }
 
     private val amountInputFocusFlow = MutableStateFlow(false)
 
     private val addressInputFlow = MutableStateFlow(initSendToAddress.orEmpty())
     private val addressInputTrimmedFlow = addressInputFlow.map { it.trim() }
 
-    private val isSoftKeyboardOpenFlow = MutableStateFlow(lockSendToAmount && initialAmount.isZero() )
+    private val isSoftKeyboardOpenFlow = MutableStateFlow(lockSendToAmount && initialAmount.isZero())
     private val heightDiffDpFlow = MutableStateFlow(0.dp)
 
     private val enteredAmountBigDecimalFlow = MutableStateFlow(initialAmount)
@@ -391,8 +405,9 @@ class SendSetupViewModel @Inject constructor(
         isSoftKeyboardOpenFlow,
         heightDiffDpFlow,
         lockInputFlow,
-        assetFlow
-    ) { chain, address, chainSelectorState, amountInputState, feeInfoState, warningInfoState, buttonState, isSoftKeyboardOpen, heightDiffDp, isInputLocked, asset ->
+        assetFlow,
+        isHistoryAvailableFlow
+    ) { chain, address, chainSelectorState, amountInputState, feeInfoState, warningInfoState, buttonState, isSoftKeyboardOpen, heightDiffDp, isInputLocked, asset, isHistoryAvailable ->
         val isAddressValid = when (chain) {
             null -> false
             else -> walletInteractor.validateSendAddress(chain.id, address)
@@ -431,6 +446,7 @@ class SendSetupViewModel @Inject constructor(
             heightDiffDp = heightDiffDp,
             isInputLocked = isInputLocked,
             quickAmountInputValues = quickAmountInputValues,
+            isHistoryAvailable = isHistoryAvailable
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, defaultState)
 

@@ -73,7 +73,8 @@ data class SendSetupViewState(
     val isSoftKeyboardOpen: Boolean,
     val heightDiffDp: Dp,
     val isInputLocked: Boolean,
-    val quickAmountInputValues: List<QuickAmountInput> = QuickAmountInput.values().asList()
+    val quickAmountInputValues: List<QuickAmountInput> = QuickAmountInput.values().asList(),
+    val isHistoryAvailable: Boolean
 )
 
 interface SendSetupScreenInterface {
@@ -179,12 +180,14 @@ fun SendSetupContent(
                             labelResId = R.string.chip_qr,
                             onClick = callback::onQrClick
                         )
-                        Badge(
-                            modifier = Modifier.weight(1f),
-                            iconResId = R.drawable.ic_history_16,
-                            labelResId = R.string.chip_history,
-                            onClick = callback::onHistoryClick
-                        )
+                        if (state.isHistoryAvailable) {
+                            Badge(
+                                modifier = Modifier.weight(1f),
+                                iconResId = R.drawable.ic_history_16,
+                                labelResId = R.string.chip_history,
+                                onClick = callback::onHistoryClick
+                            )
+                        }
                     }
                     MarginVertical(margin = 12.dp)
                 }
@@ -260,7 +263,8 @@ private fun SendSetupPreview() {
         buttonState = ButtonViewState("Continue", true),
         isSoftKeyboardOpen = false,
         heightDiffDp = 0.dp,
-        isInputLocked = false
+        isInputLocked = false,
+        isHistoryAvailable = false
     )
 
     val emptyCallback = object : SendSetupScreenInterface {
