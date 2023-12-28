@@ -1,6 +1,7 @@
 package jp.co.soramitsu.wallet.impl.presentation.balance.chainselector
 
 import android.content.DialogInterface
+import android.os.Bundle
 import android.widget.FrameLayout
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
@@ -10,6 +11,7 @@ import androidx.core.os.bundleOf
 import androidx.fragment.app.viewModels
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import dagger.hilt.android.AndroidEntryPoint
+import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
 import jp.co.soramitsu.common.compose.component.BottomSheetScreen
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
@@ -83,6 +85,11 @@ class ChainSelectFragment : BaseComposeBottomSheetDialogFragment<ChainSelectView
             KEY_CHOOSER_MODE to false,
             KEY_FILTERING_ENABLED to isFilteringEnabled
         )
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setStyle(STYLE_NO_TITLE, R.style.CustomAdjustResizeBottomSheetDialogTheme)
     }
 
     override val viewModel: ChainSelectViewModel by viewModels()

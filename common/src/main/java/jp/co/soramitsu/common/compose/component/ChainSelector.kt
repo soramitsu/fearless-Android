@@ -28,6 +28,7 @@ import jp.co.soramitsu.common.compose.theme.backgroundBlurColor
 import jp.co.soramitsu.common.compose.theme.colorAccent
 import jp.co.soramitsu.common.compose.theme.customTypography
 import jp.co.soramitsu.common.compose.theme.white
+import jp.co.soramitsu.ui_core.modifier.applyIf
 
 data class ChainSelectorViewState(
     val selectedChainName: String? = null,
@@ -49,16 +50,18 @@ data class ChainSelectorViewStateWithFilters(
 @Composable
 fun ChainSelector(
     selectorViewState: ChainSelectorViewState,
-    onChangeChainClick: () -> Unit
+    onChangeChainClick: (() -> Unit)?
 ) {
     Row(
         modifier = Modifier
             .clip(RoundedCornerShape(16.dp))
             .background(backgroundBlurColor)
-            .clickable(
-                role = Role.Button,
-                onClick = onChangeChainClick
-            )
+            .applyIf(onChangeChainClick != null) {
+                clickable(
+                    role = Role.Button,
+                    onClick = onChangeChainClick!!
+                )
+            }
     ) {
         Box(Modifier.padding(8.dp)) {
             Canvas(

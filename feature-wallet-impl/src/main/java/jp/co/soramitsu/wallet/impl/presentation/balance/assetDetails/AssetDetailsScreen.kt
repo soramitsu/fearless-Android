@@ -103,7 +103,7 @@ fun AssetDetailsToolbar(
 
                     ChainSelector(
                         selectorViewState = state.data.selectorViewState,
-                        onChangeChainClick = callback::onSelectChainClick
+                        onChangeChainClick = null
                     )
                 }
             }
