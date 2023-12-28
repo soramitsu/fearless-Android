@@ -31,7 +31,7 @@ class AssetDetailsSortViewModel @Inject constructor(
                     resourceManager.getString(R.string.common_sort_by),
                     null,
                     listOf(
-                        MenuIconItem(icon = R.drawable.ic_cross_24, {})
+                        MenuIconItem(icon = R.drawable.ic_cross_24, ::onNavigationClose)
                     )
                 ),
                 items = AssetSorting.values().map { it.mapToState() },

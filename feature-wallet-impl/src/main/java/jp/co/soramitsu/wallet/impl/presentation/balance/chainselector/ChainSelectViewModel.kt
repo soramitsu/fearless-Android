@@ -17,6 +17,7 @@ import jp.co.soramitsu.wallet.impl.domain.ChainInteractor
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.presentation.send.SendSharedState
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -134,26 +135,24 @@ class ChainSelectViewModel @Inject constructor(
         chainsFlow,
         walletInteractor.observeSelectedAccountChainSelectFilter(),
         filterFlow,
-        cachedMetaAccountFlow,
         selectedChainId,
-        enteredChainQueryFlow
+        enteredChainQueryFlow,
+        accountInteractor.observeSelectedMetaAccountFavoriteChains()
     ) {
       chainsPreFiltered,
       savedFilterAsString,
       userInputFilter,
-      selectedMetaAccount,
       selectedChainId,
-      searchQuery ->
+      searchQuery,
+      favoriteChains->
 
         val savedFilter =
             ChainSelectorViewStateWithFilters.Filter.values().find {
                 it.name == savedFilterAsString
             } ?: ChainSelectorViewStateWithFilters.Filter.All
 
-        val selectedAccountFavoriteChains = selectedMetaAccount?.favoriteChains
-
         val chainsWithFavoriteInfo = chainsPreFiltered?.map { chain ->
-            chain to (selectedAccountFavoriteChains?.get(chain.id)?.isFavorite == true)
+            chain to (favoriteChains[chain.id] ?: false)
         }
 
         val filterInUse = userInputFilter ?: savedFilter
@@ -180,15 +179,7 @@ class ChainSelectViewModel @Inject constructor(
         }
 
         val resultingChains = chainItems
-            ?.filter {
-                val hasQuerriedTokens = it.tokenSymbols.values.any {
-                    it.contains(searchQuery, true)
-                }
-
-                searchQuery.isEmpty() ||
-                it.title.contains(searchQuery, true) ||
-                hasQuerriedTokens
-            }
+            ?.filter { searchQuery.isEmpty() || it.title.contains(searchQuery, true) }
             ?.sortedWith(
                 compareBy<ChainSelectScreenContract.State.ItemState> {
                     it.id.defaultChainSort()
@@ -302,8 +293,10 @@ class ChainSelectViewModel @Inject constructor(
         if (chainItemState !is ChainSelectScreenContract.State.ItemState.Impl.FilteringDecorator)
             return
 
-        launch {
+        launch(Dispatchers.IO) {
+            val metaId = requireNotNull(cachedMetaAccountFlow.value).id
             accountInteractor.updateFavoriteChain(
+                metaId = metaId,
                 chainId = chainItemState.id,
                 isFavorite = !chainItemState.isMarkedAsFavorite
             )

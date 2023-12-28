@@ -115,4 +115,7 @@ interface MetaAccountDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertOrReplaceFavoriteChain(favoriteChainLocal: FavoriteChainLocal)
+
+    @Query("SELECT * FROM favorite_chains WHERE metaId = :metaId")
+    fun observeFavoriteChains(metaId: Long): Flow<List<FavoriteChainLocal>>
 }

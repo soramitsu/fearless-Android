@@ -159,6 +159,7 @@ interface AccountInteractor {
 
     suspend fun updateWalletOnGoogleBackupDelete(metaId: Long)
 
-    suspend fun updateFavoriteChain(chainId: ChainId, isFavorite: Boolean)
+    suspend fun updateFavoriteChain(chainId: ChainId, isFavorite: Boolean, metaId: Long)
     suspend fun selectedLightMetaAccount(): LightMetaAccount
+    fun observeSelectedMetaAccountFavoriteChains(): Flow<Map<ChainId, Boolean>>
 }

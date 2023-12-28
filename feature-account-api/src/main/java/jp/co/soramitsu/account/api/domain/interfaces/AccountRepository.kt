@@ -187,4 +187,5 @@ interface AccountRepository {
     fun selectedLightMetaAccountFlow(): Flow<LightMetaAccount>
     suspend fun getSelectedLightMetaAccount(): LightMetaAccount
     suspend fun getLightMetaAccount(metaId: Long): LightMetaAccount
+    fun observeFavoriteChains(metaId: Long): Flow<Map<ChainId, Boolean>>
 }
