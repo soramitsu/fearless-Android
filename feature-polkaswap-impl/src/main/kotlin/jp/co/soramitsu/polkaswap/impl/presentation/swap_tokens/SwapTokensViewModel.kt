@@ -135,7 +135,6 @@ class SwapTokensViewModel @Inject constructor(
     private val availableDexPathsFlow: MutableStateFlow<List<Int>?> = MutableStateFlow(null)
 
     private val isSoftKeyboardOpenFlow = MutableStateFlow(false)
-    private val heightDiffDpFlow = MutableStateFlow(0.dp)
 
     private val poolReservesFlow =
         combine(fromAssetFlow, toAssetFlow, selectedMarket) { fromAsset, toAsset, selectedMarket ->
@@ -277,9 +276,8 @@ class SwapTokensViewModel @Inject constructor(
         networkFeeViewStateFlow,
         isLoading,
         polkaswapInteractor.observeHasReadDisclaimer(),
-        isSoftKeyboardOpenFlow,
-        heightDiffDpFlow
-    ) { fromAmountInput, toAmountInput, selectedMarket, swapDetails, networkFeeState, isLoading, hasReadDisclaimer, isSoftKeyboardOpen, heightDiffDp ->
+        isSoftKeyboardOpenFlow
+    ) { fromAmountInput, toAmountInput, selectedMarket, swapDetails, networkFeeState, isLoading, hasReadDisclaimer, isSoftKeyboardOpen ->
         SwapTokensContentViewState(
             fromAmountInputViewState = fromAmountInput,
             toAmountInputViewState = toAmountInput,
@@ -288,8 +286,7 @@ class SwapTokensViewModel @Inject constructor(
             networkFeeViewState = networkFeeState,
             isLoading = isLoading,
             hasReadDisclaimer = hasReadDisclaimer,
-            isSoftKeyboardOpen = isSoftKeyboardOpen,
-            heightDiffDp = heightDiffDp
+            isSoftKeyboardOpen = isSoftKeyboardOpen
         )
     }.stateIn(
         viewModelScope,
@@ -765,9 +762,5 @@ class SwapTokensViewModel @Inject constructor(
 
     fun setSoftKeyboardOpen(isOpen: Boolean) {
         isSoftKeyboardOpenFlow.value = isOpen
-    }
-
-    fun setHeightDiffDp(value: Dp) {
-        heightDiffDpFlow.value = value
     }
 }

@@ -71,7 +71,6 @@ data class SendSetupViewState(
     val warningInfoState: WarningInfoState?,
     val buttonState: ButtonViewState,
     val isSoftKeyboardOpen: Boolean,
-    val heightDiffDp: Dp,
     val isInputLocked: Boolean,
     val quickAmountInputValues: List<QuickAmountInput> = QuickAmountInput.values().asList(),
     val isHistoryAvailable: Boolean
@@ -111,7 +110,6 @@ fun SendSetupContent(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-//                .padding(bottom = state.heightDiffDp)
         ) {
             val bottomPadding = if (state.isInputLocked) {
                 50.dp
@@ -262,7 +260,6 @@ private fun SendSetupPreview() {
         warningInfoState = null,
         buttonState = ButtonViewState("Continue", true),
         isSoftKeyboardOpen = false,
-        heightDiffDp = 0.dp,
         isInputLocked = false,
         isHistoryAvailable = false
     )

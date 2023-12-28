@@ -87,11 +87,6 @@ class ChainSelectFragment : BaseComposeBottomSheetDialogFragment<ChainSelectView
         )
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setStyle(STYLE_NO_TITLE, R.style.CustomAdjustResizeBottomSheetDialogTheme)
-    }
-
     override val viewModel: ChainSelectViewModel by viewModels()
 
     @Composable

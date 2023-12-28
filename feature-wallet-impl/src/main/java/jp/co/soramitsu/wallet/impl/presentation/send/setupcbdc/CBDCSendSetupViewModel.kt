@@ -132,8 +132,7 @@ class CBDCSendSetupViewModel @Inject constructor(
         feeInfoState = FeeInfoViewState.default,
         warningInfoState = null,
         buttonState = defaultButtonState,
-        isSoftKeyboardOpen = false,
-        heightDiffDp = 0.dp
+        isSoftKeyboardOpen = false
     )
 
     private val assetFlow: StateFlow<Asset?> = flowOf {
@@ -150,7 +149,6 @@ class CBDCSendSetupViewModel @Inject constructor(
     private val amountInputFocusFlow = MutableStateFlow(false)
 
     private val isSoftKeyboardOpenFlow = MutableStateFlow(initialAmount.isZero())
-    private val heightDiffDpFlow = MutableStateFlow(0.dp)
 
     private val enteredAmountBigDecimalFlow = MutableStateFlow(initialAmount)
     private val visibleAmountFlow = MutableStateFlow(initialAmount)
@@ -331,9 +329,8 @@ class CBDCSendSetupViewModel @Inject constructor(
         feeInfoViewStateFlow,
         warningInfoStateFlow,
         buttonStateFlow,
-        isSoftKeyboardOpenFlow,
-        heightDiffDpFlow
-    ) { addressInputState, amountInputState, feeInfoState, warningInfoState, buttonState, isSoftKeyboardOpen, heightDiffDp ->
+        isSoftKeyboardOpenFlow
+    ) { addressInputState, amountInputState, feeInfoState, warningInfoState, buttonState, isSoftKeyboardOpen ->
 
         confirmedValidations.clear()
 
@@ -345,8 +342,7 @@ class CBDCSendSetupViewModel @Inject constructor(
             feeInfoState = feeInfoState,
             warningInfoState = warningInfoState,
             buttonState = buttonState,
-            isSoftKeyboardOpen = isSoftKeyboardOpen,
-            heightDiffDp = heightDiffDp
+            isSoftKeyboardOpen = isSoftKeyboardOpen
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, defaultState)
 
@@ -435,10 +431,6 @@ class CBDCSendSetupViewModel @Inject constructor(
 
     fun setSoftKeyboardOpen(isOpen: Boolean) {
         isSoftKeyboardOpenFlow.value = isOpen
-    }
-
-    fun setHeightDiffDp(value: Dp) {
-        heightDiffDpFlow.value = value
     }
 
     override fun onWarningInfoClick() {

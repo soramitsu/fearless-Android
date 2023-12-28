@@ -46,8 +46,7 @@ data class CreateBackupPasswordViewState(
     @StringRes val passwordMatchingTextResource: Int?,
     val highlightConfirmPassword: Boolean,
     val isSetButtonEnabled: Boolean,
-    val isLoading: Boolean,
-    val heightDiffDp: Dp
+    val isLoading: Boolean
 )
 
 interface CreateBackupPasswordCallback {
@@ -80,82 +79,79 @@ internal fun CreateBackupPasswordContent(
     LaunchedEffect(Unit) { focusRequester.requestFocus() }
 
     BottomSheetScreen {
-        Box(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
-//                .padding(bottom = state.heightDiffDp)
         ) {
-            Column {
-                Toolbar(
-                    modifier = Modifier.padding(bottom = 12.dp),
-                    state = ToolbarViewState(
-                        title = stringResource(R.string.create_backup_password_title),
-                        navigationIcon = R.drawable.ic_arrow_back_24dp
-                    ),
-                    onNavigationClick = callback::onBackClick
+            Toolbar(
+                modifier = Modifier.padding(bottom = 12.dp),
+                state = ToolbarViewState(
+                    title = stringResource(R.string.create_backup_password_title),
+                    navigationIcon = R.drawable.ic_arrow_back_24dp
+                ),
+                onNavigationClick = callback::onBackClick
+            )
+            MarginVertical(margin = 24.dp)
+
+            Column(
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+                    .verticalScroll(rememberScrollState())
+                    .weight(1f)
+            ) {
+                B0(
+                    text = stringResource(R.string.create_backup_password_subtitle),
+                    color = gray2
                 )
-                MarginVertical(margin = 24.dp)
-
-                Column(
-                    modifier = Modifier
-                        .padding(horizontal = 16.dp)
-                        .verticalScroll(rememberScrollState())
-                        .weight(1f)
-                ) {
-                    B0(
-                        text = stringResource(R.string.create_backup_password_subtitle),
-                        color = gray2
-                    )
-                    MarginVertical(margin = 16.dp)
-                    TextInput(
-                        modifier = Modifier.focusRequester(focusRequester),
-                        state = state.originPasswordViewState,
-                        onInput = callback::onOriginPasswordChange,
-                        onEndIconClick = callback::onOriginPasswordVisibilityClick
-                    )
-                    MarginVertical(margin = 16.dp)
-                    TextInput(
-                        state = state.confirmPasswordViewState,
-                        onInput = callback::onConfirmPasswordChange,
-                        onEndIconClick = callback::onConfirmPasswordVisibilityClick,
-                        borderColor = if (state.highlightConfirmPassword) {
-                            colorAccent
-                        } else {
-                            white24
-                        }
-                    )
-                    MarginVertical(margin = 8.dp)
-                    B2(
-                        text = state.passwordMatchingTextResource
-                            ?.let { stringResource(it) }.orEmpty(),
-                        color = if (state.highlightConfirmPassword) {
-                            colorAccent
-                        } else {
-                            gray2
-                        }
-                    )
-                    MarginVertical(margin = 8.dp)
-                    TextSelectableItem(
-                        state = state.agreementsState,
-                        onSelectedCallback = callback::onAgreementsClick
-                    )
-                }
-
-                AccentButton(
-                    modifier = Modifier
-                        .height(48.dp)
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
-                    text = stringResource(R.string.create_backup_password_btn_set),
-                    loading = state.isLoading,
-                    enabled = state.isSetButtonEnabled,
-                    onClick = {
-                        keyboardController?.hide()
-                        callback.onApplyPasswordClick()
+                MarginVertical(margin = 16.dp)
+                TextInput(
+                    modifier = Modifier.focusRequester(focusRequester),
+                    state = state.originPasswordViewState,
+                    onInput = callback::onOriginPasswordChange,
+                    onEndIconClick = callback::onOriginPasswordVisibilityClick
+                )
+                MarginVertical(margin = 16.dp)
+                TextInput(
+                    state = state.confirmPasswordViewState,
+                    onInput = callback::onConfirmPasswordChange,
+                    onEndIconClick = callback::onConfirmPasswordVisibilityClick,
+                    borderColor = if (state.highlightConfirmPassword) {
+                        colorAccent
+                    } else {
+                        white24
                     }
                 )
-                MarginVertical(12.dp)
+                MarginVertical(margin = 8.dp)
+                B2(
+                    text = state.passwordMatchingTextResource
+                        ?.let { stringResource(it) }.orEmpty(),
+                    color = if (state.highlightConfirmPassword) {
+                        colorAccent
+                    } else {
+                        gray2
+                    }
+                )
+                MarginVertical(margin = 8.dp)
+                TextSelectableItem(
+                    state = state.agreementsState,
+                    onSelectedCallback = callback::onAgreementsClick
+                )
             }
+
+            AccentButton(
+                modifier = Modifier
+                    .height(48.dp)
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                text = stringResource(R.string.create_backup_password_btn_set),
+                loading = state.isLoading,
+                enabled = state.isSetButtonEnabled,
+                onClick = {
+                    keyboardController?.hide()
+                    callback.onApplyPasswordClick()
+                }
+            )
+            MarginVertical(12.dp)
         }
     }
 }
@@ -183,8 +179,7 @@ fun PreviewCreateBackupPasswordContent() {
                 passwordMatchingTextResource = null,
                 highlightConfirmPassword = true,
                 isSetButtonEnabled = true,
-                isLoading = false,
-                heightDiffDp = 0.dp
+                isLoading = false
             ),
             callback = object : CreateBackupPasswordCallback {
                 override fun onOriginPasswordChange(password: String) {}

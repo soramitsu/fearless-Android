@@ -45,8 +45,7 @@ import jp.co.soramitsu.common.compose.theme.white08
 data class EnterBackupPasswordState(
     val wallet: WrappedBackupAccountMeta?,
     val passwordInputViewState: TextInputViewState,
-    val isLoading: Boolean,
-    val heightDiffDp: Dp
+    val isLoading: Boolean
 ) : ImportRemoteWalletState
 
 interface EnterBackupPasswordCallback {
@@ -79,63 +78,60 @@ internal fun EnterBackupPasswordScreen(
         white08
     }
 
-    Box(
+    Column(
         modifier = Modifier
             .fillMaxSize()
             .nestedScroll(rememberNestedScrollInteropConnection())
-//            .padding(bottom = state.heightDiffDp)
     ) {
-        Column {
-            Toolbar(
-                modifier = Modifier.padding(bottom = 12.dp),
-                state = ToolbarViewState(
-                    title = stringResource(R.string.import_remote_wallet_title_password),
-                    navigationIcon = R.drawable.ic_arrow_back_24dp
-                ),
-                onNavigationClick = callback::onBackClick
-            )
-            MarginVertical(margin = 24.dp)
+        Toolbar(
+            modifier = Modifier.padding(bottom = 12.dp),
+            state = ToolbarViewState(
+                title = stringResource(R.string.import_remote_wallet_title_password),
+                navigationIcon = R.drawable.ic_arrow_back_24dp
+            ),
+            onNavigationClick = callback::onBackClick
+        )
+        MarginVertical(margin = 24.dp)
 
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(horizontal = 16.dp)
-                    .verticalScroll(rememberScrollState())
-            ) {
-                B0(
-                    text = stringResource(R.string.import_remote_wallet_subtitle_password),
-                    textAlign = TextAlign.Center,
-                    color = gray2
-                )
-                MarginVertical(margin = 16.dp)
-                WalletItem(
-                    state = CompactWalletItemViewState(title = state.wallet?.backupMeta?.name.orEmpty()),
-                    onSelected = {}
-                )
-                MarginVertical(margin = 16.dp)
-                TextInput(
-                    modifier = Modifier.focusRequester(focusRequester),
-                    state = state.passwordInputViewState,
-                    borderColor = borderColor,
-                    onFocusChanged = ::onFocusChanged,
-                    onInput = callback::onPasswordChanged,
-                    onEndIconClick = callback::onPasswordVisibilityClick
-                )
-                MarginVertical(margin = 16.dp)
-            }
-
-            AccentButton(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(48.dp)
-                    .padding(horizontal = 16.dp),
-                text = stringResource(R.string.common_continue),
-                enabled = true,
-                loading = state.isLoading,
-                onClick = callback::onContinueClick
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .padding(horizontal = 16.dp)
+                .verticalScroll(rememberScrollState())
+        ) {
+            B0(
+                text = stringResource(R.string.import_remote_wallet_subtitle_password),
+                textAlign = TextAlign.Center,
+                color = gray2
             )
-            MarginVertical(12.dp)
+            MarginVertical(margin = 16.dp)
+            WalletItem(
+                state = CompactWalletItemViewState(title = state.wallet?.backupMeta?.name.orEmpty()),
+                onSelected = {}
+            )
+            MarginVertical(margin = 16.dp)
+            TextInput(
+                modifier = Modifier.focusRequester(focusRequester),
+                state = state.passwordInputViewState,
+                borderColor = borderColor,
+                onFocusChanged = ::onFocusChanged,
+                onInput = callback::onPasswordChanged,
+                onEndIconClick = callback::onPasswordVisibilityClick
+            )
+            MarginVertical(margin = 16.dp)
         }
+
+        AccentButton(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(48.dp)
+                .padding(horizontal = 16.dp),
+            text = stringResource(R.string.common_continue),
+            enabled = true,
+            loading = state.isLoading,
+            onClick = callback::onContinueClick
+        )
+        MarginVertical(12.dp)
     }
 }
 
@@ -150,8 +146,7 @@ private fun PreviewEnterBackupPasswordScreen() {
                     text = "password text",
                     hint = "hint"
                 ),
-                isLoading = false,
-                heightDiffDp = 100.dp
+                isLoading = false
             ),
             callback = object : EnterBackupPasswordCallback {
                 override fun onBackClick() {}
