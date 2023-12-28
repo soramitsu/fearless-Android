@@ -12,7 +12,7 @@ val Migration_58_59 = object : Migration(58, 59) {
             CREATE TABLE IF NOT EXISTS `favorite_chains` (
             `metaId` INTEGER NOT NULL,
             `chainId` TEXT NOT NULL,
-            `isFavorite` INTEGER NOT NULL DEFAULT 0
+            `isFavorite` INTEGER NOT NULL DEFAULT 0,
             PRIMARY KEY(`metaId`, `chainId`),
             FOREIGN KEY(`chainId`) REFERENCES `chains`(`id`) ON UPDATE NO ACTION ON DELETE NO ACTION  DEFERRABLE INITIALLY DEFERRED,
             FOREIGN KEY(`metaId`) REFERENCES `meta_accounts`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE 
