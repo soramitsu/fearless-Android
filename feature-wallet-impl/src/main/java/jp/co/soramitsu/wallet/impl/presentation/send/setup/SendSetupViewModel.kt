@@ -44,6 +44,7 @@ import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.polkaswap.api.domain.PolkaswapInteractor
 import jp.co.soramitsu.polkaswap.api.models.Market
 import jp.co.soramitsu.polkaswap.api.models.WithDesired
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.bokoloCashTokenId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraTestChainId
@@ -190,18 +191,6 @@ class SendSetupViewModel @Inject constructor(
         }
     }
         .stateIn(this, SharingStarted.Eagerly, null)
-
-    private val isHistoryAvailableFlow = sharedState.assetIdToChainIdFlow.mapNotNull { it }.map { (assetId, chainId) ->
-        walletInteractor.getOperations(
-            chainId = chainId,
-            chainAssetId = assetId,
-            pageSize = 1,
-            cursor = null,
-            filters = TransactionFilter.values().toSet()
-        )
-            .getOrNull()
-            .isNullOrEmpty().not()
-    }
 
     private val amountInputFocusFlow = MutableStateFlow(false)
 
@@ -405,9 +394,8 @@ class SendSetupViewModel @Inject constructor(
         isSoftKeyboardOpenFlow,
         heightDiffDpFlow,
         lockInputFlow,
-        assetFlow,
-        isHistoryAvailableFlow
-    ) { chain, address, chainSelectorState, amountInputState, feeInfoState, warningInfoState, buttonState, isSoftKeyboardOpen, heightDiffDp, isInputLocked, asset, isHistoryAvailable ->
+        assetFlow
+    ) { chain, address, chainSelectorState, amountInputState, feeInfoState, warningInfoState, buttonState, isSoftKeyboardOpen, heightDiffDp, isInputLocked, asset ->
         val isAddressValid = when (chain) {
             null -> false
             else -> walletInteractor.validateSendAddress(chain.id, address)
@@ -420,6 +408,8 @@ class SendSetupViewModel @Inject constructor(
         } else {
             QuickAmountInput.values().toList()
         }
+
+        val isHistorySupportedByChain = chain?.externalApi?.history != null
 
         SendSetupViewState(
             toolbarState = toolbarViewState,
@@ -446,7 +436,7 @@ class SendSetupViewModel @Inject constructor(
             heightDiffDp = heightDiffDp,
             isInputLocked = isInputLocked,
             quickAmountInputValues = quickAmountInputValues,
-            isHistoryAvailable = isHistoryAvailable
+            isHistoryAvailable = isHistorySupportedByChain
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, defaultState)
 
