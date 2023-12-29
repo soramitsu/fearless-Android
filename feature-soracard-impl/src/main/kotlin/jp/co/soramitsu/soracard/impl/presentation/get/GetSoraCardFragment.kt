@@ -1,7 +1,5 @@
 package jp.co.soramitsu.soracard.impl.presentation.get
 
-import android.os.Bundle
-import android.view.View
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.material.ExperimentalMaterialApi
@@ -13,40 +11,12 @@ import androidx.fragment.app.viewModels
 import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.common.base.BaseComposeFragment
 import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
-import jp.co.soramitsu.oauth.base.sdk.contract.SoraCardContract
-import jp.co.soramitsu.oauth.base.sdk.contract.SoraCardResult
 
 @AndroidEntryPoint
 class GetSoraCardFragment : BaseComposeFragment<GetSoraCardViewModel>() {
 
     override val viewModel: GetSoraCardViewModel by viewModels()
 
-    private val soraCardRegistration = registerForActivityResult(
-        SoraCardContract()
-    ) { result ->
-        handleSoraCardResult(result)
-    }
-
-    private var soraCardSignIn = registerForActivityResult(
-        SoraCardContract()
-    ) { result ->
-        handleSoraCardResult(result)
-    }
-
-    private fun handleSoraCardResult(result: SoraCardResult) {
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-        viewModel.launchSoraCardRegistration.observeEvent { contractData ->
-            soraCardRegistration.launch(contractData)
-        }
-
-        viewModel.launchSoraCardSignIn.observeEvent { contractData ->
-            soraCardSignIn.launch(contractData)
-        }
-    }
 
     @ExperimentalMaterialApi
     @Composable

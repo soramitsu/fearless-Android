@@ -28,9 +28,6 @@ android {
 dependencies {
     implementation(libs.bundles.coroutines)
     implementation(libs.kotlinx.serialization.json)
-    implementation(libs.sora.card) {
-        exclude(module = "java-websocket-lib")
-    }
 
     implementation(projects.runtime)
     implementation(projects.featureWalletApi)

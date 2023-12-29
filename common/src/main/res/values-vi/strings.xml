@@ -286,6 +286,7 @@
   <string name="common_transaction_raw_data">Dữ liệu thô giao dịch</string>
   <string name="common_transaction_submitted">Giao dịch đã được gửi</string>
   <string name="common_transferable_format">Chuyển nhượng: %s</string>
+  <string name="common_try_again">Thử lại</string>
   <string name="common_undefined_error_message">Vui lòng thử lại với một đầu vào khác. Nếu lỗi xuất hiện lại, vui lòng liên hệ với bộ phận hỗ trợ.</string>
   <string name="common_unknown">không xác định</string>
   <string name="common_unsupported">Không được hỗ trợ</string>

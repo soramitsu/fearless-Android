@@ -96,8 +96,6 @@ dependencies {
 
     implementation gsonDep
 
-    implementation soraCardDep, withoutJavaWS
-
     api sharedFeaturesCoreDep
 
     implementation sharedFeaturesBackupDep
