@@ -182,7 +182,7 @@ class WalletConnectInteractorImpl(
         )
     }
 
-    override suspend fun onSignClick(
+    override suspend fun handleSignAction(
         chain: Chain,
         topic: String,
         recentSession: Wallet.Model.SessionRequest,

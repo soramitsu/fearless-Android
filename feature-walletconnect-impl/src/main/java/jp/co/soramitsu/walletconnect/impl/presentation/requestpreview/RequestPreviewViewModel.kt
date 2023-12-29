@@ -144,7 +144,7 @@ class RequestPreviewViewModel @Inject constructor(
 
         isLoading.value = true
         viewModelScope.launch {
-            walletConnectInteractor.onSignClick(
+            walletConnectInteractor.handleSignAction(
                 chain = chain,
                 topic = topic,
                 recentSession = recentSession,

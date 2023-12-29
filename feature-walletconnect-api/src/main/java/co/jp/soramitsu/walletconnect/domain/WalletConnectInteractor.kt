@@ -31,7 +31,7 @@ interface WalletConnectInteractor {
         onError: (Wallet.Model.Error) -> Unit
     )
 
-    suspend fun onSignClick(
+    suspend fun handleSignAction(
         chain: Chain,
         topic: String,
         recentSession: Wallet.Model.SessionRequest,
