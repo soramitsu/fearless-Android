@@ -45,6 +45,7 @@ import jp.co.soramitsu.common.compose.component.getImageRequest
 import jp.co.soramitsu.common.compose.theme.alertYellow
 import jp.co.soramitsu.common.compose.theme.black05
 import jp.co.soramitsu.common.compose.theme.black4
+import jp.co.soramitsu.common.compose.theme.colorAccentDark
 import jp.co.soramitsu.common.compose.theme.customColors
 import jp.co.soramitsu.common.compose.theme.white
 import jp.co.soramitsu.common.compose.theme.white50
@@ -178,7 +179,7 @@ inline fun ChainsFilter(
     ) {
         for (filter in ChainSelectorViewStateWithFilters.Filter.values()) {
             val filterBorderColor = if (selectedFilter === filter)
-                MaterialTheme.customColors.colorAccent else
+                colorAccentDark else
                 black05
 
             BackgroundCorneredWithBorder(
@@ -306,7 +307,7 @@ fun ChainItem(
 
         if (state.isSelected) {
             val selectedChainIconTint =
-                MaterialTheme.customColors.colorAccent
+                colorAccentDark
 
             Image(
                 res = R.drawable.ic_marked,
@@ -321,7 +322,7 @@ fun ChainItem(
         if (state is ChainSelectScreenContract.State.ItemState.Impl.FilteringDecorator) {
             val favoriteChainIconTint =
                 if (state.isMarkedAsFavorite)
-                    MaterialTheme.customColors.colorAccent else
+                    colorAccentDark else
                     MaterialTheme.customColors.white
 
             val favoriteChainIconAlpha =
