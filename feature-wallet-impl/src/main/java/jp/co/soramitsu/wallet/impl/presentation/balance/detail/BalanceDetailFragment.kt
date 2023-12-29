@@ -105,7 +105,7 @@ class BalanceDetailFragment : BaseComposeFragment<BalanceDetailViewModel>() {
                             onClick = viewModel::accountOptionsClicked
                         )
                     ),
-                    onChangeChainClick = viewModel::openSelectChain,
+                    onChangeChainClick = null,
                     onNavigationClick = viewModel::backClicked
                 )
             }
