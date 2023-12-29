@@ -117,10 +117,10 @@ class BalanceDetailViewModel @Inject constructor(
         val selectedChain = chains.first { it.id == selectedChainId }
         val initialSelectedChain = chains.first { it.id == assetPayloadInitial.chainId }
 
-        val initialSelectedAssetSymbol =
-            initialSelectedChain.assets.first { it.id == assetPayloadInitial.chainAssetId }.symbol
+        val initialSelectedAssetPriceId =
+            initialSelectedChain.assets.first { it.id == assetPayloadInitial.chainAssetId }.priceId
         val newSelectedAsset =
-            selectedChain.assets.first { it.symbol == initialSelectedAssetSymbol }
+            selectedChain.assets.first { it.priceId == initialSelectedAssetPriceId }
 
         AssetPayload(
             chainId = selectedChainId,

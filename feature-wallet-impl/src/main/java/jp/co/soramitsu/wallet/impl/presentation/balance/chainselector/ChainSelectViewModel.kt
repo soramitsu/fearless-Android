@@ -81,22 +81,13 @@ class ChainSelectViewModel @Inject constructor(
         when {
             initialSelectedAssetId != null -> {
                 chains.firstOrNull {
-                    it.assets.any { it.id == initialSelectedAssetId }
+                    it.assets.any { asset -> asset.id == initialSelectedAssetId }
                 }?.let { chainOfTheAsset ->
-                    val symbol = chainOfTheAsset.assets
+                    val priceId = chainOfTheAsset.assets
                         .firstOrNull { it.id == initialSelectedAssetId }
-                        ?.symbol
+                        ?.priceId
                     val chainsWithAsset = chains.filter {
-                        when (val chainEcosystem = it.ecosystem()) {
-                            ChainEcosystem.POLKADOT,
-                            ChainEcosystem.KUSAMA,
-                            ChainEcosystem.ETHEREUM -> {
-                                chainEcosystem == chainOfTheAsset.ecosystem() && it.assets.any { it.symbol == symbol }
-                            }
-                            ChainEcosystem.STANDALONE -> {
-                                it.id == chainOfTheAsset.id
-                            }
-                        }
+                        it.assets.any { asset -> asset.priceId == priceId }
                     }
                     chainsWithAsset
                 }
@@ -187,7 +178,6 @@ class ChainSelectViewModel @Inject constructor(
                     it.title
                 }
             )
-
         val shouldShowAllChains =
             (!showAllChains || isFilteringEnabled && resultingChains?.isNotEmpty() != true).not()
 

@@ -84,7 +84,7 @@ fun ChainSelectContent(
             )
         }
 
-        if (state.showAllChains && chains?.isNotEmpty() == true) {
+        if (chains?.isNotEmpty() == true) {
             LazyColumn(modifier = Modifier.weight(1f)) {
                 if (state.showAllChains) {
                     val appliedFilter =
