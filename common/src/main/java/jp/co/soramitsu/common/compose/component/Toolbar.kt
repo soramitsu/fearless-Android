@@ -73,7 +73,7 @@ data class ToolbarViewState(
 @Composable
 fun MainToolbar(
     state: MainToolbarViewState,
-    onChangeChainClick: () -> Unit,
+    onChangeChainClick: (() -> Unit)?,
     onNavigationClick: () -> Unit = {},
     menuItems: List<MenuIconItem>? = null,
     modifier: Modifier = Modifier
