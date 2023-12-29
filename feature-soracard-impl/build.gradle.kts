@@ -59,9 +59,6 @@ dependencies {
     implementation(libs.xnetworking.sorawallet, withoutBasic)
 
     implementation(libs.sora.ui)
-    implementation(libs.sora.card) {
-        exclude(module = "java-websocket-lib")
-    }
 
     implementation(projects.common)
     implementation(projects.runtime)

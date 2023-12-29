@@ -141,7 +141,7 @@ class ConnectionInfoViewModel @Inject constructor(
             },
             onError = {
                 viewModelScope.launch(Dispatchers.Main.immediate) {
-                    showError(text = resourceManager.getString(R.string.common_try_again))
+                    showError(text = resourceManager.getString(R.string.common_dapp))
                 }
             }
         )

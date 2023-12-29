@@ -39,7 +39,6 @@ import jp.co.soramitsu.common.utils.hideKeyboard
 import jp.co.soramitsu.common.view.bottomSheet.AlertBottomSheet
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
 import jp.co.soramitsu.feature_wallet_impl.R
-import jp.co.soramitsu.oauth.base.sdk.contract.SoraCardContract
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
@@ -54,11 +53,6 @@ class BalanceListFragment : BaseComposeFragment<BalanceListViewModel>() {
         result?.let {
             viewModel.qrCodeScanned(it)
         }
-    }
-
-    private val soraCardSignIn = registerForActivityResult(
-        SoraCardContract()
-    ) { result ->
     }
 
     override fun onResume() {
@@ -111,9 +105,6 @@ class BalanceListFragment : BaseComposeFragment<BalanceListViewModel>() {
         viewModel.showFiatChooser.observeEvent(::showFiatChooser)
         viewModel.showUnsupportedChainAlert.observeEvent { showUnsupportedChainAlert() }
         viewModel.openPlayMarket.observeEvent { openPlayMarket() }
-        viewModel.launchSoraCardSignIn.observeEvent { contractData ->
-            soraCardSignIn.launch(contractData)
-        }
     }
 
     private fun showFiatChooser(payload: DynamicListBottomSheet.Payload<FiatCurrency>) {

@@ -10,7 +10,6 @@ import co.jp.soramitsu.walletconnect.domain.WalletConnectInteractor
 import com.walletconnect.android.internal.common.exception.MalformedWalletConnectUri
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.math.BigDecimal
-import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.PendulumPreInstalledAccountsScenario
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
@@ -53,9 +52,6 @@ import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.feature_wallet_impl.R
-import jp.co.soramitsu.oauth.base.sdk.contract.SoraCardCommonVerification
-import jp.co.soramitsu.oauth.base.sdk.contract.SoraCardContractData
-import jp.co.soramitsu.oauth.common.domain.KycRepository
 import jp.co.soramitsu.runtime.ext.ecosystem
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainEcosystem
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
@@ -100,7 +96,6 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import jp.co.soramitsu.oauth.R as SoraCardR
 
 private const val CURRENT_ICON_SIZE = 40
 
@@ -119,7 +114,6 @@ class BalanceListViewModel @Inject constructor(
     private val resourceManager: ResourceManager,
     private val clipboardManager: ClipboardManager,
     private val currentAccountAddress: CurrentAccountAddressUseCase,
-    private val kycRepository: KycRepository,
     private val getTotalBalance: TotalBalanceUseCase,
     private val pendulumPreInstalledAccountsScenario: PendulumPreInstalledAccountsScenario,
     private val walletConnectInteractor: WalletConnectInteractor
@@ -136,9 +130,6 @@ class BalanceListViewModel @Inject constructor(
 
     private val _openPlayMarket = MutableLiveData<Event<Unit>>()
     val openPlayMarket: LiveData<Event<Unit>> = _openPlayMarket
-
-    private val _launchSoraCardSignIn = MutableLiveData<Event<SoraCardContractData>>()
-    val launchSoraCardSignIn: LiveData<Event<SoraCardContractData>> = _launchSoraCardSignIn
 
     private val chainsFlow = chainInteractor.getChainsFlow().mapList {
         it.toChainItemState()
@@ -412,7 +403,6 @@ class BalanceListViewModel @Inject constructor(
         subscribeScreenState()
         observeNetworkState()
         observeFiatSymbolChange()
-        updateSoraCardStatus()
 
         router.chainSelectorPayloadFlow.map { chainId ->
             val walletId = interactor.getSelectedMetaAccount().id
@@ -441,12 +431,10 @@ class BalanceListViewModel @Inject constructor(
     }
 
     private fun refresh() {
-        updateSoraCardStatus()
         sync()
     }
 
     fun onResume() {
-        updateSoraCardStatus()
         viewModelScope.launch {
             interactor.selectedMetaAccountFlow().collect {
                 checkControllerDeprecations()
@@ -476,24 +464,6 @@ class BalanceListViewModel @Inject constructor(
                     }
                 }
             )
-        }
-    }
-
-    private fun updateSoraCardStatus() {
-        viewModelScope.launch {
-            val soraCardInfo = soraCardInteractor.getSoraCardInfo() ?: return@launch
-            val accessTokenExpirationTime = soraCardInfo.accessTokenExpirationTime
-            val accessTokenExpired =
-                accessTokenExpirationTime < TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis())
-
-            if (!accessTokenExpired) {
-                kycRepository.getKycLastFinalStatus(soraCardInfo.accessToken)
-                    .onSuccess { kycStatus ->
-                        soraCardInteractor.updateSoraCardKycStatus(
-                            kycStatus = kycStatus?.toString().orEmpty()
-                        )
-                    }
-            }
         }
     }
 
@@ -760,46 +730,6 @@ class BalanceListViewModel @Inject constructor(
         showMessage(message)
     }
 
-    private fun mapKycStatus(kycStatus: String): String? {
-        return when (runCatching { SoraCardCommonVerification.valueOf(kycStatus) }.getOrNull()) {
-            SoraCardCommonVerification.Pending -> {
-                resourceManager.getString(SoraCardR.string.kyc_result_verification_in_progress)
-            }
-
-            SoraCardCommonVerification.Successful -> {
-                resourceManager.getString(R.string.sora_card_verification_successful)
-            }
-
-            SoraCardCommonVerification.Rejected -> {
-                resourceManager.getString(SoraCardR.string.verification_rejected_title)
-            }
-
-            SoraCardCommonVerification.Failed -> {
-                resourceManager.getString(SoraCardR.string.verification_failed_title)
-            }
-
-            else -> {
-                null
-            }
-        }
-    }
-
     private fun onSoraCardStatusClicked() {
-    }
-
-    fun updateSoraCardInfo(
-        accessToken: String,
-        refreshToken: String,
-        accessTokenExpirationTime: Long,
-        kycStatus: String
-    ) {
-        launch {
-            soraCardInteractor.updateSoraCardInfo(
-                accessToken,
-                refreshToken,
-                accessTokenExpirationTime,
-                kycStatus
-            )
-        }
     }
 }

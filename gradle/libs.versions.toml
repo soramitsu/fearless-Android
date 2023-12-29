@@ -8,7 +8,6 @@ junit = "4.13.2"
 material = "1.8.0"
 coroutines = "1.6.4"
 soraUiCore = "0.2.17"
-soraCard = "0.1.64"
 kotlinxSerializationjson = "1.5.1"
 xNetworking = "0.2.5-temp7"
 retrofit = "2.9.0"
@@ -36,7 +35,6 @@ gradleplugins-android = { module = "com.android.tools.build:gradle", version.ref
 gradleplugins-hiltAndroid = { module = "com.google.dagger:hilt-android-gradle-plugin", version.ref = "dagger" }
 
 sora-ui = { module = "jp.co.soramitsu:ui-core", version.ref = "soraUiCore" }
-sora-card = { module = "jp.co.soramitsu:android-sora-card", version.ref = "soraCard" }
 
 xnetworking-fearless = { module = "jp.co.soramitsu.xnetworking:fearlesswallet-android", version.ref = "xNetworking" }
 xnetworking-basic = { module = "jp.co.soramitsu.xnetworking:basic-android", version.ref = "xNetworking" }
