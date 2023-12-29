@@ -20,6 +20,7 @@ import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
+import jp.co.soramitsu.wallet.impl.data.network.blockchain.updaters.BalanceUpdateTrigger
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flow
@@ -101,7 +102,14 @@ class SuccessViewModel @Inject constructor(
     }.orEmpty()
 
     override fun onClose() {
-        router.back()
+        launch {
+            chainId?.let {
+                if (chainRegistry.getChain(chainId).isEthereumChain) {
+                    BalanceUpdateTrigger.invoke(chainId, true)
+                }
+            }
+            router.back()
+        }
     }
 
     override fun onItemClick(code: Int) {
