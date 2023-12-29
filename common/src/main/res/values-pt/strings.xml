@@ -289,6 +289,7 @@
   <string name="common_transaction_raw_data">Dados brutos de transação</string>
   <string name="common_transaction_submitted">Transação submetida</string>
   <string name="common_transferable_format">Transferível: %s</string>
+  <string name="common_try_again">Tentar novamente</string>
   <string name="common_undefined_error_message">Por favor, tente novamente com outro input. Se o erro aparecer novamente, por favor, contacte o apoio ao utilizador.</string>
   <string name="common_unknown">Desconhecido</string>
   <string name="common_unsupported">Não suportado</string>

@@ -289,6 +289,7 @@
   <string name="common_transaction_raw_data">交易原始数据</string>
   <string name="common_transaction_submitted">交易已提交</string>
   <string name="common_transferable_format">可转让：%s</string>
+  <string name="common_try_again">请再试一次</string>
   <string name="common_undefined_error_message">请尝试使用其他输入再次操作。如果错误仍然出现，请联系技术支持。</string>
   <string name="common_unknown">未知</string>
   <string name="common_unsupported">不支持的</string>

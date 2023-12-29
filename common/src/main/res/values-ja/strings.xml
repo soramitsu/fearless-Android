@@ -288,6 +288,7 @@
   <string name="common_transaction_raw_data">トランザクションの生データ</string>
   <string name="common_transaction_submitted">送信されたトランザクション</string>
   <string name="common_transferable_format">送信可能：%s</string>
+  <string name="common_try_again">もう一度やり直してください</string>
   <string name="common_undefined_error_message">別の入力でもう一度お試しください。エラーが再度表示される場合は、サポートにお問い合わせください</string>
   <string name="common_unknown">不明</string>
   <string name="common_unsupported">サポートされていません</string>
