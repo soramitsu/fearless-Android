@@ -51,8 +51,6 @@ class CreateBackupPasswordViewModel @Inject constructor(
 
     private val payload = savedStateHandle.get<CreateBackupPasswordPayload>(CreateBackupPasswordDialog.PAYLOAD_KEY)!!
 
-    private val heightDiffDpFlow = MutableStateFlow(0.dp)
-
     private val originPassword = MutableStateFlow("")
     private val confirmPassword = MutableStateFlow("")
     private val isUserAgreedWithStatements = MutableStateFlow(false)
@@ -105,8 +103,7 @@ class CreateBackupPasswordViewModel @Inject constructor(
         passwordMatchingTextResource = null,
         highlightConfirmPassword = false,
         isSetButtonEnabled = true,
-        isLoading = false,
-        heightDiffDp = 0.dp
+        isLoading = false
     )
     val state = combineFlows(
         originPassword,
@@ -118,10 +115,9 @@ class CreateBackupPasswordViewModel @Inject constructor(
         isSetButtonEnabled,
         isLoading,
         isOriginPasswordVisible,
-        isConfirmPasswordVisible,
-        heightDiffDpFlow
+        isConfirmPasswordVisible
     ) { originPassword, confirmPassword, isUserAgreedWithStatements, isAgreementsChecked, passwordMatchingTextResource,
-        highlightConfirmPassword, isSetButtonEnabled, isLoading, isOriginPasswordVisible, isConfirmPasswordVisible, heightDiffDp ->
+        highlightConfirmPassword, isSetButtonEnabled, isLoading, isOriginPasswordVisible, isConfirmPasswordVisible ->
         CreateBackupPasswordViewState(
             originPasswordViewState = createTextInputViewState(
                 hint = resourceManager.getString(R.string.export_json_password_new),
@@ -141,8 +137,7 @@ class CreateBackupPasswordViewModel @Inject constructor(
             passwordMatchingTextResource = passwordMatchingTextResource,
             highlightConfirmPassword = highlightConfirmPassword,
             isSetButtonEnabled = isSetButtonEnabled,
-            isLoading = isLoading,
-            heightDiffDp = heightDiffDp
+            isLoading = isLoading
         )
     }.stateIn(viewModelScope, started = SharingStarted.Eagerly, initialValue = initialState)
 
@@ -302,9 +297,5 @@ class CreateBackupPasswordViewModel @Inject constructor(
 
     override fun onConfirmPasswordVisibilityClick() {
         isConfirmPasswordVisible.value = isConfirmPasswordVisible.value.not()
-    }
-
-    fun setHeightDiffDp(value: Dp) {
-        heightDiffDpFlow.value = value
     }
 }

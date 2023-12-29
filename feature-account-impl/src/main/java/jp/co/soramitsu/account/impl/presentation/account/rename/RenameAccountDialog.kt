@@ -14,6 +14,7 @@ import androidx.core.os.bundleOf
 import androidx.fragment.app.viewModels
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import dagger.hilt.android.AndroidEntryPoint
+import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
 import jp.co.soramitsu.common.compose.component.BottomSheetScreen
 
@@ -45,28 +46,5 @@ class RenameAccountDialog : BaseComposeBottomSheetDialogFragment<RenameAccountVi
         behavior.state = BottomSheetBehavior.STATE_EXPANDED
         behavior.isHideable = true
         behavior.skipCollapsed = true
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-        var constantDiff = 0
-        view.postDelayed({
-            val w = Rect()
-            view.getWindowVisibleDisplayFrame(w)
-            constantDiff = view.rootView.height - (w.bottom - w.top)
-        }, 100)
-
-        view.viewTreeObserver.addOnGlobalLayoutListener {
-            val r = Rect()
-            // r will be populated with the coordinates of your view that area still visible.
-            view.getWindowVisibleDisplayFrame(r)
-            val heightDiff: Int = view.rootView.height - (r.bottom - r.top)
-
-            context?.let {
-                val correctedDiff = Integer.max(heightDiff - constantDiff, 0)
-                viewModel.setHeightDiffDp((correctedDiff / Density(it).density).dp)
-            }
-        }
     }
 }

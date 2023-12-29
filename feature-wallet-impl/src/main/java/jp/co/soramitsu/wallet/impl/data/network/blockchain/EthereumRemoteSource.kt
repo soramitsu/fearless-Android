@@ -89,6 +89,7 @@ class EthereumRemoteSource(private val ethereumConnectionPool: EthereumConnectio
             val amountInPlanks = Convert.toWei(transfer.amount, Convert.Unit.ETHER).toBigInteger()
 
             val transaction = if (transfer.chainAsset.isUtility) {
+
                 Transaction.createEtherTransaction(
                     transfer.sender,
                     nonce,
@@ -319,6 +320,98 @@ class EthereumRemoteSource(private val ethereumConnectionPool: EthereumConnectio
 
                 gasLimit * (priorityFee + baseFee)
             }
+    }
+
+    suspend fun sendRawTransaction(
+        chainId: ChainId,
+        raw: RawTransaction,
+        privateKey: String
+    ): Result<String> = withContext(Dispatchers.IO) {
+        val connection = ethereumConnectionPool.get(chainId)
+            ?: return@withContext Result.failure("There is no connection created for chain with id = $chainId")
+        val web3 = connection.web3j
+            ?: return@withContext Result.failure("There is no connection established for chain with id = $chainId")
+
+        val transactionHash = kotlin.runCatching {
+            val signedTransaction = signRawTransaction(chainId, raw, privateKey).getOrThrow()
+            web3.ethSendRawTransaction(signedTransaction).send().resultOrThrow()
+        }
+            .getOrElse { return@withContext Result.failure("Error ethSendRawTransaction for chain with id = $chainId, error: ${it.message ?: it}") }
+
+        return@withContext Result.success(transactionHash)
+    }
+
+    suspend fun signRawTransaction(
+        chainId: ChainId,
+        raw: RawTransaction,
+        privateKey: String
+    ): Result<String> = withContext(Dispatchers.IO) {
+        val connection = ethereumConnectionPool.get(chainId)
+            ?: return@withContext Result.failure("There is no connection created for chain with id = $chainId")
+
+        val web3 = connection.web3j
+            ?: return@withContext Result.failure("There is no connection established for chain with id = $chainId")
+        connection.service
+            ?: return@withContext Result.failure("There is no connection established for chain with id = $chainId")
+
+        val cred = Credentials.create(privateKey)
+
+        val senderAddress = cred.address
+
+        val nonce = raw.nonce ?: kotlin.runCatching {
+            web3.ethGetTransactionCount(senderAddress, DefaultBlockParameterName.LATEST).send().transactionCount
+        }
+            .getOrElse { return@withContext Result.failure("Error ethGetTransactionCount for chain with id = $chainId, error: $it") }
+
+        val gasPrice = raw.gasPrice ?: run {
+            val baseFeePerGas = runCatching {
+                web3.ethGetBlockByNumber(DefaultBlockParameterName.LATEST, false)
+                    .send()
+                    .resultOrThrow()
+                    .baseFeePerGas
+                    .let { Numeric.decodeQuantity(it) }
+            }
+                .getOrElse { return@withContext Result.failure("Error ethGetBlockByNumber for chain with id = $chainId, error: $it") }
+
+            val maxPriorityFeePerGas = runCatching {
+                connection.service!!.ethMaxPriorityFeePerGas()
+                    .send()
+                    .resultOrThrow()
+                    .let { Numeric.decodeQuantity(it) }
+            }
+                .getOrElse { return@withContext Result.failure("Error ethMaxPriorityFeePerGas for chain with id = $chainId, error: $it") }
+
+            baseFeePerGas + maxPriorityFeePerGas
+        }
+
+        val gasLimit = raw.gasLimit ?: kotlin.runCatching {
+            val txForGasLimitEstimate = Transaction.createFunctionCallTransaction(
+                senderAddress,
+                nonce,
+                null,
+                null,
+                raw.to,
+                raw.value,
+                raw.data
+            )
+
+            web3.ethEstimateGas(txForGasLimitEstimate).send()
+                .resultOrThrow()
+                .let { Numeric.decodeQuantity(it) }
+        }
+            .getOrElse { return@withContext Result.failure("Error ethEstimateGas for chain with id = $chainId, error: $it") }
+
+        val actualRawTransaction = RawTransaction.createTransaction(
+            nonce,
+            gasPrice,
+            gasLimit,
+            raw.to,
+            raw.value,
+            raw.data.orEmpty()
+        )
+
+        val signed = TransactionEncoder.signMessage(actualRawTransaction, chainId.toLong(), cred)
+        return@withContext Result.success(signed.toHexString(true))
     }
 }
 

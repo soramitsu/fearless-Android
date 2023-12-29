@@ -1,7 +1,6 @@
 package jp.co.soramitsu.wallet.impl.presentation.send.setupcbdc
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
@@ -20,7 +19,6 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import java.math.BigDecimal
 import jp.co.soramitsu.common.compose.component.AccentDarkDisabledButton
@@ -53,8 +51,7 @@ data class CBDCSendSetupViewState(
     val feeInfoState: FeeInfoViewState,
     val warningInfoState: WarningInfoState?,
     val buttonState: ButtonViewState,
-    val isSoftKeyboardOpen: Boolean,
-    val heightDiffDp: Dp
+    val isSoftKeyboardOpen: Boolean
 )
 
 interface CBDCSendSetupScreenInterface {
@@ -79,68 +76,59 @@ fun CBCDSendSetupContent(
     }
 
     BottomSheetScreen {
-        Box(
+        Column(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(bottom = state.heightDiffDp)
+                .padding(horizontal = 16.dp)
+                .padding(bottom = 8.dp)
+                .weight(1f)
         ) {
-            Column(
-                modifier = Modifier
-                    .padding(horizontal = 16.dp)
-                    .padding(bottom = 50.dp)
-                    .fillMaxWidth()
-            ) {
-                ToolbarBottomSheet(
-                    title = stringResource(id = R.string.send_fund),
-                    onNavigationClick = callback::onNavigationClick
-                )
-                MarginVertical(margin = 16.dp)
-                AddressInput(
-                    state = state.addressInputState
-                )
+            ToolbarBottomSheet(
+                title = stringResource(id = R.string.send_fund),
+                onNavigationClick = callback::onNavigationClick
+            )
+            MarginVertical(margin = 16.dp)
+            AddressInput(
+                state = state.addressInputState
+            )
 
-                MarginVertical(margin = 12.dp)
-                AmountInput(
-                    state = state.amountInputState,
-                    borderColorFocused = colorAccentDark,
-                    onInput = callback::onAmountInput,
-                    onInputFocusChange = callback::onAmountFocusChanged,
-                    focusRequester = focusRequester
-                )
+            MarginVertical(margin = 12.dp)
+            AmountInput(
+                state = state.amountInputState,
+                borderColorFocused = colorAccentDark,
+                onInput = callback::onAmountInput,
+                onInputFocusChange = callback::onAmountFocusChanged,
+                focusRequester = focusRequester
+            )
 
-                MarginVertical(margin = 12.dp)
-                SelectorWithBorder(
-                    state = state.chainSelectorState
-                )
-                state.warningInfoState?.let {
-                    MarginVertical(margin = 8.dp)
-                    WarningInfo(state = it, onClick = callback::onWarningInfoClick)
-                }
+            MarginVertical(margin = 12.dp)
+            SelectorWithBorder(
+                state = state.chainSelectorState
+            )
+            state.warningInfoState?.let {
                 MarginVertical(margin = 8.dp)
-                FeeInfo(state = state.feeInfoState, modifier = Modifier.defaultMinSize(minHeight = 52.dp))
-
-                Spacer(modifier = Modifier.weight(1f))
+                WarningInfo(state = it, onClick = callback::onWarningInfoClick)
             }
+            MarginVertical(margin = 8.dp)
+            FeeInfo(state = state.feeInfoState, modifier = Modifier.defaultMinSize(minHeight = 52.dp))
+        }
 
-            Column(
+        Column(
+            modifier = Modifier
+                .background(backgroundBlack.copy(alpha = 0.75f))
+                .imePadding()
+        ) {
+            AccentDarkDisabledButton(
+                state = state.buttonState,
+                onClick = {
+                    keyboardController?.hide()
+                    callback.onNextClick()
+                },
                 modifier = Modifier
-                    .background(backgroundBlack.copy(alpha = 0.75f))
-                    .align(Alignment.BottomCenter)
-                    .imePadding()
-            ) {
-                AccentDarkDisabledButton(
-                    state = state.buttonState,
-                    onClick = {
-                        keyboardController?.hide()
-                        callback.onNextClick()
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
-                        .height(48.dp)
-                )
-                MarginVertical(margin = 12.dp)
-            }
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+                    .height(48.dp)
+            )
+            MarginVertical(margin = 12.dp)
         }
     }
 }
@@ -164,8 +152,7 @@ private fun CBDCSendSetupPreview() {
         feeInfoState = FeeInfoViewState.default,
         warningInfoState = null,
         buttonState = ButtonViewState("Continue", true),
-        isSoftKeyboardOpen = false,
-        heightDiffDp = 0.dp
+        isSoftKeyboardOpen = false
     )
 
     val emptyCallback = object : CBDCSendSetupScreenInterface {

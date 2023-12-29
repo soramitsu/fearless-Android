@@ -44,24 +44,5 @@ class ImportRemoteWalletDialog : BaseComposeBottomSheetDialogFragment<ImportRemo
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         onBackPressed { viewModel.backClicked() }
-
-        var constantDiff = 0
-        view.postDelayed({
-            val w = Rect()
-            view.getWindowVisibleDisplayFrame(w)
-            constantDiff = view.rootView.height - (w.bottom - w.top)
-        }, 100)
-
-        view.viewTreeObserver.addOnGlobalLayoutListener {
-            val r = Rect()
-            // r will be populated with the coordinates of your view that area still visible.
-            view.getWindowVisibleDisplayFrame(r)
-            val heightDiff: Int = view.rootView.height - (r.bottom - r.top)
-
-            context?.let {
-                val correctedDiff = Integer.max(heightDiff - constantDiff, 0)
-                viewModel.setHeightDiffDp((correctedDiff / Density(it).density).dp)
-            }
-        }
     }
 }

@@ -70,8 +70,7 @@ data class SwapTokensContentViewState(
     val isLoading: Boolean,
     val networkFeeViewState: LoadingState<out SwapDetailsViewState.NetworkFee?>,
     val hasReadDisclaimer: Boolean,
-    val isSoftKeyboardOpen: Boolean,
-    val heightDiffDp: Dp
+    val isSoftKeyboardOpen: Boolean
 ) {
     companion object {
 
@@ -84,8 +83,7 @@ data class SwapTokensContentViewState(
                 isLoading = false,
                 networkFeeViewState = LoadingState.Loaded(null),
                 hasReadDisclaimer = false,
-                isSoftKeyboardOpen = false,
-                heightDiffDp = 0.dp
+                isSoftKeyboardOpen = false
             )
         }
     }
@@ -160,7 +158,6 @@ fun SwapTokensContent(
         modifier = modifier
             .navigationBarsPadding()
             .imePadding()
-            .padding(bottom = state.heightDiffDp)
     ) {
         Row(
             modifier = Modifier.padding(bottom = 12.dp),
@@ -427,8 +424,7 @@ fun SwapTokensContentPreview() {
             isLoading = false,
             networkFeeViewState = LoadingState.Loading(),
             hasReadDisclaimer = false,
-            isSoftKeyboardOpen = false,
-            heightDiffDp = 0.dp
+            isSoftKeyboardOpen = false
         )
         val callbacks = object : SwapTokensCallbacks {
             override fun onChangeTokensClick() {}

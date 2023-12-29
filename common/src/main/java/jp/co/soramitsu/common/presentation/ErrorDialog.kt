@@ -49,7 +49,7 @@ import jp.co.soramitsu.common.compose.theme.weight
 import jp.co.soramitsu.common.compose.theme.white
 
 class ErrorDialog(
-    private val title: String,
+    private val title: String?,
     private val message: String,
     private val positiveButtonText: String? = null,
     private val negativeButtonText: String? = null,
@@ -124,8 +124,10 @@ class ErrorDialog(
                             )
 
                             MarginVertical(margin = 8.dp)
-                            H3(text = title, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
-                            MarginVertical(margin = 8.dp)
+                            title?.let {
+                                H3(text = title, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
+                                MarginVertical(margin = 8.dp)
+                            }
                             Text(
                                 textAlign = TextAlign.Center,
                                 text = message,

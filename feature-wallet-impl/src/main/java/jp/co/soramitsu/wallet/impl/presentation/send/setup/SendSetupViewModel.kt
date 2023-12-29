@@ -44,7 +44,6 @@ import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.polkaswap.api.domain.PolkaswapInteractor
 import jp.co.soramitsu.polkaswap.api.models.Market
 import jp.co.soramitsu.polkaswap.api.models.WithDesired
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.bokoloCashTokenId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraTestChainId
@@ -52,7 +51,6 @@ import jp.co.soramitsu.wallet.api.domain.TransferValidationResult
 import jp.co.soramitsu.wallet.api.domain.ValidateTransferUseCase
 import jp.co.soramitsu.wallet.api.domain.fromValidationResult
 import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
-import jp.co.soramitsu.wallet.impl.domain.interfaces.TransactionFilter
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletConstants
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
@@ -66,7 +64,6 @@ import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.ChainSelectScreenContract
 import jp.co.soramitsu.wallet.impl.presentation.send.SendSharedState
 import jp.co.soramitsu.wallet.impl.presentation.send.TransferDraft
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -180,7 +177,6 @@ class SendSetupViewModel @Inject constructor(
         warningInfoState = null,
         defaultButtonState,
         isSoftKeyboardOpen = false,
-        heightDiffDp = 0.dp,
         isInputLocked = false,
         isHistoryAvailable = false
     )
@@ -198,7 +194,6 @@ class SendSetupViewModel @Inject constructor(
     private val addressInputTrimmedFlow = addressInputFlow.map { it.trim() }
 
     private val isSoftKeyboardOpenFlow = MutableStateFlow(lockSendToAmount && initialAmount.isZero())
-    private val heightDiffDpFlow = MutableStateFlow(0.dp)
 
     private val enteredAmountBigDecimalFlow = MutableStateFlow(initialAmount)
     private val visibleAmountFlow = MutableStateFlow(initialAmount)
@@ -392,10 +387,9 @@ class SendSetupViewModel @Inject constructor(
         warningInfoStateFlow,
         buttonStateFlow,
         isSoftKeyboardOpenFlow,
-        heightDiffDpFlow,
         lockInputFlow,
         assetFlow
-    ) { chain, address, chainSelectorState, amountInputState, feeInfoState, warningInfoState, buttonState, isSoftKeyboardOpen, heightDiffDp, isInputLocked, asset ->
+    ) { chain, address, chainSelectorState, amountInputState, feeInfoState, warningInfoState, buttonState, isSoftKeyboardOpen, isInputLocked, asset ->
         val isAddressValid = when (chain) {
             null -> false
             else -> walletInteractor.validateSendAddress(chain.id, address)
@@ -433,7 +427,6 @@ class SendSetupViewModel @Inject constructor(
             warningInfoState = warningInfoState,
             buttonState = buttonState,
             isSoftKeyboardOpen = isSoftKeyboardOpen,
-            heightDiffDp = heightDiffDp,
             isInputLocked = isInputLocked,
             quickAmountInputValues = quickAmountInputValues,
             isHistoryAvailable = isHistorySupportedByChain
@@ -655,10 +648,6 @@ class SendSetupViewModel @Inject constructor(
 
     fun setSoftKeyboardOpen(isOpen: Boolean) {
         isSoftKeyboardOpenFlow.value = isOpen
-    }
-
-    fun setHeightDiffDp(value: Dp) {
-        heightDiffDpFlow.value = value
     }
 
     override fun onQuickAmountInput(input: Double) {

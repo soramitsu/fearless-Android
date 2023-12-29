@@ -37,14 +37,12 @@ import jp.co.soramitsu.common.compose.theme.darkButtonBackground
 
 data class RenameAccountState(
     val walletNickname: TextInputViewState?,
-    val isSaveEnabled: Boolean,
-    val heightDiffDp: Dp
+    val isSaveEnabled: Boolean
 ) {
     companion object {
         val Empty = RenameAccountState(
             walletNickname = null,
-            isSaveEnabled = false,
-            heightDiffDp = 0.dp
+            isSaveEnabled = false
         )
     }
 }
@@ -65,67 +63,64 @@ fun RenameAccountDialogContent(
     val focusRequester = remember { FocusRequester() }
     LaunchedEffect(Unit) { focusRequester.requestFocus() }
 
-    Box(
+    Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(bottom = state.heightDiffDp)
     ) {
-        Column {
-            Toolbar(
-                modifier = Modifier.padding(bottom = 12.dp),
-                state = ToolbarViewState(
-                    title = stringResource(R.string.change_wallet_name),
-                    navigationIcon = R.drawable.ic_arrow_back_24dp
-                ),
-                onNavigationClick = callback::onBackClick
-            )
+        Toolbar(
+            modifier = Modifier.padding(bottom = 12.dp),
+            state = ToolbarViewState(
+                title = stringResource(R.string.change_wallet_name),
+                navigationIcon = R.drawable.ic_arrow_back_24dp
+            ),
+            onNavigationClick = callback::onBackClick
+        )
 
-            Column(
-                modifier = Modifier
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 16.dp)
-            ) {
-                MarginVertical(margin = 24.dp)
-                B0(
-                    text = stringResource(R.string.rename_account_description),
-                    color = MaterialTheme.customColors.colorGreyText,
-                    textAlign = TextAlign.Center
+        Column(
+            modifier = Modifier
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 16.dp)
+        ) {
+            MarginVertical(margin = 24.dp)
+            B0(
+                text = stringResource(R.string.rename_account_description),
+                color = MaterialTheme.customColors.colorGreyText,
+                textAlign = TextAlign.Center
+            )
+            MarginVertical(margin = 16.dp)
+            val walletNickname = state.walletNickname
+            if (walletNickname == null) { // loading
+                TextInput(
+                    modifier = Modifier.focusRequester(focusRequester),
+                    state = TextInputViewState("", "Wallet name"),
+                    onInput = callback::accountNameChanged,
+                    borderColor = colorAccentDark,
+                    backgroundColor = darkButtonBackground
                 )
-                MarginVertical(margin = 16.dp)
-                val walletNickname = state.walletNickname
-                if (walletNickname == null) { // loading
-                    TextInput(
-                        modifier = Modifier.focusRequester(focusRequester),
-                        state = TextInputViewState("", "Wallet name"),
-                        onInput = callback::accountNameChanged,
-                        borderColor = colorAccentDark,
-                        backgroundColor = darkButtonBackground
-                    )
-                } else {
-                    TextInput(
-                        modifier = Modifier.focusRequester(focusRequester),
-                        state = walletNickname,
-                        onInput = callback::accountNameChanged,
-                        borderColor = colorAccentDark,
-                        backgroundColor = darkButtonBackground
-                    )
-                }
+            } else {
+                TextInput(
+                    modifier = Modifier.focusRequester(focusRequester),
+                    state = walletNickname,
+                    onInput = callback::accountNameChanged,
+                    borderColor = colorAccentDark,
+                    backgroundColor = darkButtonBackground
+                )
             }
-
-            Spacer(modifier = Modifier.weight(1f))
-
-            AccentButton(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(48.dp)
-                    .padding(horizontal = 16.dp)
-                    .imePadding(),
-                enabled = state.isSaveEnabled,
-                text = stringResource(R.string.common_save),
-                onClick = callback::onSaveClicked
-            )
-            MarginVertical(12.dp)
         }
+
+        Spacer(modifier = Modifier.weight(1f))
+
+        AccentButton(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(48.dp)
+                .padding(horizontal = 16.dp)
+                .imePadding(),
+            enabled = state.isSaveEnabled,
+            text = stringResource(R.string.common_save),
+            onClick = callback::onSaveClicked
+        )
+        MarginVertical(12.dp)
     }
 }
 
@@ -134,7 +129,7 @@ fun RenameAccountDialogContent(
 private fun PreviewRenameAccountDialogContent() {
     FearlessAppTheme {
         RenameAccountDialogContent(
-            state = RenameAccountState(TextInputViewState("my best wallet", "Wallet name"), false, 0.dp),
+            state = RenameAccountState(TextInputViewState("my best wallet", "Wallet name"), false),
             callback = object : RenameAccountCallback {
                 override fun accountNameChanged(accountName: CharSequence) {}
                 override fun onSaveClicked() {}

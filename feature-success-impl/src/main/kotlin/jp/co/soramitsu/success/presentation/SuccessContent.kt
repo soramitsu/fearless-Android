@@ -106,15 +106,18 @@ fun SuccessContent(
                     textAlign = TextAlign.Center
                 )
                 MarginVertical(margin = 24.dp)
-                InfoTable(
-                    items = state.tableItems,
-                    onItemClick = callback::onItemClick
-                )
-                if (state.explorer != null) {
+                if (state.tableItems.isNotEmpty()) {
+                    InfoTable(
+                        items = state.tableItems,
+                        onItemClick = callback::onItemClick
+                    )
+                }
+                val knownExplorer = state.explorer?.takeIf { it.first != Chain.Explorer.Type.UNKNOWN }
+                if (knownExplorer != null) {
                     MarginVertical(margin = 16.dp)
                     Row {
                         GrayButton(
-                            text = state.explorer.first.capitalizedName,
+                            text = knownExplorer.first.capitalizedName,
                             modifier = Modifier
                                 .weight(1f)
                                 .height(48.dp),
@@ -129,6 +132,15 @@ fun SuccessContent(
                             onClick = callback::onShareClick
                         )
                     }
+                } else {
+                    MarginVertical(margin = 16.dp)
+                    AccentButton(
+                        text = stringResource(id = R.string.common_close),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp),
+                        onClick = callback::onClose
+                    )
                 }
                 MarginVertical(margin = 16.dp)
             }
@@ -140,8 +152,8 @@ fun SuccessContent(
 @Composable
 private fun SuccessPreview() {
     val state = SuccessViewState(
-        "You can now back to your app and do that you're usually do",
-        listOf(
+        message = "You can now back to your app and do that you're usually do",
+        tableItems = listOf(
             TitleValueViewState(
                 title = "Hash",
                 value = "EBN4KURhvkEBN4KURhvkEBN4KURhvkEBN4KURhvk",
@@ -153,7 +165,8 @@ private fun SuccessPreview() {
                 valueColor = greenText
             )
         ),
-        Chain.Explorer.Type.SUBSCAN to "url"
+//        explorer = Chain.Explorer.Type.SUBSCAN to "url"
+        explorer = Chain.Explorer.Type.UNKNOWN to "url"
     )
 
     val emptyCallback = object : SuccessScreenInterface {

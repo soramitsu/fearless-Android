@@ -38,14 +38,12 @@ import jp.co.soramitsu.common.compose.theme.darkButtonBackground
 
 data class CreateAccountState(
     val walletNickname: TextInputViewState,
-    val isContinueEnabled: Boolean,
-    val heightDiffDp: Dp
+    val isContinueEnabled: Boolean
 ) {
     companion object {
         val Empty = CreateAccountState(
             walletNickname = TextInputViewState(text = "", hint = "Wallet name"),
-            isContinueEnabled = false,
-            heightDiffDp = 0.dp
+            isContinueEnabled = false
         )
     }
 }
@@ -67,61 +65,58 @@ fun CreateAccountDialogContent(
     val focusRequester = remember { FocusRequester() }
     LaunchedEffect(Unit) { focusRequester.requestFocus() }
 
-    Box(
+    Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(bottom = state.heightDiffDp)
     ) {
-        Column {
-            Toolbar(
-                modifier = Modifier.padding(bottom = 12.dp),
-                state = ToolbarViewState(
-                    title = stringResource(R.string.create_account_title),
-                    navigationIcon = R.drawable.ic_arrow_back_24dp
-                ),
-                onNavigationClick = callback::onBackClick
+        Toolbar(
+            modifier = Modifier.padding(bottom = 12.dp),
+            state = ToolbarViewState(
+                title = stringResource(R.string.create_account_title),
+                navigationIcon = R.drawable.ic_arrow_back_24dp
+            ),
+            onNavigationClick = callback::onBackClick
+        )
+
+        Column(
+            modifier = Modifier
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 16.dp)
+        ) {
+            MarginVertical(margin = 24.dp)
+            B0(
+                text = stringResource(R.string.create_account_description),
+                color = MaterialTheme.customColors.colorGreyText,
+                textAlign = TextAlign.Center
             )
-
-            Column(
-                modifier = Modifier
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 16.dp)
-            ) {
-                MarginVertical(margin = 24.dp)
-                B0(
-                    text = stringResource(R.string.create_account_description),
-                    color = MaterialTheme.customColors.colorGreyText,
-                    textAlign = TextAlign.Center
-                )
-                MarginVertical(margin = 16.dp)
-                TextInput(
-                    modifier = Modifier.focusRequester(focusRequester),
-                    state = state.walletNickname,
-                    onInput = callback::accountNameChanged,
-                    borderColor = colorAccentDark,
-                    backgroundColor = darkButtonBackground
-                )
-                MarginVertical(margin = 8.dp)
-                B2(
-                    text = stringResource(R.string.create_account_edit_text_visibility),
-                    color = MaterialTheme.customColors.colorGreyText
-                )
-            }
-
-            Spacer(modifier = Modifier.weight(1f))
-
-            AccentButton(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(48.dp)
-                    .padding(horizontal = 16.dp)
-                    .imePadding(),
-                enabled = state.isContinueEnabled,
-                text = stringResource(R.string.common_continue),
-                onClick = callback::nextClicked
+            MarginVertical(margin = 16.dp)
+            TextInput(
+                modifier = Modifier.focusRequester(focusRequester),
+                state = state.walletNickname,
+                onInput = callback::accountNameChanged,
+                borderColor = colorAccentDark,
+                backgroundColor = darkButtonBackground
             )
-            MarginVertical(12.dp)
+            MarginVertical(margin = 8.dp)
+            B2(
+                text = stringResource(R.string.create_account_edit_text_visibility),
+                color = MaterialTheme.customColors.colorGreyText
+            )
         }
+
+        Spacer(modifier = Modifier.weight(1f))
+
+        AccentButton(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(48.dp)
+                .padding(horizontal = 16.dp)
+                .imePadding(),
+            enabled = state.isContinueEnabled,
+            text = stringResource(R.string.common_continue),
+            onClick = callback::nextClicked
+        )
+        MarginVertical(12.dp)
     }
 }
 
@@ -130,7 +125,7 @@ fun CreateAccountDialogContent(
 private fun PreviewCreateAccountDialogContent() {
     FearlessAppTheme {
         CreateAccountDialogContent(
-            state = CreateAccountState(TextInputViewState("my best wallet", "Wallet name"), false, 0.dp),
+            state = CreateAccountState(TextInputViewState("my best wallet", "Wallet name"), false),
             callback = object : CreateAccountCallback {
                 override fun accountNameChanged(accountName: CharSequence) {}
                 override fun nextClicked() {}

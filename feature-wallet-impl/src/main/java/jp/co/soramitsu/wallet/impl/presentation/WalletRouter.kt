@@ -81,7 +81,7 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
 
     fun openFilter()
 
-    fun openOperationSuccess(operationHash: String?, chainId: ChainId)
+    fun openOperationSuccess(operationHash: String?, chainId: ChainId?)
 
     fun openSendConfirm(transferDraft: TransferDraft, phishingType: PhishingType?, overrides: Map<String, Any?> = emptyMap(), transferComment: String? = null)
 
@@ -184,6 +184,7 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
     fun openCreateWalletDialog(isFromGoogleBackup: Boolean)
 
     fun openImportRemoteWalletDialog()
+    fun openConnectionDetails(topic: String)
 
     fun listenPolkaswapDisclaimerResultFlowFromMainScreen(): Flow<Boolean>
 }

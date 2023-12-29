@@ -6,6 +6,8 @@ import androidx.compose.material.SwipeableState
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import co.jp.soramitsu.walletconnect.domain.WalletConnectInteractor
+import com.walletconnect.android.internal.common.exception.MalformedWalletConnectUri
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.math.BigDecimal
 import java.util.concurrent.TimeUnit
@@ -68,6 +70,7 @@ import jp.co.soramitsu.soracard.impl.presentation.SoraCardItemViewState
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.updaters.BalanceUpdateTrigger
 import jp.co.soramitsu.wallet.impl.domain.ChainInteractor
 import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
+import jp.co.soramitsu.wallet.impl.domain.QR_PREFIX_WALLET_CONNECT
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.domain.model.AssetWithStatus
 import jp.co.soramitsu.wallet.impl.domain.model.WalletAccount
@@ -118,7 +121,8 @@ class BalanceListViewModel @Inject constructor(
     private val currentAccountAddress: CurrentAccountAddressUseCase,
     private val kycRepository: KycRepository,
     private val getTotalBalance: TotalBalanceUseCase,
-    private val pendulumPreInstalledAccountsScenario: PendulumPreInstalledAccountsScenario
+    private val pendulumPreInstalledAccountsScenario: PendulumPreInstalledAccountsScenario,
+    private val walletConnectInteractor: WalletConnectInteractor
 ) : BaseViewModel(), UpdatesProviderUi by updatesMixin, NetworkStateUi by networkStateMixin,
     WalletScreenInterface {
 
@@ -669,25 +673,48 @@ class BalanceListViewModel @Inject constructor(
 
     fun qrCodeScanned(content: String) {
         viewModelScope.launch {
-            val cbdcFormat = interactor.tryReadCBDCAddressFormat(content)
-            if (cbdcFormat != null) {
-                router.openCBDCSend(cbdcQrInfo = cbdcFormat)
+            if (content.startsWith(QR_PREFIX_WALLET_CONNECT)) {
+                sendWalletConnectPair(pairingUri = content)
             } else {
-                val soraFormat =
-                    interactor.tryReadSoraFormat(content)
-                if (soraFormat != null) {
-                    val amount =
-                        soraFormat.amount?.let { runCatching { BigDecimal(it) }.getOrNull() }
-                    openSendSoraTokenTo(soraFormat.tokenId, soraFormat.address, amount)
+                val cbdcFormat = interactor.tryReadCBDCAddressFormat(content)
+                if (cbdcFormat != null) {
+                    router.openCBDCSend(cbdcQrInfo = cbdcFormat)
                 } else {
-                    router.openSend(
-                        assetPayload = null,
-                        initialSendToAddress = content,
-                        amount = null
-                    )
+                    val soraFormat =
+                        interactor.tryReadSoraFormat(content)
+                    if (soraFormat != null) {
+                        val amount =
+                            soraFormat.amount?.let { runCatching { BigDecimal(it) }.getOrNull() }
+                        openSendSoraTokenTo(soraFormat.tokenId, soraFormat.address, amount)
+                    } else {
+                        router.openSend(
+                            assetPayload = null,
+                            initialSendToAddress = content,
+                            amount = null
+                        )
+                    }
                 }
             }
         }
+    }
+
+    private fun sendWalletConnectPair(pairingUri: String) {
+        walletConnectInteractor.pair(
+            pairingUri = pairingUri,
+            onError = { error ->
+                viewModelScope.launch(Dispatchers.Main.immediate) {
+                    if (error.throwable is MalformedWalletConnectUri) {
+                        showError(
+                            title = resourceManager.getString(R.string.connection_invalid_url_error_title),
+                            message = resourceManager.getString(R.string.connection_invalid_url_error_message),
+                            positiveButtonText = resourceManager.getString(R.string.common_close)
+                        )
+                    } else {
+                        showError(error.throwable.message ?: "WalletConnect pairing error")
+                    }
+                }
+            }
+        )
     }
 
     private suspend fun openSendSoraTokenTo(

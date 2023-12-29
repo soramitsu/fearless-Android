@@ -163,7 +163,6 @@ private fun ReceiveContent(
             color = Color.White.copy(alpha = 0.5f)
         )
         MarginVertical(margin = 24.dp)
-//        Spacer(modifier = Modifier.weight(1f))
         AccentButton(
             text = stringResource(id = R.string.common_copy),
             modifier = Modifier

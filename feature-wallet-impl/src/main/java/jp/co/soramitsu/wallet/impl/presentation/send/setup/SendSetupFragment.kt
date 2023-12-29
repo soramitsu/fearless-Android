@@ -67,13 +67,6 @@ class SendSetupFragment : BaseComposeBottomSheetDialogFragment<SendSetupViewMode
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        var constantDiff = 0
-        view.postDelayed({
-            val w = Rect()
-            view.getWindowVisibleDisplayFrame(w)
-            constantDiff = view.rootView.height - (w.bottom - w.top)
-        }, 100)
-
         view.viewTreeObserver.addOnGlobalLayoutListener {
             val r = Rect()
             // r will be populated with the coordinates of your view that area still visible.
@@ -82,11 +75,6 @@ class SendSetupFragment : BaseComposeBottomSheetDialogFragment<SendSetupViewMode
 
             // if more than 100 pixels, its probably a keyboard...
             viewModel.setSoftKeyboardOpen(heightDiff > 500)
-
-            context?.let {
-                val correctedDiff = max(heightDiff - constantDiff, 0)
-                viewModel.setHeightDiffDp((correctedDiff / Density(it).density).dp)
-            }
         }
 
         viewModel.openScannerEvent.observeEvent {

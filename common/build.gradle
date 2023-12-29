@@ -54,6 +54,7 @@ android {
         buildConfigField "String", "ETHERSCAN_API_KEY", readSecretInQuotes("FL_ANDROID_ETHERSCAN_API_KEY")
         buildConfigField "String", "BSCSCAN_API_KEY", readSecretInQuotes("FL_ANDROID_BSCSCAN_API_KEY")
         buildConfigField "String", "POLYGONSCAN_API_KEY", readSecretInQuotes("FL_ANDROID_POLYGONSCAN_API_KEY")
+        buildConfigField "String", "WALLET_CONNECT_PROJECT_ID", readSecretInQuotes("FL_WALLET_CONNECT_PROJECT_ID")
     }
 
     buildTypes {
@@ -97,14 +98,14 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility 1.8
-        targetCompatibility 1.8
+        sourceCompatibility 11
+        targetCompatibility 11
     }
 
     kotlinOptions {
         freeCompilerArgs = ["-Xallow-result-return-type"]
 
-        jvmTarget = '1.8'
+        jvmTarget = '11'
     }
     composeOptions {
         kotlinCompilerExtensionVersion composeCompilerVersion
@@ -142,7 +143,7 @@ dependencies {
     kapt lifecycleKapt
     implementation lifecycleProcessDep
 
-    implementation retrofitDep
+//    implementation retrofitDep
     implementation gsonConvertedDep
     implementation scalarsConverterDep
     implementation interceptorVersion
