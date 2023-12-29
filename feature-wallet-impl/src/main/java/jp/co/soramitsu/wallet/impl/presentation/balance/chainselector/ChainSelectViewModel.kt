@@ -18,11 +18,16 @@ import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.presentation.send.SendSharedState
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.launch
 import jp.co.soramitsu.wallet.api.presentation.WalletRouter as WalletRouterApi
 
@@ -122,20 +127,62 @@ class ChainSelectViewModel @Inject constructor(
 
     private val filterFlow = MutableStateFlow<ChainSelectorViewStateWithFilters.Filter?>(null)
 
+    private val favoriteItemVMCacheFlow =
+        MutableStateFlow<ChainSelectScreenContract.State.ItemState.Impl.FilteringDecorator?>(null)
+
+    private val favoriteItemsDBCacheFlow =
+        accountInteractor.observeSelectedMetaAccountFavoriteChains().flowOn(Dispatchers.IO).share()
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val favoriteChainsCacheResolverFlow = flow {
+        var favoritesSnapshot: MutableMap<ChainId, Boolean>? = null
+
+        favoriteItemVMCacheFlow.transformLatest { itemState ->
+            val vmCache = favoritesSnapshot?.apply {
+                if (itemState != null)
+                    put(itemState.id, !itemState.isMarkedAsFavorite)
+            }
+
+            if (vmCache != null) {
+                emit(vmCache)
+            }
+
+            favoriteItemsDBCacheFlow.collectLatest { dbCache ->
+                /*
+                    Wait till user finishes all favorite chains selection
+                    to compare dbCache and current vmCache
+
+                    1) All delays will be cancelled by use of collectLatest except the last one
+
+                    2) if itemState is null, user has not selected anything as of yet; so,
+                    we consider this collection to be startup of this screen - thus, no delay needed
+                */
+                if (itemState != null)
+                    kotlinx.coroutines.delay(10_000)
+
+                if (dbCache == vmCache)
+                    return@collectLatest
+
+                favoritesSnapshot = dbCache.toMutableMap()
+                emit(dbCache)
+            }
+        }.collect(this)
+    }
+
     val state = combine(
         chainsFlow,
         walletInteractor.observeSelectedAccountChainSelectFilter(),
         filterFlow,
         selectedChainId,
         enteredChainQueryFlow,
-        accountInteractor.observeSelectedMetaAccountFavoriteChains()
+        favoriteChainsCacheResolverFlow
     ) {
       chainsPreFiltered,
       savedFilterAsString,
       userInputFilter,
       selectedChainId,
       searchQuery,
-      favoriteChains->
+      favoriteChains ->
 
         val savedFilter =
             ChainSelectorViewStateWithFilters.Filter.values().find {
@@ -282,6 +329,8 @@ class ChainSelectViewModel @Inject constructor(
     override fun onChainMarkedFavorite(chainItemState: ChainSelectScreenContract.State.ItemState) {
         if (chainItemState !is ChainSelectScreenContract.State.ItemState.Impl.FilteringDecorator)
             return
+
+        favoriteItemVMCacheFlow.tryEmit(chainItemState)
 
         launch(Dispatchers.IO) {
             val metaId = requireNotNull(cachedMetaAccountFlow.value).id
