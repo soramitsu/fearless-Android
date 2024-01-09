@@ -43,6 +43,8 @@ android {
 }
 
 dependencies {
+    implementation(project(":feature-wallet-api"))
+
     implementation(libs.hilt.android)
     kapt(libs.hilt.compiler)
     implementation(libs.bundles.compose)
