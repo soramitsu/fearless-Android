@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -54,7 +53,7 @@ fun CreateContactContent(
     callback: CreateContactScreenInterface
 ) {
     BottomSheetScreen {
-        Box(Modifier.fillMaxSize().imePadding()) {
+        Box(Modifier.fillMaxSize()) {
             Column(
                 modifier = Modifier
                     .padding(horizontal = 16.dp)
