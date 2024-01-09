@@ -2,7 +2,6 @@ package jp.co.soramitsu.app.root.navigation
 
 import android.graphics.drawable.Drawable
 import android.os.Bundle
-import android.util.Log
 import androidx.annotation.IdRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.net.toUri
@@ -70,8 +69,8 @@ import jp.co.soramitsu.crowdloan.impl.presentation.contribute.custom.CustomContr
 import jp.co.soramitsu.crowdloan.impl.presentation.contribute.custom.model.CustomContributePayload
 import jp.co.soramitsu.crowdloan.impl.presentation.contribute.select.CrowdloanContributeFragment
 import jp.co.soramitsu.crowdloan.impl.presentation.contribute.select.parcel.ContributePayload
+import jp.co.soramitsu.nft.impl.presentation.NftFragment
 import jp.co.soramitsu.nft.impl.presentation.NftRouter
-import jp.co.soramitsu.nft.impl.presentation.filters.NftFilter
 import jp.co.soramitsu.nft.impl.presentation.filters.NftFilterModel
 import jp.co.soramitsu.nft.impl.presentation.filters.NftFiltersFragment
 import jp.co.soramitsu.onboarding.impl.OnboardingRouter
@@ -1419,5 +1418,10 @@ class Navigator :
                 null
             }
         }.filterNotNull()
+    }
+
+    override fun openNftCollection(contractAddress: String) {
+        val bundle = NftFragment.getCollectionDetailsBundle(contractAddress)
+        navController?.navigate(R.id.nftFlowFragment, bundle)
     }
 }

@@ -39,6 +39,7 @@ import jp.co.soramitsu.common.compose.theme.white16
 import jp.co.soramitsu.common.compose.theme.white50
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState
 import jp.co.soramitsu.common.utils.rememberForeverLazyListState
+import jp.co.soramitsu.nft.impl.presentation.list.NftCollectionListItem
 import jp.co.soramitsu.nft.impl.presentation.list.NftList
 import jp.co.soramitsu.nft.impl.presentation.list.NftListScreenInterface
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
@@ -216,7 +217,9 @@ private fun PreviewWalletScreen() {
         override fun onBackupCloseClick() {}
         override fun assetTypeChanged(type: AssetType) {}
         override fun assetClicked(asset: AssetListItemViewState) {}
-        override fun filtersClicked() {}
+        override fun nftFiltersClicked() {}
+        override fun nftItemClicked(item: NftCollectionListItem) = Unit
+
         override fun actionItemClicked(
             actionType: ActionItemType,
             chainId: ChainId,

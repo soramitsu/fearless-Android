@@ -5,14 +5,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import jp.co.soramitsu.common.compose.component.MarginHorizontal
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
@@ -41,7 +38,9 @@ data class NftCollectionListItem(
 )
 
 interface NftListScreenInterface {
-    fun filtersClicked()
+    fun nftFiltersClicked()
+
+    fun nftItemClicked(item: NftCollectionListItem)
 }
 
 @Composable
@@ -56,14 +55,15 @@ fun NftList(state: NftScreenState, screenInterface: NftListScreenInterface) {
                 appearanceSelected = {
                     appearanceType.value = it
                 },
-                filtersClicked = screenInterface::filtersClicked
+                filtersClicked = screenInterface::nftFiltersClicked
             )
             MarginHorizontal(margin = 21.dp)
         }
         MarginVertical(margin = 6.dp)
         NftList(
             state = state.listState,
-            appearanceType = appearanceType.value
+            appearanceType = appearanceType.value,
+            screenInterface::nftItemClicked
         )
     }
 }
@@ -102,7 +102,8 @@ fun NftListScreenPreview() {
         NftScreenState(true, listState = state)
     FearlessAppTheme {
         NftList(previewState, screenInterface = object : NftListScreenInterface {
-            override fun filtersClicked() = Unit
+            override fun nftFiltersClicked() = Unit
+            override fun nftItemClicked(item: NftCollectionListItem) = Unit
         })
     }
 }

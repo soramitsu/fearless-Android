@@ -750,6 +750,11 @@
         android:name="jp.co.soramitsu.nft.impl.presentation.filters.NftFiltersFragment"
         android:label="nftFiltersFragment" />
 
+    <dialog
+        android:id="@+id/nftFlowFragment"
+        android:name="jp.co.soramitsu.nft.impl.presentation.NftFragment"
+        android:label="nftFlowFragment" />
+
     <action
         android:id="@+id/openStartChangeValidatorsFragment"
         app:destination="@id/startChangeValidatorsFragment"

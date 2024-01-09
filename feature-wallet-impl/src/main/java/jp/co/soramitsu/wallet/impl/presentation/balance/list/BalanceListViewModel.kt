@@ -411,7 +411,7 @@ class BalanceListViewModel @Inject constructor(
 
                 val models = collections.map {
                     NftCollectionListItem(
-                        id = it.name,
+                        id = it.contractAddress,
                         image = it.image,
                         chain = it.chainName,
                         title = it.name,
@@ -640,8 +640,12 @@ class BalanceListViewModel @Inject constructor(
         }
     }
 
-    override fun filtersClicked() {
+    override fun nftFiltersClicked() {
         nftRouter.openNftFilters(filtersFlow.value)
+    }
+
+    override fun nftItemClicked(item: NftCollectionListItem) {
+        router.openNftCollection(item.id)
     }
 
     private fun currentAddressModelFlow(): Flow<AddressModel> {

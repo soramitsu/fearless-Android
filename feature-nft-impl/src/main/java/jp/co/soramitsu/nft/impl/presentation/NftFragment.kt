@@ -1,6 +1,5 @@
 package jp.co.soramitsu.nft.impl.presentation
 
-import android.os.Bundle
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -11,25 +10,30 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.Stable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.semantics.testTagsAsResourceId
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.core.os.bundleOf
 import androidx.fragment.app.viewModels
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
-import jp.co.soramitsu.common.compose.theme.FearlessTheme
+import jp.co.soramitsu.nft.impl.presentation.collection.NFTCollectionScreen
+import jp.co.soramitsu.nft.impl.presentation.collection.NftCollectionViewModel
+import jp.co.soramitsu.nft.impl.presentation.collection.NftCollectionViewModel.Companion.COLLECTION_CONTRACT_ADDRESS_KEY
+import jp.co.soramitsu.nft.impl.presentation.collection.NftCollectionScreen
+import jp.co.soramitsu.nft.impl.presentation.collection.NftCollectionScreenState
 
 @Stable
 interface NftFlowNavigationCallback {
@@ -44,13 +48,33 @@ interface NftFlowNavigationCallback {
 
 }
 
+data class NFTFlowState(
+    val startDestination: String,
+    val currentDestination: String
+)
+
 @AndroidEntryPoint
-class NftFragment: BaseComposeBottomSheetDialogFragment<NftViewModel>() {
+class NftFragment : BaseComposeBottomSheetDialogFragment<NftViewModel>() {
+
+    companion object {
+
+        const val START_DESTINATION_KEY = "startDestinationKey"
+        const val CONTRACT_ADDRESS_KEY = "contractAddress"
+
+        fun getCollectionDetailsBundle(contractAddress: String) = bundleOf(START_DESTINATION_KEY to "collectionDetails/{$CONTRACT_ADDRESS_KEY}", CONTRACT_ADDRESS_KEY to contractAddress)
+
+        fun buildCollectionDetailsDestination(contractAddress: String): String {
+            return "collectionDetails/$contractAddress"
+        }
+    }
+
     override val viewModel: NftViewModel by viewModels()
 
     @Composable
     override fun Content(padding: PaddingValues) {
         val navController = rememberNavController()
+        val flowState: NFTFlowState by viewModel.state.collectAsStateWithLifecycle()
+
 
         SetupNavDestinationChangedListener(
             navController = navController,
@@ -64,22 +88,22 @@ class NftFragment: BaseComposeBottomSheetDialogFragment<NftViewModel>() {
         )
 
         NavHost(
-            startDestination = "TODO add start screen",
+            startDestination = flowState.startDestination,
             contentAlignment = Alignment.TopCenter,
             navController = navController,
             modifier = Modifier
                 .padding(padding)
                 .fillMaxSize(),
         ) {
-            composable("TODO add start screen") {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .clickable { viewModel.onFirstScreenClick(navController) },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(text = "Screen One")
-                }
+            composable(
+                "collectionDetails/{$COLLECTION_CONTRACT_ADDRESS_KEY}",
+                arguments = listOf(navArgument(COLLECTION_CONTRACT_ADDRESS_KEY) {
+                    type = NavType.StringType
+                    defaultValue = arguments?.getString(CONTRACT_ADDRESS_KEY)!!
+                })
+            ) {
+                val viewModel: NftCollectionViewModel by viewModels()
+                NFTCollectionScreen(viewModel = viewModel)
             }
 
             composable("TODO another screen") {
@@ -110,12 +134,14 @@ class NftFragment: BaseComposeBottomSheetDialogFragment<NftViewModel>() {
                 }
 
             val lifecycleObserver = LifecycleEventObserver { _, event ->
-                when(event) {
+                when (event) {
                     Lifecycle.Event.ON_START ->
                         navController.addOnDestinationChangedListener(onDestinationChangedListener)
 
                     Lifecycle.Event.ON_STOP ->
-                        navController.removeOnDestinationChangedListener(onDestinationChangedListener)
+                        navController.removeOnDestinationChangedListener(
+                            onDestinationChangedListener
+                        )
 
                     else -> Unit
                 }

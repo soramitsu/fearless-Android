@@ -27,6 +27,8 @@ class NftInteractor(
     private val chainsRepository: ChainsRepository
 ) {
 
+    private val loadedCollectionsByContractAddress: MutableMap<String, NftCollection> = mutableMapOf()
+
     suspend fun getNfts(
         filters: List<NftFilter>,
         selectedChainId: String?,
@@ -91,6 +93,14 @@ class NftInteractor(
         val tokenId: String?,
         val balance: String?
     )
+
+    fun getCollection(contractAddress: String): NftCollection {
+        val local = loadedCollectionsByContractAddress.getOrElse(contractAddress) {
+            // todo load from alchemy
+            null
+        }
+        return local ?: throw IllegalStateException("Can't find collection with contract address: $contractAddress")
+    }
 
     fun collectionItemsFlow(
         paginationRequestFlow: Flow<PaginationRequest>,
