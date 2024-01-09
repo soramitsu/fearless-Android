@@ -75,7 +75,6 @@ fun PolkaswapDisclaimerScreen(state: PolkaswapDisclaimerViewState, callbacks: Di
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .navigationBarsPadding()
                 .padding(horizontal = 16.dp)
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally

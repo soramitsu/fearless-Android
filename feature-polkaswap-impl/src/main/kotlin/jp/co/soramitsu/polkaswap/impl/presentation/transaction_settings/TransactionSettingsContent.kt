@@ -113,7 +113,6 @@ fun TransactionSettingsContent(
     val keyboardController = LocalSoftwareKeyboardController.current
     Column(
         modifier = modifier
-            .navigationBarsPadding()
             .fillMaxHeight()
     ) {
         Row(
