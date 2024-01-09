@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.ime
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -114,7 +113,6 @@ fun TransactionSettingsContent(
     val keyboardController = LocalSoftwareKeyboardController.current
     Column(
         modifier = modifier
-            .imePadding()
             .navigationBarsPadding()
             .fillMaxHeight()
     ) {

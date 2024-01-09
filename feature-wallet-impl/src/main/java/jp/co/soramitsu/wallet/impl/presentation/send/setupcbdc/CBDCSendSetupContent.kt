@@ -2,17 +2,13 @@ package jp.co.soramitsu.wallet.impl.presentation.send.setupcbdc
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -115,7 +111,6 @@ fun CBCDSendSetupContent(
         Column(
             modifier = Modifier
                 .background(backgroundBlack.copy(alpha = 0.75f))
-                .imePadding()
         ) {
             AccentDarkDisabledButton(
                 state = state.buttonState,
