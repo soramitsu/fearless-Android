@@ -25,6 +25,7 @@ import jp.co.soramitsu.common.compose.theme.black05
 import jp.co.soramitsu.common.compose.theme.black2
 import jp.co.soramitsu.common.compose.theme.black3
 import jp.co.soramitsu.common.compose.theme.white24
+import jp.co.soramitsu.common.utils.clickableSingle
 import jp.co.soramitsu.common.utils.withNoFontPadding
 
 data class SelectorState(
@@ -57,7 +58,7 @@ fun SelectorWithBorder(
         modifier = modifier
             .fillMaxWidth()
             .clip(shape)
-            .clickable(enabled = state.clickable, onClick = onClick)
+            .clickableSingle(enabled = state.clickable, onClick = onClick)
             .height(64.dp)
     ) {
         Row(
