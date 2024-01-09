@@ -3,7 +3,6 @@ package jp.co.soramitsu.common.compose.component
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -38,7 +37,6 @@ fun EnterAmountScreen(
         Column(
             Modifier
                 .padding(horizontal = 16.dp)
-                .imePadding()
         ) {
             MarginVertical(margin = 8.dp)
             AmountInput(state = state.amountInputState, onInput = onAmountInput)
