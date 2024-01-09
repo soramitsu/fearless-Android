@@ -13,16 +13,19 @@ import jp.co.soramitsu.common.compose.theme.FearlessTheme
 fun InfoTable(
     items: List<TitleValueViewState>,
     modifier: Modifier = Modifier,
-    onItemClick: (Int) -> Unit = {}
+    onItemClick: (Int) -> Unit = {},
+    onRowClick: (Int) -> Unit = {}
 ) {
     BackgroundCorneredWithBorder(
         modifier = modifier
             .fillMaxWidth()
     ) {
         Column {
+            MarginVertical(margin = 6.dp)
             items.forEach {
-                InfoTableItem(it, onClick = onItemClick)
+                InfoTableItem(it, onClick = onItemClick, onRowClick = onRowClick)
             }
+            MarginVertical(margin = 8.dp)
         }
     }
 }

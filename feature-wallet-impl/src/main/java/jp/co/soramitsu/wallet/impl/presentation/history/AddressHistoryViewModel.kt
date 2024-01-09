@@ -47,7 +47,7 @@ class AddressHistoryViewModel @Inject constructor(
 
             Address(
                 name = addressBook.firstOrNull { it.address == address }?.name.orEmpty(),
-                address = address,
+                address = address.trim(),
                 image = accountImage ?: placeholder,
                 chainId = chainId,
                 isSavedToContacts = address in addressBook.map { it.address }
@@ -62,7 +62,7 @@ class AddressHistoryViewModel @Inject constructor(
             }
             Address(
                 name = contact.name.orEmpty(),
-                address = contact.address,
+                address = contact.address.trim(),
                 image = accountImage ?: placeholder,
                 chainId = contact.chainId,
                 isSavedToContacts = true
@@ -81,7 +81,7 @@ class AddressHistoryViewModel @Inject constructor(
 
     override fun onAddressClick(address: Address) {
         sharedState.updateAddress(address.address)
-        router.back()
+        router.backWithResult(AddressHistoryFragment.RESULT_ADDRESS to address.address)
     }
 
     override fun onNavigationClick() {

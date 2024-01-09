@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_weight="1"
-    android:fontFamily="@font/soramitsu_bold"
+    android:fontFamily="@font/sora_bold"
     android:includeFontPadding="false"
     android:paddingHorizontal="@dimen/x2"
     android:paddingVertical="@dimen/x1"

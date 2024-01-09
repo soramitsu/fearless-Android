@@ -11,7 +11,7 @@ apply plugin: "com.github.triplet.play"
 apply from: "../scripts/versions.gradle"
 
 android {
-    compileSdkVersion rootProject.compileSdkVersion
+    compileSdk rootProject.compileSdkVersion
     defaultConfig {
         applicationId "jp.co.soramitsu.fearless"
         minSdkVersion rootProject.minSdkVersion
@@ -21,27 +21,41 @@ android {
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     signingConfigs {
-      ci {
-          storeFile file(System.env.CI_KEYSTORE_PATH ?: "stub")
-          storePassword System.env.CI_KEYSTORE_PASS ?: ""
-          keyAlias System.env.CI_KEYSTORE_KEY_ALIAS ?: ""
-          keyPassword System.env.CI_KEYSTORE_KEY_PASS ?: ""
-      }
+        ci {
+            storeFile file(System.env.CI_KEYSTORE_PATH ?: "../debug-keystore.jks")
+            storePassword System.env.CI_KEYSTORE_PASS ?: "00000000"
+            keyAlias System.env.CI_KEYSTORE_KEY_ALIAS ?: "fearless"
+            keyPassword System.env.CI_KEYSTORE_KEY_PASS ?: "00000000"
+        }
+        debug {
+            storeFile file("../debug-keystore.jks")
+            storePassword "00000000"
+            keyAlias "fearless"
+            keyPassword "00000000"
+        }
     }
+
+    // Minify is needed for QAs to see app performance as end-users do; devs mostly don't need
+    // so, R8D8 shrinker is enabled only for remote builds
+    def shouldEnableR8D8 = System.getenv("BRANCH_NAME") != null
+
     buildTypes {
         debug {
+            minifyEnabled shouldEnableR8D8
+            proguardFiles 'proguard-rules.pro'
             applicationIdSuffix '.debug'
             versionNameSuffix '-debug'
+            signingConfig signingConfigs.debug
         }
         release {
-            minifyEnabled minifyRelease
-            shrinkResources true
+            minifyEnabled shouldEnableR8D8
+            shrinkResources shouldEnableR8D8
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.ci
         }
         staging {
             initWith debug
-            signingConfig signingConfigs.ci
+            signingConfig signingConfigs.debug
             matchingFallbacks = ['debug']
             versionNameSuffix '-staging'
             applicationIdSuffix '.staging'
@@ -54,7 +68,7 @@ android {
             }
         }
         develop {
-            signingConfig signingConfigs.ci
+            signingConfig signingConfigs.debug
             matchingFallbacks = ['debug']
             versionNameSuffix '-develop'
             applicationIdSuffix '.dev'
@@ -67,7 +81,8 @@ android {
             }
         }
         pr {
-            signingConfig signingConfigs.ci
+            debuggable = true
+            signingConfig signingConfigs.debug
             matchingFallbacks = ['debug']
             versionNameSuffix '-pr'
             applicationIdSuffix '.dev'
@@ -93,22 +108,31 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility 1.8
-        targetCompatibility 1.8
+        sourceCompatibility 11
+        targetCompatibility 11
     }
 
     kotlinOptions {
         freeCompilerArgs = ["-Xallow-result-return-type"]
 
-        jvmTarget = '1.8'
+        jvmTarget = '11'
     }
     composeOptions {
         kotlinCompilerExtensionVersion composeCompilerVersion
     }
-    lintOptions {
-        disable "Instantiatable"
+    lint {
+        disable 'Instantiatable'
     }
     namespace 'jp.co.soramitsu.app'
+
+    packagingOptions {
+        resources.excludes.add("META-INF/**/*")
+        resources.excludes.add("META-INF/*")
+    }
+
+    configurations{
+        all*.exclude module: 'bcprov-jdk15on'
+    }
 }
 
 play {
@@ -125,8 +149,8 @@ dependencies {
 
     implementation project(':feature-onboarding-api')
     implementation project(':feature-onboarding-impl')
-    implementation project(':feature-account-api')
 
+    implementation project(':feature-account-api')
     implementation project(':feature-account-impl')
 
     implementation project(':feature-wallet-api')
@@ -146,6 +170,12 @@ dependencies {
     implementation project(':feature-success-api')
     implementation project(':feature-success-impl')
 
+    implementation project(':feature-soracard-api')
+    implementation project(':feature-soracard-impl')
+
+    implementation project(':feature-walletconnect-api')
+    implementation project(':feature-walletconnect-impl')
+
     implementation kotlinDep
 
     implementation androidDep
@@ -158,8 +188,6 @@ dependencies {
 
     implementation roomDep
 
-    implementation fearlessLibDep
-
     implementation daggerDep
     kapt daggerKapt
 
@@ -168,7 +196,7 @@ dependencies {
 
     implementation lifeCycleKtxDep
 
-    implementation retrofitDep
+//    implementation retrofitDep
     implementation gsonConvertedDep
 
     implementation gifDep
@@ -191,6 +219,12 @@ dependencies {
 
     implementation compose
     debugImplementation composeDebug
+
+    implementation soraUiCoreDep
+
+    implementation(platform(libs.walletconnectBomDep))
+    implementation(libs.walletconnectCoreDep)
+    implementation(libs.walletconnectWeb3WalletDep)
 
     androidTestImplementation androidTestRunnerDep
     androidTestImplementation androidTestRulesDep

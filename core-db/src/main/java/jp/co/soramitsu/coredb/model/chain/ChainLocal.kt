@@ -8,24 +8,19 @@ import androidx.room.PrimaryKey
 class ChainLocal(
     @PrimaryKey val id: String,
     val parentId: String?,
+    val rank: Int?,
     val name: String,
     val minSupportedVersion: String?,
     val icon: String,
-    @Embedded
-    val types: TypesConfig?,
     @Embedded
     val externalApi: ExternalApi?,
     val prefix: Int,
     val isEthereumBased: Boolean,
     val isTestNet: Boolean,
     val hasCrowdloans: Boolean,
-    val supportStakingPool: Boolean
+    val supportStakingPool: Boolean,
+    val isEthereumChain: Boolean
 ) {
-
-    class TypesConfig(
-        val url: String,
-        val overridesCommon: Boolean
-    )
 
     class ExternalApi(
         @Embedded(prefix = "staking_")

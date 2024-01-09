@@ -38,6 +38,7 @@ import jp.co.soramitsu.common.compose.theme.black05
 import jp.co.soramitsu.common.compose.theme.black2
 import jp.co.soramitsu.common.compose.theme.white24
 import jp.co.soramitsu.common.presentation.LoadingState
+import jp.co.soramitsu.common.utils.formatting.shortenAddress
 import jp.co.soramitsu.common.utils.withNoFontPadding
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
@@ -199,11 +200,7 @@ fun AddressItem(
             )
             MarginVertical(margin = 4.dp)
             B1(
-                text = stringResource(
-                    id = R.string.common_middle_dots,
-                    address.address.take(10),
-                    address.address.takeLast(10)
-                ),
+                text = address.address.shortenAddress(),
                 color = Color.White
             )
         }

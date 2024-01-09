@@ -1,6 +1,7 @@
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
+apply plugin: 'kotlin-parcelize'
 
 android {
     compileSdkVersion rootProject.compileSdkVersion
@@ -19,11 +20,11 @@ android {
 
     kotlinOptions {
         freeCompilerArgs = ["-Xallow-result-return-type"]
-        jvmTarget = '1.8'
+        jvmTarget = '11'
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
     }
     namespace 'jp.co.soramitsu.feature_wallet_api'
 }
@@ -38,8 +39,6 @@ dependencies {
     implementation materialDep
 
     implementation daggerDep
-
-    implementation fearlessLibDep
 
     implementation androidDep
     implementation constraintDep

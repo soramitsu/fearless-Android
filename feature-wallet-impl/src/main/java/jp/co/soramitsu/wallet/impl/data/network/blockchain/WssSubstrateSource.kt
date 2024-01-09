@@ -3,8 +3,8 @@
 package jp.co.soramitsu.wallet.impl.data.network.blockchain
 
 import java.math.BigInteger
-import jp.co.soramitsu.account.api.extrinsic.ExtrinsicService
 import jp.co.soramitsu.common.data.network.runtime.binding.AccountInfo
+import jp.co.soramitsu.common.data.network.runtime.binding.AssetsAccountInfo
 import jp.co.soramitsu.common.data.network.runtime.binding.EqAccountInfo
 import jp.co.soramitsu.common.data.network.runtime.binding.EqOraclePricePoint
 import jp.co.soramitsu.common.data.network.runtime.binding.EventRecord
@@ -14,28 +14,40 @@ import jp.co.soramitsu.common.data.network.runtime.binding.Phase
 import jp.co.soramitsu.common.data.network.runtime.binding.bindEquilibriumAssetRates
 import jp.co.soramitsu.common.data.network.runtime.binding.bindExtrinsicStatusEventRecords
 import jp.co.soramitsu.common.data.network.runtime.binding.bindOrNull
+import jp.co.soramitsu.common.data.network.runtime.binding.getTyped
+import jp.co.soramitsu.common.utils.Calls
 import jp.co.soramitsu.common.utils.Modules
 import jp.co.soramitsu.common.utils.orZero
+import jp.co.soramitsu.common.utils.staking
 import jp.co.soramitsu.common.utils.system
 import jp.co.soramitsu.common.utils.tokens
 import jp.co.soramitsu.common.utils.u64ArgumentFromStorageKey
-import jp.co.soramitsu.fearless_utils.runtime.AccountId
-import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
-import jp.co.soramitsu.fearless_utils.runtime.definitions.registry.TypeRegistry
-import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.DictEnum
-import jp.co.soramitsu.fearless_utils.runtime.definitions.types.primitives.FixedByteArray
-import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
-import jp.co.soramitsu.fearless_utils.runtime.metadata.module
-import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
-import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
+import jp.co.soramitsu.core.extrinsic.ExtrinsicService
+import jp.co.soramitsu.core.models.Asset
+import jp.co.soramitsu.core.models.ChainAssetType
+import jp.co.soramitsu.core.rpc.RpcCalls
+import jp.co.soramitsu.core.rpc.calls.getBlock
+import jp.co.soramitsu.core.runtime.storage.returnType
 import jp.co.soramitsu.runtime.ext.accountIdOf
-import jp.co.soramitsu.runtime.multiNetwork.chain.ChainAssetType
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
-import jp.co.soramitsu.runtime.network.rpc.RpcCalls
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.bokoloCashTokenId
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 import jp.co.soramitsu.runtime.storage.source.queryNonNull
+import jp.co.soramitsu.shared_utils.extensions.fromHex
+import jp.co.soramitsu.shared_utils.runtime.AccountId
+import jp.co.soramitsu.shared_utils.runtime.RuntimeSnapshot
+import jp.co.soramitsu.shared_utils.runtime.definitions.registry.TypeRegistry
+import jp.co.soramitsu.shared_utils.runtime.definitions.types.composite.DictEnum
+import jp.co.soramitsu.shared_utils.runtime.definitions.types.composite.Struct
+import jp.co.soramitsu.shared_utils.runtime.definitions.types.fromHexOrNull
+import jp.co.soramitsu.shared_utils.runtime.definitions.types.primitives.FixedByteArray
+import jp.co.soramitsu.shared_utils.runtime.extrinsic.ExtrinsicBuilder
+import jp.co.soramitsu.shared_utils.runtime.metadata.module
+import jp.co.soramitsu.shared_utils.runtime.metadata.storage
+import jp.co.soramitsu.shared_utils.runtime.metadata.storageKey
 import jp.co.soramitsu.wallet.api.data.cache.bindAccountInfoOrDefault
+import jp.co.soramitsu.wallet.api.data.cache.bindAssetsAccountData
 import jp.co.soramitsu.wallet.api.data.cache.bindEquilibriumAccountData
 import jp.co.soramitsu.wallet.api.data.cache.bindOrmlTokensAccountDataOrDefault
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.bindings.bindTransferExtrinsic
@@ -48,30 +60,33 @@ class WssSubstrateSource(
     private val extrinsicService: ExtrinsicService
 ) : SubstrateRemoteSource {
 
-    override suspend fun getAccountFreeBalance(chainAsset: Chain.Asset, accountId: AccountId): BigInteger {
+    override suspend fun getAccountFreeBalance(chainAsset: Asset, accountId: AccountId): BigInteger {
         return when (val info = getAccountInfo(chainAsset, accountId)) {
             is OrmlTokensAccountData -> info.free
             is AccountInfo -> info.data.free
             is EqAccountInfo -> info.data.balances[chainAsset.currency].orZero()
+            is AssetsAccountInfo -> info.balance
             else -> BigInteger.ZERO
         }
     }
 
-    override suspend fun getTotalBalance(chainAsset: Chain.Asset, accountId: AccountId): BigInteger {
+    override suspend fun getTotalBalance(chainAsset: Asset, accountId: AccountId): BigInteger {
         return when (val info = getAccountInfo(chainAsset, accountId)) {
             is OrmlTokensAccountData -> info.totalBalance
             is AccountInfo -> info.totalBalance
             is EqAccountInfo -> info.data.balances[chainAsset.currency].orZero()
+            is AssetsAccountInfo -> info.balance
             else -> BigInteger.ZERO
         }
     }
 
     @Suppress("IMPLICIT_CAST_TO_ANY")
-    private suspend fun getAccountInfo(chainAsset: Chain.Asset, accountId: AccountId) = when (chainAsset.type) {
+    private suspend fun getAccountInfo(chainAsset: Asset, accountId: AccountId) = when (chainAsset.type) {
         null, ChainAssetType.Normal,
         ChainAssetType.SoraUtilityAsset -> {
             getDefaultAccountInfo(chainAsset.chainId, accountId)
         }
+
         ChainAssetType.OrmlChain,
         ChainAssetType.OrmlAsset,
         ChainAssetType.ForeignAsset,
@@ -80,12 +95,21 @@ class WssSubstrateSource(
         ChainAssetType.VToken,
         ChainAssetType.VSToken,
         ChainAssetType.SoraAsset,
+        ChainAssetType.AssetId,
+        ChainAssetType.Token2,
+        ChainAssetType.Xcm,
         ChainAssetType.Stable -> {
             getOrmlTokensAccountData(chainAsset, accountId)
         }
+
         ChainAssetType.Equilibrium -> {
             getEquilibriumAccountInfo(chainAsset, accountId)
         }
+
+        ChainAssetType.Assets -> {
+            getAssetsAccountInfo(chainAsset, accountId)
+        }
+
         ChainAssetType.Unknown -> null
     }
 
@@ -105,7 +129,7 @@ class WssSubstrateSource(
     }
 
     override suspend fun getEquilibriumAccountInfo(
-        asset: Chain.Asset,
+        asset: Asset,
         accountId: AccountId
     ): EqAccountInfo? {
         return remoteStorageSource.query(
@@ -119,7 +143,22 @@ class WssSubstrateSource(
         )
     }
 
-    override suspend fun getEquilibriumAssetRates(asset: Chain.Asset): Map<BigInteger, EqOraclePricePoint?> {
+    override suspend fun getAssetsAccountInfo(
+        asset: Asset,
+        accountId: AccountId
+    ): AssetsAccountInfo? {
+        return remoteStorageSource.query(
+            chainId = asset.chainId,
+            keyBuilder = {
+                it.metadata.module(Modules.ASSETS).storage("Account").storageKey(it, asset.currency, accountId)
+            },
+            binding = { scale, runtime ->
+                bindAssetsAccountData(scale, runtime)
+            }
+        )
+    }
+
+    override suspend fun getEquilibriumAssetRates(asset: Asset): Map<BigInteger, EqOraclePricePoint?> {
         return remoteStorageSource.queryByPrefix(
             chainId = asset.chainId,
             prefixKeyBuilder = { it.metadata.module(Modules.ORACLE).storage("PricePoints").storageKey(it) },
@@ -130,7 +169,7 @@ class WssSubstrateSource(
         )
     }
 
-    private suspend fun getOrmlTokensAccountData(asset: Chain.Asset, accountId: AccountId): OrmlTokensAccountData {
+    private suspend fun getOrmlTokensAccountData(asset: Asset, accountId: AccountId): OrmlTokensAccountData {
         return remoteStorageSource.query(
             chainId = asset.chainId,
             keyBuilder = {
@@ -205,6 +244,28 @@ class WssSubstrateSource(
         }
     }
 
+    override suspend fun getControllerAccount(chainId: ChainId, currentAccountId: AccountId): AccountId? {
+        return remoteStorageSource.query(
+            chainId = chainId,
+            keyBuilder = { runtime -> runtime.metadata.staking().storage("Bonded").storageKey(runtime, currentAccountId) },
+            binding = { scale, _ -> scale?.fromHex() }
+        )
+    }
+
+    override suspend fun getStashAccount(chainId: ChainId, currentAccountId: AccountId): AccountId? {
+        return remoteStorageSource.query(
+            chainId = chainId,
+            keyBuilder = { runtime -> runtime.metadata.staking().storage("Ledger").storageKey(runtime, currentAccountId) },
+            binding = { scale, runtime ->
+                scale ?: return@query null
+                val type = runtime.metadata.staking().storage("Ledger").returnType()
+                val dynamicInstance = type.fromHexOrNull(runtime, scale) ?: return@query null
+
+                (dynamicInstance as? Struct.Instance)?.getTyped("stash") ?: return@query null
+            }
+        )
+    }
+
     private fun buildExtrinsics(
         runtime: RuntimeSnapshot,
         statuses: Map<Int, EventRecord<ExtrinsicStatusEvent>>,
@@ -223,27 +284,45 @@ class WssSubstrateSource(
 
     private fun ExtrinsicBuilder.transfer(chain: Chain, transfer: Transfer, typeRegistry: TypeRegistry): ExtrinsicBuilder {
         val accountId = chain.accountIdOf(transfer.recipient)
-        return if (transfer.chainAsset.currency == null) {
-            defaultTransfer(accountId, transfer, typeRegistry)
-        } else {
-            when (transfer.chainAsset.typeExtra) {
-                null, ChainAssetType.Normal -> defaultTransfer(accountId, transfer, typeRegistry)
-                ChainAssetType.OrmlChain -> ormlChainTransfer(accountId, transfer)
 
-                ChainAssetType.SoraAsset,
-                ChainAssetType.SoraUtilityAsset -> soraAssetTransfer(accountId, transfer)
+        if (transfer.chainAsset.currencyId == bokoloCashTokenId) {
+            return xorlessTransfer(accountId, transfer)
+        }
 
-                ChainAssetType.OrmlAsset,
-                ChainAssetType.ForeignAsset,
-                ChainAssetType.StableAssetPoolToken,
-                ChainAssetType.LiquidCrowdloan,
-                ChainAssetType.VToken,
-                ChainAssetType.VSToken,
-                ChainAssetType.Stable -> ormlAssetTransfer(accountId, transfer)
+        val useDefaultTransfer =
+            transfer.chainAsset.currency == null || transfer.chainAsset.typeExtra == null || transfer.chainAsset.typeExtra == ChainAssetType.Normal
 
-                ChainAssetType.Equilibrium -> equilibriumAssetTransfer(accountId, transfer)
-                ChainAssetType.Unknown -> error("Token ${transfer.chainAsset.symbolToShow} not supported, chain ${chain.name}")
+        if (useDefaultTransfer) {
+            val chainCanTransferAllowDeath = this.runtime.metadata.module(Modules.BALANCES).calls?.contains(Calls.BALANCES_TRANSFER_ALLOW_DEATH) ?: false
+            return if (chainCanTransferAllowDeath) {
+                defaultTransferAllowDeath(accountId, transfer, typeRegistry)
+            } else {
+                defaultTransfer(accountId, transfer, typeRegistry)
             }
+        }
+        return when (transfer.chainAsset.typeExtra) {
+            ChainAssetType.OrmlChain -> ormlChainTransfer(accountId, transfer)
+
+            ChainAssetType.SoraAsset,
+            ChainAssetType.SoraUtilityAsset -> soraAssetTransfer(accountId, transfer)
+
+            ChainAssetType.OrmlAsset,
+            ChainAssetType.ForeignAsset,
+            ChainAssetType.StableAssetPoolToken,
+            ChainAssetType.LiquidCrowdloan,
+            ChainAssetType.VToken,
+            ChainAssetType.VSToken,
+            ChainAssetType.Token2,
+            ChainAssetType.AssetId,
+            ChainAssetType.Xcm,
+            ChainAssetType.Stable -> ormlAssetTransfer(accountId, transfer)
+
+            ChainAssetType.Equilibrium -> equilibriumAssetTransfer(accountId, transfer)
+
+            ChainAssetType.Assets -> assetsAssetTransfer(accountId, transfer)
+
+            ChainAssetType.Unknown -> error("Token ${transfer.chainAsset.symbol} not supported, chain ${chain.name}")
+            else -> error("Token ${transfer.chainAsset.symbol} not supported, chain ${chain.name}")
         }
     }
 
@@ -257,6 +336,19 @@ class WssSubstrateSource(
             "asset" to transfer.chainAsset.currency,
             "to" to accountId,
             "value" to transfer.amountInPlanks
+        )
+    )
+
+    private fun ExtrinsicBuilder.assetsAssetTransfer(
+        accountId: AccountId,
+        transfer: Transfer
+    ): ExtrinsicBuilder = call(
+        moduleName = Modules.ASSETS,
+        callName = "transfer",
+        arguments = mapOf(
+            "id" to transfer.chainAsset.currency,
+            "target" to DictEnum.Entry("Id", accountId),
+            "amount" to transfer.amountInPlanks
         )
     )
 
@@ -298,6 +390,31 @@ class WssSubstrateSource(
             "amount" to transfer.amountInPlanks
         )
     )
+    private fun ExtrinsicBuilder.xorlessTransfer(
+        recipientAccountId: AccountId,
+        transfer: Transfer
+    ) = call(
+        moduleName = "LiquidityProxy",
+        callName = "xorless_transfer",
+        arguments = mapOf(
+            "dex_id" to BigInteger.ZERO,
+            "asset_id" to Struct.Instance(
+                mapOf("code" to transfer.chainAsset.currencyId?.fromHex()?.toList()?.map { it.toInt().toBigInteger() })
+            ),
+            "receiver" to recipientAccountId,
+            "amount" to transfer.amountInPlanks,
+
+            "desired_xor_amount" to transfer.estimateFeeInPlanks.orZero(),
+            "max_amount_in" to transfer.maxAmountInInPlanks.orZero(),
+
+            "selected_source_types" to emptyList<DictEnum.Entry<Any?>>(),
+            "filter_mode" to DictEnum.Entry(
+                name = "Disabled",
+                value = null
+            ),
+            "additional_data" to transfer.comment?.toByteArray()
+        )
+    )
 
     private fun ExtrinsicBuilder.defaultTransfer(
         accountId: AccountId,
@@ -315,6 +432,29 @@ class WssSubstrateSource(
         return call(
             moduleName = Modules.BALANCES,
             callName = "transfer",
+            arguments = mapOf(
+                "dest" to dest,
+                "value" to transfer.amountInPlanks
+            )
+        )
+    }
+
+    private fun ExtrinsicBuilder.defaultTransferAllowDeath(
+        accountId: AccountId,
+        transfer: Transfer,
+        typeRegistry: TypeRegistry
+    ): ExtrinsicBuilder {
+        @Suppress("IMPLICIT_CAST_TO_ANY")
+        val dest = when (typeRegistry["Address"]) { // this logic was added to support Moonbeam/Moonriver chains; todo separate assets in json like orml
+            is FixedByteArray -> accountId
+            else -> DictEnum.Entry(
+                name = "Id",
+                value = accountId
+            )
+        }
+        return call(
+            moduleName = Modules.BALANCES,
+            callName = Calls.BALANCES_TRANSFER_ALLOW_DEATH,
             arguments = mapOf(
                 "dest" to dest,
                 "value" to transfer.amountInPlanks

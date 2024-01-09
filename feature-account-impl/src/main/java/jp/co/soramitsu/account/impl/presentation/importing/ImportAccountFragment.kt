@@ -9,10 +9,12 @@ import android.view.ViewGroup
 import androidx.core.os.bundleOf
 import androidx.fragment.app.viewModels
 import dagger.hilt.android.AndroidEntryPoint
+import jp.co.soramitsu.account.api.domain.model.ImportMode
 import jp.co.soramitsu.account.api.presentation.account.create.ChainAccountCreatePayload
 import jp.co.soramitsu.account.api.presentation.accountSource.SourceTypeChooserBottomSheetDialog
 import jp.co.soramitsu.account.api.presentation.importing.ImportAccountType
 import jp.co.soramitsu.account.impl.presentation.importing.source.model.FileRequester
+import jp.co.soramitsu.account.impl.presentation.importing.source.model.ImportError
 import jp.co.soramitsu.account.impl.presentation.importing.source.model.ImportSource
 import jp.co.soramitsu.account.impl.presentation.importing.source.model.JsonImportSource
 import jp.co.soramitsu.account.impl.presentation.importing.source.model.MnemonicImportSource
@@ -38,10 +40,21 @@ import jp.co.soramitsu.feature_account_impl.databinding.FragmentImportAccountBin
 @AndroidEntryPoint
 class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
     companion object {
+
         const val BLOCKCHAIN_TYPE_KEY = "BLOCKCHAIN_TYPE_KEY"
+        const val IMPORT_MODE_KEY = "IMPORT_MODE_KEY"
         const val PAYLOAD_KEY = "PAYLOAD_KEY"
 
-        fun getBundle(blockChainType: Int = 0) = bundleOf(BLOCKCHAIN_TYPE_KEY to blockChainType)
+        fun getBundle(
+            blockChainType: Int = 0,
+            importMode: ImportMode = ImportMode.MnemonicPhrase
+        ): Bundle {
+            return bundleOf(
+                BLOCKCHAIN_TYPE_KEY to blockChainType,
+                IMPORT_MODE_KEY to importMode
+            )
+        }
+
         fun getBundle(chainAccountData: ChainAccountCreatePayload) = bundleOf(PAYLOAD_KEY to chainAccountData)
     }
 
@@ -125,7 +138,7 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
     private fun buildSourceTypesViews(blockchainType: ImportAccountType) = viewModel.sourceTypes.map {
         val view = createSourceView(it, blockchainType)
 
-        view.observeSource(it, viewLifecycleOwner)
+        view.observeSource(it, blockchainType, viewLifecycleOwner)
         view.observeCommon(viewModel, viewLifecycleOwner)
 
         observeFeatures(it)
@@ -199,10 +212,18 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
         val isChainAccount = viewModel.isChainAccount
 
         return when (source) {
-            is JsonImportSource -> JsonImportView(context, blockchainType, isChainAccount)
+            is JsonImportSource -> JsonImportView(context, blockchainType, isChainAccount, ::onShowImportError)
             is MnemonicImportSource -> MnemonicImportView(context, isChainAccount)
             is RawSeedImportSource -> SeedImportView(context, blockchainType, isChainAccount)
         }
+    }
+
+    private fun onShowImportError(importError: ImportError) {
+         ErrorDialog(
+            title = resources.getString(importError.titleRes),
+            message = resources.getString(importError.messageRes),
+            positiveButtonText = resources.getString(R.string.common_ok)
+        ).show(childFragmentManager)
     }
 
     private fun showEthDialog() {

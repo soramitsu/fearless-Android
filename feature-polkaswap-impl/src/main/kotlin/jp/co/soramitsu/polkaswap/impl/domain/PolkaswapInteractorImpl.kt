@@ -6,9 +6,12 @@ import java.math.RoundingMode
 import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.accountId
-import jp.co.soramitsu.common.data.network.runtime.model.QuoteResponse
+import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.presentation.LoadingState
+import jp.co.soramitsu.common.utils.isZero
 import jp.co.soramitsu.common.utils.orZero
+import jp.co.soramitsu.core.runtime.models.responses.QuoteResponse
+import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.polkaswap.api.data.PolkaswapRepository
 import jp.co.soramitsu.polkaswap.api.domain.InsufficientLiquidityException
 import jp.co.soramitsu.polkaswap.api.domain.PolkaswapInteractor
@@ -18,8 +21,8 @@ import jp.co.soramitsu.polkaswap.api.models.WithDesired
 import jp.co.soramitsu.polkaswap.api.models.backStrings
 import jp.co.soramitsu.polkaswap.api.models.toFilters
 import jp.co.soramitsu.polkaswap.api.presentation.models.toModel
-import jp.co.soramitsu.runtime.ext.utilityAsset
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraTestChainId
@@ -29,37 +32,67 @@ import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
 import kotlin.math.max
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.merge
+import kotlinx.coroutines.flow.onEach
 
 class PolkaswapInteractorImpl @Inject constructor(
     private val chainRegistry: ChainRegistry,
     private val walletRepository: WalletRepository,
     private val accountRepository: AccountRepository,
-    private val polkaswapRepository: PolkaswapRepository
+    private val polkaswapRepository: PolkaswapRepository,
+    private val sharedPreferences: Preferences,
+    private val chainsRepository: ChainsRepository
 ) : PolkaswapInteractor {
 
     override var polkaswapChainId = soraMainChainId
     override val availableMarkets: MutableMap<Int, List<Market>> = mutableMapOf(0 to listOf(Market.SMART))
     override val bestDexIdFlow: MutableStateFlow<LoadingState<Int>> = MutableStateFlow(LoadingState.Loaded(0))
+    override var hasReadDisclaimer: Boolean
+        get() = sharedPreferences.getBoolean(PolkaswapInteractor.HAS_READ_DISCLAIMER_KEY, false)
+        set(value) {
+            sharedPreferences.putBoolean(PolkaswapInteractor.HAS_READ_DISCLAIMER_KEY, value)
+        }
+
+    override fun observeHasReadDisclaimer(): Flow<Boolean> {
+        return sharedPreferences.booleanFlow(PolkaswapInteractor.HAS_READ_DISCLAIMER_KEY, false)
+    }
 
     override fun setChainId(chainId: ChainId?) {
         chainId?.takeIf { it in listOf(soraMainChainId, soraTestChainId) }?.let { polkaswapChainId = chainId }
     }
 
     override suspend fun getFeeAsset(): Asset? {
-        val chain = chainRegistry.getChain(polkaswapChainId)
-        return getAsset(chain.utilityAsset.id)
+        val chain = chainsRepository.getChain(polkaswapChainId)
+        return chain.utilityAsset?.id?.let { getAsset(it) }
     }
 
     override suspend fun getAsset(assetId: String): Asset? {
         val metaAccount = accountRepository.getSelectedMetaAccount()
-        val (chain, chainAsset) = chainRegistry.chainWithAsset(polkaswapChainId, assetId)
+        val (chain, chainAsset) = chainsRepository.chainWithAsset(polkaswapChainId, assetId)
 
-        return walletRepository.getAsset(metaAccount.id, metaAccount.accountId(chain)!!, chainAsset, chain.minSupportedVersion)!!
+        return walletRepository.getAsset(metaAccount.id, metaAccount.accountId(chain)!!, chainAsset, chain.minSupportedVersion)
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    override fun assetFlow(chainAssetId: String): Flow<Asset> {
+        return accountRepository.selectedMetaAccountFlow().flatMapLatest { metaAccount ->
+
+            val (chain, chainAsset) = chainsRepository.chainWithAsset(polkaswapChainId, chainAssetId)
+            val accountId = metaAccount.accountId(chain)!!
+
+            walletRepository.assetFlow(
+                metaAccount.id,
+                accountId,
+                chainAsset,
+                chain.minSupportedVersion
+            )
+        }
     }
 
     override suspend fun getAvailableDexes(): List<BigInteger> {
@@ -94,8 +127,8 @@ class PolkaswapInteractorImpl @Inject constructor(
         slippageTolerance: Double,
         market: Market
     ): Result<SwapDetails?> {
-        val polkaswapUtilityAssetId = chainRegistry.getChain(polkaswapChainId).utilityAsset.id
-        val feeAsset = requireNotNull(getAsset(polkaswapUtilityAssetId))
+        val polkaswapUtilityAssetId = chainsRepository.getChain(polkaswapChainId).utilityAsset?.id
+        val feeAsset = requireNotNull(polkaswapUtilityAssetId?.let { getAsset(it) })
 
         val curMarkets = if (market == Market.SMART) emptyList() else listOf(market)
 
@@ -120,7 +153,7 @@ class PolkaswapInteractorImpl @Inject constructor(
         }
         bestDexIdFlow.emit(LoadingState.Loaded(bestDex))
 
-        if (swapQuote.amount.compareTo(BigDecimal.ZERO) == 0) return Result.success(null)
+        if (swapQuote.amount.isZero()) return Result.success(null)
 
         val minMax =
             (swapQuote.amount * BigDecimal.valueOf(slippageTolerance / 100)).let {
@@ -133,7 +166,7 @@ class PolkaswapInteractorImpl @Inject constructor(
 
         val scale = max(swapQuote.amount.scale(), amount.scale())
 
-        if (swapQuote.amount.compareTo(BigDecimal.ZERO) == 0) return Result.success(null)
+        if (swapQuote.amount.isZero()) return Result.success(null)
         val per1 = amount.divide(swapQuote.amount, scale, RoundingMode.HALF_EVEN)
         val per2 = swapQuote.amount.divide(amount, scale, RoundingMode.HALF_EVEN)
         val liquidityFee = swapQuote.fee

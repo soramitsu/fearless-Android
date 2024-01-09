@@ -82,6 +82,11 @@ class AlertFragment : BottomSheetDialogFragment() {
             val bottomSheetDialog = it as BottomSheetDialog
             setupBehavior(bottomSheetDialog.behavior)
         }
+        dialog?.setOnCancelListener {
+            val resultKey = requireNotNull(requireArguments().getString(KEY_RESULT))
+            val resultDestinationId = requireNotNull(requireArguments().getInt(KEY_RESULT_DESTINATION))
+            navigator.setAlertResult(resultKey, Result.failure<Unit>(Exception()), resultDestinationId)
+        }
     }
 
     private fun setupBehavior(behavior: BottomSheetBehavior<FrameLayout>) {

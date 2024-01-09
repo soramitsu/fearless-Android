@@ -3,14 +3,14 @@ package jp.co.soramitsu.wallet.impl.data.mappers
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.coredb.model.AssetWithToken
 import jp.co.soramitsu.coredb.model.TokenPriceLocal
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.Token
 import jp.co.soramitsu.wallet.impl.presentation.model.AssetModel
 import jp.co.soramitsu.wallet.impl.presentation.model.TokenModel
+import jp.co.soramitsu.core.models.Asset as CoreAsset
 
 fun combineAssetWithPrices(
-    chainAsset: Chain.Asset,
+    chainAsset: CoreAsset,
     tokenPriceLocal: TokenPriceLocal?
 ): Token {
     return Token(
@@ -34,7 +34,7 @@ fun mapTokenToTokenModel(token: Token): TokenModel {
 
 fun mapAssetLocalToAsset(
     assetLocal: AssetWithToken,
-    chainAsset: Chain.Asset,
+    chainAsset: CoreAsset,
     minSupportedVersion: String?
 ): Asset {
     return with(assetLocal) {
@@ -75,7 +75,7 @@ fun mapAssetToAssetModel(asset: Asset): AssetModel {
             sortIndex = sortIndex,
             minSupportedVersion = minSupportedVersion,
             chainAccountName = chainAccountName,
-            isHidden = !enabled
+            isHidden = enabled == false
         )
     }
 }

@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material.ExperimentalMaterialApi
@@ -48,7 +49,7 @@ fun SearchAssetsScreen(
     callback: SearchAssetsScreenInterface
 ) {
     Column(
-        modifier = Modifier.padding(horizontal = 16.dp),
+        modifier = Modifier.padding(horizontal = 16.dp).imePadding(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         MarginVertical(margin = 16.dp)
@@ -84,15 +85,14 @@ fun SearchAssetsScreen(
         }
         MarginVertical(margin = 16.dp)
         when {
-            data?.searchQuery.isNullOrEmpty() -> {
-                AssetsList(SearchAssetState(emptyList()), callback)
-            }
-            data?.assets?.isNotEmpty() == true -> {
-                AssetsList(data, callback)
-            }
-            else -> {
+            data?.assets == null -> {}
+            data.assets.isEmpty() -> {
                 MarginVertical(margin = 16.dp)
                 EmptyMessage(message = R.string.common_search_assets_alert_description)
+            }
+
+            else -> {
+                AssetsList(data, callback)
             }
         }
     }

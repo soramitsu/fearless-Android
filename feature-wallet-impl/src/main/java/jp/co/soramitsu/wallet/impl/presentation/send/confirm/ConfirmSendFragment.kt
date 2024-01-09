@@ -11,7 +11,7 @@ import androidx.fragment.app.viewModels
 import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.account.api.presentation.actions.setupExternalActions
 import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
-import jp.co.soramitsu.wallet.api.presentation.mixin.observeTransferChecks
+import jp.co.soramitsu.common.presentation.ErrorDialog
 import jp.co.soramitsu.wallet.impl.domain.model.PhishingType
 import jp.co.soramitsu.wallet.impl.presentation.send.TransferDraft
 
@@ -21,10 +21,18 @@ class ConfirmSendFragment : BaseComposeBottomSheetDialogFragment<ConfirmSendView
     companion object {
         const val KEY_DRAFT = "KEY_DRAFT"
         const val KEY_PHISHING_TYPE = "KEY_PHISHING_TYPE"
+        const val KEY_TRANSFER_COMMENT = "KEY_TRANSFER_COMMENT"
 
-        fun getBundle(transferDraft: TransferDraft, phishingType: PhishingType?) = bundleOf(
+        const val KEY_OVERRIDES = "KEY_OVERRIDES"
+        const val KEY_OVERRIDE_TO_VALUE = "key_toValue"
+        const val KEY_OVERRIDE_ICON_RES_ID = "key_iconResId"
+
+
+        fun getBundle(transferDraft: TransferDraft, phishingType: PhishingType?, overrides: Map<String, Any?>, transferComment: String?) = bundleOf(
             KEY_DRAFT to transferDraft,
-            KEY_PHISHING_TYPE to phishingType
+            KEY_PHISHING_TYPE to phishingType,
+            KEY_OVERRIDES to overrides,
+            KEY_TRANSFER_COMMENT to transferComment
         )
     }
 
@@ -34,7 +42,17 @@ class ConfirmSendFragment : BaseComposeBottomSheetDialogFragment<ConfirmSendView
         super.onViewCreated(view, savedInstanceState)
 
         setupExternalActions(viewModel)
-        observeTransferChecks(viewModel, viewModel::warningConfirmed, viewModel::errorAcknowledged)
+
+        viewModel.openValidationWarningEvent.observeEvent { (result, warning) ->
+            ErrorDialog(
+                title = warning.message,
+                message = warning.explanation,
+                positiveButtonText = warning.positiveButtonText,
+                negativeButtonText = warning.negativeButtonText,
+                positiveClick = { viewModel.warningConfirmed(result) },
+                isHideable = false
+            ).show(childFragmentManager)
+        }
     }
 
     @Composable

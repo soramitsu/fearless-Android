@@ -4,12 +4,12 @@ import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
 import jp.co.soramitsu.common.data.network.rpc.queryKey
 import jp.co.soramitsu.common.data.network.rpc.retrieveAllValues
 import jp.co.soramitsu.common.data.network.runtime.binding.BlockHash
-import jp.co.soramitsu.common.data.network.runtime.calls.GetChildStateRequest
-import jp.co.soramitsu.fearless_utils.wsrpc.executeAsync
-import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.storage.SubscribeStorageRequest
-import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.storage.storageChange
-import jp.co.soramitsu.fearless_utils.wsrpc.subscriptionFlow
+import jp.co.soramitsu.core.runtime.models.requests.GetChildStateRequest
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.network.subscriptionFlowCatching
+import jp.co.soramitsu.shared_utils.wsrpc.executeAsync
+import jp.co.soramitsu.shared_utils.wsrpc.request.runtime.storage.SubscribeStorageRequest
+import jp.co.soramitsu.shared_utils.wsrpc.request.runtime.storage.storageChange
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -19,27 +19,50 @@ class RemoteStorageSource(
 ) : BaseStorageSource(chainRegistry) {
 
     override suspend fun query(key: String, chainId: String, at: BlockHash?): String? {
-        return bulkRetriever.queryKey(getSocketService(chainId), key, at)
+        return kotlin.runCatching { bulkRetriever.queryKey(getSocketService(chainId), key, at) }
+            .getOrNull()
     }
 
-    override suspend fun queryKeys(keys: List<String>, chainId: String, at: BlockHash?): Map<String, String?> {
-        return bulkRetriever.queryKeys(getSocketService(chainId), keys, at)
+    override suspend fun queryKeys(
+        keys: List<String>,
+        chainId: String,
+        at: BlockHash?
+    ): Map<String, String?> {
+        return kotlin.runCatching { bulkRetriever.queryKeys(getSocketService(chainId), keys, at) }
+            .getOrDefault(
+                emptyMap()
+            )
     }
 
     override suspend fun observe(key: String, chainId: String): Flow<String?> {
-        return getSocketService(chainId).subscriptionFlow(SubscribeStorageRequest(key))
-            .map { it.storageChange().getSingleChange() }
+        return getSocketService(chainId).subscriptionFlowCatching(SubscribeStorageRequest(key))
+            .map { result ->
+                result.getOrNull()?.storageChange()?.getSingleChange()
+            }
     }
 
     override suspend fun queryByPrefix(prefix: String, chainId: String): Map<String, String?> {
-        return bulkRetriever.retrieveAllValues(getSocketService(chainId), prefix)
+        return kotlin.runCatching {
+            bulkRetriever.retrieveAllValues(
+                getSocketService(chainId),
+                prefix
+            )
+        }.getOrDefault(
+            emptyMap()
+        )
     }
 
-    override suspend fun queryChildState(storageKey: String, childKey: String, chainId: String): String? {
-        val response = getSocketService(chainId).executeAsync(GetChildStateRequest(storageKey, childKey))
+    override suspend fun queryChildState(
+        storageKey: String,
+        childKey: String,
+        chainId: String
+    ): String? {
+        val response =
+            kotlin.runCatching { getSocketService(chainId).executeAsync(GetChildStateRequest(storageKey, childKey)) }.getOrNull()
 
-        return response.result as? String?
+        return response?.result as? String?
     }
 
-    private fun getSocketService(chainId: String) = chainRegistry.getConnection(chainId).socketService
+    private fun getSocketService(chainId: String) =
+        chainRegistry.getConnection(chainId).socketService
 }

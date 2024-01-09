@@ -1,5 +1,6 @@
 package jp.co.soramitsu.account.impl.presentation.account.create
 
+import android.os.Bundle
 import androidx.core.os.bundleOf
 import androidx.fragment.app.viewModels
 import dagger.hilt.android.AndroidEntryPoint
@@ -17,9 +18,16 @@ import jp.co.soramitsu.feature_account_impl.databinding.FragmentCreateAccountBin
 @AndroidEntryPoint
 class CreateAccountFragment : BaseFragment<CreateAccountViewModel>(R.layout.fragment_create_account) {
     companion object {
-        const val PAYLOAD_KEY = "PAYLOAD_KEY"
 
-        fun getBundle(payload: ChainAccountCreatePayload) = bundleOf(PAYLOAD_KEY to payload)
+        fun getBundle(isFromGoogleBackup: Boolean): Bundle {
+            return bundleOf(
+                CreateAccountScreenKeys.IS_FROM_GOOGLE_BACKUP_KEY to isFromGoogleBackup
+            )
+        }
+
+        fun getBundle(payload: ChainAccountCreatePayload): Bundle {
+            return bundleOf(CreateAccountScreenKeys.PAYLOAD_KEY to payload)
+        }
     }
 
     private val binding by viewBinding(FragmentCreateAccountBinding::bind)
@@ -61,7 +69,7 @@ class CreateAccountFragment : BaseFragment<CreateAccountViewModel>(R.layout.frag
             title = res.getString(R.string.common_no_screenshot_title),
             message = res.getString(R.string.common_no_screenshot_message),
             positiveButtonText = res.getString(R.string.common_ok),
-            positiveClick = { viewModel.screenshotWarningConfirmed(binding.accountNameInput.content.text.toString()) }
+            positiveClick = viewModel::screenshotWarningConfirmed
         ).show(childFragmentManager)
     }
 }

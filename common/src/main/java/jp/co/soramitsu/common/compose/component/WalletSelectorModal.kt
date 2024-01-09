@@ -4,7 +4,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -45,36 +44,31 @@ fun WalletSelectorScreen(
                 )
                 .fillMaxWidth()
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Start
+            Box(
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Box(
-                    contentAlignment = Alignment.CenterStart,
+                val iconButtonSize = 32.dp
+                IconButton(
+                    onClick = onBackClicked,
                     modifier = Modifier
-                        .weight(3f)
+                        .align(Alignment.CenterStart)
+                        .clip(CircleShape)
+                        .background(backgroundBlurColor)
+                        .size(iconButtonSize)
                 ) {
-                    IconButton(
-                        onClick = onBackClicked,
-                        modifier = Modifier
-                            .clip(CircleShape)
-                            .background(backgroundBlurColor)
-                            .size(32.dp)
-                    ) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_arrow_back_24dp),
-                            tint = white,
-                            contentDescription = null
-                        )
-                    }
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_arrow_back_24dp),
+                        tint = white,
+                        contentDescription = null
+                    )
                 }
-                Box(
-                    contentAlignment = Alignment.CenterStart,
-                    modifier = Modifier.weight(4f)
-                ) {
-                    H4(text = stringResource(id = R.string.common_title_wallet))
-                }
+
+                H4(
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .padding(horizontal = iconButtonSize),
+                    text = stringResource(id = R.string.common_title_select_wallet)
+                )
             }
             MarginVertical(margin = 20.dp)
             LazyColumn(

@@ -12,8 +12,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.R
-import jp.co.soramitsu.common.compose.theme.backgroundBlurColor
 import jp.co.soramitsu.common.compose.theme.white
+import jp.co.soramitsu.common.compose.theme.white08
 
 @Composable
 fun NavigationIconButton(
@@ -25,7 +25,7 @@ fun NavigationIconButton(
         onClick = onNavigationClick,
         modifier = modifier
             .clip(CircleShape)
-            .background(backgroundBlurColor)
+            .background(white08)
             .size(32.dp)
     ) {
         Icon(

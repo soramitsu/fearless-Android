@@ -61,7 +61,7 @@ interface StakingRouter {
 
     fun returnToMain()
 
-    fun openChangeAccountFromStaking()
+    fun openSelectWallet()
 
     fun openStory(story: StoryGroupModel)
 
@@ -163,7 +163,7 @@ interface StakingRouter {
 
     fun openWebViewer(title: String, url: String)
 
-    fun openOperationSuccess(operationHash: String?, chainId: ChainId, customMessage: String? = null)
+    fun openOperationSuccess(operationHash: String?, chainId: ChainId?, customMessage: String? = null)
 
     fun setAlertResult(key: String, result: Result<*>, @IdRes resultDestinationId: Int? = null)
 
@@ -174,4 +174,10 @@ interface StakingRouter {
     fun openAlertFromStartSelectValidatorsScreen(payload: AlertViewState, key: String)
 
     fun listenAlertResultFlowFromStartSelectValidatorsScreen(key: String): Flow<Result<Unit>>
+
+    fun openImportAccountScreenFromWallet(blockChainType: Int)
+
+    fun openManageControllerAccount(chainId: ChainId)
+    fun openAlertFromStartChangeValidatorsScreen(payload: AlertViewState, keyAlertResult: String)
+    fun listenAlertResultFlowFromStartChangeValidatorsScreen(key: String): Flow<Result<Unit>>
 }

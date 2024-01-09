@@ -26,6 +26,7 @@ class SplashFragment : BaseFragment<SplashViewModel>() {
     }
 
     override fun subscribe(viewModel: SplashViewModel) {
-        viewModel.checkStories()
+//        viewModel.checkStories()
+        viewModel.openInitialDestination()
     }
 }

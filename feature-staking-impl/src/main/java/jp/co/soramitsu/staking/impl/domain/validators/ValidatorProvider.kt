@@ -1,17 +1,22 @@
 package jp.co.soramitsu.staking.impl.domain.validators
 
 import jp.co.soramitsu.common.utils.toHexAccountId
-import jp.co.soramitsu.fearless_utils.extensions.fromHex
+import jp.co.soramitsu.core.utils.utilityAsset
+import jp.co.soramitsu.runtime.ext.addressOf
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ternoaChainId
+import jp.co.soramitsu.shared_utils.extensions.fromHex
 import jp.co.soramitsu.staking.api.domain.api.AccountIdMap
 import jp.co.soramitsu.staking.api.domain.api.IdentityRepository
 import jp.co.soramitsu.staking.api.domain.model.Exposure
 import jp.co.soramitsu.staking.api.domain.model.Validator
 import jp.co.soramitsu.staking.impl.data.repository.StakingConstantsRepository
+import jp.co.soramitsu.staking.impl.domain.error.accountIdNotFound
+import jp.co.soramitsu.staking.impl.domain.rewards.RewardCalculationTarget
 import jp.co.soramitsu.staking.impl.domain.rewards.RewardCalculatorFactory
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenarioRepository
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.getActiveElectedValidatorsExposures
-import jp.co.soramitsu.runtime.ext.addressOf
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 
 sealed class ValidatorSource {
 
@@ -48,7 +53,35 @@ class ValidatorProvider(
         val identities = identityRepository.getIdentitiesFromIds(chain, requestedValidatorIds)
         val slashes = stakingRepository.getSlashes(chainId, requestedValidatorIds)
 
-        val rewardCalculator = rewardCalculatorFactory.createManual(electedValidatorExposures, validatorPrefs, chainId)
+        val calculationTargets = electedValidatorExposures.keys.mapNotNull { accountIdHex ->
+            val exposure = electedValidatorExposures[accountIdHex] ?: accountIdNotFound(accountIdHex)
+            val prefs = validatorPrefs[accountIdHex] ?: return@mapNotNull null
+
+            RewardCalculationTarget(
+                accountIdHex = accountIdHex,
+                totalStake = exposure.total,
+                nominatorStakes = exposure.others,
+                ownStake = exposure.own,
+                commission = prefs.commission
+            )
+        }
+
+        val rewardCalculator = when (chainId) {
+            soraMainChainId -> {
+                val utilityAsset = chain.utilityAsset ?: error("Utility asset not specified for chain ${chain.name} - ${chain.id}")
+                rewardCalculatorFactory.createSora(utilityAsset, calculationTargets)
+            }
+
+            ternoaChainId -> {
+                val utilityAsset = chain.utilityAsset ?: error("Utility asset not specified for chain ${chain.name} - ${chain.id}")
+                rewardCalculatorFactory.createTernoa(utilityAsset, calculationTargets)
+            }
+
+            else -> {
+                rewardCalculatorFactory.createManual(chainId, calculationTargets)
+            }
+        }
+
         val maxNominators = stakingConstantsRepository.maxRewardedNominatorPerValidator(chainId)
 
         return requestedValidatorIds.map { accountIdHex ->

@@ -6,7 +6,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
@@ -24,6 +26,9 @@ import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.theme.black2
 import jp.co.soramitsu.common.compose.theme.customTypography
+import jp.co.soramitsu.common.compose.theme.white04
+import jp.co.soramitsu.common.utils.onSingleClick
+import jp.co.soramitsu.common.utils.rememberLastClickTime
 
 data class ActionCellViewState(
     val painter: Painter,
@@ -37,8 +42,17 @@ fun ActionCell(
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
+    val lastClickTimeState = rememberLastClickTime()
     val boxModifier = when {
-        state.isEnabled -> modifier.clickable(role = Role.Button, onClick = onClick)
+        state.isEnabled -> modifier.clickable(
+            role = Role.Button,
+            onClick = {
+                onSingleClick(
+                    lastClickTimeState = lastClickTimeState,
+                    onClick = onClick
+                )
+            }
+        )
         else -> modifier
     }
         .size(80.dp)
@@ -55,7 +69,10 @@ fun ActionCell(
             Icon(
                 painter = state.painter,
                 tint = if (state.isEnabled) Color.White else black2,
-                contentDescription = null
+                contentDescription = null,
+                modifier = Modifier
+                    .background(white04, RoundedCornerShape(size = 12.dp))
+                    .padding(6.dp)
             )
             MarginVertical(6.dp)
             Text(

@@ -1,7 +1,11 @@
 package jp.co.soramitsu.account.impl.presentation.mnemonic.backup
 
+import android.app.Activity
+import android.os.Bundle
 import android.text.method.DigitsKeyListener
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.os.bundleOf
+import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.account.api.presentation.account.create.ChainAccountCreatePayload
@@ -9,23 +13,49 @@ import jp.co.soramitsu.account.impl.presentation.view.advanced.encryption.Encryp
 import jp.co.soramitsu.account.impl.presentation.view.advanced.encryption.model.CryptoTypeModel
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.presentation.ErrorDialog
+import jp.co.soramitsu.common.utils.DEFAULT_DERIVATION_PATH
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet.Payload
 import jp.co.soramitsu.common.view.viewBinding
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.databinding.FragmentBackupMnemonicBinding
+import jp.co.soramitsu.shared_utils.encrypt.junction.BIP32JunctionDecoder
 
 @AndroidEntryPoint
 class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>(R.layout.fragment_backup_mnemonic) {
 
     companion object {
-        const val PAYLOAD_KEY = "PAYLOAD_KEY"
-
-        fun getBundle(accountName: String, payload: ChainAccountCreatePayload?) = bundleOf(PAYLOAD_KEY to BackupMnemonicPayload(accountName, payload))
+        fun getBundle(
+            isFromGoogleBackup: Boolean,
+            accountName: String,
+            payload: ChainAccountCreatePayload?
+        ): Bundle {
+            return bundleOf(
+                BackupMnemonicScreenKeys.PAYLOAD_KEY to BackupMnemonicPayload(isFromGoogleBackup, accountName, payload)
+            )
+        }
     }
 
     private val binding by viewBinding(FragmentBackupMnemonicBinding::bind)
 
     override val viewModel: BackupMnemonicViewModel by viewModels()
+
+    private val launcher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        when (result.resultCode) {
+            Activity.RESULT_OK -> with(binding) {
+                viewModel.onGoogleSignInSuccess(
+                    advancedBlockView.getSubstrateDerivationPath(),
+                    advancedBlockView.getEthereumDerivationPath().ifEmpty { BIP32JunctionDecoder.DEFAULT_DERIVATION_PATH }
+                )
+            }
+            Activity.RESULT_CANCELED -> { /* no action */ }
+            else -> {
+                val googleSignInStatus = result.data?.extras?.get("googleSignInStatus")
+                viewModel.onGoogleLoginError(googleSignInStatus.toString())
+            }
+        }
+    }
 
     override fun initViews() {
         with(binding) {
@@ -37,6 +67,7 @@ class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>(R.layout.fr
                 viewModel.infoClicked()
             }
 
+            advancedBlockView.isVisible = viewModel.isShowAdvancedBlock
             advancedBlockView.setOnSubstrateEncryptionTypeClickListener {
                 viewModel.chooseEncryptionClicked()
             }
@@ -45,13 +76,25 @@ class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>(R.layout.fr
             advancedBlockView.ethereumDerivationPathEditText.addTextChangedListener(EthereumDerivationPathTransformer)
 
             nextBtn.setOnClickListener {
-                viewModel.nextClicked(advancedBlockView.getSubstrateDerivationPath(), advancedBlockView.getEthereumDerivationPath())
+                viewModel.onNextClick(
+                    advancedBlockView.getSubstrateDerivationPath(),
+                    advancedBlockView.getEthereumDerivationPath().ifEmpty { BIP32JunctionDecoder.DEFAULT_DERIVATION_PATH },
+                    launcher
+                )
+            }
+            googleBackupLayout.isVisible = viewModel.isShowBackupWithGoogle
+            googleBackupButton.setOnClickListener {
+                viewModel.onGoogleBackupClick(
+                    advancedBlockView.getSubstrateDerivationPath(),
+                    advancedBlockView.getEthereumDerivationPath().ifEmpty { BIP32JunctionDecoder.DEFAULT_DERIVATION_PATH },
+                    launcher
+                )
             }
         }
     }
 
     override fun subscribe(viewModel: BackupMnemonicViewModel) {
-        viewModel.mnemonicLiveData.observe {
+        viewModel.mnemonic.observe {
             binding.backupMnemonicViewer.submitList(it)
         }
 

@@ -1,9 +1,8 @@
 package jp.co.soramitsu.wallet.impl.presentation.send.confirm
 
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -42,7 +41,8 @@ data class ConfirmSendViewState(
     val tipInfoItem: TitleValueViewState? = null,
     val feeInfoItem: TitleValueViewState? = null,
     val buttonState: ButtonViewState,
-    val isLoading: Boolean = false
+    val isLoading: Boolean = false,
+    @DrawableRes val iconOverrideResId: Int? = null
 ) {
     companion object {
         const val CODE_WARNING_CLICK = 3
@@ -76,9 +76,12 @@ fun ConfirmSendContent(
     callback: ConfirmSendScreenInterface
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
-    FullScreenLoading(isLoading = state.isLoading) {
+    FullScreenLoading(
+        isLoading = state.isLoading,
+        contentAlignment = Alignment.BottomStart
+    ) {
         BottomSheetScreen {
-            Box(Modifier.fillMaxSize()) {
+            Box(Modifier.fillMaxWidth()) {
                 Column(
                     modifier = Modifier
                         .padding(horizontal = 16.dp)
@@ -86,13 +89,19 @@ fun ConfirmSendContent(
                         .verticalScroll(rememberScrollState())
                 ) {
                     ToolbarBottomSheet(
-                        title = stringResource(id = R.string.preview),
+                        title = stringResource(id = R.string.common_preview),
                         onNavigationClick = callback::onNavigationClick
                     )
 
                     MarginVertical(margin = 24.dp)
 
-                    if (state.chainIconUrl.isNullOrEmpty()) {
+                    if (state.iconOverrideResId != null) {
+                        GradientIcon(
+                            iconRes = state.iconOverrideResId,
+                            color = colorAccentDark,
+                            modifier = Modifier.align(Alignment.CenterHorizontally)
+                        )
+                    } else if (state.chainIconUrl.isNullOrEmpty()) {
                         GradientIcon(
                             iconRes = R.drawable.ic_fearless_logo,
                             color = colorAccentDark,
@@ -120,18 +129,20 @@ fun ConfirmSendContent(
                     )
                     MarginVertical(margin = 24.dp)
                     InfoTable(items = state.tableItems, onItemClick = callback::onItemClick)
-                    Spacer(modifier = Modifier.weight(1f))
                     MarginVertical(margin = 12.dp)
 
+                    val isInitialLoading = state.feeInfoItem == null
                     AccentButton(
-                        state = state.buttonState,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp),
+                        text = state.buttonState.text.takeIf { isInitialLoading.not() }.orEmpty(),
+                        enabled = state.buttonState.enabled,
+                        loading = isInitialLoading,
                         onClick = {
                             keyboardController?.hide()
                             callback.onNextClick()
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(48.dp)
+                        }
                     )
 
                     MarginVertical(margin = 12.dp)

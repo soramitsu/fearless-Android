@@ -1,16 +1,28 @@
 package jp.co.soramitsu.onboarding.impl.welcome
 
-import androidx.lifecycle.LiveData
+import android.content.Intent
+import androidx.activity.result.ActivityResultLauncher
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
+import jp.co.soramitsu.account.api.domain.PendulumPreInstalledAccountsScenario
+import jp.co.soramitsu.account.api.domain.model.ImportMode
+import jp.co.soramitsu.backup.BackupService
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.mixin.api.Browserable
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.onboarding.impl.OnboardingRouter
 import jp.co.soramitsu.onboarding.impl.welcome.WelcomeFragment.Companion.KEY_PAYLOAD
-import javax.inject.Inject
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.launch
 
 private const val SUBSTRATE_BLOCKCHAIN_TYPE = 0
 
@@ -18,12 +30,25 @@ private const val SUBSTRATE_BLOCKCHAIN_TYPE = 0
 class WelcomeViewModel @Inject constructor(
     private val router: OnboardingRouter,
     private val appLinksProvider: AppLinksProvider,
-    private val savedStateHandle: SavedStateHandle
-) : BaseViewModel(), Browserable {
+    savedStateHandle: SavedStateHandle,
+    private val backupService: BackupService,
+    private val pendulumPreInstalledAccountsScenario: PendulumPreInstalledAccountsScenario
+) : BaseViewModel(), Browserable, WelcomeScreenInterface {
 
     private val payload = savedStateHandle.get<WelcomeFragmentPayload>(KEY_PAYLOAD)!!
 
-    val shouldShowBackLiveData: LiveData<Boolean> = MutableLiveData(payload.displayBack)
+    val state = MutableStateFlow(
+        WelcomeState(
+            isBackVisible = payload.displayBack,
+            preinstalledFeatureEnabled = pendulumPreInstalledAccountsScenario.isFeatureEnabled()
+        )
+    )
+
+    private val _events = Channel<WelcomeEvent>(
+        capacity = Int.MAX_VALUE,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST
+    )
+    val events = _events.receiveAsFlow()
 
     override val openBrowserEvent = MutableLiveData<Event<String>>()
 
@@ -36,23 +61,83 @@ class WelcomeViewModel @Inject constructor(
         }
     }
 
-    fun createAccountClicked() {
+    override fun createAccountClicked() {
         router.openCreateAccountFromOnboarding()
     }
 
-    fun importAccountClicked() {
-        router.openImportAccountScreen(SUBSTRATE_BLOCKCHAIN_TYPE)
+    override fun googleSigninClicked() {
+        _events.trySend(WelcomeEvent.AuthorizeGoogle)
     }
 
-    fun termsClicked() {
+    override fun getPreInstalledWalletClicked() {
+        _events.trySend(WelcomeEvent.ScanQR)
+    }
+
+    override fun importAccountClicked() {
+        router.openSelectImportModeForResult()
+            .onEach(::handleSelectedImportMode)
+            .launchIn(viewModelScope)
+    }
+
+    private fun handleSelectedImportMode(importMode: ImportMode) {
+        if (importMode == ImportMode.Google) {
+            _events.trySend(WelcomeEvent.AuthorizeGoogle)
+        } else {
+            router.openImportAccountScreen(
+                blockChainType = SUBSTRATE_BLOCKCHAIN_TYPE,
+                importMode = importMode
+            )
+        }
+    }
+
+    fun authorizeGoogle(launcher: ActivityResultLauncher<Intent>) {
+        viewModelScope.launch {
+            try {
+                backupService.logout()
+                if (backupService.authorize(launcher)) {
+                    openAddWalletThroughGoogleScreen()
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                showError(e)
+            }
+        }
+    }
+
+    override fun termsClicked() {
         openBrowserEvent.value = Event(appLinksProvider.termsUrl)
     }
 
-    fun privacyClicked() {
+    override fun privacyClicked() {
         openBrowserEvent.value = Event(appLinksProvider.privacyUrl)
     }
 
-    fun backClicked() {
+    fun openAddWalletThroughGoogleScreen() {
+        router.openImportRemoteWalletDialog()
+    }
+
+    fun onGoogleLoginError(message: String?) {
+        showError("GoogleLoginError\n$message")
+    }
+
+    override fun backClicked() {
         router.back()
+    }
+
+    fun onQrScanResult(result: String?) {
+        if (result == null) {
+            showError("Can't scan qr code")
+            return
+        }
+
+        viewModelScope.launch {
+            pendulumPreInstalledAccountsScenario.import(result)
+                .onFailure {
+                    showError(it)
+                }
+                .onSuccess {
+                    router.openCreatePincode()
+                }
+        }
     }
 }

@@ -85,7 +85,7 @@ fun EditPoolScreen(state: EditPoolViewState, screenInterface: EditPoolScreenInte
             MarginVertical(8.dp)
             val stateTogglerState = DropDownViewState(
                 text = state.stateToggler,
-                hint = stringResource(id = R.string.pool_staking_state_toggler)
+                hint = stringResource(id = R.string.pool_staking_bouncer)
             )
             DropDown(state = stateTogglerState, onClick = screenInterface::onStateTogglerClick)
             Spacer(modifier = Modifier.weight(1f))

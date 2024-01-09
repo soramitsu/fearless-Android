@@ -8,9 +8,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
@@ -23,32 +22,38 @@ import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.focus.FocusState
-import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import java.math.BigDecimal
 import jp.co.soramitsu.common.compose.component.AccentButton
 import jp.co.soramitsu.common.compose.component.AmountInput
 import jp.co.soramitsu.common.compose.component.AmountInputViewState
 import jp.co.soramitsu.common.compose.component.FeeInfo
 import jp.co.soramitsu.common.compose.component.FeeInfoViewState
 import jp.co.soramitsu.common.compose.component.FullScreenLoading
-import jp.co.soramitsu.common.compose.component.Grip
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.component.NavigationIconButton
+import jp.co.soramitsu.common.compose.component.Notification
+import jp.co.soramitsu.common.compose.component.NotificationState
 import jp.co.soramitsu.common.compose.component.QuickAmountInput
 import jp.co.soramitsu.common.compose.component.QuickInput
+import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
 import jp.co.soramitsu.common.compose.theme.black05
 import jp.co.soramitsu.common.compose.theme.colorAccentDark
 import jp.co.soramitsu.common.compose.theme.customColors
 import jp.co.soramitsu.common.compose.theme.customTypography
 import jp.co.soramitsu.common.compose.theme.grayButtonBackground
+import jp.co.soramitsu.common.compose.theme.warningOrange
 import jp.co.soramitsu.common.compose.theme.white08
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.presentation.dataOrNull
@@ -63,18 +68,22 @@ data class SwapTokensContentViewState(
     val selectedMarket: Market,
     val swapDetailsViewState: SwapDetailsViewState?,
     val isLoading: Boolean,
-    val networkFeeViewState: LoadingState<out SwapDetailsViewState.NetworkFee?>
+    val networkFeeViewState: LoadingState<out SwapDetailsViewState.NetworkFee?>,
+    val hasReadDisclaimer: Boolean,
+    val isSoftKeyboardOpen: Boolean
 ) {
     companion object {
 
         fun default(resourceManager: ResourceManager): SwapTokensContentViewState {
             return SwapTokensContentViewState(
-                fromAmountInputViewState = AmountInputViewState.default(resourceManager),
+                fromAmountInputViewState = AmountInputViewState.default(resourceManager, R.string.common_available_format),
                 toAmountInputViewState = AmountInputViewState.default(resourceManager),
                 selectedMarket = Market.SMART,
                 swapDetailsViewState = null,
                 isLoading = false,
-                networkFeeViewState = LoadingState.Loaded(null)
+                networkFeeViewState = LoadingState.Loaded(null),
+                hasReadDisclaimer = false,
+                isSoftKeyboardOpen = false
             )
         }
     }
@@ -88,9 +97,9 @@ interface SwapTokensCallbacks {
 
     fun onPreviewClick()
 
-    fun onFromAmountChange(amount: String)
+    fun onFromAmountChange(amount: BigDecimal)
 
-    fun onToAmountChange(amount: String)
+    fun onToAmountChange(amount: BigDecimal)
 
     fun onMarketSettingsClick()
 
@@ -98,9 +107,9 @@ interface SwapTokensCallbacks {
 
     fun onToTokenSelect()
 
-    fun onFromAmountFocusChange(focusState: FocusState)
+    fun onFromAmountFocusChange(isFocused: Boolean)
 
-    fun onToAmountFocusChange(focusState: FocusState)
+    fun onToAmountFocusChange(isFocused: Boolean)
 
     fun minMaxToolTopClick()
 
@@ -109,6 +118,8 @@ interface SwapTokensCallbacks {
     fun networkFeeTooltipClick()
 
     fun onQuickAmountInput(value: Double)
+
+    fun onDisclaimerClick()
 }
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -123,20 +134,31 @@ fun SwapTokensContent(
         keyboardController?.hide()
         block()
     }
-    val isSoftKeyboardOpen = WindowInsets.ime.getBottom(LocalDensity.current) > 0
+
+    val fromFocusRequester = remember { FocusRequester() }
+    val toFocusRequester = remember { FocusRequester() }
+
+    fun onChangeTokensClick() {
+        when {
+            state.fromAmountInputViewState.isFocused -> {
+                toFocusRequester.requestFocus()
+            }
+            state.toAmountInputViewState.isFocused -> {
+                fromFocusRequester.requestFocus()
+            }
+        }
+
+        callbacks.onChangeTokensClick()
+    }
 
     val isFromFocused = state.fromAmountInputViewState.isFocused && !state.fromAmountInputViewState.tokenName.isNullOrEmpty()
-    val showQuickInput = isFromFocused && isSoftKeyboardOpen
+    val showQuickInput = isFromFocused && state.isSoftKeyboardOpen
 
     Column(
         modifier = modifier
             .navigationBarsPadding()
             .imePadding()
     ) {
-        MarginVertical(margin = 2.dp)
-        Grip(Modifier.align(Alignment.CenterHorizontally))
-        MarginVertical(margin = 8.dp)
-
         Row(
             modifier = Modifier.padding(bottom = 12.dp),
             verticalAlignment = Alignment.CenterVertically
@@ -183,8 +205,9 @@ fun SwapTokensContent(
                                 state = state.fromAmountInputViewState,
                                 borderColorFocused = colorAccentDark,
                                 onInput = callbacks::onFromAmountChange,
+                                onInputFocusChange = callbacks::onFromAmountFocusChange,
                                 onTokenClick = { runCallback(callbacks::onFromTokenSelect) },
-                                onInputFocusChange = callbacks::onFromAmountFocusChange
+                                focusRequester = fromFocusRequester
                             )
 
                             MarginVertical(margin = 8.dp)
@@ -193,8 +216,9 @@ fun SwapTokensContent(
                                 state = state.toAmountInputViewState,
                                 borderColorFocused = colorAccentDark,
                                 onInput = callbacks::onToAmountChange,
+                                onInputFocusChange = callbacks::onToAmountFocusChange,
                                 onTokenClick = { runCallback(callbacks::onToTokenSelect) },
-                                onInputFocusChange = callbacks::onToAmountFocusChange
+                                focusRequester = toFocusRequester
                             )
                         }
 
@@ -203,7 +227,7 @@ fun SwapTokensContent(
                                 .clip(CircleShape)
                                 .background(grayButtonBackground)
                                 .border(width = 1.dp, color = white08, shape = CircleShape)
-                                .clickable { runCallback(callbacks::onChangeTokensClick) }
+                                .clickable { runCallback(::onChangeTokensClick) }
                                 .padding(8.dp),
                             painter = painterResource(R.drawable.ic_exchange),
                             contentDescription = null,
@@ -219,16 +243,32 @@ fun SwapTokensContent(
                         )
                     }
                 }
+                if (state.hasReadDisclaimer.not()) {
+                    Box(modifier = modifier.padding(horizontal = 16.dp)) {
+                        Notification(
+                            state = NotificationState(
+                                iconRes = R.drawable.ic_warning_filled,
+                                title = stringResource(R.string.common_disclaimer).uppercase(),
+                                value = stringResource(id = R.string.polkaswap_disclaimer_message),
+                                buttonText = stringResource(R.string.common_read),
+                                color = warningOrange
+                            ),
+                            onAction = callbacks::onDisclaimerClick
+                        )
+                    }
+                    MarginVertical(margin = 16.dp)
+                }
 
                 AccentButton(
                     modifier = Modifier
+                        .height(48.dp)
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
-                        .padding(bottom = 8.dp, top = 16.dp),
+                        .padding(horizontal = 16.dp),
                     text = stringResource(R.string.common_preview),
                     enabled = state.swapDetailsViewState != null,
                     onClick = { runCallback(callbacks::onPreviewClick) }
                 )
+                MarginVertical(margin = 8.dp)
 
                 if (showQuickInput) {
                     QuickInput(
@@ -276,7 +316,7 @@ private fun TransactionDescription(
         FeeInfo(
             state = FeeInfoViewState(
                 caption = "${swapDetailsViewState.fromTokenName} / ${swapDetailsViewState.toTokenName}",
-                feeAmount = swapDetailsViewState.fromTokenOnToToken.format(),
+                feeAmount = swapDetailsViewState.fromTokenOnToToken,
                 feeAmountFiat = null
             )
         )
@@ -284,7 +324,7 @@ private fun TransactionDescription(
         FeeInfo(
             state = FeeInfoViewState(
                 caption = "${swapDetailsViewState.toTokenName} / ${swapDetailsViewState.fromTokenName}",
-                feeAmount = swapDetailsViewState.toTokenOnFromToken.format(),
+                feeAmount = swapDetailsViewState.toTokenOnFromToken,
                 feeAmountFiat = null
             )
         )
@@ -361,6 +401,52 @@ private fun MarketLabel(
             painter = painterResource(R.drawable.ic_settings),
             contentDescription = null,
             tint = MaterialTheme.customColors.white
+        )
+    }
+}
+
+@Preview
+@Composable
+fun SwapTokensContentPreview() {
+    FearlessAppTheme {
+        val amountInputViewState = AmountInputViewState(
+            tokenAmount = BigDecimal.ZERO,
+            title = "title",
+            tokenName = "tokenName",
+            fiatAmount = "fialtAmount",
+            totalBalance = "totalBalance"
+        )
+        val state = SwapTokensContentViewState(
+            fromAmountInputViewState = amountInputViewState.copy(title = "From title"),
+            toAmountInputViewState = amountInputViewState.copy(title = "To title"),
+            selectedMarket = Market.SMART,
+            swapDetailsViewState = null,
+            isLoading = false,
+            networkFeeViewState = LoadingState.Loading(),
+            hasReadDisclaimer = false,
+            isSoftKeyboardOpen = false
+        )
+        val callbacks = object : SwapTokensCallbacks {
+            override fun onChangeTokensClick() {}
+            override fun onBackClick() {}
+            override fun onPreviewClick() {}
+            override fun onFromAmountChange(amount: BigDecimal) {}
+            override fun onToAmountChange(amount: BigDecimal) {}
+            override fun onMarketSettingsClick() {}
+            override fun onFromTokenSelect() {}
+            override fun onToTokenSelect() {}
+            override fun onFromAmountFocusChange(isFocused: Boolean) {}
+            override fun onToAmountFocusChange(isFocused: Boolean) {}
+            override fun minMaxToolTopClick() {}
+            override fun liquidityProviderTooltipClick() {}
+            override fun networkFeeTooltipClick() {}
+            override fun onQuickAmountInput(value: Double) {}
+            override fun onDisclaimerClick() {}
+        }
+
+        SwapTokensContent(
+            state = state,
+            callbacks = callbacks,
         )
     }
 }

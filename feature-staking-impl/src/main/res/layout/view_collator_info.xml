@@ -19,7 +19,7 @@
         android:id="@+id/collatorDelegations"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:validatorInfoItemTitle="@string/staking_collator_delegations"
+        app:validatorInfoItemTitle="@string/collator_staking_sorting_delegations"
         />
 
     <jp.co.soramitsu.staking.impl.presentation.validators.details.view.ValidatorInfoItemView

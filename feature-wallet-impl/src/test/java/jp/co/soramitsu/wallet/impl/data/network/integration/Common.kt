@@ -1,6 +1,6 @@
 package jp.co.soramitsu.wallet.impl.data.network.integration
 
-import jp.co.soramitsu.fearless_utils.wsrpc.logging.Logger
+import jp.co.soramitsu.shared_utils.wsrpc.logging.Logger
 
 class StdoutLogger : Logger {
     override fun log(message: String?) {

@@ -5,6 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.utils.Event
@@ -16,14 +17,13 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @HiltViewModel
 class OptionsWalletViewModel @Inject constructor(
     val savedStateHandle: SavedStateHandle,
     private val accountInteractor: AccountInteractor,
     private val router: WalletRouter
-) : BaseViewModel() {
+) : BaseViewModel(), OptionsWalletCallback {
 
     private val _deleteWalletConfirmation = MutableLiveData<Event<Long>>()
     val deleteWalletConfirmation: LiveData<Event<Long>> = _deleteWalletConfirmation
@@ -40,16 +40,21 @@ class OptionsWalletViewModel @Inject constructor(
         OptionsWalletScreenViewState(true)
     )
 
-    fun exportWallet() {
-        router.openExportWallet(savedStateHandle[KEY_WALLET_ID]!!)
+    override fun onChangeWalletNameClick() {
+        router.back()
+        router.openRenameWallet(savedStateHandle[KEY_WALLET_ID]!!)
     }
 
-    fun openWalletDetails() {
+    override fun onWalletDetailsClick() {
         router.openAccountDetails(savedStateHandle[KEY_WALLET_ID]!!)
     }
 
-    fun deleteWallet() {
+    override fun onDeleteWalletClick() {
         _deleteWalletConfirmation.value = Event(savedStateHandle[KEY_WALLET_ID]!!)
+    }
+
+    override fun onCloseClick() {
+        router.back()
     }
 
     fun deleteWalletConfirmed() {
@@ -57,5 +62,9 @@ class OptionsWalletViewModel @Inject constructor(
             accountInteractor.deleteAccount(savedStateHandle[KEY_WALLET_ID]!!)
             router.back()
         }
+    }
+
+    override fun onBackupWalletClick() {
+        router.openBackupWalletScreen(savedStateHandle[KEY_WALLET_ID]!!)
     }
 }

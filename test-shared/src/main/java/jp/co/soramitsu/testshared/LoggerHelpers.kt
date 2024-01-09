@@ -1,6 +1,6 @@
 package jp.co.soramitsu.testshared
 
-import jp.co.soramitsu.fearless_utils.wsrpc.logging.Logger
+import jp.co.soramitsu.shared_utils.wsrpc.logging.Logger
 
 object StdoutLogger : Logger {
     override fun log(message: String?) {

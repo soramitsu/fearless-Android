@@ -30,7 +30,7 @@ android {
     kotlinOptions {
         freeCompilerArgs = ["-Xallow-result-return-type"]
 
-        jvmTarget = '1.8'
+        jvmTarget = '11'
     }
 
     composeOptions {
@@ -39,8 +39,8 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility 1.8
-        targetCompatibility 1.8
+        sourceCompatibility 11
+        targetCompatibility 11
     }
     namespace 'jp.co.soramitsu.feature_staking_impl'
 }
@@ -51,7 +51,6 @@ dependencies {
     implementation project(':feature-staking-api')
     implementation project(':feature-account-api')
     implementation project(':feature-wallet-api')
-    implementation project(':feature-staking-api')
     implementation project(':runtime')
 
     implementation kotlinDep
@@ -60,8 +59,6 @@ dependencies {
     implementation materialDep
     implementation cardViewDep
     implementation constraintDep
-
-    implementation permissionsDep
 
     implementation coroutinesDep
     implementation coroutinesAndroidDep
@@ -86,7 +83,6 @@ dependencies {
     testImplementation jUnitDep
     testImplementation mockitoDep
 
-    implementation fearlessLibDep
     compileOnly wsDep
 
     implementation gsonDep
@@ -96,4 +92,7 @@ dependencies {
 
     implementation compose
     debugImplementation composeDebug
+
+    implementation gsonConvertedDep
+    implementation scalarsConverterDep
 }

@@ -1,12 +1,11 @@
 package jp.co.soramitsu.wallet.impl.domain.model
 
 import androidx.annotation.DrawableRes
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
-import java.util.Locale
+import jp.co.soramitsu.core.models.Asset as CoreAsset
 
 class BuyTokenRegistry(val availableProviders: List<Provider<*>>) {
 
-    fun availableProviders(chainAsset: Chain.Asset) = availableProviders.filter { it.isTokenSupported(chainAsset) }
+    fun availableProviders(chainAsset: CoreAsset) = availableProviders.filter { it.isTokenSupported(chainAsset) }
 
     interface Provider<I : Integrator<*>> {
         class UnsupportedTokenException : Exception()
@@ -16,9 +15,9 @@ class BuyTokenRegistry(val availableProviders: List<Provider<*>>) {
         @get:DrawableRes
         val icon: Int
 
-        fun isTokenSupported(chainAsset: Chain.Asset) = name.toLowerCase(Locale.ROOT) in chainAsset.priceProviders.orEmpty()
+        fun isTokenSupported(chainAsset: CoreAsset) = name.lowercase() in chainAsset.priceProviders.orEmpty()
 
-        fun createIntegrator(chainAsset: Chain.Asset, address: String): I
+        fun createIntegrator(chainAsset: CoreAsset, address: String): I
     }
 
     interface Integrator<T> {

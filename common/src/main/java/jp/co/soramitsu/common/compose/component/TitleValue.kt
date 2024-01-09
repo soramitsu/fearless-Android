@@ -25,7 +25,10 @@ data class TitleValueViewState(
     val valueColor: Color = Color.Unspecified,
     val clickState: ClickState? = null
 ) {
-    data class ClickState(@DrawableRes val icon: Int, val identifier: Int)
+    sealed class ClickState(@DrawableRes val icon: Int, val identifier: Int) {
+        class Title(@DrawableRes icon: Int, identifier: Int) : ClickState(icon, identifier)
+        class Value(@DrawableRes icon: Int, identifier: Int) : ClickState(icon, identifier)
+    }
 }
 
 @Composable
@@ -104,7 +107,11 @@ private fun TitleToValueShimmer(modifier: Modifier) {
 @Preview
 private fun TitleValuePreview() {
     FearlessTheme {
-        Column(modifier = Modifier.padding(16.dp).background(Color.Black)) {
+        Column(
+            modifier = Modifier
+                .padding(16.dp)
+                .background(Color.Black)
+        ) {
             TitleToValue(
                 testTag = "",
                 state = TitleValueViewState("Total staked", "2.5M KSM", "\$380.94M")

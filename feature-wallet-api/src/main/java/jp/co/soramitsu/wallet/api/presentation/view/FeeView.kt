@@ -13,7 +13,7 @@ class FeeView @JvmOverloads constructor(
 ) : TableCellView(context, attrs, defStyle) {
 
     init {
-        setTitle(R.string.network_fee)
+        setTitle(R.string.common_network_fee)
 
         setFeeStatus(FeeStatus.Loading)
     }

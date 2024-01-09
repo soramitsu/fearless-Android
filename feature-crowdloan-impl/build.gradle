@@ -28,12 +28,12 @@ android {
     kotlinOptions {
         freeCompilerArgs = ["-Xallow-result-return-type"]
 
-        jvmTarget = '1.8'
+        jvmTarget = '11'
     }
 
     compileOptions {
-        sourceCompatibility 1.8
-        targetCompatibility 1.8
+        sourceCompatibility 11
+        targetCompatibility 11
     }
     namespace 'jp.co.soramitsu.feature_crowdloan_impl'
 }
@@ -52,8 +52,6 @@ dependencies {
     implementation materialDep
     implementation cardViewDep
     implementation constraintDep
-
-    implementation permissionsDep
 
     implementation coroutinesDep
     implementation coroutinesAndroidDep
@@ -77,7 +75,6 @@ dependencies {
     testImplementation jUnitDep
     testImplementation mockitoDep
 
-    implementation fearlessLibDep
     compileOnly wsDep
 
     implementation gsonDep

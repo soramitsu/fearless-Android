@@ -2,17 +2,17 @@ package jp.co.soramitsu.common.address
 
 import android.graphics.drawable.PictureDrawable
 import androidx.annotation.ColorRes
-import java.util.concurrent.ConcurrentHashMap
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.fearless_utils.exceptions.AddressFormatException
-import jp.co.soramitsu.fearless_utils.extensions.requireHexPrefix
-import jp.co.soramitsu.fearless_utils.extensions.toHexString
-import jp.co.soramitsu.fearless_utils.icon.IconGenerator
-import jp.co.soramitsu.fearless_utils.runtime.AccountId
-import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
+import jp.co.soramitsu.shared_utils.exceptions.AddressFormatException
+import jp.co.soramitsu.shared_utils.extensions.requireHexPrefix
+import jp.co.soramitsu.shared_utils.extensions.toHexString
+import jp.co.soramitsu.shared_utils.icon.IconGenerator
+import jp.co.soramitsu.shared_utils.runtime.AccountId
+import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.toAccountId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.util.concurrent.ConcurrentHashMap
 
 interface AddressIconGenerator {
 

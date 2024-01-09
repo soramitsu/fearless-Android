@@ -24,7 +24,7 @@
         android:layout_height="24dp"
         android:layout_gravity="center_vertical"
         android:layout_marginStart="16dp"
-        tools:src="@color/colorAccent" />
+        tools:src="@color/colorAccentDark" />
 
     <TextView
         android:id="@+id/itemValidatorName"
@@ -48,7 +48,7 @@
         <TextView
             android:id="@+id/itemValidatorScoringPrimary"
             style="@style/TextAppearance.Soramitsu.Body1"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
             tools:text="17.81%" />

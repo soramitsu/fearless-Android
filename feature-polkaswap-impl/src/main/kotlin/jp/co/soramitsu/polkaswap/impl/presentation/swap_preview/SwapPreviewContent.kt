@@ -1,42 +1,32 @@
 package jp.co.soramitsu.polkaswap.impl.presentation.swap_preview
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.zIndex
 import jp.co.soramitsu.common.compose.component.AccentButton
 import jp.co.soramitsu.common.compose.component.FullScreenLoading
-import jp.co.soramitsu.common.compose.component.GradientIcon
-import jp.co.soramitsu.common.compose.component.Grip
+import jp.co.soramitsu.common.compose.component.GradientIconState
 import jp.co.soramitsu.common.compose.component.InfoTable
-import jp.co.soramitsu.common.compose.component.MarginHorizontal
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.component.NavigationIconButton
+import jp.co.soramitsu.common.compose.component.SwapHeader
 import jp.co.soramitsu.common.compose.component.TitleValueViewState
-import jp.co.soramitsu.common.compose.theme.backgroundBlack
-import jp.co.soramitsu.common.compose.theme.colorAccentDark
-import jp.co.soramitsu.common.compose.theme.customColors
 import jp.co.soramitsu.common.compose.theme.customTypography
 import jp.co.soramitsu.feature_polkaswap_impl.R
 import jp.co.soramitsu.polkaswap.api.presentation.models.SwapDetailsViewState
@@ -67,10 +57,6 @@ fun SwapPreviewContent(
             .imePadding(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        MarginVertical(margin = 2.dp)
-        Grip(Modifier.align(Alignment.CenterHorizontally))
-        MarginVertical(margin = 8.dp)
-
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
@@ -103,70 +89,12 @@ fun SwapPreviewContent(
                 ) {
                     MarginVertical(margin = 16.dp)
 
-                    Row {
-                        GradientIcon(
-                            icon = state.swapDetailsViewState.fromTokenImage!!,
-                            color = colorAccentDark,
-                            background = backgroundBlack,
-                            modifier = Modifier
-                                .offset(x = 25.dp)
-                                .zIndex(1f),
-                            contentPadding = PaddingValues(10.dp),
-                            tintImage = false
-                        )
-                        GradientIcon(
-                            icon = state.swapDetailsViewState.toTokenImage!!,
-                            color = colorAccentDark,
-                            background = backgroundBlack,
-                            modifier = Modifier
-                                .offset(x = (-25).dp)
-                                .zIndex(0f),
-                            contentPadding = PaddingValues(10.dp),
-                            tintImage = false
-                        )
-                    }
-
-                    Text(
-                        modifier = Modifier.padding(top = 16.dp),
-                        text = stringResource(R.string.polkaswap_swap_title),
-                        style = MaterialTheme.customTypography.header2,
-                        color = MaterialTheme.customColors.white50
+                    SwapHeader(
+                        fromTokenImage = state.swapDetailsViewState.fromTokenImage!!,
+                        toTokenImage = state.swapDetailsViewState.toTokenImage!!,
+                        fromTokenAmount = state.swapDetailsViewState.fromTokenAmount,
+                        toTokenAmount = state.swapDetailsViewState.toTokenAmount
                     )
-
-                    Row(
-                        modifier = Modifier.padding(top = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        Text(
-                            modifier = Modifier
-                                .weight(1f),
-                            text = state.swapDetailsViewState.fromTokenAmount.format(),
-                            style = MaterialTheme.customTypography.header3,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            textAlign = TextAlign.End
-                        )
-
-                        MarginHorizontal(margin = 16.dp)
-
-                        Icon(
-                            painter = painterResource(R.drawable.ic_arrow_right_24),
-                            contentDescription = null,
-                            tint = MaterialTheme.customColors.white
-                        )
-
-                        MarginHorizontal(margin = 16.dp)
-
-                        Text(
-                            modifier = Modifier.weight(1f),
-                            text = state.swapDetailsViewState.toTokenAmount.format(),
-                            style = MaterialTheme.customTypography.header3,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            textAlign = TextAlign.Start
-                        )
-                    }
 
                     val fromTokenName = state.swapDetailsViewState.fromTokenName
                     val toTokenName = state.swapDetailsViewState.toTokenName
@@ -208,6 +136,7 @@ fun SwapPreviewContent(
 
                 AccentButton(
                     modifier = Modifier
+                        .height(48.dp)
                         .padding(horizontal = 16.dp)
                         .fillMaxWidth(),
                     text = stringResource(R.string.common_confirm),
@@ -230,8 +159,8 @@ fun SwapPreviewContentPreview() {
                 toTokenId = "1002",
                 fromTokenName = "VAL",
                 toTokenName = "XSTUSD",
-                fromTokenImage = "",
-                toTokenImage = "",
+                fromTokenImage = GradientIconState.Remote("", ""),
+                toTokenImage = GradientIconState.Remote("", ""),
                 toTokenMinReceived = "1",
                 toFiatMinReceived = "\$0.98",
                 fromTokenAmount = "1",
@@ -241,8 +170,8 @@ fun SwapPreviewContentPreview() {
                     tokenName = "XOR",
                     fiatAmount = "\$ 0.32"
                 ),
-                fromTokenOnToToken = "0",
-                toTokenOnFromToken = "0",
+                fromTokenOnToToken = "0.1234",
+                toTokenOnFromToken = "12345,0",
                 minmaxTitle = stringResource(id = R.string.common_min_received)
             ),
             networkFee = SwapDetailsViewState.NetworkFee(

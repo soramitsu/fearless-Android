@@ -28,14 +28,14 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility 1.8
-        targetCompatibility 1.8
+        sourceCompatibility 11
+        targetCompatibility 11
     }
 
     kotlinOptions {
         freeCompilerArgs = ["-Xallow-result-return-type"]
 
-        jvmTarget = '1.8'
+        jvmTarget = '11'
     }
     composeOptions {
         kotlinCompilerExtensionVersion composeCompilerVersion
@@ -51,6 +51,9 @@ dependencies {
     implementation project(':feature-account-api')
     implementation project(':feature-staking-api')
     implementation project(':feature-wallet-api')
+    implementation project(':feature-soracard-api')
+    implementation project(':feature-soracard-impl')
+    implementation project(':feature-polkaswap-api')
     implementation kotlinDep
 
     implementation androidDep
@@ -65,8 +68,6 @@ dependencies {
     implementation zXingEmbeddedDep
 
     implementation bouncyCastleDep
-
-    implementation fearlessLibDep
 
     implementation coroutinesDep
     implementation coroutinesAndroidDep
@@ -94,4 +95,8 @@ dependencies {
     testImplementation mockitoDep
 
     implementation gsonDep
+
+    api sharedFeaturesCoreDep
+
+    implementation sharedFeaturesBackupDep
 }

@@ -2,7 +2,7 @@ package jp.co.soramitsu.staking.impl.domain.recommendations.settings
 
 import androidx.lifecycle.Lifecycle
 import jp.co.soramitsu.common.data.memory.ComputationalCache
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.staking.api.data.StakingSharedState
 import jp.co.soramitsu.staking.impl.data.repository.StakingConstantsRepository
 
@@ -14,11 +14,11 @@ class RecommendationSettingsProviderFactory(
     private val sharedState: StakingSharedState
 ) {
 
-    suspend fun create(lifecycle: Lifecycle, stakingType: Chain.Asset.StakingType): RecommendationSettingsProvider<*> {
+    suspend fun create(lifecycle: Lifecycle, stakingType: Asset.StakingType): RecommendationSettingsProvider<*> {
         return computationalCache.useCache(SETTINGS_PROVIDER_KEY, lifecycle) {
             return@useCache when (stakingType) {
-                Chain.Asset.StakingType.PARACHAIN -> createParachain(lifecycle)
-                Chain.Asset.StakingType.RELAYCHAIN -> createRelayChain(lifecycle)
+                Asset.StakingType.PARACHAIN -> createParachain(lifecycle)
+                Asset.StakingType.RELAYCHAIN -> createRelayChain(lifecycle)
                 else -> error("Unsupported staking type")
             }
         }

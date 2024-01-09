@@ -15,7 +15,7 @@
         android:layout_marginHorizontal="@dimen/x2"
         android:layout_marginTop="12dp"
         app:enabled="false"
-        app:targetName="@string/staking_payout" />
+        app:targetName="@string/common_payout" />
 
     <jp.co.soramitsu.common.view.AccountInfoView
         android:id="@+id/payoutViewerAccountView"

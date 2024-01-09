@@ -2,11 +2,11 @@ package jp.co.soramitsu.common.data.secrets.v2
 
 import jp.co.soramitsu.common.data.secrets.v1.Keypair
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
-import jp.co.soramitsu.fearless_utils.encrypt.keypair.Keypair
-import jp.co.soramitsu.fearless_utils.extensions.toHexString
-import jp.co.soramitsu.fearless_utils.runtime.AccountId
-import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
-import jp.co.soramitsu.fearless_utils.scale.toHexString
+import jp.co.soramitsu.shared_utils.encrypt.keypair.Keypair
+import jp.co.soramitsu.shared_utils.extensions.toHexString
+import jp.co.soramitsu.shared_utils.runtime.AccountId
+import jp.co.soramitsu.shared_utils.scale.EncodableStruct
+import jp.co.soramitsu.shared_utils.scale.toHexString
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 

@@ -53,7 +53,7 @@ fun FeeInfo(state: FeeInfoViewState, modifier: Modifier = Modifier, tooltipClick
                 .then(tooltipClickModifier)
         ) {
             B2(
-                text = state.caption ?: stringResource(id = R.string.network_fee),
+                text = state.caption ?: stringResource(id = R.string.common_network_fee),
                 color = black2,
                 modifier = Modifier.align(CenterVertically)
             )

@@ -1,12 +1,12 @@
 package jp.co.soramitsu.wallet.impl.presentation.model
 
-import java.math.BigDecimal
 import jp.co.soramitsu.common.utils.isNonNegative
+import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.feature_wallet_impl.R
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import java.math.BigDecimal
 
 data class TokenModel(
-    val configuration: Chain.Asset,
+    val configuration: Asset,
     val fiatRate: BigDecimal?,
     val fiatSymbol: String?,
     val recentRateChange: BigDecimal?

@@ -16,6 +16,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.R
@@ -68,7 +69,7 @@ fun <T : MultiToggleItem> MultiToggleButton(
                 ) {
                     Text(
                         text = stringResource(toggleState.titleResId),
-                        style = style,
+                        style = style.copy(textAlign = TextAlign.Center),
                         color = Color.White,
                         modifier = Modifier
                             .padding(vertical = 8.dp)
@@ -93,7 +94,7 @@ interface MultiToggleItem {
 @Composable
 private fun PreviewMultiToggleButton() {
     val currencies = object : MultiToggleItem {
-        override val titleResId = R.string.сurrencies_stub_text
+        override val titleResId = R.string.currencies_stub_text
     }
     val nfts = object : MultiToggleItem {
         override val titleResId = R.string.nfts_stub

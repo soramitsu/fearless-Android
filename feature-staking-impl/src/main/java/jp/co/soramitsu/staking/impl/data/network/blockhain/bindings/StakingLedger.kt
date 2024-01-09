@@ -6,12 +6,13 @@ import jp.co.soramitsu.common.data.network.runtime.binding.getList
 import jp.co.soramitsu.common.data.network.runtime.binding.getTyped
 import jp.co.soramitsu.common.data.network.runtime.binding.incompatible
 import jp.co.soramitsu.common.data.network.runtime.binding.requireType
-import jp.co.soramitsu.common.data.network.runtime.binding.returnType
 import jp.co.soramitsu.common.utils.staking
-import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
-import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.Struct
-import jp.co.soramitsu.fearless_utils.runtime.definitions.types.fromHexOrNull
-import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
+import jp.co.soramitsu.core.runtime.storage.returnType
+import jp.co.soramitsu.shared_utils.runtime.RuntimeSnapshot
+import jp.co.soramitsu.shared_utils.runtime.definitions.types.composite.Struct
+import jp.co.soramitsu.shared_utils.runtime.definitions.types.fromHexOrNull
+import jp.co.soramitsu.shared_utils.runtime.metadata.storage
+import jp.co.soramitsu.staking.api.domain.model.EraIndex
 import jp.co.soramitsu.staking.api.domain.model.StakingLedger
 import jp.co.soramitsu.staking.api.domain.model.UnlockChunk
 
@@ -26,8 +27,16 @@ fun bindStakingLedger(scale: String, runtime: RuntimeSnapshot): StakingLedger {
         total = dynamicInstance.getTyped("total"),
         active = dynamicInstance.getTyped("active"),
         unlocking = dynamicInstance.getList("unlocking").map(::bindUnlockChunk),
-        claimedRewards = dynamicInstance.getList("claimedRewards").map(::bindEraIndex)
+        claimedRewards = bindClaimedRewards(dynamicInstance)
     )
+}
+
+fun bindClaimedRewards(dynamicInstance: Struct.Instance): List<EraIndex> {
+    return when {
+        dynamicInstance.mapping.containsKey("claimedRewards") -> dynamicInstance.getList("claimedRewards")
+        dynamicInstance.mapping.containsKey("legacyClaimedRewards") -> dynamicInstance.getList("legacyClaimedRewards")
+        else -> emptyList()
+    }.map(::bindEraIndex)
 }
 
 @HelperBinding

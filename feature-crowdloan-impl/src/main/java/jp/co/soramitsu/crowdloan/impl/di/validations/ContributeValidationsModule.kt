@@ -7,6 +7,8 @@ import dagger.hilt.components.SingletonComponent
 import dagger.multibindings.IntoSet
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.validation.CompositeValidation
+import jp.co.soramitsu.common.validation.DefaultFailureLevel
+import jp.co.soramitsu.core.extrinsic.mortality.IChainStateRepository
 import jp.co.soramitsu.crowdloan.api.data.repository.CrowdloanRepository
 import jp.co.soramitsu.crowdloan.impl.domain.contribute.validations.CapExceededValidation
 import jp.co.soramitsu.crowdloan.impl.domain.contribute.validations.ContributeEnoughToPayFeesValidation
@@ -18,7 +20,6 @@ import jp.co.soramitsu.crowdloan.impl.domain.contribute.validations.CrowdloanNot
 import jp.co.soramitsu.crowdloan.impl.domain.contribute.validations.MinContributionValidation
 import jp.co.soramitsu.crowdloan.impl.domain.contribute.validations.PublicCrowdloanValidation
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletConstants
-import jp.co.soramitsu.runtime.repository.ChainStateRepository
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -46,7 +47,7 @@ class ContributeValidationsModule {
     @Provides
     @IntoSet
     fun provideCrowdloanNotEndedValidation(
-        chainStateRepository: ChainStateRepository,
+        chainStateRepository: IChainStateRepository,
         crowdloanRepository: CrowdloanRepository
     ): ContributeValidation = CrowdloanNotEndedValidation(chainStateRepository, crowdloanRepository)
 
@@ -60,7 +61,8 @@ class ContributeValidationsModule {
         feeProducer = { it.fee },
         extraAmountProducer = { it.contributionAmount },
         tokenProducer = { it.asset.token },
-        errorProducer = { ContributeValidationFailure.ExistentialDepositCrossed }
+        errorProducer = { ContributeValidationFailure.ExistentialDepositCrossed(it) },
+        warningLevel = DefaultFailureLevel.ERROR
     )
 
     @Provides

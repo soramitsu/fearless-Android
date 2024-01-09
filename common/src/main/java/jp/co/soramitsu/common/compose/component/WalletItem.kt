@@ -1,9 +1,13 @@
 package jp.co.soramitsu.common.compose.component
 
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -14,16 +18,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
 import jp.co.soramitsu.common.R
-import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.theme.black05
-import jp.co.soramitsu.common.compose.theme.colorAccent
+import jp.co.soramitsu.common.compose.theme.borderGradientColors
 import jp.co.soramitsu.common.compose.theme.gray2
-import jp.co.soramitsu.common.compose.theme.white24
+import jp.co.soramitsu.common.compose.theme.white08
 import jp.co.soramitsu.common.utils.clickableWithNoIndication
 
 data class WalletItemViewState(
@@ -41,60 +45,82 @@ data class WalletItemViewState(
 fun WalletItem(
     state: WalletItemViewState,
     onOptionsClick: ((WalletItemViewState) -> Unit)? = null,
-    onSelected: (WalletItemViewState) -> Unit
+    onSelected: (WalletItemViewState) -> Unit,
+    onLongClick: (WalletItemViewState) -> Unit = {},
+    modifier: Modifier = Modifier
 ) {
     val borderColor = if (state.isSelected) {
-        colorAccent
+        borderGradientColors
     } else {
-        white24
+        listOf(white08)
     }
 
-    BackgroundCorneredWithBorder(
-        modifier = Modifier
+    BackgroundCorneredWithGradientBorder(
+        modifier = modifier
             .fillMaxWidth()
-            .clickableWithNoIndication { onSelected(state) },
-        borderColor = borderColor,
-        backgroundColor = black05
+            .clickableWithNoIndication { onSelected(state) }
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onPress = { /* Called when the gesture starts */ },
+                    onDoubleTap = { /* Called on Double Tap */ },
+                    onLongPress = {
+                        /* Called on Long Press */
+                        onLongClick(state)
+                    },
+                    onTap = {
+                        /* Called on Tap */
+                        onSelected(state)
+                    }
+                )
+            },
+        borderColors = borderColor,
+        backgroundColor = black05 // white08.compositeOver(darkButtonBackground)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
+                .heightIn(min = 72.dp)
+                .padding(horizontal = 12.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
                 contentAlignment = Alignment.CenterStart,
                 modifier = Modifier
-                    .weight(1f)
                     .size(32.dp)
             ) {
                 Icon(
+                    modifier = Modifier.fillMaxSize(),
                     painter = rememberAsyncImagePainter(model = state.walletIcon),
                     contentDescription = null,
                     tint = Color.Unspecified
                 )
             }
+            MarginHorizontal(margin = 12.dp)
             Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(6f),
                 horizontalAlignment = Alignment.Start
             ) {
-                B2(
-                    text = state.title,
-                    color = gray2
-                )
-                H4(
-                    text = state.assetSymbol.orEmpty() + state.balance.orEmpty()
-                )
-                state.changeBalanceViewState?.let {
-                    ChangeBalance(state = it)
+                if (state.balance != null || state.changeBalanceViewState != null) {
+                    B2(
+                        text = state.title,
+                        color = gray2
+                    )
+                    H4(
+                        text = state.assetSymbol.orEmpty() + state.balance.orEmpty()
+                    )
+                    state.changeBalanceViewState?.let {
+                        ChangeBalance(state = it)
+                    }
+                } else {
+                    B1(
+                        text = state.title,
+                        color = gray2
+                    )
                 }
             }
+            Spacer(modifier = Modifier.weight(1f))
             onOptionsClick?.let { optionsAction ->
                 Box(
-                    contentAlignment = Alignment.CenterEnd,
-                    modifier = Modifier.weight(1f)
+                    contentAlignment = Alignment.CenterEnd
                 ) {
                     IconButton(
                         onClick = {
@@ -141,10 +167,23 @@ private fun WalletItemPreview() {
         changeBalanceViewState = changeBalanceViewState
     )
 
-    FearlessTheme {
+    Column {
         WalletItem(
             state = state,
             onOptionsClick = {},
+            onSelected = {}
+        )
+        WalletItem(
+            state = state.copy(isSelected = false),
+            onOptionsClick = {},
+            onSelected = {}
+        )
+        WalletItem(
+            state = state.copy(
+                isSelected = false,
+                changeBalanceViewState = null,
+                balance = null
+            ),
             onSelected = {}
         )
     }

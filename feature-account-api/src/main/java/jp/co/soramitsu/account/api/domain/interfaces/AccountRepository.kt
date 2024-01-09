@@ -5,16 +5,18 @@ import jp.co.soramitsu.account.api.domain.model.ImportJsonData
 import jp.co.soramitsu.account.api.domain.model.LightMetaAccount
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.MetaAccountOrdering
+import jp.co.soramitsu.backup.domain.models.BackupAccountType
 import jp.co.soramitsu.common.data.secrets.v2.ChainAccountSecrets
 import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
-import jp.co.soramitsu.core.model.CryptoType
 import jp.co.soramitsu.core.model.Language
 import jp.co.soramitsu.core.model.SecuritySource
-import jp.co.soramitsu.fearless_utils.runtime.AccountId
-import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
+import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.shared_utils.runtime.AccountId
+import jp.co.soramitsu.shared_utils.scale.EncodableStruct
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.StateFlow
 
 class AccountAlreadyExistsException : Exception()
 
@@ -42,6 +44,10 @@ interface AccountRepository {
 
     suspend fun updateMetaAccountName(metaId: Long, newName: String)
 
+    suspend fun updateMetaAccountBackedUp(metaId: Long)
+
+    suspend fun updateWalletOnGoogleBackupDelete(metaId: Long)
+
     suspend fun getPreferredCryptoType(): CryptoType
 
     suspend fun isAccountSelected(): Boolean
@@ -51,7 +57,8 @@ interface AccountRepository {
         mnemonic: String,
         encryptionType: CryptoType,
         substrateDerivationPath: String,
-        ethereumDerivationPath: String
+        ethereumDerivationPath: String,
+        isBackedUp: Boolean
     )
 
     suspend fun importChainAccountFromMnemonic(
@@ -85,20 +92,23 @@ interface AccountRepository {
     suspend fun getMyAccounts(query: String, chainId: String): Set<Account>
 
     suspend fun importFromMnemonic(
-        keyString: String,
-        username: String,
+        mnemonic: String,
+        accountName: String,
         substrateDerivationPath: String,
         ethereumDerivationPath: String,
         selectedEncryptionType: CryptoType,
-        withEth: Boolean
-    )
+        withEth: Boolean,
+        isBackedUp: Boolean,
+        googleBackupAddress: String?
+    ): Long
 
     suspend fun importFromSeed(
         seed: String,
         username: String,
         derivationPath: String,
         selectedEncryptionType: CryptoType,
-        ethSeed: String?
+        ethSeed: String?,
+        googleBackupAddress: String?
     )
 
     suspend fun importChainFromSeed(
@@ -110,11 +120,14 @@ interface AccountRepository {
         selectedEncryptionType: CryptoType
     )
 
+    fun validateJsonBackup(json: String, password: String)
+
     suspend fun importFromJson(
         json: String,
         password: String,
         name: String,
-        ethJson: String?
+        ethJson: String?,
+        googleBackupAddress: String?
     )
 
     suspend fun importChainFromJson(
@@ -162,8 +175,17 @@ interface AccountRepository {
     suspend fun isInCurrentNetwork(address: String, chainId: ChainId): Boolean
 
     fun polkadotAddressForSelectedAccountFlow(): Flow<String>
-
+    fun googleAddressAllWalletsFlow(): Flow<List<String>>
+    suspend fun googleBackupAddressForWallet(walletId: Long): String
+    suspend fun isGoogleBackupSupported(walletId: Long): Boolean
+    suspend fun getSupportedBackupTypes(walletId: Long): Set<BackupAccountType>
     suspend fun getChain(chainId: ChainId): Chain
 
-    fun allMetaAccountsFlow(): Flow<List<MetaAccount>>
+    suspend fun updateFavoriteChain(metaAccountId: Long, chainId: ChainId, isFavorite: Boolean)
+
+    fun allMetaAccountsFlow(): StateFlow<List<MetaAccount>>
+    fun selectedLightMetaAccountFlow(): Flow<LightMetaAccount>
+    suspend fun getSelectedLightMetaAccount(): LightMetaAccount
+    suspend fun getLightMetaAccount(metaId: Long): LightMetaAccount
+    fun observeFavoriteChains(metaId: Long): Flow<Map<ChainId, Boolean>>
 }

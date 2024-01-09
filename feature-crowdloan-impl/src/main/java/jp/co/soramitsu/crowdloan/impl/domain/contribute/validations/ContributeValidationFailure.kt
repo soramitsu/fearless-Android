@@ -1,20 +1,20 @@
 package jp.co.soramitsu.crowdloan.impl.domain.contribute.validations
 
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import java.math.BigDecimal
+import jp.co.soramitsu.core.models.Asset
 
 sealed class ContributeValidationFailure {
 
     class LessThanMinContribution(
         val minContribution: BigDecimal,
-        val chainAsset: Chain.Asset
+        val chainAsset: Asset
     ) : ContributeValidationFailure()
 
     sealed class CapExceeded : ContributeValidationFailure() {
 
         class FromAmount(
             val maxAllowedContribution: BigDecimal,
-            val chainAsset: Chain.Asset
+            val chainAsset: Asset
         ) : CapExceeded()
 
         object FromRaised : CapExceeded()
@@ -24,7 +24,9 @@ sealed class ContributeValidationFailure {
 
     object CannotPayFees : ContributeValidationFailure()
 
-    object ExistentialDepositCrossed : ContributeValidationFailure()
+    class ExistentialDepositCrossed(
+        val edAmount: String
+    ) : ContributeValidationFailure()
 
     object PrivateCrowdloanNotSupported : ContributeValidationFailure()
 }

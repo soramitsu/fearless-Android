@@ -1,16 +1,21 @@
 package jp.co.soramitsu.wallet.impl.presentation.model
 
 import android.graphics.drawable.Drawable
-import androidx.annotation.ColorRes
+import androidx.compose.ui.graphics.Color
 
 class OperationModel(
     val id: String,
     val time: Long,
     val amount: String,
-    @ColorRes val amountColorRes: Int,
+    val amountColor: Color = Color.White,
     val header: String,
     val statusAppearance: OperationStatusAppearance,
     val operationIcon: Drawable?,
     val subHeader: String,
+    val type: Type,
     val assetIconUrl: String? = null
-)
+) {
+    enum class Type {
+        Extrinsic, Reward, Transfer, Swap
+    }
+}

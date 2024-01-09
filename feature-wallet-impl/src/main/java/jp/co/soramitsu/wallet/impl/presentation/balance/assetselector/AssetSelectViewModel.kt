@@ -5,10 +5,11 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseViewModel
-import jp.co.soramitsu.common.utils.format
+import jp.co.soramitsu.common.utils.formatCrypto
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.wallet.impl.data.mappers.mapAssetToAssetModel
+import jp.co.soramitsu.wallet.impl.domain.XcmInteractor
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.presentation.model.AssetModel
@@ -24,7 +25,8 @@ import jp.co.soramitsu.wallet.api.presentation.WalletRouter as WalletRouterApi
 @HiltViewModel
 class AssetSelectViewModel @Inject constructor(
     private val walletRouter: WalletRouter,
-    private val walletInteractor: WalletInteractor,
+    walletInteractor: WalletInteractor,
+    xcmInteractor: XcmInteractor,
     savedStateHandle: SavedStateHandle,
     private val sharedSendState: SendSharedState
 ) : BaseViewModel(), AssetSelectContentInterface {
@@ -32,13 +34,18 @@ class AssetSelectViewModel @Inject constructor(
     private var choiceDone = false
 
     private val filterChainId: String? = savedStateHandle[AssetSelectFragment.KEY_FILTER_CHAIN_ID]
+    private val isFilterXcmAssets: Boolean = savedStateHandle[AssetSelectFragment.KEY_IS_FILTER_XCM_ASSETS] ?: false
 
     private val initialSelectedAssetId: String? = savedStateHandle[AssetSelectFragment.KEY_SELECTED_ASSET_ID]
     private val excludeAssetId: String? = savedStateHandle[AssetSelectFragment.KEY_EXCLUDE_ASSET_ID]
     private val selectedAssetIdFlow = MutableStateFlow(initialSelectedAssetId)
 
     private val assetModelsFlow: Flow<List<AssetModel>> =
-        walletInteractor.assetsFlow()
+        if (isFilterXcmAssets) {
+            xcmInteractor.getAvailableAssetsFlow(originChainId = filterChainId)
+        } else {
+            walletInteractor.assetsFlow()
+        }
             .mapList {
                 when {
                     it.hasAccount -> it.asset
@@ -56,12 +63,14 @@ class AssetSelectViewModel @Inject constructor(
                 filterChainId == null || it.token.configuration.chainId == filterChainId
             }
             .filter {
-                searchQuery.isEmpty() || it.token.configuration.symbolToShow.contains(searchQuery, true)
+                searchQuery.isEmpty() ||
+                    it.token.configuration.symbol.contains(searchQuery, true) ||
+                    it.token.configuration.name.orEmpty().contains(searchQuery, true)
             }
             .filter { it.token.configuration.id != excludeAssetId }
             .sortedWith(compareByDescending<AssetModel> { it.fiatAmount.orZero() }.thenBy { it.token.configuration.chainName })
             .map {
-                it.toAssetItemState()
+                it.toAssetItemState(isChainNameVisible = !isFilterXcmAssets)
             }
 
         AssetSelectScreenViewState(
@@ -72,13 +81,13 @@ class AssetSelectViewModel @Inject constructor(
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, AssetSelectScreenViewState.default)
 
-    private fun AssetModel.toAssetItemState() = AssetItemState(
+    private fun AssetModel.toAssetItemState(isChainNameVisible: Boolean) = AssetItemState(
         id = token.configuration.id,
         imageUrl = token.configuration.iconUrl,
-        chainName = token.configuration.chainName,
-        symbol = token.configuration.symbolToShow.uppercase(),
-        amount = total.orZero().format(),
-        fiatAmount = getAsFiatWithCurrency(total) ?: "${token.fiatSymbol.orEmpty()}0",
+        chainName = token.configuration.chainName.takeIf { isChainNameVisible },
+        symbol = token.configuration.symbol.uppercase(),
+        amount = available.orZero().formatCrypto(),
+        fiatAmount = getAsFiatWithCurrency(available) ?: "${token.fiatSymbol.orEmpty()}0",
         isSelected = false,
         chainId = token.configuration.chainId
     )

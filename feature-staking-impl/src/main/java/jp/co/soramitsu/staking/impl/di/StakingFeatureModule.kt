@@ -1,5 +1,6 @@
 package jp.co.soramitsu.staking.impl.di
 
+import com.google.gson.GsonBuilder
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -7,27 +8,32 @@ import dagger.hilt.components.SingletonComponent
 import javax.inject.Named
 import javax.inject.Singleton
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
-import jp.co.soramitsu.account.api.extrinsic.ExtrinsicService
 import jp.co.soramitsu.account.api.presentation.account.AddressDisplayUseCase
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.data.memory.ComputationalCache
 import jp.co.soramitsu.common.data.network.AppLinksProvider
-import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
+import jp.co.soramitsu.common.data.network.subquery.SoraEraInfoValidatorResponse
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.core.extrinsic.ExtrinsicService
+import jp.co.soramitsu.core.extrinsic.mortality.IChainStateRepository
+import jp.co.soramitsu.core.rpc.RpcCalls
 import jp.co.soramitsu.core.storage.StorageCache
 import jp.co.soramitsu.coredb.dao.AccountStakingDao
 import jp.co.soramitsu.coredb.dao.StakingTotalRewardDao
+import jp.co.soramitsu.coredb.dao.TokenPriceDao
 import jp.co.soramitsu.runtime.di.LOCAL_STORAGE_SOURCE
 import jp.co.soramitsu.runtime.di.REMOTE_STORAGE_SOURCE
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
-import jp.co.soramitsu.runtime.network.rpc.RpcCalls
-import jp.co.soramitsu.runtime.repository.ChainStateRepository
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 import jp.co.soramitsu.staking.api.data.StakingSharedState
 import jp.co.soramitsu.staking.api.domain.api.IdentityRepository
 import jp.co.soramitsu.staking.api.domain.api.StakingRepository
+import jp.co.soramitsu.staking.impl.data.mappers.SoraEraInfoValidatorResponseDeserializer
+import jp.co.soramitsu.staking.impl.data.mappers.SoraEraInfoValidatorResponseNominationDeserializer
+import jp.co.soramitsu.staking.impl.data.mappers.SoraEraInfoValidatorResponseNominatorDeserializer
+import jp.co.soramitsu.staking.impl.data.mappers.SoraEraInfoValidatorResponseValidatorDeserializer
 import jp.co.soramitsu.staking.impl.data.network.subquery.StakingApi
 import jp.co.soramitsu.staking.impl.data.network.subquery.SubQueryDelegationHistoryFetcher
 import jp.co.soramitsu.staking.impl.data.network.subquery.SubQueryValidatorSetFetcher
@@ -52,6 +58,7 @@ import jp.co.soramitsu.staking.impl.domain.recommendations.ValidatorRecommendato
 import jp.co.soramitsu.staking.impl.domain.recommendations.settings.RecommendationSettingsProviderFactory
 import jp.co.soramitsu.staking.impl.domain.recommendations.settings.SettingsStorage
 import jp.co.soramitsu.staking.impl.domain.rewards.RewardCalculatorFactory
+import jp.co.soramitsu.staking.impl.domain.rewards.SoraStakingRewardsScenario
 import jp.co.soramitsu.staking.impl.domain.setup.SetupStakingInteractor
 import jp.co.soramitsu.staking.impl.domain.staking.bond.BondMoreInteractor
 import jp.co.soramitsu.staking.impl.domain.staking.controller.ControllerInteractor
@@ -63,7 +70,6 @@ import jp.co.soramitsu.staking.impl.domain.validators.CollatorProvider
 import jp.co.soramitsu.staking.impl.domain.validators.ValidatorProvider
 import jp.co.soramitsu.staking.impl.domain.validators.current.CurrentValidatorsInteractor
 import jp.co.soramitsu.staking.impl.domain.validators.current.search.SearchCustomBlockProducerInteractor
-import jp.co.soramitsu.staking.impl.domain.validators.current.search.SearchCustomValidatorsInteractor
 import jp.co.soramitsu.staking.impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSharedStateProvider
 import jp.co.soramitsu.staking.impl.presentation.common.rewardDestination.RewardDestinationMixin
@@ -78,6 +84,13 @@ import jp.co.soramitsu.wallet.api.presentation.mixin.fee.FeeLoaderProvider
 import jp.co.soramitsu.wallet.impl.domain.TokenUseCase
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletConstants
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import okhttp3.OkHttpClient
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
+import retrofit2.converter.scalars.ScalarsConverterFactory
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -102,13 +115,19 @@ class StakingFeatureModule {
     )
 
     @Provides
+    fun provideStakingSharedScope(): CoroutineScope {
+        return CoroutineScope(Dispatchers.Main + SupervisorJob())
+    }
+
+    @Provides
     @Singleton
     fun provideStakingSharedState(
         chainRegistry: ChainRegistry,
         preferences: Preferences,
         accountRepository: AccountRepository,
-        walletRepository: WalletRepository
-    ): StakingSharedState = StakingSharedState(chainRegistry, preferences, walletRepository, accountRepository)
+        walletRepository: WalletRepository,
+        scope: CoroutineScope
+    ): StakingSharedState = StakingSharedState(chainRegistry, preferences, walletRepository, accountRepository, scope)
 
     @Provides
     @Singleton
@@ -184,7 +203,7 @@ class StakingFeatureModule {
         stakingRepository: StakingRepository,
         stakingRewardsRepository: StakingRewardsRepository,
         stakingSharedState: StakingSharedState,
-        chainStateRepository: ChainStateRepository,
+        chainStateRepository: IChainStateRepository,
         chainRegistry: ChainRegistry,
         addressIconGenerator: AddressIconGenerator,
         walletRepository: WalletRepository
@@ -285,8 +304,9 @@ class StakingFeatureModule {
         stakingRelayChainScenarioRepository: StakingRelayChainScenarioRepository,
         repository: StakingRepository,
         stakingScenarioInteractor: StakingParachainScenarioInteractor,
-        stakingApi: StakingApi
-    ) = RewardCalculatorFactory(stakingRelayChainScenarioRepository, repository, stakingScenarioInteractor, stakingApi)
+        stakingApi: StakingApi,
+        soraStakingRewardsScenario: SoraStakingRewardsScenario
+    ) = RewardCalculatorFactory(stakingRelayChainScenarioRepository, repository, soraStakingRewardsScenario, stakingScenarioInteractor, stakingApi)
 
     @Provides
     @Singleton
@@ -375,7 +395,8 @@ class StakingFeatureModule {
         stakingRelayChainScenarioInteractor: StakingRelayChainScenarioInteractor,
         iconGenerator: AddressIconGenerator,
         accountDisplayUseCase: AddressDisplayUseCase,
-        sharedState: StakingSharedState
+        sharedState: StakingSharedState,
+        soraStakingRewardsScenario: SoraStakingRewardsScenario
     ): RewardDestinationMixin.Presentation = RewardDestinationProvider(
         resourceManager,
         stakingInteractor,
@@ -383,14 +404,9 @@ class StakingFeatureModule {
         iconGenerator,
         appLinksProvider,
         sharedState,
-        accountDisplayUseCase
+        accountDisplayUseCase,
+        soraStakingRewardsScenario
     )
-
-    @Provides
-    @Singleton
-    fun provideStakingRewardsApi(networkApiCreator: NetworkApiCreator): StakingApi {
-        return networkApiCreator.create(StakingApi::class.java)
-    }
 
     @Provides
     @Singleton
@@ -475,8 +491,9 @@ class StakingFeatureModule {
     @Singleton
     fun provideControllerInteractor(
         sharedState: StakingSharedState,
-        extrinsicService: ExtrinsicService
-    ) = ControllerInteractor(extrinsicService, sharedState)
+        extrinsicService: ExtrinsicService,
+        stakingInteractor: StakingInteractor
+    ) = ControllerInteractor(extrinsicService, sharedState, stakingInteractor)
 
     @Provides
     @Singleton
@@ -495,13 +512,6 @@ class StakingFeatureModule {
     fun provideChangeRewardDestinationInteractor(
         extrinsicService: ExtrinsicService
     ) = ChangeRewardDestinationInteractor(extrinsicService)
-
-    @Provides
-    @Singleton
-    fun provideSearchCustomValidatorsInteractor(
-        validatorProvider: ValidatorProvider,
-        sharedState: StakingSharedState
-    ) = SearchCustomValidatorsInteractor(validatorProvider, sharedState)
 
     @Provides
     @Singleton
@@ -539,10 +549,12 @@ class StakingFeatureModule {
     @Singleton
     fun provideStakingPoolApi(
         extrinsicService: ExtrinsicService,
-        stakingSharedState: StakingSharedState
+        stakingSharedState: StakingSharedState,
+        chainRegistry: ChainRegistry
     ) = StakingPoolApi(
         extrinsicService,
-        stakingSharedState
+        stakingSharedState,
+        chainRegistry
     )
 
     @Provides
@@ -571,4 +583,36 @@ class StakingFeatureModule {
     @Provides
     @Singleton
     fun provideIdentitiesUseCase(identityRepository: IdentityRepository) = GetIdentitiesUseCase(identityRepository)
+
+    @Provides
+    fun soraTokensRateUseCase(rpcCalls: RpcCalls, chainRegistry: ChainRegistry, tokenPriceDao: TokenPriceDao) =
+        SoraStakingRewardsScenario(rpcCalls, chainRegistry, tokenPriceDao)
+
+    @Provides
+    @Singleton
+    fun provideStakingApi(okHttpClient: OkHttpClient): StakingApi {
+        val gson = GsonBuilder()
+            .registerTypeAdapter(
+                SoraEraInfoValidatorResponse.Nominator.Nomination.Validator::class.java,
+                SoraEraInfoValidatorResponseValidatorDeserializer()
+            ).registerTypeAdapter(
+                SoraEraInfoValidatorResponse.Nominator.Nomination::class.java,
+                SoraEraInfoValidatorResponseNominationDeserializer()
+            ).registerTypeAdapter(
+                SoraEraInfoValidatorResponse.Nominator::class.java,
+                SoraEraInfoValidatorResponseNominatorDeserializer()
+            ).registerTypeAdapter(
+                SoraEraInfoValidatorResponse::class.java,
+                SoraEraInfoValidatorResponseDeserializer()
+            ).create()
+
+        val retrofit = Retrofit.Builder()
+            .client(okHttpClient)
+            .baseUrl("https://placeholder.com")
+            .addConverterFactory(ScalarsConverterFactory.create())
+            .addConverterFactory(GsonConverterFactory.create(gson))
+            .build()
+
+        return retrofit.create(StakingApi::class.java)
+    }
 }

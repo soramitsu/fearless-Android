@@ -3,7 +3,6 @@ package jp.co.soramitsu.staking.impl.scenarios.relaychain
 import java.math.BigInteger
 import jp.co.soramitsu.common.data.network.runtime.binding.NonNullBinderWithType
 import jp.co.soramitsu.common.data.network.runtime.binding.incompatible
-import jp.co.soramitsu.common.data.network.runtime.binding.returnType
 import jp.co.soramitsu.common.utils.Modules
 import jp.co.soramitsu.common.utils.accountIdFromMapKey
 import jp.co.soramitsu.common.utils.babe
@@ -16,24 +15,27 @@ import jp.co.soramitsu.common.utils.session
 import jp.co.soramitsu.common.utils.staking
 import jp.co.soramitsu.common.utils.stakingOrNull
 import jp.co.soramitsu.common.utils.storageKeys
+import jp.co.soramitsu.common.utils.u32ArgumentFromStorageKey
+import jp.co.soramitsu.core.models.Asset
+import jp.co.soramitsu.core.runtime.storage.returnType
 import jp.co.soramitsu.coredb.dao.AccountStakingDao
 import jp.co.soramitsu.coredb.model.AccountStakingLocal
-import jp.co.soramitsu.fearless_utils.extensions.fromHex
-import jp.co.soramitsu.fearless_utils.extensions.toHexString
-import jp.co.soramitsu.fearless_utils.runtime.AccountId
-import jp.co.soramitsu.fearless_utils.runtime.definitions.types.fromByteArrayOrNull
-import jp.co.soramitsu.fearless_utils.runtime.metadata.moduleOrNull
-import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
-import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
-import jp.co.soramitsu.fearless_utils.runtime.metadata.storageOrNull
-import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
-import jp.co.soramitsu.runtime.multiNetwork.getRuntime
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 import jp.co.soramitsu.runtime.storage.source.observeNonNull
 import jp.co.soramitsu.runtime.storage.source.queryNonNull
+import jp.co.soramitsu.shared_utils.extensions.fromHex
+import jp.co.soramitsu.shared_utils.extensions.toHexString
+import jp.co.soramitsu.shared_utils.runtime.AccountId
+import jp.co.soramitsu.shared_utils.runtime.definitions.types.fromByteArrayOrNull
+import jp.co.soramitsu.shared_utils.runtime.definitions.types.fromHex
+import jp.co.soramitsu.shared_utils.runtime.metadata.moduleOrNull
+import jp.co.soramitsu.shared_utils.runtime.metadata.storage
+import jp.co.soramitsu.shared_utils.runtime.metadata.storageKey
+import jp.co.soramitsu.shared_utils.runtime.metadata.storageOrNull
+import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.staking.api.domain.api.AccountIdMap
 import jp.co.soramitsu.staking.api.domain.model.EraIndex
 import jp.co.soramitsu.staking.api.domain.model.Exposure
@@ -181,7 +183,7 @@ class StakingRelayChainScenarioRepository(
         getElectedValidatorsExposure(chainId, it)
     }.runCatching { this }.getOrDefault(emptyFlow())
 
-    private suspend fun getElectedValidatorsExposure(chainId: ChainId, eraIndex: EraIndex): Map<String, Exposure> = localStorage.queryByPrefix(
+    private suspend fun getElectedValidatorsExposure(chainId: ChainId, eraIndex: EraIndex): Map<String, Exposure> = remoteStorage.queryByPrefix(
         chainId = chainId,
         prefixKeyBuilder = { it.metadata.moduleOrNull(Modules.STAKING)?.storage("ErasStakers")?.storageKey(it, eraIndex) },
         keyExtractor = { it.accountIdFromMapKey() }
@@ -255,11 +257,11 @@ class StakingRelayChainScenarioRepository(
 
     suspend fun getRewardDestination(stakingState: StakingState.Stash) = localStorage.queryNonNull(
         keyBuilder = { it.metadata.staking().storage("Payee").storageKey(it, stakingState.stashId) },
-        binding = { scale, runtime -> bindRewardDestination(scale, runtime, stakingState.stashId, stakingState.controllerId) },
+        binding = { scale, runtime -> bindRewardDestination(scale, runtime, stakingState) },
         chainId = stakingState.chain.id
     )
 
-    suspend fun minimumNominatorBond(chainAsset: Chain.Asset): BigInteger {
+    suspend fun minimumNominatorBond(chainAsset: Asset): BigInteger {
         val minBond = queryStorageIfExists(
             storageName = "MinNominatorBond",
             binder = ::bindMinBond,
@@ -299,9 +301,9 @@ class StakingRelayChainScenarioRepository(
         }
     }
 
-    suspend fun stakingStateFlow(
+    fun stakingStateFlow(
         chain: Chain,
-        chainAsset: Chain.Asset,
+        chainAsset: Asset,
         accountId: AccountId
     ): Flow<StakingState> {
         return accountStakingDao.observeDistinct(chain.id, chainAsset.id, accountId)
@@ -321,7 +323,7 @@ class StakingRelayChainScenarioRepository(
         val controllerId = accessInfo.controllerId
 
         return combine(
-            observeAccountNominations(chain.id, stashId),
+            observeRemoteAccountNominations(chain.id, stashId),
             observeAccountValidatorPrefs(chain.id, stashId)
         ) { nominations, prefs ->
             when {
@@ -386,6 +388,15 @@ class StakingRelayChainScenarioRepository(
     )
 
     private suspend fun runtimeFor(chainId: String) = chainRegistry.getRuntime(chainId)
+
+    suspend fun getErasValidatorRewards(chainId: ChainId): Map<BigInteger, BigInteger?> {
+        return remoteStorage.queryByPrefix(chainId = chainId, prefixKeyBuilder = {
+            it.metadata.staking().storage("ErasValidatorReward").storageKey()
+        }, keyExtractor = { it.u32ArgumentFromStorageKey() }) { scale, runtime, _ ->
+            val type = runtime.metadata.staking().storage("ErasValidatorReward").returnType()
+            scale?.let { type.fromHex(runtime, it) as BigInteger }
+        }
+    }
 }
 
 suspend fun StakingRelayChainScenarioRepository.historicalEras(chainId: ChainId): List<BigInteger> {
@@ -415,5 +426,5 @@ suspend fun StakingRelayChainScenarioRepository.hoursInEra(chainId: ChainId): In
     return floor(HOURS_IN_DAY.toDouble() / erasPerDay.toDouble()).toInt()
 }
 
-suspend fun StakingRelayChainScenarioRepository.getActiveElectedValidatorsExposures(chainId: ChainId) =
+suspend fun StakingRelayChainScenarioRepository.getActiveElectedValidatorsExposures(chainId: ChainId): Map<String, Exposure> =
     electedExposuresInActiveEra(chainId).firstOrNull() ?: emptyMap()

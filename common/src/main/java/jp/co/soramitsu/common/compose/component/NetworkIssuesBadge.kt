@@ -18,7 +18,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.ParagraphStyle
 import androidx.compose.ui.text.PlatformParagraphStyle
 import androidx.compose.ui.text.SpanStyle
@@ -30,7 +29,6 @@ import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.compose.theme.alertYellow
 
-@OptIn(ExperimentalTextApi::class)
 @Composable
 fun NetworkIssuesBadge(onClick: () -> Unit) {
     val networkIssuesText = stringResource(id = R.string.network_issue_stub)

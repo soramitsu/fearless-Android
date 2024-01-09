@@ -1,7 +1,7 @@
 package jp.co.soramitsu.coredb.converters
 
 import androidx.room.TypeConverter
-import jp.co.soramitsu.core.model.CryptoType
+import jp.co.soramitsu.core.models.CryptoType
 
 class CryptoTypeConverters {
 

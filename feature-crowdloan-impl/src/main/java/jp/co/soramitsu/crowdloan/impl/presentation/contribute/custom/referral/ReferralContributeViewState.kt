@@ -2,7 +2,7 @@ package jp.co.soramitsu.crowdloan.impl.presentation.contribute.custom.referral
 
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.EmailValidator
-import jp.co.soramitsu.feature_crowdloan_impl.R
+import jp.co.soramitsu.common.utils.formatCryptoDetail
 import jp.co.soramitsu.crowdloan.impl.data.network.api.parachain.FLOW_FEARLESS_REFERRAL
 import jp.co.soramitsu.crowdloan.impl.data.network.api.parachain.FLOW_TERMS_URL
 import jp.co.soramitsu.crowdloan.impl.presentation.contribute.custom.ApplyActionState
@@ -12,7 +12,7 @@ import jp.co.soramitsu.crowdloan.impl.presentation.contribute.custom.interlay.In
 import jp.co.soramitsu.crowdloan.impl.presentation.contribute.custom.model.CustomContributePayload
 import jp.co.soramitsu.crowdloan.impl.presentation.contribute.select.model.LearnMoreModel
 import jp.co.soramitsu.crowdloan.impl.presentation.contribute.select.parcel.getString
-import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
+import jp.co.soramitsu.feature_crowdloan_impl.R
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -109,7 +109,7 @@ abstract class ReferralContributeViewState(
             else -> {
                 val bonus = it.calculateBonus(customContributePayload.amount)
                 val tokenName = customContributePayload.parachainMetadata.token
-                bonus?.formatTokenAmount(tokenName)
+                bonus?.formatCryptoDetail(tokenName)
             }
         }
     }

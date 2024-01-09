@@ -1,8 +1,8 @@
 package jp.co.soramitsu.common.data.secrets.v1
 
-import jp.co.soramitsu.fearless_utils.scale.Schema
-import jp.co.soramitsu.fearless_utils.scale.byteArray
-import jp.co.soramitsu.fearless_utils.scale.string
+import jp.co.soramitsu.shared_utils.scale.Schema
+import jp.co.soramitsu.shared_utils.scale.byteArray
+import jp.co.soramitsu.shared_utils.scale.string
 
 internal enum class SourceType {
     CREATE, SEED, MNEMONIC, JSON, UNSPECIFIED

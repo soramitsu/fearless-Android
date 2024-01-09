@@ -4,11 +4,12 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import javax.inject.Named
+import jp.co.soramitsu.account.api.domain.PendulumPreInstalledAccountsScenario
 import jp.co.soramitsu.app.root.domain.RootInteractor
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.core.updater.UpdateSystem
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
-import javax.inject.Named
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -18,11 +19,13 @@ class RootFeatureModule {
     fun provideRootInteractor(
         walletRepository: WalletRepository,
         @Named("BalancesUpdateSystem") walletUpdateSystem: UpdateSystem,
+        pendulumPreInstalledAccountsScenario: PendulumPreInstalledAccountsScenario,
         preferences: Preferences
     ): RootInteractor {
         return RootInteractor(
             walletUpdateSystem,
             walletRepository,
+            pendulumPreInstalledAccountsScenario,
             preferences
         )
     }

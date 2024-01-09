@@ -4,14 +4,18 @@ import java.math.BigInteger
 import jp.co.soramitsu.common.utils.Modules
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.system
-import jp.co.soramitsu.fearless_utils.runtime.AccountId
-import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
-import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.DictEnum
-import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.Struct
-import jp.co.soramitsu.fearless_utils.runtime.definitions.types.fromHexOrNull
-import jp.co.soramitsu.fearless_utils.runtime.metadata.module
-import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
+import jp.co.soramitsu.core.runtime.storage.returnType
+import jp.co.soramitsu.shared_utils.runtime.AccountId
+import jp.co.soramitsu.shared_utils.runtime.RuntimeSnapshot
+import jp.co.soramitsu.shared_utils.runtime.definitions.types.composite.DictEnum
+import jp.co.soramitsu.shared_utils.runtime.definitions.types.composite.Struct
+import jp.co.soramitsu.shared_utils.runtime.definitions.types.fromHexOrNull
+import jp.co.soramitsu.shared_utils.runtime.metadata.module
+import jp.co.soramitsu.shared_utils.runtime.metadata.storage
 
+interface AssetBalanceData
+
+object EmptyBalance : AssetBalanceData
 class AccountData(
     val free: BigInteger,
     val reserved: BigInteger,
@@ -24,11 +28,16 @@ class EqAccountData(
     val balances: Map<BigInteger, BigInteger>
 )
 
+class AssetsAccountData(
+    val lock: BigInteger,
+    val balances: Map<BigInteger, BigInteger>
+)
+
 class OrmlTokensAccountData(
     val free: BigInteger,
     val reserved: BigInteger,
     val frozen: BigInteger
-) {
+) : AssetBalanceData {
     companion object {
         fun empty() = OrmlTokensAccountData(
             free = BigInteger.ZERO,
@@ -41,12 +50,18 @@ class OrmlTokensAccountData(
 class EqAccountInfo(
     val nonce: BigInteger,
     val data: EqAccountData
-)
+) : AssetBalanceData
+
+class AssetsAccountInfo(
+    val balance: BigInteger
+) : AssetBalanceData
+
+class SimpleBalanceData(val balance: BigInteger) : AssetBalanceData
 
 class AccountInfo(
     val nonce: BigInteger,
     val data: AccountData
-) {
+) : AssetBalanceData {
 
     companion object {
         fun empty() = AccountInfo(
@@ -80,7 +95,7 @@ class DataPoint(
 fun bindAccountData(dynamicInstance: Struct.Instance?) = AccountData(
     free = (dynamicInstance?.get("free") as? BigInteger).orZero(),
     reserved = (dynamicInstance?.get("reserved") as? BigInteger).orZero(),
-    miscFrozen = (dynamicInstance?.get("miscFrozen") as? BigInteger).orZero(),
+    miscFrozen = (dynamicInstance?.get("miscFrozen") as? BigInteger) ?: (dynamicInstance?.get("frozen") as? BigInteger).orZero(),
     feeFrozen = (dynamicInstance?.get("feeFrozen") as? BigInteger).orZero()
 )
 
@@ -95,6 +110,19 @@ fun bindEquilibriumAccountInfo(scale: String, runtime: RuntimeSnapshot): EqAccou
         nonce = bindNonce(dynamicInstance["nonce"]),
         data = bindEquilibriumAccountData(data?.value)
     )
+}
+
+@UseCaseBinding
+fun bindAssetsAccountInfo(scale: String, runtime: RuntimeSnapshot): AssetsAccountInfo? {
+    val type = runtime.metadata.module(Modules.ASSETS).storage("Account").returnType()
+
+    val dynamicInstance = type.fromHexOrNull(runtime, scale)?.cast<Struct.Instance>()
+
+    return dynamicInstance?.let {
+        AssetsAccountInfo(
+            balance = bindNumber(dynamicInstance["balance"])
+        )
+    }
 }
 
 @UseCaseBinding
@@ -120,6 +148,7 @@ fun bindEquilibriumAssetRates(scale: String?, runtime: RuntimeSnapshot): EqOracl
         dataPoints = dataPoints
     )
 }
+
 fun bindEquilibriumAccountData(dynamicInstance: Struct.Instance?): EqAccountData {
     val balanceList: List<List<Any>>? = dynamicInstance?.getList("balance")?.cast()
     val balances = balanceList?.mapNotNull {

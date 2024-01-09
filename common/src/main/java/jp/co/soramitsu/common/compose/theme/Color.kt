@@ -29,7 +29,7 @@ val red = Color(0xFFF00004)
 val blurColorDark = Color(0xB3000000)
 val blurColor = Color(0x8C000000)
 val blurColorLight = Color(0x66000000)
-val backgroundBlurColor = Color(0xAFFFFFF)
+val backgroundBlurColor = Color(0x0AFFFFFF)
 val selectedGreen = Color(0xFF09C8A1)
 
 val white = Color(0xFFFFFFFF)
@@ -45,6 +45,13 @@ val white50 = Color(0x80FFFFFF)
 val white60 = Color(0xA6FFFFFF)
 val white64 = Color(0xA3FFFFFF)
 
+val borderGradientColors = listOf(
+    Color(0xFFEE0077),
+    Color(0xFFEE7700),
+    Color(0xFF7700EE),
+    Color(0xFFC800EE)
+)
+
 val black1 = gray1
 val black2 = gray2
 val black3 = gray3
@@ -56,6 +63,7 @@ val black50 = Color(0x80000000)
 val purple = Color(0xFF7700EE)
 val backgroundBlack = Color(0xFF131313)
 val grayButtonBackground = Color(0xFF2b2b2b)
+val darkButtonBackground = Color(0xFF1C1A1B)
 val shimmerColor = Color(0x80DBDBDB)
 
 val accountIconLight = Color(0xFFEEEEEE)
@@ -67,6 +75,8 @@ val alertYellow = Color(0xFFEE7700)
 val transparent = Color(0xffffff)
 
 val colorAccentDark = Color(0xFFEE0077)
+val colorAccentSecondary = Color(0xFFD5D5D5)
+val soraRed = Color(0xFFEE2233)
 
 val accentButtonColors = object : ButtonColors {
     @Composable
@@ -77,6 +87,30 @@ val accentButtonColors = object : ButtonColors {
     @Composable
     override fun contentColor(enabled: Boolean): State<Color> {
         return rememberUpdatedState(if (enabled) white else white64)
+    }
+}
+
+val accentDarkButtonColors = object : ButtonColors {
+    @Composable
+    override fun backgroundColor(enabled: Boolean): State<Color> {
+        return rememberUpdatedState(if (enabled) colorAccentDark else colorAccentDark.copy(alpha = 0.5f))
+    }
+
+    @Composable
+    override fun contentColor(enabled: Boolean): State<Color> {
+        return rememberUpdatedState(if (enabled) white else white30)
+    }
+}
+
+val accentDarkDisabledButtonColors = object : ButtonColors {
+    @Composable
+    override fun backgroundColor(enabled: Boolean): State<Color> {
+        return rememberUpdatedState(if (enabled) colorAccent else white08)
+    }
+
+    @Composable
+    override fun contentColor(enabled: Boolean): State<Color> {
+        return rememberUpdatedState(if (enabled) white else white08)
     }
 }
 

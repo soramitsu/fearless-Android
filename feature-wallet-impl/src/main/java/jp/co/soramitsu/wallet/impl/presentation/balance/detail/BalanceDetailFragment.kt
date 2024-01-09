@@ -47,7 +47,7 @@ class BalanceDetailFragment : BaseComposeFragment<BalanceDetailViewModel>() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
+        lifecycle.addObserver(viewModel)
         subscribe(viewModel)
 
         hideKeyboard()
@@ -105,7 +105,7 @@ class BalanceDetailFragment : BaseComposeFragment<BalanceDetailViewModel>() {
                             onClick = viewModel::accountOptionsClicked
                         )
                     ),
-                    onChangeChainClick = viewModel::openSelectChain,
+                    onChangeChainClick = null,
                     onNavigationClick = viewModel::backClicked
                 )
             }
@@ -116,11 +116,8 @@ class BalanceDetailFragment : BaseComposeFragment<BalanceDetailViewModel>() {
     @Composable
     override fun Content(padding: PaddingValues, scrollState: ScrollState, modalBottomSheetState: ModalBottomSheetState) {
         val state by viewModel.state.collectAsState()
-        val isRefreshing by viewModel.isRefreshing.collectAsState()
-
-        BalanceDetailsScreen(
+        BalanceDetailsScreenWithRefreshBox(
             state = state,
-            isRefreshing = isRefreshing,
             callback = viewModel
         )
     }

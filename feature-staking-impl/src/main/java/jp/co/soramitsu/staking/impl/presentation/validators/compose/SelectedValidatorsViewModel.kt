@@ -2,16 +2,14 @@ package jp.co.soramitsu.staking.impl.presentation.validators.compose
 
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.math.BigInteger
-import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.list.GroupedList
 import jp.co.soramitsu.common.list.toValueList
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.shared_utils.runtime.AccountId
 import jp.co.soramitsu.staking.api.domain.model.NominatedValidator
 import jp.co.soramitsu.staking.impl.domain.recommendations.settings.sortings.BlockProducersSorting
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
@@ -30,6 +28,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.math.BigInteger
+import javax.inject.Inject
 
 @HiltViewModel
 class SelectedValidatorsViewModel @Inject constructor(

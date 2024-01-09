@@ -4,8 +4,8 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.net.Uri
 import jp.co.soramitsu.common.utils.showBrowser
+import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.feature_wallet_impl.R
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.wallet.impl.domain.model.BuyTokenRegistry
 
 private const val RAMP_APP_NAME = "Fearless Wallet"
@@ -21,7 +21,7 @@ class RampProvider(
 
     override val icon: Int = R.drawable.ic_ramp
 
-    override fun createIntegrator(chainAsset: Chain.Asset, address: String): BuyTokenRegistry.Integrator<Context> {
+    override fun createIntegrator(chainAsset: Asset, address: String): BuyTokenRegistry.Integrator<Context> {
         if (!isTokenSupported(chainAsset)) {
             throw BuyTokenRegistry.Provider.UnsupportedTokenException()
         }
@@ -32,7 +32,7 @@ class RampProvider(
     class RampIntegrator(
         private val host: String,
         private val apiToken: String,
-        private val chainAsset: Chain.Asset,
+        private val chainAsset: Asset,
         private val address: String
     ) : BuyTokenRegistry.Integrator<Context> {
 

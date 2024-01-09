@@ -1,7 +1,7 @@
 ## General
 #-keep class ** { *; }
 #-dontobfuscate
--keep class jp.co.soramitsu.fearless_utils.** { *; }
+-keep class jp.co.soramitsu.shared_utils.** { *; }
 -keep class jp.co.soramitsu.runtime.** { *; }
 
 -keep class jp.co.soramitsu.wallet.impl.data.** { *; }
@@ -35,6 +35,7 @@
 -keep class jp.co.soramitsu.core.** { *; }
 
 -keep class net.jpountz.** { *; }
+-keep class org.web3j.** { *; }
 
 #for beacon sdk
 
@@ -79,3 +80,23 @@
 -keepattributes RuntimeVisibleAnnotations,AnnotationDefault
 
 -dontwarn java.awt.*
+
+# Google Drive and Signin
+# Needed to keep generic types and @Key annotations accessed via reflection
+-keepattributes Signature,RuntimeVisibleAnnotations,AnnotationDefault
+
+-keepclassmembers class * {
+  @com.google.api.client.util.Key <fields>;
+}
+
+# Needed by google-http-client-android when linking against an older platform version
+
+-dontwarn com.google.api.client.extensions.android.**
+
+# Needed by google-api-client-android when linking against an older platform version
+
+-dontwarn com.google.api.client.googleapis.extensions.android.**
+
+# Needed by google-play-services when linking against an older platform version
+
+-dontwarn com.google.android.gms.**

@@ -1,9 +1,9 @@
 package jp.co.soramitsu.account.api.domain.interfaces
 
-import jp.co.soramitsu.common.data.mappers.mapCryptoTypeToEncryption
-import jp.co.soramitsu.fearless_utils.encrypt.MultiChainEncryption
-import jp.co.soramitsu.fearless_utils.encrypt.Signer
 import jp.co.soramitsu.account.api.domain.model.Account
+import jp.co.soramitsu.core.crypto.mapCryptoTypeToEncryption
+import jp.co.soramitsu.shared_utils.encrypt.MultiChainEncryption
+import jp.co.soramitsu.shared_utils.encrypt.Signer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 

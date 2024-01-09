@@ -18,18 +18,24 @@ import jp.co.soramitsu.common.compose.component.FeeInfoViewState
 import jp.co.soramitsu.common.compose.component.ToolbarViewState
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.applyFiatRate
-import jp.co.soramitsu.common.utils.format
-import jp.co.soramitsu.common.utils.formatAsCurrency
+import jp.co.soramitsu.common.utils.formatCrypto
+import jp.co.soramitsu.common.utils.formatCryptoDetail
+import jp.co.soramitsu.common.utils.formatFiat
+import jp.co.soramitsu.common.utils.inBackground
+import jp.co.soramitsu.common.utils.isNotZero
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.validation.AmountTooLowToStakeException
+import jp.co.soramitsu.common.validation.ExistentialDepositCrossedException
 import jp.co.soramitsu.common.validation.StakeInsufficientBalanceException
+import jp.co.soramitsu.common.validation.WaitForFeeCalculationException
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.staking.impl.domain.StakingInteractor
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
 import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSharedStateProvider
 import jp.co.soramitsu.staking.impl.scenarios.StakingPoolInteractor
-import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
+import jp.co.soramitsu.wallet.api.domain.ExistentialDepositUseCase
+import jp.co.soramitsu.wallet.api.presentation.formatters.formatCryptoDetailFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
@@ -37,6 +43,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -49,19 +56,20 @@ class SetupStakingPoolViewModel @Inject constructor(
     private val iconGenerator: AddressIconGenerator,
     private val stakingPoolInteractor: StakingPoolInteractor,
     private val router: StakingRouter,
-    private val stakingPoolSharedStateProvider: StakingPoolSharedStateProvider
+    private val stakingPoolSharedStateProvider: StakingPoolSharedStateProvider,
+    private val existentialDepositUseCase: ExistentialDepositUseCase
 ) : BaseViewModel() {
 
     private val chain: Chain
     private val asset: Asset
-    private val initialAmount: String
+    private val initialAmount: BigDecimal
 
     init {
         val mainState = stakingPoolSharedStateProvider.requireMainState
 
         chain = requireNotNull(mainState.chain)
         asset = requireNotNull(mainState.asset)
-        initialAmount = mainState.requireAmount.format()
+        initialAmount = mainState.requireAmount
     }
 
     private val toolbarViewState = ToolbarViewState(resourceManager.getString(R.string.pool_staking_join_title), R.drawable.ic_arrow_back_24dp)
@@ -85,33 +93,33 @@ class SetupStakingPoolViewModel @Inject constructor(
 
     private val enteredAmountFlow = MutableStateFlow(initialAmount)
 
-    private val amountInputViewState: Flow<AmountInputViewState> = enteredAmountFlow.map { enteredAmount ->
-        val tokenBalance = asset.transferable.formatTokenAmount(asset.token.configuration)
-        val amount = enteredAmount.toBigDecimalOrNull().orZero()
-        val fiatAmount = amount.applyFiatRate(asset.token.fiatRate)?.formatAsCurrency(asset.token.fiatSymbol)
+    private val amountInputViewState: Flow<AmountInputViewState> = enteredAmountFlow.map { amount ->
+        val tokenBalance = asset.transferable.formatCrypto(asset.token.configuration.symbol)
+        val fiatAmount = amount.applyFiatRate(asset.token.fiatRate)?.formatFiat(asset.token.fiatSymbol)
 
         AmountInputViewState(
             tokenName = asset.token.configuration.symbol,
             tokenImage = asset.token.configuration.iconUrl,
             totalBalance = resourceManager.getString(R.string.common_balance_format, tokenBalance),
             fiatAmount = fiatAmount,
-            tokenAmount = enteredAmount
+            tokenAmount = amount
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, defaultAmountInputState)
 
-    private val feeInfoViewStateFlow: Flow<FeeInfoViewState> = enteredAmountFlow.map { enteredAmount ->
-        val amount = enteredAmount.toBigDecimalOrNull().orZero()
+    private val feeInPlanksFlow = enteredAmountFlow.map { amount ->
         val inPlanks = asset.token.planksFromAmount(amount)
-        val feeInPlanks = stakingPoolInteractor.estimateJoinFee(inPlanks)
+        stakingPoolInteractor.estimateJoinFee(inPlanks)
+    }.inBackground().stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    private val feeInfoViewStateFlow: Flow<FeeInfoViewState> = feeInPlanksFlow.filterNotNull().map { feeInPlanks ->
         val fee = asset.token.amountFromPlanks(feeInPlanks)
-        val feeFormatted = fee.formatTokenAmount(asset.token.configuration)
-        val feeFiat = fee.applyFiatRate(asset.token.fiatRate)?.formatAsCurrency(asset.token.fiatSymbol)
+        val feeFormatted = fee.formatCryptoDetail(asset.token.configuration.symbol)
+        val feeFiat = fee.applyFiatRate(asset.token.fiatRate)?.formatFiat(asset.token.fiatSymbol)
 
         FeeInfoViewState(feeAmount = feeFormatted, feeAmountFiat = feeFiat)
     }.stateIn(viewModelScope, SharingStarted.Eagerly, FeeInfoViewState.default)
 
-    private val buttonStateFlow = enteredAmountFlow.map { enteredAmount ->
-        val amount = enteredAmount.toBigDecimalOrNull().orZero()
+    private val buttonStateFlow = enteredAmountFlow.map { amount ->
         val amountInPlanks = asset.token.planksFromAmount(amount)
         ButtonViewState(
             resourceManager.getString(R.string.pool_staking_join_button_title),
@@ -138,13 +146,13 @@ class SetupStakingPoolViewModel @Inject constructor(
         router.back()
     }
 
-    fun onAmountEntered(amount: String) {
-        enteredAmountFlow.value = amount.replace(',', '.')
+    fun onAmountEntered(amount: BigDecimal?) {
+        enteredAmountFlow.value = amount.orZero()
     }
 
     fun onNextClick() {
         val setupFlow = stakingPoolSharedStateProvider.requireJoinState
-        val amount = enteredAmountFlow.value.toBigDecimalOrNull().orZero()
+        val amount = enteredAmountFlow.value
 
         viewModelScope.launch {
             isValid(amount).fold({
@@ -157,7 +165,7 @@ class SetupStakingPoolViewModel @Inject constructor(
                     AlertViewState(
                         title = title,
                         message = message,
-                        buttonText = resourceManager.getString(R.string.common_got_it),
+                        buttonText = resourceManager.getString(R.string.common_ok),
                         iconRes = R.drawable.ic_status_warning_16
                     )
                 } ?: AlertViewState(
@@ -175,10 +183,13 @@ class SetupStakingPoolViewModel @Inject constructor(
         val amountInPlanks = asset.token.planksFromAmount(amount)
         val transferableInPlanks = asset.token.planksFromAmount(asset.transferable)
         val minToJoinInPlanks = stakingPoolInteractor.getMinToJoinPool(chain.id)
-        val minToJoinFormatted = asset.token.amountFromPlanks(minToJoinInPlanks).formatTokenAmount(asset.token.configuration)
+        val minToJoinFormatted = minToJoinInPlanks.formatCryptoDetailFromPlanks(asset.token.configuration)
+        val existentialDeposit = existentialDepositUseCase(asset.token.configuration)
+        val feeInPlanks = feeInPlanksFlow.value ?: return Result.failure(WaitForFeeCalculationException(resourceManager))
 
         return when {
-            amountInPlanks >= transferableInPlanks -> Result.failure(StakeInsufficientBalanceException(resourceManager))
+            amountInPlanks + feeInPlanks >= transferableInPlanks -> Result.failure(StakeInsufficientBalanceException(resourceManager))
+            transferableInPlanks - amountInPlanks - feeInPlanks <= existentialDeposit -> Result.failure(ExistentialDepositCrossedException(resourceManager, existentialDeposit.formatCryptoDetailFromPlanks(asset.token.configuration)))
             amountInPlanks < minToJoinInPlanks -> Result.failure(AmountTooLowToStakeException(resourceManager, minToJoinFormatted))
             else -> Result.success(Unit)
         }

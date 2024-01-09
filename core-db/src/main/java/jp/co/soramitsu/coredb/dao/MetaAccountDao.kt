@@ -7,10 +7,11 @@ import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
 import jp.co.soramitsu.coredb.model.chain.ChainAccountLocal
+import jp.co.soramitsu.coredb.model.chain.FavoriteChainLocal
 import jp.co.soramitsu.coredb.model.chain.MetaAccountLocal
 import jp.co.soramitsu.coredb.model.chain.MetaAccountPositionUpdate
 import jp.co.soramitsu.coredb.model.chain.RelationJoinedMetaAccountInfo
-import jp.co.soramitsu.fearless_utils.runtime.AccountId
+import jp.co.soramitsu.shared_utils.runtime.AccountId
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -67,6 +68,19 @@ interface MetaAccountDao {
     @Transaction
     fun selectedMetaAccountInfoFlow(): Flow<RelationJoinedMetaAccountInfo?>
 
+    @Query("SELECT * FROM meta_accounts WHERE isSelected = 1")
+    @Transaction
+    suspend fun selectedMetaAccountInfo(): RelationJoinedMetaAccountInfo
+
+    @Query("SELECT * FROM meta_accounts WHERE isSelected = 1")
+    fun selectedLightMetaAccountFlow(): Flow<MetaAccountLocal?>
+
+    @Query("SELECT * FROM meta_accounts WHERE isSelected = 1")
+    suspend fun getSelectedLightMetaAccount(): MetaAccountLocal
+
+    @Query("SELECT * FROM meta_accounts WHERE id = :metaId")
+    suspend fun getLightMetaAccount(metaId: Long): MetaAccountLocal
+
     @Query("SELECT EXISTS ($FIND_BY_ADDRESS_QUERY)")
     fun isMetaAccountExists(accountId: AccountId): Boolean
 
@@ -77,6 +91,19 @@ interface MetaAccountDao {
     @Query("UPDATE meta_accounts SET name = :newName WHERE id = :metaId")
     suspend fun updateName(metaId: Long, newName: String)
 
+    @Query("UPDATE meta_accounts SET googleBackupAddress = NULL WHERE id = :metaId")
+    suspend fun clearGoogleBackupInfo(metaId: Long)
+
+    @Query("UPDATE meta_accounts SET isBackedUp = :isBackedUp WHERE id = :metaId")
+    suspend fun updateBackedUp(metaId: Long, isBackedUp: Int)
+
+    suspend fun updateBackedUp(metaId: Long, isBackedUp: Boolean = true) {
+        updateBackedUp(
+            metaId = metaId,
+            isBackedUp = if (isBackedUp) 1 else 0
+        )
+    }
+
     @Query("DELETE FROM meta_accounts WHERE id = :metaId")
     suspend fun delete(metaId: Long)
 
@@ -85,4 +112,10 @@ interface MetaAccountDao {
 
     @Query("SELECT COALESCE(MAX(position), 0) + 1 from meta_accounts")
     suspend fun getNextPosition(): Int
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertOrReplaceFavoriteChain(favoriteChainLocal: FavoriteChainLocal)
+
+    @Query("SELECT * FROM favorite_chains WHERE metaId = :metaId")
+    fun observeFavoriteChains(metaId: Long): Flow<List<FavoriteChainLocal>>
 }

@@ -5,7 +5,6 @@ import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.utils.setTextColorRes
 import jp.co.soramitsu.common.utils.toggle
-import jp.co.soramitsu.common.view.ButtonState
 import jp.co.soramitsu.common.view.viewBinding
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.databinding.FragmentReviewCustomValidatorsBinding
@@ -51,7 +50,7 @@ class ReviewCustomValidatorsFragment :
             binding.reviewCustomValidatorsAccounts.setTextColorRes(if (it.isOverflow) R.color.red else R.color.gray1)
             binding.reviewCustomValidatorsAccounts.text = it.selectedHeaderText
 
-            binding.reviewCustomValidatorsNext.setState(if (it.isOverflow) ButtonState.DISABLED else ButtonState.NORMAL)
+            binding.reviewCustomValidatorsNext.setState(it.buttonState)
             binding.reviewCustomValidatorsNext.text = it.nextButtonText
         }
 

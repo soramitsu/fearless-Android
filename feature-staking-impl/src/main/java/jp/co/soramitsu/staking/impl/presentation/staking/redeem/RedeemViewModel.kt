@@ -6,6 +6,9 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.math.BigDecimal
+import javax.inject.Inject
+import javax.inject.Named
+import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressModel
@@ -13,15 +16,16 @@ import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.data.network.BlockExplorerUrlBuilder
 import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.common.utils.format
-import jp.co.soramitsu.common.utils.formatAsCurrency
+import jp.co.soramitsu.common.utils.formatCryptoFull
+import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.requireException
 import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.common.validation.progressConsumer
-import jp.co.soramitsu.fearless_utils.extensions.fromHex
-import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
+import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
+import jp.co.soramitsu.shared_utils.extensions.fromHex
 import jp.co.soramitsu.staking.api.domain.model.StakingState
 import jp.co.soramitsu.staking.impl.domain.StakingInteractor
 import jp.co.soramitsu.staking.impl.domain.staking.redeem.RedeemInteractor
@@ -30,25 +34,14 @@ import jp.co.soramitsu.staking.impl.presentation.StakingRouter
 import jp.co.soramitsu.staking.impl.scenarios.StakingScenarioInteractor
 import jp.co.soramitsu.wallet.api.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.wallet.api.presentation.mixin.fee.FeeLoaderMixin
-import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
-import kotlin.time.DurationUnit
-import kotlin.time.toDuration
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import javax.inject.Inject
-import javax.inject.Named
-
-private const val DEBOUNCE_DURATION_MILLIS = 500
 
 @HiltViewModel
 class RedeemViewModel @Inject constructor(
@@ -76,12 +69,12 @@ class RedeemViewModel @Inject constructor(
     val stakingUnlockAmount = MutableSharedFlow<String>().apply {
         launch {
             stakingScenarioInteractor.getStakingBalanceFlow(payload.collatorAddress?.fromHex()).onEach {
-                emit(it.redeemable.amount.format())
+                emit(it.redeemable.amount.formatCryptoFull())
             }.share()
         }
     }
 
-    private val accountStakingFlow = stakingScenarioInteractor.stakingStateFlow
+    private val accountStakingFlow = stakingScenarioInteractor.stakingStateFlow()
         .share()
 
     private val assetFlow = interactor.currentAssetFlow()
@@ -92,7 +85,7 @@ class RedeemViewModel @Inject constructor(
     }
 
     val enteredFiatAmountFlow = assetFlow.combine(parsedAmountFlow) { asset, amount ->
-        asset.token.fiatAmount(amount)?.formatAsCurrency(asset.token.fiatSymbol)
+        asset.token.fiatAmount(amount)?.formatFiat(asset.token.fiatSymbol)
     }
         .inBackground()
         .asLiveData()
@@ -127,7 +120,7 @@ class RedeemViewModel @Inject constructor(
     }.asLiveData()
 
     init {
-        listenFee()
+        loadFee()
     }
 
     fun confirmClicked() {
@@ -138,30 +131,24 @@ class RedeemViewModel @Inject constructor(
         router.back()
     }
 
-    @OptIn(FlowPreview::class)
-    private fun listenFee() {
-        parsedAmountFlow
-            .debounce(DEBOUNCE_DURATION_MILLIS.toDuration(DurationUnit.MILLISECONDS))
-            .onEach { loadFee(it) }
-            .launchIn(viewModelScope)
-    }
+    private fun loadFee() {
+        launch {
+            feeLoaderMixin.loadFee(
+                coroutineScope = viewModelScope,
+                feeConstructor = {
+                    val stashState = accountStakingFlow.first()
 
-    private fun loadFee(amount: BigDecimal) {
-        feeLoaderMixin.loadFee(
-            coroutineScope = viewModelScope,
-            feeConstructor = { token ->
-                val stashState = accountStakingFlow.first()
-
-                redeemInteractor.estimateFee(stashState) {
-                    stakingScenarioInteractor.confirmRevoke(
-                        this,
-                        candidate = payload.collatorAddress,
-                        stashState = stashState
-                    )
-                }
-            },
-            onRetryCancelled = ::backClicked
-        )
+                    redeemInteractor.estimateFee(stashState) {
+                        stakingScenarioInteractor.confirmRevoke(
+                            this,
+                            candidate = payload.collatorAddress,
+                            stashState = stashState
+                        )
+                    }
+                },
+                onRetryCancelled = ::backClicked
+            )
+        }
     }
 
     fun originAccountClicked() = launch {

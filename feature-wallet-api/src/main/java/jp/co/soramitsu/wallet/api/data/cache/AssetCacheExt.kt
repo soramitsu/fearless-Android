@@ -1,26 +1,92 @@
 package jp.co.soramitsu.wallet.api.data.cache
 
+import java.math.BigInteger
 import jp.co.soramitsu.common.data.network.runtime.binding.AccountInfo
+import jp.co.soramitsu.common.data.network.runtime.binding.AssetBalanceData
+import jp.co.soramitsu.common.data.network.runtime.binding.AssetsAccountInfo
+import jp.co.soramitsu.common.data.network.runtime.binding.EmptyBalance
 import jp.co.soramitsu.common.data.network.runtime.binding.EqAccountInfo
 import jp.co.soramitsu.common.data.network.runtime.binding.OrmlTokensAccountData
+import jp.co.soramitsu.common.data.network.runtime.binding.SimpleBalanceData
 import jp.co.soramitsu.common.data.network.runtime.binding.bindAccountInfo
+import jp.co.soramitsu.common.data.network.runtime.binding.bindAssetsAccountInfo
 import jp.co.soramitsu.common.data.network.runtime.binding.bindEquilibriumAccountInfo
 import jp.co.soramitsu.common.data.network.runtime.binding.bindOrmlTokensAccountData
+import jp.co.soramitsu.common.utils.orZero
+import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.coredb.model.AssetLocal
-import jp.co.soramitsu.fearless_utils.runtime.AccountId
-import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.shared_utils.runtime.AccountId
+import jp.co.soramitsu.shared_utils.runtime.RuntimeSnapshot
 
 suspend fun AssetCache.updateAsset(
     metaId: Long,
     accountId: AccountId,
-    chainAsset: Chain.Asset,
+    asset: Asset,
+    balanceData: AssetBalanceData?
+) {
+    when (balanceData) {
+        null, is EmptyBalance -> {
+            updateAsset(metaId, accountId, asset) {
+                it.copy(
+                    accountId = accountId,
+                    freeInPlanks = BigInteger.ZERO
+                )
+            }
+        }
+
+        is AccountInfo -> updateAsset(metaId, accountId, asset, accountInfoUpdater(balanceData))
+        is OrmlTokensAccountData -> {
+            updateAsset(metaId, accountId, asset) {
+                it.copy(
+                    accountId = accountId,
+                    freeInPlanks = balanceData.free,
+                    miscFrozenInPlanks = balanceData.frozen,
+                    reservedInPlanks = balanceData.reserved
+                )
+            }
+        }
+
+        is EqAccountInfo -> {
+            updateAsset(metaId, accountId, asset) {
+                it.copy(
+                    accountId = accountId,
+                    freeInPlanks = balanceData.data.balances[asset.currency].orZero()
+                )
+            }
+        }
+
+        is AssetsAccountInfo -> {
+            updateAsset(metaId, accountId, asset) {
+                it.copy(
+                    accountId = accountId,
+                    freeInPlanks = balanceData.balance
+                )
+            }
+        }
+
+        is SimpleBalanceData -> {
+            updateAsset(metaId, accountId, asset) {
+                it.copy(
+                    accountId = accountId,
+                    freeInPlanks = balanceData.balance
+                )
+            }
+        }
+
+        else -> Unit
+    }
+}
+
+suspend fun AssetCache.updateAsset(
+    metaId: Long,
+    accountId: AccountId,
+    chainAsset: Asset,
     accountInfo: AccountInfo
 ) = updateAsset(metaId, accountId, chainAsset, accountInfoUpdater(accountInfo))
 
 suspend fun AssetCache.updateAsset(
     accountId: AccountId,
-    chainAsset: Chain.Asset,
+    chainAsset: Asset,
     accountInfo: AccountInfo
 ) = updateAsset(accountId, chainAsset, accountInfoUpdater(accountInfo))
 
@@ -42,6 +108,11 @@ fun bindAccountInfoOrDefault(hex: String?, runtime: RuntimeSnapshot): AccountInf
 fun bindOrmlTokensAccountDataOrDefault(hex: String?, runtime: RuntimeSnapshot): OrmlTokensAccountData {
     return hex?.let { bindOrmlTokensAccountData(it, runtime) } ?: OrmlTokensAccountData.empty()
 }
+
 fun bindEquilibriumAccountData(hex: String?, runtime: RuntimeSnapshot): EqAccountInfo? {
     return hex?.let { bindEquilibriumAccountInfo(it, runtime) }
+}
+
+fun bindAssetsAccountData(hex: String?, runtime: RuntimeSnapshot): AssetsAccountInfo? {
+    return hex?.let { bindAssetsAccountInfo(it, runtime) }
 }

@@ -14,8 +14,11 @@ import androidx.lifecycle.ProcessLifecycleOwner
 import com.google.zxing.client.android.Intents
 import com.journeyapps.barcodescanner.CaptureManager
 import dagger.hilt.android.AndroidEntryPoint
+import jp.co.soramitsu.common.R
+import jp.co.soramitsu.common.compose.component.emptyClick
 import javax.inject.Inject
 import jp.co.soramitsu.common.databinding.ActivityScannerBinding
+import jp.co.soramitsu.common.presentation.ErrorDialog
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.EventObserver
 
@@ -60,6 +63,24 @@ class ScannerActivity : AppCompatActivity() {
         viewModel.scanResultEvent.observeEvent {
             onScanResult(it)
         }
+        viewModel.errorLiveData.observeEvent {
+            showErrorDialog(it)
+        }
+    }
+
+    private fun showErrorDialog(
+        message: String,
+        positiveButtonText: String? = resources.getString(R.string.common_ok),
+        negativeButtonText: String? = null,
+        positiveClick: () -> Unit = emptyClick
+    ) {
+        ErrorDialog(
+            title = resources.getString(R.string.common_error_general_title),
+            message = message,
+            positiveButtonText = positiveButtonText,
+            negativeButtonText = negativeButtonText,
+            positiveClick = positiveClick
+        ).show(supportFragmentManager)
     }
 
     private fun onScanResult(value: String) {

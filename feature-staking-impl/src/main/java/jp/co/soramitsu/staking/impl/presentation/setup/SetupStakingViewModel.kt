@@ -16,11 +16,14 @@ import jp.co.soramitsu.common.mixin.api.Retriable
 import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
-import jp.co.soramitsu.common.utils.formatAsCurrency
+import jp.co.soramitsu.common.utils.formatCrypto
+import jp.co.soramitsu.common.utils.formatCryptoDetail
+import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.common.validation.progressConsumer
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.core.models.Asset
+import jp.co.soramitsu.core.utils.amountFromPlanks
 import jp.co.soramitsu.staking.api.data.StakingSharedState
 import jp.co.soramitsu.staking.api.domain.model.RewardDestination
 import jp.co.soramitsu.staking.impl.data.mappers.mapRewardDestinationModelToRewardDestination
@@ -35,15 +38,15 @@ import jp.co.soramitsu.staking.impl.presentation.common.rewardDestination.Reward
 import jp.co.soramitsu.staking.impl.presentation.common.validation.stakingValidationFailure
 import jp.co.soramitsu.staking.impl.scenarios.StakingScenarioInteractor
 import jp.co.soramitsu.wallet.api.data.mappers.mapAssetToAssetModel
-import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.wallet.api.presentation.mixin.fee.FeeLoaderMixin
-import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
+import jp.co.soramitsu.wallet.api.presentation.mixin.fee.FeeStatus
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
@@ -71,6 +74,8 @@ class SetupStakingViewModel @Inject constructor(
     FeeLoaderMixin by feeLoaderMixin,
     RewardDestinationMixin by rewardDestinationMixin {
 
+    val isInputFocused = MutableStateFlow(false)
+
     private val currentProcessState = setupStakingSharedState.get<SetupStakingProcess.SetupStep>()
 
     private val _showNextProgress = MutableLiveData(false)
@@ -96,14 +101,14 @@ class SetupStakingViewModel @Inject constructor(
 
     val enteredFiatAmountFlow = assetFlow.combine(parsedAmountFlow) { asset, amount ->
 
-        asset.token.fiatAmount(amount)?.formatAsCurrency(asset.token.fiatSymbol)
+        asset.token.fiatAmount(amount)?.formatFiat(asset.token.fiatSymbol)
     }
         .flowOn(Dispatchers.Default)
         .asLiveData()
 
     private val rewardCalculator = viewModelScope.async {
         val asset = stakingSharedState.assetWithChain.first().asset
-        rewardCalculatorFactory.create(asset.staking, asset.chainId)
+        rewardCalculatorFactory.create(asset)
     }
 
     val currentAccountAddressModel = liveData {
@@ -157,6 +162,7 @@ class SetupStakingViewModel @Inject constructor(
                             setupStakingInteractor.estimateMaxSetupStakingFee(address)
                         }.orZero()
                     }
+
                     is SetupStakingProcess.SetupStep.Parachain -> {
                         setupStakingInteractor.estimateParachainFee()
                     }
@@ -203,7 +209,7 @@ class SetupStakingViewModel @Inject constructor(
 
                 val minimumStakeAmount = payload.asset.token.configuration.amountFromPlanks(minimumStake)
                 if (amount < minimumStakeAmount) {
-                    _showMinimumStakeAlert.value = Event(minimumStakeAmount.formatTokenAmount(payload.asset.token.configuration))
+                    _showMinimumStakeAlert.value = Event(minimumStakeAmount.formatCryptoDetail(payload.asset.token.configuration.symbol))
                 } else {
                     goToNextStep(amount, rewardDestination, currentAccountAddress, asset.token.configuration.staking)
                 }
@@ -215,19 +221,19 @@ class SetupStakingViewModel @Inject constructor(
         newAmount: BigDecimal,
         rewardDestination: RewardDestination,
         currentAccountAddress: String,
-        stakingType: Chain.Asset.StakingType
+        stakingType: Asset.StakingType
     ) {
         viewModelScope.launch {
             val payload = when (stakingType) {
-                Chain.Asset.StakingType.PARACHAIN -> SetupStakingProcess.SetupStep.Payload.Parachain(newAmount, currentAccountAddress)
-                Chain.Asset.StakingType.RELAYCHAIN -> SetupStakingProcess.SetupStep.Payload.RelayChain(newAmount, rewardDestination, currentAccountAddress)
+                Asset.StakingType.PARACHAIN -> SetupStakingProcess.SetupStep.Payload.Parachain(newAmount, currentAccountAddress)
+                Asset.StakingType.RELAYCHAIN -> SetupStakingProcess.SetupStep.Payload.RelayChain(newAmount, rewardDestination, currentAccountAddress)
                 else -> error("")
             }
             setupStakingSharedState.set(currentProcessState.next(payload))
 
             when (stakingType) {
-                Chain.Asset.StakingType.PARACHAIN -> router.openStartChangeCollators()
-                Chain.Asset.StakingType.RELAYCHAIN -> router.openStartChangeValidators()
+                Asset.StakingType.PARACHAIN -> router.openStartChangeCollators()
+                Asset.StakingType.RELAYCHAIN -> router.openStartChangeValidators()
                 else -> Unit
             }
         }
@@ -239,4 +245,35 @@ class SetupStakingViewModel @Inject constructor(
     )
 
     private suspend fun rewardCalculator() = rewardCalculator.await()
+
+    fun onAmountInputFocusChanged(hasFocus: Boolean) {
+        launch {
+            isInputFocused.emit(hasFocus)
+        }
+    }
+
+    fun onQuickAmountInput(input: Double) {
+        launch {
+            val asset = assetFlow.firstOrNull() ?: return@launch
+            val availableAmount = asset.availableForStaking
+
+            val fee = (feeLiveData.value as? FeeStatus.Loaded)?.feeModel?.fee.orZero()
+
+            val value = when {
+                availableAmount < fee -> {
+                    BigDecimal.ZERO
+                }
+
+                availableAmount * input.toBigDecimal() < availableAmount - fee -> {
+                    availableAmount * input.toBigDecimal()
+                }
+
+                else -> {
+                    availableAmount - fee
+                }
+            }
+
+            enteredAmountFlow.emit(value.formatCrypto())
+        }
+    }
 }

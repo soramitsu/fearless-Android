@@ -15,7 +15,6 @@ class ComputationalCache {
      * Caches computation till lifecycle is destroyed
      */
     @Suppress("UNCHECKED_CAST")
-    @Synchronized
     suspend fun <T> useCache(
         key: String,
         lifecycle: Lifecycle,

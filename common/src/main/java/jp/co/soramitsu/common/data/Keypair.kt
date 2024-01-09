@@ -1,7 +1,7 @@
 package jp.co.soramitsu.common.data
 
-import jp.co.soramitsu.fearless_utils.encrypt.keypair.BaseKeypair
-import jp.co.soramitsu.fearless_utils.encrypt.keypair.substrate.Sr25519Keypair
+import jp.co.soramitsu.shared_utils.encrypt.keypair.BaseKeypair
+import jp.co.soramitsu.shared_utils.encrypt.keypair.substrate.Sr25519Keypair
 
 /**
  * Creates [Sr25519Keypair] if [nonce] is not null

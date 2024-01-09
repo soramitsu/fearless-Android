@@ -1,11 +1,8 @@
 package jp.co.soramitsu.staking.impl.domain.alerts
 
-import java.math.BigDecimal
-import java.math.BigInteger
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.common.utils.orZero
-import jp.co.soramitsu.fearless_utils.runtime.AccountId
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.shared_utils.runtime.AccountId
 import jp.co.soramitsu.staking.api.data.StakingSharedState
 import jp.co.soramitsu.staking.api.domain.model.Exposure
 import jp.co.soramitsu.staking.api.domain.model.StakingState
@@ -19,9 +16,11 @@ import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.emitAll
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import java.math.BigDecimal
+import java.math.BigInteger
+import jp.co.soramitsu.core.models.Asset as CoreAsset
 
 private const val NOMINATIONS_ACTIVE_MEMO = "NOMINATIONS_ACTIVE_MEMO"
 
@@ -116,12 +115,9 @@ class AlertsInteractor(
         ::produceSetValidatorsAlert
     )
 
-    fun getAlertsFlow(stakingState: StakingState): Flow<List<Alert>> = flow {
-        val (chain, chainAsset) = sharedState.assetWithChain.first()
-
-        if (chainAsset.staking != Chain.Asset.StakingType.RELAYCHAIN) {
-            emit(emptyList())
-            return@flow
+    fun getAlertsFlow(stakingState: StakingState): Flow<List<Alert>> = sharedState.assetWithChain.flatMapLatest { (chain, chainAsset) ->
+        if (chainAsset.staking != CoreAsset.StakingType.RELAYCHAIN) {
+            return@flatMapLatest flowOf(emptyList())
         }
 
         val maxRewardedNominatorsPerValidator = stakingConstantsRepository.maxRewardedNominatorPerValidator(chain.id)
@@ -146,7 +142,7 @@ class AlertsInteractor(
             alertProducers.mapNotNull { it.invoke(context) }
         }
 
-        emitAll(alertsFlow)
+        alertsFlow
     }
 
     private inline fun <reified T : StakingState, R> requireState(

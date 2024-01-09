@@ -15,14 +15,15 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import java.math.BigDecimal
 import jp.co.soramitsu.common.compose.component.AccentButton
-import jp.co.soramitsu.common.compose.component.ExapandableText
 import jp.co.soramitsu.common.compose.component.AmountInput
 import jp.co.soramitsu.common.compose.component.AmountInputViewState
 import jp.co.soramitsu.common.compose.component.BottomSheetScreen
 import jp.co.soramitsu.common.compose.component.ButtonViewState
 import jp.co.soramitsu.common.compose.component.DropDown
 import jp.co.soramitsu.common.compose.component.DropDownViewState
+import jp.co.soramitsu.common.compose.component.ExpandableText
 import jp.co.soramitsu.common.compose.component.FeeInfo
 import jp.co.soramitsu.common.compose.component.FeeInfoViewState
 import jp.co.soramitsu.common.compose.component.InactiveDropDown
@@ -49,7 +50,7 @@ data class CreatePoolSetupViewState(
 interface CreatePoolSetupScreenInterface {
     fun onNavigationClick()
     fun onPoolNameInput(text: String)
-    fun onTokenAmountInput(text: String)
+    fun onTokenAmountInput(value: BigDecimal?)
     fun onNominatorClick()
     fun onStateTogglerClick()
     fun onCreateClick()
@@ -88,7 +89,7 @@ fun CreatePoolSetupScreen(
                 MarginVertical(margin = 12.dp)
                 AmountInput(state = state.amountInputViewState, onInput = screenInterface::onTokenAmountInput)
                 MarginVertical(margin = 12.dp)
-                ExapandableText(
+                ExpandableText(
                     title = stringResource(id = R.string.common_advanced),
                     initialState = false,
                     content = {
@@ -109,7 +110,7 @@ fun CreatePoolSetupScreen(
                         DropDown(
                             state = DropDownViewState(
                                 state.stateToggler,
-                                stringResource(id = R.string.pool_staking_state_toggler)
+                                stringResource(id = R.string.pool_staking_bouncer)
                             ),
                             onClick = screenInterface::onStateTogglerClick
                         )
@@ -141,7 +142,7 @@ private fun CreatePoolSetupScreenPreview() {
             tokenImage = "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Karura.svg",
             totalBalance = "Balance: 20.0",
             fiatAmount = "$120.0",
-            tokenAmount = "0.1"
+            tokenAmount = BigDecimal.ONE
         ),
         "7",
         "⚡️Everlight☀️",
@@ -157,7 +158,7 @@ private fun CreatePoolSetupScreenPreview() {
     val emptyInterface = object : CreatePoolSetupScreenInterface {
         override fun onNavigationClick() = Unit
         override fun onPoolNameInput(text: String) = Unit
-        override fun onTokenAmountInput(text: String) = Unit
+        override fun onTokenAmountInput(value: BigDecimal?) = Unit
         override fun onNominatorClick() = Unit
         override fun onStateTogglerClick() = Unit
         override fun onCreateClick() = Unit

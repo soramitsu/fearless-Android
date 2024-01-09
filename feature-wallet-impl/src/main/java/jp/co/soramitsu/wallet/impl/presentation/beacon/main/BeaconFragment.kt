@@ -47,7 +47,7 @@ class BeaconFragment : BaseFragment<BeaconViewModel>(R.layout.fragment_beacon) {
         warningDialog(
             requireContext(),
             childFragmentManager,
-            title = resources.getString(R.string.common_are_you_sure),
+            title = resources.getString(R.string.common_confirmation_title),
             message = resources.getString(R.string.beacon_exit_message),
             onConfirm = { viewModel.exit() }
         )

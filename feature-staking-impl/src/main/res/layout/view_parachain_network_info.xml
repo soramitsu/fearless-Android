@@ -67,7 +67,7 @@
             app:layout_constraintStart_toEndOf="@id/parachainMinimumStakeView"
             app:layout_constraintTop_toBottomOf="@id/parachainStakingStoriesList"
             app:startWithLoading="true"
-            app:titleText="@string/staking_unbonding_period_v1_9_0" />
+            app:titleText="@string/staking_unstaking_period" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

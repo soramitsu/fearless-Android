@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.math.BigDecimal
 import javax.inject.Inject
 import javax.inject.Named
 import jp.co.soramitsu.account.api.domain.model.address
@@ -20,10 +21,12 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.childScope
 import jp.co.soramitsu.common.utils.formatAsPercentage
+import jp.co.soramitsu.common.utils.formatCrypto
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.withLoading
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.core.updater.UpdateSystem
+import jp.co.soramitsu.core.utils.amountFromPlanks
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.staking.api.data.StakingAssetSelection
 import jp.co.soramitsu.staking.api.data.StakingSharedState
@@ -35,6 +38,7 @@ import jp.co.soramitsu.staking.impl.domain.StakingInteractor
 import jp.co.soramitsu.staking.impl.domain.alerts.AlertsInteractor
 import jp.co.soramitsu.staking.impl.domain.getSelectedChain
 import jp.co.soramitsu.staking.impl.domain.rewards.RewardCalculatorFactory
+import jp.co.soramitsu.staking.impl.domain.setup.SetupStakingInteractor
 import jp.co.soramitsu.staking.impl.domain.validations.balance.ManageStakingValidationPayload
 import jp.co.soramitsu.staking.impl.domain.validations.balance.ManageStakingValidationSystem
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
@@ -58,9 +62,12 @@ import jp.co.soramitsu.staking.impl.presentation.staking.redeem.RedeemPayload
 import jp.co.soramitsu.staking.impl.scenarios.StakingPoolInteractor
 import jp.co.soramitsu.staking.impl.scenarios.parachain.StakingParachainScenarioInteractor
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenarioInteractor
+import jp.co.soramitsu.wallet.impl.presentation.model.ControllerDeprecationWarningModel
+import jp.co.soramitsu.wallet.impl.presentation.model.toModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -68,6 +75,7 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
@@ -95,10 +103,13 @@ class StakingViewModel @Inject constructor(
     stakingPoolInteractor: StakingPoolInteractor,
     private val stakingPoolSharedStateProvider: StakingPoolSharedStateProvider,
     private val stakingParachainStoriesDataSourceImpl: ParachainStakingStoriesDataSourceImpl,
-    private val stakingStoriesDataSourceImpl: StakingStoriesDataSourceImpl
+    private val stakingStoriesDataSourceImpl: StakingStoriesDataSourceImpl,
+    private val setupStakingInteractor: SetupStakingInteractor
 ) : BaseViewModel(),
     BaseStakingViewModel,
     Validatable by validationExecutor {
+
+    val isInputFocused = MutableStateFlow(false)
 
     override val stakingStateScope: CoroutineScope
         get() = viewModelScope.childScope(supervised = true)
@@ -125,8 +136,10 @@ class StakingViewModel @Inject constructor(
     private val _showRewardEstimationEvent = MutableLiveData<Event<StakingRewardEstimationBottomSheet.Payload>>()
     val showRewardEstimationEvent: LiveData<Event<StakingRewardEstimationBottomSheet.Payload>> = _showRewardEstimationEvent
 
+    private val _enteredAmountEvent = MutableLiveData<Event<String>>()
+    val enteredAmountEvent: LiveData<Event<String>> = _enteredAmountEvent
+
     private val scenarioViewModelFlow = stakingSharedState.selectionItem
-        .debounce(50)
         .onEach {
             stakingStateScope.coroutineContext.cancelChildren()
         }
@@ -141,7 +154,7 @@ class StakingViewModel @Inject constructor(
     @Deprecated("Use stakingViewState flow with ready models for compose")
     val stakingViewStateOld = scenarioViewModelFlow
         .flatMapLatest {
-            it.getStakingViewStateFlowOld().withLoading()
+            it.stakingViewStateFlowOld.withLoading()
         }.distinctUntilChanged().shareIn(stakingStateScope, started = SharingStarted.Eagerly, replay = 1)
 
     val alertsFlow = scenarioViewModelFlow
@@ -156,7 +169,7 @@ class StakingViewModel @Inject constructor(
     )
 
     private val stakingViewState: SharedFlow<StakingViewState?> = scenarioViewModelFlow
-        .flatMapLatest {
+        .flatMapConcat {
             it.getStakingViewStateFlow()
         }.distinctUntilChanged().stateIn(scope = stakingStateScope, started = SharingStarted.Eagerly, initialValue = null)
 
@@ -201,19 +214,41 @@ class StakingViewModel @Inject constructor(
     init {
         stakingUpdateSystem.start()
             .launchIn(this)
-        viewModelScope.launch {
-            stakingSharedState.selectionItem.distinctUntilChanged().collect {
-                setupStakingSharedState.set(SetupStakingProcess.Initial(it.type))
-                stakingStateScope.coroutineContext.cancelChildren()
+
+        stakingSharedState.selectionItem.distinctUntilChanged().onEach {
+            setupStakingSharedState.set(SetupStakingProcess.Initial(it.type))
+            stakingStateScope.coroutineContext.cancelChildren()
+        }.launchIn(viewModelScope)
+
+        interactor.selectionStateFlow().onEach {
+            val warning = interactor.checkControllerDeprecations(it.first, it.second.chain)
+            warning?.let {
+                val model = warning.toModel(resourceManager)
+                showError(
+                    title = model.title,
+                    message = model.message,
+                    positiveButtonText = model.buttonText,
+                    negativeButtonText = null,
+                    positiveClick = {
+                        when (model.action) {
+                            ControllerDeprecationWarningModel.Action.ChangeController -> {
+                                router.openManageControllerAccount(model.chainId)
+                            }
+                            ControllerDeprecationWarningModel.Action.ImportStash -> {
+                                router.openImportAccountScreenFromWallet(0)
+                            }
+                        }
+                    }
+                )
             }
-        }
+        }.launchIn(viewModelScope)
     }
 
     private val selectedChain = interactor.selectedChainFlow()
         .share()
 
     val stories = scenarioViewModelFlow
-        .flatMapLatest { viewModel ->
+        .flatMapConcat { viewModel ->
             viewModel.stakingStoriesFlow().map { it.map(::transformStories) }
         }.distinctUntilChanged().shareIn(stakingStateScope, started = SharingStarted.Eagerly, replay = 1)
 
@@ -230,7 +265,7 @@ class StakingViewModel @Inject constructor(
     }
 
     fun avatarClicked() {
-        router.openChangeAccountFromStaking()
+        router.openSelectWallet()
     }
 
     override fun openCurrentValidators() {
@@ -308,7 +343,8 @@ class StakingViewModel @Inject constructor(
     fun onEstimatedEarningsInfoClick() {
         launch {
             val chainId = interactor.getSelectedChain().id
-            val rewardCalculator = rewardCalculatorFactory.createManual(chainId)
+            val asset = stakingSharedState.currentAssetFlow().first()
+            val rewardCalculator = rewardCalculatorFactory.create(asset.token.configuration)
 
             val maxAPY = rewardCalculator.calculateMaxAPY(chainId)
             val avgAPY = rewardCalculator.calculateAvgAPY()
@@ -324,9 +360,9 @@ class StakingViewModel @Inject constructor(
         }
     }
 
-    fun onPoolsAmountInput(amount: String) {
+    fun onPoolsAmountInput(amount: BigDecimal?) {
         viewModelScope.launch {
-            scenarioViewModelFlow.first().enteredAmountFlow.emit(amount.replace(',', '.'))
+            scenarioViewModelFlow.first().enteredAmountFlow.emit(amount)
         }
     }
 
@@ -336,10 +372,9 @@ class StakingViewModel @Inject constructor(
         val meta = interactor.getCurrentMetaAccount()
         val address = requireNotNull(meta.address(chain))
         val amount = scenarioViewModelFlow.first().enteredAmountFlow.value
-        val amountDecimal = amount.toBigDecimalOrNull().orZero()
 
         stakingPoolSharedStateProvider.mainState.mutate {
-            StakingPoolState(asset = asset, chain = chain, chainAsset = chainAsset, address = address, amount = amountDecimal)
+            StakingPoolState(asset = asset, chain = chain, chainAsset = chainAsset, address = address, amount = amount)
         }
     }
 
@@ -359,6 +394,46 @@ class StakingViewModel @Inject constructor(
         viewModelScope.launch {
             prepareStakingPoolState()
             router.openManagePoolStake()
+        }
+    }
+
+    fun onAmountInputFocusChanged(hasFocus: Boolean) {
+        launch {
+            isInputFocused.emit(hasFocus)
+        }
+    }
+
+    fun onQuickAmountInput(input: Double) {
+        launch {
+            val stakingType = stakingSharedState.selectionItem.first().type
+
+            val fee = if (stakingType == StakingType.PARACHAIN) {
+                setupStakingInteractor.estimateParachainFee()
+            } else {
+                interactor.getSelectedAccountProjection()?.address?.let { address ->
+                    setupStakingInteractor.estimateMaxSetupStakingFee(address)
+                }.orZero()
+            }
+
+            val asset = stakingSharedState.currentAssetFlow().first()
+            val utilityFeeReserve = asset.token.configuration.amountFromPlanks(fee)
+            val availableAmount = asset.availableForStaking
+
+            val value = when {
+                availableAmount < utilityFeeReserve -> {
+                    BigDecimal.ZERO
+                }
+
+                availableAmount * input.toBigDecimal() < availableAmount - utilityFeeReserve -> {
+                    availableAmount * input.toBigDecimal()
+                }
+
+                else -> {
+                    availableAmount - utilityFeeReserve
+                }
+            }
+
+            _enteredAmountEvent.value = Event(value.formatCrypto())
         }
     }
 }

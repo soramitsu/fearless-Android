@@ -4,6 +4,7 @@
     <color name="colorSelected">#66FF009A</color>
     <color name="colorPrimaryDark">#80004CB7</color>
     <color name="colorAccent">#FF009A</color>
+    <color name="colorAccentDark">#EE0077</color>
     <color name="colorAccent_50">#80FF009A</color>
     <color name="white">#fff</color>
     <color name="colorHint">#ccc</color>
@@ -12,6 +13,7 @@
     <color name="gray2">#888888</color>
     <color name="gray3">#444444</color>
     <color name="gray4">#181818</color>
+    <color name="bottom_bar_grey">#F71F1D1E</color>
     <color name="gray_disabled">#D0D0D0</color>
     <color name="colorGreyText">#888888</color>
     <color name="green">#0ED33B</color>
@@ -21,6 +23,7 @@
     <color name="blurColorDark">#B3000000</color>
     <color name="blurColor">#8C000000</color>
     <color name="blurColorLight">#66000000</color>
+    <color name="backgroundBlurColor">#0AFFFFFF</color>
 
     <color name="white_10">#1AFFFFFF</color>
     <color name="white_16">#29FFFFFF</color>

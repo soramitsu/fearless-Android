@@ -18,17 +18,24 @@ android {
         buildConfigField "String", "RAMP_TOKEN", "\"4bk3yhfrg99fer764bo7egrqmxbfene7gbrpwmp3\""
         buildConfigField "String", "RAMP_HOST", "\"ri-widget-staging.firebaseapp.com\""
 
-        buildConfigField "String", "MOONPAY_PRIVATE_KEY", readSecret("MOONPAY_TEST_SECRET")
+        buildConfigField "String", "MOONPAY_PRIVATE_KEY", readSecretInQuotes("MOONPAY_TEST_SECRET")
         buildConfigField "String", "MOONPAY_HOST", "\"buy-staging.moonpay.com\""
         buildConfigField "String", "MOONPAY_PUBLIC_KEY", "\"pk_test_DMRuyL6Nf1qc9OzjPBmCFBeCGkFwiZs0\""
+
+        buildConfigField "String", "SORA_CONFIG_COMMON_STAGE", "\"https://config.polkaswap2.io/stage/common.json\""
+        buildConfigField "String", "SORA_CONFIG_MOBILE_STAGE", "\"https://config.polkaswap2.io/stage/mobile.json\""
+        buildConfigField "String", "SORA_CONFIG_COMMON_PROD", "\"https://config.polkaswap2.io/prod/common.json\""
+        buildConfigField "String", "SORA_CONFIG_MOBILE_PROD", "\"https://config.polkaswap2.io/prod/mobile.json\""
+
+        buildConfigField "String", "SCAM_DETECTION_CONFIG", "\"https://raw.githubusercontent.com/soramitsu/shared-features-utils/master/scamDetection/Polkadot_Hot_Wallet_Attributions.csv\""
     }
 
     buildTypes {
         release {
             buildConfigField "String", "RAMP_TOKEN", "\"3quzr4e6wdyccndec8jzjebzar5kxxzfy2f3us5k\""
-            buildConfigField "String", "RAMP_HOST", "\"buy.ramp.network\""
+            buildConfigField "String", "RAMP_HOST", "\"app.ramp.network\""
 
-            buildConfigField "String", "MOONPAY_PRIVATE_KEY", readSecret("MOONPAY_PRODUCTION_SECRET")
+            buildConfigField "String", "MOONPAY_PRIVATE_KEY", readSecretInQuotes("MOONPAY_PRODUCTION_SECRET")
             buildConfigField "String", "MOONPAY_PUBLIC_KEY", "\"pk_live_Boi6Rl107p7XuJWBL8GJRzGWlmUSoxbz\""
             buildConfigField "String", "MOONPAY_HOST", "\"buy.moonpay.com\""
         }
@@ -40,14 +47,14 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility 1.8
-        targetCompatibility 1.8
+        sourceCompatibility 11
+        targetCompatibility 11
     }
 
     kotlinOptions {
         freeCompilerArgs = ["-Xallow-result-return-type"]
 
-        jvmTarget = '1.8'
+        jvmTarget = '11'
     }
     composeOptions {
         kotlinCompilerExtensionVersion composeCompilerVersion
@@ -56,12 +63,22 @@ android {
 }
 
 dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation project(':core-db')
     implementation project(':common')
     implementation project(':feature-wallet-api')
+    implementation project(':feature-polkaswap-api')
     implementation project(':feature-account-api')
     implementation project(':feature-account-impl')
     implementation project(':runtime')
+    implementation project(':feature-soracard-api')
+    implementation project(':feature-soracard-impl')
+    implementation project(':runtime-permission')
+    implementation project(':feature-walletconnect-api')
+
+    implementation(platform(libs.walletconnectBomDep))
+    implementation(libs.walletconnectCoreDep)
+    implementation(libs.walletconnectWeb3WalletDep)
 
     implementation kotlinDep
 
@@ -70,10 +87,9 @@ dependencies {
     implementation cardViewDep
     implementation constraintDep
 
-    implementation permissionsDep
-
     implementation coroutinesDep
     implementation coroutinesAndroidDep
+    implementation coroutinesRxDep
     implementation viewModelKtxDep
     implementation liveDataKtxDep
     implementation lifeCycleKtxDep
@@ -94,12 +110,13 @@ dependencies {
     testImplementation jUnitDep
     testImplementation mockitoDep
 
-    implementation fearlessLibDep
-
     implementation gsonDep
     implementation retrofitDep
 
     implementation wsDep
+    implementation xNetworkingBasicDep
+    implementation xNetworkingFearlessDep, withoutBasic
+    implementation xNetworkingSorawalletDep, withoutBasic
 
     implementation zXingCoreDep
     implementation zXingEmbeddedDep
@@ -118,4 +135,9 @@ dependencies {
 
     implementation navigationFragmentDep
     implementation navigationUiDep
+
+    implementation sharedFeaturesXcmDep
+    implementation sharedFeaturesBackupDep
+
+    implementation web3jDep
 }

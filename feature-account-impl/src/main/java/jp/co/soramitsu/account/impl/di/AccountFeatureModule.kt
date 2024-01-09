@@ -11,11 +11,11 @@ import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.interfaces.AssetNotNeedAccountUseCase
 import jp.co.soramitsu.account.api.domain.interfaces.SelectedAccountUseCase
 import jp.co.soramitsu.account.api.domain.updaters.AccountUpdateScope
-import jp.co.soramitsu.account.api.extrinsic.ExtrinsicService
 import jp.co.soramitsu.account.api.presentation.account.AddressDisplayUseCase
 import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActionsProvider
 import jp.co.soramitsu.account.impl.data.repository.AccountRepositoryImpl
+import jp.co.soramitsu.account.impl.data.repository.KeyPairRepository
 import jp.co.soramitsu.account.impl.data.repository.datasource.AccountDataSource
 import jp.co.soramitsu.account.impl.data.repository.datasource.AccountDataSourceImpl
 import jp.co.soramitsu.account.impl.data.repository.datasource.migration.AccountDataMigration
@@ -42,32 +42,19 @@ import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.LanguagesHolder
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.core.extrinsic.keypair_provider.KeypairProvider
 import jp.co.soramitsu.coredb.dao.AccountDao
 import jp.co.soramitsu.coredb.dao.AssetDao
 import jp.co.soramitsu.coredb.dao.MetaAccountDao
 import jp.co.soramitsu.coredb.dao.TokenPriceDao
-import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedDecoder
-import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedEncoder
-import jp.co.soramitsu.runtime.extrinsic.ExtrinsicBuilderFactory
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
-import jp.co.soramitsu.runtime.network.rpc.RpcCalls
+import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
+import jp.co.soramitsu.shared_utils.encrypt.json.JsonSeedDecoder
+import jp.co.soramitsu.shared_utils.encrypt.json.JsonSeedEncoder
 
 @InstallIn(SingletonComponent::class)
 @Module
 class AccountFeatureModule {
-
-    @Provides
-    fun provideExtrinsicService(
-        accountRepository: AccountRepository,
-        secretStoreV2: SecretStoreV2,
-        rpcCalls: RpcCalls,
-        extrinsicBuilderFactory: ExtrinsicBuilderFactory
-    ): ExtrinsicService = ExtrinsicService(
-        rpcCalls,
-        accountRepository,
-        secretStoreV2,
-        extrinsicBuilderFactory
-    )
 
     @Provides
     fun provideJsonDecoder(jsonMapper: Gson) = JsonSeedDecoder(jsonMapper)
@@ -107,6 +94,14 @@ class AccountFeatureModule {
     }
 
     @Provides
+    fun provideKeyPairRepository(
+        secretStoreV2: SecretStoreV2,
+        accountRepository: AccountRepository
+    ): KeypairProvider {
+        return KeyPairRepository(secretStoreV2, accountRepository)
+    }
+
+    @Provides
     fun provideAccountInteractor(
         accountRepository: AccountRepository,
         fileProvider: FileProvider
@@ -122,18 +117,18 @@ class AccountFeatureModule {
         secretStoreV1: SecretStoreV1,
         accountDataMigration: AccountDataMigration,
         metaAccountDao: MetaAccountDao,
-        chainRegistry: ChainRegistry,
-        secretStoreV2: SecretStoreV2
+        secretStoreV2: SecretStoreV2,
+        chainsRepository: ChainsRepository
     ): AccountDataSource {
         return AccountDataSourceImpl(
             preferences,
             encryptedPreferences,
             jsonMapper,
             metaAccountDao,
-            chainRegistry,
             secretStoreV2,
             secretStoreV1,
-            accountDataMigration
+            accountDataMigration,
+            chainsRepository
         )
     }
 
@@ -156,7 +151,12 @@ class AccountFeatureModule {
         resourceManager: ResourceManager,
         chainRegistry: ChainRegistry
     ): ExternalAccountActions.Presentation {
-        return ExternalAccountActionsProvider(clipboardManager, appLinksProvider, resourceManager, chainRegistry)
+        return ExternalAccountActionsProvider(
+            clipboardManager,
+            appLinksProvider,
+            resourceManager,
+            chainRegistry
+        )
     }
 
     @Provides
@@ -192,7 +192,8 @@ class AccountFeatureModule {
 
     @Provides
     @Singleton
-    fun provideAvailableFiatCurrenciesUseCase(coingeckoApi: CoingeckoApi) = GetAvailableFiatCurrencies(coingeckoApi)
+    fun provideAvailableFiatCurrenciesUseCase(coingeckoApi: CoingeckoApi) =
+        GetAvailableFiatCurrencies(coingeckoApi)
 
     @Provides
     @Singleton
@@ -200,10 +201,11 @@ class AccountFeatureModule {
 
     @Provides
     fun provideAssetNotNeedAccountUseCase(
+        chainRegistry: ChainRegistry,
         assetDao: AssetDao,
         tokenPriceDao: TokenPriceDao
     ): AssetNotNeedAccountUseCase {
-        return AssetNotNeedAccountUseCaseImpl(assetDao, tokenPriceDao)
+        return AssetNotNeedAccountUseCaseImpl(chainRegistry, assetDao, tokenPriceDao)
     }
 
     @Provides

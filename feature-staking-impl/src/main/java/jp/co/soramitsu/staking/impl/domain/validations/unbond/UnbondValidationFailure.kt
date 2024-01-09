@@ -10,6 +10,8 @@ sealed class UnbondValidationFailure {
 
     object ZeroUnbond : UnbondValidationFailure()
 
+    object ControllerCantPayFees : UnbondValidationFailure()
+
     class BondedWillCrossExistential(val willBeUnbonded: BigDecimal) : UnbondValidationFailure()
 
     class UnbondLimitReached(val limit: Int) : UnbondValidationFailure()

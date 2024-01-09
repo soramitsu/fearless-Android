@@ -30,11 +30,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
 import jp.co.soramitsu.common.R
-import jp.co.soramitsu.common.compose.theme.FearlessTheme
+import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
 import jp.co.soramitsu.common.compose.theme.backgroundBlurColor
 import jp.co.soramitsu.common.compose.theme.colorAccent
 import jp.co.soramitsu.common.compose.theme.customTypography
@@ -44,6 +45,12 @@ data class MainToolbarViewState(
     val title: String,
     val homeIconState: ToolbarHomeIconState = ToolbarHomeIconState(),
     val selectorViewState: ChainSelectorViewState
+)
+
+data class MainToolbarViewStateWithFilters(
+    val title: String,
+    val homeIconState: ToolbarHomeIconState = ToolbarHomeIconState(),
+    val selectorViewState: ChainSelectorViewStateWithFilters
 )
 
 data class ToolbarHomeIconState(
@@ -66,11 +73,13 @@ data class ToolbarViewState(
 @Composable
 fun MainToolbar(
     state: MainToolbarViewState,
-    onChangeChainClick: () -> Unit,
+    onChangeChainClick: (() -> Unit)?,
     onNavigationClick: () -> Unit = {},
     menuItems: List<MenuIconItem>? = null,
     modifier: Modifier = Modifier
 ) {
+    val paddingTitleEnd = menuItems.orEmpty().size * (32 /* icon size */ + 8 /* padding */)
+    val paddingTitleStart = 40 /* icon size */ + 8 /* padding */
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -89,12 +98,84 @@ fun MainToolbar(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .padding(start = paddingTitleStart.dp, end = paddingTitleEnd.dp)
                 .align(Alignment.Center),
             horizontalAlignment = CenterHorizontally
         ) {
             Text(
                 text = state.title,
                 style = MaterialTheme.customTypography.header4,
+                overflow = TextOverflow.Ellipsis,
+                maxLines = 1
+            )
+
+            MarginVertical(margin = 4.dp)
+
+            ChainSelector(
+                selectorViewState = state.selectorViewState,
+                onChangeChainClick = onChangeChainClick
+            )
+        }
+        Row(
+            verticalAlignment = CenterVertically,
+            horizontalArrangement = spacedBy(8.dp, End),
+            modifier = Modifier.align(Alignment.CenterEnd)
+        ) {
+            menuItems?.forEach { menuItem ->
+                IconButton(
+                    onClick = menuItem.onClick,
+                    modifier = Modifier
+                        .clip(CircleShape)
+                        .background(backgroundBlurColor)
+                        .size(32.dp)
+                ) {
+                    Icon(
+                        painter = painterResource(id = menuItem.icon),
+                        tint = white,
+                        contentDescription = null
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun MainToolbar(
+    state: MainToolbarViewStateWithFilters,
+    onChangeChainClick: () -> Unit,
+    onNavigationClick: () -> Unit = {},
+    menuItems: List<MenuIconItem>? = null,
+    modifier: Modifier = Modifier
+) {
+    val paddingTitleEnd = menuItems.orEmpty().size * (32 /* icon size */ + 8 /* padding */)
+    val paddingTitleStart = 40 /* icon size */ + 8 /* padding */
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(62.dp)
+            .padding(horizontal = 16.dp)
+    ) {
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier.align(CenterStart)
+        ) {
+            ToolbarHomeIcon(
+                state = state.homeIconState,
+                onClick = onNavigationClick
+            )
+        }
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = paddingTitleStart.dp, end = paddingTitleEnd.dp)
+                .align(Alignment.Center),
+            horizontalAlignment = CenterHorizontally
+        ) {
+            Text(
+                text = state.title,
+                style = MaterialTheme.customTypography.header4,
+                overflow = TextOverflow.Ellipsis,
                 maxLines = 1
             )
 
@@ -194,7 +275,7 @@ fun MainToolbarShimmer(
 }
 
 @Composable
-private fun ToolbarHomeIcon(state: ToolbarHomeIconState, onClick: () -> Unit) {
+fun ToolbarHomeIcon(state: ToolbarHomeIconState, onClick: () -> Unit) {
     when {
         state.navigationIcon != null -> painterResource(id = state.navigationIcon)
         state.walletIcon != null -> rememberAsyncImagePainter(model = state.walletIcon)
@@ -240,7 +321,7 @@ fun Toolbar(state: ToolbarViewState, modifier: Modifier = Modifier, onNavigation
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Box(
-            contentAlignment = Alignment.CenterStart,
+            contentAlignment = CenterStart,
             modifier = Modifier.weight(1f)
         ) {
             ToolbarHomeIcon(
@@ -251,13 +332,14 @@ fun Toolbar(state: ToolbarViewState, modifier: Modifier = Modifier, onNavigation
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(2f),
+                .weight(4f),
             horizontalAlignment = CenterHorizontally
         ) {
             Text(
                 text = state.title,
                 style = MaterialTheme.customTypography.header4,
-                maxLines = 1
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
         }
         Row(
@@ -287,7 +369,7 @@ fun Toolbar(state: ToolbarViewState, modifier: Modifier = Modifier, onNavigation
 @Preview
 @Composable
 private fun MainToolbarPreview() {
-    FearlessTheme {
+    FearlessAppTheme {
         Column(
             modifier = Modifier
                 .background(Color.Black)
@@ -303,7 +385,7 @@ private fun MainToolbarPreview() {
 
             MainToolbar(
                 state = MainToolbarViewState(
-                    title = "Fearless wallet",
+                    title = "Fearless wallet very long wallet name",
                     homeIconState = ToolbarHomeIconState(navigationIcon = R.drawable.ic_wallet),
                     selectorViewState = ChainSelectorViewState(
                         selectedChainId = "id",
@@ -325,6 +407,17 @@ private fun MainToolbarPreview() {
                     R.drawable.ic_arrow_back_24dp,
                     listOf(
                         MenuIconItem(icon = R.drawable.ic_dots_horizontal_24, {})
+                    )
+                ),
+                onNavigationClick = {}
+            )
+            MarginVertical(margin = 16.dp)
+            Toolbar(
+                state = ToolbarViewState(
+                    "Pool staking",
+                    null,
+                    listOf(
+                        MenuIconItem(icon = R.drawable.ic_cross_24, {})
                     )
                 ),
                 onNavigationClick = {}

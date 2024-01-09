@@ -12,13 +12,14 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.material.Card
 import androidx.compose.material.Divider
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Alignment.Companion.CenterStart
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -26,16 +27,19 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.valentinilk.shimmer.shimmer
 import jp.co.soramitsu.common.R
-import jp.co.soramitsu.common.compose.theme.FearlessTheme
-import jp.co.soramitsu.common.compose.theme.alertYellow
+import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
+import jp.co.soramitsu.common.compose.theme.bold
 import jp.co.soramitsu.common.compose.theme.customColors
 import jp.co.soramitsu.common.compose.theme.customTypography
 import jp.co.soramitsu.common.compose.theme.white16
+import jp.co.soramitsu.common.compose.theme.white64
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemShimmerViewState
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState
 
@@ -45,12 +49,10 @@ fun AssetListItem(
     modifier: Modifier = Modifier,
     onClick: (AssetListItemViewState) -> Unit
 ) {
-    val hasIssues = !state.hasAccount || state.hasNetworkIssue
-    val onClickHandler = remember { { onClick(state) } }
     BackgroundCornered(
         modifier = modifier
-            .testTag("AssetListItem_${state.assetSymbol}_${state.assetChainName}")
-            .clickable(onClick = onClickHandler)
+            .testTag("AssetListItem_${state.assetSymbol}_${state.assetName}")
+            .clickable(onClick = { onClick(state) })
     ) {
         val assetRateColor = if (state.assetTokenRate.orEmpty().startsWith("+")) {
             MaterialTheme.customColors.greenText
@@ -83,103 +85,126 @@ fun AssetListItem(
                     .align(CenterVertically)
             )
             MarginHorizontal(margin = 8.dp)
-            Column(
-                Modifier
-                    .padding(vertical = 8.dp)
-                    .align(CenterVertically)
+            Box(
+                Modifier.fillMaxWidth()
             ) {
-                Text(
-                    text = state.assetChainName.uppercase(),
-                    style = MaterialTheme.customTypography.capsTitle2,
-                    modifier = Modifier
-                        .alpha(0.64f)
-                        .testTag("AssetListItem_${state.assetSymbol}_chain_name")
-                )
-                Text(
-                    text = state.displayName.uppercase(),
-                    style = MaterialTheme.customTypography.header3,
-                    modifier = Modifier
-                        .padding(vertical = 4.dp)
-                        .testTag("AssetListItem_${state.assetSymbol}_symbol")
-                )
-                Row {
-                    Text(
-                        text = state.assetTokenFiat.orEmpty(),
-                        style = MaterialTheme.customTypography.body1,
-                        modifier = Modifier
-                            .alpha(0.64f)
-                            .testTag("AssetListItem_${state.assetSymbol}_change_fiat")
-                    )
-                    Text(
-                        text = state.assetTokenRate.orEmpty(),
-                        style = MaterialTheme.customTypography.body1.copy(
-                            color = assetRateColor
-                        ),
-                        modifier = Modifier
-                            .padding(start = 4.dp)
-                            .testTag("AssetListItem_${state.assetSymbol}_change_percent")
-                    )
-                }
-            }
-            Spacer(
-                modifier = Modifier
-                    .height(1.dp)
-                    .weight(1.0f)
-            )
-
-            if (hasIssues) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_alert_16),
-                    tint = alertYellow,
-                    modifier = Modifier
-                        .padding(vertical = 8.dp)
-                        .size(24.dp)
-                        .align(CenterVertically)
-                        .testTag("AssetListItem_${state.assetSymbol}_alert_icon"),
-                    contentDescription = null
-                )
-            } else {
                 Column(
                     Modifier
                         .padding(vertical = 8.dp)
-                        .align(CenterVertically)
+                        .align(CenterStart)
                 ) {
-                    if (state.assetChainUrls.size > 1) {
+                    Row {
+                        Text(
+                            text = state.assetName.uppercase(),
+                            style = MaterialTheme.customTypography.capsTitle2,
+                            modifier = Modifier
+                                .alpha(0.64f)
+                                .testTag("AssetListItem_${state.assetSymbol}_chain_name")
+                        )
+                        if (state.isTestnet) {
+                            MarginHorizontal(margin = 4.dp)
+                            TestnetBadge()
+                        }
+                        Spacer(
+                            modifier = Modifier
+                                .height(1.dp)
+                                .weight(1.0f)
+                        )
                         AssetChainsBadge(
                             urls = state.assetChainUrls.values.toList(),
                             modifier = Modifier
-                                .align(Alignment.End)
                                 .testTag("AssetListItem_${state.assetSymbol}_chains")
                         )
-                    } else {
-                        Box(modifier = Modifier.height(16.dp))
                     }
-                    state.assetBalance?.let {
+                    Row {
                         Text(
-                            text = it,
+                            text = state.assetSymbol.uppercase(),
                             style = MaterialTheme.customTypography.header3,
                             modifier = Modifier
                                 .padding(vertical = 4.dp)
-                                .padding(start = 4.dp)
-                                .align(Alignment.End)
-                                .testTag("AssetListItem_${state.assetSymbol}_balance")
+                                .align(CenterVertically)
+                                .testTag("AssetListItem_${state.assetSymbol}_symbol")
                         )
-                    } ?: Shimmer(
-                        Modifier
-                            .size(height = 16.dp, width = 54.dp)
-                            .align(Alignment.End)
-                    )
-                    Text(
-                        text = state.assetBalanceFiat.orEmpty(),
-                        style = MaterialTheme.customTypography.body1,
-                        modifier = Modifier
-                            .alpha(0.64f)
-                            .padding(start = 4.dp)
-                            .align(Alignment.End)
-                            .testTag("AssetListItem_${state.assetSymbol}_balance_fiat")
-                    )
+                        Spacer(
+                            modifier = Modifier
+                                .height(1.dp)
+                                .weight(1.0f)
+                        )
+                        if (state.assetTransferableBalance == null) {
+                            Shimmer(
+                                Modifier
+                                    .padding(top = 8.dp, bottom = 4.dp)
+                                    .size(height = 16.dp, width = 54.dp)
+                            )
+                        } else {
+                            Text(
+                                text = state.assetTransferableBalance,
+                                style = MaterialTheme.customTypography.header3.copy(textAlign = TextAlign.End),
+                                modifier = Modifier
+                                    .padding(vertical = 4.dp)
+                                    .padding(start = 4.dp)
+                                    .testTag("AssetListItem_${state.assetSymbol}_transferable")
+                            )
+                        }
+                    }
+                    Row {
+                        Text(
+                            text = state.assetTokenFiat.orEmpty(),
+                            style = MaterialTheme.customTypography.body1,
+                            modifier = Modifier
+                                .alpha(0.64f)
+                                .testTag("AssetListItem_${state.assetSymbol}_change_fiat")
+                        )
+                        Text(
+                            text = state.assetTokenRate.orEmpty(),
+                            style = MaterialTheme.customTypography.body1.copy(
+                                color = assetRateColor
+                            ),
+                            modifier = Modifier
+                                .padding(start = 4.dp)
+                                .testTag("AssetListItem_${state.assetSymbol}_change_percent")
+                        )
+                        Spacer(
+                            modifier = Modifier
+                                .height(1.dp)
+                                .weight(1.0f)
+                        )
+                        Text(
+                            text = state.assetTransferableBalanceFiat.orEmpty(),
+                            style = MaterialTheme.customTypography.body1,
+                            modifier = Modifier
+                                .alpha(0.64f)
+                                .padding(start = 4.dp)
+                                .testTag("AssetListItem_${state.assetSymbol}_transferable_fiat")
+                        )
+                    }
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun TestnetBadge() {
+    Card(backgroundColor = white16) {
+        Row(
+            modifier = Modifier
+                .padding(bottom = 2.dp, start = 2.dp, end = 4.dp),
+            verticalAlignment = CenterVertically
+        ) {
+            Icon(
+                modifier = Modifier
+                    .width(16.dp)
+                    .padding(top = 1.dp),
+                painter = painterResource(R.drawable.ic_token_testnet),
+                tint = white64,
+                contentDescription = null
+            )
+            MarginHorizontal(margin = 4.dp)
+            Text(
+                text = stringResource(id = R.string.label_testnet).uppercase(),
+                style = MaterialTheme.customTypography.body3.bold().copy(color = white64)
+            )
         }
     }
 }
@@ -288,13 +313,8 @@ fun AssetListItemShimmer(
 @Preview
 @Composable
 private fun PreviewAssetListItem() {
-    val assetIconUrl = "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Polkadot.svg"
-    val assetChainName = "Karura"
-    val assetSymbol = "KSM"
-    val assetTokenFiat = "$73.22"
-    val assetTokenRate = "+5.67%"
-    val assetBalance = "444.3"
-    val assetBalanceFiat = "$2345.32"
+    val assetIconUrl =
+        "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Polkadot.svg"
     val assetChainUrlsMap = mapOf(
         "" to "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Karura.svg",
         "" to "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/kilt.svg",
@@ -307,29 +327,39 @@ private fun PreviewAssetListItem() {
 
     val state = AssetListItemViewState(
         assetIconUrl = assetIconUrl,
-        assetChainName = assetChainName,
-        assetSymbol = assetSymbol,
-        assetTokenFiat = assetTokenFiat,
-        assetTokenRate = assetTokenRate,
-        assetBalance = assetBalance,
-        assetBalanceFiat = assetBalanceFiat,
+        assetName = "Karura asset",
+        assetChainName = "Karura",
+        assetSymbol = "KSM",
+        assetTokenFiat = "$73.22",
+        assetTokenRate = "+5.67%",
+        assetTransferableBalance = "444.3",
+        assetTransferableBalanceFiat = "$2345.32",
         assetChainUrls = assetChainUrlsMap,
         chainId = "",
         chainAssetId = "",
         isSupported = true,
         isHidden = false,
-        displayName = assetSymbol,
-        hasAccount = true,
         priceId = null,
-        hasNetworkIssue = false
+        ecosystem = "Polkadot",
+        isTestnet = false
     )
-    FearlessTheme {
+    FearlessAppTheme {
         Box(modifier = Modifier.background(Color.Black)) {
             Column {
                 AssetListItem(state) {}
-                AssetListItem(state.copy(hasAccount = false)) {}
+                MarginVertical(margin = 8.dp)
+                AssetListItem(
+                    state.copy(
+                        isTestnet = true,
+                        assetTransferableBalance = "123,456,123,456,123,456,789,456,789.01234"
+                    )
+                ) {}
+                MarginVertical(margin = 8.dp)
                 AssetListItemShimmer(
-                    state = AssetListItemShimmerViewState(assetIconUrl, assetChainUrlsMap.values.toList())
+                    state = AssetListItemShimmerViewState(
+                        assetIconUrl,
+                        assetChainUrlsMap.values.toList()
+                    )
                 )
             }
         }

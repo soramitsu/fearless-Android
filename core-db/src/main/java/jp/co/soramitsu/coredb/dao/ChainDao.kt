@@ -6,11 +6,13 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
+import jp.co.soramitsu.coredb.model.AssetWithToken
 import jp.co.soramitsu.coredb.model.chain.ChainAssetLocal
 import jp.co.soramitsu.coredb.model.chain.ChainExplorerLocal
 import jp.co.soramitsu.coredb.model.chain.ChainLocal
 import jp.co.soramitsu.coredb.model.chain.ChainNodeLocal
 import jp.co.soramitsu.coredb.model.chain.ChainRuntimeInfoLocal
+import jp.co.soramitsu.coredb.model.chain.ChainTypesLocal
 import jp.co.soramitsu.coredb.model.chain.JoinedChainInfo
 import kotlinx.coroutines.flow.Flow
 
@@ -76,7 +78,12 @@ abstract class ChainDao {
     abstract suspend fun getNode(chainId: String, nodeUrl: String): ChainNodeLocal
 
     @Query("UPDATE chain_nodes SET name = :nodeName, url = :nodeUrl WHERE chainId = :chainId and url = :prevNodeUrl")
-    abstract suspend fun updateNode(chainId: String, prevNodeUrl: String, nodeName: String, nodeUrl: String)
+    abstract suspend fun updateNode(
+        chainId: String,
+        prevNodeUrl: String,
+        nodeName: String,
+        nodeUrl: String
+    )
 
     @Insert(onConflict = OnConflictStrategy.ABORT)
     protected abstract suspend fun insertChainAssets(assets: List<ChainAssetLocal>)
@@ -87,6 +94,9 @@ abstract class ChainDao {
     @Query("SELECT * FROM chains")
     @Transaction
     abstract suspend fun getJoinChainInfo(): List<JoinedChainInfo>
+
+    @Query("SELECT * FROM chains WHERE id = :chainId")
+    abstract suspend fun getJoinChainInfo(chainId: String): JoinedChainInfo
 
     @Query("SELECT * FROM chains")
     @Transaction
@@ -103,16 +113,50 @@ abstract class ChainDao {
         if (isRuntimeInfoExists(chainId)) {
             updateRemoteRuntimeVersionUnsafe(chainId, remoteVersion)
         } else {
-            insertRuntimeInfo(ChainRuntimeInfoLocal(chainId, syncedVersion = 0, remoteVersion = remoteVersion))
+            insertRuntimeInfo(
+                ChainRuntimeInfoLocal(
+                    chainId,
+                    syncedVersion = 0,
+                    remoteVersion = remoteVersion
+                )
+            )
         }
     }
 
     @Query("UPDATE chain_runtimes SET remoteVersion = :remoteVersion WHERE chainId = :chainId")
-    protected abstract suspend fun updateRemoteRuntimeVersionUnsafe(chainId: String, remoteVersion: Int)
+    protected abstract suspend fun updateRemoteRuntimeVersionUnsafe(
+        chainId: String,
+        remoteVersion: Int
+    )
 
     @Query("SELECT EXISTS (SELECT * FROM chain_runtimes WHERE chainId = :chainId)")
     protected abstract suspend fun isRuntimeInfoExists(chainId: String): Boolean
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     protected abstract suspend fun insertRuntimeInfo(runtimeInfoLocal: ChainRuntimeInfoLocal)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    abstract suspend fun insertTypes(types: List<ChainTypesLocal>)
+
+    @Query("SELECT typesConfig FROM chain_types WHERE chainId = :chainId")
+    abstract suspend fun getTypes(chainId: String): String?
+
+    @Query("SELECT * FROM chain_assets")
+    abstract suspend fun getAssetsConfigs(): List<ChainAssetLocal>
+
+    @Transaction
+    @Query(
+        """
+            SELECT * FROM chains
+            JOIN assets ON chains.id = assets.chainId
+            LEFT JOIN token_price ON token_price.priceId = assets.tokenPriceId
+            WHERE assets.tokenPriceId = (SELECT tokenPriceId FROM assets WHERE assets.id = :assetId)
+            AND assets.metaId = :accountMetaId
+        """
+    )
+    abstract fun observeChainsWithBalance(
+        accountMetaId: Long,
+        assetId: String
+    ): Flow<Map<JoinedChainInfo, AssetWithToken>>
+
 }

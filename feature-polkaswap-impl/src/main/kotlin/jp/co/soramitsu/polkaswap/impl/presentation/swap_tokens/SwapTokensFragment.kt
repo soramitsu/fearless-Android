@@ -1,5 +1,6 @@
 package jp.co.soramitsu.polkaswap.impl.presentation.swap_tokens
 
+import android.graphics.Rect
 import android.os.Bundle
 import android.view.View
 import android.widget.FrameLayout
@@ -7,6 +8,8 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.dp
 import androidx.core.os.bundleOf
 import androidx.fragment.app.viewModels
 import com.google.android.material.bottomsheet.BottomSheetBehavior
@@ -22,12 +25,14 @@ class SwapTokensFragment : BaseComposeBottomSheetDialogFragment<SwapTokensViewMo
 
     companion object {
 
-        const val KEY_SELECTED_ASSET_ID = "KEY_SELECTED_ASSET_ID"
         const val KEY_SELECTED_CHAIN_ID = "KEY_SELECTED_CHAIN_ID"
+        const val KEY_SELECTED_ASSET_FROM_ID = "KEY_SELECTED_ASSET_FROM_ID"
+        const val KEY_SELECTED_ASSET_TO_ID = "KEY_SELECTED_ASSET_TO_ID"
 
-        fun getBundle(selectedAssetId: String, selectedChainId: String) = bundleOf(
-            KEY_SELECTED_ASSET_ID to selectedAssetId,
-            KEY_SELECTED_CHAIN_ID to selectedChainId
+        fun getBundle(selectedChainId: String?, assetIdFrom: String?, assetIdTo: String?) = bundleOf(
+            KEY_SELECTED_CHAIN_ID to selectedChainId,
+            KEY_SELECTED_ASSET_FROM_ID to assetIdFrom,
+            KEY_SELECTED_ASSET_TO_ID to assetIdTo
         )
     }
 
@@ -46,6 +51,17 @@ class SwapTokensFragment : BaseComposeBottomSheetDialogFragment<SwapTokensViewMo
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        view.viewTreeObserver.addOnGlobalLayoutListener {
+            val r = Rect()
+            // r will be populated with the coordinates of your view that area still visible.
+            view.getWindowVisibleDisplayFrame(r)
+            val heightDiff: Int = view.rootView.height - (r.bottom - r.top)
+
+            // if more than 100 pixels, its probably a keyboard...
+            viewModel.setSoftKeyboardOpen(heightDiff > 500)
+        }
+
         viewModel.showMarketsWarningEvent.observeEvent {
             val res = requireContext()
             ErrorDialog(

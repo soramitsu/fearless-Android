@@ -6,6 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import jp.co.soramitsu.common.compose.theme.bold
@@ -18,7 +19,8 @@ fun B1(
     textAlign: TextAlign? = null,
     color: Color = Color.Unspecified,
     overflow: TextOverflow = TextOverflow.Clip,
-    maxLines: Int = Int.MAX_VALUE
+    maxLines: Int = Int.MAX_VALUE,
+    onTextLayout: (TextLayoutResult) -> Unit = {}
 ) {
     Text(
         textAlign = textAlign,
@@ -27,7 +29,8 @@ fun B1(
         modifier = modifier,
         color = color,
         overflow = overflow,
-        maxLines = maxLines
+        maxLines = maxLines,
+        onTextLayout = onTextLayout
     )
 }
 
@@ -155,6 +158,26 @@ fun H1(
 fun H2(
     modifier: Modifier = Modifier,
     text: String,
+    textAlign: TextAlign? = null,
+    color: Color = Color.Unspecified,
+    overflow: TextOverflow = TextOverflow.Clip,
+    maxLines: Int = Int.MAX_VALUE
+) {
+    Text(
+        textAlign = textAlign,
+        text = text,
+        style = MaterialTheme.customTypography.header2,
+        modifier = modifier,
+        color = color,
+        overflow = overflow,
+        maxLines = maxLines
+    )
+}
+
+@Composable
+fun H2(
+    modifier: Modifier = Modifier,
+    text: AnnotatedString,
     textAlign: TextAlign? = null,
     color: Color = Color.Unspecified,
     overflow: TextOverflow = TextOverflow.Clip,

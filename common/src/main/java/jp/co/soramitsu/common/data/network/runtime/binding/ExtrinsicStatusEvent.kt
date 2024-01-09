@@ -2,11 +2,11 @@ package jp.co.soramitsu.common.data.network.runtime.binding
 
 import jp.co.soramitsu.common.utils.index
 import jp.co.soramitsu.common.utils.system
-import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
-import jp.co.soramitsu.fearless_utils.runtime.definitions.types.fromHex
-import jp.co.soramitsu.fearless_utils.runtime.definitions.types.generics.GenericEvent
-import jp.co.soramitsu.fearless_utils.runtime.metadata.event
-import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
+import jp.co.soramitsu.shared_utils.runtime.RuntimeSnapshot
+import jp.co.soramitsu.shared_utils.runtime.definitions.types.fromHex
+import jp.co.soramitsu.shared_utils.runtime.definitions.types.generics.GenericEvent
+import jp.co.soramitsu.shared_utils.runtime.metadata.event
+import jp.co.soramitsu.shared_utils.runtime.metadata.storage
 
 enum class ExtrinsicStatusEvent {
     SUCCESS, FAILURE

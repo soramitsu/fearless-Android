@@ -13,14 +13,14 @@ import it.airgap.beaconsdk.blockchain.substrate.message.request.SignPayloadSubst
 import it.airgap.beaconsdk.core.data.P2pPeer
 import it.airgap.beaconsdk.core.message.BeaconRequest
 import javax.inject.Inject
-import jp.co.soramitsu.account.api.domain.interfaces.GetTotalBalanceUseCase
+import jp.co.soramitsu.account.api.domain.interfaces.TotalBalanceUseCase
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
-import jp.co.soramitsu.common.utils.format
+import jp.co.soramitsu.common.utils.formatCryptoDetail
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.wallet.impl.domain.beacon.BeaconInteractor
@@ -53,7 +53,7 @@ class BeaconViewModel @Inject constructor(
     walletInteractor: WalletInteractor,
     private val iconGenerator: AddressIconGenerator,
     private val resourceManager: ResourceManager,
-    totalBalance: GetTotalBalanceUseCase,
+    totalBalance: TotalBalanceUseCase,
     savedStateHandle: SavedStateHandle
 ) : BaseViewModel() {
 
@@ -70,7 +70,7 @@ class BeaconViewModel @Inject constructor(
     }.inBackground()
         .share()
 
-    val totalBalanceLiveData = totalBalance().map { it.balance.format() }.asLiveData()
+    val totalBalanceLiveData = totalBalance.observe().map { it.balance.formatCryptoDetail() }.asLiveData()
 
     private val _scanBeaconQrEvent = MutableLiveData<Event<Unit>>()
     val scanBeaconQrEvent: LiveData<Event<Unit>> = _scanBeaconQrEvent
@@ -205,6 +205,7 @@ class BeaconViewModel @Inject constructor(
                     is SignPayloadSubstrateRequest -> {
                         stateMachine.transition(BeaconStateMachine.Event.ReceivedSigningRequest(it))
                     }
+
                     else -> {
                         Log.d("BeaconViewModel::listenForRequests", "Received something from beacon $it")
                     }
@@ -237,6 +238,7 @@ class BeaconViewModel @Inject constructor(
                 stateMachine.currentState.first() is BeaconStateMachine.State.AwaitingPermissionsApproval -> {
                     permissionGranted()
                 }
+
                 beaconInteractor.isConnected() -> {
                     exit()
                 }

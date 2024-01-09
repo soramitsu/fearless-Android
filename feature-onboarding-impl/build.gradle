@@ -24,17 +24,21 @@ android {
 
     buildFeatures {
         viewBinding = true
+        compose true
     }
 
     compileOptions {
-        sourceCompatibility 1.8
-        targetCompatibility 1.8
+        sourceCompatibility 11
+        targetCompatibility 11
     }
 
     kotlinOptions {
         freeCompilerArgs = ["-Xallow-result-return-type"]
 
-        jvmTarget = '1.8'
+        jvmTarget = '11'
+    }
+    composeOptions {
+        kotlinCompilerExtensionVersion composeCompilerVersion
     }
     namespace 'jp.co.soramitsu.feature_onboarding_impl'
 }
@@ -64,6 +68,14 @@ dependencies {
     kapt lifecycleKapt
     implementation gsonConvertedDep
 
+    implementation compose
+    debugImplementation composeDebug
+
     testImplementation jUnitDep
     testImplementation mockitoDep
+
+    implementation zXingCoreDep
+    implementation zXingEmbeddedDep
+
+    implementation sharedFeaturesBackupDep
 }

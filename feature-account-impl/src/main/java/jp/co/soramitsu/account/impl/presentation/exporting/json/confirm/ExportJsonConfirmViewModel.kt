@@ -6,19 +6,19 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.io.File
-import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.common.utils.Event
-import jp.co.soramitsu.common.utils.requireException
-import jp.co.soramitsu.common.utils.requireValue
+import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.account.api.presentation.exporting.ExportSource
 import jp.co.soramitsu.account.impl.presentation.AccountRouter
 import jp.co.soramitsu.account.impl.presentation.exporting.ExportViewModel
+import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.utils.Event
+import jp.co.soramitsu.common.utils.requireException
+import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.moonriverChainId
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @HiltViewModel
 class ExportJsonConfirmViewModel @Inject constructor(
@@ -101,11 +101,17 @@ class ExportJsonConfirmViewModel @Inject constructor(
     }
 
     fun onExportByText(isEthereum: Boolean) {
+        launch {
+            accountInteractor.updateWalletBackedUp(payload.metaId)
+        }
         val json = if (isEthereum) ethereumJson else substrateJson
         exportText(json ?: return)
     }
 
     fun onExportByFile(isEthereum: Boolean) {
+        launch {
+            accountInteractor.updateWalletBackedUp(payload.metaId)
+        }
         if (isEthereum) {
             exportEthereumJsonAsFile()
         } else {

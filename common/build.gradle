@@ -3,6 +3,8 @@ apply plugin: 'dagger.hilt.android.plugin'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
 apply plugin: 'kotlin-parcelize'
+apply plugin: 'kotlinx-serialization'
+apply from: '../scripts/secrets.gradle'
 
 android {
     compileSdkVersion rootProject.compileSdkVersion
@@ -15,9 +17,8 @@ android {
 
         buildConfigField "String", "APP_VERSION_NAME", "\"${rootProject.versionName}\""
 
-        buildConfigField "String", "FIAT_CONFIG_URL", "\"https://raw.githubusercontent.com/soramitsu/fearless-utils/android/2.0.8/fiat/fiats.json\""
-        buildConfigField "String", "APP_CONFIG_URL", "\"https://raw.githubusercontent.com/soramitsu/fearless-utils/android/2.0.8/android_app_configuration.json\""
         buildConfigField "String", "POLKASWAP_CONFIG_URL", "\"https://raw.githubusercontent.com/soramitsu/fearless-utils/ios/v3-jsonupd/polkaswapSettings.json\""
+        buildConfigField "String", "FEATURE_TOGGLE_URL", "\"https://raw.githubusercontent.com/soramitsu/shared-features-utils/master/appConfigs/feature_toggle\""
 
         buildConfigField "String", "WEBSITE_URL", "\"https://fearlesswallet.io\""
         buildConfigField "String", "TWITTER_URL", "\"https://twitter.com/fearlesswallet\""
@@ -42,14 +43,38 @@ android {
         buildConfigField "String", "MOONBEAM_STAKING_LEARN_MORE", "\"https://docs.moonbeam.network/learn/features/staking/#reward-distribution(\""
         buildConfigField "String", "STAKING_POOL_WIKI", "\"https://wiki.polkadot.network/docs/learn-nomination-pools\""
         buildConfigField "String", "POLKADOT_JS_PLUS_EXTENSION", "\"http://polkadotjs.plus/\""
+
+        buildConfigField "String", "SORA_CARD_BLACKLIST",  "\"https://soracard.com/blacklist/\""
+
+        buildConfigField "String", "BLAST_API_ETHEREUM_KEY", readSecretInQuotes("FL_BLAST_API_ETHEREUM_KEY")
+        buildConfigField "String", "BLAST_API_BSC_KEY", readSecretInQuotes("FL_BLAST_API_BSC_KEY")
+        buildConfigField "String", "BLAST_API_SEPOLIA_KEY", readSecretInQuotes("FL_BLAST_API_SEPOLIA_KEY")
+        buildConfigField "String", "BLAST_API_GOERLI_KEY", readSecretInQuotes("FL_BLAST_API_GOERLI_KEY")
+        buildConfigField "String", "BLAST_API_POLYGON_KEY", readSecretInQuotes("FL_BLAST_API_POLYGON_KEY")
+        buildConfigField "String", "ETHERSCAN_API_KEY", readSecretInQuotes("FL_ANDROID_ETHERSCAN_API_KEY")
+        buildConfigField "String", "BSCSCAN_API_KEY", readSecretInQuotes("FL_ANDROID_BSCSCAN_API_KEY")
+        buildConfigField "String", "POLYGONSCAN_API_KEY", readSecretInQuotes("FL_ANDROID_POLYGONSCAN_API_KEY")
+        buildConfigField "String", "WALLET_CONNECT_PROJECT_ID", readSecretInQuotes("FL_WALLET_CONNECT_PROJECT_ID")
     }
 
     buildTypes {
         debug {
+            buildConfigField "String", "FIAT_CONFIG_URL", "\"https://raw.githubusercontent.com/soramitsu/shared-features-utils/develop-free/fiat/fiats.json\""
 
+            buildConfigField "String", "X1_ENDPOINT_URL", readSecretInQuotes("X1_ENDPOINT_URL_DEBUG")
+            buildConfigField "String", "X1_WIDGET_ID", readSecretInQuotes("X1_WIDGET_ID_DEBUG")
+
+            buildConfigField "String", "WEB_CLIENT_ID", readSecretInQuotes("WEB_CLIENT_ID_DEBUG")
+            buildConfigField "String", "APP_CONFIG_URL", "\"https://raw.githubusercontent.com/soramitsu/shared-features-utils/develop-free/appVersionSupport/android_app_support_dev.json\""
         }
         release {
+            buildConfigField "String", "FIAT_CONFIG_URL", "\"https://raw.githubusercontent.com/soramitsu/shared-features-utils/master/fiat/fiats.json\""
 
+            buildConfigField "String", "X1_ENDPOINT_URL", readSecretInQuotes("X1_ENDPOINT_URL_RELEASE")
+            buildConfigField "String", "X1_WIDGET_ID", readSecretInQuotes("X1_WIDGET_ID_RELEASE")
+
+            buildConfigField "String", "WEB_CLIENT_ID", readSecretInQuotes("WEB_CLIENT_ID_RELEASE")
+            buildConfigField "String", "APP_CONFIG_URL", "\"https://raw.githubusercontent.com/soramitsu/shared-features-utils/develop-free/appVersionSupport/android_app_support.json\""
         }
     }
 
@@ -59,14 +84,14 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility 1.8
-        targetCompatibility 1.8
+        sourceCompatibility 11
+        targetCompatibility 11
     }
 
     kotlinOptions {
         freeCompilerArgs = ["-Xallow-result-return-type"]
 
-        jvmTarget = '1.8'
+        jvmTarget = '11'
     }
     composeOptions {
         kotlinCompilerExtensionVersion composeCompilerVersion
@@ -78,6 +103,7 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
     api project(":core-api")
+    implementation project(':runtime-permission')
 
     implementation kotlinDep
 
@@ -89,8 +115,6 @@ dependencies {
     implementation constraintDep
 
     implementation bouncyCastleDep
-
-    implementation fearlessLibDep
 
     implementation coroutinesDep
     implementation liveDataKtxDep
@@ -105,7 +129,7 @@ dependencies {
     kapt lifecycleKapt
     implementation lifecycleProcessDep
 
-    implementation retrofitDep
+//    implementation retrofitDep
     implementation gsonConvertedDep
     implementation scalarsConverterDep
     implementation interceptorVersion
@@ -116,9 +140,14 @@ dependencies {
     implementation progressButtonDep
 
     implementation wsDep
+    implementation xNetworkingBasicDep
+    implementation xNetworkingFearlessDep, withoutBasic
+    implementation xNetworkingSorawalletDep, withoutBasic
 
     implementation compose
     debugImplementation composeDebug
+
+    implementation soraUiCoreDep
 
     api coilDep
     api coilSvg
@@ -126,4 +155,6 @@ dependencies {
     testImplementation jUnitDep
     testImplementation mockitoDep
     testImplementation project(':test-shared')
+
+    api sharedFeaturesCoreDep
 }

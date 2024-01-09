@@ -30,9 +30,11 @@ dependencies {
 
     api jUnitDep
     api mockitoDep
+    api mockitoCoreDep
+    api coroutinesTest
+    api mockitoKotlinDep
 
     api wsDep
 
     api gsonDep
-    api fearlessLibDep
 }

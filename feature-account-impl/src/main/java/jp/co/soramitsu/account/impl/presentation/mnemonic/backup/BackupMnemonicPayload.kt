@@ -6,6 +6,7 @@ import kotlinx.parcelize.Parcelize
 
 @Parcelize
 class BackupMnemonicPayload(
+    val isFromGoogleBackup: Boolean,
     val accountName: String,
     val chainAccountData: ChainAccountCreatePayload?
 ) : Parcelable

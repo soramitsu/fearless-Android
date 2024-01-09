@@ -1,6 +1,6 @@
 package jp.co.soramitsu.common.utils
 
-import jp.co.soramitsu.fearless_utils.encrypt.Base58
+import jp.co.soramitsu.shared_utils.encrypt.Base58
 
 object Base58Ext {
 

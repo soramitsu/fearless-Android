@@ -8,15 +8,15 @@ import dagger.hilt.components.SingletonComponent
 import javax.inject.Named
 import javax.inject.Singleton
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
-import jp.co.soramitsu.account.api.extrinsic.ExtrinsicService
 import jp.co.soramitsu.common.data.network.config.RemoteConfigFetcher
+import jp.co.soramitsu.core.extrinsic.ExtrinsicService
 import jp.co.soramitsu.polkaswap.api.data.PolkaswapRepository
 import jp.co.soramitsu.polkaswap.api.domain.PolkaswapInteractor
 import jp.co.soramitsu.polkaswap.impl.data.PolkaswapRepositoryImpl
 import jp.co.soramitsu.polkaswap.impl.domain.PolkaswapInteractorImpl
 import jp.co.soramitsu.runtime.di.REMOTE_STORAGE_SOURCE
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
-import jp.co.soramitsu.runtime.network.rpc.RpcCalls
+import jp.co.soramitsu.core.rpc.RpcCalls
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 
 @InstallIn(SingletonComponent::class)

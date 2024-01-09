@@ -1,11 +1,12 @@
 package jp.co.soramitsu.polkaswap.impl.presentation.swap_preview
 
+import android.app.Activity
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseViewModel
-import jp.co.soramitsu.common.utils.orZero
+import jp.co.soramitsu.core.utils.orZero
 import jp.co.soramitsu.polkaswap.api.domain.PolkaswapInteractor
 import jp.co.soramitsu.polkaswap.api.models.Market
 import jp.co.soramitsu.polkaswap.api.models.backStrings
@@ -29,11 +30,25 @@ class SwapPreviewViewModel @Inject constructor(
     private val swapDetailsViewState = savedStateHandle.get<SwapDetailsViewState>(SwapPreviewFragment.KEY_SWAP_DETAILS)!!
     private val swapDetailsParcelModel = savedStateHandle.get<SwapDetailsParcelModel>(SwapPreviewFragment.KEY_SWAP_DETAILS_PARCEL)!!
 
+    var isClosing = false
+
     val state =
         MutableStateFlow(SwapPreviewState(swapDetailsViewState = swapDetailsViewState, networkFee = swapDetailsParcelModel.networkFee, isLoading = false))
 
     override fun onBackClick() {
-        polkaswapRouter.back()
+        onClose(Activity.RESULT_CANCELED)
+    }
+
+    fun onDismiss() {
+        onClose(Activity.RESULT_CANCELED)
+    }
+
+    private fun onClose(resultValue: Int) {
+        if (!isClosing) {
+            isClosing = true
+
+            polkaswapRouter.backWithResult(SwapPreviewFragment.KEY_SWAP_DETAILS_RESULT to resultValue)
+        }
     }
 
     override fun onConfirmClick() {
@@ -54,7 +69,7 @@ class SwapPreviewViewModel @Inject constructor(
             }
             swapResult.fold(
                 onSuccess = {
-                    polkaswapRouter.returnToAssetDetails()
+                    onClose(Activity.RESULT_OK)
                     polkaswapRouter.openOperationSuccess(it, chainId = soraMainChainId)
                 },
                 onFailure = {

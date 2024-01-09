@@ -2,8 +2,8 @@ package jp.co.soramitsu.account.impl.presentation
 
 import jp.co.soramitsu.account.api.presentation.account.create.ChainAccountCreatePayload
 import jp.co.soramitsu.account.api.presentation.actions.AddAccountBottomSheet
+import jp.co.soramitsu.account.api.presentation.create_backup_password.CreateBackupPasswordPayload
 import jp.co.soramitsu.account.impl.domain.account.details.AccountInChain
-import jp.co.soramitsu.account.impl.presentation.account.list.AccountChosenNavDirection
 import jp.co.soramitsu.account.impl.presentation.exporting.json.confirm.ExportJsonConfirmPayload
 import jp.co.soramitsu.account.impl.presentation.mnemonic.confirm.ConfirmMnemonicPayload
 import jp.co.soramitsu.account.impl.presentation.node.details.NodeDetailsPayload
@@ -11,6 +11,7 @@ import jp.co.soramitsu.common.navigation.DelayedNavigation
 import jp.co.soramitsu.common.navigation.PinRequired
 import jp.co.soramitsu.common.navigation.SecureRouter
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import kotlinx.coroutines.flow.Flow
 
 interface AccountRouter : SecureRouter {
 
@@ -22,7 +23,16 @@ interface AccountRouter : SecureRouter {
 
     fun openCreatePincode()
 
-    fun openMnemonicScreen(accountName: String, payload: ChainAccountCreatePayload?)
+    fun openMnemonicScreen(
+        isFromGoogleBackup: Boolean,
+        accountName: String,
+        payload: ChainAccountCreatePayload?
+    )
+
+    fun openMnemonicDialog(
+        isFromGoogleBackup: Boolean,
+        accountName: String
+    )
 
     fun openConfirmMnemonicOnCreate(confirmMnemonicPayload: ConfirmMnemonicPayload)
 
@@ -34,38 +44,32 @@ interface AccountRouter : SecureRouter {
 
     fun back()
 
-    fun openWallets(accountChosenNavDirection: AccountChosenNavDirection)
+    fun backWithResult(vararg results: Pair<String, Any?>)
+
+    fun openSelectWallet()
 
     fun openNodes(chainId: ChainId)
 
     fun openLanguages()
 
-    fun openAddAccount()
-
     fun openAccountDetails(metaAccountId: Long)
 
-    fun openExportWallet(metaAccountId: Long)
-
     fun openAccountsForExport(metaId: Long, from: AccountInChain.From)
-
-    fun openEditAccounts()
-
-    fun backToMainScreen()
 
     fun openNodeDetails(payload: NodeDetailsPayload)
 
     fun openAddNode(chainId: ChainId)
 
     @PinRequired
-    fun openExportMnemonic(metaId: Long, chainId: ChainId, isExportWallet: Boolean = false): DelayedNavigation
+    fun getExportMnemonicDestination(metaId: Long, chainId: ChainId, isExportWallet: Boolean = false): DelayedNavigation
 
     @PinRequired
-    fun openExportSeed(metaId: Long, chainId: ChainId, isExportWallet: Boolean = false): DelayedNavigation
+    fun getExportSeedDestination(metaId: Long, chainId: ChainId, isExportWallet: Boolean = false): DelayedNavigation
 
     @PinRequired
-    fun openExportJsonPassword(metaId: Long, chainId: ChainId, isExportWallet: Boolean = false): DelayedNavigation
+    fun openExportJsonPasswordDestination(metaId: Long, chainId: ChainId, isExportWallet: Boolean = false): DelayedNavigation
 
-    fun openConfirmMnemonicOnExport(mnemonic: List<String>)
+    fun openConfirmMnemonicOnExport(mnemonic: List<String>, metaId: Long)
 
     fun openExportJsonConfirm(payload: ExportJsonConfirmPayload)
 
@@ -82,4 +86,23 @@ interface AccountRouter : SecureRouter {
     fun openExperimentalFeatures()
 
     fun openOptionsAddAccount(payload: AddAccountBottomSheet.Payload)
+
+    fun openPolkaswapDisclaimerFromProfile()
+
+    fun openGetSoraCard()
+
+    fun openCreateWalletDialog(isFromGoogleBackup: Boolean)
+
+    fun openCreateBackupPasswordDialog(payload: CreateBackupPasswordPayload)
+
+    fun openCreateBackupPasswordDialogWithResult(payload: CreateBackupPasswordPayload): Flow<Int>
+
+    fun openMnemonicAgreementsDialog(
+        isFromGoogleBackup: Boolean,
+        accountName: String
+    )
+
+    fun openImportRemoteWalletDialog()
+
+    fun openConnectionsScreen()
 }

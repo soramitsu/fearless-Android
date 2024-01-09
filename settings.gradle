@@ -1,5 +1,7 @@
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
+rootProject.name = "fearlessWallet"
+
 include ':feature-crowdloan-impl'
 include ':feature-crowdloan-api'
 include ':feature-staking-impl'
@@ -16,3 +18,11 @@ include ':feature-polkaswap-api'
 include ':feature-polkaswap-impl'
 include ':feature-success-api'
 include ':feature-success-impl'
+include ':feature-soracard-api'
+include ':feature-soracard-impl'
+include ':runtime-permission'
+
+include ':android-foundation'
+project(':android-foundation').projectDir = new File('android-foundation')
+include ':feature-walletconnect-api'
+include ':feature-walletconnect-impl'

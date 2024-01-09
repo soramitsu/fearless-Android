@@ -67,7 +67,7 @@ class StartStakingPoolViewModel @Inject constructor(
         } else {
             asset.token.configuration.chainId
         }
-        val rewardCalculator = rewardCalculatorFactory.createManual(chainId)
+        val rewardCalculator = rewardCalculatorFactory.create(asset.token.configuration)
         val yearly = rewardCalculator.calculateReturns(BigDecimal.ONE, PERIOD_YEAR, true, chainId)
 
         mapPeriodReturnsToRewardEstimation(yearly, asset.token, resourceManager)
@@ -77,7 +77,7 @@ class StartStakingPoolViewModel @Inject constructor(
         val lockupPeriodInHours = relayChainScenarioInteractor.unstakingPeriod()
         if (lockupPeriodInHours > HOURS_IN_DAY) {
             val inDays = lockupPeriodInHours / HOURS_IN_DAY
-            resourceManager.getQuantityString(R.plurals.staking_main_lockup_period_value, inDays, inDays)
+            resourceManager.getQuantityString(R.plurals.common_days_format, inDays, inDays)
         } else {
             resourceManager.getQuantityString(R.plurals.common_hours_format, lockupPeriodInHours, lockupPeriodInHours)
         }

@@ -1,5 +1,6 @@
 package jp.co.soramitsu.polkaswap.impl.presentation.swap_preview
 
+import android.content.DialogInterface
 import android.widget.FrameLayout
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
@@ -21,6 +22,7 @@ class SwapPreviewFragment : BaseComposeBottomSheetDialogFragment<SwapPreviewView
 
         const val KEY_SWAP_DETAILS = "KEY_SWAP_DETAILS"
         const val KEY_SWAP_DETAILS_PARCEL = "KEY_SWAP_DETAILS_PARCEL"
+        const val KEY_SWAP_DETAILS_RESULT = "KEY_SWAP_DETAILS_RESULT"
 
         fun getBundle(swapDetailsViewState: SwapDetailsViewState, detailsParcelModel: SwapDetailsParcelModel) = bundleOf(
             KEY_SWAP_DETAILS to swapDetailsViewState,
@@ -45,5 +47,10 @@ class SwapPreviewFragment : BaseComposeBottomSheetDialogFragment<SwapPreviewView
         behavior.state = BottomSheetBehavior.STATE_EXPANDED
         behavior.isHideable = true
         behavior.skipCollapsed = true
+    }
+
+    override fun onDismiss(dialog: DialogInterface) {
+        super.onDismiss(dialog)
+        viewModel.onDismiss()
     }
 }

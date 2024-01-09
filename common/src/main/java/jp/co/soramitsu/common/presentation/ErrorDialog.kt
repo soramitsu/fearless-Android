@@ -1,15 +1,18 @@
 package jp.co.soramitsu.common.presentation
 
 import android.annotation.SuppressLint
+import android.app.Dialog
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
+import android.widget.LinearLayout
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -33,26 +36,27 @@ import jp.co.soramitsu.common.compose.component.AccentButton
 import jp.co.soramitsu.common.compose.component.BottomSheetScreen
 import jp.co.soramitsu.common.compose.component.GradientIcon
 import jp.co.soramitsu.common.compose.component.GrayButton
-import jp.co.soramitsu.common.compose.component.Grip
 import jp.co.soramitsu.common.compose.component.H3
+import jp.co.soramitsu.common.compose.component.MarginHorizontal
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.component.emptyClick
-import jp.co.soramitsu.common.compose.component.soraTextStyle
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.theme.alertYellow
 import jp.co.soramitsu.common.compose.theme.black2
 import jp.co.soramitsu.common.compose.theme.fontSize
+import jp.co.soramitsu.common.compose.theme.soraTextStyle
 import jp.co.soramitsu.common.compose.theme.weight
 import jp.co.soramitsu.common.compose.theme.white
 
 class ErrorDialog(
-    private val title: String,
+    private val title: String?,
     private val message: String,
     private val positiveButtonText: String? = null,
     private val negativeButtonText: String? = null,
     private val textSize: Int = 13,
     @DrawableRes private val iconRes: Int = R.drawable.ic_status_warning_16,
     private val isHideable: Boolean = true,
+    private val buttonsOrientation: Int = LinearLayout.VERTICAL,
     private val onBackClick: () -> Unit = emptyClick,
     private val positiveClick: () -> Unit = emptyClick,
     private val negativeClick: () -> Unit = emptyClick
@@ -67,6 +71,18 @@ class ErrorDialog(
         setStyle(STYLE_NO_TITLE, R.style.CustomBottomSheetDialogTheme)
     }
 
+    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+        return object : BottomSheetDialog(requireContext(), theme) {
+            @Deprecated("Deprecated in Java")
+            override fun onBackPressed() {
+                if (isHideable) {
+                    onBackClick()
+                    super.onBackPressed()
+                }
+            }
+        }
+    }
+
     @Suppress("DEPRECATION")
     @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
     override fun onCreateView(
@@ -79,7 +95,6 @@ class ErrorDialog(
             setContent {
                 FearlessTheme {
                     BottomSheetScreen {
-                        Grip(Modifier.align(Alignment.CenterHorizontally))
                         Column(
                             modifier = Modifier
                                 .padding(horizontal = 16.dp)
@@ -109,8 +124,10 @@ class ErrorDialog(
                             )
 
                             MarginVertical(margin = 8.dp)
-                            H3(text = title, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
-                            MarginVertical(margin = 8.dp)
+                            title?.let {
+                                H3(text = title, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
+                                MarginVertical(margin = 8.dp)
+                            }
                             Text(
                                 textAlign = TextAlign.Center,
                                 text = message,
@@ -119,31 +136,59 @@ class ErrorDialog(
                                 color = black2
                             )
                             MarginVertical(margin = 24.dp)
-                            positiveButtonText?.let {
-                                AccentButton(
-                                    text = it,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(52.dp)
-                                ) {
-                                    positiveClick()
-                                    dismiss()
+                            if (buttonsOrientation == LinearLayout.VERTICAL) {
+                                positiveButtonText?.let {
+                                    AccentButton(
+                                        text = it,
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(52.dp)
+                                    ) {
+                                        positiveClick()
+                                        dismiss()
+                                    }
+                                    MarginVertical(margin = 12.dp)
                                 }
-                            }
-                            negativeButtonText?.let {
+                                negativeButtonText?.let {
+                                    GrayButton(
+                                        text = it,
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(52.dp)
+                                    ) {
+                                        negativeClick()
+                                        dismiss()
+                                    }
+                                    MarginVertical(margin = 12.dp)
+                                }
+                            } else {
+                                Row {
+                                    negativeButtonText?.let {
+                                        GrayButton(
+                                            text = it,
+                                            modifier = Modifier
+                                                .weight(1f)
+                                                .height(52.dp)
+                                        ) {
+                                            negativeClick()
+                                            dismiss()
+                                        }
+                                    }
+                                    MarginHorizontal(margin = 12.dp)
+                                    positiveButtonText?.let {
+                                        AccentButton(
+                                            text = it,
+                                            modifier = Modifier
+                                                .weight(1f)
+                                                .height(52.dp)
+                                        ) {
+                                            positiveClick()
+                                            dismiss()
+                                        }
+                                    }
+                                }
                                 MarginVertical(margin = 12.dp)
-                                GrayButton(
-                                    text = it,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(52.dp)
-                                ) {
-                                    negativeClick()
-                                    dismiss()
-                                }
                             }
-
-                            MarginVertical(margin = 12.dp)
                         }
                     }
                 }
@@ -154,6 +199,7 @@ class ErrorDialog(
     private fun setupBottomSheet() {
         dialog?.setOnShowListener {
             val bottomSheetDialog = it as BottomSheetDialog
+            bottomSheetDialog.setCanceledOnTouchOutside(isHideable && onBackClick == emptyClick)
             setupBehavior(bottomSheetDialog.behavior)
         }
     }

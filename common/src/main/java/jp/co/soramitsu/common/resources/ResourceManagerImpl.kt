@@ -49,7 +49,7 @@ class ResourceManagerImpl(
         val inDays = elapsedTime.daysFromMillis().toInt()
 
         return when {
-            inDays > 0 -> getQuantityString(R.plurals.staking_main_lockup_period_value, inDays, inDays)
+            inDays > 0 -> getQuantityString(R.plurals.common_days_format, inDays, inDays)
             else -> {
                 val inSeconds = elapsedTime.toDuration(DurationUnit.MILLISECONDS).toLong(DurationUnit.SECONDS)
 

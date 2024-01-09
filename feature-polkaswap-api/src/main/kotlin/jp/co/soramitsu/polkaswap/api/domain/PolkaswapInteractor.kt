@@ -12,10 +12,15 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 
 interface PolkaswapInteractor {
+    companion object {
+        const val HAS_READ_DISCLAIMER_KEY = "hasReadDisclaimer"
+    }
 
     val polkaswapChainId: String
+    var hasReadDisclaimer: Boolean
 
     suspend fun getAsset(assetId: String): Asset?
+    fun assetFlow(chainAssetId: String): Flow<Asset>
     suspend fun getAvailableDexes(): List<BigInteger>
     fun observePoolReserves(fromTokenId: String, toTokenId: String, market: Market): Flow<String>
 
@@ -57,4 +62,5 @@ interface PolkaswapInteractor {
     ): BigInteger
 
     suspend fun getAvailableDexesForPair(tokenFromId: String, tokenToId: String, dexes: List<BigInteger>): List<Int>
+    fun observeHasReadDisclaimer(): Flow<Boolean>
 }

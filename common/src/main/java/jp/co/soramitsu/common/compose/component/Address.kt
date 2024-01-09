@@ -23,6 +23,7 @@ import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.theme.customColors
 import jp.co.soramitsu.common.compose.theme.customTypography
 import jp.co.soramitsu.common.compose.theme.white
+import jp.co.soramitsu.common.utils.formatting.shortenAddress
 
 @Composable
 fun Address(
@@ -41,9 +42,8 @@ fun Address(
                 .padding(horizontal = 8.dp, vertical = 4.dp)
                 .clickable(onClick = onClick)
         ) {
-            val showAddressParts = address.take(7) + "..." + address.takeLast(5)
             Text(
-                text = showAddressParts,
+                text = address.shortenAddress(),
                 style = MaterialTheme.customTypography.body2,
                 color = Color.White,
                 maxLines = 1,

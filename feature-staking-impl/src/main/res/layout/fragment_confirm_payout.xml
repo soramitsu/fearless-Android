@@ -5,9 +5,11 @@
     android:id="@+id/confirmPayoutContainer"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/drawable_background_image"
+    android:backgroundTint="#63000000"
+    android:backgroundTintMode="src_atop"
     android:orientation="vertical"
-    android:theme="@style/PinkOverlay"
-    tools:background="@color/black">
+    android:theme="@style/PinkOverlay">
 
     <jp.co.soramitsu.common.view.Toolbar
         android:id="@+id/confirmPayoutToolbar"
@@ -40,8 +42,8 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:orientation="horizontal"
-        android:paddingTop="16dp"
         android:paddingStart="16dp"
+        android:paddingTop="16dp"
         android:paddingEnd="16dp"
         android:paddingBottom="15dp">
 
@@ -59,16 +61,16 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="8dp"
-            tools:text="0.0001 KSM"
-            android:textColor="@color/white" />
+            android:textColor="@color/white"
+            tools:text="0.0001 KSM" />
 
         <TextView
             android:id="@+id/confirmPayoutRewardFiat"
             style="@style/TextAppearance.Soramitsu.Body1"
             android:layout_width="wrap_content"
-            tools:text="$0.5"
             android:layout_height="wrap_content"
-            android:textColor="@color/gray2" />
+            android:textColor="@color/gray2"
+            tools:text="$0.5" />
     </LinearLayout>
 
     <View
@@ -102,16 +104,16 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="@string/network_fee"
+                android:text="@string/common_network_fee"
                 android:textColor="@color/gray1" />
 
             <ProgressBar
-                android:layout_width="16dp"
-                android:indeterminate="true"
                 android:id="@+id/confirmPayoutFeeProgress"
+                android:layout_width="16dp"
+                android:layout_height="16dp"
                 android:layout_gravity="center_vertical"
-                android:indeterminateTint="@color/white"
-                android:layout_height="16dp" />
+                android:indeterminate="true"
+                android:indeterminateTint="@color/white" />
 
             <TextView
                 android:id="@+id/confirmPayoutFeeToken"
@@ -119,8 +121,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="8dp"
-                android:visibility="gone"
-                android:textColor="@color/white" />
+                android:textColor="@color/white"
+                android:visibility="gone" />
 
 
             <TextView

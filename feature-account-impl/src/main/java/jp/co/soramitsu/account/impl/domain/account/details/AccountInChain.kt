@@ -1,7 +1,7 @@
 package jp.co.soramitsu.account.impl.domain.account.details
 
-import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.shared_utils.runtime.AccountId
 
 class AccountInChain(
     val chain: Chain,

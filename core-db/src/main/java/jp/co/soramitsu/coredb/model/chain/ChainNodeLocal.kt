@@ -19,7 +19,7 @@ import androidx.room.Index
         Index(value = ["chainId"])
     ]
 )
-class ChainNodeLocal(
+data class ChainNodeLocal(
     val chainId: String,
     val url: String,
     val name: String,

@@ -92,7 +92,7 @@ fun PoolInfoScreen(state: PoolInfoScreenViewState, screenInterface: PoolInfoScre
                     state.state,
                     state.staked,
                     state.members,
-                    state.validators.copy(clickState = TitleValueViewState.ClickState(R.drawable.ic_chevron_right, VALIDATORS_CLICK_STATE_IDENTIFIER))
+                    state.validators.copy(clickState = TitleValueViewState.ClickState.Value(R.drawable.ic_chevron_right, VALIDATORS_CLICK_STATE_IDENTIFIER))
                 ),
                 onItemClick = screenInterface::onTableItemClick
             )

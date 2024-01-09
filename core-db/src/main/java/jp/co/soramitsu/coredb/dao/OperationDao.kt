@@ -8,7 +8,7 @@ import androidx.room.Transaction
 import jp.co.soramitsu.coredb.model.OperationLocal
 import kotlinx.coroutines.flow.Flow
 
-private const val ID_FILTER = "address = :address AND chainId = :chainId AND chainAssetId = :chainAssetId"
+private const val ID_FILTER = "address = :address AND chainId = :chainId AND :chainAssetId IN (chainAssetId, targetAssetId)"
 
 @Dao
 abstract class OperationDao {

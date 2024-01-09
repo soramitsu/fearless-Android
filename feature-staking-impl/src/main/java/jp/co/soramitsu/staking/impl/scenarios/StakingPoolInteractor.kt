@@ -6,15 +6,15 @@ import jp.co.soramitsu.account.api.domain.model.accountId
 import jp.co.soramitsu.common.list.GroupedList
 import jp.co.soramitsu.common.list.emptyGroupedList
 import jp.co.soramitsu.common.utils.orZero
-import jp.co.soramitsu.fearless_utils.extensions.toHexString
-import jp.co.soramitsu.fearless_utils.runtime.AccountId
-import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder
-import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
+import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.runtime.ext.accountFromMapKey
 import jp.co.soramitsu.runtime.ext.accountIdOf
-import jp.co.soramitsu.runtime.ext.utilityAsset
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.shared_utils.extensions.toHexString
+import jp.co.soramitsu.shared_utils.runtime.AccountId
+import jp.co.soramitsu.shared_utils.ss58.SS58Encoder
+import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.staking.api.domain.api.IdentityRepository
 import jp.co.soramitsu.staking.api.domain.model.Identity
 import jp.co.soramitsu.staking.api.domain.model.NominatedValidator
@@ -125,7 +125,7 @@ class StakingPoolInteractor(
                 bondedPool.depositor,
                 bondedPool.root,
                 bondedPool.nominator,
-                bondedPool.stateToggler
+                bondedPool.bouncer
             )
         }.filterNotNull()
     }
@@ -134,7 +134,7 @@ class StakingPoolInteractor(
     private suspend fun calculatePendingRewards(chain: Chain, poolMember: PoolMember, bondedPool: BondedPool, rewardPool: PoolRewards?): BigInteger {
         rewardPool ?: return BigInteger.ZERO
         val rewardsAccountId = generatePoolRewardAccount(chain, poolMember.poolId)
-        val existentialDeposit = walletConstants.existentialDeposit(chain.utilityAsset).orZero()
+        val existentialDeposit = chain.utilityAsset?.let { walletConstants.existentialDeposit(it) }.orZero()
         val rewardsAccountBalance = stakingInteractor.getAccountBalance(chain.id, rewardsAccountId).data.free.subtract(existentialDeposit)
         val payoutSinceLastRecord = rewardsAccountBalance.add(rewardPool.totalRewardsClaimed).subtract(rewardPool.lastRecordedTotalPayouts)
         val rewardCounterBase = BigInteger.valueOf(10).pow(18)
@@ -154,7 +154,7 @@ class StakingPoolInteractor(
         val palletId = relayChainRepository.getNominationPoolPalletId(chain.id)
         val modPrefix = "modl".toByteArray()
         val indexBytes = index.toByte()
-        val poolIdBytes = poolId.toByte()
+        val poolIdBytes = poolId.toByteArray().reversedArray() // reversed for little-endian order
         val empty = ByteArray(32)
         val source = modPrefix + palletId + indexBytes + poolIdBytes + empty
         val encoded = SS58Encoder.encode(source.take(32).toByteArray(), chain.addressPrefix.toShort())
@@ -227,7 +227,7 @@ class StakingPoolInteractor(
                 pool.depositor,
                 pool.root,
                 pool.nominator,
-                pool.stateToggler
+                pool.bouncer
             )
         }
     }

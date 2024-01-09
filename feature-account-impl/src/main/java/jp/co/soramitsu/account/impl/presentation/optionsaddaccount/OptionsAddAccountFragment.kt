@@ -30,7 +30,8 @@ class OptionsAddAccountFragment : BaseComposeBottomSheetDialogFragment<OptionsAd
             state = state,
             onCreate = viewModel::createAccount,
             onImport = viewModel::importAccount,
-            onNoNeed = viewModel::noNeedAccount
+            dontShowAgain = viewModel::dontShowAgainClicked,
+            onBackClicked = viewModel::onBackClicked
         )
     }
 

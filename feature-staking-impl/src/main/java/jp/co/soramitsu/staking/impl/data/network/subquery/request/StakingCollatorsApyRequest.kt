@@ -1,6 +1,6 @@
 package jp.co.soramitsu.staking.impl.data.network.subquery.request
 
-import jp.co.soramitsu.fearless_utils.extensions.toHexString
+import jp.co.soramitsu.shared_utils.extensions.toHexString
 
 class StakingCollatorsApyRequest(collatorIds: List<ByteArray>, roundId: Int?) {
     val query = """

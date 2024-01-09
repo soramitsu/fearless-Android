@@ -15,9 +15,14 @@ class SpendInsufficientBalanceException(resourceManager: ResourceManager) : Vali
     resourceManager.getString(R.string.choose_amount_error_too_big)
 )
 
-class ExistentialDepositCrossedException(resourceManager: ResourceManager) : ValidationWarning(
+class SubstrateBridgeMinimumAmountRequired(resourceManager: ResourceManager) : ValidationException(
+    resourceManager.getString(R.string.common_warning),
+    resourceManager.getString(R.string.sora_bridge_low_amount_alert)
+)
+
+class ExistentialDepositCrossedException(resourceManager: ResourceManager, edAmount: String) : ValidationWarning(
     resourceManager.getString(R.string.common_existential_warning_title),
-    resourceManager.getString(R.string.common_existential_warning_message),
+    resourceManager.getString(R.string.common_existential_warning_message, edAmount),
     resourceManager.getString(R.string.common_proceed),
     resourceManager.getString(R.string.common_cancel)
 )
@@ -72,4 +77,14 @@ class AmountTooLowToStakeException(resourceManager: ResourceManager, minimumAmou
 class UnableToPayFeeException(resourceManager: ResourceManager) : ValidationException(
     message = resourceManager.getString(R.string.common_error_general_title),
     explanation = resourceManager.getString(R.string.common_not_enough_funds_message)
+)
+
+class NotEnoughResultedAmountToPayFeeException(resourceManager: ResourceManager) : ValidationException(
+    message = resourceManager.getString(R.string.polkaswap_not_enough_result_to_pay_fee_title),
+    explanation = resourceManager.getString(R.string.polkaswap_not_enough_result_to_pay_fee_message)
+)
+
+class DeadRecipientEthereumException(resourceManager: ResourceManager) : ValidationException(
+    resourceManager.getString(R.string.common_warning),
+    resourceManager.getString(R.string.wallet_send_eth_dead_recipient_message)
 )

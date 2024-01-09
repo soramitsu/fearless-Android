@@ -2,9 +2,9 @@ package jp.co.soramitsu.crowdloan.impl.presentation.contribute
 
 import jp.co.soramitsu.common.base.TitleAndMessage
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.feature_crowdloan_impl.R
+import jp.co.soramitsu.common.utils.formatCryptoDetail
 import jp.co.soramitsu.crowdloan.impl.domain.contribute.validations.ContributeValidationFailure
-import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
+import jp.co.soramitsu.feature_crowdloan_impl.R
 
 fun contributeValidationFailure(
     reason: ContributeValidationFailure,
@@ -16,8 +16,8 @@ fun contributeValidationFailure(
                 resourceManager.getString(R.string.common_not_enough_funds_message)
         }
 
-        ContributeValidationFailure.ExistentialDepositCrossed -> {
-            resourceManager.getString(R.string.common_existential_warning_title) to resourceManager.getString(R.string.common_existential_warning_message)
+        is ContributeValidationFailure.ExistentialDepositCrossed -> {
+            resourceManager.getString(R.string.common_existential_warning_title) to resourceManager.getString(R.string.common_existential_warning_message, reason.edAmount)
         }
 
         ContributeValidationFailure.CrowdloanEnded -> {
@@ -32,7 +32,7 @@ fun contributeValidationFailure(
 
         is ContributeValidationFailure.CapExceeded.FromAmount -> {
             val formattedAmount = with(reason) {
-                maxAllowedContribution.formatTokenAmount(chainAsset)
+                maxAllowedContribution.formatCryptoDetail(chainAsset.symbol)
             }
 
             resourceManager.getString(R.string.crowdloan_cap_reached_title) to
@@ -41,7 +41,7 @@ fun contributeValidationFailure(
 
         is ContributeValidationFailure.LessThanMinContribution -> {
             val formattedAmount = with(reason) {
-                minContribution.formatTokenAmount(chainAsset)
+                minContribution.formatCryptoDetail(chainAsset.symbol)
             }
 
             resourceManager.getString(R.string.crowdloan_too_small_contribution_title) to

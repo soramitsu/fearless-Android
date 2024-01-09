@@ -5,9 +5,11 @@
     android:id="@+id/stakingConfirmationContainer"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/drawable_background_image"
+    android:backgroundTint="#63000000"
+    android:backgroundTintMode="src_atop"
     android:orientation="vertical"
-    android:theme="@style/PinkOverlay"
-    tools:background="@color/black">
+    android:theme="@style/PinkOverlay">
 
     <jp.co.soramitsu.common.view.Toolbar
         android:id="@+id/confirmStakeToolbar"
@@ -172,7 +174,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="@string/network_fee"
+                android:text="@string/common_network_fee"
                 android:textColor="@color/gray1" />
 
             <ProgressBar

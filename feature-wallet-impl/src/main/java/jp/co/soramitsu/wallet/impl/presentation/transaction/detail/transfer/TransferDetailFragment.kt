@@ -4,6 +4,9 @@ import androidx.annotation.StringRes
 import androidx.core.os.bundleOf
 import androidx.fragment.app.viewModels
 import dagger.hilt.android.AndroidEntryPoint
+import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
+import jp.co.soramitsu.account.api.presentation.actions.ExternalActionsSheet
+import jp.co.soramitsu.account.api.presentation.actions.ExternalViewCallback
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.data.network.BlockExplorerUrlBuilder
 import jp.co.soramitsu.common.utils.formatDateTime
@@ -13,25 +16,27 @@ import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.common.utils.setTextColorRes
 import jp.co.soramitsu.common.utils.showBrowser
 import jp.co.soramitsu.common.view.viewBinding
-import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
-import jp.co.soramitsu.account.api.presentation.actions.ExternalActionsSheet
-import jp.co.soramitsu.account.api.presentation.actions.ExternalViewCallback
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.databinding.FragmentTransferDetailsBinding
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.model.OperationParcelizeModel
 import jp.co.soramitsu.wallet.impl.presentation.model.OperationStatusAppearance
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 
 const val KEY_TRANSACTION = "KEY_DRAFT"
 const val KEY_ASSET_PAYLOAD = "KEY_ASSET_PAYLOAD"
+const val KEY_HISTORY_TYPE = "KEY_HISTORY_TYPE"
 
 @AndroidEntryPoint
 class TransferDetailFragment : BaseFragment<TransactionDetailViewModel>(R.layout.fragment_transfer_details) {
 
     companion object {
-        fun getBundle(operation: OperationParcelizeModel.Transfer, assetPayload: AssetPayload) =
-            bundleOf(KEY_TRANSACTION to operation, KEY_ASSET_PAYLOAD to assetPayload)
+        fun getBundle(operation: OperationParcelizeModel.Transfer, assetPayload: AssetPayload, chainHistoryType: Chain.ExternalApi.Section.Type?) =
+            bundleOf(
+                KEY_TRANSACTION to operation,
+                KEY_ASSET_PAYLOAD to assetPayload,
+                KEY_HISTORY_TYPE to chainHistoryType
+            )
     }
 
     private val binding by viewBinding(FragmentTransferDetailsBinding::bind)
@@ -76,7 +81,6 @@ class TransferDetailFragment : BaseFragment<TransactionDetailViewModel>(R.layout
             } else {
                 showOutgoungViews()
                 binding.transactionDetailFee.text = fee
-                binding.transactionDetailTotal.text = total
             }
 
             binding.transactionDetailAmount.text = amount
@@ -119,21 +123,15 @@ class TransferDetailFragment : BaseFragment<TransactionDetailViewModel>(R.layout
 
     private fun hideOutgoingViews() {
         binding.transactionDetailFee.makeGone()
-        binding.transactionDetailTotalLabel.makeGone()
         binding.transactionDetailFeeLabel.makeGone()
-        binding.transactionDetailTotal.makeGone()
         binding.transactionDetailDivider4.makeInvisible()
-        binding.transactionDetailDivider5.makeInvisible()
     }
 
     private fun showOutgoungViews() {
         with(binding) {
             transactionDetailFee.makeVisible()
-            transactionDetailTotalLabel.makeVisible()
             transactionDetailFeeLabel.makeVisible()
-            transactionDetailTotal.makeVisible()
             transactionDetailDivider4.makeVisible()
-            transactionDetailDivider5.makeVisible()
         }
     }
 
@@ -158,7 +156,7 @@ class TransferDetailFragment : BaseFragment<TransactionDetailViewModel>(R.layout
         showExternalActionsSheet(
             copyLabelRes = R.string.transaction_details_copy_hash,
             value = hash,
-            explorers = viewModel.getSupportedExplorers(BlockExplorerUrlBuilder.Type.EXTRINSIC, hash),
+            explorers = viewModel.getSupportedExplorers(viewModel.historyType, hash),
             externalViewCallback = viewModel::openUrl
         )
     }

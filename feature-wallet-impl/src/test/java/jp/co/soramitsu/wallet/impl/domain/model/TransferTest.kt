@@ -1,7 +1,7 @@
 package jp.co.soramitsu.wallet.impl.domain.model
 
 import java.math.BigDecimal
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.core.models.Asset
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
@@ -17,7 +17,7 @@ private val EXISTENTIAL_DEPOSIT = BigDecimal("0.01").setScale(10)
 class TransferTest {
 
     @Mock
-    lateinit var chainAsset: Chain.Asset
+    lateinit var chainAsset: Asset
 
     @Before
     fun setup() {
@@ -94,5 +94,5 @@ class TransferTest {
         assertEquals(status, TransferValidityLevel.Error.Status.DeadRecipient)
     }
 
-    private fun createTransfer(amount: BigDecimal) = Transfer("test", amount, chainAsset)
+    private fun createTransfer(amount: BigDecimal) = Transfer("test", "recipient", amount, chainAsset)
 }

@@ -4,6 +4,11 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
+import javax.inject.Named
+import jp.co.soramitsu.account.api.domain.interfaces.SelectedAccountUseCase
+import jp.co.soramitsu.account.api.domain.model.address
+import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -11,13 +16,11 @@ import jp.co.soramitsu.common.data.network.BlockExplorerUrlBuilder
 import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
-import jp.co.soramitsu.common.utils.formatAsCurrency
+import jp.co.soramitsu.common.utils.formatCryptoDetail
+import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.common.validation.progressConsumer
-import jp.co.soramitsu.feature_crowdloan_impl.R
-import jp.co.soramitsu.account.api.domain.interfaces.SelectedAccountUseCase
-import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.crowdloan.impl.data.network.api.parachain.FLOW_API_URL
 import jp.co.soramitsu.crowdloan.impl.data.network.api.parachain.FLOW_BONUS_URL
 import jp.co.soramitsu.crowdloan.impl.di.customCrowdloan.CustomContributeManager
@@ -34,24 +37,22 @@ import jp.co.soramitsu.crowdloan.impl.presentation.contribute.custom.astar.Astar
 import jp.co.soramitsu.crowdloan.impl.presentation.contribute.custom.interlay.InterlayBonusPayload
 import jp.co.soramitsu.crowdloan.impl.presentation.contribute.select.parcel.getString
 import jp.co.soramitsu.crowdloan.impl.presentation.contribute.select.parcel.mapParachainMetadataFromParcel
+import jp.co.soramitsu.feature_crowdloan_impl.R
+import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
 import jp.co.soramitsu.wallet.api.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.wallet.api.data.mappers.mapFeeToFeeModel
 import jp.co.soramitsu.wallet.api.domain.AssetUseCase
-import jp.co.soramitsu.wallet.impl.domain.model.Transfer
-import jp.co.soramitsu.wallet.impl.domain.model.TransferValidityLevel
-import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.wallet.api.presentation.mixin.TransferValidityChecks
 import jp.co.soramitsu.wallet.api.presentation.mixin.fee.FeeStatus
-import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
+import jp.co.soramitsu.wallet.impl.domain.model.Asset
+import jp.co.soramitsu.wallet.impl.domain.model.Transfer
+import jp.co.soramitsu.wallet.impl.domain.model.TransferValidityLevel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import javax.inject.Inject
-import javax.inject.Named
-import jp.co.soramitsu.wallet.impl.domain.model.Asset
 
 @HiltViewModel
 class ConfirmContributeViewModel @Inject constructor(
@@ -60,7 +61,7 @@ class ConfirmContributeViewModel @Inject constructor(
     private val resourceManager: ResourceManager,
     private val chainRegistry: ChainRegistry,
     @Named("CrowdloanAssetUseCase") assetUseCase: AssetUseCase,
-    accountUseCase: SelectedAccountUseCase,
+    private val accountUseCase: SelectedAccountUseCase,
     addressModelGenerator: AddressIconGenerator,
     private val validationExecutor: ValidationExecutor,
     private val validationSystem: ContributeValidationSystem,
@@ -104,7 +105,7 @@ class ConfirmContributeViewModel @Inject constructor(
         .share()
 
     val enteredFiatAmountFlow = assetFlow.map { asset ->
-        asset.token.fiatAmount(payload.amount)?.formatAsCurrency(asset.token.fiatSymbol)
+        asset.token.fiatAmount(payload.amount)?.formatFiat(asset.token.fiatSymbol)
     }
         .inBackground()
         .share()
@@ -138,7 +139,7 @@ class ConfirmContributeViewModel @Inject constructor(
         .share()
 
     val bonusFlow = bonusNumberFlow.map { bonus ->
-        bonus?.formatTokenAmount(payload.metadata!!.token)
+        bonus?.formatCryptoDetail(payload.metadata!!.token)
     }
         .inBackground()
         .share()
@@ -207,15 +208,19 @@ class ConfirmContributeViewModel @Inject constructor(
                         payload.metadata.isAstar && (it as? AstarBonusPayload)?.referralCode.isNullOrEmpty().not() -> {
                             additionalOnChainSubmission(it, flowName, payload.amount, customContributeManager)
                         }
+
                         payload.metadata.isInterlay && (it as? InterlayBonusPayload)?.referralCode.isNullOrEmpty().not() -> {
                             additionalOnChainSubmission(it, flowName, payload.amount, customContributeManager)
                         }
+
                         payload.metadata.isMoonbeam && ethAddress?.second == true -> {
                             additionalOnChainSubmission(it, flowName, payload.amount, customContributeManager)
                         }
+
                         payload.metadata.isAcala && payload.contributionType == LcDOT -> {
                             additionalOnChainSubmission(it, flowName, payload.amount, customContributeManager)
                         }
+
                         else -> {
                             null
                         }
@@ -228,9 +233,14 @@ class ConfirmContributeViewModel @Inject constructor(
                     val recipient = contributionInteractor.getAcalaStatement(apiUrl).proxyAddress
                     val maxAllowedStatusLevel = if (suppressWarnings) TransferValidityLevel.Warning else TransferValidityLevel.Ok
                     val fee = feeFlow.firstOrNull()?.feeModel?.fee ?: return@launch
+
+                    val chainId = assetFlow.first().token.configuration.chainId
+                    val chain = chainRegistry.getChain(chainId)
+                    val currentAddress = requireNotNull(contributionInteractor.getSelectedMetaAccount().address(chain))
                     contributionInteractor.performTransfer(
                         transfer = Transfer(
                             recipient = recipient,
+                            sender = currentAddress,
                             amount = payload.amount,
                             chainAsset = assetFlow.first().token.configuration
                         ),
@@ -280,6 +290,7 @@ class ConfirmContributeViewModel @Inject constructor(
             val bonusUrl = payload.metadata.flow?.data?.getString(FLOW_BONUS_URL) ?: payload.metadata.website
             openBrowserEvent.postValue(Event(bonusUrl))
         }
+
         else -> Unit
     }
 }

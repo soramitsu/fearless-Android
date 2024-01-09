@@ -1,10 +1,9 @@
 package jp.co.soramitsu.crowdloan.impl.domain.main
 
-import java.math.BigDecimal
-import java.math.BigInteger
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.accountId
 import jp.co.soramitsu.common.list.GroupedList
+import jp.co.soramitsu.core.extrinsic.mortality.IChainStateRepository
 import jp.co.soramitsu.crowdloan.api.data.network.blockhain.binding.Contribution
 import jp.co.soramitsu.crowdloan.api.data.network.blockhain.binding.FundInfo
 import jp.co.soramitsu.crowdloan.api.data.repository.CrowdloanRepository
@@ -12,12 +11,13 @@ import jp.co.soramitsu.crowdloan.api.data.repository.ParachainMetadata
 import jp.co.soramitsu.crowdloan.api.data.repository.getContributions
 import jp.co.soramitsu.crowdloan.impl.domain.contribute.mapFundInfoToCrowdloan
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
-import jp.co.soramitsu.runtime.repository.ChainStateRepository
-import kotlin.reflect.KClass
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
+import java.math.BigDecimal
+import java.math.BigInteger
+import kotlin.reflect.KClass
 
 class Crowdloan(
     val parachainMetadata: ParachainMetadata?,
@@ -54,7 +54,7 @@ typealias GroupedCrowdloans = GroupedList<KClass<out Crowdloan.State>, Crowdloan
 class CrowdloanInteractor(
     private val accountRepository: AccountRepository,
     private val crowdloanRepository: CrowdloanRepository,
-    private val chainStateRepository: ChainStateRepository
+    private val chainStateRepository: IChainStateRepository
 ) {
 
     fun crowdloansFlow(chain: Chain): Flow<GroupedCrowdloans> {

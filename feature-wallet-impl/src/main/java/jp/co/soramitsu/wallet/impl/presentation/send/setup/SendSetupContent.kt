@@ -3,35 +3,37 @@ package jp.co.soramitsu.wallet.impl.presentation.send.setup
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.material.Icon
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusState
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import jp.co.soramitsu.common.compose.component.AccentButton
+import java.math.BigDecimal
+import jp.co.soramitsu.common.compose.component.AccentDarkDisabledButton
 import jp.co.soramitsu.common.compose.component.AddressInput
 import jp.co.soramitsu.common.compose.component.AddressInputState
 import jp.co.soramitsu.common.compose.component.AmountInput
@@ -53,9 +55,11 @@ import jp.co.soramitsu.common.compose.component.ToolbarViewState
 import jp.co.soramitsu.common.compose.component.WarningInfo
 import jp.co.soramitsu.common.compose.component.WarningInfoState
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
+import jp.co.soramitsu.common.compose.theme.backgroundBlack
 import jp.co.soramitsu.common.compose.theme.black05
 import jp.co.soramitsu.common.compose.theme.colorAccentDark
 import jp.co.soramitsu.common.compose.theme.white24
+import jp.co.soramitsu.common.utils.isZero
 import jp.co.soramitsu.feature_wallet_impl.R
 
 data class SendSetupViewState(
@@ -65,21 +69,25 @@ data class SendSetupViewState(
     val chainSelectorState: SelectorState,
     val feeInfoState: FeeInfoViewState,
     val warningInfoState: WarningInfoState?,
-    val buttonState: ButtonViewState
+    val buttonState: ButtonViewState,
+    val isSoftKeyboardOpen: Boolean,
+    val isInputLocked: Boolean,
+    val quickAmountInputValues: List<QuickAmountInput> = QuickAmountInput.values().asList(),
+    val isHistoryAvailable: Boolean
 )
 
 interface SendSetupScreenInterface {
     fun onNavigationClick()
     fun onAddressInput(input: String)
     fun onAddressInputClear()
-    fun onAmountInput(input: String)
+    fun onAmountInput(input: BigDecimal?)
     fun onChainClick()
     fun onTokenClick()
     fun onNextClick()
     fun onQrClick()
     fun onHistoryClick()
     fun onPasteClick()
-    fun onAmountFocusChanged(focusState: FocusState)
+    fun onAmountFocusChanged(isFocused: Boolean)
     fun onQuickAmountInput(input: Double)
     fun onWarningInfoClick()
 }
@@ -91,23 +99,39 @@ fun SendSetupContent(
     callback: SendSetupScreenInterface
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
+    val showQuickInput = state.amountInputState.isFocused && state.isSoftKeyboardOpen && state.isInputLocked.not()
+
+    val focusRequester = remember { FocusRequester() }
+    if (state.isInputLocked && state.amountInputState.tokenAmount.isZero()) {
+        LaunchedEffect(Unit) { focusRequester.requestFocus() }
+    }
 
     BottomSheetScreen {
-        Box(Modifier.fillMaxSize()) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+        ) {
+            val bottomPadding = if (state.isInputLocked) {
+                50.dp
+            } else {
+                130.dp
+            }
             Column(
                 modifier = Modifier
                     .padding(horizontal = 16.dp)
+                    .padding(bottom = bottomPadding)
                     .fillMaxWidth()
             ) {
                 ToolbarBottomSheet(
                     title = stringResource(id = R.string.send_fund),
                     onNavigationClick = callback::onNavigationClick
                 )
-                MarginVertical(margin = 20.dp)
+                MarginVertical(margin = 16.dp)
                 AddressInput(
                     state = state.addressInputState,
                     onInput = callback::onAddressInput,
-                    onInputClear = callback::onAddressInputClear
+                    onInputClear = callback::onAddressInputClear,
+                    onPaste = callback::onPasteClick
                 )
 
                 MarginVertical(margin = 12.dp)
@@ -116,7 +140,8 @@ fun SendSetupContent(
                     borderColorFocused = colorAccentDark,
                     onInput = callback::onAmountInput,
                     onInputFocusChange = callback::onAmountFocusChanged,
-                    onTokenClick = callback::onTokenClick
+                    onTokenClick = callback::onTokenClick,
+                    focusRequester = focusRequester
                 )
 
                 MarginVertical(margin = 12.dp)
@@ -134,23 +159,37 @@ fun SendSetupContent(
                 Spacer(modifier = Modifier.weight(1f))
             }
 
-            val isSoftKeyboardOpen = WindowInsets.ime.getBottom(LocalDensity.current) > 0
-            val showQuickInput = state.amountInputState.isFocused && isSoftKeyboardOpen
             Column(
                 modifier = Modifier
+                    .background(backgroundBlack.copy(alpha = 0.75f))
                     .align(Alignment.BottomCenter)
                     .imePadding()
             ) {
-                LazyRow(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally)
-                ) {
-                    item { Badge(R.drawable.ic_scan, R.string.chip_qr, callback::onQrClick) }
-                    item { Badge(R.drawable.ic_history_16, R.string.chip_history, callback::onHistoryClick) }
-                    item { Badge(R.drawable.ic_copy_16, R.string.chip_paste, callback::onPasteClick) }
+                if (state.isInputLocked.not()) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally)
+                    ) {
+                        Badge(
+                            modifier = Modifier.weight(1f),
+                            iconResId = R.drawable.ic_scan,
+                            labelResId = R.string.chip_qr,
+                            onClick = callback::onQrClick
+                        )
+                        if (state.isHistoryAvailable) {
+                            Badge(
+                                modifier = Modifier.weight(1f),
+                                iconResId = R.drawable.ic_history_16,
+                                labelResId = R.string.chip_history,
+                                onClick = callback::onHistoryClick
+                            )
+                        }
+                    }
+                    MarginVertical(margin = 12.dp)
                 }
-                MarginVertical(margin = 12.dp)
-                AccentButton(
+                AccentDarkDisabledButton(
                     state = state.buttonState,
                     onClick = {
                         keyboardController?.hide()
@@ -162,9 +201,9 @@ fun SendSetupContent(
                         .height(48.dp)
                 )
                 MarginVertical(margin = 12.dp)
-                if (showQuickInput) {
+                if (showQuickInput && state.quickAmountInputValues.isNotEmpty()) {
                     QuickInput(
-                        values = QuickAmountInput.values(),
+                        values = state.quickAmountInputValues.toTypedArray(),
                         onQuickAmountInput = {
                             keyboardController?.hide()
                             callback.onQuickAmountInput(it)
@@ -178,11 +217,13 @@ fun SendSetupContent(
 
 @Composable
 private fun Badge(
+    modifier: Modifier = Modifier,
     @DrawableRes iconResId: Int,
     @StringRes labelResId: Int,
     onClick: () -> Unit
 ) {
     ColoredButton(
+        modifier = modifier,
         backgroundColor = black05,
         border = BorderStroke(1.dp, white24),
         contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
@@ -210,28 +251,31 @@ private fun SendSetupPreview() {
             "",
             "1003 KSM",
             "$170000",
-            "0,980",
+            BigDecimal("0.980"),
             "Amount",
             allowAssetChoose = true
         ),
         chainSelectorState = SelectorState("Network", null, null),
         feeInfoState = FeeInfoViewState.default,
         warningInfoState = null,
-        buttonState = ButtonViewState("Continue", true)
+        buttonState = ButtonViewState("Continue", true),
+        isSoftKeyboardOpen = false,
+        isInputLocked = false,
+        isHistoryAvailable = false
     )
 
     val emptyCallback = object : SendSetupScreenInterface {
         override fun onNavigationClick() {}
         override fun onAddressInput(input: String) {}
         override fun onAddressInputClear() {}
-        override fun onAmountInput(input: String) {}
+        override fun onAmountInput(input: BigDecimal?) {}
         override fun onChainClick() {}
         override fun onTokenClick() {}
         override fun onNextClick() {}
         override fun onQrClick() {}
         override fun onHistoryClick() {}
         override fun onPasteClick() {}
-        override fun onAmountFocusChanged(focusState: FocusState) {}
+        override fun onAmountFocusChanged(isFocused: Boolean) {}
         override fun onQuickAmountInput(input: Double) {}
         override fun onWarningInfoClick() {}
     }

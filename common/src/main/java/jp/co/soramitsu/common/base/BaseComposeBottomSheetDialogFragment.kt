@@ -6,7 +6,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
+import android.widget.LinearLayout
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
@@ -20,6 +22,7 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import jp.co.soramitsu.common.R
+import jp.co.soramitsu.common.compose.component.emptyClick
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.presentation.ErrorDialog
 import jp.co.soramitsu.common.utils.Event
@@ -67,11 +70,43 @@ abstract class BaseComposeBottomSheetDialogFragment<T : BaseViewModel> : BottomS
         viewModel.errorWithTitleLiveData.observeEvent { (title, message) ->
             showErrorDialog(title, message)
         }
+        viewModel.errorDialogStateLiveData.observeEvent { errorDialogState ->
+            showErrorDialog(
+                title = errorDialogState.title,
+                message = errorDialogState.message,
+                buttonsOrientation = errorDialogState.buttonsOrientation,
+                positiveButtonText = errorDialogState.positiveButtonText,
+                negativeButtonText = errorDialogState.negativeButtonText,
+                positiveClick = errorDialogState.positiveClick,
+                negativeClick = errorDialogState.negativeClick,
+                onBackClick = errorDialogState.onBackClick,
+                isHideable = errorDialogState.isHideable
+            )
+        }
     }
 
-    private fun showErrorDialog(title: String, message: String) {
-        val buttonText = requireContext().resources.getString(R.string.common_ok)
-        ErrorDialog(title = title, message = message, positiveButtonText = buttonText).show(childFragmentManager)
+    private fun showErrorDialog(
+        title: String? = null,
+        message: String,
+        positiveButtonText: String? = requireContext().resources.getString(R.string.common_ok),
+        negativeButtonText: String? = null,
+        buttonsOrientation: Int = LinearLayout.VERTICAL,
+        positiveClick: () -> Unit = emptyClick,
+        negativeClick: () -> Unit = emptyClick,
+        onBackClick: () -> Unit = emptyClick,
+        isHideable: Boolean = true
+    ) {
+        ErrorDialog(
+            title = title,
+            message = message,
+            buttonsOrientation = buttonsOrientation,
+            positiveButtonText = positiveButtonText,
+            negativeButtonText = negativeButtonText,
+            positiveClick = positiveClick,
+            negativeClick = negativeClick,
+            onBackClick = onBackClick,
+            isHideable = isHideable
+        ).show(childFragmentManager)
     }
 
     protected fun showMessage(text: String) {
@@ -109,5 +144,15 @@ abstract class BaseComposeBottomSheetDialogFragment<T : BaseViewModel> : BottomS
         behavior.state = BottomSheetBehavior.STATE_EXPANDED
         behavior.isDraggable = false
         behavior.isHideable = false
+    }
+
+    protected inline fun onBackPressed(crossinline action: () -> Unit) {
+        val callback = object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                action()
+            }
+        }
+
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, callback)
     }
 }

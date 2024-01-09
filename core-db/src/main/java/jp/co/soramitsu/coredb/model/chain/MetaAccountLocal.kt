@@ -6,7 +6,7 @@ import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
 import androidx.room.Relation
-import jp.co.soramitsu.core.model.CryptoType
+import jp.co.soramitsu.core.models.CryptoType
 
 @Entity(
     tableName = MetaAccountLocal.TABLE_NAME,
@@ -23,7 +23,9 @@ class MetaAccountLocal(
     val ethereumAddress: ByteArray?,
     val name: String,
     val isSelected: Boolean,
-    val position: Int
+    val position: Int,
+    val isBackedUp: Boolean,
+    val googleBackupAddress: String?
 ) {
 
     companion object Table {
@@ -85,6 +87,8 @@ interface JoinedMetaAccountInfo {
     val metaAccount: MetaAccountLocal
 
     val chainAccounts: List<ChainAccountLocal>
+
+    val favoriteChains: List<FavoriteChainLocal>
 }
 
 class RelationJoinedMetaAccountInfo(
@@ -92,7 +96,10 @@ class RelationJoinedMetaAccountInfo(
     override val metaAccount: MetaAccountLocal,
 
     @Relation(parentColumn = "id", entityColumn = "metaId", entity = ChainAccountLocal::class)
-    override val chainAccounts: List<ChainAccountLocal>
+    override val chainAccounts: List<ChainAccountLocal>,
+
+    @Relation(parentColumn = "id", entityColumn = "metaId", entity = FavoriteChainLocal::class)
+    override val favoriteChains: List<FavoriteChainLocal>
 ) : JoinedMetaAccountInfo
 
 class MetaAccountPositionUpdate(

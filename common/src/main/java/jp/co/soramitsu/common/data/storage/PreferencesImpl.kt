@@ -1,6 +1,7 @@
 package jp.co.soramitsu.common.data.storage
 
 import android.content.SharedPreferences
+import jp.co.soramitsu.common.data.network.config.AppConfigRemote
 import jp.co.soramitsu.core.model.Language
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -114,4 +115,68 @@ class PreferencesImpl(
             sharedPreferences.unregisterOnSharedPreferenceChangeListener(listener)
         }
     }
+
+    override fun intFlow(
+        field: String,
+        initialValue: Int
+    ): Flow<Int> = callbackFlow {
+        if (contains(field)) {
+            send(getInt(field, 0))
+        } else {
+            putInt(field, initialValue)
+            send(initialValue)
+        }
+
+        val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+            if (key == field) {
+                trySend(getInt(field, initialValue))
+            }
+        }
+
+        listeners.add(listener)
+        sharedPreferences.registerOnSharedPreferenceChangeListener(listener)
+
+        awaitClose {
+            listeners.remove(listener)
+            sharedPreferences.unregisterOnSharedPreferenceChangeListener(listener)
+        }
+    }
+
+    override fun booleanFlow(
+        field: String,
+        initialValue: Boolean
+    ): Flow<Boolean> = callbackFlow {
+        if (contains(field)) {
+            send(getBoolean(field, initialValue))
+        } else {
+            putBoolean(field, initialValue)
+
+            send(initialValue)
+        }
+
+        val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+            if (key == field) {
+                trySend(getBoolean(field, initialValue))
+            }
+        }
+
+        listeners.add(listener)
+        sharedPreferences.registerOnSharedPreferenceChangeListener(listener)
+
+        awaitClose {
+            listeners.remove(listener)
+            sharedPreferences.unregisterOnSharedPreferenceChangeListener(listener)
+        }
+    }
 }
+
+var Preferences.appConfig: AppConfigRemote
+    get() {
+        val minSupportedVersion = getString("MIN_SUPPORTED_VERSION", "3.0.2")
+        val excludedVersions = getStringSet("EXCLUDED_VERSIONS", emptySet()).toList()
+        return AppConfigRemote(minSupportedVersion, excludedVersions)
+    }
+    set(value) {
+        putString("MIN_SUPPORTED_VERSION", value.minSupportedVersion)
+        putStringSet("EXCLUDED_VERSIONS", value.excludedVersions.orEmpty().toSet())
+    }

@@ -4,7 +4,7 @@ import jp.co.soramitsu.common.data.secrets.v1.Keypair
 import jp.co.soramitsu.common.data.secrets.v2.KeyPairSchema.PrivateKey
 import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets.SubstrateDerivationPath
 import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets.SubstrateKeypair
-import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
+import jp.co.soramitsu.shared_utils.scale.EncodableStruct
 import jp.co.soramitsu.testshared.HashMapEncryptedPreferences
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertArrayEquals

@@ -26,18 +26,19 @@ import jp.co.soramitsu.common.base.BaseComposeFragment
 import jp.co.soramitsu.common.compose.component.MainToolbar
 import jp.co.soramitsu.common.compose.component.MainToolbarShimmer
 import jp.co.soramitsu.common.compose.component.MainToolbarViewState
+import jp.co.soramitsu.common.compose.component.MainToolbarViewStateWithFilters
 import jp.co.soramitsu.common.compose.component.MenuIconItem
 import jp.co.soramitsu.common.compose.component.ToolbarHomeIconState
 import jp.co.soramitsu.common.data.network.coingecko.FiatCurrency
 import jp.co.soramitsu.common.presentation.FiatCurrenciesChooserBottomSheetDialog
 import jp.co.soramitsu.common.presentation.LoadingState
+import jp.co.soramitsu.common.presentation.askPermissionsSafely
 import jp.co.soramitsu.common.scan.ScanTextContract
 import jp.co.soramitsu.common.scan.ScannerActivity
 import jp.co.soramitsu.common.utils.hideKeyboard
 import jp.co.soramitsu.common.view.bottomSheet.AlertBottomSheet
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
 import jp.co.soramitsu.feature_wallet_impl.R
-import jp.co.soramitsu.wallet.impl.presentation.common.askPermissionsSafely
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
@@ -54,12 +55,17 @@ class BalanceListFragment : BaseComposeFragment<BalanceListViewModel>() {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        viewModel.onResume()
+    }
+
     @OptIn(ExperimentalMaterialApi::class)
     @Composable
     override fun Content(padding: PaddingValues, scrollState: ScrollState, modalBottomSheetState: ModalBottomSheetState) {
         val state by viewModel.state.collectAsState()
 
-        WalletScreen(state, viewModel)
+        WalletScreenWithRefresh(state, viewModel)
     }
 
     @ExperimentalMaterialApi
@@ -68,7 +74,7 @@ class BalanceListFragment : BaseComposeFragment<BalanceListViewModel>() {
         val toolbarState by viewModel.toolbarState.collectAsState()
 
         when (toolbarState) {
-            is LoadingState.Loading<MainToolbarViewState> -> {
+            is LoadingState.Loading<MainToolbarViewStateWithFilters> -> {
                 MainToolbarShimmer(
                     homeIconState = ToolbarHomeIconState(navigationIcon = R.drawable.ic_wallet),
                     menuItems = listOf(
@@ -77,9 +83,9 @@ class BalanceListFragment : BaseComposeFragment<BalanceListViewModel>() {
                     )
                 )
             }
-            is LoadingState.Loaded<MainToolbarViewState> -> {
+            is LoadingState.Loaded<MainToolbarViewStateWithFilters> -> {
                 MainToolbar(
-                    state = (toolbarState as LoadingState.Loaded<MainToolbarViewState>).data,
+                    state = (toolbarState as LoadingState.Loaded<MainToolbarViewStateWithFilters>).data,
                     menuItems = listOf(
                         MenuIconItem(icon = R.drawable.ic_scan, onClick = ::requestCameraPermission),
                         MenuIconItem(icon = R.drawable.ic_search, onClick = viewModel::openSearchAssets)
@@ -99,14 +105,6 @@ class BalanceListFragment : BaseComposeFragment<BalanceListViewModel>() {
         viewModel.showFiatChooser.observeEvent(::showFiatChooser)
         viewModel.showUnsupportedChainAlert.observeEvent { showUnsupportedChainAlert() }
         viewModel.openPlayMarket.observeEvent { openPlayMarket() }
-    }
-
-    fun initViews() {
-//        with(binding) {
-//            walletContainer.setOnRefreshListener {
-//                viewModel.sync()
-//            }
-//        }
     }
 
     private fun showFiatChooser(payload: DynamicListBottomSheet.Payload<FiatCurrency>) {

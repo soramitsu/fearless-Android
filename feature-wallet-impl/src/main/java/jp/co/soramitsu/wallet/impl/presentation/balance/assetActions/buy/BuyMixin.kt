@@ -5,7 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import jp.co.soramitsu.common.base.BaseComposeFragment
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.utils.Event
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.wallet.impl.data.buyToken.ExternalProvider
 import jp.co.soramitsu.wallet.impl.domain.model.BuyTokenRegistry
@@ -13,13 +13,13 @@ import jp.co.soramitsu.wallet.impl.domain.model.BuyTokenRegistry
 interface BuyMixin {
     class IntegrationPayload(
         val provider: BuyTokenRegistry.Provider<*>,
-        val chainAsset: Chain.Asset,
+        val chainAsset: Asset,
         val address: String
     )
 
     class ProviderChooserPayload(
         val providers: List<BuyTokenRegistry.Provider<*>>,
-        val chainAsset: Chain.Asset,
+        val chainAsset: Asset,
         val accountAddress: String
     )
 
@@ -29,7 +29,7 @@ interface BuyMixin {
 
     fun providerChosen(
         provider: BuyTokenRegistry.Provider<*>,
-        chainAsset: Chain.Asset,
+        chainAsset: Asset,
         accountAddress: String
     )
 

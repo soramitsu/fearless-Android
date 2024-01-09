@@ -1,15 +1,17 @@
 package jp.co.soramitsu.staking.impl.presentation.staking.main.scenarios
 
+import java.math.BigDecimal
 import jp.co.soramitsu.common.domain.model.StoryGroup
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.common.utils.format
-import jp.co.soramitsu.common.utils.formatAsCurrency
+import jp.co.soramitsu.common.utils.formatCryptoDetail
+import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.common.utils.withLoading
 import jp.co.soramitsu.common.validation.CompositeValidation
 import jp.co.soramitsu.common.validation.ValidationSystem
 import jp.co.soramitsu.feature_staking_impl.R
+import jp.co.soramitsu.shared_utils.extensions.toHexString
 import jp.co.soramitsu.staking.api.data.StakingSharedState
 import jp.co.soramitsu.staking.api.domain.model.StakingState
 import jp.co.soramitsu.staking.impl.data.repository.datasource.StakingStoriesDataSource
@@ -31,14 +33,16 @@ import jp.co.soramitsu.staking.impl.presentation.staking.main.scenarios.StakingS
 import jp.co.soramitsu.staking.impl.presentation.staking.main.scenarios.StakingScenarioViewModel.Companion.WARNING_ICON
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.HOURS_IN_DAY
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenarioInteractor
-import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emptyFlow
-import kotlinx.coroutines.flow.flatMapConcat
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.shareIn
 
 class StakingRelaychainScenarioViewModel(
     private val stakingInteractor: StakingInteractor,
@@ -51,7 +55,7 @@ class StakingRelaychainScenarioViewModel(
     stakingSharedState: StakingSharedState
 ) : StakingScenarioViewModel {
 
-    override val enteredAmountFlow = MutableStateFlow("")
+    override val enteredAmountFlow: MutableStateFlow<BigDecimal?> = MutableStateFlow(BigDecimal.ZERO)
 
     private val welcomeStakingValidationSystem = ValidationSystem(
         CompositeValidation(
@@ -66,11 +70,52 @@ class StakingRelaychainScenarioViewModel(
         )
     )
 
-    override val stakingStateFlow: Flow<StakingState> = scenarioInteractor.stakingStateFlow
+    private val viewStatesCash: MutableMap<String, StakingViewStateOld> = mutableMapOf()
+
+    override val stakingStateFlow: Flow<StakingState> =
+        scenarioInteractor.stakingStateFlow().shareIn(baseViewModel.stakingStateScope, SharingStarted.Eagerly, 1)
+
+    override val stakingViewStateFlowOld: Flow<StakingViewStateOld> =
+        stakingStateFlow.distinctUntilChanged().map { stakingState ->
+            val key = "${stakingState.accountId.toHexString()}:${stakingState.chain.id}"
+            viewStatesCash.getOrPut(key) {
+                when (stakingState) {
+                    is StakingState.Stash.Nominator -> stakingViewStateFactory.createNominatorViewState(
+                        stakingState,
+                        stakingInteractor.currentAssetFlow(),
+                        baseViewModel.stakingStateScope,
+                        baseViewModel::showError
+                    )
+
+                    is StakingState.Stash.None -> stakingViewStateFactory.createStashNoneState(
+                        stakingInteractor.currentAssetFlow(),
+                        stakingState,
+                        baseViewModel.stakingStateScope,
+                        baseViewModel::showError
+                    )
+
+                    is StakingState.NonStash -> stakingViewStateFactory.createRelayChainWelcomeViewState(
+                        stakingInteractor.currentAssetFlow(),
+                        baseViewModel.stakingStateScope,
+                        welcomeStakingValidationSystem = welcomeStakingValidationSystem,
+                        baseViewModel::showError
+                    )
+
+                    is StakingState.Stash.Validator -> stakingViewStateFactory.createValidatorViewState(
+                        stakingState,
+                        stakingInteractor.currentAssetFlow(),
+                        baseViewModel.stakingStateScope,
+                        baseViewModel::showError
+                    )
+
+                    else -> error("Wrong state")
+                }
+            }
+        }.shareIn(baseViewModel.stakingStateScope, SharingStarted.Eagerly, 1)
 
     @Deprecated("Don't use this method, use the getStakingViewStateFlow instead")
     override suspend fun getStakingViewStateFlowOld(): Flow<StakingViewStateOld> {
-        return stakingStateFlow.map { stakingState ->
+        return stakingStateFlow.distinctUntilChanged().map { stakingState ->
             when (stakingState) {
                 is StakingState.Stash.Nominator -> stakingViewStateFactory.createNominatorViewState(
                     stakingState,
@@ -99,6 +144,7 @@ class StakingRelaychainScenarioViewModel(
                     baseViewModel.stakingStateScope,
                     baseViewModel::showError
                 )
+
                 else -> error("Wrong state")
             }
         }
@@ -114,20 +160,20 @@ class StakingRelaychainScenarioViewModel(
             stakingInteractor.currentAssetFlow()
         ) { networkInfo, asset ->
             val minimumStake = asset.token.amountFromPlanks(networkInfo.minimumStake)
-            val minimumStakeFormatted = minimumStake.formatTokenAmount(asset.token.configuration)
+            val minimumStakeFormatted = minimumStake.formatCryptoDetail(asset.token.configuration.symbol)
 
-            val minimumStakeFiat = asset.token.fiatAmount(minimumStake)?.formatAsCurrency(asset.token.fiatSymbol)
+            val minimumStakeFiat = asset.token.fiatAmount(minimumStake)?.formatFiat(asset.token.fiatSymbol)
 
             val lockupPeriod = if (networkInfo.lockupPeriodInHours > HOURS_IN_DAY) {
                 val inDays = networkInfo.lockupPeriodInHours / HOURS_IN_DAY
-                resourceManager.getQuantityString(R.plurals.staking_main_lockup_period_value, inDays, inDays)
+                resourceManager.getQuantityString(R.plurals.common_days_format, inDays, inDays)
             } else {
                 resourceManager.getQuantityString(R.plurals.common_hours_format, networkInfo.lockupPeriodInHours, networkInfo.lockupPeriodInHours)
             }
             val totalStake = asset.token.amountFromPlanks(networkInfo.totalStake)
-            val totalStakeFormatted = totalStake.formatTokenAmount(asset.token.configuration)
+            val totalStakeFormatted = totalStake.formatCryptoDetail(asset.token.configuration.symbol)
 
-            val totalStakeFiat = asset.token.fiatAmount(totalStake)?.formatAsCurrency(asset.token.fiatSymbol)
+            val totalStakeFiat = asset.token.fiatAmount(totalStake)?.formatFiat(asset.token.fiatSymbol)
 
             StakingNetworkInfoModel.RelayChain(
                 lockupPeriod,
@@ -135,13 +181,13 @@ class StakingRelaychainScenarioViewModel(
                 minimumStakeFiat,
                 totalStakeFormatted,
                 totalStakeFiat,
-                networkInfo.nominatorsCount.format()
+                networkInfo.nominatorsCount.toString()
             )
         }.withLoading()
     }
 
     override suspend fun alerts(): Flow<LoadingState<List<AlertModel>>> {
-        return scenarioInteractor.stakingStateFlow.flatMapConcat {
+        return stakingStateFlow.flatMapLatest {
             alertsInteractor.getAlertsFlow(it)
         }.mapList(::mapAlertToAlertModel).withLoading()
     }
@@ -156,6 +202,7 @@ class StakingRelaychainScenarioViewModel(
                     AlertModel.Type.CallToAction { baseViewModel.openCurrentValidators() }
                 )
             }
+
             is Alert.RedeemTokens -> {
                 AlertModel(
                     WARNING_ICON,
@@ -164,6 +211,7 @@ class StakingRelaychainScenarioViewModel(
                     AlertModel.Type.CallToAction { baseViewModel.redeemAlertClicked() }
                 )
             }
+
             is Alert.BondMoreTokens -> {
                 val existentialDepositDisplay = formatAlertTokenAmount(alert.minimalStake, alert.token)
 
@@ -174,18 +222,21 @@ class StakingRelaychainScenarioViewModel(
                     AlertModel.Type.CallToAction { baseViewModel.bondMoreAlertClicked() }
                 )
             }
+
             is Alert.WaitingForNextEra -> AlertModel(
                 WAITING_ICON,
                 resourceManager.getString(R.string.staking_nominator_status_alert_waiting_message),
                 resourceManager.getString(R.string.staking_alert_start_next_era_message),
                 AlertModel.Type.Info
             )
+
             Alert.SetValidators -> AlertModel(
                 WARNING_ICON,
                 resourceManager.getString(R.string.staking_set_validators_title),
                 resourceManager.getString(R.string.staking_set_validators_message),
                 AlertModel.Type.CallToAction { baseViewModel.openChangeValidators() }
             )
+
             else -> error("Wrong alert type")
         }
     }

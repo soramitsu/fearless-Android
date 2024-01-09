@@ -6,21 +6,23 @@ import androidx.lifecycle.viewModelScope
 import java.math.BigInteger
 import jp.co.soramitsu.common.AlertViewState
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.base.errors.TitledException
 import jp.co.soramitsu.common.base.errors.ValidationException
 import jp.co.soramitsu.common.compose.component.ConfirmScreenViewState
+import jp.co.soramitsu.common.compose.component.GradientIconState
 import jp.co.soramitsu.common.compose.component.TitleValueViewState
 import jp.co.soramitsu.common.compose.component.ToolbarViewState
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.applyFiatRate
 import jp.co.soramitsu.common.utils.flowOf
-import jp.co.soramitsu.common.utils.formatAsCurrency
+import jp.co.soramitsu.common.utils.formatCryptoDetail
+import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.validation.FeeInsufficientBalanceException
 import jp.co.soramitsu.common.validation.WaitForFeeCalculationException
 import jp.co.soramitsu.feature_wallet_api.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.wallet.api.domain.ExistentialDepositUseCase
-import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
@@ -51,8 +53,8 @@ abstract class BaseConfirmViewModel(
 ) : BaseViewModel() {
 
     private val amount = amountInPlanks?.let { asset.token.amountFromPlanks(it) }
-    private val amountFormatted = amount?.formatTokenAmount(asset.token.configuration)
-    private val amountFiat = amount?.applyFiatRate(asset.token.fiatRate)?.formatAsCurrency(asset.token.fiatSymbol)
+    private val amountFormatted = amount?.formatCryptoDetail(asset.token.configuration.symbol)
+    private val amountFiat = amount?.applyFiatRate(asset.token.fiatRate)?.formatFiat(asset.token.fiatSymbol)
 
     private val toolbarViewState = ToolbarViewState(
         resourceManager.getString(R.string.common_confirm),
@@ -90,10 +92,10 @@ abstract class BaseConfirmViewModel(
 
     val feeViewStateFlow = feeInPlanksFlow.filterNotNull().map { feeInPlanks ->
         val fee = asset.token.amountFromPlanks(feeInPlanks)
-        val feeFormatted = fee.formatTokenAmount(asset.token.configuration)
-        val feeFiat = fee.formatAsCurrency(asset.token.fiatSymbol)
+        val feeFormatted = fee.formatCryptoDetail(asset.token.configuration.symbol)
+        val feeFiat = fee.formatFiat(asset.token.fiatSymbol)
         TitleValueViewState(
-            resourceManager.getString(R.string.network_fee),
+            resourceManager.getString(R.string.common_network_fee),
             feeFormatted,
             feeFiat
         )
@@ -112,9 +114,9 @@ abstract class BaseConfirmViewModel(
     val viewState by lazy {
         combine(tableItemsFlow, isLoadingStateFlow) { tableItems, isLoading ->
             val icon = if (customIcon != null) {
-                ConfirmScreenViewState.Icon.Local(customIcon)
+                GradientIconState.Local(customIcon)
             } else {
-                ConfirmScreenViewState.Icon.Remote(asset.token.configuration.iconUrl)
+                GradientIconState.Remote(asset.token.configuration.iconUrl, asset.token.configuration.color)
             }
 
             ConfirmScreenViewState(
@@ -159,25 +161,41 @@ abstract class BaseConfirmViewModel(
     override fun showError(throwable: Throwable) {
         val message =
             throwable.localizedMessage ?: throwable.message ?: resourceManager.getString(R.string.common_undefined_error_message)
-        val errorAlertViewState = (throwable as? ValidationException)?.let { (title, message) ->
-            AlertViewState(
-                title = title,
-                message = message,
-                buttonText = resourceManager.getString(R.string.common_got_it),
-                iconRes = R.drawable.ic_status_warning_16
-            )
-        } ?: AlertViewState(
-            title = resourceManager.getString(R.string.common_error_general_title),
-            message = message,
-            buttonText = resourceManager.getString(R.string.common_got_it),
-            iconRes = R.drawable.ic_status_warning_16
-        )
+        val errorAlertViewState = when (throwable) {
+            is ValidationException -> {
+                val (title, message) = throwable
+                AlertViewState(
+                    title = title,
+                    message = message,
+                    buttonText = resourceManager.getString(R.string.common_got_it),
+                    iconRes = R.drawable.ic_status_warning_16
+                )
+            }
+
+            is TitledException -> {
+                AlertViewState(
+                    title = throwable.title,
+                    message = message,
+                    buttonText = resourceManager.getString(R.string.common_got_it),
+                    iconRes = R.drawable.ic_status_warning_16
+                )
+            }
+
+            else -> {
+                AlertViewState(
+                    title = resourceManager.getString(R.string.common_error_general_title),
+                    message = message,
+                    buttonText = resourceManager.getString(R.string.common_got_it),
+                    iconRes = R.drawable.ic_status_warning_16
+                )
+            }
+        }
         errorAlertPresenter(errorAlertViewState)
     }
 
     private val defaultFeeState
         get() = TitleValueViewState(
-            resourceManager.getString(R.string.network_fee),
+            resourceManager.getString(R.string.common_network_fee),
             null,
             null
         )
@@ -191,7 +209,7 @@ abstract class BaseConfirmViewModel(
                 amountViewState,
                 defaultFeeState
             ),
-            ConfirmScreenViewState.Icon.Remote(asset.token.configuration.iconUrl),
+            GradientIconState.Remote(asset.token.configuration.iconUrl, asset.token.configuration.color),
             titleRes,
             additionalMessageRes,
             isLoading = false

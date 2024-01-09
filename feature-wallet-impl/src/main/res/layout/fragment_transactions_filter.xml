@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:orientation="vertical"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/drawable_background_image"
+    android:backgroundTint="#63000000"
+    android:backgroundTintMode="src_atop"
     android:fitsSystemWindows="true"
-    tools:background="@color/black">
+    android:orientation="vertical">
 
     <jp.co.soramitsu.common.view.Toolbar
         android:id="@+id/transactionsFilterToolbar"
@@ -16,16 +18,16 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:titleText="@string/wallet_filters_title"
-        app:textRight="@string/common_reset"/>
+        app:textRight="@string/common_reset"
+        app:titleText="@string/wallet_filters_title" />
 
     <TextView
         style="@style/TextAppearance.Soramitsu.Header3"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"
         android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
         android:text="@string/wallet_filters_header" />
 
     <com.google.android.material.switchmaterial.SwitchMaterial
@@ -33,8 +35,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"
         android:layout_marginTop="12dp"
+        android:layout_marginEnd="16dp"
         android:text="@string/wallet_filters_transfers" />
 
     <com.google.android.material.switchmaterial.SwitchMaterial

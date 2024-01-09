@@ -1,4 +1,4 @@
-package jp.co.soramitsu.common.compose.component
+package jp.co.soramitsu.common.compose.theme
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
@@ -15,9 +15,8 @@ import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.text.style.TextGeometricTransform
 import androidx.compose.ui.text.style.TextIndent
 import androidx.compose.ui.unit.TextUnit
-import jp.co.soramitsu.common.compose.theme.Sora
 
-// text style with changed fontFamitly = Sora and textColor = White
+// text style with changed fontFamily = Sora and textColor = White
 fun soraTextStyle(
     color: Color = Color.White,
     fontSize: TextUnit = TextUnit.Unspecified,

@@ -1,15 +1,15 @@
 package jp.co.soramitsu.staking.impl.presentation.validators.change.custom.settings
 
 import androidx.core.os.bundleOf
+import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import dagger.hilt.android.AndroidEntryPoint
-import androidx.core.view.isVisible
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.view.ButtonState
 import jp.co.soramitsu.common.view.viewBinding
+import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.databinding.FragmentCustomValidatorsSettingsBinding
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 
 @AndroidEntryPoint
 class CustomValidatorsSettingsFragment :
@@ -17,7 +17,7 @@ class CustomValidatorsSettingsFragment :
 
     companion object {
         const val STAKING_TYPE_KEY = "stakingType"
-        fun getBundle(stakingType: Chain.Asset.StakingType) = bundleOf(STAKING_TYPE_KEY to stakingType)
+        fun getBundle(stakingType: Asset.StakingType) = bundleOf(STAKING_TYPE_KEY to stakingType)
     }
 
     private val filtersAdapter by lazy { SettingsFiltersAdapter(viewModel::onFilterChecked) }

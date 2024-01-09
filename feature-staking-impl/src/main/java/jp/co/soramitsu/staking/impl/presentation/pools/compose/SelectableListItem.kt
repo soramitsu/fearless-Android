@@ -42,7 +42,7 @@ data class SelectableListItemState<T>(
     val additionalStatuses: List<SelectableListItemAdditionalStatus> = listOf()
 ) {
     enum class SelectableListItemAdditionalStatus(@DrawableRes val iconRes: Int, val iconTintColor: Color) {
-        WARNING(R.drawable.ic_screen_warning, warningOrange), OVERSUBSCRIBED(R.drawable.ic_screen_warning, warningOrange);
+        WARNING(R.drawable.ic_screen_warning, warningOrange), OVERSUBSCRIBED(R.drawable.ic_screen_warning, warningOrange)
     }
 }
 

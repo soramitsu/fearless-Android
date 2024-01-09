@@ -37,11 +37,11 @@ enum class NetworkIssueType(
 ) {
     Node(
         reason = R.string.network_issue_node_unavailable,
-        action = R.string.network_issue_action_switch_node
+        action = R.string.resolve
     ),
     Network(
         reason = R.string.network_issue_network_unavailable,
-        actionColor = alertYellow
+        action = R.string.resolve
     ),
     Account(
         reason = R.string.network_issue_add_an_account,
@@ -60,7 +60,25 @@ data class NetworkIssueItemState(
     val chainName: String,
     val assetId: String,
     val priceId: String? = null
-)
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as NetworkIssueItemState
+
+        if (chainId != other.chainId) return false
+        if (assetId != other.assetId) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = chainId.hashCode()
+        result = 31 * result + assetId.hashCode()
+        return result
+    }
+}
 
 @Composable
 fun NetworkIssueItem(
@@ -120,7 +138,7 @@ fun NetworkIssueItem(
             } else {
                 TextButtonSmall(
                     modifier = Modifier.height(24.dp),
-                    contentPadding = PaddingValues(horizontal = 8.dp),
+                    contentPadding = PaddingValues(horizontal = 12.dp),
                     text = actionLabel,
                     colors = customButtonColors(state.type.actionColor),
                     onClick = onClick::invoke

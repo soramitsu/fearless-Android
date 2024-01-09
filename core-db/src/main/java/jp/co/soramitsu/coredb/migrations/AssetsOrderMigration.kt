@@ -7,7 +7,7 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import jp.co.soramitsu.common.utils.map
 import jp.co.soramitsu.coredb.model.chain.MetaAccountLocal
-import jp.co.soramitsu.fearless_utils.runtime.AccountId
+import jp.co.soramitsu.shared_utils.runtime.AccountId
 import java.math.BigDecimal
 import java.math.BigInteger
 

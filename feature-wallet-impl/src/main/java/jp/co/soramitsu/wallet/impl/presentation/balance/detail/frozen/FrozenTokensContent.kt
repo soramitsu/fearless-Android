@@ -12,11 +12,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.compose.component.B2
 import jp.co.soramitsu.common.compose.component.BottomSheetScreen
-import jp.co.soramitsu.common.compose.component.Grip
 import jp.co.soramitsu.common.compose.component.H3
 import jp.co.soramitsu.common.compose.component.H5
 import jp.co.soramitsu.common.compose.component.MarginVertical
-import jp.co.soramitsu.common.utils.formatAsCurrency
+import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.feature_wallet_impl.R
 
 data class FrozenTokensContentViewState(
@@ -35,18 +34,15 @@ fun FrozenTokensContent(
                 .padding(horizontal = 16.dp)
                 .fillMaxWidth()
         ) {
-            MarginVertical(margin = 2.dp)
-            Grip(Modifier.align(Alignment.CenterHorizontally))
-            MarginVertical(margin = 8.dp)
             H3(text = stringResource(id = R.string.common_title_frozen_token, payload.assetSymbol.uppercase()))
             MarginVertical(margin = 28.dp)
             payload.locked?.let {
                 Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    H5(text = stringResource(id = R.string.common_title_frozen_loked))
+                    H5(text = stringResource(id = R.string.assetdetails_balance_locked))
                     Spacer(modifier = Modifier.weight(1f))
-                    B2(text = it.formatAsCurrency(""))
+                    B2(text = it.formatFiat(""))
                 }
                 MarginVertical(margin = 24.dp)
             }
@@ -54,9 +50,9 @@ fun FrozenTokensContent(
                 Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    H5(text = stringResource(id = R.string.common_title_frozen_staked))
+                    H5(text = stringResource(id = R.string.wallet_balance_bonded))
                     Spacer(modifier = Modifier.weight(1f))
-                    B2(text = it.formatAsCurrency(""))
+                    B2(text = it.formatFiat(""))
                 }
                 MarginVertical(margin = 24.dp)
             }
@@ -64,9 +60,9 @@ fun FrozenTokensContent(
                 Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    H5(text = stringResource(id = R.string.common_title_frozen_reserved))
+                    H5(text = stringResource(id = R.string.wallet_balance_reserved))
                     Spacer(modifier = Modifier.weight(1f))
-                    B2(text = it.formatAsCurrency(""))
+                    B2(text = it.formatFiat(""))
                 }
                 MarginVertical(margin = 24.dp)
             }
@@ -74,9 +70,9 @@ fun FrozenTokensContent(
                 Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    H5(text = stringResource(id = R.string.common_title_frozen_redeemable))
+                    H5(text = stringResource(id = R.string.wallet_balance_redeemable))
                     Spacer(modifier = Modifier.weight(1f))
-                    B2(text = it.formatAsCurrency(""))
+                    B2(text = it.formatFiat(""))
                 }
                 MarginVertical(margin = 24.dp)
             }
@@ -84,9 +80,9 @@ fun FrozenTokensContent(
                 Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    H5(text = stringResource(id = R.string.common_title_frozen_unstaking))
+                    H5(text = stringResource(id = R.string.wallet_balance_unbonding_v1_9_0))
                     Spacer(modifier = Modifier.weight(1f))
-                    B2(text = it.formatAsCurrency(""))
+                    B2(text = it.formatFiat(""))
                 }
                 MarginVertical(margin = 12.dp)
             }
