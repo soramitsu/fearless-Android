@@ -31,6 +31,7 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.launch
+import kotlin.coroutines.CoroutineContext
 
 inline fun <T, R> Flow<List<T>>.mapList(crossinline mapper: suspend (T) -> R) = map { list ->
     list.map { item -> mapper(item) }
@@ -199,6 +200,7 @@ fun <T> flowOf(producer: suspend () -> T) = flow {
 
 @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
 inline fun <Request, Response> List<Request>.concurrentRequestFlow(
+    coroutineContext: CoroutineContext = Dispatchers.IO,
     crossinline block: suspend FlowCollector<Response>.(request: Request) -> Unit
 ): Flow<Response> {
     val concurrency = DEFAULT_CONCURRENCY
@@ -210,6 +212,6 @@ inline fun <Request, Response> List<Request>.concurrentRequestFlow(
             flow {
                 block.invoke(this, requestData)
             }
-        }.flattenMerge(concurrency).collect(this)
+        }.flattenMerge(concurrency).flowOn(coroutineContext).collect(this)
     }
 }

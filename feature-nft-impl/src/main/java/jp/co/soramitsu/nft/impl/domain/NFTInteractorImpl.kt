@@ -61,7 +61,6 @@ class NFTInteractorImpl(
                         .filter { it.key != null }
                         .cast<Map<String, List<TokenInfo.WithoutMetadata>>>()
 
-                    println("This is checkpoint: NFTInteractorImpl.userOwnedNFTsFlow")
                     val contractsByAddresses = nftRepository.contractMetadataBatch(
                         chain = chain,
                         contractAddresses = tokensByContractAddress.keys

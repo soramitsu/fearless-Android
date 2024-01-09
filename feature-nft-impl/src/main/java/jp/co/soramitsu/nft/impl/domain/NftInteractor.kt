@@ -34,7 +34,6 @@ class NftInteractor(
         selectedChainId: String?,
         metaAccountId: Long
     ): Map<Chain, Result<List<NftCollection>>> {
-        println("This is checkpoint: MyOlfNftInteractor.getNfts")
         val result = nftInteractor.userOwnedNFTsFlow(
             paginationRequestFlow = flow { emit(PaginationRequest.NextPage) },
             chainSelectionFlow = flow { emit(selectedChainId) },
@@ -47,6 +46,7 @@ class NftInteractor(
             Result.success(
                 collections.map { collection ->
                     NftCollection(
+                        contractAddress = collection.contractAddress!!, // TODO remove nullability!!
                         name = collection.collectionName,
                         image = collection.imageUrl,
                         description = collection.description,

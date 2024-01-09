@@ -3,6 +3,7 @@ package jp.co.soramitsu.nft.impl.data
 import jp.co.soramitsu.core.models.ChainId
 
 data class NftCollection(
+    val contractAddress: String,
     val name: String, //AlchemyNftInfo.contractMetadata.openSea.collectionName
     val image: String,
     val description: String?,
