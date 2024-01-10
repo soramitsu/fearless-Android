@@ -185,6 +185,7 @@ fun TransactionSettingsContent(
 
         GrayButton(
             modifier = Modifier
+                .height(48.dp)
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp),
             text = stringResource(R.string.polkaswap_btn_reset_to_default),
@@ -194,6 +195,7 @@ fun TransactionSettingsContent(
         AccentButton(
             text = stringResource(R.string.common_save),
             modifier = Modifier
+                .height(48.dp)
                 .padding(horizontal = 16.dp)
                 .padding(bottom = 8.dp)
                 .fillMaxWidth(),
