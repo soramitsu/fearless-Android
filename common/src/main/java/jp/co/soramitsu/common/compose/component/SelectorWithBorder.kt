@@ -108,9 +108,9 @@ fun SelectorWithBorder(
                     }
 
                     state.subTitle?.let {
-                        B1(
+                        B1EllipsizeMiddle(
                             text = state.subTitle,
-                            color = if (state.enabled) Color.Unspecified else black2
+                            color = if (state.enabled) Color.White else black2
                         )
                     }
                 }

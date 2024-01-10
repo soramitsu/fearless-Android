@@ -89,27 +89,12 @@ fun InfoItemContent(modifier: Modifier = Modifier, state: InfoItemViewState) {
     }
 }
 
-@Composable
-private fun B1EllipsizeMiddle(text: String) {
-    AndroidView(
-        factory = { context ->
-            TextView(context).apply {
-                setTextColor(Color.WHITE)
-                typeface = ResourcesCompat.getFont(context, R.font.sora_regular)
-                textSize = 14f
-                maxLines = 1
-                ellipsize = TextUtils.TruncateAt.MIDDLE
-            }
-        },
-        update = { it.text = text }
-    )
-}
-
 @Preview
 @Composable
 private fun InfoItemPreview() {
     val state = InfoItemViewState(
         title = "Info item title",
+        singleLine = true,
         subtitle = "My account account account account account account account account"
     )
     FearlessTheme {
