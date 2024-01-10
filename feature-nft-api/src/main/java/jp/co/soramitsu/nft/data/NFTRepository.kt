@@ -6,8 +6,21 @@ import jp.co.soramitsu.nft.data.models.TokenInfo
 import jp.co.soramitsu.nft.data.models.response.NFTResponse
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import kotlinx.coroutines.flow.Flow
+import javax.inject.Qualifier
+
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class RemoteNFTRepository()
+
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class CachedNFTRepository()
 
 interface NFTRepository {
+
+    suspend fun setNFTFilter(value: String, isApplied: Boolean)
+
+    fun nftFiltersFlow(): Flow<Set<Pair<String, Boolean>>>
 
     fun paginatedUserOwnedNFTsFlow(
         paginationRequestFlow: Flow<PaginationRequest>,

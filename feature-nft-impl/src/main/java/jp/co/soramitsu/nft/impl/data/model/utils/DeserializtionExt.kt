@@ -27,7 +27,9 @@ internal val NFTResponse.UserOwnedTokens.Companion.deserializer: JsonDeserialize
                 context?.deserialize<TokenInfo.WithoutMetadata>(
                     jsonElem, TokenInfo.WithoutMetadata::class.java
                 )
-            } ?: emptyList()
+            } ?: emptyList(),
+            pageKey = jsonObj.get("pageKey")?.asString,
+            totalCount = jsonObj.get("totalCount")?.asInt
         )
     }
 

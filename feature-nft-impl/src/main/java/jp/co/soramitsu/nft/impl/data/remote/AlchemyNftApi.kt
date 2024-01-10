@@ -15,6 +15,7 @@ interface AlchemyNftApi {
         @Url url: String,
         @Query("owner") owner: String,
         @Query("withMetadata") withMetadata: Boolean = true,
+        @Query("pageKey") pageKey: String? = null,
         @Query("pageSize") pageSize: Int = 1000,
         @Query("excludeFilters[]") excludeFilters: List<String> = listOf("SPAM")
     ): NFTResponse.UserOwnedTokens

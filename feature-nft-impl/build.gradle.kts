@@ -62,6 +62,8 @@ dependencies {
 
     implementation(libs.compose.navigation)
 
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-rx2:1.7.3")
+
     implementation(projects.common)
     implementation(projects.runtime)
     implementation(projects.featureNftApi)

@@ -50,6 +50,7 @@ import jp.co.soramitsu.common.compose.theme.black3
 import jp.co.soramitsu.common.compose.theme.colorAccent
 import jp.co.soramitsu.common.compose.theme.transparent
 import jp.co.soramitsu.common.compose.theme.white
+import jp.co.soramitsu.nft.domain.models.NFTFilter
 import jp.co.soramitsu.nft.impl.presentation.NftRouter
 import kotlinx.coroutines.flow.MutableStateFlow
 
@@ -104,7 +105,7 @@ class NftFiltersFragment : BottomSheetDialogFragment() {
         }
     }
 
-    private fun onSelectClick(model: NftFilter) {
+    private fun onSelectClick(model: NFTFilter) {
         val currentState = requireNotNull(state.value)
         val previousFilters = currentState.items.toMutableMap()
         val previousValue: Boolean = currentState.items[model] ?: false
@@ -149,7 +150,7 @@ val switchColors = object : SwitchColors {
 @Composable
 private fun FiltersContent(
     state: NftFilterModel,
-    onSelectClick: (NftFilter) -> Unit,
+    onSelectClick: (NFTFilter) -> Unit,
     onCloseClick: () -> Unit
 ) {
     Column(
@@ -203,6 +204,6 @@ private fun FiltersContent(
 @Composable
 private fun FiltersContentPreview() {
     FearlessAppTheme {
-        FiltersContent(NftFilterModel(NftFilter.values().associateWith { true }), {}, {})
+        FiltersContent(NftFilterModel(NFTFilter.values().associateWith { true }), {}, {})
     }
 }

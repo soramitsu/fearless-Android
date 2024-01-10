@@ -27,6 +27,7 @@ dependencies {
     implementation(projects.featureAccountApi)
     implementation(projects.common)
     implementation(projects.runtime)
+    implementation("javax.inject:javax.inject:1")
 
     implementation(libs.bundles.coroutines)
     implementation(libs.sharedFeaturesCoreDep)

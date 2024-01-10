@@ -2,14 +2,15 @@ package jp.co.soramitsu.nft.impl.presentation.filters
 
 import android.os.Bundle
 import androidx.core.os.bundleOf
+import jp.co.soramitsu.nft.domain.models.NFTFilter
 
 data class NftFilterModel(
-    val items: Map<NftFilter, Boolean>
+    val items: Map<NFTFilter, Boolean>
 ) {
 
     companion object {
         fun fromBundle(bundle: Bundle): NftFilterModel =
-            NftFilterModel(NftFilter.values().associateWith { bundle.getBoolean(it.name) })
+            NftFilterModel(NFTFilter.values().associateWith { bundle.getBoolean(it.name) })
     }
 
     val bundle: Bundle
@@ -22,6 +23,3 @@ data class NftFilterModel(
         }
 }
 
-enum class NftFilter {
-    Spam, Airdrops
-}

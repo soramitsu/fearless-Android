@@ -13,7 +13,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.onEach
 
-class CachedDecorator(
+class CachingNFTRepositoryDecorator(
     private val nftRepository: NFTRepository,
     private val nftContractMetadataResponseDao: NFTContractMetadataResponseDao
 ): NFTRepository by nftRepository {

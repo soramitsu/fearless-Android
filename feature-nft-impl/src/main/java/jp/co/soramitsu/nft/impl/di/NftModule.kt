@@ -7,27 +7,34 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.coredb.dao.NFTContractMetadataResponseDao
+import jp.co.soramitsu.nft.data.CachedNFTRepository
 import jp.co.soramitsu.nft.data.NFTRepository
+import jp.co.soramitsu.nft.data.RemoteNFTRepository
 import jp.co.soramitsu.nft.domain.NFTInteractor
-import jp.co.soramitsu.nft.impl.data.cached.CachedDecorator
+import jp.co.soramitsu.nft.impl.data.cached.CachingNFTRepositoryDecorator
 import jp.co.soramitsu.nft.impl.data.NFTRepositoryImpl
 import jp.co.soramitsu.nft.data.models.Contract
 import jp.co.soramitsu.nft.data.models.TokenId
 import jp.co.soramitsu.nft.data.models.TokenInfo
 import jp.co.soramitsu.nft.data.models.response.NFTResponse
+import jp.co.soramitsu.nft.domain.NFTTransferInteractor
 import jp.co.soramitsu.nft.impl.data.model.utils.deserializer
 import jp.co.soramitsu.nft.impl.data.remote.AlchemyNftApi
 import jp.co.soramitsu.nft.impl.domain.NFTInteractorImpl
 import jp.co.soramitsu.nft.impl.domain.NftInteractor
-import jp.co.soramitsu.nft.impl.domain.SendNFTUseCase
+import jp.co.soramitsu.nft.impl.domain.NFTTransferInteractorImpl
+import jp.co.soramitsu.nft.impl.domain.usecase.CreateRawEthTransactionUseCase
+import jp.co.soramitsu.nft.impl.domain.usecase.EstimateNFTTransactionNetworkFeeUseCase
+import jp.co.soramitsu.nft.impl.domain.usecase.NFTTransferFunctionAdapter
+import jp.co.soramitsu.nft.impl.domain.usecase.SendRawEthTransactionUseCase
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.runtime.multiNetwork.connection.EthereumConnectionPool
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.converter.scalars.ScalarsConverterFactory
-import javax.inject.Qualifier
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -88,33 +95,27 @@ class NftModule {
         return retrofit.create(AlchemyNftApi::class.java)
     }
 
-    @Qualifier
-    @Retention(AnnotationRetention.BINARY)
-    annotation class RemoteNFTRepository()
-
-    @Qualifier
-    @Retention(AnnotationRetention.BINARY)
-    annotation class CachedNFTRepository()
-
     @Provides
     @Singleton
     @RemoteNFTRepository
     fun provideRemoteNFTRepository(
-        alchemyNftApi: AlchemyNftApi
+        alchemyNftApi: AlchemyNftApi,
+        preferences: Preferences
     ): NFTRepository {
         return NFTRepositoryImpl(
-            alchemyNftApi = alchemyNftApi
+            alchemyNftApi = alchemyNftApi,
+            preferences = preferences
         )
     }
 
     @Provides
     @Singleton
     @CachedNFTRepository
-    fun provideCachedNFTRepository(
+    fun provideCachingNFTRepositoryDecorator(
         @RemoteNFTRepository nftRepository: NFTRepository,
         nftContractMetadataResponseDao: NFTContractMetadataResponseDao
     ): NFTRepository {
-        return CachedDecorator(
+        return CachingNFTRepositoryDecorator(
             nftRepository = nftRepository,
             nftContractMetadataResponseDao = nftContractMetadataResponseDao
         )
@@ -123,29 +124,39 @@ class NftModule {
     @Provides
     @Singleton
     fun provideNFTInteractor(
-        sendNFTUseCase: SendNFTUseCase,
         @CachedNFTRepository nftRepository: NFTRepository,
         accountRepository: AccountRepository,
         chainsRepository: ChainsRepository
     ): NFTInteractor = NFTInteractorImpl(
-        sendNFTUseCase = sendNFTUseCase,
         nftRepository = nftRepository,
         accountRepository = accountRepository,
         chainsRepository = chainsRepository
     )
 
     @Provides
-    fun provideSendNftUseCase(
+    @Singleton
+    fun provideNFTTransferInteractor(
         accountRepository: AccountRepository,
-        ethereumConnectionPool: EthereumConnectionPool
-    ) = SendNFTUseCase(accountRepository, ethereumConnectionPool)
+        chainsRepository: ChainsRepository,
+        ethereumConnectionPool: EthereumConnectionPool,
+        nftTransferFunctionAdapter: NFTTransferFunctionAdapter,
+        estimateNFTTransactionNetworkFeeUseCase: EstimateNFTTransactionNetworkFeeUseCase,
+        createRawEthTransactionUseCase: CreateRawEthTransactionUseCase,
+        sendRawEthTransactionUseCase: SendRawEthTransactionUseCase
+    ): NFTTransferInteractor = NFTTransferInteractorImpl(
+        accountRepository = accountRepository,
+        chainsRepository = chainsRepository,
+        ethereumConnectionPool = ethereumConnectionPool,
+        nftTransferFunctionAdapter = nftTransferFunctionAdapter,
+        estimateNFTTransactionNetworkFeeUseCase = estimateNFTTransactionNetworkFeeUseCase,
+        createRawEthTransactionUseCase = createRawEthTransactionUseCase,
+        sendRawEthTransactionUseCase = sendRawEthTransactionUseCase
+    )
 
     @Provides
     fun provideMyOlfNftInteractor(
         nftInteractor: NFTInteractor,
-        sendNFTUseCase: SendNFTUseCase,
-        accountRepository: AccountRepository,
         chainRepository: ChainsRepository
-    ) = NftInteractor(nftInteractor, sendNFTUseCase, accountRepository, chainRepository)
+    ) = NftInteractor(nftInteractor, chainRepository)
 
 }

@@ -52,7 +52,7 @@ import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.nft.impl.domain.NftInteractor
 import jp.co.soramitsu.nft.impl.presentation.NftRouter
-import jp.co.soramitsu.nft.impl.presentation.filters.NftFilter
+import jp.co.soramitsu.nft.domain.models.NFTFilter
 import jp.co.soramitsu.nft.impl.presentation.filters.NftFilterModel
 import jp.co.soramitsu.nft.impl.presentation.filters.NftFiltersFragment
 import jp.co.soramitsu.nft.impl.presentation.list.NftCollectionListItem
@@ -242,7 +242,7 @@ class BalanceListViewModel @Inject constructor(
     }.onStart { emit(buildInitialAssetsList().toMutableList()) }.inBackground().share()
 
     private val defaultFiltersState =
-        NftFilterModel(mapOf(NftFilter.Spam to true, NftFilter.Airdrops to false))
+        NftFilterModel(mapOf(NFTFilter.Spam to true, NFTFilter.Airdrops to false))
 
     private val filtersFlow = nftRouter.nftFiltersResultFlow(NftFiltersFragment.KEY_RESULT)
         .stateIn(viewModelScope, SharingStarted.Eagerly, defaultFiltersState)
@@ -394,7 +394,7 @@ class BalanceListViewModel @Inject constructor(
                             selectedMetaAccount.id
                         )
                     }
-                        .onFailure { showError("Failed to load NFTs") }
+                        .onFailure { showError("Failed to load NFTs"); throw it }
                         .getOrNull() ?: return@mapLatest NftScreenState(
                         hasAnyFiltersChecked,
                         NftScreenState.ListState.Empty

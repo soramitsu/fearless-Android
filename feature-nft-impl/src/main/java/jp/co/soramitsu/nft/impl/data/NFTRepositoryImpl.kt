@@ -2,6 +2,7 @@ package jp.co.soramitsu.nft.impl.data
 
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.address
+import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.utils.concurrentRequestFlow
 import jp.co.soramitsu.nft.data.NFTRepository
 import jp.co.soramitsu.nft.data.models.TokenInfo
@@ -10,27 +11,88 @@ import jp.co.soramitsu.nft.data.models.response.NFTResponse
 import jp.co.soramitsu.nft.impl.data.model.request.NFTRequest
 import jp.co.soramitsu.nft.impl.data.remote.AlchemyNftApi
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.alchemyNftId
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.flow.DEFAULT_CONCURRENCY
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.flattenMerge
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
-import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.flow.transformLatest
 import java.util.concurrent.atomic.AtomicReference
 
 internal const val DEFAULT_PAGE_SIZE = 100
+internal const val NFT_FILTERS_KEY = "NFT_FILTERS_KEY"
 
 class NFTRepositoryImpl(
-    private val alchemyNftApi: AlchemyNftApi
+    private val alchemyNftApi: AlchemyNftApi,
+    private val preferences: Preferences
 ): NFTRepository {
+
+    private val mutableFiltersFlow = MutableStateFlow<Pair<String, Boolean>?>(null)
+
+    override suspend fun setNFTFilter(value: String, isApplied: Boolean) {
+        mutableFiltersFlow.tryEmit(value to isApplied)
+
+        with(preferences) {
+            val mutableFilters = getStringSet(NFT_FILTERS_KEY, emptySet()).toMutableSet()
+
+            when {
+                value in mutableFilters && !isApplied ->
+                    mutableFilters.remove(value)
+
+                value !in mutableFilters && isApplied ->
+                    mutableFilters.add(value)
+
+                else -> Unit /* DO NOTHING */
+            }
+
+            putStringSet(NFT_FILTERS_KEY, mutableFilters)
+        }
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    override fun nftFiltersFlow(): Flow<Set<Pair<String, Boolean>>> {
+        return flow {
+            var filtersSnapshot: MutableSet<Pair<String, Boolean>> = mutableSetOf()
+
+            mutableFiltersFlow.transformLatest { newFilterToIsApplied ->
+                val cache = filtersSnapshot.apply {
+                    if (newFilterToIsApplied != null)
+                        add(newFilterToIsApplied)
+                }
+
+                emit(filtersSnapshot)
+
+                /*
+                    Wait for 10 seconds till user finishes all filters selection
+                    to compare saved selection
+                    1) Delay will be cancelled by use of collectLatest except for the last one
+                */
+                if (newFilterToIsApplied != null)
+                    kotlinx.coroutines.delay(10_000)
+
+                val dbCache = preferences.getStringSet(NFT_FILTERS_KEY, emptySet())
+
+                if (
+                    dbCache.containsAll(
+                        cache.filter { it.second } // filter out non selected filters
+                            .map { it.first } // get only selected filters
+                    )
+                ) return@transformLatest
+
+                filtersSnapshot = dbCache.map { filter ->
+                    val isApplied = true
+
+                    return@map filter to isApplied
+                }.toMutableSet()
+
+                emit(filtersSnapshot)
+            }.collect(this)
+        }
+    }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     override fun paginatedUserOwnedNFTsFlow(
@@ -47,18 +109,18 @@ class NFTRepositoryImpl(
         )
 
         return flow {
-            val nextTokenId: AtomicReference<String?> = AtomicReference(null)
+            val atomicChainsToPageKeyMap = AtomicReference<Map<ChainId, String?>?>(null)
 
             val chainSelectionHelperFlow = chainSelectionFlow.distinctUntilChanged { old, new ->
-                if (old != new)
-                    nextTokenId.set(null)
+                if (old.size != new.size || !old.containsAll(new))
+                    atomicChainsToPageKeyMap.set(null)
 
                 return@distinctUntilChanged false
             }
 
             val exclusionFilterHelperFlow = exclusionFiltersFlow.distinctUntilChanged { old, new ->
-                if (old != new)
-                    nextTokenId.set(null)
+                if (old.size != new.size || !old.containsAll(new))
+                    atomicChainsToPageKeyMap.set(null)
 
                 return@distinctUntilChanged false
             }
@@ -76,15 +138,25 @@ class NFTRepositoryImpl(
                     exclusionFilters = filters
                 )
             }.transformLatest { holder ->
+                val chainsToPageKeys = with(atomicChainsToPageKeyMap.get()) {
+                    holder.chains.map { chain ->
+                        chain to this?.get(chain.id)
+                    }
+                }
+
                 val pageSize = if (holder.paginationRequest is PaginationRequest.NextPageSized)
                     holder.paginationRequest.pageSize else DEFAULT_PAGE_SIZE
 
                 val result = concurrentNFTs(
-                    chains = holder.chains,
+                    chainsToPageKeys = chainsToPageKeys,
                     pageSize = pageSize,
                     metaAccount = holder.metaAccount,
                     exclusionFilters = holder.exclusionFilters
                 ).toList()
+
+                result.associate { (chain, response) ->
+                    chain.id to response.pageKey
+                }.also { atomicChainsToPageKeyMap.set(it) }
 
                 emit(result)
             }.collect(this)
@@ -92,12 +164,12 @@ class NFTRepositoryImpl(
     }
 
     private fun concurrentNFTs(
-        chains: List<Chain>,
+        chainsToPageKeys: List<Pair<Chain, String?>>,
         pageSize: Int,
         metaAccount: MetaAccount,
         exclusionFilters: List<String>
     ): Flow<Pair<Chain, NFTResponse.UserOwnedTokens>> {
-        return chains.concurrentRequestFlow { chain ->
+        return chainsToPageKeys.concurrentRequestFlow { (chain, pageKey) ->
             runCatching {
                 val ownerAddress = metaAccount.address(chain) ?: error(
                     """
@@ -109,6 +181,7 @@ class NFTRepositoryImpl(
                     url = NFTRequest.UserOwnedTokens.requestUrl(chain.alchemyNftId),
                     owner = ownerAddress,
                     withMetadata = false,
+                    pageKey = pageKey,
                     pageSize = pageSize,
                     excludeFilters = exclusionFilters
                 )

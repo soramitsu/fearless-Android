@@ -12,7 +12,9 @@ sealed interface NFTResponse {
     }
 
     data class UserOwnedTokens(
-        val ownedNfts: List<TokenInfo.WithoutMetadata>
+        val ownedNfts: List<TokenInfo.WithoutMetadata>,
+        val pageKey: String?,
+        val totalCount: Int?
     ): NFTResponse {
         companion object;
     }
