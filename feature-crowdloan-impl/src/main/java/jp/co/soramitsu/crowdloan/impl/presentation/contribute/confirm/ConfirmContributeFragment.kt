@@ -10,15 +10,15 @@ import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
 import java.math.BigDecimal
 import javax.inject.Inject
+import jp.co.soramitsu.account.api.presentation.actions.setupExternalActions
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.mixin.impl.observeBrowserEvents
 import jp.co.soramitsu.common.mixin.impl.observeValidations
 import jp.co.soramitsu.common.utils.setVisible
 import jp.co.soramitsu.common.view.setProgress
+import jp.co.soramitsu.crowdloan.impl.presentation.contribute.confirm.parcel.ConfirmContributePayload
 import jp.co.soramitsu.feature_crowdloan_impl.R
 import jp.co.soramitsu.feature_crowdloan_impl.databinding.FragmentContributeConfirmBinding
-import jp.co.soramitsu.account.api.presentation.actions.setupExternalActions
-import jp.co.soramitsu.crowdloan.impl.presentation.contribute.confirm.parcel.ConfirmContributePayload
 import jp.co.soramitsu.wallet.api.presentation.mixin.observeTransferChecks
 
 const val KEY_PAYLOAD = "KEY_PAYLOAD"

@@ -51,8 +51,7 @@ fun SwapPreviewContent(
 ) {
     Column(
         modifier = modifier
-            .fillMaxSize()
-            .navigationBarsPadding(),
+            .fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Row(
