@@ -34,7 +34,6 @@ class RenameAccountViewModel @Inject constructor(
     private val isSaveEnabled = walletNickname.map {
         it.isNullOrBlank().not()
     }
-    private val heightDiffDpFlow = MutableStateFlow(0.dp)
 
     private val walletNameInputViewState = walletNickname.mapNotNull { walletNickname ->
         walletNickname?.let {
@@ -47,13 +46,11 @@ class RenameAccountViewModel @Inject constructor(
 
     val state = combine(
         walletNameInputViewState,
-        isSaveEnabled,
-        heightDiffDpFlow
-    ) { walletNameInputViewState, isSaveEnabled, heightDiffDp ->
+        isSaveEnabled
+    ) { walletNameInputViewState, isSaveEnabled ->
         RenameAccountState(
             walletNickname = walletNameInputViewState,
-            isSaveEnabled = isSaveEnabled,
-            heightDiffDp = heightDiffDp
+            isSaveEnabled = isSaveEnabled
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, initialValue = RenameAccountState.Empty)
 
@@ -79,9 +76,5 @@ class RenameAccountViewModel @Inject constructor(
 
     override fun onBackClick() {
         router.back()
-    }
-
-    fun setHeightDiffDp(value: Dp) {
-        heightDiffDpFlow.value = value
     }
 }

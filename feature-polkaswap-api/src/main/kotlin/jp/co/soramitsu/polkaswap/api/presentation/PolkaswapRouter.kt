@@ -31,7 +31,7 @@ interface PolkaswapRouter {
 
     fun openSelectMarketDialog()
 
-    fun openOperationSuccess(operationHash: String?, chainId: ChainId)
+    fun openOperationSuccess(operationHash: String?, chainId: ChainId?)
 
     fun openPolkaswapDisclaimerFromSwapTokensFragment()
 

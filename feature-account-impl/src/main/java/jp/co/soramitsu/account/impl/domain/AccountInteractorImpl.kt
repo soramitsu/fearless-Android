@@ -13,6 +13,8 @@ import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
 
 class AccountInteractorImpl(
@@ -224,7 +226,8 @@ class AccountInteractorImpl(
 
     override suspend fun selectedMetaAccount() = accountRepository.getSelectedMetaAccount()
 
-    override suspend fun selectedLightMetaAccount() = accountRepository.getSelectedLightMetaAccount()
+    override suspend fun selectedLightMetaAccount() =
+        accountRepository.getSelectedLightMetaAccount()
 
     override fun lightMetaAccountsFlow(): Flow<List<LightMetaAccount>> {
         return accountRepository.lightMetaAccountsFlow()
@@ -310,5 +313,16 @@ class AccountInteractorImpl(
 
     override suspend fun updateWalletOnGoogleBackupDelete(metaId: Long) {
         accountRepository.updateWalletOnGoogleBackupDelete(metaId)
+    }
+
+    override suspend fun updateFavoriteChain(chainId: ChainId, isFavorite: Boolean, metaId: Long) {
+        accountRepository.updateFavoriteChain(metaId, chainId, isFavorite)
+    }
+
+    override fun observeSelectedMetaAccountFavoriteChains(): Flow<Map<ChainId, Boolean>> {
+        return accountRepository.selectedMetaAccountFlow()
+            .flatMapLatest {
+                accountRepository.observeFavoriteChains(it.id)
+            }.flowOn(Dispatchers.IO)
     }
 }

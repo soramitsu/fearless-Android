@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Transaction
 import androidx.room.Update
 import jp.co.soramitsu.coredb.model.AssetLocal
 import jp.co.soramitsu.coredb.model.AssetUpdateItem
@@ -11,6 +12,8 @@ import jp.co.soramitsu.coredb.model.AssetWithToken
 import jp.co.soramitsu.shared_utils.runtime.AccountId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
@@ -115,4 +118,43 @@ abstract class AssetDao : AssetReadOnlyCache {
 
     @Query("DELETE FROM assets WHERE metaId = :metaId AND accountId = :accountId AND chainId = :chainId AND id = :assetId")
     abstract fun deleteAsset(metaId: Long, accountId: AccountId, chainId: String, assetId: String)
+
+    open suspend fun getAssets(accountMetaId: Long, id: String): List<AssetWithToken> {
+        return observeAssetSymbolById(id).flatMapLatest { symbol ->
+            observeAssetsWithBalanceByName(
+                accountMetaId = accountMetaId,
+                assetSymbol = symbol
+            )
+        }.first()
+    }
+
+    open fun observeAssets(accountMetaId: Long, id: String): Flow<List<AssetWithToken>> {
+        return observeAssetSymbolById(id).flatMapLatest { symbol ->
+            observeAssetsWithBalanceByName(
+                accountMetaId = accountMetaId,
+                assetSymbol = symbol
+            )
+        }
+    }
+
+    @Query(
+        """
+            SELECT symbol FROM chain_assets WHERE chain_assets.id = :assetId
+        """
+    )
+    protected abstract fun observeAssetSymbolById(assetId: String): Flow<String>
+
+    @Transaction
+    @Query(
+        """
+            SELECT * FROM assets
+            LEFT JOIN chain_assets ON chain_assets.id = assets.id
+            WHERE chain_assets.symbol = :assetSymbol
+            AND assets.metaId = :accountMetaId
+        """
+    )
+    protected abstract fun observeAssetsWithBalanceByName(
+        accountMetaId: Long,
+        assetSymbol: String
+    ): Flow<List<AssetWithToken>>
 }

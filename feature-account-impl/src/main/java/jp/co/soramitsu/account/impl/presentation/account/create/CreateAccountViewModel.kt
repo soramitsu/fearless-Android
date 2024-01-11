@@ -31,8 +31,6 @@ class CreateAccountViewModel @Inject constructor(
     private val payload = savedStateHandle.getLiveData<ChainAccountCreatePayload>(CreateAccountScreenKeys.PAYLOAD_KEY)
     private val isFromGoogleBackup = savedStateHandle.get<Boolean>(CreateAccountScreenKeys.IS_FROM_GOOGLE_BACKUP_KEY) ?: false
 
-    private val heightDiffDpFlow = MutableStateFlow(0.dp)
-
     private val _nextButtonEnabledLiveData = MutableLiveData<Boolean>()
     val nextButtonEnabledLiveData: LiveData<Boolean> = _nextButtonEnabledLiveData
 
@@ -53,13 +51,11 @@ class CreateAccountViewModel @Inject constructor(
 
     val state = combine(
         walletNameInputViewState,
-        isContinueEnabled,
-        heightDiffDpFlow
-    ) { walletNameInputViewState, isContinueEnabled, heightDiffDp ->
+        isContinueEnabled
+    ) { walletNameInputViewState, isContinueEnabled ->
         CreateAccountState(
             walletNickname = walletNameInputViewState,
-            isContinueEnabled = isContinueEnabled,
-            heightDiffDp = heightDiffDp
+            isContinueEnabled = isContinueEnabled
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, initialValue = CreateAccountState.Empty)
 
@@ -89,9 +85,5 @@ class CreateAccountViewModel @Inject constructor(
 
     override fun onBackClick() {
         router.back()
-    }
-
-    fun setHeightDiffDp(value: Dp) {
-        heightDiffDpFlow.value = value
     }
 }

@@ -90,12 +90,21 @@ class SwapTokensViewModel @Inject constructor(
     private val isFromAmountFocused = MutableStateFlow(false)
     private val isToAmountFocused = MutableStateFlow(false)
 
-    private val initFromAssetId = savedStateHandle.get<String>(SwapTokensFragment.KEY_SELECTED_ASSET_FROM_ID)
-    private val initToAssetId = savedStateHandle.get<String>(SwapTokensFragment.KEY_SELECTED_ASSET_TO_ID)
-    private val initFromChainId = savedStateHandle.get<String>(SwapTokensFragment.KEY_SELECTED_CHAIN_ID)
+    private val initFromAssetId =
+        savedStateHandle.get<String>(SwapTokensFragment.KEY_SELECTED_ASSET_FROM_ID)
+    private val initToAssetId =
+        savedStateHandle.get<String>(SwapTokensFragment.KEY_SELECTED_ASSET_TO_ID)
+    private val initFromChainId =
+        savedStateHandle.get<String>(SwapTokensFragment.KEY_SELECTED_CHAIN_ID)
 
-    private val fromAmountInputViewState = MutableStateFlow(AmountInputViewState.default(resourceManager, R.string.common_available_format))
-    private val toAmountInputViewState = MutableStateFlow(AmountInputViewState.default(resourceManager))
+    private val fromAmountInputViewState = MutableStateFlow(
+        AmountInputViewState.default(
+            resourceManager,
+            R.string.common_available_format
+        )
+    )
+    private val toAmountInputViewState =
+        MutableStateFlow(AmountInputViewState.default(resourceManager))
 
     private var selectedMarket = MutableStateFlow(Market.SMART)
     private var slippageTolerance = MutableStateFlow(0.5)
@@ -115,38 +124,43 @@ class SwapTokensViewModel @Inject constructor(
 
     private var desired: WithDesired? = null
 
-    private val dexes = flowOf { polkaswapInteractor.getAvailableDexes() }.stateIn(viewModelScope, SharingStarted.Eagerly, listOf())
+    private val dexes = flowOf { polkaswapInteractor.getAvailableDexes() }.stateIn(
+        viewModelScope,
+        SharingStarted.Eagerly,
+        listOf()
+    )
 
     private val isLoading = MutableStateFlow(false)
     private var initialFee = BigDecimal.ZERO
     private val availableDexPathsFlow: MutableStateFlow<List<Int>?> = MutableStateFlow(null)
 
     private val isSoftKeyboardOpenFlow = MutableStateFlow(false)
-    private val heightDiffDpFlow = MutableStateFlow(0.dp)
 
-    private val poolReservesFlow = combine(fromAssetFlow, toAssetFlow, selectedMarket) { fromAsset, toAsset, selectedMarket ->
-        if (fromAsset == null || toAsset == null) return@combine null
+    private val poolReservesFlow =
+        combine(fromAssetFlow, toAssetFlow, selectedMarket) { fromAsset, toAsset, selectedMarket ->
+            if (fromAsset == null || toAsset == null) return@combine null
 
-        val tokenFromId = requireNotNull(fromAsset.token.configuration.currencyId)
-        val tokenToId = requireNotNull(toAsset.token.configuration.currencyId)
+            val tokenFromId = requireNotNull(fromAsset.token.configuration.currencyId)
+            val tokenToId = requireNotNull(toAsset.token.configuration.currencyId)
 
-        (tokenFromId to tokenToId) to selectedMarket
-    }.flatMapConcat {
-        it ?: return@flatMapConcat kotlinx.coroutines.flow.flowOf(Unit)
-        val (assets, market) = it
-        val (fromAsset, toAsset) = assets
-        polkaswapInteractor.observePoolReserves(fromAsset, toAsset, market)
-    }
-
-    private val amountInput = combine(enteredFromAmountFlow, enteredToAmountFlow) { fromInput, toInput ->
-        when (desired) {
-            WithDesired.INPUT -> fromInput
-            WithDesired.OUTPUT -> toInput
-            null -> BigDecimal.ZERO
+            (tokenFromId to tokenToId) to selectedMarket
+        }.flatMapConcat {
+            it ?: return@flatMapConcat kotlinx.coroutines.flow.flowOf(Unit)
+            val (assets, market) = it
+            val (fromAsset, toAsset) = assets
+            polkaswapInteractor.observePoolReserves(fromAsset, toAsset, market)
         }
-    }
-        .catch { emit(BigDecimal.ZERO) }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, BigDecimal.ZERO)
+
+    private val amountInput =
+        combine(enteredFromAmountFlow, enteredToAmountFlow) { fromInput, toInput ->
+            when (desired) {
+                WithDesired.INPUT -> fromInput
+                WithDesired.OUTPUT -> toInput
+                null -> BigDecimal.ZERO
+            }
+        }
+            .catch { emit(BigDecimal.ZERO) }
+            .stateIn(viewModelScope, SharingStarted.Eagerly, BigDecimal.ZERO)
 
     private val swapDetails = combine(
         amountInput,
@@ -166,10 +180,15 @@ class SwapTokensViewModel @Inject constructor(
         transform = ::Triple
     ).transform { (swapDetails, fromAsset, toAsset) ->
         emit(LoadingState.Loading())
-        val details = swapDetails.getOrNull() ?: return@transform emit(LoadingState.Loaded(null))
+        val details = swapDetails.getOrNull()
+            ?: return@transform emit(LoadingState.Loaded(null))
 
-        val fromCurrencyId = fromAsset?.token?.configuration?.currencyId ?: return@transform emit(LoadingState.Loaded(null))
-        val toCurrencyId = toAsset?.token?.configuration?.currencyId ?: return@transform emit(LoadingState.Loaded(null))
+        val fromCurrencyId = fromAsset?.token?.configuration?.currencyId ?: return@transform emit(
+            LoadingState.Loaded(null)
+        )
+        val toCurrencyId = toAsset?.token?.configuration?.currencyId ?: return@transform emit(
+            LoadingState.Loaded(null)
+        )
 
         val market = selectedMarket.value
 
@@ -193,7 +212,8 @@ class SwapTokensViewModel @Inject constructor(
     private val networkFeeViewStateFlow = networkFeeFlow.map { amountLoading ->
         amountLoading.map {
             it?.let { feeAmount ->
-                val feeAsset = swapDetails.value.getOrNull()?.feeAsset ?: return@let null
+                val feeAsset =
+                    swapDetails.value.getOrNull()?.feeAsset ?: return@let null
                 SwapDetailsViewState.NetworkFee(
                     feeAsset.token.configuration.symbol.uppercase(),
                     feeAmount.formatCryptoDetail(feeAsset.token.configuration.symbol),
@@ -209,8 +229,20 @@ class SwapTokensViewModel @Inject constructor(
                 details ?: return@map null
                 val fromAsset = fromAssetFlow.value ?: return@map null
                 val toAsset = toAssetFlow.value ?: return@map null
-                fillSecondInputField(details.amount.setScale(MAX_DECIMALS_8, RoundingMode.HALF_DOWN))
-                detailsToViewState(resourceManager, amountInput.value, fromAsset, toAsset, details, desired ?: return@map null)
+                fillSecondInputField(
+                    details.amount.setScale(
+                        MAX_DECIMALS_8,
+                        RoundingMode.HALF_DOWN
+                    )
+                )
+                detailsToViewState(
+                    resourceManager,
+                    amountInput.value,
+                    fromAsset,
+                    toAsset,
+                    details,
+                    desired ?: return@map null
+                )
             },
             onFailure = { throwable ->
                 val error = when (throwable) {
@@ -218,10 +250,12 @@ class SwapTokensViewModel @Inject constructor(
                         resourceManager.getString(R.string.common_error_general_title),
                         resourceManager.getString(R.string.polkaswap_path_unavailable_message)
                     )
+
                     is InsufficientLiquidityException -> ValidationException(
                         resourceManager.getString(R.string.common_error_general_title),
                         resourceManager.getString(R.string.polkaswap_insufficient_liqudity)
                     )
+
                     else -> throwable
                 }
                 showError(error)
@@ -242,9 +276,8 @@ class SwapTokensViewModel @Inject constructor(
         networkFeeViewStateFlow,
         isLoading,
         polkaswapInteractor.observeHasReadDisclaimer(),
-        isSoftKeyboardOpenFlow,
-        heightDiffDpFlow
-    ) { fromAmountInput, toAmountInput, selectedMarket, swapDetails, networkFeeState, isLoading, hasReadDisclaimer, isSoftKeyboardOpen, heightDiffDp ->
+        isSoftKeyboardOpenFlow
+    ) { fromAmountInput, toAmountInput, selectedMarket, swapDetails, networkFeeState, isLoading, hasReadDisclaimer, isSoftKeyboardOpen ->
         SwapTokensContentViewState(
             fromAmountInputViewState = fromAmountInput,
             toAmountInputViewState = toAmountInput,
@@ -253,10 +286,13 @@ class SwapTokensViewModel @Inject constructor(
             networkFeeViewState = networkFeeState,
             isLoading = isLoading,
             hasReadDisclaimer = hasReadDisclaimer,
-            isSoftKeyboardOpen = isSoftKeyboardOpen,
-            heightDiffDp = heightDiffDp
+            isSoftKeyboardOpen = isSoftKeyboardOpen
         )
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, SwapTokensContentViewState.default(resourceManager))
+    }.stateIn(
+        viewModelScope,
+        SharingStarted.Eagerly,
+        SwapTokensContentViewState.default(resourceManager)
+    )
 
     init {
         polkaswapInteractor.setChainId(initFromChainId)
@@ -265,12 +301,13 @@ class SwapTokensViewModel @Inject constructor(
         subscribeToAmountInputViewState()
 
         transactionSettingsJob?.cancel()
-        transactionSettingsJob = polkaswapRouter.observeResult<TransactionSettingsModel>(TransactionSettingsFragment.SETTINGS_MODEL_KEY)
-            .onEach {
-                selectedMarket.value = it.market
-                slippageTolerance.value = it.slippageTolerance
-            }
-            .launchIn(viewModelScope)
+        transactionSettingsJob =
+            polkaswapRouter.observeResult<TransactionSettingsModel>(TransactionSettingsFragment.SETTINGS_MODEL_KEY)
+                .onEach {
+                    selectedMarket.value = it.market
+                    slippageTolerance.value = it.slippageTolerance
+                }
+                .launchIn(viewModelScope)
 
         viewModelScope.launch {
             observeAvailableSources()
@@ -279,7 +316,11 @@ class SwapTokensViewModel @Inject constructor(
     }
 
     private fun subscribeFromAmountInputViewState() {
-        combine(enteredFromAmountFlow, fromAssetFlow, isFromAmountFocused) { enteredAmount, asset, isFromAmountFocused ->
+        combine(
+            enteredFromAmountFlow,
+            fromAssetFlow,
+            isFromAmountFocused
+        ) { enteredAmount, asset, isFromAmountFocused ->
             if (isFromAmountFocused) {
                 desired = WithDesired.INPUT
             }
@@ -295,7 +336,11 @@ class SwapTokensViewModel @Inject constructor(
     }
 
     private fun subscribeToAmountInputViewState() {
-        combine(enteredToAmountFlow, toAssetFlow, isToAmountFocused) { enteredAmount, asset, isToAmountFocused ->
+        combine(
+            enteredToAmountFlow,
+            toAssetFlow,
+            isToAmountFocused
+        ) { enteredAmount, asset, isToAmountFocused ->
             toAmountInputViewState.value = getAmountInputViewState(
                 title = resourceManager.getString(R.string.polkaswap_to),
                 amount = enteredAmount,
@@ -310,13 +355,18 @@ class SwapTokensViewModel @Inject constructor(
     }
 
     private fun observeAvailableSources() {
-        combine(fromAssetFlow.filterNotNull(), toAssetFlow.filterNotNull(), dexes) { fromAsset, toAsset, dexes ->
+        combine(
+            fromAssetFlow.filterNotNull(),
+            toAssetFlow.filterNotNull(),
+            dexes
+        ) { fromAsset, toAsset, dexes ->
             availableDexPathsFlow.value = null
             val fromCurrencyId = fromAsset.token.configuration.currencyId ?: return@combine
             val toCurrencyId = toAsset.token.configuration.currencyId ?: return@combine
             if (fromCurrencyId == toCurrencyId) return@combine
 
-            val availableDexPaths = polkaswapInteractor.getAvailableDexesForPair(fromCurrencyId, toCurrencyId, dexes)
+            val availableDexPaths =
+                polkaswapInteractor.getAvailableDexesForPair(fromCurrencyId, toCurrencyId, dexes)
             if (availableDexPaths.isEmpty()) {
                 showError(PathUnavailableException())
                 return@combine
@@ -324,12 +374,21 @@ class SwapTokensViewModel @Inject constructor(
 
             availableDexPathsFlow.value = availableDexPaths
 
-            val availableMarkets = polkaswapInteractor.fetchAvailableSources(fromAsset, toAsset, availableDexPaths)
+            val availableMarkets =
+                polkaswapInteractor.fetchAvailableSources(fromAsset, toAsset, availableDexPaths)
             if (selectedMarket.value !in availableMarkets) {
                 selectedMarket.value = Market.SMART
             }
         }.launchIn(viewModelScope)
     }
+
+    data class SwapDetailsCalculationParams(
+        val amount: BigDecimal,
+        val selectedMarket: Market,
+        val slippageTolerance: Double,
+        val availableDexPaths: List<Int>?,
+        val reserves: Any
+    )
 
     @Suppress("UNUSED_PARAMETER")
     private suspend fun getSwapDetails(
@@ -346,9 +405,19 @@ class SwapTokensViewModel @Inject constructor(
         if (availableDexPaths == null) return emptyResult
         if (availableDexPaths.isEmpty()) return emptyResult
         if (amount.isZero()) return emptyResult
-        if (selectedMarket !in polkaswapInteractor.availableMarkets.values.flatten().toSet()) return emptyResult
+        if (selectedMarket !in polkaswapInteractor.availableMarkets.values.flatten()
+                .toSet()
+        ) return emptyResult
 
-        return polkaswapInteractor.calcDetails(availableDexPaths, fromAssetFlow.value!!, toAssetFlow.value!!, amount, desired!!, slippageTolerance, selectedMarket)
+        return polkaswapInteractor.calcDetails(
+            availableDexPaths,
+            fromAssetFlow.value!!,
+            toAssetFlow.value!!,
+            amount,
+            desired!!,
+            slippageTolerance,
+            selectedMarket
+        )
     }
 
     private fun fillSecondInputField(amount: BigDecimal) {
@@ -356,9 +425,11 @@ class SwapTokensViewModel @Inject constructor(
             WithDesired.INPUT -> {
                 enteredToAmountFlow.value = amount
             }
+
             WithDesired.OUTPUT -> {
                 enteredFromAmountFlow.value = amount
             }
+
             else -> Unit
         }
     }
@@ -384,7 +455,8 @@ class SwapTokensViewModel @Inject constructor(
         }
 
         val tokenBalance = asset.transferable.formatCrypto(asset.token.configuration.symbol)
-        val fiatAmount = amount.applyFiatRate(asset.token.fiatRate)?.formatFiat(asset.token.fiatSymbol)
+        val fiatAmount =
+            amount.applyFiatRate(asset.token.fiatRate)?.formatFiat(asset.token.fiatSymbol)
 
         return AmountInputViewState(
             tokenName = asset.token.configuration.symbol,
@@ -427,7 +499,8 @@ class SwapTokensViewModel @Inject constructor(
             val swapDetailsReady = swapDetails.value.getOrNull() != null
             val bestDexIdReady = bestDexId != null
             val networkFeeReady = networkFeeViewStateFlow.value.dataOrNull() != null
-            val isAllDataReady = swapDetailsViewStateReady && swapDetailsReady && bestDexIdReady && networkFeeReady
+            val isAllDataReady =
+                swapDetailsViewStateReady && swapDetailsReady && bestDexIdReady && networkFeeReady
 
             if (!isAllDataReady) {
                 isLoading.value = false
@@ -448,13 +521,21 @@ class SwapTokensViewModel @Inject constructor(
 
             when (desired) {
                 WithDesired.INPUT -> {
-                    amountInPlanks = fromAssetFlow.value?.token?.planksFromAmount(enteredFromAmountFlow.value).orZero()
-                    minMaxInPlanks = toAssetFlow.value?.token?.planksFromAmount(swapDetails.minMax.orZero())
+                    amountInPlanks =
+                        fromAssetFlow.value?.token?.planksFromAmount(enteredFromAmountFlow.value)
+                            .orZero()
+                    minMaxInPlanks =
+                        toAssetFlow.value?.token?.planksFromAmount(swapDetails.minMax.orZero())
                 }
+
                 WithDesired.OUTPUT -> {
-                    amountInPlanks = toAssetFlow.value?.token?.planksFromAmount(enteredToAmountFlow.value).orZero()
-                    minMaxInPlanks = fromAssetFlow.value?.token?.planksFromAmount(swapDetails.minMax.orZero())
+                    amountInPlanks =
+                        toAssetFlow.value?.token?.planksFromAmount(enteredToAmountFlow.value)
+                            .orZero()
+                    minMaxInPlanks =
+                        fromAssetFlow.value?.token?.planksFromAmount(swapDetails.minMax.orZero())
                 }
+
                 else -> return@launch
             }
 
@@ -493,22 +574,28 @@ class SwapTokensViewModel @Inject constructor(
         val available = requireNotNull(fromAssetFlow.value?.transferable)
         val networkFee = requireNotNull(networkFeeFlow.value.dataOrNull())
         val fee = networkFee + swapDetails.liquidityProviderFee
-        val isFromFeeAsset = fromAssetFlow.value?.token?.configuration?.id == feeAsset.token.configuration.id
-        val isToFeeAsset = toAssetFlow.value?.token?.configuration?.id == feeAsset.token.configuration.id
+        val isFromFeeAsset =
+            fromAssetFlow.value?.token?.configuration?.id == feeAsset.token.configuration.id
+        val isToFeeAsset =
+            toAssetFlow.value?.token?.configuration?.id == feeAsset.token.configuration.id
 
         return when {
             amountToSwap > available -> {
                 SpendInsufficientBalanceException(resourceManager)
             }
+
             isToFeeAsset.not() && feeAsset.transferable <= fee -> {
                 UnableToPayFeeException(resourceManager)
             }
+
             isToFeeAsset && feeAsset.transferable + toTokenAmount <= fee -> {
                 NotEnoughResultedAmountToPayFeeException(resourceManager)
             }
+
             isFromFeeAsset && available <= amountToSwap + fee -> {
                 SpendInsufficientBalanceException(resourceManager)
             }
+
             else -> null
         }
     }
@@ -530,7 +617,8 @@ class SwapTokensViewModel @Inject constructor(
             _showMarketsWarningEvent.value = Event(Unit)
             return
         }
-        val initialSettings = TransactionSettingsModel(selectedMarket.value, slippageTolerance.value)
+        val initialSettings =
+            TransactionSettingsModel(selectedMarket.value, slippageTolerance.value)
         polkaswapRouter.openTransactionSettingsDialog(initialSettings)
     }
 
@@ -563,20 +651,21 @@ class SwapTokensViewModel @Inject constructor(
             null -> return
         }
 
-        _showTooltipEvent.value = Event(resourceManager.getString(tooltip.first) to resourceManager.getString(tooltip.second))
+        _showTooltipEvent.value =
+            Event(resourceManager.getString(tooltip.first) to resourceManager.getString(tooltip.second))
     }
 
     override fun liquidityProviderTooltipClick() {
         _showTooltipEvent.value = Event(
             resourceManager.getString(R.string.polkaswap_liqudity_fee_title) to
-                resourceManager.getString(R.string.polkaswap_liqudity_fee_info)
+                    resourceManager.getString(R.string.polkaswap_liqudity_fee_info)
         )
     }
 
     override fun networkFeeTooltipClick() {
         _showTooltipEvent.value = Event(
             resourceManager.getString(R.string.common_network_fee) to
-                resourceManager.getString(R.string.polkaswap_network_fee_info)
+                    resourceManager.getString(R.string.polkaswap_network_fee_info)
         )
     }
 
@@ -628,7 +717,8 @@ class SwapTokensViewModel @Inject constructor(
             val transferable = fromAssetFlow.value?.transferable.orZero()
             val details = swapDetails.value.getOrNull()
 
-            val isFeeAsset = fromAssetFlow.value?.token?.configuration?.id == polkaswapInteractor.getFeeAsset()?.token?.configuration?.id
+            val isFeeAsset =
+                fromAssetFlow.value?.token?.configuration?.id == polkaswapInteractor.getFeeAsset()?.token?.configuration?.id
             val amount = transferable.multiply(value.toBigDecimal())
             val networkFee = networkFeeFlow.value.dataOrNull() ?: initialFee
             val fee = if (details == null) {
@@ -640,18 +730,25 @@ class SwapTokensViewModel @Inject constructor(
             val result = if (isFeeAsset) amount.minus(fee) else amount
             val amountFrom = result.takeIf { it >= BigDecimal.ZERO }.orZero()
 
-            enteredFromAmountFlow.value = amountFrom.setScale(MAX_DECIMALS_8, RoundingMode.HALF_DOWN)
+            enteredFromAmountFlow.value =
+                amountFrom.setScale(MAX_DECIMALS_8, RoundingMode.HALF_DOWN)
 
             if (isFeeAsset.not()) return@launch
 
             awaitNewFeeJob?.cancel()
             awaitNewFeeJob = viewModelScope.launch {
-                combine(swapDetails, networkFeeFlow) { details, networkFee -> details to networkFee }.collectLatest { (detailsResult, networkFeeLoadingState) ->
+                combine(
+                    swapDetails,
+                    networkFeeFlow
+                ) { details, networkFee -> details to networkFee }.collectLatest { (detailsResult, networkFeeLoadingState) ->
                     val newDetails = detailsResult.getOrNull() ?: return@collectLatest
                     val newNetworkFee = networkFeeLoadingState.dataOrNull() ?: return@collectLatest
 
-                    val newResult = amount.minus(newNetworkFee).minus(newDetails.liquidityProviderFee).takeIf { it >= BigDecimal.ZERO }.orZero()
-                    enteredFromAmountFlow.value = newResult.setScale(MAX_DECIMALS_8, RoundingMode.HALF_DOWN)
+                    val newResult =
+                        amount.minus(newNetworkFee).minus(newDetails.liquidityProviderFee)
+                            .takeIf { it >= BigDecimal.ZERO }.orZero()
+                    enteredFromAmountFlow.value =
+                        newResult.setScale(MAX_DECIMALS_8, RoundingMode.HALF_DOWN)
                     awaitNewFeeJob?.cancel()
                 }
             }
@@ -665,9 +762,5 @@ class SwapTokensViewModel @Inject constructor(
 
     fun setSoftKeyboardOpen(isOpen: Boolean) {
         isSoftKeyboardOpenFlow.value = isOpen
-    }
-
-    fun setHeightDiffDp(value: Dp) {
-        heightDiffDpFlow.value = value
     }
 }

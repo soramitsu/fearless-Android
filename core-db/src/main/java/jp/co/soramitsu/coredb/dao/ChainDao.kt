@@ -6,6 +6,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
+import jp.co.soramitsu.coredb.model.AssetWithToken
 import jp.co.soramitsu.coredb.model.chain.ChainAssetLocal
 import jp.co.soramitsu.coredb.model.chain.ChainExplorerLocal
 import jp.co.soramitsu.coredb.model.chain.ChainLocal
@@ -14,6 +15,7 @@ import jp.co.soramitsu.coredb.model.chain.ChainRuntimeInfoLocal
 import jp.co.soramitsu.coredb.model.chain.ChainTypesLocal
 import jp.co.soramitsu.coredb.model.chain.JoinedChainInfo
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flatMapLatest
 
 @Dao
 abstract class ChainDao {
@@ -142,4 +144,39 @@ abstract class ChainDao {
 
     @Query("SELECT * FROM chain_assets")
     abstract suspend fun getAssetsConfigs(): List<ChainAssetLocal>
+
+    open fun observeChainsWithBalance(
+        accountMetaId: Long,
+        assetId: String
+    ): Flow<Map<JoinedChainInfo, AssetWithToken>> {
+        return observeAssetSymbolById(assetId).flatMapLatest { symbol ->
+            observeChainsWithBalanceByName(
+                accountMetaId = accountMetaId,
+                assetSymbol = symbol
+            )
+        }
+    }
+
+    @Query(
+        """
+            SELECT symbol FROM chain_assets WHERE chain_assets.id = :assetId
+        """
+    )
+    protected abstract fun observeAssetSymbolById(assetId: String): Flow<String>
+
+    @Transaction
+    @Query(
+        """
+            SELECT * FROM chains
+            JOIN assets ON chains.id = assets.chainId
+            LEFT JOIN chain_assets ON chain_assets.id = assets.id
+            WHERE chain_assets.symbol LIKE '%' || :assetSymbol
+            AND assets.metaId = :accountMetaId
+        """
+    )
+    protected abstract fun observeChainsWithBalanceByName(
+        accountMetaId: Long,
+        assetSymbol: String
+    ): Flow<Map<JoinedChainInfo, AssetWithToken>>
+
 }

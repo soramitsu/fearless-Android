@@ -127,6 +127,7 @@ fun ChainRemote.toChain(): Chain {
 
     return Chain(
         id = this.chainId,
+        rank = this.rank,
         parentId = this.parentId,
         name = this.name,
         minSupportedVersion = this.minSupportedVersion,
@@ -229,6 +230,7 @@ fun mapChainLocalToChain(chainLocal: JoinedChainInfo): Chain {
     return with(chainLocal.chain) {
         Chain(
             id = id,
+            rank = rank,
             parentId = parentId,
             name = name,
             minSupportedVersion = minSupportedVersion,
@@ -299,6 +301,7 @@ fun mapChainToChainLocal(chain: Chain): JoinedChainInfo {
     val chainLocal = with(chain) {
         ChainLocal(
             id = id,
+            rank = rank,
             parentId = parentId,
             name = name,
             minSupportedVersion = minSupportedVersion,

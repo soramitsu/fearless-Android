@@ -5,8 +5,10 @@
     android:id="@+id/currentValidatorsContainer"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    tools:background="@color/black">
+    android:background="@drawable/drawable_background_image"
+    android:backgroundTint="#63000000"
+    android:backgroundTintMode="src_atop"
+    android:orientation="vertical">
 
     <jp.co.soramitsu.common.view.Toolbar
         android:id="@+id/currentValidatorsToolbar"
@@ -64,11 +66,11 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            app:drawableTopCompat="@drawable/ic_alert"
             android:drawablePadding="26dp"
             android:gravity="center"
             android:text="@string/staking_set_validators_message"
-            android:textColor="@color/black1" />
+            android:textColor="@color/black1"
+            app:drawableTopCompat="@drawable/ic_alert" />
 
     </FrameLayout>
 

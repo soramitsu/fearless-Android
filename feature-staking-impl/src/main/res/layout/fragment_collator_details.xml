@@ -2,9 +2,12 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:fitsSystemWindows="true"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@drawable/drawable_background_image"
+    android:backgroundTint="#63000000"
+    android:backgroundTintMode="src_atop"
+    android:fitsSystemWindows="true">
 
     <jp.co.soramitsu.common.view.Toolbar
         android:id="@+id/collatorDetailsToolbar"

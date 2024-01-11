@@ -5,7 +5,9 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:animateLayoutChanges="true"
-    android:background="@color/black"
+    android:background="@drawable/drawable_background_image"
+    android:backgroundTint="#63000000"
+    android:backgroundTintMode="src_atop"
     android:fitsSystemWindows="true">
 
     <jp.co.soramitsu.common.view.Toolbar
@@ -31,7 +33,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:animateLayoutChanges="true"
-            android:background="@android:color/black"
             android:fitsSystemWindows="true"
             android:orientation="vertical">
 

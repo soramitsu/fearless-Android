@@ -7,6 +7,7 @@ import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
 import jp.co.soramitsu.coredb.model.chain.ChainAccountLocal
+import jp.co.soramitsu.coredb.model.chain.FavoriteChainLocal
 import jp.co.soramitsu.coredb.model.chain.MetaAccountLocal
 import jp.co.soramitsu.coredb.model.chain.MetaAccountPositionUpdate
 import jp.co.soramitsu.coredb.model.chain.RelationJoinedMetaAccountInfo
@@ -111,4 +112,10 @@ interface MetaAccountDao {
 
     @Query("SELECT COALESCE(MAX(position), 0) + 1 from meta_accounts")
     suspend fun getNextPosition(): Int
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertOrReplaceFavoriteChain(favoriteChainLocal: FavoriteChainLocal)
+
+    @Query("SELECT * FROM favorite_chains WHERE metaId = :metaId")
+    fun observeFavoriteChains(metaId: Long): Flow<List<FavoriteChainLocal>>
 }

@@ -5,9 +5,11 @@
     android:id="@+id/stakingConfirmationContainer"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/drawable_background_image"
+    android:backgroundTint="#63000000"
+    android:backgroundTintMode="src_atop"
     android:orientation="vertical"
-    android:theme="@style/PinkOverlay"
-    tools:background="@color/black">
+    android:theme="@style/PinkOverlay">
 
     <jp.co.soramitsu.common.view.Toolbar
         android:id="@+id/confirmStakeToolbar"

@@ -71,10 +71,6 @@
         <attr name="android:enabled" />
     </declare-styleable>
 
-    <declare-styleable name="AmountsWithOneKeyView">
-        <attr name="android:checked" />
-    </declare-styleable>
-
     <declare-styleable name="TableCellView">
         <attr name="title" />
         <attr name="dividerVisible" />

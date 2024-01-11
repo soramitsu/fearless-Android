@@ -20,9 +20,9 @@ import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
+import jp.co.soramitsu.wallet.impl.data.network.blockchain.updaters.BalanceUpdateTrigger
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -76,7 +76,7 @@ class SuccessViewModel @Inject constructor(
                 explorerItem.type to url
             }
         }
-    }
+    }.stateIn(this, SharingStarted.Eagerly, Pair(Chain.Explorer.Type.UNKNOWN, ""))
 
     val state: StateFlow<SuccessViewState> = explorerPairFlow.map { explorer ->
         SuccessViewState(
@@ -86,21 +86,30 @@ class SuccessViewModel @Inject constructor(
         )
     }.stateIn(this, SharingStarted.Eagerly, SuccessViewState.default)
 
-    private fun getInfoTableItems() = listOf(
-        TitleValueViewState(
-            title = resourceManager.getString(R.string.hash),
-            value = operationHash?.shortenHash(),
-            clickState = TitleValueViewState.ClickState.Value(R.drawable.ic_copy_filled_24, SuccessViewState.CODE_HASH_CLICK)
-        ),
-        TitleValueViewState(
-            title = resourceManager.getString(R.string.all_done_alert_result_stub),
-            value = resourceManager.getString(R.string.all_done_alert_success_stub),
-            valueColor = greenText
+    private fun getInfoTableItems() = operationHash?.let {
+        listOf(
+            TitleValueViewState(
+                title = resourceManager.getString(R.string.hash),
+                value = operationHash.shortenHash(),
+                clickState = TitleValueViewState.ClickState.Value(R.drawable.ic_copy_filled_24, SuccessViewState.CODE_HASH_CLICK)
+            ),
+            TitleValueViewState(
+                title = resourceManager.getString(R.string.all_done_alert_result_stub),
+                value = resourceManager.getString(R.string.all_done_alert_success_stub),
+                valueColor = greenText
+            )
         )
-    )
+    }.orEmpty()
 
     override fun onClose() {
-        router.back()
+        launch {
+            chainId?.let {
+                if (chainRegistry.getChain(chainId).isEthereumChain) {
+                    BalanceUpdateTrigger.invoke(chainId, true)
+                }
+            }
+            router.back()
+        }
     }
 
     override fun onItemClick(code: Int) {
@@ -111,7 +120,7 @@ class SuccessViewModel @Inject constructor(
 
     override fun onExplorerClick() {
         launch {
-            explorerPairFlow.first()?.let { (_, url) ->
+            explorerPairFlow.value?.let { (_, url) ->
                 openUrl(url)
             }
         }
@@ -119,7 +128,7 @@ class SuccessViewModel @Inject constructor(
 
     override fun onShareClick() {
         launch {
-            explorerPairFlow.first()?.let { (_, url) ->
+            explorerPairFlow.value?.let { (_, url) ->
                 _shareUrlEvent.value = Event(url)
             }
         }

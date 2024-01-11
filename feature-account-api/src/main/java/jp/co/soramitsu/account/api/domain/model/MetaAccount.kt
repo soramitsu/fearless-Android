@@ -50,6 +50,7 @@ fun LightMetaAccount(
 data class MetaAccount(
     override val id: Long,
     val chainAccounts: Map<ChainId, ChainAccount>,
+    val favoriteChains: Map<ChainId, FavoriteChain>,
     override val substratePublicKey: ByteArray,
     override val substrateCryptoType: CryptoType,
     override val substrateAccountId: ByteArray,
@@ -70,6 +71,11 @@ data class MetaAccount(
         val accountName: String
     )
 
+    class FavoriteChain(
+        val chain: Chain?,
+        val isFavorite: Boolean
+    )
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
@@ -78,6 +84,7 @@ data class MetaAccount(
 
         if (id != other.id) return false
         if (chainAccounts != other.chainAccounts) return false
+        if (favoriteChains != other.favoriteChains) return false
         if (!substratePublicKey.contentEquals(other.substratePublicKey)) return false
         if (substrateCryptoType != other.substrateCryptoType) return false
         if (!substrateAccountId.contentEquals(other.substrateAccountId)) return false
@@ -98,6 +105,7 @@ data class MetaAccount(
     override fun hashCode(): Int {
         var result = id.hashCode()
         result = 31 * result + chainAccounts.hashCode()
+        result = 31 * result + favoriteChains.hashCode()
         result = 31 * result + substratePublicKey.contentHashCode()
         result = 31 * result + substrateCryptoType.hashCode()
         result = 31 * result + substrateAccountId.contentHashCode()

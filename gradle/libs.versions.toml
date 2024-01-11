@@ -4,10 +4,10 @@ composeFoundation = "1.5.1"
 fragmentKtx = "1.5.6"
 composeThemeAdapter = "1.2.1"
 googleServices = "4.3.15"
+junit = "4.13.2"
 material = "1.8.0"
 coroutines = "1.6.4"
 soraUiCore = "0.2.17"
-soraCard = "0.1.64"
 kotlinxSerializationjson = "1.5.1"
 xNetworking = "0.2.5-temp7"
 retrofit = "2.9.0"
@@ -16,9 +16,18 @@ detekt = "1.23.0"
 kotlin = "1.8.10"
 dagger = "2.47"
 android_plugin = "7.4.2"
-#web3j = "4.8.8-android"
+sharedFeaturesVersion = "1.1.1.13-SNAPSHOT"
+web3j = "4.8.8-android"
+walletconnectBom = "1.18.0"
+coilVersion = "2.2.2"
+zXingVersion = "3.5.1"
+zXingEmbeddedVersion = "4.3.0"
 
 [libraries]
+junit = { module = "junit:junit", version.ref = "junit" }
+zXing-core = { module = "com.google.zxing:core", version.ref = "zXingVersion" }
+zXing-embedded = { module = "com.journeyapps:zxing-android-embedded", version.ref = "zXingEmbeddedVersion" }
+
 google-services = { module = "com.google.gms:google-services", version.ref = "googleServices" }
 gradleplugins-detekt = { module = "io.gitlab.arturbosch.detekt:detekt-gradle-plugin", version.ref = "detekt" }
 gradleplugins-kotlin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
@@ -26,7 +35,6 @@ gradleplugins-android = { module = "com.android.tools.build:gradle", version.ref
 gradleplugins-hiltAndroid = { module = "com.google.dagger:hilt-android-gradle-plugin", version.ref = "dagger" }
 
 sora-ui = { module = "jp.co.soramitsu:ui-core", version.ref = "soraUiCore" }
-sora-card = { module = "jp.co.soramitsu:android-sora-card", version.ref = "soraCard" }
 
 xnetworking-fearless = { module = "jp.co.soramitsu.xnetworking:fearlesswallet-android", version.ref = "xNetworking" }
 xnetworking-basic = { module = "jp.co.soramitsu.xnetworking:basic-android", version.ref = "xNetworking" }
@@ -49,6 +57,8 @@ compose-animation = { module = "androidx.compose.animation:animation", version.r
 compose-animationGraphics = { module = "androidx.compose.animation:animation-graphics", version.ref = "compose" }
 compose-uiToolingPreview = { module = "androidx.compose.ui:ui-tooling-preview", version.ref = "compose" }
 
+coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilVersion" }
+
 fragmentKtx = { module = "androidx.fragment:fragment-ktx", version.ref = "fragmentKtx" }
 material = { module = "com.google.android.material:material", version.ref = "material" }
 
@@ -58,11 +68,19 @@ coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-androi
 detekt-formatting = { module = "io.gitlab.arturbosch.detekt:detekt-formatting", version.ref = "detekt" }
 detekt-cli = { module = "io.gitlab.arturbosch.detekt:detekt-cli", version.ref = "detekt" }
 
+sharedFeaturesCoreDep = { module = "jp.co.soramitsu.shared_features:core", version.ref = "sharedFeaturesVersion" }
+sharedFeaturesXcmDep = { module = "jp.co.soramitsu.shared_features:xcm", version.ref = "sharedFeaturesVersion" }
+sharedFeaturesBackupDep = { module = "jp.co.soramitsu.shared_features:backup", version.ref = "sharedFeaturesVersion" }
+
+web3jDep = { module = "org.web3j:core", version.ref = "web3j" }
+walletconnectBomDep = { module = "com.walletconnect:android-bom", version.ref = "walletconnectBom" }
+walletconnectCoreDep = { module = "com.walletconnect:android-core" }
+walletconnectWeb3WalletDep = { module = "com.walletconnect:web3wallet" }
 
 [bundles]
 compose = [
     "compose-runtime", "compose-ui", "compose-runtimeLiveData", "compose-compiler",
     "compose-foundation", "compose-material", "compose-themeAdapter", "compose-animation",
-    "compose-animationGraphics", "compose-uiToolingPreview"
+    "compose-animationGraphics", "compose-uiToolingPreview", "coil-compose"
 ]
 coroutines = ["coroutines-core", "coroutines-android"]
