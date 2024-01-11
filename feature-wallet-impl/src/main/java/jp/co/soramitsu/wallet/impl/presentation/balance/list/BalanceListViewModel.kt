@@ -52,8 +52,6 @@ import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.feature_wallet_impl.R
-import jp.co.soramitsu.runtime.ext.ecosystem
-import jp.co.soramitsu.runtime.multiNetwork.chain.ChainEcosystem
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.defaultChainSort
@@ -181,8 +179,6 @@ class BalanceListViewModel @Inject constructor(
             it.name == appliedFilterAsString
         } ?: ChainSelectorViewStateWithFilters.Filter.All
 
-        val balanceListItems = mutableListOf<BalanceListItemModel>()
-
         val shouldShowNetworkIssues =
             selectedChainId == null && (networkIssues.isNotEmpty() || assets.any { it.hasAccount.not() })
         showNetworkIssues.value = shouldShowNetworkIssues
@@ -193,61 +189,37 @@ class BalanceListViewModel @Inject constructor(
             chain to (selectedAccountFavoriteChains[chain.id]?.isFavorite == true)
         }
 
-        when(filter) {
-            ChainSelectorViewStateWithFilters.Filter.All -> chainsWithFavoriteInfo.map { it.first }
+        val filteredChains = when {
+            selectedChainId != null -> chains.filter { it.id == selectedChainId }
+            filter == ChainSelectorViewStateWithFilters.Filter.All -> chainsWithFavoriteInfo.map { it.first }
 
-            ChainSelectorViewStateWithFilters.Filter.Favorite ->
+            filter == ChainSelectorViewStateWithFilters.Filter.Favorite ->
                 chainsWithFavoriteInfo.filter { (_, isFavorite) -> isFavorite }.map { it.first }
 
-            ChainSelectorViewStateWithFilters.Filter.Popular ->
+            filter == ChainSelectorViewStateWithFilters.Filter.Popular ->
                 chainsWithFavoriteInfo.filter { (chain, _) ->
                     chain.rank != null
                 }.sortedBy { (chain, _) ->
                     chain.rank
                 }.map { it.first }
-        }.groupBy { if (it.isTestNet) ChainEcosystem.STANDALONE else it.ecosystem() }
-            .forEach { (ecosystem, ecosystemChains) ->
-                when (ecosystem) {
-                    ChainEcosystem.POLKADOT,
-                    ChainEcosystem.KUSAMA,
-                    ChainEcosystem.ETHEREUM -> {
-                        val ecosystemAssets = assets.filter {
-                            it.asset.token.configuration.chainId in ecosystemChains.map { it.id }
-                        }
 
-                        val filtered = ecosystemAssets
-                            .filter { selectedChainId == null || selectedChainId == it.asset.token.configuration.chainId }
+            else -> emptyList()
+        }
 
-                        val items = AssetListHelper.processAssets(
-                            ecosystemAssets = filtered,
-                            ecosystemChains = ecosystemChains,
-                            selectedChainId = selectedChainId,
-                            networkIssues = networkIssues,
-                            hideZeroBalancesEnabled = hideZeroBalancesEnabled,
-                            ecosystem = ecosystem
-                        )
-                        balanceListItems.addAll(items)
-                    }
-
-                    ChainEcosystem.STANDALONE -> {
-                        ecosystemChains.forEach { chain ->
-                            if (selectedChainId == null || selectedChainId == chain.id) {
-                                val chainAssets =
-                                    assets.filter { it.asset.token.configuration.chainId == chain.id }
-                                val items = AssetListHelper.processAssets(
-                                    ecosystemAssets = chainAssets,
-                                    ecosystemChains = listOf(chain),
-                                    selectedChainId = selectedChainId,
-                                    networkIssues = networkIssues,
-                                    hideZeroBalancesEnabled = hideZeroBalancesEnabled,
-                                    ecosystem = ecosystem
-                                )
-                                balanceListItems.addAll(items)
-                            }
-                        }
-                    }
-                }
+        val filteredAssets = assets
+            .filter {
+                selectedChainId == it.asset.token.configuration.chainId ||
+                        selectedChainId == null ||
+                        it.asset.token.configuration.chainId in filteredChains.map { it.id }
             }
+
+        val balanceListItems = AssetListHelper.processAssets(
+            assets = filteredAssets,
+            filteredChains = filteredChains,
+            selectedChainId = selectedChainId,
+            networkIssues = networkIssues,
+            hideZeroBalancesEnabled = hideZeroBalancesEnabled
+        )
 
         val assetStates: List<AssetListItemViewState> = balanceListItems
             .sortedWith(defaultBalanceListItemSort())
@@ -301,7 +273,6 @@ class BalanceListViewModel @Inject constructor(
                     isSupported = true,
                     isHidden = false,
                     priceId = chainAsset.priceId,
-                    ecosystem = ChainEcosystem.POLKADOT.name,
                     isTestnet = chainAsset.isTestNet ?: false
                 )
             }.filter { selectedChainId.value == null || selectedChainId.value == it.chainId }
