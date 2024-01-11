@@ -81,7 +81,7 @@ class EthereumRemoteSource(private val ethereumConnectionPool: EthereumConnectio
             val cred = Credentials.create(privateKey)
             val nonce =
                 kotlin.runCatching {
-                    web3.ethGetTransactionCount(transfer.sender, DefaultBlockParameterName.LATEST)
+                    web3.ethGetTransactionCount(transfer.sender, DefaultBlockParameterName.PENDING)
                         .send().transactionCount
                 }
                     .getOrElse { return@withContext Result.failure("Error ethGetTransactionCount for chain ${chain.name}, ${chain.id}, error: $it") }
@@ -359,7 +359,7 @@ class EthereumRemoteSource(private val ethereumConnectionPool: EthereumConnectio
         val senderAddress = cred.address
 
         val nonce = raw.nonce ?: kotlin.runCatching {
-            web3.ethGetTransactionCount(senderAddress, DefaultBlockParameterName.LATEST).send().transactionCount
+            web3.ethGetTransactionCount(senderAddress, DefaultBlockParameterName.PENDING).send().transactionCount
         }
             .getOrElse { return@withContext Result.failure("Error ethGetTransactionCount for chain with id = $chainId, error: $it") }
 
