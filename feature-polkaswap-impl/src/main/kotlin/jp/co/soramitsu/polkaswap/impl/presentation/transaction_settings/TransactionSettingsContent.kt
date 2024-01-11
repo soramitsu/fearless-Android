@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.ime
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -185,6 +184,7 @@ fun TransactionSettingsContent(
 
         GrayButton(
             modifier = Modifier
+                .height(48.dp)
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp),
             text = stringResource(R.string.polkaswap_btn_reset_to_default),
@@ -194,6 +194,7 @@ fun TransactionSettingsContent(
         AccentButton(
             text = stringResource(R.string.common_save),
             modifier = Modifier
+                .height(48.dp)
                 .padding(horizontal = 16.dp)
                 .padding(bottom = 8.dp)
                 .fillMaxWidth(),

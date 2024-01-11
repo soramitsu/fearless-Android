@@ -26,7 +26,6 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraTestChainId
-import jp.co.soramitsu.runtime.multiNetwork.chainWithAsset
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
@@ -39,7 +38,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.merge
-import kotlinx.coroutines.flow.onEach
 
 class PolkaswapInteractorImpl @Inject constructor(
     private val chainRegistry: ChainRegistry,
@@ -212,7 +210,10 @@ class PolkaswapInteractorImpl @Inject constructor(
         return if (quotes.isEmpty()) {
             null
         } else {
-            quotes.maxBy { it.second.amount }
+            when (desired) {
+                WithDesired.INPUT -> quotes.maxBy { it.second.amount }
+                WithDesired.OUTPUT -> quotes.minBy { it.second.amount }
+            }
         }
     }
 
