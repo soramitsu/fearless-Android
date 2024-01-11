@@ -172,12 +172,7 @@ class SearchAssetsViewModel @Inject constructor(
             return
         }
 
-        val payload = AssetPayload(
-            chainId = asset.chainId,
-            chainAssetId = asset.chainAssetId
-        )
-
-        router.openAssetDetails(payload)
+        router.openAssetIntermediateDetails(asset.chainAssetId)
     }
 
     fun updateAppClicked() {
