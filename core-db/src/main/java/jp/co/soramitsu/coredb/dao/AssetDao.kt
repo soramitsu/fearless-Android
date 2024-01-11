@@ -149,7 +149,7 @@ abstract class AssetDao : AssetReadOnlyCache {
         """
             SELECT * FROM assets
             LEFT JOIN chain_assets ON chain_assets.id = assets.id
-            WHERE chain_assets.symbol LIKE '%' || :assetSymbol
+            WHERE chain_assets.symbol = :assetSymbol
             AND assets.metaId = :accountMetaId
         """
     )
