@@ -1,5 +1,6 @@
 package jp.co.soramitsu.wallet.impl.data.network.blockchain
 
+import android.util.Log
 import java.math.BigInteger
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.address
@@ -9,6 +10,7 @@ import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.connection.EthereumConnectionPool
+import jp.co.soramitsu.runtime.multiNetwork.connection.EthereumWebSocketConnection
 import jp.co.soramitsu.shared_utils.extensions.requireHexPrefix
 import jp.co.soramitsu.shared_utils.extensions.toHexString
 import jp.co.soramitsu.shared_utils.runtime.AccountId
@@ -20,9 +22,11 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.yield
 import org.web3j.abi.FunctionEncoder
 import org.web3j.abi.TypeReference
 import org.web3j.abi.datatypes.Address
@@ -39,6 +43,8 @@ import org.web3j.protocol.core.Request
 import org.web3j.protocol.core.Response
 import org.web3j.protocol.core.methods.request.Transaction
 import org.web3j.protocol.core.methods.response.EthSubscribe
+import org.web3j.protocol.http.HttpService
+import org.web3j.protocol.websocket.WebSocketService
 import org.web3j.utils.Convert
 import org.web3j.utils.Numeric
 
@@ -68,7 +74,6 @@ class EthereumRemoteSource(private val ethereumConnectionPool: EthereumConnectio
         privateKey: String
     ): Result<String> =
         withContext(Dispatchers.IO) {
-
             val connection = ethereumConnectionPool.get(chain.id)
                 ?: return@withContext Result.failure("There is no connection created for chain ${chain.name}, ${chain.id}")
 
@@ -265,23 +270,14 @@ class EthereumRemoteSource(private val ethereumConnectionPool: EthereumConnectio
         val wsService = requireNotNull(connection.service)
         val web3j = requireNotNull(connection.web3j)
 
-        return wsService.subscribeNewHeads()
-            .map { it.params.result?.baseFeePerGas }
-            .onStart {
-                val block = web3j.ethGetBlockByNumber(DefaultBlockParameterName.LATEST, false)
-                    .send()
-                    .block
-                    .baseFeePerGas
-                emit(block)
-            }
+        return connection.subscribeBaseFeePerGas()
             .map { baseFeePerGas ->
-
+                Log.d("&&&", "gas subscription, baseFeePerGas: $baseFeePerGas")
                 val priorityFee = withContext(Dispatchers.IO) {
                     wsService.ethMaxPriorityFeePerGas().send()?.maxPriorityFeePerGas
                 }
                     ?: throw GasServiceException("Failed to get ethMaxPriorityFeePerGas on chain ${chain.name}. Response is null")
 
-                val baseFee = Numeric.decodeQuantity(baseFeePerGas)
                 val call = if (transfer.chainAsset.isUtility) {
                     Transaction.createEtherTransaction(
                         transfer.sender,
@@ -318,7 +314,7 @@ class EthereumRemoteSource(private val ethereumConnectionPool: EthereumConnectio
                 }.getOrNull()
                     ?: throw GasServiceException("Failed to ethEstimateGas on chain ${chain.name}. Response is null")
 
-                gasLimit * (priorityFee + baseFee)
+                gasLimit * (priorityFee + baseFeePerGas)
             }
     }
 
@@ -359,7 +355,8 @@ class EthereumRemoteSource(private val ethereumConnectionPool: EthereumConnectio
         val senderAddress = cred.address
 
         val nonce = raw.nonce ?: kotlin.runCatching {
-            web3.ethGetTransactionCount(senderAddress, DefaultBlockParameterName.PENDING).send().transactionCount
+            web3.ethGetTransactionCount(senderAddress, DefaultBlockParameterName.PENDING)
+                .send().transactionCount
         }
             .getOrElse { return@withContext Result.failure("Error ethGetTransactionCount for chain with id = $chainId, error: $it") }
 
@@ -445,7 +442,48 @@ class MaxPriorityFeePerGas : Response<String?>() {
         get() = Numeric.decodeQuantity(result)
 }
 
-fun Web3jService.subscribeNewHeads(): Flow<NewHeadsNotificationExtended> {
+fun EthereumWebSocketConnection.subscribeBaseFeePerGas(): Flow<BigInteger> {
+    val wsService = requireNotNull(service)
+    val web3j = requireNotNull(web3j)
+
+    return when (wsService) {
+        is WebSocketService -> {
+            wsService.subscribeNewHeads().map { it.params.result?.baseFeePerGas.orEmpty() }
+                .onStart {
+                    val baseFeePerGas =
+                        web3j.ethGetBlockByNumber(DefaultBlockParameterName.LATEST, false)
+                            .send()
+                            .block
+                            .baseFeePerGas
+                    emit(baseFeePerGas)
+                }
+                .onEach { Log.d("&&&", "baseFeePerGas from WSS is $it") }
+        }
+
+        is HttpService -> {
+            flow {
+                while (true) {
+                    val block =
+                        web3j.ethGetBlockByNumber(DefaultBlockParameterName.PENDING, false)
+                            .send()
+                            .block
+                    Log.d("&&&", "block from HTTP is $block")
+                    val baseFeePerGas = block.baseFeePerGas
+                    Log.d("&&&", "baseFeePerGas from HTTP is $baseFeePerGas")
+                    emit(baseFeePerGas)
+                    delay(3000)
+                    yield()
+                }
+            }
+        }
+
+        else -> {
+            throw IllegalStateException("Can't use this node to listen gas fee")
+        }
+    }.map { Numeric.decodeQuantity(it) }
+}
+
+fun WebSocketService.subscribeNewHeads(): Flow<NewHeadsNotificationExtended> {
     return subscribe(
         Request(
             "eth_subscribe", listOf("newHeads"),

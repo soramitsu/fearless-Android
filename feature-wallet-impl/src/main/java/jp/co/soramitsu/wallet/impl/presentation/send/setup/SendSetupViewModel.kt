@@ -1,5 +1,6 @@
 package jp.co.soramitsu.wallet.impl.presentation.send.setup
 
+import android.util.Log
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.LiveData
@@ -279,6 +280,7 @@ class SendSetupViewModel @Inject constructor(
         .retry(RETRY_TIMES)
         .catch {
             println("Error: $it")
+            Log.d("&&&", "observeTransferFee got error: $it")
             it.printStackTrace()
             emit(null)
         }
