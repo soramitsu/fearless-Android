@@ -342,8 +342,8 @@ class WalletConnectInteractorImpl(
         val chain = chainRegistry.getChain(genesisHash)
         val accountId = chain.accountIdOf(address)
 
-        val keypair = keypairProvider.getKeypairFor(chain, accountId)
-        val cryptoType = keypairProvider.getCryptoTypeFor(chain, accountId)
+        val keypair = withContext(Dispatchers.IO) { keypairProvider.getKeypairFor(chain, accountId) }
+        val cryptoType = withContext(Dispatchers.IO) { keypairProvider.getCryptoTypeFor(chain, accountId) }
         val extrinsicBuilder = extrinsicBuilderFactory.create(chain, keypair, cryptoType, tip)
 
         val signature = extrinsicBuilder.build()
@@ -362,12 +362,12 @@ class WalletConnectInteractorImpl(
 
         val chain = allChains.first { chain -> chain.caip2id == recentSession.chainId }
         val accountId = chain.accountIdOf(address)
-        val keypair = keypairProvider.getKeypairFor(chain, accountId)
+        val keypair = withContext(Dispatchers.IO) { keypairProvider.getKeypairFor(chain, accountId) }
 
         val multiChainEncryption = if (chain.isEthereumBased) {
             MultiChainEncryption.Ethereum
         } else {
-            val cryptoType = keypairProvider.getCryptoTypeFor(chain, accountId)
+            val cryptoType = withContext(Dispatchers.IO) { keypairProvider.getCryptoTypeFor(chain, accountId) }
             val encryption = mapCryptoTypeToEncryption(cryptoType)
             MultiChainEncryption.Substrate(encryption)
         }
