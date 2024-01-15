@@ -1,6 +1,7 @@
 package jp.co.soramitsu.common.utils
 
 import android.app.Activity
+import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -42,8 +43,12 @@ fun Fragment.hideKeyboard() {
 fun Fragment.showBrowser(link: String) = requireContext().showBrowser(link)
 
 fun Context.showBrowser(link: String) {
-    val intent = Intent(Intent.ACTION_VIEW).apply { data = Uri.parse(link) }
-    startActivity(intent)
+    try {
+        val intent = Intent(Intent.ACTION_VIEW).apply { data = Uri.parse(link) }
+        startActivity(intent)
+    } catch (e: ActivityNotFoundException) {
+        Toast.makeText(this, "Error open URL, check you have browser installed", Toast.LENGTH_SHORT).show()
+    }
 }
 
 fun Context.createSendEmailIntent(targetEmail: String, title: String) {

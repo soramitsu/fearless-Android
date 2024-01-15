@@ -23,6 +23,7 @@ class ChainSyncServiceTest {
 
     private val REMOTE_CHAIN = ChainRemote(
         chainId = "0x00",
+        rank = null,
         name = "Test",
         assets = listOf(
             ChainAssetRemote(
@@ -39,7 +40,8 @@ class ChainSyncServiceTest {
                 currencyId = null,
                 existentialDeposit = null,
                 color = null,
-                isNative = null
+                isNative = null,
+                ethereumType = null
             )
         ),
         nodes = listOf(

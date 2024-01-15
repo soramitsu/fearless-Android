@@ -31,6 +31,10 @@ import jp.co.soramitsu.shared_utils.runtime.metadata.storageKey
 import kotlinx.coroutines.flow.Flow
 import java.math.BigInteger
 import javax.inject.Inject
+import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
 
 class PolkaswapRepositoryImpl @Inject constructor(
     private val remoteConfigFetcher: RemoteConfigFetcher,
@@ -42,12 +46,13 @@ class PolkaswapRepositoryImpl @Inject constructor(
 ) : PolkaswapRepository {
 
     override suspend fun getAvailableDexes(chainId: ChainId): List<BigInteger> {
-        val remoteDexes = dexInfos(chainId).keys
+        val remoteDexes = runCatching { dexInfos(chainId).keys }.getOrNull() ?: emptySet()
         val config = getPolkaswapConfig().availableDexIds.map { it.code }
         return remoteDexes.filter { it in config }
     }
 
     private suspend fun dexInfos(chainId: ChainId): Map<BigInteger, String?> {
+        waitForChain(chainId)
         return remoteStorage.queryByPrefix(
             prefixKeyBuilder = { it.metadata.dexManager()?.storage("DEXInfos")?.storageKey() },
             keyExtractor = { it.u32ArgumentFromStorageKey() },
@@ -62,7 +67,7 @@ class PolkaswapRepositoryImpl @Inject constructor(
     }
 
     override fun observePoolXYKReserves(chainId: ChainId, fromTokenId: String, toTokenId: String): Flow<String> {
-        return remoteStorage.observe(
+        return flow { emit(waitForChain(chainId)) }.flatMapLatest {  remoteStorage.observe(
             chainId = chainId,
             keyBuilder = {
                 val from = Struct.Instance(
@@ -75,11 +80,11 @@ class PolkaswapRepositoryImpl @Inject constructor(
             }
         ) { scale, _ ->
             scale.orEmpty()
-        }
+        }}
     }
 
     override fun observePoolTBCReserves(chainId: ChainId, tokenId: String): Flow<String> {
-        return remoteStorage.observe(
+        return flow { emit(waitForChain(chainId)) }.flatMapLatest { remoteStorage.observe(
             chainId = chainId,
             keyBuilder = {
                 val token = Struct.Instance(
@@ -90,6 +95,12 @@ class PolkaswapRepositoryImpl @Inject constructor(
         ) { scale, _ ->
             scale.orEmpty()
         }
+    }}
+
+    // Because if we get chain from the ChainRegistry, it will emit a chain
+    // only after runtime for this chain will be ready
+    private suspend fun waitForChain(chainId: String): Chain {
+        return chainRegistry.getChain(chainId)
     }
 
     override suspend fun isPairAvailable(

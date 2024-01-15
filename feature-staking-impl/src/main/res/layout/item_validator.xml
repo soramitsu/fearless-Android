@@ -24,7 +24,7 @@
         android:layout_height="24dp"
         android:layout_gravity="center_vertical"
         android:layout_marginStart="16dp"
-        tools:src="@color/colorAccent" />
+        tools:src="@color/colorAccentDark" />
 
     <TextView
         android:id="@+id/itemValidatorName"

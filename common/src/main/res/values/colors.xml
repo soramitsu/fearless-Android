@@ -23,6 +23,7 @@
     <color name="blurColorDark">#B3000000</color>
     <color name="blurColor">#8C000000</color>
     <color name="blurColorLight">#66000000</color>
+    <color name="backgroundBlurColor">#0AFFFFFF</color>
 
     <color name="white_10">#1AFFFFFF</color>
     <color name="white_16">#29FFFFFF</color>

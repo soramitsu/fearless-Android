@@ -36,7 +36,7 @@
         android:layout_marginHorizontal="16dp"
         android:layout_marginTop="16dp"
         android:includeFontPadding="false"
-        android:textColor="@color/colorAccent"
+        android:textColor="@color/colorAccentDark"
         app:layout_constraintTop_toBottomOf="@id/tvMoonbeamSigned"
         tools:text="0x28375876523956923745623847" />
 

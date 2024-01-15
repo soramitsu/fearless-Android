@@ -85,6 +85,6 @@ open class ReferralContributeView @JvmOverloads constructor(
 
     protected fun getColor(bonus: BigDecimal?) = when {
         bonus == null || bonus <= BigDecimal.ZERO -> R.color.white
-        else -> R.color.colorAccent
+        else -> R.color.colorAccentDark
     }
 }

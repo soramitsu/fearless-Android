@@ -28,9 +28,7 @@ import jp.co.soramitsu.core.models.Asset.StakingType
 import jp.co.soramitsu.core.models.ChainId
 import jp.co.soramitsu.core.utils.isValidAddress
 import jp.co.soramitsu.coredb.model.AssetUpdateItem
-import jp.co.soramitsu.runtime.ext.ecosystem
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
-import jp.co.soramitsu.runtime.multiNetwork.chain.ChainEcosystem
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.isPolkadotOrKusama
@@ -43,6 +41,7 @@ import jp.co.soramitsu.shared_utils.runtime.metadata.moduleOrNull
 import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.toAddress
 import jp.co.soramitsu.wallet.impl.data.repository.HistoryRepository
 import jp.co.soramitsu.wallet.impl.domain.interfaces.AddressBookRepository
+import jp.co.soramitsu.wallet.impl.domain.interfaces.AssetSorting
 import jp.co.soramitsu.wallet.impl.domain.interfaces.TransactionFilter
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
@@ -64,6 +63,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flatMapMerge
 import kotlinx.coroutines.flow.flow
@@ -73,12 +73,15 @@ import kotlinx.coroutines.withContext
 import jp.co.soramitsu.core.models.Asset as CoreAsset
 
 private const val QR_PREFIX_SUBSTRATE = "substrate"
+const val QR_PREFIX_WALLET_CONNECT = "wc"
 private const val PREFS_WALLET_SELECTED_CHAIN_ID = "wallet_selected_chain_id"
 private const val PREFS_SORA_CARD_HIDDEN_SESSIONS_COUNT = "prefs_sora_card_hidden_sessions_count"
 private const val SORA_CARD_HIDDEN_SESSIONS_LIMIT = 5
 private const val HIDE_ZERO_BALANCES_PREFS_KEY = "hideZeroBalances"
+private const val CHAIN_SELECT_FILTER_APPLIED = "chain_select_filter_applied"
 private const val ACCOUNT_ID_MIN_TAG = 26
 private const val ACCOUNT_ID_MAX_TAG = 51
+private const val ASSET_SORTING_KEY = "ASSET_SORTING_KEY"
 
 class WalletInteractorImpl(
     private val walletRepository: WalletRepository,
@@ -447,14 +450,7 @@ class WalletInteractorImpl(
         val chainAsset = chain.assetsById[chainAssetId] ?: return
 
         val chainsWithAsset = chainsRepository.getChains().filter { chainItem ->
-            val isChainItemFromSameEcosystem = if (chain.ecosystem() == ChainEcosystem.STANDALONE) {
-                chainItem.id == chainId
-            } else {
-                chainItem.ecosystem() == chain.ecosystem()
-            }
-            isChainItemFromSameEcosystem && chainItem.assets.any {
-                it.symbol == chainAsset.symbol
-            }
+            chainItem.assets.any { it.symbol == chainAsset.symbol }
         }
 
         val assetsToManage = chainsWithAsset.map {
@@ -487,10 +483,10 @@ class WalletInteractorImpl(
     override fun getChains(): Flow<List<Chain>> = chainsRepository.chainsFlow()
 
     override fun getOperationAddressWithChainIdFlow(
-        limit: Int?,
-        chainId: ChainId
+        chainId: ChainId,
+        limit: Int?
     ): Flow<Set<String>> =
-        historyRepository.getOperationAddressWithChainIdFlow(limit, chainId)
+        historyRepository.getOperationAddressWithChainIdFlow(chainId, limit)
 
     override suspend fun saveAddress(name: String, address: String, selectedChainId: String) {
         addressBookRepository.saveAddress(name, address, selectedChainId)
@@ -596,5 +592,47 @@ class WalletInteractorImpl(
         val hasAsset = getCurrentAssetOrNull(chainId, chainAssetId) != null
         val hasRuntime = chainRegistry.getRuntimeOrNull(chainId) != null
         return hasAsset && hasRuntime
+    }
+
+    override suspend fun saveChainSelectFilter(walletId: Long, filter: String) {
+        val key = getChainSelectFilterAppliedKey(walletId)
+        preferences.putString(key, filter)
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    override fun observeSelectedAccountChainSelectFilter(): Flow<String> {
+        return accountRepository.selectedMetaAccountFlow().map {
+            it.id
+        }.distinctUntilChanged().flatMapLatest {
+            val key = getChainSelectFilterAppliedKey(it)
+
+            preferences.stringFlow(key) {
+                // emit empty string on start as indication that no filter is used
+                // as opposed to null which was thrown for random reasons
+                return@stringFlow ""
+            }.filterNotNull()
+        }
+    }
+
+    private fun getChainSelectFilterAppliedKey(walletId: Long): String {
+        return "${CHAIN_SELECT_FILTER_APPLIED}_$walletId"
+    }
+
+    override fun observeChainsPerAsset(accountMetaId: Long, assetId: String): Flow<Map<Chain, Asset?>> {
+        return walletRepository.observeChainsPerAsset(accountMetaId, assetId)
+    }
+
+    override fun applyAssetSorting(sorting: AssetSorting) {
+        preferences.putString(ASSET_SORTING_KEY, sorting.name)
+    }
+
+    override fun observeAssetSorting(): Flow<AssetSorting> {
+        return preferences.stringFlow(ASSET_SORTING_KEY) {
+            AssetSorting.FiatBalance.toString()
+        }.map { sortingAsString ->
+            sortingAsString?.let {
+                AssetSorting.values().find { sorting -> sorting.name == it }
+            } ?: AssetSorting.FiatBalance
+        }
     }
 }

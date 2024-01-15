@@ -3,7 +3,9 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/black"
+    android:background="@drawable/drawable_background_image"
+    android:backgroundTint="#63000000"
+    android:backgroundTintMode="src_atop"
     android:fitsSystemWindows="true"
     android:orientation="vertical">
 
@@ -67,31 +69,28 @@
             android:id="@+id/googleBackupButton"
             style="@style/Widget.Fearless.Button.Outline"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
+            android:layout_height="wrap_content" />
 
         <LinearLayout
-            android:elevation="@dimen/x1_2"
             android:layout_width="match_parent"
-            android:orientation="horizontal"
             android:layout_height="match_parent"
+            android:elevation="@dimen/x1_2"
             android:gravity="center"
-            >
+            android:orientation="horizontal">
 
             <ImageView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:src="@drawable/ic_google_30"
                 android:paddingEnd="@dimen/x2"
-                />
+                android:src="@drawable/ic_google_30" />
 
             <TextView
                 style="@style/TextAppearance.Soramitsu.Header4"
-                android:fontFamily="@font/sora_bold"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textColor="@color/white"
+                android:fontFamily="@font/sora_bold"
                 android:text="@string/btn_backup_with_google"
-                />
+                android:textColor="@color/white" />
         </LinearLayout>
     </FrameLayout>
 

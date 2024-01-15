@@ -170,7 +170,7 @@ private class CrowdloanChildHolder(
 
     fun bindMyContribution(item: CrowdloanModel) {
         containerView.findViewById<TextView>(R.id.itemCrowdloanMyContribution).setVisible(item.myContribution != null)
-        containerView.findViewById<TextView>(R.id.itemCrowdloanMyContribution).setTextColorRes(R.color.colorAccent)
+        containerView.findViewById<TextView>(R.id.itemCrowdloanMyContribution).setTextColorRes(R.color.colorAccentDark)
         containerView.findViewById<TextView>(R.id.itemCrowdloanMyContribution).text = item.myContribution
 
         containerView.findViewById<LinearLayout>(R.id.itemReferralCode).setVisible(item.myContribution != null && item.referral != null)

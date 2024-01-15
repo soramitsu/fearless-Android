@@ -61,7 +61,7 @@ import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
 import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
-import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.ChainItemState
+import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.ChainSelectScreenContract
 import jp.co.soramitsu.wallet.impl.presentation.send.SendSharedState
 import jp.co.soramitsu.wallet.impl.presentation.send.TransferDraft
 import kotlinx.coroutines.delay
@@ -133,7 +133,7 @@ class SendSetupViewModel @Inject constructor(
 
     private val selectedChainItem = selectedChain.map { chain ->
         chain?.let {
-            ChainItemState(
+            ChainSelectScreenContract.State.ItemState.Impl(
                 id = chain.id,
                 imageUrl = chain.icon,
                 title = chain.name,
@@ -177,25 +177,23 @@ class SendSetupViewModel @Inject constructor(
         warningInfoState = null,
         defaultButtonState,
         isSoftKeyboardOpen = false,
-        heightDiffDp = 0.dp,
-        isInputLocked = false
+        isInputLocked = false,
+        isHistoryAvailable = false
     )
 
-    private val assetFlow: StateFlow<Asset?> =
-        sharedState.assetIdToChainIdFlow.map {
-            it?.let { (assetId, chainId) ->
-                walletInteractor.getCurrentAsset(chainId, assetId)
-            }
+    private val assetFlow: StateFlow<Asset?> = sharedState.assetIdToChainIdFlow.map {
+        it?.let { (assetId, chainId) ->
+            walletInteractor.getCurrentAsset(chainId, assetId)
         }
-            .stateIn(this, SharingStarted.Eagerly, null)
+    }
+        .stateIn(this, SharingStarted.Eagerly, null)
 
     private val amountInputFocusFlow = MutableStateFlow(false)
 
     private val addressInputFlow = MutableStateFlow(initSendToAddress.orEmpty())
     private val addressInputTrimmedFlow = addressInputFlow.map { it.trim() }
 
-    private val isSoftKeyboardOpenFlow = MutableStateFlow(lockSendToAmount && initialAmount.isZero() )
-    private val heightDiffDpFlow = MutableStateFlow(0.dp)
+    private val isSoftKeyboardOpenFlow = MutableStateFlow(lockSendToAmount && initialAmount.isZero())
 
     private val enteredAmountBigDecimalFlow = MutableStateFlow(initialAmount)
     private val visibleAmountFlow = MutableStateFlow(initialAmount)
@@ -212,7 +210,7 @@ class SendSetupViewModel @Inject constructor(
         }.stateIn(this, SharingStarted.Eagerly, false)
 
     private val chainSelectorStateFlow =
-        combine(selectedChainItem, lockInputFlow) { it: ChainItemState?, isLock: Boolean ->
+        combine(selectedChainItem, lockInputFlow) { it: ChainSelectScreenContract.State.ItemState?, isLock: Boolean ->
             SelectorState(
                 title = resourceManager.getString(R.string.common_network),
                 subTitle = it?.title,
@@ -389,10 +387,9 @@ class SendSetupViewModel @Inject constructor(
         warningInfoStateFlow,
         buttonStateFlow,
         isSoftKeyboardOpenFlow,
-        heightDiffDpFlow,
         lockInputFlow,
         assetFlow
-    ) { chain, address, chainSelectorState, amountInputState, feeInfoState, warningInfoState, buttonState, isSoftKeyboardOpen, heightDiffDp, isInputLocked, asset ->
+    ) { chain, address, chainSelectorState, amountInputState, feeInfoState, warningInfoState, buttonState, isSoftKeyboardOpen, isInputLocked, asset ->
         val isAddressValid = when (chain) {
             null -> false
             else -> walletInteractor.validateSendAddress(chain.id, address)
@@ -405,6 +402,8 @@ class SendSetupViewModel @Inject constructor(
         } else {
             QuickAmountInput.values().toList()
         }
+
+        val isHistorySupportedByChain = chain?.externalApi?.history != null
 
         SendSetupViewState(
             toolbarState = toolbarViewState,
@@ -428,9 +427,9 @@ class SendSetupViewModel @Inject constructor(
             warningInfoState = warningInfoState,
             buttonState = buttonState,
             isSoftKeyboardOpen = isSoftKeyboardOpen,
-            heightDiffDp = heightDiffDp,
             isInputLocked = isInputLocked,
             quickAmountInputValues = quickAmountInputValues,
+            isHistoryAvailable = isHistorySupportedByChain
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, defaultState)
 
@@ -649,10 +648,6 @@ class SendSetupViewModel @Inject constructor(
 
     fun setSoftKeyboardOpen(isOpen: Boolean) {
         isSoftKeyboardOpenFlow.value = isOpen
-    }
-
-    fun setHeightDiffDp(value: Dp) {
-        heightDiffDpFlow.value = value
     }
 
     override fun onQuickAmountInput(input: Double) {

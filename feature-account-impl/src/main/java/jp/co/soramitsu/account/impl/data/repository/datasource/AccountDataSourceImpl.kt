@@ -288,4 +288,6 @@ class AccountDataSourceImpl(
             action()
         }
     }
+
+    override fun observeFavoriteChains(metaId: Long) = metaAccountDao.observeFavoriteChains(metaId)
 }

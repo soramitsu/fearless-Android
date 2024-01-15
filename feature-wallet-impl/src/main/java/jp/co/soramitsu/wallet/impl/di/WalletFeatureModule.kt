@@ -222,6 +222,7 @@ class WalletFeatureModule {
     )
 
     @Provides
+    @Singleton
     fun provideWalletInteractor(
         walletRepository: WalletRepository,
         addressBookRepository: AddressBookRepository,

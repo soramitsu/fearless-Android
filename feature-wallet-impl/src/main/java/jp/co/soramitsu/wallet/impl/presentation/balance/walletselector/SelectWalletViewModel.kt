@@ -69,6 +69,7 @@ class SelectWalletViewModel @Inject constructor(
     }
         .inBackground()
         .share()
+
     private val selectedWalletItem = MutableStateFlow<WalletItemViewState?>(null)
     val googleAuthorizeLiveData = MutableLiveData<Event<Unit>>()
     val importPreInstalledWalletLiveData = MutableLiveData<Event<Unit>>()

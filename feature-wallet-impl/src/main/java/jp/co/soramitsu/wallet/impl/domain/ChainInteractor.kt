@@ -43,7 +43,7 @@ class ChainInteractor(
                     isTestNet = false,
                     supportStakingPool = false,
                     isUtility = it.isUtility ?: false,
-                    type = it.type?.let { ChainAssetType.valueOf(it) },
+                    type = it.type?.let { runCatching { ChainAssetType.valueOf(it) }.getOrNull() },
                     currencyId = it.currencyId,
                     existentialDeposit = it.existentialDeposit,
                     color = it.color,

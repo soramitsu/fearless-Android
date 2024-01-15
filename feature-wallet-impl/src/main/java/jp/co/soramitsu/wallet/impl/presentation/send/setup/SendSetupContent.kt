@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.Icon
@@ -71,9 +70,9 @@ data class SendSetupViewState(
     val warningInfoState: WarningInfoState?,
     val buttonState: ButtonViewState,
     val isSoftKeyboardOpen: Boolean,
-    val heightDiffDp: Dp,
     val isInputLocked: Boolean,
-    val quickAmountInputValues: List<QuickAmountInput> = QuickAmountInput.values().asList()
+    val quickAmountInputValues: List<QuickAmountInput> = QuickAmountInput.values().asList(),
+    val isHistoryAvailable: Boolean
 )
 
 interface SendSetupScreenInterface {
@@ -110,7 +109,6 @@ fun SendSetupContent(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(bottom = state.heightDiffDp)
         ) {
             val bottomPadding = if (state.isInputLocked) {
                 50.dp
@@ -164,7 +162,6 @@ fun SendSetupContent(
                 modifier = Modifier
                     .background(backgroundBlack.copy(alpha = 0.75f))
                     .align(Alignment.BottomCenter)
-                    .imePadding()
             ) {
                 if (state.isInputLocked.not()) {
                     Row(
@@ -179,12 +176,14 @@ fun SendSetupContent(
                             labelResId = R.string.chip_qr,
                             onClick = callback::onQrClick
                         )
-                        Badge(
-                            modifier = Modifier.weight(1f),
-                            iconResId = R.drawable.ic_history_16,
-                            labelResId = R.string.chip_history,
-                            onClick = callback::onHistoryClick
-                        )
+                        if (state.isHistoryAvailable) {
+                            Badge(
+                                modifier = Modifier.weight(1f),
+                                iconResId = R.drawable.ic_history_16,
+                                labelResId = R.string.chip_history,
+                                onClick = callback::onHistoryClick
+                            )
+                        }
                     }
                     MarginVertical(margin = 12.dp)
                 }
@@ -259,8 +258,8 @@ private fun SendSetupPreview() {
         warningInfoState = null,
         buttonState = ButtonViewState("Continue", true),
         isSoftKeyboardOpen = false,
-        heightDiffDp = 0.dp,
-        isInputLocked = false
+        isInputLocked = false,
+        isHistoryAvailable = false
     )
 
     val emptyCallback = object : SendSetupScreenInterface {

@@ -33,11 +33,11 @@
         <item name="fontRegular">@font/sora_regular</item>
         <!--fonts-->
 
-        <item name="colorAccent">@color/colorAccent</item>
+        <item name="colorAccent">@color/colorAccentDark</item>
     </style>
 
     <style name="PinkOverlay" parent="ThemeOverlay.AppCompat">
-        <item name="colorPrimary">@color/colorAccent</item>
+        <item name="colorPrimary">@color/colorAccentDark</item>
     </style>
 
     <style name="WhiteOverlay" parent="ThemeOverlay.AppCompat">

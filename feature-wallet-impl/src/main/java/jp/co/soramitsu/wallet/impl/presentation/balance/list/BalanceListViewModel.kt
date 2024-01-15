@@ -6,13 +6,15 @@ import androidx.compose.material.SwipeableState
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import co.jp.soramitsu.walletconnect.domain.WalletConnectInteractor
+import com.walletconnect.android.internal.common.exception.MalformedWalletConnectUri
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.math.BigDecimal
-import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.PendulumPreInstalledAccountsScenario
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.TotalBalanceUseCase
+import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.common.BuildConfig
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
@@ -20,9 +22,9 @@ import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.ActionItemType
 import jp.co.soramitsu.common.compose.component.AssetBalanceViewState
-import jp.co.soramitsu.common.compose.component.ChainSelectorViewState
+import jp.co.soramitsu.common.compose.component.ChainSelectorViewStateWithFilters
 import jp.co.soramitsu.common.compose.component.ChangeBalanceViewState
-import jp.co.soramitsu.common.compose.component.MainToolbarViewState
+import jp.co.soramitsu.common.compose.component.MainToolbarViewStateWithFilters
 import jp.co.soramitsu.common.compose.component.MultiToggleButtonState
 import jp.co.soramitsu.common.compose.component.NetworkIssueItemState
 import jp.co.soramitsu.common.compose.component.SwipeState
@@ -41,6 +43,7 @@ import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
+import jp.co.soramitsu.common.utils.combine
 import jp.co.soramitsu.common.utils.formatAsChange
 import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.inBackground
@@ -49,11 +52,6 @@ import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.feature_wallet_impl.R
-import jp.co.soramitsu.oauth.base.sdk.contract.SoraCardCommonVerification
-import jp.co.soramitsu.oauth.base.sdk.contract.SoraCardContractData
-import jp.co.soramitsu.oauth.common.domain.KycRepository
-import jp.co.soramitsu.runtime.ext.ecosystem
-import jp.co.soramitsu.runtime.multiNetwork.chain.ChainEcosystem
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.defaultChainSort
@@ -66,6 +64,7 @@ import jp.co.soramitsu.soracard.impl.presentation.SoraCardItemViewState
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.updaters.BalanceUpdateTrigger
 import jp.co.soramitsu.wallet.impl.domain.ChainInteractor
 import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
+import jp.co.soramitsu.wallet.impl.domain.QR_PREFIX_WALLET_CONNECT
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.domain.model.AssetWithStatus
 import jp.co.soramitsu.wallet.impl.domain.model.WalletAccount
@@ -95,7 +94,6 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import jp.co.soramitsu.oauth.R as SoraCardR
 
 private const val CURRENT_ICON_SIZE = 40
 
@@ -114,9 +112,9 @@ class BalanceListViewModel @Inject constructor(
     private val resourceManager: ResourceManager,
     private val clipboardManager: ClipboardManager,
     private val currentAccountAddress: CurrentAccountAddressUseCase,
-    private val kycRepository: KycRepository,
     private val getTotalBalance: TotalBalanceUseCase,
-    private val pendulumPreInstalledAccountsScenario: PendulumPreInstalledAccountsScenario
+    private val pendulumPreInstalledAccountsScenario: PendulumPreInstalledAccountsScenario,
+    private val walletConnectInteractor: WalletConnectInteractor
 ) : BaseViewModel(), UpdatesProviderUi by updatesMixin, NetworkStateUi by networkStateMixin,
     WalletScreenInterface {
 
@@ -130,9 +128,6 @@ class BalanceListViewModel @Inject constructor(
 
     private val _openPlayMarket = MutableLiveData<Event<Unit>>()
     val openPlayMarket: LiveData<Event<Unit>> = _openPlayMarket
-
-    private val _launchSoraCardSignIn = MutableLiveData<Event<SoraCardContractData>>()
-    val launchSoraCardSignIn: LiveData<Event<SoraCardContractData>> = _launchSoraCardSignIn
 
     private val chainsFlow = chainInteractor.getChainsFlow().mapList {
         it.toChainItemState()
@@ -167,58 +162,64 @@ class BalanceListViewModel @Inject constructor(
         interactor.assetsFlow(),
         chainInteractor.getChainsFlow(),
         selectedChainId,
+        interactor.selectedMetaAccountFlow(),
         networkIssuesFlow,
+        interactor.observeSelectedAccountChainSelectFilter(),
         interactor.observeHideZeroBalanceEnabledForCurrentWallet()
-    ) { assets: List<AssetWithStatus>, chains: List<Chain>, selectedChainId: ChainId?, networkIssues: Set<NetworkIssueItemState>, hideZeroBalancesEnabled ->
-        val balanceListItems = mutableListOf<BalanceListItemModel>()
+    ) {
+            assets: List<AssetWithStatus>,
+            chains: List<Chain>,
+            selectedChainId: ChainId?,
+            currentMetaAccountFlow: MetaAccount,
+            networkIssues: Set<NetworkIssueItemState>,
+            appliedFilterAsString: String,
+            hideZeroBalancesEnabled: Boolean ->
+
+        val filter = ChainSelectorViewStateWithFilters.Filter.values().find {
+            it.name == appliedFilterAsString
+        } ?: ChainSelectorViewStateWithFilters.Filter.All
 
         val shouldShowNetworkIssues =
             selectedChainId == null && (networkIssues.isNotEmpty() || assets.any { it.hasAccount.not() })
         showNetworkIssues.value = shouldShowNetworkIssues
 
-        chains.groupBy { if (it.isTestNet) ChainEcosystem.STANDALONE else it.ecosystem() }
-            .forEach { (ecosystem, ecosystemChains) ->
-                when (ecosystem) {
-                    ChainEcosystem.POLKADOT,
-                    ChainEcosystem.KUSAMA,
-                    ChainEcosystem.ETHEREUM -> {
-                        val ecosystemAssets = assets.filter {
-                            it.asset.token.configuration.chainId in ecosystemChains.map { it.id }
-                        }
+        val selectedAccountFavoriteChains = currentMetaAccountFlow.favoriteChains
 
-                        val filtered = ecosystemAssets
-                            .filter { selectedChainId == null || selectedChainId == it.asset.token.configuration.chainId }
+        val chainsWithFavoriteInfo = chains.map { chain ->
+            chain to (selectedAccountFavoriteChains[chain.id]?.isFavorite == true)
+        }
 
-                        val items = AssetListHelper.processAssets(
-                            ecosystemAssets = filtered,
-                            ecosystemChains = ecosystemChains,
-                            selectedChainId = selectedChainId,
-                            networkIssues = networkIssues,
-                            hideZeroBalancesEnabled = hideZeroBalancesEnabled,
-                            ecosystem = ecosystem
-                        )
-                        balanceListItems.addAll(items)
-                    }
+        val filteredChains = when {
+            selectedChainId != null -> chains.filter { it.id == selectedChainId }
+            filter == ChainSelectorViewStateWithFilters.Filter.All -> chainsWithFavoriteInfo.map { it.first }
 
-                    ChainEcosystem.STANDALONE -> {
-                        ecosystemChains.forEach { chain ->
-                            if (selectedChainId == null || selectedChainId == chain.id) {
-                                val chainAssets =
-                                    assets.filter { it.asset.token.configuration.chainId == chain.id }
-                                val items = AssetListHelper.processAssets(
-                                    ecosystemAssets = chainAssets,
-                                    ecosystemChains = listOf(chain),
-                                    selectedChainId = selectedChainId,
-                                    networkIssues = networkIssues,
-                                    hideZeroBalancesEnabled = hideZeroBalancesEnabled,
-                                    ecosystem = ecosystem
-                                )
-                                balanceListItems.addAll(items)
-                            }
-                        }
-                    }
-                }
+            filter == ChainSelectorViewStateWithFilters.Filter.Favorite ->
+                chainsWithFavoriteInfo.filter { (_, isFavorite) -> isFavorite }.map { it.first }
+
+            filter == ChainSelectorViewStateWithFilters.Filter.Popular ->
+                chainsWithFavoriteInfo.filter { (chain, _) ->
+                    chain.rank != null
+                }.sortedBy { (chain, _) ->
+                    chain.rank
+                }.map { it.first }
+
+            else -> emptyList()
+        }
+
+        val filteredAssets = assets
+            .filter {
+                selectedChainId == it.asset.token.configuration.chainId ||
+                        selectedChainId == null ||
+                        it.asset.token.configuration.chainId in filteredChains.map { it.id }
             }
+
+        val balanceListItems = AssetListHelper.processAssets(
+            assets = filteredAssets,
+            filteredChains = filteredChains,
+            selectedChainId = selectedChainId,
+            networkIssues = networkIssues,
+            hideZeroBalancesEnabled = hideZeroBalancesEnabled
+        )
 
         val assetStates: List<AssetListItemViewState> = balanceListItems
             .sortedWith(defaultBalanceListItemSort())
@@ -272,7 +273,6 @@ class BalanceListViewModel @Inject constructor(
                     isSupported = true,
                     isHidden = false,
                     priceId = chainAsset.priceId,
-                    ecosystem = ChainEcosystem.POLKADOT.name,
                     isTestnet = chainAsset.isTestNet ?: false
                 )
             }.filter { selectedChainId.value == null || selectedChainId.value == it.chainId }
@@ -347,13 +347,21 @@ class BalanceListViewModel @Inject constructor(
 
     val toolbarState = combine(
         currentAddressModelFlow(),
+        interactor.observeSelectedAccountChainSelectFilter(),
         selectedChainItemFlow
-    ) { addressModel, chain ->
+    ) { addressModel, filter, chain ->
         LoadingState.Loaded(
-            MainToolbarViewState(
+            MainToolbarViewStateWithFilters(
                 title = addressModel.nameOrAddress,
                 homeIconState = ToolbarHomeIconState(walletIcon = addressModel.image),
-                selectorViewState = ChainSelectorViewState(chain?.title, chain?.id)
+                selectorViewState = ChainSelectorViewStateWithFilters(
+                    selectedChainName = chain?.title,
+                    selectedChainId = chain?.id,
+                    selectedChainImageUrl = chain?.imageUrl,
+                    filterApplied = ChainSelectorViewStateWithFilters.Filter.values().find {
+                        it.name == filter
+                    } ?: ChainSelectorViewStateWithFilters.Filter.All
+                )
             )
         )
     }.stateIn(
@@ -366,7 +374,6 @@ class BalanceListViewModel @Inject constructor(
         subscribeScreenState()
         observeNetworkState()
         observeFiatSymbolChange()
-        updateSoraCardStatus()
 
         router.chainSelectorPayloadFlow.map { chainId ->
             val walletId = interactor.getSelectedMetaAccount().id
@@ -395,12 +402,10 @@ class BalanceListViewModel @Inject constructor(
     }
 
     private fun refresh() {
-        updateSoraCardStatus()
         sync()
     }
 
     fun onResume() {
-        updateSoraCardStatus()
         viewModelScope.launch {
             interactor.selectedMetaAccountFlow().collect {
                 checkControllerDeprecations()
@@ -430,24 +435,6 @@ class BalanceListViewModel @Inject constructor(
                     }
                 }
             )
-        }
-    }
-
-    private fun updateSoraCardStatus() {
-        viewModelScope.launch {
-            val soraCardInfo = soraCardInteractor.getSoraCardInfo() ?: return@launch
-            val accessTokenExpirationTime = soraCardInfo.accessTokenExpirationTime
-            val accessTokenExpired =
-                accessTokenExpirationTime < TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis())
-
-            if (!accessTokenExpired) {
-                kycRepository.getKycLastFinalStatus(soraCardInfo.accessToken)
-                    .onSuccess { kycStatus ->
-                        soraCardInteractor.updateSoraCardKycStatus(
-                            kycStatus = kycStatus?.toString().orEmpty()
-                        )
-                    }
-            }
         }
     }
 
@@ -521,12 +508,7 @@ class BalanceListViewModel @Inject constructor(
                 return@launch
             }
 
-            val payload = AssetPayload(
-                chainId = state.chainId,
-                chainAssetId = state.chainAssetId
-            )
-
-            router.openAssetDetails(payload)
+            router.openAssetIntermediateDetails(state.chainAssetId)
         }
     }
 
@@ -632,25 +614,48 @@ class BalanceListViewModel @Inject constructor(
 
     fun qrCodeScanned(content: String) {
         viewModelScope.launch {
-            val cbdcFormat = interactor.tryReadCBDCAddressFormat(content)
-            if (cbdcFormat != null) {
-                router.openCBDCSend(cbdcQrInfo = cbdcFormat)
+            if (content.startsWith(QR_PREFIX_WALLET_CONNECT)) {
+                sendWalletConnectPair(pairingUri = content)
             } else {
-                val soraFormat =
-                    interactor.tryReadSoraFormat(content)
-                if (soraFormat != null) {
-                    val amount =
-                        soraFormat.amount?.let { runCatching { BigDecimal(it) }.getOrNull() }
-                    openSendSoraTokenTo(soraFormat.tokenId, soraFormat.address, amount)
+                val cbdcFormat = interactor.tryReadCBDCAddressFormat(content)
+                if (cbdcFormat != null) {
+                    router.openCBDCSend(cbdcQrInfo = cbdcFormat)
                 } else {
-                    router.openSend(
-                        assetPayload = null,
-                        initialSendToAddress = content,
-                        amount = null
-                    )
+                    val soraFormat =
+                        interactor.tryReadSoraFormat(content)
+                    if (soraFormat != null) {
+                        val amount =
+                            soraFormat.amount?.let { runCatching { BigDecimal(it) }.getOrNull() }
+                        openSendSoraTokenTo(soraFormat.tokenId, soraFormat.address, amount)
+                    } else {
+                        router.openSend(
+                            assetPayload = null,
+                            initialSendToAddress = content,
+                            amount = null
+                        )
+                    }
                 }
             }
         }
+    }
+
+    private fun sendWalletConnectPair(pairingUri: String) {
+        walletConnectInteractor.pair(
+            pairingUri = pairingUri,
+            onError = { error ->
+                viewModelScope.launch(Dispatchers.Main.immediate) {
+                    if (error.throwable is MalformedWalletConnectUri) {
+                        showError(
+                            title = resourceManager.getString(R.string.connection_invalid_url_error_title),
+                            message = resourceManager.getString(R.string.connection_invalid_url_error_message),
+                            positiveButtonText = resourceManager.getString(R.string.common_close)
+                        )
+                    } else {
+                        showError(error.throwable.message ?: "WalletConnect pairing error")
+                    }
+                }
+            }
+        )
     }
 
     private suspend fun openSendSoraTokenTo(
@@ -686,7 +691,7 @@ class BalanceListViewModel @Inject constructor(
     }
 
     fun openSelectChain() {
-        router.openSelectChain(selectedChainId.value)
+        router.openSelectChain(selectedChainId.value, isFilteringEnabled = true)
     }
 
     private fun copyToClipboard(text: String) {
@@ -696,46 +701,6 @@ class BalanceListViewModel @Inject constructor(
         showMessage(message)
     }
 
-    private fun mapKycStatus(kycStatus: String): String? {
-        return when (runCatching { SoraCardCommonVerification.valueOf(kycStatus) }.getOrNull()) {
-            SoraCardCommonVerification.Pending -> {
-                resourceManager.getString(SoraCardR.string.kyc_result_verification_in_progress)
-            }
-
-            SoraCardCommonVerification.Successful -> {
-                resourceManager.getString(R.string.sora_card_verification_successful)
-            }
-
-            SoraCardCommonVerification.Rejected -> {
-                resourceManager.getString(SoraCardR.string.verification_rejected_title)
-            }
-
-            SoraCardCommonVerification.Failed -> {
-                resourceManager.getString(SoraCardR.string.verification_failed_title)
-            }
-
-            else -> {
-                null
-            }
-        }
-    }
-
     private fun onSoraCardStatusClicked() {
-    }
-
-    fun updateSoraCardInfo(
-        accessToken: String,
-        refreshToken: String,
-        accessTokenExpirationTime: Long,
-        kycStatus: String
-    ) {
-        launch {
-            soraCardInteractor.updateSoraCardInfo(
-                accessToken,
-                refreshToken,
-                accessTokenExpirationTime,
-                kycStatus
-            )
-        }
     }
 }

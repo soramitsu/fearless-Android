@@ -39,7 +39,7 @@
         app:layout_constraintBottom_toBottomOf="@id/chainAccountAccountAddress"
         app:layout_constraintStart_toStartOf="@+id/chainAccountChainName"
         app:layout_constraintTop_toTopOf="@id/chainAccountAccountAddress"
-        tools:src="@color/colorAccent" />
+        tools:src="@color/colorAccentDark" />
 
 
     <TextView

@@ -10,8 +10,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -70,8 +68,7 @@ data class SwapTokensContentViewState(
     val isLoading: Boolean,
     val networkFeeViewState: LoadingState<out SwapDetailsViewState.NetworkFee?>,
     val hasReadDisclaimer: Boolean,
-    val isSoftKeyboardOpen: Boolean,
-    val heightDiffDp: Dp
+    val isSoftKeyboardOpen: Boolean
 ) {
     companion object {
 
@@ -84,8 +81,7 @@ data class SwapTokensContentViewState(
                 isLoading = false,
                 networkFeeViewState = LoadingState.Loaded(null),
                 hasReadDisclaimer = false,
-                isSoftKeyboardOpen = false,
-                heightDiffDp = 0.dp
+                isSoftKeyboardOpen = false
             )
         }
     }
@@ -158,9 +154,6 @@ fun SwapTokensContent(
 
     Column(
         modifier = modifier
-            .navigationBarsPadding()
-            .imePadding()
-            .padding(bottom = state.heightDiffDp)
     ) {
         Row(
             modifier = Modifier.padding(bottom = 12.dp),
@@ -427,8 +420,7 @@ fun SwapTokensContentPreview() {
             isLoading = false,
             networkFeeViewState = LoadingState.Loading(),
             hasReadDisclaimer = false,
-            isSoftKeyboardOpen = false,
-            heightDiffDp = 0.dp
+            isSoftKeyboardOpen = false
         )
         val callbacks = object : SwapTokensCallbacks {
             override fun onChangeTokensClick() {}

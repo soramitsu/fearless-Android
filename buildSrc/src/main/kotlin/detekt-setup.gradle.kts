@@ -53,8 +53,8 @@ fun Detekt.setup(autoCorrect: Boolean) {
 }
 
 tasks.withType<Detekt>().configureEach {
-    jvmTarget = "1.8"
+    jvmTarget = "11"
 }
 tasks.withType<DetektCreateBaselineTask>().configureEach {
-    jvmTarget = "1.8"
+    jvmTarget = "11"
 }

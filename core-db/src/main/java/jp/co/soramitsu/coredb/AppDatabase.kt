@@ -61,6 +61,7 @@ import jp.co.soramitsu.coredb.migrations.Migration_54_55
 import jp.co.soramitsu.coredb.migrations.Migration_55_56
 import jp.co.soramitsu.coredb.migrations.Migration_56_57
 import jp.co.soramitsu.coredb.migrations.Migration_57_58
+import jp.co.soramitsu.coredb.migrations.Migration_58_59
 import jp.co.soramitsu.coredb.migrations.RemoveAccountForeignKeyFromAsset_17_18
 import jp.co.soramitsu.coredb.migrations.RemoveLegacyData_35_36
 import jp.co.soramitsu.coredb.migrations.RemoveStakingRewardsTable_22_23
@@ -82,10 +83,11 @@ import jp.co.soramitsu.coredb.model.chain.ChainLocal
 import jp.co.soramitsu.coredb.model.chain.ChainNodeLocal
 import jp.co.soramitsu.coredb.model.chain.ChainRuntimeInfoLocal
 import jp.co.soramitsu.coredb.model.chain.ChainTypesLocal
+import jp.co.soramitsu.coredb.model.chain.FavoriteChainLocal
 import jp.co.soramitsu.coredb.model.chain.MetaAccountLocal
 
 @Database(
-    version = 58,
+    version = 59,
     entities = [
         AccountLocal::class,
         AddressBookContact::class,
@@ -100,6 +102,7 @@ import jp.co.soramitsu.coredb.model.chain.MetaAccountLocal
         ChainLocal::class,
         ChainNodeLocal::class,
         ChainAssetLocal::class,
+        FavoriteChainLocal::class,
         ChainRuntimeInfoLocal::class,
         MetaAccountLocal::class,
         ChainAccountLocal::class,
@@ -163,6 +166,7 @@ abstract class AppDatabase : RoomDatabase() {
                     .addMigrations(Migration_55_56)
                     .addMigrations(Migration_56_57)
                     .addMigrations(Migration_57_58)
+                    .addMigrations(Migration_58_59)
                     .build()
             }
             return instance!!

@@ -3,6 +3,25 @@ package jp.co.soramitsu.coredb.migrations
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
+val Migration_58_59 = object : Migration(58, 59) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+        database.execSQL("ALTER TABLE chains ADD COLUMN `rank` INTEGER NULL")
+
+        database.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `favorite_chains` (
+            `metaId` INTEGER NOT NULL,
+            `chainId` TEXT NOT NULL,
+            `isFavorite` INTEGER NOT NULL DEFAULT 0,
+            PRIMARY KEY(`metaId`, `chainId`),
+            FOREIGN KEY(`chainId`) REFERENCES `chains`(`id`) ON UPDATE NO ACTION ON DELETE NO ACTION  DEFERRABLE INITIALLY DEFERRED,
+            FOREIGN KEY(`metaId`) REFERENCES `meta_accounts`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE 
+            )
+            """.trimIndent()
+        )
+    }
+}
+
 val Migration_57_58 = object : Migration(57, 58) {
     override fun migrate(database: SupportSQLiteDatabase) {
         database.execSQL("ALTER TABLE chains ADD COLUMN `isEthereumChain` INTEGER NOT NULL DEFAULT 0")
