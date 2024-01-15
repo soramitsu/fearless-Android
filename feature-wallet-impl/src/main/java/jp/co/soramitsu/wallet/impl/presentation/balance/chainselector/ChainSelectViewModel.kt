@@ -8,8 +8,6 @@ import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.ChainSelectorViewStateWithFilters
 import jp.co.soramitsu.common.utils.combine
 import jp.co.soramitsu.core.utils.utilityAsset
-import jp.co.soramitsu.runtime.ext.ecosystem
-import jp.co.soramitsu.runtime.multiNetwork.chain.ChainEcosystem
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.defaultChainSort
 import jp.co.soramitsu.wallet.api.domain.model.XcmChainType
@@ -88,11 +86,11 @@ class ChainSelectViewModel @Inject constructor(
                 chains.firstOrNull {
                     it.assets.any { asset -> asset.id == initialSelectedAssetId }
                 }?.let { chainOfTheAsset ->
-                    val priceId = chainOfTheAsset.assets
+                    val symbol = chainOfTheAsset.assets
                         .firstOrNull { it.id == initialSelectedAssetId }
-                        ?.priceId
+                        ?.symbol
                     val chainsWithAsset = chains.filter {
-                        it.assets.any { asset -> asset.priceId == priceId }
+                        it.assets.any { it.symbol == symbol }
                     }
                     chainsWithAsset
                 }

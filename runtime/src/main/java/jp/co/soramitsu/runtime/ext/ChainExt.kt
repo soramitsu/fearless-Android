@@ -78,6 +78,6 @@ fun Chain.ecosystem() = when {
     isTestNet -> ChainEcosystem.STANDALONE
     polkadotChainId in listOf(id, parentId) -> ChainEcosystem.POLKADOT
     kusamaChainId in listOf(id, parentId) -> ChainEcosystem.KUSAMA
-    isEthereumBased -> ChainEcosystem.ETHEREUM
+    isEthereumBased || isEthereumChain -> ChainEcosystem.ETHEREUM
     else -> ChainEcosystem.STANDALONE
 }

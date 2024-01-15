@@ -340,7 +340,6 @@ private fun PreviewAssetListItem() {
         isSupported = true,
         isHidden = false,
         priceId = null,
-        ecosystem = "Polkadot",
         isTestnet = false
     )
     FearlessAppTheme {
