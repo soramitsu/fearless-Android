@@ -15,6 +15,7 @@ import jp.co.soramitsu.coredb.model.chain.ChainRuntimeInfoLocal
 import jp.co.soramitsu.coredb.model.chain.ChainTypesLocal
 import jp.co.soramitsu.coredb.model.chain.JoinedChainInfo
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flatMapLatest
 
 @Dao
 abstract class ChainDao {
@@ -144,19 +145,38 @@ abstract class ChainDao {
     @Query("SELECT * FROM chain_assets")
     abstract suspend fun getAssetsConfigs(): List<ChainAssetLocal>
 
+    open fun observeChainsWithBalance(
+        accountMetaId: Long,
+        assetId: String
+    ): Flow<Map<JoinedChainInfo, AssetWithToken>> {
+        return observeAssetSymbolById(assetId).flatMapLatest { symbol ->
+            observeChainsWithBalanceByName(
+                accountMetaId = accountMetaId,
+                assetSymbol = symbol
+            )
+        }
+    }
+
+    @Query(
+        """
+            SELECT symbol FROM chain_assets WHERE chain_assets.id = :assetId
+        """
+    )
+    protected abstract fun observeAssetSymbolById(assetId: String): Flow<String>
+
     @Transaction
     @Query(
         """
             SELECT * FROM chains
             JOIN assets ON chains.id = assets.chainId
-            LEFT JOIN token_price ON token_price.priceId = assets.tokenPriceId
-            WHERE assets.tokenPriceId = (SELECT tokenPriceId FROM assets WHERE assets.id = :assetId)
+            LEFT JOIN chain_assets ON chain_assets.id = assets.id
+            WHERE chain_assets.symbol LIKE '%' || :assetSymbol
             AND assets.metaId = :accountMetaId
         """
     )
-    abstract fun observeChainsWithBalance(
+    protected abstract fun observeChainsWithBalanceByName(
         accountMetaId: Long,
-        assetId: String
+        assetSymbol: String
     ): Flow<Map<JoinedChainInfo, AssetWithToken>>
 
 }
