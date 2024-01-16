@@ -17,6 +17,6 @@ def pipeline = new org.android.AppPipeline(
     publishCmd:       'publishReleaseApk',
     jobParams:        jobParams,
     appPushNoti:      true,
-    dojoProductType:  'android'
+    dojoProductType:  'fearless'
 )
 pipeline.runPipeline('fearless')
