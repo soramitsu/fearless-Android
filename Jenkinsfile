@@ -9,8 +9,6 @@ def jobParams = [
 def pipeline = new org.android.AppPipeline(
     steps:            this,
     sonar:            false,
-    test:             false,
-    dojo:             false, 
     sonarCommand:     './gradlew sonar -x :core-db:compileDebugUnitTestKotlin -x :core-db:compileDebugAndroidTestKotlin -x :feature-crowdloan-impl:compileDebugAndroidTestKotlin -x :runtime:compileDebugUnitTestKotlin -x :app:kaptDebugAndroidTestKotlin -x :app:compileDebugAndroidTestKotlin -Dsonar.coverage.jacoco.xmlReportPaths=**/coverage/*.xml',
     sonarProjectName: 'fearless-android',
     sonarProjectKey:  'fearless:fearless-android',
@@ -21,6 +19,6 @@ def pipeline = new org.android.AppPipeline(
     jobParams:        jobParams,
     appPushNoti:      true,
     dojoProductType:  'android',
-    uploadToNexusFor: ['master','develop','stage'],
+    uploadToNexusFor: ['master','develop','staging']
 )
 pipeline.runPipeline('fearless')
