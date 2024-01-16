@@ -90,9 +90,9 @@ import jp.co.soramitsu.wallet.impl.presentation.transaction.filter.HistoryFilter
 import jp.co.soramitsu.xcm.XcmService
 import jp.co.soramitsu.xcm.domain.XcmEntitiesFetcher
 import jp.co.soramitsu.xnetworking.basic.networkclient.SoramitsuNetworkClient
+import jp.co.soramitsu.xnetworking.fearlesswallet.txhistory.client.TxHistoryClientForFearlessWalletFactory
 import jp.co.soramitsu.xnetworking.sorawallet.mainconfig.SoraRemoteConfigBuilder
 import jp.co.soramitsu.xnetworking.sorawallet.mainconfig.SoraRemoteConfigProvider
-import jp.co.soramitsu.xnetworking.sorawallet.txhistory.client.SubQueryClientForSoraWalletFactory
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -209,19 +209,20 @@ class WalletFeatureModule {
         walletOperationsHistoryApi: OperationsHistoryApi,
         chainRegistry: ChainRegistry,
         soramitsuNetworkClient: SoramitsuNetworkClient,
-        subQueryClientForSoraWalletFactory: SubQueryClientForSoraWalletFactory,
+        txHistoryClientForFearlessWalletFactory: TxHistoryClientForFearlessWalletFactory,
         @Named("prod") soraProdRemoteConfigBuilder: SoraRemoteConfigBuilder,
         @Named("stage") soraStageRemoteConfigBuilder: SoraRemoteConfigBuilder
     ) = HistorySourceProvider(
         walletOperationsHistoryApi,
         chainRegistry,
         soramitsuNetworkClient,
-        subQueryClientForSoraWalletFactory,
+        txHistoryClientForFearlessWalletFactory,
         soraProdRemoteConfigBuilder,
         soraStageRemoteConfigBuilder
     )
 
     @Provides
+    @Singleton
     fun provideWalletInteractor(
         walletRepository: WalletRepository,
         addressBookRepository: AddressBookRepository,
@@ -436,9 +437,9 @@ class WalletFeatureModule {
 
     @Singleton
     @Provides
-    fun provideSubQueryClientForSoraWalletFactory(
+    fun provideTxHistoryClientForFearlessWalletFactory(
         @ApplicationContext context: Context
-    ): SubQueryClientForSoraWalletFactory = SubQueryClientForSoraWalletFactory(context)
+    ): TxHistoryClientForFearlessWalletFactory = TxHistoryClientForFearlessWalletFactory(context)
 
     @Singleton
     @Provides

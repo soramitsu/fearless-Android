@@ -62,11 +62,11 @@ class AmountView @JvmOverloads constructor(
     private fun setBackground() {
         background = context.getCutCornersStateDrawable(
             focusedDrawable = context.getCutCornerDrawable(
-                R.color.blurColor,
+                android.R.color.transparent,
                 R.color.white
             ),
             idleDrawable = context.getCutCornerDrawable(
-                R.color.blurColor,
+                android.R.color.transparent,
                 R.color.white_40
             )
         )

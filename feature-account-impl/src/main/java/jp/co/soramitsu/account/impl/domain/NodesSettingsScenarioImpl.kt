@@ -8,10 +8,16 @@ import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.NodeId
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 
 class NodesSettingsScenarioImpl(private val chainRegistry: ChainRegistry) : NodesSettingsScenario {
 
-    override fun nodesFlow(chainId: ChainId): Flow<List<ChainNode>> = chainRegistry.nodesFlow(chainId)
+    override fun nodesFlow(chainId: ChainId): Flow<List<ChainNode>> {
+        return chainRegistry.nodesFlow(chainId)
+            .map { nodes ->
+                nodes.filter { it.url.contains("http").not() }
+            }
+    }
 
     override suspend fun getNode(id: NodeId): ChainNode = chainRegistry.getNode(id)
 

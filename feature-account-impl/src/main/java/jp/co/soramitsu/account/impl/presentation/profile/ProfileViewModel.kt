@@ -26,9 +26,6 @@ import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
 import jp.co.soramitsu.feature_account_impl.R
-import jp.co.soramitsu.oauth.base.sdk.contract.SoraCardCommonVerification
-import jp.co.soramitsu.oauth.base.sdk.contract.SoraCardContractData
-import jp.co.soramitsu.polkaswap.api.models.DisclaimerAppearanceSource
 import jp.co.soramitsu.soracard.api.domain.SoraCardInteractor
 import jp.co.soramitsu.soracard.impl.presentation.SoraCardItemViewState
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
@@ -40,7 +37,6 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import jp.co.soramitsu.oauth.R as SoraCardR
 
 private const val AVATAR_SIZE_DP = 32
 
@@ -57,9 +53,6 @@ class ProfileViewModel @Inject constructor(
     private val selectedFiat: SelectedFiat,
     private val resourceManager: ResourceManager
 ) : BaseViewModel(), ExternalAccountActions by externalAccountActions {
-
-    private val _launchSoraCardSignIn = MutableLiveData<Event<SoraCardContractData>>()
-    val launchSoraCardSignIn: LiveData<Event<SoraCardContractData>> = _launchSoraCardSignIn
 
     val totalBalanceLiveData = combine(getTotalBalance.observe(), selectedFiat.flow()) { balance, fiat ->
         val selectedFiatSymbol = getAvailableFiatCurrencies[fiat]?.symbol
@@ -145,7 +138,7 @@ class ProfileViewModel @Inject constructor(
     }
 
     fun polkaswapDisclaimerClicked() {
-        router.openPolkaswapDisclaimer(DisclaimerAppearanceSource.ProfileFragment)
+        router.openPolkaswapDisclaimerFromProfile()
     }
 
     fun onSoraCardClicked() {
@@ -162,45 +155,13 @@ class ProfileViewModel @Inject constructor(
     private fun onSoraCardStatusClicked() {
     }
 
-    private fun mapKycStatus(kycStatus: String): String? {
-        return when (runCatching { SoraCardCommonVerification.valueOf(kycStatus) }.getOrNull()) {
-            SoraCardCommonVerification.Pending -> {
-                resourceManager.getString(SoraCardR.string.kyc_result_verification_in_progress)
-            }
-            SoraCardCommonVerification.Successful -> {
-                resourceManager.getString(R.string.sora_card_verification_successful)
-            }
-            SoraCardCommonVerification.Rejected -> {
-                resourceManager.getString(SoraCardR.string.verification_rejected_title)
-            }
-            SoraCardCommonVerification.Failed -> {
-                resourceManager.getString(SoraCardR.string.verification_failed_title)
-            }
-            else -> {
-                null
-            }
-        }
-    }
-
-    fun updateSoraCardInfo(
-        accessToken: String,
-        refreshToken: String,
-        accessTokenExpirationTime: Long,
-        kycStatus: String
-    ) {
-        launch {
-            soraCardInteractor.updateSoraCardInfo(
-                accessToken,
-                refreshToken,
-                accessTokenExpirationTime,
-                kycStatus
-            )
-        }
-    }
-
     fun onHideZeroBalancesClick() {
         viewModelScope.launch {
             walletInteractor.toggleHideZeroBalancesForCurrentWallet()
         }
+    }
+
+    fun onWalletConnectClick() {
+        router.openConnectionsScreen()
     }
 }

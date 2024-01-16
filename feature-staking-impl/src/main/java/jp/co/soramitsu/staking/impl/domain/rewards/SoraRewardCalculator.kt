@@ -1,6 +1,7 @@
 package jp.co.soramitsu.staking.impl.domain.rewards
 
 import java.math.BigDecimal
+import jp.co.soramitsu.common.data.network.runtime.binding.cast
 import jp.co.soramitsu.common.utils.fractionToPercentage
 import jp.co.soramitsu.common.utils.median
 import jp.co.soramitsu.common.utils.sumByBigInteger
@@ -15,7 +16,8 @@ class SoraRewardCalculator(
     private val validators: List<RewardCalculationTarget>,
     private val xorValRate: Double,
     private val averageValidatorPayout: Double,
-    private val asset: Asset
+    private val asset: Asset,
+    calculationTargets: List<String>
 ) : RewardCalculator {
     companion object {
         private const val ERAS_PER_DAY = 4
@@ -26,7 +28,9 @@ class SoraRewardCalculator(
         valueTransform = ::calculateValidatorAPY
     )
 
-    private val maxAPY = apyByValidator.values.maxOrNull() ?: 0.0
+    private val apyByCalculationTargets = calculationTargets.associateWith { apyByValidator[it] }.filterValues { it != null }.cast<Map<String, Double>>()
+
+    private val maxAPY = apyByCalculationTargets.values.maxOrNull() ?: 0.0
     private val expectedAPY = calculateExpectedAPY()
 
     private fun calculateExpectedAPY(): Double {
@@ -36,7 +40,7 @@ class SoraRewardCalculator(
             prices.isEmpty() -> 0.0
             else -> prices.median()
         }
-        val averageValidatorRewardPercentage = apyByValidator.values.average()
+        val averageValidatorRewardPercentage = apyByCalculationTargets.values.average()
         return averageValidatorRewardPercentage * (1 - medianCommission)
     }
 
@@ -62,7 +66,7 @@ class SoraRewardCalculator(
     }
 
     override suspend fun calculateAvgAPY(): BigDecimal {
-        val average = apyByValidator.values.average()
+        val average = apyByCalculationTargets.values.average()
         val dailyPercentage = average / DAYS_IN_YEAR
         return calculateReward(
             amount = BigDecimal.ONE.toDouble(),

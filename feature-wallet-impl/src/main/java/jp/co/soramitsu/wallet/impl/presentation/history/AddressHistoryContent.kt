@@ -18,6 +18,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.rememberNestedScrollInteropConnection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -29,6 +31,7 @@ import jp.co.soramitsu.common.compose.component.B1
 import jp.co.soramitsu.common.compose.component.BackgroundCorneredWithBorder
 import jp.co.soramitsu.common.compose.component.BottomSheetScreen
 import jp.co.soramitsu.common.compose.component.EmptyMessage
+import jp.co.soramitsu.common.compose.component.FearlessProgress
 import jp.co.soramitsu.common.compose.component.H5
 import jp.co.soramitsu.common.compose.component.MarginHorizontal
 import jp.co.soramitsu.common.compose.component.MarginVertical
@@ -78,6 +81,7 @@ fun AddressHistoryContent(
         Box(Modifier.fillMaxSize()) {
             Column(
                 modifier = Modifier
+                    .nestedScroll(rememberNestedScrollInteropConnection())
                     .padding(horizontal = 16.dp)
                     .fillMaxWidth()
             ) {
@@ -86,11 +90,23 @@ fun AddressHistoryContent(
                     onNavigationClick = callback::onNavigationClick
                 )
                 MarginVertical(margin = 24.dp)
-
                 when {
+                    state is LoadingState.Loading -> {
+                        Box(
+                            Modifier
+                                .weight(1f)
+                                .fillMaxWidth()
+                        ) {
+                            FearlessProgress(
+                                Modifier.align(Alignment.Center)
+                            )
+                        }
+                    }
+
                     state is LoadingState.Loaded && state.data.isEmpty -> {
                         EmptyState()
                     }
+
                     state is LoadingState.Loaded && state.data.isEmpty.not() -> {
                         Content(state = state.data, callback = callback)
                     }

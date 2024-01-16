@@ -1,7 +1,5 @@
 package jp.co.soramitsu.soracard.impl.presentation.get
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.math.BigDecimal
 import java.math.RoundingMode
@@ -9,9 +7,7 @@ import javax.inject.Inject
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.greaterThen
-import jp.co.soramitsu.oauth.base.sdk.contract.SoraCardContractData
 import jp.co.soramitsu.soracard.api.domain.SoraCardInteractor
 import jp.co.soramitsu.soracard.api.presentation.SoraCardRouter
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -31,12 +27,6 @@ class GetSoraCardViewModel @Inject constructor(
         val KYC_REAL_REQUIRED_BALANCE = BigDecimal(95)
         val KYC_REQUIRED_BALANCE_WITH_BACKLASH = BigDecimal(100)
     }
-
-    private val _launchSoraCardRegistration = MutableLiveData<Event<SoraCardContractData>>()
-    val launchSoraCardRegistration: LiveData<Event<SoraCardContractData>> = _launchSoraCardRegistration
-
-    private val _launchSoraCardSignIn = MutableLiveData<Event<SoraCardContractData>>()
-    val launchSoraCardSignIn: LiveData<Event<SoraCardContractData>> = _launchSoraCardSignIn
 
     val state = MutableStateFlow(GetSoraCardState())
 

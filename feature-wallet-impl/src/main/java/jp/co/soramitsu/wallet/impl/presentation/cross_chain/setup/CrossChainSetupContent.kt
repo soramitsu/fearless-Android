@@ -58,8 +58,7 @@ data class CrossChainSetupViewState(
     val warningInfoState: WarningInfoState?,
     val buttonState: ButtonViewState,
     val walletIcon: Drawable?,
-    val isSoftKeyboardOpen: Boolean,
-    val heightDiffDp: Dp
+    val isSoftKeyboardOpen: Boolean
 )
 
 interface CrossChainSetupScreenInterface {
@@ -88,93 +87,87 @@ fun CrossChainSetupContent(
     val keyboardController = LocalSoftwareKeyboardController.current
     val showQuickInput = state.amountInputState.isFocused && state.isSoftKeyboardOpen
     BottomSheetScreen {
-        Box(
+        Column(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(bottom = state.heightDiffDp)
+                .padding(horizontal = 16.dp)
+                .padding(bottom = 115.dp)
+                .weight(1f)
+                .verticalScroll(rememberScrollState())
         ) {
-            Column(
-                modifier = Modifier
-                    .padding(horizontal = 16.dp)
-                    .padding(bottom = 115.dp)
-                    .fillMaxWidth()
-                    .verticalScroll(rememberScrollState())
-            ) {
-                ToolbarBottomSheet(
-                    title = stringResource(id = R.string.common_title_cross_chain),
-                    onNavigationClick = callback::onNavigationClick
-                )
+            ToolbarBottomSheet(
+                title = stringResource(id = R.string.common_title_cross_chain),
+                onNavigationClick = callback::onNavigationClick
+            )
 
-                MarginVertical(margin = 16.dp)
-                SelectorWithBorder(
-                    state = state.originChainSelectorState
-                )
+            MarginVertical(margin = 16.dp)
+            SelectorWithBorder(
+                state = state.originChainSelectorState
+            )
 
+            MarginVertical(margin = 12.dp)
+            AmountInput(
+                state = state.amountInputState,
+                borderColorFocused = colorAccentDark,
+                onTokenClick = callback::onAssetClick,
+                onInput = callback::onAmountInput,
+                onInputFocusChange = callback::onAmountFocusChanged
+            )
+
+            MarginVertical(margin = 12.dp)
+            SelectorWithBorder(
+                state = state.destinationChainSelectorState,
+                onClick = callback::onDestinationChainClick
+            )
+
+            MarginVertical(margin = 12.dp)
+            AddressInput(
+                state = state.addressInputState,
+                onInput = callback::onAddressInput,
+                onInputClear = callback::onAddressInputClear,
+                onPaste = callback::onPasteClick
+            )
+            MarginVertical(margin = 8.dp)
+            AddressActions(
+                walletIcon = state.walletIcon,
+                callback = callback
+            )
+
+            state.warningInfoState?.let {
                 MarginVertical(margin = 12.dp)
-                AmountInput(
-                    state = state.amountInputState,
-                    borderColorFocused = colorAccentDark,
-                    onTokenClick = callback::onAssetClick,
-                    onInput = callback::onAmountInput,
-                    onInputFocusChange = callback::onAmountFocusChanged
-                )
-
-                MarginVertical(margin = 12.dp)
-                SelectorWithBorder(
-                    state = state.destinationChainSelectorState,
-                    onClick = callback::onDestinationChainClick
-                )
-
-                MarginVertical(margin = 12.dp)
-                AddressInput(
-                    state = state.addressInputState,
-                    onInput = callback::onAddressInput,
-                    onInputClear = callback::onAddressInputClear,
-                    onPaste = callback::onPasteClick
-                )
-                MarginVertical(margin = 8.dp)
-                AddressActions(
-                    walletIcon = state.walletIcon,
-                    callback = callback
-                )
-
-                state.warningInfoState?.let {
-                    MarginVertical(margin = 12.dp)
-                    WarningInfo(state = it, onClick = callback::onWarningInfoClick)
-                }
-                MarginVertical(margin = 12.dp)
-                FeeInfo(state = state.originFeeInfoState, modifier = Modifier.defaultMinSize(minHeight = 52.dp))
-                if (state.destinationFeeInfoState != null) {
-                    FeeInfo(state = state.destinationFeeInfoState, modifier = Modifier.defaultMinSize(minHeight = 52.dp))
-                }
+                WarningInfo(state = it, onClick = callback::onWarningInfoClick)
             }
+            MarginVertical(margin = 12.dp)
+            FeeInfo(state = state.originFeeInfoState, modifier = Modifier.defaultMinSize(minHeight = 52.dp))
+            if (state.destinationFeeInfoState != null) {
+                FeeInfo(state = state.destinationFeeInfoState, modifier = Modifier.defaultMinSize(minHeight = 52.dp))
+            }
+        }
 
-            Column(
+        Column(
+            modifier = Modifier
+                .align(Alignment.CenterHorizontally)
+        ) {
+            MarginVertical(margin = 12.dp)
+            AccentButton(
+                state = state.buttonState,
+                onClick = {
+                    keyboardController?.hide()
+                    callback.onNextClick()
+                },
                 modifier = Modifier
-                    .align(Alignment.BottomCenter)
-            ) {
-                MarginVertical(margin = 12.dp)
-                AccentButton(
-                    state = state.buttonState,
-                    onClick = {
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+                    .height(48.dp)
+            )
+            MarginVertical(margin = 12.dp)
+            if (showQuickInput) {
+                QuickInput(
+                    values = QuickAmountInput.values(),
+                    onQuickAmountInput = {
                         keyboardController?.hide()
-                        callback.onNextClick()
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
-                        .height(48.dp)
+                        callback.onQuickAmountInput(it)
+                    }
                 )
-                MarginVertical(margin = 12.dp)
-                if (showQuickInput) {
-                    QuickInput(
-                        values = QuickAmountInput.values(),
-                        onQuickAmountInput = {
-                            keyboardController?.hide()
-                            callback.onQuickAmountInput(it)
-                        }
-                    )
-                }
             }
         }
     }
@@ -228,8 +221,7 @@ private fun CrossChainPreview() {
             "$170000",
             BigDecimal("0.980"),
             "Amount",
-            allowAssetChoose = true,
-            initial = null
+            allowAssetChoose = true
         ),
         originChainSelectorState = SelectorState("Origin network", null, null),
         destinationChainSelectorState = SelectorState("Destination network", null, null),
@@ -238,8 +230,7 @@ private fun CrossChainPreview() {
         warningInfoState = null,
         buttonState = ButtonViewState("Continue", true),
         walletIcon = null,
-        isSoftKeyboardOpen = false,
-        heightDiffDp = 0.dp
+        isSoftKeyboardOpen = false
     )
 
     val emptyCallback = object : CrossChainSetupScreenInterface {

@@ -106,7 +106,7 @@ class ValidateTransferUseCaseImpl(
                 )
             }
 
-            destinationChain.isSoraBasedChain() -> {
+            destinationChain.isSoraBasedChain() && originChain.isSoraBasedChain().not() -> {
                 val metaAccount = accountRepository.getSelectedMetaAccount()
                 val utilityAsset = originChain.utilityAsset?.let {
                     walletRepository.getAsset(

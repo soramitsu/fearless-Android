@@ -101,7 +101,6 @@ class CrossChainSetupViewModel @Inject constructor(
 ) : BaseViewModel(), CrossChainSetupScreenInterface {
 
     private val isSoftKeyboardOpenFlow = MutableStateFlow(false)
-    private val heightDiffDpFlow = MutableStateFlow(0.dp)
 
     private val _openScannerEvent = MutableSharedFlow<Unit>()
     val openScannerEvent = _openScannerEvent.asSharedFlow()
@@ -149,8 +148,7 @@ class CrossChainSetupViewModel @Inject constructor(
         totalBalance = resourceManager.getString(R.string.common_transferable_format, "..."),
         fiatAmount = "",
         tokenAmount = initialAmount,
-        allowAssetChoose = false,
-        initial = initialAmount.takeIf { it.isNotZero() }
+        allowAssetChoose = false
     )
 
     private val defaultButtonState = ButtonViewState(
@@ -174,8 +172,7 @@ class CrossChainSetupViewModel @Inject constructor(
         warningInfoState = null,
         defaultButtonState,
         walletIcon = null,
-        isSoftKeyboardOpen = false,
-        heightDiffDp = 0.dp
+        isSoftKeyboardOpen = false
     )
 
     private val amountInputFocusFlow = MutableStateFlow(false)
@@ -218,8 +215,7 @@ class CrossChainSetupViewModel @Inject constructor(
                 isActive = true,
                 isFocused = isAmountInputFocused,
                 allowAssetChoose = true,
-                precision = asset.token.configuration.precision,
-                initial = initialAmount
+                precision = asset.token.configuration.precision
             )
         }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, defaultAmountInputState)
@@ -385,13 +381,12 @@ class CrossChainSetupViewModel @Inject constructor(
         warningInfoStateFlow,
         buttonStateFlow,
         walletIconFlow,
-        isSoftKeyboardOpenFlow,
-        heightDiffDpFlow
+        isSoftKeyboardOpenFlow
     ) { originSelectedChain, destinationSelectedChain, address, originChainSelectorState,
         destinationChainSelectorState, amountInputState,
         originFeeInfoState, destinationFeeInfoState,
         warningInfoState, buttonState, walletIcon,
-        isSoftKeyboardOpen, heightDiffDp ->
+        isSoftKeyboardOpen ->
         val isAddressValid = if (destinationSelectedChain == null) {
             false
         } else {
@@ -425,8 +420,7 @@ class CrossChainSetupViewModel @Inject constructor(
             warningInfoState = warningInfoState,
             buttonState = buttonState,
             walletIcon = walletIcon,
-            isSoftKeyboardOpen = isSoftKeyboardOpen,
-            heightDiffDp = heightDiffDp
+            isSoftKeyboardOpen = isSoftKeyboardOpen
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, defaultState)
 
@@ -724,9 +718,5 @@ class CrossChainSetupViewModel @Inject constructor(
 
     fun setSoftKeyboardOpen(isOpen: Boolean) {
         isSoftKeyboardOpenFlow.value = isOpen
-    }
-
-    fun setHeightDiffDp(value: Dp) {
-        heightDiffDpFlow.value = value
     }
 }

@@ -121,7 +121,6 @@ class ReceiveViewModel @Inject constructor(
                 fiatAmount = fiatAmount,
                 tokenAmount = inputAmount,
                 precision = inputPrecision,
-                initial = initialAmount.takeIf { it.isNotZero() },
                 allowAssetChoose = true
             )
         }

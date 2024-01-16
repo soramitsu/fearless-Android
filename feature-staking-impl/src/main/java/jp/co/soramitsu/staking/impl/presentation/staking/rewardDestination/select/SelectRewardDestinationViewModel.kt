@@ -4,6 +4,9 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.math.BigDecimal
+import javax.inject.Inject
+import javax.inject.Named
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.mixin.api.Retriable
 import jp.co.soramitsu.common.mixin.api.Validatable
@@ -35,9 +38,6 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import java.math.BigDecimal
-import javax.inject.Inject
-import javax.inject.Named
 
 @HiltViewModel
 class SelectRewardDestinationViewModel @Inject constructor(
@@ -60,24 +60,35 @@ class SelectRewardDestinationViewModel @Inject constructor(
     private val _showNextProgress = MutableLiveData(false)
     val showNextProgress: LiveData<Boolean> = _showNextProgress
 
-    private val chainId = interactor.currentAssetFlow().filter { it.token.configuration.staking == Asset.StakingType.RELAYCHAIN }
+    private val chainId = interactor.currentAssetFlow()
+        .filter { it.token.configuration.staking == Asset.StakingType.RELAYCHAIN }
         .map { it.token.configuration.chainId }
-
-    private val rewardCalculator = viewModelScope.async { rewardCalculatorFactory.create(interactor.currentAssetFlow().first().token.configuration) }
 
     private val rewardDestinationFlow = rewardDestinationMixin.rewardDestinationModelFlow
         .map { mapRewardDestinationModelToRewardDestination(it) }
         .share()
 
-    private val stashStateFlow = stakingRelayChainScenarioInteractor.selectedAccountStakingStateFlow()
-        .filterIsInstance<StakingState.Stash>()
-        .share()
+    private val stashStateFlow =
+        stakingRelayChainScenarioInteractor.selectedAccountStakingStateFlow()
+            .filterIsInstance<StakingState.Stash>()
+            .share()
 
     private val controllerAssetFlow = interactor.currentAssetFlow()
         .share()
 
     val continueAvailable = rewardDestinationMixin.rewardDestinationChangedFlow
         .asLiveData()
+
+    private val rewardCalculator = viewModelScope.async {
+        val validators =
+            (stashStateFlow.first() as? StakingState.Stash.Nominator)?.nominations?.targets
+        val asset = interactor.currentAssetFlow().first().token.configuration
+        validators?.let {
+            rewardCalculatorFactory.createWithValidators(asset, it)
+        } ?: rewardCalculatorFactory.create(
+            interactor.currentAssetFlow().first().token.configuration
+        )
+    }
 
     init {
         rewardDestinationFlow.combine(stashStateFlow) { rewardDestination, stashState ->
@@ -103,7 +114,12 @@ class SelectRewardDestinationViewModel @Inject constructor(
     private fun loadFee(rewardDestination: RewardDestination, stashState: StakingState.Stash) {
         feeLoaderMixin.loadFee(
             coroutineScope = viewModelScope,
-            feeConstructor = { changeRewardDestinationInteractor.estimateFee(stashState, rewardDestination) },
+            feeConstructor = {
+                changeRewardDestinationInteractor.estimateFee(
+                    stashState,
+                    rewardDestination
+                )
+            },
             onRetryCancelled = ::backClicked
         )
     }
@@ -121,7 +137,12 @@ class SelectRewardDestinationViewModel @Inject constructor(
             validationExecutor.requireValid(
                 validationSystem = validationSystem,
                 payload = payload,
-                validationFailureTransformer = { rewardDestinationValidationFailure(resourceManager, it) },
+                validationFailureTransformer = {
+                    rewardDestinationValidationFailure(
+                        resourceManager,
+                        it
+                    )
+                },
                 progressConsumer = _showNextProgress.progressConsumer()
             ) {
                 _showNextProgress.value = false
@@ -137,7 +158,9 @@ class SelectRewardDestinationViewModel @Inject constructor(
     ) {
         val payload = ConfirmRewardDestinationPayload(
             fee = fee,
-            rewardDestination = mapRewardDestinationModelToRewardDestinationParcelModel(rewardDestination)
+            rewardDestination = mapRewardDestinationModelToRewardDestinationParcelModel(
+                rewardDestination
+            )
         )
 
         router.openConfirmRewardDestination(payload)
@@ -146,7 +169,9 @@ class SelectRewardDestinationViewModel @Inject constructor(
     private fun mapRewardDestinationModelToRewardDestinationParcelModel(rewardDestination: RewardDestinationModel): RewardDestinationParcelModel {
         return when (rewardDestination) {
             RewardDestinationModel.Restake -> RewardDestinationParcelModel.Restake
-            is RewardDestinationModel.Payout -> RewardDestinationParcelModel.Payout(rewardDestination.destination.address)
+            is RewardDestinationModel.Payout -> RewardDestinationParcelModel.Payout(
+                rewardDestination.destination.address
+            )
         }
     }
 

@@ -6,7 +6,6 @@ import jp.co.soramitsu.common.utils.isZero
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.sumByBigDecimal
 import jp.co.soramitsu.core.models.ChainId
-import jp.co.soramitsu.runtime.multiNetwork.chain.ChainEcosystem
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.getWithToken
 import jp.co.soramitsu.wallet.impl.domain.model.AssetWithStatus
@@ -15,20 +14,19 @@ import jp.co.soramitsu.wallet.impl.presentation.balance.list.model.BalanceListIt
 object AssetListHelper {
 
     fun processAssets(
-        ecosystemAssets: List<AssetWithStatus>,
-        ecosystemChains: List<Chain>,
+        assets: List<AssetWithStatus>,
+        filteredChains: List<Chain>,
         selectedChainId: ChainId? = null,
         networkIssues: Set<NetworkIssueItemState>,
-        hideZeroBalancesEnabled: Boolean,
-        ecosystem: ChainEcosystem
+        hideZeroBalancesEnabled: Boolean
     ): List<BalanceListItemModel> {
         val result = mutableListOf<BalanceListItemModel>()
-        ecosystemAssets.groupBy { it.asset.token.configuration.symbol }
+        assets.groupBy { it.asset.token.configuration.symbol }
             .forEach { (symbol, symbolAssets) ->
                 val chainsWithIssuesIds = symbolAssets.filter { it.hasAccount.not() }.map { it.asset.token.configuration.chainId }
                     .plus(networkIssues.map { it.chainId })
 
-                val tokenChains = ecosystemChains.getWithToken(symbol).filter { chain ->
+                val tokenChains = filteredChains.getWithToken(symbol).filter { chain ->
                     chain.id !in chainsWithIssuesIds
                 }
 
@@ -51,9 +49,8 @@ object AssetListHelper {
                     valueTransform = { it.asset.token.configuration.id }
                 )
 
-
                 val assetChainUrls = if (selectedChainId == null) {
-                    ecosystemChains.getWithToken(symbol, assetIdsWithBalance)
+                    filteredChains.getWithToken(symbol, assetIdsWithBalance)
                         .ifEmpty { listOf(showChain) }
                         .associate { it.id to it.icon }
                 } else {
@@ -82,8 +79,7 @@ object AssetListHelper {
                     fiatAmount = assetTotalFiat,
                     transferable = assetTransferable,
                     chainUrls = assetChainUrls,
-                    isHidden = isHidden,
-                    ecosystem = ecosystem
+                    isHidden = isHidden
                 )
                 result.add(model)
             }

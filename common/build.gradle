@@ -54,6 +54,7 @@ android {
         buildConfigField "String", "ETHERSCAN_API_KEY", readSecretInQuotes("FL_ANDROID_ETHERSCAN_API_KEY")
         buildConfigField "String", "BSCSCAN_API_KEY", readSecretInQuotes("FL_ANDROID_BSCSCAN_API_KEY")
         buildConfigField "String", "POLYGONSCAN_API_KEY", readSecretInQuotes("FL_ANDROID_POLYGONSCAN_API_KEY")
+        buildConfigField "String", "WALLET_CONNECT_PROJECT_ID", readSecretInQuotes("FL_WALLET_CONNECT_PROJECT_ID")
     }
 
     buildTypes {
@@ -62,13 +63,6 @@ android {
 
             buildConfigField "String", "X1_ENDPOINT_URL", readSecretInQuotes("X1_ENDPOINT_URL_DEBUG")
             buildConfigField "String", "X1_WIDGET_ID", readSecretInQuotes("X1_WIDGET_ID_DEBUG")
-            buildConfigField "String", "SORACARD_BACKEND_URL", readSecretInQuotes("SORA_BACKEND_DEBUG")
-
-            buildConfigField "String", "SORA_CARD_API_KEY", readSecretInQuotes("SORA_CARD_API_KEY_TEST")
-            buildConfigField "String", "SORA_CARD_DOMAIN", readSecretInQuotes("SORA_CARD_DOMAIN_TEST")
-            buildConfigField "String", "SORA_CARD_KYC_ENDPOINT_URL", readSecretInQuotes("SORA_CARD_KYC_ENDPOINT_URL_TEST")
-            buildConfigField "String", "SORA_CARD_KYC_USERNAME", readSecretInQuotes("SORA_CARD_KYC_USERNAME_TEST")
-            buildConfigField "String", "SORA_CARD_KYC_PASSWORD", readSecretInQuotes("SORA_CARD_KYC_PASSWORD_TEST")
 
             buildConfigField "String", "WEB_CLIENT_ID", readSecretInQuotes("WEB_CLIENT_ID_DEBUG")
             buildConfigField "String", "APP_CONFIG_URL", "\"https://raw.githubusercontent.com/soramitsu/shared-features-utils/develop-free/appVersionSupport/android_app_support_dev.json\""
@@ -78,13 +72,6 @@ android {
 
             buildConfigField "String", "X1_ENDPOINT_URL", readSecretInQuotes("X1_ENDPOINT_URL_RELEASE")
             buildConfigField "String", "X1_WIDGET_ID", readSecretInQuotes("X1_WIDGET_ID_RELEASE")
-            buildConfigField "String", "SORACARD_BACKEND_URL", readSecretInQuotes("SORA_BACKEND_RELEASE")
-
-            buildConfigField "String", "SORA_CARD_API_KEY", readSecretInQuotes("SORA_CARD_API_KEY_PROD")
-            buildConfigField "String", "SORA_CARD_DOMAIN", readSecretInQuotes("SORA_CARD_DOMAIN_PROD")
-            buildConfigField "String", "SORA_CARD_KYC_ENDPOINT_URL", readSecretInQuotes("SORA_CARD_KYC_ENDPOINT_URL_PROD")
-            buildConfigField "String", "SORA_CARD_KYC_USERNAME", readSecretInQuotes("SORA_CARD_KYC_USERNAME_PROD")
-            buildConfigField "String", "SORA_CARD_KYC_PASSWORD", readSecretInQuotes("SORA_CARD_KYC_PASSWORD_PROD")
 
             buildConfigField "String", "WEB_CLIENT_ID", readSecretInQuotes("WEB_CLIENT_ID_RELEASE")
             buildConfigField "String", "APP_CONFIG_URL", "\"https://raw.githubusercontent.com/soramitsu/shared-features-utils/develop-free/appVersionSupport/android_app_support.json\""
@@ -97,14 +84,14 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility 1.8
-        targetCompatibility 1.8
+        sourceCompatibility 11
+        targetCompatibility 11
     }
 
     kotlinOptions {
         freeCompilerArgs = ["-Xallow-result-return-type"]
 
-        jvmTarget = '1.8'
+        jvmTarget = '11'
     }
     composeOptions {
         kotlinCompilerExtensionVersion composeCompilerVersion
@@ -142,7 +129,7 @@ dependencies {
     kapt lifecycleKapt
     implementation lifecycleProcessDep
 
-    implementation retrofitDep
+//    implementation retrofitDep
     implementation gsonConvertedDep
     implementation scalarsConverterDep
     implementation interceptorVersion

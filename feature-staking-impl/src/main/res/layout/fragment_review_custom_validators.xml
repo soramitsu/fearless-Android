@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:background="@color/black"
+    android:background="@drawable/drawable_background_image"
+    android:backgroundTint="#63000000"
+    android:backgroundTintMode="src_atop"
     android:fitsSystemWindows="true"
     android:orientation="vertical">
 
@@ -12,8 +14,8 @@
         android:id="@+id/reviewCustomValidatorsToolbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        tools:textRight="@string/common_edit"
-        app:titleText="@string/staking_confirm_selected_validators" />
+        app:titleText="@string/staking_confirm_selected_validators"
+        tools:textRight="@string/common_edit" />
 
     <FrameLayout
         android:layout_width="match_parent"
@@ -29,9 +31,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="start"
-            tools:text="Validators: 2 of 5"
             android:textAllCaps="true"
-            android:textColor="@color/gray1" />
+            android:textColor="@color/gray1"
+            tools:text="Validators: 2 of 5" />
 
         <TextView
             style="@style/TextAppearance.Soramitsu.CapsTitle2"
@@ -64,6 +66,6 @@
         android:layout_marginTop="16dp"
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="22dp"
-        tools:text="@string/common_continue"
-        android:theme="@style/PinkOverlay" />
+        android:theme="@style/PinkOverlay"
+        tools:text="@string/common_continue" />
 </LinearLayout>

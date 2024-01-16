@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -61,7 +60,6 @@ fun SetupStakingScreen(
         Column(
             Modifier
                 .padding(horizontal = 16.dp)
-                .imePadding()
         ) {
             MarginVertical(margin = 8.dp)
             AccountInfo(state = state.accountInfoState)
@@ -99,8 +97,7 @@ private fun SetupStakingScreenPreview() {
             tokenImage = "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Karura.svg",
             totalBalance = "Balance: 20.0",
             fiatAmount = "$120.0",
-            tokenAmount = BigDecimal.ONE,
-            initial = null
+            tokenAmount = BigDecimal.ONE
         ),
         FeeInfoViewState(
             feeAmount = "0.0051 KSM",

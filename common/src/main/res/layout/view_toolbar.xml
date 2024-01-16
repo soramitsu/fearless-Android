@@ -15,7 +15,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        tools:background="@android:color/black" />
+        tools:background="@android:color/transparent" />
 
     <ImageView
         android:id="@+id/backImg"

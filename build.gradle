@@ -5,8 +5,8 @@ apply plugin: "org.sonarqube"
 buildscript {
     ext {
         // App version
-        versionName = '3.0.4'
-        versionCode = 131
+        versionName = '3.2.1'
+        versionCode = 139
 
         // SDK and tools
         compileSdkVersion = 34
@@ -24,10 +24,9 @@ buildscript {
         biometricVersion = '1.1.0'
 
         progressButtonsVersion = '2.1.0'
-        xNetworkingVersion = '0.2.3'
+        xNetworkingVersion = '0.2.5-temp7'
 
-        soraCardVersion = '0.1.9'
-        soraUiCoreVersion = '0.1.4'
+        soraUiCoreVersion = '0.2.17'
 
         daggerVersion = '2.47'
         javaxInjectVersion = '1'
@@ -36,7 +35,7 @@ buildscript {
         roomVersion = '2.5.1'
 
         retrofitVersion = '2.9.0'
-        okhttpVersion = '5.0.0-alpha.11'
+        okhttpVersion = '4.11.0'
         gsonVersion = '2.10.1'
 
         navControllerVersion = '2.7.0'
@@ -84,7 +83,7 @@ buildscript {
         minifyRelease = true
         beaconVersion = "3.2.4"
 
-        sharedFeaturesVersion = "1.1.1.15-FLW"
+        sharedFeaturesVersion = "1.1.1.17-FLW"
 
         coilDep = "io.coil-kt:coil:$coilVersion"
         coilSvg = "io.coil-kt:coil-svg:$coilVersion"
@@ -171,7 +170,6 @@ buildscript {
 
         gifDep = "pl.droidsonroids.gif:android-gif-drawable:$gifVersion"
 
-        soraCardDep = "jp.co.soramitsu:android-sora-card:$soraCardVersion"
         wsDep = "com.neovisionaries:nv-websocket-client:$wsVersion"
         withoutBasic = { exclude group: 'jp.co.soramitsu.xnetworking', module: 'basic' }
         xNetworkingSorawalletDep = "jp.co.soramitsu.xnetworking:sorawallet-android:$xNetworkingVersion"

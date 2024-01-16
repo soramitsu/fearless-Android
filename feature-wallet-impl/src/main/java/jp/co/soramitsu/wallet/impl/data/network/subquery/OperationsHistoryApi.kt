@@ -9,7 +9,7 @@ import jp.co.soramitsu.wallet.impl.data.network.model.request.SubsquidHistoryReq
 import jp.co.soramitsu.wallet.impl.data.network.model.response.EtherscanHistoryResponse
 import jp.co.soramitsu.wallet.impl.data.network.model.response.GiantsquidHistoryResponse
 import jp.co.soramitsu.wallet.impl.data.network.model.response.SubqueryHistoryElementResponse
-import jp.co.soramitsu.wallet.impl.data.network.model.response.SubsquidHistoryResponse
+import jp.co.soramitsu.wallet.impl.data.network.model.response.SubsquidHistoryElementsConnectionResponse
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
@@ -28,7 +28,7 @@ interface OperationsHistoryApi {
     suspend fun getSubsquidOperationsHistory(
         @Url url: String,
         @Body body: SubsquidHistoryRequest
-    ): SubsquidResponse<SubsquidHistoryResponse>
+    ): SubsquidResponse<SubsquidHistoryElementsConnectionResponse>
 
     @POST
     suspend fun getGiantsquidOperationsHistory(

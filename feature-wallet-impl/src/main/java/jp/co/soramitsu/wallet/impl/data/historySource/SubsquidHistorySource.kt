@@ -23,17 +23,17 @@ class SubsquidHistorySource(
         chainAsset: Asset,
         accountAddress: String
     ): CursorPage<Operation> {
-        val page = cursor?.toIntOrNull() ?: 0
+        val offset = cursor?.toIntOrNull().takeIf { it != 0 }
         val response = walletOperationsApi.getSubsquidOperationsHistory(
             url = url,
             SubsquidHistoryRequest(
                 accountAddress = accountAddress,
                 pageSize,
-                pageSize * page
+                offset.toString()
             )
         )
 
-        val operations = response.data.historyElements.map {
+        val operations = response.data.historyElementsConnection.edges.map { it.node }.map {
             val transfer = TransactionFilter.TRANSFER.isAppliedOrNull(filters)?.let { transferApplied ->
                 it.transfer?.let { transfer ->
                     Operation(
@@ -88,7 +88,15 @@ class SubsquidHistorySource(
             }
             listOfNotNull(transfer, reward, extrinsic)
         }.flatten()
-        return CursorPage(page.inc().toString(), operations)
+        val pageInfo = response.data.historyElementsConnection.pageInfo
+        val nextCursor = if(pageInfo.hasNextPage && (pageInfo.endCursor.toIntOrNull()
+                ?: 0) >= pageSize
+        ) {
+            pageInfo.endCursor
+        } else {
+            null
+        }
+        return CursorPage(nextCursor, operations)
     }
 
     private fun TransactionFilter.isAppliedOrNull(filters: Collection<TransactionFilter>) = when {

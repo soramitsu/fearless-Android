@@ -17,8 +17,6 @@ import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
 import jp.co.soramitsu.common.mixin.api.NetworkStateUi
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.orZero
-import jp.co.soramitsu.runtime.ext.ecosystem
-import jp.co.soramitsu.runtime.multiNetwork.chain.ChainEcosystem
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.defaultChainSort
@@ -59,42 +57,13 @@ class SearchAssetsViewModel @Inject constructor(
         networkIssuesFlow,
         interactor.observeHideZeroBalanceEnabledForCurrentWallet()
     ) { assets: List<AssetWithStatus>, chains: List<Chain>, networkIssues: Set<NetworkIssueItemState>, hideZeroBalancesEnabled ->
-        val balanceListItems = mutableListOf<BalanceListItemModel>()
 
-        chains.groupBy { if (it.isTestNet) ChainEcosystem.STANDALONE else it.ecosystem() }.forEach { (ecosystem, ecosystemChains) ->
-            when (ecosystem) {
-                ChainEcosystem.POLKADOT,
-                ChainEcosystem.KUSAMA,
-                ChainEcosystem.ETHEREUM -> {
-                    val ecosystemAssets = assets.filter {
-                        it.asset.token.configuration.chainId in ecosystemChains.map { it.id }
-                    }
-
-                    val items = AssetListHelper.processAssets(
-                        ecosystemAssets = ecosystemAssets,
-                        ecosystemChains = ecosystemChains,
-                        networkIssues = networkIssues,
-                        hideZeroBalancesEnabled = hideZeroBalancesEnabled,
-                        ecosystem = ecosystem
-                    )
-                    balanceListItems.addAll(items)
-                }
-
-                ChainEcosystem.STANDALONE -> {
-                    ecosystemChains.forEach { chain ->
-                        val chainAssets = assets.filter { it.asset.token.configuration.chainId == chain.id }
-                        val items = AssetListHelper.processAssets(
-                            ecosystemAssets = chainAssets,
-                            ecosystemChains = listOf(chain),
-                            networkIssues = networkIssues,
-                            hideZeroBalancesEnabled = hideZeroBalancesEnabled,
-                            ecosystem = ecosystem
-                        )
-                        balanceListItems.addAll(items)
-                    }
-                }
-            }
-        }
+        val balanceListItems = AssetListHelper.processAssets(
+            assets = assets,
+            filteredChains = chains,
+            networkIssues = networkIssues,
+            hideZeroBalancesEnabled = hideZeroBalancesEnabled
+        )
 
         val assetStates: List<AssetListItemViewState> = balanceListItems
             .sortedWith(defaultBalanceListItemSort())
@@ -172,12 +141,7 @@ class SearchAssetsViewModel @Inject constructor(
             return
         }
 
-        val payload = AssetPayload(
-            chainId = asset.chainId,
-            chainAssetId = asset.chainAssetId
-        )
-
-        router.openAssetDetails(payload)
+        router.openAssetIntermediateDetails(asset.chainAssetId)
     }
 
     fun updateAppClicked() {

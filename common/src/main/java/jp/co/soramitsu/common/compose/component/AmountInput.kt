@@ -53,8 +53,7 @@ data class AmountInputViewState(
     val isFocused: Boolean = false,
     val allowAssetChoose: Boolean = false,
     val precision: Int = MAX_DECIMALS_8,
-    val inputEnabled: Boolean = true,
-    val initial: BigDecimal?
+    val inputEnabled: Boolean = true
 ) {
     companion object {
         val defaultObj = AmountInputViewState(
@@ -62,8 +61,7 @@ data class AmountInputViewState(
             tokenImage = null,
             totalBalance = "0",
             fiatAmount = "$0",
-            tokenAmount = BigDecimal.ZERO,
-            initial = null
+            tokenAmount = BigDecimal.ZERO
         )
 
         @Deprecated("use defaultObj with copy")
@@ -73,8 +71,7 @@ data class AmountInputViewState(
                 tokenImage = null,
                 totalBalance = resourceManager.getString(totalBalanceFormat, "0"),
                 fiatAmount = "$0",
-                tokenAmount = BigDecimal.ZERO,
-                initial = null
+                tokenAmount = BigDecimal.ZERO
             )
         }
     }
@@ -88,7 +85,7 @@ fun AmountInput(
     borderColor: Color = white24,
     borderColorFocused: Color = Color.Unspecified,
     focusRequester: FocusRequester? = null,
-    onInput: (BigDecimal?) -> Unit = {},
+    onInput: (BigDecimal) -> Unit = {},
     onInputFocusChange: (Boolean) -> Unit = {},
     onTokenClick: () -> Unit = {},
     onKeyboardDone: () -> Unit = {}
@@ -234,8 +231,7 @@ private fun AmountInputPreview() {
         totalBalance = "Balance: 20.0",
         fiatAmount = "$120.0",
         tokenAmount = BigDecimal.ONE,
-        allowAssetChoose = true,
-        initial = null
+        allowAssetChoose = true
     )
     FearlessTheme {
         AmountInput(state)

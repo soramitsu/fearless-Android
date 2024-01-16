@@ -86,7 +86,7 @@ private fun EstimatedEarningsPreview() {
     val state = EstimatedEarningsViewState(
         TitleValueViewState("1.43% monthly", "0.164 KSM", "$24.92"),
         null,
-        AmountInputViewState("KSM", "", "44.32334", "$12000", BigDecimal.TEN, null, initial = null)
+        AmountInputViewState("KSM", "", "44.32334", "$12000", BigDecimal.TEN, null)
     )
     FearlessTheme {
         EstimatedEarnings(state, {}, {})

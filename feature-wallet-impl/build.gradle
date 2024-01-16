@@ -47,14 +47,14 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility 1.8
-        targetCompatibility 1.8
+        sourceCompatibility 11
+        targetCompatibility 11
     }
 
     kotlinOptions {
         freeCompilerArgs = ["-Xallow-result-return-type"]
 
-        jvmTarget = '1.8'
+        jvmTarget = '11'
     }
     composeOptions {
         kotlinCompilerExtensionVersion composeCompilerVersion
@@ -74,6 +74,11 @@ dependencies {
     implementation project(':feature-soracard-api')
     implementation project(':feature-soracard-impl')
     implementation project(':runtime-permission')
+    implementation project(':feature-walletconnect-api')
+
+    implementation(platform(libs.walletconnectBomDep))
+    implementation(libs.walletconnectCoreDep)
+    implementation(libs.walletconnectWeb3WalletDep)
 
     implementation kotlinDep
 
@@ -120,8 +125,6 @@ dependencies {
 
     implementation jnaDep
     implementation beaconDep, withoutJna
-
-    implementation soraCardDep, withoutJavaWS
 
     implementation shimmerDep
 
