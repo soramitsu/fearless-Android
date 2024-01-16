@@ -3,12 +3,12 @@
 // Job properties
 def jobParams = [
   booleanParam(defaultValue: false, description: 'push to the dev profile', name: 'prDeployment'),
-  booleanParam(defaultValue: false, description: 'Upload builds to nexus(master branches upload always)', name: 'upload_to_nexus'),
+  booleanParam(defaultValue: false, description: 'Upload builds to nexus(master,develop and staging branches upload always)', name: 'upload_to_nexus'),
 ]
 
 def pipeline = new org.android.AppPipeline(
     steps:            this,
-    sonar:            false,
+    sonar:            true,
     sonarCommand:     './gradlew sonar -x :core-db:compileDebugUnitTestKotlin -x :core-db:compileDebugAndroidTestKotlin -x :feature-crowdloan-impl:compileDebugAndroidTestKotlin -x :runtime:compileDebugUnitTestKotlin -x :app:kaptDebugAndroidTestKotlin -x :app:compileDebugAndroidTestKotlin -Dsonar.coverage.jacoco.xmlReportPaths=**/coverage/*.xml',
     sonarProjectName: 'fearless-android',
     sonarProjectKey:  'fearless:fearless-android',
