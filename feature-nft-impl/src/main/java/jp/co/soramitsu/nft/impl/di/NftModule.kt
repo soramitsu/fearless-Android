@@ -25,10 +25,6 @@ import jp.co.soramitsu.nft.impl.data.remote.AlchemyNftApi
 import jp.co.soramitsu.nft.impl.domain.NFTInteractorImpl
 import jp.co.soramitsu.nft.impl.domain.NftInteractor
 import jp.co.soramitsu.nft.impl.domain.NFTTransferInteractorImpl
-import jp.co.soramitsu.nft.impl.domain.usecase.CreateRawEthTransactionUseCase
-import jp.co.soramitsu.nft.impl.domain.usecase.EstimateNFTTransactionNetworkFeeUseCase
-import jp.co.soramitsu.nft.impl.domain.usecase.NFTTransferFunctionAdapter
-import jp.co.soramitsu.nft.impl.domain.usecase.SendRawEthTransactionUseCase
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.runtime.multiNetwork.connection.EthereumConnectionPool
 import okhttp3.OkHttpClient
@@ -138,25 +134,18 @@ class NftModule {
     fun provideNFTTransferInteractor(
         accountRepository: AccountRepository,
         chainsRepository: ChainsRepository,
-        ethereumConnectionPool: EthereumConnectionPool,
-        nftTransferFunctionAdapter: NFTTransferFunctionAdapter,
-        estimateNFTTransactionNetworkFeeUseCase: EstimateNFTTransactionNetworkFeeUseCase,
-        createRawEthTransactionUseCase: CreateRawEthTransactionUseCase,
-        sendRawEthTransactionUseCase: SendRawEthTransactionUseCase
+        ethereumConnectionPool: EthereumConnectionPool
     ): NFTTransferInteractor = NFTTransferInteractorImpl(
         accountRepository = accountRepository,
         chainsRepository = chainsRepository,
-        ethereumConnectionPool = ethereumConnectionPool,
-        nftTransferFunctionAdapter = nftTransferFunctionAdapter,
-        estimateNFTTransactionNetworkFeeUseCase = estimateNFTTransactionNetworkFeeUseCase,
-        createRawEthTransactionUseCase = createRawEthTransactionUseCase,
-        sendRawEthTransactionUseCase = sendRawEthTransactionUseCase
+        ethereumConnectionPool = ethereumConnectionPool
     )
 
     @Provides
     fun provideMyOlfNftInteractor(
         nftInteractor: NFTInteractor,
+        nftTransferInteractor: NFTTransferInteractor,
         chainRepository: ChainsRepository
-    ) = NftInteractor(nftInteractor, chainRepository)
+    ) = NftInteractor(nftInteractor, nftTransferInteractor, chainRepository)
 
 }

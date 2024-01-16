@@ -6,30 +6,28 @@ import jp.co.soramitsu.common.data.secrets.v2.KeyPairSchema
 import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
 import jp.co.soramitsu.nft.domain.NFTTransferInteractor
 import jp.co.soramitsu.nft.domain.models.NFTCollection
-import jp.co.soramitsu.nft.impl.domain.models.NFTTransferParams
-import jp.co.soramitsu.nft.impl.domain.usecase.CreateRawEthTransactionUseCase
-import jp.co.soramitsu.nft.impl.domain.usecase.EstimateNFTTransactionNetworkFeeUseCase
-import jp.co.soramitsu.nft.impl.domain.usecase.NFTTransferFunctionAdapter
-import jp.co.soramitsu.nft.impl.domain.usecase.SendRawEthTransactionUseCase
-import jp.co.soramitsu.nft.impl.domain.utils.nonNullWeb3j
 import jp.co.soramitsu.nft.impl.domain.utils.subscribeNewHeads
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.connection.EthereumConnectionPool
 import jp.co.soramitsu.runtime.multiNetwork.connection.EthereumWebSocketConnection
 import jp.co.soramitsu.common.data.secrets.v1.Keypair
+import jp.co.soramitsu.nft.impl.domain.adapters.NFTTransferAdapter
+import jp.co.soramitsu.nft.impl.domain.usecase.CreateRawEthTransaction
+import jp.co.soramitsu.nft.impl.domain.usecase.EstimateEthTransactionNetworkFee
+import jp.co.soramitsu.nft.impl.domain.usecase.SendRawEthTransaction
+import jp.co.soramitsu.nft.impl.domain.utils.nonNullWeb3j
+import jp.co.soramitsu.shared_utils.extensions.requireHexPrefix
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.transform
+import org.web3j.utils.Numeric
 import java.math.BigDecimal
 
 class NFTTransferInteractorImpl(
     private val accountRepository: AccountRepository,
     private val chainsRepository: ChainsRepository,
-    private val ethereumConnectionPool: EthereumConnectionPool,
-    private val nftTransferFunctionAdapter: NFTTransferFunctionAdapter,
-    private val estimateNFTTransactionNetworkFeeUseCase: EstimateNFTTransactionNetworkFeeUseCase,
-    private val createRawEthTransactionUseCase: CreateRawEthTransactionUseCase,
-    private val sendRawEthTransactionUseCase: SendRawEthTransactionUseCase,
+    private val ethereumConnectionPool: EthereumConnectionPool
 ): NFTTransferInteractor {
 
     private fun getWeb3Connection(chainId: ChainId): EthereumWebSocketConnection {
@@ -43,58 +41,53 @@ class NFTTransferInteractorImpl(
     override suspend fun networkFeeFlow(
         token: NFTCollection.NFT.Full,
         receiver: String,
-        erc1155TransferAmount: BigDecimal?
-    ): Flow<BigDecimal> {
+        canReceiverAcceptToken: Boolean
+    ): Flow<Result<BigDecimal>> {
         val chain = chainsRepository.getChain(token.chainId)
         val connection = getWeb3Connection(chain.id)
-        val sender = accountRepository.getSelectedMetaAccount().address(chain) ?: error(
-            """
-                Currently selected account is unavailable now.
-            """.trimIndent()
-        )
 
-        val nftTransferParams = NFTTransferParams.create(
-            sender = sender,
-            receiver = receiver,
-            token = token,
-            erc1155TransferAmount = erc1155TransferAmount
-        )
+        val chainId = chain.id.requireHexPrefix().drop(2).toLong()
 
-        return connection.subscribeNewHeads()
-            .transform { newHead ->
-                val networkFee = estimateNFTTransactionNetworkFeeUseCase(
-                    socketConnection = connection,
-                    chain = chain,
-                    params = nftTransferParams,
-                    nonce = newHead.params.result?.nonce,
-                    baseFeePerGas = newHead.params.result?.baseFeePerGas
-                )
+        val senderNullable = accountRepository.getSelectedMetaAccount().address(chain)
 
-                emit(networkFee)
-            }
+        val senderResult = runCatching {
+            senderNullable ?: error(
+                """
+                    Currently selected account is unavailable now.
+                """.trimIndent()
+            )
+        }
+
+        return connection.subscribeNewHeads().transform { newHead ->
+            val nftTransfer = NFTTransferAdapter(
+                web3j = connection.nonNullWeb3j,
+                chainId = chainId,
+                sender = senderResult.getOrThrow(),
+                receiver = receiver,
+                token = token,
+                canReceiverAcceptToken = canReceiverAcceptToken
+            )
+
+            val networkFee = connection.EstimateEthTransactionNetworkFee(
+                chain = chain,
+                baseFeePerGas = Numeric.decodeQuantity(newHead.params.result?.baseFeePerGas),
+                transfer = nftTransfer
+            )
+
+            emit(Result.success(networkFee))
+        }.catch { emit(Result.failure(it)) }
     }
 
     override suspend fun send(
         token: NFTCollection.NFT.Full,
         receiver: String,
-        erc1155TransferAmount: BigDecimal?
+        canReceiverAcceptToken: Boolean
     ): Result<String> {
         val chain = chainsRepository.getChain(token.chainId)
-        val web3j = getWeb3Connection(chain.id).nonNullWeb3j
+        val connection = getWeb3Connection(chain.id)
 
         return runCatching {
-            val sender = accountRepository.getSelectedMetaAccount().address(chain) ?: error(
-                """
-                    Currently selected account is unavailable now.
-                """.trimIndent()
-            )
-
-            val nftTransferParams = NFTTransferParams.create(
-                sender = sender,
-                receiver = receiver,
-                token = token,
-                erc1155TransferAmount = erc1155TransferAmount
-            )
+            val chainId = chain.id.requireHexPrefix().drop(2).toLong()
 
             val ethereumSecrets =
                 accountRepository.getMetaAccountSecrets(
@@ -112,22 +105,27 @@ class NFTTransferInteractorImpl(
                 )
             }
 
-            val rawTransaction = createRawEthTransactionUseCase(
-                web3j = web3j,
-                fromAddress = nftTransferParams.sender,
-                toAddress = nftTransferParams.receiver,
-                data = nftTransferFunctionAdapter(nftTransferParams),
-                value = null,
-                nonce = null,
-                gasLimit = null,
-                gasPrice = null
+            val sender = accountRepository.getSelectedMetaAccount().address(chain) ?: error(
+                """
+                    Currently selected account is unavailable now.
+                """.trimIndent()
             )
 
-            return@runCatching sendRawEthTransactionUseCase(
-                web3j = web3j,
+            val nftTransfer = NFTTransferAdapter(
+                web3j = connection.nonNullWeb3j,
+                chainId = chainId,
+                sender = sender,
+                receiver = receiver,
+                token = token,
+                canReceiverAcceptToken = canReceiverAcceptToken
+            )
+
+            return@runCatching connection.SendRawEthTransaction(
                 keypair = keypair,
-                transaction = rawTransaction,
-                ethereumChainId = chain.id.toLong()
+                ethereumChainId = chainId,
+                transaction = connection.CreateRawEthTransaction(
+                    transfer = nftTransfer
+                )
             )
         }
     }

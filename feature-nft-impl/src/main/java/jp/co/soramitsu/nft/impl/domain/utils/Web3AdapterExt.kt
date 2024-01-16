@@ -28,24 +28,57 @@ val EthereumWebSocketConnection.nonNullWeb3jService: Web3jService
         """.trimIndent()
     )
 
+inline fun <T, K> Response<T>.map(
+    crossinline transform: (T) -> K
+): K {
+    if (error != null)
+        error(
+            """
+                Could not fetch web3 response due to "${error.message}", code - ${error.code}, additional data - ${error.data}
+            """.trimIndent()
+        )
+
+    return try {
+        transform.invoke(result)
+    } catch (t: Throwable) {
+        error(
+            """
+                Could not transform web3 response due to ${t.message}
+            """.trimIndent()
+        )
+    }
+}
+
 suspend fun Web3j.getNonce(address: String): BigInteger {
-    return ethGetTransactionCount(address, DefaultBlockParameterName.PENDING)
+    val response = ethGetTransactionCount(address, DefaultBlockParameterName.LATEST)
         .sendAsync().await()
-        .transactionCount
+
+    return response.map { Numeric.decodeQuantity(it) }
 }
 
 suspend fun EthereumWebSocketConnection.getMaxPriorityFeePerGas(): BigInteger {
-    return Request<Any, MaxPriorityFeePerGas>(
+    val response = Request<Any, MaxPriorityFeePerGas>(
         "eth_maxPriorityFeePerGas",
         emptyList(),
         nonNullWeb3jService,
         MaxPriorityFeePerGas::class.java
-    ).sendAsync().await().maxPriorityFeePerGas
+    ).sendAsync().await()
+
+    return response.map { Numeric.decodeQuantity(it) }
 }
 
 class MaxPriorityFeePerGas : Response<String?>() {
     val maxPriorityFeePerGas: BigInteger
         get() = Numeric.decodeQuantity(result)
+}
+
+suspend fun Web3j.getBaseFee(): BigInteger {
+    val response = ethGetBlockByNumber(
+        DefaultBlockParameterName.LATEST,
+        false
+    ).sendAsync().await()
+
+    return response.map { Numeric.decodeQuantity(it.baseFeePerGas) }
 }
 
 fun EthereumWebSocketConnection.subscribeNewHeads(): Flow<NewHeadsNotificationExtended> {
