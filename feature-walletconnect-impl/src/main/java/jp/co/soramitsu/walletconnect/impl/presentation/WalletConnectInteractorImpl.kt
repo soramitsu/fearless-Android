@@ -35,6 +35,7 @@ import org.web3j.crypto.Sign
 import org.web3j.crypto.StructuredDataEncoder
 import org.web3j.utils.Numeric
 import java.math.BigInteger
+import jp.co.soramitsu.shared_utils.runtime.definitions.types.composite.DictEnum
 
 @Suppress("LargeClass")
 class WalletConnectInteractorImpl(
@@ -336,8 +337,9 @@ class WalletConnectInteractorImpl(
 
         val signPayload = JSONObject(params.getString("transactionPayload"))
         val address = signPayload.getString("address")
-        val genesisHash = signPayload.getString("genesisHash").drop(2)
+        val genesisHash = signPayload.getString("genesisHash").removePrefix("0x")
         val tip = signPayload.getString("tip").decodeNumericQuantity()
+        val method = signPayload.getString("method")
 
         val chain = chainRegistry.getChain(genesisHash)
         val accountId = chain.accountIdOf(address)
@@ -346,11 +348,14 @@ class WalletConnectInteractorImpl(
         val cryptoType = withContext(Dispatchers.IO) { keypairProvider.getCryptoTypeFor(chain, accountId) }
         val extrinsicBuilder = extrinsicBuilderFactory.create(chain, keypair, cryptoType, tip)
 
-        val signature = extrinsicBuilder.build()
+        extrinsicBuilder.genericCall(method = method)
+        val signature = extrinsicBuilder.buildSignature()
+
+        val signatureHex = ((signature as DictEnum.Entry<*>).value as ByteArray).toHexString(true)
 
         return JSONObject().apply {
-            put("id", 0)
-            put("signature", signature)
+            put("id", recentSession.request.id)
+            put("signature", signatureHex)
         }.toString()
     }
 
