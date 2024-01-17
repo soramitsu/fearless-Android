@@ -13,17 +13,17 @@ import java.math.BigInteger
 @Suppress("FunctionName")
 suspend fun EthereumWebSocketConnection.EstimateEthTransactionNetworkFee(
     chain: Chain,
-    transfer: EthCall,
+    call: EthCall,
     baseFeePerGas: BigInteger
 ): BigDecimal {
-    val eip1559Transfer = when(transfer) {
+    val eip1559Transfer = when(call) {
         is EthCall.SmartContractCall ->
             EIP1559CallImpl.createAsync(
                 ethConnection = this,
-                transfer = transfer,
+                call = call,
                 baseFeePerGas = baseFeePerGas,
                 estimateGas = EstimateEthTransactionGas(
-                    transfer = transfer
+                    call = call
                 )
             )
 

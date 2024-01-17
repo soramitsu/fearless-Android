@@ -53,7 +53,7 @@ suspend fun NFTTransferAdapter(
                 Address(160, receiver),
                 Uint256(BigInteger(tokenId, 16))
             ).apply {
-                if (canReceiverAcceptToken)
+                if (!canReceiverAcceptToken)
                     add(DynamicBytes(ByteArray(0)))
             }
 
@@ -61,8 +61,11 @@ suspend fun NFTTransferAdapter(
                 Function(
                     tokenTransferMethod,
                     argsList,
-                    listOf(TypeReference.create(Array::class.java))
-                )
+                    emptyList()
+                ).apply {
+                    val inputs = inputParameters.map { it.value }
+                    println("This is checkpoint: ERC721.transaction, name - $name, inputs - $inputs")
+                }
 
             NFTCall.Transfer(
                 chainId = chainId,
@@ -83,12 +86,15 @@ suspend fun NFTTransferAdapter(
                     listOf(
                         Address(160, sender),
                         Address(160, receiver),
-                        Uint256(BigInteger(tokenId, 16)),
+                        Uint256(BigInteger(tokenId)),
                         Uint256(BigInteger.ONE),
-                        DynamicBytes(ByteArray(0))
+                        DynamicBytes(byteArrayOf())
                     ),
-                    listOf(TypeReference.create(Array::class.java))
-                )
+                    emptyList()
+                ).apply {
+                    val inputs = inputParameters.map { it.value }
+                    println("This is checkpoint: ERC1155.transaction, name - $name, inputs - $inputs")
+                }
 
             NFTCall.Transfer(
                 chainId = chainId,

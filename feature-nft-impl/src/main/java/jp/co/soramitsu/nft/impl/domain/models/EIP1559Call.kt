@@ -6,32 +6,32 @@ import jp.co.soramitsu.nft.impl.domain.utils.nonNullWeb3j
 import jp.co.soramitsu.runtime.multiNetwork.connection.EthereumWebSocketConnection
 import java.math.BigInteger
 
-internal class EIP1559CallImpl<Transfer: EthCall> private constructor(
-    override val transfer: Transfer,
+internal class EIP1559CallImpl<Call: EthCall> private constructor(
+    override val call: Call,
     override val estimateGas: BigInteger,
     override val baseFeePerGas: BigInteger,
     override val maxPriorityFeePerGas: BigInteger
-) : EIP1559Call<Transfer> {
+) : EIP1559Call<Call> {
 
     companion object {
-        suspend fun <Transfer: EthCall> createAsync(
+        suspend fun <Call: EthCall> createAsync(
             ethConnection: EthereumWebSocketConnection,
-            transfer: Transfer,
+            call: Call,
             estimateGas: BigInteger
         ) = EIP1559CallImpl(
-            transfer = transfer,
+            call = call,
             estimateGas = estimateGas,
             baseFeePerGas = ethConnection.nonNullWeb3j.getBaseFee(),
             maxPriorityFeePerGas = ethConnection.getMaxPriorityFeePerGas()
         )
 
-        suspend fun <Transfer: EthCall> createAsync(
+        suspend fun <Call: EthCall> createAsync(
             ethConnection: EthereumWebSocketConnection,
-            transfer: Transfer,
+            call: Call,
             baseFeePerGas: BigInteger,
             estimateGas: BigInteger
         ) = EIP1559CallImpl(
-            transfer = transfer,
+            call = call,
             estimateGas = estimateGas,
             baseFeePerGas = baseFeePerGas,
             maxPriorityFeePerGas = ethConnection.getMaxPriorityFeePerGas()
@@ -40,9 +40,9 @@ internal class EIP1559CallImpl<Transfer: EthCall> private constructor(
 
 }
 
-interface EIP1559Call<Transfer: EthCall> {
+interface EIP1559Call<Call: EthCall> {
 
-    val transfer: Transfer
+    val call: Call
 
     val estimateGas: BigInteger
 

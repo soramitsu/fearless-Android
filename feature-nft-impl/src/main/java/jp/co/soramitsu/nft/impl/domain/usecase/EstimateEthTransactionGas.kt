@@ -11,24 +11,22 @@ import java.math.BigInteger
 
 @Suppress("FunctionName")
 suspend fun EthereumWebSocketConnection.EstimateEthTransactionGas(
-    transfer: EthCall
+    call: EthCall
 ): BigInteger {
-    val gasPrice = nonNullWeb3j.ethGasPrice().sendAsync().await().gasPrice
-
     val response = nonNullWeb3j.ethEstimateGas(
-        transfer.convertToWeb3Transaction(gasPrice)
+        call.convertToWeb3Transaction()
     ).sendAsync().await()
 
     return response.map { Numeric.decodeQuantity(it) }.also { println("This is checkpoint: estimatedGas - $it") }
 }
 
-private fun EthCall.convertToWeb3Transaction(gasPrice: BigInteger): Transaction {
+private fun EthCall.convertToWeb3Transaction(): Transaction {
     return when(this) {
         is EthCall.SmartContractCall ->
             Transaction.createFunctionCallTransaction(
                 /* from */ contractAddress, // TODO should from always be contractAddress?
                 /* nonce */ nonce,
-                /* gasPrice */ gasPrice,
+                /* gasPrice */ null,
                 /* gasLimit */ null,
                 /* to */ receiver,
                 /* value */ null,

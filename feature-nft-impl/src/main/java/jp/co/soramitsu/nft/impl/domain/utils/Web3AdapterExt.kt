@@ -50,7 +50,7 @@ inline fun <T, K> Response<T>.map(
 }
 
 suspend fun Web3j.getNonce(address: String): BigInteger {
-    val response = ethGetTransactionCount(address, DefaultBlockParameterName.LATEST)
+    val response = ethGetTransactionCount(address, DefaultBlockParameterName.PENDING)
         .sendAsync().await()
 
     return response.map { Numeric.decodeQuantity(it) }
@@ -74,7 +74,7 @@ class MaxPriorityFeePerGas : Response<String?>() {
 
 suspend fun Web3j.getBaseFee(): BigInteger {
     val response = ethGetBlockByNumber(
-        DefaultBlockParameterName.LATEST,
+        DefaultBlockParameterName.PENDING,
         false
     ).sendAsync().await()
 

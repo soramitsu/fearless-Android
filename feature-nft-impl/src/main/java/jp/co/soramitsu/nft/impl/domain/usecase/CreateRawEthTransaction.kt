@@ -5,19 +5,20 @@ import jp.co.soramitsu.nft.impl.domain.models.EIP1559CallImpl
 import jp.co.soramitsu.nft.impl.domain.models.EthCall
 import jp.co.soramitsu.runtime.multiNetwork.connection.EthereumWebSocketConnection
 import org.web3j.crypto.RawTransaction
+import org.web3j.crypto.transaction.type.Transaction1559
 import java.math.BigInteger
 
 @Suppress("FunctionName")
 suspend fun EthereumWebSocketConnection.CreateRawEthTransaction(
-    transfer: EthCall
+    call: EthCall
 ): RawTransaction {
-    return when(transfer) {
+    return when(call) {
         is EthCall.SmartContractCall ->
             EIP1559CallImpl.createAsync(
                 ethConnection = this,
-                transfer = transfer,
+                call = call,
                 estimateGas = EstimateEthTransactionGas(
-                    transfer = transfer
+                    call = call
                 )
             )
 
@@ -30,18 +31,20 @@ suspend fun EthereumWebSocketConnection.CreateRawEthTransaction(
 }
 
 private fun <T: EthCall> EIP1559Call<T>.convertToWeb3RawTransaction(): RawTransaction {
-    return when(transfer) {
+    return when(call) {
         is EthCall.SmartContractCall ->
             RawTransaction.createTransaction(
-                transfer.chainId,
-                transfer.nonce,
+                call.chainId,
+                call.nonce,
                 estimateGas,
-                (transfer as EthCall.SmartContractCall).contractAddress,
+                (call as EthCall.SmartContractCall).contractAddress,
                 BigInteger.ZERO,
-                (transfer as EthCall.SmartContractCall).encodedFunction,
+                (call as EthCall.SmartContractCall).encodedFunction,
                 maxPriorityFeePerGas,
                 baseFeePerGas.plus(maxPriorityFeePerGas)
-            )
+            ).apply {
+                println("This is checkpoint: nonce - $nonce, estimateGas - $estimateGas, maxPriorityFeePerGas - ${(transaction as? Transaction1559)?.maxPriorityFeePerGas}, maxFeePerGas - ${(transaction as? Transaction1559)?.maxFeePerGas}")
+            }
 
         else -> error(
             """

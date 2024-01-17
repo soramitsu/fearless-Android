@@ -12,18 +12,18 @@ import org.web3j.protocol.core.methods.request.Transaction
 
 @Suppress("FunctionName")
 suspend inline fun <T> EthereumWebSocketConnection.ExecuteEthFunction(
-    transfer: EthCall,
+    call: EthCall,
     crossinline transform: (result: Type<*>?) -> T
 ): T {
-    val response = when(transfer) {
+    val response = when(call) {
         is EthCall.SmartContractCall ->
             nonNullWeb3j.ethCall(
                 Transaction.createEthCallTransaction(
                     null,
-                    transfer.contractAddress,
-                    transfer.encodedFunction
+                    call.contractAddress,
+                    call.encodedFunction
                 ),
-                DefaultBlockParameterName.LATEST
+                DefaultBlockParameterName.PENDING
             ).sendAsync().await()
 
         else -> error(
@@ -36,10 +36,10 @@ suspend inline fun <T> EthereumWebSocketConnection.ExecuteEthFunction(
     return response.map { result ->
         val decodedOutputTypes = FunctionReturnDecoder.decode(
             result,
-            transfer.outputTypeRefs
+            call.outputTypeRefs
         )
 
-        if (transfer.outputTypeRefs.size != decodedOutputTypes.size)
+        if (call.outputTypeRefs.size != decodedOutputTypes.size)
             error(
                 """
                     Result obtained is not decodable.

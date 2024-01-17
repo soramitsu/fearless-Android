@@ -71,7 +71,7 @@ class NFTTransferInteractorImpl(
             val networkFee = connection.EstimateEthTransactionNetworkFee(
                 chain = chain,
                 baseFeePerGas = Numeric.decodeQuantity(newHead.params.result?.baseFeePerGas),
-                transfer = nftTransfer
+                call = nftTransfer
             )
 
             emit(Result.success(networkFee))
@@ -124,7 +124,7 @@ class NFTTransferInteractorImpl(
                 keypair = keypair,
                 ethereumChainId = chainId,
                 transaction = connection.CreateRawEthTransaction(
-                    transfer = nftTransfer
+                    call = nftTransfer
                 )
             )
         }

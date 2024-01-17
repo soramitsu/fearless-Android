@@ -145,7 +145,8 @@ class NftModule {
     fun provideMyOlfNftInteractor(
         nftInteractor: NFTInteractor,
         nftTransferInteractor: NFTTransferInteractor,
-        chainRepository: ChainsRepository
-    ) = NftInteractor(nftInteractor, nftTransferInteractor, chainRepository)
+        chainRepository: ChainsRepository,
+        accountRepository: AccountRepository
+    ) = NftInteractor(nftInteractor, nftTransferInteractor, chainRepository, accountRepository)
 
 }
