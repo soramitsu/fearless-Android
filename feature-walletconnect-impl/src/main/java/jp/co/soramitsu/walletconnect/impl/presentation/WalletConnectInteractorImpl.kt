@@ -13,11 +13,9 @@ import jp.co.soramitsu.common.data.secrets.v2.KeyPairSchema
 import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
 import jp.co.soramitsu.common.utils.mapValuesNotNull
 import jp.co.soramitsu.core.crypto.mapCryptoTypeToEncryption
-import jp.co.soramitsu.core.extrinsic.ExtrinsicBuilderFactory
 import jp.co.soramitsu.core.extrinsic.keypair_provider.KeypairProvider
 import jp.co.soramitsu.core.models.ChainId
 import jp.co.soramitsu.runtime.ext.accountIdOf
-import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.shared_utils.encrypt.MultiChainEncryption
@@ -35,7 +33,12 @@ import org.web3j.crypto.Sign
 import org.web3j.crypto.StructuredDataEncoder
 import org.web3j.utils.Numeric
 import java.math.BigInteger
-import jp.co.soramitsu.shared_utils.runtime.definitions.types.composite.DictEnum
+import jp.co.soramitsu.common.data.Keypair
+import jp.co.soramitsu.common.utils.decodeToInt
+import jp.co.soramitsu.core.extrinsic.ExtrinsicService
+import jp.co.soramitsu.shared_utils.hash.Hasher.blake2b256
+import jp.co.soramitsu.shared_utils.runtime.definitions.types.useScaleWriter
+import jp.co.soramitsu.shared_utils.scale.utils.directWrite
 
 @Suppress("LargeClass")
 class WalletConnectInteractorImpl(
@@ -43,8 +46,7 @@ class WalletConnectInteractorImpl(
     private val ethereumSource: EthereumRemoteSource,
     private val accountRepository: AccountRepository,
     private val keypairProvider: KeypairProvider,
-    private val chainRegistry: ChainRegistry,
-    private val extrinsicBuilderFactory: ExtrinsicBuilderFactory
+    private val extrinsicService: ExtrinsicService,
 ) : WalletConnectInteractor {
 
     @Suppress("MagicNumber")
@@ -336,26 +338,50 @@ class WalletConnectInteractorImpl(
         val params = JSONObject(recentSession.request.params)
 
         val signPayload = JSONObject(params.getString("transactionPayload"))
-        val address = signPayload.getString("address")
-        val genesisHash = signPayload.getString("genesisHash").removePrefix("0x")
-        val tip = signPayload.getString("tip").decodeNumericQuantity()
-        val method = signPayload.getString("method")
+        val genesisHash = signPayload.getString("genesisHash").fromHex()
+        val tip = signPayload.getString("tip").fromHex().decodeToInt()
+        val method = signPayload.getString("method").fromHex()
+        val blockHash = signPayload.getString("blockHash").fromHex()
+        val era = signPayload.getString("era").fromHex()
+        val nonce = signPayload.getString("nonce").fromHex().decodeToInt()
+        val specVersion = signPayload.getString("specVersion").fromHex().decodeToInt()
+        val transactionVersion = signPayload.getString("transactionVersion").fromHex().decodeToInt()
 
-        val chain = chainRegistry.getChain(genesisHash)
-        val accountId = chain.accountIdOf(address)
+        val payloadBytes = useScaleWriter {
+            directWrite(method)
+            directWrite(era)
+            writeCompact(nonce)
+            writeCompact(tip)
+            writeUint32(specVersion)
+            writeUint32(transactionVersion)
+            directWrite(genesisHash)
+            directWrite(blockHash)
+        }
 
-        val keypair = withContext(Dispatchers.IO) { keypairProvider.getKeypairFor(chain, accountId) }
-        val cryptoType = withContext(Dispatchers.IO) { keypairProvider.getCryptoTypeFor(chain, accountId) }
-        val extrinsicBuilder = extrinsicBuilderFactory.create(chain, keypair, cryptoType, tip)
+        val messageToSign = if (payloadBytes.size > 256) {
+            payloadBytes.blake2b256()
+        } else {
+            payloadBytes
+        }
 
-        extrinsicBuilder.genericCall(method = method)
-        val signature = extrinsicBuilder.buildSignature()
+        val currentMetaAccount = accountRepository.getSelectedMetaAccount()
+        val secrets = accountRepository.getMetaAccountSecrets(currentMetaAccount.id) ?: error("There are no secrets for metaId: ${currentMetaAccount.id}")
+        val keypairSchema = secrets[MetaAccountSecrets.SubstrateKeypair]
+        val publicKey = keypairSchema[KeyPairSchema.PublicKey]
+        val privateKey = keypairSchema[KeyPairSchema.PrivateKey]
+        val nonce1 = keypairSchema[KeyPairSchema.Nonce]
+        val keypair = Keypair(publicKey, privateKey, nonce1)
+        val encryption = mapCryptoTypeToEncryption(currentMetaAccount.substrateCryptoType)
 
-        val signatureHex = ((signature as DictEnum.Entry<*>).value as ByteArray).toHexString(true)
+        val signature = extrinsicService.createSignature(
+            encryption,
+            keypair,
+            messageToSign.toHexString()
+        )
 
         return JSONObject().apply {
             put("id", recentSession.request.id)
-            put("signature", signatureHex)
+            put("signature", signature)
         }.toString()
     }
 
