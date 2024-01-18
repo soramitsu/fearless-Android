@@ -1,4 +1,4 @@
-@Library('jenkins-library@feature/2890/upload-android-app-to-nexus')
+@Library('jenkins-library')
 
 // Job properties
 def jobParams = [
