@@ -5,15 +5,14 @@ import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.common.data.network.runtime.binding.SimpleBalanceData
 import jp.co.soramitsu.common.utils.failure
+import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.connection.EthereumConnectionPool
 import jp.co.soramitsu.runtime.multiNetwork.connection.EthereumWebSocketConnection
-import jp.co.soramitsu.shared_utils.extensions.requireHexPrefix
 import jp.co.soramitsu.shared_utils.extensions.toHexString
 import jp.co.soramitsu.shared_utils.runtime.AccountId
-import jp.co.soramitsu.wallet.impl.data.network.model.EvmTransfer
 import jp.co.soramitsu.wallet.impl.data.network.model.response.NewHeadsNotificationExtended
 import jp.co.soramitsu.wallet.impl.domain.model.Transfer
 import kotlinx.coroutines.Dispatchers
@@ -27,16 +26,11 @@ import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.yield
 import org.web3j.abi.FunctionEncoder
-import org.web3j.abi.TypeReference
 import org.web3j.abi.datatypes.Address
-import org.web3j.abi.datatypes.Bool
 import org.web3j.abi.datatypes.Function
-import org.web3j.abi.datatypes.Type
-import org.web3j.abi.datatypes.generated.Uint256
 import org.web3j.crypto.Credentials
 import org.web3j.crypto.RawTransaction
 import org.web3j.crypto.TransactionEncoder
-import org.web3j.protocol.Web3j
 import org.web3j.protocol.Web3jService
 import org.web3j.protocol.core.DefaultBlockParameterName
 import org.web3j.protocol.core.Ethereum
@@ -46,7 +40,6 @@ import org.web3j.protocol.core.methods.request.Transaction
 import org.web3j.protocol.core.methods.response.EthSubscribe
 import org.web3j.protocol.http.HttpService
 import org.web3j.protocol.websocket.WebSocketService
-import org.web3j.utils.Convert
 import org.web3j.utils.Numeric
 
 class EthereumRemoteSource(private val ethereumConnectionPool: EthereumConnectionPool) {
@@ -78,81 +71,15 @@ class EthereumRemoteSource(private val ethereumConnectionPool: EthereumConnectio
             val connection = ethereumConnectionPool.get(chain.id)
                 ?: return@withContext Result.failure("There is no connection created for chain ${chain.name}, ${chain.id}")
 
-            connection.web3j
-                ?: return@withContext Result.failure("There is no connection established for chain ${chain.name}, ${chain.id}")
-            connection.service
-                ?: return@withContext Result.failure("There is no connection established for chain ${chain.name}, ${chain.id}")
-
-            val web3 = connection.web3j!!
+            val web3 = connection.web3j ?: return@withContext Result.failure("There is no connection established for chain ${chain.name}, ${chain.id}")
             val cred = Credentials.create(privateKey)
-            val nonce =
-                kotlin.runCatching {
-                    web3.ethGetTransactionCount(transfer.sender, DefaultBlockParameterName.PENDING)
-                        .send().transactionCount
-                }
-                    .getOrElse { return@withContext Result.failure("Error ethGetTransactionCount for chain ${chain.name}, ${chain.id}, error: $it") }
 
-            val amountInPlanks = Convert.toWei(transfer.amount, Convert.Unit.ETHER).toBigInteger()
-            val evmTransfer = EvmTransfer.createFromTransfer(transfer, nonce)
-            val transaction = createTransferCall(evmTransfer)
+            val builder = EthereumTransactionBuilder(connection)
+            val rawTransaction =
+                builder.build(transfer).onFailure { return@withContext Result.failure(it) }
+                    .requireValue()
 
-            val baseFee = runCatching {
-                web3.ethGetBlockByNumber(DefaultBlockParameterName.LATEST, false)
-                    .send()
-                    .resultOrThrow()
-                    .baseFeePerGas
-                    .let { Numeric.decodeQuantity(it) }
-            }
-                .getOrElse { return@withContext Result.failure("Error ethGetBlockByNumber for chain ${chain.name}, ${chain.id}, error: $it") }
-
-            val priorityFee = runCatching {
-                connection.service!!.ethMaxPriorityFeePerGas()
-                    .send()
-                    .resultOrThrow()
-                    .let { Numeric.decodeQuantity(it) }
-            }
-                .getOrElse { return@withContext Result.failure("Error ethMaxPriorityFeePerGas for chain ${chain.name}, ${chain.id}, error: $it") }
-
-            val estimatedGas = kotlin.runCatching {
-                web3.ethEstimateGas(transaction).send()
-                    .resultOrThrow()
-                    .let { Numeric.decodeQuantity(it) }
-            }
-                .getOrElse { return@withContext Result.failure("Error ethEstimateGas for chain ${chain.name}, ${chain.id}, error: $it") }
-
-            val maxFeePerGas = baseFee + priorityFee
-            val chainId = chain.id.requireHexPrefix().drop(2).toLong()
-            val raw = if (transfer.chainAsset.isUtility) {
-                RawTransaction.createEtherTransaction(
-                    chainId,
-                    nonce,
-                    estimatedGas, //gasLimit
-                    transfer.recipient,
-                    amountInPlanks,
-                    priorityFee, //maxPriorityFeePerGas
-                    maxFeePerGas //maxFeePerGas
-                )
-            } else {
-                val erc20TransferFunction = Function(
-                    "transfer",
-                    listOf(Address(transfer.recipient), Uint256(transfer.amountInPlanks)),
-                    listOf(TypeReference.create(Bool::class.java))
-                )
-
-                val encodedErc20Function = FunctionEncoder.encode(erc20TransferFunction)
-                RawTransaction.createTransaction(
-                    chainId,
-                    nonce,
-                    estimatedGas, //gasLimit
-                    transfer.chainAsset.id,
-                    BigInteger.ZERO,
-                    encodedErc20Function,
-                    priorityFee, //maxPriorityFeePerGas
-                    maxFeePerGas //maxFeePerGas
-                )
-            }
-
-            val signed = TransactionEncoder.signMessage(raw, cred)
+            val signed = TransactionEncoder.signMessage(rawTransaction, cred)
 
             val transactionHash = kotlin.runCatching {
                 web3.ethSendRawTransaction(signed.toHexString(true)).send().resultOrThrow()
@@ -161,6 +88,7 @@ class EthereumRemoteSource(private val ethereumConnectionPool: EthereumConnectio
 
             return@withContext Result.success(transactionHash)
         }
+
 
     private val ethereumBalancesSubscriptionJob: MutableMap<ChainId, Job?> = mutableMapOf()
     suspend fun subscribeEthereumBalance(
@@ -242,80 +170,43 @@ class EthereumRemoteSource(private val ethereumConnectionPool: EthereumConnectio
     fun listenGas(transfer: Transfer, chain: Chain): Flow<BigInteger> {
         val connection = requireNotNull(ethereumConnectionPool.get(chain.id))
         val web3j = requireNotNull(connection.web3j)
+        val wsService = requireNotNull(connection.service)
+        val transactionBuilder = EthereumTransactionBuilder(connection)
 
         return connection.subscribeBaseFeePerGas()
             .map { baseFeePerGas ->
-                val evmTransfer = EvmTransfer(
-                    transfer.sender,
-                    recipient = transfer.recipient,
-                    amount = null,
-                    chainAsset = transfer.chainAsset
-                )
-                if (baseFeePerGas == null) {
-                    // use legacy transaction
-                    calculateLegacyGas(web3j, evmTransfer, chain)
-                } else {
+                val call = transactionBuilder.buildFeeEstimationCall(transfer)
+
+                val gasLimit = kotlin.runCatching {
+                    val response = web3j.ethEstimateGas(call).send()
+                    if (response.hasError()) {
+                        throw GasServiceException("Failed to ethEstimateGas on chain ${chain.name}: ${response.error}")
+                    }
+                    response.amountUsed
+                }.getOrNull()
+                    ?: throw GasServiceException("Failed to ethEstimateGas on chain ${chain.name}. Response is null")
+
+                val priorityFee = withContext(Dispatchers.IO) {
+                    runCatching {
+                        wsService.ethMaxPriorityFeePerGas().send()?.maxPriorityFeePerGas
+                    }.getOrNull()
+                }
+
+                if (baseFeePerGas != null && priorityFee != null) {
                     // use EIP-1559 transaction
-                    calculateEIP1559Gas(connection, evmTransfer, chain, baseFeePerGas)
+                    gasLimit * (priorityFee + baseFeePerGas)
+                } else {
+                    // use legacy transaction
+
+                    val gasPrice = runCatching {
+                        val response = web3j.ethGasPrice().send()
+                        response.gasPrice
+                    }.getOrNull()
+                        ?: throw GasServiceException("Failed to get ethGasPrice on chain ${chain.name}. Response is null")
+
+                    gasLimit * gasPrice
                 }
             }
-    }
-
-    private fun calculateLegacyGas(
-        web3j: Web3j,
-        transfer: EvmTransfer,
-        chain: Chain
-    ): BigInteger {
-        val call = createTransferCall(transfer)
-
-        val gasLimit = kotlin.runCatching {
-            val response = web3j.ethEstimateGas(call).send()
-            if (response.hasError()) {
-                throw GasServiceException("Failed to ethEstimateGas on chain ${chain.name}: ${response.error}")
-            }
-            response.amountUsed
-        }.getOrNull()
-            ?: throw GasServiceException("Failed to ethEstimateGas on chain ${chain.name}. Response is null")
-
-        val gasPrice = runCatching {
-            val response = web3j.ethGasPrice().send()
-            response.gasPrice
-        }.getOrNull()
-            ?: throw GasServiceException("Failed to get ethGasPrice on chain ${chain.name}. Response is null")
-
-        return gasLimit * gasPrice
-    }
-
-    private suspend fun calculateEIP1559Gas(
-        connection: EthereumWebSocketConnection,
-        transfer: EvmTransfer,
-        chain: Chain,
-        baseFeePerGas: BigInteger
-    ): BigInteger {
-        val wsService = requireNotNull(connection.service)
-        val web3j = requireNotNull(connection.web3j)
-
-        val priorityFee = withContext(Dispatchers.IO) {
-            wsService.ethMaxPriorityFeePerGas().send()?.maxPriorityFeePerGas
-        }
-            ?: throw GasServiceException("Failed to get ethMaxPriorityFeePerGas on chain ${chain.name}. Response is null")
-
-        val call = createTransferCall(transfer)
-
-        val gasLimit = kotlin.runCatching {
-            val response = web3j.ethEstimateGas(call).send()
-            if (response.hasError()) {
-                throw GasServiceException("Failed to ethEstimateGas on chain ${chain.name}: ${response.error}")
-            }
-            response.amountUsed
-        }.getOrNull()
-            ?: throw GasServiceException("Failed to ethEstimateGas on chain ${chain.name}. Response is null")
-
-        return gasLimit * (priorityFee + baseFeePerGas)
-    }
-
-    private fun createTransferCall(transfer: EvmTransfer): Transaction? {
-        return transactionCallBuildersByAssetType[transfer.chainAsset.ethereumType]?.invoke(transfer)
     }
 
     suspend fun sendRawTransaction(
@@ -416,7 +307,6 @@ class GasServiceException(message: String) : RuntimeException(message)
 
 fun <T> Response<T>.resultOrThrow(): T {
     if (hasError()) {
-
         throw EthereumRequestError(error.message)
     } else {
         return result
@@ -424,7 +314,6 @@ fun <T> Response<T>.resultOrThrow(): T {
 }
 
 class EthereumRequestError(message: String) : Exception(message)
-
 
 fun Web3jService.ethMaxPriorityFeePerGas(): Request<Any, MaxPriorityFeePerGas> {
     return Request<Any, MaxPriorityFeePerGas>(
@@ -489,40 +378,3 @@ fun WebSocketService.subscribeNewHeads(): Flow<NewHeadsNotificationExtended> {
         NewHeadsNotificationExtended::class.java
     ).asFlow()
 }
-
-private val erc20TransferCallBuilder: (EvmTransfer) -> Transaction? = {
-    val function = Function(
-        "transfer",
-        listOf(
-            Address(it.recipient),
-            it.amount?.let { nonNullAmount -> Uint256(nonNullAmount) } ?: Uint256.DEFAULT),
-        listOf(TypeReference.create(Bool::class.java))
-    )
-    val txData: String = FunctionEncoder.encode(function)
-
-    Transaction.createFunctionCallTransaction(
-        it.sender,
-        it.nonce,
-        it.gasPrice,
-        it.gasLimit,
-        it.chainAsset.id,
-        BigInteger.ZERO,
-        txData
-    )
-}
-
-private val transactionCallBuildersByAssetType: HashMap<Asset.EthereumType, (EvmTransfer) -> Transaction?> =
-    hashMapOf(
-        Asset.EthereumType.NORMAL to {
-            Transaction.createEtherTransaction(
-                it.sender,
-                it.nonce,
-                it.gasPrice,
-                it.gasLimit,
-                it.recipient,
-                it.amount
-            )
-        },
-        Asset.EthereumType.ERC20 to erc20TransferCallBuilder,
-        Asset.EthereumType.BEP20 to erc20TransferCallBuilder
-    )

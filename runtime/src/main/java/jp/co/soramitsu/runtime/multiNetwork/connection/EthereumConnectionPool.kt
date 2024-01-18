@@ -81,7 +81,7 @@ class EthereumConnectionPool(
 }
 
 class EthereumWebSocketConnection(
-    private val chain: Chain,
+    val chain: Chain,
     private val socketFactory: EthereumWebSocketFactory,
     private val autoBalanceEnabled: () -> Boolean,
     private val onSelectedNodeChange: (chainId: ChainId, newNodeUrl: String) -> Unit
