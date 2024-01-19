@@ -727,6 +727,7 @@
   <string name="select_network_template">Select %s network</string>
   <string name="select_save_type">Select save type</string>
   <string name="select_validators_disclaimer">DISCLAIMER: Algorithmic validator suggestions do not constitute financial consultation or advice. Staking is a high-risk activity and algorithmic validator suggestions do not necessarily mitigate this risk. A validator suggested by the algorithm could still be slashed. A validator suggested by the algorithm could also change their parameters (e.g. commission rates, etc.) at any time after having been suggested and/or selected. You could lose tokens or rewards for these or other reasons. Only stake tokens and use validator suggestions at your own discretion, after conducting due diligence and carefully considering the risks involved.</string>
+  <string name="send_all_and_reap_account">Send all tokens and reap the account</string>
   <string name="send_fund">Send Fund</string>
   <string name="send_to">Send to</string>
   <string name="sending">Sending</string>

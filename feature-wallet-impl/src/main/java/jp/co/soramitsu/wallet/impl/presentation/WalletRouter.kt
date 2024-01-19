@@ -83,7 +83,7 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
 
     fun openOperationSuccess(operationHash: String?, chainId: ChainId?)
 
-    fun openSendConfirm(transferDraft: TransferDraft, phishingType: PhishingType?, overrides: Map<String, Any?> = emptyMap(), transferComment: String? = null)
+    fun openSendConfirm(transferDraft: TransferDraft, phishingType: PhishingType?, overrides: Map<String, Any?> = emptyMap(), transferComment: String? = null, skipEdValidation: Boolean = false)
 
     fun openCrossChainSendConfirm(transferDraft: CrossChainTransferDraft, phishingType: PhishingType?)
 

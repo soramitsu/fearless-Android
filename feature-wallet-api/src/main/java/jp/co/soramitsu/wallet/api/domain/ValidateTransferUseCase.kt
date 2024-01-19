@@ -23,7 +23,8 @@ interface ValidateTransferUseCase {
         ownAddress: String,
         fee: BigInteger?,
         confirmedValidations: List<TransferValidationResult> = emptyList(),
-        transferMyselfAvailable: Boolean
+        transferMyselfAvailable: Boolean,
+        skipEdValidation: Boolean = false
     ): Result<TransferValidationResult>
 
     suspend fun validateExistentialDeposit(
@@ -49,6 +50,9 @@ sealed class TransferValidationResult {
     object InvalidAddress : TransferValidationResult()
     object TransferToTheSameAddress : TransferValidationResult()
     object WaitForFee : TransferValidationResult()
+
+    val isExistentialDepositWarning: Boolean
+        get() = this is ExistentialDepositWarning || this is UtilityExistentialDepositWarning
 }
 
 fun ValidationException.Companion.fromValidationResult(result: TransferValidationResult, resourceManager: ResourceManager): ValidationException? {
