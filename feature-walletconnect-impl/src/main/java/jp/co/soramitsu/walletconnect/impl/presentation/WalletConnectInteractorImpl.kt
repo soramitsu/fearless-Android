@@ -9,10 +9,13 @@ import com.walletconnect.web3.wallet.utils.CacaoSigner
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.address
+import jp.co.soramitsu.common.data.Keypair
 import jp.co.soramitsu.common.data.secrets.v2.KeyPairSchema
 import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
+import jp.co.soramitsu.common.utils.decodeToInt
 import jp.co.soramitsu.common.utils.mapValuesNotNull
 import jp.co.soramitsu.core.crypto.mapCryptoTypeToEncryption
+import jp.co.soramitsu.core.extrinsic.ExtrinsicService
 import jp.co.soramitsu.core.extrinsic.keypair_provider.KeypairProvider
 import jp.co.soramitsu.core.models.ChainId
 import jp.co.soramitsu.runtime.ext.accountIdOf
@@ -23,6 +26,9 @@ import jp.co.soramitsu.shared_utils.encrypt.SignatureWrapper
 import jp.co.soramitsu.shared_utils.encrypt.Signer
 import jp.co.soramitsu.shared_utils.extensions.fromHex
 import jp.co.soramitsu.shared_utils.extensions.toHexString
+import jp.co.soramitsu.shared_utils.hash.Hasher.blake2b256
+import jp.co.soramitsu.shared_utils.runtime.definitions.types.useScaleWriter
+import jp.co.soramitsu.shared_utils.scale.utils.directWrite
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.EthereumRemoteSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -33,12 +39,6 @@ import org.web3j.crypto.Sign
 import org.web3j.crypto.StructuredDataEncoder
 import org.web3j.utils.Numeric
 import java.math.BigInteger
-import jp.co.soramitsu.common.data.Keypair
-import jp.co.soramitsu.common.utils.decodeToInt
-import jp.co.soramitsu.core.extrinsic.ExtrinsicService
-import jp.co.soramitsu.shared_utils.hash.Hasher.blake2b256
-import jp.co.soramitsu.shared_utils.runtime.definitions.types.useScaleWriter
-import jp.co.soramitsu.shared_utils.scale.utils.directWrite
 
 @Suppress("LargeClass")
 class WalletConnectInteractorImpl(
@@ -358,7 +358,7 @@ class WalletConnectInteractorImpl(
             directWrite(blockHash)
         }
 
-        val messageToSign = if (payloadBytes.size > 256) {
+        val messageToSign = if (payloadBytes.size > PAYLOAD_HASH_THRESHOLD) {
             payloadBytes.blake2b256()
         } else {
             payloadBytes
@@ -432,10 +432,6 @@ class WalletConnectInteractorImpl(
         return kotlin.runCatching { Numeric.decodeQuantity(this) }.getOrNull()
     }
 
-    private fun String.decodeNumericQuantity(): BigInteger {
-        return Numeric.decodeQuantity(this)
-    }
-
     override fun rejectSessionRequest(
         sessionTopic: String,
         requestId: Long,
@@ -486,5 +482,9 @@ class WalletConnectInteractorImpl(
             onSuccess = onSuccess,
             onError = onError
         )
+    }
+
+    companion object {
+        private const val PAYLOAD_HASH_THRESHOLD = 256
     }
 }
