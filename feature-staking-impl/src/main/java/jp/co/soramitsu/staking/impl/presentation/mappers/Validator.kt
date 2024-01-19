@@ -112,7 +112,7 @@ private fun mapValidatorToValidatorDetailsParcelModel(
             )
         } ?: ValidatorStakeParcelModel.Inactive
 
-        ValidatorDetailsParcelModel(accountIdHex, stakeModel, identityModel)
+        ValidatorDetailsParcelModel(accountIdHex, stakeModel, prefs?.commission, identityModel)
     }
 }
 
@@ -178,7 +178,8 @@ suspend fun mapValidatorDetailsParcelToValidatorDetailsModel(
                         totalStakeFiat = totalStakeFiatFormatted,
                         nominatorsCount = nominatorsCount.toString(),
                         apy = apyPercentageFormatted,
-                        maxNominations = maxNominators.toString()
+                        maxNominations = maxNominators.toString(),
+                        commission = comission?.fractionToPercentage()?.formatAsPercentage()
                     )
                 )
             }
