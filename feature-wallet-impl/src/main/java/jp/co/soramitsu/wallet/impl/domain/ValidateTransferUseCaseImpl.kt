@@ -48,7 +48,8 @@ class ValidateTransferUseCaseImpl(
         ownAddress: String,
         fee: BigInteger?,
         confirmedValidations: List<TransferValidationResult>,
-        transferMyselfAvailable: Boolean
+        transferMyselfAvailable: Boolean,
+        skipEdValidation: Boolean
     ): Result<TransferValidationResult> = kotlin.runCatching {
         fee ?: return Result.success(TransferValidationResult.WaitForFee)
         val chainId = asset.token.configuration.chainId
@@ -68,7 +69,7 @@ class ValidateTransferUseCaseImpl(
             TransferValidationResult.TransferToTheSameAddress to (!transferMyselfAvailable && recipientAddress == ownAddress)
         )
 
-        val initialCheck = performChecks(initialChecks, confirmedValidations)
+        val initialCheck = performChecks(initialChecks, confirmedValidations, skipEdValidation)
         if (initialCheck != TransferValidationResult.Valid) {
             return Result.success(initialCheck)
         }
@@ -204,7 +205,7 @@ class ValidateTransferUseCaseImpl(
                 )
             }
         }
-        val result = performChecks(validationChecks, confirmedValidations)
+        val result = performChecks(validationChecks, confirmedValidations, skipEdValidation)
         return Result.success(result)
     }
 
@@ -323,10 +324,11 @@ class ValidateTransferUseCaseImpl(
 
     private fun performChecks(
         checks: Map<TransferValidationResult, Boolean>,
-        confirmedValidations: List<TransferValidationResult>
+        confirmedValidations: List<TransferValidationResult>,
+        skipEdValidation: Boolean = false
     ): TransferValidationResult {
-        checks.filter { (result, _) ->
-            result !in confirmedValidations
+        checks.filterNot { (result, _) ->
+            result in confirmedValidations || skipEdValidation && result.isExistentialDepositWarning
         }.forEach { (result, condition) ->
             if (condition) return result
         }

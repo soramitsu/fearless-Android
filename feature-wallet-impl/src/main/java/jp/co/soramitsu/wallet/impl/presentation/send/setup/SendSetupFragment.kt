@@ -10,15 +10,12 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.unit.Density
-import androidx.compose.ui.unit.dp
 import androidx.core.os.bundleOf
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.journeyapps.barcodescanner.ScanOptions
 import dagger.hilt.android.AndroidEntryPoint
-import java.lang.Integer.max
 import java.math.BigDecimal
 import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
 import jp.co.soramitsu.common.presentation.ErrorDialog
@@ -87,6 +84,7 @@ class SendSetupFragment : BaseComposeBottomSheetDialogFragment<SendSetupViewMode
                 positiveButtonText = warning.positiveButtonText,
                 negativeButtonText = warning.negativeButtonText,
                 positiveClick = { viewModel.warningConfirmed(result) },
+                negativeClick = { viewModel.warningCancelled() },
                 isHideable = false
             ).show(childFragmentManager)
         }

@@ -68,7 +68,7 @@ class ErrorDialog(
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setStyle(STYLE_NO_TITLE, R.style.CustomBottomSheetDialogTheme)
+        setStyle(STYLE_NO_TITLE, R.style.CustomBottomSheetDialogThemeNoIme)
     }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {

@@ -94,6 +94,7 @@ class ConfirmSendViewModel @Inject constructor(
     private val phishingType = savedStateHandle.get<PhishingType>(ConfirmSendFragment.KEY_PHISHING_TYPE)
     private val overrides = savedStateHandle.get<Map<String, Any?>>(ConfirmSendFragment.KEY_OVERRIDES).orEmpty()
     private val transferComment = savedStateHandle.get<String>(ConfirmSendFragment.KEY_TRANSFER_COMMENT)
+    private val skipEdValidation = savedStateHandle.get<Boolean>(ConfirmSendFragment.KEY_SKIP_ED_VALIDATION) == true
 
     private val _openValidationWarningEvent = MutableLiveData<Event<Pair<TransferValidationResult, ValidationWarning>>>()
     val openValidationWarningEvent: LiveData<Event<Pair<TransferValidationResult, ValidationWarning>>> = _openValidationWarningEvent
@@ -270,32 +271,33 @@ class ConfirmSendViewModel @Inject constructor(
             val recipientAddress = transferDraft.recipientAddress
             val selfAddress = currentAccountAddress(asset.token.configuration.chainId) ?: return@launch
 
-            val validationProcessResult = validateTransferUseCase.validateExistentialDeposit(
-                amountInPlanks = inPlanks,
-                asset = asset,
-                destinationChainId = asset.token.configuration.chainId,
-                recipientAddress = recipientAddress,
-                ownAddress = selfAddress,
-                fee = fee,
-                confirmedValidations = confirmedValidations
-            )
+            if (!skipEdValidation) {
+                val validationProcessResult = validateTransferUseCase.validateExistentialDeposit(
+                    amountInPlanks = inPlanks,
+                    asset = asset,
+                    destinationChainId = asset.token.configuration.chainId,
+                    recipientAddress = recipientAddress,
+                    ownAddress = selfAddress,
+                    fee = fee,
+                    confirmedValidations = confirmedValidations
+                )
 
-            // error occurred inside validation
-            validationProcessResult.exceptionOrNull()?.let {
-                showError(it)
-                return@launch
-            }
-            val validationResult = validationProcessResult.requireValue()
-
-            ValidationException.fromValidationResult(validationResult, resourceManager)?.let {
-                if (it is ValidationWarning) {
-                    _openValidationWarningEvent.value = Event(validationResult to it)
-                } else {
+                // error occurred inside validation
+                validationProcessResult.exceptionOrNull()?.let {
                     showError(it)
+                    return@launch
                 }
-                return@launch
-            }
+                val validationResult = validationProcessResult.requireValue()
 
+                ValidationException.fromValidationResult(validationResult, resourceManager)?.let {
+                    if (it is ValidationWarning) {
+                        _openValidationWarningEvent.value = Event(validationResult to it)
+                    } else {
+                        showError(it)
+                    }
+                    return@launch
+                }
+            }
             performTransfer()
         }
     }
