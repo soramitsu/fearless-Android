@@ -1102,8 +1102,8 @@ class Navigator :
         navController?.navigate(R.id.backupWalletDialog, extras)
     }
 
-    override fun openRenameWallet(metaAccountId: Long) {
-        val extras = RenameAccountDialog.getBundle(metaAccountId)
+    override fun openRenameWallet(metaAccountId: Long, name: String?) {
+        val extras = RenameAccountDialog.getBundle(metaAccountId, name)
 
         navController?.navigate(R.id.renameAccountDialog, extras)
     }
