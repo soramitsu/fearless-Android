@@ -52,6 +52,7 @@ class ErrorDialog(
     private val title: String?,
     private val message: String,
     private val positiveButtonText: String? = null,
+    private val secondPositiveButtonText: String? = null,
     private val negativeButtonText: String? = null,
     private val textSize: Int = 13,
     @DrawableRes private val iconRes: Int = R.drawable.ic_status_warning_16,
@@ -59,6 +60,7 @@ class ErrorDialog(
     private val buttonsOrientation: Int = LinearLayout.VERTICAL,
     private val onBackClick: () -> Unit = emptyClick,
     private val positiveClick: () -> Unit = emptyClick,
+    private val secondPositiveClick: () -> Unit = emptyClick,
     private val negativeClick: () -> Unit = emptyClick
 ) : BottomSheetDialogFragment() {
 
@@ -145,6 +147,18 @@ class ErrorDialog(
                                             .height(52.dp)
                                     ) {
                                         positiveClick()
+                                        dismiss()
+                                    }
+                                    MarginVertical(margin = 12.dp)
+                                }
+                                secondPositiveButtonText?.let {
+                                    GrayButton(
+                                        text = it,
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(52.dp)
+                                    ) {
+                                        secondPositiveClick
                                         dismiss()
                                     }
                                     MarginVertical(margin = 12.dp)

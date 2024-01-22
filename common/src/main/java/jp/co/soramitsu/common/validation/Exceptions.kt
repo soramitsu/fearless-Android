@@ -24,14 +24,16 @@ class ExistentialDepositCrossedException(resourceManager: ResourceManager, edAmo
     resourceManager.getString(R.string.common_existential_warning_title),
     resourceManager.getString(R.string.common_existential_warning_message, edAmount),
     resourceManager.getString(R.string.common_proceed),
-    resourceManager.getString(R.string.common_cancel)
+    resourceManager.getString(R.string.common_cancel),
+    resourceManager.getString(R.string.set_max_amount),
 )
 
 class TransferToTheSameAddressException(resourceManager: ResourceManager) : ValidationWarning(
     resourceManager.getString(R.string.common_warning),
     resourceManager.getString(R.string.same_address_transfer_warning_message),
     resourceManager.getString(R.string.common_proceed),
-    resourceManager.getString(R.string.common_cancel)
+    resourceManager.getString(R.string.common_cancel),
+    null
 )
 
 class DeadRecipientException(resourceManager: ResourceManager) : ValidationException(

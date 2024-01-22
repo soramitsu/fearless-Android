@@ -495,7 +495,6 @@ class SendSetupViewModel @Inject constructor(
             )
         }
             .onEach {
-                println("!!! GOT validateTransferUseCase.validateExistentialDeposit result = $it")
                 it?.fold(
                     onSuccess = { validationResult ->
                         if (validationResult.isExistentialDepositWarning) {
@@ -508,7 +507,6 @@ class SendSetupViewModel @Inject constructor(
                     },
                     onFailure = {
                         it.printStackTrace()
-                        println("!!! error: ${it.message}")
                     }
                 )
             }
@@ -789,6 +787,11 @@ class SendSetupViewModel @Inject constructor(
         if (validationResult.isExistentialDepositWarning) {
             sendAllToggleState.value = ToggleState.CONFIRMED
         }
+    }
+
+    fun warningConfirmedSecond(validationResult: TransferValidationResult) {
+        warningConfirmed(validationResult)
+        onQuickAmountInput(1.0)
     }
 
     override fun onSendAllChecked(checked: Boolean) {

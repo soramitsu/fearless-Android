@@ -732,6 +732,7 @@
   <string name="send_to">Send to</string>
   <string name="sending">Sending</string>
   <string name="settings_hide_zero_balances">Hide zero balances</string>
+  <string name="set_max_amount">Set max amount</string>
   <string name="share_referral_code">Share referral code</string>
   <string name="social_media">Social Media</string>
   <string name="sora_bridge_low_amount_alert">Currently, there\'s a min. amount 0.05 KSM for bridging to ensure the stability and security of the SORA Network. We appreciate your understanding.</string>
