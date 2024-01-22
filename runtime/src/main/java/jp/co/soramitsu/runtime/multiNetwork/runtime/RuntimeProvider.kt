@@ -1,5 +1,6 @@
 package jp.co.soramitsu.runtime.multiNetwork.runtime
 
+import android.util.Log
 import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
 import jp.co.soramitsu.core.runtime.ConstructedRuntime
 import jp.co.soramitsu.core.runtime.RuntimeFactory
@@ -128,9 +129,15 @@ class RuntimeProvider(
 
                 val runtime =
                     runtimeFactory.constructRuntime(metadataRaw, ownTypesRaw, runtimeVersion)
+                if(chainId == "7834781d38e4798d548e34ec947d19deea29df148a7bf32484b7b24dacf8d4b7"){
+                    Log.d("&&&", "reef runtime construction: ${runtime.runtime}")
+                }
                 runtimeFlow.emit(runtime)
                 networkStateMixin.notifyChainSyncSuccess(chainId)
             }.onFailure {
+                if(chainId == "7834781d38e4798d548e34ec947d19deea29df148a7bf32484b7b24dacf8d4b7"){
+                    Log.d("&&&", "reef runtime construction failure: $it ${it.message}")
+                }
                 networkStateMixin.notifyChainSyncProblem(chain.toSyncIssue())
                 when (it) {
                     ChainInfoNotInCacheException -> runtimeSyncService.cacheNotFound(chainId)

@@ -109,7 +109,9 @@ class RuntimeSyncService(
                     GetMetadataRequest,
                     mapper = pojo<String>().nonNull()
                 ).getOrNull()
-
+            if(chainId == "7834781d38e4798d548e34ec947d19deea29df148a7bf32484b7b24dacf8d4b7"){
+                Log.d("&&&", "reef metadata length: ${runtimeMetadata?.length}")
+            }
             runtimeMetadata?.let {
 
                 runtimeFilesCache.saveChainMetadata(chainId, runtimeMetadata)
