@@ -253,7 +253,7 @@ class WalletConnectInteractorImpl(
             }
 
             WalletConnectMethod.PolkadotSignTransaction.method -> {
-                getPolkadotSignTransaction(recentSession)
+                getPolkadotSignTransaction(metaAccount, recentSession)
             }
 
             WalletConnectMethod.PolkadotSignMessage.method -> {
@@ -334,7 +334,10 @@ class WalletConnectInteractorImpl(
         ).s
     }
 
-    private suspend fun getPolkadotSignTransaction(recentSession: Wallet.Model.SessionRequest): String {
+    private suspend fun getPolkadotSignTransaction(
+        metaAccount: MetaAccount,
+        recentSession: Wallet.Model.SessionRequest
+    ): String {
         val params = JSONObject(recentSession.request.params)
 
         val signPayload = JSONObject(params.getString("transactionPayload"))
@@ -364,14 +367,13 @@ class WalletConnectInteractorImpl(
             payloadBytes
         }
 
-        val currentMetaAccount = accountRepository.getSelectedMetaAccount()
-        val secrets = accountRepository.getMetaAccountSecrets(currentMetaAccount.id) ?: error("There are no secrets for metaId: ${currentMetaAccount.id}")
+        val secrets = accountRepository.getMetaAccountSecrets(metaAccount.id) ?: error("There are no secrets for metaId: ${metaAccount.id}")
         val keypairSchema = secrets[MetaAccountSecrets.SubstrateKeypair]
         val publicKey = keypairSchema[KeyPairSchema.PublicKey]
         val privateKey = keypairSchema[KeyPairSchema.PrivateKey]
         val nonce1 = keypairSchema[KeyPairSchema.Nonce]
         val keypair = Keypair(publicKey, privateKey, nonce1)
-        val encryption = mapCryptoTypeToEncryption(currentMetaAccount.substrateCryptoType)
+        val encryption = mapCryptoTypeToEncryption(metaAccount.substrateCryptoType)
 
         val signature = extrinsicService.createSignature(
             encryption,
