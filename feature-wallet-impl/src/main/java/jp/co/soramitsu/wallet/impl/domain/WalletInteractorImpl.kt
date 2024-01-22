@@ -28,9 +28,7 @@ import jp.co.soramitsu.core.models.Asset.StakingType
 import jp.co.soramitsu.core.models.ChainId
 import jp.co.soramitsu.core.utils.isValidAddress
 import jp.co.soramitsu.coredb.model.AssetUpdateItem
-import jp.co.soramitsu.runtime.ext.ecosystem
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
-import jp.co.soramitsu.runtime.multiNetwork.chain.ChainEcosystem
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.isPolkadotOrKusama
@@ -452,14 +450,7 @@ class WalletInteractorImpl(
         val chainAsset = chain.assetsById[chainAssetId] ?: return
 
         val chainsWithAsset = chainsRepository.getChains().filter { chainItem ->
-            val isChainItemFromSameEcosystem = if (chain.ecosystem() == ChainEcosystem.STANDALONE) {
-                chainItem.id == chainId
-            } else {
-                chainItem.ecosystem() == chain.ecosystem()
-            }
-            isChainItemFromSameEcosystem && chainItem.assets.any {
-                it.symbol == chainAsset.symbol
-            }
+            chainItem.assets.any { it.symbol == chainAsset.symbol }
         }
 
         val assetsToManage = chainsWithAsset.map {
