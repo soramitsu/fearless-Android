@@ -61,16 +61,16 @@ data class Chain(
     ) {
         data class Section(val type: Type, val url: String) {
             enum class Type {
-                SUBQUERY, SORA, SUBSQUID, GIANTSQUID, ETHERSCAN, OKLINK, UNKNOWN, GITHUB;
+                SUBQUERY, SORA, SUBSQUID, GIANTSQUID, ETHERSCAN, OKLINK, ZETA, UNKNOWN, GITHUB;
 
-                fun isHistory() = this in listOf(SUBQUERY, SORA, SUBSQUID, GIANTSQUID, ETHERSCAN, OKLINK)
+                fun isHistory() = this in listOf(SUBQUERY, SORA, SUBSQUID, GIANTSQUID, ETHERSCAN, OKLINK, ZETA)
             }
         }
     }
 
     data class Explorer(val type: Type, val types: List<String>, val url: String) {
         enum class Type {
-            POLKASCAN, SUBSCAN, ETHERSCAN, OKLINK, UNKNOWN;
+            POLKASCAN, SUBSCAN, ETHERSCAN, OKLINK, ZETA, UNKNOWN;
 
             val capitalizedName: String = name.lowercase().replaceFirstChar { it.titlecase() }
         }

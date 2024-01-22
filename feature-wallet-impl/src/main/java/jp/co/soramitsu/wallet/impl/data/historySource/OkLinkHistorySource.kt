@@ -56,8 +56,8 @@ class OkLinkHistorySource(
                         hash = element.txId,
                         myAddress = accountAddress,
                         amount = amount,
-                        receiver = element.to,
-                        sender = element.from,
+                        receiver = element.to.lowercase(),
+                        sender = element.from.lowercase(),
                         status = status,
                         fee = fee
                     )

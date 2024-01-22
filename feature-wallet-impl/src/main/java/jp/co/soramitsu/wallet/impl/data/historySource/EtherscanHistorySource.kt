@@ -88,8 +88,8 @@ class EtherscanHistorySource(
                         hash = element.hash,
                         myAddress = accountAddress,
                         amount = element.value,
-                        receiver = element.to,
-                        sender = element.from,
+                        receiver = element.to.lowercase(),
+                        sender = element.from.lowercase(),
                         status = status,
                         fee = fee
                     )

@@ -70,6 +70,9 @@ class SuccessViewModel @Inject constructor(
                 Chain.Explorer.Type.ETHERSCAN -> {
                     BlockExplorerUrlBuilder(explorerItem.url, explorerItem.types).build(BlockExplorerUrlBuilder.Type.TX, operationHash)
                 }
+                Chain.Explorer.Type.ZETA -> {
+                    BlockExplorerUrlBuilder(explorerItem.url, explorerItem.types).build(BlockExplorerUrlBuilder.Type.TX, operationHash)
+                }
 
                 Chain.Explorer.Type.UNKNOWN -> null
             }?.let { url ->

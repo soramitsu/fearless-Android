@@ -12,6 +12,7 @@ import jp.co.soramitsu.wallet.impl.data.network.model.response.GiantsquidHistory
 import jp.co.soramitsu.wallet.impl.data.network.model.response.OkLinkHistoryResponse
 import jp.co.soramitsu.wallet.impl.data.network.model.response.SubqueryHistoryElementResponse
 import jp.co.soramitsu.wallet.impl.data.network.model.response.SubsquidHistoryElementsConnectionResponse
+import jp.co.soramitsu.wallet.impl.data.network.model.response.ZetaHistoryResponse
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Headers
@@ -39,9 +40,6 @@ interface OperationsHistoryApi {
         @Body body: GiantsquidHistoryRequest
     ): GiantsquidResponse<GiantsquidHistoryResponse>
 
-    @GET("//api.coingecko.com/api/v3/simple/supported_vs_currencies")
-    suspend fun getSupportedCurrencies(): List<String>
-
     @GET
     suspend fun getEtherscanOperationsHistory(
         @Url url: String,
@@ -55,9 +53,6 @@ interface OperationsHistoryApi {
         @Query("apikey") apiKey: String? = null
     ): EtherscanHistoryResponse
 
-//    https://www.oklink.com/api/v5/explorer/address/transaction-list?chainShortName=X1_TEST&address=0xb107c568224F4CD0619b40D5d91237A512B6f2F5
-//    queryItems?.append(URLQueryItem(name: "symbol", value: chainAsset.asset.symbol.lowercased()))
-
     @GET
     @Headers("Ok-Access-Key: ${BuildConfig.OKLINK_API_KEY}")
     suspend fun getOkLinkOperationsHistory(
@@ -65,4 +60,9 @@ interface OperationsHistoryApi {
         @Query("address") address: String,
         @Query("symbol") symbol: String,
     ): OkLinkHistoryResponse
+
+    @GET
+    suspend fun getZetaOperationsHistory(
+        @Url url: String
+    ): ZetaHistoryResponse
 }
