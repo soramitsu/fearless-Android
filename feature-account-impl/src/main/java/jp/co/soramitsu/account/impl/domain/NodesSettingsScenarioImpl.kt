@@ -12,12 +12,7 @@ import kotlinx.coroutines.flow.map
 
 class NodesSettingsScenarioImpl(private val chainRegistry: ChainRegistry) : NodesSettingsScenario {
 
-    override fun nodesFlow(chainId: ChainId): Flow<List<ChainNode>> {
-        return chainRegistry.nodesFlow(chainId)
-            .map { nodes ->
-                nodes.filter { it.url.contains("http").not() }
-            }
-    }
+    override fun nodesFlow(chainId: ChainId): Flow<List<ChainNode>> = chainRegistry.nodesFlow(chainId)
 
     override suspend fun getNode(id: NodeId): ChainNode = chainRegistry.getNode(id)
 

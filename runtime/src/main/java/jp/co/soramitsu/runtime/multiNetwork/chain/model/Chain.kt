@@ -23,6 +23,7 @@ const val pendulumChainId = "5d3c298622d5634ed019bf61ea4b71655030015bde9beb0d6a2
 const val ethereumChainId = "1"
 const val BSCChainId = "56"
 const val BSCTestnetChainId = "97"
+const val optimismChainId = "10"
 const val sepoliaChainId = "11155111"
 const val goerliChainId = "5"
 const val polygonChainId = "137"
@@ -60,16 +61,16 @@ data class Chain(
     ) {
         data class Section(val type: Type, val url: String) {
             enum class Type {
-                SUBQUERY, SORA, SUBSQUID, GIANTSQUID, ETHERSCAN, UNKNOWN, GITHUB;
+                SUBQUERY, SORA, SUBSQUID, GIANTSQUID, ETHERSCAN, OKLINK, ZETA, UNKNOWN, GITHUB;
 
-                fun isHistory() = this in listOf(SUBQUERY, SORA, SUBSQUID, GIANTSQUID, ETHERSCAN)
+                fun isHistory() = this in listOf(SUBQUERY, SORA, SUBSQUID, GIANTSQUID, ETHERSCAN, OKLINK, ZETA)
             }
         }
     }
 
     data class Explorer(val type: Type, val types: List<String>, val url: String) {
         enum class Type {
-            POLKASCAN, SUBSCAN, ETHERSCAN, UNKNOWN;
+            POLKASCAN, SUBSCAN, ETHERSCAN, OKLINK, ZETA, UNKNOWN;
 
             val capitalizedName: String = name.lowercase().replaceFirstChar { it.titlecase() }
         }

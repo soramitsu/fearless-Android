@@ -27,6 +27,8 @@ private fun mapSectionTypeRemoteToSectionType(section: String) = when (section) 
     "github" -> Chain.ExternalApi.Section.Type.GITHUB
     "sora" -> Chain.ExternalApi.Section.Type.SORA
     "etherscan" -> Chain.ExternalApi.Section.Type.ETHERSCAN
+    "oklink" -> Chain.ExternalApi.Section.Type.OKLINK
+    "zeta" -> Chain.ExternalApi.Section.Type.ZETA
     else -> Chain.ExternalApi.Section.Type.UNKNOWN
 }
 
@@ -34,6 +36,8 @@ private fun mapExplorerTypeRemoteToExplorerType(explorer: String) = when (explor
     "polkascan" -> Chain.Explorer.Type.POLKASCAN
     "subscan" -> Chain.Explorer.Type.SUBSCAN
     "etherscan" -> Chain.Explorer.Type.ETHERSCAN
+    "oklink" -> Chain.Explorer.Type.OKLINK
+    "zeta" -> Chain.Explorer.Type.ZETA
     else -> Chain.Explorer.Type.UNKNOWN
 }
 

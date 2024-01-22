@@ -7,6 +7,7 @@ import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.BSCChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.BSCTestnetChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.optimismChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ethereumChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.goerliChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polygonChainId
@@ -25,7 +26,8 @@ private val etherscanApiKeys = mapOf(
     BSCChainId to BuildConfig.BSCSCAN_API_KEY,
     BSCTestnetChainId to BuildConfig.BSCSCAN_API_KEY,
     polygonChainId to BuildConfig.POLYGONSCAN_API_KEY,
-    polygonTestnetChainId to BuildConfig.POLYGONSCAN_API_KEY
+    polygonTestnetChainId to BuildConfig.POLYGONSCAN_API_KEY,
+    optimismChainId to BuildConfig.OPMAINNET_API_KEY
 )
 
 class EtherscanHistorySource(
@@ -47,7 +49,7 @@ class EtherscanHistorySource(
                     walletOperationsApi.getEtherscanOperationsHistory(
                         url = historyUrl,
                         address = accountId.toHexString(true),
-                        apiKey = etherscanApiKeys[chain.id] ?: error("Etherscan history API key not configured")
+                        apiKey = etherscanApiKeys[chain.id]
                     )
                         .let { response -> response.copy(result = response.result.filter { it.contractAddress.isEmpty() && it.value.isNotZero() }) }
                 }
@@ -58,7 +60,7 @@ class EtherscanHistorySource(
                         action = "tokentx",
                         contractAddress = chainAsset.id,
                         address = accountId.toHexString(true),
-                        apiKey = etherscanApiKeys[chain.id] ?: error("Etherscan history API key not configured")
+                        apiKey = etherscanApiKeys[chain.id]
                     )
                         .let { response -> response.copy(result = response.result.filter { it.contractAddress.lowercase() == chainAsset.id.lowercase() && it.value.isNotZero() }) }
                 }
@@ -86,8 +88,8 @@ class EtherscanHistorySource(
                         hash = element.hash,
                         myAddress = accountAddress,
                         amount = element.value,
-                        receiver = element.to,
-                        sender = element.from,
+                        receiver = element.to.lowercase(),
+                        sender = element.from.lowercase(),
                         status = status,
                         fee = fee
                     )
