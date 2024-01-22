@@ -735,7 +735,9 @@
   <string name="set_max_amount">Set max amount</string>
   <string name="share_referral_code">Share referral code</string>
   <string name="social_media">Social Media</string>
+  <string name="sora_bridge_amount_less_fee">The amount you\'re trying to transfer is insufficient to cover the transaction fees on the Kusama network. Although the transaction won\'t process, you\'ll still be charged the fees on the Sora network.</string>
   <string name="sora_bridge_low_amount_alert">Currently, there\'s a min. amount 0.05 KSM for bridging to ensure the stability and security of the SORA Network. We appreciate your understanding.</string>
+  <string name="sora_bridge_low_amount_format_alert">Currently, there\'s a min. amount %s for bridging to ensure the stability and security of the SORA Network. We appreciate your understanding.</string>
   <string name="sora_card_annual_service_fee">0 € annual service fee</string>
   <string name="sora_card_blacklisted_countires_title">Excluded of application</string>
   <string name="sora_card_blacklisted_countires_warning"><![CDATA[Residents from <b>certain countries<br>can not apply</b> for SORA Card at this moment<br><a href=\"https://soracard.com/blacklist/\">See the list</a>]]></string>
