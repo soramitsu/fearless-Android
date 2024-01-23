@@ -1,21 +1,30 @@
 package jp.co.soramitsu.wallet.impl.data.network.blockchain.updaters
 
 import android.util.Log
+import io.emeraldpay.polkaj.scale.ScaleCodecReader
 import it.airgap.beaconsdk.core.internal.utils.failure
 import it.airgap.beaconsdk.core.internal.utils.onEachFailure
+import java.math.BigInteger
+import java.nio.ByteOrder
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.accountId
 import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
+import jp.co.soramitsu.common.data.network.runtime.binding.AccountData
+import jp.co.soramitsu.common.data.network.runtime.binding.AccountInfo
 import jp.co.soramitsu.common.data.network.runtime.binding.ExtrinsicStatusEvent
 import jp.co.soramitsu.common.data.network.runtime.binding.SimpleBalanceData
+import jp.co.soramitsu.common.data.network.runtime.binding.bindNonce
+import jp.co.soramitsu.common.data.network.runtime.binding.cast
 import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.requireException
 import jp.co.soramitsu.common.utils.requireValue
+import jp.co.soramitsu.common.utils.system
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.core.models.ChainAssetType
+import jp.co.soramitsu.core.runtime.storage.returnType
 import jp.co.soramitsu.core.updater.UpdateSystem
 import jp.co.soramitsu.core.updater.Updater
 import jp.co.soramitsu.core.utils.utilityAsset
@@ -28,8 +37,14 @@ import jp.co.soramitsu.runtime.multiNetwork.getSocket
 import jp.co.soramitsu.runtime.multiNetwork.getSocketOrNull
 import jp.co.soramitsu.runtime.multiNetwork.toSyncIssue
 import jp.co.soramitsu.runtime.network.subscriptionFlowCatching
+import jp.co.soramitsu.shared_utils.extensions.fromUnsignedBytes
 import jp.co.soramitsu.shared_utils.runtime.AccountId
 import jp.co.soramitsu.shared_utils.runtime.RuntimeSnapshot
+import jp.co.soramitsu.shared_utils.runtime.definitions.types.composite.Struct
+import jp.co.soramitsu.shared_utils.runtime.definitions.types.fromHexOrNull
+import jp.co.soramitsu.shared_utils.runtime.metadata.storage
+import jp.co.soramitsu.shared_utils.scale.dataType.uint128
+import jp.co.soramitsu.shared_utils.scale.utils.toUnsignedBytes
 import jp.co.soramitsu.shared_utils.wsrpc.request.runtime.storage.SubscribeStorageRequest
 import jp.co.soramitsu.shared_utils.wsrpc.request.runtime.storage.storageChange
 import jp.co.soramitsu.wallet.api.data.cache.AssetCache
@@ -175,10 +190,9 @@ class BalancesUpdateSystem(
                             storageKeyToHex.mapNotNull { (key, hexRaw) ->
                                 val metadata = storageKeys.firstOrNull { it.key == key }
                                     ?: return@mapNotNull null
-
                                 val balanceData = handleBalanceResponse(
                                     runtime,
-                                    metadata.asset.typeExtra,
+                                    metadata.asset,
                                     hexRaw
                                 ).onFailure { logError(chain, it) }
 
@@ -240,7 +254,7 @@ class BalancesUpdateSystem(
 
                     val balanceData = handleBalanceResponse(
                         runtime,
-                        keyWithMetadata.asset.typeExtra,
+                        keyWithMetadata.asset,
                         hexRaw
                     ).onFailure { logError(chain, it) }
 

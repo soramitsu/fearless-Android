@@ -14,6 +14,7 @@ android {
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField "String", "TYPES_URL", "\"https://raw.githubusercontent.com/soramitsu/shared-features-utils/master/chains/all_chains_types_android.json\""
         buildConfigField "String", "APP_VERSION_NAME", "\"${rootProject.versionName}\""
+        buildConfigField("String", "DEFAULT_V13_TYPES_URL", "\"https://raw.githubusercontent.com/soramitsu/shared-features-utils/reef/chains/default_v13_types.json\"")
     }
 
     buildTypes {
