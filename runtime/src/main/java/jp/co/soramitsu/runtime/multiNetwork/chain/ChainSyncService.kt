@@ -3,6 +3,8 @@ package jp.co.soramitsu.runtime.multiNetwork.chain
 import jp.co.soramitsu.coredb.dao.ChainDao
 import jp.co.soramitsu.coredb.model.chain.JoinedChainInfo
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.reefChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.ChainFetcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -17,7 +19,7 @@ class ChainSyncService(
 
         val remoteChains = chainFetcher.getChains()
             .filter {
-                !it.disabled && (it.assets?.isNotEmpty() == true)
+                !it.disabled && (it.assets?.isNotEmpty() == true) && it.chainId != reefChainId // todo add genshiro type to json
             }
             .map {
                 it.toChain()
