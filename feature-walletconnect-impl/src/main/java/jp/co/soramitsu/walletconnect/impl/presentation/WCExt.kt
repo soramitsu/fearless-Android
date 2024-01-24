@@ -25,7 +25,7 @@ val Chain.caip2id: String
     }
 
 val Core.Model.AppMetaData?.dappUrl: String?
-    get() = runCatching { this?.url?.toUri()?.schemeSpecificPart?.removePrefix("//") }.getOrNull() ?: this?.url
+    get() = runCatching { this?.url?.toUri()?.schemeSpecificPart?.removePrefix("//")?.removeSuffix("/") }.getOrNull() ?: this?.url
 
 val Wallet.Model.SessionRequest.JSONRPCRequest.message: String
     get() = when (method) {
