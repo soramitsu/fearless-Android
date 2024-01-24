@@ -31,7 +31,6 @@ class SessionRequestFragment : BaseComposeBottomSheetDialogFragment<SessionReque
         behavior.skipCollapsed = true
     }
 
-
     companion object {
         const val SESSION_REQUEST_TOPIC_KEY = "session_request_topic_key"
         fun getBundle(topic: String) = bundleOf(SESSION_REQUEST_TOPIC_KEY to topic)
