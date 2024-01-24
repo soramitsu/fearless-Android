@@ -133,7 +133,7 @@ class RuntimeProvider(
                             chainDao.getTypes("default") ?: throw ChainInfoNotInCacheException
                         }
                             .getOrElse { throw ChainInfoNotInCacheException }
-                    runtimeFactory.constructRuntimeV13(metadataRaw, ownTypesRaw, defaultTypes)
+                    runtimeFactory.constructRuntimeV13(metadataRaw, ownTypesRaw, defaultTypes, runtimeVersion)
                 } else {
                     runtimeFactory.constructRuntime(metadataRaw, ownTypesRaw, runtimeVersion)
                 }
