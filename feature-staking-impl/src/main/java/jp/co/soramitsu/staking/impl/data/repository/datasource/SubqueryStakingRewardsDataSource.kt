@@ -1,6 +1,8 @@
 package jp.co.soramitsu.staking.impl.data.repository.datasource
 
+import java.math.BigInteger
 import jp.co.soramitsu.common.base.errors.RewardsNotSupportedWarning
+import jp.co.soramitsu.common.data.network.subquery.ReefRewardsNode
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.sumByBigDecimal
 import jp.co.soramitsu.common.utils.sumByBigInteger
@@ -19,6 +21,7 @@ import jp.co.soramitsu.staking.impl.data.mappers.mapSubqueryHistoryToTotalReward
 import jp.co.soramitsu.staking.impl.data.mappers.mapTotalRewardLocalToTotalReward
 import jp.co.soramitsu.staking.impl.data.network.subquery.StakingApi
 import jp.co.soramitsu.staking.impl.data.network.subquery.request.GiantsquidRewardAmountRequest
+import jp.co.soramitsu.staking.impl.data.network.subquery.request.ReefStakingRewardsRequest
 import jp.co.soramitsu.staking.impl.data.network.subquery.request.StakingSumRewardRequest
 import jp.co.soramitsu.staking.impl.data.network.subquery.request.SubsquidEthRewardAmountRequest
 import jp.co.soramitsu.staking.impl.data.network.subquery.request.SubsquidRelayRewardAmountRequest
@@ -73,6 +76,10 @@ class SubqueryStakingRewardsDataSource(
                 syncGiantsquidRelay(stakingUrl, accountAddress)
             }
 
+            stakingType == Chain.ExternalApi.Section.Type.REEF -> {
+                syncReefRewards(stakingUrl, accountAddress)
+            }
+
             else -> throw RewardsNotSupportedWarning()
         }
     }
@@ -104,6 +111,21 @@ class SubqueryStakingRewardsDataSource(
         val totalReward = rewards.data.stakingRewards.sumByBigDecimal { it.amount }
         val totalInPlanks = chainAsset.planksFromAmount(totalReward)
         stakingTotalRewardDao.insert(TotalRewardLocal(accountAddress, totalInPlanks))
+    }
+
+    private suspend fun syncReefRewards(stakingUrl: String, accountAddress: String) {
+        var hasNextPage = true
+        var nextCursor: String? = null
+        var rewardsTotal = BigInteger.ZERO
+
+        while (hasNextPage) {
+            val response = stakingApi.getReefRewards(stakingUrl, ReefStakingRewardsRequest(accountAddress, offset = nextCursor?.let { "\"$it\"" }))
+            hasNextPage = response.data.stakingsConnection.pageInfo.hasNextPage
+            nextCursor = response.data.stakingsConnection.pageInfo.endCursor
+            rewardsTotal += response.data.stakingsConnection.edges.map { it.node }.sumByBigInteger { it.amount }
+        }
+
+        stakingTotalRewardDao.insert(TotalRewardLocal(accountAddress, rewardsTotal))
     }
 
     private suspend fun syncSubquery(stakingUrl: String, accountAddress: String) = withContext(Dispatchers.IO) {
