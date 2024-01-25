@@ -9,6 +9,7 @@ import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.shared_utils.runtime.AccountId
 import jp.co.soramitsu.wallet.impl.data.network.model.request.ReefHistoryRequest
+import jp.co.soramitsu.wallet.impl.data.network.model.request.ReefRequestBuilder
 import jp.co.soramitsu.wallet.impl.data.network.subquery.OperationsHistoryApi
 import jp.co.soramitsu.wallet.impl.domain.interfaces.TransactionFilter
 import jp.co.soramitsu.wallet.impl.domain.model.Operation
@@ -28,43 +29,71 @@ class ReefHistorySource(
     ): CursorPage<Operation> {
         val overridePageSize = 50
         val offset = cursor?.toIntOrNull().takeIf { it != 0 }
+
         val response = walletOperationsApi.getReefOperationsHistory(
             url = url,
-            ReefHistoryRequest(
+            ReefRequestBuilder(
+                filters,
                 accountAddress = accountAddress,
                 overridePageSize,
                 offset.toString()
-            )
+            ).buildRequest()
         )
-        if (!filters.contains(TransactionFilter.TRANSFER)) {
-            return CursorPage(null, emptyList())
-        }
-        val operations = response.data.transfersConnection.edges.map { it.node }.map {
-            Operation(
-                id = it.extrinsic?.hash ?: it.id,
-                address = accountAddress,
-                time = parseTimeToMillis(it.timestamp),
-                chainAsset = chainAsset,
-                type = Operation.Type.Transfer(
-                    hash = it.extrinsic?.hash,
-                    myAddress = accountAddress,
-                    amount = it.amount,
-                    receiver = it.to.id,
-                    sender = it.from.id,
-                    status = Operation.Status.fromSuccess(it.success),
-                    fee = it.feeAmount
+        val operations = mutableListOf<Operation>()
+        if(filters.contains(TransactionFilter.TRANSFER)) {
+            operations.addAll(response.data.transfersConnection.edges.map { it.node }.map {
+                Operation(
+                    id = it.extrinsic?.hash ?: it.id,
+                    address = accountAddress,
+                    time = parseTimeToMillis(it.timestamp),
+                    chainAsset = chainAsset,
+                    type = Operation.Type.Transfer(
+                        hash = it.extrinsic?.hash,
+                        myAddress = accountAddress,
+                        amount = it.amount,
+                        receiver = it.to.id,
+                        sender = it.from.id,
+                        status = Operation.Status.fromSuccess(it.success),
+                        fee = it.feeAmount
+                    )
                 )
-            )
+            })
         }
-        val pageInfo = response.data.transfersConnection.pageInfo
-        val nextCursor = if (pageInfo.hasNextPage && (pageInfo.endCursor.toIntOrNull()
-                ?: 0) >= overridePageSize
-        ) {
-            pageInfo.endCursor
+        if(filters.contains(TransactionFilter.REWARD)) {
+            operations.addAll(response.data.stakingsConnection.edges.map { it.node }.map {
+                Operation(
+                    id = it.id,
+                    address = accountAddress,
+                    time = parseTimeToMillis(it.timestamp),
+                    chainAsset = chainAsset,
+                    type = Operation.Type.Reward(
+                        amount = it.amount,
+                        isReward = true,
+                        era = 0,
+                        validator = null
+                    )
+                )
+            })
+        }
+
+        val transfersPageInfo = response.data.transfersConnection.pageInfo
+        val rewardsPageInfo = response.data.stakingsConnection.pageInfo
+
+        val shouldLoadTransfersNextPage = transfersPageInfo.hasNextPage
+        val shouldLoadRewardsNextPage = rewardsPageInfo.hasNextPage
+
+        val hasNextPage = shouldLoadTransfersNextPage || shouldLoadRewardsNextPage
+
+        val nextCursor = if(hasNextPage) {
+            val transfersOffset = transfersPageInfo.endCursor.toIntOrNull() ?: 0
+            val rewardsOffset = rewardsPageInfo.endCursor.toIntOrNull() ?: 0
+            val nextOffset = maxOf(transfersOffset, rewardsOffset)
+            if(nextOffset >= overridePageSize) nextOffset.toString() else null
         } else {
             null
         }
-        return CursorPage(nextCursor, operations)
+
+        return CursorPage(nextCursor, operations.sortedByDescending { it.time })
     }
 
     private fun TransactionFilter.isAppliedOrNull(filters: Collection<TransactionFilter>) = when {

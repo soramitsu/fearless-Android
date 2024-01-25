@@ -1,8 +1,10 @@
 package jp.co.soramitsu.wallet.impl.data.network.model.response
 
 import java.math.BigInteger
+import jp.co.soramitsu.common.data.network.subquery.ReefAddress
+import jp.co.soramitsu.common.data.network.subquery.ReefRewardsConnection
 
-data class ReefHistoryResponse(val transfersConnection: ReefElementsConnection)
+data class ReefHistoryResponse(val transfersConnection: ReefElementsConnection, val stakingsConnection: ReefRewardsConnection)
 
 class ReefElementsConnection(
     val pageInfo: SubsquidPageInfo,
@@ -25,6 +27,3 @@ class ReefHistoryNode(
 
 class ReefExtrinsic(val hash: String)
 
-class ReefAddress(
-    val id: String
-)
