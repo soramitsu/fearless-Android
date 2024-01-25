@@ -29,15 +29,12 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.zip
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import javax.inject.Inject
@@ -68,11 +65,7 @@ class AssetDetailsViewModel @Inject constructor(
         }.flatMapLatest { (selectedMetaAccountId, assetId) ->
             interactor.observeChainsPerAsset(selectedMetaAccountId, assetId).also { valuesFlow ->
                 launch {
-                    val chainSelection = cachedSelectedMetaAccount.firstOrNull()?.id?.let {
-                        interactor.getSavedChainId(
-                            walletId = it
-                        )
-                    }
+                    val chainSelection = interactor.getSavedChainId(walletId = selectedMetaAccountId)
                     val valuesAsList = valuesFlow.first().toList()
 
                     val assetPayload = AssetPayload(
@@ -142,7 +135,7 @@ class AssetDetailsViewModel @Inject constructor(
 
                 when(sorting) {
                     AssetSorting.FiatBalance ->
-                        valuesAsList.sortedByDescending { (_, asset) -> asset?.total?.applyFiatRate(asset.token.fiatRate) }
+                        valuesAsList.sortedByDescending { (_, asset) -> asset?.total }
 
                     AssetSorting.Name ->
                         valuesAsList.sortedBy { (chain, _) -> chain.name }

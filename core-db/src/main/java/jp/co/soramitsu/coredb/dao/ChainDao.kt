@@ -167,11 +167,12 @@ abstract class ChainDao {
     @Transaction
     @Query(
         """
-            SELECT * FROM chains
-            JOIN assets ON chains.id = assets.chainId
-            LEFT JOIN chain_assets ON chain_assets.id = assets.id
-            WHERE chain_assets.symbol LIKE '%' || :assetSymbol
-            AND assets.metaId = :accountMetaId
+            SELECT c.*, a.*, tp.* FROM chains c
+            JOIN assets a ON c.id = a.chainId
+            LEFT JOIN token_price AS tp ON a.tokenPriceId = tp.priceId 
+            LEFT JOIN chain_assets ca ON ca.id = a.id
+            WHERE ca.symbol = :assetSymbol
+            AND a.metaId = :accountMetaId
         """
     )
     protected abstract fun observeChainsWithBalanceByName(
