@@ -82,7 +82,7 @@ class SendSetupFragment : BaseComposeBottomSheetDialogFragment<SendSetupViewMode
                 title = warning.message,
                 message = warning.explanation,
                 positiveButtonText = warning.positiveButtonText,
-                secondPositiveButtonText = warning.positiveButtonText,
+                secondPositiveButtonText = warning.secondPositiveButtonText,
                 negativeButtonText = warning.negativeButtonText,
                 positiveClick = { viewModel.warningConfirmed(result) },
                 secondPositiveClick = { viewModel.warningConfirmedSecond(result) },

@@ -465,7 +465,7 @@ class SendSetupViewModel @Inject constructor(
         }.launchIn(this)
     }
 
-    private fun observeExistentialDeposit() {
+    private fun observeExistentialDeposit(showMaxInput: Boolean) {
         existentialDepositCheckJob?.cancel()
 
         existentialDepositCheckJob = combine(
@@ -500,7 +500,14 @@ class SendSetupViewModel @Inject constructor(
                         if (validationResult.isExistentialDepositWarning) {
                             ValidationException.fromValidationResult(validationResult, resourceManager)?.let {
                                 if (it is ExistentialDepositCrossedException) {
-                                    _openValidationWarningEvent.value = Event(validationResult to it)
+                                    val warning = ValidationWarning(
+                                        it.message,
+                                        it.explanation,
+                                        it.positiveButtonText,
+                                        it.negativeButtonText,
+                                        if (showMaxInput) it.secondPositiveButtonText else null
+                                    )
+                                    _openValidationWarningEvent.value = Event(validationResult to warning)
                                 }
                             }
                         }
@@ -544,7 +551,7 @@ class SendSetupViewModel @Inject constructor(
         enteredAmountBigDecimalFlow.value = input.orZero()
 
         if (sendAllToggleState.value == ToggleState.INITIAL && input.orZero() > BigDecimal.ZERO) {
-            observeExistentialDeposit()
+            observeExistentialDeposit(true)
         }
     }
 
@@ -769,7 +776,7 @@ class SendSetupViewModel @Inject constructor(
             visibleAmountFlow.value = scaledAmount
             initialAmountFlow.value = scaledAmount
             enteredAmountBigDecimalFlow.value = quickAmountWithoutExtraPays
-            observeExistentialDeposit()
+            observeExistentialDeposit(input < 1.0)
         }
     }
 

@@ -158,7 +158,7 @@ class ErrorDialog(
                                             .fillMaxWidth()
                                             .height(52.dp)
                                     ) {
-                                        secondPositiveClick
+                                        secondPositiveClick()
                                         dismiss()
                                     }
                                     MarginVertical(margin = 12.dp)
