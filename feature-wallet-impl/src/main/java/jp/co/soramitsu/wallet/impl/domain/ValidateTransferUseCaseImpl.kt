@@ -128,7 +128,10 @@ class ValidateTransferUseCaseImpl(
 
                 val destinationFeeAmountInPlanks = destinationFeeAmount?.let { destinationAsset?.planksFromAmount(it) }
 
+                val bridgeMinimumAmountValidation = bridgeMinimumAmountValidation(originChain, asset, amountInPlanks)
+
                 mapOf(
+                    bridgeMinimumAmountValidation,
                     TransferValidationResult.SubstrateBridgeAmountLessThenFeeWarning to
                             if (destinationFeeAmountInPlanks == null) {
                                 false
@@ -158,22 +161,10 @@ class ValidateTransferUseCaseImpl(
 
                 val utilityEdFormatted = utilityAsset?.token?.configuration?.let { utilityAssetExistentialDeposit.formatCryptoDetailFromPlanks(it) }.orEmpty()
 
-                val minAmountTokens = when (originChain.utilityAsset?.chainId) {
-                    polkadotChainId -> "1"
-                    kusamaChainId -> "0.05"
-                    else -> null
-                }
-                val substrateBridgeIncomingTransferMinAmountText = minAmountTokens?.let {
-                    "$minAmountTokens ${asset.token.configuration.symbol}"
-                }.orEmpty()
-
-                val substrateBridgeIncomingTransferMinAmount = minAmountTokens?.let {
-                    asset.token.planksFromAmount(BigDecimal(it))
-                }
+                val bridgeMinimumAmountValidation = bridgeMinimumAmountValidation(originChain, asset, amountInPlanks)
 
                 mapOf(
-                    TransferValidationResult.SubstrateBridgeMinimumAmountRequired(substrateBridgeIncomingTransferMinAmountText)
-                            to (substrateBridgeIncomingTransferMinAmount != null && amountInPlanks < substrateBridgeIncomingTransferMinAmount),
+                    bridgeMinimumAmountValidation,
                     TransferValidationResult.InsufficientBalance to (amountInPlanks > transferable),
                     TransferValidationResult.InsufficientUtilityAssetBalance to (fee + tip > utilityAssetBalance),
                     TransferValidationResult.ExistentialDepositWarning(assetEdFormatted) to (transferable - amountInPlanks < assetExistentialDeposit),
@@ -256,6 +247,28 @@ class ValidateTransferUseCaseImpl(
         }
         val result = performChecks(validationChecks, confirmedValidations, skipEdValidation)
         return Result.success(result)
+    }
+
+    private fun bridgeMinimumAmountValidation(
+        originChain: Chain,
+        asset: Asset,
+        amountInPlanks: BigInteger
+    ): Pair<TransferValidationResult.SubstrateBridgeMinimumAmountRequired, Boolean> {
+        val minAmountTokens = when (originChain.utilityAsset?.chainId) {
+            polkadotChainId -> "1.1"
+            kusamaChainId -> "0.05"
+            else -> null
+        }
+        val substrateBridgeIncomingTransferMinAmountText = minAmountTokens?.let {
+            "$minAmountTokens ${asset.token.configuration.symbol}"
+        }.orEmpty()
+
+        val substrateBridgeTransferMinAmount = minAmountTokens?.let {
+            asset.token.planksFromAmount(BigDecimal(it))
+        }
+
+        return (TransferValidationResult.SubstrateBridgeMinimumAmountRequired(substrateBridgeIncomingTransferMinAmountText)
+                to (substrateBridgeTransferMinAmount != null && amountInPlanks < substrateBridgeTransferMinAmount))
     }
 
     override suspend fun validateExistentialDeposit(
