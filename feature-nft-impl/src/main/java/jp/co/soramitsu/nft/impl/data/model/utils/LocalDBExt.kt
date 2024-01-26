@@ -4,7 +4,7 @@ import jp.co.soramitsu.coredb.model.NFTContractMetadataLocal
 import jp.co.soramitsu.coredb.model.NFTContractMetadataResponseLocal
 import jp.co.soramitsu.coredb.model.NFTOpenSeaLocal
 import jp.co.soramitsu.nft.data.models.TokenInfo
-import jp.co.soramitsu.nft.data.models.response.NFTResponse
+import jp.co.soramitsu.nft.data.models.wrappers.NFTResponse
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 
 fun NFTContractMetadataResponseLocal.toContractMetadataResponse(): NFTResponse.ContractMetadata =

@@ -5,8 +5,7 @@ import okhttp3.MediaType
 import okhttp3.internal.commonToMediaTypeOrNull
 
 sealed interface NFTRequest {
-
-    class ContractMetadata: NFTRequest {
+    class ContractMetadataBatch: NFTRequest {
 
         companion object {
             fun requestUrl(alchemyChainId: String?): String {

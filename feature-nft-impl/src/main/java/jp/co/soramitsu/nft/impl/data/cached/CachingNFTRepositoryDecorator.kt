@@ -1,39 +1,268 @@
 package jp.co.soramitsu.nft.impl.data.cached
 
 import androidx.collection.LruCache
+import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.coredb.dao.NFTContractMetadataResponseDao
+import jp.co.soramitsu.nft.data.NFTCollectionByContractAddressPagedResponse
 import jp.co.soramitsu.nft.data.NFTRepository
+import jp.co.soramitsu.nft.data.UserOwnedTokensByContractAddressPagedResponse
+import jp.co.soramitsu.nft.data.UserOwnedTokensPagedResponse
 import jp.co.soramitsu.nft.data.models.TokenInfo
-import jp.co.soramitsu.nft.data.models.requests.PaginationRequest
-import jp.co.soramitsu.nft.data.models.response.NFTResponse
+import jp.co.soramitsu.nft.data.pagination.PaginationEvent
+import jp.co.soramitsu.nft.data.pagination.PaginationRequest
+import jp.co.soramitsu.nft.data.models.wrappers.NFTResponse
 import jp.co.soramitsu.nft.impl.data.DEFAULT_PAGE_SIZE
 import jp.co.soramitsu.nft.impl.data.model.utils.toContractMetadataResponse
 import jp.co.soramitsu.nft.impl.data.model.utils.toNFTContractMetadataResponseLocal
+import jp.co.soramitsu.nft.impl.data.model.utils.transformToSpecificOrDoNothing
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.transform
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 class CachingNFTRepositoryDecorator(
     private val nftRepository: NFTRepository,
     private val nftContractMetadataResponseDao: NFTContractMetadataResponseDao
 ): NFTRepository by nftRepository {
 
-    private val lruCache: LruCache<Int, TokenInfo.WithMetadata> = LruCache(DEFAULT_PAGE_SIZE)
+    private val lruCacheMutex = Mutex()
+    private val tokensWithMetadataLRUCache: LruCache<Int, TokenInfo.WithMetadata> = LruCache(DEFAULT_PAGE_SIZE)
 
+    override fun paginatedUserOwnedNFTsFlow(
+        paginationRequestFlow: Flow<PaginationRequest>,
+        chainSelectionFlow: Flow<List<Chain>>,
+        selectedMetaAccountFlow: Flow<MetaAccount>,
+        exclusionFiltersFlow: Flow<List<String>>
+    ): Flow<List<UserOwnedTokensPagedResponse>> {
+        // No caching because it is harder to control due to multiplicity of chains
+        return nftRepository.paginatedUserOwnedNFTsFlow(
+            paginationRequestFlow = paginationRequestFlow,
+            chainSelectionFlow = chainSelectionFlow,
+            selectedMetaAccountFlow = selectedMetaAccountFlow,
+            exclusionFiltersFlow = exclusionFiltersFlow
+        )
+    }
+
+    override fun paginatedUserOwnedNFTsByContractAddressFlow(
+        paginationRequestFlow: Flow<PaginationRequest>,
+        chainSelectionFlow: Flow<Chain>,
+        contractAddressFlow: Flow<String>,
+        selectedMetaAccountFlow: Flow<MetaAccount>,
+        exclusionFiltersFlow: Flow<List<String>>
+    ): Flow<UserOwnedTokensByContractAddressPagedResponse> {
+        return flow {
+            val mutex = Mutex()
+            val savedTokensCollections = ArrayDeque<NFTResponse.TokensCollection>()
+
+            val paginationRequestHelperFlow = paginationRequestFlow.map { request ->
+                request.switchRequestsOrPurgeCache(
+                    savedTokensCollections,
+                    mutex
+                )
+            }
+
+            nftRepository.paginatedUserOwnedNFTsByContractAddressFlow(
+                paginationRequestFlow = paginationRequestHelperFlow,
+                chainSelectionFlow = chainSelectionFlow,
+                contractAddressFlow = contractAddressFlow,
+                selectedMetaAccountFlow = selectedMetaAccountFlow,
+                exclusionFiltersFlow = exclusionFiltersFlow
+            ).transform { pagedResponse ->
+                val updatedPagedResponse = pagedResponse.result.map { paginationEvent ->
+                    if (paginationEvent !is PaginationEvent.PageIsLoaded)
+                        return@map paginationEvent
+
+                    saveTokensToCache(
+                        chain = pagedResponse.chain,
+                        tokens = paginationEvent.data.tokenInfoList
+                    )
+
+                    val tokenInfoListFromCache = updateAndFlattenCacheLocked(
+                        paginationRequest = pagedResponse.paginationRequest,
+                        collectionsCache = savedTokensCollections,
+                        collection = paginationEvent.data,
+                        mutex = mutex
+                    )
+
+                    // pretend nothing happened, and return loaded page but with all cached tokens
+                    return@map PaginationEvent.PageIsLoaded(
+                        data = NFTResponse.TokensCollection(
+                            tokenInfoList = tokenInfoListFromCache,
+                            nextPage = paginationEvent.data.nextPage
+                        )
+                    )
+                }.let { updatedPaginationEvent ->
+                    pagedResponse.copy(result = updatedPaginationEvent)
+                }
+
+                emit(updatedPagedResponse)
+            }.collect(this)
+        }
+    }
+    
     override fun paginatedNFTCollectionByContractAddressFlow(
         paginationRequestFlow: Flow<PaginationRequest>,
         chainSelectionFlow: Flow<Chain>,
         contractAddressFlow: Flow<String>
-    ): Flow<Result<Pair<Chain, NFTResponse.TokensCollection>>> {
-        return nftRepository.paginatedNFTCollectionByContractAddressFlow(
-            paginationRequestFlow, chainSelectionFlow, contractAddressFlow
-        ).onEach { result ->
-            result.onSuccess { (chain, response) ->
-                for(nft in response.nfts) {
-                    val tokenHash = Triple(chain.id, nft.contract?.address, nft.id?.tokenId).hashCode()
-                    lruCache.put(tokenHash, nft)
+    ): Flow<NFTCollectionByContractAddressPagedResponse> {
+        return flow {
+            val mutex = Mutex()
+            val savedTokensCollections = ArrayDeque<NFTResponse.TokensCollection>()
+
+            val paginationRequestHelperFlow = paginationRequestFlow.map { request ->
+                request.switchRequestsOrPurgeCache(
+                    savedTokensCollections,
+                    mutex
+                )
+            }
+
+            nftRepository.paginatedNFTCollectionByContractAddressFlow(
+                paginationRequestFlow = paginationRequestHelperFlow,
+                chainSelectionFlow = chainSelectionFlow,
+                contractAddressFlow = contractAddressFlow
+            ).transform { pagedResponse ->
+                val updatedPagedResponse = pagedResponse.result.map { paginationEvent ->
+                    if (paginationEvent !is PaginationEvent.PageIsLoaded)
+                        return@map paginationEvent
+
+                    saveTokensToCache(
+                        chain = pagedResponse.chain,
+                        tokens = paginationEvent.data.tokenInfoList
+                    )
+
+                    val tokenInfoListFromCache = updateAndFlattenCacheLocked(
+                        paginationRequest = pagedResponse.paginationRequest,
+                        collectionsCache = savedTokensCollections,
+                        collection = paginationEvent.data,
+                        mutex = mutex
+                    )
+
+                    // pretend nothing happened, and return loaded page but with all cached tokens
+                    return@map PaginationEvent.PageIsLoaded(
+                        data = NFTResponse.TokensCollection(
+                            tokenInfoList = tokenInfoListFromCache,
+                            nextPage = paginationEvent.data.nextPage
+                        )
+                    )
+                }.let { updatedPaginationEvent ->
+                    pagedResponse.copy(result = updatedPaginationEvent)
+                }
+
+                emit(updatedPagedResponse)
+            }.collect(this)
+        }
+    }
+
+    private suspend fun PaginationRequest.switchRequestsOrPurgeCache(
+        collectionsCache: ArrayDeque<NFTResponse.TokensCollection>,
+        mutex: Mutex
+    ): PaginationRequest {
+        val page = mutex.withLock {
+            when (this) {
+
+                is PaginationRequest.Prev.Page,
+                is PaginationRequest.Prev.WithSize ->
+                    return@withLock collectionsCache.firstOrNull()?.nextPage
+
+                is PaginationRequest.Next.Page,
+                is PaginationRequest.Next.WithSize ->
+                    return@withLock collectionsCache.lastOrNull()?.nextPage
+
+                is PaginationRequest.Next.Specific -> {
+                    val iteratorReversed = collectionsCache.listIterator(collectionsCache.size)
+
+                    while (iteratorReversed.hasPrevious()) {
+                        if (iteratorReversed.previous().nextPage != page) {
+                            iteratorReversed.remove()
+                            break // cache is purged, we can continue and return page
+                        } else {
+                            /*
+                                We removed everything after the specified page;
+                                now we need to remove the specific page for it to be cached again
+                            */
+                            iteratorReversed.remove()
+                        }
+                    }
+
+                    return@withLock page
+                }
+
+                is PaginationRequest.Prev.TwoBeforeSpecific -> {
+                    val iterator = collectionsCache.listIterator()
+
+                    while (iterator.hasNext()) {
+                        if (iterator.next().nextPage != page)
+                            iterator.remove()
+                        else break  // cache is purged, we can continue and return page
+                    }
+
+                    return@withLock page
+                }
+
+            }
+        }
+
+        return transformToSpecificOrDoNothing(page)
+    }
+
+    private suspend fun updateAndFlattenCacheLocked(
+        paginationRequest: PaginationRequest,
+        collectionsCache: ArrayDeque<NFTResponse.TokensCollection>,
+        collection: NFTResponse.TokensCollection,
+        mutex: Mutex
+    ): List<TokenInfo.WithMetadata> {
+        return mutex.withLock {
+            // insert new token collection into cache
+            when(paginationRequest) {
+                /*
+                    Collection can be duplicates if there is only one collection at all;
+                    thus, first page has nextPage == null
+                */
+                is PaginationRequest.Prev -> {
+                    if (collectionsCache.isNotEmpty()) {
+                        val isNewCollectionDuplicationOfFirstCached =
+                            collectionsCache.getOrNull(1)?.nextPage == collection.nextPage
+
+                        if (!isNewCollectionDuplicationOfFirstCached)
+                            collectionsCache.addFirst(collection)
+                    } else collectionsCache.addFirst(collection)
+                }
+
+                is PaginationRequest.Next -> {
+                    /*
+                        Collection can be duplicates if there is only one collection at all;
+                        thus, first page has nextPage == null
+                    */
+                    if (collectionsCache.isNotEmpty()) {
+                        val isNewCollectionDuplicationOfLastCached =
+                            collectionsCache.lastOrNull()?.nextPage == collection.nextPage
+
+                        if (!isNewCollectionDuplicationOfLastCached)
+                            collectionsCache.addLast(collection)
+                    } else collectionsCache.addLast(collection)
                 }
             }
+
+            var totalTokensCount = collectionsCache.sumOf { it.tokenInfoList.size }
+
+            // shrink cache to allowed size
+            while (totalTokensCount > 3 * DEFAULT_PAGE_SIZE) {
+                val removedCollection = when(paginationRequest) {
+                    is PaginationRequest.Prev ->
+                        collectionsCache.removeLast()
+
+                    is PaginationRequest.Next ->
+                        collectionsCache.removeFirst()
+                }
+
+                totalTokensCount -= removedCollection.tokenInfoList.size
+            }
+
+            return@withLock collectionsCache.flatMap { it.tokenInfoList }
         }
     }
 
@@ -58,10 +287,56 @@ class CachingNFTRepositoryDecorator(
         contractAddress: String,
         tokenId: String
     ): TokenInfo.WithMetadata {
-        val tokenHash = Triple(chain.id, contractAddress, tokenId).hashCode()
-        return lruCache[tokenHash] ?: nftRepository.tokenMetadata(
-            chain, contractAddress, tokenId
-        ).also { lruCache.put(tokenHash, it) }
+        val tokenFromCache =
+            getTokenFromCache(
+                chainId = chain.id,
+                contractAddress = contractAddress,
+                tokenId = tokenId
+            )
+
+        if (tokenFromCache != null)
+            return tokenFromCache
+
+        return nftRepository.tokenMetadata(
+            chain = chain,
+            contractAddress = contractAddress,
+            tokenId = tokenId
+        ).also {
+            saveTokensToCache(chain, listOf(it))
+        }
+    }
+
+    private suspend fun saveTokensToCache(chain: Chain, tokens: List<TokenInfo.WithMetadata>) {
+        lruCacheMutex.withLock {
+            for(token in tokens) {
+                Triple(
+                    first = chain.id,
+                    second = token.contract?.address,
+                    third = token.id?.tokenId
+                ).also { uniqueTokenTriple ->
+                    tokensWithMetadataLRUCache.put(
+                        uniqueTokenTriple.hashCode(),
+                        token
+                    )
+                }
+            }
+        }
+    }
+
+    private suspend fun getTokenFromCache(
+        chainId: ChainId,
+        contractAddress: String,
+        tokenId: String
+    ): TokenInfo.WithMetadata? {
+        return lruCacheMutex.withLock {
+            Triple(
+                first = chainId,
+                second = contractAddress,
+                third = tokenId
+            ).run {
+                tokensWithMetadataLRUCache[this.hashCode()]
+            }
+        }
     }
 
 }

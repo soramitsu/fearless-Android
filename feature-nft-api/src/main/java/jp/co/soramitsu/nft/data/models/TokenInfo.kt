@@ -4,7 +4,7 @@ import java.math.BigInteger
 
 sealed interface TokenInfo {
 
-    data class WithoutMetadata(
+    class WithoutMetadata(
         val contract: Contract?,
         val id: TokenId.WithoutMetadata?,
         val balance: String?
@@ -12,7 +12,7 @@ sealed interface TokenInfo {
         companion object;
     }
 
-    data class WithMetadata(
+    class WithMetadata(
         val contract: Contract?,
         val id: TokenId.WithMetadata?,
         val title: String?,
@@ -25,7 +25,7 @@ sealed interface TokenInfo {
     ): TokenInfo {
         companion object;
 
-        data class Media(
+        class Media(
             val gateway: String?,
             val thumbnail: String?,
             val raw: String?,
@@ -35,7 +35,7 @@ sealed interface TokenInfo {
             companion object;
         }
 
-        data class TokenMetadata(
+        class TokenMetadata(
             val name: String?,
             val description: String?,
             val backgroundColor: String?,
@@ -46,7 +46,7 @@ sealed interface TokenInfo {
             companion object;
         }
 
-        data class ContractMetadata(
+        class ContractMetadata(
             val name: String?,
             val symbol: String?,
             val totalSupply: String?,
@@ -57,7 +57,7 @@ sealed interface TokenInfo {
         ) {
             companion object;
 
-            data class OpenSea(
+            class OpenSea(
                 val floorPrice: Float?,
                 val collectionName: String?,
                 val safelistRequestStatus: String?,
@@ -71,7 +71,7 @@ sealed interface TokenInfo {
             }
         }
 
-        data class SpamInfo(
+        class SpamInfo(
             val isSpam: Boolean?,
             val classifications: List<String>?,
         )

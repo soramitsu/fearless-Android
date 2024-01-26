@@ -5,7 +5,6 @@ import jp.co.soramitsu.nft.impl.domain.models.EIP1559CallImpl
 import jp.co.soramitsu.nft.impl.domain.models.EthCall
 import jp.co.soramitsu.runtime.multiNetwork.connection.EthereumWebSocketConnection
 import org.web3j.crypto.RawTransaction
-import org.web3j.crypto.transaction.type.Transaction1559
 import java.math.BigInteger
 
 @Suppress("FunctionName")
@@ -34,7 +33,7 @@ private fun <T: EthCall> EIP1559Call<T>.convertToWeb3RawTransaction(): RawTransa
     return when(call) {
         is EthCall.SmartContractCall ->
             RawTransaction.createTransaction(
-                call.chainId,
+                chainId,
                 call.nonce,
                 estimateGas,
                 (call as EthCall.SmartContractCall).contractAddress,
@@ -42,9 +41,7 @@ private fun <T: EthCall> EIP1559Call<T>.convertToWeb3RawTransaction(): RawTransa
                 (call as EthCall.SmartContractCall).encodedFunction,
                 maxPriorityFeePerGas,
                 baseFeePerGas.plus(maxPriorityFeePerGas)
-            ).apply {
-                println("This is checkpoint: nonce - $nonce, estimateGas - $estimateGas, maxPriorityFeePerGas - ${(transaction as? Transaction1559)?.maxPriorityFeePerGas}, maxFeePerGas - ${(transaction as? Transaction1559)?.maxFeePerGas}")
-            }
+            )
 
         else -> error(
             """

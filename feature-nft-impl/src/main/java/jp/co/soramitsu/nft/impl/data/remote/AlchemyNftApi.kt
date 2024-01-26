@@ -2,7 +2,7 @@ package jp.co.soramitsu.nft.impl.data.remote
 
 import jp.co.soramitsu.nft.data.models.TokenInfo
 import jp.co.soramitsu.nft.impl.data.model.request.NFTRequest
-import jp.co.soramitsu.nft.data.models.response.NFTResponse
+import jp.co.soramitsu.nft.data.models.wrappers.NFTResponse
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
@@ -14,19 +14,21 @@ interface AlchemyNftApi {
     suspend fun getUserOwnedNFTs(
         @Url url: String,
         @Query("owner") owner: String,
-        @Query("withMetadata") withMetadata: Boolean = true,
+        @Query("withMetadata") withMetadata: Boolean = false,
         @Query("pageKey") pageKey: String? = null,
         @Query("pageSize") pageSize: Int = 1000,
-        @Query("excludeFilters[]") excludeFilters: List<String> = listOf("SPAM")
+        @Query("excludeFilters[]") excludeFilters: List<String>
     ): NFTResponse.UserOwnedTokens
 
     @GET
-    suspend fun getNFTCollectionByCollectionSlug(
-        @Url requestUrl: String,
-        @Query("collectionSlug") collectionSlug: String,
-        @Query("withMetadata") withMetadata: Boolean,
-        @Query("startToken") startTokenId: String,
-        @Query("limit") limit: Int
+    suspend fun getUserOwnedNFTsByContractAddress(
+        @Url url: String,
+        @Query("owner") owner: String,
+        @Query("contractAddress[]") contractAddress: String,
+        @Query("withMetadata") withMetadata: Boolean = true,
+        @Query("pageKey") pageKey: String? = null,
+        @Query("pageSize") pageSize: Int = 1000,
+        @Query("excludeFilters[]") excludeFilters: List<String>
     ): NFTResponse.TokensCollection
 
     @GET
@@ -34,14 +36,14 @@ interface AlchemyNftApi {
         @Url requestUrl: String,
         @Query("contractAddress") contractAddress: String,
         @Query("withMetadata") withMetadata: Boolean,
-        @Query("startToken") startTokenId: String,
+        @Query("startToken") startTokenId: String? = null,
         @Query("limit") limit: Int
     ): NFTResponse.TokensCollection
 
     @POST
     suspend fun getNFTContractMetadataBatch(
         @Url requestUrl: String,
-        @Body body: NFTRequest.ContractMetadata.Body
+        @Body body: NFTRequest.ContractMetadataBatch.Body
     ): List<NFTResponse.ContractMetadata>
 
     @GET

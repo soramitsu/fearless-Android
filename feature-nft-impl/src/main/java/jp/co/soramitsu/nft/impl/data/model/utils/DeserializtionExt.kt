@@ -4,7 +4,7 @@ import com.google.gson.JsonDeserializer
 import jp.co.soramitsu.nft.data.models.Contract
 import jp.co.soramitsu.nft.data.models.TokenId
 import jp.co.soramitsu.nft.data.models.TokenInfo
-import jp.co.soramitsu.nft.data.models.response.NFTResponse
+import jp.co.soramitsu.nft.data.models.wrappers.NFTResponse
 
 internal val NFTResponse.ContractMetadata.Companion.deserializer: JsonDeserializer<NFTResponse.ContractMetadata>
     get() = JsonDeserializer { json, _, context ->
@@ -23,12 +23,12 @@ internal val NFTResponse.UserOwnedTokens.Companion.deserializer: JsonDeserialize
         val jsonObj = json?.asJsonObject ?: return@JsonDeserializer null
 
         return@JsonDeserializer NFTResponse.UserOwnedTokens(
-            ownedNfts = jsonObj.get("ownedNfts")?.asJsonArray?.mapNotNull { jsonElem ->
+            tokensInfoList = jsonObj.get("ownedNfts")?.asJsonArray?.mapNotNull { jsonElem ->
                 context?.deserialize<TokenInfo.WithoutMetadata>(
                     jsonElem, TokenInfo.WithoutMetadata::class.java
                 )
             } ?: emptyList(),
-            pageKey = jsonObj.get("pageKey")?.asString,
+            nextPage = jsonObj.get("pageKey")?.asString,
             totalCount = jsonObj.get("totalCount")?.asInt
         )
     }
@@ -37,13 +37,23 @@ internal val NFTResponse.TokensCollection.Companion.deserializer: JsonDeserializ
     get() = JsonDeserializer<NFTResponse.TokensCollection> { json, typeOfT, context ->
         val jsonObj = json?.asJsonObject ?: return@JsonDeserializer null
 
+        val tokensJsonObj = when {
+            jsonObj.has("nfts") ->
+                jsonObj.get("nfts")
+
+            jsonObj.has("ownedNfts") ->
+                jsonObj.get("ownedNfts")
+
+            else -> null
+        }
+
         return@JsonDeserializer NFTResponse.TokensCollection(
-            nfts = jsonObj.get("nfts")?.asJsonArray?.mapNotNull { jsonElem ->
+            tokenInfoList = tokensJsonObj?.asJsonArray?.mapNotNull { jsonElem ->
                 context?.deserialize<TokenInfo.WithMetadata>(
                     jsonElem, TokenInfo.WithMetadata::class.java
                 )
             } ?: emptyList(),
-            nextToken = jsonObj.get("nextToken").asString
+            nextPage = jsonObj.get("nextToken")?.asString
         )
     }
 

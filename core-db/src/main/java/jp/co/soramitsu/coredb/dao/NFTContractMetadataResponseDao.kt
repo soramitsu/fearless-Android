@@ -8,7 +8,7 @@ import androidx.room.Transaction
 import jp.co.soramitsu.coredb.model.NFTContractMetadataResponseLocal
 import kotlin.math.abs
 
-const val DEFAULT_CACHE_LIMIT = 250
+const val DEFAULT_CACHE_LIMIT = 300
 
 @Dao
 abstract class NFTContractMetadataResponseDao {

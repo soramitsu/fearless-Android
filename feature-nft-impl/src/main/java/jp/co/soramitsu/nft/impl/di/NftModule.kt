@@ -18,7 +18,7 @@ import jp.co.soramitsu.nft.impl.data.NFTRepositoryImpl
 import jp.co.soramitsu.nft.data.models.Contract
 import jp.co.soramitsu.nft.data.models.TokenId
 import jp.co.soramitsu.nft.data.models.TokenInfo
-import jp.co.soramitsu.nft.data.models.response.NFTResponse
+import jp.co.soramitsu.nft.data.models.wrappers.NFTResponse
 import jp.co.soramitsu.nft.domain.NFTTransferInteractor
 import jp.co.soramitsu.nft.impl.data.model.utils.deserializer
 import jp.co.soramitsu.nft.impl.data.remote.AlchemyNftApi

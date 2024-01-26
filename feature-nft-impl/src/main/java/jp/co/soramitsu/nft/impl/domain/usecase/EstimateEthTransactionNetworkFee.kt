@@ -5,14 +5,12 @@ import jp.co.soramitsu.core.utils.amountFromPlanks
 import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.nft.impl.domain.models.EIP1559CallImpl
 import jp.co.soramitsu.nft.impl.domain.models.EthCall
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.connection.EthereumWebSocketConnection
 import java.math.BigDecimal
 import java.math.BigInteger
 
 @Suppress("FunctionName")
 suspend fun EthereumWebSocketConnection.EstimateEthTransactionNetworkFee(
-    chain: Chain,
     call: EthCall,
     baseFeePerGas: BigInteger
 ): BigDecimal {

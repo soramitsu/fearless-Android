@@ -6,23 +6,35 @@ import jp.co.soramitsu.common.utils.concurrentRequestFlow
 import jp.co.soramitsu.nft.data.NFTRepository
 import jp.co.soramitsu.nft.domain.NFTInteractor
 import jp.co.soramitsu.nft.domain.models.NFTCollection
-import jp.co.soramitsu.nft.data.models.requests.PaginationRequest
+import jp.co.soramitsu.nft.data.pagination.PaginationRequest
 import jp.co.soramitsu.nft.data.models.TokenInfo
+import jp.co.soramitsu.nft.data.pagination.PaginationEvent
+import jp.co.soramitsu.nft.data.models.wrappers.NFTResponse
 import jp.co.soramitsu.nft.domain.models.NFTFilter
 import jp.co.soramitsu.nft.domain.models.utils.toFullNFT
 import jp.co.soramitsu.nft.domain.models.utils.toFullNFTCollection
 import jp.co.soramitsu.nft.domain.models.utils.toLightNFTCollection
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.alchemyNftId
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.replay
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.flow.transformLatest
+import kotlinx.coroutines.launch
+import java.util.concurrent.atomic.AtomicBoolean
 
 class NFTInteractorImpl(
     private val nftRepository: NFTRepository,
@@ -30,12 +42,12 @@ class NFTInteractorImpl(
     private val chainsRepository: ChainsRepository
 ): NFTInteractor {
 
-    override suspend fun setNFTFilter(filter: NFTFilter, isApplied: Boolean) {
+    override fun setNFTFilter(filter: NFTFilter, isApplied: Boolean) {
         nftRepository.setNFTFilter(filter.name, isApplied)
     }
 
     override fun nftFiltersFlow(): Flow<Map<NFTFilter, Boolean>> {
-        return nftRepository.nftFiltersFlow().map { filtersApplied ->
+        return nftRepository.nftFiltersFlow.map { filtersApplied ->
             filtersApplied.mapNotNull { (filter, isApplied) ->
                 val nftFilter = NFTFilter.values().find { it.name == filter }
                     ?: return@mapNotNull null
@@ -49,7 +61,7 @@ class NFTInteractorImpl(
     override fun userOwnedNFTsFlow(
         paginationRequestFlow: Flow<PaginationRequest>,
         chainSelectionFlow: Flow<String?>
-    ): Flow<List<NFTCollection<NFTCollection.NFT.Light>>> {
+    ): Flow<List<Pair<Chain, Result<NFTCollection<NFTCollection.NFT.Light>>>>> {
         val chainsHelperFlow = chainsRepository.chainsFlow().map { chains ->
             chains.filter { it.supportNft && !it.alchemyNftId.isNullOrEmpty() }
         }.combine(chainSelectionFlow) { chains, chainSelection ->
@@ -58,47 +70,73 @@ class NFTInteractorImpl(
         }
 
         val exclusionFiltersHelperFlow =
-            nftRepository.nftFiltersFlow().map { filters ->
-                filters.filter {
-                    it.second
-                }.map { it.first.uppercase() }
+            nftRepository.nftFiltersFlow.map { filters ->
+                filters.filter { it.second }.map { it.first.uppercase() }
             }
 
         return nftRepository.paginatedUserOwnedNFTsFlow(
             paginationRequestFlow = paginationRequestFlow,
             chainSelectionFlow = chainsHelperFlow,
-            selectedMetaAddressFlow = accountRepository.selectedMetaAccountFlow(),
-            exclusionFiltersFlow = exclusionFiltersHelperFlow
+            selectedMetaAccountFlow = accountRepository.selectedMetaAccountFlow(),
+            exclusionFiltersFlow = flow { emit(emptyList()) }
         ).transformLatest { responses ->
-            val result =
-                responses.concurrentRequestFlow { (chain, userOwnedTokens) ->
-                    val tokensByContractAddress = userOwnedTokens.ownedNfts
-                        .groupBy { it.contract?.address }
-                        .filter { it.key != null }
-                        .cast<Map<String, List<TokenInfo.WithoutMetadata>>>()
+            responses.concurrentRequestFlow { pagedResponse ->
+                val result = pagedResponse.result.mapCatching { paginationEvent ->
+                    when(paginationEvent) {
+                        is PaginationEvent.AllPreviousPagesLoaded ->
+                            return@concurrentRequestFlow // skip operations for this chain; do nothing
 
-                    val contractsByAddresses = nftRepository.contractMetadataBatch(
-                        chain = chain,
-                        contractAddresses = tokensByContractAddress.keys
-                    ).associateBy { it.address }
+                        is PaginationEvent.AllNextPagesLoaded ->
+                            return@concurrentRequestFlow // skip operations for this chain; do nothing
 
-                    val result = tokensByContractAddress.mapNotNull { (contractAddress, rawTokens) ->
-                        contractsByAddresses[contractAddress]?.toLightNFTCollection(
-                            chain = chain,
-                            contractAddress = contractAddress,
-                            tokens = rawTokens.map {
-                                NFTCollection.NFT.Light(
-                                    tokenId = it.id?.tokenId,
-                                    balance = it.balance
-                                )
-                            }
-                        )
+                        is PaginationEvent.PageIsLoaded ->
+                            return@mapCatching paginationEvent.toLightNFTCollection(
+                                chain = pagedResponse.chain
+                            )
+                    }
+                }
+
+                emit(pagedResponse.chain to result)
+            }.toList().flatMap { (chain, result) ->
+                val dispatchedResultList =
+                    result.map { collectionListPerSingleChain ->
+                        collectionListPerSingleChain.map { collection ->
+                            chain to Result.success(collection)
+                        }
                     }
 
-                    emit(result)
-                }.toList().flatten()
+                dispatchedResultList.getOrElse { listOf(chain to Result.failure(it)) }
+            }.also { collectionListOfAllChains ->
+                if (collectionListOfAllChains.isNotEmpty())
+                    emit(collectionListOfAllChains)
+            }
+        }
+    }
 
-            emit(result)
+    private suspend fun PaginationEvent.PageIsLoaded<NFTResponse.UserOwnedTokens>.toLightNFTCollection(
+        chain: Chain
+    ): List<NFTCollection<NFTCollection.NFT.Light>> {
+        val tokensByContractAddress = data.tokensInfoList
+            .groupBy { it.contract?.address }
+            .filter { it.key != null }
+            .cast<Map<String, List<TokenInfo.WithoutMetadata>>>()
+
+        val contractsByAddresses = nftRepository.contractMetadataBatch(
+            chain = chain,
+            contractAddresses = tokensByContractAddress.keys
+        ).associateBy { it.address }
+
+        return tokensByContractAddress.mapNotNull { (contractAddress, rawTokens) ->
+            contractsByAddresses[contractAddress]?.toLightNFTCollection(
+                chain = chain,
+                contractAddress = contractAddress,
+                tokens = rawTokens.map {
+                    NFTCollection.NFT.Light(
+                        tokenId = it.id?.tokenId,
+                        balance = it.balance
+                    )
+                }
+            )
         }
     }
 
@@ -108,40 +146,150 @@ class NFTInteractorImpl(
         chainSelectionFlow: Flow<String>,
         contractAddressFlow: Flow<String>
     ): Flow<Result<NFTCollection<NFTCollection.NFT.Full>>> {
-        return flow {
-            val chainSelectionHelperFlow =
-                chainsRepository.chainsFlow().map { chains ->
-                    chains.filter { it.supportNft && !it.alchemyNftId.isNullOrEmpty() }
-                }.combine(chainSelectionFlow) { chains, chainSelection ->
-                    chains.find { it.id == chainSelection } ?: error(
-                        """
-                            Chain with provided chainId of $chainSelection, is either not supported or does not support NFT operations
-                        """.trimIndent()
-                    )
-                }
+        val chainSelectionHelperFlow =
+            chainsRepository.chainsFlow().map { chains ->
+                chains.filter { it.supportNft && !it.alchemyNftId.isNullOrEmpty() }
+            }.combine(chainSelectionFlow) { chains, chainSelection ->
+                chains.find { it.id == chainSelection } ?: error(
+                    """
+                        Chain with id - $chainSelection - is either not supported 
+                        or does not support NFT operations.
+                    """.trimIndent()
+                )
+            }
 
-            nftRepository.paginatedNFTCollectionByContractAddressFlow(
-                paginationRequestFlow = paginationRequestFlow,
-                chainSelectionFlow = chainSelectionHelperFlow,
-                contractAddressFlow = contractAddressFlow
-            ).mapLatest { result ->
-                result.mapCatching { (chain, response) ->
-                    val contractMetadata = response.nfts.firstOrNull {
-                        it.contractMetadata != null
-                    }?.contractMetadata
+        val exclusionFiltersHelperFlow =
+            nftRepository.nftFiltersFlow.map { filters ->
+                filters.filter { it.second }.map { it.first.uppercase() }
+            }
 
-                    val contractAddress = response.nfts.firstOrNull {
-                        it.contract?.address != null
-                    }?.contract?.address.orEmpty()
+        return channelFlow {
+            val mutableUserOwnedTokensRequestFlow = MutableSharedFlow<PaginationRequest>(
+                replay = 1,
+                onBufferOverflow = BufferOverflow.DROP_OLDEST
+            )
 
-                    response.toFullNFTCollection(
-                        chain = chain,
-                        contractAddress = contractAddress,
-                        contractMetadata = contractMetadata
-                    )
-                }
-            }.collect(this)
-        }
+            val mutableNFTCollectionRequestFlow = MutableSharedFlow<PaginationRequest>(
+                replay = 1,
+                onBufferOverflow = BufferOverflow.DROP_OLDEST
+            )
+
+            val atomicAreUserOwnedTokensLoading = AtomicBoolean(true)
+            val atomicAreNFTCollectionsLoading = AtomicBoolean(false)
+
+
+            launch {
+                paginationRequestFlow.onEach {
+                    if (!atomicAreNFTCollectionsLoading.get())
+                        mutableUserOwnedTokensRequestFlow.tryEmit(it)
+
+                    if (!atomicAreUserOwnedTokensLoading.get())
+                        mutableNFTCollectionRequestFlow.tryEmit(it)
+                }.collect()
+            }
+
+
+            launch {
+                nftRepository.paginatedUserOwnedNFTsByContractAddressFlow(
+                    paginationRequestFlow = mutableUserOwnedTokensRequestFlow,
+                    chainSelectionFlow = chainSelectionHelperFlow,
+                    contractAddressFlow = contractAddressFlow,
+                    selectedMetaAccountFlow = accountRepository.selectedMetaAccountFlow(),
+                    exclusionFiltersFlow = flow<List<String>> { emit(emptyList()) }
+                ).transformLatest { pagedResponse ->
+                    val result = pagedResponse.result.mapCatching { paginationEvent ->
+                        when(paginationEvent) {
+                            is PaginationEvent.AllPreviousPagesLoaded -> {
+                                // We are still in process of loading this request
+                                atomicAreUserOwnedTokensLoading.set(true)
+                                return@transformLatest // skip transformation of this emission; do nothing
+                            }
+
+                            is PaginationEvent.AllNextPagesLoaded -> {
+                                // We are done loading this request
+                                atomicAreUserOwnedTokensLoading.set(false)
+
+                                mutableNFTCollectionRequestFlow.tryEmit(PaginationRequest.Next.Page)
+
+                                return@transformLatest // skip transformation of this emission; do nothing
+                            }
+
+                            is PaginationEvent.PageIsLoaded -> {
+                                // We are still in process of loading this request
+                                atomicAreUserOwnedTokensLoading.set(true)
+
+                                return@mapCatching paginationEvent.toFullNFTCollection(
+                                    chain = pagedResponse.chain,
+                                    isUserOwnedCollection = true
+                                )
+                            }
+                        }
+                    }
+
+                    emit(result)
+                }.collect { this@channelFlow.send(it) }
+            }
+
+            launch {
+                nftRepository.paginatedNFTCollectionByContractAddressFlow(
+                    paginationRequestFlow = mutableNFTCollectionRequestFlow,
+                    chainSelectionFlow = chainSelectionHelperFlow,
+                    contractAddressFlow = contractAddressFlow
+                ).transformLatest {pagedResponse ->
+                    val result = pagedResponse.result.mapCatching { paginationEvent ->
+                        when(paginationEvent) {
+                            is PaginationEvent.AllPreviousPagesLoaded -> {
+                                // We are done loading this request; this is inversion of userOwnedTokens request
+                                atomicAreNFTCollectionsLoading.set(false)
+
+                                mutableUserOwnedTokensRequestFlow.tryEmit(PaginationRequest.Prev.Page)
+
+                                return@transformLatest // skip transformation of this emission; do nothing
+                            }
+
+                            is PaginationEvent.AllNextPagesLoaded -> {
+                                // We are still in process of loading this request; this is inversion of userOwnedTokens request
+                                atomicAreNFTCollectionsLoading.set(true)
+
+                                return@transformLatest // skip transformation of this emission; do nothing
+                            }
+
+                            is PaginationEvent.PageIsLoaded -> {
+                                // We are still in process of loading this request
+                                atomicAreNFTCollectionsLoading.set(true)
+
+                                return@mapCatching paginationEvent.toFullNFTCollection(
+                                    chain = pagedResponse.chain,
+                                    isUserOwnedCollection = false
+                                )
+                            }
+                        }
+                    }
+
+                    emit(result)
+                }.collect { this@channelFlow.send(it) }
+            }
+        }.flowOn(Dispatchers.Default)
+    }
+
+    private fun PaginationEvent.PageIsLoaded<NFTResponse.TokensCollection>.toFullNFTCollection(
+        chain: Chain,
+        isUserOwnedCollection: Boolean
+    ): NFTCollection<NFTCollection.NFT.Full> {
+        val contractMetadata = data.tokenInfoList.firstOrNull {
+            it.contractMetadata != null
+        }?.contractMetadata
+
+        val contractAddress = data.tokenInfoList.firstOrNull {
+            it.contract?.address != null
+        }?.contract?.address.orEmpty()
+
+        return data.toFullNFTCollection(
+            chain = chain,
+            contractAddress = contractAddress,
+            contractMetadata = contractMetadata,
+            isUserOwnedCollection = isUserOwnedCollection
+        )
     }
 
     override suspend fun getNFTDetails(

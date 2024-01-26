@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flattenMerge
 import kotlinx.coroutines.flow.flow
@@ -198,6 +199,11 @@ fun <T> flowOf(producer: suspend () -> T) = flow {
     emit(producer())
 }
 
+/**
+ * [concurrentRequestFlow] takes a list splits it into chunks that can be executed concurrently
+ * and performs [block] execution concurrently on each element of chunk, after that next chunk is taken
+ * until there are no elements that have not been processed in initial list is left
+ */
 @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
 inline fun <Request, Response> List<Request>.concurrentRequestFlow(
     coroutineContext: CoroutineContext = Dispatchers.IO,
@@ -213,5 +219,25 @@ inline fun <Request, Response> List<Request>.concurrentRequestFlow(
                 block.invoke(this, requestData)
             }
         }.flattenMerge(concurrency).flowOn(coroutineContext).collect(this)
+    }
+}
+
+/**
+ * [refreshOnNewDistinct] invokes [block] when there are two consequently distinct values emitted
+ *
+ * Important: does not prevent emission of non-distinctive values; for that use plain distinctUntilChanged()
+ */
+inline fun <T> Flow<T>.refreshOnNewDistinct(
+    crossinline block: () -> Unit
+): Flow<T> {
+    return distinctUntilChanged { old, new ->
+        if (old != new)
+            block.invoke()
+
+        /*
+            We don't want to interfere in emission process,
+            only to invoke action when there are new distinct values
+        */
+        return@distinctUntilChanged false
     }
 }

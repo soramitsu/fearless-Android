@@ -88,7 +88,7 @@ class MissingWssNodesException(chainName: String, chainId: String) :
     RuntimeException("There are no wss nodes in chain $chainName, chainId: $chainId")
 
 class EthereumWebSocketConnection(
-    private val chain: Chain,
+    val chain: Chain,
     private val socketFactory: EthereumWebSocketFactory,
     private val autoBalanceEnabled: () -> Boolean,
     private val onSelectedNodeChange: (chainId: ChainId, newNodeUrl: String) -> Unit

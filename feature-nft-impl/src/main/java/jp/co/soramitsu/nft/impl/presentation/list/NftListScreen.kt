@@ -41,6 +41,10 @@ interface NftListScreenInterface {
     fun nftFiltersClicked()
 
     fun nftItemClicked(item: NftCollectionListItem)
+
+    fun onPageTopReached()
+
+    fun onPageBottomReached()
 }
 
 @Composable
@@ -63,7 +67,7 @@ fun NftList(state: NftScreenState, screenInterface: NftListScreenInterface) {
         NftList(
             state = state.listState,
             appearanceType = appearanceType.value,
-            screenInterface::nftItemClicked
+            screenInterface = screenInterface
         )
     }
 }
@@ -104,6 +108,8 @@ fun NftListScreenPreview() {
         NftList(previewState, screenInterface = object : NftListScreenInterface {
             override fun nftFiltersClicked() = Unit
             override fun nftItemClicked(item: NftCollectionListItem) = Unit
+            override fun onPageTopReached() {}
+            override fun onPageBottomReached() {}
         })
     }
 }

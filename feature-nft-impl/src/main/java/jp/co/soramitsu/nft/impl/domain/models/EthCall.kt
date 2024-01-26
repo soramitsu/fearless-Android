@@ -7,15 +7,11 @@ import java.math.BigInteger
 
 sealed interface EthCall {
 
-    val chainId: Long
-
     val nonce: BigInteger
 
     val sender: String
 
     val receiver: String
-
-    val amount: BigDecimal
 
     interface SmartContractCall: EthCall {
 

@@ -17,18 +17,18 @@ suspend fun EthereumWebSocketConnection.EstimateEthTransactionGas(
         call.convertToWeb3Transaction()
     ).sendAsync().await()
 
-    return response.map { Numeric.decodeQuantity(it) }.also { println("This is checkpoint: estimatedGas - $it") }
+    return response.map { Numeric.decodeQuantity(it) }
 }
 
 private fun EthCall.convertToWeb3Transaction(): Transaction {
     return when(this) {
         is EthCall.SmartContractCall ->
             Transaction.createFunctionCallTransaction(
-                /* from */ contractAddress, // TODO should from always be contractAddress?
+                /* from */ sender,
                 /* nonce */ nonce,
                 /* gasPrice */ null,
                 /* gasLimit */ null,
-                /* to */ receiver,
+                /* to */ contractAddress,
                 /* value */ null,
                 /* data */ encodedFunction
             )

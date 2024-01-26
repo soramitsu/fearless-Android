@@ -19,7 +19,6 @@ import java.math.BigInteger
 @Suppress("FunctionName")
 suspend fun NFTTransferAdapter(
     web3j: Web3j,
-    chainId: Long,
     sender: String,
     receiver: String,
     token: NFTCollection.NFT.Full,
@@ -68,11 +67,9 @@ suspend fun NFTTransferAdapter(
                 }
 
             NFTCall.Transfer(
-                chainId = chainId,
                 nonce = nonce,
                 sender = sender,
                 receiver = receiver,
-                amount = BigDecimal.ONE,
                 contractAddress = token.contractAddress!!,
                 encodedFunction = FunctionEncoder.encode(functionCall),
                 outputTypeRefs = functionCall.outputParameters
@@ -86,7 +83,7 @@ suspend fun NFTTransferAdapter(
                     listOf(
                         Address(160, sender),
                         Address(160, receiver),
-                        Uint256(BigInteger(tokenId)),
+                        Uint256(BigInteger(tokenId, 16)),
                         Uint256(BigInteger.ONE),
                         DynamicBytes(byteArrayOf())
                     ),
@@ -97,13 +94,13 @@ suspend fun NFTTransferAdapter(
                 }
 
             NFTCall.Transfer(
-                chainId = chainId,
                 nonce = nonce,
                 sender = sender,
                 receiver = receiver,
-                amount = BigDecimal.ONE,
                 contractAddress = token.contractAddress!!,
-                encodedFunction = FunctionEncoder.encode(functionCall),
+                encodedFunction = FunctionEncoder.encode(functionCall).apply {
+                    println("This is checkpoint: encodedFunction - $this")
+                },
                 outputTypeRefs = functionCall.outputParameters
             )
         }

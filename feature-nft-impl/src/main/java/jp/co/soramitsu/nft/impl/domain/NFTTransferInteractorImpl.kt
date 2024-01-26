@@ -46,8 +46,6 @@ class NFTTransferInteractorImpl(
         val chain = chainsRepository.getChain(token.chainId)
         val connection = getWeb3Connection(chain.id)
 
-        val chainId = chain.id.requireHexPrefix().drop(2).toLong()
-
         val senderNullable = accountRepository.getSelectedMetaAccount().address(chain)
 
         val senderResult = runCatching {
@@ -61,7 +59,6 @@ class NFTTransferInteractorImpl(
         return connection.subscribeNewHeads().transform { newHead ->
             val nftTransfer = NFTTransferAdapter(
                 web3j = connection.nonNullWeb3j,
-                chainId = chainId,
                 sender = senderResult.getOrThrow(),
                 receiver = receiver,
                 token = token,
@@ -69,9 +66,8 @@ class NFTTransferInteractorImpl(
             )
 
             val networkFee = connection.EstimateEthTransactionNetworkFee(
-                chain = chain,
-                baseFeePerGas = Numeric.decodeQuantity(newHead.params.result?.baseFeePerGas),
-                call = nftTransfer
+                call = nftTransfer,
+                baseFeePerGas = Numeric.decodeQuantity(newHead.params.result?.baseFeePerGas)
             )
 
             emit(Result.success(networkFee))
@@ -113,7 +109,6 @@ class NFTTransferInteractorImpl(
 
             val nftTransfer = NFTTransferAdapter(
                 web3j = connection.nonNullWeb3j,
-                chainId = chainId,
                 sender = sender,
                 receiver = receiver,
                 token = token,

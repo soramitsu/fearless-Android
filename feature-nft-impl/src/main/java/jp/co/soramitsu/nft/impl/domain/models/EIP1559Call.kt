@@ -4,9 +4,11 @@ import jp.co.soramitsu.nft.impl.domain.utils.getBaseFee
 import jp.co.soramitsu.nft.impl.domain.utils.getMaxPriorityFeePerGas
 import jp.co.soramitsu.nft.impl.domain.utils.nonNullWeb3j
 import jp.co.soramitsu.runtime.multiNetwork.connection.EthereumWebSocketConnection
+import jp.co.soramitsu.shared_utils.extensions.requireHexPrefix
 import java.math.BigInteger
 
 internal class EIP1559CallImpl<Call: EthCall> private constructor(
+    override val chainId: Long,
     override val call: Call,
     override val estimateGas: BigInteger,
     override val baseFeePerGas: BigInteger,
@@ -19,6 +21,7 @@ internal class EIP1559CallImpl<Call: EthCall> private constructor(
             call: Call,
             estimateGas: BigInteger
         ) = EIP1559CallImpl(
+            chainId = ethConnection.chain.id.requireHexPrefix().drop(2).toLong(),
             call = call,
             estimateGas = estimateGas,
             baseFeePerGas = ethConnection.nonNullWeb3j.getBaseFee(),
@@ -31,6 +34,7 @@ internal class EIP1559CallImpl<Call: EthCall> private constructor(
             baseFeePerGas: BigInteger,
             estimateGas: BigInteger
         ) = EIP1559CallImpl(
+            chainId = ethConnection.chain.id.requireHexPrefix().drop(2).toLong(),
             call = call,
             estimateGas = estimateGas,
             baseFeePerGas = baseFeePerGas,
@@ -41,6 +45,8 @@ internal class EIP1559CallImpl<Call: EthCall> private constructor(
 }
 
 interface EIP1559Call<Call: EthCall> {
+
+    val chainId: Long
 
     val call: Call
 

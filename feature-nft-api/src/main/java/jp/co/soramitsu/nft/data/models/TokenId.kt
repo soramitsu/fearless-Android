@@ -4,19 +4,19 @@ sealed interface TokenId {
 
     val tokenId: String?
 
-    data class WithoutMetadata(
+    class WithoutMetadata(
         override val tokenId: String?
     ): TokenId {
         companion object;
     }
 
-    data class WithMetadata(
+    class WithMetadata(
         override val tokenId: String?,
         val tokenMetadata: TokenMetadata?
     ): TokenId {
         companion object;
 
-        data class TokenMetadata(
+        class TokenMetadata(
             val tokenType: String?,
         ) {
             companion object;

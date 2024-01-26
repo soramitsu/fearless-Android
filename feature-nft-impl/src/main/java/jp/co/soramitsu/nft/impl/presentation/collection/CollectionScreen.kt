@@ -11,14 +11,24 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyGridScope
+import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.itemsIndexed
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Divider
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -78,12 +88,38 @@ interface NftCollectionScreenInterface {
     fun onItemClick(item: NftItem)
     fun onSendClick(item: NftItem)
     fun onShareClick(item: NftItem)
+    fun onLoadPreviousPage()
+    fun onLoadNextPage()
 }
 
 @Composable
 fun NFTCollectionScreen(viewModel: NftCollectionViewModel) {
-    val state: NftCollectionScreenState by viewModel.state.collectAsStateWithLifecycle()
+    val state: NftCollectionScreenState by viewModel.state.collectAsStateWithLifecycle(previewState)
     NftCollectionScreen(state = state, screenInterface = viewModel)
+}
+
+@Suppress("NOTHING_TO_INLINE")
+inline fun LazyGridState.isFirstItemFullyVisible(): Boolean {
+    val itemVisibilityInfo = layoutInfo.visibleItemsInfo.firstOrNull() ?: return false
+
+    val isFirstVisible = itemVisibilityInfo.index == 0
+    val isFullyVisible = itemVisibilityInfo.offset.y >= 0
+
+    return isFirstVisible && isFullyVisible
+}
+
+@Suppress("NOTHING_TO_INLINE")
+inline fun LazyGridState.isLastItemFullyVisible(): Boolean {
+    val itemVisibilityInfo = layoutInfo.visibleItemsInfo.lastOrNull() ?: return false
+
+    val isLastItemVisible =
+        itemVisibilityInfo.index == layoutInfo.totalItemsCount.minus(1)
+
+    val itemVisibleHeight = layoutInfo.viewportSize.height - itemVisibilityInfo.offset.y
+
+    val isFullyVisible = itemVisibleHeight == itemVisibilityInfo.size.height
+
+    return isLastItemVisible && isFullyVisible
 }
 
 @Composable
@@ -91,6 +127,28 @@ fun NftCollectionScreen(
     state: NftCollectionScreenState,
     screenInterface: NftCollectionScreenInterface
 ) {
+    val lazyGridState = rememberLazyGridState()
+
+    val nestedScrollConnection = remember {
+        object : NestedScrollConnection {
+            override fun onPostScroll(
+                consumed: Offset,
+                available: Offset,
+                source: NestedScrollSource
+            ): Offset {
+                if (lazyGridState.isFirstItemFullyVisible()) {
+                    screenInterface.onLoadPreviousPage()
+                }
+
+                if (lazyGridState.isLastItemFullyVisible()) {
+                    screenInterface.onLoadNextPage()
+                }
+
+                return Offset.Zero
+            }
+        }
+    }
+
     BottomSheetScreen {
         Toolbar(
             state = ToolbarViewState(
@@ -100,10 +158,13 @@ fun NftCollectionScreen(
             )
         )
         LazyVerticalGrid(
+            state = lazyGridState,
             columns = GridCells.Fixed(2),
             verticalArrangement = Arrangement.spacedBy(8.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier
+                .padding(16.dp)
+                .nestedScroll(nestedScrollConnection)
         ) {
             this.item(span = { GridItemSpan(2) }) {
                 Column {
@@ -214,6 +275,8 @@ fun NftCollectionScreenPreview() {
             override fun onItemClick(item: NftItem) = Unit
             override fun onSendClick(item: NftItem) = Unit
             override fun onShareClick(item: NftItem) = Unit
+            override fun onLoadPreviousPage() = Unit
+            override fun onLoadNextPage() = Unit
         })
     }
 }

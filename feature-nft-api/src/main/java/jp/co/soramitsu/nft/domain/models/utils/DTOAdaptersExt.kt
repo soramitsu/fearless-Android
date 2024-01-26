@@ -1,7 +1,7 @@
 package jp.co.soramitsu.nft.domain.models.utils
 
 import jp.co.soramitsu.nft.data.models.TokenInfo
-import jp.co.soramitsu.nft.data.models.response.NFTResponse
+import jp.co.soramitsu.nft.data.models.wrappers.NFTResponse
 import jp.co.soramitsu.nft.domain.models.NFTCollection
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 
@@ -27,7 +27,8 @@ fun NFTResponse.ContractMetadata.toLightNFTCollection(
 fun NFTResponse.TokensCollection.toFullNFTCollection(
     chain: Chain,
     contractAddress: String?,
-    contractMetadata: TokenInfo.WithMetadata.ContractMetadata?
+    contractMetadata: TokenInfo.WithMetadata.ContractMetadata?,
+    isUserOwnedCollection: Boolean
 ): NFTCollection<NFTCollection.NFT.Full> =
     NFTCollection(
         chainId = chain.id,
@@ -38,14 +39,14 @@ fun NFTResponse.TokensCollection.toFullNFTCollection(
         description = contractMetadata?.openSea?.description,
         imageUrl = contractMetadata?.openSea?.imageUrl.orEmpty(),
         type = contractMetadata?.tokenType,
-        tokens = nfts.map {
+        tokens = tokenInfoList.map {
             it.toFullNFT(
                 chain = chain,
                 contractAddress = contractAddress
             )
         },
         collectionSize = contractMetadata?.totalSupply?.toIntOrNull()
-            ?: nfts.size
+            ?: tokenInfoList.size
     )
 
 fun TokenInfo.WithMetadata.toFullNFT(

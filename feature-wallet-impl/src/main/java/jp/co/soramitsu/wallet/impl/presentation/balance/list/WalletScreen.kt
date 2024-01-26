@@ -219,6 +219,8 @@ private fun PreviewWalletScreen() {
         override fun assetClicked(asset: AssetListItemViewState) {}
         override fun nftFiltersClicked() {}
         override fun nftItemClicked(item: NftCollectionListItem) = Unit
+        override fun onPageTopReached() {}
+        override fun onPageBottomReached() {}
 
         override fun actionItemClicked(
             actionType: ActionItemType,

@@ -1,10 +1,10 @@
-package jp.co.soramitsu.nft.data.models.response
+package jp.co.soramitsu.nft.data.models.wrappers
 
 import jp.co.soramitsu.nft.data.models.TokenInfo
 
 sealed interface NFTResponse {
 
-    data class ContractMetadata(
+    class ContractMetadata(
         val address: String?,
         val contractMetadata: TokenInfo.WithMetadata.ContractMetadata?
     ): NFTResponse {
@@ -12,16 +12,16 @@ sealed interface NFTResponse {
     }
 
     data class UserOwnedTokens(
-        val ownedNfts: List<TokenInfo.WithoutMetadata>,
-        val pageKey: String?,
+        val tokensInfoList: List<TokenInfo.WithoutMetadata>,
+        val nextPage: String?,
         val totalCount: Int?
     ): NFTResponse {
         companion object;
     }
 
-    data class TokensCollection(
-        val nfts: List<TokenInfo.WithMetadata>,
-        val nextToken: String?
+    class TokensCollection(
+        val tokenInfoList: List<TokenInfo.WithMetadata>,
+        val nextPage: String?
     ): NFTResponse {
         companion object;
     }

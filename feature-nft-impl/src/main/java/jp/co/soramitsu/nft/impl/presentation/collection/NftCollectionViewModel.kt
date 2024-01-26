@@ -5,16 +5,25 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseViewModel
-import jp.co.soramitsu.common.utils.flowOf
-import jp.co.soramitsu.nft.impl.domain.NftInteractor
+import jp.co.soramitsu.nft.data.pagination.PaginationRequest
+import jp.co.soramitsu.nft.domain.NFTInteractor
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ethereumChainId
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.shareIn
+import kotlinx.coroutines.flow.transformLatest
 
 @HiltViewModel
 class NftCollectionViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
-    private val nftInteractor: NftInteractor
+    private val nftInteractor: NFTInteractor
 ) : BaseViewModel(), NftCollectionScreenInterface {
 
     companion object {
@@ -24,30 +33,53 @@ class NftCollectionViewModel @Inject constructor(
     private val contractAddress =
         savedStateHandle.get<String>(COLLECTION_CONTRACT_ADDRESS_KEY) ?: throw IllegalStateException("Can't find $COLLECTION_CONTRACT_ADDRESS_KEY in arguments")
 
-    private val collection = nftInteractor.getCollection(contractAddress)
+    private val mutablePaginationRequestFlow = MutableSharedFlow<PaginationRequest>(
+        extraBufferCapacity = 1,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST
+    )
 
-    private val defaultScreenState = NftCollectionScreenState(
-        collectionName = collection.name,
-        collectionImageUrl = collection.image,
-        collectionDescription = collection.description,
-        myNFTs = collection.nfts.map {
-            NftItem(
-                it.thumbnail,
-                it.title,
-                it.description,
-                it.hashCode()
+    val state = createCollectionsNFTsFlow()
+        .shareIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(10_000),
+            1
+        )
+
+    @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
+    fun createCollectionsNFTsFlow(): Flow<NftCollectionScreenState> {
+        val paginationRequestHelperFlow = mutablePaginationRequestFlow.onStart {
+            emit(PaginationRequest.Start)
+        }.debounce(10_000)
+
+        return nftInteractor.collectionNFTsFlow(
+            paginationRequestFlow = paginationRequestHelperFlow,
+            chainSelectionFlow = flow { emit(ethereumChainId) },
+            contractAddressFlow = flow { emit(contractAddress) },
+        ).transformLatest { result ->
+            result.fold(
+                onSuccess = { collection ->
+                    println("This is checkpoint: NftCollectionViewModel.collectionNFTsFlow.Result.Success - ${collection.tokens.firstOrNull()?.tokenId}")
+                    NftCollectionScreenState(
+                        collectionName = collection.collectionName,
+                        collectionImageUrl = collection.imageUrl,
+                        collectionDescription = collection.description,
+                        myNFTs = collection.tokens.map {
+                            NftItem(
+                                thumbnailUrl = it.thumbnail,
+                                name = it.title.orEmpty(),
+                                description = it.description,
+                                id = it.hashCode()
+                            )
+                        },
+                        availableNFTs = emptyList()
+                    ).run { emit(this) }
+                },
+                onFailure = {
+                    throw it
+                }
             )
-        },
-        availableNFTs = emptyList()
-    )
-
-    val state: StateFlow<NftCollectionScreenState> = flowOf {
-        defaultScreenState
-    }.stateIn(
-        viewModelScope,
-        SharingStarted.Eagerly,
-        defaultScreenState
-    )
+        }
+    }
 
     override fun close() {
     }
@@ -59,5 +91,13 @@ class NftCollectionViewModel @Inject constructor(
     }
 
     override fun onShareClick(item: NftItem) {
+    }
+
+    override fun onLoadPreviousPage() {
+        mutablePaginationRequestFlow.tryEmit(PaginationRequest.Prev.Page)
+    }
+
+    override fun onLoadNextPage() {
+        mutablePaginationRequestFlow.tryEmit(PaginationRequest.Next.Page)
     }
 }
