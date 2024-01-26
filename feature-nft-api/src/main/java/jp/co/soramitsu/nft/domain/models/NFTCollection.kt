@@ -27,7 +27,7 @@ data class NFTCollection<T: NFTCollection.NFT>(
             val description: String?,
             val collectionName: String?,
             val contractAddress: String?,
-            val ownerAddress: String?,
+            val isUserOwnedToken: Boolean,
             val tokenId: String?,
             val chainName: String,
             val chainId: ChainId,

@@ -23,7 +23,6 @@ import jp.co.soramitsu.nft.domain.NFTTransferInteractor
 import jp.co.soramitsu.nft.impl.data.model.utils.deserializer
 import jp.co.soramitsu.nft.impl.data.remote.AlchemyNftApi
 import jp.co.soramitsu.nft.impl.domain.NFTInteractorImpl
-import jp.co.soramitsu.nft.impl.domain.NftInteractor
 import jp.co.soramitsu.nft.impl.domain.NFTTransferInteractorImpl
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.runtime.multiNetwork.connection.EthereumConnectionPool
@@ -49,6 +48,9 @@ class NftModule {
             ).registerTypeAdapter(
                 NFTResponse.TokensCollection::class.java,
                 NFTResponse.TokensCollection.deserializer
+            ).registerTypeAdapter(
+                NFTResponse.TokenOwners::class.java,
+                NFTResponse.TokenOwners.deserializer
             ).registerTypeAdapter(
                 Contract::class.java,
                 Contract.deserializer
@@ -140,13 +142,5 @@ class NftModule {
         chainsRepository = chainsRepository,
         ethereumConnectionPool = ethereumConnectionPool
     )
-
-    @Provides
-    fun provideMyOlfNftInteractor(
-        nftInteractor: NFTInteractor,
-        nftTransferInteractor: NFTTransferInteractor,
-        chainRepository: ChainsRepository,
-        accountRepository: AccountRepository
-    ) = NftInteractor(nftInteractor, nftTransferInteractor, chainRepository, accountRepository)
 
 }

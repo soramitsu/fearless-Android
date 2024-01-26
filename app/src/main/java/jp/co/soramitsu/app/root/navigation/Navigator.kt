@@ -1420,8 +1420,8 @@ class Navigator :
         }.filterNotNull()
     }
 
-    override fun openNftCollection(contractAddress: String) {
-        val bundle = NftFragment.getCollectionDetailsBundle(contractAddress)
+    override fun openNftCollection(selectedAssetId: ChainId, contractAddress: String) {
+        val bundle = NftFragment.getCollectionDetailsBundle(selectedAssetId, contractAddress)
         navController?.navigate(R.id.nftFlowFragment, bundle)
     }
 }

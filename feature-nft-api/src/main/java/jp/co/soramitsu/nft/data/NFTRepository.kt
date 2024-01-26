@@ -71,6 +71,12 @@ interface NFTRepository {
         chain: Chain,
         contractAddress: String,
         tokenId: String
-    ): TokenInfo.WithMetadata
+    ): Result<TokenInfo.WithMetadata>
+
+    suspend fun tokenOwners(
+        chain: Chain,
+        contractAddress: String,
+        tokenId: String
+    ): Result<NFTResponse.TokenOwners>
 
 }

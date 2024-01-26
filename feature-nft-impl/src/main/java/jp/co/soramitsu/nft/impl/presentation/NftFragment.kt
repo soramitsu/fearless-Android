@@ -34,6 +34,8 @@ import jp.co.soramitsu.nft.impl.presentation.collection.NftCollectionViewModel
 import jp.co.soramitsu.nft.impl.presentation.collection.NftCollectionViewModel.Companion.COLLECTION_CONTRACT_ADDRESS_KEY
 import jp.co.soramitsu.nft.impl.presentation.collection.NftCollectionScreen
 import jp.co.soramitsu.nft.impl.presentation.collection.NftCollectionScreenState
+import jp.co.soramitsu.nft.impl.presentation.collection.NftCollectionViewModel.Companion.COLLECTION_CHAIN_ID
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 
 @Stable
 interface NftFlowNavigationCallback {
@@ -60,8 +62,13 @@ class NftFragment : BaseComposeBottomSheetDialogFragment<NftViewModel>() {
 
         const val START_DESTINATION_KEY = "startDestinationKey"
         const val CONTRACT_ADDRESS_KEY = "contractAddress"
+        const val SELECTED_CHAIN_ID = "selectedChainId"
 
-        fun getCollectionDetailsBundle(contractAddress: String) = bundleOf(START_DESTINATION_KEY to "collectionDetails/{$CONTRACT_ADDRESS_KEY}", CONTRACT_ADDRESS_KEY to contractAddress)
+        fun getCollectionDetailsBundle(selectedChainId: ChainId, contractAddress: String) = bundleOf(
+            START_DESTINATION_KEY to "collectionDetails/{$SELECTED_CHAIN_ID}/{$CONTRACT_ADDRESS_KEY}",
+            SELECTED_CHAIN_ID to selectedChainId,
+            CONTRACT_ADDRESS_KEY to contractAddress
+        )
 
         fun buildCollectionDetailsDestination(contractAddress: String): String {
             return "collectionDetails/$contractAddress"
@@ -96,11 +103,17 @@ class NftFragment : BaseComposeBottomSheetDialogFragment<NftViewModel>() {
                 .fillMaxSize(),
         ) {
             composable(
-                "collectionDetails/{$COLLECTION_CONTRACT_ADDRESS_KEY}",
-                arguments = listOf(navArgument(COLLECTION_CONTRACT_ADDRESS_KEY) {
-                    type = NavType.StringType
-                    defaultValue = arguments?.getString(CONTRACT_ADDRESS_KEY)!!
-                })
+                "collectionDetails/{$COLLECTION_CHAIN_ID}/{$COLLECTION_CONTRACT_ADDRESS_KEY}",
+                arguments = listOf(
+                    navArgument(COLLECTION_CHAIN_ID) {
+                        type = NavType.StringType
+                        defaultValue = arguments?.getString(SELECTED_CHAIN_ID)
+                    },
+                    navArgument(COLLECTION_CONTRACT_ADDRESS_KEY) {
+                        type = NavType.StringType
+                        defaultValue = arguments?.getString(CONTRACT_ADDRESS_KEY)!!
+                    }
+                )
             ) {
                 val viewModel: NftCollectionViewModel by viewModels()
                 NFTCollectionScreen(viewModel = viewModel)

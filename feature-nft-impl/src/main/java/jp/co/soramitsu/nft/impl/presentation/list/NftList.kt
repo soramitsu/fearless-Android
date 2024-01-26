@@ -364,13 +364,6 @@ fun NftListPreview() {
     val items = listOf(
         NftCollectionListItem(
             "1",
-            "https://public.nftstatic.com/static/nft/res/nft-cex/S3/1681135249863_5vfn4v8dfmche8vzqlhcotiwj2z8vn2g.png",
-            "BNB Chain",
-            "BORED MARIO v2 #120",
-            1,
-            290
-        ),
-        NftCollectionListItem(
             "1",
             "https://public.nftstatic.com/static/nft/res/nft-cex/S3/1681135249863_5vfn4v8dfmche8vzqlhcotiwj2z8vn2g.png",
             "BNB Chain",
@@ -379,6 +372,16 @@ fun NftListPreview() {
             290
         ),
         NftCollectionListItem(
+            "1",
+            "1",
+            "https://public.nftstatic.com/static/nft/res/nft-cex/S3/1681135249863_5vfn4v8dfmche8vzqlhcotiwj2z8vn2g.png",
+            "BNB Chain",
+            "BORED MARIO v2 #120",
+            1,
+            290
+        ),
+        NftCollectionListItem(
+            "1",
             "1",
             "https://public.nftstatic.com/static/nft/res/nft-cex/S3/1681135249863_5vfn4v8dfmche8vzqlhcotiwj2z8vn2g.png",
             "BNB Chain",

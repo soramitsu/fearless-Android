@@ -7,7 +7,7 @@ import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.nft.data.pagination.PaginationRequest
 import jp.co.soramitsu.nft.domain.NFTInteractor
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.ethereumChainId
+import jp.co.soramitsu.nft.domain.NFTTransferInteractor
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.channels.BufferOverflow
@@ -27,11 +27,15 @@ class NftCollectionViewModel @Inject constructor(
 ) : BaseViewModel(), NftCollectionScreenInterface {
 
     companion object {
+        const val COLLECTION_CHAIN_ID = "selectedChainId"
         const val COLLECTION_CONTRACT_ADDRESS_KEY = "contractAddress"
     }
 
-    private val contractAddress =
-        savedStateHandle.get<String>(COLLECTION_CONTRACT_ADDRESS_KEY) ?: throw IllegalStateException("Can't find $COLLECTION_CONTRACT_ADDRESS_KEY in arguments")
+    private val selectedChainId = savedStateHandle.get<String>(COLLECTION_CHAIN_ID)
+        ?: throw IllegalStateException("Can't find $COLLECTION_CHAIN_ID in arguments")
+
+    private val contractAddress = savedStateHandle.get<String>(COLLECTION_CONTRACT_ADDRESS_KEY)
+        ?: throw IllegalStateException("Can't find $COLLECTION_CONTRACT_ADDRESS_KEY in arguments")
 
     private val mutablePaginationRequestFlow = MutableSharedFlow<PaginationRequest>(
         extraBufferCapacity = 1,
@@ -40,9 +44,9 @@ class NftCollectionViewModel @Inject constructor(
 
     val state = createCollectionsNFTsFlow()
         .shareIn(
-            viewModelScope,
-            SharingStarted.WhileSubscribed(10_000),
-            1
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(10_000),
+            replay = 1
         )
 
     @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
@@ -53,7 +57,7 @@ class NftCollectionViewModel @Inject constructor(
 
         return nftInteractor.collectionNFTsFlow(
             paginationRequestFlow = paginationRequestHelperFlow,
-            chainSelectionFlow = flow { emit(ethereumChainId) },
+            chainSelectionFlow = flow { emit(selectedChainId) },
             contractAddressFlow = flow { emit(contractAddress) },
         ).transformLatest { result ->
             result.fold(

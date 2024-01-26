@@ -26,4 +26,10 @@ sealed interface NFTResponse {
         companion object;
     }
 
+    class TokenOwners(
+        val ownersList: List<String>
+    ): NFTResponse {
+        companion object
+    }
+
 }

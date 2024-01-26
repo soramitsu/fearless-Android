@@ -30,7 +30,7 @@ class CachingNFTRepositoryDecorator(
 ): NFTRepository by nftRepository {
 
     private val lruCacheMutex = Mutex()
-    private val tokensWithMetadataLRUCache: LruCache<Int, TokenInfo.WithMetadata> = LruCache(DEFAULT_PAGE_SIZE)
+    private val tokensWithMetadataLRUCache: LruCache<Int, TokenInfo.WithMetadata> = LruCache(3 * DEFAULT_PAGE_SIZE)
 
     override fun paginatedUserOwnedNFTsFlow(
         paginationRequestFlow: Flow<PaginationRequest>,
@@ -225,7 +225,7 @@ class CachingNFTRepositoryDecorator(
                 is PaginationRequest.Prev -> {
                     if (collectionsCache.isNotEmpty()) {
                         val isNewCollectionDuplicationOfFirstCached =
-                            collectionsCache.getOrNull(1)?.nextPage == collection.nextPage
+                            collectionsCache.firstOrNull()?.nextPage == collection.nextPage
 
                         if (!isNewCollectionDuplicationOfFirstCached)
                             collectionsCache.addFirst(collection)
@@ -286,7 +286,7 @@ class CachingNFTRepositoryDecorator(
         chain: Chain,
         contractAddress: String,
         tokenId: String
-    ): TokenInfo.WithMetadata {
+    ): Result<TokenInfo.WithMetadata> {
         val tokenFromCache =
             getTokenFromCache(
                 chainId = chain.id,
@@ -295,14 +295,21 @@ class CachingNFTRepositoryDecorator(
             )
 
         if (tokenFromCache != null)
-            return tokenFromCache
+            return Result.success(tokenFromCache)
 
-        return nftRepository.tokenMetadata(
-            chain = chain,
-            contractAddress = contractAddress,
-            tokenId = tokenId
-        ).also {
-            saveTokensToCache(chain, listOf(it))
+        return runCatching {
+            val result = nftRepository.tokenMetadata(
+                chain = chain,
+                contractAddress = contractAddress,
+                tokenId = tokenId
+            ).getOrThrow()
+
+            saveTokensToCache(
+                chain = chain,
+                tokens = listOf(result)
+            )
+
+            return@runCatching result
         }
     }
 

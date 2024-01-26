@@ -40,6 +40,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import java.util.Stack
 
 internal const val DEFAULT_PAGE_SIZE = 100
@@ -302,15 +303,17 @@ class NFTRepositoryImpl(
                                 """.trimIndent()
                             )
 
-                            alchemyNftApi.getUserOwnedNFTsByContractAddress(
-                                url = NFTRequest.UserOwnedTokens.requestUrl(holder.chain.alchemyNftId),
-                                owner = ownerAddress,
-                                contractAddress = holder.contractAddress,
-                                withMetadata = true,
-                                pageKey = pageKey,
-                                pageSize = holder.paginationRequest.getPageSize(DEFAULT_PAGE_SIZE),
-                                excludeFilters = holder.exclusionFilters
-                            )
+                            withContext(Dispatchers.IO) {
+                                alchemyNftApi.getUserOwnedNFTsByContractAddress(
+                                    url = NFTRequest.UserOwnedTokens.requestUrl(holder.chain.alchemyNftId),
+                                    owner = ownerAddress,
+                                    contractAddress = holder.contractAddress,
+                                    withMetadata = true,
+                                    pageKey = pageKey,
+                                    pageSize = holder.paginationRequest.getPageSize(DEFAULT_PAGE_SIZE),
+                                    excludeFilters = holder.exclusionFilters
+                                )
+                            }
                         }
                     }
 
@@ -384,13 +387,15 @@ class NFTRepositoryImpl(
 
 
                         page.mapToPaginationEvent { pageKey ->
-                            alchemyNftApi.getNFTCollectionByContactAddress(
-                                requestUrl = NFTRequest.TokensCollection.requestUrl(holder.chain.alchemyNftId),
-                                contractAddress = holder.contractAddress,
-                                withMetadata = true,
-                                startTokenId = pageKey,
-                                limit = holder.paginationRequest.getPageSize(DEFAULT_PAGE_SIZE)
-                            )
+                            withContext(Dispatchers.IO) {
+                                alchemyNftApi.getNFTCollectionByContactAddress(
+                                    requestUrl = NFTRequest.TokensCollection.requestUrl(holder.chain.alchemyNftId),
+                                    contractAddress = holder.contractAddress,
+                                    withMetadata = true,
+                                    startTokenId = pageKey,
+                                    limit = holder.paginationRequest.getPageSize(DEFAULT_PAGE_SIZE)
+                                )
+                            }
                         }
                     }
 
@@ -421,22 +426,44 @@ class NFTRepositoryImpl(
         chain: Chain,
         contractAddresses: Set<String>
     ): List<NFTResponse.ContractMetadata> {
-        return alchemyNftApi.getNFTContractMetadataBatch(
-            requestUrl = NFTRequest.ContractMetadataBatch.requestUrl(chain.alchemyNftId),
-            body = NFTRequest.ContractMetadataBatch.Body(contractAddresses = contractAddresses.toList())
-        )
+        return withContext(Dispatchers.IO) {
+            alchemyNftApi.getNFTContractMetadataBatch(
+                requestUrl = NFTRequest.ContractMetadataBatch.requestUrl(chain.alchemyNftId),
+                body = NFTRequest.ContractMetadataBatch.Body(contractAddresses = contractAddresses.toList())
+            )
+        }
     }
 
     override suspend fun tokenMetadata(
         chain: Chain,
         contractAddress: String,
         tokenId: String
-    ): TokenInfo.WithMetadata {
-        return alchemyNftApi.getNFTMetadata(
-            requestUrl = NFTRequest.TokenMetadata.requestUrl(chain.alchemyNftId),
-            contractAddress = contractAddress,
-            tokenId = tokenId
-        )
+    ): Result<TokenInfo.WithMetadata> {
+        return runCatching {
+            withContext(Dispatchers.IO) {
+                alchemyNftApi.getNFTMetadata(
+                    requestUrl = NFTRequest.TokenMetadata.requestUrl(chain.alchemyNftId),
+                    contractAddress = contractAddress,
+                    tokenId = tokenId
+                )
+            }
+        }
+    }
+
+    override suspend fun tokenOwners(
+        chain: Chain,
+        contractAddress: String,
+        tokenId: String
+    ): Result<NFTResponse.TokenOwners> {
+        return runCatching {
+            withContext(Dispatchers.IO) {
+                alchemyNftApi.getNFTOwners(
+                    requestUrl = NFTRequest.TokenOwners.requestUrl(chain.alchemyNftId),
+                    contractAddress = contractAddress,
+                    tokenId = tokenId
+                )
+            }
+        }
     }
 
 }

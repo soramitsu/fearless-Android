@@ -57,6 +57,17 @@ internal val NFTResponse.TokensCollection.Companion.deserializer: JsonDeserializ
         )
     }
 
+internal val NFTResponse.TokenOwners.Companion.deserializer: JsonDeserializer<NFTResponse.TokenOwners>
+    get() = JsonDeserializer<NFTResponse.TokenOwners> { json, typeOfT, context ->
+        val jsonObj = json?.asJsonObject ?: return@JsonDeserializer null
+
+        return@JsonDeserializer NFTResponse.TokenOwners(
+            ownersList = jsonObj.get("owners")?.asJsonArray?.mapNotNull { jsonElem ->
+                return@mapNotNull jsonElem?.asString
+            }.orEmpty()
+        )
+    }
+
 internal val Contract.Companion.deserializer: JsonDeserializer<Contract>
     get() = JsonDeserializer<Contract> { json, typeOfT, context ->
         val jsonObj = json?.asJsonObject ?: return@JsonDeserializer null

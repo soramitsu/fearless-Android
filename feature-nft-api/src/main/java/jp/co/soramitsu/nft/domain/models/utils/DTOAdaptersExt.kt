@@ -27,8 +27,7 @@ fun NFTResponse.ContractMetadata.toLightNFTCollection(
 fun NFTResponse.TokensCollection.toFullNFTCollection(
     chain: Chain,
     contractAddress: String?,
-    contractMetadata: TokenInfo.WithMetadata.ContractMetadata?,
-    isUserOwnedCollection: Boolean
+    contractMetadata: TokenInfo.WithMetadata.ContractMetadata?
 ): NFTCollection<NFTCollection.NFT.Full> =
     NFTCollection(
         chainId = chain.id,
@@ -51,7 +50,7 @@ fun NFTResponse.TokensCollection.toFullNFTCollection(
 
 fun TokenInfo.WithMetadata.toFullNFT(
     chain: Chain,
-    contractAddress: String?,
+    contractAddress: String?
 ): NFTCollection.NFT.Full {
     val collectionName = contractMetadata?.openSea?.collectionName
         ?: contractMetadata?.name ?: contractAddress.orEmpty()
@@ -62,7 +61,7 @@ fun TokenInfo.WithMetadata.toFullNFT(
         description = (description ?: contractMetadata?.openSea?.description).orEmpty(),
         collectionName = collectionName,
         contractAddress = contractAddress,
-        ownerAddress = if (!balance.isNullOrEmpty() && balance.toIntOrNull() != 0) "address" else null,
+        isUserOwnedToken = !balance.isNullOrEmpty() && balance.toIntOrNull() != 0,
         tokenId = id?.tokenId,
         chainName = chain.name,
         chainId = chain.id,

@@ -43,4 +43,12 @@ sealed interface NFTRequest {
         }
     }
 
+    class TokenOwners: NFTRequest {
+        companion object {
+            fun requestUrl(alchemyChainId: String?): String {
+                return "https://$alchemyChainId.g.alchemy.com/nft/v2/${BuildConfig.ALCHEMY_API_KEY}/getOwnersForToken"
+            }
+        }
+    }
+
 }

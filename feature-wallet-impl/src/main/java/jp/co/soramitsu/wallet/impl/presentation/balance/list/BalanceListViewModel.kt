@@ -298,6 +298,7 @@ class BalanceListViewModel @Inject constructor(
 
                 NftCollectionListItem(
                     id = collection.contractAddress.orEmpty(),
+                    chainId = collection.chainId,
                     image = collection.imageUrl,
                     chain = collection.chainName,
                     title = collection.collectionName,
@@ -657,7 +658,7 @@ class BalanceListViewModel @Inject constructor(
     }
 
     override fun nftItemClicked(item: NftCollectionListItem) {
-        router.openNftCollection(item.id)
+        router.openNftCollection(item.chainId, item.id)
     }
 
     override fun onPageTopReached() {

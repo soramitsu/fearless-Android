@@ -28,6 +28,10 @@ interface NFTInteractor {
         chainId: ChainId,
         contractAddress: String,
         tokenId: String
-    ): NFTCollection.NFT.Full
+    ): Result<NFTCollection.NFT.Full>
+
+    suspend fun getOwnersForNFT(
+        token: NFTCollection.NFT.Full
+    ): Result<List<String>>
 
 }

@@ -52,4 +52,11 @@ interface AlchemyNftApi {
         @Query("contractAddress") contractAddress: String,
         @Query("tokenId") tokenId: String
     ): TokenInfo.WithMetadata
+
+    @GET
+    suspend fun getNFTOwners(
+        @Url requestUrl: String,
+        @Query("contractAddress") contractAddress: String,
+        @Query("tokenId") tokenId: String
+    ): NFTResponse.TokenOwners
 }

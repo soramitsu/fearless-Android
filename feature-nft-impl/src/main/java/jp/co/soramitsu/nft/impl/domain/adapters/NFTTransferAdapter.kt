@@ -61,10 +61,7 @@ suspend fun NFTTransferAdapter(
                     tokenTransferMethod,
                     argsList,
                     emptyList()
-                ).apply {
-                    val inputs = inputParameters.map { it.value }
-                    println("This is checkpoint: ERC721.transaction, name - $name, inputs - $inputs")
-                }
+                )
 
             NFTCall.Transfer(
                 nonce = nonce,
