@@ -126,7 +126,7 @@ class ValidateTransferUseCaseImpl(
 
                 val utilityEdFormatted = utilityAsset?.token?.configuration?.let { utilityAssetExistentialDeposit.formatCryptoDetailFromPlanks(it) }.orEmpty()
 
-                val bridgeMinimumAmountValidation = bridgeMinimumAmountValidation(originChain, asset, amountInPlanks)
+                val bridgeMinimumAmountValidation = bridgeMinimumAmountValidation(destinationChain, asset, amountInPlanks)
 
                 mapOf(
                     bridgeMinimumAmountValidation,
@@ -249,17 +249,17 @@ class ValidateTransferUseCaseImpl(
     }
 
     private fun bridgeMinimumAmountValidation(
-        originChain: Chain,
+        utilityChain: Chain,
         asset: Asset,
         amountInPlanks: BigInteger
     ): Pair<TransferValidationResult.SubstrateBridgeMinimumAmountRequired, Boolean> {
-        val minAmountTokens = when (originChain.utilityAsset?.chainId) {
+        val minAmountTokens = when (utilityChain.utilityAsset?.chainId) {
             polkadotChainId -> "1.1"
             kusamaChainId -> "0.05"
             else -> null
         }
         val substrateBridgeIncomingTransferMinAmountText = minAmountTokens?.let {
-            "$minAmountTokens ${asset.token.configuration.symbol}"
+            "$minAmountTokens ${asset.token.configuration.symbol.uppercase()}"
         }.orEmpty()
 
         val substrateBridgeTransferMinAmount = minAmountTokens?.let {
