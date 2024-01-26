@@ -19,7 +19,7 @@ class ChainSyncService(
 
         val remoteChains = chainFetcher.getChains()
             .filter {
-                !it.disabled && (it.assets?.isNotEmpty() == true) && it.chainId != reefChainId // todo add genshiro type to json
+                !it.disabled && (it.assets?.isNotEmpty() == true) && it.chainId != reefChainId // todo reef
             }
             .map {
                 it.toChain()

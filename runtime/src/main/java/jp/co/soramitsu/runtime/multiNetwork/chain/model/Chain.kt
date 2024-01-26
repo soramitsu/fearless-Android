@@ -34,6 +34,7 @@ const val bokoloCashTokenId = "0x00eacaea6599a04358fda986388ef0bb0c17a553ec819d5
 
 data class Chain(
     override val id: ChainId,
+    override val paraId: String?,
     val rank: Int?,
     val name: String,
     val minSupportedVersion: String?,

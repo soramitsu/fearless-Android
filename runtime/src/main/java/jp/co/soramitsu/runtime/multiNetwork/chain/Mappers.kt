@@ -145,7 +145,8 @@ fun ChainRemote.toChain(): Chain {
         isTestNet = TESTNET_OPTION in optionsOrEmpty,
         hasCrowdloans = CROWDLOAN_OPTION in optionsOrEmpty,
         supportStakingPool = NOMINATION_POOL_OPTION in optionsOrEmpty,
-        isEthereumChain = ETHEREUM_OPTION in optionsOrEmpty
+        isEthereumChain = ETHEREUM_OPTION in optionsOrEmpty,
+        paraId = this.paraId
     )
 }
 
@@ -248,7 +249,8 @@ fun mapChainLocalToChain(chainLocal: JoinedChainInfo): Chain {
             isTestNet = isTestNet,
             hasCrowdloans = hasCrowdloans,
             supportStakingPool = supportStakingPool,
-            isEthereumChain = isEthereumChain
+            isEthereumChain = isEthereumChain,
+            paraId = paraId
         )
     }
 }
@@ -316,7 +318,8 @@ fun mapChainToChainLocal(chain: Chain): JoinedChainInfo {
             isTestNet = isTestNet,
             hasCrowdloans = hasCrowdloans,
             supportStakingPool = supportStakingPool,
-            isEthereumChain = isEthereumChain
+            isEthereumChain = isEthereumChain,
+            paraId = paraId
         )
     }
 
