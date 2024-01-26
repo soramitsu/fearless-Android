@@ -126,18 +126,10 @@ class ValidateTransferUseCaseImpl(
 
                 val utilityEdFormatted = utilityAsset?.token?.configuration?.let { utilityAssetExistentialDeposit.formatCryptoDetailFromPlanks(it) }.orEmpty()
 
-                val destinationFeeAmountInPlanks = destinationFeeAmount?.let { destinationAsset?.planksFromAmount(it) }
-
                 val bridgeMinimumAmountValidation = bridgeMinimumAmountValidation(originChain, asset, amountInPlanks)
 
                 mapOf(
                     bridgeMinimumAmountValidation,
-                    TransferValidationResult.SubstrateBridgeAmountLessThenFeeWarning to
-                            if (destinationFeeAmountInPlanks == null) {
-                                false
-                            } else {
-                                amountInPlanks < destinationFeeAmountInPlanks
-                            },
                     TransferValidationResult.InsufficientBalance to (amountInPlanks > transferable),
                     TransferValidationResult.InsufficientUtilityAssetBalance to (fee + tip > utilityAssetBalance),
                     TransferValidationResult.ExistentialDepositWarning(assetEdFormatted) to (transferable - amountInPlanks < assetExistentialDeposit),
@@ -161,10 +153,17 @@ class ValidateTransferUseCaseImpl(
 
                 val utilityEdFormatted = utilityAsset?.token?.configuration?.let { utilityAssetExistentialDeposit.formatCryptoDetailFromPlanks(it) }.orEmpty()
 
+                val destinationFeeAmountInPlanks = destinationFeeAmount?.let { destinationAsset?.planksFromAmount(it) }
                 val bridgeMinimumAmountValidation = bridgeMinimumAmountValidation(originChain, asset, amountInPlanks)
 
                 mapOf(
                     bridgeMinimumAmountValidation,
+                    TransferValidationResult.SubstrateBridgeAmountLessThenFeeWarning to
+                            if (destinationFeeAmountInPlanks == null) {
+                                false
+                            } else {
+                                amountInPlanks < destinationFeeAmountInPlanks
+                            },
                     TransferValidationResult.InsufficientBalance to (amountInPlanks > transferable),
                     TransferValidationResult.InsufficientUtilityAssetBalance to (fee + tip > utilityAssetBalance),
                     TransferValidationResult.ExistentialDepositWarning(assetEdFormatted) to (transferable - amountInPlanks < assetExistentialDeposit),
