@@ -512,7 +512,7 @@ fun mapOperationToParcel(
                 OperationParcelizeModel.Transfer(
                     time = time,
                     address = address,
-                    hash = operationType.hash,
+                    hash = operation.id,
                     amount = formatDetailsAmount(operation.chainAsset, operationType),
                     receiver = operationType.receiver,
                     sender = operationType.sender,
@@ -538,7 +538,7 @@ fun mapOperationToParcel(
                 OperationParcelizeModel.Extrinsic(
                     time = time,
                     originAddress = address,
-                    hash = operationType.hash,
+                    hash = operation.id,
                     module = operationType.formattedAndReplaced()[operationType.module]
                         ?: operationType.module,
                     call = operationType.formattedAndReplaced()[operationType.call]
@@ -555,7 +555,7 @@ fun mapOperationToParcel(
                     chainAsset = chainAsset,
                     targetAsset = operationType.targetAsset,
                     time = time,
-                    hash = operationType.hash,
+                    hash = operation.id,
                     module = operationType.module,
                     baseAssetAmount = operationType.baseAssetAmount,
                     liquidityProviderFee = operationType.liquidityProviderFee,
