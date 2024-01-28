@@ -147,10 +147,11 @@ abstract class AssetDao : AssetReadOnlyCache {
     @Transaction
     @Query(
         """
-            SELECT * FROM assets
-            LEFT JOIN chain_assets ON chain_assets.id = assets.id
-            WHERE chain_assets.symbol = :assetSymbol
-            AND assets.metaId = :accountMetaId
+            SELECT a.*, tp.* FROM assets a
+            LEFT JOIN token_price AS tp ON a.tokenPriceId = tp.priceId
+            LEFT JOIN chain_assets ca ON ca.id = a.id AND ca.chainId = a.chainId
+            WHERE ca.symbol = :assetSymbol
+            AND a.metaId = :accountMetaId
         """
     )
     protected abstract fun observeAssetsWithBalanceByName(
