@@ -1,4 +1,4 @@
-@Library('jenkins-library')
+@Library('jenkins-library@feature/DOPS-2955/update_android_shared_feature')
 
 // Job properties
 def jobParams = [
