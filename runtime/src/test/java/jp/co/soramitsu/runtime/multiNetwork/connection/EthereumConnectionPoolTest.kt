@@ -85,11 +85,11 @@ class EthereumConnectionTest {
     }
 
     @Test
-    fun `should throw exception when there are no wss nodes`() {
+    fun `should not throw exception when there are at least one wss node`() {
         val chain = mock(Chain::class.java)
-        whenever(chain.nodes).thenReturn(httpNodes)
-        whenever(chain.name).thenReturn("Ethereum")
-        whenever(chain.id).thenReturn("1")
+
+        whenever(chain.nodes).thenReturn(wssNodes)
+
         val connectionResult =
             kotlin.runCatching {
                 EthereumWebSocketConnection(
@@ -99,14 +99,14 @@ class EthereumConnectionTest {
                     { _, _ -> })
             }
 
-        assert(connectionResult.requireException() is MissingWssNodesException)
+        assertNotNull(connectionResult.requireValue())
     }
 
     @Test
-    fun `should not throw exception when there are at least one wss node`() {
+    fun `should not throw exception when there are http nodes`() {
         val chain = mock(Chain::class.java)
 
-        whenever(chain.nodes).thenReturn(wssNodes)
+        whenever(chain.nodes).thenReturn(httpNodes)
 
         val connectionResult =
             kotlin.runCatching {

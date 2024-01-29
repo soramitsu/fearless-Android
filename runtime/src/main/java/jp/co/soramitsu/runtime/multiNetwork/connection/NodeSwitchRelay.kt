@@ -10,8 +10,8 @@ class NodesSwitchRelay(
     private val availableNodesCycle = nodes.cycle().iterator()
     private val attempts: MutableMap<String, Int> = nodes.associate { it.url to 0 }.toMutableMap()
 
-    suspend operator fun invoke(connect: suspend (ChainNode) -> Result<Any>): Result<ChainNode> {
-        if (attempts.values.all { it > 3 }) return Result.failure("All nodes failed")
+     operator fun invoke(connect: (ChainNode) -> Result<Any>): Result<ChainNode> {
+//        if (attempts.values.all { it > 3 }) return Result.failure("All nodes failed")
 
         val node = availableNodesCycle.next()
         val attempt = attempts[node.url] ?: 0
