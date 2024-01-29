@@ -13,9 +13,9 @@ enum class ScreenLayout {
 }
 
 @Composable
-inline fun ScreenLayout.Render(
+fun ScreenLayout.Render(
     modifier: Modifier,
-    crossinline content: @Composable () -> Unit
+    content: @Composable () -> Unit
 ) {
     when(this) {
 

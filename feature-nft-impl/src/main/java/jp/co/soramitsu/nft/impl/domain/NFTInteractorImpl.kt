@@ -118,8 +118,7 @@ class NFTInteractorImpl(
     ): List<NFTCollection<NFTCollection.NFT.Light>> {
         val tokensByContractAddress = data.tokensInfoList
             .groupBy { it.contract?.address }
-            .filter { it.key != null }
-            .cast<Map<String, List<TokenInfo.WithoutMetadata>>>()
+            .filter { it.key != null } as Map<String, List<TokenInfo.WithoutMetadata>>
 
         val contractsByAddresses = nftRepository.contractMetadataBatch(
             chain = chain,

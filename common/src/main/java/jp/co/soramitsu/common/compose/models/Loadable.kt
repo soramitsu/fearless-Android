@@ -26,10 +26,10 @@ sealed interface Loadable<T> {
 }
 
 @Composable
-inline fun <T> Loadable<T>.Render(
+fun <T> Loadable<T>.Render(
     shimmerModifier: Modifier,
     shimmerRadius: Dp = 50.dp,
-    crossinline content: @Composable (sharedModifier: Modifier, data: T) -> Unit
+    content: @Composable (sharedModifier: Modifier, data: T) -> Unit
 ) {
     when(this) {
 
