@@ -60,7 +60,7 @@ import jp.co.soramitsu.common.utils.clickableSingle
 import jp.co.soramitsu.common.compose.models.Loadable
 import jp.co.soramitsu.common.compose.models.Render
 import jp.co.soramitsu.common.compose.models.ScreenLayout
-import jp.co.soramitsu.nft.impl.presentation.collection.utils.createShimmeredNFTViewsArray
+import jp.co.soramitsu.nft.impl.presentation.collection.utils.createShimmeredNFTViewsList
 import jp.co.soramitsu.common.compose.models.retrievePainter
 import jp.co.soramitsu.common.compose.models.retrieveString
 import jp.co.soramitsu.common.compose.utils.nestedScrollConnectionForPageScrolling
@@ -68,9 +68,6 @@ import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.nft.impl.presentation.NftFragment
 import jp.co.soramitsu.nft.impl.presentation.collection.models.NFTsScreenModel
 import jp.co.soramitsu.nft.impl.presentation.collection.models.NFTsScreenView
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.onStart
 
 @Suppress("FunctionName")
 fun NavGraphBuilder.NFTCollectionsNavComposable(arguments: Bundle?) {
@@ -90,26 +87,12 @@ fun NavGraphBuilder.NFTCollectionsNavComposable(arguments: Bundle?) {
         val viewModel: NftCollectionViewModel = hiltViewModel()
 
         val toolbarViewState = viewModel.toolbarState.collectAsStateWithLifecycle()
-
-        val snapshotScreenViewsList = remember {
-            mutableStateOf<SnapshotStateList<NFTsScreenView>>(SnapshotStateList())
-        }
-        LaunchedEffect(Unit) {
-            viewModel.state.onStart {
-                snapshotScreenViewsList.value =
-                    SnapshotStateList<NFTsScreenView>()
-                        .apply { addAll(createShimmeredNFTViewsArray()) }
-            }.onEach {
-                snapshotScreenViewsList.value =
-                    SnapshotStateList<NFTsScreenView>()
-                        .apply { addAll(it) }
-            }.collect()
-        }
+        val viewsList = viewModel.state.collectAsStateWithLifecycle(createShimmeredNFTViewsList())
 
         NFTCollectionsScreen(
             screenModel = NFTsScreenModel(
                 toolbarState = toolbarViewState,
-                views = snapshotScreenViewsList.value,
+                views = viewsList.value,
                 pageScrollingCallback = viewModel.pageScrollingCallback
             )
         )

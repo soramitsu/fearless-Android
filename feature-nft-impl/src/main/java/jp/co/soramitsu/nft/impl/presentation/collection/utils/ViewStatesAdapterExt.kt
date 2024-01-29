@@ -1,5 +1,6 @@
 package jp.co.soramitsu.nft.impl.presentation.collection.utils
 
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.compose.models.ImageModel
 import jp.co.soramitsu.common.compose.models.Loadable
@@ -8,8 +9,8 @@ import jp.co.soramitsu.common.compose.models.TextModel
 import jp.co.soramitsu.nft.domain.models.NFTCollection
 import jp.co.soramitsu.nft.impl.presentation.collection.models.NFTsScreenView
 
-fun createShimmeredNFTViewsArray(): ArrayDeque<NFTsScreenView> {
-    return ArrayDeque<NFTsScreenView>().apply {
+fun createShimmeredNFTViewsList(): SnapshotStateList<NFTsScreenView> {
+    return SnapshotStateList<NFTsScreenView>().apply {
         ScreenHeader(
             thumbnail = Loadable.InProgress(),
             description = Loadable.InProgress()
@@ -31,10 +32,10 @@ fun createShimmeredNFTViewsArray(): ArrayDeque<NFTsScreenView> {
     }
 }
 
-fun NFTCollection<NFTCollection.NFT.Full>.toScreenViewArray(
+fun NFTCollection<NFTCollection.NFT.Full>.toScreenViewStableList(
     onItemClick: (NFTCollection.NFT.Full) -> Unit
-): ArrayDeque<NFTsScreenView> {
-    val arrayDeque = ArrayDeque<NFTsScreenView>()
+): SnapshotStateList<NFTsScreenView> {
+    val snapshotStateList = SnapshotStateList<NFTsScreenView>()
 
     when(tokens.firstOrNull()?.isUserOwnedToken) {
         true -> {
@@ -45,7 +46,7 @@ fun NFTCollection<NFTCollection.NFT.Full>.toScreenViewArray(
                 description = Loadable.ReadyToRender(
                     description?.let { TextModel.SimpleString(it) }
                 )
-            ).also { arrayDeque.add(it) }
+            ).also { snapshotStateList.add(it) }
 
             SectionHeader(
                 title = Loadable.ReadyToRender(
@@ -53,7 +54,7 @@ fun NFTCollection<NFTCollection.NFT.Full>.toScreenViewArray(
                         R.string.nft_collection_my_nfts
                     )
                 )
-            ).also { arrayDeque.add(it) }
+            ).also { snapshotStateList.add(it) }
         }
 
         else -> {
@@ -64,12 +65,12 @@ fun NFTCollection<NFTCollection.NFT.Full>.toScreenViewArray(
                         arrayOf(collectionName)
                     )
                 )
-            ).also { arrayDeque.add(it) }
+            ).also { snapshotStateList.add(it) }
         }
     }
 
     for(token in tokens) {
-        arrayDeque.add(
+        snapshotStateList.add(
             token.toScreenView(
                 screenLayout = if (tokens.size > 1)
                     ScreenLayout.Grid
@@ -79,7 +80,7 @@ fun NFTCollection<NFTCollection.NFT.Full>.toScreenViewArray(
         )
     }
 
-    return arrayDeque
+    return snapshotStateList
 }
 
 private fun NFTCollection.NFT.Full.toScreenView(

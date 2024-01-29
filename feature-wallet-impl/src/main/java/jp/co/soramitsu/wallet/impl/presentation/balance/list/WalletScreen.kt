@@ -34,13 +34,12 @@ import jp.co.soramitsu.common.compose.component.MultiToggleButton
 import jp.co.soramitsu.common.compose.component.MultiToggleButtonState
 import jp.co.soramitsu.common.compose.component.NetworkIssuesBadge
 import jp.co.soramitsu.common.compose.component.SwipeState
-import jp.co.soramitsu.common.compose.models.ScreenLayout
 import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
 import jp.co.soramitsu.common.compose.theme.white16
 import jp.co.soramitsu.common.compose.theme.white50
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState
 import jp.co.soramitsu.common.utils.rememberForeverLazyListState
-import jp.co.soramitsu.nft.impl.presentation.list.NFTScreen
+import jp.co.soramitsu.wallet.impl.presentation.balance.nft.list.NFTScreen
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.soracard.impl.presentation.SoraCardItem
 import jp.co.soramitsu.soracard.impl.presentation.SoraCardItemViewState

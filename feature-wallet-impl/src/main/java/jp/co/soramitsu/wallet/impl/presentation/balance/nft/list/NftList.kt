@@ -1,4 +1,4 @@
-package jp.co.soramitsu.nft.impl.presentation.list
+package jp.co.soramitsu.wallet.impl.presentation.balance.nft.list
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -22,8 +22,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
@@ -55,31 +53,15 @@ import jp.co.soramitsu.common.utils.castOrNull
 import jp.co.soramitsu.common.utils.clickableSingle
 import jp.co.soramitsu.common.compose.utils.PageScrollingCallback
 import jp.co.soramitsu.common.compose.utils.nestedScrollConnectionForPageScrolling
-import jp.co.soramitsu.nft.impl.presentation.collection.models.NFTsScreenView
-import jp.co.soramitsu.nft.impl.presentation.collection.utils.createShimmeredNFTViewsArray
-import jp.co.soramitsu.nft.impl.presentation.list.models.NFTCollectionsScreenModel
-import jp.co.soramitsu.nft.impl.presentation.list.models.NFTCollectionsScreenView
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.onStart
+import jp.co.soramitsu.wallet.impl.presentation.balance.nft.list.models.NFTCollectionsScreenModel
+import jp.co.soramitsu.wallet.impl.presentation.balance.nft.list.models.NFTCollectionsScreenView
 
 @Composable
 fun NFTScreen(collectionsScreen: NFTCollectionsScreenModel) {
-    val screenLayout =
-        (collectionsScreen.viewsArray.firstOrNull {
-            it is NFTCollectionsScreenView.ItemModel
-        } as? NFTCollectionsScreenView.ItemModel)?.screenLayout
-            ?: ScreenLayout.Grid
-
-    val snapshotScreenViewsList = remember {
-        mutableStateOf(SnapshotStateList<NFTCollectionsScreenView>())
-    }
-
-    LaunchedEffect(collectionsScreen) {
-        snapshotScreenViewsList.value =
-            SnapshotStateList<NFTCollectionsScreenView>()
-                .apply { addAll(collectionsScreen.viewsArray) }
-    }
+    val screenLayout = collectionsScreen.views.firstOrNull {
+        it is NFTCollectionsScreenView.ItemModel
+    }?.castOrNull<NFTCollectionsScreenView.ItemModel>()?.screenLayout
+        ?: ScreenLayout.Grid
 
     Column {
         MarginVertical(margin = 8.dp)
@@ -100,7 +82,7 @@ fun NFTScreen(collectionsScreen: NFTCollectionsScreenModel) {
         MarginVertical(margin = 6.dp)
 
         NFTLayout(
-            views = snapshotScreenViewsList.value,
+            views = collectionsScreen.views,
             pageScrollingCallback = collectionsScreen.pageScrollingCallback
         )
     }

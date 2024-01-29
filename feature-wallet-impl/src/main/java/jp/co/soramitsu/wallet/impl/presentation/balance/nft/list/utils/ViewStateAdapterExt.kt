@@ -1,16 +1,17 @@
-package jp.co.soramitsu.nft.impl.presentation.list.utils
+package jp.co.soramitsu.wallet.impl.presentation.balance.nft.list.utils
 
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import jp.co.soramitsu.common.compose.models.ImageModel
 import jp.co.soramitsu.common.compose.models.Loadable
 import jp.co.soramitsu.common.compose.models.ScreenLayout
 import jp.co.soramitsu.common.compose.models.TextModel
 import jp.co.soramitsu.nft.domain.models.NFTCollection
-import jp.co.soramitsu.nft.impl.presentation.list.models.NFTCollectionsScreenView
+import jp.co.soramitsu.wallet.impl.presentation.balance.nft.list.models.NFTCollectionsScreenView
 
-fun createShimmeredNFTCollectionsViewsArray(
+fun createShimmeredNFTCollectionsViewsList(
     screenLayout: ScreenLayout
-): ArrayDeque<NFTCollectionsScreenView> {
-    return ArrayDeque<NFTCollectionsScreenView>().apply {
+): SnapshotStateList<NFTCollectionsScreenView> {
+    return SnapshotStateList<NFTCollectionsScreenView>().apply {
         repeat(6) {
             ItemModel(
                 screenLayout = screenLayout,
@@ -23,18 +24,18 @@ fun createShimmeredNFTCollectionsViewsArray(
     }
 }
 
-fun List<NFTCollection<NFTCollection.NFT.Light>>.toScreenViewsArray(
+fun List<NFTCollection<NFTCollection.NFT.Light>>.toStableViewsList(
     screenLayout: ScreenLayout,
     onItemClick: (NFTCollection<NFTCollection.NFT.Light>) -> Unit
-): ArrayDeque<NFTCollectionsScreenView> {
-    val arrayDeque = ArrayDeque<NFTCollectionsScreenView>()
+): SnapshotStateList<NFTCollectionsScreenView> {
+    val snapshotStateList = SnapshotStateList<NFTCollectionsScreenView>()
 
     for (collection in this) {
         collection.toScreenView(screenLayout) { onItemClick.invoke(collection) }
-            .also { arrayDeque.add(it) }
+            .also { snapshotStateList.add(it) }
     }
 
-    return arrayDeque
+    return snapshotStateList
 }
 
 fun NFTCollection<NFTCollection.NFT.Light>.toScreenView(

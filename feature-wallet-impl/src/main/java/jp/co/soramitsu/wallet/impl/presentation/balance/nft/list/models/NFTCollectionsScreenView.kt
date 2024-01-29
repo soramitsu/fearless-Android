@@ -1,7 +1,8 @@
-package jp.co.soramitsu.nft.impl.presentation.list.models
+package jp.co.soramitsu.wallet.impl.presentation.balance.nft.list.models
 
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import jp.co.soramitsu.common.compose.models.ImageModel
 import jp.co.soramitsu.common.compose.models.Loadable
 import jp.co.soramitsu.common.compose.models.ScreenLayout
@@ -12,7 +13,7 @@ import jp.co.soramitsu.common.compose.utils.PageScrollingCallback
 @Immutable
 class NFTCollectionsScreenModel(
     val areFiltersApplied: Boolean,
-    val viewsArray: ArrayDeque<NFTCollectionsScreenView>,
+    val views: SnapshotStateList<NFTCollectionsScreenView>,
     val onFiltersIconClick: () -> Unit,
     val onScreenLayoutChanged: (ScreenLayout) -> Unit,
     val pageScrollingCallback: PageScrollingCallback

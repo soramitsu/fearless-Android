@@ -1,4 +1,4 @@
-package jp.co.soramitsu.nft.impl.presentation.list
+package jp.co.soramitsu.wallet.impl.presentation.balance.nft.list
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box

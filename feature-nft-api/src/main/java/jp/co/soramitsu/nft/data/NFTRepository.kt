@@ -37,7 +37,7 @@ annotation class CachedNFTRepository()
 
 interface NFTRepository {
 
-    val nftFiltersFlow: Flow<Set<Pair<String, Boolean>>>
+    val nftFiltersFlow: Flow<Set<String>>
 
     fun setNFTFilter(value: String, isApplied: Boolean)
 

@@ -1,5 +1,6 @@
 package jp.co.soramitsu.nft.impl.presentation.collection
 
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -16,7 +17,7 @@ import jp.co.soramitsu.common.compose.utils.PageScrollingCallback
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.utils.distinctUntilChangedOrDebounce
 import jp.co.soramitsu.nft.impl.presentation.collection.models.NFTsScreenView
-import jp.co.soramitsu.nft.impl.presentation.collection.utils.toScreenViewArray
+import jp.co.soramitsu.nft.impl.presentation.collection.utils.toScreenViewStableList
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -69,7 +70,7 @@ class NftCollectionViewModel @Inject constructor(
         replay = 1
     )
 
-    private fun createCollectionsNFTsFlow(): Flow<List<NFTsScreenView>> {
+    private fun createCollectionsNFTsFlow(): Flow<SnapshotStateList<NFTsScreenView>> {
         val paginationRequestHelperFlow = mutablePaginationRequestFlow
             .distinctUntilChangedOrDebounce(debounceTimeout = 10_000) { prevValue, currentValue ->
                 if (prevValue == null)
@@ -112,7 +113,7 @@ class NftCollectionViewModel @Inject constructor(
     private fun mergeUserOwnedAndAvailableNFTCollections(
         currentValue: Pair<NFTCollection<NFTCollection.NFT.Full>, PaginationRequest>,
         prevValue: Pair<NFTCollection<NFTCollection.NFT.Full>?, PaginationRequest?>? = null,
-    ): ArrayDeque<NFTsScreenView> {
+    ): SnapshotStateList<NFTsScreenView> {
         val (currentCollection, currentPaginationRequest) = currentValue
         val (prevCollection, _) = prevValue ?: Pair(null, null)
 
@@ -124,10 +125,10 @@ class NftCollectionViewModel @Inject constructor(
             isCurrentCollectionUserOwned &&
             currentPaginationRequest is PaginationRequest.Prev -> {
                 val currentCollectionViewsList =
-                    currentCollection.toScreenViewArray(::onItemClick)
+                    currentCollection.toScreenViewStableList(::onItemClick)
 
                 val prevCollectionsViewsList =
-                    prevCollection?.toScreenViewArray(::onItemClick) ?: ArrayDeque()
+                    prevCollection?.toScreenViewStableList(::onItemClick) ?: SnapshotStateList()
 
                 currentCollectionViewsList.apply {
                     addAll(prevCollectionsViewsList)
@@ -138,17 +139,17 @@ class NftCollectionViewModel @Inject constructor(
             !isCurrentCollectionUserOwned &&
             currentPaginationRequest is PaginationRequest.Next -> {
                 val currentCollectionViewsList =
-                    currentCollection.toScreenViewArray(::onItemClick)
+                    currentCollection.toScreenViewStableList(::onItemClick)
 
                 val prevCollectionsViewsList =
-                    prevCollection?.toScreenViewArray(::onItemClick) ?: ArrayDeque()
+                    prevCollection?.toScreenViewStableList(::onItemClick) ?: SnapshotStateList()
 
                 prevCollectionsViewsList.apply {
                     addAll(currentCollectionViewsList)
                 }
             }
 
-            else -> currentCollection.toScreenViewArray(::onItemClick)
+            else -> currentCollection.toScreenViewStableList(::onItemClick)
         }
     }
 

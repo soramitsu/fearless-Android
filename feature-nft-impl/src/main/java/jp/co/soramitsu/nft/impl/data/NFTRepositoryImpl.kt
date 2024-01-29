@@ -56,18 +56,21 @@ class NFTRepositoryImpl(
 
     private val mutableFiltersFlow = MutableSharedFlow<Pair<String, Boolean>>(
         replay = 1,
-        onBufferOverflow = BufferOverflow.DROP_OLDEST
+        onBufferOverflow = BufferOverflow.DROP_LATEST
     )
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    override val nftFiltersFlow: Flow<Set<Pair<String, Boolean>>> = flow {
-        var filtersSnapshot: Set<Pair<String, Boolean>> =
-            preferences.getStringSet(NFT_FILTERS_KEY, emptySet()).map { it to true }.toSet()
+    override val nftFiltersFlow: Flow<Set<String>> = flow {
+        var filtersSnapshot: MutableSet<String> = preferences.getStringSet(
+            NFT_FILTERS_KEY,
+            emptySet()
+        ).toMutableSet()
 
-        mutableFiltersFlow.buffer().transformLatest { newFilterToIsApplied ->
-            val cache = filtersSnapshot.toMutableSet().apply {
-                removeIf { it.first == newFilterToIsApplied.first }
-                add(newFilterToIsApplied)
+        mutableFiltersFlow.buffer().transformLatest { (filter, isApplied) ->
+            val cache = filtersSnapshot.apply {
+                if (isApplied) {
+                    add(filter)
+                } else remove(filter)
             }
 
             emit(cache)
@@ -82,46 +85,28 @@ class NFTRepositoryImpl(
 
             val dbCache = preferences.getStringSet(NFT_FILTERS_KEY, emptySet())
 
-            if (
-                dbCache.containsAll(
-                    cache.filter { it.second } // filter out non selected filters
-                        .map { it.first } // get only selected filters
-                )
-            ) return@transformLatest
+            if (dbCache.containsAll(cache))
+                return@transformLatest
 
-            filtersSnapshot = dbCache.map { filter ->
-                val isApplied = true
+            filtersSnapshot = dbCache.toMutableSet()
 
-                return@map filter to isApplied
-            }.toMutableSet()
-
-            emit(filtersSnapshot.toSet())
+            emit(filtersSnapshot)
         }.onStart { emit(filtersSnapshot) }.collect(this)
     }.shareIn(scope = localScope, started = SharingStarted.Eagerly, replay = 1)
 
     override fun setNFTFilter(value: String, isApplied: Boolean) {
+        /* non-suspended call to avoid UI delays or inconsistencies */
+        mutableFiltersFlow.tryEmit(value to isApplied)
+
         localScope.launch {
             with(preferences) {
                 val mutableFilters = getStringSet(NFT_FILTERS_KEY, emptySet()).toMutableSet()
 
-                when {
-                    value in mutableFilters && !isApplied ->
-                        mutableFilters.remove(value)
-
-                    value !in mutableFilters && isApplied ->
-                        mutableFilters.add(value)
-
-                    else -> Unit /* DO NOTHING */
-                }
+                if (isApplied) mutableFilters.add(value)
+                else mutableFilters.remove(value)
 
                 putStringSet(NFT_FILTERS_KEY, mutableFilters)
             }
-        }.invokeOnCompletion {
-            if (it != null)
-                return@invokeOnCompletion
-
-            /* non-suspended call to avoid UI delays or inconsistencies */
-            mutableFiltersFlow.tryEmit(value to isApplied)
         }
     }
 
