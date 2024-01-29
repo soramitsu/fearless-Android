@@ -42,6 +42,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 data class ChainService(
     val runtimeProvider: RuntimeProvider,
@@ -181,13 +182,15 @@ class ChainRegistry @Inject constructor(
         .mapList(::mapNodeLocalToNode)
 
     suspend fun switchNode(id: NodeId) {
-        val chain = getChain(id.chainId)
-        if (chain.isEthereumChain) {
-            val connection = ethereumConnectionPool.get(chain.id)
-            connection?.switchNode(id.nodeUrl)
-        } else {
-            connectionPool.getConnection(id.chainId).socketService.switchUrl(id.nodeUrl)
-            notifyNodeSwitched(id)
+        withContext(Dispatchers.Default) {
+            val chain = getChain(id.chainId)
+            if (chain.isEthereumChain) {
+                val connection = ethereumConnectionPool.get(chain.id)
+                connection?.switchNode(id.nodeUrl)?.onSuccess { notifyNodeSwitched(id) }
+            } else {
+                connectionPool.getConnection(id.chainId).socketService.switchUrl(id.nodeUrl)
+                notifyNodeSwitched(id)
+            }
         }
     }
 
