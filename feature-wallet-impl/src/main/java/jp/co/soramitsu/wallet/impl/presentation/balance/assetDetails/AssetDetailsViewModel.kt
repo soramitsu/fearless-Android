@@ -1,7 +1,6 @@
 package jp.co.soramitsu.wallet.impl.presentation.balance.assetDetails
 
 import androidx.lifecycle.SavedStateHandle
-import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.account.api.domain.interfaces.AssetBalanceUseCase
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -135,7 +134,7 @@ class AssetDetailsViewModel @Inject constructor(
 
                 when(sorting) {
                     AssetSorting.FiatBalance ->
-                        valuesAsList.sortedByDescending { (_, asset) -> asset?.total }
+                        valuesAsList.sortedByDescending { (_, asset) -> asset?.transferable }
 
                     AssetSorting.Name ->
                         valuesAsList.sortedBy { (chain, _) -> chain.name }
@@ -161,16 +160,16 @@ class AssetDetailsViewModel @Inject constructor(
                 )
 
             val chainItemViewStates = chainsPerAssetToAsset.map { (chain, asset) ->
-                val totalBalance = asset?.total
-                val totalFiatBalance = totalBalance?.applyFiatRate(asset.token.fiatRate)
+                val transferableBalance = asset?.transferable
+                val transferableFiatBalance = transferableBalance?.applyFiatRate(asset.token.fiatRate)
 
                 AssetDetailsItemViewState(
                     assetId = asset?.token?.configuration?.id,
                     chainId = chain.id,
                     iconUrl = chain.icon,
                     chainName = chain.name,
-                    assetRepresentation = totalBalance?.formatCrypto(asset.token.configuration.symbol),
-                    fiatRepresentation = totalFiatBalance?.formatFiat(asset.token.fiatSymbol)
+                    assetRepresentation = transferableBalance?.formatCrypto(asset.token.configuration.symbol),
+                    fiatRepresentation = transferableFiatBalance?.formatFiat(asset.token.fiatSymbol)
                 )
             }
 
