@@ -86,7 +86,7 @@ class SendSetupFragment : BaseComposeBottomSheetDialogFragment<SendSetupViewMode
                 negativeButtonText = warning.negativeButtonText,
                 positiveClick = { viewModel.warningConfirmed(result) },
                 secondPositiveClick = { viewModel.warningConfirmedSecond(result) },
-                negativeClick = { viewModel.warningCancelled() },
+                negativeClick = { viewModel.warningCancelled(result) },
                 isHideable = false
             ).show(childFragmentManager)
         }

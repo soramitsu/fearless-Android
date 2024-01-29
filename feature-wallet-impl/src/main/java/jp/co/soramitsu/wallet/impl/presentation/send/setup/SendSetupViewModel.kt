@@ -708,15 +708,12 @@ class SendSetupViewModel @Inject constructor(
                     addressInputFlow.value = content
                     lockAmountInputFlow.value = false
                     lockInputFlow.value = false
-                    initialAmountFlow.value = null
-                    onAmountInput(BigDecimal.ZERO)
                 }
             }
         }
     }
 
     private suspend fun handleSoraQr(qrContentSora: QrContentSora) {
-        initialAmountFlow.value = null
         val soraTokenId = qrContentSora.tokenId
         val soraAmount = qrContentSora.amount
 
@@ -727,14 +724,17 @@ class SendSetupViewModel @Inject constructor(
         }
 
         addressInputFlow.value = qrContentSora.address
+        lockInputFlow.value = true
 
         val amount = runCatching { BigDecimal(soraAmount) }.getOrNull().orZero()
-        lockInputFlow.value = true
-        lockAmountInputFlow.value = amount.greaterThen(BigDecimal.ZERO)
+        if (amount.greaterThen(BigDecimal.ZERO)) {
+            initialAmountFlow.value = null
+            lockAmountInputFlow.value = true
 
-        delay(300) // need for 'initialAmountFlow.value = null' being applied to UI before next
-        initialAmountFlow.value = amount
-        onAmountInput(amount)
+            delay(300) // need for 'initialAmountFlow.value = null' being applied to UI before next
+            initialAmountFlow.value = amount
+            onAmountInput(amount)
+        }
     }
 
     fun setSoftKeyboardOpen(isOpen: Boolean) {
@@ -795,9 +795,11 @@ class SendSetupViewModel @Inject constructor(
         isWarningExpanded.value = !isWarningExpanded.value
     }
 
-    fun warningCancelled() {
-        onAmountInput(BigDecimal.ZERO)
-        sendAllToggleState.value = ToggleState.INITIAL
+    fun warningCancelled(validationResult: TransferValidationResult) {
+        if (validationResult.isExistentialDepositWarning) {
+            onAmountInput(BigDecimal.ZERO)
+            sendAllToggleState.value = ToggleState.INITIAL
+        }
     }
 
     fun warningConfirmed(validationResult: TransferValidationResult) {
