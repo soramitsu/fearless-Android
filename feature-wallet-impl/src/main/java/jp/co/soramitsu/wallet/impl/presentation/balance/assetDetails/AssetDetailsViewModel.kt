@@ -170,7 +170,7 @@ class AssetDetailsViewModel @Inject constructor(
                     iconUrl = chain.icon,
                     chainName = chain.name,
                     assetRepresentation = totalBalance?.formatCrypto(asset.token.configuration.symbol),
-                    fiatRepresentation = totalFiatBalance?.formatFiat()
+                    fiatRepresentation = totalFiatBalance?.formatFiat(asset.token.fiatSymbol)
                 )
             }
 
