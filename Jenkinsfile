@@ -9,7 +9,6 @@ def jobParams = [
 def pipeline = new org.android.AppPipeline(
     steps:            this,
     sonar:            true,
-    sonarCmd:         './gradlew sonar -x :core-db:compileDebugUnitTestKotlin -x :core-db:compileDebugAndroidTestKotlin -x :feature-crowdloan-impl:compileDebugAndroidTestKotlin -x :runtime:compileDebugUnitTestKotlin -x :app:kaptDebugAndroidTestKotlin -x :app:compileDebugAndroidTestKotlin -Dsonar.coverage.jacoco.xmlReportPaths=**/coverage/*.xml',
     sonarProjectName: 'fearless-android',
     sonarProjectKey:  'fearless:fearless-android',
     pushReleaseNotes: false,
