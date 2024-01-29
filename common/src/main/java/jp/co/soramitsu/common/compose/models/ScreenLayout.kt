@@ -13,7 +13,6 @@ enum class ScreenLayout {
 }
 
 @Composable
-@Suppress("NOTHING_TO_INLINE")
 inline fun ScreenLayout.Render(
     modifier: Modifier,
     crossinline content: @Composable () -> Unit

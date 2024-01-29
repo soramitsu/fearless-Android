@@ -27,8 +27,7 @@ sealed interface ImageModel {
 }
 
 @Composable
-@Suppress("NOTHING_TO_INLINE")
-inline fun ImageModel.retrievePainter(): Painter {
+fun ImageModel.retrievePainter(): Painter {
     return when(this) {
 
         is ImageModel.ResId -> painterResource(id = id)

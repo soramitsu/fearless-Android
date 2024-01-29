@@ -206,9 +206,9 @@ fun <T> flowOf(producer: suspend () -> T) = flow {
  * until there are no elements that have not been processed in initial list is left
  */
 @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
-inline fun <Request, Response> List<Request>.concurrentRequestFlow(
+fun <Request, Response> List<Request>.concurrentRequestFlow(
     coroutineContext: CoroutineContext = Dispatchers.IO,
-    crossinline block: suspend FlowCollector<Response>.(request: Request) -> Unit
+    block: suspend FlowCollector<Response>.(request: Request) -> Unit
 ): Flow<Response> {
     val concurrency = DEFAULT_CONCURRENCY
 
@@ -228,8 +228,8 @@ inline fun <Request, Response> List<Request>.concurrentRequestFlow(
  *
  * Important: does not prevent emission of non-distinctive values; for that use plain distinctUntilChanged()
  */
-inline fun <T> Flow<T>.refreshOnNewDistinct(
-    crossinline block: () -> Unit
+fun <T> Flow<T>.refreshOnNewDistinct(
+    block: () -> Unit
 ): Flow<T> {
     return distinctUntilChanged { old, new ->
         if (old != new)
@@ -244,9 +244,9 @@ inline fun <T> Flow<T>.refreshOnNewDistinct(
 }
 
 @OptIn(FlowPreview::class)
-inline fun <T> Flow<T>.distinctUntilChangedOrDebounce(
+fun <T> Flow<T>.distinctUntilChangedOrDebounce(
     debounceTimeout: Long,
-    crossinline areEquivalent: (prevValue: T?, currentValue: T) -> Boolean
+    areEquivalent: (prevValue: T?, currentValue: T) -> Boolean
 ): Flow<T> {
     return zipWithPrevious().debounce { (prevValue, currentValue) ->
         if (areEquivalent(prevValue, currentValue)) {

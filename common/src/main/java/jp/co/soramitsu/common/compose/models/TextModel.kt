@@ -23,8 +23,7 @@ sealed interface TextModel {
 }
 
 @Composable
-@Suppress("NOTHING_TO_INLINE")
-inline fun TextModel.retrieveString(): String {
+fun TextModel.retrieveString(): String {
     return when(this) {
         is TextModel.SimpleString -> value
 
