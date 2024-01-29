@@ -1,5 +1,6 @@
 package jp.co.soramitsu.app.di.app
 
+import co.jp.soramitsu.walletconnect.domain.WalletConnectRouter
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -60,6 +61,10 @@ class NavigationModule {
     @Singleton
     @Provides
     fun provideSoraCardRouter(navigator: Navigator): SoraCardRouter = navigator
+
+    @Singleton
+    @Provides
+    fun provideWalletConnectRouter(navigator: Navigator): WalletConnectRouter = navigator
 
     @Singleton
     @Provides

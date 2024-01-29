@@ -45,8 +45,6 @@ import jp.co.soramitsu.common.compose.component.TransparentButton
 import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
 import jp.co.soramitsu.common.compose.theme.backgroundBlack
 import jp.co.soramitsu.common.compose.theme.errorRed
-import jp.co.soramitsu.common.utils.formatCryptoDetail
-import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.feature_soracard_impl.R
 import jp.co.soramitsu.soracard.api.presentation.models.SoraCardInfo
 import jp.co.soramitsu.ui_core.component.text.HtmlText
@@ -55,7 +53,6 @@ import jp.co.soramitsu.ui_core.theme.borderRadius
 import jp.co.soramitsu.ui_core.theme.customColors
 import jp.co.soramitsu.ui_core.theme.customTypography
 import jp.co.soramitsu.ui_core.theme.elevation
-import jp.co.soramitsu.oauth.R as SoraCardR
 
 data class GetSoraCardState(
     val xorBalance: BigDecimal = BigDecimal.ZERO,
@@ -153,7 +150,7 @@ fun GetSoraCardScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 8.dp),
-                    text = stringResource(SoraCardR.string.details_description),
+                    text = "stringResource(SoraCardR.string.details_description)",
                     style = MaterialTheme.customTypography.paragraphM,
                     color = Color.White
                 )
@@ -185,7 +182,7 @@ fun GetSoraCardScreen(
                             .padding(horizontal = 8.dp)
                             .height(48.dp),
                         onClick = callbacks::onGetMoreXor,
-                        text = stringResource(SoraCardR.string.details_get_more_xor)
+                        text = "stringResource(SoraCardR.string.details_get_more_xor)"
                     )
                 }
 
@@ -196,7 +193,7 @@ fun GetSoraCardScreen(
                         .fillMaxWidth()
                         .padding(horizontal = 8.dp)
                         .height(48.dp),
-                    text = stringResource(SoraCardR.string.details_already_have_card),
+                    text = "stringResource(SoraCardR.string.details_already_have_card)",
                     onClick = callbacks::onAlreadyHaveCard
                 )
 
@@ -292,7 +289,7 @@ private fun FreeCardIssuance(
                     }
                 )
                 MarginHorizontal(margin = 4.dp)
-                val cardIssuancePriceText = stringResource(SoraCardR.string.card_issuance_screen_free_card_title)
+                val cardIssuancePriceText = "stringResource(SoraCardR.string.card_issuance_screen_free_card_title)"
                 Text(
                     text = AnnotatedString(
                         text = cardIssuancePriceText,
@@ -311,7 +308,8 @@ private fun FreeCardIssuance(
             Text(
                 modifier = Modifier
                     .fillMaxSize(),
-                text = stringResource(SoraCardR.string.card_issuance_screen_free_card_description, "100"),
+//                text = stringResource(SoraCardR.string.card_issuance_screen_free_card_description, "100"),
+                text = "",
                 style = MaterialTheme.customTypography.paragraphM,
                 color = Color.White
             )
@@ -326,14 +324,15 @@ private fun FreeCardIssuance(
                         stringResource(R.string.common_error_general_title)
                     }
                     state.enoughXor -> {
-                        stringResource(SoraCardR.string.details_enough_xor_desription)
+                        "stringResource(SoraCardR.string.details_enough_xor_desription)"
                     }
                     else -> {
-                        stringResource(
-                            SoraCardR.string.details_need_xor_desription,
-                            state.needInXor.formatCryptoDetail(),
-                            state.needInEur.formatFiat()
-                        )
+                        ""
+//                        stringResource(
+//                            SoraCardR.string.details_need_xor_desription,
+//                            state.needInXor.formatCryptoDetail(),
+//                            state.needInEur.formatFiat()
+//                        )
                     }
                 }
             )

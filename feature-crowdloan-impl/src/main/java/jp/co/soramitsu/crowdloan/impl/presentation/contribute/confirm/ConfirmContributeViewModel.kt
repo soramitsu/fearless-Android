@@ -15,7 +15,6 @@ import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.data.network.BlockExplorerUrlBuilder
 import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.formatCryptoDetail
 import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.inBackground
@@ -75,8 +74,6 @@ class ConfirmContributeViewModel @Inject constructor(
     TransferValidityChecks by transferValidityChecks {
 
     private val payload = savedStateHandle.get<ConfirmContributePayload>(KEY_PAYLOAD)!!
-
-    override val openBrowserEvent = MutableLiveData<Event<String>>()
 
     private val _showNextProgress = MutableLiveData(false)
     val showNextProgress: LiveData<Boolean> = _showNextProgress
@@ -288,7 +285,7 @@ class ConfirmContributeViewModel @Inject constructor(
     fun bonusClicked() = when (payload.metadata?.isAcala) {
         true -> {
             val bonusUrl = payload.metadata.flow?.data?.getString(FLOW_BONUS_URL) ?: payload.metadata.website
-            openBrowserEvent.postValue(Event(bonusUrl))
+            externalAccountActions.showBrowser(bonusUrl)
         }
 
         else -> Unit

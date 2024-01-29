@@ -29,7 +29,16 @@ import kotlinx.coroutines.flow.Flow
 import jp.co.soramitsu.wallet.api.presentation.WalletRouter as WalletRouterApi
 
 interface WalletRouter : SecureRouter, WalletRouterApi {
+
+    fun trackReturnToAssetDetailsFromChainSelector(): Flow<Unit>?
+
     fun openAssetDetails(assetPayload: AssetPayload)
+
+    fun openAssetDetailsAndPopUpToBalancesList(assetPayload: AssetPayload)
+
+    fun openAssetIntermediateDetails(assetId: String)
+
+    fun openAssetIntermediateDetailsSort()
 
     fun openSend(assetPayload: AssetPayload?, initialSendToAddress: String? = null, currencyId: String? = null, amount: BigDecimal? = null)
     fun openLockedAmountSend(assetPayload: AssetPayload?, initialSendToAddress: String? = null, currencyId: String? = null, amount: BigDecimal?)
@@ -43,7 +52,8 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
         assetId: String,
         chainId: ChainId? = null,
         chooserMode: Boolean = true,
-        isSelectAsset: Boolean = true
+        isSelectAsset: Boolean = true,
+        showAllChains: Boolean = false
     )
 
     fun openSelectChain(
@@ -52,7 +62,8 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
         chooserMode: Boolean = true,
         currencyId: String? = null,
         showAllChains: Boolean = true,
-        isSelectAsset: Boolean = true
+        isSelectAsset: Boolean = true,
+        isFilteringEnabled: Boolean = false
     )
 
     fun openSelectChainForXcm(
@@ -70,7 +81,7 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
 
     fun openFilter()
 
-    fun openOperationSuccess(operationHash: String?, chainId: ChainId)
+    fun openOperationSuccess(operationHash: String?, chainId: ChainId?)
 
     fun openSendConfirm(transferDraft: TransferDraft, phishingType: PhishingType?, overrides: Map<String, Any?> = emptyMap(), transferComment: String? = null)
 
@@ -91,8 +102,6 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
     fun openAccountDetails(metaAccountId: Long)
 
     fun openBackupWalletScreen(metaAccountId: Long)
-
-    fun openExportWallet(metaAccountId: Long)
 
     fun openRenameWallet(metaAccountId: Long)
 
@@ -175,6 +184,7 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
     fun openCreateWalletDialog(isFromGoogleBackup: Boolean)
 
     fun openImportRemoteWalletDialog()
+    fun openConnectionDetails(topic: String)
 
     fun listenPolkaswapDisclaimerResultFlowFromMainScreen(): Flow<Boolean>
 

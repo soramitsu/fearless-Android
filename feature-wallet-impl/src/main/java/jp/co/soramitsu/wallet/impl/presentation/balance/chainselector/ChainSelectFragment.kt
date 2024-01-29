@@ -1,6 +1,7 @@
 package jp.co.soramitsu.wallet.impl.presentation.balance.chainselector
 
 import android.content.DialogInterface
+import android.os.Bundle
 import android.widget.FrameLayout
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
@@ -10,6 +11,7 @@ import androidx.core.os.bundleOf
 import androidx.fragment.app.viewModels
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import dagger.hilt.android.AndroidEntryPoint
+import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
 import jp.co.soramitsu.common.compose.component.BottomSheetScreen
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
@@ -25,6 +27,7 @@ class ChainSelectFragment : BaseComposeBottomSheetDialogFragment<ChainSelectView
         const val KEY_CHOOSER_MODE = "KEY_CHOOSER_MODE"
         const val KEY_SELECT_ASSET = "KEY_SELECT_ASSET"
         const val KEY_SHOW_ALL_CHAINS = "KEY_SHOW_ALL_CHAINS"
+        const val KEY_FILTERING_ENABLED = "KEY_FILTERING_ENABLED"
 
         // XCM
         const val KEY_XCM_CHAIN_TYPE = "KEY_XCM_CHAIN_TYPE"
@@ -35,13 +38,17 @@ class ChainSelectFragment : BaseComposeBottomSheetDialogFragment<ChainSelectView
             assetId: String,
             chainId: ChainId? = null,
             chooserMode: Boolean = false,
-            isSelectAsset: Boolean = true
+            isSelectAsset: Boolean = true,
+            isFilteringEnabled: Boolean = false,
+            showAllChains: Boolean = false
         ) = bundleOf(
             KEY_SELECTED_ASSET_ID to assetId,
             KEY_SELECTED_CHAIN_ID to chainId,
             KEY_CHOOSER_MODE to chooserMode,
             KEY_SHOW_ALL_CHAINS to false,
-            KEY_SELECT_ASSET to isSelectAsset
+            KEY_SELECT_ASSET to isSelectAsset,
+            KEY_FILTERING_ENABLED to isFilteringEnabled,
+            KEY_SHOW_ALL_CHAINS to showAllChains
         )
 
         fun getBundle(
@@ -50,21 +57,24 @@ class ChainSelectFragment : BaseComposeBottomSheetDialogFragment<ChainSelectView
             chooserMode: Boolean = true,
             currencyId: String?,
             showAllChains: Boolean = true,
-            isSelectAsset: Boolean = true
+            isSelectAsset: Boolean = true,
+            isFilteringEnabled: Boolean = false
         ) = bundleOf(
             KEY_SELECTED_CHAIN_ID to selectedChainId,
             KEY_FILTER_CHAIN_IDS to filterChainIds,
             KEY_CHOOSER_MODE to chooserMode,
             KEY_CURRENCY_ID to currencyId,
             KEY_SHOW_ALL_CHAINS to showAllChains,
-            KEY_SELECT_ASSET to isSelectAsset
+            KEY_SELECT_ASSET to isSelectAsset,
+            KEY_FILTERING_ENABLED to isFilteringEnabled
         )
 
         fun getBundleForXcmChains(
             selectedChainId: ChainId?,
             xcmChainType: XcmChainType,
             xcmSelectedOriginChainId: String? = null,
-            xcmAssetSymbol: String? = null
+            xcmAssetSymbol: String? = null,
+            isFilteringEnabled: Boolean = false
         ) = bundleOf(
             KEY_SELECTED_CHAIN_ID to selectedChainId,
             KEY_XCM_CHAIN_TYPE to xcmChainType,
@@ -72,7 +82,8 @@ class ChainSelectFragment : BaseComposeBottomSheetDialogFragment<ChainSelectView
             KEY_XCM_ASSET_SYMBOL to xcmAssetSymbol,
             KEY_SELECT_ASSET to false,
             KEY_SHOW_ALL_CHAINS to false,
-            KEY_CHOOSER_MODE to false
+            KEY_CHOOSER_MODE to false,
+            KEY_FILTERING_ENABLED to isFilteringEnabled
         )
     }
 
@@ -84,8 +95,7 @@ class ChainSelectFragment : BaseComposeBottomSheetDialogFragment<ChainSelectView
         BottomSheetScreen {
             ChainSelectContent(
                 state = state,
-                onChainSelected = viewModel::onChainSelected,
-                onSearchInput = viewModel::onSearchInput
+                contract = viewModel
             )
         }
     }

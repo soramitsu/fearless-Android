@@ -25,8 +25,8 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
     }
 
     composeOptions {
@@ -34,7 +34,7 @@ android {
     }
 
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "11"
     }
     namespace = "jp.co.soramitsu.feature_success_impl"
 }
@@ -50,4 +50,5 @@ dependencies {
     implementation(projects.runtime)
     implementation(projects.featureSuccessApi)
     implementation(projects.featureAccountApi)
+    implementation(projects.featureWalletImpl)
 }

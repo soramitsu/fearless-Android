@@ -1,14 +1,13 @@
 package jp.co.soramitsu.wallet.impl.presentation.balance.chainselector
 
 import androidx.lifecycle.SavedStateHandle
-import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.compose.component.ChainSelectorViewStateWithFilters
+import jp.co.soramitsu.common.utils.combine
 import jp.co.soramitsu.core.utils.utilityAsset
-import jp.co.soramitsu.runtime.ext.ecosystem
-import jp.co.soramitsu.runtime.multiNetwork.chain.ChainEcosystem
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.defaultChainSort
 import jp.co.soramitsu.wallet.api.domain.model.XcmChainType
@@ -16,11 +15,17 @@ import jp.co.soramitsu.wallet.impl.domain.ChainInteractor
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.presentation.send.SendSharedState
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.launch
 import jp.co.soramitsu.wallet.api.presentation.WalletRouter as WalletRouterApi
 
@@ -32,7 +37,7 @@ class ChainSelectViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val sharedSendState: SendSharedState,
     private val accountInteractor: AccountInteractor
-) : BaseViewModel() {
+) : BaseViewModel(), ChainSelectScreenContract {
 
     private val initialSelectedChainId: ChainId? = savedStateHandle[ChainSelectFragment.KEY_SELECTED_CHAIN_ID]
     private val selectedChainId = MutableStateFlow(initialSelectedChainId)
@@ -43,6 +48,7 @@ class ChainSelectViewModel @Inject constructor(
     private val showAllChains: Boolean = savedStateHandle[ChainSelectFragment.KEY_SHOW_ALL_CHAINS] ?: true
     private val tokenCurrencyId: String? = savedStateHandle[ChainSelectFragment.KEY_CURRENCY_ID]
     private val isSelectAsset: Boolean = savedStateHandle[ChainSelectFragment.KEY_SELECT_ASSET] ?: true
+    private val isFilteringEnabled: Boolean = savedStateHandle[ChainSelectFragment.KEY_FILTERING_ENABLED] ?: false
 
     // XCM
     private val xcmChainType: XcmChainType? =
@@ -53,6 +59,9 @@ class ChainSelectViewModel @Inject constructor(
         savedStateHandle[ChainSelectFragment.KEY_XCM_ASSET_SYMBOL]
 
     private var choiceDone = false
+
+    private val cachedMetaAccountFlow = accountInteractor.selectedMetaAccountFlow()
+        .stateIn(this, SharingStarted.Eagerly, null)
 
     private val allChainsFlow = if (xcmChainType == null) {
         chainInteractor.getChainsFlow()
@@ -75,22 +84,13 @@ class ChainSelectViewModel @Inject constructor(
         when {
             initialSelectedAssetId != null -> {
                 chains.firstOrNull {
-                    it.assets.any { it.id == initialSelectedAssetId }
+                    it.assets.any { asset -> asset.id == initialSelectedAssetId }
                 }?.let { chainOfTheAsset ->
                     val symbol = chainOfTheAsset.assets
                         .firstOrNull { it.id == initialSelectedAssetId }
                         ?.symbol
                     val chainsWithAsset = chains.filter {
-                        when (val chainEcosystem = it.ecosystem()) {
-                            ChainEcosystem.POLKADOT,
-                            ChainEcosystem.KUSAMA,
-                            ChainEcosystem.ETHEREUM -> {
-                                chainEcosystem == chainOfTheAsset.ecosystem() && it.assets.any { it.symbol == symbol }
-                            }
-                            ChainEcosystem.STANDALONE -> {
-                                it.id == chainOfTheAsset.id
-                            }
-                        }
+                        it.assets.any { it.symbol == symbol }
                     }
                     chainsWithAsset
                 }
@@ -112,7 +112,7 @@ class ChainSelectViewModel @Inject constructor(
         } else {
             chains
         }
-        filtered?.map { it.toChainItemState() }
+        filtered
     }.stateIn(this, SharingStarted.Eagerly, null)
 
     private val symbolFlow = allChainsFlow.map { chains ->
@@ -123,26 +123,135 @@ class ChainSelectViewModel @Inject constructor(
 
     private val enteredChainQueryFlow = MutableStateFlow("")
 
-    val state = combine(chainsFlow, selectedChainId, enteredChainQueryFlow) { chainItems, selectedChainId, searchQuery ->
-        val chains = chainItems
-            ?.filter {
-                val condition = it.tokenSymbols.values.any { it.contains(searchQuery, true) }
+    private val filterFlow = MutableStateFlow<ChainSelectorViewStateWithFilters.Filter?>(null)
 
-                searchQuery.isEmpty() || it.title.contains(searchQuery, true) || condition
+    private val favoriteItemVMCacheFlow =
+        MutableStateFlow<ChainSelectScreenContract.State.ItemState.Impl.FilteringDecorator?>(null)
+
+    private val favoriteItemsDBCacheFlow =
+        accountInteractor.observeSelectedMetaAccountFavoriteChains().flowOn(Dispatchers.IO).share()
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val favoriteChainsCacheResolverFlow = flow {
+        var favoritesSnapshot: MutableMap<ChainId, Boolean>? = null
+
+        favoriteItemVMCacheFlow.transformLatest { itemState ->
+            val vmCache = favoritesSnapshot?.apply {
+                if (itemState != null)
+                    put(itemState.id, !itemState.isMarkedAsFavorite)
             }
-            ?.sortedWith(compareBy<ChainItemState> { it.id.defaultChainSort() }.thenBy { it.title })
 
-        ChainSelectScreenViewState(
-            chains = chains,
+            if (vmCache != null) {
+                emit(vmCache)
+            }
+
+            favoriteItemsDBCacheFlow.collectLatest { dbCache ->
+                /*
+                    Wait till user finishes all favorite chains selection
+                    to compare dbCache and current vmCache
+
+                    1) All delays will be cancelled by use of collectLatest except the last one
+
+                    2) if itemState is null, user has not selected anything as of yet; so,
+                    we consider this collection to be startup of this screen - thus, no delay needed
+                */
+                if (itemState != null)
+                    kotlinx.coroutines.delay(10_000)
+
+                if (dbCache == vmCache)
+                    return@collectLatest
+
+                favoritesSnapshot = dbCache.toMutableMap()
+                emit(dbCache)
+            }
+        }.collect(this)
+    }
+
+    val state = combine(
+        chainsFlow,
+        walletInteractor.observeSelectedAccountChainSelectFilter(),
+        filterFlow,
+        selectedChainId,
+        enteredChainQueryFlow,
+        favoriteChainsCacheResolverFlow
+    ) {
+      chainsPreFiltered,
+      savedFilterAsString,
+      userInputFilter,
+      selectedChainId,
+      searchQuery,
+      favoriteChains ->
+
+        val savedFilter =
+            ChainSelectorViewStateWithFilters.Filter.values().find {
+                it.name == savedFilterAsString
+            } ?: ChainSelectorViewStateWithFilters.Filter.All
+
+        val chainsWithFavoriteInfo = chainsPreFiltered?.map { chain ->
+            chain to (favoriteChains[chain.id] ?: false)
+        }
+
+        val filterInUse = userInputFilter ?: savedFilter
+
+        val chainItems = when(filterInUse) {
+            ChainSelectorViewStateWithFilters.Filter.All -> chainsWithFavoriteInfo
+
+            ChainSelectorViewStateWithFilters.Filter.Favorite ->
+                chainsWithFavoriteInfo?.filter { (_, isFavorite) -> isFavorite }
+
+            ChainSelectorViewStateWithFilters.Filter.Popular ->
+                chainsWithFavoriteInfo?.filter { (chain, _) ->
+                    chain.rank != null
+                }?.sortedBy { (chain, _) ->
+                    chain.rank
+                }
+        }?.map { (chain, isFavorite) ->
+            chain.toChainItemState().run {
+                if (!isFilteringEnabled)
+                    return@run this
+
+                this.toFilteredDecorator(isFavorite)
+            }
+        }
+
+        val resultingChains = chainItems
+            ?.filter { searchQuery.isEmpty() || it.title.contains(searchQuery, true) }
+            ?.sortedWith(
+                compareBy<ChainSelectScreenContract.State.ItemState> {
+                    it.id.defaultChainSort()
+                }.thenBy {
+                    it.title
+                }
+            )
+        val shouldShowAllChains =
+            (!showAllChains || isFilteringEnabled && resultingChains?.isNotEmpty() != true).not()
+
+        ChainSelectScreenContract.State.Impl(
+            chains = resultingChains,
             selectedChainId = selectedChainId,
             searchQuery = searchQuery,
-            showAllChains = showAllChains
-        )
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, ChainSelectScreenViewState.default)
+            showAllChains = shouldShowAllChains
+        ).run {
+            if (!isFilteringEnabled)
+                return@run this
 
-    fun onChainSelected(chainItemState: ChainItemState?) {
+            ChainSelectScreenContract.State.Impl.FilteringDecorator(
+                appliedFilter = savedFilter,
+                selectedFilter = filterInUse,
+                state = this
+            )
+        }
+    }.stateIn(this, SharingStarted.Eagerly, ChainSelectScreenContract.State.Impl.default)
+
+    override fun onBackButtonClick() {
+        walletRouter.back()
+    }
+
+    override fun onChainSelected(chainItemState: ChainSelectScreenContract.State.ItemState?) {
         choiceDone = true
         val chainId = chainItemState?.id
+
+        saveAppliedFilter()
 
         if (selectedChainId.value == chainId) {
             if (chooserMode) {
@@ -189,6 +298,17 @@ class ChainSelectViewModel @Inject constructor(
         }
     }
 
+    private fun saveAppliedFilter() {
+        val walletId = cachedMetaAccountFlow.value?.id ?: return
+
+        launch {
+            walletInteractor.saveChainSelectFilter(
+                walletId,
+                filterFlow.replayCache.firstOrNull()?.toString().orEmpty()
+            )
+        }
+    }
+
     private fun assetSpecified(assetId: String?, chainId: ChainId) {
         choiceDone = true
         if (assetId != null) {
@@ -200,11 +320,31 @@ class ChainSelectViewModel @Inject constructor(
         )
     }
 
-    fun onSearchInput(input: String) {
+    override fun onFilterApplied(filter: ChainSelectorViewStateWithFilters.Filter) {
+        filterFlow.value = filter
+    }
+
+    override fun onChainMarkedFavorite(chainItemState: ChainSelectScreenContract.State.ItemState) {
+        if (chainItemState !is ChainSelectScreenContract.State.ItemState.Impl.FilteringDecorator)
+            return
+
+        favoriteItemVMCacheFlow.tryEmit(chainItemState)
+
+        launch(Dispatchers.IO) {
+            val metaId = requireNotNull(cachedMetaAccountFlow.value).id
+            accountInteractor.updateFavoriteChain(
+                metaId = metaId,
+                chainId = chainItemState.id,
+                isFavorite = !chainItemState.isMarkedAsFavorite
+            )
+        }
+    }
+
+    override fun onSearchInput(input: String) {
         enteredChainQueryFlow.value = input
     }
 
-    fun onDialogClose() {
+    override fun onDialogClose() {
         if (!choiceDone && sharedSendState.assetId == null) {
             walletRouter.popOutOfSend()
         }

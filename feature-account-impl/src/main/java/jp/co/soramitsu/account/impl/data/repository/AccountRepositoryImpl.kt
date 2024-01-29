@@ -34,6 +34,7 @@ import jp.co.soramitsu.coredb.dao.AccountDao
 import jp.co.soramitsu.coredb.dao.MetaAccountDao
 import jp.co.soramitsu.coredb.model.AccountLocal
 import jp.co.soramitsu.coredb.model.chain.ChainAccountLocal
+import jp.co.soramitsu.coredb.model.chain.FavoriteChainLocal
 import jp.co.soramitsu.coredb.model.chain.MetaAccountLocal
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
@@ -895,4 +896,16 @@ class AccountRepositoryImpl(
     override suspend fun getChain(chainId: ChainId): Chain {
         return chainRegistry.getChain(chainId)
     }
+
+    override suspend fun updateFavoriteChain(metaAccountId: Long, chainId: ChainId, isFavorite: Boolean) {
+        metaAccountDao.insertOrReplaceFavoriteChain(
+            FavoriteChainLocal(
+                metaId = metaAccountId,
+                chainId = chainId,
+                isFavorite = isFavorite
+            )
+        )
+    }
+
+    override fun observeFavoriteChains(metaId: Long) = accountDataSource.observeFavoriteChains(metaId).map { list -> list.associate { it.chainId to it.isFavorite } }
 }

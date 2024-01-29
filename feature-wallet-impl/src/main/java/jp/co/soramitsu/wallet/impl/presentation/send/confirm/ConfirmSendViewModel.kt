@@ -351,6 +351,7 @@ class ConfirmSendViewModel @Inject constructor(
 
             val tipInPlanks = transferDraft.tip?.let { token.planksFromAmount(it) }
             val result = withContext(Dispatchers.Default) {
+
                 interactor.performTransfer(createTransfer(token, fee), fee, tipInPlanks)
             }
             if (result.isSuccess) {

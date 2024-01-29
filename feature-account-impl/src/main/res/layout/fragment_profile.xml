@@ -5,9 +5,9 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:animateLayoutChanges="true"
-    android:background="@color/black"
-    android:fitsSystemWindows="true"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:paddingBottom="56dp"
+    tools:background="@drawable/drawable_background_image">
 
     <TextView
         style="@style/TextAppearance.Soramitsu.Header1"
@@ -19,326 +19,378 @@
         android:text="@string/profile_settings_title"
         android:textColor="@color/white" />
 
-
-    <jp.co.soramitsu.common.view.AccountInfoView
-        android:id="@+id/accountView"
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/x2"
-        android:layout_marginEnd="@dimen/x2"
-        app:accountActionIcon="@drawable/ic_info_white_24" />
+        android:layout_height="match_parent">
 
-    <Space
-        android:layout_width="wrap_content"
-        android:layout_height="32dp" />
-
-    <LinearLayout
-        android:id="@+id/profileWallets"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@drawable/bg_primary_list_item"
-        android:clickable="true"
-        android:focusable="true"
-        android:orientation="horizontal"
-        android:paddingStart="@dimen/x2"
-        android:paddingTop="@dimen/x1_5"
-        android:paddingEnd="@dimen/x2"
-        android:paddingBottom="@dimen/x1_5">
-
-        <TextView
-            style="@style/TextAppearance.Soramitsu.Body1"
-            android:layout_width="0dp"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:drawableStart="@drawable/ic_settings_wallets"
-            android:drawablePadding="@dimen/x1_5"
-            android:gravity="center_vertical"
-            android:text="@string/profile_wallets_title"
-            android:textColor="@color/white" />
+            android:orientation="vertical">
 
-        <ImageView
-            android:id="@+id/missingAccountsIcon"
-            style="@style/TextAppearance.Soramitsu.Body1"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:layout_marginEnd="2dp"
-            android:gravity="center_vertical"
-            android:src="@drawable/ic_warning_filled"
-            android:visibility="gone" />
 
-        <ImageView
-            android:id="@+id/profileWalletsArrow"
-            style="@style/TextAppearance.Soramitsu.Body1"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:src="@drawable/ic_arrow_right_24" />
+            <jp.co.soramitsu.common.view.AccountInfoView
+                android:id="@+id/accountView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/x2"
+                android:layout_marginEnd="@dimen/x2"
+                app:accountActionIcon="@drawable/ic_info_white_24" />
 
-    </LinearLayout>
+            <Space
+                android:layout_width="wrap_content"
+                android:layout_height="32dp" />
 
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:layout_marginStart="@dimen/x2"
-        android:layout_marginEnd="@dimen/x2"
-        android:background="@color/dividerGray" />
+            <LinearLayout
+                android:id="@+id/profileWallets"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_primary_list_item"
+                android:clickable="true"
+                android:focusable="true"
+                android:orientation="horizontal"
+                android:paddingStart="@dimen/x2"
+                android:paddingTop="@dimen/x1_5"
+                android:paddingEnd="@dimen/x2"
+                android:paddingBottom="@dimen/x1_5">
 
-    <LinearLayout
-        android:id="@+id/profileSoraCard"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@drawable/bg_primary_list_item"
-        android:clickable="true"
-        android:focusable="true"
-        android:orientation="horizontal"
-        android:paddingStart="@dimen/x2"
-        android:paddingTop="@dimen/x1_5"
-        android:paddingEnd="@dimen/x2"
-        android:paddingBottom="@dimen/x1_5"
-        android:visibility="gone">
+                <TextView
+                    style="@style/TextAppearance.Soramitsu.Body1"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:drawableStart="@drawable/ic_settings_wallets"
+                    android:drawablePadding="@dimen/x1_5"
+                    android:gravity="center_vertical"
+                    android:text="@string/profile_wallets_title"
+                    android:textColor="@color/white" />
 
-        <TextView
-            style="@style/TextAppearance.Soramitsu.Body1"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:drawableStart="@drawable/ic_card"
-            android:drawablePadding="@dimen/x1_5"
-            android:gravity="center_vertical"
-            android:text="@string/profile_soracard_title"
-            android:textColor="@color/white" />
+                <ImageView
+                    android:id="@+id/missingAccountsIcon"
+                    style="@style/TextAppearance.Soramitsu.Body1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_marginEnd="2dp"
+                    android:gravity="center_vertical"
+                    android:src="@drawable/ic_warning_filled"
+                    android:visibility="gone" />
 
-        <ImageView
-            android:id="@+id/profileSoraCardArrow"
-            style="@style/TextAppearance.Soramitsu.Body1"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:src="@drawable/ic_arrow_right_24" />
+                <ImageView
+                    android:id="@+id/profileWalletsArrow"
+                    style="@style/TextAppearance.Soramitsu.Body1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:src="@drawable/ic_arrow_right_24" />
 
-    </LinearLayout>
+            </LinearLayout>
 
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:layout_marginStart="@dimen/x2"
-        android:layout_marginEnd="@dimen/x2"
-        android:background="@color/dividerGray" />
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginStart="@dimen/x2"
+                android:layout_marginEnd="@dimen/x2"
+                android:background="@color/dividerGray" />
 
-    <LinearLayout
-        android:id="@+id/profileCurrency"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@drawable/bg_primary_list_item"
-        android:clickable="true"
-        android:focusable="true"
-        android:orientation="horizontal"
-        android:paddingStart="@dimen/x2"
-        android:paddingTop="@dimen/x1_5"
-        android:paddingEnd="@dimen/x2"
-        android:paddingBottom="@dimen/x1_5">
+            <LinearLayout
+                android:id="@+id/profileWalletConnect"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_primary_list_item"
+                android:clickable="true"
+                android:focusable="true"
+                android:orientation="horizontal"
+                android:paddingStart="@dimen/x2"
+                android:paddingTop="@dimen/x1_5"
+                android:paddingEnd="@dimen/x2"
+                android:paddingBottom="@dimen/x1_5">
 
-        <TextView
-            style="@style/TextAppearance.Soramitsu.Body1"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:drawableStart="@drawable/ic_dollar_circle"
-            android:drawablePadding="@dimen/x1_5"
-            android:gravity="center_vertical"
-            android:text="@string/common_currency"
-            android:textColor="@color/white" />
+                <TextView
+                    style="@style/TextAppearance.Soramitsu.Body1"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:drawableStart="@drawable/ic_wallet_connect"
+                    android:drawablePadding="@dimen/x1_5"
+                    android:gravity="center_vertical"
+                    android:text="@string/profile_walletconnect_title"
+                    android:textColor="@color/white" />
 
-        <TextView
-            android:id="@+id/selectedCurrencyTv"
-            style="@style/TextAppearance.Soramitsu.Body1"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:drawableEnd="@drawable/ic_arrow_right_24"
-            android:gravity="center_vertical"
-            android:textColor="@color/white"
-            tools:text="USD" />
+                <TextView
+                    android:id="@+id/walletConnectTv"
+                    style="@style/TextAppearance.Soramitsu.Body1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:drawableEnd="@drawable/ic_arrow_right_24"
+                    android:gravity="center_vertical"
+                    android:textColor="@color/white" />
 
-    </LinearLayout>
+            </LinearLayout>
 
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:layout_marginStart="@dimen/x2"
-        android:layout_marginEnd="@dimen/x2"
-        android:background="@color/dividerGray" />
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginStart="@dimen/x2"
+                android:layout_marginEnd="@dimen/x2"
+                android:background="@color/dividerGray" />
 
-    <LinearLayout
-        android:id="@+id/languageWrapper"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@drawable/bg_primary_list_item"
-        android:clickable="true"
-        android:focusable="true"
-        android:orientation="horizontal"
-        android:paddingStart="@dimen/x2"
-        android:paddingTop="@dimen/x1_5"
-        android:paddingEnd="@dimen/x2"
-        android:paddingBottom="@dimen/x1_5">
+            <LinearLayout
+                android:id="@+id/profileSoraCard"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_primary_list_item"
+                android:clickable="true"
+                android:focusable="true"
+                android:orientation="horizontal"
+                android:paddingStart="@dimen/x2"
+                android:paddingTop="@dimen/x1_5"
+                android:paddingEnd="@dimen/x2"
+                android:paddingBottom="@dimen/x1_5"
+                android:visibility="gone">
 
-        <TextView
-            style="@style/TextAppearance.Soramitsu.Body1"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:drawableStart="@drawable/ic_language"
-            android:drawablePadding="@dimen/x1_5"
-            android:gravity="center_vertical"
-            android:text="@string/profile_language_title"
-            android:textColor="@color/white" />
+                <TextView
+                    style="@style/TextAppearance.Soramitsu.Body1"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:drawableStart="@drawable/ic_card"
+                    android:drawablePadding="@dimen/x1_5"
+                    android:gravity="center_vertical"
+                    android:text="@string/profile_soracard_title"
+                    android:textColor="@color/white" />
 
-        <TextView
-            android:id="@+id/selectedLanguageTv"
-            style="@style/TextAppearance.Soramitsu.Body1"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:drawableEnd="@drawable/ic_arrow_right_24"
-            android:gravity="center_vertical"
-            android:textColor="@color/white"
-            tools:text="English" />
+                <ImageView
+                    android:id="@+id/profileSoraCardArrow"
+                    style="@style/TextAppearance.Soramitsu.Body1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:src="@drawable/ic_arrow_right_24" />
 
-    </LinearLayout>
+            </LinearLayout>
 
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:layout_marginStart="@dimen/x2"
-        android:layout_marginEnd="@dimen/x2"
-        android:background="@color/dividerGray" />
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginStart="@dimen/x2"
+                android:layout_marginEnd="@dimen/x2"
+                android:background="@color/dividerGray" />
 
-    <LinearLayout
-        android:id="@+id/hideZeroBalancesContainer"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@drawable/bg_primary_list_item"
-        android:clickable="true"
-        android:focusable="true"
-        android:orientation="horizontal"
-        android:paddingStart="@dimen/x2"
-        android:paddingEnd="@dimen/x2">
+            <LinearLayout
+                android:id="@+id/profileCurrency"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_primary_list_item"
+                android:clickable="true"
+                android:focusable="true"
+                android:orientation="horizontal"
+                android:paddingStart="@dimen/x2"
+                android:paddingTop="@dimen/x1_5"
+                android:paddingEnd="@dimen/x2"
+                android:paddingBottom="@dimen/x1_5">
 
-        <TextView
-            android:id="@+id/hideZeroBalancesLabel"
-            style="@style/TextAppearance.Soramitsu.Body1"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:drawableStart="@drawable/ic_eye"
-            android:drawablePadding="@dimen/x1_5"
-            android:text="@string/settings_hide_zero_balances" />
+                <TextView
+                    style="@style/TextAppearance.Soramitsu.Body1"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:drawableStart="@drawable/ic_dollar_circle"
+                    android:drawablePadding="@dimen/x1_5"
+                    android:gravity="center_vertical"
+                    android:text="@string/common_currency"
+                    android:textColor="@color/white" />
 
-        <com.google.android.material.switchmaterial.SwitchMaterial
-            android:id="@+id/hideZeroBalancesSwitch"
-            android:clickable="false"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+                <TextView
+                    android:id="@+id/selectedCurrencyTv"
+                    style="@style/TextAppearance.Soramitsu.Body1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:drawableEnd="@drawable/ic_arrow_right_24"
+                    android:gravity="center_vertical"
+                    android:textColor="@color/white"
+                    tools:text="USD" />
 
-    </LinearLayout>
+            </LinearLayout>
 
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:layout_marginStart="@dimen/x2"
-        android:layout_marginEnd="@dimen/x2"
-        android:background="@color/dividerGray" />
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginStart="@dimen/x2"
+                android:layout_marginEnd="@dimen/x2"
+                android:background="@color/dividerGray" />
 
-    <TextView
-        android:id="@+id/polkaswapDisclaimerTv"
-        style="@style/TextAppearance.Soramitsu.Body1"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@drawable/bg_primary_list_item"
-        android:clickable="true"
-        android:drawableStart="@drawable/ic_polkaswap_logo"
-        android:drawableEnd="@drawable/ic_arrow_right_24"
-        android:drawablePadding="@dimen/x1_5"
-        android:focusable="true"
-        android:gravity="center_vertical"
-        android:paddingStart="@dimen/x2"
-        android:paddingTop="@dimen/x1_5"
-        android:paddingEnd="@dimen/x2"
-        android:paddingBottom="@dimen/x1_5"
-        android:text="@string/polkaswap_disclaimer_settings_item"
-        android:textColor="@color/white" />
+            <LinearLayout
+                android:id="@+id/languageWrapper"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_primary_list_item"
+                android:clickable="true"
+                android:focusable="true"
+                android:orientation="horizontal"
+                android:paddingStart="@dimen/x2"
+                android:paddingTop="@dimen/x1_5"
+                android:paddingEnd="@dimen/x2"
+                android:paddingBottom="@dimen/x1_5">
 
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:layout_marginStart="@dimen/x2"
-        android:layout_marginEnd="@dimen/x2"
-        android:background="@color/dividerGray" />
+                <TextView
+                    style="@style/TextAppearance.Soramitsu.Body1"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:drawableStart="@drawable/ic_language"
+                    android:drawablePadding="@dimen/x1_5"
+                    android:gravity="center_vertical"
+                    android:text="@string/profile_language_title"
+                    android:textColor="@color/white" />
 
-    <TextView
-        android:id="@+id/changePinCodeTv"
-        style="@style/TextAppearance.Soramitsu.Body1"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@drawable/bg_primary_list_item"
-        android:clickable="true"
-        android:drawableStart="@drawable/ic_pin_24"
-        android:drawableEnd="@drawable/ic_arrow_right_24"
-        android:drawablePadding="@dimen/x1_5"
-        android:focusable="true"
-        android:gravity="center_vertical"
-        android:paddingStart="@dimen/x2"
-        android:paddingTop="@dimen/x1_5"
-        android:paddingEnd="@dimen/x2"
-        android:paddingBottom="@dimen/x1_5"
-        android:text="@string/profile_pincode_change_title"
-        android:textColor="@color/white" />
+                <TextView
+                    android:id="@+id/selectedLanguageTv"
+                    style="@style/TextAppearance.Soramitsu.Body1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:drawableEnd="@drawable/ic_arrow_right_24"
+                    android:gravity="center_vertical"
+                    android:textColor="@color/white"
+                    tools:text="English" />
 
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:layout_marginStart="@dimen/x2"
-        android:layout_marginEnd="@dimen/x2"
-        android:background="@color/dividerGray" />
+            </LinearLayout>
 
-    <jp.co.soramitsu.common.view.ProfileOptionItemView
-        android:id="@+id/profileExperimentalFeatures"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:optionIcon="@drawable/ic_experiments"
-        app:optionSubtitle="@string/profile_experimets_subtitle"
-        app:optionTitle="@string/profile_experimets_title" />
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginStart="@dimen/x2"
+                android:layout_marginEnd="@dimen/x2"
+                android:background="@color/dividerGray" />
 
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:layout_marginStart="@dimen/x2"
-        android:layout_marginEnd="@dimen/x2"
-        android:background="@color/dividerGray" />
+            <LinearLayout
+                android:id="@+id/hideZeroBalancesContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_primary_list_item"
+                android:clickable="true"
+                android:focusable="true"
+                android:orientation="horizontal"
+                android:paddingStart="@dimen/x2"
+                android:paddingEnd="@dimen/x2">
 
-    <TextView
-        android:id="@+id/aboutTv"
-        style="@style/TextAppearance.Soramitsu.Body1"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@drawable/bg_primary_list_item"
-        android:clickable="true"
-        android:drawableStart="@drawable/ic_info_primary_24"
-        android:drawableEnd="@drawable/ic_arrow_right_24"
-        android:drawablePadding="@dimen/x1_5"
-        android:focusable="true"
-        android:gravity="center_vertical"
-        android:paddingStart="@dimen/x2"
-        android:paddingTop="@dimen/x1_5"
-        android:paddingEnd="@dimen/x2"
-        android:paddingBottom="@dimen/x1_5"
-        android:text="@string/about_title"
-        android:textColor="@color/white" />
+                <TextView
+                    android:id="@+id/hideZeroBalancesLabel"
+                    style="@style/TextAppearance.Soramitsu.Body1"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:drawableStart="@drawable/ic_eye"
+                    android:drawablePadding="@dimen/x1_5"
+                    android:text="@string/settings_hide_zero_balances" />
 
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:layout_marginStart="@dimen/x2"
-        android:layout_marginEnd="@dimen/x2"
-        android:layout_marginBottom="@dimen/x1_5"
-        android:background="@color/dividerGray" />
+                <com.google.android.material.switchmaterial.SwitchMaterial
+                    android:id="@+id/hideZeroBalancesSwitch"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:clickable="false" />
 
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginStart="@dimen/x2"
+                android:layout_marginEnd="@dimen/x2"
+                android:background="@color/dividerGray" />
+
+            <TextView
+                android:id="@+id/polkaswapDisclaimerTv"
+                style="@style/TextAppearance.Soramitsu.Body1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_primary_list_item"
+                android:clickable="true"
+                android:drawableStart="@drawable/ic_polkaswap_logo"
+                android:drawableEnd="@drawable/ic_arrow_right_24"
+                android:drawablePadding="@dimen/x1_5"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:paddingStart="@dimen/x2"
+                android:paddingTop="@dimen/x1_5"
+                android:paddingEnd="@dimen/x2"
+                android:paddingBottom="@dimen/x1_5"
+                android:text="@string/polkaswap_disclaimer_settings_item"
+                android:textColor="@color/white" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginStart="@dimen/x2"
+                android:layout_marginEnd="@dimen/x2"
+                android:background="@color/dividerGray" />
+
+            <TextView
+                android:id="@+id/changePinCodeTv"
+                style="@style/TextAppearance.Soramitsu.Body1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_primary_list_item"
+                android:clickable="true"
+                android:drawableStart="@drawable/ic_pin_24"
+                android:drawableEnd="@drawable/ic_arrow_right_24"
+                android:drawablePadding="@dimen/x1_5"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:paddingStart="@dimen/x2"
+                android:paddingTop="@dimen/x1_5"
+                android:paddingEnd="@dimen/x2"
+                android:paddingBottom="@dimen/x1_5"
+                android:text="@string/profile_pincode_change_title"
+                android:textColor="@color/white" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginStart="@dimen/x2"
+                android:layout_marginEnd="@dimen/x2"
+                android:background="@color/dividerGray" />
+
+            <jp.co.soramitsu.common.view.ProfileOptionItemView
+                android:id="@+id/profileExperimentalFeatures"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:optionIcon="@drawable/ic_experiments"
+                app:optionSubtitle="@string/profile_experimets_subtitle"
+                app:optionTitle="@string/profile_experimets_title" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginStart="@dimen/x2"
+                android:layout_marginEnd="@dimen/x2"
+                android:background="@color/dividerGray" />
+
+            <TextView
+                android:id="@+id/aboutTv"
+                style="@style/TextAppearance.Soramitsu.Body1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_primary_list_item"
+                android:clickable="true"
+                android:drawableStart="@drawable/ic_info_primary_24"
+                android:drawableEnd="@drawable/ic_arrow_right_24"
+                android:drawablePadding="@dimen/x1_5"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:paddingStart="@dimen/x2"
+                android:paddingTop="@dimen/x1_5"
+                android:paddingEnd="@dimen/x2"
+                android:paddingBottom="@dimen/x1_5"
+                android:text="@string/about_title"
+                android:textColor="@color/white" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginStart="@dimen/x2"
+                android:layout_marginEnd="@dimen/x2"
+                android:layout_marginBottom="@dimen/x1_5"
+                android:background="@color/dividerGray" />
+        </LinearLayout>
+    </ScrollView>
 </LinearLayout>

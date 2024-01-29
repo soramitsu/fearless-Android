@@ -125,7 +125,14 @@ class EthereumWebSocketConnection(
         } else {
             val firstNode = wsNodes.first()
             connectInternal(firstNode)
-        }.onSuccess { onSelectedNodeChange(chain.id, it.url) }
+        }.onSuccess {
+            val url = if(it.url.contains(BLAST_NODE_KEYWORD)){
+                it.url.removeSuffix(blastApiKeys[chain.id].orEmpty())
+            } else {
+                it.url
+            }
+            onSelectedNodeChange(chain.id, url)
+        }
     }
 
     private fun connectInternal(node: ChainNode): Result<ChainNode> {

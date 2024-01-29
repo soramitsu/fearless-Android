@@ -26,7 +26,6 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraTestChainId
-import jp.co.soramitsu.runtime.multiNetwork.chainWithAsset
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
@@ -67,13 +66,13 @@ class PolkaswapInteractorImpl @Inject constructor(
     }
 
     override suspend fun getFeeAsset(): Asset? {
-        val chain = chainRegistry.getChain(polkaswapChainId)
+        val chain = chainsRepository.getChain(polkaswapChainId)
         return chain.utilityAsset?.id?.let { getAsset(it) }
     }
 
     override suspend fun getAsset(assetId: String): Asset? {
         val metaAccount = accountRepository.getSelectedMetaAccount()
-        val (chain, chainAsset) = chainRegistry.chainWithAsset(polkaswapChainId, assetId)
+        val (chain, chainAsset) = chainsRepository.chainWithAsset(polkaswapChainId, assetId)
 
         return walletRepository.getAsset(metaAccount.id, metaAccount.accountId(chain)!!, chainAsset, chain.minSupportedVersion)
     }
@@ -126,7 +125,7 @@ class PolkaswapInteractorImpl @Inject constructor(
         slippageTolerance: Double,
         market: Market
     ): Result<SwapDetails?> {
-        val polkaswapUtilityAssetId = chainRegistry.getChain(polkaswapChainId).utilityAsset?.id
+        val polkaswapUtilityAssetId = chainsRepository.getChain(polkaswapChainId).utilityAsset?.id
         val feeAsset = requireNotNull(polkaswapUtilityAssetId?.let { getAsset(it) })
 
         val curMarkets = if (market == Market.SMART) emptyList() else listOf(market)
@@ -211,7 +210,10 @@ class PolkaswapInteractorImpl @Inject constructor(
         return if (quotes.isEmpty()) {
             null
         } else {
-            quotes.maxBy { it.second.amount }
+            when (desired) {
+                WithDesired.INPUT -> quotes.maxBy { it.second.amount }
+                WithDesired.OUTPUT -> quotes.minBy { it.second.amount }
+            }
         }
     }
 

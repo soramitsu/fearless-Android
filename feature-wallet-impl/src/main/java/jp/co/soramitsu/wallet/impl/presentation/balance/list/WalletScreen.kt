@@ -244,7 +244,6 @@ private fun PreviewWalletScreen() {
             isSupported = true,
             isHidden = false,
             priceId = null,
-            ecosystem = "Polkadot",
             isTestnet = false
         )
     )

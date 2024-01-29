@@ -5,7 +5,9 @@
     android:id="@+id/payoutsListContainer"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:background="@color/black">
+    android:background="@drawable/drawable_background_image"
+    android:backgroundTint="#63000000"
+    android:backgroundTintMode="src_atop">
 
     <jp.co.soramitsu.common.view.Toolbar
         android:id="@+id/payoutsListToolbar"
@@ -18,28 +20,28 @@
         app:titleText="@string/staking_reward_payouts_title" />
 
     <TextView
-        style="@style/TextAppearance.Soramitsu.Body2"
         android:id="@+id/payoutInstructionTextView"
+        style="@style/TextAppearance.Soramitsu.Body2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="16dp"
         android:text="@string/staking_pending_rewards_info"
         android:textColor="@color/black1"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/payoutsListToolbar"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginTop="8dp"/>
+        app:layout_constraintTop_toBottomOf="@+id/payoutsListToolbar" />
 
     <View
         android:id="@+id/payoutDivider"
         android:layout_width="match_parent"
         android:layout_height="1dp"
         android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"
         android:layout_marginTop="16dp"
-        app:layout_constraintTop_toBottomOf="@+id/payoutInstructionTextView"
-        android:background="@color/dividerGray" />
+        android:layout_marginEnd="16dp"
+        android:background="@color/dividerGray"
+        app:layout_constraintTop_toBottomOf="@+id/payoutInstructionTextView" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/payoutsList"
@@ -83,11 +85,11 @@
         android:id="@+id/payoutsPlaceholderIcon"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="18dp"
         android:src="@drawable/ic_placeholder"
         app:layout_constraintBottom_toTopOf="@+id/payoutsPlaceholderText"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
-        android:layout_marginBottom="18dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/payoutsListToolbar"
         app:layout_constraintVertical_chainStyle="packed" />
@@ -106,12 +108,12 @@
         app:layout_constraintTop_toBottomOf="@+id/payoutsPlaceholderIcon" />
 
     <androidx.constraintlayout.widget.Group
+        android:id="@+id/payoutsPlaceholderGroup"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:visibility="gone"
-        tools:visibility="visible"
         app:constraint_referenced_ids="payoutsPlaceholderIcon, payoutsPlaceholderText"
-        android:id="@+id/payoutsPlaceholderGroup" />
+        tools:visibility="visible" />
 
     <androidx.constraintlayout.widget.Group
         android:id="@+id/payoutListContentGroup"

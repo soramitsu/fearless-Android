@@ -39,7 +39,6 @@ class ImportRemoteWalletViewModel @Inject constructor(
 ) : BaseViewModel(), ImportRemoteWalletCallback {
 
     private val isLoading = MutableStateFlow(false)
-    private val heightDiffDpFlow = MutableStateFlow(0.dp)
     private val steps = listOf(
         ImportRemoteWalletStep.WalletList,
         ImportRemoteWalletStep.EnterBackupPassword,
@@ -77,14 +76,12 @@ class ImportRemoteWalletViewModel @Inject constructor(
     private val enterBackupPasswordState = combine(
         selectedWallet,
         passwordInputViewState,
-        isLoading,
-        heightDiffDpFlow
-    ) { selectedWallet, passwordInputViewState, isLoading, heightDiffDp ->
+        isLoading
+    ) { selectedWallet, passwordInputViewState, isLoading ->
         EnterBackupPasswordState(
             wallet = selectedWallet,
             passwordInputViewState = passwordInputViewState,
-            isLoading = isLoading,
-            heightDiffDp = heightDiffDp
+            isLoading = isLoading
         )
     }
     private val remoteWalletListState = remoteWallets.map { wallets ->
@@ -325,9 +322,5 @@ class ImportRemoteWalletViewModel @Inject constructor(
 
     override fun onPasswordVisibilityClick() {
         isPasswordVisible.value = isPasswordVisible.value.not()
-    }
-
-    fun setHeightDiffDp(value: Dp) {
-        heightDiffDpFlow.value = value
     }
 }

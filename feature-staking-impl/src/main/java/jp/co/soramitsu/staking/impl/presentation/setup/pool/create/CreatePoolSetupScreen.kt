@@ -3,7 +3,6 @@ package jp.co.soramitsu.staking.impl.presentation.setup.pool.create
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -72,7 +71,6 @@ fun CreatePoolSetupScreen(
     BottomSheetScreen {
         Column(
             modifier = Modifier
-                .imePadding()
                 .verticalScroll(rememberScrollState())
         ) {
             Toolbar(

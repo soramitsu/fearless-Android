@@ -11,6 +11,7 @@ import jp.co.soramitsu.common.data.network.runtime.binding.EqOraclePricePoint
 import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
 import jp.co.soramitsu.core.models.ChainId
 import jp.co.soramitsu.coredb.model.AddressBookContact
+import jp.co.soramitsu.coredb.model.AssetLocal
 import jp.co.soramitsu.coredb.model.AssetUpdateItem
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.shared_utils.runtime.AccountId
@@ -29,9 +30,14 @@ import jp.co.soramitsu.wallet.impl.domain.model.Transfer
 import jp.co.soramitsu.wallet.impl.domain.model.TransferValidityStatus
 import jp.co.soramitsu.wallet.impl.domain.model.WalletAccount
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.StateFlow
 import jp.co.soramitsu.core.models.Asset as CoreAsset
 
 class NotValidTransferStatus(val status: TransferValidityStatus) : Exception()
+
+enum class AssetSorting {
+    FiatBalance, Popularity, Name
+}
 
 interface WalletInteractor {
 
@@ -111,7 +117,7 @@ interface WalletInteractor {
 
     fun getChains(): Flow<List<Chain>>
 
-    fun getOperationAddressWithChainIdFlow(limit: Int?, chainId: ChainId): Flow<Set<String>>
+    fun getOperationAddressWithChainIdFlow(chainId: ChainId, limit: Int?): Flow<Set<String>>
 
     suspend fun saveAddress(name: String, address: String, selectedChainId: String)
 
@@ -136,5 +142,17 @@ interface WalletInteractor {
 
     suspend fun checkControllerDeprecations(): List<ControllerDeprecationWarning>
     suspend fun canUseAsset(chainId: String, chainAssetId: String): Boolean
+
+    suspend fun saveChainSelectFilter(walletId: Long, filter: String)
+
+    fun observeSelectedAccountChainSelectFilter(): Flow<String>
+
+
     fun selectedLightMetaAccountFlow(): Flow<LightMetaAccount>
+
+    fun observeChainsPerAsset(accountMetaId: Long, assetId: String): Flow<Map<Chain, Asset?>>
+
+    fun applyAssetSorting(sorting: AssetSorting)
+
+    fun observeAssetSorting(): Flow<AssetSorting>
 }

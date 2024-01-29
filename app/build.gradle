@@ -108,14 +108,14 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility 1.8
-        targetCompatibility 1.8
+        sourceCompatibility 11
+        targetCompatibility 11
     }
 
     kotlinOptions {
         freeCompilerArgs = ["-Xallow-result-return-type"]
 
-        jvmTarget = '1.8'
+        jvmTarget = '11'
     }
     composeOptions {
         kotlinCompilerExtensionVersion composeCompilerVersion
@@ -173,6 +173,9 @@ dependencies {
     implementation project(':feature-soracard-api')
     implementation project(':feature-soracard-impl')
 
+    implementation project(':feature-walletconnect-api')
+    implementation project(':feature-walletconnect-impl')
+
     implementation project(':feature-nft-api')
     implementation project(':feature-nft-impl')
 
@@ -196,7 +199,7 @@ dependencies {
 
     implementation lifeCycleKtxDep
 
-    implementation retrofitDep
+//    implementation retrofitDep
     implementation gsonConvertedDep
 
     implementation gifDep
@@ -221,6 +224,10 @@ dependencies {
     debugImplementation composeDebug
 
     implementation soraUiCoreDep
+
+    implementation(platform(libs.walletconnectBomDep))
+    implementation(libs.walletconnectCoreDep)
+    implementation(libs.walletconnectWeb3WalletDep)
 
     androidTestImplementation androidTestRunnerDep
     androidTestImplementation androidTestRulesDep
