@@ -203,6 +203,7 @@ class SendSetupViewModel @Inject constructor(
 
     val isSoftKeyboardOpenFlow = MutableStateFlow(lockSendToAmount && initialAmount.isZero())
 
+//    private val maxAmountFlow = MutableStateFlow(BigDecimal.ZERO)
     private val enteredAmountBigDecimalFlow = MutableStateFlow(initialAmount)
     private val visibleAmountFlow = MutableStateFlow(initialAmount)
     private val initialAmountFlow = MutableStateFlow(initialAmount.takeIf { it.isNotZero() })
@@ -473,11 +474,13 @@ class SendSetupViewModel @Inject constructor(
             visibleAmountFlow,
             feeInPlanksFlow.mapNotNull { it },
             isInputAddressValidFlow,
-            addressInputTrimmedFlow,
-            sendAllToggleState
-        ) { asset, amount, fee, isAddressValid, address, sendAllState ->
+            addressInputTrimmedFlow
+        ) { asset, amount, fee, isAddressValid, address ->
 
-            if (amount.isZero() || sendAllState == ToggleState.CONFIRMED) return@combine null
+            if (amount.isZero()) {
+                sendAllToggleState.value = ToggleState.INITIAL
+                return@combine null
+            }
             val ownAddress = currentAccountAddress(asset.token.configuration.chainId) ?: return@combine null
 
             val recipientAddress = when {
@@ -494,10 +497,15 @@ class SendSetupViewModel @Inject constructor(
                 fee = fee,
             )
         }
-            .onEach {
+            .onEach { it ->
+                val sendAllState = sendAllToggleState.value
                 it?.fold(
                     onSuccess = { validationResult ->
-                        if (validationResult.isExistentialDepositWarning) {
+                        if (validationResult == TransferValidationResult.Valid && sendAllState == ToggleState.CONFIRMED) {
+                            sendAllToggleState.value = ToggleState.INITIAL
+                        }
+
+                        if (validationResult.isExistentialDepositWarning && sendAllState != ToggleState.CONFIRMED) {
                             ValidationException.fromValidationResult(validationResult, resourceManager)?.let {
                                 if (it is ExistentialDepositCrossedException) {
                                     val warning = ValidationWarning(
@@ -550,7 +558,7 @@ class SendSetupViewModel @Inject constructor(
         visibleAmountFlow.value = input.orZero()
         enteredAmountBigDecimalFlow.value = input.orZero()
 
-        if (sendAllToggleState.value == ToggleState.INITIAL && input.orZero() > BigDecimal.ZERO) {
+        if (sendAllToggleState.value == ToggleState.CONFIRMED || sendAllToggleState.value == ToggleState.INITIAL && input?.greaterThen(BigDecimal.ZERO) == true) {
             observeExistentialDeposit(true)
         }
     }
@@ -766,6 +774,9 @@ class SendSetupViewModel @Inject constructor(
                 amountToTransfer - utilityFeeReserve * SLIPPAGE_TOLERANCE.toBigDecimal()
 
             if (quickAmountWithoutExtraPays < BigDecimal.ZERO) {
+                if (sendAllToggleState.value == ToggleState.CHECKED) {
+                    sendAllToggleState.value = ToggleState.CONFIRMED
+                }
                 return@launch
             }
             val scaledAmount = quickAmountWithoutExtraPays.setScale(5, RoundingMode.HALF_DOWN)
@@ -776,7 +787,7 @@ class SendSetupViewModel @Inject constructor(
             visibleAmountFlow.value = scaledAmount
             initialAmountFlow.value = scaledAmount
             enteredAmountBigDecimalFlow.value = quickAmountWithoutExtraPays
-            observeExistentialDeposit(input < 1.0)
+            observeExistentialDeposit(input < QuickAmountInput.MAX.value)
         }
     }
 
