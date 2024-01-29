@@ -22,7 +22,7 @@ interface NFTInteractor {
         paginationRequestFlow: Flow<PaginationRequest>,
         chainSelectionFlow: Flow<String>,
         contractAddressFlow: Flow<String>
-    ): Flow<Result<NFTCollection<NFTCollection.NFT.Full>>>
+    ): Flow<Pair<Result<NFTCollection<NFTCollection.NFT.Full>>, PaginationRequest>>
 
     suspend fun getNFTDetails(
         chainId: ChainId,

@@ -17,7 +17,7 @@ fun NFTResponse.ContractMetadata.toLightNFTCollection(
             ?: contractMetadata?.name ?: address.orEmpty(),
         contractAddress = contractAddress,
         description = contractMetadata?.openSea?.description,
-        imageUrl = contractMetadata?.openSea?.imageUrl.orEmpty(),
+        imageUrl = contractMetadata?.openSea?.imageUrl,
         type = contractMetadata?.tokenType,
         tokens = tokens,
         collectionSize = contractMetadata?.totalSupply?.toIntOrNull()
@@ -36,7 +36,7 @@ fun NFTResponse.TokensCollection.toFullNFTCollection(
             ?: contractMetadata?.name ?: contractAddress.orEmpty(),
         contractAddress = contractAddress,
         description = contractMetadata?.openSea?.description,
-        imageUrl = contractMetadata?.openSea?.imageUrl.orEmpty(),
+        imageUrl = contractMetadata?.openSea?.imageUrl,
         type = contractMetadata?.tokenType,
         tokens = tokenInfoList.map {
             it.toFullNFT(

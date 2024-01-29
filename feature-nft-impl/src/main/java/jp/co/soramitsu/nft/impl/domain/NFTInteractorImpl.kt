@@ -145,7 +145,7 @@ class NFTInteractorImpl(
         paginationRequestFlow: Flow<PaginationRequest>,
         chainSelectionFlow: Flow<String>,
         contractAddressFlow: Flow<String>
-    ): Flow<Result<NFTCollection<NFTCollection.NFT.Full>>> {
+    ): Flow<Pair<Result<NFTCollection<NFTCollection.NFT.Full>>, PaginationRequest>> {
         val chainSelectionHelperFlow =
             chainsRepository.chainsFlow().map { chains ->
                 chains.filter { it.supportNft && !it.alchemyNftId.isNullOrEmpty() }
@@ -225,7 +225,7 @@ class NFTInteractorImpl(
                         }
                     }
 
-                    emit(result)
+                    emit(result to pagedResponse.paginationRequest)
                 }.collect { this@channelFlow.send(it) }
             }
 
@@ -264,7 +264,7 @@ class NFTInteractorImpl(
                         }
                     }
 
-                    emit(result)
+                    emit(result to pagedResponse.paginationRequest)
                 }.collect { this@channelFlow.send(it) }
             }
         }.flowOn(Dispatchers.Default)

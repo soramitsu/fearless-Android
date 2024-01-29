@@ -34,14 +34,13 @@ import jp.co.soramitsu.common.compose.component.MultiToggleButton
 import jp.co.soramitsu.common.compose.component.MultiToggleButtonState
 import jp.co.soramitsu.common.compose.component.NetworkIssuesBadge
 import jp.co.soramitsu.common.compose.component.SwipeState
+import jp.co.soramitsu.common.compose.models.ScreenLayout
 import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
 import jp.co.soramitsu.common.compose.theme.white16
 import jp.co.soramitsu.common.compose.theme.white50
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState
 import jp.co.soramitsu.common.utils.rememberForeverLazyListState
-import jp.co.soramitsu.nft.impl.presentation.list.NftCollectionListItem
-import jp.co.soramitsu.nft.impl.presentation.list.NftList
-import jp.co.soramitsu.nft.impl.presentation.list.NftListScreenInterface
+import jp.co.soramitsu.nft.impl.presentation.list.NFTScreen
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.soracard.impl.presentation.SoraCardItem
 import jp.co.soramitsu.soracard.impl.presentation.SoraCardItemViewState
@@ -49,7 +48,7 @@ import jp.co.soramitsu.wallet.impl.presentation.balance.list.model.AssetType
 import jp.co.soramitsu.wallet.impl.presentation.common.AssetsList
 import jp.co.soramitsu.wallet.impl.presentation.common.AssetsListInterface
 
-interface WalletScreenInterface : AssetsListInterface, NftListScreenInterface {
+interface WalletScreenInterface : AssetsListInterface {
     fun onAddressClick()
     fun onBalanceClicked()
     fun soraCardClicked()
@@ -84,7 +83,7 @@ fun WalletScreen(
         )
         when (data.assetsState) {
             is WalletAssetsState.NftAssets -> {
-                NftList(data.assetsState.state, callback)
+                NFTScreen(collectionsScreen = data.assetsState.collectionScreenModel)
             }
             is WalletAssetsState.Assets -> {
                 val header = Banners(data, callback)
@@ -217,10 +216,6 @@ private fun PreviewWalletScreen() {
         override fun onBackupCloseClick() {}
         override fun assetTypeChanged(type: AssetType) {}
         override fun assetClicked(asset: AssetListItemViewState) {}
-        override fun nftFiltersClicked() {}
-        override fun nftItemClicked(item: NftCollectionListItem) = Unit
-        override fun onPageTopReached() {}
-        override fun onPageBottomReached() {}
 
         override fun actionItemClicked(
             actionType: ActionItemType,

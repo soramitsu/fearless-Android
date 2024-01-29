@@ -9,11 +9,13 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Divider
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.compose.component.Image
 import jp.co.soramitsu.common.compose.component.MarginHorizontal
+import jp.co.soramitsu.common.compose.models.ScreenLayout
 import jp.co.soramitsu.common.compose.theme.colorAccentDark
 import jp.co.soramitsu.common.compose.theme.white
 import jp.co.soramitsu.common.compose.theme.white08
@@ -21,13 +23,9 @@ import jp.co.soramitsu.common.compose.theme.white30
 import jp.co.soramitsu.common.utils.clickableWithNoIndication
 import jp.co.soramitsu.feature_nft_impl.R
 
-
-enum class NftAppearanceType {
-    Grid, List
-}
-
-data class NftSettingsState(
-    val collectionAppearanceType: NftAppearanceType,
+@Immutable
+class NftSettingsState(
+    val collectionAppearanceType: ScreenLayout,
     val filtersSelected: Boolean
 )
 
@@ -35,12 +33,14 @@ data class NftSettingsState(
 internal fun NftSettingsBar(
     state: NftSettingsState,
     modifier: Modifier = Modifier,
-    appearanceSelected: (NftAppearanceType) -> Unit,
+    appearanceSelected: (ScreenLayout) -> Unit,
     filtersClicked: () -> Unit
 ) {
-    val cellsColor =
-        if (state.collectionAppearanceType == NftAppearanceType.Grid) white else white30
-    val listColor = if (state.collectionAppearanceType == NftAppearanceType.List) white else white30
+    val cellsColor = if (state.collectionAppearanceType == ScreenLayout.Grid)
+        white else white30
+
+    val listColor = if (state.collectionAppearanceType == ScreenLayout.List)
+        white else white30
 
     Row(modifier = modifier) {
         Image(
@@ -48,22 +48,29 @@ internal fun NftSettingsBar(
             tint = cellsColor,
             modifier = Modifier
                 .align(Alignment.CenterVertically)
-                .clickableWithNoIndication { appearanceSelected(NftAppearanceType.Grid) }
+                .clickableWithNoIndication {
+                    appearanceSelected(ScreenLayout.Grid)
+                }
         )
+
         MarginHorizontal(margin = 8.dp)
         Image(
             res = R.drawable.ic_list,
             tint = listColor,
             modifier = Modifier
                 .align(Alignment.CenterVertically)
-                .clickableWithNoIndication { appearanceSelected(NftAppearanceType.List) }
+                .clickableWithNoIndication {
+                    appearanceSelected(ScreenLayout.List)
+                }
         )
+
         MarginHorizontal(margin = 13.dp)
         Divider(
             modifier = Modifier
                 .size(width = 1.dp, height = 28.dp),
             color = white08
         )
+
         MarginHorizontal(margin = 13.dp)
         Box(
             modifier = Modifier

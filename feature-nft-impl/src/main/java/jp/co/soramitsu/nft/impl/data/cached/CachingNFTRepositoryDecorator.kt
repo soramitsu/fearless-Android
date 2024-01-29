@@ -17,12 +17,15 @@ import jp.co.soramitsu.nft.impl.data.model.utils.toNFTContractMetadataResponseLo
 import jp.co.soramitsu.nft.impl.data.model.utils.transformToSpecificOrDoNothing
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 
 class CachingNFTRepositoryDecorator(
     private val nftRepository: NFTRepository,
@@ -101,7 +104,7 @@ class CachingNFTRepositoryDecorator(
 
                 emit(updatedPagedResponse)
             }.collect(this)
-        }
+        }.flowOn(Dispatchers.Default)
     }
     
     override fun paginatedNFTCollectionByContractAddressFlow(
@@ -154,7 +157,7 @@ class CachingNFTRepositoryDecorator(
 
                 emit(updatedPagedResponse)
             }.collect(this)
-        }
+        }.flowOn(Dispatchers.Default)
     }
 
     private suspend fun PaginationRequest.switchRequestsOrPurgeCache(

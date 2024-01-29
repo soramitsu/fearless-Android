@@ -17,7 +17,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.core.os.bundleOf
 import androidx.fragment.app.viewModels
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -29,12 +28,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
-import jp.co.soramitsu.nft.impl.presentation.collection.NFTCollectionScreen
-import jp.co.soramitsu.nft.impl.presentation.collection.NftCollectionViewModel
-import jp.co.soramitsu.nft.impl.presentation.collection.NftCollectionViewModel.Companion.COLLECTION_CONTRACT_ADDRESS_KEY
-import jp.co.soramitsu.nft.impl.presentation.collection.NftCollectionScreen
-import jp.co.soramitsu.nft.impl.presentation.collection.NftCollectionScreenState
-import jp.co.soramitsu.nft.impl.presentation.collection.NftCollectionViewModel.Companion.COLLECTION_CHAIN_ID
+import jp.co.soramitsu.nft.impl.presentation.collection.NFTCollectionsNavComposable
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 
 @Stable
@@ -102,22 +96,7 @@ class NftFragment : BaseComposeBottomSheetDialogFragment<NftViewModel>() {
                 .padding(padding)
                 .fillMaxSize(),
         ) {
-            composable(
-                "collectionDetails/{$COLLECTION_CHAIN_ID}/{$COLLECTION_CONTRACT_ADDRESS_KEY}",
-                arguments = listOf(
-                    navArgument(COLLECTION_CHAIN_ID) {
-                        type = NavType.StringType
-                        defaultValue = arguments?.getString(SELECTED_CHAIN_ID)
-                    },
-                    navArgument(COLLECTION_CONTRACT_ADDRESS_KEY) {
-                        type = NavType.StringType
-                        defaultValue = arguments?.getString(CONTRACT_ADDRESS_KEY)!!
-                    }
-                )
-            ) {
-                val viewModel: NftCollectionViewModel by viewModels()
-                NFTCollectionScreen(viewModel = viewModel)
-            }
+            NFTCollectionsNavComposable(arguments)
 
             composable("TODO another screen") {
                 Box(

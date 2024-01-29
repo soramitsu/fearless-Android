@@ -3,28 +3,38 @@ package jp.co.soramitsu.nft.impl.presentation.collection
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import jp.co.soramitsu.common.R
 import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.compose.component.MenuIconItem
+import jp.co.soramitsu.common.compose.component.ToolbarViewState
+import jp.co.soramitsu.common.utils.zipWithPrevious
 import jp.co.soramitsu.nft.data.pagination.PaginationRequest
 import jp.co.soramitsu.nft.domain.NFTInteractor
-import jp.co.soramitsu.nft.domain.NFTTransferInteractor
-import kotlinx.coroutines.ExperimentalCoroutinesApi
+import jp.co.soramitsu.nft.domain.models.NFTCollection
+import jp.co.soramitsu.common.compose.utils.PageScrollingCallback
+import jp.co.soramitsu.common.presentation.LoadingState
+import jp.co.soramitsu.nft.impl.presentation.collection.models.NFTsScreenView
+import jp.co.soramitsu.nft.impl.presentation.collection.utils.toScreenViewArray
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.shareIn
-import kotlinx.coroutines.flow.transformLatest
+import kotlinx.coroutines.flow.transform
 
 @HiltViewModel
 class NftCollectionViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
     private val nftInteractor: NFTInteractor
-) : BaseViewModel(), NftCollectionScreenInterface {
+) : BaseViewModel() {
 
     companion object {
         const val COLLECTION_CHAIN_ID = "selectedChainId"
@@ -42,15 +52,27 @@ class NftCollectionViewModel @Inject constructor(
         onBufferOverflow = BufferOverflow.DROP_OLDEST
     )
 
-    val state = createCollectionsNFTsFlow()
-        .shareIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(10_000),
-            replay = 1
-        )
+    val pageScrollingCallback = object : PageScrollingCallback {
+        override fun onAllPrevPagesScrolled() {
+            mutablePaginationRequestFlow.tryEmit(PaginationRequest.Prev.Page)
+        }
 
-    @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
-    fun createCollectionsNFTsFlow(): Flow<NftCollectionScreenState> {
+        override fun onAllNextPagesScrolled() {
+            mutablePaginationRequestFlow.tryEmit(PaginationRequest.Next.Page)
+        }
+    }
+
+    private val mutableToolbarState = MutableStateFlow<LoadingState<ToolbarViewState>>(LoadingState.Loading())
+    val toolbarState: StateFlow<LoadingState<ToolbarViewState>> = mutableToolbarState
+
+    val state = createCollectionsNFTsFlow().shareIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(10_000),
+        replay = 1
+    )
+
+    @OptIn(FlowPreview::class)
+    private fun createCollectionsNFTsFlow(): Flow<List<NFTsScreenView>> {
         val paginationRequestHelperFlow = mutablePaginationRequestFlow.onStart {
             emit(PaginationRequest.Start)
         }.debounce(10_000)
@@ -59,49 +81,78 @@ class NftCollectionViewModel @Inject constructor(
             paginationRequestFlow = paginationRequestHelperFlow,
             chainSelectionFlow = flow { emit(selectedChainId) },
             contractAddressFlow = flow { emit(contractAddress) },
-        ).transformLatest { result ->
-            result.fold(
+        ).zipWithPrevious().transform { (prevValue, currentValue) ->
+            val (currentResult, currentPaginationRequest) = currentValue
+            val (prevResult, prevPaginationRequest) = prevValue ?: Pair(null, null)
+
+            currentResult.fold(
                 onSuccess = { collection ->
-                    println("This is checkpoint: NftCollectionViewModel.collectionNFTsFlow.Result.Success - ${collection.tokens.firstOrNull()?.tokenId}")
-                    NftCollectionScreenState(
-                        collectionName = collection.collectionName,
-                        collectionImageUrl = collection.imageUrl,
-                        collectionDescription = collection.description,
-                        myNFTs = collection.tokens.map {
-                            NftItem(
-                                thumbnailUrl = it.thumbnail,
-                                name = it.title.orEmpty(),
-                                description = it.description,
-                                id = it.hashCode()
+                    LoadingState.Loaded(
+                        ToolbarViewState(
+                            title = collection.collectionName,
+                            navigationIcon = null,
+                            MenuIconItem(
+                                icon = R.drawable.ic_cross_24,
+                                onClick = ::onCloseClick
                             )
-                        },
-                        availableNFTs = emptyList()
+                        )
+                    ).apply { mutableToolbarState.value = this }
+
+                    mergeUserOwnedAndAvailableNFTCollections(
+                        currentValue = collection to currentPaginationRequest,
+                        prevValue = prevResult?.getOrNull() to prevPaginationRequest
                     ).run { emit(this) }
                 },
-                onFailure = {
-                    throw it
-                }
+                onFailure = { throw it }
             )
         }
     }
 
-    override fun close() {
+    private fun mergeUserOwnedAndAvailableNFTCollections(
+        currentValue: Pair<NFTCollection<NFTCollection.NFT.Full>, PaginationRequest>,
+        prevValue: Pair<NFTCollection<NFTCollection.NFT.Full>?, PaginationRequest?>? = null,
+    ): ArrayDeque<NFTsScreenView> {
+        val (currentCollection, currentPaginationRequest) = currentValue
+        val (prevCollection, _) = prevValue ?: Pair(null, null)
+
+        val isCurrentCollectionUserOwned = currentCollection.tokens.firstOrNull()?.isUserOwnedToken == true
+        val isPrevCollectionUserOwned = prevCollection?.tokens?.firstOrNull()?.isUserOwnedToken == true
+
+        return when {
+            !isPrevCollectionUserOwned &&
+            isCurrentCollectionUserOwned &&
+            currentPaginationRequest is PaginationRequest.Prev -> {
+                val currentCollectionViewsList =
+                    currentCollection.toScreenViewArray(::onItemClick)
+
+                val prevCollectionsViewsList =
+                    prevCollection?.toScreenViewArray(::onItemClick) ?: ArrayDeque()
+
+                currentCollectionViewsList.apply {
+                    addAll(prevCollectionsViewsList)
+                }
+            }
+
+            isPrevCollectionUserOwned &&
+            !isCurrentCollectionUserOwned &&
+            currentPaginationRequest is PaginationRequest.Next -> {
+                val currentCollectionViewsList =
+                    currentCollection.toScreenViewArray(::onItemClick)
+
+                val prevCollectionsViewsList =
+                    prevCollection?.toScreenViewArray(::onItemClick) ?: ArrayDeque()
+
+                prevCollectionsViewsList.apply {
+                    addAll(currentCollectionViewsList)
+                }
+            }
+
+            else -> currentCollection.toScreenViewArray(::onItemClick)
+        }
     }
 
-    override fun onItemClick(item: NftItem) {
-    }
+    private fun onCloseClick() = Unit
 
-    override fun onSendClick(item: NftItem) {
-    }
+    private fun onItemClick(token: NFTCollection.NFT.Full) = Unit
 
-    override fun onShareClick(item: NftItem) {
-    }
-
-    override fun onLoadPreviousPage() {
-        mutablePaginationRequestFlow.tryEmit(PaginationRequest.Prev.Page)
-    }
-
-    override fun onLoadNextPage() {
-        mutablePaginationRequestFlow.tryEmit(PaginationRequest.Next.Page)
-    }
 }

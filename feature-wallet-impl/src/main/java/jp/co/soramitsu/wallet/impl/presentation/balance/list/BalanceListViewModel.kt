@@ -27,9 +27,11 @@ import jp.co.soramitsu.common.compose.component.MultiToggleButtonState
 import jp.co.soramitsu.common.compose.component.NetworkIssueItemState
 import jp.co.soramitsu.common.compose.component.SwipeState
 import jp.co.soramitsu.common.compose.component.ToolbarHomeIconState
+import jp.co.soramitsu.common.compose.models.ScreenLayout
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState
 import jp.co.soramitsu.common.data.network.coingecko.FiatChooserEvent
 import jp.co.soramitsu.common.data.network.coingecko.FiatCurrency
+import jp.co.soramitsu.common.data.network.runtime.binding.cast
 import jp.co.soramitsu.common.domain.FiatCurrencies
 import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
 import jp.co.soramitsu.common.domain.SelectedFiat
@@ -51,12 +53,16 @@ import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.nft.data.pagination.PaginationRequest
 import jp.co.soramitsu.nft.domain.NFTInteractor
+import jp.co.soramitsu.nft.domain.models.NFTCollection
 import jp.co.soramitsu.nft.impl.presentation.NftRouter
 import jp.co.soramitsu.nft.domain.models.NFTFilter
+import jp.co.soramitsu.common.compose.utils.PageScrollingCallback
 import jp.co.soramitsu.nft.impl.presentation.filters.NftFilterModel
 import jp.co.soramitsu.nft.impl.presentation.filters.NftFiltersFragment
-import jp.co.soramitsu.nft.impl.presentation.list.NftCollectionListItem
-import jp.co.soramitsu.nft.impl.presentation.list.NftScreenState
+import jp.co.soramitsu.nft.impl.presentation.list.models.NFTCollectionsScreenModel
+import jp.co.soramitsu.nft.impl.presentation.list.models.NFTCollectionsScreenView
+import jp.co.soramitsu.nft.impl.presentation.list.utils.createShimmeredNFTCollectionsViewsArray
+import jp.co.soramitsu.nft.impl.presentation.list.utils.toScreenViewsArray
 import jp.co.soramitsu.oauth.base.sdk.contract.SoraCardCommonVerification
 import jp.co.soramitsu.oauth.base.sdk.contract.SoraCardContractData
 import jp.co.soramitsu.oauth.common.domain.KycRepository
@@ -152,10 +158,22 @@ class BalanceListViewModel @Inject constructor(
     private val _launchSoraCardSignIn = MutableLiveData<Event<SoraCardContractData>>()
     val launchSoraCardSignIn: LiveData<Event<SoraCardContractData>> = _launchSoraCardSignIn
 
+    private val mutableScreenLayoutFlow = MutableStateFlow(ScreenLayout.Grid)
+
     private val mutableNFTPaginationRequestFlow = MutableSharedFlow<PaginationRequest>(
         extraBufferCapacity = 1,
         onBufferOverflow = BufferOverflow.DROP_OLDEST
     )
+
+    private val pageScrollingCallback = object : PageScrollingCallback {
+        override fun onAllPrevPagesScrolled() {
+            mutableNFTPaginationRequestFlow.tryEmit(PaginationRequest.Prev.Page)
+        }
+
+        override fun onAllNextPagesScrolled() {
+            mutableNFTPaginationRequestFlow.tryEmit(PaginationRequest.Next.Page)
+        }
+    }
 
     private val chainsFlow = chainInteractor.getChainsFlow().mapList {
         it.toChainItemState()
@@ -251,7 +269,7 @@ class BalanceListViewModel @Inject constructor(
     }.onStart { emit(buildInitialAssetsList().toMutableList()) }.inBackground().share()
 
     @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
-    private fun createNFTScreenStateFlow(): Flow<NftScreenState> {
+    private fun createNFTCollectionScreenViewsFlow(): Flow<ArrayDeque<NFTCollectionsScreenView>> {
         val pullToRefreshHelperFlow = BalanceUpdateTrigger.observe()
             .map { PaginationRequest.Next.Page }
 
@@ -265,19 +283,18 @@ class BalanceListViewModel @Inject constructor(
         return nftInteractor.userOwnedNFTsFlow(
             paginationRequestFlow = paginationRequestHelperFlow,
             chainSelectionFlow = selectedChainId
-        ).combine(nftInteractor.nftFiltersFlow()) { allNFTCollectionsData, filters ->
-            return@combine allNFTCollectionsData to filters
-        }.transformLatest { (allNFTCollectionsData, filters) ->
+        ).combine(mutableScreenLayoutFlow) { allNFTCollectionsData, screenLayout ->
+            return@combine allNFTCollectionsData to screenLayout
+        }.transformLatest { (allNFTCollectionsData, screenLayout) ->
             if (
                 allNFTCollectionsData.isNotEmpty() &&
                 allNFTCollectionsData.all { (_, result) -> result.isFailure }
             ) {
                 showError("Failed to load NFTs")
                 return@transformLatest emit(
-                    NftScreenState(
-                        filtersSelected = filters.any { (_, isEnabled) -> isEnabled },
-                        listState = NftScreenState.ListState.Empty
-                    )
+                    ArrayDeque<NFTCollectionsScreenView>().apply {
+                        add(NFTCollectionsScreenView.EmptyPlaceHolder.DEFAULT)
+                    }
                 )
             }
 
@@ -293,30 +310,21 @@ class BalanceListViewModel @Inject constructor(
                 showError("Failed to load NFTs for $joinedChainsWithFailedRequests")
             }
 
-            val collectionViewStates = allNFTCollectionsData.mapNotNull { (_, collectionRequestResult) ->
-                val collection = collectionRequestResult.getOrNull() ?: return@mapNotNull null
+            val successfulNFTCollectionsList =
+                allNFTCollectionsData.filter { (_, collectionRequestResult) ->
+                    collectionRequestResult.isSuccess
+                }.mapNotNull { (_, collectionRequestResult) ->
+                    collectionRequestResult.getOrNull()
+                }.cast<List<NFTCollection<NFTCollection.NFT.Light>>>()
 
-                NftCollectionListItem(
-                    id = collection.contractAddress.orEmpty(),
-                    chainId = collection.chainId,
-                    image = collection.imageUrl,
-                    chain = collection.chainName,
-                    title = collection.collectionName,
-                    quantity = collection.tokens.size,
-                    collectionSize = collection.collectionSize
-                )
-            }.sortedBy { it.title }
-
-            return@transformLatest emit(
-                NftScreenState(
-                    filtersSelected = filters.any { (_, isEnabled) -> isEnabled },
-                    listState = NftScreenState.ListState.Content(collectionViewStates)
-                )
-            )
+            return@transformLatest successfulNFTCollectionsList
+                .toScreenViewsArray(
+                    screenLayout = screenLayout,
+                    onItemClick = { router.openNftCollection(it.chainId, it.contractAddress!!) }
+                ).run { emit(this) }
         }.onStart {
-            NftScreenState(
-                filtersSelected = false,
-                listState = NftScreenState.ListState.Loading
+            createShimmeredNFTCollectionsViewsArray(
+                ScreenLayout.Grid
             ).also { emit(it) }
 
             delay(10_000) // wait till internal flows start
@@ -329,21 +337,27 @@ class BalanceListViewModel @Inject constructor(
     private val filtersFlow = nftRouter.nftFiltersResultFlow(NftFiltersFragment.KEY_RESULT)
         .stateIn(viewModelScope, SharingStarted.Eagerly, defaultFiltersState)
 
-    private val nftState: MutableStateFlow<NftScreenState> =
-        MutableStateFlow(NftScreenState(true, NftScreenState.ListState.Loading))
-
     private val assetTypeState = combine(
         assetTypeSelectorState,
         assetStates,
-        createNFTScreenStateFlow()
-    ) { selectorState, assetStates, nftState ->
+        nftInteractor.nftFiltersFlow(),
+        createNFTCollectionScreenViewsFlow()
+    ) { selectorState, assetStates, filters, views ->
         when (selectorState.currentSelection) {
             AssetType.Currencies -> {
                 WalletAssetsState.Assets(assetStates)
             }
 
             AssetType.NFTs -> {
-                WalletAssetsState.NftAssets(nftState)
+                WalletAssetsState.NftAssets(
+                    NFTCollectionsScreenModel(
+                        areFiltersApplied = filters.any { (_, isEnabled) -> isEnabled },
+                        viewsArray = views,
+                        onFiltersIconClick = { nftRouter.openNftFilters(filtersFlow.value) },
+                        onScreenLayoutChanged = { mutableScreenLayoutFlow.value = it },
+                        pageScrollingCallback = pageScrollingCallback
+                    )
+                )
             }
         }
     }
@@ -651,22 +665,6 @@ class BalanceListViewModel @Inject constructor(
 
             router.openAssetDetails(payload)
         }
-    }
-
-    override fun nftFiltersClicked() {
-        nftRouter.openNftFilters(filtersFlow.value)
-    }
-
-    override fun nftItemClicked(item: NftCollectionListItem) {
-        router.openNftCollection(item.chainId, item.id)
-    }
-
-    override fun onPageTopReached() {
-        mutableNFTPaginationRequestFlow.tryEmit(PaginationRequest.Next.Page)
-    }
-
-    override fun onPageBottomReached() {
-        mutableNFTPaginationRequestFlow.tryEmit(PaginationRequest.Prev.Page)
     }
 
     private fun currentAddressModelFlow(): Flow<AddressModel> {

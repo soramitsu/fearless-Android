@@ -8,7 +8,7 @@ data class NFTCollection<T: NFTCollection.NFT>(
     val collectionName: String,
     val contractAddress: String?,
     val description: String?,
-    val imageUrl: String,
+    val imageUrl: String?,
     val type: String?,
     val tokens: List<T>,
     val collectionSize: Int

@@ -31,6 +31,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.shareIn
@@ -158,7 +159,7 @@ class NFTRepositoryImpl(
                 exclusionFiltersFlow.withRefreshPagesStackSideEffect(),
                 chainSelectionFlow.withRefreshPagesStackSideEffect().onEach { chains ->
                     mutex.withLock {
-                        for(chain in chains) {
+                        for (chain in chains) {
                             // perform refresh pageIteratorsMap sideEffect on new chains
                             pageStackMap.putIfAbsent(chain, newPageStackBuilder())
                         }
@@ -181,7 +182,7 @@ class NFTRepositoryImpl(
                 ).toList()
 
                 /* Add pageKeys to page iterators for next pagination request */
-                for(pagedResponse in result) {
+                for (pagedResponse in result) {
                     val pageDataWrapper = pagedResponse.result.getOrNull()
 
                     if (
@@ -202,7 +203,7 @@ class NFTRepositoryImpl(
 
                 emit(result)
             }.collect(this)
-        }
+        }.flowOn(Dispatchers.IO)
     }
 
     private fun concurrentNFTs(
@@ -303,17 +304,15 @@ class NFTRepositoryImpl(
                                 """.trimIndent()
                             )
 
-                            withContext(Dispatchers.IO) {
-                                alchemyNftApi.getUserOwnedNFTsByContractAddress(
-                                    url = NFTRequest.UserOwnedTokens.requestUrl(holder.chain.alchemyNftId),
-                                    owner = ownerAddress,
-                                    contractAddress = holder.contractAddress,
-                                    withMetadata = true,
-                                    pageKey = pageKey,
-                                    pageSize = holder.paginationRequest.getPageSize(DEFAULT_PAGE_SIZE),
-                                    excludeFilters = holder.exclusionFilters
-                                )
-                            }
+                            alchemyNftApi.getUserOwnedNFTsByContractAddress(
+                                url = NFTRequest.UserOwnedTokens.requestUrl(holder.chain.alchemyNftId),
+                                owner = ownerAddress,
+                                contractAddress = holder.contractAddress,
+                                withMetadata = true,
+                                pageKey = pageKey,
+                                pageSize = holder.paginationRequest.getPageSize(DEFAULT_PAGE_SIZE),
+                                excludeFilters = holder.exclusionFilters
+                            )
                         }
                     }
 
@@ -337,7 +336,7 @@ class NFTRepositoryImpl(
                     )
                 )
             }.collect(this)
-        }
+        }.flowOn(Dispatchers.IO)
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -387,15 +386,13 @@ class NFTRepositoryImpl(
 
 
                         page.mapToPaginationEvent { pageKey ->
-                            withContext(Dispatchers.IO) {
-                                alchemyNftApi.getNFTCollectionByContactAddress(
-                                    requestUrl = NFTRequest.TokensCollection.requestUrl(holder.chain.alchemyNftId),
-                                    contractAddress = holder.contractAddress,
-                                    withMetadata = true,
-                                    startTokenId = pageKey,
-                                    limit = holder.paginationRequest.getPageSize(DEFAULT_PAGE_SIZE)
-                                )
-                            }
+                            alchemyNftApi.getNFTCollectionByContactAddress(
+                                requestUrl = NFTRequest.TokensCollection.requestUrl(holder.chain.alchemyNftId),
+                                contractAddress = holder.contractAddress,
+                                withMetadata = true,
+                                startTokenId = pageKey,
+                                limit = holder.paginationRequest.getPageSize(DEFAULT_PAGE_SIZE)
+                            )
                         }
                     }
 
@@ -419,7 +416,7 @@ class NFTRepositoryImpl(
                     )
                 )
             }.collect(this)
-        }
+        }.flowOn(Dispatchers.IO)
     }
 
     override suspend fun contractMetadataBatch(

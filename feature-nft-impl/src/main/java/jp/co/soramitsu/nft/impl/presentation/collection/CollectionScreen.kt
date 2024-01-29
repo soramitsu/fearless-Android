@@ -1,162 +1,146 @@
 package jp.co.soramitsu.nft.impl.presentation.collection
 
-import androidx.annotation.DrawableRes
+import android.os.Bundle
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyGridScope
-import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Divider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
-import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import coil.compose.AsyncImage
+import androidx.navigation.NavGraphBuilder
+import androidx.navigation.NavType
+import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
+import com.valentinilk.shimmer.shimmer
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.compose.component.AccentButton
 import jp.co.soramitsu.common.compose.component.B1
+import jp.co.soramitsu.common.compose.component.B2
 import jp.co.soramitsu.common.compose.component.BackgroundCornered
 import jp.co.soramitsu.common.compose.component.BottomSheetScreen
-import jp.co.soramitsu.common.compose.component.CapsTitle
+import jp.co.soramitsu.common.compose.component.H5
 import jp.co.soramitsu.common.compose.component.H5Bold
+import jp.co.soramitsu.common.compose.component.MainToolbarShimmer
 import jp.co.soramitsu.common.compose.component.MarginVertical
-import jp.co.soramitsu.common.compose.component.MenuIconItem
+import jp.co.soramitsu.common.compose.component.Shimmer
 import jp.co.soramitsu.common.compose.component.Toolbar
+import jp.co.soramitsu.common.compose.component.ToolbarHomeIconState
 import jp.co.soramitsu.common.compose.component.ToolbarViewState
-import jp.co.soramitsu.common.compose.component.getImageRequest
-import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
+import jp.co.soramitsu.common.compose.theme.shimmerColor
+import jp.co.soramitsu.common.compose.theme.white
 import jp.co.soramitsu.common.compose.theme.white08
 import jp.co.soramitsu.common.compose.theme.white50
 import jp.co.soramitsu.common.utils.clickableSingle
+import jp.co.soramitsu.common.compose.models.Loadable
+import jp.co.soramitsu.common.compose.models.Render
+import jp.co.soramitsu.common.compose.models.ScreenLayout
+import jp.co.soramitsu.nft.impl.presentation.collection.utils.createShimmeredNFTViewsArray
+import jp.co.soramitsu.common.compose.models.retrievePainter
+import jp.co.soramitsu.common.compose.models.retrieveString
+import jp.co.soramitsu.common.compose.utils.nestedScrollConnectionForPageScrolling
+import jp.co.soramitsu.common.presentation.LoadingState
+import jp.co.soramitsu.nft.impl.presentation.NftFragment
+import jp.co.soramitsu.nft.impl.presentation.collection.models.NFTsScreenModel
+import jp.co.soramitsu.nft.impl.presentation.collection.models.NFTsScreenView
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.onStart
 
-data class NftCollectionScreenState(
-    val collectionName: String,
-    val collectionImageUrl: String,
-    val collectionDescription: String?,
-    val myNFTs: List<NftItem>,
-    val availableNFTs: List<NftItem>
-)
+@Suppress("FunctionName")
+fun NavGraphBuilder.NFTCollectionsNavComposable(arguments: Bundle?) {
+    composable(
+        "collectionDetails/{${NftCollectionViewModel.COLLECTION_CHAIN_ID}}/{${NftCollectionViewModel.COLLECTION_CONTRACT_ADDRESS_KEY}}",
+        arguments = listOf(
+            navArgument(NftCollectionViewModel.COLLECTION_CHAIN_ID) {
+                type = NavType.StringType
+                defaultValue = arguments?.getString(NftFragment.SELECTED_CHAIN_ID)
+            },
+            navArgument(NftCollectionViewModel.COLLECTION_CONTRACT_ADDRESS_KEY) {
+                type = NavType.StringType
+                defaultValue = arguments?.getString(NftFragment.CONTRACT_ADDRESS_KEY)!!
+            }
+        )
+    ) {
+        val viewModel: NftCollectionViewModel = hiltViewModel()
 
-data class NftItem(
-    val thumbnailUrl: String,
-    val name: String,
-    val description: String?,
-    val id: Int
-)
+        val toolbarViewState = viewModel.toolbarState.collectAsStateWithLifecycle()
 
-private val previewState = NftCollectionScreenState(
-    collectionName = "Birds collection",
-    collectionImageUrl = "",
-    collectionDescription = "Inspired by coin pusher arcade games, CryptoDozer is a coin & doll collecting game - powered by the blockchain. Line up your coins to push crypto dolls into your collection. Use special in-game items, such as Walls, Fever Time and the powerful Bull Dozer to become a CryptoDozer master.",
-    myNFTs = listOf(
-        NftItem("", "Bird1", "#4 in editions of 100", 1),
-        NftItem("", "Bird2", "#5 in editions of 100", 2),
-        NftItem("", "Bird3", "#6 in editions of 100", 3)
-    ),
-    availableNFTs = listOf(
-        NftItem("", "Bird4", "#7 in editions of 100", 4),
-        NftItem("", "Bird5", "#8 in editions of 100", 5)
-    )
-)
+        val snapshotScreenViewsList = remember {
+            mutableStateOf<SnapshotStateList<NFTsScreenView>>(SnapshotStateList())
+        }
+        LaunchedEffect(Unit) {
+            viewModel.state.onStart {
+                snapshotScreenViewsList.value =
+                    SnapshotStateList<NFTsScreenView>()
+                        .apply { addAll(createShimmeredNFTViewsArray()) }
+            }.onEach {
+                snapshotScreenViewsList.value =
+                    SnapshotStateList<NFTsScreenView>()
+                        .apply { addAll(it) }
+            }.collect()
+        }
 
-interface NftCollectionScreenInterface {
-    fun close()
-    fun onItemClick(item: NftItem)
-    fun onSendClick(item: NftItem)
-    fun onShareClick(item: NftItem)
-    fun onLoadPreviousPage()
-    fun onLoadNextPage()
+        NFTCollectionsScreen(
+            screenModel = NFTsScreenModel(
+                toolbarState = toolbarViewState,
+                views = snapshotScreenViewsList.value,
+                pageScrollingCallback = viewModel.pageScrollingCallback
+            )
+        )
+    }
 }
 
 @Composable
-fun NFTCollectionScreen(viewModel: NftCollectionViewModel) {
-    val state: NftCollectionScreenState by viewModel.state.collectAsStateWithLifecycle(previewState)
-    NftCollectionScreen(state = state, screenInterface = viewModel)
-}
-
-@Suppress("NOTHING_TO_INLINE")
-inline fun LazyGridState.isFirstItemFullyVisible(): Boolean {
-    val itemVisibilityInfo = layoutInfo.visibleItemsInfo.firstOrNull() ?: return false
-
-    val isFirstVisible = itemVisibilityInfo.index == 0
-    val isFullyVisible = itemVisibilityInfo.offset.y >= 0
-
-    return isFirstVisible && isFullyVisible
-}
-
-@Suppress("NOTHING_TO_INLINE")
-inline fun LazyGridState.isLastItemFullyVisible(): Boolean {
-    val itemVisibilityInfo = layoutInfo.visibleItemsInfo.lastOrNull() ?: return false
-
-    val isLastItemVisible =
-        itemVisibilityInfo.index == layoutInfo.totalItemsCount.minus(1)
-
-    val itemVisibleHeight = layoutInfo.viewportSize.height - itemVisibilityInfo.offset.y
-
-    val isFullyVisible = itemVisibleHeight == itemVisibilityInfo.size.height
-
-    return isLastItemVisible && isFullyVisible
-}
-
-@Composable
-fun NftCollectionScreen(
-    state: NftCollectionScreenState,
-    screenInterface: NftCollectionScreenInterface
+private fun NFTCollectionsScreen(
+    screenModel: NFTsScreenModel
 ) {
     val lazyGridState = rememberLazyGridState()
 
-    val nestedScrollConnection = remember {
-        object : NestedScrollConnection {
-            override fun onPostScroll(
-                consumed: Offset,
-                available: Offset,
-                source: NestedScrollSource
-            ): Offset {
-                if (lazyGridState.isFirstItemFullyVisible()) {
-                    screenInterface.onLoadPreviousPage()
-                }
-
-                if (lazyGridState.isLastItemFullyVisible()) {
-                    screenInterface.onLoadNextPage()
-                }
-
-                return Offset.Zero
-            }
-        }
+    val nestedScrollConnection = remember(lazyGridState) {
+        lazyGridState.nestedScrollConnectionForPageScrolling(
+            pageScrollingCallback = screenModel.pageScrollingCallback
+        )
     }
 
     BottomSheetScreen {
-        Toolbar(
-            state = ToolbarViewState(
-                state.collectionName,
-                null,
-                MenuIconItem(icon = R.drawable.ic_cross_24, screenInterface::close)
-            )
-        )
+        when (val loadingState = screenModel.toolbarState.value) {
+            is LoadingState.Loaded<ToolbarViewState> ->
+                Toolbar(loadingState.data)
+
+            is LoadingState.Loading<ToolbarViewState> ->
+                MainToolbarShimmer(
+                    homeIconState = ToolbarHomeIconState(
+                        navigationIcon = R.drawable.ic_cross_24
+                    )
+                )
+        }
+
         LazyVerticalGrid(
             state = lazyGridState,
             columns = GridCells.Fixed(2),
@@ -166,57 +150,138 @@ fun NftCollectionScreen(
                 .padding(16.dp)
                 .nestedScroll(nestedScrollConnection)
         ) {
-            this.item(span = { GridItemSpan(2) }) {
-                Column {
-                    AsyncImage(
-                        model = getImageRequest(LocalContext.current, state.collectionImageUrl),
-                        contentDescription = null,
-                        contentScale = ContentScale.FillWidth,
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(8.dp))
-                            .fillMaxWidth()
-                            .wrapContentHeight()
-                    )
-                    MarginVertical(margin = 12.dp)
-                    state.collectionDescription?.let { B1(text = it) }
-                    MarginVertical(margin = 16.dp)
+            for (view in screenModel.views) {
+                when(view) {
+                    is NFTsScreenView.ScreenHeader ->
+                        NFTScreenHeader(view)
+
+                    is NFTsScreenView.SectionHeader ->
+                        NFTSectionHeader(view)
+
+                    is NFTsScreenView.ItemModel ->
+                        NFTItem(view)
                 }
             }
-            nftGridHeader(text = { stringResource(id = R.string.nft_collection_my_nfts) })
-            items(state.myNFTs) {
-                NftItem(it, screenInterface::onItemClick) {
-                    NftItemActionButton(
-                        stringResource(id = R.string.common_action_send),
-                        R.drawable.ic_send_outlined
-                    ) { screenInterface.onSendClick(it) }
-                }
-            }
-            if (state.availableNFTs.isNotEmpty()) {
-                nftGridHeader(text = {
-                    stringResource(
-                        id = R.string.nft_collection_available_nfts,
-                        state.collectionName
-                    )
-                })
-            }
-            items(state.availableNFTs) {
-                NftItem(it, screenInterface::onItemClick) {
-                    NftItemActionButton(
-                        stringResource(id = R.string.common_share),
-                        R.drawable.ic_share_arrow_white_24
-                    ) { screenInterface.onShareClick(it) }
-                }
-            }
+
             item { MarginVertical(margin = 80.dp) }
         }
     }
 }
 
-private fun LazyGridScope.nftGridHeader(text: @Composable () -> String) {
-    item(span = { GridItemSpan(2) }) {
-        Column(modifier = Modifier.padding(horizontal = 12.dp)) {
-            H5Bold(text = text())
-            MarginVertical(margin = 12.dp)
+@Suppress("FunctionName")
+private fun LazyGridScope.NFTScreenHeader(
+    screenHeader: NFTsScreenView.ScreenHeader
+) {
+    when(val thumbnail = screenHeader.thumbnail) {
+        is Loadable.ReadyToRender -> {
+            thumbnail.data?.let { imageModel ->
+                item(
+                    span = { GridItemSpan(2) }
+                ) {
+                    Image(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(8.dp))
+                            .fillMaxWidth()
+                            .aspectRatio(1f),
+                        painter = imageModel.retrievePainter(),
+                        contentDescription = null,
+                        alignment = Alignment.Center,
+                        contentScale = ContentScale.FillWidth
+                    )
+                }
+            }
+        }
+
+        is Loadable.InProgress -> {
+            item(
+                span = { GridItemSpan(2) }
+            ) {
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(8.dp))
+                        .fillMaxWidth()
+                        .aspectRatio(1f)
+                        .shimmer(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(shimmerColor, RoundedCornerShape(11.dp))
+                    )
+                }
+            }
+        }
+    }
+
+    when(val description = screenHeader.description) {
+        is Loadable.ReadyToRender -> {
+            description.data?.let { textModel ->
+                item(
+                    span = { GridItemSpan(2) }
+                ) {
+                    B1(
+                        text = textModel.retrieveString(),
+                        color = white
+                    )
+                }
+            }
+        }
+
+        is Loadable.InProgress -> {
+            item(
+                span = { GridItemSpan(2) }
+            ) {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Shimmer(
+                        modifier = Modifier
+                            .fillMaxWidth(.9f)
+                            .height(13.dp)
+                    )
+                    Shimmer(
+                        modifier = Modifier
+                            .fillMaxWidth(.6f)
+                            .height(13.dp)
+                    )
+
+                    Shimmer(
+                        modifier = Modifier
+                            .fillMaxWidth(.3f)
+                            .height(13.dp)
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Suppress("FunctionName")
+private fun LazyGridScope.NFTSectionHeader(
+    sectionHeader: NFTsScreenView.SectionHeader
+) {
+    item(
+        span = { GridItemSpan(2) }
+    ) {
+        Column(
+            modifier = Modifier.padding(horizontal = 12.dp)
+        ) {
+            sectionHeader.title.Render(
+                shimmerModifier = Modifier
+                    .padding(vertical = 16.dp)
+                    .fillMaxWidth(.4f)
+                    .height(15.dp)
+            ) { _, data ->
+                H5Bold(
+                    modifier = Modifier
+                        .padding(vertical = 16.dp)
+                        .fillMaxWidth()
+                        .wrapContentHeight(),
+                    text = data.retrieveString()
+                )
+            }
+
             Divider(
                 color = white08,
                 modifier = Modifier
@@ -226,57 +291,88 @@ private fun LazyGridScope.nftGridHeader(text: @Composable () -> String) {
     }
 }
 
-@Composable
-private fun NftItemActionButton(text: String, @DrawableRes iconRes: Int, onClick: () -> Unit) {
-    AccentButton(
-        text = text,
-        modifier = Modifier.fillMaxWidth(),
-        iconRes = iconRes,
-        onClick = onClick
-    )
-}
-
-@Composable
-private fun NftItem(
-    item: NftItem,
-    onClick: (NftItem) -> Unit,
-    actionButton: @Composable () -> Unit
+@Suppress("FunctionName")
+private fun LazyGridScope.NFTItem(
+    itemModel: NFTsScreenView.ItemModel
 ) {
-    BackgroundCornered(modifier = Modifier.clickableSingle { onClick(item) }) {
-        Column(modifier = Modifier.padding(8.dp)) {
-            AsyncImage(
-                model = getImageRequest(LocalContext.current, item.thumbnailUrl),
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .clip(RoundedCornerShape(8.dp))
-                    .size(152.dp)
-            )
-            MarginVertical(margin = 6.dp)
-            CapsTitle(text = item.name, color = white50, modifier = Modifier.width(152.dp))
-            item.description?.let {
-                H5Bold(
-                    text = it,
-                    modifier = Modifier.width(152.dp),
-                    maxLines = 2
-                )
-            }
-            actionButton()
+    item(
+        span = {
+            if (itemModel.screenLayout === ScreenLayout.List){
+                GridItemSpan(2)
+            } else GridItemSpan(1)
         }
-    }
-}
+    ) {
+        BackgroundCornered(
+            modifier = Modifier.clickableSingle(onClick = itemModel.onItemClick)
+        ) {
+            itemModel.screenLayout.Render(
+                modifier = Modifier
+                    .padding(8.dp)
+                    .fillMaxWidth()
+            ) {
+                itemModel.thumbnail.Render(
+                    shimmerModifier = Modifier
+                        .clip(RoundedCornerShape(8.dp))
+                        .size(152.dp),
+                    shimmerRadius = 11.dp
+                ) { shimmerModifier, data ->
+                    Image(
+                        modifier = shimmerModifier,
+                        painter = data.retrievePainter(),
+                        contentDescription = null,
+                        alignment = Alignment.Center,
+                        contentScale = ContentScale.Crop
+                    )
+                }
 
-@Preview
-@Composable
-fun NftCollectionScreenPreview() {
-    FearlessAppTheme {
-        NftCollectionScreen(previewState, object : NftCollectionScreenInterface {
-            override fun close() = Unit
-            override fun onItemClick(item: NftItem) = Unit
-            override fun onSendClick(item: NftItem) = Unit
-            override fun onShareClick(item: NftItem) = Unit
-            override fun onLoadPreviousPage() = Unit
-            override fun onLoadNextPage() = Unit
-        })
+                Column {
+                    itemModel.title.Render(
+                        shimmerModifier = Modifier
+                            .fillMaxWidth(.9f)
+                            .height(15.dp)
+                    ) { _, data ->
+                        H5(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .wrapContentHeight(),
+                            text = data.retrieveString(),
+                            color = white
+                        )
+                    }
+
+                    itemModel.description.Render(
+                        shimmerModifier = Modifier
+                            .padding(top = 4.dp)
+                            .fillMaxWidth(.45f)
+                            .height(11.dp)
+                    ) { _, data ->
+                        with(data) {
+                            if (this == null)
+                                return@with
+
+                            B2(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .wrapContentHeight(),
+                                text = this.retrieveString(),
+                                color = white50,
+                                maxLines = 2
+                            )
+                        }
+                    }
+
+                    if (itemModel is NFTsScreenView.ItemModel.WithButtonDecorator) {
+                        AccentButton(
+                            modifier = Modifier
+                                .padding(top = 4.dp)
+                                .fillMaxWidth(),
+                            text = itemModel.buttonText.retrieveString(),
+                            iconRes = itemModel.buttonImage.id,
+                            onClick = itemModel.onButtonClick
+                        )
+                    }
+                }
+            }
+        }
     }
 }
