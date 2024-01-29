@@ -24,7 +24,7 @@ interface AlchemyNftApi {
     suspend fun getUserOwnedNFTsByContractAddress(
         @Url url: String,
         @Query("owner") owner: String,
-        @Query("contractAddress[]") contractAddress: String,
+        @Query("contractAddresses[]") contractAddress: String,
         @Query("withMetadata") withMetadata: Boolean = true,
         @Query("pageKey") pageKey: String? = null,
         @Query("pageSize") pageSize: Int = 1000,

@@ -41,13 +41,13 @@ class NFTInteractorImpl(
 ): NFTInteractor {
 
     override fun setNFTFilter(filter: NFTFilter, isApplied: Boolean) {
-        nftRepository.setNFTFilter(filter.name, isApplied)
+        nftRepository.setNFTFilter(filter.name, !isApplied)
     }
 
     override fun nftFiltersFlow(): Flow<Map<NFTFilter, Boolean>> {
         return nftRepository.nftFiltersFlow.map { allCurrentlyAppliedFilters ->
             NFTFilter.values().associateWith { filter ->
-                filter.name in allCurrentlyAppliedFilters
+                filter.name !in allCurrentlyAppliedFilters
             }
         }
     }

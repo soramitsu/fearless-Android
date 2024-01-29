@@ -771,8 +771,8 @@ class BalanceListViewModel @Inject constructor(
                 viewModelScope.launch(Dispatchers.Main.immediate) {
                     if (error.throwable is MalformedWalletConnectUri) {
                         showError(
-                            title = resourceManager.getString(R.string.connection_invalid_url_error_title),
-                            message = resourceManager.getString(R.string.connection_invalid_url_error_message),
+                            title = resourceManager.getString(R.string.common_copy_id),
+                            message = resourceManager.getString(R.string.common_copy_id),
                             positiveButtonText = resourceManager.getString(R.string.common_close)
                         )
                     } else {

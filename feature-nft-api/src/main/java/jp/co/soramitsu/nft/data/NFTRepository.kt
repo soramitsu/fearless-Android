@@ -39,7 +39,7 @@ interface NFTRepository {
 
     val nftFiltersFlow: Flow<Set<String>>
 
-    fun setNFTFilter(value: String, isApplied: Boolean)
+    fun setNFTFilter(value: String, excludeFromSearchQuery: Boolean)
 
     fun paginatedUserOwnedNFTsFlow(
         paginationRequestFlow: Flow<PaginationRequest>,

@@ -21,14 +21,9 @@ import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Divider
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -63,7 +58,7 @@ import jp.co.soramitsu.common.compose.models.ScreenLayout
 import jp.co.soramitsu.nft.impl.presentation.collection.utils.createShimmeredNFTViewsList
 import jp.co.soramitsu.common.compose.models.retrievePainter
 import jp.co.soramitsu.common.compose.models.retrieveString
-import jp.co.soramitsu.common.compose.utils.nestedScrollConnectionForPageScrolling
+import jp.co.soramitsu.common.compose.utils.SetupScrollingPaginator
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.nft.impl.presentation.NftFragment
 import jp.co.soramitsu.nft.impl.presentation.collection.models.NFTsScreenModel
@@ -105,11 +100,10 @@ private fun NFTCollectionsScreen(
 ) {
     val lazyGridState = rememberLazyGridState()
 
-    val nestedScrollConnection = remember(lazyGridState) {
-        lazyGridState.nestedScrollConnectionForPageScrolling(
-            pageScrollingCallback = screenModel.pageScrollingCallback
-        )
-    }
+    lazyGridState.SetupScrollingPaginator(
+        bufferFromBottom = 1,  // 1 due to marginVertical item
+        pageScrollingCallback = screenModel.pageScrollingCallback
+    )
 
     BottomSheetScreen {
         when (val loadingState = screenModel.toolbarState.value) {
@@ -131,7 +125,6 @@ private fun NFTCollectionsScreen(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier
                 .padding(16.dp)
-                .nestedScroll(nestedScrollConnection)
         ) {
             for (view in screenModel.views) {
                 when(view) {

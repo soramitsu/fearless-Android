@@ -22,12 +22,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -52,7 +50,7 @@ import jp.co.soramitsu.common.compose.theme.white50
 import jp.co.soramitsu.common.utils.castOrNull
 import jp.co.soramitsu.common.utils.clickableSingle
 import jp.co.soramitsu.common.compose.utils.PageScrollingCallback
-import jp.co.soramitsu.common.compose.utils.nestedScrollConnectionForPageScrolling
+import jp.co.soramitsu.common.compose.utils.SetupScrollingPaginator
 import jp.co.soramitsu.wallet.impl.presentation.balance.nft.list.models.NFTCollectionsScreenModel
 import jp.co.soramitsu.wallet.impl.presentation.balance.nft.list.models.NFTCollectionsScreenView
 
@@ -95,19 +93,17 @@ private fun NFTLayout(
 ) {
     val lazyGridState = rememberLazyGridState()
 
-    val nestedScrollConnection = remember(lazyGridState) {
-        lazyGridState.nestedScrollConnectionForPageScrolling(
-            pageScrollingCallback = pageScrollingCallback
-        )
-    }
+    lazyGridState.SetupScrollingPaginator(
+        bufferFromBottom = 1,  // 1 due to marginVertical item
+        pageScrollingCallback = pageScrollingCallback
+    )
 
     LazyVerticalGrid(
         state = lazyGridState,
         columns = GridCells.Fixed(2),
         contentPadding = PaddingValues(vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        modifier = Modifier.nestedScroll(nestedScrollConnection)
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         for (view in views) {
             when(view) {
@@ -119,7 +115,9 @@ private fun NFTLayout(
             }
         }
 
-        item { MarginVertical(margin = 80.dp) }
+        item(
+            span = { GridItemSpan(2) }
+        ) { MarginVertical(margin = 80.dp) }
     }
 }
 
@@ -127,7 +125,11 @@ private fun NFTLayout(
 private fun LazyGridScope.NFTEmptyPlaceholder(
     placeholderModel: NFTCollectionsScreenView.EmptyPlaceHolder
 ) {
-    item {
+    item(
+        span = {
+            GridItemSpan(2)
+        }
+    ) {
         Box(
             contentAlignment = Alignment.Center,
             modifier = Modifier

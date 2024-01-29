@@ -94,15 +94,15 @@ class NFTRepositoryImpl(
         }.onStart { emit(filtersSnapshot) }.collect(this)
     }.shareIn(scope = localScope, started = SharingStarted.Eagerly, replay = 1)
 
-    override fun setNFTFilter(value: String, isApplied: Boolean) {
+    override fun setNFTFilter(value: String, excludeFromSearchQuery: Boolean) {
         /* non-suspended call to avoid UI delays or inconsistencies */
-        mutableFiltersFlow.tryEmit(value to isApplied)
+        mutableFiltersFlow.tryEmit(value to excludeFromSearchQuery)
 
         localScope.launch {
             with(preferences) {
                 val mutableFilters = getStringSet(NFT_FILTERS_KEY, emptySet()).toMutableSet()
 
-                if (isApplied) mutableFilters.add(value)
+                if (excludeFromSearchQuery) mutableFilters.add(value)
                 else mutableFilters.remove(value)
 
                 putStringSet(NFT_FILTERS_KEY, mutableFilters)
