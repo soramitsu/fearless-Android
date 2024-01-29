@@ -35,7 +35,11 @@ class FiatSmallFormatter(
         locale?.let {
             delegate.decimalFormatSymbols = DecimalFormatSymbols(locale)
         }
-        val formattedValue = delegate.format(number).toBigDecimal()
+        val formattedValue = try {
+            delegate.format(number).replace(',', '.').toBigDecimal()
+        } catch (e: NumberFormatException) {
+            number
+        }
         return FullPrecisionFormatter(locale).format(formattedValue)
     }
 }
