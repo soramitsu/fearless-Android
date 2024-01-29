@@ -1,8 +1,8 @@
 package jp.co.soramitsu.nft.data
 
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
-import jp.co.soramitsu.nft.data.pagination.PaginationRequest
 import jp.co.soramitsu.nft.data.models.TokenInfo
+import jp.co.soramitsu.nft.data.pagination.PaginationRequest
 import jp.co.soramitsu.nft.data.pagination.PaginationEvent
 import jp.co.soramitsu.nft.data.models.wrappers.NFTResponse
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain

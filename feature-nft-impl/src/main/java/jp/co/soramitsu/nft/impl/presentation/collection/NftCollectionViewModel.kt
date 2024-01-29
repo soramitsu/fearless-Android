@@ -14,18 +14,16 @@ import jp.co.soramitsu.nft.domain.NFTInteractor
 import jp.co.soramitsu.nft.domain.models.NFTCollection
 import jp.co.soramitsu.common.compose.utils.PageScrollingCallback
 import jp.co.soramitsu.common.presentation.LoadingState
+import jp.co.soramitsu.common.utils.distinctUntilChangedOrDebounce
 import jp.co.soramitsu.nft.impl.presentation.collection.models.NFTsScreenView
 import jp.co.soramitsu.nft.impl.presentation.collection.utils.toScreenViewArray
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.transform
@@ -71,11 +69,14 @@ class NftCollectionViewModel @Inject constructor(
         replay = 1
     )
 
-    @OptIn(FlowPreview::class)
     private fun createCollectionsNFTsFlow(): Flow<List<NFTsScreenView>> {
-        val paginationRequestHelperFlow = mutablePaginationRequestFlow.onStart {
-            emit(PaginationRequest.Start)
-        }.debounce(10_000)
+        val paginationRequestHelperFlow = mutablePaginationRequestFlow
+            .distinctUntilChangedOrDebounce(debounceTimeout = 10_000) { prevValue, currentValue ->
+                if (prevValue == null)
+                    return@distinctUntilChangedOrDebounce false
+
+                return@distinctUntilChangedOrDebounce prevValue::class == currentValue::class
+            }.onStart { emit(PaginationRequest.Start) }
 
         return nftInteractor.collectionNFTsFlow(
             paginationRequestFlow = paginationRequestHelperFlow,

@@ -41,7 +41,7 @@ fun NFTResponse.TokensCollection.toFullNFTCollection(
         tokens = tokenInfoList.map {
             it.toFullNFT(
                 chain = chain,
-                contractAddress = contractAddress
+                contractAddress = it.contract?.address.orEmpty()
             )
         },
         collectionSize = contractMetadata?.totalSupply?.toIntOrNull()
@@ -57,7 +57,7 @@ fun TokenInfo.WithMetadata.toFullNFT(
 
     return NFTCollection.NFT.Full(
         title = title ?: metadata?.name ?: collectionName.let { name -> "$name ${id?.tokenId}" },
-        thumbnail = (media?.firstOrNull()?.thumbnail ?: metadata?.image).orEmpty(),
+        thumbnail = (media?.firstOrNull { it.thumbnail != null }?.thumbnail ?: metadata?.image).orEmpty(),
         description = (description ?: contractMetadata?.openSea?.description).orEmpty(),
         collectionName = collectionName,
         contractAddress = contractAddress,

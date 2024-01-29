@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flattenMerge
@@ -240,4 +241,16 @@ inline fun <T> Flow<T>.refreshOnNewDistinct(
         */
         return@distinctUntilChanged false
     }
+}
+
+@OptIn(FlowPreview::class)
+inline fun <T> Flow<T>.distinctUntilChangedOrDebounce(
+    debounceTimeout: Long,
+    crossinline areEquivalent: (prevValue: T?, currentValue: T) -> Boolean
+): Flow<T> {
+    return zipWithPrevious().debounce { (prevValue, currentValue) ->
+        if (areEquivalent(prevValue, currentValue)) {
+            debounceTimeout
+        } else 0L
+    }.map { (_, currentValue) -> currentValue }
 }
