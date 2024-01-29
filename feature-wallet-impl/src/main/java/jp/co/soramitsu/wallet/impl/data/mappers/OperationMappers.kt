@@ -207,7 +207,7 @@ fun TxHistoryItem.toOperation(
                 time = timeInMillis,
                 chainAsset = chainAsset,
                 type = Operation.Type.Transfer(
-                    hash = blockHash,
+                    hash = id,
                     myAddress = data?.firstOrNull { it.paramName == "from" }?.paramValue.orEmpty(),
                     amount = chainAsset.planksFromAmount(
                         data?.firstOrNull { it.paramName == "amount" }?.paramValue?.toBigDecimal()
@@ -287,7 +287,7 @@ fun TxHistoryItem.toOperation(
                 time = timeInMillis,
                 chainAsset = chainAsset,
                 type = Operation.Type.Extrinsic(
-                    hash = blockHash,
+                    hash = id,
                     module = module,
                     call = method,
                     status = Operation.Status.fromSuccess(success),
@@ -512,7 +512,7 @@ fun mapOperationToParcel(
                 OperationParcelizeModel.Transfer(
                     time = time,
                     address = address,
-                    hash = operation.id,
+                    hash = operationType.hash,
                     amount = formatDetailsAmount(operation.chainAsset, operationType),
                     receiver = operationType.receiver,
                     sender = operationType.sender,
