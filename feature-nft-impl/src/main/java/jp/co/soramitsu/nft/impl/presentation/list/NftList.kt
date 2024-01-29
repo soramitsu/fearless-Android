@@ -65,10 +65,11 @@ import kotlinx.coroutines.flow.onStart
 
 @Composable
 fun NFTScreen(collectionsScreen: NFTCollectionsScreenModel) {
-    val screenLayout = collectionsScreen.viewsArray.firstOrNull {
-        it is NFTCollectionsScreenView.ItemModel
-    }?.castOrNull<NFTCollectionsScreenView.ItemModel>()?.screenLayout
-        ?: ScreenLayout.Grid
+    val screenLayout =
+        (collectionsScreen.viewsArray.firstOrNull {
+            it is NFTCollectionsScreenView.ItemModel
+        } as? NFTCollectionsScreenView.ItemModel)?.screenLayout
+            ?: ScreenLayout.Grid
 
     val snapshotScreenViewsList = remember {
         mutableStateOf(SnapshotStateList<NFTCollectionsScreenView>())

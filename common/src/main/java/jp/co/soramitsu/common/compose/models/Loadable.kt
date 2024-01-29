@@ -26,6 +26,7 @@ sealed interface Loadable<T> {
 }
 
 @Composable
+@Suppress("NOTHING_TO_INLINE")
 inline fun <T> Loadable<T>.Render(
     shimmerModifier: Modifier,
     shimmerRadius: Dp = 50.dp,

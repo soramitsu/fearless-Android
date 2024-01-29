@@ -66,11 +66,6 @@ import jp.co.soramitsu.nft.impl.presentation.list.models.NFTCollectionsScreenMod
 import jp.co.soramitsu.nft.impl.presentation.list.models.NFTCollectionsScreenView
 import jp.co.soramitsu.nft.impl.presentation.list.utils.createShimmeredNFTCollectionsViewsArray
 import jp.co.soramitsu.nft.impl.presentation.list.utils.toScreenViewsArray
-import jp.co.soramitsu.oauth.base.sdk.contract.SoraCardCommonVerification
-import jp.co.soramitsu.oauth.base.sdk.contract.SoraCardContractData
-import jp.co.soramitsu.oauth.common.domain.KycRepository
-import jp.co.soramitsu.runtime.ext.ecosystem
-import jp.co.soramitsu.runtime.multiNetwork.chain.ChainEcosystem
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.defaultChainSort
@@ -127,7 +122,6 @@ private const val CURRENT_ICON_SIZE = 40
 @HiltViewModel
 class BalanceListViewModel @Inject constructor(
     private val interactor: WalletInteractor,
-    private val soraCardInteractor: SoraCardInteractor,
     private val chainInteractor: ChainInteractor,
     private val addressIconGenerator: AddressIconGenerator,
     private val router: WalletRouter,
@@ -142,7 +136,7 @@ class BalanceListViewModel @Inject constructor(
     private val getTotalBalance: TotalBalanceUseCase,
     private val pendulumPreInstalledAccountsScenario: PendulumPreInstalledAccountsScenario,
     private val nftRouter: NftRouter,
-    private val nftInteractor: NFTInteractor
+    private val nftInteractor: NFTInteractor,
     private val walletConnectInteractor: WalletConnectInteractor
 ) : BaseViewModel(), UpdatesProviderUi by updatesMixin, NetworkStateUi by networkStateMixin,
     WalletScreenInterface {
@@ -157,9 +151,6 @@ class BalanceListViewModel @Inject constructor(
 
     private val _openPlayMarket = MutableLiveData<Event<Unit>>()
     val openPlayMarket: LiveData<Event<Unit>> = _openPlayMarket
-
-    private val _launchSoraCardSignIn = MutableLiveData<Event<SoraCardContractData>>()
-    val launchSoraCardSignIn: LiveData<Event<SoraCardContractData>> = _launchSoraCardSignIn
 
     private val mutableScreenLayoutFlow = MutableStateFlow(ScreenLayout.Grid)
 
@@ -445,8 +436,8 @@ class BalanceListViewModel @Inject constructor(
     val state = MutableStateFlow(WalletState.default)
 
     private fun subscribeScreenState() {
-        assetStates.onEach {
-            state.value = state.value.copy(assets = it)
+        assetTypeState.onEach {
+            state.value = state.value.copy(assetsState = it)
         }.launchIn(this)
 
         assetTypeSelectorState.onEach {

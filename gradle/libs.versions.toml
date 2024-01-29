@@ -19,7 +19,7 @@ android_plugin = "7.4.2"
 sharedFeaturesVersion = "1.1.1.13-SNAPSHOT"
 web3j = "4.8.8-android"
 walletconnectBom = "1.18.0"
-coilVersion = "2.2.2"
+coil = "2.2.2"
 zXingVersion = "3.5.1"
 zXingEmbeddedVersion = "4.3.0"
 shimmer = "1.0.4"
@@ -65,8 +65,6 @@ compose-lifecycleViewModel = { module = "androidx.lifecycle:lifecycle-viewmodel-
 compose-runtimeLifecycle = { module = "androidx.lifecycle:lifecycle-runtime-compose", version.ref = "composeLifecycleVersion"}
 compose-navigation = { module = "androidx.navigation:navigation-compose", version.ref = "composeNavigationVersion" }
 
-coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilVersion" }
-
 fragmentKtx = { module = "androidx.fragment:fragment-ktx", version.ref = "fragmentKtx" }
 material = { module = "com.google.android.material:material", version.ref = "material" }
 
@@ -84,11 +82,6 @@ web3jDep = { module = "org.web3j:core", version.ref = "web3j" }
 walletconnectBomDep = { module = "com.walletconnect:android-bom", version.ref = "walletconnectBom" }
 walletconnectCoreDep = { module = "com.walletconnect:android-core" }
 walletconnectWeb3WalletDep = { module = "com.walletconnect:web3wallet" }
-sharedFeaturesCoreDep = { module = "jp.co.soramitsu.shared_features:core", version.ref = "sharedFeaturesVersion" }
-sharedFeaturesXcmDep = { module = "jp.co.soramitsu.shared_features:xcm", version.ref = "sharedFeaturesVersion" }
-sharedFeaturesBackupDep = { module = "jp.co.soramitsu.shared_features:backup", version.ref = "sharedFeaturesVersion" }
-
-web3jDep = { module = "org.web3j:core", version.ref = "web3j" }
 
 coil = { module = "io.coil-kt:coil", version.ref = "coil" }
 coilSvg = { module = "io.coil-kt:coil-svg", version.ref = "coil" }
@@ -103,7 +96,7 @@ scalarsConverter = { module = "com.squareup.retrofit2:converter-scalars", versio
 compose = [
     "compose-runtime", "compose-ui", "compose-runtimeLiveData", "compose-compiler",
     "compose-foundation", "compose-material", "compose-themeAdapter", "compose-animation",
-    "compose-animationGraphics", "compose-uiToolingPreview", "coil-compose", "shimmers",
+    "compose-animationGraphics", "compose-uiToolingPreview", "composeCoil", "shimmers",
     "hiltNavigationCompose", "compose-lifecycleViewModel", "compose-runtimeLifecycle"
 ]
 coroutines = ["coroutines-core", "coroutines-android"]

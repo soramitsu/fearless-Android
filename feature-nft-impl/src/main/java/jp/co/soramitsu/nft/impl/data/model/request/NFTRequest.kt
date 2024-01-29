@@ -2,7 +2,7 @@ package jp.co.soramitsu.nft.impl.data.model.request
 
 import jp.co.soramitsu.feature_nft_impl.BuildConfig
 import okhttp3.MediaType
-import okhttp3.internal.commonToMediaTypeOrNull
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
 
 sealed interface NFTRequest {
     class ContractMetadataBatch: NFTRequest {
@@ -14,7 +14,7 @@ sealed interface NFTRequest {
         }
 
         data class Body(
-            val mediaType: MediaType = "application/json".commonToMediaTypeOrNull()!!,
+            val mediaType: MediaType = "application/json".toMediaTypeOrNull()!!,
             val contractAddresses: List<String>
         )
     }
