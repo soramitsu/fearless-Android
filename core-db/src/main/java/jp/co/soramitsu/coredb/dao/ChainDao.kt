@@ -7,6 +7,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import jp.co.soramitsu.core.utils.removedXcPrefix
+import jp.co.soramitsu.coredb.dao.AssetDao.Companion.xcPrefix
 import jp.co.soramitsu.coredb.model.AssetWithToken
 import jp.co.soramitsu.coredb.model.chain.ChainAssetLocal
 import jp.co.soramitsu.coredb.model.chain.ChainExplorerLocal
@@ -181,7 +182,4 @@ abstract class ChainDao {
         assetSymbol: String
     ): Flow<Map<JoinedChainInfo, AssetWithToken>>
 
-    companion object {
-        private const val xcPrefix = "xc"
-    }
 }
