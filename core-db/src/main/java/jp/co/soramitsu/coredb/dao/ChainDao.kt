@@ -6,6 +6,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
+import jp.co.soramitsu.core.utils.removedXcPrefix
 import jp.co.soramitsu.coredb.model.AssetWithToken
 import jp.co.soramitsu.coredb.model.chain.ChainAssetLocal
 import jp.co.soramitsu.coredb.model.chain.ChainExplorerLocal
@@ -152,7 +153,7 @@ abstract class ChainDao {
         return observeAssetSymbolById(assetId).flatMapLatest { symbol ->
             observeChainsWithBalanceByName(
                 accountMetaId = accountMetaId,
-                assetSymbol = symbol
+                assetSymbol = symbol.removedXcPrefix()
             )
         }
     }
@@ -171,7 +172,7 @@ abstract class ChainDao {
             JOIN assets a ON c.id = a.chainId
             LEFT JOIN token_price AS tp ON a.tokenPriceId = tp.priceId 
             LEFT JOIN chain_assets ca ON ca.id = a.id
-            WHERE ca.symbol = :assetSymbol
+            WHERE ca.symbol in (:assetSymbol, '$xcPrefix'||:assetSymbol)
             AND a.metaId = :accountMetaId
         """
     )
@@ -180,4 +181,7 @@ abstract class ChainDao {
         assetSymbol: String
     ): Flow<Map<JoinedChainInfo, AssetWithToken>>
 
+    companion object {
+        private const val xcPrefix = "xc"
+    }
 }
