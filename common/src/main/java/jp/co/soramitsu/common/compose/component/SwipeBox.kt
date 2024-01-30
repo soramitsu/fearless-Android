@@ -161,6 +161,7 @@ private fun AssetItemSwipeBoxPreview() {
     )
 
     val assetListItemViewState = AssetListItemViewState(
+        index = 0,
         assetIconUrl = "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Polkadot.svg",
         assetChainName = "Karura",
         assetName = "Karura asset",
