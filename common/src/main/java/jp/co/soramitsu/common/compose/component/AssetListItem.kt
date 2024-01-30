@@ -337,6 +337,7 @@ private fun PreviewAssetListItem() {
     )
 
     val state = AssetListItemViewState(
+        index = 0,
         assetIconUrl = assetIconUrl,
         assetName = "Karura asset",
         assetChainName = "Karura",
