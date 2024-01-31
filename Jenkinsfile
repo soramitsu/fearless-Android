@@ -3,6 +3,7 @@
 // Job properties
 def jobParams = [
   booleanParam(defaultValue: false, description: 'push to the dev profile', name: 'prDeployment'),
+  booleanParam(defaultValue: false, description: 'Upload builds to nexus(master,develop and staging branches upload always)', name: 'upload_to_nexus'),
 ]
 
 def pipeline = new org.android.AppPipeline(
@@ -17,6 +18,7 @@ def pipeline = new org.android.AppPipeline(
     publishCmd:       'publishReleaseApk',
     jobParams:        jobParams,
     appPushNoti:      true,
-    dojoProductType:  'android'
+    dojoProductType:  'android',
+    uploadToNexusFor: ['master','develop','staging']
 )
 pipeline.runPipeline('fearless')
