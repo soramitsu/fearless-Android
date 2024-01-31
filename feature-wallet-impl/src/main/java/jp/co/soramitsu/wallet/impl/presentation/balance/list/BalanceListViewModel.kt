@@ -3,6 +3,7 @@ package jp.co.soramitsu.wallet.impl.presentation.balance.list
 import android.widget.LinearLayout
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.SwipeableState
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
@@ -58,14 +59,11 @@ import jp.co.soramitsu.nft.data.pagination.PaginationRequest
 import jp.co.soramitsu.nft.domain.NFTInteractor
 import jp.co.soramitsu.nft.domain.models.NFTCollection
 import jp.co.soramitsu.nft.impl.presentation.NftRouter
-import jp.co.soramitsu.nft.domain.models.NFTFilter
 import jp.co.soramitsu.common.compose.utils.PageScrollingCallback
-import jp.co.soramitsu.nft.impl.presentation.filters.NftFilterModel
-import jp.co.soramitsu.nft.impl.presentation.filters.NftFiltersFragment
-import jp.co.soramitsu.nft.impl.presentation.list.models.NFTCollectionsScreenModel
-import jp.co.soramitsu.nft.impl.presentation.list.models.NFTCollectionsScreenView
-import jp.co.soramitsu.nft.impl.presentation.list.utils.createShimmeredNFTCollectionsViewsArray
-import jp.co.soramitsu.nft.impl.presentation.list.utils.toScreenViewsArray
+import jp.co.soramitsu.wallet.impl.presentation.balance.nft.list.models.NFTCollectionsScreenModel
+import jp.co.soramitsu.wallet.impl.presentation.balance.nft.list.models.NFTCollectionsScreenView
+import jp.co.soramitsu.wallet.impl.presentation.balance.nft.list.utils.createShimmeredNFTCollectionsViewsList
+import jp.co.soramitsu.wallet.impl.presentation.balance.nft.list.utils.toStableViewsList
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.defaultChainSort
@@ -73,7 +71,6 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.pendulumChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraTestChainId
 import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.toAddress
-import jp.co.soramitsu.soracard.api.domain.SoraCardInteractor
 import jp.co.soramitsu.soracard.impl.presentation.SoraCardItemViewState
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.updaters.BalanceUpdateTrigger
 import jp.co.soramitsu.wallet.impl.domain.ChainInteractor
@@ -269,7 +266,7 @@ class BalanceListViewModel @Inject constructor(
     }.onStart { emit(buildInitialAssetsList().toMutableList()) }.inBackground().share()
 
     @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
-    private fun createNFTCollectionScreenViewsFlow(): Flow<ArrayDeque<NFTCollectionsScreenView>> {
+    private fun createNFTCollectionScreenViewsFlow(): Flow<SnapshotStateList<NFTCollectionsScreenView>> {
         val pullToRefreshHelperFlow = BalanceUpdateTrigger.observe()
             .map { PaginationRequest.Next.Page }
 
@@ -292,7 +289,7 @@ class BalanceListViewModel @Inject constructor(
             ) {
                 showError("Failed to load NFTs")
                 return@transformLatest emit(
-                    ArrayDeque<NFTCollectionsScreenView>().apply {
+                    SnapshotStateList<NFTCollectionsScreenView>().apply {
                         add(NFTCollectionsScreenView.EmptyPlaceHolder.DEFAULT)
                     }
                 )
@@ -318,24 +315,18 @@ class BalanceListViewModel @Inject constructor(
                 }.cast<List<NFTCollection<NFTCollection.NFT.Light>>>()
 
             return@transformLatest successfulNFTCollectionsList
-                .toScreenViewsArray(
+                .toStableViewsList(
                     screenLayout = screenLayout,
                     onItemClick = { router.openNftCollection(it.chainId, it.contractAddress!!) }
                 ).run { emit(this) }
         }.onStart {
-            createShimmeredNFTCollectionsViewsArray(
+            createShimmeredNFTCollectionsViewsList(
                 ScreenLayout.Grid
             ).also { emit(it) }
 
             delay(10_000) // wait till internal flows start
         }
     }
-
-    private val defaultFiltersState =
-        NftFilterModel(mapOf(NFTFilter.Spam to true, NFTFilter.Airdrops to false))
-
-    private val filtersFlow = nftRouter.nftFiltersResultFlow(NftFiltersFragment.KEY_RESULT)
-        .stateIn(viewModelScope, SharingStarted.Eagerly, defaultFiltersState)
 
     private val assetTypeState = combine(
         assetTypeSelectorState,
@@ -352,8 +343,8 @@ class BalanceListViewModel @Inject constructor(
                 WalletAssetsState.NftAssets(
                     NFTCollectionsScreenModel(
                         areFiltersApplied = filters.any { (_, isEnabled) -> isEnabled },
-                        viewsArray = views,
-                        onFiltersIconClick = { nftRouter.openNftFilters(filtersFlow.value) },
+                        views = views,
+                        onFiltersIconClick = { nftRouter.openNftFilters() },
                         onScreenLayoutChanged = { mutableScreenLayoutFlow.value = it },
                         pageScrollingCallback = pageScrollingCallback
                     )
@@ -780,8 +771,8 @@ class BalanceListViewModel @Inject constructor(
                 viewModelScope.launch(Dispatchers.Main.immediate) {
                     if (error.throwable is MalformedWalletConnectUri) {
                         showError(
-                            title = resourceManager.getString(R.string.common_copy_id),
-                            message = resourceManager.getString(R.string.common_copy_id),
+                            title = resourceManager.getString(R.string.connection_invalid_url_error_title),
+                            message = resourceManager.getString(R.string.connection_invalid_url_error_message),
                             positiveButtonText = resourceManager.getString(R.string.common_close)
                         )
                     } else {

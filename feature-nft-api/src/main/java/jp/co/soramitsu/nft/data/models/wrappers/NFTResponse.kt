@@ -7,7 +7,7 @@ sealed interface NFTResponse {
     class ContractMetadata(
         val address: String?,
         val contractMetadata: TokenInfo.WithMetadata.ContractMetadata?
-    ): NFTResponse {
+    ) : NFTResponse {
         companion object;
     }
 
@@ -15,21 +15,20 @@ sealed interface NFTResponse {
         val tokensInfoList: List<TokenInfo.WithoutMetadata>,
         val nextPage: String?,
         val totalCount: Int?
-    ): NFTResponse {
+    ) : NFTResponse {
         companion object;
     }
 
     class TokensCollection(
         val tokenInfoList: List<TokenInfo.WithMetadata>,
         val nextPage: String?
-    ): NFTResponse {
+    ) : NFTResponse {
         companion object;
     }
 
     class TokenOwners(
         val ownersList: List<String>
-    ): NFTResponse {
+    ) : NFTResponse {
         companion object
     }
-
 }

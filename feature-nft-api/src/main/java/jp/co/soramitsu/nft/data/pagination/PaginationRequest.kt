@@ -6,9 +6,9 @@ sealed interface PaginationRequest {
         val Start = Next.Specific(page = null)
     }
 
-    sealed interface Prev: PaginationRequest {
+    sealed interface Prev : PaginationRequest {
 
-        object Page: Prev {
+        object Page : Prev {
             override fun toString(): String {
                 return "PaginationRequest.Prev.Page"
             }
@@ -17,22 +17,21 @@ sealed interface PaginationRequest {
         @JvmInline
         value class WithSize(
             val pageLimit: Int
-        ): Prev
+        ) : Prev
 
         class TwoBeforeSpecific(
             val page: String?,
             val pageLimit: Int? = null
-        ): Prev {
+        ) : Prev {
             override fun toString(): String {
                 return "PaginationRequest.Prev.TwoBeforeSpecific(page: $page, pageLimit: $pageLimit)"
             }
         }
-
     }
 
-    sealed interface Next: PaginationRequest {
+    sealed interface Next : PaginationRequest {
 
-        object Page: Next {
+        object Page : Next {
             override fun toString(): String {
                 return "PaginationRequest.Next.Page"
             }
@@ -41,17 +40,15 @@ sealed interface PaginationRequest {
         @JvmInline
         value class WithSize(
             val pageLimit: Int
-        ): Next
+        ) : Next
 
         class Specific(
             val page: String?,
             val pageLimit: Int? = null
-        ): Next {
+        ) : Next {
             override fun toString(): String {
                 return "PaginationRequest.Next.Specific(page: $page, pageLimit: $pageLimit)"
             }
         }
-
     }
-
 }

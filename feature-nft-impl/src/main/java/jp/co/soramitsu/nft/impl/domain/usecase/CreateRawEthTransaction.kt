@@ -7,11 +7,9 @@ import jp.co.soramitsu.runtime.multiNetwork.connection.EthereumWebSocketConnecti
 import org.web3j.crypto.RawTransaction
 import java.math.BigInteger
 
-@Suppress("FunctionName")
-suspend fun EthereumWebSocketConnection.CreateRawEthTransaction(
-    call: EthCall
-): RawTransaction {
-    return when(call) {
+@Suppress("FunctionName", "UseIfInsteadOfWhen")
+suspend fun EthereumWebSocketConnection.CreateRawEthTransaction(call: EthCall): RawTransaction {
+    return when (call) {
         is EthCall.SmartContractCall ->
             EIP1559CallImpl.createAsync(
                 ethConnection = this,
@@ -29,8 +27,9 @@ suspend fun EthereumWebSocketConnection.CreateRawEthTransaction(
     }.convertToWeb3RawTransaction()
 }
 
-private fun <T: EthCall> EIP1559Call<T>.convertToWeb3RawTransaction(): RawTransaction {
-    return when(call) {
+@Suppress("UseIfInsteadOfWhen")
+private fun <T : EthCall> EIP1559Call<T>.convertToWeb3RawTransaction(): RawTransaction {
+    return when (call) {
         is EthCall.SmartContractCall ->
             RawTransaction.createTransaction(
                 chainId,

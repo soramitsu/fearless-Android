@@ -10,9 +10,9 @@ import jp.co.soramitsu.nft.data.NFTRepository
 import jp.co.soramitsu.nft.data.UserOwnedTokensByContractAddressPagedResponse
 import jp.co.soramitsu.nft.data.UserOwnedTokensPagedResponse
 import jp.co.soramitsu.nft.data.models.TokenInfo
+import jp.co.soramitsu.nft.data.models.wrappers.NFTResponse
 import jp.co.soramitsu.nft.data.pagination.PaginationEvent
 import jp.co.soramitsu.nft.data.pagination.PaginationRequest
-import jp.co.soramitsu.nft.data.models.wrappers.NFTResponse
 import jp.co.soramitsu.nft.data.pagination.mapToPaginationEvent
 import jp.co.soramitsu.nft.impl.data.model.request.NFTRequest
 import jp.co.soramitsu.nft.impl.data.model.utils.getPageSize
@@ -47,27 +47,34 @@ import java.util.Stack
 internal const val DEFAULT_PAGE_SIZE = 100
 internal const val NFT_FILTERS_KEY = "NFT_FILTERS_KEY"
 
+@Suppress("LargeClass")
 class NFTRepositoryImpl(
     private val alchemyNftApi: AlchemyNftApi,
     private val preferences: Preferences
-): NFTRepository {
+) : NFTRepository {
 
     private val localScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     private val mutableFiltersFlow = MutableSharedFlow<Pair<String, Boolean>>(
         replay = 1,
-        onBufferOverflow = BufferOverflow.DROP_OLDEST
+        onBufferOverflow = BufferOverflow.DROP_LATEST
     )
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    override val nftFiltersFlow: Flow<Set<Pair<String, Boolean>>> = flow {
-        var filtersSnapshot: Set<Pair<String, Boolean>> =
-            preferences.getStringSet(NFT_FILTERS_KEY, emptySet()).map { it to true }.toSet()
+    @Suppress("IfElseBracing", "NoSingleLineBlockComment")
+    override val nftFiltersFlow: Flow<Set<String>> = flow {
+        var filtersSnapshot: MutableSet<String> = preferences.getStringSet(
+            NFT_FILTERS_KEY,
+            emptySet()
+        ).toMutableSet()
 
-        mutableFiltersFlow.buffer().transformLatest { newFilterToIsApplied ->
-            val cache = filtersSnapshot.toMutableSet().apply {
-                removeIf { it.first == newFilterToIsApplied.first }
-                add(newFilterToIsApplied)
+        mutableFiltersFlow.buffer().transformLatest { (filter, isApplied) ->
+            val cache = filtersSnapshot.apply {
+                if (isApplied) {
+                    add(filter)
+                } else {
+                    remove(filter)
+                }
             }
 
             emit(cache)
@@ -77,51 +84,37 @@ class NFTRepositoryImpl(
                 to compare saved selection
 
                 1) Delay will be cancelled by use of collectLatest except for the last one
-            */
+             */
             kotlinx.coroutines.delay(10_000)
 
             val dbCache = preferences.getStringSet(NFT_FILTERS_KEY, emptySet())
 
-            if (
-                dbCache.containsAll(
-                    cache.filter { it.second } // filter out non selected filters
-                        .map { it.first } // get only selected filters
-                )
-            ) return@transformLatest
+            if (dbCache.containsAll(cache)) {
+                return@transformLatest
+            }
 
-            filtersSnapshot = dbCache.map { filter ->
-                val isApplied = true
+            filtersSnapshot = dbCache.toMutableSet()
 
-                return@map filter to isApplied
-            }.toMutableSet()
-
-            emit(filtersSnapshot.toSet())
+            emit(filtersSnapshot)
         }.onStart { emit(filtersSnapshot) }.collect(this)
     }.shareIn(scope = localScope, started = SharingStarted.Eagerly, replay = 1)
 
-    override fun setNFTFilter(value: String, isApplied: Boolean) {
+    override fun setNFTFilter(value: String, excludeFromSearchQuery: Boolean) {
+        // non-suspended call to avoid UI delays or inconsistencies
+        mutableFiltersFlow.tryEmit(value to excludeFromSearchQuery)
+
         localScope.launch {
             with(preferences) {
                 val mutableFilters = getStringSet(NFT_FILTERS_KEY, emptySet()).toMutableSet()
 
-                when {
-                    value in mutableFilters && !isApplied ->
-                        mutableFilters.remove(value)
-
-                    value !in mutableFilters && isApplied ->
-                        mutableFilters.add(value)
-
-                    else -> Unit /* DO NOTHING */
+                if (excludeFromSearchQuery) {
+                    mutableFilters.add(value)
+                } else {
+                    mutableFilters.remove(value)
                 }
 
                 putStringSet(NFT_FILTERS_KEY, mutableFilters)
             }
-        }.invokeOnCompletion {
-            if (it != null)
-                return@invokeOnCompletion
-
-            /* non-suspended call to avoid UI delays or inconsistencies */
-            mutableFiltersFlow.tryEmit(value to isApplied)
         }
     }
 
@@ -181,14 +174,16 @@ class NFTRepositoryImpl(
                     exclusionFilters = filters
                 ).toList()
 
-                /* Add pageKeys to page iterators for next pagination request */
+                // Add pageKeys to page iterators for next pagination request
                 for (pagedResponse in result) {
                     val pageDataWrapper = pagedResponse.result.getOrNull()
 
                     if (
                         pageDataWrapper == null ||
                         pageDataWrapper !is PaginationEvent.PageIsLoaded
-                    ) continue
+                    ) {
+                        continue
+                    }
 
                     mutex.withLock {
                         val pageStack = pageStackMap.getOrPut(
@@ -196,8 +191,9 @@ class NFTRepositoryImpl(
                             newPageStackBuilder
                         )
 
-                        if (pagedResponse.paginationRequest is PaginationRequest.Next)
+                        if (pagedResponse.paginationRequest is PaginationRequest.Next) {
                             pageStack.push(pageDataWrapper.data.nextPage)
+                        }
                     }
                 }
 
@@ -320,11 +316,14 @@ class NFTRepositoryImpl(
                     if (
                         this == null ||
                         this !is PaginationEvent.PageIsLoaded
-                    ) return@with
+                    ) {
+                        return@with
+                    }
 
                     mutex.withLock {
-                        if (holder.paginationRequest is PaginationRequest.Next)
+                        if (holder.paginationRequest is PaginationRequest.Next) {
                             userOwnedNFTsPageStack.push(data.nextPage)
+                        }
                     }
                 }
 
@@ -384,7 +383,6 @@ class NFTRepositoryImpl(
                             )
                         }
 
-
                         page.mapToPaginationEvent { pageKey ->
                             alchemyNftApi.getNFTCollectionByContactAddress(
                                 requestUrl = NFTRequest.TokensCollection.requestUrl(holder.chain.alchemyNftId),
@@ -400,11 +398,14 @@ class NFTRepositoryImpl(
                     if (
                         this == null ||
                         this !is PaginationEvent.PageIsLoaded
-                    ) return@with
+                    ) {
+                        return@with
+                    }
 
                     mutex.withLock {
-                        if (holder.paginationRequest is PaginationRequest.Next)
+                        if (holder.paginationRequest is PaginationRequest.Next) {
                             tokenCollectionsPageStack.push(data.nextPage)
+                        }
                     }
                 }
 
@@ -462,5 +463,4 @@ class NFTRepositoryImpl(
             }
         }
     }
-
 }

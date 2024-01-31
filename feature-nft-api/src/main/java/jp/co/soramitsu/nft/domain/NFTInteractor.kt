@@ -1,8 +1,8 @@
 package jp.co.soramitsu.nft.domain
 
 import jp.co.soramitsu.core.models.ChainId
-import jp.co.soramitsu.nft.domain.models.NFTCollection
 import jp.co.soramitsu.nft.data.pagination.PaginationRequest
+import jp.co.soramitsu.nft.domain.models.NFTCollection
 import jp.co.soramitsu.nft.domain.models.NFTFilter
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import kotlinx.coroutines.flow.Flow
@@ -30,8 +30,5 @@ interface NFTInteractor {
         tokenId: String
     ): Result<NFTCollection.NFT.Full>
 
-    suspend fun getOwnersForNFT(
-        token: NFTCollection.NFT.Full
-    ): Result<List<String>>
-
+    suspend fun getOwnersForNFT(token: NFTCollection.NFT.Full): Result<List<String>>
 }

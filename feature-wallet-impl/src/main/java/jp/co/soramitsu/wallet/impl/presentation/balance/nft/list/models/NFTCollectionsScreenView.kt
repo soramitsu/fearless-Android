@@ -1,18 +1,19 @@
-package jp.co.soramitsu.nft.impl.presentation.list.models
+package jp.co.soramitsu.wallet.impl.presentation.balance.nft.list.models
 
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import jp.co.soramitsu.common.compose.models.ImageModel
 import jp.co.soramitsu.common.compose.models.Loadable
 import jp.co.soramitsu.common.compose.models.ScreenLayout
 import jp.co.soramitsu.common.compose.models.TextModel
-import jp.co.soramitsu.feature_nft_impl.R
 import jp.co.soramitsu.common.compose.utils.PageScrollingCallback
+import jp.co.soramitsu.feature_nft_impl.R
 
 @Immutable
 class NFTCollectionsScreenModel(
     val areFiltersApplied: Boolean,
-    val viewsArray: ArrayDeque<NFTCollectionsScreenView>,
+    val views: SnapshotStateList<NFTCollectionsScreenView>,
     val onFiltersIconClick: () -> Unit,
     val onScreenLayoutChanged: (ScreenLayout) -> Unit,
     val pageScrollingCallback: PageScrollingCallback
@@ -22,7 +23,7 @@ class NFTCollectionsScreenModel(
 sealed interface NFTCollectionsScreenView {
 
     @Immutable
-    interface EmptyPlaceHolder: NFTCollectionsScreenView {
+    interface EmptyPlaceHolder : NFTCollectionsScreenView {
 
         val image: ImageModel
 
@@ -42,11 +43,10 @@ sealed interface NFTCollectionsScreenView {
                     TextModel.ResId(R.string.nft_list_empty_message)
             }
         }
-
     }
 
     @Immutable
-    interface ItemModel: NFTCollectionsScreenView {
+    interface ItemModel : NFTCollectionsScreenView {
 
         val screenLayout: ScreenLayout
 
@@ -61,8 +61,6 @@ sealed interface NFTCollectionsScreenView {
         class WithQuantityDecorator(
             initialItemModel: ItemModel,
             val quantity: TextModel
-        ): ItemModel by initialItemModel
-
+        ) : ItemModel by initialItemModel
     }
-
 }

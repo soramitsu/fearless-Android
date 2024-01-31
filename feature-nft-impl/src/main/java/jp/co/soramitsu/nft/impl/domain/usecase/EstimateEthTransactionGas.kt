@@ -10,9 +10,7 @@ import org.web3j.utils.Numeric
 import java.math.BigInteger
 
 @Suppress("FunctionName")
-suspend fun EthereumWebSocketConnection.EstimateEthTransactionGas(
-    call: EthCall
-): BigInteger {
+suspend fun EthereumWebSocketConnection.EstimateEthTransactionGas(call: EthCall): BigInteger {
     val response = nonNullWeb3j.ethEstimateGas(
         call.convertToWeb3Transaction()
     ).sendAsync().await()
@@ -20,17 +18,25 @@ suspend fun EthereumWebSocketConnection.EstimateEthTransactionGas(
     return response.map { Numeric.decodeQuantity(it) }
 }
 
+@Suppress("UseIfInsteadOfWhen")
 private fun EthCall.convertToWeb3Transaction(): Transaction {
-    return when(this) {
+    return when (this) {
         is EthCall.SmartContractCall ->
             Transaction.createFunctionCallTransaction(
-                /* from */ sender,
-                /* nonce */ nonce,
-                /* gasPrice */ null,
-                /* gasLimit */ null,
-                /* to */ contractAddress,
-                /* value */ null,
-                /* data */ encodedFunction
+                // from
+                sender,
+                // nonce
+                nonce,
+                // gasPrice
+                null,
+                // gasLimit
+                null,
+                // to
+                contractAddress,
+                // value
+                null,
+                // data
+                encodedFunction
             )
 
         else -> error(

@@ -91,7 +91,7 @@
   <string name="backup_wallet_show_mnemonic_phrase">显示助记词短语</string>
   <string name="backup_wallet_show_raw_seed">展示原始种子</string>
   <string name="backup_wallet_warning_about_lose_phrase">如果你失去了对这个设备的访问权限，除非你进行备份，否则你的资金将会丢失！</string>
-  <string name="banners_backup_description">如果你丢失了设备，你将永远失去你的资金</string>
+  <string name="banners_backup_description">保护自己避免失去对资金的访问权限。</string>
   <string name="banners_buy_xor">购买XOR</string>
   <string name="banners_buy_xor_description">使用欧元现金购买或出售XOR代币</string>
   <string name="banners_buy_xor_title">购买XOR代币</string>
@@ -158,7 +158,7 @@
   <string name="common_assets_filters_popularity">人气</string>
   <string name="common_available_format">可用：%s</string>
   <string name="common_available_networks">可用网络</string>
-  <string name="common_backup_your_wallet">备份你的钱包</string>
+  <string name="common_backup_your_wallet">钱包备份</string>
   <string name="common_balance">余额</string>
   <string name="common_balance_format">余额：%s</string>
   <string name="common_block">区块</string>
@@ -217,6 +217,7 @@
   <string name="common_friend_bonus">给你的朋友的奖金</string>
   <string name="common_got_it">明白了</string>
   <string name="common_history">历史</string>
+  <string name="common_host">主机</string>
   <plurals name="common_hours_format">
     <item quantity="other">%d 小时</item>
   </plurals>
@@ -250,6 +251,7 @@
   <string name="common_origin_network_fee">原始网络费用</string>
   <string name="common_payout">支付</string>
   <string name="common_preview">预览</string>
+  <string name="common_price">价格</string>
   <string name="common_proceed">继续</string>
   <string name="common_read">阅读</string>
   <string name="common_receive_alert_description">这是Polkadot钱包。请只在Polkadot区块链上发送资产。</string>
@@ -307,11 +309,12 @@
   <string name="connection_add_invalid_error">无法与节点建立连接。请尝试另一个节点。</string>
   <string name="connection_add_unsupported_error">很抱歉，网络不支持。请尝试以下方法之一：%s。</string>
   <string name="connection_approve">批准</string>
-  <string name="connection_approve_success_message">已成功完成从%s到以太坊的连接</string>
+  <string name="connection_approve_success_message">来自%s的连接已成功完成</string>
   <string name="connection_chains_not_supported_error">无法连接到钱包：所请求的区块链网络不受支持或不可用。</string>
   <string name="connection_connections">连接</string>
   <string name="connection_create_new">创建新连接</string>
-  <string name="connection_disconnect_success_message">已成功断开与%s以太坊的连接</string>
+  <string name="connection_details_title">连接细节</string>
+  <string name="connection_disconnect_success_message">成功完成与%s的断开连接。</string>
   <string name="connection_error_message">请检查您的网络连接，稍后再试。</string>
   <string name="connection_events">活动</string>
   <string name="connection_events_not_supported_warning">缺少事件通知：该应用程序不支持必要的事件通知</string>
@@ -507,6 +510,8 @@
   <string name="nft_collection_available_nfts">%s 集合中可用的 NFT</string>
   <string name="nft_collection_my_nfts">我的 NFT</string>
   <string name="nft_collection_title">收藏品</string>
+  <string name="nft_creator_title">创作者</string>
+  <string name="nft_list_empty_message">目前还没有任何NFT。购买或铸造NFT以在此处查看。</string>
   <string name="nft_owner_title">拥有</string>
   <string name="nft_stub_text">NFTs 很快就会到来</string>
   <string name="nft_stub_title">对不起！</string>
@@ -667,6 +672,7 @@
   <string name="profile_settings_title">设置</string>
   <string name="profile_soracard_title">SORA卡</string>
   <string name="profile_title">账户</string>
+  <string name="profile_walletconnect_title">钱包连接</string>
   <string name="profile_wallets_title">钱包</string>
   <string name="reason">原因</string>
   <string name="recent">最近的</string>
@@ -719,12 +725,14 @@
   <string name="select_network_template">选择%s网络</string>
   <string name="select_save_type">选择保存类型</string>
   <string name="select_validators_disclaimer">免责声明：算法验证人建议并不构成金融咨询或建议。质押是一项高风险活动，算法验证人的建议并不能完全消除这种风险。由算法提供的验证人仍然可能被惩罚。由算法提供的验证人也可以在被推荐和/或选择后随时更改其参数（例如佣金率等）。您可能因为这些原因或其他原因而失去代币或奖励。请在进行尽职调查并慎重考虑所涉及风险后，根据自己的判断谨慎质押代币和使用验证人建议。</string>
+  <string name="send_all_and_reap_account">发送所有代币并收获账户</string>
   <string name="send_fund">发送资金</string>
   <string name="send_to">发送至</string>
   <string name="sending">发送</string>
   <string name="settings_hide_zero_balances">隐藏零余额</string>
   <string name="share_referral_code">分享推荐码</string>
   <string name="social_media">社交媒体</string>
+  <string name="sora_bridge_amount_less_fee">您尝试转账的金额不足以支付%@网络上的交易费用。尽管交易无法完成，您仍将在Sora网络上被收取费用。</string>
   <string name="sora_bridge_low_amount_alert">目前，为了确保SORA网络的稳定性和安全性，跨链桥转账的最低金额为0.05 KSM。感谢您的理解。</string>
   <string name="sora_card_annual_service_fee">0欧元年度服务费</string>
   <string name="sora_card_blacklisted_countires_title">申请被排除</string>
@@ -1026,6 +1034,7 @@
   <string name="transaction_details_title">交易明细</string>
   <string name="transaction_details_view_etherscan">在Etherscan上查看</string>
   <string name="transaction_details_view_polkascan">在Polkascan中查看</string>
+  <string name="transaction_details_view_reefscan">在Reefscan中查看</string>
   <string name="transaction_details_view_subscan">在Subscan中查看</string>
   <string name="transaction_status_completed">已完成</string>
   <string name="transaction_status_failed">失败</string>

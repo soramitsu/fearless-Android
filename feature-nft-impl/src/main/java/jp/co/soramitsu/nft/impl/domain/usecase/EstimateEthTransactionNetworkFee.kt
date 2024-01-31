@@ -14,18 +14,17 @@ suspend fun EthereumWebSocketConnection.EstimateEthTransactionNetworkFee(
     call: EthCall,
     baseFeePerGas: BigInteger
 ): BigDecimal {
-    val eip1559Transfer = when(call) {
-        is EthCall.SmartContractCall ->
-            EIP1559CallImpl.createAsync(
+    val eip1559Transfer = if (call is EthCall.SmartContractCall) {
+        EIP1559CallImpl.createAsync(
                 ethConnection = this,
                 call = call,
                 baseFeePerGas = baseFeePerGas,
                 estimateGas = EstimateEthTransactionGas(
-                    call = call
+                        call = call
                 )
-            )
-
-        else -> error(
+        )
+    } else {
+        error(
             """
                 Unknown transfer type.
             """.trimIndent()

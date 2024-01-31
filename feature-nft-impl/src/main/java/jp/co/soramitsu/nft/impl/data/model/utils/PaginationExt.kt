@@ -7,7 +7,6 @@ import java.util.Stack
 @Suppress("NOTHING_TO_INLINE")
 inline fun PaginationRequest.getPageSize(defaultPageSize: Int): Int {
     return when (this) {
-
         is PaginationRequest.Next.Page -> defaultPageSize
 
         is PaginationRequest.Next.WithSize -> pageLimit
@@ -19,11 +18,10 @@ inline fun PaginationRequest.getPageSize(defaultPageSize: Int): Int {
         is PaginationRequest.Prev.WithSize -> pageLimit
 
         is PaginationRequest.Prev.TwoBeforeSpecific -> pageLimit ?: defaultPageSize
-
     }
 }
 
-@Suppress("NOTHING_TO_INLINE")
+@Suppress("NOTHING_TO_INLINE", "ReturnCount", "SwallowedException", "NestedBlockDepth", "CyclomaticComplexMethod")
 inline fun PaginationRequest.nextOrPrevPage(pageStack: Stack<String?>): Page {
     val exception = IllegalStateException(
         """
@@ -31,32 +29,36 @@ inline fun PaginationRequest.nextOrPrevPage(pageStack: Stack<String?>): Page {
         """.trimIndent()
     )
 
-    when(this) {
-
+    when (this) {
         is PaginationRequest.Next.Page, is PaginationRequest.Next.WithSize ->
-            return if (pageStack.size == 1 && pageStack.peek() == null)
+            return if (pageStack.size == 1 && pageStack.peek() == null) {
                 Page.ValidPage(pageStack.peek())
-            else if (pageStack.size > 1 && pageStack.peek() != null)
+            } else if (pageStack.size > 1 && pageStack.peek() != null) {
                 Page.ValidPage(pageStack.peek())
-            else Page.NoNextPages
+            } else {
+                Page.NoNextPages
+                }
 
         is PaginationRequest.Next.Specific -> {
             for (i in pageStack.indices.reversed()) {
-                if (i == 0 || pageStack.peek() == page)
+                if (i == 0 || pageStack.peek() == page) {
                     break
+                }
 
                 pageStack.pop()
             }
 
-            if (pageStack.size > 1 && pageStack.peek() == null)
+            if (pageStack.size > 1 && pageStack.peek() == null) {
                 return Page.NoNextPages
+            }
 
             return Page.ValidPage(pageStack.peek())
         }
 
         is PaginationRequest.Prev -> {
-            if (pageStack.size < 2)
+            if (pageStack.size < 2) {
                 return Page.NoPrevPages
+            }
 
             val nextPageToLoad = pageStack.pop()
             val currentPage = pageStack.pop()
@@ -66,29 +68,32 @@ inline fun PaginationRequest.nextOrPrevPage(pageStack: Stack<String?>): Page {
                     this is PaginationRequest.Prev.Page ||
                     this is PaginationRequest.Prev.WithSize
                 ) {
-                    if (pageStack.size < 1) // after 2 popping there must at least 1 element
+                    if (pageStack.size < 1) {
+                        // after 2 popping there must at least 1 element
                         return Page.NoPrevPages
+                    }
 
                     return Page.ValidPage(pageStack.peek())
                 }
 
-                if (this !is PaginationRequest.Prev.TwoBeforeSpecific)
+                if (this !is PaginationRequest.Prev.TwoBeforeSpecific) {
                     throw exception
+                }
 
-                /* Important(!): page can be null only if it is either first or last */
+                // Important(!): page can be null only if it is either first or last
                 when {
                     /*
                         if we are looking for null page and next page to load is not the last one then
                         the page that we are actually looking for is the one before first
                         which does not exist
-                    */
+                     */
                     page == null && nextPageToLoad != null ->
                         return Page.NoPrevPages
 
                     /*
                         if we are looking for null page and next page to load is the last one then
                         the page that we are looking for is the one before last
-                    */
+                     */
                     page == null && nextPageToLoad == null ->
                         return Page.ValidPage(currentPage)
 
@@ -96,35 +101,40 @@ inline fun PaginationRequest.nextOrPrevPage(pageStack: Stack<String?>): Page {
                         if there are only two pages in stack (first and next one to be loaded) and
                         if specific page equals to the next page to be loaded then
                         we want to skip reloading of the current page
-                    */
+                     */
                     nextPageToLoad == page ->
                         return if (pageStack.isNotEmpty()) {
                             Page.ValidPage(pageStack.peek())
-                        } else Page.NoPrevPages
+                        } else {
+                            Page.NoPrevPages
+                            }
 
                     /*
                         if there are only two pages in stack (first and next one to be loaded) and
                         if specific page equals to the current page then
                         there two pages before current is needed
-                    */
+                     */
                     currentPage == page ->
                         return if (pageStack.size > 1) {
                             val newCurrentPage = pageStack.pop()
                             Page.ValidPage(pageStack.peek()).also {
                                 pageStack.push(newCurrentPage)
                             }
-                        } else Page.NoPrevPages
+                        } else {
+                            Page.NoPrevPages
+                            }
 
                     /*
                         Otherwise, we need to traverse entire stack and find page
                         that is one before specific
-                    */
+                     */
                     else -> {
                         val stackIterator = pageStack.listIterator(0)
 
                         while (stackIterator.hasNext()) {
-                            if (stackIterator.next() == page)
+                            if (stackIterator.next() == page) {
                                 break
+                            }
                         }
 
                         return try {
@@ -149,8 +159,7 @@ inline fun PaginationRequest.nextOrPrevPage(pageStack: Stack<String?>): Page {
 
 @Suppress("NOTHING_TO_INLINE")
 inline fun PaginationRequest.transformToSpecificOrDoNothing(page: String?): PaginationRequest {
-    return when(this) {
-
+    return when (this) {
         is PaginationRequest.Next.Specific,
         is PaginationRequest.Prev.TwoBeforeSpecific -> this
 
@@ -161,6 +170,5 @@ inline fun PaginationRequest.transformToSpecificOrDoNothing(page: String?): Pagi
         is PaginationRequest.Prev.Page,
         is PaginationRequest.Prev.WithSize ->
             PaginationRequest.Prev.TwoBeforeSpecific(page)
-
     }
 }

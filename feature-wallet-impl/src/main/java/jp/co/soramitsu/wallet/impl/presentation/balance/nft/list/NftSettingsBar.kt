@@ -1,4 +1,4 @@
-package jp.co.soramitsu.nft.impl.presentation.list
+package jp.co.soramitsu.wallet.impl.presentation.balance.nft.list
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -36,11 +36,17 @@ internal fun NftSettingsBar(
     appearanceSelected: (ScreenLayout) -> Unit,
     filtersClicked: () -> Unit
 ) {
-    val cellsColor = if (state.collectionAppearanceType == ScreenLayout.Grid)
-        white else white30
+    val cellsColor = if (state.collectionAppearanceType == ScreenLayout.Grid) {
+        white
+    } else {
+        white30
+    }
 
-    val listColor = if (state.collectionAppearanceType == ScreenLayout.List)
-        white else white30
+    val listColor = if (state.collectionAppearanceType == ScreenLayout.List) {
+        white
+    } else {
+        white30
+    }
 
     Row(modifier = modifier) {
         Image(

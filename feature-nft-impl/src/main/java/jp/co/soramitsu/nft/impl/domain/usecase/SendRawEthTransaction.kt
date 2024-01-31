@@ -11,11 +11,7 @@ import org.web3j.crypto.RawTransaction
 import org.web3j.crypto.TransactionEncoder
 
 @Suppress("FunctionName")
-suspend fun EthereumWebSocketConnection.SendRawEthTransaction(
-    keypair: Keypair,
-    transaction: RawTransaction,
-    ethereumChainId: Long,
-): String {
+suspend fun EthereumWebSocketConnection.SendRawEthTransaction(keypair: Keypair, transaction: RawTransaction): String {
     val signedRawTransaction = SignTransaction(transaction, keypair)
 
     println("This is checkpoint: signedRawTransaction - $signedRawTransaction")
@@ -28,10 +24,7 @@ suspend fun EthereumWebSocketConnection.SendRawEthTransaction(
 }
 
 @Suppress("FunctionName")
-private fun SignTransaction(
-    transaction: RawTransaction,
-    keypair: Keypair,
-): String {
+private fun SignTransaction(transaction: RawTransaction, keypair: Keypair): String {
     val encodedTx = TransactionEncoder.signMessage(
         transaction,
         Credentials.create(keypair.privateKey.toHexString(true))

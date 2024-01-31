@@ -157,6 +157,7 @@
   <string name="common_assets_filters_name">Tên</string>
   <string name="common_assets_filters_popularity">Phổ biến</string>
   <string name="common_available_format">Có sẵn: %s</string>
+  <string name="common_available_networks">Mạng có sẵn</string>
   <string name="common_backup_your_wallet">Sao lưu ví của bạn</string>
   <string name="common_balance">Số dư</string>
   <string name="common_balance_format">Số dư: %s</string>
@@ -204,6 +205,7 @@
   <string name="common_done">Hoàn tất</string>
   <string name="common_edit">Chỉnh sửa</string>
   <string name="common_email_chooser_title">Chọn ứng dụng email</string>
+  <string name="common_empty_search">Không tìm thấy gì cho yêu cầu của bạn</string>
   <string name="common_error_general_message">Chúng tôi đang cố gắng khắc phục sự cố. Vui lòng thử lại sau.</string>
   <string name="common_error_general_title">Lỗi</string>
   <string name="common_error_internal">Đã xảy ra lỗi nội bộ</string>
@@ -215,6 +217,7 @@
   <string name="common_friend_bonus">Tiền thưởng cho bạn của bạn</string>
   <string name="common_got_it">Đã nhận được</string>
   <string name="common_history">Lịch sử</string>
+  <string name="common_host">Chủ nhà</string>
   <plurals name="common_hours_format">
     <item quantity="other">giờ</item>
   </plurals>
@@ -229,6 +232,7 @@
   <string name="common_message">Tin nhắn</string>
   <string name="common_min_received">Tối thiểu nhận được</string>
   <string name="common_module">Module</string>
+  <string name="common_my_networks">Mạng của tôi</string>
   <string name="common_network">Mạng</string>
   <string name="common_network_fee">Phí mạng</string>
   <string name="common_network_management">Quản lý mạng</string>
@@ -247,6 +251,7 @@
   <string name="common_origin_network_fee">Cước mạng gốc</string>
   <string name="common_payout">Thanh toán</string>
   <string name="common_preview">Xem trước</string>
+  <string name="common_price">Giá</string>
   <string name="common_proceed">Tiến hành</string>
   <string name="common_read">Đọc</string>
   <string name="common_receive_alert_description">Đây là ví Polkadot. Vui lòng chỉ gửi tài sản\n trên chuỗi khối Polkadot.</string>
@@ -308,10 +313,13 @@
   <string name="connection_chains_not_supported_error">Không thể kết nối với ví: Mạng blockchain được yêu cầu không được hỗ trợ hoặc khả dụng</string>
   <string name="connection_connections">Kết nối</string>
   <string name="connection_create_new">Tạo kết nối mới</string>
+  <string name="connection_details_title">Chi tiết kết nối</string>
   <string name="connection_disconnect_success_message">Việc ngắt kết nối khỏi %s ether đã hoàn tất thành công</string>
   <string name="connection_error_message">Vui lòng kiểm tra kết nối internet và thử lại sau.</string>
   <string name="connection_events">Sự kiện</string>
   <string name="connection_events_not_supported_warning">Thiếu thông báo sự kiện: Ứng dụng không hỗ trợ các thông báo sự kiện cần thiết</string>
+  <string name="connection_invalid_url_error_message">Ứng dụng của chúng tôi chỉ hỗ trợ Wallet Connect SDK v2 và không hỗ trợ SDK v1 không được dùng nữa. Vui lòng sử dụng phiên bản thích hợp để kết nối thành công.</string>
+  <string name="connection_invalid_url_error_title">Cảnh báo: SDK Connect Wallet v1 không được hỗ trợ</string>
   <string name="connection_management_custom_title">Tùy chỉnh node</string>
   <string name="connection_management_default_title">Node mặc định</string>
   <string name="connection_methods">Phương pháp</string>
@@ -495,14 +503,20 @@
   <string name="network_issues_resolve_option_title">Tùy chọn giải quyết</string>
   <string name="network_management_all">Tất cả</string>
   <string name="network_management_popular">Phổ biến</string>
+  <string name="network_managment_favourite">Yêu thích</string>
   <string name="network_status_connected">Đã kết nối</string>
   <string name="network_status_connecting">Đang kết nối...</string>
   <string name="network_url_address">Địa chỉ URL</string>
+  <string name="nft_collection_available_nfts">NFT có sẵn trong bộ sưu tập %s</string>
+  <string name="nft_collection_my_nfts">NFT của tôi</string>
   <string name="nft_collection_title">Bộ sưu tập</string>
+  <string name="nft_creator_title">Người sáng tạo</string>
+  <string name="nft_list_empty_message">Chưa có bất kỳ NFT nào. Mua hoặc đúc NFT để xem chúng tại đây.</string>
   <string name="nft_owner_title">Sở hữu</string>
   <string name="nft_stub_text">NFTs sẽ sớm ra mắt</string>
   <string name="nft_stub_title">Sumimasen!</string>
   <string name="nft_tokenid_title">Token ID</string>
+  <string name="nfts_collection_count" formatted="false">Số lượng: %d / %d</string>
   <string name="nfts_stub">NFTs</string>
   <string name="no_access_to_google">Không có quyền truy cập vào Google</string>
   <string name="node">Node</string>
@@ -658,6 +672,7 @@
   <string name="profile_settings_title">Cài đặt</string>
   <string name="profile_soracard_title">Thẻ SORA</string>
   <string name="profile_title">Tài khoản</string>
+  <string name="profile_walletconnect_title">WalletConnect</string>
   <string name="profile_wallets_title">Ví</string>
   <string name="reason">Lý do</string>
   <string name="recent">Gần đây</string>
@@ -710,12 +725,15 @@
   <string name="select_network_template">Chọn mạng %s</string>
   <string name="select_save_type">Chọn kiểu lưu</string>
   <string name="select_validators_disclaimer">TUYÊN BỐ MIỄN TRỪ TRÁCH NHIỆM: Thuật toán đề xuất validator không phải là lời khuyên hoặc tư vấn đầu tư. Staking là một hoạt động có rủi ro cao và các đề xuất của thuật toán không nhất thiết giảm thiểu rủi ro này. Thuật toán đề xuất validator vẫn có thể bị slash. Các validator được đề xuất bởi thuật toán cũng có thể thay đổi các tham số của họ (ví dụ: tỷ lệ hoa hồng, v.v.) bất kỳ lúc nào sau khi được đề xuất và/hoặc chọn. Bạn có thể bị mất token hoặc phần thưởng vì những lý do này hoặc lý do khác. Chỉ stake token và sử dụng các validator theo quyết định của riêng bạn, sau khi bạn đã tiến hành thẩm định và xem xét cẩn thận các rủi ro liên quan.</string>
+  <string name="send_all_and_reap_account">Gửi tất cả các mã thông báo và gặt hái tài khoản</string>
   <string name="send_fund">Gửi tiền</string>
   <string name="send_to">Gửi đến</string>
   <string name="sending">Đang gửi</string>
   <string name="settings_hide_zero_balances">Ẩn số dư bằng không</string>
   <string name="share_referral_code">Chia sẻ mã giới thiệu</string>
   <string name="social_media">Truyền thông xã hội</string>
+  <string name="sora_bridge_amount_less_fee">Số tiền bạn đang cố chuyển không đủ để trả phí giao dịch trên mạng Kusama. Mặc dù giao dịch không được xử lý nhưng bạn vẫn sẽ bị tính phí trên mạng Sora.</string>
+  <string name="sora_bridge_low_amount_alert">Hiện tại, có một phút. số tiền 0,05 KSM để bắc cầu nhằm đảm bảo tính ổn định và bảo mật của Mạng SORA. Chúng tôi đánh giá cao sự hiểu biết của bạn.</string>
   <string name="sora_card_annual_service_fee">0 € phí dịch vụ hàng năm</string>
   <string name="sora_card_blacklisted_countires_title">Không bao gồm ứng dụng</string>
   <string name="sora_card_blacklisted_countires_warning"><![CDATA[Cư dân từ <b>một số quốc gia<br>không thể đăng ký</b> Thẻ SORA tại thời điểm<br> này<a href=\"https://soracard.com/blacklist/\">Xem danh sách</a>]]></string>
@@ -1017,6 +1035,7 @@
   <string name="transaction_details_title">Chi tiết giao dịch</string>
   <string name="transaction_details_view_etherscan">Xem trong Etherscan</string>
   <string name="transaction_details_view_polkascan">Xem trên Polkascan</string>
+  <string name="transaction_details_view_reefscan">Xem trong Reefscan</string>
   <string name="transaction_details_view_subscan">Xem trong Subscan</string>
   <string name="transaction_status_completed">Đã hoàn thành</string>
   <string name="transaction_status_failed">Thất bại</string>
@@ -1032,6 +1051,7 @@
   <string name="username_setup_choose_title_2_0">Nickname của ví</string>
   <string name="username_setup_hint">Tên này chỉ hiển thị với bạn và lưu trên điện thoại cá nhân.</string>
   <string name="username_setup_title_2_0">Tạo một ví mới</string>
+  <string name="validator_info_comission_title">Sứ mệnh</string>
   <string name="validator_not_elected_description">Tài khoản này không được mạng (network) đề cử ở era hiện tại</string>
   <string name="validators_list_empty_message">Không tìm thấy trình xác thực nào. Vui lòng thử thay đổi bộ lọc</string>
   <string name="view_in">Xem trong %s</string>

@@ -2,7 +2,7 @@ package jp.co.soramitsu.nft.domain.models
 
 import jp.co.soramitsu.core.models.ChainId
 
-data class NFTCollection<T: NFTCollection.NFT>(
+data class NFTCollection<T : NFTCollection.NFT>(
     val chainId: ChainId,
     val chainName: String,
     val collectionName: String,
@@ -19,7 +19,7 @@ data class NFTCollection<T: NFTCollection.NFT>(
         data class Light(
             val tokenId: String?,
             val balance: String?
-        ): NFT
+        ) : NFT
 
         data class Full(
             val title: String?,
@@ -32,10 +32,9 @@ data class NFTCollection<T: NFTCollection.NFT>(
             val chainName: String,
             val chainId: ChainId,
             val tokenType: String?,
+            val creatorAddress: String?,
             val date: String?,
             val price: String
-        ): NFT
-
+        ) : NFT
     }
-
 }

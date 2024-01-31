@@ -7,16 +7,13 @@ sealed interface Page {
     @JvmInline
     value class ValidPage(
         val key: String?
-    ): Page
+    ) : Page
 
     object NoNextPages : Page
-
 }
 
-suspend inline fun <T> Page.mapToPaginationEvent(
-    crossinline transform: suspend (String?) -> T
-): PaginationEvent<T> {
-    return when(this) {
+suspend inline fun <T> Page.mapToPaginationEvent(crossinline transform: suspend (String?) -> T): PaginationEvent<T> {
+    return when (this) {
         is Page.NoPrevPages ->
             PaginationEvent.AllPreviousPagesLoaded()
 

@@ -28,15 +28,14 @@ val EthereumWebSocketConnection.nonNullWeb3jService: Web3jService
         """.trimIndent()
     )
 
-inline fun <T, K> Response<T>.map(
-    crossinline transform: (T) -> K
-): K {
-    if (error != null)
+inline fun <T, K> Response<T>.map(crossinline transform: (T) -> K): K {
+    if (error != null) {
         error(
             """
                 Could not fetch web3 response due to "${error.message}", code - ${error.code}, additional data - ${error.data}
             """.trimIndent()
         )
+    }
 
     return try {
         transform.invoke(result)
@@ -68,7 +67,7 @@ suspend fun EthereumWebSocketConnection.getMaxPriorityFeePerGas(): BigInteger {
 }
 
 class MaxPriorityFeePerGas : Response<String?>() {
-    val maxPriorityFeePerGas: BigInteger
+    val maxPriorityFeePerGasValue: BigInteger
         get() = Numeric.decodeQuantity(result)
 }
 
@@ -84,10 +83,14 @@ suspend fun Web3j.getBaseFee(): BigInteger {
 fun EthereumWebSocketConnection.subscribeNewHeads(): Flow<NewHeadsNotificationExtended> {
     return nonNullWeb3jService.subscribe(
         Request(
-            /* method */ "eth_subscribe",
-            /* params */ listOf("newHeads"),
-            /* web3jSocket */ service,
-            /* type */ EthSubscribe::class.java
+            // method
+            "eth_subscribe",
+            // params
+            listOf("newHeads"),
+            // web3jSocket
+            service,
+            // type
+            EthSubscribe::class.java
         ),
         "eth_unsubscribe",
         NewHeadsNotificationExtended::class.java

@@ -1,8 +1,8 @@
 package jp.co.soramitsu.nft.impl.data.remote
 
 import jp.co.soramitsu.nft.data.models.TokenInfo
-import jp.co.soramitsu.nft.impl.data.model.request.NFTRequest
 import jp.co.soramitsu.nft.data.models.wrappers.NFTResponse
+import jp.co.soramitsu.nft.impl.data.model.request.NFTRequest
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
@@ -24,7 +24,7 @@ interface AlchemyNftApi {
     suspend fun getUserOwnedNFTsByContractAddress(
         @Url url: String,
         @Query("owner") owner: String,
-        @Query("contractAddress[]") contractAddress: String,
+        @Query("contractAddresses[]") contractAddress: String,
         @Query("withMetadata") withMetadata: Boolean = true,
         @Query("pageKey") pageKey: String? = null,
         @Query("pageSize") pageSize: Int = 1000,

@@ -1,16 +1,15 @@
 package jp.co.soramitsu.nft.impl.domain
 
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
-import jp.co.soramitsu.common.data.network.runtime.binding.cast
 import jp.co.soramitsu.common.utils.concurrentRequestFlow
 import jp.co.soramitsu.core.models.ChainId
 import jp.co.soramitsu.nft.data.NFTRepository
+import jp.co.soramitsu.nft.data.models.TokenInfo
+import jp.co.soramitsu.nft.data.models.wrappers.NFTResponse
+import jp.co.soramitsu.nft.data.pagination.PaginationEvent
+import jp.co.soramitsu.nft.data.pagination.PaginationRequest
 import jp.co.soramitsu.nft.domain.NFTInteractor
 import jp.co.soramitsu.nft.domain.models.NFTCollection
-import jp.co.soramitsu.nft.data.pagination.PaginationRequest
-import jp.co.soramitsu.nft.data.models.TokenInfo
-import jp.co.soramitsu.nft.data.pagination.PaginationEvent
-import jp.co.soramitsu.nft.data.models.wrappers.NFTResponse
 import jp.co.soramitsu.nft.domain.models.NFTFilter
 import jp.co.soramitsu.nft.domain.models.utils.toFullNFT
 import jp.co.soramitsu.nft.domain.models.utils.toFullNFTCollection
@@ -18,7 +17,6 @@ import jp.co.soramitsu.nft.domain.models.utils.toLightNFTCollection
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.alchemyNftId
-import jp.co.soramitsu.shared_utils.extensions.requireHexPrefix
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.BufferOverflow
@@ -27,7 +25,6 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -40,20 +37,17 @@ class NFTInteractorImpl(
     private val nftRepository: NFTRepository,
     private val accountRepository: AccountRepository,
     private val chainsRepository: ChainsRepository
-): NFTInteractor {
+) : NFTInteractor {
 
     override fun setNFTFilter(filter: NFTFilter, isApplied: Boolean) {
-        nftRepository.setNFTFilter(filter.name, isApplied)
+        nftRepository.setNFTFilter(filter.name, !isApplied)
     }
 
     override fun nftFiltersFlow(): Flow<Map<NFTFilter, Boolean>> {
-        return nftRepository.nftFiltersFlow.map { filtersApplied ->
-            filtersApplied.mapNotNull { (filter, isApplied) ->
-                val nftFilter = NFTFilter.values().find { it.name == filter }
-                    ?: return@mapNotNull null
-
-                return@mapNotNull nftFilter to isApplied
-            }.toMap()
+        return nftRepository.nftFiltersFlow.map { allCurrentlyAppliedFilters ->
+            NFTFilter.values().associateWith { filter ->
+                filter.name !in allCurrentlyAppliedFilters
+            }
         }
     }
 
@@ -65,24 +59,27 @@ class NFTInteractorImpl(
         val chainsHelperFlow = chainsRepository.chainsFlow().map { chains ->
             chains.filter { it.supportNft && !it.alchemyNftId.isNullOrEmpty() }
         }.combine(chainSelectionFlow) { chains, chainSelection ->
-            if (chainSelection.isNullOrEmpty()) chains
-            else chains.filter { it.id == chainSelection }
+            if (chainSelection.isNullOrEmpty()) {
+                chains
+            } else {
+                chains.filter { it.id == chainSelection }
+                }
         }
 
         val exclusionFiltersHelperFlow =
             nftRepository.nftFiltersFlow.map { filters ->
-                filters.filter { it.second }.map { it.first.uppercase() }
+                filters.map { it.uppercase() }
             }
 
         return nftRepository.paginatedUserOwnedNFTsFlow(
             paginationRequestFlow = paginationRequestFlow,
             chainSelectionFlow = chainsHelperFlow,
             selectedMetaAccountFlow = accountRepository.selectedMetaAccountFlow(),
-            exclusionFiltersFlow = flow { emit(emptyList()) }
+            exclusionFiltersFlow = exclusionFiltersHelperFlow
         ).transformLatest { responses ->
             responses.concurrentRequestFlow { pagedResponse ->
                 val result = pagedResponse.result.mapCatching { paginationEvent ->
-                    when(paginationEvent) {
+                    when (paginationEvent) {
                         is PaginationEvent.AllPreviousPagesLoaded ->
                             return@concurrentRequestFlow // skip operations for this chain; do nothing
 
@@ -107,8 +104,9 @@ class NFTInteractorImpl(
 
                 dispatchedResultList.getOrElse { listOf(chain to Result.failure(it)) }
             }.also { collectionListOfAllChains ->
-                if (collectionListOfAllChains.isNotEmpty())
+                if (collectionListOfAllChains.isNotEmpty()) {
                     emit(collectionListOfAllChains)
+                }
             }
         }
     }
@@ -159,7 +157,7 @@ class NFTInteractorImpl(
 
         val exclusionFiltersHelperFlow =
             nftRepository.nftFiltersFlow.map { filters ->
-                filters.filter { it.second }.map { it.first.uppercase() }
+                filters.map { it.uppercase() }
             }
 
         return channelFlow {
@@ -176,17 +174,17 @@ class NFTInteractorImpl(
             val atomicAreUserOwnedTokensLoading = AtomicBoolean(true)
             val atomicAreNFTCollectionsLoading = AtomicBoolean(false)
 
-
             launch {
                 paginationRequestFlow.onEach {
-                    if (!atomicAreNFTCollectionsLoading.get())
+                    if (!atomicAreNFTCollectionsLoading.get()) {
                         mutableUserOwnedTokensRequestFlow.tryEmit(it)
+                    }
 
-                    if (!atomicAreUserOwnedTokensLoading.get())
+                    if (!atomicAreUserOwnedTokensLoading.get()) {
                         mutableNFTCollectionRequestFlow.tryEmit(it)
+                    }
                 }.collect()
             }
-
 
             launch {
                 nftRepository.paginatedUserOwnedNFTsByContractAddressFlow(
@@ -194,10 +192,10 @@ class NFTInteractorImpl(
                     chainSelectionFlow = chainSelectionHelperFlow,
                     contractAddressFlow = contractAddressFlow,
                     selectedMetaAccountFlow = accountRepository.selectedMetaAccountFlow(),
-                    exclusionFiltersFlow = flow<List<String>> { emit(emptyList()) }
+                    exclusionFiltersFlow = exclusionFiltersHelperFlow
                 ).transformLatest { pagedResponse ->
                     val result = pagedResponse.result.mapCatching { paginationEvent ->
-                        when(paginationEvent) {
+                        when (paginationEvent) {
                             is PaginationEvent.AllPreviousPagesLoaded -> {
                                 // We are still in process of loading this request
                                 atomicAreUserOwnedTokensLoading.set(true)
@@ -233,9 +231,9 @@ class NFTInteractorImpl(
                     paginationRequestFlow = mutableNFTCollectionRequestFlow,
                     chainSelectionFlow = chainSelectionHelperFlow,
                     contractAddressFlow = contractAddressFlow
-                ).transformLatest {pagedResponse ->
+                ).transformLatest { pagedResponse ->
                     val result = pagedResponse.result.mapCatching { paginationEvent ->
-                        when(paginationEvent) {
+                        when (paginationEvent) {
                             is PaginationEvent.AllPreviousPagesLoaded -> {
                                 // We are done loading this request; this is inversion of userOwnedTokens request
                                 atomicAreNFTCollectionsLoading.set(false)

@@ -8,9 +8,9 @@ import jp.co.soramitsu.nft.data.NFTRepository
 import jp.co.soramitsu.nft.data.UserOwnedTokensByContractAddressPagedResponse
 import jp.co.soramitsu.nft.data.UserOwnedTokensPagedResponse
 import jp.co.soramitsu.nft.data.models.TokenInfo
+import jp.co.soramitsu.nft.data.models.wrappers.NFTResponse
 import jp.co.soramitsu.nft.data.pagination.PaginationEvent
 import jp.co.soramitsu.nft.data.pagination.PaginationRequest
-import jp.co.soramitsu.nft.data.models.wrappers.NFTResponse
 import jp.co.soramitsu.nft.impl.data.DEFAULT_PAGE_SIZE
 import jp.co.soramitsu.nft.impl.data.model.utils.toContractMetadataResponse
 import jp.co.soramitsu.nft.impl.data.model.utils.toNFTContractMetadataResponseLocal
@@ -29,7 +29,7 @@ import kotlinx.coroutines.sync.withLock
 class CachingNFTRepositoryDecorator(
     private val nftRepository: NFTRepository,
     private val nftContractMetadataResponseDao: NFTContractMetadataResponseDao
-): NFTRepository by nftRepository {
+) : NFTRepository by nftRepository {
 
     private val lruCacheMutex = Mutex()
     private val tokensWithMetadataLRUCache: LruCache<Int, TokenInfo.WithMetadata> = LruCache(3 * DEFAULT_PAGE_SIZE)
@@ -75,8 +75,9 @@ class CachingNFTRepositoryDecorator(
                 exclusionFiltersFlow = exclusionFiltersFlow
             ).transform { pagedResponse ->
                 val updatedPagedResponse = pagedResponse.result.map { paginationEvent ->
-                    if (paginationEvent !is PaginationEvent.PageIsLoaded)
+                    if (paginationEvent !is PaginationEvent.PageIsLoaded) {
                         return@map paginationEvent
+                    }
 
                     saveTokensToCache(
                         chain = pagedResponse.chain,
@@ -105,7 +106,7 @@ class CachingNFTRepositoryDecorator(
             }.collect(this)
         }.flowOn(Dispatchers.Default)
     }
-    
+
     override fun paginatedNFTCollectionByContractAddressFlow(
         paginationRequestFlow: Flow<PaginationRequest>,
         chainSelectionFlow: Flow<Chain>,
@@ -128,8 +129,9 @@ class CachingNFTRepositoryDecorator(
                 contractAddressFlow = contractAddressFlow
             ).transform { pagedResponse ->
                 val updatedPagedResponse = pagedResponse.result.map { paginationEvent ->
-                    if (paginationEvent !is PaginationEvent.PageIsLoaded)
+                    if (paginationEvent !is PaginationEvent.PageIsLoaded) {
                         return@map paginationEvent
+                    }
 
                     saveTokensToCache(
                         chain = pagedResponse.chain,
@@ -165,7 +167,6 @@ class CachingNFTRepositoryDecorator(
     ): PaginationRequest {
         val page = mutex.withLock {
             when (this) {
-
                 is PaginationRequest.Prev.Page,
                 is PaginationRequest.Prev.WithSize ->
                     return@withLock collectionsCache.firstOrNull()?.nextPage
@@ -185,7 +186,7 @@ class CachingNFTRepositoryDecorator(
                             /*
                                 We removed everything after the specified page;
                                 now we need to remove the specific page for it to be cached again
-                            */
+                             */
                             iteratorReversed.remove()
                         }
                     }
@@ -197,14 +198,15 @@ class CachingNFTRepositoryDecorator(
                     val iterator = collectionsCache.listIterator()
 
                     while (iterator.hasNext()) {
-                        if (iterator.next().nextPage != page)
+                        if (iterator.next().nextPage != page) {
                             iterator.remove()
-                        else break  // cache is purged, we can continue and return page
+                        } else {
+                            break // cache is purged, we can continue and return page
+                        }
                     }
 
                     return@withLock page
                 }
-
             }
         }
 
@@ -219,41 +221,47 @@ class CachingNFTRepositoryDecorator(
     ): List<TokenInfo.WithMetadata> {
         return mutex.withLock {
             // insert new token collection into cache
-            when(paginationRequest) {
+            when (paginationRequest) {
                 /*
                     Collection can be duplicates if there is only one collection at all;
                     thus, first page has nextPage == null
-                */
+                 */
                 is PaginationRequest.Prev -> {
                     if (collectionsCache.isNotEmpty()) {
                         val isNewCollectionDuplicationOfFirstCached =
                             collectionsCache.firstOrNull()?.nextPage == collection.nextPage
 
-                        if (!isNewCollectionDuplicationOfFirstCached)
+                        if (!isNewCollectionDuplicationOfFirstCached) {
                             collectionsCache.addFirst(collection)
-                    } else collectionsCache.addFirst(collection)
+                        }
+                    } else {
+                        collectionsCache.addFirst(collection)
+                    }
                 }
 
                 is PaginationRequest.Next -> {
                     /*
                         Collection can be duplicates if there is only one collection at all;
                         thus, first page has nextPage == null
-                    */
+                     */
                     if (collectionsCache.isNotEmpty()) {
                         val isNewCollectionDuplicationOfLastCached =
                             collectionsCache.lastOrNull()?.nextPage == collection.nextPage
 
-                        if (!isNewCollectionDuplicationOfLastCached)
+                        if (!isNewCollectionDuplicationOfLastCached) {
                             collectionsCache.addLast(collection)
-                    } else collectionsCache.addLast(collection)
+                        }
+                    } else {
+                        collectionsCache.addLast(collection)
+                    }
                 }
             }
 
             var totalTokensCount = collectionsCache.sumOf { it.tokenInfoList.size }
 
             // shrink cache to allowed size
-            while (totalTokensCount > 3 * DEFAULT_PAGE_SIZE) {
-                val removedCollection = when(paginationRequest) {
+            while (totalTokensCount > ELEMENTS_PER_PAGE * DEFAULT_PAGE_SIZE) {
+                val removedCollection = when (paginationRequest) {
                     is PaginationRequest.Prev ->
                         collectionsCache.removeLast()
 
@@ -274,8 +282,9 @@ class CachingNFTRepositoryDecorator(
     ): List<NFTResponse.ContractMetadata> {
         val cachedResponses = nftContractMetadataResponseDao.responses(chain.id, contractAddresses)
 
-        if (cachedResponses.isNotEmpty())
+        if (cachedResponses.isNotEmpty()) {
             return cachedResponses.map { it.toContractMetadataResponse() }
+        }
 
         return nftRepository.contractMetadataBatch(chain, contractAddresses).also { values ->
             nftContractMetadataResponseDao.insert(
@@ -296,8 +305,9 @@ class CachingNFTRepositoryDecorator(
                 tokenId = tokenId
             )
 
-        if (tokenFromCache != null)
+        if (tokenFromCache != null) {
             return Result.success(tokenFromCache)
+        }
 
         return runCatching {
             val result = nftRepository.tokenMetadata(
@@ -317,7 +327,7 @@ class CachingNFTRepositoryDecorator(
 
     private suspend fun saveTokensToCache(chain: Chain, tokens: List<TokenInfo.WithMetadata>) {
         lruCacheMutex.withLock {
-            for(token in tokens) {
+            for (token in tokens) {
                 Triple(
                     first = chain.id,
                     second = token.contract?.address,
@@ -348,4 +358,7 @@ class CachingNFTRepositoryDecorator(
         }
     }
 
+    companion object {
+        private const val ELEMENTS_PER_PAGE = 3
+    }
 }

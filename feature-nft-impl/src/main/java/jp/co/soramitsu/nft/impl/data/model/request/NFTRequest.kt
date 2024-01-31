@@ -5,7 +5,7 @@ import okhttp3.MediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 
 sealed interface NFTRequest {
-    class ContractMetadataBatch: NFTRequest {
+    class ContractMetadataBatch : NFTRequest {
 
         companion object {
             fun requestUrl(alchemyChainId: String?): String {
@@ -19,7 +19,7 @@ sealed interface NFTRequest {
         )
     }
 
-    class UserOwnedTokens: NFTRequest {
+    class UserOwnedTokens : NFTRequest {
         companion object {
             fun requestUrl(alchemyChainId: String?): String {
                 return "https://$alchemyChainId.g.alchemy.com/nft/v2/${BuildConfig.ALCHEMY_API_KEY}/getNFTs"
@@ -27,7 +27,7 @@ sealed interface NFTRequest {
         }
     }
 
-    class TokensCollection: NFTRequest {
+    class TokensCollection : NFTRequest {
         companion object {
             fun requestUrl(alchemyChainId: String?): String {
                 return "https://$alchemyChainId.g.alchemy.com/nft/v2/${BuildConfig.ALCHEMY_API_KEY}/getNFTsForCollection"
@@ -35,7 +35,7 @@ sealed interface NFTRequest {
         }
     }
 
-    class TokenMetadata: NFTRequest {
+    class TokenMetadata : NFTRequest {
         companion object {
             fun requestUrl(alchemyChainId: String?): String {
                 return "https://$alchemyChainId.g.alchemy.com/nft/v2/${BuildConfig.ALCHEMY_API_KEY}/getNFTMetadata"
@@ -43,12 +43,11 @@ sealed interface NFTRequest {
         }
     }
 
-    class TokenOwners: NFTRequest {
+    class TokenOwners : NFTRequest {
         companion object {
             fun requestUrl(alchemyChainId: String?): String {
                 return "https://$alchemyChainId.g.alchemy.com/nft/v2/${BuildConfig.ALCHEMY_API_KEY}/getOwnersForToken"
             }
         }
     }
-
 }

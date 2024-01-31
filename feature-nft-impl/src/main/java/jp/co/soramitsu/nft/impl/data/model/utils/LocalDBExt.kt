@@ -13,15 +13,14 @@ fun NFTContractMetadataResponseLocal.toContractMetadataResponse(): NFTResponse.C
         contractMetadata = contractMetadata?.toContractMetadata()
     )
 
-fun NFTResponse.ContractMetadata.toNFTContractMetadataResponseLocal(chainId: ChainId): NFTContractMetadataResponseLocal =
+fun NFTResponse.ContractMetadata.toNFTContractMetadataResponseLocal(chainId: ChainId) =
     NFTContractMetadataResponseLocal(
         chainId = chainId,
         address = address.orEmpty(),
         contractMetadata = contractMetadata?.toNFTContractMetadataLocal()
     )
 
-fun NFTContractMetadataLocal.toContractMetadata(): TokenInfo.WithMetadata.ContractMetadata =
-    TokenInfo.WithMetadata.ContractMetadata(
+fun NFTContractMetadataLocal.toContractMetadata() = TokenInfo.WithMetadata.ContractMetadata(
         name = name,
         symbol = symbol,
         totalSupply = totalSupply,
@@ -54,8 +53,7 @@ fun TokenInfo.WithMetadata.ContractMetadata.toNFTContractMetadataLocal(): NFTCon
         openSea = openSea?.toNFTOpenSeaLocal()
     )
 
-fun TokenInfo.WithMetadata.ContractMetadata.OpenSea.toNFTOpenSeaLocal(): NFTOpenSeaLocal =
-    NFTOpenSeaLocal(
+fun TokenInfo.WithMetadata.ContractMetadata.OpenSea.toNFTOpenSeaLocal(): NFTOpenSeaLocal = NFTOpenSeaLocal(
         floorPrice = floorPrice,
         collectionName = collectionName,
         safelistRequestStatus = safelistRequestStatus,

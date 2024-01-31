@@ -6,14 +6,14 @@ sealed interface TokenId {
 
     class WithoutMetadata(
         override val tokenId: String?
-    ): TokenId {
+    ) : TokenId {
         companion object;
     }
 
     class WithMetadata(
         override val tokenId: String?,
         val tokenMetadata: TokenMetadata?
-    ): TokenId {
+    ) : TokenId {
         companion object;
 
         class TokenMetadata(
@@ -22,5 +22,4 @@ sealed interface TokenId {
             companion object;
         }
     }
-
 }

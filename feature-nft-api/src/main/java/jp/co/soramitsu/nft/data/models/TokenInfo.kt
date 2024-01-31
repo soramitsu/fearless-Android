@@ -8,7 +8,7 @@ sealed interface TokenInfo {
         val contract: Contract?,
         val id: TokenId.WithoutMetadata?,
         val balance: String?
-    ): TokenInfo {
+    ) : TokenInfo {
         companion object;
     }
 
@@ -22,7 +22,7 @@ sealed interface TokenInfo {
         val metadata: TokenMetadata?,
         val contractMetadata: ContractMetadata?,
         val spamInfo: SpamInfo?
-    ): TokenInfo {
+    ) : TokenInfo {
         companion object;
 
         class Media(
@@ -76,5 +76,4 @@ sealed interface TokenInfo {
             val classifications: List<String>?,
         )
     }
-
 }

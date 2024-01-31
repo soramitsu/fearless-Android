@@ -26,6 +26,14 @@ fun ShimmerB0(modifier: Modifier = Modifier) {
 }
 
 @Composable
+fun ShimmerB1(modifier: Modifier = Modifier) {
+    Shimmer(
+        modifier = modifier
+            .height(15.dp)
+    )
+}
+
+@Composable
 fun ShimmerB2(modifier: Modifier = Modifier) {
     Shimmer(
         modifier = modifier

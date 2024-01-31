@@ -23,23 +23,21 @@ class NFTsScreenModel(
 sealed interface NFTsScreenView {
 
     @Immutable
-    interface ScreenHeader: NFTsScreenView {
+    interface ScreenHeader : NFTsScreenView {
 
         val thumbnail: Loadable<ImageModel?>
 
         val description: Loadable<TextModel?>
-
     }
 
     @Immutable
-    interface SectionHeader: NFTsScreenView {
+    interface SectionHeader : NFTsScreenView {
 
         val title: Loadable<TextModel>
-
     }
 
     @Immutable
-    interface ItemModel: NFTsScreenView {
+    interface ItemModel : NFTsScreenView {
 
         val screenLayout: ScreenLayout
 
@@ -56,8 +54,6 @@ sealed interface NFTsScreenView {
             val buttonText: TextModel,
             val buttonImage: ImageModel.ResId,
             val onButtonClick: () -> Unit
-        ): ItemModel by initialItemModel
-
+        ) : ItemModel by initialItemModel
     }
-
 }

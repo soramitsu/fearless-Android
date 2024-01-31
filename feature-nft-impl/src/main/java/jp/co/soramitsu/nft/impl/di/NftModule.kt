@@ -5,21 +5,20 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import javax.inject.Singleton
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.coredb.dao.NFTContractMetadataResponseDao
 import jp.co.soramitsu.nft.data.CachedNFTRepository
 import jp.co.soramitsu.nft.data.NFTRepository
 import jp.co.soramitsu.nft.data.RemoteNFTRepository
-import jp.co.soramitsu.nft.domain.NFTInteractor
-import jp.co.soramitsu.nft.impl.data.cached.CachingNFTRepositoryDecorator
-import jp.co.soramitsu.nft.impl.data.NFTRepositoryImpl
 import jp.co.soramitsu.nft.data.models.Contract
 import jp.co.soramitsu.nft.data.models.TokenId
 import jp.co.soramitsu.nft.data.models.TokenInfo
 import jp.co.soramitsu.nft.data.models.wrappers.NFTResponse
+import jp.co.soramitsu.nft.domain.NFTInteractor
 import jp.co.soramitsu.nft.domain.NFTTransferInteractor
+import jp.co.soramitsu.nft.impl.data.NFTRepositoryImpl
+import jp.co.soramitsu.nft.impl.data.cached.CachingNFTRepositoryDecorator
 import jp.co.soramitsu.nft.impl.data.model.utils.deserializer
 import jp.co.soramitsu.nft.impl.data.remote.AlchemyNftApi
 import jp.co.soramitsu.nft.impl.domain.NFTInteractorImpl
@@ -30,6 +29,7 @@ import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.converter.scalars.ScalarsConverterFactory
+import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -96,10 +96,7 @@ class NftModule {
     @Provides
     @Singleton
     @RemoteNFTRepository
-    fun provideRemoteNFTRepository(
-        alchemyNftApi: AlchemyNftApi,
-        preferences: Preferences
-    ): NFTRepository {
+    fun provideRemoteNFTRepository(alchemyNftApi: AlchemyNftApi, preferences: Preferences): NFTRepository {
         return NFTRepositoryImpl(
             alchemyNftApi = alchemyNftApi,
             preferences = preferences
@@ -142,5 +139,4 @@ class NftModule {
         chainsRepository = chainsRepository,
         ethereumConnectionPool = ethereumConnectionPool
     )
-
 }

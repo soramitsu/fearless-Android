@@ -2,10 +2,9 @@ package jp.co.soramitsu.nft.impl.domain.models
 
 import org.web3j.abi.TypeReference
 import org.web3j.abi.datatypes.Type
-import java.math.BigDecimal
 import java.math.BigInteger
 
-sealed interface NFTCall: EthCall.SmartContractCall {
+sealed interface NFTCall : EthCall.SmartContractCall {
 
     class OwnerOf(
         override val nonce: BigInteger,
@@ -14,7 +13,7 @@ sealed interface NFTCall: EthCall.SmartContractCall {
         override val contractAddress: String,
         override val encodedFunction: String,
         override val outputTypeRefs: List<TypeReference<Type<*>>>
-    ): NFTCall
+    ) : NFTCall
 
     class Transfer(
         override val nonce: BigInteger,
@@ -23,6 +22,5 @@ sealed interface NFTCall: EthCall.SmartContractCall {
         override val contractAddress: String,
         override val encodedFunction: String,
         override val outputTypeRefs: List<TypeReference<Type<*>>>
-    ): NFTCall
-
+    ) : NFTCall
 }

@@ -1,4 +1,4 @@
-package jp.co.soramitsu.nft.impl.presentation.list
+package jp.co.soramitsu.wallet.impl.presentation.balance.nft.list
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -22,14 +22,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -51,35 +47,19 @@ import jp.co.soramitsu.common.compose.theme.black50
 import jp.co.soramitsu.common.compose.theme.warningOrange
 import jp.co.soramitsu.common.compose.theme.white
 import jp.co.soramitsu.common.compose.theme.white50
+import jp.co.soramitsu.common.compose.utils.PageScrollingCallback
+import jp.co.soramitsu.common.compose.utils.SetupScrollingPaginator
 import jp.co.soramitsu.common.utils.castOrNull
 import jp.co.soramitsu.common.utils.clickableSingle
-import jp.co.soramitsu.common.compose.utils.PageScrollingCallback
-import jp.co.soramitsu.common.compose.utils.nestedScrollConnectionForPageScrolling
-import jp.co.soramitsu.nft.impl.presentation.collection.models.NFTsScreenView
-import jp.co.soramitsu.nft.impl.presentation.collection.utils.createShimmeredNFTViewsArray
-import jp.co.soramitsu.nft.impl.presentation.list.models.NFTCollectionsScreenModel
-import jp.co.soramitsu.nft.impl.presentation.list.models.NFTCollectionsScreenView
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.onStart
+import jp.co.soramitsu.wallet.impl.presentation.balance.nft.list.models.NFTCollectionsScreenModel
+import jp.co.soramitsu.wallet.impl.presentation.balance.nft.list.models.NFTCollectionsScreenView
 
 @Composable
 fun NFTScreen(collectionsScreen: NFTCollectionsScreenModel) {
-    val screenLayout =
-        (collectionsScreen.viewsArray.firstOrNull {
-            it is NFTCollectionsScreenView.ItemModel
-        } as? NFTCollectionsScreenView.ItemModel)?.screenLayout
-            ?: ScreenLayout.Grid
-
-    val snapshotScreenViewsList = remember {
-        mutableStateOf(SnapshotStateList<NFTCollectionsScreenView>())
-    }
-
-    LaunchedEffect(collectionsScreen) {
-        snapshotScreenViewsList.value =
-            SnapshotStateList<NFTCollectionsScreenView>()
-                .apply { addAll(collectionsScreen.viewsArray) }
-    }
+    val screenLayout = collectionsScreen.views.firstOrNull {
+        it is NFTCollectionsScreenView.ItemModel
+    }?.castOrNull<NFTCollectionsScreenView.ItemModel>()?.screenLayout
+        ?: ScreenLayout.Grid
 
     Column {
         MarginVertical(margin = 8.dp)
@@ -100,7 +80,7 @@ fun NFTScreen(collectionsScreen: NFTCollectionsScreenModel) {
         MarginVertical(margin = 6.dp)
 
         NFTLayout(
-            views = snapshotScreenViewsList.value,
+            views = collectionsScreen.views,
             pageScrollingCallback = collectionsScreen.pageScrollingCallback
         )
     }
@@ -113,22 +93,20 @@ private fun NFTLayout(
 ) {
     val lazyGridState = rememberLazyGridState()
 
-    val nestedScrollConnection = remember(lazyGridState) {
-        lazyGridState.nestedScrollConnectionForPageScrolling(
-            pageScrollingCallback = pageScrollingCallback
-        )
-    }
+    lazyGridState.SetupScrollingPaginator(
+        bufferFromBottom = 1,  // 1 due to marginVertical item
+        pageScrollingCallback = pageScrollingCallback
+    )
 
     LazyVerticalGrid(
         state = lazyGridState,
         columns = GridCells.Fixed(2),
         contentPadding = PaddingValues(vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        modifier = Modifier.nestedScroll(nestedScrollConnection)
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         for (view in views) {
-            when(view) {
+            when (view) {
                 is NFTCollectionsScreenView.EmptyPlaceHolder ->
                     NFTEmptyPlaceholder(view)
 
@@ -137,7 +115,9 @@ private fun NFTLayout(
             }
         }
 
-        item { MarginVertical(margin = 80.dp) }
+        item(
+            span = { GridItemSpan(2) }
+        ) { MarginVertical(margin = 80.dp) }
     }
 }
 
@@ -145,7 +125,11 @@ private fun NFTLayout(
 private fun LazyGridScope.NFTEmptyPlaceholder(
     placeholderModel: NFTCollectionsScreenView.EmptyPlaceHolder
 ) {
-    item {
+    item(
+        span = {
+            GridItemSpan(2)
+        }
+    ) {
         Box(
             contentAlignment = Alignment.Center,
             modifier = Modifier
@@ -176,15 +160,15 @@ private fun LazyGridScope.NFTEmptyPlaceholder(
     }
 }
 
-@Suppress("FunctionName")
-private fun LazyGridScope.NFTCollectionItem(
-    itemModel: NFTCollectionsScreenView.ItemModel
-) {
+@Suppress("FunctionName", "MagicNumber")
+private fun LazyGridScope.NFTCollectionItem(itemModel: NFTCollectionsScreenView.ItemModel) {
     item(
         span = {
-            if (itemModel.screenLayout === ScreenLayout.List){
+            if (itemModel.screenLayout === ScreenLayout.List) {
                 GridItemSpan(2)
-            } else GridItemSpan(1)
+            } else {
+                GridItemSpan(1)
+            }
         }
     ) {
         BackgroundCornered(
@@ -195,8 +179,11 @@ private fun LazyGridScope.NFTCollectionItem(
                     .padding(8.dp)
                     .fillMaxWidth()
             ) {
-                val thumbnailSize = if (itemModel.screenLayout === ScreenLayout.Grid)
-                    152.dp else 64.dp
+                val thumbnailSize = if (itemModel.screenLayout === ScreenLayout.Grid) {
+                    152.dp
+                } else {
+                    64.dp
+                }
 
                 itemModel.thumbnail.Render(
                     shimmerModifier = Modifier
