@@ -10,7 +10,6 @@ import androidx.core.os.bundleOf
 import androidx.fragment.app.viewModels
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import dagger.hilt.android.AndroidEntryPoint
-import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
 import jp.co.soramitsu.common.compose.component.BottomSheetScreen
 
@@ -19,9 +18,13 @@ class RenameAccountDialog : BaseComposeBottomSheetDialogFragment<RenameAccountVi
     companion object {
 
         const val WALLET_ID_KEY = "WALLET_ID_KEY"
+        const val WALLET_NAME_KEY = "WALLET_NAME_KEY"
 
-        fun getBundle(walletId: Long): Bundle {
-            return bundleOf(WALLET_ID_KEY to walletId)
+        fun getBundle(walletId: Long, name: String?): Bundle {
+            return bundleOf(
+                WALLET_ID_KEY to walletId,
+                WALLET_NAME_KEY to name
+            )
         }
     }
 

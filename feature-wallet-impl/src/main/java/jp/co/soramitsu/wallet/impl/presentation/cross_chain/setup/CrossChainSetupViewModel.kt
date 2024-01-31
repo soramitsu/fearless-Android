@@ -496,6 +496,8 @@ class CrossChainSetupViewModel @Inject constructor(
             val recipientAddress = addressInputFlow.value
             val selfAddress = currentAccountAddress(asset.token.configuration.chainId) ?: return@launch
             val fee = originFeeInPlanksFlow.value
+            val destinationFeeAmount = destinationFeeAmountFlow.value ?: BigDecimal.ZERO
+
             val destinationChainId = chainAssetsManager.destinationChainId ?: return@launch
             val validationProcessResult = validateTransferUseCase(
                 amountInPlanks = inPlanks,
@@ -505,7 +507,8 @@ class CrossChainSetupViewModel @Inject constructor(
                 ownAddress = selfAddress,
                 fee = fee,
                 confirmedValidations = confirmedValidations,
-                transferMyselfAvailable = true
+                transferMyselfAvailable = true,
+                destinationFeeAmount = destinationFeeAmount
             )
 
             // error occurred inside validation

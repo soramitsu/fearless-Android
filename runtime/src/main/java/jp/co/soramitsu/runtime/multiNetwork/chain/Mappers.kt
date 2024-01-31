@@ -27,6 +27,8 @@ private fun mapSectionTypeRemoteToSectionType(section: String) = when (section) 
     "github" -> Chain.ExternalApi.Section.Type.GITHUB
     "sora" -> Chain.ExternalApi.Section.Type.SORA
     "etherscan" -> Chain.ExternalApi.Section.Type.ETHERSCAN
+    "oklink" -> Chain.ExternalApi.Section.Type.OKLINK
+    "zeta" -> Chain.ExternalApi.Section.Type.ZETA
     else -> Chain.ExternalApi.Section.Type.UNKNOWN
 }
 
@@ -34,6 +36,8 @@ private fun mapExplorerTypeRemoteToExplorerType(explorer: String) = when (explor
     "polkascan" -> Chain.Explorer.Type.POLKASCAN
     "subscan" -> Chain.Explorer.Type.SUBSCAN
     "etherscan" -> Chain.Explorer.Type.ETHERSCAN
+    "oklink" -> Chain.Explorer.Type.OKLINK
+    "zeta" -> Chain.Explorer.Type.ZETA
     else -> Chain.Explorer.Type.UNKNOWN
 }
 
@@ -141,7 +145,8 @@ fun ChainRemote.toChain(): Chain {
         isTestNet = TESTNET_OPTION in optionsOrEmpty,
         hasCrowdloans = CROWDLOAN_OPTION in optionsOrEmpty,
         supportStakingPool = NOMINATION_POOL_OPTION in optionsOrEmpty,
-        isEthereumChain = ETHEREUM_OPTION in optionsOrEmpty
+        isEthereumChain = ETHEREUM_OPTION in optionsOrEmpty,
+        paraId = this.paraId
     )
 }
 
@@ -244,7 +249,8 @@ fun mapChainLocalToChain(chainLocal: JoinedChainInfo): Chain {
             isTestNet = isTestNet,
             hasCrowdloans = hasCrowdloans,
             supportStakingPool = supportStakingPool,
-            isEthereumChain = isEthereumChain
+            isEthereumChain = isEthereumChain,
+            paraId = paraId
         )
     }
 }
@@ -312,7 +318,8 @@ fun mapChainToChainLocal(chain: Chain): JoinedChainInfo {
             isTestNet = isTestNet,
             hasCrowdloans = hasCrowdloans,
             supportStakingPool = supportStakingPool,
-            isEthereumChain = isEthereumChain
+            isEthereumChain = isEthereumChain,
+            paraId = paraId
         )
     }
 

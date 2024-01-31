@@ -12,9 +12,12 @@ import jp.co.soramitsu.common.utils.formatting.NumberAbbreviation
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.text.DecimalFormat
+import java.text.DecimalFormatSymbols
 import java.text.SimpleDateFormat
 import java.util.Date
+import java.util.Locale
 import java.util.concurrent.TimeUnit
+import jp.co.soramitsu.common.utils.formatting.FiatSmallFormatter
 
 const val DOLLAR_SIGN = "$"
 private const val DECIMAL_PATTERN_BASE = "#,##0"
@@ -24,6 +27,7 @@ private const val MAX_DECIMALS_3 = 3
 const val MAX_DECIMALS_8 = 8
 
 private val fiatAmountFormatter = FiatFormatter()
+private val fiatSmallAmountFormatter = FiatSmallFormatter()
 private val percentAmountFormatter = FixedPrecisionFormatter(MAX_DECIMALS_2)
 private val cryptoAmountShortFormatter = FixedPrecisionFormatter(MAX_DECIMALS_3)
 private val cryptoAmountDetailFormatter = FixedPrecisionFormatter(MAX_DECIMALS_8)
@@ -105,7 +109,7 @@ fun decimalFormatterFor(pattern: String) = DecimalFormat(pattern).apply {
 
 fun fiatAbbreviatedFormatter() = CompoundNumberFormatter(
     abbreviations = listOf(
-        NumberAbbreviation(BigDecimal.ZERO, BigDecimal.ONE, "", fiatAmountFormatter),
+        NumberAbbreviation(BigDecimal.ZERO, BigDecimal.ONE, "", fiatSmallAmountFormatter),
         NumberAbbreviation(BigDecimal.ONE, BigDecimal.ONE, "", fiatAmountFormatter),
         NumberAbbreviation(BigDecimal("1E+3"), BigDecimal.ONE, "", fiatAmountFormatter),
         NumberAbbreviation(BigDecimal("1E+6"), BigDecimal("1E+6"), "M", fiatAmountFormatter),
