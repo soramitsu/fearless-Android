@@ -167,13 +167,15 @@ class StakingFeatureModule {
         @Named(LOCAL_STORAGE_SOURCE) localStorageSource: StorageDataSource,
         chainRegistry: ChainRegistry,
         walletConstants: WalletConstants,
-        accountStakingDao: AccountStakingDao
+        accountStakingDao: AccountStakingDao,
+        storageCache: StorageCache
     ) = StakingRelayChainScenarioRepository(
         remoteStorageSource,
         localStorageSource,
         chainRegistry,
         walletConstants,
-        accountStakingDao
+        accountStakingDao,
+        storageCache
     )
 
     @Provides

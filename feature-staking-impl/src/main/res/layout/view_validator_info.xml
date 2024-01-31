@@ -35,4 +35,10 @@
         android:layout_height="wrap_content"
         app:validatorInfoItemTitle="@string/staking_validator_estimated_reward" />
 
+    <jp.co.soramitsu.staking.impl.presentation.validators.details.view.ValidatorInfoItemView
+        android:id="@+id/validatorCommission"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:validatorInfoItemTitle="@string/validator_info_comission_title" />
+
 </merge>

@@ -14,8 +14,10 @@ open class ValidationWarning(
     message: String,
     explanation: String,
     val positiveButtonText: String,
-    val negativeButtonText: String
+    val negativeButtonText: String,
+    val secondPositiveButtonText: String?
 ) : ValidationException(message, explanation) {
     operator fun component3() = positiveButtonText
     operator fun component4() = negativeButtonText
+    operator fun component5() = secondPositiveButtonText
 }

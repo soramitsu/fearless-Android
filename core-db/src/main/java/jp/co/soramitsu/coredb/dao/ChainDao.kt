@@ -6,6 +6,8 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
+import jp.co.soramitsu.core.utils.removedXcPrefix
+import jp.co.soramitsu.coredb.dao.AssetDao.Companion.xcPrefix
 import jp.co.soramitsu.coredb.model.AssetWithToken
 import jp.co.soramitsu.coredb.model.chain.ChainAssetLocal
 import jp.co.soramitsu.coredb.model.chain.ChainExplorerLocal
@@ -152,7 +154,7 @@ abstract class ChainDao {
         return observeAssetSymbolById(assetId).flatMapLatest { symbol ->
             observeChainsWithBalanceByName(
                 accountMetaId = accountMetaId,
-                assetSymbol = symbol
+                assetSymbol = symbol.removedXcPrefix()
             )
         }
     }
@@ -167,11 +169,12 @@ abstract class ChainDao {
     @Transaction
     @Query(
         """
-            SELECT * FROM chains
-            JOIN assets ON chains.id = assets.chainId
-            LEFT JOIN chain_assets ON chain_assets.id = assets.id
-            WHERE chain_assets.symbol LIKE '%' || :assetSymbol
-            AND assets.metaId = :accountMetaId
+            SELECT c.*, a.*, tp.* FROM chains c
+            JOIN assets a ON c.id = a.chainId
+            LEFT JOIN token_price AS tp ON a.tokenPriceId = tp.priceId 
+            LEFT JOIN chain_assets ca ON ca.id = a.id
+            WHERE ca.symbol in (:assetSymbol, '$xcPrefix'||:assetSymbol)
+            AND a.metaId = :accountMetaId
         """
     )
     protected abstract fun observeChainsWithBalanceByName(

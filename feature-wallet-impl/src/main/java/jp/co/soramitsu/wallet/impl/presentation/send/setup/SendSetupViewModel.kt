@@ -1,7 +1,5 @@
 package jp.co.soramitsu.wallet.impl.presentation.send.setup
 
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
@@ -37,6 +35,7 @@ import jp.co.soramitsu.common.utils.isNotZero
 import jp.co.soramitsu.common.utils.isZero
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.requireValue
+import jp.co.soramitsu.common.validation.ExistentialDepositCrossedException
 import jp.co.soramitsu.core.utils.isValidAddress
 import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.feature_wallet_impl.BuildConfig
@@ -47,6 +46,7 @@ import jp.co.soramitsu.polkaswap.api.models.WithDesired
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.bokoloCashTokenId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraTestChainId
+import jp.co.soramitsu.wallet.api.domain.ExistentialDepositUseCase
 import jp.co.soramitsu.wallet.api.domain.TransferValidationResult
 import jp.co.soramitsu.wallet.api.domain.ValidateTransferUseCase
 import jp.co.soramitsu.wallet.api.domain.fromValidationResult
@@ -64,6 +64,7 @@ import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.ChainSelectScreenContract
 import jp.co.soramitsu.wallet.impl.presentation.send.SendSharedState
 import jp.co.soramitsu.wallet.impl.presentation.send.TransferDraft
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -90,6 +91,7 @@ class SendSetupViewModel @Inject constructor(
     private val resourceManager: ResourceManager,
     private val walletInteractor: WalletInteractor,
     private val polkaswapInteractor: PolkaswapInteractor,
+    private val existentialDepositUseCase: ExistentialDepositUseCase,
     private val walletConstants: WalletConstants,
     private val router: WalletRouter,
     private val clipboardManager: ClipboardManager,
@@ -100,6 +102,10 @@ class SendSetupViewModel @Inject constructor(
     companion object {
         const val SLIPPAGE_TOLERANCE = 1.35
         const val RETRY_TIMES = 3L
+    }
+
+    enum class ToggleState {
+         INITIAL, CHECKED, CONFIRMED
     }
 
     private val _openScannerEvent = MutableLiveData<Event<Unit>>()
@@ -178,7 +184,9 @@ class SendSetupViewModel @Inject constructor(
         defaultButtonState,
         isSoftKeyboardOpen = false,
         isInputLocked = false,
-        isHistoryAvailable = false
+        isHistoryAvailable = false,
+        sendAllChecked = false,
+        sendAllAllowed = false
     )
 
     private val assetFlow: StateFlow<Asset?> = sharedState.assetIdToChainIdFlow.map {
@@ -193,8 +201,9 @@ class SendSetupViewModel @Inject constructor(
     private val addressInputFlow = MutableStateFlow(initSendToAddress.orEmpty())
     private val addressInputTrimmedFlow = addressInputFlow.map { it.trim() }
 
-    private val isSoftKeyboardOpenFlow = MutableStateFlow(lockSendToAmount && initialAmount.isZero())
+    val isSoftKeyboardOpenFlow = MutableStateFlow(lockSendToAmount && initialAmount.isZero())
 
+//    private val maxAmountFlow = MutableStateFlow(BigDecimal.ZERO)
     private val enteredAmountBigDecimalFlow = MutableStateFlow(initialAmount)
     private val visibleAmountFlow = MutableStateFlow(initialAmount)
     private val initialAmountFlow = MutableStateFlow(initialAmount.takeIf { it.isNotZero() })
@@ -378,6 +387,9 @@ class SendSetupViewModel @Inject constructor(
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, defaultButtonState)
 
+    private val sendAllToggleState: MutableStateFlow<ToggleState> = MutableStateFlow(ToggleState.INITIAL)
+    private var existentialDepositCheckJob: Job? = null
+
     val state = combine(
         selectedChain,
         addressInputTrimmedFlow,
@@ -388,8 +400,9 @@ class SendSetupViewModel @Inject constructor(
         buttonStateFlow,
         isSoftKeyboardOpenFlow,
         lockInputFlow,
-        assetFlow
-    ) { chain, address, chainSelectorState, amountInputState, feeInfoState, warningInfoState, buttonState, isSoftKeyboardOpen, isInputLocked, asset ->
+        assetFlow,
+        sendAllToggleState
+    ) { chain, address, chainSelectorState, amountInputState, feeInfoState, warningInfoState, buttonState, isSoftKeyboardOpen, isInputLocked, asset, sendAllState ->
         val isAddressValid = when (chain) {
             null -> false
             else -> walletInteractor.validateSendAddress(chain.id, address)
@@ -404,6 +417,9 @@ class SendSetupViewModel @Inject constructor(
         }
 
         val isHistorySupportedByChain = chain?.externalApi?.history != null
+
+        val existentialDeposit = asset?.token?.configuration?.let { existentialDepositUseCase(it) }.orZero()
+        val sendAllAllowed = existentialDeposit > BigInteger.ZERO
 
         SendSetupViewState(
             toolbarState = toolbarViewState,
@@ -429,7 +445,9 @@ class SendSetupViewModel @Inject constructor(
             isSoftKeyboardOpen = isSoftKeyboardOpen,
             isInputLocked = isInputLocked,
             quickAmountInputValues = quickAmountInputValues,
-            isHistoryAvailable = isHistorySupportedByChain
+            isHistoryAvailable = isHistorySupportedByChain,
+            sendAllChecked = sendAllState in listOf(ToggleState.CHECKED, ToggleState.CONFIRMED),
+            sendAllAllowed = sendAllAllowed
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, defaultState)
 
@@ -446,6 +464,69 @@ class SendSetupViewModel @Inject constructor(
         sharedState.addressFlow.onEach {
             it?.let { addressInputFlow.value = it }
         }.launchIn(this)
+    }
+
+    private fun observeExistentialDeposit(showMaxInput: Boolean) {
+        existentialDepositCheckJob?.cancel()
+
+        existentialDepositCheckJob = combine(
+            assetFlow.mapNotNull { it },
+            visibleAmountFlow,
+            feeInPlanksFlow.mapNotNull { it },
+            isInputAddressValidFlow,
+            addressInputTrimmedFlow
+        ) { asset, amount, fee, isAddressValid, address ->
+
+            if (amount.isZero()) {
+                sendAllToggleState.value = ToggleState.INITIAL
+                return@combine null
+            }
+            val ownAddress = currentAccountAddress(asset.token.configuration.chainId) ?: return@combine null
+
+            val recipientAddress = when {
+                isAddressValid -> address
+                else -> ownAddress
+            }
+
+            validateTransferUseCase.validateExistentialDeposit(
+                amountInPlanks = asset.token.planksFromAmount(amount.orZero()),
+                asset = asset,
+                destinationChainId = asset.token.configuration.chainId,
+                recipientAddress = recipientAddress,
+                ownAddress = ownAddress,
+                fee = fee,
+            )
+        }
+            .onEach { it ->
+                val sendAllState = sendAllToggleState.value
+                it?.fold(
+                    onSuccess = { validationResult ->
+                        if (validationResult == TransferValidationResult.Valid && sendAllState == ToggleState.CONFIRMED) {
+                            sendAllToggleState.value = ToggleState.INITIAL
+                        }
+
+                        if (validationResult.isExistentialDepositWarning && sendAllState != ToggleState.CONFIRMED) {
+                            ValidationException.fromValidationResult(validationResult, resourceManager)?.let {
+                                if (it is ExistentialDepositCrossedException) {
+                                    val warning = ValidationWarning(
+                                        it.message,
+                                        it.explanation,
+                                        it.positiveButtonText,
+                                        it.negativeButtonText,
+                                        if (showMaxInput) it.secondPositiveButtonText else null
+                                    )
+                                    _openValidationWarningEvent.value = Event(validationResult to warning)
+                                }
+                            }
+                        }
+                    },
+                    onFailure = {
+                        it.printStackTrace()
+                    }
+                )
+            }
+            .onEach { existentialDepositCheckJob?.cancel() }
+            .launchIn(viewModelScope)
     }
 
     private fun findChainsForAddress(address: String) {
@@ -476,6 +557,10 @@ class SendSetupViewModel @Inject constructor(
     override fun onAmountInput(input: BigDecimal?) {
         visibleAmountFlow.value = input.orZero()
         enteredAmountBigDecimalFlow.value = input.orZero()
+
+        if (sendAllToggleState.value == ToggleState.CONFIRMED || sendAllToggleState.value == ToggleState.INITIAL && input?.greaterThen(BigDecimal.ZERO) == true) {
+            observeExistentialDeposit(true)
+        }
     }
 
     override fun onAddressInput(input: String) {
@@ -505,7 +590,8 @@ class SendSetupViewModel @Inject constructor(
                 ownAddress = selfAddress,
                 fee = fee,
                 confirmedValidations = confirmedValidations,
-                transferMyselfAvailable = false
+                transferMyselfAvailable = false,
+                skipEdValidation = sendAllToggleState.value == ToggleState.CONFIRMED
             )
 
             // error occurred inside validation
@@ -533,8 +619,13 @@ class SendSetupViewModel @Inject constructor(
         launch {
             val transferDraft = buildTransferDraft() ?: return@launch
             val phishingType = phishingModelFlow.firstOrNull()?.type
+            val skipEdValidation = sendAllToggleState.value == ToggleState.CONFIRMED
 
-            router.openSendConfirm(transferDraft, phishingType)
+            router.openSendConfirm(
+                transferDraft = transferDraft,
+                phishingType = phishingType,
+                skipEdValidation = skipEdValidation
+            )
         }
     }
 
@@ -617,15 +708,12 @@ class SendSetupViewModel @Inject constructor(
                     addressInputFlow.value = content
                     lockAmountInputFlow.value = false
                     lockInputFlow.value = false
-                    initialAmountFlow.value = null
-                    onAmountInput(BigDecimal.ZERO)
                 }
             }
         }
     }
 
     private suspend fun handleSoraQr(qrContentSora: QrContentSora) {
-        initialAmountFlow.value = null
         val soraTokenId = qrContentSora.tokenId
         val soraAmount = qrContentSora.amount
 
@@ -636,14 +724,17 @@ class SendSetupViewModel @Inject constructor(
         }
 
         addressInputFlow.value = qrContentSora.address
+        lockInputFlow.value = true
 
         val amount = runCatching { BigDecimal(soraAmount) }.getOrNull().orZero()
-        lockInputFlow.value = true
-        lockAmountInputFlow.value = amount.greaterThen(BigDecimal.ZERO)
+        if (amount.greaterThen(BigDecimal.ZERO)) {
+            initialAmountFlow.value = null
+            lockAmountInputFlow.value = true
 
-        delay(300) // need for 'initialAmountFlow.value = null' being applied to UI before next
-        initialAmountFlow.value = amount
-        onAmountInput(amount)
+            delay(300) // need for 'initialAmountFlow.value = null' being applied to UI before next
+            initialAmountFlow.value = amount
+            onAmountInput(amount)
+        }
     }
 
     fun setSoftKeyboardOpen(isOpen: Boolean) {
@@ -683,6 +774,9 @@ class SendSetupViewModel @Inject constructor(
                 amountToTransfer - utilityFeeReserve * SLIPPAGE_TOLERANCE.toBigDecimal()
 
             if (quickAmountWithoutExtraPays < BigDecimal.ZERO) {
+                if (sendAllToggleState.value == ToggleState.CHECKED) {
+                    sendAllToggleState.value = ToggleState.CONFIRMED
+                }
                 return@launch
             }
             val scaledAmount = quickAmountWithoutExtraPays.setScale(5, RoundingMode.HALF_DOWN)
@@ -693,6 +787,7 @@ class SendSetupViewModel @Inject constructor(
             visibleAmountFlow.value = scaledAmount
             initialAmountFlow.value = scaledAmount
             enteredAmountBigDecimalFlow.value = quickAmountWithoutExtraPays
+            observeExistentialDeposit(input < QuickAmountInput.MAX.value)
         }
     }
 
@@ -700,8 +795,35 @@ class SendSetupViewModel @Inject constructor(
         isWarningExpanded.value = !isWarningExpanded.value
     }
 
+    fun warningCancelled(validationResult: TransferValidationResult) {
+        if (validationResult.isExistentialDepositWarning) {
+            onAmountInput(BigDecimal.ZERO)
+            sendAllToggleState.value = ToggleState.INITIAL
+        }
+    }
+
     fun warningConfirmed(validationResult: TransferValidationResult) {
         confirmedValidations.add(validationResult)
-        onNextClick()
+        if (validationResult.isExistentialDepositWarning) {
+            sendAllToggleState.value = ToggleState.CONFIRMED
+        }
+    }
+
+    fun warningConfirmedSecond(validationResult: TransferValidationResult) {
+        warningConfirmed(validationResult)
+        onQuickAmountInput(1.0)
+    }
+
+    override fun onSendAllChecked(checked: Boolean) {
+        val currentState = sendAllToggleState.value
+        if (checked) {
+            sendAllToggleState.value = ToggleState.CHECKED
+        } else if (currentState == ToggleState.CONFIRMED) {
+            sendAllToggleState.value = ToggleState.INITIAL
+        }
+
+        if (checked) {
+            onQuickAmountInput(1.0)
+        }
     }
 }

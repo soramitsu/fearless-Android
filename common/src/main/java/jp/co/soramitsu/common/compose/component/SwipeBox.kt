@@ -161,14 +161,15 @@ private fun AssetItemSwipeBoxPreview() {
     )
 
     val assetListItemViewState = AssetListItemViewState(
+        index = 0,
         assetIconUrl = "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Polkadot.svg",
         assetChainName = "Karura",
         assetName = "Karura asset",
         assetSymbol = "KSM",
-        assetTokenFiat = "$73.22",
+        assetTokenFiat = "$73.2200000003",
         assetTokenRate = "+5.67%",
         assetTransferableBalance = "444.3",
-        assetTransferableBalanceFiat = "$2345.32",
+        assetTransferableBalanceFiat = "$2345.30000002",
         assetChainUrls = assetChainUrlsMap,
         chainId = "",
         chainAssetId = "",

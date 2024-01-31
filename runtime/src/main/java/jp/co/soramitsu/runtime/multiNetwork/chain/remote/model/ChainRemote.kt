@@ -2,6 +2,7 @@ package jp.co.soramitsu.runtime.multiNetwork.chain.remote.model
 
 data class ChainRemote(
     val chainId: String,
+    val paraId: String?,
     val rank: Int?,
     val name: String,
     val minSupportedVersion: String?,

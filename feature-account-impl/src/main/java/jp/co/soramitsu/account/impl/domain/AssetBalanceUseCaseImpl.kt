@@ -4,7 +4,6 @@ import jp.co.soramitsu.account.api.domain.interfaces.AssetBalanceUseCase
 import jp.co.soramitsu.account.api.domain.model.AssetBalance
 import jp.co.soramitsu.common.utils.DOLLAR_SIGN
 import jp.co.soramitsu.common.utils.applyFiatRate
-import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.fractionToPercentage
 import jp.co.soramitsu.common.utils.isZero
 import jp.co.soramitsu.common.utils.orZero
@@ -12,11 +11,11 @@ import jp.co.soramitsu.common.utils.percentageToFraction
 import jp.co.soramitsu.coredb.dao.AssetDao
 import jp.co.soramitsu.coredb.model.AssetWithToken
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.math.BigDecimal
 import java.math.RoundingMode
+import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 
 class AssetBalanceUseCaseImpl(
     private val assetDao: AssetDao,
@@ -33,7 +32,7 @@ class AssetBalanceUseCaseImpl(
     }
 
     private suspend fun sumAssetBalances(assets: List<AssetWithToken>): AssetBalance {
-        val fiatCurrency = assets.find { it.asset.chainId == polkadotChainId }?.token?.fiatSymbol
+        val fiatCurrency = assets.firstNotNullOfOrNull { it.token?.fiatSymbol }
 
         val chainsById = chainsRepository.getChainsById()
 
@@ -42,16 +41,15 @@ class AssetBalanceUseCaseImpl(
                 .firstOrNull { it.id == current.asset.id }
                 ?: return@fold AssetBalance.Empty
 
-            val currentAssetTotal =
-                current.asset.freeInPlanks.orZero() + current.asset.reservedInPlanks.orZero()
-            val currentAssetTotalDecimal = currentAssetTotal.toBigDecimal(scale = chainAsset.precision)
-            val currentFiatAmount = currentAssetTotalDecimal.applyFiatRate(current.token?.fiatRate)
+            val currentAssetTransferable = current.asset.transferableInPlanks
+            val currentAssetTransferableDecimal = chainAsset.amountFromPlanks(currentAssetTransferable)
+            val currentFiatAmount = currentAssetTransferableDecimal.applyFiatRate(current.token?.fiatRate)
 
             val totalFiatBalanceToAdd = currentFiatAmount ?: BigDecimal.ZERO
             val balanceFiatChangeToAdd = currentFiatAmount?.multiply(current.token?.recentRateChange.orZero())
                 ?.percentageToFraction().orZero()
 
-            val assetBalance = acc.assetBalance + currentAssetTotalDecimal
+            val assetBalance = acc.assetBalance + currentAssetTransferableDecimal
             val fiatBalance = acc.fiatBalance + totalFiatBalanceToAdd
 
             val fiatBalanceChange = acc.fiatBalanceChange + balanceFiatChangeToAdd
