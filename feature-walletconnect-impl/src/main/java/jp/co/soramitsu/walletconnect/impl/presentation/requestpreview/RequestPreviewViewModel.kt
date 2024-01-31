@@ -48,7 +48,9 @@ class RequestPreviewViewModel @Inject constructor(
     private val topic: String = savedStateHandle[RequestPreviewFragment.PAYLOAD_TOPIC_KEY] ?: error("No topic provided for request preview screen")
 
     private val sessions: List<Wallet.Model.SessionRequest> = walletConnectInteractor.getPendingListOfSessionRequests(topic).also {
-        if (it.isEmpty()) error("No session requests found")
+        if (it.isEmpty()) {
+            walletConnectRouter.back()
+        }
     }
 
     private val recentSession = sessions.sortedByDescending { it.request.id }[0]

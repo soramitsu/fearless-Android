@@ -21,8 +21,8 @@ data class BalanceListItemModel(
     val chainUrls: Map<ChainId, String>,
     val isHidden: Boolean
 )
-
-fun BalanceListItemModel.toAssetState() = AssetListItemViewState(
+fun BalanceListItemModel.toAssetState(index: Int? = null) = AssetListItemViewState(
+    index = index,
     assetIconUrl = asset.iconUrl,
     assetName = asset.name.orEmpty(),
     assetChainName = chain?.name.orEmpty(),

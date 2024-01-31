@@ -49,7 +49,7 @@ class ChainInteractor(
                     color = it.color,
                     isNative = it.isNative
                 )
-            }.sortedWith(compareBy<Asset> { it.isTestNet }.thenByDescending { polkadotChainId in listOf(it.chainId) })
+            }
         }
         return mapped
     }

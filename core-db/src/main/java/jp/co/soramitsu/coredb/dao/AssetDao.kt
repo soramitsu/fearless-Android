@@ -121,7 +121,7 @@ abstract class AssetDao : AssetReadOnlyCache {
 
     open suspend fun getAssets(accountMetaId: Long, id: String): List<AssetWithToken> {
         return observeAssetSymbolById(id).flatMapLatest { symbol ->
-            observeAssetsWithBalanceByName(
+            observeAssetsBySymbol(
                 accountMetaId = accountMetaId,
                 assetSymbol = symbol
             )
@@ -130,7 +130,7 @@ abstract class AssetDao : AssetReadOnlyCache {
 
     open fun observeAssets(accountMetaId: Long, id: String): Flow<List<AssetWithToken>> {
         return observeAssetSymbolById(id).flatMapLatest { symbol ->
-            observeAssetsWithBalanceByName(
+            observeAssetsBySymbol(
                 accountMetaId = accountMetaId,
                 assetSymbol = symbol
             )
@@ -147,14 +147,19 @@ abstract class AssetDao : AssetReadOnlyCache {
     @Transaction
     @Query(
         """
-            SELECT * FROM assets
-            LEFT JOIN chain_assets ON chain_assets.id = assets.id
-            WHERE chain_assets.symbol = :assetSymbol
-            AND assets.metaId = :accountMetaId
+            SELECT a.*, tp.* FROM assets a
+            LEFT JOIN token_price AS tp ON a.tokenPriceId = tp.priceId
+            LEFT JOIN chain_assets ca ON ca.id = a.id AND ca.chainId = a.chainId
+            WHERE ca.symbol in (:assetSymbol, '$xcPrefix'||:assetSymbol)
+            AND a.metaId = :accountMetaId
         """
     )
-    protected abstract fun observeAssetsWithBalanceByName(
+    protected abstract fun observeAssetsBySymbol(
         accountMetaId: Long,
         assetSymbol: String
     ): Flow<List<AssetWithToken>>
+
+    companion object {
+        const val xcPrefix = "xc"
+    }
 }

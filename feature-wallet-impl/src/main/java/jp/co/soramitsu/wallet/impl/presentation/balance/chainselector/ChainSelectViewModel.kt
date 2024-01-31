@@ -216,13 +216,18 @@ class ChainSelectViewModel @Inject constructor(
 
         val resultingChains = chainItems
             ?.filter { searchQuery.isEmpty() || it.title.contains(searchQuery, true) }
-            ?.sortedWith(
-                compareBy<ChainSelectScreenContract.State.ItemState> {
-                    it.id.defaultChainSort()
-                }.thenBy {
-                    it.title
+            ?.apply {
+                if (filterInUse != ChainSelectorViewStateWithFilters.Filter.Popular) {
+                    sortedWith(
+                        compareBy<ChainSelectScreenContract.State.ItemState> {
+                            it.id.defaultChainSort()
+                        }.thenBy {
+                            it.title
+                        }
+                    )
                 }
-            )
+            }
+
         val shouldShowAllChains =
             (!showAllChains || isFilteringEnabled && resultingChains?.isNotEmpty() != true).not()
 

@@ -66,8 +66,11 @@ class SuccessViewModel @Inject constructor(
                 Chain.Explorer.Type.SUBSCAN -> {
                     BlockExplorerUrlBuilder(explorerItem.url, explorerItem.types).build(BlockExplorerUrlBuilder.Type.EXTRINSIC, operationHash)
                 }
-
+                Chain.Explorer.Type.OKLINK,
                 Chain.Explorer.Type.ETHERSCAN -> {
+                    BlockExplorerUrlBuilder(explorerItem.url, explorerItem.types).build(BlockExplorerUrlBuilder.Type.TX, operationHash)
+                }
+                Chain.Explorer.Type.ZETA -> {
                     BlockExplorerUrlBuilder(explorerItem.url, explorerItem.types).build(BlockExplorerUrlBuilder.Type.TX, operationHash)
                 }
 

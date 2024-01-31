@@ -105,7 +105,7 @@ val accentDarkButtonColors = object : ButtonColors {
 val accentDarkDisabledButtonColors = object : ButtonColors {
     @Composable
     override fun backgroundColor(enabled: Boolean): State<Color> {
-        return rememberUpdatedState(if (enabled) colorAccent else white08)
+        return rememberUpdatedState(if (enabled) colorAccentDark else white08)
     }
 
     @Composable

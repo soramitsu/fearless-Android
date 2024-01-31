@@ -1,13 +1,15 @@
 package jp.co.soramitsu.common.utils.formatting
 
+import java.util.Locale
 import org.junit.Test
 
 class FullPrecisionFormatterTest {
 
-    private val formatter = FullPrecisionFormatter()
+    private val formatter = FullPrecisionFormatter(Locale.US)
 
     @Test
     fun `test format`() {
+        testFormatter(formatter, "0.0000000000012345", "1.2345E-12")
         testFormatter(formatter, "1.2345", "1.2345")
         testFormatter(formatter, "1.2", "1.2")
         testFormatter(formatter, "1.23", "1.23")

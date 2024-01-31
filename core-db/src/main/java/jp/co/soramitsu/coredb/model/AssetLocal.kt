@@ -56,6 +56,12 @@ data class AssetLocal(
 
     val totalInPlanks: BigInteger
         get() = freeInPlanks.orZero() + reservedInPlanks.orZero()
+
+    private val locked: BigInteger
+        get() = maxOf(miscFrozenInPlanks.orZero(), feeFrozenInPlanks.orZero())
+
+    val transferableInPlanks: BigInteger
+        get() = maxOf(freeInPlanks.orZero() - locked, BigInteger.ZERO)
 }
 
 data class AssetUpdateItem(
