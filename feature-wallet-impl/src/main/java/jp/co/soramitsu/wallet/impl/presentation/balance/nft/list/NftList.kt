@@ -51,6 +51,11 @@ import jp.co.soramitsu.common.compose.utils.PageScrollingCallback
 import jp.co.soramitsu.common.compose.utils.SetupScrollingPaginator
 import jp.co.soramitsu.common.utils.castOrNull
 import jp.co.soramitsu.common.utils.clickableSingle
+<<<<<<< HEAD
+=======
+import jp.co.soramitsu.common.compose.utils.PageScrollingCallback
+import jp.co.soramitsu.common.compose.utils.SetupScrollingPaginator
+>>>>>>> feature/nft
 import jp.co.soramitsu.wallet.impl.presentation.balance.nft.list.models.NFTCollectionsScreenModel
 import jp.co.soramitsu.wallet.impl.presentation.balance.nft.list.models.NFTCollectionsScreenView
 

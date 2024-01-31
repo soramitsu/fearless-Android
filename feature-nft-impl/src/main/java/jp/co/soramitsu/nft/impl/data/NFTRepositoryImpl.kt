@@ -61,7 +61,7 @@ class NFTRepositoryImpl(
     )
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    @Suppress("IfElseBracing", "NoSingleLineBlockComment")
+    @Suppress("NoSingleLineBlockComment")
     override val nftFiltersFlow: Flow<Set<String>> = flow {
         var filtersSnapshot: MutableSet<String> = preferences.getStringSet(
             NFT_FILTERS_KEY,
