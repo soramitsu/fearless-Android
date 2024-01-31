@@ -249,6 +249,7 @@
   <string name="common_origin_network_fee">元ネットワーク手数料</string>
   <string name="common_payout">配当性向</string>
   <string name="common_preview">プレビュー</string>
+  <string name="common_price">価格</string>
   <string name="common_proceed">続行</string>
   <string name="common_read">読む</string>
   <string name="common_receive_alert_description">これはポルカドット(Polkadot)のウォレットです。ポルカドット(Polkadot)ブロックチェーンのアセットのみ送信してください</string>
@@ -506,6 +507,7 @@
   <string name="nft_collection_available_nfts">%sコレクションで利用可能なNFT</string>
   <string name="nft_collection_my_nfts">私のNFT</string>
   <string name="nft_collection_title">コレクション</string>
+  <string name="nft_creator_title">作成者</string>
   <string name="nft_owner_title">所有</string>
   <string name="nft_stub_text">NFTがもうすぐ登場します</string>
   <string name="nft_stub_title">失礼しました</string>
