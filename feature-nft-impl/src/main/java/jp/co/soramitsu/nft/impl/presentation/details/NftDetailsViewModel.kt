@@ -104,7 +104,7 @@ class NftDetailsViewModel @Inject constructor(
             appendLine("${resourceManager.getString(R.string.nft_creator_title)}: $creatorAddress")
             appendLine("${resourceManager.getString(R.string.nft_collection_title)}: $collectionName")
             appendLine("${resourceManager.getString(R.string.nft_token_type_title)}: $tokenType")
-            appendLine("${resourceManager.getString(R.string.nft_tokenid_title)}: $tokenId")
+            appendLine("${resourceManager.getString(R.string.nft_tokenid_title)}: ${state.value.tokenId}")
             address?.let {
                 val string = resourceManager.getString(R.string.wallet_receive_share_message).format(
                     "Ethereum",
