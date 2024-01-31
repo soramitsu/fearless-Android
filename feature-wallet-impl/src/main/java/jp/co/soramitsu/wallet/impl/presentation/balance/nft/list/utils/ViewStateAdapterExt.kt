@@ -6,21 +6,14 @@ import jp.co.soramitsu.common.compose.models.Loadable
 import jp.co.soramitsu.common.compose.models.ScreenLayout
 import jp.co.soramitsu.common.compose.models.TextModel
 import jp.co.soramitsu.nft.domain.models.NFTCollection
-<<<<<<< HEAD
 import jp.co.soramitsu.nft.impl.presentation.collection.utils.SHIMMER_VIEW_ARRAY_COUNT
-=======
->>>>>>> feature/nft
 import jp.co.soramitsu.wallet.impl.presentation.balance.nft.list.models.NFTCollectionsScreenView
 
 fun createShimmeredNFTCollectionsViewsList(
     screenLayout: ScreenLayout
 ): SnapshotStateList<NFTCollectionsScreenView> {
     return SnapshotStateList<NFTCollectionsScreenView>().apply {
-<<<<<<< HEAD
         repeat(SHIMMER_VIEW_ARRAY_COUNT) {
-=======
-        repeat(6) {
->>>>>>> feature/nft
             ItemModel(
                 screenLayout = screenLayout,
                 thumbnail = Loadable.InProgress(),
