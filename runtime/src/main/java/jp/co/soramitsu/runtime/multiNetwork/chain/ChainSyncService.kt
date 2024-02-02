@@ -19,7 +19,7 @@ class ChainSyncService(
 
         val remoteChains = chainFetcher.getChains()
             .filter {
-                !it.disabled && (it.assets?.isNotEmpty() == true) && it.chainId != reefChainId // todo reef
+                !it.disabled && (it.assets?.isNotEmpty() == true)
             }
             .map {
                 it.toChain()
