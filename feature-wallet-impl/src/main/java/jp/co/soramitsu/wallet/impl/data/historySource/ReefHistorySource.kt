@@ -43,7 +43,7 @@ class ReefHistorySource(
         if(filters.contains(TransactionFilter.TRANSFER) && response.data.transfersConnection != null) {
             operations.addAll(response.data.transfersConnection?.edges?.map { it.node }?.map {
                 Operation(
-                    id = it.extrinsicHash ?: it.id,
+                    id = it.extrinsicHash ?: it.id ?: it.hashCode().toString(),
                     address = accountAddress,
                     time = parseTimeToMillis(it.timestamp),
                     chainAsset = chainAsset,
@@ -54,7 +54,7 @@ class ReefHistorySource(
                         receiver = it.to.id,
                         sender = it.from.id,
                         status = Operation.Status.fromSuccess(it.success),
-                        fee = it.feeAmount
+                        fee = it.signedData?.fee?.partialFee
                     )
                 )
             }.orEmpty())

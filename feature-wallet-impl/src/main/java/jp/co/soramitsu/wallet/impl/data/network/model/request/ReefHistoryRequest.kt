@@ -17,7 +17,6 @@ class ReefRequestBuilder(
                 transfersConnection(where: {AND: [{type_eq: Native}, {OR: [{from: {id_eq: "$accountAddress"}}, {to: {id_eq: "$accountAddress"}}]}]}, orderBy: timestamp_DESC, first: $limit, after: $offset) {
                     edges {
                       node {
-                        id
                         amount
                         timestamp
                         success
@@ -27,6 +26,7 @@ class ReefRequestBuilder(
                         from {
                           id
                         }
+                        signedData
                         extrinsicHash
                       }
                     }

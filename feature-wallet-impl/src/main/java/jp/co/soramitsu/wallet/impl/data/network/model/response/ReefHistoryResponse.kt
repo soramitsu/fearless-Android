@@ -13,14 +13,19 @@ class ReefElementsConnection(
 
 class ReefHistoryEdge(val node: ReefHistoryNode)
 class ReefHistoryNode(
-    val id: String,
+    val id: String? = null,
     val amount: BigInteger,
-    val feeAmount: BigInteger,
     val type: String,
     val timestamp: String,
     val success: Boolean,
     val to: ReefAddress,
     val from: ReefAddress,
-    val extrinsicHash: String?
+    val extrinsicHash: String?,
+    val signedData: ReefSignedData?
 )
 
+class ReefSignedData(val fee: ReefFeeData?)
+
+class ReefFeeData(
+    val partialFee: BigInteger?
+)
