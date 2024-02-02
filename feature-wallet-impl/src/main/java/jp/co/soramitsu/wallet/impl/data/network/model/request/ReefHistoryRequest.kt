@@ -6,33 +6,28 @@ class ReefRequestBuilder(
     private val filters: Set<TransactionFilter>,
     private val accountAddress: String,
     private val limit: Int = 50,
-    private val transfersOffset: String? = null,
-    private val rewardsOffset: String? = null
+    private val transfersOffset: String? = null
 ) {
     fun buildRequest(): ReefHistoryRequest {
+        val offset = transfersOffset?.let { "\"$it\"" }
         val query = StringBuilder()
         if (filters.contains(TransactionFilter.TRANSFER)) {
             query.append(
                 """
-                transfersConnection(where: {AND: [{type_eq: Native}, {OR: [{from: {id_eq: "$accountAddress"}}, {to: {id_eq: "$accountAddress"}}]}]}, orderBy: timestamp_DESC, first: $limit, after: $transfersOffset) {
+                transfersConnection(where: {AND: [{type_eq: Native}, {OR: [{from: {id_eq: "$accountAddress"}}, {to: {id_eq: "$accountAddress"}}]}]}, orderBy: timestamp_DESC, first: $limit, after: $offset) {
                     edges {
                       node {
                         id
                         amount
-                        feeAmount
-                        type
                         timestamp
                         success
-                        denom
                         to {
                           id
                         }
                         from {
                           id
                         }
-                        extrinsic {
-                          hash
-                        }
+                        extrinsicHash
                       }
                     }
                     pageInfo {
@@ -47,11 +42,10 @@ class ReefRequestBuilder(
         if (filters.contains(TransactionFilter.REWARD)) {
             query.append(
                 """
-                stakingsConnection(orderBy: timestamp_DESC, where: {AND: {signer: {id_eq: "$accountAddress"}, amount_gt: "0"}}, first: $limit, after: $rewardsOffset) {
+                stakingsConnection(orderBy: timestamp_DESC, where: {AND: {signer: {id_eq: "$accountAddress"}, amount_gt: "0"}}, first: ${limit * 2}, after: $offset) {
                     edges {
                       node {
                         id
-                        type
                         amount
                         timestamp
                         signer {
