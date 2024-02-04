@@ -31,7 +31,9 @@ import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeProvider
 import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeProviderPool
 import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeSubscriptionPool
 import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeSyncService
+import jp.co.soramitsu.shared_utils.extensions.toHexString
 import jp.co.soramitsu.shared_utils.runtime.RuntimeSnapshot
+import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.toAccountId
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -103,12 +105,17 @@ class ChainRegistry @Inject constructor(
                             addedOrModified
                                 .filter { /*it.disabled*/ it.nodes.isNotEmpty() }
                                 .forEach { chain ->
+
                                     if (chain.isEthereumChain) {
-                                        ethereumConnectionPool.setupConnection(
-                                            chain,
-                                            onSelectedNodeChange = { chainId, newNodeUrl ->
-                                                launch { notifyNodeSwitched(NodeId(chainId to newNodeUrl)) }
-                                            })
+                                        runCatching {
+                                            ethereumConnectionPool.setupConnection(
+                                                chain,
+                                                onSelectedNodeChange = { chainId, newNodeUrl ->
+                                                    launch { notifyNodeSwitched(NodeId(chainId to newNodeUrl)) }
+                                                })
+                                        }.onFailure {
+                                            return@forEach
+                                        }
                                         return@forEach
                                     }
 
