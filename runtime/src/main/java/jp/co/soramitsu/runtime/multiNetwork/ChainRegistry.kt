@@ -103,12 +103,15 @@ class ChainRegistry @Inject constructor(
                             addedOrModified
                                 .filter { /*it.disabled*/ it.nodes.isNotEmpty() }
                                 .forEach { chain ->
+
                                     if (chain.isEthereumChain) {
-                                        ethereumConnectionPool.setupConnection(
-                                            chain,
-                                            onSelectedNodeChange = { chainId, newNodeUrl ->
-                                                launch { notifyNodeSwitched(NodeId(chainId to newNodeUrl)) }
-                                            })
+                                        runCatching {
+                                            ethereumConnectionPool.setupConnection(
+                                                chain,
+                                                onSelectedNodeChange = { chainId, newNodeUrl ->
+                                                    launch { notifyNodeSwitched(NodeId(chainId to newNodeUrl)) }
+                                                })
+                                        }
                                         return@forEach
                                     }
 

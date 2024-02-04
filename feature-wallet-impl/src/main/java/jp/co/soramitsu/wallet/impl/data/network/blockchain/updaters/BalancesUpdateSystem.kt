@@ -11,6 +11,7 @@ import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
 import jp.co.soramitsu.common.data.network.runtime.binding.ExtrinsicStatusEvent
 import jp.co.soramitsu.common.data.network.runtime.binding.SimpleBalanceData
 import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
+import jp.co.soramitsu.common.utils.failure
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.requireException
 import jp.co.soramitsu.common.utils.requireValue
@@ -111,8 +112,8 @@ class BalancesUpdateSystem(
         metaAccount: MetaAccount
     ): Flow<Result<Any>> {
         val chainUpdateFlow =
-            chainRegistry.getRuntimeProvider(chain.id).observeWithTimeout(RUNTIME_AWAITING_TIMEOUT)
-                .flatMapMerge { runtimeResult ->
+            chainRegistry.getRuntimeProviderOrNull(chain.id)?.observeWithTimeout(RUNTIME_AWAITING_TIMEOUT)
+                ?.flatMapMerge { runtimeResult ->
                     if (runtimeResult.isFailure) {
                         networkStateMixin.notifyChainSyncProblem(chain.toSyncIssue())
                         return@flatMapMerge flowOf(runtimeResult)
@@ -197,7 +198,7 @@ class BalancesUpdateSystem(
                         }
                         Result.success(Unit)
                     }
-                }
+                } ?: flowOf(Result.failure("Can't find RuntimeProvider for chain: ${chain.name}"))
         return chainUpdateFlow
     }
 
