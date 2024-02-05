@@ -21,6 +21,7 @@ import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
@@ -29,7 +30,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.compose.component.B0
 import jp.co.soramitsu.common.compose.component.B1
 import jp.co.soramitsu.common.compose.component.BackgroundCornered
@@ -107,8 +107,11 @@ private fun NFTLayout(
     ) {
         for (view in views) {
             when(view) {
-                is NFTCollectionsScreenView.EmptyPlaceHolder ->
+                is NFTCollectionsScreenView.EmptyPlaceholder ->
                     NFTEmptyPlaceholder(view)
+
+                is NFTCollectionsScreenView.LoadingIndication ->
+                    NFTLoadingIndication(view)
 
                 is NFTCollectionsScreenView.ItemModel ->
                     NFTCollectionItem(view)
@@ -123,7 +126,7 @@ private fun NFTLayout(
 
 @Suppress("FunctionName")
 private fun LazyGridScope.NFTEmptyPlaceholder(
-    placeholderModel: NFTCollectionsScreenView.EmptyPlaceHolder
+    placeholderModel: NFTCollectionsScreenView.EmptyPlaceholder
 ) {
     item(
         span = {
@@ -142,7 +145,7 @@ private fun LazyGridScope.NFTEmptyPlaceholder(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 GradientIcon(
-                    iconRes = R.drawable.ic_screen_warning,
+                    iconRes = placeholderModel.image.id,
                     color = warningOrange
                 )
 
@@ -156,6 +159,26 @@ private fun LazyGridScope.NFTEmptyPlaceholder(
                     textAlign = TextAlign.Center
                 )
             }
+        }
+    }
+}
+
+private fun LazyGridScope.NFTLoadingIndication(
+    loadingIndication: NFTCollectionsScreenView.LoadingIndication
+) {
+    item(
+        span = {
+            GridItemSpan(2)
+        }
+    ) {
+        Box(
+            modifier = Modifier.fillMaxWidth().height(60.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(32.dp),
+                color = white
+            )
         }
     }
 }

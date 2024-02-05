@@ -11,10 +11,10 @@ import jp.co.soramitsu.common.compose.models.ScreenLayout
 import jp.co.soramitsu.common.compose.models.TextModel
 import jp.co.soramitsu.common.compose.utils.PageScrollingCallback
 import jp.co.soramitsu.common.presentation.LoadingState
+import jp.co.soramitsu.feature_nft_impl.R
 
 @Immutable
 class NFTsScreenModel(
-    val toolbarState: State<LoadingState<ToolbarViewState>>,
     val views: SnapshotStateList<NFTsScreenView>,
     val pageScrollingCallback: PageScrollingCallback
 )
@@ -57,6 +57,33 @@ sealed interface NFTsScreenView {
             val buttonImage: ImageModel.ResId,
             val onButtonClick: () -> Unit
         ): ItemModel by initialItemModel
+
+    }
+
+    @Immutable
+    interface LoadingIndication: NFTsScreenView {
+        companion object: LoadingIndication
+    }
+
+    @Immutable
+    interface EmptyPlaceHolder: NFTsScreenView {
+
+        val image: ImageModel.ResId
+
+        val header: TextModel
+
+        val body: TextModel
+
+        companion object : EmptyPlaceHolder {
+            override val image: ImageModel.ResId =
+                ImageModel.ResId(R.drawable.ic_screen_warning)
+
+            override val header: TextModel =
+                TextModel.ResId(R.string.nft_stub_text)
+
+            override val body: TextModel =
+                TextModel.ResId(R.string.nft_list_empty_message)
+        }
 
     }
 

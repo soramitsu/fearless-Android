@@ -23,27 +23,30 @@ class NFTCollectionsScreenModel(
 sealed interface NFTCollectionsScreenView {
 
     @Immutable
-    interface EmptyPlaceHolder: NFTCollectionsScreenView {
+    interface EmptyPlaceholder: NFTCollectionsScreenView {
 
-        val image: ImageModel
+        val image: ImageModel.ResId
 
         val header: TextModel
 
         val body: TextModel
 
-        companion object {
-            val DEFAULT = object : EmptyPlaceHolder {
-                override val image: ImageModel =
-                    ImageModel.ResId(R.drawable.ic_screen_warning)
+        companion object : EmptyPlaceholder {
+            override val image: ImageModel.ResId =
+                ImageModel.ResId(R.drawable.ic_screen_warning)
 
-                override val header: TextModel =
-                    TextModel.ResId(R.string.nft_stub_text)
+            override val header: TextModel =
+                TextModel.ResId(R.string.nft_stub_text)
 
-                override val body: TextModel =
-                    TextModel.ResId(R.string.nft_list_empty_message)
-            }
+            override val body: TextModel =
+                TextModel.ResId(R.string.nft_list_empty_message)
         }
 
+    }
+
+    @Immutable
+    interface LoadingIndication: NFTCollectionsScreenView {
+        companion object: LoadingIndication
     }
 
     @Immutable

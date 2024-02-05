@@ -3,8 +3,8 @@ package jp.co.soramitsu.nft.impl.data
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.common.data.storage.Preferences
+import jp.co.soramitsu.common.utils.castOrNull
 import jp.co.soramitsu.common.utils.concurrentRequestFlow
-import jp.co.soramitsu.common.utils.refreshOnNewDistinct
 import jp.co.soramitsu.nft.data.NFTCollectionByContractAddressPagedResponse
 import jp.co.soramitsu.nft.data.NFTRepository
 import jp.co.soramitsu.nft.data.UserOwnedTokensByContractAddressPagedResponse
@@ -30,6 +30,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.onEach
@@ -38,7 +39,6 @@ import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
@@ -123,34 +123,33 @@ class NFTRepositoryImpl(
 
             val newPageStackBuilder = {
                 Stack<String?>().apply {
+                    // first page in alchemy is accessed by passing null pageKey
                     push(null)
                 }
             }
 
-            fun <T> Flow<T>.withRefreshPagesStackSideEffect() = this.refreshOnNewDistinct {
-                runBlocking {
+            // Resetting page stack on all chains to start over because request args changed
+            fun <T> Flow<T>.withRefreshPagesStackSideEffect() =
+                this.distinctUntilChanged().onEach {
                     mutex.withLock {
-                        // Resetting page iterators on all chains to start over because request args changed
-                        pageStackMap.keys.forEach {
-                            pageStackMap.replace(it, newPageStackBuilder())
+                        val possibleChainsList = it.castOrNull<List<Chain>>()
+
+                        if (possibleChainsList == null) {
+                            pageStackMap.keys.forEach { pageStackMap.replace(it, newPageStackBuilder()) }
+                            return@withLock
                         }
+
+                        pageStackMap.clear()
+                        possibleChainsList.forEach { pageStackMap[it] = newPageStackBuilder() }
                     }
                 }
-            }
 
             combine(
                 paginationRequestFlow,
                 selectedMetaAccountFlow.withRefreshPagesStackSideEffect(),
+                chainSelectionFlow.withRefreshPagesStackSideEffect(),
                 exclusionFiltersFlow.withRefreshPagesStackSideEffect(),
-                chainSelectionFlow.withRefreshPagesStackSideEffect().onEach { chains ->
-                    mutex.withLock {
-                        for (chain in chains) {
-                            // perform refresh pageIteratorsMap sideEffect on new chains
-                            pageStackMap.putIfAbsent(chain, newPageStackBuilder())
-                        }
-                    }
-                },
-            ) { request, metaAccount, filters, _ ->
+            ) { request, metaAccount, _, filters ->
                 return@combine Triple(request, metaAccount, filters)
             }.transformLatest { (paginationRequest, metaAccount, filters) ->
                 val readOnlyChainToPageStackList = mutex.withLock {
@@ -166,7 +165,12 @@ class NFTRepositoryImpl(
                     exclusionFilters = filters
                 ).toList()
 
-                /* Add pageKeys to page iterators for next pagination request */
+                emit(result)
+            }.onEach { result ->
+                /*
+                    If request has been executed without cancellation,
+                    add pageKeys to existing page stacks for use in next pagination requests
+                */
                 for (pagedResponse in result) {
                     val pageDataWrapper = pagedResponse.result.getOrNull()
 
@@ -185,8 +189,6 @@ class NFTRepositoryImpl(
                             pageStack.push(pageDataWrapper.data.nextPage)
                     }
                 }
-
-                emit(result)
             }.collect(this)
         }.flowOn(Dispatchers.IO)
     }
@@ -197,9 +199,10 @@ class NFTRepositoryImpl(
         pageSize: Int,
         metaAccount: MetaAccount,
         exclusionFilters: List<String>
-    ): Flow<UserOwnedTokensPagedResponse> {
-        return chainToPageStackList.concurrentRequestFlow { (chain, pageStack) ->
-            val result =
+    ): Flow<UserOwnedTokensPagedResponse> =
+        chainToPageStackList.run {
+            // running request for each chain concurrently
+            concurrentRequestFlow { (chain, pageStack) ->
                 runCatching {
                     paginationRequest.nextOrPrevPage(pageStack).mapToPaginationEvent { pageKey ->
                         val ownerAddress = metaAccount.address(chain) ?: error(
@@ -208,26 +211,26 @@ class NFTRepositoryImpl(
                             """.trimIndent()
                         )
 
-                        alchemyNftApi.getUserOwnedNFTs(
-                            url = NFTRequest.UserOwnedTokens.requestUrl(chain.alchemyNftId),
+                        alchemyNftApi.getUserOwnedContracts(
+                            url = NFTRequest.UserOwnedContracts.requestUrl(chain.alchemyNftId),
                             owner = ownerAddress,
-                            withMetadata = false,
+                            withMetadata = true,
                             pageKey = pageKey,
                             pageSize = pageSize,
                             excludeFilters = exclusionFilters
                         )
                     }
+                }.also { result ->
+                    emit(
+                        UserOwnedTokensPagedResponse(
+                            chain = chain,
+                            result = result,
+                            paginationRequest = paginationRequest
+                        )
+                    )
                 }
-
-            emit(
-                UserOwnedTokensPagedResponse(
-                    chain = chain,
-                    result = result,
-                    paginationRequest = paginationRequest
-                )
-            )
+            }
         }
-    }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     override fun paginatedUserOwnedNFTsByContractAddressFlow(
@@ -249,77 +252,82 @@ class NFTRepositoryImpl(
             val mutex = Mutex()
             val userOwnedNFTsPageStack = Stack<String?>().apply { push(null) }
 
-            fun <T> Flow<T>.withRefreshPageStackSideEffect() = this.refreshOnNewDistinct {
-                runBlocking {
+            // Resetting page iterator to start over because request args changed
+            fun <T> Flow<T>.withRefreshPageStackSideEffect() =
+                this.distinctUntilChanged().onEach {
                     mutex.withLock {
-                        // Resetting page iterator to start over because request args changed
                         userOwnedNFTsPageStack.clear()
                         userOwnedNFTsPageStack.push(null)
                     }
                 }
-            }
 
             combine(
                 paginationRequestFlow,
+                selectedMetaAccountFlow.withRefreshPageStackSideEffect(),
                 chainSelectionFlow.withRefreshPageStackSideEffect(),
                 contractAddressFlow.withRefreshPageStackSideEffect(),
-                selectedMetaAccountFlow.withRefreshPageStackSideEffect(),
                 exclusionFiltersFlow.withRefreshPageStackSideEffect()
-            ) { request, chain, contractAddress, selectedMetaAccount, exclusionFilters ->
+            ) { request, metaAccount, chain, contractAddress, exclusionFilters ->
                 return@combine LocalHolder(
                     paginationRequest = request,
                     chain = chain,
                     contractAddress = contractAddress,
-                    metaAccount = selectedMetaAccount,
+                    metaAccount = metaAccount,
                     exclusionFilters = exclusionFilters
                 )
             }.transformLatest { holder ->
-                val result =
-                    runCatching {
-                        val page = mutex.withLock {
-                            holder.paginationRequest.nextOrPrevPage(
-                                pageStack = userOwnedNFTsPageStack
-                            )
-                        }
-
-                        page.mapToPaginationEvent { pageKey ->
-                            val ownerAddress = holder.metaAccount.address(holder.chain) ?: error(
-                                """
-                                    Owner is not supported for chain with id: ${holder.chain.id}.
-                                """.trimIndent()
-                            )
-
-                            alchemyNftApi.getUserOwnedNFTsByContractAddress(
-                                url = NFTRequest.UserOwnedTokens.requestUrl(holder.chain.alchemyNftId),
-                                owner = ownerAddress,
-                                contractAddress = holder.contractAddress,
-                                withMetadata = true,
-                                pageKey = pageKey,
-                                pageSize = holder.paginationRequest.getPageSize(DEFAULT_PAGE_SIZE),
-                                excludeFilters = holder.exclusionFilters
-                            )
-                        }
+                runCatching {
+                    val page = mutex.withLock {
+                        holder.paginationRequest.nextOrPrevPage(
+                            pageStack = userOwnedNFTsPageStack
+                        )
                     }
 
-                with(result.getOrNull()) {
-                    if (
-                        this == null ||
-                        this !is PaginationEvent.PageIsLoaded
-                    ) return@with
+                    page.mapToPaginationEvent { pageKey ->
+                        val ownerAddress = holder.metaAccount.address(holder.chain) ?: error(
+                            """
+                                Owner is not supported for chain with id: ${holder.chain.id}.
+                            """.trimIndent()
+                        )
 
-                    mutex.withLock {
-                        if (holder.paginationRequest is PaginationRequest.Next)
-                            userOwnedNFTsPageStack.push(data.nextPage)
+                        alchemyNftApi.getUserOwnedNFTsByContractAddress(
+                            url = NFTRequest.UserOwnedNFTs.requestUrl(holder.chain.alchemyNftId),
+                            owner = ownerAddress,
+                            contractAddress = holder.contractAddress,
+                            withMetadata = true,
+                            pageKey = pageKey,
+                            pageSize = holder.paginationRequest.getPageSize(DEFAULT_PAGE_SIZE),
+                            excludeFilters = holder.exclusionFilters
+                        )
                     }
-                }
-
-                emit(
-                    UserOwnedTokensByContractAddressPagedResponse(
-                        chain = holder.chain,
-                        result = result,
-                        paginationRequest = holder.paginationRequest
+                }.also { result ->
+                    emit(
+                        UserOwnedTokensByContractAddressPagedResponse(
+                            chain = holder.chain,
+                            result = result,
+                            paginationRequest = holder.paginationRequest
+                        )
                     )
-                )
+                }
+            }.onEach { pagedResponseWrapper ->
+
+                /*
+                    If request has been executed without cancellation,
+                    add pageKey to page stack for use in next pagination request
+                */
+
+                val result = pagedResponseWrapper.result.getOrNull()
+                if (
+                    result == null ||
+                    result !is PaginationEvent.PageIsLoaded ||
+                    pagedResponseWrapper.paginationRequest !is PaginationRequest.Next
+                ) return@onEach
+
+                mutex.withLock {
+                    userOwnedNFTsPageStack.push(
+                        result.data.nextPage
+                    )
+                }
             }.collect(this)
         }.flowOn(Dispatchers.IO)
     }
@@ -330,97 +338,79 @@ class NFTRepositoryImpl(
         chainSelectionFlow: Flow<Chain>,
         contractAddressFlow: Flow<String>
     ): Flow<NFTCollectionByContractAddressPagedResponse> {
-        class LocalHolder(
-            val paginationRequest: PaginationRequest,
-            val chain: Chain,
-            val contractAddress: String
-        )
-
         return flow {
             val mutex = Mutex()
             val tokenCollectionsPageStack = Stack<String?>().apply { push(null) }
 
-            fun <T> Flow<T>.withRefreshPageStackSideEffect() = this.refreshOnNewDistinct {
-                runBlocking {
+            // Resetting page iterator to start over because request args changed
+            fun <T> Flow<T>.withRefreshPageStackSideEffect() =
+                this.distinctUntilChanged().onEach {
                     mutex.withLock {
-                        // Resetting page iterator to start over because request args changed
                         tokenCollectionsPageStack.clear()
                         tokenCollectionsPageStack.push(null)
                     }
                 }
-            }
 
             combine(
                 paginationRequestFlow,
                 chainSelectionFlow.withRefreshPageStackSideEffect(),
                 contractAddressFlow.withRefreshPageStackSideEffect()
             ) { request, chain, contractAddress ->
-                return@combine LocalHolder(
-                    paginationRequest = request,
-                    chain = chain,
-                    contractAddress = contractAddress,
-                )
-            }.transformLatest { holder ->
-                val result =
-                    runCatching {
-                        val page = mutex.withLock {
-                            holder.paginationRequest.nextOrPrevPage(
-                                pageStack = tokenCollectionsPageStack
-                            )
-                        }
-
-
-                        page.mapToPaginationEvent { pageKey ->
-                            alchemyNftApi.getNFTCollectionByContactAddress(
-                                requestUrl = NFTRequest.TokensCollection.requestUrl(holder.chain.alchemyNftId),
-                                contractAddress = holder.contractAddress,
-                                withMetadata = true,
-                                startTokenId = pageKey,
-                                limit = holder.paginationRequest.getPageSize(DEFAULT_PAGE_SIZE)
-                            )
-                        }
+                return@combine Triple(request, chain, contractAddress,)
+            }.transformLatest { (request, chain, contractAddress) ->
+                runCatching {
+                    val page = mutex.withLock {
+                        request.nextOrPrevPage(
+                            pageStack = tokenCollectionsPageStack
+                        )
                     }
 
-                with(result.getOrNull()) {
-                    if (
-                        this == null ||
-                        this !is PaginationEvent.PageIsLoaded
-                    ) return@with
-
-                    mutex.withLock {
-                        if (holder.paginationRequest is PaginationRequest.Next)
-                            tokenCollectionsPageStack.push(data.nextPage)
+                    page.mapToPaginationEvent { pageKey ->
+                        alchemyNftApi.getNFTCollectionByContactAddress(
+                            requestUrl = NFTRequest.TokensCollection.requestUrl(chain.alchemyNftId),
+                            contractAddress = contractAddress,
+                            withMetadata = true,
+                            startTokenId = pageKey,
+                            limit = request.getPageSize(DEFAULT_PAGE_SIZE)
+                        )
                     }
-                }
-
-                emit(
-                    NFTCollectionByContractAddressPagedResponse(
-                        chain = holder.chain,
-                        result = result,
-                        paginationRequest = holder.paginationRequest
+                }.also { result ->
+                    emit(
+                        NFTCollectionByContractAddressPagedResponse(
+                            chain = chain,
+                            result = result,
+                            paginationRequest = request
+                        )
                     )
-                )
+                }
+            }.onEach { pagedResponseWrapper ->
+
+                /*
+                    If request has been executed without cancellation,
+                    add pageKey to page stack for use in next pagination request
+                */
+
+                val result = pagedResponseWrapper.result.getOrNull()
+                if (
+                    result == null ||
+                    result !is PaginationEvent.PageIsLoaded ||
+                    pagedResponseWrapper.paginationRequest !is PaginationRequest.Next
+                ) return@onEach
+
+                mutex.withLock {
+                    tokenCollectionsPageStack.push(
+                        result.data.nextPage
+                    )
+                }
             }.collect(this)
         }.flowOn(Dispatchers.IO)
-    }
-
-    override suspend fun contractMetadataBatch(
-        chain: Chain,
-        contractAddresses: Set<String>
-    ): List<NFTResponse.ContractMetadata> {
-        return withContext(Dispatchers.IO) {
-            alchemyNftApi.getNFTContractMetadataBatch(
-                requestUrl = NFTRequest.ContractMetadataBatch.requestUrl(chain.alchemyNftId),
-                body = NFTRequest.ContractMetadataBatch.Body(contractAddresses = contractAddresses.toList())
-            )
-        }
     }
 
     override suspend fun tokenMetadata(
         chain: Chain,
         contractAddress: String,
         tokenId: String
-    ): Result<TokenInfo.WithMetadata> {
+    ): Result<TokenInfo> {
         return runCatching {
             withContext(Dispatchers.IO) {
                 alchemyNftApi.getNFTMetadata(

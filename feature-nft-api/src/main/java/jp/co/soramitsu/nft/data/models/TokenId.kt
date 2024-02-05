@@ -1,26 +1,14 @@
 package jp.co.soramitsu.nft.data.models
 
-sealed interface TokenId {
+class TokenId(
+    val tokenId: String?,
+    val tokenMetadata: TokenMetadata?
+) {
+    companion object;
 
-    val tokenId: String?
-
-    class WithoutMetadata(
-        override val tokenId: String?
-    ): TokenId {
+    class TokenMetadata(
+        val tokenType: String?,
+    ) {
         companion object;
     }
-
-    class WithMetadata(
-        override val tokenId: String?,
-        val tokenMetadata: TokenMetadata?
-    ): TokenId {
-        companion object;
-
-        class TokenMetadata(
-            val tokenType: String?,
-        ) {
-            companion object;
-        }
-    }
-
 }

@@ -20,8 +20,6 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flattenMerge
 import kotlinx.coroutines.flow.flow
@@ -221,36 +219,4 @@ fun <Request, Response> List<Request>.concurrentRequestFlow(
             }
         }.flattenMerge(concurrency).flowOn(coroutineContext).collect(this)
     }
-}
-
-/**
- * [refreshOnNewDistinct] invokes [block] when there are two consequently distinct values emitted
- *
- * Important: does not prevent emission of non-distinctive values; for that use plain distinctUntilChanged()
- */
-fun <T> Flow<T>.refreshOnNewDistinct(
-    block: () -> Unit
-): Flow<T> {
-    return distinctUntilChanged { old, new ->
-        if (old != new)
-            block.invoke()
-
-        /*
-            We don't want to interfere in emission process,
-            only to invoke action when there are new distinct values
-        */
-        return@distinctUntilChanged false
-    }
-}
-
-@OptIn(FlowPreview::class)
-fun <T> Flow<T>.distinctUntilChangedOrDebounce(
-    debounceTimeout: Long,
-    areEquivalent: (prevValue: T?, currentValue: T) -> Boolean
-): Flow<T> {
-    return zipWithPrevious().debounce { (prevValue, currentValue) ->
-        if (areEquivalent(prevValue, currentValue)) {
-            debounceTimeout
-        } else 0L
-    }.map { (_, currentValue) -> currentValue }
 }

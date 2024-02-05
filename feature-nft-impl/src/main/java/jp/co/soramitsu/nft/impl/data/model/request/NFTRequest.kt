@@ -5,21 +5,16 @@ import okhttp3.MediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 
 sealed interface NFTRequest {
-    class ContractMetadataBatch: NFTRequest {
 
+    class UserOwnedContracts: NFTRequest {
         companion object {
             fun requestUrl(alchemyChainId: String?): String {
-                return "https://$alchemyChainId.g.alchemy.com/nft/v2/${BuildConfig.ALCHEMY_API_KEY}/getContractMetadataBatch"
+                return "https://$alchemyChainId.g.alchemy.com/nft/v2/${BuildConfig.ALCHEMY_API_KEY}/getContractsForOwner"
             }
         }
-
-        data class Body(
-            val mediaType: MediaType = "application/json".toMediaTypeOrNull()!!,
-            val contractAddresses: List<String>
-        )
     }
 
-    class UserOwnedTokens: NFTRequest {
+    class UserOwnedNFTs: NFTRequest {
         companion object {
             fun requestUrl(alchemyChainId: String?): String {
                 return "https://$alchemyChainId.g.alchemy.com/nft/v2/${BuildConfig.ALCHEMY_API_KEY}/getNFTs"

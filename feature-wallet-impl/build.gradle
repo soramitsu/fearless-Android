@@ -75,7 +75,6 @@ dependencies {
     implementation project(':feature-soracard-impl')
     implementation project(':runtime-permission')
     implementation project(':feature-nft-api')
-    implementation project(':feature-nft-impl')
     implementation project(':feature-walletconnect-api')
 
     implementation(platform(libs.walletconnectBomDep))

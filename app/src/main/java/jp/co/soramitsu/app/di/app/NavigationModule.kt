@@ -9,7 +9,6 @@ import javax.inject.Singleton
 import jp.co.soramitsu.account.impl.presentation.AccountRouter
 import jp.co.soramitsu.app.root.navigation.Navigator
 import jp.co.soramitsu.crowdloan.impl.presentation.CrowdloanRouter
-import jp.co.soramitsu.nft.impl.presentation.NftRouter
 import jp.co.soramitsu.onboarding.impl.OnboardingRouter
 import jp.co.soramitsu.polkaswap.api.presentation.PolkaswapRouter
 import jp.co.soramitsu.soracard.api.presentation.SoraCardRouter
@@ -65,8 +64,4 @@ class NavigationModule {
     @Singleton
     @Provides
     fun provideWalletConnectRouter(navigator: Navigator): WalletConnectRouter = navigator
-
-    @Singleton
-    @Provides
-    fun provideNftRouter(navigator: Navigator): NftRouter = navigator
 }

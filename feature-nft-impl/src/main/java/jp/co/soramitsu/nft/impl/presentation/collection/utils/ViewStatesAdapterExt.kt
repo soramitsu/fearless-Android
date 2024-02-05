@@ -6,6 +6,7 @@ import jp.co.soramitsu.common.compose.models.ImageModel
 import jp.co.soramitsu.common.compose.models.Loadable
 import jp.co.soramitsu.common.compose.models.ScreenLayout
 import jp.co.soramitsu.common.compose.models.TextModel
+import jp.co.soramitsu.nft.domain.models.NFT
 import jp.co.soramitsu.nft.domain.models.NFTCollection
 import jp.co.soramitsu.nft.impl.presentation.collection.models.NFTsScreenView
 
@@ -32,45 +33,52 @@ fun createShimmeredNFTViewsList(): SnapshotStateList<NFTsScreenView> {
     }
 }
 
-fun NFTCollection<NFTCollection.NFT.Full>.toScreenViewStableList(
-    onItemClick: (NFTCollection.NFT.Full) -> Unit
-): SnapshotStateList<NFTsScreenView> {
-    val snapshotStateList = SnapshotStateList<NFTsScreenView>()
+fun NFTCollection<NFT.Full>.toScreenViewStableList(
+    onItemClick: (NFT.Full) -> Unit
+): ArrayDeque<NFTsScreenView> {
+    val arrayDeque = ArrayDeque<NFTsScreenView>()
 
-    when(tokens.firstOrNull()?.isUserOwnedToken) {
-        true -> {
-            ScreenHeader(
-                thumbnail = Loadable.ReadyToRender(
-                    imageUrl?.let { ImageModel.Url(it) }
-                ),
-                description = Loadable.ReadyToRender(
-                    description?.let { TextModel.SimpleString(it) }
-                )
-            ).also { snapshotStateList.add(it) }
-
-            SectionHeader(
-                title = Loadable.ReadyToRender(
-                    TextModel.ResId(
-                        R.string.nft_collection_my_nfts
-                    )
-                )
-            ).also { snapshotStateList.add(it) }
+    if (this !is NFTCollection.Data) {
+        NFTsScreenView.EmptyPlaceHolder.also {
+            arrayDeque.add(it)
         }
 
-        else -> {
-            SectionHeader(
-                title = Loadable.ReadyToRender(
-                    TextModel.ResIdWithArgs(
-                        R.string.nft_collection_available_nfts,
-                        arrayOf(collectionName)
-                    )
+        return arrayDeque
+    }
+
+    val isCollectionUserOwned =
+        tokens.firstOrNull()?.isUserOwnedToken == true
+
+    if (isCollectionUserOwned) {
+        ScreenHeader(
+            thumbnail = Loadable.ReadyToRender(
+                imageUrl?.let { ImageModel.Url(it) }
+            ),
+            description = Loadable.ReadyToRender(
+                description?.let { TextModel.SimpleString(it) }
+            )
+        ).also { arrayDeque.add(it) }
+
+        SectionHeader(
+            title = Loadable.ReadyToRender(
+                TextModel.ResId(
+                    R.string.nft_collection_my_nfts
                 )
-            ).also { snapshotStateList.add(it) }
-        }
+            )
+        ).also { arrayDeque.add(it) }
+    } else {
+        SectionHeader(
+            title = Loadable.ReadyToRender(
+                TextModel.ResIdWithArgs(
+                    R.string.nft_collection_available_nfts,
+                    arrayOf(collectionName)
+                )
+            )
+        ).also { arrayDeque.add(it) }
     }
 
     for(token in tokens) {
-        snapshotStateList.add(
+        arrayDeque.add(
             token.toScreenView(
                 screenLayout = if (tokens.size > 1)
                     ScreenLayout.Grid
@@ -80,10 +88,10 @@ fun NFTCollection<NFTCollection.NFT.Full>.toScreenViewStableList(
         )
     }
 
-    return snapshotStateList
+    return arrayDeque
 }
 
-private fun NFTCollection.NFT.Full.toScreenView(
+private fun NFT.Full.toScreenView(
     screenLayout: ScreenLayout,
     onItemClick: () -> Unit
 ): NFTsScreenView.ItemModel {

@@ -1,24 +1,21 @@
 package jp.co.soramitsu.nft.impl.data.remote
 
 import jp.co.soramitsu.nft.data.models.TokenInfo
-import jp.co.soramitsu.nft.impl.data.model.request.NFTRequest
 import jp.co.soramitsu.nft.data.models.wrappers.NFTResponse
-import retrofit2.http.Body
 import retrofit2.http.GET
-import retrofit2.http.POST
 import retrofit2.http.Query
 import retrofit2.http.Url
 
 interface AlchemyNftApi {
     @GET
-    suspend fun getUserOwnedNFTs(
+    suspend fun getUserOwnedContracts(
         @Url url: String,
         @Query("owner") owner: String,
-        @Query("withMetadata") withMetadata: Boolean = false,
+        @Query("withMetadata") withMetadata: Boolean = true,
         @Query("pageKey") pageKey: String? = null,
         @Query("pageSize") pageSize: Int = 1000,
         @Query("excludeFilters[]") excludeFilters: List<String>
-    ): NFTResponse.UserOwnedTokens
+    ): NFTResponse.UserOwnedContracts
 
     @GET
     suspend fun getUserOwnedNFTsByContractAddress(
@@ -40,18 +37,12 @@ interface AlchemyNftApi {
         @Query("limit") limit: Int
     ): NFTResponse.TokensCollection
 
-    @POST
-    suspend fun getNFTContractMetadataBatch(
-        @Url requestUrl: String,
-        @Body body: NFTRequest.ContractMetadataBatch.Body
-    ): List<NFTResponse.ContractMetadata>
-
     @GET
     suspend fun getNFTMetadata(
         @Url requestUrl: String,
         @Query("contractAddress") contractAddress: String,
         @Query("tokenId") tokenId: String
-    ): TokenInfo.WithMetadata
+    ): TokenInfo
 
     @GET
     suspend fun getNFTOwners(

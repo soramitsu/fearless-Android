@@ -9,7 +9,18 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.ChainNodeRemote
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.ChainRemote
 import jp.co.soramitsu.testshared.argThat
 import jp.co.soramitsu.testshared.eq
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -143,5 +154,43 @@ class ChainSyncServiceTest {
 
     private fun insertsChainWithId(id: String) = argThat<List<JoinedChainInfo>> {
         it.size == 1 && it.first().chain.id == id
+    }
+
+    @Test
+    fun T() = runTest {
+        channelFlow {
+
+            val sem = Semaphore(1)
+
+            val flow1 = flow {
+                emit(1)
+                kotlinx.coroutines.delay(1000)
+                emit(3)
+                kotlinx.coroutines.delay(1000)
+                emit(5)
+                kotlinx.coroutines.delay(1000)
+            }
+
+            val flow2 = flow {
+                emit(2)
+                emit(4)
+                emit(6)
+            }
+
+            sem.acquire()
+            flow1.onEach {
+                send(it)
+            }.launchIn(this)
+            sem.release()
+
+            sem.acquire()
+            flow2.onEach {
+                send(it)
+            }.launchIn(this)
+            sem.release()
+
+        }.onEach {
+            println("This is checkpoint: int - $it")
+        }.flowOn(Dispatchers.Default).collect()
     }
 }

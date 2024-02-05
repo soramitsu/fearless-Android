@@ -795,7 +795,7 @@
 
     <dialog
         android:id="@+id/nftFlowFragment"
-        android:name="jp.co.soramitsu.nft.impl.presentation.NftFragment"
+        android:name="jp.co.soramitsu.nft.impl.presentation.NFTFlowFragment"
         android:label="nftFlowFragment" />
 
     <action

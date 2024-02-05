@@ -72,8 +72,7 @@ import jp.co.soramitsu.crowdloan.impl.presentation.contribute.custom.CustomContr
 import jp.co.soramitsu.crowdloan.impl.presentation.contribute.custom.model.CustomContributePayload
 import jp.co.soramitsu.crowdloan.impl.presentation.contribute.select.CrowdloanContributeFragment
 import jp.co.soramitsu.crowdloan.impl.presentation.contribute.select.parcel.ContributePayload
-import jp.co.soramitsu.nft.impl.presentation.NftFragment
-import jp.co.soramitsu.nft.impl.presentation.NftRouter
+import jp.co.soramitsu.nft.impl.presentation.NFTFlowFragment
 import jp.co.soramitsu.onboarding.impl.OnboardingRouter
 import jp.co.soramitsu.onboarding.impl.welcome.WelcomeFragment
 import jp.co.soramitsu.onboarding.impl.welcome.select_import_mode.SelectImportModeDialog
@@ -197,8 +196,7 @@ class Navigator :
     PolkaswapRouter,
     SuccessRouter,
     SoraCardRouter,
-    WalletConnectRouter,
-    NftRouter {
+    WalletConnectRouter{
 
     private var navController: NavController? = null
     private var activity: AppCompatActivity? = null
@@ -1496,12 +1494,8 @@ class Navigator :
         navController?.navigate(R.id.getMoreXorFragment)
     }
 
-    override fun openNftFilters() {
-        navController?.navigate(R.id.nftFiltersFragment)
-    }
-
-    override fun openNftCollection(selectedAssetId: ChainId, contractAddress: String) {
-        val bundle = NftFragment.getCollectionDetailsBundle(selectedAssetId, contractAddress)
+    override fun openNftCollection(selectedAssetId: ChainId, contractAddress: String, collectionName: String) {
+        val bundle = NFTFlowFragment.getCollectionDetailsBundle(selectedAssetId, contractAddress, collectionName)
         navController?.navigate(R.id.nftFlowFragment, bundle)
     }
 }

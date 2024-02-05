@@ -16,6 +16,7 @@ import jp.co.soramitsu.nft.domain.NFTInteractor
 import jp.co.soramitsu.nft.impl.data.cached.CachingNFTRepositoryDecorator
 import jp.co.soramitsu.nft.impl.data.NFTRepositoryImpl
 import jp.co.soramitsu.nft.data.models.Contract
+import jp.co.soramitsu.nft.data.models.ContractInfo
 import jp.co.soramitsu.nft.data.models.TokenId
 import jp.co.soramitsu.nft.data.models.TokenInfo
 import jp.co.soramitsu.nft.data.models.wrappers.NFTResponse
@@ -24,15 +25,18 @@ import jp.co.soramitsu.nft.impl.data.model.utils.deserializer
 import jp.co.soramitsu.nft.impl.data.remote.AlchemyNftApi
 import jp.co.soramitsu.nft.impl.domain.NFTInteractorImpl
 import jp.co.soramitsu.nft.impl.domain.NFTTransferInteractorImpl
+import jp.co.soramitsu.nft.impl.navigation.NFTRouterImpl
+import jp.co.soramitsu.nft.impl.navigation.NftRouter
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.runtime.multiNetwork.connection.EthereumConnectionPool
+import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.converter.scalars.ScalarsConverterFactory
 
-@InstallIn(SingletonComponent::class)
 @Module
+@InstallIn(SingletonComponent::class)
 class NftModule {
 
     @Provides
@@ -40,11 +44,8 @@ class NftModule {
     fun provideAlchemyNftApi(okHttpClient: OkHttpClient): AlchemyNftApi {
         val gson = GsonBuilder()
             .registerTypeAdapter(
-                NFTResponse.ContractMetadata::class.java,
-                NFTResponse.ContractMetadata.deserializer
-            ).registerTypeAdapter(
-                NFTResponse.UserOwnedTokens::class.java,
-                NFTResponse.UserOwnedTokens.deserializer
+                NFTResponse.UserOwnedContracts::class.java,
+                NFTResponse.UserOwnedContracts.deserializer
             ).registerTypeAdapter(
                 NFTResponse.TokensCollection::class.java,
                 NFTResponse.TokensCollection.deserializer
@@ -52,35 +53,32 @@ class NftModule {
                 NFTResponse.TokenOwners::class.java,
                 NFTResponse.TokenOwners.deserializer
             ).registerTypeAdapter(
+                ContractInfo::class.java,
+                ContractInfo.deserializer
+            ).registerTypeAdapter(
                 Contract::class.java,
                 Contract.deserializer
             ).registerTypeAdapter(
-                TokenInfo.WithoutMetadata::class.java,
-                TokenInfo.WithoutMetadata.deserializer
+                TokenInfo::class.java,
+                TokenInfo.deserializer
             ).registerTypeAdapter(
-                TokenInfo.WithMetadata::class.java,
-                TokenInfo.WithMetadata.deserializer
+                TokenInfo.Media::class.java,
+                TokenInfo.Media.deserializer
             ).registerTypeAdapter(
-                TokenInfo.WithMetadata.Media::class.java,
-                TokenInfo.WithMetadata.Media.deserializer
+                TokenInfo.TokenMetadata::class.java,
+                TokenInfo.TokenMetadata.deserializer
             ).registerTypeAdapter(
-                TokenInfo.WithMetadata.TokenMetadata::class.java,
-                TokenInfo.WithMetadata.TokenMetadata.deserializer
+                TokenInfo.ContractMetadata::class.java,
+                TokenInfo.ContractMetadata.deserializer
             ).registerTypeAdapter(
-                TokenInfo.WithMetadata.ContractMetadata::class.java,
-                TokenInfo.WithMetadata.ContractMetadata.deserializer
+                TokenInfo.ContractMetadata.OpenSea::class.java,
+                TokenInfo.ContractMetadata.OpenSea.deserializer
             ).registerTypeAdapter(
-                TokenInfo.WithMetadata.ContractMetadata.OpenSea::class.java,
-                TokenInfo.WithMetadata.ContractMetadata.OpenSea.deserializer
+                TokenId::class.java,
+                TokenId.deserializer
             ).registerTypeAdapter(
-                TokenId.WithoutMetadata::class.java,
-                TokenId.WithoutMetadata.deserializer
-            ).registerTypeAdapter(
-                TokenId.WithMetadata::class.java,
-                TokenId.WithMetadata.deserializer
-            ).registerTypeAdapter(
-                TokenId.WithMetadata.TokenMetadata::class.java,
-                TokenId.WithMetadata.TokenMetadata.deserializer
+                TokenId.TokenMetadata::class.java,
+                TokenId.TokenMetadata.deserializer
             ).create()
 
         val retrofit = Retrofit.Builder()
@@ -136,11 +134,21 @@ class NftModule {
     fun provideNFTTransferInteractor(
         accountRepository: AccountRepository,
         chainsRepository: ChainsRepository,
+        @RemoteNFTRepository nftRepository: NFTRepository,
         ethereumConnectionPool: EthereumConnectionPool
     ): NFTTransferInteractor = NFTTransferInteractorImpl(
         accountRepository = accountRepository,
         chainsRepository = chainsRepository,
+        nftRepository = nftRepository,
         ethereumConnectionPool = ethereumConnectionPool
+    )
+
+    @Provides
+    @Singleton
+    fun provideNFTRouter(
+        walletRouter: WalletRouter
+    ): NftRouter = NFTRouterImpl(
+        walletRouter = walletRouter
     )
 
 }

@@ -19,6 +19,11 @@ sealed interface ImageModel {
         val url: String
     ): ImageModel
 
+    class UrlWithFallbackOption(
+        val url: String,
+        val fallbackImageModel: ImageModel
+    ): ImageModel
+
     class UrlWithPlaceholder(
         val url: String,
         val placeholderId: Int
@@ -33,6 +38,11 @@ fun ImageModel.retrievePainter(): Painter {
         is ImageModel.ResId -> painterResource(id = id)
 
         is ImageModel.Url -> rememberAsyncImagePainter(model = url)
+
+        is ImageModel.UrlWithFallbackOption -> rememberAsyncImagePainter(
+            model = url,
+            error = fallbackImageModel.retrievePainter()
+        )
 
         is ImageModel.UrlWithPlaceholder -> rememberAsyncImagePainter(
             model = url,

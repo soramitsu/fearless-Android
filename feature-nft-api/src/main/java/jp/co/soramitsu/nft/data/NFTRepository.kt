@@ -15,7 +15,7 @@ annotation class RemoteNFTRepository()
 
 data class UserOwnedTokensPagedResponse(
     val chain: Chain,
-    val result: Result<PaginationEvent<NFTResponse.UserOwnedTokens>>,
+    val result: Result<PaginationEvent<NFTResponse.UserOwnedContracts>>,
     val paginationRequest: PaginationRequest
 )
 
@@ -62,16 +62,11 @@ interface NFTRepository {
         contractAddressFlow: Flow<String>
     ): Flow<NFTCollectionByContractAddressPagedResponse>
 
-    suspend fun contractMetadataBatch(
-        chain: Chain,
-        contractAddresses: Set<String>
-    ): List<NFTResponse.ContractMetadata>
-
     suspend fun tokenMetadata(
         chain: Chain,
         contractAddress: String,
         tokenId: String
-    ): Result<TokenInfo.WithMetadata>
+    ): Result<TokenInfo>
 
     suspend fun tokenOwners(
         chain: Chain,

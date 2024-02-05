@@ -1,5 +1,6 @@
 package jp.co.soramitsu.nft.impl.domain.adapters
 
+import jp.co.soramitsu.nft.domain.models.NFT
 import jp.co.soramitsu.nft.domain.models.NFTCollection
 import jp.co.soramitsu.nft.impl.domain.models.NFTCall
 import jp.co.soramitsu.nft.impl.domain.utils.getNonce
@@ -21,7 +22,7 @@ suspend fun NFTTransferAdapter(
     web3j: Web3j,
     sender: String,
     receiver: String,
-    token: NFTCollection.NFT.Full,
+    token: NFT.Full,
     canReceiverAcceptToken: Boolean
 ): NFTCall.Transfer {
     val nonce = web3j.getNonce(sender)

@@ -1,6 +1,5 @@
 package jp.co.soramitsu.nft.impl.presentation.collection
 
-import android.os.Bundle
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -19,34 +18,31 @@ import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Divider
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraphBuilder
-import androidx.navigation.NavType
 import androidx.navigation.compose.composable
-import androidx.navigation.navArgument
 import com.valentinilk.shimmer.shimmer
-import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.compose.component.AccentButton
+import jp.co.soramitsu.common.compose.component.B0
 import jp.co.soramitsu.common.compose.component.B1
 import jp.co.soramitsu.common.compose.component.B2
 import jp.co.soramitsu.common.compose.component.BackgroundCornered
-import jp.co.soramitsu.common.compose.component.BottomSheetScreen
+import jp.co.soramitsu.common.compose.component.GradientIcon
+import jp.co.soramitsu.common.compose.component.H3
 import jp.co.soramitsu.common.compose.component.H5
 import jp.co.soramitsu.common.compose.component.H5Bold
-import jp.co.soramitsu.common.compose.component.MainToolbarShimmer
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.component.Shimmer
-import jp.co.soramitsu.common.compose.component.Toolbar
-import jp.co.soramitsu.common.compose.component.ToolbarHomeIconState
-import jp.co.soramitsu.common.compose.component.ToolbarViewState
 import jp.co.soramitsu.common.compose.theme.shimmerColor
 import jp.co.soramitsu.common.compose.theme.white
 import jp.co.soramitsu.common.compose.theme.white08
@@ -58,44 +54,33 @@ import jp.co.soramitsu.common.compose.models.ScreenLayout
 import jp.co.soramitsu.nft.impl.presentation.collection.utils.createShimmeredNFTViewsList
 import jp.co.soramitsu.common.compose.models.retrievePainter
 import jp.co.soramitsu.common.compose.models.retrieveString
+import jp.co.soramitsu.common.compose.theme.warningOrange
+import jp.co.soramitsu.common.compose.utils.PageScrollingCallback
 import jp.co.soramitsu.common.compose.utils.SetupScrollingPaginator
-import jp.co.soramitsu.common.presentation.LoadingState
-import jp.co.soramitsu.nft.impl.presentation.NftFragment
+import jp.co.soramitsu.nft.impl.navigation.Destination
 import jp.co.soramitsu.nft.impl.presentation.collection.models.NFTsScreenModel
 import jp.co.soramitsu.nft.impl.presentation.collection.models.NFTsScreenView
+import kotlinx.coroutines.flow.SharedFlow
 
 @Suppress("FunctionName")
-fun NavGraphBuilder.NFTCollectionsNavComposable(arguments: Bundle?) {
-    composable(
-        "collectionDetails/{${NftCollectionViewModel.COLLECTION_CHAIN_ID}}/{${NftCollectionViewModel.COLLECTION_CONTRACT_ADDRESS_KEY}}",
-        arguments = listOf(
-            navArgument(NftCollectionViewModel.COLLECTION_CHAIN_ID) {
-                type = NavType.StringType
-                defaultValue = arguments?.getString(NftFragment.SELECTED_CHAIN_ID)
-            },
-            navArgument(NftCollectionViewModel.COLLECTION_CONTRACT_ADDRESS_KEY) {
-                type = NavType.StringType
-                defaultValue = arguments?.getString(NftFragment.CONTRACT_ADDRESS_KEY)!!
-            }
-        )
-    ) {
-        val viewModel: NftCollectionViewModel = hiltViewModel()
+fun NavGraphBuilder.CollectionNFTsNavComposable(
+    viewsListFlow: SharedFlow<SnapshotStateList<NFTsScreenView>>,
+    pageScrollingCallback: PageScrollingCallback
+) {
+    composable(Destination.NestedNavGraphRoute.CollectionNFTsScreen.routeName) {
+        val viewsList = viewsListFlow.collectAsStateWithLifecycle(createShimmeredNFTViewsList())
 
-        val toolbarViewState = viewModel.toolbarState.collectAsStateWithLifecycle()
-        val viewsList = viewModel.state.collectAsStateWithLifecycle(createShimmeredNFTViewsList())
-
-        NFTCollectionsScreen(
+        CollectionNFTsScreen(
             screenModel = NFTsScreenModel(
-                toolbarState = toolbarViewState,
                 views = viewsList.value,
-                pageScrollingCallback = viewModel.pageScrollingCallback
+                pageScrollingCallback = pageScrollingCallback
             )
         )
     }
 }
 
 @Composable
-private fun NFTCollectionsScreen(
+private fun CollectionNFTsScreen(
     screenModel: NFTsScreenModel
 ) {
     val lazyGridState = rememberLazyGridState()
@@ -105,42 +90,38 @@ private fun NFTCollectionsScreen(
         pageScrollingCallback = screenModel.pageScrollingCallback
     )
 
-    BottomSheetScreen {
-        when (val loadingState = screenModel.toolbarState.value) {
-            is LoadingState.Loaded<ToolbarViewState> ->
-                Toolbar(loadingState.data)
+    LazyVerticalGrid(
+        state = lazyGridState,
+        columns = GridCells.Fixed(2),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = Modifier
+            .padding(horizontal = 16.dp)
+            .padding(
+                top = 8.dp,
+                bottom = 16.dp
+            )
+    ) {
+        for (view in screenModel.views) {
+            when(view) {
+                is NFTsScreenView.ScreenHeader ->
+                    NFTScreenHeader(view)
 
-            is LoadingState.Loading<ToolbarViewState> ->
-                MainToolbarShimmer(
-                    homeIconState = ToolbarHomeIconState(
-                        navigationIcon = R.drawable.ic_cross_24
-                    )
-                )
-        }
+                is NFTsScreenView.SectionHeader ->
+                    NFTSectionHeader(view)
 
-        LazyVerticalGrid(
-            state = lazyGridState,
-            columns = GridCells.Fixed(2),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier
-                .padding(16.dp)
-        ) {
-            for (view in screenModel.views) {
-                when(view) {
-                    is NFTsScreenView.ScreenHeader ->
-                        NFTScreenHeader(view)
+                is NFTsScreenView.ItemModel ->
+                    NFTItem(view)
 
-                    is NFTsScreenView.SectionHeader ->
-                        NFTSectionHeader(view)
+                is NFTsScreenView.LoadingIndication ->
+                    NFTLoadingIndication(view)
 
-                    is NFTsScreenView.ItemModel ->
-                        NFTItem(view)
-                }
+                is NFTsScreenView.EmptyPlaceHolder ->
+                    NFTEmptyPlaceholder(view)
             }
-
-            item { MarginVertical(margin = 80.dp) }
         }
+
+        item { MarginVertical(margin = 80.dp) }
     }
 }
 
@@ -348,6 +329,66 @@ private fun LazyGridScope.NFTItem(
                         )
                     }
                 }
+            }
+        }
+    }
+}
+
+private fun LazyGridScope.NFTLoadingIndication(
+    loadingIndication: NFTsScreenView.LoadingIndication
+) {
+    item(
+        span = {
+            GridItemSpan(2)
+        }
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(60.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(32.dp),
+                color = white
+            )
+        }
+    }
+}
+
+@Suppress("FunctionName")
+private fun LazyGridScope.NFTEmptyPlaceholder(
+    placeholderModel: NFTsScreenView.EmptyPlaceHolder
+) {
+    item(
+        span = {
+            GridItemSpan(2)
+        }
+    ) {
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(bottom = 80.dp)
+        ) {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                GradientIcon(
+                    iconRes = placeholderModel.image.id,
+                    color = warningOrange
+                )
+
+                H3(
+                    text = placeholderModel.header.retrieveString()
+                )
+
+                B0(
+                    text = placeholderModel.body.retrieveString(),
+                    color = white50,
+                    textAlign = TextAlign.Center
+                )
             }
         }
     }

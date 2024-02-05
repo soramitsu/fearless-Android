@@ -64,10 +64,14 @@ dependencies {
 
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-rx2:1.7.3")
 
+    implementation(libs.zXing.core)
+    implementation(libs.zXing.embedded)
+
     implementation(projects.common)
     implementation(projects.runtime)
     implementation(projects.featureNftApi)
     implementation(projects.featureAccountApi)
+    implementation(projects.featureWalletImpl)
 //    implementation(projects.coreDb)
     implementation(projects.coreApi)
     implementation(kotlin("script-runtime"))

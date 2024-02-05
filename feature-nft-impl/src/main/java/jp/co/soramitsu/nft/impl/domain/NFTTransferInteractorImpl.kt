@@ -12,21 +12,28 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.connection.EthereumConnectionPool
 import jp.co.soramitsu.runtime.multiNetwork.connection.EthereumWebSocketConnection
 import jp.co.soramitsu.common.data.secrets.v1.Keypair
+import jp.co.soramitsu.core.utils.isValidAddress
+import jp.co.soramitsu.nft.data.NFTRepository
+import jp.co.soramitsu.nft.domain.models.NFT
 import jp.co.soramitsu.nft.impl.domain.adapters.NFTTransferAdapter
 import jp.co.soramitsu.nft.impl.domain.usecase.CreateRawEthTransaction
+import jp.co.soramitsu.nft.impl.domain.usecase.EstimateEthTransactionGas
 import jp.co.soramitsu.nft.impl.domain.usecase.EstimateEthTransactionNetworkFee
 import jp.co.soramitsu.nft.impl.domain.usecase.SendRawEthTransaction
 import jp.co.soramitsu.nft.impl.domain.utils.nonNullWeb3j
+import jp.co.soramitsu.runtime.ext.addressOf
 import jp.co.soramitsu.shared_utils.extensions.requireHexPrefix
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.transform
 import org.web3j.utils.Numeric
 import java.math.BigDecimal
+import java.math.BigInteger
 
 class NFTTransferInteractorImpl(
     private val accountRepository: AccountRepository,
     private val chainsRepository: ChainsRepository,
+    private val nftRepository: NFTRepository,
     private val ethereumConnectionPool: EthereumConnectionPool
 ): NFTTransferInteractor {
 
@@ -39,7 +46,7 @@ class NFTTransferInteractorImpl(
     }
 
     override suspend fun networkFeeFlow(
-        token: NFTCollection.NFT.Full,
+        token: NFT.Full,
         receiver: String,
         canReceiverAcceptToken: Boolean
     ): Flow<Result<BigDecimal>> {
@@ -74,8 +81,68 @@ class NFTTransferInteractorImpl(
         }.catch { emit(Result.failure(it)) }
     }
 
+    override suspend fun isReceiverAddressCorrect(
+        chainId: ChainId,
+        receiver: String
+    ): Result<Boolean> {
+        val chain = chainsRepository.getChain(chainId)
+
+        return runCatching { chain.isValidAddress(receiver) }
+    }
+
+    override suspend fun isTokenSendable(
+        token: NFT.Full,
+        receiver: String,
+        canReceiverAcceptToken: Boolean
+    ): Result<Boolean> {
+        val chain = chainsRepository.getChain(token.chainId)
+        val connection = getWeb3Connection(chain.id)
+
+        return runCatching {
+
+            val contractAddress = token.contractAddress ?: error(
+                """
+                    ContractAddress supplied is null.
+                """.trimIndent()
+            )
+
+            val tokenId = token.tokenId?.requireHexPrefix()?.drop(2) ?: error(
+                """
+                    TokenId supplied is null.
+                """.trimIndent()
+            )
+
+            val owners = nftRepository.tokenOwners(
+                chain = chain,
+                contractAddress = contractAddress,
+                tokenId = tokenId
+            ).getOrThrow()
+
+            val sender = accountRepository.getSelectedMetaAccount().address(chain) ?: error(
+                """
+                    Currently selected account is unavailable now.
+                """.trimIndent()
+            )
+
+            if (sender in owners.ownersList)
+                return@runCatching true
+
+            val nftTransfer = NFTTransferAdapter(
+                web3j = connection.nonNullWeb3j,
+                sender = sender,
+                receiver = receiver,
+                token = token,
+                canReceiverAcceptToken = canReceiverAcceptToken
+            )
+
+            val gasEstimation = connection.EstimateEthTransactionGas(nftTransfer)
+
+            return@runCatching gasEstimation > BigInteger("50000")
+        }
+    }
+
     override suspend fun send(
-        token: NFTCollection.NFT.Full,
+        token: NFT.Full,
         receiver: String,
         canReceiverAcceptToken: Boolean
     ): Result<String> {

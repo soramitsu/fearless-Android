@@ -22,7 +22,7 @@ inline fun LazyGridState.isFirstItemFullyVisibleState(
                 ?: return@derivedStateOf false
 
             val isFirstVisible = itemVisibilityInfo.index == buffer
-            val isFullyVisible = itemVisibilityInfo.offset.y >= 0
+            val isFullyVisible = itemVisibilityInfo.offset.y < 0
 
             return@derivedStateOf isFirstVisible && isFullyVisible
         }
@@ -43,7 +43,7 @@ inline fun LazyGridState.isLastItemFullyVisibleState(
                 itemVisibilityInfo.index == layoutInfo.totalItemsCount.minus(buffer)
 
             val itemVisibleHeight = layoutInfo.viewportSize.height - itemVisibilityInfo.offset.y
-            val isFullyVisible = itemVisibleHeight >= itemVisibilityInfo.size.height
+            val isFullyVisible = itemVisibleHeight <= itemVisibilityInfo.size.height
 
             return@derivedStateOf isLastItemVisible && isFullyVisible
         }

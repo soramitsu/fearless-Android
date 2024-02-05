@@ -1,6 +1,7 @@
 package jp.co.soramitsu.nft.domain
 
-import jp.co.soramitsu.nft.domain.models.NFTCollection
+import jp.co.soramitsu.nft.domain.models.NFT
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.coroutines.flow.Flow
 import java.math.BigDecimal
 
@@ -27,10 +28,21 @@ interface NFTTransferInteractor {
      * Works for tokens of type ERC721*
      */
     suspend fun networkFeeFlow(
-        token: NFTCollection.NFT.Full,
+        token: NFT.Full,
         receiver: String,
         canReceiverAcceptToken: Boolean
     ): Flow<Result<BigDecimal>>
+
+    suspend fun isReceiverAddressCorrect(
+        chainId: ChainId,
+        receiver: String
+    ): Result<Boolean>
+
+    suspend fun isTokenSendable(
+        token: NFT.Full,
+        receiver: String,
+        canReceiverAcceptToken: Boolean
+    ): Result<Boolean>
 
     /**
      * Transfer of single NFT token of ERC721/ERC1155 ETH contract
@@ -53,7 +65,7 @@ interface NFTTransferInteractor {
      * Works for tokens of type ERC721*
      */
     suspend fun send(
-        token: NFTCollection.NFT.Full,
+        token: NFT.Full,
         receiver: String,
         canReceiverAcceptToken: Boolean
     ): Result<String>

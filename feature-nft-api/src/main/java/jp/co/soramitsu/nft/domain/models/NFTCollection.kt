@@ -2,40 +2,30 @@ package jp.co.soramitsu.nft.domain.models
 
 import jp.co.soramitsu.core.models.ChainId
 
-data class NFTCollection<T: NFTCollection.NFT>(
-    val chainId: ChainId,
-    val chainName: String,
-    val collectionName: String,
-    val contractAddress: String?,
-    val description: String?,
-    val imageUrl: String?,
-    val type: String?,
-    val tokens: List<T>,
-    val collectionSize: Int
-) {
+sealed interface NFTCollection<T: NFT> {
 
-    sealed interface NFT {
+    class Data<T: NFT>(
+        val chainId: ChainId,
+        val chainName: String,
+        val collectionName: String,
+        val contractAddress: String?,
+        val description: String?,
+        val imageUrl: String?,
+        val type: String?,
+        val tokens: List<T>,
+        val balance: Int,
+        val collectionSize: Int
+    ): NFTCollection<T>
 
-        data class Light(
-            val tokenId: String?,
-            val balance: String?
-        ): NFT
+    class Empty<T: NFT>(
+        val chainId: ChainId,
+        val chainName: String
+    ): NFTCollection<T>
 
-        data class Full(
-            val title: String?,
-            val thumbnail: String,
-            val description: String?,
-            val collectionName: String?,
-            val contractAddress: String?,
-            val isUserOwnedToken: Boolean,
-            val tokenId: String?,
-            val chainName: String,
-            val chainId: ChainId,
-            val tokenType: String?,
-            val date: String?,
-            val price: String
-        ): NFT
-
-    }
+    class Error<T: NFT>(
+        val chainId: ChainId,
+        val chainName: String,
+        val throwable: Throwable
+    ): NFTCollection<T>
 
 }
