@@ -19,7 +19,7 @@ android_plugin = "7.4.2"
 sharedFeaturesVersion = "1.1.1.13-SNAPSHOT"
 web3j = "4.8.8-android"
 walletconnectBom = "1.18.0"
-coil = "2.2.2"
+coil = "2.4.0"
 zXingVersion = "3.5.1"
 zXingEmbeddedVersion = "4.3.0"
 shimmer = "1.0.4"
@@ -85,6 +85,7 @@ walletconnectWeb3WalletDep = { module = "com.walletconnect:web3wallet" }
 
 coil = { module = "io.coil-kt:coil", version.ref = "coil" }
 coilSvg = { module = "io.coil-kt:coil-svg", version.ref = "coil" }
+coilGif = { module = "io.coil-kt:coil-gif", version.ref = "coil" }
 composeCoil = { module = "io.coil-kt:coil-compose", version.ref="coil" }
 shimmers = { module = "com.valentinilk.shimmer:compose-shimmer", version.ref="shimmer" }
 hiltNavigationCompose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "hilt" }

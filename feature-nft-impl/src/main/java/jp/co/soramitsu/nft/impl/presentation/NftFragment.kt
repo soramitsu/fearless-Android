@@ -124,9 +124,13 @@ class NftFragment : BaseComposeBottomSheetDialogFragment<NftViewModel>() {
                             requireActivity().shareText(it)
                         }
                     }.launchIn(this)
+
+                    viewModel.toastMessageState.onEach {
+                        showMessage(it)
+                    }.launchIn(this)
                 }
 
-                NftDetailsScreen(viewModel = viewModel)
+                NftDetailsScreen(viewModel = viewModel, onCloseClick = { navController.popBackStack() })
             }
         }
     }

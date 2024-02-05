@@ -25,15 +25,17 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.drawable.toBitmap
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import coil.compose.AsyncImage
+import coil.compose.SubcomposeAsyncImage
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.compose.component.AccentButton
 import jp.co.soramitsu.common.compose.component.B1
 import jp.co.soramitsu.common.compose.component.BottomSheetScreen
+import jp.co.soramitsu.common.compose.component.GifImage
 import jp.co.soramitsu.common.compose.component.Image
 import jp.co.soramitsu.common.compose.component.MarginHorizontal
 import jp.co.soramitsu.common.compose.component.MarginVertical
@@ -51,6 +53,8 @@ import jp.co.soramitsu.common.utils.clickableSingle
 data class NftDetailsScreenState(
     val name: String = "",
     val imageUrl: String = "",
+    val hasImageRequestFailed: Boolean = false,
+    val isImageShimmerEnabled: Boolean = false,
     val description: String = "",
     val collectionName: String = "",
     val owner: String = "",
@@ -66,8 +70,6 @@ data class NftDetailsScreenState(
 )
 
 interface NftDetailsScreenInterface {
-    fun close()
-
     fun shareClicked()
 
     fun creatorClicked()
@@ -78,40 +80,44 @@ interface NftDetailsScreenInterface {
 }
 
 @Composable
-fun NftDetailsScreen(viewModel: NftDetailsViewModel) {
+fun NftDetailsScreen(viewModel: NftDetailsViewModel, onCloseClick: () -> Unit) {
     val state = viewModel.state.collectAsStateWithLifecycle().value
-    NftDetailsScreen(state = state, screenInterface = viewModel)
+    NftDetailsScreen(state, viewModel, onCloseClick)
 }
 
 @Composable
-fun NftDetailsScreen(state: NftDetailsScreenState, screenInterface: NftDetailsScreenInterface) {
+fun NftDetailsScreen(
+    state: NftDetailsScreenState,
+    screenInterface: NftDetailsScreenInterface,
+    onCloseClick: () -> Unit
+) {
+    val shimmerEnabled = state.creator.isEmpty()
+
     BottomSheetScreen {
         Toolbar(
             state = ToolbarViewState(
                 state.name,
                 null,
-                MenuIconItem(icon = R.drawable.ic_cross_24, screenInterface::close)
+                MenuIconItem(icon = R.drawable.ic_cross_24, onCloseClick)
             ),
             modifier = Modifier.padding(bottom = 8.dp)
         )
         Column(Modifier.verticalScroll(rememberScrollState())) {
-            ShimmeredImage(state.imageUrl)
+            ShimmeredImage(state.imageUrl, state.creator.isEmpty())
 
             MarginVertical(margin = 16.dp)
 
             ActionButtons(
                 onSendClicked = {},
                 onShareClicked = screenInterface::shareClicked,
-                isEnabled = state.imageUrl.isNotEmpty()
+                isEnabled = !shimmerEnabled
             )
 
             MarginVertical(margin = 8.dp)
 
-            if (state.description.isEmpty()) {
-                ShimmerB1(
-                    modifier = Modifier
-                        .padding(horizontal = 16.dp, vertical = 8.dp)
-                )
+            if (shimmerEnabled) {
+                ShimmeredNftDescription()
+                MarginVertical(margin = 8.dp)
             } else {
                 B1(
                     modifier = Modifier
@@ -121,21 +127,25 @@ fun NftDetailsScreen(state: NftDetailsScreenState, screenInterface: NftDetailsSc
                 )
             }
 
-            DetailRowItem(
-                modifier = Modifier.padding(horizontal = 16.dp),
-                title = stringResource(id = R.string.nft_collection_title),
-                value = state.collectionName
-            )
+            if (shimmerEnabled || state.collectionName.isNotEmpty()) {
+                DetailRowItem(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    title = stringResource(id = R.string.nft_collection_title),
+                    value = state.collectionName,
+                    shimmerFraction = 0.5f,
+                    shimmerEnabled = shimmerEnabled
+                )
 
-            Divider(
-                color = black3,
-                modifier = Modifier
-                    .height(1.dp)
-                    .padding(horizontal = 16.dp)
-                    .fillMaxWidth()
-            )
+                Divider(
+                    color = black3,
+                    modifier = Modifier
+                        .height(1.dp)
+                        .padding(horizontal = 16.dp)
+                        .fillMaxWidth()
+                )
+            }
 
-            if (state.owner.isNotEmpty()) {
+            if (shimmerEnabled || state.owner.isNotEmpty()) {
                 DetailRowItem(
                     modifier = Modifier
                         .padding(horizontal = 16.dp)
@@ -143,7 +153,30 @@ fun NftDetailsScreen(state: NftDetailsScreenState, screenInterface: NftDetailsSc
                     title = stringResource(id = R.string.nft_owner_title),
                     value = state.owner,
                     leftIcon = state.ownerIcon,
-                    rightIcon = R.drawable.ic_share_arrow_white_24
+                    rightIcon = R.drawable.ic_share_arrow_white_24,
+                    shimmerFraction = 0.5f,
+                    shimmerEnabled = shimmerEnabled
+                )
+
+                Divider(
+                    color = black3,
+                    modifier = Modifier
+                        .height(1.dp)
+                        .padding(horizontal = 16.dp)
+                        .fillMaxWidth()
+                )
+            }
+
+            if (shimmerEnabled || state.tokenId.isNotEmpty()) {
+                DetailRowItem(
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp)
+                        .clickableSingle { screenInterface.tokenIdClicked() },
+                    title = stringResource(id = R.string.nft_tokenid_title),
+                    rightIcon = R.drawable.ic_share_arrow_white_24,
+                    value = state.tokenId,
+                    shimmerFraction = 0.1f,
+                    shimmerEnabled = shimmerEnabled
                 )
 
                 Divider(
@@ -158,28 +191,13 @@ fun NftDetailsScreen(state: NftDetailsScreenState, screenInterface: NftDetailsSc
             DetailRowItem(
                 modifier = Modifier
                     .padding(horizontal = 16.dp)
-                    .clickableSingle { screenInterface.tokenIdClicked() },
-                title = stringResource(id = R.string.nft_tokenid_title),
-                rightIcon = R.drawable.ic_share_arrow_white_24,
-                value = state.tokenId
-            )
-
-            Divider(
-                color = black3,
-                modifier = Modifier
-                    .height(1.dp)
-                    .padding(horizontal = 16.dp)
-                    .fillMaxWidth()
-            )
-
-            DetailRowItem(
-                modifier = Modifier
-                    .padding(horizontal = 16.dp)
                     .clickableSingle { screenInterface.creatorClicked() },
                 title = stringResource(id = R.string.nft_creator_title),
                 value = state.creator,
                 leftIcon = state.creatorIcon,
-                rightIcon = R.drawable.ic_share_arrow_white_24
+                rightIcon = R.drawable.ic_share_arrow_white_24,
+                shimmerFraction = 0.5f,
+                shimmerEnabled = shimmerEnabled
             )
 
             Divider(
@@ -193,7 +211,9 @@ fun NftDetailsScreen(state: NftDetailsScreenState, screenInterface: NftDetailsSc
             DetailRowItem(
                 modifier = Modifier.padding(horizontal = 16.dp),
                 title = stringResource(id = R.string.common_network),
-                value = state.network
+                value = state.network,
+                shimmerFraction = 0.2f,
+                shimmerEnabled = shimmerEnabled
             )
 
             Divider(
@@ -204,24 +224,13 @@ fun NftDetailsScreen(state: NftDetailsScreenState, screenInterface: NftDetailsSc
                     .fillMaxWidth()
             )
 
-            DetailRowItem(
-                modifier = Modifier.padding(horizontal = 16.dp),
-                title = stringResource(id = R.string.nft_token_type_title),
-                value = state.tokenType
-            )
-
-            Divider(
-                color = black3,
-                modifier = Modifier
-                    .height(1.dp)
-                    .padding(horizontal = 16.dp)
-                    .fillMaxWidth()
-            )
-            if (state.dateTime.isNotEmpty()) {
+            if (shimmerEnabled || state.tokenType.isNotEmpty()) {
                 DetailRowItem(
                     modifier = Modifier.padding(horizontal = 16.dp),
-                    title = stringResource(id = R.string.common_date),
-                    value = state.dateTime
+                    title = stringResource(id = R.string.nft_token_type_title),
+                    value = state.tokenType,
+                    shimmerFraction = 0.2f,
+                    shimmerEnabled = shimmerEnabled
                 )
 
                 Divider(
@@ -233,11 +242,31 @@ fun NftDetailsScreen(state: NftDetailsScreenState, screenInterface: NftDetailsSc
                 )
             }
 
-            if (state.price.isNotEmpty()) {
+            if (shimmerEnabled || state.dateTime.isNotEmpty()) {
+                DetailRowItem(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    title = stringResource(id = R.string.common_date),
+                    value = state.dateTime,
+                    shimmerFraction = 0.3f,
+                    shimmerEnabled = shimmerEnabled
+                )
+
+                Divider(
+                    color = black3,
+                    modifier = Modifier
+                        .height(1.dp)
+                        .padding(horizontal = 16.dp)
+                        .fillMaxWidth()
+                )
+            }
+
+            if (shimmerEnabled || state.price.isNotEmpty()) {
                 DetailRowItem(
                     modifier = Modifier.padding(horizontal = 16.dp),
                     title = stringResource(id = R.string.common_price),
-                    value = state.price
+                    value = state.price,
+                    shimmerFraction = 0.3f,
+                    shimmerEnabled = shimmerEnabled
                 )
 
                 Divider(
@@ -252,6 +281,29 @@ fun NftDetailsScreen(state: NftDetailsScreenState, screenInterface: NftDetailsSc
             MarginVertical(margin = 16.dp)
         }
     }
+}
+
+@Suppress("MagicNumber")
+@Composable
+fun ShimmeredNftDescription() {
+    MarginVertical(margin = 8.dp)
+    ShimmerB1(
+        modifier = Modifier
+            .fillMaxWidth(0.8f)
+            .padding(horizontal = 16.dp)
+    )
+    MarginVertical(margin = 4.dp)
+    ShimmerB1(
+        modifier = Modifier
+            .fillMaxWidth(0.6f)
+            .padding(horizontal = 16.dp)
+    )
+    MarginVertical(margin = 4.dp)
+    ShimmerB1(
+        modifier = Modifier
+            .fillMaxWidth(0.3f)
+            .padding(horizontal = 16.dp)
+    )
 }
 
 @Composable
@@ -285,13 +337,16 @@ fun ActionButtons(
     )
 }
 
+@Suppress("MagicNumber")
 @Composable
 private fun DetailRowItem(
     modifier: Modifier,
     title: String,
     value: String,
     leftIcon: PictureDrawable? = null,
-    @DrawableRes rightIcon: Int? = null
+    @DrawableRes rightIcon: Int? = null,
+    shimmerFraction: Float = 0.3f,
+    shimmerEnabled: Boolean = false
 ) {
     Row(
         modifier = modifier
@@ -307,14 +362,14 @@ private fun DetailRowItem(
         )
 
         MarginHorizontal(margin = 8.dp)
-        if (value.isEmpty()) {
-            ShimmerB1()
+        if (shimmerEnabled) {
+            ShimmerB1(modifier = Modifier.fillMaxWidth(shimmerFraction))
         } else {
             leftIcon?.let {
                 androidx.compose.foundation.Image(bitmap = it.toBitmap().asImageBitmap(), contentDescription = "")
                 MarginHorizontal(margin = 8.dp)
             }
-            B1(modifier = Modifier.wrapContentWidth(), textAlign = TextAlign.End, text = value)
+            B1(maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.fillMaxWidth(0.9f), textAlign = TextAlign.End, text = value)
             rightIcon?.let {
                 MarginHorizontal(margin = 4.dp)
                 Image(res = it, contentDescription = null, modifier = Modifier.size(16.dp))
@@ -324,27 +379,42 @@ private fun DetailRowItem(
 }
 
 @Composable
-private fun ShimmeredImage(imageUrl: String) {
-    if (imageUrl.isEmpty()) {
+private fun ShimmeredImage(imageUrl: String, shimmerEnabled: Boolean) {
+    if (imageUrl.isEmpty() && shimmerEnabled) {
         Shimmer(
             modifier = Modifier
                 .padding(horizontal = 16.dp)
-                .clip(RoundedCornerShape(8.dp))
                 .fillMaxWidth()
                 .aspectRatio(1f)
         )
     } else {
-        AsyncImage(
-            model = getImageRequest(LocalContext.current, imageUrl),
-            contentDescription = null,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .padding(horizontal = 16.dp)
-                .clip(RoundedCornerShape(8.dp))
-                .fillMaxWidth()
-                .aspectRatio(1f)
-        )
+        NftAsyncImage(imageUrl)
     }
+}
+
+@Composable
+private fun NftAsyncImage(imageUrl: String) {
+    SubcomposeAsyncImage(
+        model = getImageRequest(LocalContext.current, imageUrl),
+        contentDescription = null,
+        contentScale = ContentScale.Crop,
+        error = {
+            GifImage(gifResource = R.drawable.animated_bird)
+        },
+        loading = {
+            Shimmer(
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+                    .fillMaxWidth()
+                    .aspectRatio(1f)
+            )
+        },
+        modifier = Modifier
+            .padding(horizontal = 16.dp)
+            .clip(RoundedCornerShape(8.dp))
+            .fillMaxWidth()
+            .aspectRatio(1f)
+    )
 }
 
 @Preview
@@ -357,7 +427,7 @@ fun NftCollectionScreenPreview() {
         collectionName = "\"Custom  BabeBabeBabe\" collection",
         owner = "E3WVE....Jrpp",
         ownerIcon = null,
-        tokenId = "207",
+        tokenId = "123",
         creator = "Birds collection",
         creatorIcon = null,
         network = "Polygon",
@@ -371,8 +441,6 @@ fun NftCollectionScreenPreview() {
         NftDetailsScreen(
             previewState,
             object : NftDetailsScreenInterface {
-                override fun close() = Unit
-
                 override fun shareClicked() = Unit
 
                 override fun creatorClicked() = Unit
@@ -380,7 +448,8 @@ fun NftCollectionScreenPreview() {
                 override fun tokenIdClicked() = Unit
 
                 override fun ownerClicked() = Unit
-            }
+            },
+            {}
         )
     }
 }

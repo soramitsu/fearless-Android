@@ -64,7 +64,7 @@ buildscript {
 
         storiesVersion = '3.0.0'
 
-        coilVersion = '2.2.2'
+        coilVersion = '2.4.0'
 
         androidxCoreVersion = '1.8.0'
 
