@@ -54,6 +54,9 @@ class NftDetailsViewModel @Inject constructor(
     private val _shareState = MutableSharedFlow<String>()
     val shareState = _shareState.asSharedFlow()
 
+    private val _toastMessageState = MutableSharedFlow<String>()
+    val toastMessageState = _toastMessageState.asSharedFlow()
+
     init {
         viewModelScope.launch {
             nft = nftInteractor.getNFTDetails(chainId, colletionsContractAddress, tokenId).getOrNull()
@@ -82,9 +85,6 @@ class NftDetailsViewModel @Inject constructor(
                 )
             }
         }
-    }
-
-    override fun close() {
     }
 
     override fun shareClicked() {
@@ -134,9 +134,11 @@ class NftDetailsViewModel @Inject constructor(
     }
 
     private fun copyToClipboardWithMessage(text: String) {
-        clipboardManager.addToClipboard(text)
-        val message = resourceManager.getString(R.string.common_copied)
-        showMessage(message)
+        viewModelScope.launch {
+            clipboardManager.addToClipboard(text)
+            val message = resourceManager.getString(R.string.common_copied)
+            _toastMessageState.emit(message)
+        }
     }
 
     companion object {
