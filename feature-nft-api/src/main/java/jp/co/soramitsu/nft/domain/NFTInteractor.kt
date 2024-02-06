@@ -14,7 +14,7 @@ interface NFTInteractor {
 
     fun nftFiltersFlow(): Flow<Map<NFTFilter, Boolean>>
 
-    fun userOwnedNFTsFlow(
+    fun userOwnedCollectionsFlow(
         paginationRequestFlow: Flow<PaginationRequest>,
         chainSelectionFlow: Flow<String?>
     ): Flow<List<NFTCollection<NFT.Light>>>

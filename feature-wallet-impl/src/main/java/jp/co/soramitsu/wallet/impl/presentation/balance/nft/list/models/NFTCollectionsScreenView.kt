@@ -7,8 +7,8 @@ import jp.co.soramitsu.common.compose.models.ImageModel
 import jp.co.soramitsu.common.compose.models.Loadable
 import jp.co.soramitsu.common.compose.models.ScreenLayout
 import jp.co.soramitsu.common.compose.models.TextModel
-import jp.co.soramitsu.feature_nft_impl.R
 import jp.co.soramitsu.common.compose.utils.PageScrollingCallback
+import jp.co.soramitsu.feature_wallet_impl.R
 
 @Immutable
 class NFTCollectionsScreenModel(

@@ -103,6 +103,19 @@ fun <T> Flow<List<T>>.diffed(): Flow<ListDiff<T>> {
     }
 }
 
+inline fun <T> Flow<T>.rememberAndZipAsPreviousIf(
+    crossinline filter: (T) -> Boolean
+): Flow<Pair<T?, T>> = flow {
+    var currentDistinct: T? = null
+
+    collect {
+        emit(currentDistinct to it)
+
+        if (filter.invoke(it))
+            currentDistinct = it
+    }
+}
+
 fun <T> Flow<T>.zipWithPrevious(): Flow<Pair<T?, T>> = flow {
     var current: T? = null
 

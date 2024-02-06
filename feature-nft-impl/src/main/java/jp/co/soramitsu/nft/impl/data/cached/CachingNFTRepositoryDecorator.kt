@@ -34,14 +34,14 @@ class CachingNFTRepositoryDecorator(
     private val lruCacheMutex = Mutex()
     private val tokensWithMetadataLRUCache: LruCache<Int, TokenInfo> = LruCache(3 * DEFAULT_PAGE_SIZE)
 
-    override fun paginatedUserOwnedNFTsFlow(
+    override fun paginatedUserOwnedContractsFlow(
         paginationRequestFlow: Flow<PaginationRequest>,
         chainSelectionFlow: Flow<List<Chain>>,
         selectedMetaAccountFlow: Flow<MetaAccount>,
         exclusionFiltersFlow: Flow<List<String>>
     ): Flow<List<UserOwnedTokensPagedResponse>> {
         // No caching because it is harder to control due to multiplicity of chains
-        return nftRepository.paginatedUserOwnedNFTsFlow(
+        return nftRepository.paginatedUserOwnedContractsFlow(
             paginationRequestFlow = paginationRequestFlow,
             chainSelectionFlow = chainSelectionFlow,
             selectedMetaAccountFlow = selectedMetaAccountFlow,

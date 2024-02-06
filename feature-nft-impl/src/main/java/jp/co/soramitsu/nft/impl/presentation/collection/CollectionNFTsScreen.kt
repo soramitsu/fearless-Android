@@ -21,10 +21,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Divider
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -56,7 +58,7 @@ import jp.co.soramitsu.common.compose.models.retrievePainter
 import jp.co.soramitsu.common.compose.models.retrieveString
 import jp.co.soramitsu.common.compose.theme.warningOrange
 import jp.co.soramitsu.common.compose.utils.PageScrollingCallback
-import jp.co.soramitsu.common.compose.utils.SetupScrollingPaginator
+import jp.co.soramitsu.common.compose.utils.nestedScrollConnectionForPageScrolling
 import jp.co.soramitsu.nft.impl.navigation.Destination
 import jp.co.soramitsu.nft.impl.presentation.collection.models.NFTsScreenModel
 import jp.co.soramitsu.nft.impl.presentation.collection.models.NFTsScreenView
@@ -85,17 +87,16 @@ private fun CollectionNFTsScreen(
 ) {
     val lazyGridState = rememberLazyGridState()
 
-    lazyGridState.SetupScrollingPaginator(
-        bufferFromBottom = 1,  // 1 due to marginVertical item
-        pageScrollingCallback = screenModel.pageScrollingCallback
-    )
+    val nestedScrollConnection = remember(lazyGridState) {
+        lazyGridState.nestedScrollConnectionForPageScrolling(screenModel.pageScrollingCallback)
+    }
 
     LazyVerticalGrid(
         state = lazyGridState,
         columns = GridCells.Fixed(2),
         verticalArrangement = Arrangement.spacedBy(8.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
-        modifier = Modifier
+        modifier = Modifier.nestedScroll(nestedScrollConnection)
             .padding(horizontal = 16.dp)
             .padding(
                 top = 8.dp,

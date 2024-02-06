@@ -1,15 +1,13 @@
 package jp.co.soramitsu.nft.impl.domain
 
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
-import jp.co.soramitsu.common.data.network.runtime.binding.cast
 import jp.co.soramitsu.common.utils.concurrentRequestFlow
+import jp.co.soramitsu.common.utils.rememberAndZipAsPreviousIf
 import jp.co.soramitsu.core.models.ChainId
 import jp.co.soramitsu.nft.data.NFTRepository
-import jp.co.soramitsu.nft.data.UserOwnedTokensByContractAddressPagedResponse
 import jp.co.soramitsu.nft.domain.NFTInteractor
 import jp.co.soramitsu.nft.domain.models.NFTCollection
 import jp.co.soramitsu.nft.data.pagination.PaginationRequest
-import jp.co.soramitsu.nft.data.models.TokenInfo
 import jp.co.soramitsu.nft.data.pagination.PaginationEvent
 import jp.co.soramitsu.nft.data.models.wrappers.NFTResponse
 import jp.co.soramitsu.nft.domain.models.NFT
@@ -23,26 +21,19 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.alchemyNftId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.BufferOverflow
-import kotlinx.coroutines.channels.actor
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.channelFlow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.merge
+import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.toList
-import kotlinx.coroutines.flow.transformLatest
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.Semaphore
-import java.util.concurrent.atomic.AtomicBoolean
+import kotlinx.coroutines.flow.transform
 import java.util.concurrent.atomic.AtomicInteger
 
 class NFTInteractorImpl(
@@ -64,7 +55,7 @@ class NFTInteractorImpl(
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    override fun userOwnedNFTsFlow(
+    override fun userOwnedCollectionsFlow(
         paginationRequestFlow: Flow<PaginationRequest>,
         chainSelectionFlow: Flow<String?>
     ): Flow<List<NFTCollection<NFT.Light>>> {
@@ -80,33 +71,54 @@ class NFTInteractorImpl(
                 filters.map { it.uppercase() }
             }
 
-        return nftRepository.paginatedUserOwnedNFTsFlow(
+        return nftRepository.paginatedUserOwnedContractsFlow(
             paginationRequestFlow = paginationRequestFlow,
             chainSelectionFlow = chainsHelperFlow,
             selectedMetaAccountFlow = accountRepository.selectedMetaAccountFlow(),
             exclusionFiltersFlow = exclusionFiltersHelperFlow
-        ).transformLatest { responses ->
-            responses.concurrentRequestFlow { pagedResponse ->
+        ).transform { currentResponse ->
+            currentResponse.concurrentRequestFlow { pagedResponse ->
                 val (chainId, chainName) = pagedResponse.chain.run { id to name }
 
-                val result = runCatching {
-                    val paginationEvent = pagedResponse.result.getOrThrow()
-
-                    if (paginationEvent !is PaginationEvent.PageIsLoaded)
-                        return@runCatching listOf(NFTCollection.Empty(chainId, chainName))
-
-                    paginationEvent.data.contracts.map {
-                        it.toLightNFTCollection(
-                            chainId,
-                            chainName
-                        )
+                val result = pagedResponse.result.mapCatching { paginationEvent ->
+                    if (paginationEvent !is PaginationEvent.PageIsLoaded) {
+                        return@mapCatching listOf(NFTCollection.Empty(chainId, chainName))
                     }
 
-                }.getOrElse { listOf(NFTCollection.Error(chainId, chainName, it)) }
+                    if (paginationEvent.data.contracts.isEmpty()) {
+                        return@mapCatching listOf(NFTCollection.Empty(chainId, chainName))
+                    }
+
+                    paginationEvent.data.contracts.map { contract ->
+                        contract.toLightNFTCollection(
+                            chainId = chainId,
+                            chainName = chainName
+                        )
+                    }
+                }.getOrElse { throwable ->
+                    val errorResult = NFTCollection.Error<NFT.Light>(
+                        chainId = chainId,
+                        chainName = chainName,
+                        throwable = throwable
+                    )
+
+                    listOf(errorResult)
+                }
 
                 emit(result)
-            }.toList().also { collectionListOfAllChains ->
-                emit(collectionListOfAllChains.flatten())
+            }.toList().flatten().also { collectionListOfAllChains ->
+                emit(collectionListOfAllChains)
+            }
+        }.rememberAndZipAsPreviousIf { collectionsList ->
+            collectionsList.any { it is NFTCollection.Data }
+        }.mapLatest { (prevDataCollections, currentCollections) ->
+            val areCurrentDataCollectionsEmpty =
+                currentCollections.count { it is NFTCollection.Data } == 0
+
+            if (areCurrentDataCollectionsEmpty && prevDataCollections != null) {
+                prevDataCollections
+            } else {
+                currentCollections
             }
         }.flowOn(Dispatchers.Default)
     }
@@ -159,12 +171,10 @@ class NFTInteractorImpl(
                 contractAddressFlow = contractAddressFlow,
                 selectedMetaAccountFlow = accountRepository.selectedMetaAccountFlow(),
                 exclusionFiltersFlow = exclusionFiltersHelperFlow
-            ).onEach { pagedResponse ->
+            ).transform { pagedResponse ->
                 val (chainId, chainName) = pagedResponse.chain.run { id to name }
 
-                val result = runCatching {
-                    val paginationEvent = pagedResponse.result.getOrThrow()
-
+                val result = pagedResponse.result.mapCatching { paginationEvent ->
                     if (paginationEvent !is PaginationEvent.PageIsLoaded) {
 
                         if (paginationEvent is PaginationEvent.AllNextPagesLoaded) {
@@ -172,25 +182,47 @@ class NFTInteractorImpl(
                             mutableSharedFlow.tryEmit(Unit)
                         }
 
-                        return@runCatching NFTCollection.Empty(chainId, chainName)
+                        return@mapCatching NFTCollection.Empty(chainId, chainName)
                     }
 
-                    paginationEvent.toFullNFTCollection(pagedResponse.chain)
-                }.getOrElse { NFTCollection.Error(chainId, chainName, it) }
+                    if (paginationEvent.data.tokenInfoList.isEmpty())
+                        return@mapCatching NFTCollection.Empty(chainId, chainName)
 
-                send(Pair(result, pagedResponse.paginationRequest))
+                    paginationEvent.data.toFullNFTCollection(pagedResponse.chain)
+                }.getOrElse { throwable ->
+                    NFTCollection.Error(
+                        chainId = chainId,
+                        chainName = chainName,
+                        throwable = throwable
+                    )
+                }
+
+                emit(Pair(result, pagedResponse.paginationRequest))
+            }.rememberAndZipAsPreviousIf { (collection, _) ->
+                collection is NFTCollection.Data
+            }.onEach { (prevDataCollectionPair, currentCollectionPair) ->
+                val (currentCollection, _) = currentCollectionPair
+
+                val collectionToSend = if (
+                    currentCollection !is NFTCollection.Data &&
+                    prevDataCollectionPair != null
+                ) {
+                    prevDataCollectionPair
+                } else {
+                    currentCollectionPair
+                }
+
+                send(collectionToSend)
             }.launchIn(this)
 
             nftRepository.paginatedNFTCollectionByContractAddressFlow(
                 paginationRequestFlow = paginationRequestFlow.withNonBlockingLock(AvailableNFTsStartedLoading),
                 chainSelectionFlow = chainSelectionHelperFlow,
                 contractAddressFlow = contractAddressFlow
-            ).onEach { pagedResponse ->
+            ).transform { pagedResponse ->
                 val (chainId, chainName) = pagedResponse.chain.run { id to name }
 
-                val result = runCatching {
-                    val paginationEvent = pagedResponse.result.getOrThrow()
-
+                val result = pagedResponse.result.mapCatching { paginationEvent ->
                     if (paginationEvent !is PaginationEvent.PageIsLoaded) {
 
                         if (paginationEvent is PaginationEvent.AllPreviousPagesLoaded){
@@ -198,33 +230,39 @@ class NFTInteractorImpl(
                             mutableSharedFlow.tryEmit(Unit)
                         }
 
-                        return@runCatching NFTCollection.Empty(chainId, chainName)
+                        return@mapCatching NFTCollection.Empty(chainId, chainName)
                     }
 
-                    paginationEvent.toFullNFTCollection(pagedResponse.chain)
-                }.getOrElse { NFTCollection.Error(chainId, chainName, it) }
+                    if (paginationEvent.data.tokenInfoList.isEmpty())
+                        return@mapCatching NFTCollection.Empty(chainId, chainName)
 
-                send(Pair(result, pagedResponse.paginationRequest))
+                    paginationEvent.data.toFullNFTCollection(pagedResponse.chain)
+                }.getOrElse { throwable ->
+                    NFTCollection.Error(
+                        chainId = chainId,
+                        chainName = chainName,
+                        throwable = throwable
+                    )
+                }
+
+                emit(Pair(result, pagedResponse.paginationRequest))
+            }.rememberAndZipAsPreviousIf { (collection, _) ->
+                collection is NFTCollection.Data
+            }.onEach { (prevDataCollectionPair, currentCollectionPair) ->
+                val (currentCollection, _) = currentCollectionPair
+
+                val collectionToSend = if (
+                    currentCollection !is NFTCollection.Data &&
+                    prevDataCollectionPair != null
+                ) {
+                    prevDataCollectionPair
+                } else {
+                    currentCollectionPair
+                }
+
+                send(collectionToSend)
             }.launchIn(this)
         }.flowOn(Dispatchers.Default)
-    }
-
-    private fun PaginationEvent.PageIsLoaded<NFTResponse.TokensCollection>.toFullNFTCollection(
-        chain: Chain
-    ): NFTCollection<NFT.Full> {
-        val contractMetadata = data.tokenInfoList.firstOrNull {
-            it.contractMetadata != null
-        }?.contractMetadata
-
-        val contractAddress = data.tokenInfoList.firstOrNull {
-            it.contract?.address != null
-        }?.contract?.address.orEmpty()
-
-        return data.toFullNFTCollection(
-            chain = chain,
-            contractAddress = contractAddress,
-            contractMetadata = contractMetadata
-        )
     }
 
     override suspend fun getNFTDetails(

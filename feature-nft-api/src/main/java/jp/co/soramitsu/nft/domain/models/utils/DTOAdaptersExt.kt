@@ -8,8 +8,6 @@ import jp.co.soramitsu.nft.domain.models.NFTCollection
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 
-private val extensions = listOf("png")
-
 fun ContractInfo.toLightNFTCollection(
     chainId: ChainId,
     chainName: String,
@@ -52,15 +50,29 @@ fun ContractInfo.toLightNFTCollection(
 
 
 fun NFTResponse.TokensCollection.toFullNFTCollection(
-    chain: Chain,
-    contractAddress: String?,
-    contractMetadata: TokenInfo.ContractMetadata?
+    chain: Chain
 ): NFTCollection<NFT.Full> {
+    val firstToken = tokenInfoList.firstOrNull {
+        it.contract?.address != null &&
+        it.contractMetadata != null
+    }
+
+    val contractAddress = firstToken?.contract?.address.orEmpty()
+
+    val collectionName = if (!firstToken?.title.isNullOrBlank())
+        firstToken?.title.orEmpty()
+    else if (!firstToken?.contractMetadata?.openSea?.collectionName.isNullOrBlank())
+        firstToken?.contractMetadata?.openSea?.collectionName.orEmpty()
+    else if (!firstToken?.contractMetadata?.name.isNullOrBlank())
+        firstToken?.contractMetadata?.name.orEmpty()
+    else contractAddress
+
+    val contractMetadata = firstToken?.contractMetadata
+
     return NFTCollection.Data(
         chainId = chain.id,
         chainName = chain.name,
-        collectionName = contractMetadata?.openSea?.collectionName
-            ?: contractMetadata?.name ?: contractAddress.orEmpty(),
+        collectionName = collectionName,
         contractAddress = contractAddress,
         description = contractMetadata?.openSea?.description,
         imageUrl = contractMetadata?.openSea?.imageUrl,

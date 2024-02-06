@@ -3,13 +3,15 @@ package jp.co.soramitsu.nft.impl.navigation
 import jp.co.soramitsu.nft.domain.models.NFT
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
+import jp.co.soramitsu.wallet.impl.presentation.balance.walletselector.light.WalletSelectionMode
 import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 
-class NFTRouterImpl(
+class InternalNFTRouterImpl(
     private val walletRouter: WalletRouter
-): NftRouter {
+): InternalNFTRouter {
 
     private val mutableDestinationsFlow =
         MutableSharedFlow<Destination>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
@@ -31,12 +33,15 @@ class NFTRouterImpl(
         mutableDestinationsFlow.tryEmit(Destination.NestedNavGraphRoute.ConfirmNFTSendScreen(token, receiver, false))
     }
 
-    override fun openAddressHistory(chainId: ChainId) {
-        walletRouter.openAddressHistory(chainId)
+    override fun openAddressHistory(chainId: ChainId): Flow<String> {
+        return walletRouter.openAddressHistoryWithResult(chainId)
     }
 
-    override fun openWalletSelectionScreen(onSelected: (metaAccountId: Long) -> Unit) {
-        walletRouter.openSelectWallet()
+    override fun openWalletSelectionScreen(selectedWalletId: Long?): Flow<Long> {
+        return walletRouter.openWalletSelectorForResult(
+            selectedWalletId = selectedWalletId,
+            walletSelectionMode = WalletSelectionMode.ExternalSelectedWallet
+        )
     }
 
     override fun openQRCodeScanner() {

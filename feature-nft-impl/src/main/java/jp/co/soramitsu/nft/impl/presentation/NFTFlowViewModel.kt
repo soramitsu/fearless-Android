@@ -8,11 +8,12 @@ import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.models.TextModel
 import jp.co.soramitsu.common.presentation.LoadingState
+import jp.co.soramitsu.feature_nft_impl.R
 import jp.co.soramitsu.nft.impl.presentation.confirmsend.contract.ConfirmNFTSendCallback
 import jp.co.soramitsu.nft.impl.presentation.confirmsend.ConfirmNFTSendPresenter
 import jp.co.soramitsu.nft.impl.presentation.confirmsend.contract.ConfirmNFTSendScreenState
 import jp.co.soramitsu.nft.impl.navigation.Destination
-import jp.co.soramitsu.nft.impl.navigation.NftRouter
+import jp.co.soramitsu.nft.impl.navigation.InternalNFTRouter
 import jp.co.soramitsu.nft.impl.presentation.NFTFlowFragment.Companion.COLLECTION_NAME
 import jp.co.soramitsu.nft.impl.presentation.NFTFlowFragment.Companion.CONTRACT_ADDRESS_KEY
 import jp.co.soramitsu.nft.impl.presentation.NFTFlowFragment.Companion.SELECTED_CHAIN_ID
@@ -21,13 +22,12 @@ import jp.co.soramitsu.nft.impl.presentation.collection.models.NFTsScreenView
 import jp.co.soramitsu.nft.impl.presentation.chooserecipient.contract.ChooseNFTRecipientCallback
 import jp.co.soramitsu.nft.impl.presentation.chooserecipient.ChooseNFTRecipientPresenter
 import jp.co.soramitsu.nft.impl.presentation.chooserecipient.contract.ChooseNFTRecipientScreenState
-import jp.co.soramitsu.wallet.impl.presentation.history.AddressHistoryFragment
+import jp.co.soramitsu.nft.navigation.NFTRouter
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 
@@ -37,7 +37,8 @@ class NFTFlowViewModel @Inject constructor(
     private val collectionNFTsPresenter: CollectionNFTsPresenter,
     private val chooseNFTRecipientPresenter: ChooseNFTRecipientPresenter,
     private val confirmNFTSendPresenter: ConfirmNFTSendPresenter,
-    private val nftRouter: NftRouter
+    private val internalNFTRouter: InternalNFTRouter,
+    private val nftRouter: NFTRouter
 ): BaseViewModel(),
     ChooseNFTRecipientCallback by chooseNFTRecipientPresenter,
     ConfirmNFTSendCallback by confirmNFTSendPresenter
@@ -66,11 +67,13 @@ class NFTFlowViewModel @Inject constructor(
             replay = 1
         )
 
-    val nestedNavGraphDestinationsFlow: StateFlow<Destination> =
-        nftRouter.destinationsFlow.stateIn(
+    val nestedNavGraphDestinationsFlow: SharedFlow<Destination> =
+        internalNFTRouter.destinationsFlow.onStart {
+            emit(Destination.NestedNavGraphRoute.Loading)
+        }.shareIn(
             scope = viewModelScope,
             started = SharingStarted.Eagerly,
-            initialValue = Destination.NestedNavGraphRoute.Loading
+            replay = 1
         )
 
     private val selectedChainId = savedStateHandle.get<String>(SELECTED_CHAIN_ID)
@@ -83,38 +86,33 @@ class NFTFlowViewModel @Inject constructor(
         ?: throw IllegalStateException("Can't find $COLLECTION_NAME in arguments")
 
     init {
-        savedStateHandle.getStateFlow(AddressHistoryFragment.RESULT_ADDRESS, "")
-            .onEach {
-                println("This is checkpoint: new Result Address - $it")
-            }.launchIn(viewModelScope)
-
-        nftRouter.openCollectionNFTsScreen(
+        internalNFTRouter.openCollectionNFTsScreen(
             selectedChainId = selectedChainId,
             contractAddress = contractAddress
         )
     }
 
-    private val mutableToolbarStateFlow = MutableStateFlow<LoadingState<TextModel>>(LoadingState.Loading())
-    val toolbarStateFlow: StateFlow<LoadingState<TextModel>> = mutableToolbarStateFlow
+    private val mutableToolbarStateFlow = MutableStateFlow<LoadingState<Pair<TextModel, Int>>>(LoadingState.Loading())
+    val toolbarStateFlow: StateFlow<LoadingState<Pair<TextModel, Int>>> = mutableToolbarStateFlow
 
     fun onDestinationChanged(route: String) {
-        val newToolbarState: LoadingState<TextModel> = when(route) {
+        val newToolbarState: LoadingState<Pair<TextModel, Int>> = when(route) {
             Destination.NestedNavGraphRoute.Loading.routeName ->
                 LoadingState.Loading()
 
             Destination.NestedNavGraphRoute.CollectionNFTsScreen.routeName ->
                 LoadingState.Loaded(
-                    TextModel.SimpleString(collectionName)
+                    TextModel.SimpleString(collectionName) to R.drawable.ic_cross_24
                 )
 
             Destination.NestedNavGraphRoute.ChooseNFTRecipientScreen.routeName ->
                 LoadingState.Loaded(
-                    TextModel.SimpleString("ChooseRecipient")
+                    TextModel.SimpleString("ChooseRecipient") to R.drawable.ic_arrow_left_24
                 )
 
             Destination.NestedNavGraphRoute.ConfirmNFTSendScreen.routeName ->
                 LoadingState.Loaded(
-                    TextModel.SimpleString("Preview")
+                    TextModel.ResId(R.string.common_preview) to R.drawable.ic_arrow_left_24
                 )
 
             else -> LoadingState.Loading()
@@ -123,7 +121,13 @@ class NFTFlowViewModel @Inject constructor(
         mutableToolbarStateFlow.value = newToolbarState
     }
 
-    fun onNavigationClick() = nftRouter::back
+    fun onNavigationClick() {
+        internalNFTRouter.back()
+    }
+
+    fun exitFlow() {
+        nftRouter.back()
+    }
 
     fun onQRCodeScannerResult(result: String?) {
         if (result == null)

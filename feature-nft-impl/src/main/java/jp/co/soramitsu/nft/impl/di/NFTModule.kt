@@ -25,8 +25,8 @@ import jp.co.soramitsu.nft.impl.data.model.utils.deserializer
 import jp.co.soramitsu.nft.impl.data.remote.AlchemyNftApi
 import jp.co.soramitsu.nft.impl.domain.NFTInteractorImpl
 import jp.co.soramitsu.nft.impl.domain.NFTTransferInteractorImpl
-import jp.co.soramitsu.nft.impl.navigation.NFTRouterImpl
-import jp.co.soramitsu.nft.impl.navigation.NftRouter
+import jp.co.soramitsu.nft.impl.navigation.InternalNFTRouterImpl
+import jp.co.soramitsu.nft.impl.navigation.InternalNFTRouter
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.runtime.multiNetwork.connection.EthereumConnectionPool
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
@@ -37,7 +37,7 @@ import retrofit2.converter.scalars.ScalarsConverterFactory
 
 @Module
 @InstallIn(SingletonComponent::class)
-class NftModule {
+class NFTModule {
 
     @Provides
     @Singleton
@@ -134,12 +134,10 @@ class NftModule {
     fun provideNFTTransferInteractor(
         accountRepository: AccountRepository,
         chainsRepository: ChainsRepository,
-        @RemoteNFTRepository nftRepository: NFTRepository,
         ethereumConnectionPool: EthereumConnectionPool
     ): NFTTransferInteractor = NFTTransferInteractorImpl(
         accountRepository = accountRepository,
         chainsRepository = chainsRepository,
-        nftRepository = nftRepository,
         ethereumConnectionPool = ethereumConnectionPool
     )
 
@@ -147,7 +145,7 @@ class NftModule {
     @Singleton
     fun provideNFTRouter(
         walletRouter: WalletRouter
-    ): NftRouter = NFTRouterImpl(
+    ): InternalNFTRouter = InternalNFTRouterImpl(
         walletRouter = walletRouter
     )
 

@@ -5,9 +5,10 @@ import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.common.compose.component.ButtonViewState
 import jp.co.soramitsu.common.compose.component.TitleValueViewState
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.feature_nft_impl.R
 import jp.co.soramitsu.nft.domain.NFTTransferInteractor
 import jp.co.soramitsu.nft.impl.navigation.Destination
-import jp.co.soramitsu.nft.impl.navigation.NftRouter
+import jp.co.soramitsu.nft.impl.navigation.InternalNFTRouter
 import jp.co.soramitsu.nft.impl.presentation.confirmsend.contract.ConfirmNFTSendCallback
 import jp.co.soramitsu.nft.impl.presentation.confirmsend.contract.ConfirmNFTSendScreenState
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
@@ -34,79 +35,67 @@ class ConfirmNFTSendPresenter @Inject constructor(
     private val resourceManager: ResourceManager,
     private val chainRegistry: ChainRegistry,
     private val nftTransferInteractor: NFTTransferInteractor,
-    private val nftRouter: NftRouter
+    private val internalNFTRouter: InternalNFTRouter
 ): ConfirmNFTSendCallback {
 
     private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 
-    private val screenArgsFlow = nftRouter.destinationsFlow
+    private val screenArgsFlow = internalNFTRouter.destinationsFlow
         .filterIsInstance<Destination.NestedNavGraphRoute.ConfirmNFTSendScreen>()
         .shareIn(coroutineScope, SharingStarted.Eagerly, 1)
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     fun createScreenStateFlow(): Flow<ConfirmNFTSendScreenState> {
         return channelFlow {
-            val networkFeeFlow = createNetworkFeeFlow(screenArgsFlow)
-                .shareIn(this, SharingStarted.Eagerly, 1)
-
-            val buttonStateFlow = createButtonState(networkFeeFlow)
+            val networkFeeHelperFlow = screenArgsFlow.flatMapLatest { destinationArgs ->
+                nftTransferInteractor.networkFeeFlow(
+                    destinationArgs.token,
+                    destinationArgs.receiver,
+                    destinationArgs.isReceiverKnown
+                )
+            }.onEach { result ->
+                result.getOrElse {
+                    internalNFTRouter.openErrorsScreen(it.message ?: "Something went wrong.")
+                }
+            }
 
             combine(
                 screenArgsFlow,
-                networkFeeFlow,
-                buttonStateFlow
-            ) { screenArgs, networkFee, buttonState ->
+                networkFeeHelperFlow
+            ) { screenArgs, networkFeeResult ->
                 val chain = screenArgs.token.chainId.let { chainRegistry.getChain(it) }
 
                 ConfirmNFTSendScreenState(
                     tokenThumbnailIconUrl = screenArgs.token.thumbnail,
                     fromInfoItem = TitleValueViewState(
-                        title = "From",
+                        title = resourceManager.getString(R.string.transaction_details_from),
                         value = accountInteractor.selectedMetaAccount().address(chain)
                     ),
                     toInfoItem = TitleValueViewState(
-                        title = "From",
+                        title = resourceManager.getString(R.string.polkaswap_to),
                         value = screenArgs.receiver
                     ),
                     collectionInfoItem = screenArgs.token.collectionName?.let {
                         TitleValueViewState(
-                            title = "Collection",
+                            title = resourceManager.getString(R.string.nft_collection_title),
                             value = it
                         )
                     },
-                    feeInfoItem = networkFee.getOrNull()?.let {
+                    feeInfoItem = networkFeeResult.getOrNull()?.let {
                         TitleValueViewState(
-                            title = "NetworkFee",
+                            title = resourceManager.getString(R.string.common_network_fee),
                             value = it.toString()
                         )
                     },
-                    buttonState = buttonState,
+                    buttonState = ButtonViewState(
+                        text = resourceManager.getString(R.string.common_confirm),
+                        enabled = networkFeeResult.isSuccess
+                    ),
                     isLoading = false
                 )
             }.onEach {
                 send(it)
             }.launchIn(this)
-        }
-    }
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    private fun createNetworkFeeFlow(
-        screenArgsFlow: Flow<Destination.NestedNavGraphRoute.ConfirmNFTSendScreen>
-    ): Flow<Result<BigDecimal>> {
-        return screenArgsFlow.flatMapLatest {
-            nftTransferInteractor.networkFeeFlow(
-                it.token,
-                it.receiver,
-                it.isReceiverKnown
-            )
-        }
-    }
-
-    private fun createButtonState(networkFeeFlow: Flow<Result<BigDecimal>>): Flow<ButtonViewState> {
-        return networkFeeFlow.map {
-            ButtonViewState(
-                text = "Confirm",
-                enabled = it.isSuccess
-            )
         }
     }
 
@@ -120,10 +109,10 @@ class ConfirmNFTSendPresenter @Inject constructor(
                 canReceiverAcceptToken = destination.isReceiverKnown
             ).fold(
                 onSuccess = {
-                    nftRouter.openSuccessScreen(it, destination.token.chainId)
+                    internalNFTRouter.openSuccessScreen(it, destination.token.chainId)
                 },
                 onFailure = {
-                    nftRouter.openErrorsScreen("")
+                    internalNFTRouter.openErrorsScreen("")
                 }
             )
         }

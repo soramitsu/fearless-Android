@@ -8,44 +8,57 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
-@Composable
 @Suppress("NOTHING_TO_INLINE")
-inline fun LazyGridState.isFirstItemFullyVisibleState(
-    buffer: Int = 0
-): State<Boolean> {
-    return remember {
-        derivedStateOf {
-            val itemVisibilityInfo = layoutInfo.visibleItemsInfo.firstOrNull()
-                ?: return@derivedStateOf false
+inline fun LazyGridState.isFirstItemFullyVisible(): Boolean {
+    val itemVisibilityInfo = layoutInfo.visibleItemsInfo.firstOrNull() ?: return false
 
-            val isFirstVisible = itemVisibilityInfo.index == buffer
-            val isFullyVisible = itemVisibilityInfo.offset.y < 0
+    val isFirstVisible = itemVisibilityInfo.index == 0
+    val isFullyVisible = itemVisibilityInfo.offset.y < 0
 
-            return@derivedStateOf isFirstVisible && isFullyVisible
-        }
+    if (isFirstVisible && isFullyVisible) {
+        itemVisibilityInfo.index
     }
+
+    return isFirstVisible && isFullyVisible
 }
 
-@Composable
 @Suppress("NOTHING_TO_INLINE")
-inline fun LazyGridState.isLastItemFullyVisibleState(
-    buffer: Int = 0
-): State<Boolean> {
-    return remember {
-        derivedStateOf {
-            val itemVisibilityInfo = layoutInfo.visibleItemsInfo.lastOrNull()
-                ?: return@derivedStateOf false
+inline fun LazyGridState.isLastItemFullyVisible(): Boolean {
+    val itemVisibilityInfo = layoutInfo.visibleItemsInfo.lastOrNull() ?: return false
 
-            val isLastItemVisible =
-                itemVisibilityInfo.index == layoutInfo.totalItemsCount.minus(buffer)
+    val isLastItemVisible =
+        itemVisibilityInfo.index == layoutInfo.totalItemsCount.minus(1)
 
-            val itemVisibleHeight = layoutInfo.viewportSize.height - itemVisibilityInfo.offset.y
-            val isFullyVisible = itemVisibleHeight <= itemVisibilityInfo.size.height
+    val itemVisibleHeight = layoutInfo.viewportSize.height - itemVisibilityInfo.offset.y
+    val isFullyVisible = itemVisibleHeight <= itemVisibilityInfo.size.height
 
-            return@derivedStateOf isLastItemVisible && isFullyVisible
+    return isLastItemVisible && isFullyVisible
+}
+
+fun LazyGridState.nestedScrollConnectionForPageScrolling(
+    pageScrollingCallback: PageScrollingCallback
+): NestedScrollConnection {
+    return object : NestedScrollConnection {
+        override fun onPostScroll(
+            consumed: Offset,
+            available: Offset,
+            source: NestedScrollSource
+        ): Offset {
+            if (isFirstItemFullyVisible()) {
+                pageScrollingCallback.onAllPrevPagesScrolled()
+            }
+
+            if (isLastItemFullyVisible()) {
+                pageScrollingCallback.onAllNextPagesScrolled()
+            }
+
+            return Offset.Zero
         }
     }
 }
@@ -57,25 +70,4 @@ interface PageScrollingCallback {
 
     fun onAllNextPagesScrolled()
 
-}
-
-@Composable
-@Suppress("NOTHING_TO_INLINE")
-inline fun LazyGridState.SetupScrollingPaginator(
-    bufferFromTop: Int = 0,
-    bufferFromBottom: Int = 0,
-    pageScrollingCallback: PageScrollingCallback
-) {
-    val isFirstItemFullyVisible = isFirstItemFullyVisibleState(bufferFromTop)
-    val isLastItemFullyVisible = isLastItemFullyVisibleState(bufferFromBottom)
-
-    LaunchedEffect(Unit) {
-        snapshotFlow { isFirstItemFullyVisible.value }
-            .onEach { pageScrollingCallback.onAllPrevPagesScrolled() }
-            .launchIn(this)
-
-        snapshotFlow { isLastItemFullyVisible.value }
-            .onEach { pageScrollingCallback.onAllNextPagesScrolled() }
-            .launchIn(this)
-    }
 }

@@ -9,11 +9,12 @@ import jp.co.soramitsu.nft.domain.models.NFTCollection
 import jp.co.soramitsu.common.compose.utils.PageScrollingCallback
 import jp.co.soramitsu.nft.domain.models.NFT
 import jp.co.soramitsu.nft.impl.navigation.Destination
-import jp.co.soramitsu.nft.impl.navigation.NftRouter
+import jp.co.soramitsu.nft.impl.navigation.InternalNFTRouter
 import jp.co.soramitsu.nft.impl.presentation.collection.models.NFTsScreenView
 import jp.co.soramitsu.nft.impl.presentation.collection.utils.toScreenViewStableList
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
@@ -28,19 +29,19 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.sample
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.transform
-import java.util.Calendar
 import java.util.concurrent.atomic.AtomicBoolean
 
 class CollectionNFTsPresenter @Inject constructor(
     private val nftInteractor: NFTInteractor,
-    private val nftRouter: NftRouter
+    private val internalNFTRouter: InternalNFTRouter
 ) {
 
     private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 
-    private val screenArgsFlow = nftRouter.destinationsFlow
+    private val screenArgsFlow = internalNFTRouter.destinationsFlow
         .filterIsInstance<Destination.NestedNavGraphRoute.CollectionNFTsScreen>()
         .shareIn(coroutineScope, SharingStarted.Eagerly, 1)
 
@@ -59,6 +60,7 @@ class CollectionNFTsPresenter @Inject constructor(
         }
     }
 
+    @OptIn(FlowPreview::class)
     fun createCollectionsNFTsFlow(): Flow<SnapshotStateList<NFTsScreenView>> {
         return channelFlow {
             val isLoadingCompleted = AtomicBoolean(true)
@@ -66,10 +68,7 @@ class CollectionNFTsPresenter @Inject constructor(
             val paginationRequestHelperFlow = mutablePaginationRequestFlow
                 .onStart {
                     emit(PaginationRequest.Start)
-                }.filter {
-                    isLoadingCompleted.get()
-                }.onEach {
-                    println("This is checkpoint: request - $it, isLoadingCompleted - ${isLoadingCompleted.get()}, currentTime - ${Calendar.getInstance()}")
+                }.sample(4_500).onEach {
                     // Pagination Request Flow can quite many requests in a second, from which we need only one
                     // so we TRY to set isLoadingCompleted, if we don't succeed then
                     // we are already in process of loading
@@ -80,14 +79,12 @@ class CollectionNFTsPresenter @Inject constructor(
                 paginationRequestFlow = paginationRequestHelperFlow,
                 chainSelectionFlow = screenArgsFlow.distinctUntilChanged().map { it.chainId },
                 contractAddressFlow = screenArgsFlow.distinctUntilChanged().map { it.contractAddress },
-            ).filter { (collection, _) ->
+            ).onEach { (collection, _) ->
                 // each new element indicated that loading has been completed
                 isLoadingCompleted.set(true)
 
-                collection !is NFTCollection.Empty
-            }.onEach { (collection, _) ->
                 if (collection is NFTCollection.Error)
-                    nftRouter.openErrorsScreen(collection.throwable.message ?: "Failed to load NFTs")
+                    internalNFTRouter.openErrorsScreen(collection.throwable.message ?: "Failed to load NFTs")
             }.zipWithPrevious().transform { (prevValue, currentValue) ->
                 mergeUserOwnedAndAvailableNFTCollections(
                     currentValue = currentValue,
@@ -100,7 +97,7 @@ class CollectionNFTsPresenter @Inject constructor(
                         if (screenHeaderIndex == -1) {
                             views.addFirst(NFTsScreenView.LoadingIndication)
                         } else {
-                            views.add(screenHeaderIndex, NFTsScreenView.LoadingIndication)
+                            views.add(screenHeaderIndex + 1, NFTsScreenView.LoadingIndication)
                         }
                     } else {
                         views.addLast(NFTsScreenView.LoadingIndication)
@@ -159,6 +156,6 @@ class CollectionNFTsPresenter @Inject constructor(
 
     private fun onCloseClick() = Unit
 
-    private fun onItemClick(token: NFT.Full) = nftRouter.openChooseRecipientScreen(token)
+    private fun onItemClick(token: NFT.Full) = internalNFTRouter.openChooseRecipientScreen(token)
 
 }

@@ -73,6 +73,7 @@ import jp.co.soramitsu.crowdloan.impl.presentation.contribute.custom.model.Custo
 import jp.co.soramitsu.crowdloan.impl.presentation.contribute.select.CrowdloanContributeFragment
 import jp.co.soramitsu.crowdloan.impl.presentation.contribute.select.parcel.ContributePayload
 import jp.co.soramitsu.nft.impl.presentation.NFTFlowFragment
+import jp.co.soramitsu.nft.navigation.NFTRouter
 import jp.co.soramitsu.onboarding.impl.OnboardingRouter
 import jp.co.soramitsu.onboarding.impl.welcome.WelcomeFragment
 import jp.co.soramitsu.onboarding.impl.welcome.select_import_mode.SelectImportModeDialog
@@ -196,7 +197,9 @@ class Navigator :
     PolkaswapRouter,
     SuccessRouter,
     SoraCardRouter,
-    WalletConnectRouter{
+    WalletConnectRouter,
+    NFTRouter
+{
 
     private var navController: NavController? = null
     private var activity: AppCompatActivity? = null

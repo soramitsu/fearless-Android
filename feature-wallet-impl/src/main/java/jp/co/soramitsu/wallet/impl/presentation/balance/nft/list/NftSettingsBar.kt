@@ -21,7 +21,7 @@ import jp.co.soramitsu.common.compose.theme.white
 import jp.co.soramitsu.common.compose.theme.white08
 import jp.co.soramitsu.common.compose.theme.white30
 import jp.co.soramitsu.common.utils.clickableWithNoIndication
-import jp.co.soramitsu.feature_nft_impl.R
+import jp.co.soramitsu.feature_wallet_impl.R
 
 @Immutable
 class NftSettingsState(

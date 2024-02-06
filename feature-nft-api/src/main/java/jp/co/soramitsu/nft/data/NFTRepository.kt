@@ -41,7 +41,7 @@ interface NFTRepository {
 
     fun setNFTFilter(value: String, excludeFromSearchQuery: Boolean)
 
-    fun paginatedUserOwnedNFTsFlow(
+    fun paginatedUserOwnedContractsFlow(
         paginationRequestFlow: Flow<PaginationRequest>,
         chainSelectionFlow: Flow<List<Chain>>,
         selectedMetaAccountFlow: Flow<MetaAccount>,

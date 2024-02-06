@@ -1,8 +1,10 @@
 package jp.co.soramitsu.nft.impl.presentation.confirmsend.contract
 
+import androidx.compose.runtime.Stable
 import jp.co.soramitsu.common.compose.component.ButtonViewState
 import jp.co.soramitsu.common.compose.component.TitleValueViewState
 
+@Stable
 data class ConfirmNFTSendScreenState(
     val tokenThumbnailIconUrl: String? = null,
     val fromInfoItem: TitleValueViewState? = null,
@@ -27,6 +29,7 @@ data class ConfirmNFTSendScreenState(
     )
 }
 
+@Stable
 interface ConfirmNFTSendCallback {
     fun onConfirmClick()
 

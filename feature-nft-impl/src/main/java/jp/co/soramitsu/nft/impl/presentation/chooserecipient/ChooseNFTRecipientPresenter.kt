@@ -12,7 +12,7 @@ import jp.co.soramitsu.feature_nft_impl.R
 import jp.co.soramitsu.nft.domain.NFTTransferInteractor
 import jp.co.soramitsu.nft.domain.models.NFT
 import jp.co.soramitsu.nft.impl.navigation.Destination
-import jp.co.soramitsu.nft.impl.navigation.NftRouter
+import jp.co.soramitsu.nft.impl.navigation.InternalNFTRouter
 import jp.co.soramitsu.nft.impl.presentation.chooserecipient.contract.ChooseNFTRecipientCallback
 import jp.co.soramitsu.nft.impl.presentation.chooserecipient.contract.ChooseNFTRecipientScreenState
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
@@ -43,19 +43,22 @@ class ChooseNFTRecipientPresenter @Inject constructor(
     private val chainsRepository: ChainsRepository,
     private val accountInteractor: AccountInteractor,
     private val resourceManager: ResourceManager,
-    private val nftRouter: NftRouter
+    private val internalNFTRouter: InternalNFTRouter
 ): ChooseNFTRecipientCallback {
 
     private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 
-    private val tokenFlow = nftRouter.destinationsFlow
+    private val tokenFlow = internalNFTRouter.destinationsFlow
         .filterIsInstance<Destination.NestedNavGraphRoute.ChooseNFTRecipientScreen>()
         .map { destinationArgs -> destinationArgs.token }
         .shareIn(coroutineScope, SharingStarted.Eagerly, 1)
 
+    private val selectedWalletIdFlow = MutableStateFlow<Long?>(null)
+
     private val addressInputFlow = MutableStateFlow("")
 
     fun setNewReceiverAddress(address: String) {
+        selectedWalletIdFlow.value = null
         addressInputFlow.value = address
     }
 
@@ -141,18 +144,12 @@ class ChooseNFTRecipientPresenter @Inject constructor(
                     receiver = addressInput
                 ).getOrNull() ?: false
 
-                val isTokenSendable = nftTransferInteractor.isTokenSendable(
-                    token = token,
-                    receiver = addressInput,
-                    canReceiverAcceptToken = false
-                ).getOrNull() ?: false
-
                 isVerificationCompleted.set(true)
 
-                return@combine isReceiverAddressValid && isTokenSendable
+                return@combine isReceiverAddressValid && token.isUserOwnedToken
             }.combine(addressInputHelperFlow) { isButtonEnabled, _ ->
                 val buttonViewState = ButtonViewState(
-                    text = resourceManager.getString(R.string.common_continue),
+                    text = resourceManager.getString(R.string.common_preview),
                     enabled = isVerificationCompleted.get() && isButtonEnabled
                 )
 
@@ -162,10 +159,12 @@ class ChooseNFTRecipientPresenter @Inject constructor(
     }
 
     override fun onAddressInput(input: String) {
+        selectedWalletIdFlow.value = null
         addressInputFlow.value = input
     }
 
     override fun onAddressInputClear() {
+        selectedWalletIdFlow.value = null
         addressInputFlow.value = ""
     }
 
@@ -181,14 +180,8 @@ class ChooseNFTRecipientPresenter @Inject constructor(
                         receiver = receiver
                     ).getOrThrow()
 
-                val isTokenSendable = nftTransferInteractor.isTokenSendable(
-                    token = token,
-                    receiver = receiver,
-                    canReceiverAcceptToken = false
-                ).getOrNull() ?: false
-
-                if (!isReceiverAddressValid || !isTokenSendable) {
-                    nftRouter.openNFTSendScreen(token, addressInputFlow.value.trim())
+                if (isReceiverAddressValid && token.isUserOwnedToken) {
+                    internalNFTRouter.openNFTSendScreen(token, addressInputFlow.value.trim())
                 } else {
                     error(
                         """
@@ -197,34 +190,43 @@ class ChooseNFTRecipientPresenter @Inject constructor(
                     )
                 }
             }.getOrElse {
-                nftRouter.openErrorsScreen(it.message ?: "Something went wrong.")
+                internalNFTRouter.openErrorsScreen(it.message ?: "Something went wrong.")
             }
         }
     }
 
     override fun onQrClick() {
-        nftRouter.openQRCodeScanner()
+        internalNFTRouter.openQRCodeScanner()
     }
 
     override fun onHistoryClick() {
         tokenFlow.replayCache.lastOrNull()?.chainId?.let { chainId ->
-            nftRouter.openAddressHistory(chainId)
+            internalNFTRouter.openAddressHistory(chainId).onEach {
+                selectedWalletIdFlow.value = null
+                addressInputFlow.value = it
+            }.launchIn(coroutineScope)
         }
     }
 
     override fun onWalletsClick() {
-        nftRouter.openWalletSelectionScreen { metaAccountId ->
-            coroutineScope.launch {
+        val chainId = tokenFlow.replayCache.lastOrNull()?.chainId ?: return
+
+        internalNFTRouter.openWalletSelectionScreen(selectedWalletIdFlow.value).onEach { metaAccountId ->
+            coroutineScope.launch(Dispatchers.IO) {
+                selectedWalletIdFlow.value = metaAccountId
+
                 val metaAccount = accountInteractor.getMetaAccount(metaAccountId)
-                val chainId = tokenFlow.replayCache.first().chainId
-                val address = metaAccount.address(chainsRepository.getChain(chainId)) ?: return@launch
+                val chain = chainsRepository.getChain(chainId)
+                val address = metaAccount.address(chain) ?: return@launch
+
                 addressInputFlow.value = address
             }
-        }
+        }.launchIn(coroutineScope)
     }
 
     override fun onPasteClick() {
         clipboardManager.getFromClipboard()?.let { buffer ->
+            selectedWalletIdFlow.value = null
             addressInputFlow.value = buffer
         }
     }

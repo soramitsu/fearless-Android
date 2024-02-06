@@ -1,8 +1,10 @@
 package jp.co.soramitsu.nft.impl.presentation.chooserecipient.contract
 
+import androidx.compose.runtime.Stable
 import jp.co.soramitsu.common.compose.component.AddressInputState
 import jp.co.soramitsu.common.compose.component.ButtonViewState
 
+@Stable
 data class ChooseNFTRecipientScreenState(
     val addressInputState: AddressInputState,
     val buttonState: ButtonViewState,
@@ -19,6 +21,7 @@ data class ChooseNFTRecipientScreenState(
     }
 }
 
+@Stable
 interface ChooseNFTRecipientCallback {
     fun onAddressInput(input: String)
 

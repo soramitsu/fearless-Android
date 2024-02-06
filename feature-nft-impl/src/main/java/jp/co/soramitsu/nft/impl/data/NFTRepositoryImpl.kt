@@ -111,7 +111,7 @@ class NFTRepositoryImpl(
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    override fun paginatedUserOwnedNFTsFlow(
+    override fun paginatedUserOwnedContractsFlow(
         paginationRequestFlow: Flow<PaginationRequest>,
         chainSelectionFlow: Flow<List<Chain>>,
         selectedMetaAccountFlow: Flow<MetaAccount>,

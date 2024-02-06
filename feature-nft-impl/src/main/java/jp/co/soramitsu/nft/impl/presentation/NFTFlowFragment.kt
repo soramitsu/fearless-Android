@@ -74,9 +74,8 @@ class NFTFlowFragment : BaseComposeBottomSheetDialogFragment<NFTFlowViewModel>()
 
     private val barcodeLauncher: ActivityResultLauncher<ScanOptions> =
         registerForActivityResult(
-            ScanTextContract(),
-            viewModel::onQRCodeScannerResult
-        )
+            ScanTextContract()
+        ) { viewModel.onQRCodeScannerResult(it) }
 
     private fun requestCameraPermission() {
         viewLifecycleOwner.lifecycleScope.launch {
@@ -109,14 +108,28 @@ class NFTFlowFragment : BaseComposeBottomSheetDialogFragment<NFTFlowViewModel>()
         LaunchedEffect(Unit) {
             viewModel.nestedNavGraphDestinationsFlow.onEach {
                 when(it) {
-                    is Destination.Action.BackPressed ->
-                        navController.popBackStack()
+                    is Destination.Action.BackPressed -> {
+                        val isBackNavigationSuccess = navController.popBackStack()
+
+                        val currentRoute = navController.currentDestination?.route
+                        val loadingRoute = Destination.NestedNavGraphRoute.Loading.routeName
+
+                        if (currentRoute == loadingRoute || !isBackNavigationSuccess) {
+                            viewModel.exitFlow()
+                        }
+                    }
 
                     is Destination.Action.QRCodeScanner ->
                         requestCameraPermission()
 
                     is Destination.Action.ShowError ->
-                        showErrorDialog(resources.getString(R.string.common_error_general_title), it.errorText)
+                        showErrorDialog(
+                            title = resources.getString(R.string.common_error_general_title),
+                            message = it.errorText,
+                            positiveClick = viewModel::onNavigationClick,
+                            negativeClick = viewModel::onNavigationClick,
+                            onBackClick = viewModel::onNavigationClick
+                        )
 
                     else -> Unit
                 }
@@ -127,7 +140,7 @@ class NFTFlowFragment : BaseComposeBottomSheetDialogFragment<NFTFlowViewModel>()
 
         BackHandler(
             onBack = remember {
-                viewModel.onNavigationClick()
+                { viewModel.onNavigationClick() }
             }
         )
 
@@ -135,16 +148,17 @@ class NFTFlowFragment : BaseComposeBottomSheetDialogFragment<NFTFlowViewModel>()
             modifier = Modifier.fillMaxSize()
         ) {
             when (val loadingState = toolbarState.value) {
-                is LoadingState.Loaded<TextModel> ->
+                is LoadingState.Loaded<Pair<TextModel, Int>> ->
                     ToolbarBottomSheet(
                         modifier = Modifier.padding(horizontal = 16.dp),
-                        title = loadingState.data.retrieveString(),
+                        title = loadingState.data.first.retrieveString(),
+                        navigationIconResId = loadingState.data.second,
                         onNavigationClick = remember {
-                            viewModel.onNavigationClick()
+                            { viewModel.onNavigationClick() }
                         }
                     )
 
-                is LoadingState.Loading<TextModel> ->
+                is LoadingState.Loading<Pair<TextModel, Int>> ->
                     MainToolbarShimmer(
                         homeIconState = ToolbarHomeIconState()
                     )

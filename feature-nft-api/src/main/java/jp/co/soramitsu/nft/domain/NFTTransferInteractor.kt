@@ -38,12 +38,6 @@ interface NFTTransferInteractor {
         receiver: String
     ): Result<Boolean>
 
-    suspend fun isTokenSendable(
-        token: NFT.Full,
-        receiver: String,
-        canReceiverAcceptToken: Boolean
-    ): Result<Boolean>
-
     /**
      * Transfer of single NFT token of ERC721/ERC1155 ETH contract
      *

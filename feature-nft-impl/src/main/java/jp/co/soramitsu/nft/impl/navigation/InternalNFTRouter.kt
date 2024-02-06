@@ -2,9 +2,10 @@ package jp.co.soramitsu.nft.impl.navigation
 
 import jp.co.soramitsu.nft.domain.models.NFT
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharedFlow
 
-interface NftRouter {
+interface InternalNFTRouter {
 
     val destinationsFlow: SharedFlow<Destination>
 
@@ -16,9 +17,9 @@ interface NftRouter {
 
     fun openNFTSendScreen(token: NFT.Full, receiver: String)
 
-    fun openAddressHistory(chainId: ChainId)
+    fun openAddressHistory(chainId: ChainId): Flow<String>
 
-    fun openWalletSelectionScreen(onSelected: (metaAccountId: Long) -> Unit)
+    fun openWalletSelectionScreen(selectedWalletId: Long?): Flow<Long>
 
     fun openQRCodeScanner()
 

@@ -33,7 +33,6 @@ import java.math.BigInteger
 class NFTTransferInteractorImpl(
     private val accountRepository: AccountRepository,
     private val chainsRepository: ChainsRepository,
-    private val nftRepository: NFTRepository,
     private val ethereumConnectionPool: EthereumConnectionPool
 ): NFTTransferInteractor {
 
@@ -88,57 +87,6 @@ class NFTTransferInteractorImpl(
         val chain = chainsRepository.getChain(chainId)
 
         return runCatching { chain.isValidAddress(receiver) }
-    }
-
-    override suspend fun isTokenSendable(
-        token: NFT.Full,
-        receiver: String,
-        canReceiverAcceptToken: Boolean
-    ): Result<Boolean> {
-        val chain = chainsRepository.getChain(token.chainId)
-        val connection = getWeb3Connection(chain.id)
-
-        return runCatching {
-
-            val contractAddress = token.contractAddress ?: error(
-                """
-                    ContractAddress supplied is null.
-                """.trimIndent()
-            )
-
-            val tokenId = token.tokenId?.requireHexPrefix()?.drop(2) ?: error(
-                """
-                    TokenId supplied is null.
-                """.trimIndent()
-            )
-
-            val owners = nftRepository.tokenOwners(
-                chain = chain,
-                contractAddress = contractAddress,
-                tokenId = tokenId
-            ).getOrThrow()
-
-            val sender = accountRepository.getSelectedMetaAccount().address(chain) ?: error(
-                """
-                    Currently selected account is unavailable now.
-                """.trimIndent()
-            )
-
-            if (sender in owners.ownersList)
-                return@runCatching true
-
-            val nftTransfer = NFTTransferAdapter(
-                web3j = connection.nonNullWeb3j,
-                sender = sender,
-                receiver = receiver,
-                token = token,
-                canReceiverAcceptToken = canReceiverAcceptToken
-            )
-
-            val gasEstimation = connection.EstimateEthTransactionGas(nftTransfer)
-
-            return@runCatching gasEstimation > BigInteger("50000")
-        }
     }
 
     override suspend fun send(
