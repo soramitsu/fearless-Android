@@ -46,7 +46,6 @@ class NftDetailsPresenter @Inject constructor(
 
     init {
         coroutineScope.launch {
-            screenArgsFlow.first()
             ownerAddress = nftInteractor.getOwnersForNFT(
                 token = screenArgsFlow.first().token
             ).getOrNull()?.firstOrNull()
@@ -77,6 +76,11 @@ class NftDetailsPresenter @Inject constructor(
                 priceFiat = token.price
             ).also { emit(it) }
         }
+    }
+
+    override fun sendClicked() {
+        val token = screenArgsFlow.replayCache.lastOrNull()?.token ?: return
+        internalNFTRouter.openChooseRecipientScreen(token)
     }
 
     override fun shareClicked() {

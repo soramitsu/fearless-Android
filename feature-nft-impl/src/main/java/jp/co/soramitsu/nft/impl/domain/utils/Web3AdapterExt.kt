@@ -34,7 +34,7 @@ inline fun <T, K> Response<T>.map(
     if (error != null)
         error(
             """
-                Could not fetch web3 response due to "${error.message}", code - ${error.code}, additional data - ${error.data}
+                Could not fetch web3 response due to "${error.message}"
             """.trimIndent()
         )
 

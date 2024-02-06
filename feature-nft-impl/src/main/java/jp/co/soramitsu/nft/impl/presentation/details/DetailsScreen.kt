@@ -77,6 +77,9 @@ data class NftDetailsScreenState(
 
 @Stable
 interface NftDetailsScreenInterface {
+
+    fun sendClicked()
+
     fun shareClicked()
 
     fun creatorClicked()
@@ -114,7 +117,7 @@ fun NftDetailsScreen(
         MarginVertical(margin = 16.dp)
 
         ActionButtons(
-            onSendClicked = {},
+            onSendClicked = screenInterface::sendClicked,
             onShareClicked = screenInterface::shareClicked,
             isEnabled = !shimmerEnabled
         )
@@ -446,6 +449,10 @@ fun NftCollectionScreenPreview() {
         NftDetailsScreen(
             previewState,
             object : NftDetailsScreenInterface {
+                override fun sendClicked() {
+                    TODO("Not yet implemented")
+                }
+
                 override fun shareClicked() = Unit
 
                 override fun creatorClicked() = Unit

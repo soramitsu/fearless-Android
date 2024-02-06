@@ -1,6 +1,10 @@
 package jp.co.soramitsu.nft.impl.presentation
 
 import android.Manifest
+import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import androidx.activity.compose.BackHandler
 import androidx.activity.result.ActivityResultLauncher
 import androidx.compose.foundation.layout.Box
@@ -145,12 +149,6 @@ class NFTFlowFragment : BaseComposeBottomSheetDialogFragment<NFTFlowViewModel>()
                 navController.navigate(it.routeName)
             }.launchIn(this)
         }
-
-        BackHandler(
-            onBack = remember {
-                { viewModel.onNavigationClick() }
-            }
-        )
 
         BottomSheetDialog(
             modifier = Modifier.fillMaxSize()

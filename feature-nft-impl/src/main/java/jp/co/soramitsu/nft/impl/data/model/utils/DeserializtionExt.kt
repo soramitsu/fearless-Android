@@ -1,15 +1,20 @@
 package jp.co.soramitsu.nft.impl.data.model.utils
 
 import com.google.gson.JsonDeserializer
+import com.google.gson.JsonElement
+import com.google.gson.JsonObject
 import jp.co.soramitsu.nft.data.models.Contract
 import jp.co.soramitsu.nft.data.models.ContractInfo
 import jp.co.soramitsu.nft.data.models.TokenId
 import jp.co.soramitsu.nft.data.models.TokenInfo
 import jp.co.soramitsu.nft.data.models.wrappers.NFTResponse
 
+private val JsonElement?.asJsonObjectNullable: JsonObject?
+    get() = this as? JsonObject
+
 internal val NFTResponse.UserOwnedContracts.Companion.deserializer: JsonDeserializer<NFTResponse.UserOwnedContracts>
     get() = JsonDeserializer { json, typeOfT, context ->
-        val jsonObj = json?.asJsonObject ?: return@JsonDeserializer null
+        val jsonObj = json?.asJsonObjectNullable ?: return@JsonDeserializer null
 
         return@JsonDeserializer NFTResponse.UserOwnedContracts(
             contracts = jsonObj.get("contracts")?.asJsonArray?.mapNotNull { jsonElem ->
@@ -23,7 +28,7 @@ internal val NFTResponse.UserOwnedContracts.Companion.deserializer: JsonDeserial
 
 internal val ContractInfo.Companion.deserializer: JsonDeserializer<ContractInfo>
     get() = JsonDeserializer { json, typeOfT, context ->
-        val jsonObj = json?.asJsonObject ?: return@JsonDeserializer null
+        val jsonObj = json?.asJsonObjectNullable ?: return@JsonDeserializer null
 
         return@JsonDeserializer ContractInfo(
             address = jsonObj.get("address")?.asString,
@@ -51,7 +56,7 @@ internal val ContractInfo.Companion.deserializer: JsonDeserializer<ContractInfo>
 
 internal val NFTResponse.TokensCollection.Companion.deserializer: JsonDeserializer<NFTResponse.TokensCollection>
     get() = JsonDeserializer<NFTResponse.TokensCollection> { json, typeOfT, context ->
-        val jsonObj = json?.asJsonObject ?: return@JsonDeserializer null
+        val jsonObj = json?.asJsonObjectNullable ?: return@JsonDeserializer null
 
         val tokensJsonObj = when {
             jsonObj.has("nfts") ->
@@ -75,7 +80,7 @@ internal val NFTResponse.TokensCollection.Companion.deserializer: JsonDeserializ
 
 internal val NFTResponse.TokenOwners.Companion.deserializer: JsonDeserializer<NFTResponse.TokenOwners>
     get() = JsonDeserializer<NFTResponse.TokenOwners> { json, typeOfT, context ->
-        val jsonObj = json?.asJsonObject ?: return@JsonDeserializer null
+        val jsonObj = json?.asJsonObjectNullable ?: return@JsonDeserializer null
 
         return@JsonDeserializer NFTResponse.TokenOwners(
             ownersList = jsonObj.get("owners")?.asJsonArray?.mapNotNull { jsonElem ->
@@ -86,7 +91,7 @@ internal val NFTResponse.TokenOwners.Companion.deserializer: JsonDeserializer<NF
 
 internal val Contract.Companion.deserializer: JsonDeserializer<Contract>
     get() = JsonDeserializer<Contract> { json, typeOfT, context ->
-        val jsonObj = json?.asJsonObject ?: return@JsonDeserializer null
+        val jsonObj = json?.asJsonObjectNullable ?: return@JsonDeserializer null
 
         return@JsonDeserializer Contract(
             address = jsonObj.get("address")?.asString
@@ -95,7 +100,7 @@ internal val Contract.Companion.deserializer: JsonDeserializer<Contract>
 
 internal val TokenId.Companion.deserializer: JsonDeserializer<TokenId>
     get() = JsonDeserializer<TokenId> { json, typeOfT, context ->
-        val jsonObj = json?.asJsonObject ?: return@JsonDeserializer null
+        val jsonObj = json?.asJsonObjectNullable ?: return@JsonDeserializer null
 
         return@JsonDeserializer TokenId(
             tokenId = jsonObj.get("tokenId")?.asString,
@@ -107,7 +112,7 @@ internal val TokenId.Companion.deserializer: JsonDeserializer<TokenId>
 
 internal val TokenId.TokenMetadata.Companion.deserializer: JsonDeserializer<TokenId.TokenMetadata>
     get() = JsonDeserializer<TokenId.TokenMetadata> { json, typeOfT, context ->
-        val jsonObj = json?.asJsonObject ?: return@JsonDeserializer null
+        val jsonObj = json?.asJsonObjectNullable ?: return@JsonDeserializer null
 
         return@JsonDeserializer TokenId.TokenMetadata(
             tokenType = jsonObj.get("tokenType")?.asString,
@@ -116,7 +121,7 @@ internal val TokenId.TokenMetadata.Companion.deserializer: JsonDeserializer<Toke
 
 internal val TokenInfo.Companion.deserializer: JsonDeserializer<TokenInfo>
     get() = JsonDeserializer<TokenInfo> { json, typeOfT, context ->
-        val jsonObj = json?.asJsonObject ?: return@JsonDeserializer null
+        val jsonObj = json?.asJsonObjectNullable ?: return@JsonDeserializer null
 
         return@JsonDeserializer TokenInfo(
             contract = context?.deserialize<Contract?>(
@@ -147,7 +152,7 @@ internal val TokenInfo.Companion.deserializer: JsonDeserializer<TokenInfo>
 
 internal val TokenInfo.Media.Companion.deserializer: JsonDeserializer<TokenInfo.Media>
     get() = JsonDeserializer<TokenInfo.Media> { json, typeOfT, context ->
-        val jsonObj = json?.asJsonObject ?: return@JsonDeserializer null
+        val jsonObj = json?.asJsonObjectNullable ?: return@JsonDeserializer null
 
         return@JsonDeserializer TokenInfo.Media(
             gateway = jsonObj.get("gateway")?.asString,
@@ -160,7 +165,7 @@ internal val TokenInfo.Media.Companion.deserializer: JsonDeserializer<TokenInfo.
 
 internal val TokenInfo.TokenMetadata.Companion.deserializer: JsonDeserializer<TokenInfo.TokenMetadata>
     get() = JsonDeserializer<TokenInfo.TokenMetadata> { json, typeOfT, context ->
-        val jsonObj = json?.asJsonObject ?: return@JsonDeserializer null
+        val jsonObj = json?.asJsonObjectNullable ?: return@JsonDeserializer null
 
         return@JsonDeserializer TokenInfo.TokenMetadata(
             name = jsonObj.get("name")?.asString,
@@ -174,7 +179,7 @@ internal val TokenInfo.TokenMetadata.Companion.deserializer: JsonDeserializer<To
 
 internal val TokenInfo.ContractMetadata.Companion.deserializer: JsonDeserializer<TokenInfo.ContractMetadata>
     get() = JsonDeserializer<TokenInfo.ContractMetadata> { json, typeOfT, context ->
-        val jsonObj = json?.asJsonObject ?: return@JsonDeserializer null
+        val jsonObj = json?.asJsonObjectNullable ?: return@JsonDeserializer null
 
         return@JsonDeserializer TokenInfo.ContractMetadata(
             name = jsonObj.get("name")?.asString,
@@ -191,7 +196,7 @@ internal val TokenInfo.ContractMetadata.Companion.deserializer: JsonDeserializer
 
 internal val TokenInfo.ContractMetadata.OpenSea.Companion.deserializer: JsonDeserializer<TokenInfo.ContractMetadata.OpenSea>
     get() = JsonDeserializer<TokenInfo.ContractMetadata.OpenSea> { json, typeOfT, context ->
-        val jsonObj = json?.asJsonObject ?: return@JsonDeserializer null
+        val jsonObj = json?.asJsonObjectNullable ?: return@JsonDeserializer null
 
         return@JsonDeserializer TokenInfo.ContractMetadata.OpenSea(
             floorPrice = jsonObj.get("floorPrice")?.asFloat,

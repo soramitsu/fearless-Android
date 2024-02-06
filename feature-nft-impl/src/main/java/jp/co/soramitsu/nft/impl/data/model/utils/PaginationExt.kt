@@ -66,6 +66,9 @@ inline fun PaginationRequest.nextOrPrevPage(pageStack: Stack<String?>): Page {
                     this is PaginationRequest.Prev.Page ||
                     this is PaginationRequest.Prev.WithSize
                 ) {
+                    if (currentPage == null && nextPageToLoad == null)
+                        return Page.ValidPage(null)
+
                     if (pageStack.size < 1) // after 2 popping there must at least 1 element
                         return Page.NoPrevPages
 

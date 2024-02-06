@@ -8,6 +8,7 @@ import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.models.TextModel
 import jp.co.soramitsu.common.presentation.LoadingState
+import jp.co.soramitsu.common.utils.castOrNull
 import jp.co.soramitsu.feature_nft_impl.R
 import jp.co.soramitsu.nft.impl.presentation.confirmsend.contract.ConfirmNFTSendCallback
 import jp.co.soramitsu.nft.impl.presentation.confirmsend.ConfirmNFTSendPresenter
@@ -26,6 +27,7 @@ import jp.co.soramitsu.nft.impl.presentation.details.NftDetailsScreenInterface
 import jp.co.soramitsu.nft.impl.presentation.details.NftDetailsPresenter
 import jp.co.soramitsu.nft.impl.presentation.details.NftDetailsScreenState
 import jp.co.soramitsu.nft.navigation.NFTRouter
+import jp.co.soramitsu.shared_utils.extensions.requireHexPrefix
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -116,10 +118,20 @@ class NFTFlowViewModel @Inject constructor(
                     TextModel.SimpleString(collectionName) to R.drawable.ic_cross_24
                 )
 
-            Destination.NestedNavGraphRoute.DetailsNFTScreen.routeName ->
+            Destination.NestedNavGraphRoute.DetailsNFTScreen.routeName -> {
+                val destinationArgs = nestedNavGraphDestinationsFlow.replayCache.lastOrNull()
+                val token = destinationArgs.castOrNull<Destination.NestedNavGraphRoute.DetailsNFTScreen>()?.token
+                val title = if(!token?.title.isNullOrBlank())
+                    token?.title.orEmpty()
+                else {
+                    val tokenIdAsBigInt = token?.tokenId?.requireHexPrefix()?.drop(2)?.toBigIntegerOrNull()
+                    "${token?.collectionName} #${tokenIdAsBigInt ?: 0}"
+                }
+
                 LoadingState.Loaded(
-                    TextModel.SimpleString("A token") to R.drawable.ic_arrow_left_24
+                    TextModel.SimpleString(title) to R.drawable.ic_arrow_left_24
                 )
+            }
 
             Destination.NestedNavGraphRoute.ChooseNFTRecipientScreen.routeName ->
                 LoadingState.Loaded(

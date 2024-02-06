@@ -13,6 +13,8 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlin.math.max
+import kotlin.math.min
 
 @Suppress("NOTHING_TO_INLINE")
 inline fun LazyGridState.isFirstItemFullyVisible(): Boolean {
@@ -36,7 +38,7 @@ inline fun LazyGridState.isLastItemFullyVisible(): Boolean {
         itemVisibilityInfo.index == layoutInfo.totalItemsCount.minus(1)
 
     val itemVisibleHeight = layoutInfo.viewportSize.height - itemVisibilityInfo.offset.y
-    val isFullyVisible = itemVisibleHeight <= itemVisibilityInfo.size.height
+    val isFullyVisible = itemVisibleHeight >= itemVisibilityInfo.size.height
 
     return isLastItemVisible && isFullyVisible
 }
@@ -50,11 +52,17 @@ fun LazyGridState.nestedScrollConnectionForPageScrolling(
             available: Offset,
             source: NestedScrollSource
         ): Offset {
-            if (isFirstItemFullyVisible()) {
+            val isDirectionToPrevPages = max(consumed.y, available.y) > 0
+            val isFirstItemFullyVisible = isFirstItemFullyVisible()
+
+            if (isDirectionToPrevPages && isFirstItemFullyVisible) {
                 pageScrollingCallback.onAllPrevPagesScrolled()
             }
 
-            if (isLastItemFullyVisible()) {
+            val isDirectionToNextPages = min(consumed.y, available.y) < -0
+            val isLastItemFullyVisible = isLastItemFullyVisible()
+
+            if (isDirectionToNextPages && isLastItemFullyVisible) {
                 pageScrollingCallback.onAllNextPagesScrolled()
             }
 

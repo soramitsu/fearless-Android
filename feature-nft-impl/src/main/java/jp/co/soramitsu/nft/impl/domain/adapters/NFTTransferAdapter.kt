@@ -86,19 +86,14 @@ suspend fun NFTTransferAdapter(
                         DynamicBytes(byteArrayOf())
                     ),
                     emptyList()
-                ).apply {
-                    val inputs = inputParameters.map { it.value }
-                    println("This is checkpoint: ERC1155.transaction, name - $name, inputs - $inputs")
-                }
+                )
 
             NFTCall.Transfer(
                 nonce = nonce,
                 sender = sender,
                 receiver = receiver,
                 contractAddress = token.contractAddress!!,
-                encodedFunction = FunctionEncoder.encode(functionCall).apply {
-                    println("This is checkpoint: encodedFunction - $this")
-                },
+                encodedFunction = FunctionEncoder.encode(functionCall),
                 outputTypeRefs = functionCall.outputParameters
             )
         }

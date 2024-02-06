@@ -68,7 +68,9 @@ class CollectionNFTsPresenter @Inject constructor(
             val paginationRequestHelperFlow = mutablePaginationRequestFlow
                 .onStart {
                     emit(PaginationRequest.Start)
-                }.sample(4_500).onEach {
+                }.sample(300).filter {
+                    isLoadingCompleted.get()
+                }.onEach {
                     // Pagination Request Flow can quite many requests in a second, from which we need only one
                     // so we TRY to set isLoadingCompleted, if we don't succeed then
                     // we are already in process of loading
