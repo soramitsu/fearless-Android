@@ -256,7 +256,7 @@ class AccountDetailsViewModel @Inject constructor(
                     chainId = item.chainId,
                     chainName = item.chainName,
                     assetId = utilityAsset?.id.orEmpty(),
-                    priceId = utilityAsset?.priceId,
+                    priceId = utilityAsset?.priceProvider?.id ?: utilityAsset?.priceId,
                     markedAsNotNeed = item.markedAsNotNeed
                 )
                 accountRouter.openOptionsAddAccount(payload)
@@ -276,19 +276,5 @@ class AccountDetailsViewModel @Inject constructor(
 
     fun updateAppClicked() {
         _openPlayMarket.value = Event(Unit)
-    }
-
-    fun createAccount(chainId: ChainId, metaId: Long) {
-        accountRouter.openOnboardingNavGraph(chainId = chainId, metaId = metaId, isImport = false)
-    }
-
-    fun importAccount(chainId: ChainId, metaId: Long) {
-        accountRouter.openOnboardingNavGraph(chainId = chainId, metaId = metaId, isImport = true)
-    }
-
-    fun noNeedAccount(chainId: ChainId, metaId: Long, assetId: String, priceId: String?) {
-        launch {
-            assetNotNeedAccount.markNotNeed(chainId = chainId, metaId = metaId, assetId = assetId, priceId = priceId)
-        }
     }
 }

@@ -17,13 +17,15 @@ class TokenRepositoryImpl(
 ) : TokenRepository {
 
     override suspend fun getToken(chainAsset: Asset): Token = withContext(Dispatchers.Default) {
-        val tokenPriceLocal = chainAsset.priceId?.let { tokenPriceDao.getTokenPrice(it) ?: TokenPriceLocal.createEmpty(it) }
+        val priceId = chainAsset.priceProvider?.id ?: chainAsset.priceId
+        val tokenPriceLocal = priceId?.let { tokenPriceDao.getTokenPrice(it) ?: TokenPriceLocal.createEmpty(it) }
 
         combineAssetWithPrices(chainAsset, tokenPriceLocal)
     }
 
     override fun observeToken(chainAsset: Asset): Flow<Token> {
-        return when (val priceId = chainAsset.priceId) {
+        val priceId = chainAsset.priceProvider?.id ?: chainAsset.priceId
+        return when (priceId) {
             null -> flowOf {
                 combineAssetWithPrices(chainAsset, null)
             }

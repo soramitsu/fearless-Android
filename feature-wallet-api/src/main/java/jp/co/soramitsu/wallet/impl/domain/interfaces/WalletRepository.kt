@@ -95,8 +95,6 @@ interface WalletRepository {
 
     suspend fun getEquilibriumAccountInfo(asset: CoreAsset, accountId: AccountId): EqAccountInfo?
 
-    suspend fun updateAssets(newItems: List<AssetUpdateItem>)
-
     suspend fun getRemoteConfig(): Result<AppConfigRemote>
 
     fun chainRegistrySyncUp()

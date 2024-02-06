@@ -37,7 +37,7 @@ class SoraStakingRewardsScenario(
     suspend fun getRewardAsset(): Token {
         val chain = chainRegistry.getChain(SORA_MAIN_NET_CHAIN_ID)
         val rewardAsset = requireNotNull(chain.assetsById[REWARD_ASSET_ID])
-        val priceId = requireNotNull(rewardAsset.priceId)
+        val priceId = requireNotNull(rewardAsset.priceProvider?.id ?: rewardAsset.priceId)
         val token = tokenDao.getTokenPrice(priceId)
 
         return Token(

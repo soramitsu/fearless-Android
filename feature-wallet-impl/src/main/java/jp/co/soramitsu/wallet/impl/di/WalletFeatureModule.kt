@@ -113,9 +113,10 @@ class WalletFeatureModule {
         tokenPriceDao: TokenPriceDao,
         assetDao: AssetDao,
         accountRepository: AccountRepository,
-        updatesMixin: UpdatesMixin
+        updatesMixin: UpdatesMixin,
+        selectedFiat: SelectedFiat
     ): AssetCache {
-        return AssetCache(tokenPriceDao, accountRepository, assetDao, updatesMixin)
+        return AssetCache(tokenPriceDao, accountRepository, assetDao, updatesMixin, selectedFiat)
     }
 
     @Provides

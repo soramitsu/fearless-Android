@@ -273,7 +273,7 @@ class BalanceListViewModel @Inject constructor(
                     chainAssetId = chainAsset.id,
                     isSupported = true,
                     isHidden = false,
-                    priceId = chainAsset.priceId,
+                    priceId = chainAsset.priceProvider?.id ?: chainAsset.priceId,
                     isTestnet = chainAsset.isTestNet ?: false
                 )
             }.filter { selectedChainId.value == null || selectedChainId.value == it.chainId }

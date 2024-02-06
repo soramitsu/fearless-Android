@@ -17,14 +17,10 @@ class AssetNotNeedAccountUseCaseImpl(
     private val tokenPriceDao: TokenPriceDao
 ) : AssetNotNeedAccountUseCase {
 
-    override suspend fun markNotNeed(chainId: ChainId, metaId: Long, assetId: String, priceId: String?) {
-        updateAssetNotNeed(metaId, chainId, assetId, priceId)
-    }
-
     override suspend fun markChainAssetsNotNeed(chainId: ChainId, metaId: Long) {
         val chainAssets = chainRegistry.getChain(chainId).assets
         chainAssets.forEach {
-            updateAssetNotNeed(metaId, chainId, it.id, it.priceId)
+            updateAssetNotNeed(metaId, chainId, it.id, it.priceProvider?.id ?: it.priceId)
         }
     }
 

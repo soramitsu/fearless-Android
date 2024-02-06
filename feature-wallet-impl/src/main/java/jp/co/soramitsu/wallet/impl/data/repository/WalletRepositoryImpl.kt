@@ -20,6 +20,7 @@ import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.requireValue
+import jp.co.soramitsu.core.models.Asset.PriceProvider
 import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.coredb.dao.OperationDao
 import jp.co.soramitsu.coredb.dao.PhishingDao
@@ -28,6 +29,7 @@ import jp.co.soramitsu.coredb.model.AssetUpdateItem
 import jp.co.soramitsu.coredb.model.AssetWithToken
 import jp.co.soramitsu.coredb.model.OperationLocal
 import jp.co.soramitsu.coredb.model.PhishingLocal
+import jp.co.soramitsu.coredb.model.TokenPriceLocal
 import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.ext.addressOf
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
@@ -151,14 +153,15 @@ class WalletRepositoryImpl(
 
     private fun buildNetworkIssues(items: List<AssetWithStatus>): Set<NetworkIssueItemState> {
         return items.map {
+            val configuration = it.asset.token.configuration
             NetworkIssueItemState(
-                iconUrl = it.asset.token.configuration.iconUrl,
-                title = "${it.asset.token.configuration.chainName} ${it.asset.token.configuration.name}",
+                iconUrl = configuration.iconUrl,
+                title = "${configuration.chainName} ${configuration.name}",
                 type = NetworkIssueType.Node,
-                chainId = it.asset.token.configuration.chainId,
-                chainName = it.asset.token.configuration.chainName,
-                assetId = it.asset.token.configuration.id,
-                priceId = it.asset.token.configuration.priceId
+                chainId = configuration.chainId,
+                chainName = configuration.chainName,
+                assetId = configuration.id,
+                priceId = configuration.priceProvider?.id ?: configuration.priceId
             )
         }.toSet()
     }
@@ -189,13 +192,51 @@ class WalletRepositoryImpl(
 
     override suspend fun syncAssetsRates(currencyId: String) {
         val chains = chainsRepository.getChains()
+        if (currencyId == "usd") {
+            syncChainlinkRates(chains)
+        }
+        syncCoingeckoRates(chains, currencyId)
+    }
+
+    private suspend fun syncChainlinkRates(chains: List<Chain>) {
+        val chainlinkIds = chains.map { it.assets.mapNotNull { it.priceProvider?.id } }.flatten().toSet()
+
+        val chainlinkProvider = chains.firstOrNull { it.chainlinkProvider }
+        val chainlinkProviderId = chainlinkProvider?.id
+        println("!!! chainlinkProvider is ${chainlinkProvider?.name} $chainlinkProviderId ")
+
+        val chainlinkTokens = chainlinkIds.map { priceId ->
+            val assetConfig = chains.flatMap { it.assets }.firstOrNull { it.priceProvider?.id == priceId }
+            val priceProvider = assetConfig?.priceProvider
+
+            val price = if (chainlinkProviderId != null && priceProvider != null) {
+                getChainlinkPrices(priceProvider = priceProvider, chainId = chainlinkProviderId)
+            } else {
+                null
+            }
+            val usdCurrency = availableFiatCurrencies["usd"]
+
+            TokenPriceLocal(
+                priceId = priceId,
+                fiatRate = price,
+                fiatSymbol = usdCurrency?.symbol,
+                recentRateChange = null
+            )
+        }
+
+        updatesMixin.startUpdateTokens(chainlinkIds)
+        updateAssetsRates(chainlinkTokens)
+        updatesMixin.finishUpdateTokens(chainlinkIds)
+    }
+
+    private suspend fun syncCoingeckoRates(chains: List<Chain>, currencyId: String) {
         val priceIds = chains.map { it.assets.mapNotNull { it.priceId } }.flatten().toSet()
-        val priceStats = getAssetPriceCoingecko(*priceIds.toTypedArray(), currencyId = currencyId)
+        val coingeckoPriceStats = getAssetPriceCoingecko(*priceIds.toTypedArray(), currencyId = currencyId)
 
         updatesMixin.startUpdateTokens(priceIds)
 
         priceIds.forEach { priceId ->
-            val stat = priceStats[priceId] ?: return@forEach
+            val stat = coingeckoPriceStats[priceId] ?: return@forEach
             val price = stat[currencyId]
             val changeKey = "${currencyId}_24h_change"
             val change = stat[changeKey]
@@ -204,6 +245,15 @@ class WalletRepositoryImpl(
             updateAssetRates(priceId, fiatCurrency?.symbol, price, change)
         }
         updatesMixin.finishUpdateTokens(priceIds)
+    }
+
+    private suspend fun getChainlinkPrices(priceProvider: PriceProvider, chainId: ChainId): BigDecimal? {
+        return ethereumSource.fetchPriceFeed(
+            chainId = chainId,
+            receiverAddress = priceProvider.id
+        )?.let { price ->
+            BigDecimal(price, priceProvider.precision)
+        }
     }
 
     override fun assetFlow(
@@ -243,7 +293,7 @@ class WalletRepositoryImpl(
                 id = chainAsset.id,
                 sortIndex = Int.MAX_VALUE, // Int.MAX_VALUE on sorting because we don't use it anymore - just random value
                 enabled = !isHidden,
-                tokenPriceId = chainAsset.priceId
+                tokenPriceId = chainAsset.priceProvider?.id ?: chainAsset.priceId
             )
         )
 
@@ -441,10 +491,6 @@ class WalletRepositoryImpl(
     override suspend fun getEquilibriumAccountInfo(asset: CoreAsset, accountId: AccountId) =
         substrateSource.getEquilibriumAccountInfo(asset, accountId)
 
-    override suspend fun updateAssets(newItems: List<AssetUpdateItem>) {
-        assetCache.updateAsset(newItems)
-    }
-
     private fun createOperation(
         hash: String,
         transfer: Transfer,
@@ -478,6 +524,10 @@ class WalletRepositoryImpl(
             recentRateChange = change
         )
     }
+
+    private suspend fun updateAssetsRates(
+        items: List<TokenPriceLocal>
+    ) = assetCache.updateTokensPrice(items)
 
     override suspend fun getSingleAssetPriceCoingecko(
         priceId: String,

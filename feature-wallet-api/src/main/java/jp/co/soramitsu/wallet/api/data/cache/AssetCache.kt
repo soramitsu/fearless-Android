@@ -1,6 +1,7 @@
 package jp.co.soramitsu.wallet.api.data.cache
 
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.common.domain.SelectedFiat
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
 import jp.co.soramitsu.core.models.Asset
@@ -21,7 +22,8 @@ class AssetCache(
     private val tokenPriceDao: TokenPriceDao,
     private val accountRepository: AccountRepository,
     private val assetDao: AssetDao,
-    private val updatesMixin: UpdatesMixin
+    private val updatesMixin: UpdatesMixin,
+    private val selectedFiat: SelectedFiat
 ) : AssetReadOnlyCache by assetDao,
     UpdatesProviderUi by updatesMixin {
 
@@ -35,7 +37,12 @@ class AssetCache(
     ) = withContext(Dispatchers.IO) {
         val chainId = chainAsset.chainId
         val assetId = chainAsset.id
-        val priceId = chainAsset.priceId
+        val shouldUseChainlinkForRates = selectedFiat.get() == "usd" && chainAsset.priceProvider?.id != null
+        val priceId = if (shouldUseChainlinkForRates) {
+            chainAsset.priceProvider?.id
+        } else {
+            chainAsset.priceId
+        }
 
         assetUpdateMutex.withLock {
             priceId?.let { tokenPriceDao.ensureTokenPrice(it) }
@@ -56,26 +63,27 @@ class AssetCache(
 
                 cachedAsset.accountId.contentEquals(emptyAccountIdValue) -> {
                     assetDao.deleteAsset(metaId, emptyAccountIdValue, chainId, assetId)
-                    assetDao.insertAsset(builder.invoke(cachedAsset.copy(accountId = accountId)))
+                    assetDao.insertAsset(builder.invoke(cachedAsset.copy(accountId = accountId, tokenPriceId = priceId)))
                 }
 
                 else -> {
-                    val updatedAsset = builder.invoke(cachedAsset)
+                    val updatedAsset = builder.invoke(cachedAsset.copy(tokenPriceId = priceId))
                     if (cachedAsset.bondedInPlanks == updatedAsset.bondedInPlanks &&
                         cachedAsset.feeFrozenInPlanks == updatedAsset.feeFrozenInPlanks &&
                         cachedAsset.miscFrozenInPlanks == updatedAsset.miscFrozenInPlanks &&
                         cachedAsset.freeInPlanks == updatedAsset.freeInPlanks &&
                         cachedAsset.redeemableInPlanks == updatedAsset.redeemableInPlanks &&
                         cachedAsset.reservedInPlanks == updatedAsset.reservedInPlanks &&
-                        cachedAsset.unbondingInPlanks == updatedAsset.unbondingInPlanks
+                        cachedAsset.unbondingInPlanks == updatedAsset.unbondingInPlanks &&
+                        cachedAsset.tokenPriceId == updatedAsset.tokenPriceId
                     ) {
                         return@withLock
                     }
                     assetDao.updateAsset(updatedAsset)
                 }
             }
-            updatesMixin.finishUpdateAsset(metaId, chainId, accountId, assetId)
         }
+        updatesMixin.finishUpdateAsset(metaId, chainId, accountId, assetId)
     }
 
     suspend fun updateAsset(
@@ -90,18 +98,21 @@ class AssetCache(
         }
     }
 
+    suspend fun updateTokensPrice(
+        update: List<TokenPriceLocal>
+    ) = withContext(Dispatchers.IO) {
+        tokenPriceDao.insertTokensPrice(update)
+    }
+
     suspend fun updateTokenPrice(
         priceId: String,
         builder: (local: TokenPriceLocal) -> TokenPriceLocal
     ) = withContext(Dispatchers.IO) {
-        assetUpdateMutex.withLock {
-            val tokenPriceLocal =
-                tokenPriceDao.getTokenPrice(priceId) ?: TokenPriceLocal.createEmpty(priceId)
+        val tokenPriceLocal = tokenPriceDao.getTokenPrice(priceId) ?: TokenPriceLocal.createEmpty(priceId)
 
-            val newToken = builder.invoke(tokenPriceLocal)
+        val newToken = builder.invoke(tokenPriceLocal)
 
-            tokenPriceDao.insertTokenPrice(newToken)
-        }
+        tokenPriceDao.insertTokenPrice(newToken)
     }
 
     suspend fun updateAsset(updateModel: List<AssetUpdateItem>) {

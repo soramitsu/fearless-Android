@@ -3,6 +3,40 @@ package jp.co.soramitsu.coredb.migrations
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
+val Migration_60_61 = object : Migration(60, 61) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+        database.execSQL("ALTER TABLE chains ADD COLUMN `isChainlinkProvider` INTEGER NOT NULL DEFAULT 0")
+
+        database.execSQL("DROP TABLE IF EXISTS chain_assets")
+
+        database.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `chain_assets` (
+            `id` TEXT NOT NULL, 
+            `name` TEXT, 
+            `symbol` TEXT NOT NULL, 
+            `chainId` TEXT NOT NULL, 
+            `icon` TEXT NOT NULL, 
+            `priceId` TEXT, 
+            `staking` TEXT NOT NULL, 
+            `precision` INTEGER NOT NULL, 
+            `purchaseProviders` TEXT, 
+            `isUtility` INTEGER, 
+            `type` TEXT, 
+            `currencyId` TEXT, 
+            `existentialDeposit` TEXT, 
+            `color` TEXT, 
+            `isNative` INTEGER, 
+            `ethereumType` TEXT DEFAULT NULL,
+            `priceProvider` TEXT, 
+            PRIMARY KEY(`chainId`, `id`), 
+            FOREIGN KEY(`chainId`) REFERENCES `chains`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )
+            """.trimIndent()
+        )
+        database.execSQL("CREATE INDEX IF NOT EXISTS `index_chain_assets_chainId` ON `chain_assets` (`chainId`)")
+    }
+}
+
 val Migration_59_60 = object : Migration(59, 60) {
     override fun migrate(database: SupportSQLiteDatabase) {
         database.execSQL("ALTER TABLE chains ADD COLUMN `paraId` TEXT NULL")
