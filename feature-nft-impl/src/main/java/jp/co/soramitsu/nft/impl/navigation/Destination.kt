@@ -22,6 +22,14 @@ sealed interface Destination {
             }
         }
 
+        class DetailsNFTScreen(
+            val token: NFT.Full
+        ): NestedNavGraphRoute by Companion {
+            companion object: NestedNavGraphRoute {
+                override val routeName: String = "DetailsNFTScreen"
+            }
+        }
+
         class ChooseNFTRecipientScreen(
             val token: NFT.Full
         ): NestedNavGraphRoute by Companion {
@@ -51,6 +59,16 @@ sealed interface Destination {
         @JvmInline
         value class ShowError(
             val errorText: String
+        ): Action
+
+        @JvmInline
+        value class ShowToast(
+            val toastMessage: String
+        ): Action
+
+        @JvmInline
+        value class ShareText(
+            val text: String
         ): Action
 
     }

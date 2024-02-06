@@ -102,6 +102,7 @@ fun TokenInfo.toFullNFT(
         description = (description ?: contractMetadata?.openSea?.description).orEmpty(),
         collectionName = collectionName,
         contractAddress = contractAddress,
+        creatorAddress = contractMetadata?.contractDeployer,
         isUserOwnedToken = !balance.isNullOrEmpty() && balance.toIntOrNull() != 0,
         tokenId = id?.tokenId,
         chainName = chain.name,

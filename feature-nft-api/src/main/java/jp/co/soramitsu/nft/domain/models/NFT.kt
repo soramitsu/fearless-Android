@@ -16,6 +16,7 @@ sealed interface NFT {
         val description: String?,
         val collectionName: String?,
         val contractAddress: String?,
+        val creatorAddress: String?,
         val isUserOwnedToken: Boolean,
         val tokenId: String?,
         val chainName: String,

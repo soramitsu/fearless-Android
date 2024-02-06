@@ -25,6 +25,10 @@ class InternalNFTRouterImpl(
         mutableDestinationsFlow.tryEmit(Destination.NestedNavGraphRoute.CollectionNFTsScreen(selectedChainId, contractAddress))
     }
 
+    override fun openDetailsNFTScreen(token: NFT.Full) {
+        mutableDestinationsFlow.tryEmit(Destination.NestedNavGraphRoute.DetailsNFTScreen(token))
+    }
+
     override fun openChooseRecipientScreen(token: NFT.Full) {
         mutableDestinationsFlow.tryEmit(Destination.NestedNavGraphRoute.ChooseNFTRecipientScreen(token))
     }
@@ -54,6 +58,14 @@ class InternalNFTRouterImpl(
 
     override fun openErrorsScreen(message: String) {
         mutableDestinationsFlow.tryEmit(Destination.Action.ShowError(message))
+    }
+
+    override fun showToast(message: String) {
+        mutableDestinationsFlow.tryEmit(Destination.Action.ShowToast(message))
+    }
+
+    override fun shareText(text: String) {
+        mutableDestinationsFlow.tryEmit(Destination.Action.ShareText(text))
     }
 
 }

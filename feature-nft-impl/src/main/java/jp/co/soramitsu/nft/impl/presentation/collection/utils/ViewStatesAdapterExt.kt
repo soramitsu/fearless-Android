@@ -34,7 +34,8 @@ fun createShimmeredNFTViewsList(): SnapshotStateList<NFTsScreenView> {
 }
 
 fun NFTCollection<NFT.Full>.toScreenViewStableList(
-    onItemClick: (NFT.Full) -> Unit
+    onItemClick: (NFT.Full) -> Unit,
+    onActionButtonClick: (NFT.Full) -> Unit,
 ): ArrayDeque<NFTsScreenView> {
     val arrayDeque = ArrayDeque<NFTsScreenView>()
 
@@ -83,7 +84,8 @@ fun NFTCollection<NFT.Full>.toScreenViewStableList(
                 screenLayout = if (tokens.size > 1)
                     ScreenLayout.Grid
                 else ScreenLayout.List,
-                onItemClick = { onItemClick.invoke(token) }
+                onItemClick = { onItemClick.invoke(token) },
+                onActionButtonClick = { onActionButtonClick.invoke(token) }
             )
         )
     }
@@ -93,7 +95,8 @@ fun NFTCollection<NFT.Full>.toScreenViewStableList(
 
 private fun NFT.Full.toScreenView(
     screenLayout: ScreenLayout,
-    onItemClick: () -> Unit
+    onItemClick: () -> Unit,
+    onActionButtonClick: () -> Unit
 ): NFTsScreenView.ItemModel {
     return ItemModel(
         screenLayout = screenLayout,
@@ -126,7 +129,7 @@ private fun NFT.Full.toScreenView(
             initialItemModel = this,
             buttonText = buttonText,
             buttonImage = buttonImage,
-            onButtonClick = onItemClick
+            onButtonClick = onActionButtonClick
         )
     }
 }

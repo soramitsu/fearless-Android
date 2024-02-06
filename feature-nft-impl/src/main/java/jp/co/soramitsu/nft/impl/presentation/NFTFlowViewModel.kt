@@ -22,6 +22,9 @@ import jp.co.soramitsu.nft.impl.presentation.collection.models.NFTsScreenView
 import jp.co.soramitsu.nft.impl.presentation.chooserecipient.contract.ChooseNFTRecipientCallback
 import jp.co.soramitsu.nft.impl.presentation.chooserecipient.ChooseNFTRecipientPresenter
 import jp.co.soramitsu.nft.impl.presentation.chooserecipient.contract.ChooseNFTRecipientScreenState
+import jp.co.soramitsu.nft.impl.presentation.details.NftDetailsScreenInterface
+import jp.co.soramitsu.nft.impl.presentation.details.NftDetailsPresenter
+import jp.co.soramitsu.nft.impl.presentation.details.NftDetailsScreenState
 import jp.co.soramitsu.nft.navigation.NFTRouter
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -29,17 +32,18 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.shareIn
-import kotlinx.coroutines.flow.stateIn
 
 @HiltViewModel
 class NFTFlowViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
     private val collectionNFTsPresenter: CollectionNFTsPresenter,
+    private val nftDetailsPresenter: NftDetailsPresenter,
     private val chooseNFTRecipientPresenter: ChooseNFTRecipientPresenter,
     private val confirmNFTSendPresenter: ConfirmNFTSendPresenter,
     private val internalNFTRouter: InternalNFTRouter,
     private val nftRouter: NFTRouter
 ): BaseViewModel(),
+    NftDetailsScreenInterface by nftDetailsPresenter,
     ChooseNFTRecipientCallback by chooseNFTRecipientPresenter,
     ConfirmNFTSendCallback by confirmNFTSendPresenter
 {
@@ -48,6 +52,13 @@ class NFTFlowViewModel @Inject constructor(
 
     val collectionNFTsScreenState: SharedFlow<SnapshotStateList<NFTsScreenView>> =
         collectionNFTsPresenter.createCollectionsNFTsFlow().shareIn(
+            scope = viewModelScope,
+            started = SharingStarted.Lazily,
+            replay = 1
+        )
+
+    val nftDetailsScreenState: SharedFlow<NftDetailsScreenState> =
+        nftDetailsPresenter.createScreenStateFlow().shareIn(
             scope = viewModelScope,
             started = SharingStarted.Lazily,
             replay = 1
@@ -105,9 +116,14 @@ class NFTFlowViewModel @Inject constructor(
                     TextModel.SimpleString(collectionName) to R.drawable.ic_cross_24
                 )
 
+            Destination.NestedNavGraphRoute.DetailsNFTScreen.routeName ->
+                LoadingState.Loaded(
+                    TextModel.SimpleString("A token") to R.drawable.ic_arrow_left_24
+                )
+
             Destination.NestedNavGraphRoute.ChooseNFTRecipientScreen.routeName ->
                 LoadingState.Loaded(
-                    TextModel.SimpleString("ChooseRecipient") to R.drawable.ic_arrow_left_24
+                    TextModel.SimpleString("Choose Recipient") to R.drawable.ic_arrow_left_24
                 )
 
             Destination.NestedNavGraphRoute.ConfirmNFTSendScreen.routeName ->

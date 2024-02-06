@@ -150,6 +150,7 @@ dependencies {
     implementation soraUiCoreDep
 
     api coilDep
+    api libs.coilGif
     api coilSvg
 
     testImplementation jUnitDep

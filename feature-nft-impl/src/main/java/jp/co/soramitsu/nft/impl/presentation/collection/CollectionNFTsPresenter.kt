@@ -121,10 +121,10 @@ class CollectionNFTsPresenter @Inject constructor(
         val (prevCollection, _) = prevValue ?: Pair(null, null)
 
         val currentCollectionViewsList =
-            currentCollection.toScreenViewStableList(::onItemClick)
+            currentCollection.toScreenViewStableList(::onItemClick, ::onActionButtonClick)
 
         val prevCollectionsViewsList =
-            prevCollection?.toScreenViewStableList(::onItemClick) ?: ArrayDeque()
+            prevCollection?.toScreenViewStableList(::onItemClick, ::onActionButtonClick) ?: ArrayDeque()
 
 
         if (currentCollection !is NFTCollection.Data) {
@@ -154,8 +154,14 @@ class CollectionNFTsPresenter @Inject constructor(
         }
     }
 
-    private fun onCloseClick() = Unit
+    private fun onItemClick(token: NFT.Full) = internalNFTRouter.openDetailsNFTScreen(token)
 
-    private fun onItemClick(token: NFT.Full) = internalNFTRouter.openChooseRecipientScreen(token)
+    private fun onActionButtonClick(token: NFT.Full) {
+        if (token.isUserOwnedToken){
+            internalNFTRouter.openChooseRecipientScreen(token)
+        } else {
+            internalNFTRouter.shareText("Sharing Text")
+        }
+    }
 
 }

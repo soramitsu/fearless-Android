@@ -41,10 +41,12 @@ import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.presentation.askPermissionsSafely
 import jp.co.soramitsu.common.scan.ScanTextContract
 import jp.co.soramitsu.common.scan.ScannerActivity
+import jp.co.soramitsu.common.utils.shareText
 import jp.co.soramitsu.nft.impl.navigation.Destination
 import jp.co.soramitsu.nft.impl.presentation.collection.CollectionNFTsNavComposable
 import jp.co.soramitsu.nft.impl.presentation.confirmsend.ConfirmNFTSendNavComposable
 import jp.co.soramitsu.nft.impl.presentation.chooserecipient.ChooseNFTRecipientNavComposable
+import jp.co.soramitsu.nft.impl.presentation.details.NftDetailsNavComposable
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.launchIn
@@ -131,6 +133,12 @@ class NFTFlowFragment : BaseComposeBottomSheetDialogFragment<NFTFlowViewModel>()
                             onBackClick = viewModel::onNavigationClick
                         )
 
+                    is Destination.Action.ShowToast ->
+                        showMessage(it.toastMessage)
+
+                    is Destination.Action.ShareText ->
+                        requireActivity().shareText(it.text)
+
                     else -> Unit
                 }
             }.filterIsInstance<Destination.NestedNavGraphRoute>().onEach {
@@ -176,6 +184,11 @@ class NFTFlowFragment : BaseComposeBottomSheetDialogFragment<NFTFlowViewModel>()
                 CollectionNFTsNavComposable(
                     viewsListFlow = viewModel.collectionNFTsScreenState,
                     pageScrollingCallback = viewModel.pageScrollingCallback
+                )
+
+                NftDetailsNavComposable(
+                    stateFlow = viewModel.nftDetailsScreenState,
+                    screenInterface = viewModel
                 )
 
                 ChooseNFTRecipientNavComposable(

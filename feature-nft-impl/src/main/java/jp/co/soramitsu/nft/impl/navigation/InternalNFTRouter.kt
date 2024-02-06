@@ -13,6 +13,8 @@ interface InternalNFTRouter {
 
     fun openCollectionNFTsScreen(selectedChainId: ChainId, contractAddress: String)
 
+    fun openDetailsNFTScreen(token: NFT.Full)
+
     fun openChooseRecipientScreen(token: NFT.Full)
 
     fun openNFTSendScreen(token: NFT.Full, receiver: String)
@@ -26,6 +28,10 @@ interface InternalNFTRouter {
     fun openSuccessScreen(txHash: String, chainId: ChainId)
 
     fun openErrorsScreen(message: String)
+
+    fun showToast(message: String)
+
+    fun shareText(text: String)
 
 }
 
