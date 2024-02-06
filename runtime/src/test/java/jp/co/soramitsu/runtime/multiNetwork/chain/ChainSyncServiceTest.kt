@@ -66,7 +66,8 @@ class ChainSyncServiceTest {
         options = emptyList(),
         parentId = null,
         externalApi = null,
-        minSupportedVersion = null
+        minSupportedVersion = null,
+        paraId = null
     )
 
     private val LOCAL_CHAIN = mapChainToChainLocal(REMOTE_CHAIN.toChain())

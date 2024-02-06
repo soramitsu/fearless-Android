@@ -7,6 +7,7 @@ import androidx.room.PrimaryKey
 @Entity(tableName = "chains")
 class ChainLocal(
     @PrimaryKey val id: String,
+    val paraId: String?,
     val parentId: String?,
     val rank: Int?,
     val name: String,

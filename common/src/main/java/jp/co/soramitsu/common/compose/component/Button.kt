@@ -51,8 +51,6 @@ import jp.co.soramitsu.common.compose.theme.white64
 import jp.co.soramitsu.common.utils.onSingleClick
 import jp.co.soramitsu.common.utils.rememberLastClickTime
 
-private const val DISABLE_CLICK_TIME = 1000L
-
 data class ButtonViewState(
     val text: String,
     val enabled: Boolean = true
@@ -63,7 +61,7 @@ fun AccentButton(state: ButtonViewState, modifier: Modifier = Modifier, onClick:
     TextButton(
         text = state.text,
         enabled = state.enabled,
-        colors = accentButtonColors,
+        colors = accentDarkButtonColors,
         modifier = modifier,
         onClick = onClick
     )

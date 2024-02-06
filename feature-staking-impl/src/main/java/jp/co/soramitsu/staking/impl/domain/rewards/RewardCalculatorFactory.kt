@@ -57,13 +57,15 @@ class RewardCalculatorFactory(
         val averageValidatorPayout: Double = validatorsPayouts.average()
         val rateInPlanks = soraStakingRewardsScenario.mainAssetToRewardAssetRate()
         val rate = asset.amountFromPlanks(rateInPlanks).toDouble()
+        val historicalRewardDistribution = relayChainRepository.retrieveEraPointsDistribution(chainId)
 
         return SoraRewardCalculator(
             validators = allValidators,
             xorValRate = rate,
             averageValidatorPayout = averageValidatorPayout,
             asset = asset,
-            calculationTargets = calculationTargets ?: allValidators.map { it.accountIdHex }
+            calculationTargets = calculationTargets ?: allValidators.map { it.accountIdHex },
+            historicalRewardDistribution
         )
     }
 

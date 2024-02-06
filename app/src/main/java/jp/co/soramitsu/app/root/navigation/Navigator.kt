@@ -959,8 +959,8 @@ class Navigator :
         navController?.navigate(R.id.action_mainFragment_to_filterFragment)
     }
 
-    override fun openSendConfirm(transferDraft: TransferDraft, phishingType: PhishingType?, overrides: Map<String, Any?>, transferComment: String?) {
-        val bundle = ConfirmSendFragment.getBundle(transferDraft, phishingType, overrides, transferComment)
+    override fun openSendConfirm(transferDraft: TransferDraft, phishingType: PhishingType?, overrides: Map<String, Any?>, transferComment: String?, skipEdValidation: Boolean) {
+        val bundle = ConfirmSendFragment.getBundle(transferDraft, phishingType, overrides, transferComment, skipEdValidation)
 
         navController?.navigate(R.id.confirmSendFragment, bundle)
     }
@@ -1106,8 +1106,8 @@ class Navigator :
         navController?.navigate(R.id.backupWalletDialog, extras)
     }
 
-    override fun openRenameWallet(metaAccountId: Long) {
-        val extras = RenameAccountDialog.getBundle(metaAccountId)
+    override fun openRenameWallet(metaAccountId: Long, name: String?) {
+        val extras = RenameAccountDialog.getBundle(metaAccountId, name)
 
         navController?.navigate(R.id.renameAccountDialog, extras)
     }

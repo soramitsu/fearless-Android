@@ -45,26 +45,19 @@ class SessionRequestViewModel @Inject constructor(
     private val topic: String = savedStateHandle[SessionRequestFragment.SESSION_REQUEST_TOPIC_KEY] ?: error("No session info provided")
     private val sessions: List<Wallet.Model.SessionRequest> = walletConnectInteractor.getPendingListOfSessionRequests(topic).also {
         if (it.isEmpty()) {
-            viewModelScope.launch(Dispatchers.Main) {
-                showError(
-                    title = resourceManager.getString(R.string.common_error_general_title),
-                    message = "No session requests found",
-                    positiveButtonText = resourceManager.getString(R.string.common_close),
-                    positiveClick = { walletConnectRouter.back() }
-                )
-            }
+            walletConnectRouter.back()
         }
     }
 
-    private val recentSession = sessions.sortedByDescending { it.request.id }[0]
+    private val recentSession = sessions.takeIf { it.isNotEmpty() }?.sortedByDescending { it.request.id }?.get(0)
 
     private val requestWalletItemFlow: SharedFlow<WalletItemViewState?> = flowOf {
         accountRepository.allMetaAccounts()
     }.map { allMetaAccounts ->
         val requestChain = walletConnectInteractor.getChains().firstOrNull { chain ->
-            chain.caip2id == recentSession.chainId
+            chain.caip2id == recentSession?.chainId
         }
-        val requestAddress = recentSession.request.address
+        val requestAddress = recentSession?.request?.address
 
         val requestedWallet = requestChain?.let {
             allMetaAccounts.firstOrNull { wallet ->
@@ -73,7 +66,7 @@ class SessionRequestViewModel @Inject constructor(
         }
 
         if (requestedWallet == null) {
-            launch(Dispatchers.Main) {
+            launch(Dispatchers.Main.immediate) {
                 showError(
                     title = resourceManager.getString(R.string.common_error_general_title),
                     message = resourceManager.getString(R.string.connection_account_not_supported_warning),
@@ -109,10 +102,10 @@ class SessionRequestViewModel @Inject constructor(
     val state = requestWalletItemFlow.map { requestWallet ->
         requestWallet?.let {
             SessionRequestViewState(
-                connectionUrl = recentSession.peerMetaData?.dappUrl,
+                connectionUrl = recentSession?.peerMetaData?.dappUrl,
                 message = InfoItemViewState(
                     title = resourceManager.getString(R.string.common_message),
-                    subtitle = recentSession.request.message,
+                    subtitle = recentSession?.request?.message,
                     singleLine = true
                 ),
                 wallet = it
@@ -123,28 +116,31 @@ class SessionRequestViewModel @Inject constructor(
 
     private var isClosing = false
     override fun onClose() {
-        if (isClosing) return
+        val requestId = recentSession?.request?.id
+        val isRequestNotExist = walletConnectInteractor.getPendingListOfSessionRequests(topic).isEmpty()
+        if (requestId == null || isRequestNotExist) {
+            walletConnectRouter.back()
+            isClosing = false
+        } else {
+            walletConnectInteractor.rejectSessionRequest(
+                sessionTopic = topic,
+                requestId = requestId,
+                onSuccess = {
+                    isClosing = false
 
-        isClosing = true
+                    viewModelScope.launch(Dispatchers.Main.immediate) {
+                        walletConnectRouter.back()
+                    }
+                },
+                onError = {
+                    isClosing = false
 
-        walletConnectInteractor.rejectSessionRequest(
-            sessionTopic = topic,
-            requestId = recentSession.request.id,
-            onSuccess = {
-                isClosing = false
-
-                viewModelScope.launch(Dispatchers.Main.immediate) {
-                    walletConnectRouter.back()
+                    viewModelScope.launch(Dispatchers.Main.immediate) {
+                        showError(text = resourceManager.getString(R.string.common_try_again))
+                    }
                 }
-            },
-            onError = {
-                isClosing = false
-
-                viewModelScope.launch(Dispatchers.Main.immediate) {
-                    showError(text = resourceManager.getString(R.string.common_try_again))
-                }
-            }
-        )
+            )
+        }
     }
 
     override fun onPreviewClick() {
