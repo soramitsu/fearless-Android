@@ -14,7 +14,6 @@ import jp.co.soramitsu.coredb.dao.AddressBookDao
 import jp.co.soramitsu.coredb.dao.AssetDao
 import jp.co.soramitsu.coredb.dao.ChainDao
 import jp.co.soramitsu.coredb.dao.MetaAccountDao
-import jp.co.soramitsu.coredb.dao.NFTContractMetadataResponseDao
 import jp.co.soramitsu.coredb.dao.OperationDao
 import jp.co.soramitsu.coredb.dao.PhishingDao
 import jp.co.soramitsu.coredb.dao.SoraCardDao
@@ -107,11 +106,5 @@ class DbModule {
     @Singleton
     fun provideSoraCardDao(appDatabase: AppDatabase): SoraCardDao {
         return appDatabase.soraCardDao()
-    }
-
-    @Provides
-    @Singleton
-    fun provideNFTContractMetadataResponseDao(appDatabase: AppDatabase): NFTContractMetadataResponseDao {
-        return appDatabase.nftContractMetadataResponsesDao()
     }
 }

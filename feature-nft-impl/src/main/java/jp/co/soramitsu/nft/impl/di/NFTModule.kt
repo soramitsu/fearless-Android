@@ -8,7 +8,6 @@ import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.common.data.storage.Preferences
-import jp.co.soramitsu.coredb.dao.NFTContractMetadataResponseDao
 import jp.co.soramitsu.nft.data.CachedNFTRepository
 import jp.co.soramitsu.nft.data.NFTRepository
 import jp.co.soramitsu.nft.data.RemoteNFTRepository
@@ -108,12 +107,10 @@ class NFTModule {
     @Singleton
     @CachedNFTRepository
     fun provideCachingNFTRepositoryDecorator(
-        @RemoteNFTRepository nftRepository: NFTRepository,
-        nftContractMetadataResponseDao: NFTContractMetadataResponseDao
+        @RemoteNFTRepository nftRepository: NFTRepository
     ): NFTRepository {
         return CachingNFTRepositoryDecorator(
-            nftRepository = nftRepository,
-            nftContractMetadataResponseDao = nftContractMetadataResponseDao
+            nftRepository = nftRepository
         )
     }
 

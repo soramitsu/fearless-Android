@@ -2,7 +2,6 @@ package jp.co.soramitsu.nft.impl.data.cached
 
 import androidx.collection.LruCache
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
-import jp.co.soramitsu.coredb.dao.NFTContractMetadataResponseDao
 import jp.co.soramitsu.nft.data.NFTCollectionByContractAddressPagedResponse
 import jp.co.soramitsu.nft.data.NFTRepository
 import jp.co.soramitsu.nft.data.UserOwnedTokensByContractAddressPagedResponse
@@ -27,8 +26,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
 class CachingNFTRepositoryDecorator(
-    private val nftRepository: NFTRepository,
-    private val nftContractMetadataResponseDao: NFTContractMetadataResponseDao
+    private val nftRepository: NFTRepository
 ): NFTRepository by nftRepository {
 
     private val lruCacheMutex = Mutex()
