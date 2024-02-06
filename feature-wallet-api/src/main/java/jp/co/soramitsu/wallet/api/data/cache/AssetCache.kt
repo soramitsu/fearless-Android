@@ -37,7 +37,7 @@ class AssetCache(
     ) = withContext(Dispatchers.IO) {
         val chainId = chainAsset.chainId
         val assetId = chainAsset.id
-        val shouldUseChainlinkForRates = selectedFiat.get() == "usd" && chainAsset.priceProvider?.id != null
+        val shouldUseChainlinkForRates = selectedFiat.isUsd() && chainAsset.priceProvider?.id != null
         val priceId = if (shouldUseChainlinkForRates) {
             chainAsset.priceProvider?.id
         } else {

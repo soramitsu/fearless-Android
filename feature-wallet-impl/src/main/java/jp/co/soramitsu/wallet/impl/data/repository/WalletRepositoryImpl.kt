@@ -16,6 +16,7 @@ import jp.co.soramitsu.common.data.secrets.v2.KeyPairSchema
 import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
+import jp.co.soramitsu.common.domain.SelectedFiat
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
 import jp.co.soramitsu.common.utils.orZero
@@ -83,7 +84,8 @@ class WalletRepositoryImpl(
     private val remoteConfigFetcher: RemoteConfigFetcher,
     private val preferences: Preferences,
     private val accountRepository: AccountRepository,
-    private val chainsRepository: ChainsRepository
+    private val chainsRepository: ChainsRepository,
+    private val selectedFiat: SelectedFiat
 ) : WalletRepository, UpdatesProviderUi by updatesMixin {
 
     companion object {
@@ -160,8 +162,7 @@ class WalletRepositoryImpl(
                 type = NetworkIssueType.Node,
                 chainId = configuration.chainId,
                 chainName = configuration.chainName,
-                assetId = configuration.id,
-                priceId = configuration.priceProvider?.id ?: configuration.priceId
+                assetId = configuration.id
             )
         }.toSet()
     }
@@ -203,7 +204,6 @@ class WalletRepositoryImpl(
 
         val chainlinkProvider = chains.firstOrNull { it.chainlinkProvider }
         val chainlinkProviderId = chainlinkProvider?.id
-        println("!!! chainlinkProvider is ${chainlinkProvider?.name} $chainlinkProviderId ")
 
         val chainlinkTokens = chainlinkIds.map { priceId ->
             val assetConfig = chains.flatMap { it.assets }.firstOrNull { it.priceProvider?.id == priceId }
@@ -285,6 +285,7 @@ class WalletRepositoryImpl(
         isHidden: Boolean,
         chainAsset: CoreAsset
     ) {
+        val tokenPriceId = chainAsset.priceProvider?.id?.takeIf { selectedFiat.isUsd() } ?: chainAsset.priceId
         val updateItems = listOf(
             AssetUpdateItem(
                 metaId = metaId,
@@ -293,7 +294,7 @@ class WalletRepositoryImpl(
                 id = chainAsset.id,
                 sortIndex = Int.MAX_VALUE, // Int.MAX_VALUE on sorting because we don't use it anymore - just random value
                 enabled = !isHidden,
-                tokenPriceId = chainAsset.priceProvider?.id ?: chainAsset.priceId
+                tokenPriceId = tokenPriceId
             )
         )
 

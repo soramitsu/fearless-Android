@@ -58,8 +58,7 @@ data class NetworkIssueItemState(
 
     val chainId: String,
     val chainName: String,
-    val assetId: String,
-    val priceId: String? = null
+    val assetId: String
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

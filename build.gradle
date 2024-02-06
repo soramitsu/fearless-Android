@@ -207,8 +207,6 @@ buildscript {
         sharedFeaturesBackupDep = "jp.co.soramitsu.shared_features:backup:$sharedFeaturesVersion"
 
         web3jDep = "org.web3j:core:4.8.8-android"
-        web3jContractsDep = "org.web3j:contracts:4.8.8-android"
-        web3jGethDep = "org.web3j:geth:4.8.8-android"
 
         withoutJavaWS = { exclude module: 'java-websocket-lib' }
 

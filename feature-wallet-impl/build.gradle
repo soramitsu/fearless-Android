@@ -140,6 +140,4 @@ dependencies {
     implementation sharedFeaturesBackupDep
 
     implementation web3jDep
-    implementation web3jContractsDep
-//    implementation web3jGethDep
 }

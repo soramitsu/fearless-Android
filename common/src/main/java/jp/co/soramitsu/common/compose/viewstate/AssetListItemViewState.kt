@@ -15,7 +15,6 @@ data class AssetListItemViewState(
     val chainAssetId: String,
     val isSupported: Boolean,
     val isHidden: Boolean,
-    val priceId: String?,
     val isTestnet: Boolean
 ) {
     val key = listOf(index ?: 0, chainAssetId, chainId, isHidden).joinToString()

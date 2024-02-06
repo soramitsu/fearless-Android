@@ -145,9 +145,11 @@ class WalletFeatureModule {
 
     @Provides
     fun provideTokenRepository(
-        tokenPriceDao: TokenPriceDao
+        tokenPriceDao: TokenPriceDao,
+        selectedFiat: SelectedFiat
     ): TokenRepository = TokenRepositoryImpl(
-        tokenPriceDao
+        tokenPriceDao,
+        selectedFiat
     )
 
     @Provides
@@ -171,7 +173,8 @@ class WalletFeatureModule {
         remoteConfigFetcher: RemoteConfigFetcher,
         preferences: Preferences,
         accountRepository: AccountRepository,
-        chainsRepository: ChainsRepository
+        chainsRepository: ChainsRepository,
+        selectedFiat: SelectedFiat
     ): WalletRepository = WalletRepositoryImpl(
         substrateSource,
         ethereumRemoteSource,
@@ -188,7 +191,8 @@ class WalletFeatureModule {
         remoteConfigFetcher,
         preferences,
         accountRepository,
-        chainsRepository
+        chainsRepository,
+        selectedFiat
     )
 
     @Provides

@@ -70,8 +70,7 @@ class ConnectionPool @Inject constructor(
                         },
                         chainId = chain.id,
                         chainName = chain.name,
-                        assetId = chain.utilityAsset?.id.orEmpty(),
-                        priceId = chain.utilityAsset?.priceProvider?.id ?: chain.utilityAsset?.priceId
+                        assetId = chain.utilityAsset?.id.orEmpty()
                     )
                 }
             issues

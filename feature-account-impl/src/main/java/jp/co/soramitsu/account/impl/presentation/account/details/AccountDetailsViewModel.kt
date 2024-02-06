@@ -9,7 +9,7 @@ import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AssetNotNeedAccountUseCase
 import jp.co.soramitsu.account.api.domain.interfaces.TotalBalanceUseCase
 import jp.co.soramitsu.account.api.domain.model.hasChainAccount
-import jp.co.soramitsu.account.api.presentation.actions.AddAccountBottomSheet
+import jp.co.soramitsu.account.api.presentation.actions.AddAccountPayload
 import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.account.api.presentation.exporting.ExportSource
 import jp.co.soramitsu.account.api.presentation.exporting.ExportSourceChooserPayload
@@ -23,6 +23,7 @@ import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.ChangeBalanceViewState
 import jp.co.soramitsu.common.compose.component.WalletItemViewState
 import jp.co.soramitsu.common.data.network.BlockExplorerUrlBuilder
+import jp.co.soramitsu.common.domain.SelectedFiat
 import jp.co.soramitsu.common.list.headers.TextHeader
 import jp.co.soramitsu.common.list.toListWithHeaders
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -251,12 +252,11 @@ class AccountDetailsViewModel @Inject constructor(
                 externalAccountActions.showExternalActions(ExternalAccountActions.Payload(item.address, item.chainId, item.chainName, supportedExplorers))
             } else {
                 val utilityAsset = chainRegistry.getChain(item.chainId).utilityAsset
-                val payload = AddAccountBottomSheet.Payload(
+                val payload = AddAccountPayload(
                     metaId = walletId,
                     chainId = item.chainId,
                     chainName = item.chainName,
                     assetId = utilityAsset?.id.orEmpty(),
-                    priceId = utilityAsset?.priceProvider?.id ?: utilityAsset?.priceId,
                     markedAsNotNeed = item.markedAsNotNeed
                 )
                 accountRouter.openOptionsAddAccount(payload)
