@@ -4,6 +4,7 @@ import jp.co.soramitsu.common.compose.models.ImageModel
 import jp.co.soramitsu.common.compose.models.Loadable
 import jp.co.soramitsu.common.compose.models.ScreenLayout
 import jp.co.soramitsu.common.compose.models.TextModel
+import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.nft.domain.models.NFT
 import jp.co.soramitsu.nft.domain.models.NFTCollection
 import jp.co.soramitsu.wallet.impl.presentation.balance.nft.list.models.NFTCollectionsScreenView
@@ -44,7 +45,12 @@ fun NFTCollection.Data<NFT.Light>.toScreenView(
 ): NFTCollectionsScreenView.ItemModel {
     return ItemModel(
         screenLayout = screenLayout,
-        thumbnail = Loadable.ReadyToRender(ImageModel.Url(imageUrl.orEmpty())),
+        thumbnail = Loadable.ReadyToRender(
+            ImageModel.UrlWithFallbackOption(
+                imageUrl.orEmpty(),
+                ImageModel.ResId(R.drawable.drawable_fearless_bird)
+            )
+        ),
         chainName = Loadable.ReadyToRender(TextModel.SimpleString(chainName)),
         title = Loadable.ReadyToRender(TextModel.SimpleString(collectionName)),
         onItemClick = onItemClick

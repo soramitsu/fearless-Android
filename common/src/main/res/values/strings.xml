@@ -509,6 +509,7 @@
   <string name="network_status_connected">Connected</string>
   <string name="network_status_connecting">Connecting…</string>
   <string name="network_url_address">URL address</string>
+  <string name="nft_choose_recipient_title">Choose recipient</string>
   <string name="nft_collection_available_nfts">Available NFTs in the %s collection</string>
   <string name="nft_collection_my_nfts">My NFTs</string>
   <string name="nft_collection_title">Collection</string>

@@ -33,11 +33,6 @@ interface NFTTransferInteractor {
         canReceiverAcceptToken: Boolean
     ): Flow<Result<BigDecimal>>
 
-    suspend fun isReceiverAddressCorrect(
-        chainId: ChainId,
-        receiver: String
-    ): Result<Boolean>
-
     /**
      * Transfer of single NFT token of ERC721/ERC1155 ETH contract
      *

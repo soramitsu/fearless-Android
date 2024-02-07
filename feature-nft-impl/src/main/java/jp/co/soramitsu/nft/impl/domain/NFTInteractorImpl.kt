@@ -34,6 +34,8 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.flow.transform
+import kotlinx.coroutines.flow.transformLatest
+import java.math.BigInteger
 import java.util.concurrent.atomic.AtomicInteger
 
 class NFTInteractorImpl(
@@ -165,13 +167,15 @@ class NFTInteractorImpl(
                     nonBlockingSemaphore.get() == unlockOn
                 }
 
+            val userOwnedNFTIds = mutableSetOf<String>()
+
             nftRepository.paginatedUserOwnedNFTsByContractAddressFlow(
                 paginationRequestFlow = paginationRequestFlow.withNonBlockingLock(UserOwnedNFTsStartedLoading),
                 chainSelectionFlow = chainSelectionHelperFlow,
                 contractAddressFlow = contractAddressFlow,
                 selectedMetaAccountFlow = accountRepository.selectedMetaAccountFlow(),
                 exclusionFiltersFlow = exclusionFiltersHelperFlow
-            ).transform { pagedResponse ->
+            ).onEach { pagedResponse ->
                 val (chainId, chainName) = pagedResponse.chain.run { id to name }
 
                 val result = pagedResponse.result.mapCatching { paginationEvent ->
@@ -188,6 +192,10 @@ class NFTInteractorImpl(
                     if (paginationEvent.data.tokenInfoList.isEmpty())
                         return@mapCatching NFTCollection.Empty(chainId, chainName)
 
+                    for (token in paginationEvent.data.tokenInfoList) {
+                        token.id?.tokenId?.let { userOwnedNFTIds.add(it) }
+                    }
+
                     paginationEvent.data.toFullNFTCollection(pagedResponse.chain)
                 }.getOrElse { throwable ->
                     NFTCollection.Error(
@@ -197,29 +205,14 @@ class NFTInteractorImpl(
                     )
                 }
 
-                emit(Pair(result, pagedResponse.paginationRequest))
-            }.rememberAndZipAsPreviousIf { (collection, _) ->
-                collection is NFTCollection.Data
-            }.onEach { (prevDataCollectionPair, currentCollectionPair) ->
-                val (currentCollection, _) = currentCollectionPair
-
-                val collectionToSend = if (
-                    currentCollection !is NFTCollection.Data &&
-                    prevDataCollectionPair != null
-                ) {
-                    prevDataCollectionPair
-                } else {
-                    currentCollectionPair
-                }
-
-                send(collectionToSend)
+                send(Pair(result, pagedResponse.paginationRequest))
             }.launchIn(this)
 
             nftRepository.paginatedNFTCollectionByContractAddressFlow(
                 paginationRequestFlow = paginationRequestFlow.withNonBlockingLock(AvailableNFTsStartedLoading),
                 chainSelectionFlow = chainSelectionHelperFlow,
                 contractAddressFlow = contractAddressFlow
-            ).transform { pagedResponse ->
+            ).onEach { pagedResponse ->
                 val (chainId, chainName) = pagedResponse.chain.run { id to name }
 
                 val result = pagedResponse.result.mapCatching { paginationEvent ->
@@ -236,7 +229,10 @@ class NFTInteractorImpl(
                     if (paginationEvent.data.tokenInfoList.isEmpty())
                         return@mapCatching NFTCollection.Empty(chainId, chainName)
 
-                    paginationEvent.data.toFullNFTCollection(pagedResponse.chain)
+                    paginationEvent.data.toFullNFTCollection(
+                        chain = pagedResponse.chain,
+                        excludeTokensWithIds = userOwnedNFTIds
+                    )
                 }.getOrElse { throwable ->
                     NFTCollection.Error(
                         chainId = chainId,
@@ -245,23 +241,24 @@ class NFTInteractorImpl(
                     )
                 }
 
-                emit(Pair(result, pagedResponse.paginationRequest))
-            }.rememberAndZipAsPreviousIf { (collection, _) ->
-                collection is NFTCollection.Data
-            }.onEach { (prevDataCollectionPair, currentCollectionPair) ->
-                val (currentCollection, _) = currentCollectionPair
-
-                val collectionToSend = if (
-                    currentCollection !is NFTCollection.Data &&
-                    prevDataCollectionPair != null
-                ) {
-                    prevDataCollectionPair
-                } else {
-                    currentCollectionPair
-                }
-
-                send(collectionToSend)
+                send(Pair(result, pagedResponse.paginationRequest))
             }.launchIn(this)
+
+        }.rememberAndZipAsPreviousIf { (collection, _) ->
+            collection is NFTCollection.Data
+        }.transform { (prevDataCollectionPair, currentCollectionPair) ->
+            val (currentCollection, _) = currentCollectionPair
+
+            val collectionToSend = if (
+                currentCollection !is NFTCollection.Data &&
+                prevDataCollectionPair != null
+            ) {
+                prevDataCollectionPair
+            } else {
+                currentCollectionPair
+            }
+
+            emit(collectionToSend)
         }.flowOn(Dispatchers.Default)
     }
 
@@ -274,8 +271,7 @@ class NFTInteractorImpl(
 
         return nftRepository.tokenMetadata(chain, contractAddress, tokenId).map { result ->
             result.toFullNFT(
-                chain = chain,
-                contractAddress = contractAddress
+                chain = chain
             )
         }
     }
@@ -284,22 +280,24 @@ class NFTInteractorImpl(
         val chain = chainsRepository.getChain(token.chainId)
 
         return runCatching {
-            val contractAddress = token.contractAddress ?: error(
-                """
-                    TokenId supplied is null.
-                """.trimIndent()
-            )
+            if (token.contractAddress.isBlank())
+                error(
+                    """
+                        TokenId supplied is null.
+                    """.trimIndent()
+                )
 
-            val tokenId = token.tokenId ?: error(
-                """
-                    TokenId supplied is null.
-                """.trimIndent()
-            )
+            if (token.tokenId < BigInteger.ZERO)
+                error(
+                    """
+                        TokenId supplied is null.
+                    """.trimIndent()
+                )
 
             return@runCatching nftRepository.tokenOwners(
                 chain = chain,
-                contractAddress = contractAddress,
-                tokenId = tokenId
+                contractAddress = token.contractAddress,
+                tokenId = token.tokenId.toString()
             ).getOrThrow().ownersList
         }
     }

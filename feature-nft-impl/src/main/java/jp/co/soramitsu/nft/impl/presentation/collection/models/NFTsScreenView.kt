@@ -25,7 +25,7 @@ sealed interface NFTsScreenView {
     @Immutable
     interface ScreenHeader: NFTsScreenView {
 
-        val thumbnail: Loadable<ImageModel?>
+        val thumbnail: Loadable<ImageModel>
 
         val description: Loadable<TextModel?>
 

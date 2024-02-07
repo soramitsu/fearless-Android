@@ -27,11 +27,12 @@ suspend fun NFTTransferAdapter(
 ): NFTCall.Transfer {
     val nonce = web3j.getNonce(sender)
 
-    val tokenId = token.tokenId?.requireHexPrefix()?.drop(2) ?: error(
-        """
+    if (token.tokenId < BigInteger.ZERO)
+        error(
+            """
                 TokenId supplied is null.
             """.trimIndent()
-    )
+        )
 
     return when(token.tokenType) {
 
@@ -51,7 +52,7 @@ suspend fun NFTTransferAdapter(
             val argsList = mutableListOf<Type<*>>(
                 Address(160, sender),
                 Address(160, receiver),
-                Uint256(BigInteger(tokenId, 16))
+                Uint256(token.tokenId)
             ).apply {
                 if (!canReceiverAcceptToken)
                     add(DynamicBytes(ByteArray(0)))
@@ -68,7 +69,7 @@ suspend fun NFTTransferAdapter(
                 nonce = nonce,
                 sender = sender,
                 receiver = receiver,
-                contractAddress = token.contractAddress!!,
+                contractAddress = token.contractAddress,
                 encodedFunction = FunctionEncoder.encode(functionCall),
                 outputTypeRefs = functionCall.outputParameters
             )
@@ -81,7 +82,7 @@ suspend fun NFTTransferAdapter(
                     listOf(
                         Address(160, sender),
                         Address(160, receiver),
-                        Uint256(BigInteger(tokenId, 16)),
+                        Uint256(token.tokenId),
                         Uint256(BigInteger.ONE),
                         DynamicBytes(byteArrayOf())
                     ),
@@ -92,7 +93,7 @@ suspend fun NFTTransferAdapter(
                 nonce = nonce,
                 sender = sender,
                 receiver = receiver,
-                contractAddress = token.contractAddress!!,
+                contractAddress = token.contractAddress,
                 encodedFunction = FunctionEncoder.encode(functionCall),
                 outputTypeRefs = functionCall.outputParameters
             )

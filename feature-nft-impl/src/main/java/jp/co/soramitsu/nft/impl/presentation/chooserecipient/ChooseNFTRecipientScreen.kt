@@ -1,8 +1,10 @@
 package jp.co.soramitsu.nft.impl.presentation.chooserecipient
 
+import android.graphics.drawable.Drawable
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -21,21 +23,25 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.graphics.drawable.toBitmap
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import jp.co.soramitsu.common.compose.component.AccentDarkDisabledButton
 import jp.co.soramitsu.common.compose.component.AddressInput
+import jp.co.soramitsu.common.compose.component.Badge
 import jp.co.soramitsu.common.compose.component.AddressInputState
 import jp.co.soramitsu.common.compose.component.BottomSheetScreen
 import jp.co.soramitsu.common.compose.component.ButtonViewState
 import jp.co.soramitsu.common.compose.component.CapsTitle
 import jp.co.soramitsu.common.compose.component.ColoredButton
 import jp.co.soramitsu.common.compose.component.FullScreenLoading
+import jp.co.soramitsu.common.compose.component.H6
 import jp.co.soramitsu.common.compose.component.MarginHorizontal
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
@@ -109,7 +115,7 @@ private fun ChooseNFTRecipientScreen(
                         modifier = Modifier
                             .wrapContentSize(Alignment.CenterEnd)
                             .weight(1f),
-                        iconResId = R.drawable.ic_wallet,
+                        icon = state.selectedWalletIcon,
                         labelResId = R.string.chip_my_wallets,
                         onClick = callback::onWalletsClick
                     )
@@ -136,36 +142,11 @@ private fun ChooseNFTRecipientScreen(
     }
 }
 
-@Composable
-private fun Badge(
-    modifier: Modifier = Modifier,
-    @DrawableRes iconResId: Int,
-    @StringRes labelResId: Int,
-    onClick: () -> Unit
-) {
-    ColoredButton(
-        modifier = modifier,
-        backgroundColor = black05,
-        border = BorderStroke(1.dp, white24),
-        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 8.dp),
-        onClick = onClick
-    ) {
-        Icon(
-            painter = painterResource(id = iconResId),
-            tint = Color.White,
-            contentDescription = null,
-            modifier = Modifier.size(16.dp)
-        )
-        MarginHorizontal(margin = 4.dp)
-        CapsTitle(text = stringResource(id = labelResId))
-    }
-}
-
-
 @Preview
 @Composable
 private fun SendSetupPreview() {
     val state = ChooseNFTRecipientScreenState(
+        selectedWalletIcon = null,
         addressInputState = AddressInputState("Send to", "", ""),
         buttonState = ButtonViewState("Continue", true),
         isHistoryAvailable = false,

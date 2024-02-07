@@ -2,10 +2,13 @@ package jp.co.soramitsu.nft.impl.presentation.details
 
 import android.graphics.drawable.PictureDrawable
 import androidx.annotation.DrawableRes
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -34,6 +37,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import coil.compose.SubcomposeAsyncImage
+import com.valentinilk.shimmer.shimmer
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.compose.component.AccentButton
 import jp.co.soramitsu.common.compose.component.B1
@@ -51,6 +55,7 @@ import jp.co.soramitsu.common.compose.component.getImageRequest
 import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
 import jp.co.soramitsu.common.compose.theme.black3
 import jp.co.soramitsu.common.compose.theme.customColors
+import jp.co.soramitsu.common.compose.theme.shimmerColor
 import jp.co.soramitsu.common.utils.clickableSingle
 import jp.co.soramitsu.nft.impl.navigation.Destination
 import kotlinx.coroutines.flow.SharedFlow
@@ -58,6 +63,7 @@ import kotlinx.coroutines.flow.SharedFlow
 @Stable
 data class NftDetailsScreenState(
     val name: String = "",
+    val isTokenUserOwned: Boolean = false,
     val imageUrl: String = "",
     val hasImageRequestFailed: Boolean = false,
     val isImageShimmerEnabled: Boolean = false,
@@ -112,11 +118,12 @@ fun NftDetailsScreen(
     val shimmerEnabled = state.creator.isEmpty()
 
     Column(Modifier.verticalScroll(rememberScrollState())) {
-        ShimmeredImage(state.imageUrl, state.creator.isEmpty())
+        NftAsyncImage(state.imageUrl)
 
         MarginVertical(margin = 16.dp)
 
         ActionButtons(
+            shouldShowSendButton = state.isTokenUserOwned,
             onSendClicked = screenInterface::sendClicked,
             onShareClicked = screenInterface::shareClicked,
             isEnabled = !shimmerEnabled
@@ -127,7 +134,7 @@ fun NftDetailsScreen(
         if (shimmerEnabled) {
             ShimmeredNftDescription()
             MarginVertical(margin = 8.dp)
-        } else {
+        } else if (state.description.isNotBlank()) {
             B1(
                 modifier = Modifier
                     .padding(horizontal = 16.dp, vertical = 8.dp),
@@ -316,22 +323,25 @@ fun ShimmeredNftDescription() {
 
 @Composable
 fun ActionButtons(
+    shouldShowSendButton: Boolean,
     onSendClicked: () -> Unit,
     onShareClicked: () -> Unit,
     isEnabled: Boolean
 ) {
-    AccentButton(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp)
-            .height(48.dp),
-        enabled = isEnabled,
-        text = stringResource(id = R.string.common_action_send),
-        iconRes = R.drawable.ic_send_outlined,
-        onClick = onSendClicked
-    )
+    if (shouldShowSendButton) {
+        AccentButton(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+                .height(48.dp),
+            enabled = isEnabled,
+            text = stringResource(id = R.string.common_action_send),
+            iconRes = R.drawable.ic_send_outlined,
+            onClick = onSendClicked
+        )
 
-    MarginVertical(margin = 8.dp)
+        MarginVertical(margin = 8.dp)
+    }
 
     AccentButton(
         modifier = Modifier
@@ -377,26 +387,12 @@ private fun DetailRowItem(
                 androidx.compose.foundation.Image(bitmap = it.toBitmap().asImageBitmap(), contentDescription = "")
                 MarginHorizontal(margin = 8.dp)
             }
-            B1(maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.fillMaxWidth(0.9f), textAlign = TextAlign.End, text = value)
+            B1(maxLines = 1, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.End, text = value)
             rightIcon?.let {
                 MarginHorizontal(margin = 4.dp)
                 Image(res = it, contentDescription = null, modifier = Modifier.size(16.dp))
             }
         }
-    }
-}
-
-@Composable
-private fun ShimmeredImage(imageUrl: String, shimmerEnabled: Boolean) {
-    if (imageUrl.isEmpty() && shimmerEnabled) {
-        Shimmer(
-            modifier = Modifier
-                .padding(horizontal = 16.dp)
-                .fillMaxWidth()
-                .aspectRatio(1f)
-        )
-    } else {
-        NftAsyncImage(imageUrl)
     }
 }
 
@@ -410,12 +406,20 @@ private fun NftAsyncImage(imageUrl: String) {
             GifImage(gifResource = R.drawable.animated_bird)
         },
         loading = {
-            Shimmer(
+            Box(
                 modifier = Modifier
-                    .padding(horizontal = 16.dp)
+                    .clip(RoundedCornerShape(8.dp))
                     .fillMaxWidth()
                     .aspectRatio(1f)
-            )
+                    .shimmer(),
+                contentAlignment = Alignment.Center
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(shimmerColor, RoundedCornerShape(11.dp))
+                )
+            }
         },
         modifier = Modifier
             .padding(horizontal = 16.dp)
@@ -431,7 +435,7 @@ fun NftCollectionScreenPreview() {
     val previewState = NftDetailsScreenState(
         name = "Custom Pixel Babe",
         imageUrl = "",
-        description = "Custom Pixel Babe it's very limited bunch of NFT's. Only 10 be made. It's miscellaneous mix from 3D animation and electronic acid music loops.",
+        description = "",
         collectionName = "\"Custom  BabeBabeBabe\" collection",
         owner = "E3WVE....Jrpp",
         ownerIcon = null,

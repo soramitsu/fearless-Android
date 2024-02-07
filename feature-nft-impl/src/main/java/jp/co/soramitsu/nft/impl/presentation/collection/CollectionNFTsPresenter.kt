@@ -1,17 +1,23 @@
 package jp.co.soramitsu.nft.impl.presentation.collection
 
 import androidx.compose.runtime.snapshots.SnapshotStateList
+import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
+import jp.co.soramitsu.account.api.domain.model.address
 import javax.inject.Inject
 import jp.co.soramitsu.common.utils.zipWithPrevious
 import jp.co.soramitsu.nft.data.pagination.PaginationRequest
 import jp.co.soramitsu.nft.domain.NFTInteractor
 import jp.co.soramitsu.nft.domain.models.NFTCollection
 import jp.co.soramitsu.common.compose.utils.PageScrollingCallback
+import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.core.runtime.ChainRepository
 import jp.co.soramitsu.nft.domain.models.NFT
+import jp.co.soramitsu.nft.impl.domain.utils.convertToShareMessage
 import jp.co.soramitsu.nft.impl.navigation.Destination
 import jp.co.soramitsu.nft.impl.navigation.InternalNFTRouter
 import jp.co.soramitsu.nft.impl.presentation.collection.models.NFTsScreenView
 import jp.co.soramitsu.nft.impl.presentation.collection.utils.toScreenViewStableList
+import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
@@ -32,10 +38,14 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.sample
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.transform
+import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicBoolean
 
 class CollectionNFTsPresenter @Inject constructor(
+    private val accountInteractor: AccountInteractor,
+    private val chainsRepository: ChainsRepository,
     private val nftInteractor: NFTInteractor,
+    private val resourceManager: ResourceManager,
     private val internalNFTRouter: InternalNFTRouter
 ) {
 
@@ -81,13 +91,10 @@ class CollectionNFTsPresenter @Inject constructor(
                 paginationRequestFlow = paginationRequestHelperFlow,
                 chainSelectionFlow = screenArgsFlow.distinctUntilChanged().map { it.chainId },
                 contractAddressFlow = screenArgsFlow.distinctUntilChanged().map { it.contractAddress },
-            ).onEach { (collection, _) ->
+            ).zipWithPrevious().transform { (prevValue, currentValue) ->
                 // each new element indicated that loading has been completed
                 isLoadingCompleted.set(true)
 
-                if (collection is NFTCollection.Error)
-                    internalNFTRouter.openErrorsScreen(collection.throwable.message ?: "Failed to load NFTs")
-            }.zipWithPrevious().transform { (prevValue, currentValue) ->
                 mergeUserOwnedAndAvailableNFTCollections(
                     currentValue = currentValue,
                     prevValue = prevValue
@@ -162,7 +169,18 @@ class CollectionNFTsPresenter @Inject constructor(
         if (token.isUserOwnedToken){
             internalNFTRouter.openChooseRecipientScreen(token)
         } else {
-            internalNFTRouter.shareText("Sharing Text")
+            coroutineScope.launch {
+                val chain = chainsRepository.getChain(token.chainId)
+                val selectedMetaAccount = accountInteractor.selectedMetaAccount()
+
+                val shareMessage = token.convertToShareMessage(
+                    resourceManager,
+                    null,
+                    selectedMetaAccount.address(chain)
+                )
+
+                internalNFTRouter.shareText(shareMessage)
+            }
         }
     }
 

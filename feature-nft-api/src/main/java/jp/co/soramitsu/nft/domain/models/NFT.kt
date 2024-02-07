@@ -1,6 +1,7 @@
 package jp.co.soramitsu.nft.domain.models
 
 import jp.co.soramitsu.core.models.ChainId
+import java.math.BigInteger
 
 sealed interface NFT {
 
@@ -11,17 +12,17 @@ sealed interface NFT {
     ): NFT
 
     data class Full(
-        val title: String?,
+        val title: String,
         val thumbnail: String,
-        val description: String?,
-        val collectionName: String?,
-        val contractAddress: String?,
+        val description: String,
+        val collectionName: String,
+        val contractAddress: String,
         val creatorAddress: String?,
         val isUserOwnedToken: Boolean,
-        val tokenId: String?,
+        val tokenId: BigInteger,
         val chainName: String,
         val chainId: ChainId,
-        val tokenType: String?,
+        val tokenType: String,
         val date: String?,
         val price: String
     ): NFT

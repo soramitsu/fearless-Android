@@ -515,6 +515,7 @@
   <string name="nft_owner_title">Sở hữu</string>
   <string name="nft_stub_text">NFTs sẽ sớm ra mắt</string>
   <string name="nft_stub_title">Sumimasen!</string>
+  <string name="nft_token_type_title">Loại token</string>
   <string name="nft_tokenid_title">Token ID</string>
   <string name="nfts_collection_count" formatted="false">Số lượng: %d / %d</string>
   <string name="nfts_stub">NFTs</string>
@@ -732,7 +733,7 @@
   <string name="settings_hide_zero_balances">Ẩn số dư bằng không</string>
   <string name="share_referral_code">Chia sẻ mã giới thiệu</string>
   <string name="social_media">Truyền thông xã hội</string>
-  <string name="sora_bridge_amount_less_fee">Số tiền bạn đang cố chuyển không đủ để trả phí giao dịch trên mạng Kusama. Mặc dù giao dịch không được xử lý nhưng bạn vẫn sẽ bị tính phí trên mạng Sora.</string>
+  <string name="sora_bridge_amount_less_fee">Số tiền bạn đang cố chuyển không đủ để trả phí giao dịch trên mạng %@ . Mặc dù giao dịch không được xử lý nhưng bạn vẫn sẽ bị tính phí trên mạng Sora.</string>
   <string name="sora_bridge_low_amount_alert">Hiện tại, có một phút. số tiền 0,05 KSM để bắc cầu nhằm đảm bảo tính ổn định và bảo mật của Mạng SORA. Chúng tôi đánh giá cao sự hiểu biết của bạn.</string>
   <string name="sora_card_annual_service_fee">0 € phí dịch vụ hàng năm</string>
   <string name="sora_card_blacklisted_countires_title">Không bao gồm ứng dụng</string>

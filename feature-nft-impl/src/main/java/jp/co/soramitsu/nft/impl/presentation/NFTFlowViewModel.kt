@@ -119,14 +119,8 @@ class NFTFlowViewModel @Inject constructor(
                 )
 
             Destination.NestedNavGraphRoute.DetailsNFTScreen.routeName -> {
-                val destinationArgs = nestedNavGraphDestinationsFlow.replayCache.lastOrNull()
-                val token = destinationArgs.castOrNull<Destination.NestedNavGraphRoute.DetailsNFTScreen>()?.token
-                val title = if(!token?.title.isNullOrBlank())
-                    token?.title.orEmpty()
-                else {
-                    val tokenIdAsBigInt = token?.tokenId?.requireHexPrefix()?.drop(2)?.toBigIntegerOrNull()
-                    "${token?.collectionName} #${tokenIdAsBigInt ?: 0}"
-                }
+                val destinationArgs = internalNFTRouter.currentDestination<Destination.NestedNavGraphRoute.DetailsNFTScreen>()
+                val title = destinationArgs?.token?.title.orEmpty()
 
                 LoadingState.Loaded(
                     TextModel.SimpleString(title) to R.drawable.ic_arrow_left_24
@@ -135,7 +129,7 @@ class NFTFlowViewModel @Inject constructor(
 
             Destination.NestedNavGraphRoute.ChooseNFTRecipientScreen.routeName ->
                 LoadingState.Loaded(
-                    TextModel.SimpleString("Choose Recipient") to R.drawable.ic_arrow_left_24
+                    TextModel.ResId(R.string.nft_choose_recipient_title) to R.drawable.ic_arrow_left_24
                 )
 
             Destination.NestedNavGraphRoute.ConfirmNFTSendScreen.routeName ->
@@ -161,6 +155,6 @@ class NFTFlowViewModel @Inject constructor(
         if (result == null)
             return
 
-        chooseNFTRecipientPresenter.setNewReceiverAddress(result)
+        chooseNFTRecipientPresenter.handleQRCodeResult(result)
     }
 }

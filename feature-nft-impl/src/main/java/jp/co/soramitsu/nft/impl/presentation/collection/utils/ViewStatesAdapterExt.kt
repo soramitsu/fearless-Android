@@ -53,7 +53,10 @@ fun NFTCollection<NFT.Full>.toScreenViewStableList(
     if (isCollectionUserOwned) {
         ScreenHeader(
             thumbnail = Loadable.ReadyToRender(
-                imageUrl?.let { ImageModel.Url(it) }
+                ImageModel.UrlWithFallbackOption(
+                    imageUrl.orEmpty(),
+                    ImageModel.Gif(R.drawable.animated_bird)
+                )
             ),
             description = Loadable.ReadyToRender(
                 description?.let { TextModel.SimpleString(it) }
@@ -101,8 +104,9 @@ private fun NFT.Full.toScreenView(
     return ItemModel(
         screenLayout = screenLayout,
         thumbnail = Loadable.ReadyToRender(
-            ImageModel.Url(
-                thumbnail
+            ImageModel.UrlWithFallbackOption(
+                thumbnail,
+                ImageModel.ResId(R.drawable.drawable_fearless_bird)
             )
         ),
         title = Loadable.ReadyToRender(
@@ -135,7 +139,7 @@ private fun NFT.Full.toScreenView(
 }
 
 private class ScreenHeader(
-    override val thumbnail: Loadable<ImageModel?>,
+    override val thumbnail: Loadable<ImageModel>,
     override val description: Loadable<TextModel?>
 ): NFTsScreenView.ScreenHeader
 

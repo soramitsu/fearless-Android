@@ -1,5 +1,6 @@
 package jp.co.soramitsu.nft.impl.navigation
 
+import jp.co.soramitsu.common.utils.castOrNull
 import jp.co.soramitsu.nft.domain.models.NFT
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
@@ -16,6 +17,11 @@ class InternalNFTRouterImpl(
     private val mutableDestinationsFlow =
         MutableSharedFlow<Destination>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
     override val destinationsFlow: SharedFlow<Destination> = mutableDestinationsFlow
+
+    @Suppress("UNCHECKED_CAST")
+    override fun <T : Destination> currentDestination(): T? {
+        return mutableDestinationsFlow.replayCache.lastOrNull() as? T
+    }
 
     override fun back() {
         mutableDestinationsFlow.tryEmit(Destination.Action.BackPressed)

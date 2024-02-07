@@ -3,10 +3,12 @@ package jp.co.soramitsu.nft.impl.presentation.confirmsend.contract
 import androidx.compose.runtime.Stable
 import jp.co.soramitsu.common.compose.component.ButtonViewState
 import jp.co.soramitsu.common.compose.component.TitleValueViewState
+import jp.co.soramitsu.common.compose.models.ImageModel
+import jp.co.soramitsu.common.compose.models.Loadable
 
 @Stable
 data class ConfirmNFTSendScreenState(
-    val tokenThumbnailIconUrl: String? = null,
+    val thumbnailImageModel: Loadable<ImageModel>,
     val fromInfoItem: TitleValueViewState? = null,
     val toInfoItem: TitleValueViewState? = null,
     val collectionInfoItem: TitleValueViewState? = null,
@@ -16,7 +18,7 @@ data class ConfirmNFTSendScreenState(
 ) {
     companion object {
         val default = ConfirmNFTSendScreenState(
-            tokenThumbnailIconUrl = null,
+            thumbnailImageModel = Loadable.InProgress(),
             buttonState = ButtonViewState("", false)
         )
     }

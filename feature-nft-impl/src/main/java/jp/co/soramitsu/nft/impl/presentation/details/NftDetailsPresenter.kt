@@ -8,6 +8,7 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.formatting.shortenAddress
 import jp.co.soramitsu.feature_nft_impl.R
 import jp.co.soramitsu.nft.domain.NFTInteractor
+import jp.co.soramitsu.nft.impl.domain.utils.convertToShareMessage
 import jp.co.soramitsu.nft.impl.navigation.Destination
 import jp.co.soramitsu.nft.impl.navigation.InternalNFTRouter
 import jp.co.soramitsu.shared_utils.extensions.toHexString
@@ -56,10 +57,11 @@ class NftDetailsPresenter @Inject constructor(
     fun createScreenStateFlow(): Flow<NftDetailsScreenState> {
         return screenArgsFlow.map { it.token }.transformLatest { token ->
             NftDetailsScreenState(
-                name = token.title ?: "",
+                name = token.title,
+                isTokenUserOwned = token.isUserOwnedToken,
                 imageUrl = token.thumbnail,
-                description = token.description ?: "",
-                collectionName = token.collectionName ?: "",
+                description = token.description,
+                collectionName = token.collectionName,
                 owner = ownerAddress?.shortenAddress(ADDRESS_SHORTEN_COUNT) ?: "",
                 ownerIcon = ownerAddress?.let {
                     iconGenerator.createEthereumAddressModel(it, SIZE_MEDIUM).image
@@ -70,7 +72,7 @@ class NftDetailsPresenter @Inject constructor(
                 },
                 network = token.chainName,
                 tokenType = token.tokenType ?: "",
-                tokenId = token.tokenId?.let { BigInteger(it.removePrefix("0x"), HEX_RADIX).toString() } ?: "",
+                tokenId = token.tokenId.toString(),
                 dateTime = token.date ?: "",
                 price = token.price,
                 priceFiat = token.price
@@ -90,28 +92,17 @@ class NftDetailsPresenter @Inject constructor(
         }
     }
 
-    private fun generateShareMessage(address: String?) = buildString {
-        val token = screenArgsFlow.replayCache.lastOrNull()?.token
-
-        token?.run {
-            appendLine(thumbnail)
-            ownerAddress?.let {
-                appendLine("${resourceManager.getString(R.string.nft_owner_title)}: $ownerAddress")
-            }
-            appendLine("${resourceManager.getString(R.string.common_network)}: $chainName")
-            appendLine("${resourceManager.getString(R.string.nft_creator_title)}: $creatorAddress")
-            appendLine("${resourceManager.getString(R.string.nft_collection_title)}: $collectionName")
-            appendLine("${resourceManager.getString(R.string.nft_token_type_title)}: $tokenType")
-            appendLine("${resourceManager.getString(R.string.nft_tokenid_title)}: $tokenId")
-            address?.let {
-                val string = resourceManager.getString(R.string.wallet_receive_share_message).format(
-                    "Ethereum",
-                    it
-                )
-                appendLine(string)
-            }
-        }
+    private fun generateShareMessage(address: String?): String {
+        return screenArgsFlow.replayCache.lastOrNull()?.token?.run {
+            convertToShareMessage(
+                resourceManager,
+                ownerAddress,
+                address
+            )
+        }.orEmpty()
     }
+
+
 
     override fun creatorClicked() {
         screenArgsFlow.replayCache.lastOrNull()?.token?.creatorAddress?.let {
@@ -120,10 +111,10 @@ class NftDetailsPresenter @Inject constructor(
     }
 
     override fun tokenIdClicked() {
-        val token = screenArgsFlow.replayCache.lastOrNull()?.token
+        val tokenId = screenArgsFlow.replayCache.lastOrNull()?.token?.tokenId ?: return
 
-        if (!token?.tokenId.isNullOrBlank()) {
-            copyToClipboardWithMessage(token?.tokenId.orEmpty())
+        if (tokenId < BigInteger.ZERO) {
+            copyToClipboardWithMessage(tokenId.toString())
         }
     }
 

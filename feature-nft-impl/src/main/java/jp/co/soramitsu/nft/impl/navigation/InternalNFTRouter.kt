@@ -9,6 +9,8 @@ interface InternalNFTRouter {
 
     val destinationsFlow: SharedFlow<Destination>
 
+    fun <T: Destination> currentDestination(): T?
+
     fun back()
 
     fun openCollectionNFTsScreen(selectedChainId: ChainId, contractAddress: String)

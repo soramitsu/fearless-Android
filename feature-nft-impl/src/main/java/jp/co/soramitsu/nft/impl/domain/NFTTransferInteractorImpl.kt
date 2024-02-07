@@ -80,15 +80,6 @@ class NFTTransferInteractorImpl(
         }.catch { emit(Result.failure(it)) }
     }
 
-    override suspend fun isReceiverAddressCorrect(
-        chainId: ChainId,
-        receiver: String
-    ): Result<Boolean> {
-        val chain = chainsRepository.getChain(chainId)
-
-        return runCatching { chain.isValidAddress(receiver) }
-    }
-
     override suspend fun send(
         token: NFT.Full,
         receiver: String,

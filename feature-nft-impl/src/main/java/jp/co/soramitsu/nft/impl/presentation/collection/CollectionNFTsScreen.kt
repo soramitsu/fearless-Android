@@ -132,21 +132,19 @@ private fun LazyGridScope.NFTScreenHeader(
 ) {
     when(val thumbnail = screenHeader.thumbnail) {
         is Loadable.ReadyToRender -> {
-            thumbnail.data?.let { imageModel ->
-                item(
-                    span = { GridItemSpan(2) }
-                ) {
-                    Image(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(8.dp))
-                            .fillMaxWidth()
-                            .aspectRatio(1f),
-                        painter = imageModel.retrievePainter(),
-                        contentDescription = null,
-                        alignment = Alignment.Center,
-                        contentScale = ContentScale.FillWidth
-                    )
-                }
+            item(
+                span = { GridItemSpan(2) }
+            ) {
+                Image(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(8.dp))
+                        .fillMaxWidth()
+                        .aspectRatio(1f),
+                    painter = thumbnail.data.retrievePainter(),
+                    contentDescription = null,
+                    alignment = Alignment.Center,
+                    contentScale = ContentScale.FillWidth
+                )
             }
         }
 

@@ -9,14 +9,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -24,7 +24,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
-import coil.compose.rememberAsyncImagePainter
 import com.valentinilk.shimmer.shimmer
 import jp.co.soramitsu.common.compose.component.AccentButton
 import jp.co.soramitsu.common.compose.component.BottomSheetScreen
@@ -35,6 +34,9 @@ import jp.co.soramitsu.common.compose.component.H2
 import jp.co.soramitsu.common.compose.component.InfoTable
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.component.TitleValueViewState
+import jp.co.soramitsu.common.compose.models.ImageModel
+import jp.co.soramitsu.common.compose.models.Loadable
+import jp.co.soramitsu.common.compose.models.retrievePainter
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.theme.black2
 import jp.co.soramitsu.common.compose.theme.colorAccentDark
@@ -77,22 +79,26 @@ fun ConfirmNFTSendScreen(
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
             ) {
-                if (state.tokenThumbnailIconUrl.isNullOrEmpty()) {
-                    GradientIcon(
-                        iconRes = R.drawable.ic_fearless_logo,
-                        color = colorAccentDark,
-                        modifier = Modifier
-                            .align(Alignment.CenterHorizontally)
-                            .shimmer()
-                    )
-                } else {
-                    Image(
-                        painter = rememberAsyncImagePainter(model = state.tokenThumbnailIconUrl),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .align(Alignment.CenterHorizontally)
-                            .size(152.dp)
-                    )
+
+                when(val thumbnailModel = state.thumbnailImageModel) {
+                    is Loadable.InProgress ->
+                        GradientIcon(
+                            iconRes = R.drawable.ic_fearless_logo,
+                            color = colorAccentDark,
+                            modifier = Modifier
+                                .align(Alignment.CenterHorizontally)
+                                .shimmer()
+                        )
+
+                    is Loadable.ReadyToRender ->
+                        Image(
+                            painter = thumbnailModel.data.retrievePainter(),
+                            contentDescription = null,
+                            modifier = Modifier
+                                .align(Alignment.CenterHorizontally)
+                                .size(80.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                        )
                 }
                 MarginVertical(margin = 16.dp)
 
@@ -135,7 +141,9 @@ fun ConfirmNFTSendScreen(
 @Composable
 private fun ConfirmSendPreview() {
     val state = ConfirmNFTSendScreenState(
-        tokenThumbnailIconUrl = "",
+        thumbnailImageModel = Loadable.ReadyToRender(
+            ImageModel.ResId(R.drawable.drawable_fearless_bird)
+        ),
         fromInfoItem = TitleValueViewState(
             title = "From",
             value = "My Awesome Wallet",
@@ -151,11 +159,11 @@ private fun ConfirmSendPreview() {
         ),
         feeInfoItem = TitleValueViewState(
             title = "Fee",
-            value = "3 KSM",
+            value = "3 ETH",
             additionalValue = "\$5,05"
         ),
         buttonState = ButtonViewState("Continue", true),
-        isLoading = true
+        isLoading = false
     )
 
     FearlessTheme {

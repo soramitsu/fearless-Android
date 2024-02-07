@@ -1,11 +1,14 @@
 package jp.co.soramitsu.nft.impl.presentation.chooserecipient.contract
 
+import android.graphics.drawable.Drawable
 import androidx.compose.runtime.Stable
 import jp.co.soramitsu.common.compose.component.AddressInputState
 import jp.co.soramitsu.common.compose.component.ButtonViewState
+import jp.co.soramitsu.feature_nft_impl.R
 
 @Stable
 data class ChooseNFTRecipientScreenState(
+    val selectedWalletIcon: Drawable?,
     val addressInputState: AddressInputState,
     val buttonState: ButtonViewState,
     val isHistoryAvailable: Boolean,
@@ -13,7 +16,14 @@ data class ChooseNFTRecipientScreenState(
 ) {
     companion object {
         val default = ChooseNFTRecipientScreenState(
-            addressInputState = AddressInputState("", "", ""),
+            selectedWalletIcon = null,
+            addressInputState = AddressInputState(
+                "",
+                "",
+                R.drawable.ic_address_placeholder,
+                editable = false,
+                showClear = false
+            ),
             buttonState = ButtonViewState("", false),
             isHistoryAvailable = false,
             isLoading = true
