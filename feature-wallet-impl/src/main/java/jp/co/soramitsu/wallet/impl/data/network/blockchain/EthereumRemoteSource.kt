@@ -148,7 +148,8 @@ class EthereumRemoteSource(private val ethereumConnectionPool: EthereumConnectio
         val connection = ethereumConnectionPool.get(chainId)
         connection?.connect()
 
-        val web3 = connection?.web3j ?: return null
+        val web3 = connection?.web3j
+            ?: throw RuntimeException("There is no connection created for chain ${chainId}")
 
         return web3.fetchPriceFeed(receiverAddress)
     }

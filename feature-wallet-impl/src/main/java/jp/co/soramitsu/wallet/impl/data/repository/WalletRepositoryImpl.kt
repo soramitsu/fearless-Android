@@ -25,6 +25,7 @@ import jp.co.soramitsu.core.models.Asset.PriceProvider
 import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.coredb.dao.OperationDao
 import jp.co.soramitsu.coredb.dao.PhishingDao
+import jp.co.soramitsu.coredb.dao.TokenPriceDao
 import jp.co.soramitsu.coredb.dao.emptyAccountIdValue
 import jp.co.soramitsu.coredb.model.AssetUpdateItem
 import jp.co.soramitsu.coredb.model.AssetWithToken
@@ -85,7 +86,8 @@ class WalletRepositoryImpl(
     private val preferences: Preferences,
     private val accountRepository: AccountRepository,
     private val chainsRepository: ChainsRepository,
-    private val selectedFiat: SelectedFiat
+    private val selectedFiat: SelectedFiat,
+    private val tokenPriceDao: TokenPriceDao
 ) : WalletRepository, UpdatesProviderUi by updatesMixin {
 
     companion object {
@@ -243,17 +245,42 @@ class WalletRepositoryImpl(
             val fiatCurrency = availableFiatCurrencies[currencyId]
 
             updateAssetRates(priceId, fiatCurrency?.symbol, price, change)
+
+            if (currencyId == "usd") {
+                val assetsWithChainlinkPrice = chains.map { it.assets.filter { it.priceProvider?.id != null } }.flatten().toSet()
+
+                updateChainlinkPriceWithCoingeckoChange(assetsWithChainlinkPrice, priceId, change)
+            }
         }
         updatesMixin.finishUpdateTokens(priceIds)
     }
 
-    private suspend fun getChainlinkPrices(priceProvider: PriceProvider, chainId: ChainId): BigDecimal? {
-        return ethereumSource.fetchPriceFeed(
-            chainId = chainId,
-            receiverAddress = priceProvider.id
-        )?.let { price ->
-            BigDecimal(price, priceProvider.precision)
+    private suspend fun WalletRepositoryImpl.updateChainlinkPriceWithCoingeckoChange(assetsWithChainlinkPrice: Set<jp.co.soramitsu.core.models.Asset>, priceId: String, change: BigDecimal?) {
+        val chainlinkId = assetsWithChainlinkPrice.firstOrNull {
+            it.priceId == priceId
+        }?.priceProvider?.id
+
+        chainlinkId?.let {
+            val tokenPrice = tokenPriceDao.getTokenPrice(chainlinkId)
+
+            updateAssetRates(
+                priceId = chainlinkId,
+                fiatSymbol = tokenPrice?.fiatSymbol,
+                price = tokenPrice?.fiatRate,
+                change = change
+            )
         }
+    }
+
+    private suspend fun getChainlinkPrices(priceProvider: PriceProvider, chainId: ChainId): BigDecimal? {
+        return runCatching {
+            ethereumSource.fetchPriceFeed(
+                chainId = chainId,
+                receiverAddress = priceProvider.id
+            )?.let { price ->
+                BigDecimal(price, priceProvider.precision)
+            }
+        }.getOrNull()
     }
 
     override fun assetFlow(

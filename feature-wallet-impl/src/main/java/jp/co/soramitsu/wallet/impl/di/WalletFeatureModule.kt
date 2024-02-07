@@ -174,7 +174,8 @@ class WalletFeatureModule {
         preferences: Preferences,
         accountRepository: AccountRepository,
         chainsRepository: ChainsRepository,
-        selectedFiat: SelectedFiat
+        selectedFiat: SelectedFiat,
+        tokenPriceDao: TokenPriceDao
     ): WalletRepository = WalletRepositoryImpl(
         substrateSource,
         ethereumRemoteSource,
@@ -192,7 +193,8 @@ class WalletFeatureModule {
         preferences,
         accountRepository,
         chainsRepository,
-        selectedFiat
+        selectedFiat,
+        tokenPriceDao
     )
 
     @Provides
