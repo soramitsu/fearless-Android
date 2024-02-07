@@ -277,7 +277,7 @@ class BalanceListViewModel @Inject constructor(
             val paginationRequestHelperFlow = merge(mutableNFTPaginationRequestFlow, pullToRefreshHelperFlow)
                 .onStart {
                     emit(PaginationRequest.Start)
-                }.sample(300).filter {
+                }.sample(1_500L).filter {
                     isLoadingCompleted.get()
                 }.onEach {
                     // Pagination Request Flow can quite many requests in a second, from which we need only one

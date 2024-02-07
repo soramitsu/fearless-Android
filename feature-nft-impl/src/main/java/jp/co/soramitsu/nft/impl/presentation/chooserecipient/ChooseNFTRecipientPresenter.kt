@@ -136,7 +136,7 @@ class ChooseNFTRecipientPresenter @Inject constructor(
                 isEthereumBased = chain.isEthereumBased,
                 accountAddress = receiverAddress,
                 sizeInDp = sizeInDp
-            )
+            ).image
         }
     }
 

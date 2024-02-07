@@ -182,6 +182,6 @@ class CollectionNFTsPresenter @Inject constructor(
     }
 
     private companion object {
-        const val DEFAULT_SAMPLING_FREQUENCY = 300L
+        const val DEFAULT_SAMPLING_FREQUENCY = 1_500L
     }
 }

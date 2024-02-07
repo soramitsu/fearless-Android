@@ -56,8 +56,10 @@ inline fun PaginationRequest.nextOrPrevPage(pageStack: Stack<String?>): Page {
         }
 
         is PaginationRequest.Prev -> {
-            if (pageStack.size < 2) {
+            if (pageStack.size == 0) {
                 return Page.NoPrevPages
+            } else if (pageStack.size == 1) {
+                return Page.ValidPage(pageStack.peek())
             }
 
             val nextPageToLoad = pageStack.pop()
@@ -68,16 +70,22 @@ inline fun PaginationRequest.nextOrPrevPage(pageStack: Stack<String?>): Page {
                     this is PaginationRequest.Prev.Page ||
                     this is PaginationRequest.Prev.WithSize
                 ) {
-                    if (currentPage == null && nextPageToLoad == null) {
-                        return Page.ValidPage(null)
-                    }
+                    when {
+                        currentPage == null && nextPageToLoad == null ->
+                            return Page.ValidPage(null)
 
-                    if (pageStack.size < 1) {
-                        // after 2 popping there must at least 1 element
-                        return Page.NoPrevPages
-                    }
+                        currentPage == null && nextPageToLoad != null ->
+                            return Page.ValidPage(null)
 
-                    return Page.ValidPage(pageStack.peek())
+                        else -> {
+                            if (pageStack.size < 1) {
+                                // after 2 popping there must at least 1 element
+                                return Page.NoPrevPages
+                            }
+
+                            return Page.ValidPage(pageStack.peek())
+                        }
+                    }
                 }
 
                 if (this !is PaginationRequest.Prev.TwoBeforeSpecific) {

@@ -21,7 +21,8 @@ fun ContractInfo.toLightNFTCollection(chainId: ChainId, chainName: String): NFTC
     } else if (!name.isNullOrBlank()) {
         name
     } else {
-        address.orEmpty()
+        contractAddress.requireHexPrefix().drop(DEFAULT_HEX_PREFIX_LENGTH)
+            .shortenAddress(DEFAULT_CONTRACT_ADDRESS_SHORTENED_LENGTH)
     }
 
     val description =

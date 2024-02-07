@@ -1,18 +1,10 @@
 package jp.co.soramitsu.common.compose.utils
 
 import androidx.compose.foundation.lazy.grid.LazyGridState
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
-import androidx.compose.runtime.State
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import kotlin.math.max
 import kotlin.math.min
 
@@ -21,11 +13,7 @@ inline fun LazyGridState.isFirstItemFullyVisible(): Boolean {
     val itemVisibilityInfo = layoutInfo.visibleItemsInfo.firstOrNull() ?: return false
 
     val isFirstVisible = itemVisibilityInfo.index == 0
-    val isFullyVisible = itemVisibilityInfo.offset.y < 0
-
-    if (isFirstVisible && isFullyVisible) {
-        itemVisibilityInfo.index
-    }
+    val isFullyVisible = itemVisibilityInfo.offset.y >= 0
 
     return isFirstVisible && isFullyVisible
 }
@@ -53,16 +41,14 @@ fun LazyGridState.nestedScrollConnectionForPageScrolling(
             source: NestedScrollSource
         ): Offset {
             val isDirectionToPrevPages = max(consumed.y, available.y) > 0
-            val isFirstItemFullyVisible = isFirstItemFullyVisible()
 
-            if (isDirectionToPrevPages && isFirstItemFullyVisible) {
+            if (isDirectionToPrevPages && isFirstItemFullyVisible()) {
                 pageScrollingCallback.onAllPrevPagesScrolled()
             }
 
             val isDirectionToNextPages = min(consumed.y, available.y) < -0
-            val isLastItemFullyVisible = isLastItemFullyVisible()
 
-            if (isDirectionToNextPages && isLastItemFullyVisible) {
+            if (isDirectionToNextPages && isLastItemFullyVisible()) {
                 pageScrollingCallback.onAllNextPagesScrolled()
             }
 
