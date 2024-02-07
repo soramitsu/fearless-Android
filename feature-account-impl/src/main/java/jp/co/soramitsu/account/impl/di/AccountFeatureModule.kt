@@ -203,9 +203,10 @@ class AccountFeatureModule {
     fun provideAssetNotNeedAccountUseCase(
         chainRegistry: ChainRegistry,
         assetDao: AssetDao,
-        tokenPriceDao: TokenPriceDao
+        tokenPriceDao: TokenPriceDao,
+        selectedFiat: SelectedFiat
     ): AssetNotNeedAccountUseCase {
-        return AssetNotNeedAccountUseCaseImpl(chainRegistry, assetDao, tokenPriceDao)
+        return AssetNotNeedAccountUseCaseImpl(chainRegistry, assetDao, tokenPriceDao, selectedFiat)
     }
 
     @Provides
