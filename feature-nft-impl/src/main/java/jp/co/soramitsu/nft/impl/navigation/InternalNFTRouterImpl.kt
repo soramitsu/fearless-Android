@@ -27,10 +27,10 @@ class InternalNFTRouterImpl(
         mutableRoutesFlow.onEach { routesStack.push(it) }
 
     override fun createNavGraphActionsFlow(): Flow<NavAction> =
-        mutableActionsFlow.onEach { if (it is NavAction.BackPressed) routesStack.pop() }
+        mutableActionsFlow.onEach { if (it is NavAction.BackPressed && !routesStack.isEmpty()) routesStack.pop() }
 
     override fun <T : NestedNavGraphRoute> destination(clazz: Class<T>): T? {
-        return routesStack.filterIsInstance(clazz).firstOrNull()
+        return routesStack.filterIsInstance(clazz).lastOrNull()
     }
 
     override fun back() {
