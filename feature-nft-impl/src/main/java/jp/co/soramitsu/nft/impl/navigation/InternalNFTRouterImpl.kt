@@ -1,6 +1,5 @@
 package jp.co.soramitsu.nft.impl.navigation
 
-import jp.co.soramitsu.common.utils.castOrNull
 import jp.co.soramitsu.nft.domain.models.NFT
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
@@ -12,7 +11,7 @@ import kotlinx.coroutines.flow.SharedFlow
 
 class InternalNFTRouterImpl(
     private val walletRouter: WalletRouter
-): InternalNFTRouter {
+) : InternalNFTRouter {
 
     private val mutableDestinationsFlow =
         MutableSharedFlow<Destination>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
@@ -73,5 +72,4 @@ class InternalNFTRouterImpl(
     override fun shareText(text: String) {
         mutableDestinationsFlow.tryEmit(Destination.Action.ShareText(text))
     }
-
 }

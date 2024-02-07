@@ -63,10 +63,7 @@ fun NavGraphBuilder.ConfirmNFTSendNavComposable(
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun ConfirmNFTSendScreen(
-    state: ConfirmNFTSendScreenState,
-    callback: ConfirmNFTSendCallback
-) {
+fun ConfirmNFTSendScreen(state: ConfirmNFTSendScreenState, callback: ConfirmNFTSendCallback) {
     val keyboardController = LocalSoftwareKeyboardController.current
     FullScreenLoading(
         isLoading = state.isLoading,
@@ -79,8 +76,7 @@ fun ConfirmNFTSendScreen(
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
             ) {
-
-                when(val thumbnailModel = state.thumbnailImageModel) {
+                when (val thumbnailModel = state.thumbnailImageModel) {
                     is Loadable.InProgress ->
                         GradientIcon(
                             iconRes = R.drawable.ic_fearless_logo,

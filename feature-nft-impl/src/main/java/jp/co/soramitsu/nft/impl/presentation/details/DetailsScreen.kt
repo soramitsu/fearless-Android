@@ -41,16 +41,11 @@ import com.valentinilk.shimmer.shimmer
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.compose.component.AccentButton
 import jp.co.soramitsu.common.compose.component.B1
-import jp.co.soramitsu.common.compose.component.BottomSheetScreen
 import jp.co.soramitsu.common.compose.component.GifImage
 import jp.co.soramitsu.common.compose.component.Image
 import jp.co.soramitsu.common.compose.component.MarginHorizontal
 import jp.co.soramitsu.common.compose.component.MarginVertical
-import jp.co.soramitsu.common.compose.component.MenuIconItem
-import jp.co.soramitsu.common.compose.component.Shimmer
 import jp.co.soramitsu.common.compose.component.ShimmerB1
-import jp.co.soramitsu.common.compose.component.Toolbar
-import jp.co.soramitsu.common.compose.component.ToolbarViewState
 import jp.co.soramitsu.common.compose.component.getImageRequest
 import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
 import jp.co.soramitsu.common.compose.theme.black3
@@ -111,10 +106,7 @@ fun NavGraphBuilder.NftDetailsNavComposable(
 }
 
 @Composable
-fun NftDetailsScreen(
-    state: NftDetailsScreenState,
-    screenInterface: NftDetailsScreenInterface
-) {
+fun NftDetailsScreen(state: NftDetailsScreenState, screenInterface: NftDetailsScreenInterface) {
     val shimmerEnabled = state.creator.isEmpty()
 
     Column(Modifier.verticalScroll(rememberScrollState())) {

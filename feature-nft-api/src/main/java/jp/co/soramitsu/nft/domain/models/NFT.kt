@@ -9,7 +9,7 @@ sealed interface NFT {
         val contractAddress: String?,
         val tokenId: String?,
         val balance: String?
-    ): NFT
+    ) : NFT
 
     data class Full(
         val title: String,
@@ -25,6 +25,5 @@ sealed interface NFT {
         val tokenType: String,
         val date: String?,
         val price: String
-    ): NFT
-
+    ) : NFT
 }

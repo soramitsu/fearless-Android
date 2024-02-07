@@ -1,14 +1,13 @@
 package jp.co.soramitsu.nft.domain
 
 import jp.co.soramitsu.nft.domain.models.NFT
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.coroutines.flow.Flow
 import java.math.BigDecimal
 
 interface NFTTransferInteractor {
 
     /**
-     * Flow for listening network fees of transferring single NFT token of ERC721/ERC1155 ETH contract
+     * Flow for listening network fees of transferring single NFT token of ERC721/ERC1155 ETH contract.
      *
      * @param token - token of ERC721/ERC1155 ETH contract for estimating network fees
      *
@@ -34,7 +33,7 @@ interface NFTTransferInteractor {
     ): Flow<Result<BigDecimal>>
 
     /**
-     * Transfer of single NFT token of ERC721/ERC1155 ETH contract
+     * Transfer of single NFT token of ERC721/ERC1155 ETH contract.
      *
      * @param token - token of ERC721/ERC1155 ETH contract to be transferred
      *
@@ -58,5 +57,4 @@ interface NFTTransferInteractor {
         receiver: String,
         canReceiverAcceptToken: Boolean
     ): Result<String>
-
 }

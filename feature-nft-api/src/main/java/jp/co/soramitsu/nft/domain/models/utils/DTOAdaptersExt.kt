@@ -11,19 +11,18 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.shared_utils.extensions.requireHexPrefix
 import java.math.BigInteger
 
-fun ContractInfo.toLightNFTCollection(
-    chainId: ChainId,
-    chainName: String,
-): NFTCollection<NFT.Light> {
+fun ContractInfo.toLightNFTCollection(chainId: ChainId, chainName: String): NFTCollection<NFT.Light> {
     val contractAddress = address.orEmpty()
 
-    val collectionName = if (!title.isNullOrBlank())
+    val collectionName = if (!title.isNullOrBlank()) {
         title
-    else if (!openSea?.collectionName.isNullOrBlank())
+    } else if (!openSea?.collectionName.isNullOrBlank()) {
         openSea?.collectionName.orEmpty()
-    else if (!name.isNullOrBlank())
+    } else if (!name.isNullOrBlank()) {
         name
-    else address.orEmpty()
+    } else {
+        address.orEmpty()
+    }
 
     val description =
         openSea?.description ?: collectionName
@@ -50,7 +49,6 @@ fun ContractInfo.toLightNFTCollection(
     )
 }
 
-
 fun NFTResponse.TokensCollection.toFullNFTCollection(
     chain: Chain,
     excludeTokensWithIds: Set<String>? = null
@@ -63,11 +61,14 @@ fun NFTResponse.TokensCollection.toFullNFTCollection(
     val contractAddress = firstToken?.contract?.address.orEmpty()
 
     val collectionName =
-        if (!firstToken?.contractMetadata?.openSea?.collectionName.isNullOrBlank())
+        if (!firstToken?.contractMetadata?.openSea?.collectionName.isNullOrBlank()) {
             firstToken?.contractMetadata?.openSea?.collectionName.orEmpty()
-        else if (!firstToken?.contractMetadata?.name.isNullOrBlank())
+        } else if (!firstToken?.contractMetadata?.name.isNullOrBlank()) {
             firstToken?.contractMetadata?.name.orEmpty()
-        else contractAddress.requireHexPrefix().drop(2).shortenAddress(3)
+        } else {
+            contractAddress.requireHexPrefix().drop(DEFAULT_HEX_PREFIX_LENGTH)
+                .shortenAddress(DEFAULT_CONTRACT_ADDRESS_SHORTENED_LENGTH)
+        }
 
     val contractMetadata = firstToken?.contractMetadata
 
@@ -89,8 +90,9 @@ fun NFTResponse.TokensCollection.toFullNFTCollection(
     val tokenType = contractMetadata?.tokenType.orEmpty()
 
     val tokens = tokenInfoList.mapNotNull {
-        if (it.id?.tokenId != null && excludeTokensWithIds?.contains(it.id.tokenId) == true)
+        if (it.id?.tokenId != null && excludeTokensWithIds?.contains(it.id.tokenId) == true) {
             return@mapNotNull null
+        }
 
         it.toFullNFT(
             chain = chain
@@ -112,37 +114,38 @@ fun NFTResponse.TokensCollection.toFullNFTCollection(
     )
 }
 
-fun TokenInfo.toFullNFT(
-    chain: Chain
-): NFT.Full {
+fun TokenInfo.toFullNFT(chain: Chain): NFT.Full {
     val contractAddress = contract?.address.orEmpty()
 
     val tokenId = id?.tokenId?.requireHexPrefix()?.drop(2)?.run {
-        BigInteger(this, 16)
+        BigInteger(this, DEFAULT_TOKEN_ID_RADIX)
     } ?: BigInteger("-1")
 
     val collectionName =
-        if (!contractMetadata?.openSea?.collectionName.isNullOrBlank())
+        if (!contractMetadata?.openSea?.collectionName.isNullOrBlank()) {
             contractMetadata?.openSea?.collectionName.orEmpty()
-        else if (!contractMetadata?.name.isNullOrBlank())
+        } else if (!contractMetadata?.name.isNullOrBlank()) {
             contractMetadata?.name.orEmpty()
-        else contractAddress.requireHexPrefix().drop(2).shortenAddress(3)
+        } else {
+            contractAddress.requireHexPrefix().drop(DEFAULT_HEX_PREFIX_LENGTH)
+                .shortenAddress(DEFAULT_CONTRACT_ADDRESS_SHORTENED_LENGTH)
+        }
 
     val description =
         contractMetadata?.openSea?.description ?: collectionName
 
-    val title = if (!title.isNullOrBlank())
+    val title = if (!title.isNullOrBlank()) {
         title
-    else if (!metadata?.name.isNullOrBlank())
+    } else if (!metadata?.name.isNullOrBlank()) {
         metadata?.name.orEmpty()
-    else {
+    } else {
         val tokenIdShortString = if (tokenId > BigInteger("99")) {
-            tokenId.toString().take(3) + "..."
+            tokenId.toString().take(DEFAULT_TOKEN_ID_SHORTENED_LENGTH) + "..."
         } else {
             tokenId.toString()
         }
 
-        "$collectionName #${tokenIdShortString}"
+        "$collectionName #$tokenIdShortString"
     }
 
     val media = media?.firstOrNull {
@@ -175,3 +178,8 @@ fun TokenInfo.toFullNFT(
         price = "",
     )
 }
+
+private const val DEFAULT_HEX_PREFIX_LENGTH = 2
+private const val DEFAULT_CONTRACT_ADDRESS_SHORTENED_LENGTH = 3
+private const val DEFAULT_TOKEN_ID_SHORTENED_LENGTH = 3
+private const val DEFAULT_TOKEN_ID_RADIX = 16

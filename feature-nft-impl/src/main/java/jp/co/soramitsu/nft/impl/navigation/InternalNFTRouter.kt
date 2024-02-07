@@ -5,11 +5,12 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharedFlow
 
+@Suppress("ComplexInterface")
 interface InternalNFTRouter {
 
     val destinationsFlow: SharedFlow<Destination>
 
-    fun <T: Destination> currentDestination(): T?
+    fun <T : Destination> currentDestination(): T?
 
     fun back()
 
@@ -34,6 +35,4 @@ interface InternalNFTRouter {
     fun showToast(message: String)
 
     fun shareText(text: String)
-
 }
-

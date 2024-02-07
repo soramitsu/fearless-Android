@@ -2,15 +2,12 @@ package jp.co.soramitsu.nft.impl.presentation.collection.models
 
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
-import androidx.compose.runtime.State
 import androidx.compose.runtime.snapshots.SnapshotStateList
-import jp.co.soramitsu.common.compose.component.ToolbarViewState
 import jp.co.soramitsu.common.compose.models.ImageModel
 import jp.co.soramitsu.common.compose.models.Loadable
 import jp.co.soramitsu.common.compose.models.ScreenLayout
 import jp.co.soramitsu.common.compose.models.TextModel
 import jp.co.soramitsu.common.compose.utils.PageScrollingCallback
-import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.feature_nft_impl.R
 
 @Immutable
@@ -23,23 +20,21 @@ class NFTsScreenModel(
 sealed interface NFTsScreenView {
 
     @Immutable
-    interface ScreenHeader: NFTsScreenView {
+    interface ScreenHeader : NFTsScreenView {
 
         val thumbnail: Loadable<ImageModel>
 
         val description: Loadable<TextModel?>
-
     }
 
     @Immutable
-    interface SectionHeader: NFTsScreenView {
+    interface SectionHeader : NFTsScreenView {
 
         val title: Loadable<TextModel>
-
     }
 
     @Immutable
-    interface ItemModel: NFTsScreenView {
+    interface ItemModel : NFTsScreenView {
 
         val screenLayout: ScreenLayout
 
@@ -56,17 +51,16 @@ sealed interface NFTsScreenView {
             val buttonText: TextModel,
             val buttonImage: ImageModel.ResId,
             val onButtonClick: () -> Unit
-        ): ItemModel by initialItemModel
-
+        ) : ItemModel by initialItemModel
     }
 
     @Immutable
-    interface LoadingIndication: NFTsScreenView {
-        companion object: LoadingIndication
+    interface LoadingIndication : NFTsScreenView {
+        companion object : LoadingIndication
     }
 
     @Immutable
-    interface EmptyPlaceHolder: NFTsScreenView {
+    interface EmptyPlaceHolder : NFTsScreenView {
 
         val image: ImageModel.ResId
 
@@ -84,7 +78,5 @@ sealed interface NFTsScreenView {
             override val body: TextModel =
                 TextModel.ResId(R.string.nft_list_empty_message)
         }
-
     }
-
 }

@@ -3,15 +3,13 @@ package jp.co.soramitsu.nft.impl.presentation.collection
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.model.address
-import javax.inject.Inject
+import jp.co.soramitsu.common.compose.utils.PageScrollingCallback
+import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.zipWithPrevious
 import jp.co.soramitsu.nft.data.pagination.PaginationRequest
 import jp.co.soramitsu.nft.domain.NFTInteractor
-import jp.co.soramitsu.nft.domain.models.NFTCollection
-import jp.co.soramitsu.common.compose.utils.PageScrollingCallback
-import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.core.runtime.ChainRepository
 import jp.co.soramitsu.nft.domain.models.NFT
+import jp.co.soramitsu.nft.domain.models.NFTCollection
 import jp.co.soramitsu.nft.impl.domain.utils.convertToShareMessage
 import jp.co.soramitsu.nft.impl.navigation.Destination
 import jp.co.soramitsu.nft.impl.navigation.InternalNFTRouter
@@ -40,6 +38,7 @@ import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicBoolean
+import javax.inject.Inject
 
 class CollectionNFTsPresenter @Inject constructor(
     private val accountInteractor: AccountInteractor,
@@ -78,7 +77,7 @@ class CollectionNFTsPresenter @Inject constructor(
             val paginationRequestHelperFlow = mutablePaginationRequestFlow
                 .onStart {
                     emit(PaginationRequest.Start)
-                }.sample(300).filter {
+                }.sample(DEFAULT_SAMPLING_FREQUENCY).filter {
                     isLoadingCompleted.get()
                 }.onEach {
                     // Pagination Request Flow can quite many requests in a second, from which we need only one
@@ -135,13 +134,11 @@ class CollectionNFTsPresenter @Inject constructor(
         val prevCollectionsViewsList =
             prevCollection?.toScreenViewStableList(::onItemClick, ::onActionButtonClick) ?: ArrayDeque()
 
-
         if (currentCollection !is NFTCollection.Data) {
             return prevCollectionsViewsList
         } else if (prevCollection !is NFTCollection.Data) {
             return currentCollectionViewsList
         }
-
 
         val isCurrentCollectionUserOwned = currentCollection.tokens.firstOrNull()?.isUserOwnedToken == true
         val isPrevCollectionUserOwned = prevCollection.tokens.firstOrNull()?.isUserOwnedToken == true
@@ -166,7 +163,7 @@ class CollectionNFTsPresenter @Inject constructor(
     private fun onItemClick(token: NFT.Full) = internalNFTRouter.openDetailsNFTScreen(token)
 
     private fun onActionButtonClick(token: NFT.Full) {
-        if (token.isUserOwnedToken){
+        if (token.isUserOwnedToken) {
             internalNFTRouter.openChooseRecipientScreen(token)
         } else {
             coroutineScope.launch {
@@ -184,4 +181,7 @@ class CollectionNFTsPresenter @Inject constructor(
         }
     }
 
+    private companion object {
+        const val DEFAULT_SAMPLING_FREQUENCY = 300L
+    }
 }

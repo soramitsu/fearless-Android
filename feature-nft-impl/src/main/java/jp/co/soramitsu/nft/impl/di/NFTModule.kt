@@ -5,27 +5,26 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import javax.inject.Singleton
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.nft.data.CachedNFTRepository
 import jp.co.soramitsu.nft.data.NFTRepository
 import jp.co.soramitsu.nft.data.RemoteNFTRepository
-import jp.co.soramitsu.nft.domain.NFTInteractor
-import jp.co.soramitsu.nft.impl.data.cached.CachingNFTRepositoryDecorator
-import jp.co.soramitsu.nft.impl.data.NFTRepositoryImpl
 import jp.co.soramitsu.nft.data.models.Contract
 import jp.co.soramitsu.nft.data.models.ContractInfo
 import jp.co.soramitsu.nft.data.models.TokenId
 import jp.co.soramitsu.nft.data.models.TokenInfo
 import jp.co.soramitsu.nft.data.models.wrappers.NFTResponse
+import jp.co.soramitsu.nft.domain.NFTInteractor
 import jp.co.soramitsu.nft.domain.NFTTransferInteractor
+import jp.co.soramitsu.nft.impl.data.NFTRepositoryImpl
+import jp.co.soramitsu.nft.impl.data.cached.CachingNFTRepositoryDecorator
 import jp.co.soramitsu.nft.impl.data.model.utils.deserializer
 import jp.co.soramitsu.nft.impl.data.remote.AlchemyNftApi
 import jp.co.soramitsu.nft.impl.domain.NFTInteractorImpl
 import jp.co.soramitsu.nft.impl.domain.NFTTransferInteractorImpl
-import jp.co.soramitsu.nft.impl.navigation.InternalNFTRouterImpl
 import jp.co.soramitsu.nft.impl.navigation.InternalNFTRouter
+import jp.co.soramitsu.nft.impl.navigation.InternalNFTRouterImpl
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.runtime.multiNetwork.connection.EthereumConnectionPool
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
@@ -33,6 +32,7 @@ import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.converter.scalars.ScalarsConverterFactory
+import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -93,10 +93,7 @@ class NFTModule {
     @Provides
     @Singleton
     @RemoteNFTRepository
-    fun provideRemoteNFTRepository(
-        alchemyNftApi: AlchemyNftApi,
-        preferences: Preferences
-    ): NFTRepository {
+    fun provideRemoteNFTRepository(alchemyNftApi: AlchemyNftApi, preferences: Preferences): NFTRepository {
         return NFTRepositoryImpl(
             alchemyNftApi = alchemyNftApi,
             preferences = preferences
@@ -106,9 +103,7 @@ class NFTModule {
     @Provides
     @Singleton
     @CachedNFTRepository
-    fun provideCachingNFTRepositoryDecorator(
-        @RemoteNFTRepository nftRepository: NFTRepository
-    ): NFTRepository {
+    fun provideCachingNFTRepositoryDecorator(@RemoteNFTRepository nftRepository: NFTRepository): NFTRepository {
         return CachingNFTRepositoryDecorator(
             nftRepository = nftRepository
         )
@@ -140,10 +135,7 @@ class NFTModule {
 
     @Provides
     @Singleton
-    fun provideNFTRouter(
-        walletRouter: WalletRouter
-    ): InternalNFTRouter = InternalNFTRouterImpl(
+    fun provideNFTRouter(walletRouter: WalletRouter): InternalNFTRouter = InternalNFTRouterImpl(
         walletRouter = walletRouter
     )
-
 }

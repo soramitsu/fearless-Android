@@ -16,19 +16,19 @@ data class ConfirmNFTSendScreenState(
     val buttonState: ButtonViewState,
     val isLoading: Boolean = false
 ) {
-    companion object {
-        val default = ConfirmNFTSendScreenState(
-            thumbnailImageModel = Loadable.InProgress(),
-            buttonState = ButtonViewState("", false)
-        )
-    }
-
     val tableItems = listOfNotNull(
         fromInfoItem,
         toInfoItem,
         collectionInfoItem,
         feeInfoItem
     )
+
+    companion object {
+        val default = ConfirmNFTSendScreenState(
+            thumbnailImageModel = Loadable.InProgress(),
+            buttonState = ButtonViewState("", false)
+        )
+    }
 }
 
 @Stable
@@ -37,8 +37,8 @@ interface ConfirmNFTSendCallback {
 
     fun onItemClick(code: Int)
 
-    /* Empty Callback */
-    companion object: ConfirmNFTSendCallback {
+    // Empty Callback
+    companion object : ConfirmNFTSendCallback {
         override fun onConfirmClick() = Unit
         override fun onItemClick(code: Int) = Unit
     }

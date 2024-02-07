@@ -8,21 +8,20 @@ sealed interface NFTResponse {
     class UserOwnedContracts(
         val contracts: List<ContractInfo>,
         val nextPage: String?
-    ): NFTResponse {
+    ) : NFTResponse {
         companion object;
     }
 
     class TokensCollection(
         val tokenInfoList: List<TokenInfo>,
         val nextPage: String?
-    ): NFTResponse {
+    ) : NFTResponse {
         companion object;
     }
 
     class TokenOwners(
         val ownersList: List<String>
-    ): NFTResponse {
+    ) : NFTResponse {
         companion object
     }
-
 }

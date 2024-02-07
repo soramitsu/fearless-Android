@@ -7,7 +7,7 @@ import jp.co.soramitsu.runtime.multiNetwork.connection.EthereumWebSocketConnecti
 import jp.co.soramitsu.shared_utils.extensions.requireHexPrefix
 import java.math.BigInteger
 
-internal class EIP1559CallImpl<Call: EthCall> private constructor(
+internal class EIP1559CallImpl<Call : EthCall> private constructor(
     override val chainId: Long,
     override val call: Call,
     override val estimateGas: BigInteger,
@@ -16,7 +16,7 @@ internal class EIP1559CallImpl<Call: EthCall> private constructor(
 ) : EIP1559Call<Call> {
 
     companion object {
-        suspend fun <Call: EthCall> createAsync(
+        suspend fun <Call : EthCall> createAsync(
             ethConnection: EthereumWebSocketConnection,
             call: Call,
             estimateGas: BigInteger
@@ -28,7 +28,7 @@ internal class EIP1559CallImpl<Call: EthCall> private constructor(
             maxPriorityFeePerGas = ethConnection.getMaxPriorityFeePerGas()
         )
 
-        suspend fun <Call: EthCall> createAsync(
+        suspend fun <Call : EthCall> createAsync(
             ethConnection: EthereumWebSocketConnection,
             call: Call,
             baseFeePerGas: BigInteger,
@@ -41,10 +41,9 @@ internal class EIP1559CallImpl<Call: EthCall> private constructor(
             maxPriorityFeePerGas = ethConnection.getMaxPriorityFeePerGas()
         )
     }
-
 }
 
-interface EIP1559Call<Call: EthCall> {
+interface EIP1559Call<Call : EthCall> {
 
     val chainId: Long
 
@@ -55,5 +54,4 @@ interface EIP1559Call<Call: EthCall> {
     val baseFeePerGas: BigInteger
 
     val maxPriorityFeePerGas: BigInteger
-
 }

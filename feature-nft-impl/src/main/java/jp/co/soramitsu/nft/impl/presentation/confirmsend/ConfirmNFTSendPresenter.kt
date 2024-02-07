@@ -46,7 +46,7 @@ class ConfirmNFTSendPresenter @Inject constructor(
     private val chainsRepository: ChainsRepository,
     private val nftTransferInteractor: NFTTransferInteractor,
     private val internalNFTRouter: InternalNFTRouter
-): ConfirmNFTSendCallback {
+) : ConfirmNFTSendCallback {
 
     private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 

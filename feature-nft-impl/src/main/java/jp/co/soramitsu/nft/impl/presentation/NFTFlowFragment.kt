@@ -1,11 +1,6 @@
 package jp.co.soramitsu.nft.impl.presentation
 
 import android.Manifest
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import androidx.activity.compose.BackHandler
 import androidx.activity.result.ActivityResultLauncher
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -47,9 +42,9 @@ import jp.co.soramitsu.common.scan.ScanTextContract
 import jp.co.soramitsu.common.scan.ScannerActivity
 import jp.co.soramitsu.common.utils.shareText
 import jp.co.soramitsu.nft.impl.navigation.Destination
+import jp.co.soramitsu.nft.impl.presentation.chooserecipient.ChooseNFTRecipientNavComposable
 import jp.co.soramitsu.nft.impl.presentation.collection.CollectionNFTsNavComposable
 import jp.co.soramitsu.nft.impl.presentation.confirmsend.ConfirmNFTSendNavComposable
-import jp.co.soramitsu.nft.impl.presentation.chooserecipient.ChooseNFTRecipientNavComposable
 import jp.co.soramitsu.nft.impl.presentation.details.NftDetailsNavComposable
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.coroutines.flow.filterIsInstance
@@ -58,6 +53,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
+@Suppress("ClassOrdering")
 class NFTFlowFragment : BaseComposeBottomSheetDialogFragment<NFTFlowViewModel>() {
 
     companion object {
@@ -113,7 +109,7 @@ class NFTFlowFragment : BaseComposeBottomSheetDialogFragment<NFTFlowViewModel>()
 
         LaunchedEffect(Unit) {
             viewModel.nestedNavGraphDestinationsFlow.onEach {
-                when(it) {
+                when (it) {
                     is Destination.Action.BackPressed -> {
                         val isBackNavigationSuccess = navController.popBackStack()
 
@@ -207,7 +203,6 @@ class NFTFlowFragment : BaseComposeBottomSheetDialogFragment<NFTFlowViewModel>()
                 }
             }
         }
-
     }
 
     @Composable
@@ -242,4 +237,3 @@ class NFTFlowFragment : BaseComposeBottomSheetDialogFragment<NFTFlowViewModel>()
         }
     }
 }
-

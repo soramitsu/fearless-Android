@@ -46,7 +46,7 @@ class ChooseNFTRecipientPresenter @Inject constructor(
     private val walletInteractor: WalletInteractor,
     private val resourceManager: ResourceManager,
     private val internalNFTRouter: InternalNFTRouter
-): ChooseNFTRecipientCallback {
+) : ChooseNFTRecipientCallback {
 
     private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 
@@ -72,7 +72,7 @@ class ChooseNFTRecipientPresenter @Inject constructor(
     @OptIn(FlowPreview::class)
     fun createScreenStateFlow(): Flow<ChooseNFTRecipientScreenState> {
         val addressInputHelperFlow =
-            addressInputFlow.debounce(300).map { it.trim() }
+            addressInputFlow.debounce(DEFAULT_DEBOUNCE_TIMEOUT).map { it.trim() }
 
         val isHistoryAvailableFlow =
             tokenFlow.distinctUntilChanged().map { token ->
@@ -87,7 +87,7 @@ class ChooseNFTRecipientPresenter @Inject constructor(
             createSelectedAccountIconFlow(tokenFlow, DEFAULT_ADDRESS_ICON_SIZE_IN_DP),
             createButtonState(tokenFlow, addressInputHelperFlow),
             isHistoryAvailableFlow
-        ) { addressInput, addressIcon, selectedWalletIcon , buttonState, isHistoryAvailable ->
+        ) { addressInput, addressIcon, selectedWalletIcon, buttonState, isHistoryAvailable ->
             return@combine ChooseNFTRecipientScreenState(
                 selectedWalletIcon = selectedWalletIcon,
                 addressInputState = AddressInputState(
@@ -105,10 +105,7 @@ class ChooseNFTRecipientPresenter @Inject constructor(
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    private fun createSelectedAccountIconFlow(
-        tokenFlow: Flow<NFT.Full>,
-        sizeInDp: Int
-    ): Flow<PictureDrawable> {
+    private fun createSelectedAccountIconFlow(tokenFlow: Flow<NFT.Full>, sizeInDp: Int): Flow<PictureDrawable> {
         return tokenFlow.mapLatest {
             chainsRepository.getChain(it.chainId)
         }.flatMapLatest { chain ->
@@ -143,10 +140,7 @@ class ChooseNFTRecipientPresenter @Inject constructor(
         }
     }
 
-    private fun createButtonState(
-        tokenFlow: Flow<NFT.Full>,
-        receiverAddressFlow: Flow<String>
-    ): Flow<ButtonViewState> {
+    private fun createButtonState(tokenFlow: Flow<NFT.Full>, receiverAddressFlow: Flow<String>): Flow<ButtonViewState> {
         return combine(tokenFlow, receiverAddressFlow) { token, addressInput ->
             val isReceiverAddressValid = walletInteractor.validateSendAddress(
                 chainId = token.chainId,
@@ -180,8 +174,9 @@ class ChooseNFTRecipientPresenter @Inject constructor(
                 address = receiver
             )
 
-            if (!isReceiverAddressValid || !token.isUserOwnedToken)
+            if (!isReceiverAddressValid || !token.isUserOwnedToken) {
                 return@launch
+            }
 
             internalNFTRouter.openNFTSendScreen(token, addressInputFlow.value.trim())
         }
@@ -225,6 +220,6 @@ class ChooseNFTRecipientPresenter @Inject constructor(
 
     private companion object {
         const val DEFAULT_ADDRESS_ICON_SIZE_IN_DP = 40
+        const val DEFAULT_DEBOUNCE_TIMEOUT = 300L
     }
-
 }

@@ -2,16 +2,16 @@ package jp.co.soramitsu.nft.data
 
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.nft.data.models.TokenInfo
-import jp.co.soramitsu.nft.data.pagination.PaginationRequest
-import jp.co.soramitsu.nft.data.pagination.PaginationEvent
 import jp.co.soramitsu.nft.data.models.wrappers.NFTResponse
+import jp.co.soramitsu.nft.data.pagination.PaginationEvent
+import jp.co.soramitsu.nft.data.pagination.PaginationRequest
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Qualifier
 
 @Qualifier
 @Retention(AnnotationRetention.BINARY)
-annotation class RemoteNFTRepository()
+annotation class RemoteNFTRepository
 
 data class UserOwnedTokensPagedResponse(
     val chain: Chain,
@@ -33,7 +33,7 @@ data class NFTCollectionByContractAddressPagedResponse(
 
 @Qualifier
 @Retention(AnnotationRetention.BINARY)
-annotation class CachedNFTRepository()
+annotation class CachedNFTRepository
 
 interface NFTRepository {
 
@@ -73,5 +73,4 @@ interface NFTRepository {
         contractAddress: String,
         tokenId: String
     ): Result<NFTResponse.TokenOwners>
-
 }

@@ -9,12 +9,12 @@ import jp.co.soramitsu.runtime.multiNetwork.connection.EthereumWebSocketConnecti
 import java.math.BigDecimal
 import java.math.BigInteger
 
-@Suppress("FunctionName")
+@Suppress("FunctionName", "UseIfInsteadOfWhen")
 suspend fun EthereumWebSocketConnection.EstimateEthTransactionNetworkFee(
     call: EthCall,
     baseFeePerGas: BigInteger
 ): BigDecimal {
-    val eip1559Transfer = when(call) {
+    val eip1559Transfer = when (call) {
         is EthCall.SmartContractCall ->
             EIP1559CallImpl.createAsync(
                 ethConnection = this,

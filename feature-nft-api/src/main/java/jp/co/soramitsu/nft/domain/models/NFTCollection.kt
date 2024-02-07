@@ -2,9 +2,9 @@ package jp.co.soramitsu.nft.domain.models
 
 import jp.co.soramitsu.core.models.ChainId
 
-sealed interface NFTCollection<T: NFT> {
+sealed interface NFTCollection<T : NFT> {
 
-    class Data<T: NFT>(
+    class Data<T : NFT>(
         val chainId: ChainId,
         val chainName: String,
         val collectionName: String,
@@ -15,17 +15,16 @@ sealed interface NFTCollection<T: NFT> {
         val tokens: List<T>,
         val balance: Int,
         val collectionSize: Int
-    ): NFTCollection<T>
+    ) : NFTCollection<T>
 
-    class Empty<T: NFT>(
+    class Empty<T : NFT>(
         val chainId: ChainId,
         val chainName: String
-    ): NFTCollection<T>
+    ) : NFTCollection<T>
 
-    class Error<T: NFT>(
+    class Error<T : NFT>(
         val chainId: ChainId,
         val chainName: String,
         val throwable: Throwable
-    ): NFTCollection<T>
-
+    ) : NFTCollection<T>
 }

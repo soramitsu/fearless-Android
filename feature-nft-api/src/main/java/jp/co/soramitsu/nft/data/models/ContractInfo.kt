@@ -1,5 +1,6 @@
 package jp.co.soramitsu.nft.data.models
 
+@Suppress("LongParameterList")
 class ContractInfo(
     val address: String?,
     val totalBalance: Int?,

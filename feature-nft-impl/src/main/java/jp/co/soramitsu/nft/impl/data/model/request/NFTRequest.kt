@@ -1,12 +1,10 @@
 package jp.co.soramitsu.nft.impl.data.model.request
 
 import jp.co.soramitsu.feature_nft_impl.BuildConfig
-import okhttp3.MediaType
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
 
 sealed interface NFTRequest {
 
-    class UserOwnedContracts: NFTRequest {
+    class UserOwnedContracts : NFTRequest {
         companion object {
             fun requestUrl(alchemyChainId: String?): String {
                 return "https://$alchemyChainId.g.alchemy.com/nft/v2/${BuildConfig.ALCHEMY_API_KEY}/getContractsForOwner"
@@ -14,7 +12,7 @@ sealed interface NFTRequest {
         }
     }
 
-    class UserOwnedNFTs: NFTRequest {
+    class UserOwnedNFTs : NFTRequest {
         companion object {
             fun requestUrl(alchemyChainId: String?): String {
                 return "https://$alchemyChainId.g.alchemy.com/nft/v2/${BuildConfig.ALCHEMY_API_KEY}/getNFTs"
@@ -22,7 +20,7 @@ sealed interface NFTRequest {
         }
     }
 
-    class TokensCollection: NFTRequest {
+    class TokensCollection : NFTRequest {
         companion object {
             fun requestUrl(alchemyChainId: String?): String {
                 return "https://$alchemyChainId.g.alchemy.com/nft/v2/${BuildConfig.ALCHEMY_API_KEY}/getNFTsForCollection"
@@ -30,7 +28,7 @@ sealed interface NFTRequest {
         }
     }
 
-    class TokenMetadata: NFTRequest {
+    class TokenMetadata : NFTRequest {
         companion object {
             fun requestUrl(alchemyChainId: String?): String {
                 return "https://$alchemyChainId.g.alchemy.com/nft/v2/${BuildConfig.ALCHEMY_API_KEY}/getNFTMetadata"
@@ -38,12 +36,11 @@ sealed interface NFTRequest {
         }
     }
 
-    class TokenOwners: NFTRequest {
+    class TokenOwners : NFTRequest {
         companion object {
             fun requestUrl(alchemyChainId: String?): String {
                 return "https://$alchemyChainId.g.alchemy.com/nft/v2/${BuildConfig.ALCHEMY_API_KEY}/getOwnersForToken"
             }
         }
     }
-
 }

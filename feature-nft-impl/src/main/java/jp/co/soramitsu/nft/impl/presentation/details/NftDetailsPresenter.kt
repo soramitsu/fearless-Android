@@ -102,8 +102,6 @@ class NftDetailsPresenter @Inject constructor(
         }.orEmpty()
     }
 
-
-
     override fun creatorClicked() {
         screenArgsFlow.replayCache.lastOrNull()?.token?.creatorAddress?.let {
             copyToClipboardWithMessage(it)

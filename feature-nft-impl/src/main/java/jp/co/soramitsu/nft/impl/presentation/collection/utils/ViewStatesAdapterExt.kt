@@ -10,6 +10,8 @@ import jp.co.soramitsu.nft.domain.models.NFT
 import jp.co.soramitsu.nft.domain.models.NFTCollection
 import jp.co.soramitsu.nft.impl.presentation.collection.models.NFTsScreenView
 
+private const val DEFAULT_SHIMMERING_ITEMS_COUNT = 6
+
 fun createShimmeredNFTViewsList(): SnapshotStateList<NFTsScreenView> {
     return SnapshotStateList<NFTsScreenView>().apply {
         ScreenHeader(
@@ -21,13 +23,13 @@ fun createShimmeredNFTViewsList(): SnapshotStateList<NFTsScreenView> {
             title = Loadable.InProgress()
         ).also { add(it) }
 
-        repeat(6) {
+        repeat(DEFAULT_SHIMMERING_ITEMS_COUNT) {
             ItemModel(
                 screenLayout = ScreenLayout.Grid,
                 thumbnail = Loadable.InProgress(),
                 title = Loadable.InProgress(),
                 description = Loadable.InProgress(),
-                onItemClick = {  },
+                onItemClick = { },
             ).also { add(it) }
         }
     }
@@ -81,12 +83,14 @@ fun NFTCollection<NFT.Full>.toScreenViewStableList(
         ).also { arrayDeque.add(it) }
     }
 
-    for(token in tokens) {
+    for (token in tokens) {
         arrayDeque.add(
             token.toScreenView(
-                screenLayout = if (tokens.size > 1)
+                screenLayout = if (tokens.size > 1) {
                     ScreenLayout.Grid
-                else ScreenLayout.List,
+                } else {
+                    ScreenLayout.List
+                },
                 onItemClick = { onItemClick.invoke(token) },
                 onActionButtonClick = { onActionButtonClick.invoke(token) }
             )
@@ -123,11 +127,15 @@ private fun NFT.Full.toScreenView(
     ).run {
         val buttonText = if (isUserOwnedToken) {
             TextModel.ResId(R.string.common_action_send)
-        } else TextModel.ResId(R.string.common_share)
+        } else {
+            TextModel.ResId(R.string.common_share)
+        }
 
         val buttonImage = if (isUserOwnedToken) {
             ImageModel.ResId(R.drawable.ic_send_outlined)
-        } else ImageModel.ResId(R.drawable.ic_share_arrow_white_24)
+        } else {
+            ImageModel.ResId(R.drawable.ic_share_arrow_white_24)
+        }
 
         NFTsScreenView.ItemModel.WithButtonDecorator(
             initialItemModel = this,
@@ -141,11 +149,11 @@ private fun NFT.Full.toScreenView(
 private class ScreenHeader(
     override val thumbnail: Loadable<ImageModel>,
     override val description: Loadable<TextModel?>
-): NFTsScreenView.ScreenHeader
+) : NFTsScreenView.ScreenHeader
 
 private class SectionHeader(
     override val title: Loadable<TextModel>
-): NFTsScreenView.SectionHeader
+) : NFTsScreenView.SectionHeader
 
 private class ItemModel(
     override val screenLayout: ScreenLayout,
@@ -153,4 +161,4 @@ private class ItemModel(
     override val title: Loadable<TextModel>,
     override val description: Loadable<TextModel?>,
     override val onItemClick: () -> Unit
-): NFTsScreenView.ItemModel
+) : NFTsScreenView.ItemModel

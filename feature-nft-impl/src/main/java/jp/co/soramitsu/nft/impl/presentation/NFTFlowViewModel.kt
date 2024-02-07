@@ -4,36 +4,34 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.models.TextModel
 import jp.co.soramitsu.common.presentation.LoadingState
-import jp.co.soramitsu.common.utils.castOrNull
 import jp.co.soramitsu.feature_nft_impl.R
-import jp.co.soramitsu.nft.impl.presentation.confirmsend.contract.ConfirmNFTSendCallback
-import jp.co.soramitsu.nft.impl.presentation.confirmsend.ConfirmNFTSendPresenter
-import jp.co.soramitsu.nft.impl.presentation.confirmsend.contract.ConfirmNFTSendScreenState
 import jp.co.soramitsu.nft.impl.navigation.Destination
 import jp.co.soramitsu.nft.impl.navigation.InternalNFTRouter
 import jp.co.soramitsu.nft.impl.presentation.NFTFlowFragment.Companion.COLLECTION_NAME
 import jp.co.soramitsu.nft.impl.presentation.NFTFlowFragment.Companion.CONTRACT_ADDRESS_KEY
 import jp.co.soramitsu.nft.impl.presentation.NFTFlowFragment.Companion.SELECTED_CHAIN_ID
+import jp.co.soramitsu.nft.impl.presentation.chooserecipient.ChooseNFTRecipientPresenter
+import jp.co.soramitsu.nft.impl.presentation.chooserecipient.contract.ChooseNFTRecipientCallback
+import jp.co.soramitsu.nft.impl.presentation.chooserecipient.contract.ChooseNFTRecipientScreenState
 import jp.co.soramitsu.nft.impl.presentation.collection.CollectionNFTsPresenter
 import jp.co.soramitsu.nft.impl.presentation.collection.models.NFTsScreenView
-import jp.co.soramitsu.nft.impl.presentation.chooserecipient.contract.ChooseNFTRecipientCallback
-import jp.co.soramitsu.nft.impl.presentation.chooserecipient.ChooseNFTRecipientPresenter
-import jp.co.soramitsu.nft.impl.presentation.chooserecipient.contract.ChooseNFTRecipientScreenState
-import jp.co.soramitsu.nft.impl.presentation.details.NftDetailsScreenInterface
+import jp.co.soramitsu.nft.impl.presentation.confirmsend.ConfirmNFTSendPresenter
+import jp.co.soramitsu.nft.impl.presentation.confirmsend.contract.ConfirmNFTSendCallback
+import jp.co.soramitsu.nft.impl.presentation.confirmsend.contract.ConfirmNFTSendScreenState
 import jp.co.soramitsu.nft.impl.presentation.details.NftDetailsPresenter
+import jp.co.soramitsu.nft.impl.presentation.details.NftDetailsScreenInterface
 import jp.co.soramitsu.nft.impl.presentation.details.NftDetailsScreenState
 import jp.co.soramitsu.nft.navigation.NFTRouter
-import jp.co.soramitsu.shared_utils.extensions.requireHexPrefix
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.shareIn
+import javax.inject.Inject
 
 @HiltViewModel
 class NFTFlowViewModel @Inject constructor(
@@ -44,11 +42,10 @@ class NFTFlowViewModel @Inject constructor(
     private val confirmNFTSendPresenter: ConfirmNFTSendPresenter,
     private val internalNFTRouter: InternalNFTRouter,
     private val nftRouter: NFTRouter
-): BaseViewModel(),
+) : BaseViewModel(),
     NftDetailsScreenInterface by nftDetailsPresenter,
     ChooseNFTRecipientCallback by chooseNFTRecipientPresenter,
-    ConfirmNFTSendCallback by confirmNFTSendPresenter
-{
+    ConfirmNFTSendCallback by confirmNFTSendPresenter {
 
     val pageScrollingCallback = collectionNFTsPresenter.pageScrollingCallback
 
@@ -90,13 +87,13 @@ class NFTFlowViewModel @Inject constructor(
         )
 
     private val selectedChainId = savedStateHandle.get<String>(SELECTED_CHAIN_ID)
-        ?: throw IllegalStateException("Can't find $SELECTED_CHAIN_ID in arguments")
+        ?: error("Can't find $SELECTED_CHAIN_ID in arguments")
 
     private val contractAddress = savedStateHandle.get<String>(CONTRACT_ADDRESS_KEY)
-        ?: throw IllegalStateException("Can't find $CONTRACT_ADDRESS_KEY in arguments")
+        ?: error("Can't find $CONTRACT_ADDRESS_KEY in arguments")
 
     private val collectionName = savedStateHandle.get<String>(COLLECTION_NAME)
-        ?: throw IllegalStateException("Can't find $COLLECTION_NAME in arguments")
+        ?: error("Can't find $COLLECTION_NAME in arguments")
 
     init {
         internalNFTRouter.openCollectionNFTsScreen(
@@ -109,7 +106,7 @@ class NFTFlowViewModel @Inject constructor(
     val toolbarStateFlow: StateFlow<LoadingState<Pair<TextModel, Int>>> = mutableToolbarStateFlow
 
     fun onDestinationChanged(route: String) {
-        val newToolbarState: LoadingState<Pair<TextModel, Int>> = when(route) {
+        val newToolbarState: LoadingState<Pair<TextModel, Int>> = when (route) {
             Destination.NestedNavGraphRoute.Loading.routeName ->
                 LoadingState.Loading()
 
@@ -152,8 +149,9 @@ class NFTFlowViewModel @Inject constructor(
     }
 
     fun onQRCodeScannerResult(result: String?) {
-        if (result == null)
+        if (result == null) {
             return
+        }
 
         chooseNFTRecipientPresenter.handleQRCodeResult(result)
     }

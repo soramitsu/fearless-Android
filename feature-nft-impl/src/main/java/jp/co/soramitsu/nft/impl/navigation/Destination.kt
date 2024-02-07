@@ -5,35 +5,35 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 
 sealed interface Destination {
 
-    sealed interface NestedNavGraphRoute: Destination {
+    sealed interface NestedNavGraphRoute : Destination {
 
         val routeName: String
 
-        object Loading: NestedNavGraphRoute {
+        object Loading : NestedNavGraphRoute {
             override val routeName: String = "Loading"
         }
 
         class CollectionNFTsScreen(
             val chainId: ChainId,
             val contractAddress: String
-        ): NestedNavGraphRoute by Companion {
-            companion object: NestedNavGraphRoute {
+        ) : NestedNavGraphRoute by Companion {
+            companion object : NestedNavGraphRoute {
                 override val routeName: String = "CollectionNFTsScreen"
             }
         }
 
         class DetailsNFTScreen(
             val token: NFT.Full
-        ): NestedNavGraphRoute by Companion {
-            companion object: NestedNavGraphRoute {
+        ) : NestedNavGraphRoute by Companion {
+            companion object : NestedNavGraphRoute {
                 override val routeName: String = "DetailsNFTScreen"
             }
         }
 
         class ChooseNFTRecipientScreen(
             val token: NFT.Full
-        ): NestedNavGraphRoute by Companion {
-            companion object: NestedNavGraphRoute {
+        ) : NestedNavGraphRoute by Companion {
+            companion object : NestedNavGraphRoute {
                 override val routeName: String = "ChooseNFTRecipientScreen"
             }
         }
@@ -42,35 +42,32 @@ sealed interface Destination {
             val token: NFT.Full,
             val receiver: String,
             val isReceiverKnown: Boolean
-        ): NestedNavGraphRoute by Companion {
-            companion object: NestedNavGraphRoute {
+        ) : NestedNavGraphRoute by Companion {
+            companion object : NestedNavGraphRoute {
                 override val routeName: String = "ConfirmNFTSendScreen"
             }
         }
-
     }
 
-    sealed interface Action: Destination {
+    sealed interface Action : Destination {
 
-        object BackPressed: Action
+        object BackPressed : Action
 
-        object QRCodeScanner: Action
+        object QRCodeScanner : Action
 
         @JvmInline
         value class ShowError(
             val errorText: String
-        ): Action
+        ) : Action
 
         @JvmInline
         value class ShowToast(
             val toastMessage: String
-        ): Action
+        ) : Action
 
         @JvmInline
         value class ShareText(
             val text: String
-        ): Action
-
+        ) : Action
     }
-
 }

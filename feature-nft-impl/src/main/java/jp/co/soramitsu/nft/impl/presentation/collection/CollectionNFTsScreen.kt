@@ -45,23 +45,23 @@ import jp.co.soramitsu.common.compose.component.H5
 import jp.co.soramitsu.common.compose.component.H5Bold
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.component.Shimmer
-import jp.co.soramitsu.common.compose.theme.shimmerColor
-import jp.co.soramitsu.common.compose.theme.white
-import jp.co.soramitsu.common.compose.theme.white08
-import jp.co.soramitsu.common.compose.theme.white50
-import jp.co.soramitsu.common.utils.clickableSingle
 import jp.co.soramitsu.common.compose.models.Loadable
 import jp.co.soramitsu.common.compose.models.Render
 import jp.co.soramitsu.common.compose.models.ScreenLayout
-import jp.co.soramitsu.nft.impl.presentation.collection.utils.createShimmeredNFTViewsList
 import jp.co.soramitsu.common.compose.models.retrievePainter
 import jp.co.soramitsu.common.compose.models.retrieveString
+import jp.co.soramitsu.common.compose.theme.shimmerColor
 import jp.co.soramitsu.common.compose.theme.warningOrange
+import jp.co.soramitsu.common.compose.theme.white
+import jp.co.soramitsu.common.compose.theme.white08
+import jp.co.soramitsu.common.compose.theme.white50
 import jp.co.soramitsu.common.compose.utils.PageScrollingCallback
 import jp.co.soramitsu.common.compose.utils.nestedScrollConnectionForPageScrolling
+import jp.co.soramitsu.common.utils.clickableSingle
 import jp.co.soramitsu.nft.impl.navigation.Destination
 import jp.co.soramitsu.nft.impl.presentation.collection.models.NFTsScreenModel
 import jp.co.soramitsu.nft.impl.presentation.collection.models.NFTsScreenView
+import jp.co.soramitsu.nft.impl.presentation.collection.utils.createShimmeredNFTViewsList
 import kotlinx.coroutines.flow.SharedFlow
 
 @Suppress("FunctionName")
@@ -82,9 +82,7 @@ fun NavGraphBuilder.CollectionNFTsNavComposable(
 }
 
 @Composable
-private fun CollectionNFTsScreen(
-    screenModel: NFTsScreenModel
-) {
+private fun CollectionNFTsScreen(screenModel: NFTsScreenModel) {
     val lazyGridState = rememberLazyGridState()
 
     val nestedScrollConnection = remember(lazyGridState) {
@@ -104,7 +102,7 @@ private fun CollectionNFTsScreen(
             )
     ) {
         for (view in screenModel.views) {
-            when(view) {
+            when (view) {
                 is NFTsScreenView.ScreenHeader ->
                     NFTScreenHeader(view)
 
@@ -115,7 +113,7 @@ private fun CollectionNFTsScreen(
                     NFTItem(view)
 
                 is NFTsScreenView.LoadingIndication ->
-                    NFTLoadingIndication(view)
+                    NFTLoadingIndication()
 
                 is NFTsScreenView.EmptyPlaceHolder ->
                     NFTEmptyPlaceholder(view)
@@ -126,11 +124,9 @@ private fun CollectionNFTsScreen(
     }
 }
 
-@Suppress("FunctionName")
-private fun LazyGridScope.NFTScreenHeader(
-    screenHeader: NFTsScreenView.ScreenHeader
-) {
-    when(val thumbnail = screenHeader.thumbnail) {
+@Suppress("FunctionName", "MagicNumber")
+private fun LazyGridScope.NFTScreenHeader(screenHeader: NFTsScreenView.ScreenHeader) {
+    when (val thumbnail = screenHeader.thumbnail) {
         is Loadable.ReadyToRender -> {
             item(
                 span = { GridItemSpan(2) }
@@ -170,7 +166,7 @@ private fun LazyGridScope.NFTScreenHeader(
         }
     }
 
-    when(val description = screenHeader.description) {
+    when (val description = screenHeader.description) {
         is Loadable.ReadyToRender -> {
             description.data?.let { textModel ->
                 item(
@@ -213,10 +209,8 @@ private fun LazyGridScope.NFTScreenHeader(
     }
 }
 
-@Suppress("FunctionName")
-private fun LazyGridScope.NFTSectionHeader(
-    sectionHeader: NFTsScreenView.SectionHeader
-) {
+@Suppress("FunctionName", "MagicNumber")
+private fun LazyGridScope.NFTSectionHeader(sectionHeader: NFTsScreenView.SectionHeader) {
     item(
         span = { GridItemSpan(2) }
     ) {
@@ -247,15 +241,15 @@ private fun LazyGridScope.NFTSectionHeader(
     }
 }
 
-@Suppress("FunctionName")
-private fun LazyGridScope.NFTItem(
-    itemModel: NFTsScreenView.ItemModel
-) {
+@Suppress("FunctionName", "MagicNumber")
+private fun LazyGridScope.NFTItem(itemModel: NFTsScreenView.ItemModel) {
     item(
         span = {
-            if (itemModel.screenLayout === ScreenLayout.List){
+            if (itemModel.screenLayout === ScreenLayout.List) {
                 GridItemSpan(2)
-            } else GridItemSpan(1)
+            } else {
+                GridItemSpan(1)
+                }
         }
     ) {
         BackgroundCornered(
@@ -303,8 +297,9 @@ private fun LazyGridScope.NFTItem(
                             .height(11.dp)
                     ) { _, data ->
                         with(data) {
-                            if (this == null)
+                            if (this == null) {
                                 return@with
+                            }
 
                             B2(
                                 modifier = Modifier
@@ -333,9 +328,8 @@ private fun LazyGridScope.NFTItem(
     }
 }
 
-private fun LazyGridScope.NFTLoadingIndication(
-    loadingIndication: NFTsScreenView.LoadingIndication
-) {
+@Suppress("FunctionName")
+private fun LazyGridScope.NFTLoadingIndication() {
     item(
         span = {
             GridItemSpan(2)
@@ -356,9 +350,7 @@ private fun LazyGridScope.NFTLoadingIndication(
 }
 
 @Suppress("FunctionName")
-private fun LazyGridScope.NFTEmptyPlaceholder(
-    placeholderModel: NFTsScreenView.EmptyPlaceHolder
-) {
+private fun LazyGridScope.NFTEmptyPlaceholder(placeholderModel: NFTsScreenView.EmptyPlaceHolder) {
     item(
         span = {
             GridItemSpan(2)

@@ -47,8 +47,8 @@ interface ChooseNFTRecipientCallback {
 
     fun onPasteClick()
 
-    /* Empty Callback */
-    companion object: ChooseNFTRecipientCallback {
+    // Empty Callback
+    companion object : ChooseNFTRecipientCallback {
         override fun onAddressInput(input: String) = Unit
         override fun onAddressInputClear() = Unit
         override fun onNextClick() = Unit

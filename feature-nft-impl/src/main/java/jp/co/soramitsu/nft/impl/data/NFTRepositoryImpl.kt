@@ -10,9 +10,9 @@ import jp.co.soramitsu.nft.data.NFTRepository
 import jp.co.soramitsu.nft.data.UserOwnedTokensByContractAddressPagedResponse
 import jp.co.soramitsu.nft.data.UserOwnedTokensPagedResponse
 import jp.co.soramitsu.nft.data.models.TokenInfo
+import jp.co.soramitsu.nft.data.models.wrappers.NFTResponse
 import jp.co.soramitsu.nft.data.pagination.PaginationEvent
 import jp.co.soramitsu.nft.data.pagination.PaginationRequest
-import jp.co.soramitsu.nft.data.models.wrappers.NFTResponse
 import jp.co.soramitsu.nft.data.pagination.mapToPaginationEvent
 import jp.co.soramitsu.nft.impl.data.model.request.NFTRequest
 import jp.co.soramitsu.nft.impl.data.model.utils.getPageSize
@@ -44,13 +44,14 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import java.util.Stack
 
+internal const val DEFAULT_CACHED_PAGES_AMOUNT = 3
 internal const val DEFAULT_PAGE_SIZE = 100
 internal const val NFT_FILTERS_KEY = "NFT_FILTERS_KEY"
 
 class NFTRepositoryImpl(
     private val alchemyNftApi: AlchemyNftApi,
     private val preferences: Preferences
-): NFTRepository {
+) : NFTRepository {
 
     private val localScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
@@ -70,7 +71,9 @@ class NFTRepositoryImpl(
             val cache = filtersSnapshot.apply {
                 if (isApplied) {
                     add(filter)
-                } else remove(filter)
+                } else {
+                    remove(filter)
+                    }
             }
 
             emit(cache)
@@ -80,13 +83,14 @@ class NFTRepositoryImpl(
                 to compare saved selection
 
                 1) Delay will be cancelled by use of collectLatest except for the last one
-            */
+             */
             kotlinx.coroutines.delay(10_000)
 
             val dbCache = preferences.getStringSet(NFT_FILTERS_KEY, emptySet())
 
-            if (dbCache.containsAll(cache))
+            if (dbCache.containsAll(cache)) {
                 return@transformLatest
+            }
 
             filtersSnapshot = dbCache.toMutableSet()
 
@@ -95,15 +99,18 @@ class NFTRepositoryImpl(
     }.shareIn(scope = localScope, started = SharingStarted.Eagerly, replay = 1)
 
     override fun setNFTFilter(value: String, excludeFromSearchQuery: Boolean) {
-        /* non-suspended call to avoid UI delays or inconsistencies */
+        // non-suspended call to avoid UI delays or inconsistencies
         mutableFiltersFlow.tryEmit(value to excludeFromSearchQuery)
 
         localScope.launch {
             with(preferences) {
                 val mutableFilters = getStringSet(NFT_FILTERS_KEY, emptySet()).toMutableSet()
 
-                if (excludeFromSearchQuery) mutableFilters.add(value)
-                else mutableFilters.remove(value)
+                if (excludeFromSearchQuery) {
+                    mutableFilters.add(value)
+                } else {
+                    mutableFilters.remove(value)
+                }
 
                 putStringSet(NFT_FILTERS_KEY, mutableFilters)
             }
@@ -129,20 +136,19 @@ class NFTRepositoryImpl(
             }
 
             // Resetting page stack on all chains to start over because request args changed
-            fun <T> Flow<T>.withRefreshPagesStackSideEffect() =
-                this.distinctUntilChanged().onEach {
-                    mutex.withLock {
-                        val possibleChainsList = it.castOrNull<List<Chain>>()
+            fun <T> Flow<T>.withRefreshPagesStackSideEffect() = this.distinctUntilChanged().onEach {
+                mutex.withLock {
+                    val possibleChainsList = it.castOrNull<List<Chain>>()
 
-                        if (possibleChainsList == null) {
-                            pageStackMap.keys.forEach { pageStackMap.replace(it, newPageStackBuilder()) }
-                            return@withLock
-                        }
-
-                        pageStackMap.clear()
-                        possibleChainsList.forEach { pageStackMap[it] = newPageStackBuilder() }
+                    if (possibleChainsList == null) {
+                        pageStackMap.keys.forEach { pageStackMap.replace(it, newPageStackBuilder()) }
+                        return@withLock
                     }
+
+                    pageStackMap.clear()
+                    possibleChainsList.forEach { pageStackMap[it] = newPageStackBuilder() }
                 }
+            }
 
             combine(
                 paginationRequestFlow,
@@ -170,14 +176,16 @@ class NFTRepositoryImpl(
                 /*
                     If request has been executed without cancellation,
                     add pageKeys to existing page stacks for use in next pagination requests
-                */
+                 */
                 for (pagedResponse in result) {
                     val pageDataWrapper = pagedResponse.result.getOrNull()
 
                     if (
                         pageDataWrapper == null ||
                         pageDataWrapper !is PaginationEvent.PageIsLoaded
-                    ) continue
+                    ) {
+                        continue
+                    }
 
                     mutex.withLock {
                         val pageStack = pageStackMap.getOrPut(
@@ -185,14 +193,16 @@ class NFTRepositoryImpl(
                             newPageStackBuilder
                         )
 
-                        if (pagedResponse.paginationRequest is PaginationRequest.Next)
+                        if (pagedResponse.paginationRequest is PaginationRequest.Next) {
                             pageStack.push(pageDataWrapper.data.nextPage)
+                        }
                     }
                 }
             }.collect(this)
         }.flowOn(Dispatchers.IO)
     }
 
+    @Suppress("FunctionSignature")
     private fun concurrentNFTs(
         paginationRequest: PaginationRequest,
         chainToPageStackList: List<Pair<Chain, Stack<String?>>>,
@@ -253,13 +263,12 @@ class NFTRepositoryImpl(
             val userOwnedNFTsPageStack = Stack<String?>().apply { push(null) }
 
             // Resetting page iterator to start over because request args changed
-            fun <T> Flow<T>.withRefreshPageStackSideEffect() =
-                this.distinctUntilChanged().onEach {
-                    mutex.withLock {
-                        userOwnedNFTsPageStack.clear()
-                        userOwnedNFTsPageStack.push(null)
-                    }
+            fun <T> Flow<T>.withRefreshPageStackSideEffect() = this.distinctUntilChanged().onEach {
+                mutex.withLock {
+                    userOwnedNFTsPageStack.clear()
+                    userOwnedNFTsPageStack.push(null)
                 }
+            }
 
             combine(
                 paginationRequestFlow,
@@ -314,14 +323,16 @@ class NFTRepositoryImpl(
                 /*
                     If request has been executed without cancellation,
                     add pageKey to page stack for use in next pagination request
-                */
+                 */
 
                 val result = pagedResponseWrapper.result.getOrNull()
                 if (
                     result == null ||
                     result !is PaginationEvent.PageIsLoaded ||
                     pagedResponseWrapper.paginationRequest !is PaginationRequest.Next
-                ) return@onEach
+                ) {
+                    return@onEach
+                }
 
                 mutex.withLock {
                     userOwnedNFTsPageStack.push(
@@ -343,13 +354,12 @@ class NFTRepositoryImpl(
             val tokenCollectionsPageStack = Stack<String?>().apply { push(null) }
 
             // Resetting page iterator to start over because request args changed
-            fun <T> Flow<T>.withRefreshPageStackSideEffect() =
-                this.distinctUntilChanged().onEach {
-                    mutex.withLock {
-                        tokenCollectionsPageStack.clear()
-                        tokenCollectionsPageStack.push(null)
-                    }
+            fun <T> Flow<T>.withRefreshPageStackSideEffect() = this.distinctUntilChanged().onEach {
+                mutex.withLock {
+                    tokenCollectionsPageStack.clear()
+                    tokenCollectionsPageStack.push(null)
                 }
+            }
 
             combine(
                 paginationRequestFlow,
@@ -388,14 +398,16 @@ class NFTRepositoryImpl(
                 /*
                     If request has been executed without cancellation,
                     add pageKey to page stack for use in next pagination request
-                */
+                 */
 
                 val result = pagedResponseWrapper.result.getOrNull()
                 if (
                     result == null ||
                     result !is PaginationEvent.PageIsLoaded ||
                     pagedResponseWrapper.paginationRequest !is PaginationRequest.Next
-                ) return@onEach
+                ) {
+                    return@onEach
+                }
 
                 mutex.withLock {
                     tokenCollectionsPageStack.push(
@@ -437,5 +449,4 @@ class NFTRepositoryImpl(
             }
         }
     }
-
 }
