@@ -36,6 +36,5 @@ fun BalanceListItemModel.toAssetState(index: Int? = null) = AssetListItemViewSta
     chainAssetId = asset.id,
     isSupported = chain?.isSupported != false,
     isHidden = isHidden,
-    priceId = asset.priceId,
     isTestnet = chain?.isTestNet == true
 )

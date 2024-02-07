@@ -50,6 +50,7 @@ data class Chain(
     override val parentId: String?,
     val supportStakingPool: Boolean,
     val isEthereumChain: Boolean,
+    val chainlinkProvider: Boolean,
     val supportNft: Boolean
 ) : IChain {
     val assetsById = assets.associateBy(CoreAsset::id)
@@ -86,6 +87,7 @@ data class Chain(
         other as Chain
 
         if (id != other.id) return false
+        if (paraId != other.paraId) return false
         if (rank != other.rank) return false
         if (name != other.name) return false
         if (minSupportedVersion != other.minSupportedVersion) return false
@@ -100,6 +102,7 @@ data class Chain(
         if (parentId != other.parentId) return false
         if (supportStakingPool != other.supportStakingPool) return false
         if (isEthereumChain != other.isEthereumChain) return false
+        if (chainlinkProvider != other.chainlinkProvider) return false
         if (supportNft != other.supportNft) return false
 
         // custom comparison logic
@@ -115,6 +118,7 @@ data class Chain(
 
     override fun hashCode(): Int {
         var result = id.hashCode()
+        result = 31 * result + (paraId?.hashCode() ?: 0)
         result = 31 * result + (rank?.hashCode() ?: 0)
         result = 31 * result + name.hashCode()
         result = 31 * result + (minSupportedVersion?.hashCode() ?: 0)
@@ -130,6 +134,7 @@ data class Chain(
         result = 31 * result + (parentId?.hashCode() ?: 0)
         result = 31 * result + supportStakingPool.hashCode()
         result = 31 * result + isEthereumChain.hashCode()
+        result = 31 * result + chainlinkProvider.hashCode()
         result = 31 * result + supportNft.hashCode()
         return result
     }

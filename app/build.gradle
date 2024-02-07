@@ -199,7 +199,6 @@ dependencies {
 
     implementation lifeCycleKtxDep
 
-//    implementation retrofitDep
     implementation gsonConvertedDep
 
     implementation gifDep

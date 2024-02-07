@@ -351,7 +351,6 @@ private fun PreviewAssetListItem() {
         chainAssetId = "",
         isSupported = true,
         isHidden = false,
-        priceId = null,
         isTestnet = false
     )
     FearlessAppTheme {

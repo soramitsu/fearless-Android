@@ -5,6 +5,7 @@ import com.google.gson.reflect.TypeToken
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.core.models.ChainAssetType
 import jp.co.soramitsu.core.models.ChainNode
+import jp.co.soramitsu.core.runtime.mappers.mapRemoteToModel
 import jp.co.soramitsu.coredb.model.chain.ChainAssetLocal
 import jp.co.soramitsu.coredb.model.chain.ChainExplorerLocal
 import jp.co.soramitsu.coredb.model.chain.ChainLocal
@@ -16,6 +17,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.ChainRemote
 
 private const val ETHEREUM_BASED_OPTION = "ethereumBased"
 private const val ETHEREUM_OPTION = "ethereum"
+private const val CHAINLINK_PROVIDER_OPTION = "chainlinkProvider"
 private const val CROWDLOAN_OPTION = "crowdloans"
 private const val TESTNET_OPTION = "testnet"
 private const val NOMINATION_POOL_OPTION = "poolStaking"
@@ -147,6 +149,7 @@ fun ChainRemote.toChain(): Chain {
         hasCrowdloans = CROWDLOAN_OPTION in optionsOrEmpty,
         supportStakingPool = NOMINATION_POOL_OPTION in optionsOrEmpty,
         isEthereumChain = ETHEREUM_OPTION in optionsOrEmpty,
+        chainlinkProvider = CHAINLINK_PROVIDER_OPTION in optionsOrEmpty,
         supportNft = NFT_OPTION in optionsOrEmpty,
         paraId = this.paraId
     )
@@ -168,7 +171,7 @@ private fun ChainRemote.assetConfigs(): List<Asset>? {
                     priceId = chainAsset.priceId,
                     precision = chainAsset.precision ?: DEFAULT_PRECISION,
                     staking = mapStakingStringToStakingType(chainAsset.staking),
-                    priceProviders = chainAsset.purchaseProviders,
+                    purchaseProviders = chainAsset.purchaseProviders,
                     supportStakingPool = NOMINATION_POOL_OPTION in this.options.orEmpty(),
                     isUtility = chainAsset.isUtility ?: false,
                     type = ChainAssetType.from(chainAsset.type),
@@ -176,7 +179,8 @@ private fun ChainRemote.assetConfigs(): List<Asset>? {
                     existentialDeposit = chainAsset.existentialDeposit,
                     color = chainAsset.color,
                     isNative = chainAsset.isNative,
-                    ethereumType = mapEthereumTypeStringToEthereumType(chainAsset.ethereumType)
+                    ethereumType = mapEthereumTypeStringToEthereumType(chainAsset.ethereumType),
+                    priceProvider = chainAsset.priceProvider?.mapRemoteToModel()
                 )
             }
         }.getOrNull()
@@ -203,7 +207,7 @@ fun mapChainLocalToChain(chainLocal: JoinedChainInfo): Chain {
             priceId = it.priceId,
             precision = it.precision,
             staking = mapStakingTypeFromLocal(it.staking),
-            priceProviders = mapToList(it.priceProviders),
+            purchaseProviders = mapToList(it.purchaseProviders),
             chainName = chainLocal.chain.name,
             chainIcon = chainLocal.chain.icon,
             isTestNet = chainLocal.chain.isTestNet,
@@ -214,7 +218,8 @@ fun mapChainLocalToChain(chainLocal: JoinedChainInfo): Chain {
             existentialDeposit = it.existentialDeposit,
             color = it.color,
             isNative = it.isNative,
-            ethereumType = mapEthereumTypeStringToEthereumType(it.ethereumType)
+            ethereumType = mapEthereumTypeStringToEthereumType(it.ethereumType),
+            priceProvider = mapToPriceProvider(it.priceProvider)
         )
     }
 
@@ -252,8 +257,9 @@ fun mapChainLocalToChain(chainLocal: JoinedChainInfo): Chain {
             hasCrowdloans = hasCrowdloans,
             supportStakingPool = supportStakingPool,
             isEthereumChain = isEthereumChain,
-            supportNft = supportNft,
-            paraId = paraId
+            paraId = paraId,
+            chainlinkProvider = isChainlinkProvider,
+            supportNft = supportNft
         )
     }
 }
@@ -279,14 +285,15 @@ fun mapChainToChainLocal(chain: Chain): JoinedChainInfo {
             chainId = chain.id,
             priceId = it.priceId,
             staking = mapStakingTypeToLocal(it.staking),
-            priceProviders = it.priceProviders?.let { Gson().toJson(it) },
+            purchaseProviders = it.purchaseProviders?.let { Gson().toJson(it) },
             isUtility = it.isUtility,
             type = it.type?.name,
             currencyId = it.currencyId,
             existentialDeposit = it.existentialDeposit,
             color = it.color,
             isNative = it.isNative,
-            ethereumType = mapEthereumTypeToLocal(it.ethereumType)
+            ethereumType = mapEthereumTypeToLocal(it.ethereumType),
+            priceProvider = it.priceProvider?.let { Gson().toJson(it) }
         )
     }
 
@@ -322,8 +329,9 @@ fun mapChainToChainLocal(chain: Chain): JoinedChainInfo {
             hasCrowdloans = hasCrowdloans,
             supportStakingPool = supportStakingPool,
             isEthereumChain = isEthereumChain,
-            supportNft = supportNft,
-            paraId = paraId
+            paraId = paraId,
+            isChainlinkProvider = chainlinkProvider,
+            supportNft = supportNft
         )
     }
 
@@ -337,3 +345,6 @@ fun mapChainToChainLocal(chain: Chain): JoinedChainInfo {
 
 private fun mapToList(json: String?) =
     json?.let { Gson().fromJson<List<String>>(it, object : TypeToken<List<String>>() {}.type) }
+
+fun mapToPriceProvider(json: String?) =
+    json?.let { Gson().fromJson<Asset.PriceProvider>(it, object : TypeToken<Asset.PriceProvider>() {}.type) }

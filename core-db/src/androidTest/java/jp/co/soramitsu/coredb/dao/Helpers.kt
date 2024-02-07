@@ -40,7 +40,11 @@ fun chainOf(
     externalApi = null,
     hasCrowdloans = false,
     minSupportedVersion = "2.0.3",
-    supportStakingPool = false
+    supportStakingPool = false,
+    isEthereumChain = false,
+    paraId = null,
+    rank = null,
+    isChainlinkProvider = false
 )
 
 fun ChainLocal.nodeOf(
@@ -64,14 +68,16 @@ fun ChainLocal.assetOf(
     priceId = null,
     staking = "test",
     icon = "",
-    priceProviders = null,
+    purchaseProviders = null,
     symbol = symbol,
     isUtility = null,
     type = null,
     currencyId = null,
     existentialDeposit = null,
     color = null,
-    isNative = null
+    isNative = null,
+    ethereumType = null,
+    priceProvider = null
 )
 
 suspend fun ChainDao.addChain(joinedChainInfo: JoinedChainInfo) {

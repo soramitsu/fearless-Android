@@ -175,7 +175,6 @@ private fun AssetItemSwipeBoxPreview() {
         chainAssetId = "",
         isSupported = true,
         isHidden = false,
-        priceId = null,
         isTestnet = false
     )
 
