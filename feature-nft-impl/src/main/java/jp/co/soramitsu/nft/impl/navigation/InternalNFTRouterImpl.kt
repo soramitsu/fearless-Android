@@ -1,45 +1,56 @@
 package jp.co.soramitsu.nft.impl.navigation
 
 import jp.co.soramitsu.nft.domain.models.NFT
+import jp.co.soramitsu.nft.navigation.NestedNavGraphRoute
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.presentation.balance.walletselector.light.WalletSelectionMode
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.onEach
+import java.util.Stack
 
 class InternalNFTRouterImpl(
     private val walletRouter: WalletRouter
 ) : InternalNFTRouter {
 
-    private val mutableDestinationsFlow =
-        MutableSharedFlow<Destination>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
-    override val destinationsFlow: SharedFlow<Destination> = mutableDestinationsFlow
+    private val routesStack = Stack<NestedNavGraphRoute>()
 
-    @Suppress("UNCHECKED_CAST")
-    override fun <T : Destination> currentDestination(): T? {
-        return mutableDestinationsFlow.replayCache.lastOrNull() as? T
+    private val mutableRoutesFlow =
+        MutableSharedFlow<NestedNavGraphRoute>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+
+    private val mutableActionsFlow =
+        MutableSharedFlow<NavAction>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+
+    override fun createNavGraphRoutesFlow(): Flow<NestedNavGraphRoute> =
+        mutableRoutesFlow.onEach { routesStack.push(it) }
+
+    override fun createNavGraphActionsFlow(): Flow<NavAction> =
+        mutableActionsFlow.onEach { if (it is NavAction.BackPressed) routesStack.pop() }
+
+    override fun <T : NestedNavGraphRoute> destination(clazz: Class<T>): T? {
+        return routesStack.filterIsInstance(clazz).firstOrNull()
     }
 
     override fun back() {
-        mutableDestinationsFlow.tryEmit(Destination.Action.BackPressed)
+        mutableActionsFlow.tryEmit(NavAction.BackPressed)
     }
 
     override fun openCollectionNFTsScreen(selectedChainId: ChainId, contractAddress: String) {
-        mutableDestinationsFlow.tryEmit(Destination.NestedNavGraphRoute.CollectionNFTsScreen(selectedChainId, contractAddress))
+        mutableRoutesFlow.tryEmit(NestedNavGraphRoute.CollectionNFTsScreen(selectedChainId, contractAddress))
     }
 
     override fun openDetailsNFTScreen(token: NFT.Full) {
-        mutableDestinationsFlow.tryEmit(Destination.NestedNavGraphRoute.DetailsNFTScreen(token))
+        mutableRoutesFlow.tryEmit(NestedNavGraphRoute.DetailsNFTScreen(token))
     }
 
     override fun openChooseRecipientScreen(token: NFT.Full) {
-        mutableDestinationsFlow.tryEmit(Destination.NestedNavGraphRoute.ChooseNFTRecipientScreen(token))
+        mutableRoutesFlow.tryEmit(NestedNavGraphRoute.ChooseNFTRecipientScreen(token))
     }
 
     override fun openNFTSendScreen(token: NFT.Full, receiver: String) {
-        mutableDestinationsFlow.tryEmit(Destination.NestedNavGraphRoute.ConfirmNFTSendScreen(token, receiver, false))
+        mutableRoutesFlow.tryEmit(NestedNavGraphRoute.ConfirmNFTSendScreen(token, receiver, false))
     }
 
     override fun openAddressHistory(chainId: ChainId): Flow<String> {
@@ -54,7 +65,7 @@ class InternalNFTRouterImpl(
     }
 
     override fun openQRCodeScanner() {
-        mutableDestinationsFlow.tryEmit(Destination.Action.QRCodeScanner)
+        mutableActionsFlow.tryEmit(NavAction.QRCodeScanner)
     }
 
     override fun openSuccessScreen(txHash: String, chainId: ChainId) {
@@ -62,14 +73,14 @@ class InternalNFTRouterImpl(
     }
 
     override fun openErrorsScreen(message: String) {
-        mutableDestinationsFlow.tryEmit(Destination.Action.ShowError(message))
+        mutableActionsFlow.tryEmit(NavAction.ShowError(message))
     }
 
     override fun showToast(message: String) {
-        mutableDestinationsFlow.tryEmit(Destination.Action.ShowToast(message))
+        mutableActionsFlow.tryEmit(NavAction.ShowToast(message))
     }
 
     override fun shareText(text: String) {
-        mutableDestinationsFlow.tryEmit(Destination.Action.ShareText(text))
+        mutableActionsFlow.tryEmit(NavAction.ShareText(text))
     }
 }

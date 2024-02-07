@@ -41,13 +41,13 @@ import jp.co.soramitsu.common.presentation.askPermissionsSafely
 import jp.co.soramitsu.common.scan.ScanTextContract
 import jp.co.soramitsu.common.scan.ScannerActivity
 import jp.co.soramitsu.common.utils.shareText
-import jp.co.soramitsu.nft.impl.navigation.Destination
+import jp.co.soramitsu.nft.impl.navigation.NavAction
 import jp.co.soramitsu.nft.impl.presentation.chooserecipient.ChooseNFTRecipientNavComposable
 import jp.co.soramitsu.nft.impl.presentation.collection.CollectionNFTsNavComposable
 import jp.co.soramitsu.nft.impl.presentation.confirmsend.ConfirmNFTSendNavComposable
 import jp.co.soramitsu.nft.impl.presentation.details.NftDetailsNavComposable
+import jp.co.soramitsu.nft.navigation.NestedNavGraphRoute
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
-import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -108,23 +108,27 @@ class NFTFlowFragment : BaseComposeBottomSheetDialogFragment<NFTFlowViewModel>()
         )
 
         LaunchedEffect(Unit) {
-            viewModel.nestedNavGraphDestinationsFlow.onEach {
+            viewModel.navGraphRoutesFlow.onEach {
+                navController.navigate(it.routeName)
+            }.launchIn(this)
+
+            viewModel.navGraphActionsFlow.onEach {
                 when (it) {
-                    is Destination.Action.BackPressed -> {
+                    is NavAction.BackPressed -> {
                         val isBackNavigationSuccess = navController.popBackStack()
 
                         val currentRoute = navController.currentDestination?.route
-                        val loadingRoute = Destination.NestedNavGraphRoute.Loading.routeName
+                        val loadingRoute = NestedNavGraphRoute.Loading.routeName
 
                         if (currentRoute == loadingRoute || !isBackNavigationSuccess) {
                             viewModel.exitFlow()
                         }
                     }
 
-                    is Destination.Action.QRCodeScanner ->
+                    is NavAction.QRCodeScanner ->
                         requestCameraPermission()
 
-                    is Destination.Action.ShowError ->
+                    is NavAction.ShowError ->
                         showErrorDialog(
                             title = resources.getString(R.string.common_error_general_title),
                             message = it.errorText,
@@ -133,16 +137,12 @@ class NFTFlowFragment : BaseComposeBottomSheetDialogFragment<NFTFlowViewModel>()
                             onBackClick = viewModel::onNavigationClick
                         )
 
-                    is Destination.Action.ShowToast ->
+                    is NavAction.ShowToast ->
                         showMessage(it.toastMessage)
 
-                    is Destination.Action.ShareText ->
+                    is NavAction.ShareText ->
                         requireActivity().shareText(it.text)
-
-                    else -> Unit
                 }
-            }.filterIsInstance<Destination.NestedNavGraphRoute>().onEach {
-                navController.navigate(it.routeName)
             }.launchIn(this)
         }
 
@@ -168,7 +168,7 @@ class NFTFlowFragment : BaseComposeBottomSheetDialogFragment<NFTFlowViewModel>()
 
             MarginVertical(margin = 24.dp)
             NavHost(
-                startDestination = Destination.NestedNavGraphRoute.Loading.routeName,
+                startDestination = NestedNavGraphRoute.Loading.routeName,
                 contentAlignment = Alignment.TopCenter,
                 navController = navController,
                 modifier = Modifier
@@ -195,7 +195,7 @@ class NFTFlowFragment : BaseComposeBottomSheetDialogFragment<NFTFlowViewModel>()
                     callback = viewModel
                 )
 
-                composable(Destination.NestedNavGraphRoute.Loading.routeName) {
+                composable(NestedNavGraphRoute.Loading.routeName) {
                     Box(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center

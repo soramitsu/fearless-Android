@@ -11,10 +11,10 @@ import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_nft_impl.R
 import jp.co.soramitsu.nft.domain.models.NFT
-import jp.co.soramitsu.nft.impl.navigation.Destination
 import jp.co.soramitsu.nft.impl.navigation.InternalNFTRouter
 import jp.co.soramitsu.nft.impl.presentation.chooserecipient.contract.ChooseNFTRecipientCallback
 import jp.co.soramitsu.nft.impl.presentation.chooserecipient.contract.ChooseNFTRecipientScreenState
+import jp.co.soramitsu.nft.navigation.NestedNavGraphRoute
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import kotlinx.coroutines.CoroutineScope
@@ -50,8 +50,8 @@ class ChooseNFTRecipientPresenter @Inject constructor(
 
     private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 
-    private val tokenFlow = internalNFTRouter.destinationsFlow
-        .filterIsInstance<Destination.NestedNavGraphRoute.ChooseNFTRecipientScreen>()
+    private val tokenFlow = internalNFTRouter.createNavGraphRoutesFlow()
+        .filterIsInstance<NestedNavGraphRoute.ChooseNFTRecipientScreen>()
         .map { destinationArgs -> destinationArgs.token }
         .shareIn(coroutineScope, SharingStarted.Eagerly, 1)
 

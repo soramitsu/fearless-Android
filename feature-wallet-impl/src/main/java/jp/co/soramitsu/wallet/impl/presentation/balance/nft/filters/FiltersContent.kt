@@ -93,7 +93,7 @@ fun FiltersContent(
                     .fillMaxWidth()
             ) {
                 H4Bold(
-                    text = filter.name.uppercase(),
+                    text = filter.name,
                     modifier = Modifier.weight(1f)
                 )
 

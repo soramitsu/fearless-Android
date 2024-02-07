@@ -52,6 +52,8 @@ sealed interface NFTCollectionsScreenView {
     @Immutable
     interface ItemModel: NFTCollectionsScreenView {
 
+        val key: Any
+
         val screenLayout: ScreenLayout
 
         val thumbnail: Loadable<ImageModel>

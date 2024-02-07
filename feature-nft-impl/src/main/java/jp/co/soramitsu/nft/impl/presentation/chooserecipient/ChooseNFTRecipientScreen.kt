@@ -30,9 +30,9 @@ import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.theme.backgroundBlack
 import jp.co.soramitsu.feature_nft_impl.R
-import jp.co.soramitsu.nft.impl.navigation.Destination
 import jp.co.soramitsu.nft.impl.presentation.chooserecipient.contract.ChooseNFTRecipientCallback
 import jp.co.soramitsu.nft.impl.presentation.chooserecipient.contract.ChooseNFTRecipientScreenState
+import jp.co.soramitsu.nft.navigation.NestedNavGraphRoute
 import kotlinx.coroutines.flow.Flow
 
 @Suppress("FunctionName")
@@ -40,7 +40,7 @@ fun NavGraphBuilder.ChooseNFTRecipientNavComposable(
     stateFlow: Flow<ChooseNFTRecipientScreenState>,
     callback: ChooseNFTRecipientCallback
 ) {
-    composable(Destination.NestedNavGraphRoute.ChooseNFTRecipientScreen.routeName) {
+    composable(NestedNavGraphRoute.ChooseNFTRecipientScreen.routeName) {
         val state = stateFlow.collectAsStateWithLifecycle(ChooseNFTRecipientScreenState.default)
 
         ChooseNFTRecipientScreen(

@@ -8,8 +8,8 @@ import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.models.TextModel
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.feature_nft_impl.R
-import jp.co.soramitsu.nft.impl.navigation.Destination
 import jp.co.soramitsu.nft.impl.navigation.InternalNFTRouter
+import jp.co.soramitsu.nft.impl.navigation.NavAction
 import jp.co.soramitsu.nft.impl.presentation.NFTFlowFragment.Companion.COLLECTION_NAME
 import jp.co.soramitsu.nft.impl.presentation.NFTFlowFragment.Companion.CONTRACT_ADDRESS_KEY
 import jp.co.soramitsu.nft.impl.presentation.NFTFlowFragment.Companion.SELECTED_CHAIN_ID
@@ -25,12 +25,13 @@ import jp.co.soramitsu.nft.impl.presentation.details.NftDetailsPresenter
 import jp.co.soramitsu.nft.impl.presentation.details.NftDetailsScreenInterface
 import jp.co.soramitsu.nft.impl.presentation.details.NftDetailsScreenState
 import jp.co.soramitsu.nft.navigation.NFTRouter
+import jp.co.soramitsu.nft.navigation.NestedNavGraphRoute
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.shareIn
+import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
 @HiltViewModel
@@ -77,10 +78,15 @@ class NFTFlowViewModel @Inject constructor(
             replay = 1
         )
 
-    val nestedNavGraphDestinationsFlow: SharedFlow<Destination> =
-        internalNFTRouter.destinationsFlow.onStart {
-            emit(Destination.NestedNavGraphRoute.Loading)
-        }.shareIn(
+    val navGraphRoutesFlow: StateFlow<NestedNavGraphRoute> =
+        internalNFTRouter.createNavGraphRoutesFlow().stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.Eagerly,
+            initialValue = NestedNavGraphRoute.Loading
+        )
+
+    val navGraphActionsFlow: SharedFlow<NavAction> =
+        internalNFTRouter.createNavGraphActionsFlow().shareIn(
             scope = viewModelScope,
             started = SharingStarted.Eagerly,
             replay = 1
@@ -107,16 +113,16 @@ class NFTFlowViewModel @Inject constructor(
 
     fun onDestinationChanged(route: String) {
         val newToolbarState: LoadingState<Pair<TextModel, Int>> = when (route) {
-            Destination.NestedNavGraphRoute.Loading.routeName ->
+            NestedNavGraphRoute.Loading.routeName ->
                 LoadingState.Loading()
 
-            Destination.NestedNavGraphRoute.CollectionNFTsScreen.routeName ->
+            NestedNavGraphRoute.CollectionNFTsScreen.routeName ->
                 LoadingState.Loaded(
                     TextModel.SimpleString(collectionName) to R.drawable.ic_cross_24
                 )
 
-            Destination.NestedNavGraphRoute.DetailsNFTScreen.routeName -> {
-                val destinationArgs = internalNFTRouter.currentDestination<Destination.NestedNavGraphRoute.DetailsNFTScreen>()
+            NestedNavGraphRoute.DetailsNFTScreen.routeName -> {
+                val destinationArgs = internalNFTRouter.destination(NestedNavGraphRoute.DetailsNFTScreen::class.java)
                 val title = destinationArgs?.token?.title.orEmpty()
 
                 LoadingState.Loaded(
@@ -124,12 +130,12 @@ class NFTFlowViewModel @Inject constructor(
                 )
             }
 
-            Destination.NestedNavGraphRoute.ChooseNFTRecipientScreen.routeName ->
+            NestedNavGraphRoute.ChooseNFTRecipientScreen.routeName ->
                 LoadingState.Loaded(
                     TextModel.ResId(R.string.nft_choose_recipient_title) to R.drawable.ic_arrow_left_24
                 )
 
-            Destination.NestedNavGraphRoute.ConfirmNFTSendScreen.routeName ->
+            NestedNavGraphRoute.ConfirmNFTSendScreen.routeName ->
                 LoadingState.Loaded(
                     TextModel.ResId(R.string.common_preview) to R.drawable.ic_arrow_left_24
                 )

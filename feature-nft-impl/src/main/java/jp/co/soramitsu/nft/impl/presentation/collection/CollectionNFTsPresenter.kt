@@ -11,10 +11,10 @@ import jp.co.soramitsu.nft.domain.NFTInteractor
 import jp.co.soramitsu.nft.domain.models.NFT
 import jp.co.soramitsu.nft.domain.models.NFTCollection
 import jp.co.soramitsu.nft.impl.domain.utils.convertToShareMessage
-import jp.co.soramitsu.nft.impl.navigation.Destination
 import jp.co.soramitsu.nft.impl.navigation.InternalNFTRouter
 import jp.co.soramitsu.nft.impl.presentation.collection.models.NFTsScreenView
 import jp.co.soramitsu.nft.impl.presentation.collection.utils.toScreenViewStableList
+import jp.co.soramitsu.nft.navigation.NestedNavGraphRoute
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -50,8 +50,8 @@ class CollectionNFTsPresenter @Inject constructor(
 
     private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 
-    private val screenArgsFlow = internalNFTRouter.destinationsFlow
-        .filterIsInstance<Destination.NestedNavGraphRoute.CollectionNFTsScreen>()
+    private val screenArgsFlow = internalNFTRouter.createNavGraphRoutesFlow()
+        .filterIsInstance<NestedNavGraphRoute.CollectionNFTsScreen>()
         .shareIn(coroutineScope, SharingStarted.Eagerly, 1)
 
     private val mutablePaginationRequestFlow = MutableSharedFlow<PaginationRequest>(

@@ -3,7 +3,6 @@ package jp.co.soramitsu.nft.impl.data
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.common.data.storage.Preferences
-import jp.co.soramitsu.common.utils.castOrNull
 import jp.co.soramitsu.common.utils.concurrentRequestFlow
 import jp.co.soramitsu.nft.data.NFTCollectionByContractAddressPagedResponse
 import jp.co.soramitsu.nft.data.NFTRepository
@@ -138,7 +137,11 @@ class NFTRepositoryImpl(
             // Resetting page stack on all chains to start over because request args changed
             fun <T> Flow<T>.withRefreshPagesStackSideEffect() = this.distinctUntilChanged().onEach {
                 mutex.withLock {
-                    val possibleChainsList = it.castOrNull<List<Chain>>()
+                    val possibleChainsList = if (it is List<*> && it.firstOrNull() is Chain) {
+                        it as? List<Chain>
+                    } else {
+                        null
+                    }
 
                     if (possibleChainsList == null) {
                         pageStackMap.keys.forEach { pageStackMap.replace(it, newPageStackBuilder()) }

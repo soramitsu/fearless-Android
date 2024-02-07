@@ -14,10 +14,10 @@ import jp.co.soramitsu.common.utils.formatting.shortenAddress
 import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.feature_nft_impl.R
 import jp.co.soramitsu.nft.domain.NFTTransferInteractor
-import jp.co.soramitsu.nft.impl.navigation.Destination
 import jp.co.soramitsu.nft.impl.navigation.InternalNFTRouter
 import jp.co.soramitsu.nft.impl.presentation.confirmsend.contract.ConfirmNFTSendCallback
 import jp.co.soramitsu.nft.impl.presentation.confirmsend.contract.ConfirmNFTSendScreenState
+import jp.co.soramitsu.nft.navigation.NestedNavGraphRoute
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import kotlinx.coroutines.CoroutineScope
@@ -50,8 +50,8 @@ class ConfirmNFTSendPresenter @Inject constructor(
 
     private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 
-    private val screenArgsFlow = internalNFTRouter.destinationsFlow
-        .filterIsInstance<Destination.NestedNavGraphRoute.ConfirmNFTSendScreen>()
+    private val screenArgsFlow = internalNFTRouter.createNavGraphRoutesFlow()
+        .filterIsInstance<NestedNavGraphRoute.ConfirmNFTSendScreen>()
         .shareIn(coroutineScope, SharingStarted.Eagerly, 1)
 
     @OptIn(ExperimentalCoroutinesApi::class)

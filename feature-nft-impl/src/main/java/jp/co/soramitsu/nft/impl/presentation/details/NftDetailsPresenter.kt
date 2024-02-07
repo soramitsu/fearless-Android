@@ -9,8 +9,8 @@ import jp.co.soramitsu.common.utils.formatting.shortenAddress
 import jp.co.soramitsu.feature_nft_impl.R
 import jp.co.soramitsu.nft.domain.NFTInteractor
 import jp.co.soramitsu.nft.impl.domain.utils.convertToShareMessage
-import jp.co.soramitsu.nft.impl.navigation.Destination
 import jp.co.soramitsu.nft.impl.navigation.InternalNFTRouter
+import jp.co.soramitsu.nft.navigation.NestedNavGraphRoute
 import jp.co.soramitsu.shared_utils.extensions.toHexString
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import kotlinx.coroutines.CoroutineScope
@@ -39,8 +39,8 @@ class NftDetailsPresenter @Inject constructor(
 
     private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 
-    private val screenArgsFlow = internalNFTRouter.destinationsFlow
-        .filterIsInstance<Destination.NestedNavGraphRoute.DetailsNFTScreen>()
+    private val screenArgsFlow = internalNFTRouter.createNavGraphRoutesFlow()
+        .filterIsInstance<NestedNavGraphRoute.DetailsNFTScreen>()
         .shareIn(coroutineScope, SharingStarted.Eagerly, 1)
 
     private var ownerAddress: String? = null

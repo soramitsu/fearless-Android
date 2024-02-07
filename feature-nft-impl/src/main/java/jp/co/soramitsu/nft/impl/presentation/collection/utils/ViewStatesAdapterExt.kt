@@ -15,16 +15,19 @@ private const val DEFAULT_SHIMMERING_ITEMS_COUNT = 6
 fun createShimmeredNFTViewsList(): SnapshotStateList<NFTsScreenView> {
     return SnapshotStateList<NFTsScreenView>().apply {
         ScreenHeader(
+            key = "ScreenHeader",
             thumbnail = Loadable.InProgress(),
             description = Loadable.InProgress()
         ).also { add(it) }
 
         SectionHeader(
+            key = "SectionHeader",
             title = Loadable.InProgress()
         ).also { add(it) }
 
         repeat(DEFAULT_SHIMMERING_ITEMS_COUNT) {
             ItemModel(
+                key = it,
                 screenLayout = ScreenLayout.Grid,
                 thumbnail = Loadable.InProgress(),
                 title = Loadable.InProgress(),
@@ -54,9 +57,10 @@ fun NFTCollection<NFT.Full>.toScreenViewStableList(
 
     if (isCollectionUserOwned) {
         ScreenHeader(
+            key = R.drawable.animated_bird,
             thumbnail = Loadable.ReadyToRender(
                 ImageModel.UrlWithFallbackOption(
-                    imageUrl.orEmpty(),
+                    imageUrl,
                     ImageModel.Gif(R.drawable.animated_bird)
                 )
             ),
@@ -66,6 +70,7 @@ fun NFTCollection<NFT.Full>.toScreenViewStableList(
         ).also { arrayDeque.add(it) }
 
         SectionHeader(
+            key = R.string.nft_collection_my_nfts,
             title = Loadable.ReadyToRender(
                 TextModel.ResId(
                     R.string.nft_collection_my_nfts
@@ -74,6 +79,7 @@ fun NFTCollection<NFT.Full>.toScreenViewStableList(
         ).also { arrayDeque.add(it) }
     } else {
         SectionHeader(
+            key = R.string.nft_collection_available_nfts,
             title = Loadable.ReadyToRender(
                 TextModel.ResIdWithArgs(
                     R.string.nft_collection_available_nfts,
@@ -106,6 +112,7 @@ private fun NFT.Full.toScreenView(
     onActionButtonClick: () -> Unit
 ): NFTsScreenView.ItemModel {
     return ItemModel(
+        key = tokenId,
         screenLayout = screenLayout,
         thumbnail = Loadable.ReadyToRender(
             ImageModel.UrlWithFallbackOption(
@@ -147,15 +154,18 @@ private fun NFT.Full.toScreenView(
 }
 
 private class ScreenHeader(
+    override val key: Any,
     override val thumbnail: Loadable<ImageModel>,
     override val description: Loadable<TextModel?>
 ) : NFTsScreenView.ScreenHeader
 
 private class SectionHeader(
+    override val key: Any,
     override val title: Loadable<TextModel>
 ) : NFTsScreenView.SectionHeader
 
 private class ItemModel(
+    override val key: Any,
     override val screenLayout: ScreenLayout,
     override val thumbnail: Loadable<ImageModel>,
     override val title: Loadable<TextModel>,

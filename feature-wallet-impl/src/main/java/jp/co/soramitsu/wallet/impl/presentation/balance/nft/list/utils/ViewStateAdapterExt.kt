@@ -15,6 +15,7 @@ fun createShimmeredNFTCollectionsViewsList(
     return ArrayDeque<NFTCollectionsScreenView>().apply {
         repeat(6) {
             ItemModel(
+                key = it,
                 screenLayout = screenLayout,
                 thumbnail = Loadable.InProgress(),
                 chainName = Loadable.InProgress(),
@@ -44,6 +45,7 @@ fun NFTCollection.Data<NFT.Light>.toScreenView(
     onItemClick: () -> Unit
 ): NFTCollectionsScreenView.ItemModel {
     return ItemModel(
+        key = contractAddress,
         screenLayout = screenLayout,
         thumbnail = Loadable.ReadyToRender(
             ImageModel.UrlWithFallbackOption(
@@ -69,6 +71,7 @@ fun NFTCollection.Data<NFT.Light>.toScreenView(
 }
 
 private class ItemModel(
+    override val key: Any,
     override val screenLayout: ScreenLayout,
     override val thumbnail: Loadable<ImageModel>,
     override val chainName: Loadable<TextModel>,

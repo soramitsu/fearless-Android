@@ -29,6 +29,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraphBuilder
@@ -58,10 +59,10 @@ import jp.co.soramitsu.common.compose.theme.white50
 import jp.co.soramitsu.common.compose.utils.PageScrollingCallback
 import jp.co.soramitsu.common.compose.utils.nestedScrollConnectionForPageScrolling
 import jp.co.soramitsu.common.utils.clickableSingle
-import jp.co.soramitsu.nft.impl.navigation.Destination
 import jp.co.soramitsu.nft.impl.presentation.collection.models.NFTsScreenModel
 import jp.co.soramitsu.nft.impl.presentation.collection.models.NFTsScreenView
 import jp.co.soramitsu.nft.impl.presentation.collection.utils.createShimmeredNFTViewsList
+import jp.co.soramitsu.nft.navigation.NestedNavGraphRoute
 import kotlinx.coroutines.flow.SharedFlow
 
 @Suppress("FunctionName")
@@ -69,7 +70,7 @@ fun NavGraphBuilder.CollectionNFTsNavComposable(
     viewsListFlow: SharedFlow<SnapshotStateList<NFTsScreenView>>,
     pageScrollingCallback: PageScrollingCallback
 ) {
-    composable(Destination.NestedNavGraphRoute.CollectionNFTsScreen.routeName) {
+    composable(NestedNavGraphRoute.CollectionNFTsScreen.routeName) {
         val viewsList = viewsListFlow.collectAsStateWithLifecycle(createShimmeredNFTViewsList())
 
         CollectionNFTsScreen(
@@ -129,7 +130,9 @@ private fun LazyGridScope.NFTScreenHeader(screenHeader: NFTsScreenView.ScreenHea
     when (val thumbnail = screenHeader.thumbnail) {
         is Loadable.ReadyToRender -> {
             item(
-                span = { GridItemSpan(2) }
+                span = { GridItemSpan(2) },
+                key = screenHeader.key,
+                contentType = screenHeader::class.java
             ) {
                 Image(
                     modifier = Modifier
@@ -212,7 +215,9 @@ private fun LazyGridScope.NFTScreenHeader(screenHeader: NFTsScreenView.ScreenHea
 @Suppress("FunctionName", "MagicNumber")
 private fun LazyGridScope.NFTSectionHeader(sectionHeader: NFTsScreenView.SectionHeader) {
     item(
-        span = { GridItemSpan(2) }
+        span = { GridItemSpan(2) },
+        key = sectionHeader.key,
+        contentType = sectionHeader::class.java
     ) {
         Column(
             modifier = Modifier.padding(horizontal = 12.dp)
@@ -250,7 +255,9 @@ private fun LazyGridScope.NFTItem(itemModel: NFTsScreenView.ItemModel) {
             } else {
                 GridItemSpan(1)
                 }
-        }
+        },
+        key = itemModel.key,
+        contentType = itemModel::class.java
     ) {
         BackgroundCornered(
             modifier = Modifier.clickableSingle(onClick = itemModel.onItemClick)
@@ -286,7 +293,9 @@ private fun LazyGridScope.NFTItem(itemModel: NFTsScreenView.ItemModel) {
                                 .fillMaxWidth()
                                 .wrapContentHeight(),
                             text = data.retrieveString(),
-                            color = white
+                            color = white,
+                            overflow = TextOverflow.Ellipsis,
+                            maxLines = 1
                         )
                     }
 
@@ -307,7 +316,8 @@ private fun LazyGridScope.NFTItem(itemModel: NFTsScreenView.ItemModel) {
                                     .wrapContentHeight(),
                                 text = this.retrieveString(),
                                 color = white50,
-                                maxLines = 2
+                                overflow = TextOverflow.Ellipsis,
+                                maxLines = 1
                             )
                         }
                     }

@@ -64,34 +64,34 @@ internal fun NftSettingsBar(
                 }
         )
 
-//        MarginHorizontal(margin = 13.dp)
-//        Divider(
-//            modifier = Modifier
-//                .size(width = 1.dp, height = 28.dp),
-//            color = white08
-//        )
-//
-//        MarginHorizontal(margin = 13.dp)
-//        Box(
-//            modifier = Modifier
-//                .width(27.dp)
-//                .align(Alignment.CenterVertically)
-//                .clickableWithNoIndication(filtersClicked)
-//        ) {
-//            Image(
-//                res = R.drawable.ic_sort,
-//                modifier = Modifier
-//                    .height(20.dp)
-//                    .align(Alignment.Center)
-//            )
-//            if (state.filtersSelected) {
-//                Box(
-//                    modifier = modifier
-//                        .size(5.dp)
-//                        .background(colorAccentDark, shape = CircleShape)
-//                        .align(Alignment.TopEnd)
-//                )
-//            }
-//        }
+        MarginHorizontal(margin = 13.dp)
+        Divider(
+            modifier = Modifier
+                .size(width = 1.dp, height = 28.dp),
+            color = white08
+        )
+
+        MarginHorizontal(margin = 13.dp)
+        Box(
+            modifier = Modifier
+                .width(27.dp)
+                .align(Alignment.CenterVertically)
+                .clickableWithNoIndication(filtersClicked)
+        ) {
+            Image(
+                res = R.drawable.ic_sort,
+                modifier = Modifier
+                    .height(20.dp)
+                    .align(Alignment.Center)
+            )
+            if (state.filtersSelected) {
+                Box(
+                    modifier = modifier
+                        .size(5.dp)
+                        .background(colorAccentDark, shape = CircleShape)
+                        .align(Alignment.TopEnd)
+                )
+            }
+        }
     }
 }

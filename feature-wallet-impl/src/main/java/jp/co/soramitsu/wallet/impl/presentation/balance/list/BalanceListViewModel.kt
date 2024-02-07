@@ -319,7 +319,7 @@ class BalanceListViewModel @Inject constructor(
                 allNFTCollectionsData.filterIsInstance<NFTCollection.Data<NFT.Light>>()
                     .toStableViewsList(
                         screenLayout = screenLayout,
-                        onItemClick = { router.openNftCollection(it.chainId, it.contractAddress!!, it.collectionName) }
+                        onItemClick = { router.openNftCollection(it.chainId, it.contractAddress, it.collectionName) }
                     ).also { emit(it) }
             }.combine(paginationRequestHelperFlow) { views, paginationRequest ->
                 if (!isLoadingCompleted.get()) {
@@ -355,7 +355,7 @@ class BalanceListViewModel @Inject constructor(
                     NFTCollectionsScreenModel(
                         areFiltersApplied = filters.any { (_, isEnabled) -> isEnabled },
                         views = views,
-                        onFiltersIconClick = { Unit },
+                        onFiltersIconClick = { router.openNFTFilter() },
                         onScreenLayoutChanged = { mutableScreenLayoutFlow.value = it },
                         pageScrollingCallback = pageScrollingCallback
                     )

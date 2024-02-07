@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -22,20 +23,25 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.CircularProgressIndicator
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.compose.component.B0
 import jp.co.soramitsu.common.compose.component.B1
 import jp.co.soramitsu.common.compose.component.BackgroundCornered
 import jp.co.soramitsu.common.compose.component.CapsTitle
+import jp.co.soramitsu.common.compose.component.FearlessCorneredShape
 import jp.co.soramitsu.common.compose.component.GradientIcon
 import jp.co.soramitsu.common.compose.component.H3
 import jp.co.soramitsu.common.compose.component.H4
@@ -46,6 +52,7 @@ import jp.co.soramitsu.common.compose.models.ScreenLayout
 import jp.co.soramitsu.common.compose.models.retrievePainter
 import jp.co.soramitsu.common.compose.models.retrieveString
 import jp.co.soramitsu.common.compose.theme.black50
+import jp.co.soramitsu.common.compose.theme.customColors
 import jp.co.soramitsu.common.compose.theme.warningOrange
 import jp.co.soramitsu.common.compose.theme.white
 import jp.co.soramitsu.common.compose.theme.white50
@@ -250,7 +257,7 @@ private fun LazyGridScope.NFTCollectionItem(
                                 .wrapContentHeight(),
                             text = data.retrieveString(),
                             color = white50,
-                            maxLines = 2
+                            maxLines = 1
                         )
                     }
 
@@ -265,7 +272,9 @@ private fun LazyGridScope.NFTCollectionItem(
                                 .fillMaxWidth(.9f)
                                 .wrapContentHeight(),
                             text = data.retrieveString(),
-                            color = white
+                            color = white,
+                            overflow = TextOverflow.Ellipsis,
+                            maxLines = 1
                         )
                     }
 

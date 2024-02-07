@@ -1,16 +1,18 @@
 package jp.co.soramitsu.nft.impl.navigation
 
 import jp.co.soramitsu.nft.domain.models.NFT
+import jp.co.soramitsu.nft.navigation.NestedNavGraphRoute
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.SharedFlow
 
 @Suppress("ComplexInterface")
 interface InternalNFTRouter {
 
-    val destinationsFlow: SharedFlow<Destination>
+    fun createNavGraphRoutesFlow(): Flow<NestedNavGraphRoute>
 
-    fun <T : Destination> currentDestination(): T?
+    fun createNavGraphActionsFlow(): Flow<NavAction>
+
+    fun <T : NestedNavGraphRoute> destination(clazz: Class<T>): T?
 
     fun back()
 

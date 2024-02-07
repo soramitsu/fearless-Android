@@ -1501,4 +1501,8 @@ class Navigator :
         val bundle = NFTFlowFragment.getCollectionDetailsBundle(selectedAssetId, contractAddress, collectionName)
         navController?.navigate(R.id.nftFlowFragment, bundle)
     }
+
+    override fun openNFTFilter() {
+        navController?.navigate(R.id.nftFiltersFragment)
+    }
 }
