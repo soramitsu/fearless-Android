@@ -150,6 +150,7 @@ class ConfirmBondMoreViewModel @Inject constructor(
             showMessage(resourceManager.getString(R.string.common_transaction_submitted))
 
             finishFlow()
+            result.getOrNull()?.let { router.openOperationSuccess(it, token.configuration.chainId) }
         } else {
             showError(result.requireException())
         }
