@@ -21,7 +21,7 @@ sealed interface NestedNavGraphRoute {
     }
 
     class DetailsNFTScreen(
-        val token: NFT.Full
+        val token: NFT
     ) : NestedNavGraphRoute by Companion {
         companion object : NestedNavGraphRoute {
             override val routeName: String = "DetailsNFTScreen"
@@ -29,7 +29,7 @@ sealed interface NestedNavGraphRoute {
     }
 
     class ChooseNFTRecipientScreen(
-        val token: NFT.Full
+        val token: NFT
     ) : NestedNavGraphRoute by Companion {
         companion object : NestedNavGraphRoute {
             override val routeName: String = "ChooseNFTRecipientScreen"
@@ -37,7 +37,7 @@ sealed interface NestedNavGraphRoute {
     }
 
     class ConfirmNFTSendScreen(
-        val token: NFT.Full,
+        val token: NFT,
         val receiver: String,
         val isReceiverKnown: Boolean
     ) : NestedNavGraphRoute by Companion {

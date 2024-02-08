@@ -1,7 +1,13 @@
 package jp.co.soramitsu.nft.impl.presentation
 
 import android.Manifest
+import android.annotation.SuppressLint
+import android.app.Dialog
+import android.os.Build
+import android.os.Bundle
+import android.view.KeyEvent
 import androidx.activity.result.ActivityResultLauncher
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -25,6 +31,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.journeyapps.barcodescanner.ScanOptions
 import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.common.R
@@ -72,12 +79,39 @@ class NFTFlowFragment : BaseComposeBottomSheetDialogFragment<NFTFlowViewModel>()
         )
     }
 
-    override val viewModel: NFTFlowViewModel by viewModels()
-
     private val barcodeLauncher: ActivityResultLauncher<ScanOptions> =
         registerForActivityResult(
             ScanTextContract()
         ) { viewModel.onQRCodeScannerResult(it) }
+
+    override val viewModel: NFTFlowViewModel by viewModels()
+
+    // Compose BackHandler does not work in DialogFragments, nor does BackPressedDispatcher
+    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+        return if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+            super.onCreateDialog(savedInstanceState).apply {
+                setOnKeyListener { _, keyCode, event ->
+                    val isBackPressDetected =
+                        keyCode == KeyEvent.KEYCODE_BACK && event.action == KeyEvent.ACTION_UP
+
+                    if (isBackPressDetected) {
+                        viewModel.onNavigationClick()
+                    }
+
+                    return@setOnKeyListener isBackPressDetected
+                }
+            }
+        } else {
+            // Call to super.onBackPressed() will cancel dialog as default behavior
+            object : BottomSheetDialog(requireContext(), theme) {
+                @SuppressLint("MissingSuperCall")
+                @RequiresApi(Build.VERSION_CODES.TIRAMISU)
+                override fun onBackPressed() {
+                    viewModel.onNavigationClick()
+                }
+            }
+        }
+    }
 
     private fun requestCameraPermission() {
         viewLifecycleOwner.lifecycleScope.launch {
@@ -115,6 +149,7 @@ class NFTFlowFragment : BaseComposeBottomSheetDialogFragment<NFTFlowViewModel>()
             viewModel.navGraphActionsFlow.onEach {
                 when (it) {
                     is NavAction.BackPressed -> {
+                        println("This is checkpoint: backPressedActionReceived")
                         val isBackNavigationSuccess = navController.popBackStack()
 
                         val currentRoute = navController.currentDestination?.route
@@ -214,7 +249,7 @@ class NFTFlowFragment : BaseComposeBottomSheetDialogFragment<NFTFlowViewModel>()
 
         DisposableEffect(lifecycleOwner) {
             val onDestinationChangedListener =
-                NavController.OnDestinationChangedListener { navController, destination, _ ->
+                NavController.OnDestinationChangedListener { _, destination, _ ->
                     onNavDestinationChanged(destination.route!!)
                 }
 

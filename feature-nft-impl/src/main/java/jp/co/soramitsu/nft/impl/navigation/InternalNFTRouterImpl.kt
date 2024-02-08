@@ -41,15 +41,15 @@ class InternalNFTRouterImpl(
         mutableRoutesFlow.tryEmit(NestedNavGraphRoute.CollectionNFTsScreen(selectedChainId, contractAddress))
     }
 
-    override fun openDetailsNFTScreen(token: NFT.Full) {
+    override fun openDetailsNFTScreen(token: NFT) {
         mutableRoutesFlow.tryEmit(NestedNavGraphRoute.DetailsNFTScreen(token))
     }
 
-    override fun openChooseRecipientScreen(token: NFT.Full) {
+    override fun openChooseRecipientScreen(token: NFT) {
         mutableRoutesFlow.tryEmit(NestedNavGraphRoute.ChooseNFTRecipientScreen(token))
     }
 
-    override fun openNFTSendScreen(token: NFT.Full, receiver: String) {
+    override fun openNFTSendScreen(token: NFT, receiver: String) {
         mutableRoutesFlow.tryEmit(NestedNavGraphRoute.ConfirmNFTSendScreen(token, receiver, false))
     }
 

@@ -27,7 +27,7 @@ interface NFTTransferInteractor {
      * Works for tokens of type ERC721*
      */
     suspend fun networkFeeFlow(
-        token: NFT.Full,
+        token: NFT,
         receiver: String,
         canReceiverAcceptToken: Boolean
     ): Flow<Result<BigDecimal>>
@@ -53,7 +53,7 @@ interface NFTTransferInteractor {
      * Works for tokens of type ERC721*
      */
     suspend fun send(
-        token: NFT.Full,
+        token: NFT,
         receiver: String,
         canReceiverAcceptToken: Boolean
     ): Result<String>

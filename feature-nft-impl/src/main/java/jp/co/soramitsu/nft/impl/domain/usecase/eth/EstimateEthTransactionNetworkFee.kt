@@ -1,4 +1,4 @@
-package jp.co.soramitsu.nft.impl.domain.usecase
+package jp.co.soramitsu.nft.impl.domain.usecase.eth
 
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.core.utils.amountFromPlanks

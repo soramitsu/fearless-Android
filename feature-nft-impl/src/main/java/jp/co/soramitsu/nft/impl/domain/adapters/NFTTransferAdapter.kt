@@ -19,7 +19,7 @@ suspend fun NFTTransferAdapter(
     web3j: Web3j,
     sender: String,
     receiver: String,
-    token: NFT.Full,
+    token: NFT,
     canReceiverAcceptToken: Boolean
 ): NFTCall.Transfer {
     val nonce = web3j.getNonce(sender)

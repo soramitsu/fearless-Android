@@ -22,8 +22,12 @@ class NFTCollectionsScreenModel(
 @Stable
 sealed interface NFTCollectionsScreenView {
 
+    val contentType: Any
+
     @Immutable
     interface EmptyPlaceholder: NFTCollectionsScreenView {
+        override val contentType: Any
+            get() = 0
 
         val image: ImageModel.ResId
 
@@ -46,11 +50,16 @@ sealed interface NFTCollectionsScreenView {
 
     @Immutable
     interface LoadingIndication: NFTCollectionsScreenView {
+        override val contentType: Any
+            get() = 1
+
         companion object: LoadingIndication
     }
 
     @Immutable
     interface ItemModel: NFTCollectionsScreenView {
+        override val contentType: Any
+            get() = 2
 
         val key: Any
 

@@ -1,4 +1,4 @@
-package jp.co.soramitsu.nft.impl.domain.usecase
+package jp.co.soramitsu.nft.impl.domain.usecase.eth
 
 import jp.co.soramitsu.nft.impl.domain.models.EIP1559Call
 import jp.co.soramitsu.nft.impl.domain.models.EIP1559CallImpl

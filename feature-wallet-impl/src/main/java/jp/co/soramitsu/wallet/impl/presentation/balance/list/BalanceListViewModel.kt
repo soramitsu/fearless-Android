@@ -56,9 +56,8 @@ import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.nft.data.pagination.PaginationRequest
 import jp.co.soramitsu.nft.domain.NFTInteractor
-import jp.co.soramitsu.nft.domain.models.NFTCollection
+import jp.co.soramitsu.nft.domain.models.NFTCollectionResult
 import jp.co.soramitsu.common.compose.utils.PageScrollingCallback
-import jp.co.soramitsu.nft.domain.models.NFT
 import jp.co.soramitsu.wallet.impl.presentation.balance.nft.list.models.NFTCollectionsScreenModel
 import jp.co.soramitsu.wallet.impl.presentation.balance.nft.list.models.NFTCollectionsScreenView
 import jp.co.soramitsu.wallet.impl.presentation.balance.nft.list.utils.createShimmeredNFTCollectionsViewsList
@@ -295,7 +294,7 @@ class BalanceListViewModel @Inject constructor(
 
                 return@combine allNFTCollectionsData to screenLayout
             }.transformLatest { (allNFTCollectionsData, screenLayout) ->
-                if (allNFTCollectionsData.all { it is NFTCollection.Error }) {
+                if (allNFTCollectionsData.all { it is NFTCollectionResult.Error }) {
                     showError("Failed to load NFTs")
                     return@transformLatest emit(
                         ArrayDeque<NFTCollectionsScreenView>().apply {
@@ -304,10 +303,10 @@ class BalanceListViewModel @Inject constructor(
                     )
                 }
 
-                if (allNFTCollectionsData.any { it is NFTCollection.Error }) {
+                if (allNFTCollectionsData.any { it is NFTCollectionResult.Error }) {
                     val joinedChainsWithFailedRequests =
                         allNFTCollectionsData.mapNotNull {
-                            if (it !is NFTCollection.Error)
+                            if (it !is NFTCollectionResult.Error)
                                 return@mapNotNull null
 
                             return@mapNotNull it.chainName
@@ -316,7 +315,7 @@ class BalanceListViewModel @Inject constructor(
                     showError("Failed to load NFTs for $joinedChainsWithFailedRequests")
                 }
 
-                allNFTCollectionsData.filterIsInstance<NFTCollection.Data<NFT.Light>>()
+                allNFTCollectionsData.filterIsInstance<NFTCollectionResult.Data>()
                     .toStableViewsList(
                         screenLayout = screenLayout,
                         onItemClick = { router.openNftCollection(it.chainId, it.contractAddress, it.collectionName) }

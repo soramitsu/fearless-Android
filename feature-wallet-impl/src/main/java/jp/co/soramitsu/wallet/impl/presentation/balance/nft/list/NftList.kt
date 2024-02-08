@@ -134,13 +134,12 @@ private fun NFTLayout(
 }
 
 @Suppress("FunctionName")
-private fun LazyGridScope.NFTEmptyPlaceholder(
-    placeholderModel: NFTCollectionsScreenView.EmptyPlaceholder
-) {
+private fun LazyGridScope.NFTEmptyPlaceholder(placeholderModel: NFTCollectionsScreenView.EmptyPlaceholder) {
     item(
         span = {
             GridItemSpan(2)
-        }
+        },
+        contentType = placeholderModel.contentType
     ) {
         Box(
             contentAlignment = Alignment.Center,
@@ -171,13 +170,13 @@ private fun LazyGridScope.NFTEmptyPlaceholder(
     }
 }
 
-private fun LazyGridScope.NFTLoadingIndication(
-    loadingIndication: NFTCollectionsScreenView.LoadingIndication
-) {
+@Suppress("FunctionName")
+private fun LazyGridScope.NFTLoadingIndication(loadingIndication: NFTCollectionsScreenView.LoadingIndication) {
     item(
         span = {
             GridItemSpan(2)
-        }
+        },
+        contentType = loadingIndication.contentType
     ) {
         Box(
             modifier = Modifier.fillMaxWidth().height(60.dp),
@@ -192,15 +191,15 @@ private fun LazyGridScope.NFTLoadingIndication(
 }
 
 @Suppress("FunctionName")
-private fun LazyGridScope.NFTCollectionItem(
-    itemModel: NFTCollectionsScreenView.ItemModel
-) {
+private fun LazyGridScope.NFTCollectionItem(itemModel: NFTCollectionsScreenView.ItemModel) {
     item(
         span = {
             if (itemModel.screenLayout === ScreenLayout.List){
                 GridItemSpan(2)
             } else GridItemSpan(1)
-        }
+        },
+        key = itemModel.key,
+        contentType = itemModel.contentType
     ) {
         BackgroundCornered(
             modifier = Modifier.clickableSingle(onClick = itemModel.onItemClick)

@@ -7,7 +7,7 @@ import jp.co.soramitsu.common.compose.models.Loadable
 import jp.co.soramitsu.common.compose.models.ScreenLayout
 import jp.co.soramitsu.common.compose.models.TextModel
 import jp.co.soramitsu.nft.domain.models.NFT
-import jp.co.soramitsu.nft.domain.models.NFTCollection
+import jp.co.soramitsu.nft.domain.models.NFTCollectionResult
 import jp.co.soramitsu.nft.impl.presentation.collection.models.NFTsScreenView
 
 private const val DEFAULT_SHIMMERING_ITEMS_COUNT = 6
@@ -38,13 +38,13 @@ fun createShimmeredNFTViewsList(): SnapshotStateList<NFTsScreenView> {
     }
 }
 
-fun NFTCollection<NFT.Full>.toScreenViewStableList(
-    onItemClick: (NFT.Full) -> Unit,
-    onActionButtonClick: (NFT.Full) -> Unit,
+fun NFTCollectionResult.toScreenViewStableList(
+    onItemClick: (NFT) -> Unit,
+    onActionButtonClick: (NFT) -> Unit,
 ): ArrayDeque<NFTsScreenView> {
     val arrayDeque = ArrayDeque<NFTsScreenView>()
 
-    if (this !is NFTCollection.Data) {
+    if (this !is NFTCollectionResult.Data.WithTokens) {
         NFTsScreenView.EmptyPlaceHolder.also {
             arrayDeque.add(it)
         }
@@ -60,12 +60,12 @@ fun NFTCollection<NFT.Full>.toScreenViewStableList(
             key = R.drawable.animated_bird,
             thumbnail = Loadable.ReadyToRender(
                 ImageModel.UrlWithFallbackOption(
-                    imageUrl,
+                    data.imageUrl,
                     ImageModel.Gif(R.drawable.animated_bird)
                 )
             ),
             description = Loadable.ReadyToRender(
-                description?.let { TextModel.SimpleString(it) }
+                data.description.let { TextModel.SimpleString(it) }
             )
         ).also { arrayDeque.add(it) }
 
@@ -83,7 +83,7 @@ fun NFTCollection<NFT.Full>.toScreenViewStableList(
             title = Loadable.ReadyToRender(
                 TextModel.ResIdWithArgs(
                     R.string.nft_collection_available_nfts,
-                    arrayOf(collectionName)
+                    arrayOf(data.collectionName)
                 )
             )
         ).also { arrayDeque.add(it) }
@@ -106,7 +106,7 @@ fun NFTCollection<NFT.Full>.toScreenViewStableList(
     return arrayDeque
 }
 
-private fun NFT.Full.toScreenView(
+private fun NFT.toScreenView(
     screenLayout: ScreenLayout,
     onItemClick: () -> Unit,
     onActionButtonClick: () -> Unit
@@ -122,12 +122,12 @@ private fun NFT.Full.toScreenView(
         ),
         title = Loadable.ReadyToRender(
             TextModel.SimpleString(
-                title.orEmpty()
+                title
             )
         ),
         description = Loadable.ReadyToRender(
             TextModel.SimpleString(
-                description.orEmpty()
+                description
             )
         ),
         onItemClick = onItemClick,

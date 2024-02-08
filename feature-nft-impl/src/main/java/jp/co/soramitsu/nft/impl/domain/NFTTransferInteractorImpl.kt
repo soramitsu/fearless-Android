@@ -8,9 +8,9 @@ import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
 import jp.co.soramitsu.nft.domain.NFTTransferInteractor
 import jp.co.soramitsu.nft.domain.models.NFT
 import jp.co.soramitsu.nft.impl.domain.adapters.NFTTransferAdapter
-import jp.co.soramitsu.nft.impl.domain.usecase.CreateRawEthTransaction
-import jp.co.soramitsu.nft.impl.domain.usecase.EstimateEthTransactionNetworkFee
-import jp.co.soramitsu.nft.impl.domain.usecase.SendRawEthTransaction
+import jp.co.soramitsu.nft.impl.domain.usecase.eth.CreateRawEthTransaction
+import jp.co.soramitsu.nft.impl.domain.usecase.eth.EstimateEthTransactionNetworkFee
+import jp.co.soramitsu.nft.impl.domain.usecase.eth.SendRawEthTransaction
 import jp.co.soramitsu.nft.impl.domain.utils.nonNullWeb3j
 import jp.co.soramitsu.nft.impl.domain.utils.subscribeNewHeads
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
@@ -38,7 +38,7 @@ class NFTTransferInteractorImpl(
     }
 
     override suspend fun networkFeeFlow(
-        token: NFT.Full,
+        token: NFT,
         receiver: String,
         canReceiverAcceptToken: Boolean
     ): Flow<Result<BigDecimal>> {
@@ -74,7 +74,7 @@ class NFTTransferInteractorImpl(
     }
 
     override suspend fun send(
-        token: NFT.Full,
+        token: NFT,
         receiver: String,
         canReceiverAcceptToken: Boolean
     ): Result<String> {

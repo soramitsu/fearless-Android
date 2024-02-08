@@ -111,7 +111,7 @@ class ConfirmNFTSendPresenter @Inject constructor(
                         value = screenArgs.receiver
                             .shortenAddress(ADDRESS_SHORTEN_COUNT)
                     ),
-                    collectionInfoItem = screenArgs.token.collectionName?.let {
+                    collectionInfoItem = screenArgs.token.collectionName.let {
                         TitleValueViewState(
                             title = resourceManager.getString(R.string.nft_collection_title),
                             value = it

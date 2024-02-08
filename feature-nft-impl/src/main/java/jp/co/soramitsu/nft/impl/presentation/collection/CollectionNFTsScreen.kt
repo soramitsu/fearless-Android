@@ -114,7 +114,7 @@ private fun CollectionNFTsScreen(screenModel: NFTsScreenModel) {
                     NFTItem(view)
 
                 is NFTsScreenView.LoadingIndication ->
-                    NFTLoadingIndication()
+                    NFTLoadingIndication(view)
 
                 is NFTsScreenView.EmptyPlaceHolder ->
                     NFTEmptyPlaceholder(view)
@@ -132,7 +132,7 @@ private fun LazyGridScope.NFTScreenHeader(screenHeader: NFTsScreenView.ScreenHea
             item(
                 span = { GridItemSpan(2) },
                 key = screenHeader.key,
-                contentType = screenHeader::class.java
+                contentType = screenHeader.contentType
             ) {
                 Image(
                     modifier = Modifier
@@ -149,7 +149,8 @@ private fun LazyGridScope.NFTScreenHeader(screenHeader: NFTsScreenView.ScreenHea
 
         is Loadable.InProgress -> {
             item(
-                span = { GridItemSpan(2) }
+                span = { GridItemSpan(2) },
+                contentType = screenHeader.contentType
             ) {
                 Box(
                     modifier = Modifier
@@ -217,7 +218,7 @@ private fun LazyGridScope.NFTSectionHeader(sectionHeader: NFTsScreenView.Section
     item(
         span = { GridItemSpan(2) },
         key = sectionHeader.key,
-        contentType = sectionHeader::class.java
+        contentType = sectionHeader.contentType
     ) {
         Column(
             modifier = Modifier.padding(horizontal = 12.dp)
@@ -254,10 +255,10 @@ private fun LazyGridScope.NFTItem(itemModel: NFTsScreenView.ItemModel) {
                 GridItemSpan(2)
             } else {
                 GridItemSpan(1)
-                }
+            }
         },
         key = itemModel.key,
-        contentType = itemModel::class.java
+        contentType = itemModel.contentType
     ) {
         BackgroundCornered(
             modifier = Modifier.clickableSingle(onClick = itemModel.onItemClick)
@@ -339,11 +340,12 @@ private fun LazyGridScope.NFTItem(itemModel: NFTsScreenView.ItemModel) {
 }
 
 @Suppress("FunctionName")
-private fun LazyGridScope.NFTLoadingIndication() {
+private fun LazyGridScope.NFTLoadingIndication(loadingIndication: NFTsScreenView.LoadingIndication) {
     item(
         span = {
             GridItemSpan(2)
-        }
+        },
+        contentType = loadingIndication.contentType
     ) {
         Box(
             modifier = Modifier
@@ -364,7 +366,8 @@ private fun LazyGridScope.NFTEmptyPlaceholder(placeholderModel: NFTsScreenView.E
     item(
         span = {
             GridItemSpan(2)
-        }
+        },
+        contentType = placeholderModel.contentType
     ) {
         Box(
             contentAlignment = Alignment.Center,

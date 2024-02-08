@@ -18,11 +18,11 @@ interface InternalNFTRouter {
 
     fun openCollectionNFTsScreen(selectedChainId: ChainId, contractAddress: String)
 
-    fun openDetailsNFTScreen(token: NFT.Full)
+    fun openDetailsNFTScreen(token: NFT)
 
-    fun openChooseRecipientScreen(token: NFT.Full)
+    fun openChooseRecipientScreen(token: NFT)
 
-    fun openNFTSendScreen(token: NFT.Full, receiver: String)
+    fun openNFTSendScreen(token: NFT, receiver: String)
 
     fun openAddressHistory(chainId: ChainId): Flow<String>
 

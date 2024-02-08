@@ -59,7 +59,7 @@ class ChooseNFTRecipientPresenter @Inject constructor(
 
     private val selectedWalletIdFlow = MutableStateFlow<Long?>(null)
 
-    private val currentToken: NFT.Full?
+    private val currentToken: NFT?
         get() = tokenFlow.replayCache.lastOrNull()
 
     fun handleQRCodeResult(qrCodeContent: String) {
@@ -105,7 +105,7 @@ class ChooseNFTRecipientPresenter @Inject constructor(
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    private fun createSelectedAccountIconFlow(tokenFlow: Flow<NFT.Full>, sizeInDp: Int): Flow<PictureDrawable> {
+    private fun createSelectedAccountIconFlow(tokenFlow: Flow<NFT>, sizeInDp: Int): Flow<PictureDrawable> {
         return tokenFlow.mapLatest {
             chainsRepository.getChain(it.chainId)
         }.flatMapLatest { chain ->
@@ -121,7 +121,7 @@ class ChooseNFTRecipientPresenter @Inject constructor(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private fun createAddressIconFlow(
-        tokenFlow: Flow<NFT.Full>,
+        tokenFlow: Flow<NFT>,
         receiverAddressFlow: Flow<String>,
         sizeInDp: Int
     ): Flow<Any> {
@@ -140,7 +140,7 @@ class ChooseNFTRecipientPresenter @Inject constructor(
         }
     }
 
-    private fun createButtonState(tokenFlow: Flow<NFT.Full>, receiverAddressFlow: Flow<String>): Flow<ButtonViewState> {
+    private fun createButtonState(tokenFlow: Flow<NFT>, receiverAddressFlow: Flow<String>): Flow<ButtonViewState> {
         return combine(tokenFlow, receiverAddressFlow) { token, addressInput ->
             val isReceiverAddressValid = walletInteractor.validateSendAddress(
                 chainId = token.chainId,

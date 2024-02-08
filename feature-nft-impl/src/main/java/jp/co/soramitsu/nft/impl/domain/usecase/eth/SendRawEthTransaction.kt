@@ -1,4 +1,4 @@
-package jp.co.soramitsu.nft.impl.domain.usecase
+package jp.co.soramitsu.nft.impl.domain.usecase.eth
 
 import jp.co.soramitsu.nft.impl.domain.utils.map
 import jp.co.soramitsu.nft.impl.domain.utils.nonNullWeb3j

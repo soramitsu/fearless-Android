@@ -5,17 +5,16 @@ import jp.co.soramitsu.common.compose.models.Loadable
 import jp.co.soramitsu.common.compose.models.ScreenLayout
 import jp.co.soramitsu.common.compose.models.TextModel
 import jp.co.soramitsu.feature_wallet_impl.R
-import jp.co.soramitsu.nft.domain.models.NFT
-import jp.co.soramitsu.nft.domain.models.NFTCollection
+import jp.co.soramitsu.nft.domain.models.NFTCollectionResult
 import jp.co.soramitsu.wallet.impl.presentation.balance.nft.list.models.NFTCollectionsScreenView
 
 fun createShimmeredNFTCollectionsViewsList(
     screenLayout: ScreenLayout
 ): ArrayDeque<NFTCollectionsScreenView> {
     return ArrayDeque<NFTCollectionsScreenView>().apply {
-        repeat(6) {
+        repeat(6) { index ->
             ItemModel(
-                key = it,
+                key = index,
                 screenLayout = screenLayout,
                 thumbnail = Loadable.InProgress(),
                 chainName = Loadable.InProgress(),
@@ -26,9 +25,9 @@ fun createShimmeredNFTCollectionsViewsList(
     }
 }
 
-fun List<NFTCollection.Data<NFT.Light>>.toStableViewsList(
+fun List<NFTCollectionResult.Data>.toStableViewsList(
     screenLayout: ScreenLayout,
-    onItemClick: (NFTCollection.Data<NFT.Light>) -> Unit
+    onItemClick: (NFTCollectionResult.Data) -> Unit
 ): ArrayDeque<NFTCollectionsScreenView> {
     val arrayDeque = ArrayDeque<NFTCollectionsScreenView>()
 
@@ -40,7 +39,7 @@ fun List<NFTCollection.Data<NFT.Light>>.toStableViewsList(
     return arrayDeque
 }
 
-fun NFTCollection.Data<NFT.Light>.toScreenView(
+fun NFTCollectionResult.Data.toScreenView(
     screenLayout: ScreenLayout,
     onItemClick: () -> Unit
 ): NFTCollectionsScreenView.ItemModel {
@@ -49,7 +48,7 @@ fun NFTCollection.Data<NFT.Light>.toScreenView(
         screenLayout = screenLayout,
         thumbnail = Loadable.ReadyToRender(
             ImageModel.UrlWithFallbackOption(
-                imageUrl.orEmpty(),
+                imageUrl,
                 ImageModel.ResId(R.drawable.drawable_fearless_bird)
             )
         ),

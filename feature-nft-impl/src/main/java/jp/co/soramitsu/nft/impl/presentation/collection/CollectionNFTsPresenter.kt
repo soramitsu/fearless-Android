@@ -9,7 +9,7 @@ import jp.co.soramitsu.common.utils.zipWithPrevious
 import jp.co.soramitsu.nft.data.pagination.PaginationRequest
 import jp.co.soramitsu.nft.domain.NFTInteractor
 import jp.co.soramitsu.nft.domain.models.NFT
-import jp.co.soramitsu.nft.domain.models.NFTCollection
+import jp.co.soramitsu.nft.domain.models.NFTCollectionResult
 import jp.co.soramitsu.nft.impl.domain.utils.convertToShareMessage
 import jp.co.soramitsu.nft.impl.navigation.InternalNFTRouter
 import jp.co.soramitsu.nft.impl.presentation.collection.models.NFTsScreenView
@@ -122,8 +122,8 @@ class CollectionNFTsPresenter @Inject constructor(
     }
 
     private fun mergeUserOwnedAndAvailableNFTCollections(
-        currentValue: Pair<NFTCollection<NFT.Full>, PaginationRequest>,
-        prevValue: Pair<NFTCollection<NFT.Full>?, PaginationRequest?>? = null,
+        currentValue: Pair<NFTCollectionResult, PaginationRequest>,
+        prevValue: Pair<NFTCollectionResult?, PaginationRequest?>? = null,
     ): ArrayDeque<NFTsScreenView> {
         val (currentCollection, currentPaginationRequest) = currentValue
         val (prevCollection, _) = prevValue ?: Pair(null, null)
@@ -134,9 +134,9 @@ class CollectionNFTsPresenter @Inject constructor(
         val prevCollectionsViewsList =
             prevCollection?.toScreenViewStableList(::onItemClick, ::onActionButtonClick) ?: ArrayDeque()
 
-        if (currentCollection !is NFTCollection.Data) {
+        if (currentCollection !is NFTCollectionResult.Data.WithTokens) {
             return prevCollectionsViewsList
-        } else if (prevCollection !is NFTCollection.Data) {
+        } else if (prevCollection !is NFTCollectionResult.Data.WithTokens) {
             return currentCollectionViewsList
         }
 
@@ -160,9 +160,9 @@ class CollectionNFTsPresenter @Inject constructor(
         }
     }
 
-    private fun onItemClick(token: NFT.Full) = internalNFTRouter.openDetailsNFTScreen(token)
+    private fun onItemClick(token: NFT) = internalNFTRouter.openDetailsNFTScreen(token)
 
-    private fun onActionButtonClick(token: NFT.Full) {
+    private fun onActionButtonClick(token: NFT) {
         if (token.isUserOwnedToken) {
             internalNFTRouter.openChooseRecipientScreen(token)
         } else {

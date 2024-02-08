@@ -4,7 +4,7 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_nft_impl.R
 import jp.co.soramitsu.nft.domain.models.NFT
 
-fun NFT.Full.convertToShareMessage(
+fun NFT.convertToShareMessage(
     resourceManager: ResourceManager,
     tokenOwnerAddress: String?,
     userAddress: String?
