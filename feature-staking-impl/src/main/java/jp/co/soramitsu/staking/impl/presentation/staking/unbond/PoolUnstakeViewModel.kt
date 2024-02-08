@@ -36,17 +36,19 @@ class PoolUnstakeViewModel @Inject constructor(
         )
     },
     onNextStep = { amount ->
-        val minToCreate = stakingPoolInteractor.getMinToCreate(stakingPoolSharedStateProvider.requireMainState.requireChain.id)
+        try {
+            val minToCreate = stakingPoolInteractor.getMinToCreate(stakingPoolSharedStateProvider.requireMainState.requireChain.id)
 
-        val isDepositor = stakingPoolSharedStateProvider.requireManageState.userRole == RoleInPool.Depositor
-        if (isDepositor && (stakingPoolSharedStateProvider.requireManageState.stakedInPlanks - amount) < minToCreate) {
-            val asset = stakingPoolSharedStateProvider.requireMainState.requireAsset
-            val minToCreateFormatted = minToCreate.formatCryptoDetailFromPlanks(asset.token.configuration)
-            router.openPoolFullUnstakeDepositorAlertFragment(minToCreateFormatted)
-        } else {
-            stakingPoolSharedStateProvider.manageState.get()?.copy(amountInPlanks = amount)?.let { stakingPoolSharedStateProvider.manageState.set(it) }
-            router.openPoolConfirmUnstake()
-        }
+            val isDepositor = stakingPoolSharedStateProvider.requireManageState.userRole == RoleInPool.Depositor
+            if (isDepositor && (stakingPoolSharedStateProvider.requireManageState.stakedInPlanks - amount) < minToCreate) {
+                val asset = stakingPoolSharedStateProvider.requireMainState.requireAsset
+                val minToCreateFormatted = minToCreate.formatCryptoDetailFromPlanks(asset.token.configuration)
+                router.openPoolFullUnstakeDepositorAlertFragment(minToCreateFormatted)
+            } else {
+                stakingPoolSharedStateProvider.manageState.get()?.copy(amountInPlanks = amount)?.let { stakingPoolSharedStateProvider.manageState.set(it) }
+                router.openPoolConfirmUnstake()
+            }
+        } catch (_: NullPointerException) {}
     },
     validations = arrayOf(
         Validation(

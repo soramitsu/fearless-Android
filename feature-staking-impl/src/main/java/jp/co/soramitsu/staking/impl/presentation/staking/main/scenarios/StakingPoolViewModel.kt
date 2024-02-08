@@ -43,7 +43,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.stateIn
 
 class StakingPoolViewModel(
@@ -148,35 +148,39 @@ class StakingPoolViewModel(
     }
 
     override suspend fun networkInfo(): Flow<LoadingState<StakingNetworkInfoModel>> {
-        return stakingInteractor.currentAssetFlow().filter { it.token.configuration.supportStakingPool }.map { asset ->
-            val config = asset.token.configuration
-            val chainId = config.chainId
+        return stakingInteractor.currentAssetFlow().filter { it.token.configuration.supportStakingPool }.mapNotNull { asset ->
+            try {
+                val config = asset.token.configuration
+                val chainId = config.chainId
 
-            val minToJoinPoolInPlanks = stakingPoolInteractor.getMinToJoinPool(chainId)
-            val minToJoinPool = asset.token.configuration.amountFromPlanks(minToJoinPoolInPlanks)
-            val minToJoinPoolFormatted = minToJoinPool.formatCryptoDetail(config.symbol)
-            val minToJoinPoolFiat = asset.token.fiatAmount(minToJoinPool)?.formatFiat(asset.token.fiatSymbol)
+                val minToJoinPoolInPlanks = stakingPoolInteractor.getMinToJoinPool(chainId)
+                val minToJoinPool = asset.token.configuration.amountFromPlanks(minToJoinPoolInPlanks)
+                val minToJoinPoolFormatted = minToJoinPool.formatCryptoDetail(config.symbol)
+                val minToJoinPoolFiat = asset.token.fiatAmount(minToJoinPool)?.formatFiat(asset.token.fiatSymbol)
 
-            val minToCreatePoolInPlanks = stakingPoolInteractor.getMinToCreate(chainId)
-            val minToCreatePool = asset.token.configuration.amountFromPlanks(minToCreatePoolInPlanks)
-            val minToCreatePoolFormatted = minToCreatePool.formatCryptoDetail(config.symbol)
-            val minToCreatePoolFiat = asset.token.fiatAmount(minToCreatePool)?.formatFiat(asset.token.fiatSymbol)
+                val minToCreatePoolInPlanks = stakingPoolInteractor.getMinToCreate(chainId)
+                val minToCreatePool = asset.token.configuration.amountFromPlanks(minToCreatePoolInPlanks)
+                val minToCreatePoolFormatted = minToCreatePool.formatCryptoDetail(config.symbol)
+                val minToCreatePoolFiat = asset.token.fiatAmount(minToCreatePool)?.formatFiat(asset.token.fiatSymbol)
 
-            val existingPools = stakingPoolInteractor.getExistingPools(chainId).toString()
-            val possiblePools = stakingPoolInteractor.getPossiblePools(chainId).toString()
-            val maxMembersInPool = stakingPoolInteractor.getMaxMembersInPool(chainId).toString()
-            val maxPoolsMembers = stakingPoolInteractor.getMaxPoolsMembers(chainId).toString()
+                val existingPools = stakingPoolInteractor.getExistingPools(chainId).toString()
+                val possiblePools = stakingPoolInteractor.getPossiblePools(chainId).toString()
+                val maxMembersInPool = stakingPoolInteractor.getMaxMembersInPool(chainId).toString()
+                val maxPoolsMembers = stakingPoolInteractor.getMaxPoolsMembers(chainId).toString()
 
-            StakingNetworkInfoModel.Pool(
-                minToJoinPoolFormatted,
-                minToJoinPoolFiat,
-                minToCreatePoolFormatted,
-                minToCreatePoolFiat,
-                existingPools,
-                possiblePools,
-                maxMembersInPool,
-                maxPoolsMembers
-            )
+                StakingNetworkInfoModel.Pool(
+                    minToJoinPoolFormatted,
+                    minToJoinPoolFiat,
+                    minToCreatePoolFormatted,
+                    minToCreatePoolFiat,
+                    existingPools,
+                    possiblePools,
+                    maxMembersInPool,
+                    maxPoolsMembers
+                )
+            } catch (e: NullPointerException) {
+                null
+            }
         }.withLoading()
     }
 
