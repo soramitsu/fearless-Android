@@ -65,11 +65,11 @@ fun constructBalanceKey(
 
 fun handleBalanceResponse(
     runtime: RuntimeSnapshot,
-    assetType: ChainAssetType?,
+    asset: Asset,
     scale: String?
 ): Result<AssetBalanceData> {
     return runCatching {
-        when (assetType) {
+        when (asset.typeExtra) {
             null,
             ChainAssetType.Normal,
             ChainAssetType.SoraUtilityAsset -> {
