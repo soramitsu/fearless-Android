@@ -29,6 +29,7 @@ import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
@@ -99,7 +100,9 @@ abstract class BaseConfirmViewModel(
             feeFormatted,
             feeFiat
         )
-    }.stateIn(
+    }
+        .catch { emit(defaultFeeState) }
+        .stateIn(
         viewModelScope,
         SharingStarted.Eagerly,
         defaultFeeState
