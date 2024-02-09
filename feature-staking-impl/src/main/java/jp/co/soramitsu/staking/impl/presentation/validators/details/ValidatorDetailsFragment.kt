@@ -77,6 +77,7 @@ class ValidatorDetailsFragment : BaseBottomSheetDialogFragment<ValidatorDetailsV
                         validatorInfo.setEstimatedRewardApy(activeStakeModel.apy)
                         validatorInfo.setTotalStakeValue(activeStakeModel.totalStake)
                         validatorInfo.setTotalStakeValueFiat(activeStakeModel.totalStakeFiat)
+                        validatorInfo.setCommissionValue(activeStakeModel.commission)
                     }
                 } else {
                     binding.validatorInfo.hideActiveStakeFields()

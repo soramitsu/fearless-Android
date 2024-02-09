@@ -19,7 +19,7 @@ import it.airgap.beaconsdk.blockchain.substrate.data.SubstrateSignerPayload
 import java.math.BigDecimal
 import jp.co.soramitsu.account.api.domain.model.ImportMode
 import jp.co.soramitsu.account.api.presentation.account.create.ChainAccountCreatePayload
-import jp.co.soramitsu.account.api.presentation.actions.AddAccountBottomSheet
+import jp.co.soramitsu.account.api.presentation.actions.AddAccountPayload
 import jp.co.soramitsu.account.api.presentation.create_backup_password.CreateBackupPasswordPayload
 import jp.co.soramitsu.account.impl.domain.account.details.AccountInChain
 import jp.co.soramitsu.account.impl.presentation.AccountRouter
@@ -955,8 +955,8 @@ class Navigator :
         navController?.navigate(R.id.action_mainFragment_to_filterFragment)
     }
 
-    override fun openSendConfirm(transferDraft: TransferDraft, phishingType: PhishingType?, overrides: Map<String, Any?>, transferComment: String?) {
-        val bundle = ConfirmSendFragment.getBundle(transferDraft, phishingType, overrides, transferComment)
+    override fun openSendConfirm(transferDraft: TransferDraft, phishingType: PhishingType?, overrides: Map<String, Any?>, transferComment: String?, skipEdValidation: Boolean) {
+        val bundle = ConfirmSendFragment.getBundle(transferDraft, phishingType, overrides, transferComment, skipEdValidation)
 
         navController?.navigate(R.id.confirmSendFragment, bundle)
     }
@@ -1102,8 +1102,8 @@ class Navigator :
         navController?.navigate(R.id.backupWalletDialog, extras)
     }
 
-    override fun openRenameWallet(metaAccountId: Long) {
-        val extras = RenameAccountDialog.getBundle(metaAccountId)
+    override fun openRenameWallet(metaAccountId: Long, name: String?) {
+        val extras = RenameAccountDialog.getBundle(metaAccountId, name)
 
         navController?.navigate(R.id.renameAccountDialog, extras)
     }
@@ -1279,7 +1279,7 @@ class Navigator :
         navController?.navigate(R.id.networkIssuesFragment)
     }
 
-    override fun openOptionsAddAccount(payload: AddAccountBottomSheet.Payload) {
+    override fun openOptionsAddAccount(payload: AddAccountPayload) {
         val bundle = OptionsAddAccountFragment.getBundle(payload)
         navController?.navigate(R.id.optionsAddAccountFragment, bundle)
     }

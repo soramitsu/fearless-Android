@@ -15,6 +15,7 @@ import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
 import jp.co.soramitsu.common.data.network.subquery.SoraEraInfoValidatorResponse
 import jp.co.soramitsu.common.data.storage.Preferences
+import jp.co.soramitsu.common.domain.SelectedFiat
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.core.extrinsic.ExtrinsicService
 import jp.co.soramitsu.core.extrinsic.mortality.IChainStateRepository
@@ -167,13 +168,15 @@ class StakingFeatureModule {
         @Named(LOCAL_STORAGE_SOURCE) localStorageSource: StorageDataSource,
         chainRegistry: ChainRegistry,
         walletConstants: WalletConstants,
-        accountStakingDao: AccountStakingDao
+        accountStakingDao: AccountStakingDao,
+        storageCache: StorageCache
     ) = StakingRelayChainScenarioRepository(
         remoteStorageSource,
         localStorageSource,
         chainRegistry,
         walletConstants,
-        accountStakingDao
+        accountStakingDao,
+        storageCache
     )
 
     @Provides
@@ -585,8 +588,8 @@ class StakingFeatureModule {
     fun provideIdentitiesUseCase(identityRepository: IdentityRepository) = GetIdentitiesUseCase(identityRepository)
 
     @Provides
-    fun soraTokensRateUseCase(rpcCalls: RpcCalls, chainRegistry: ChainRegistry, tokenPriceDao: TokenPriceDao) =
-        SoraStakingRewardsScenario(rpcCalls, chainRegistry, tokenPriceDao)
+    fun soraTokensRateUseCase(rpcCalls: RpcCalls, chainRegistry: ChainRegistry, tokenPriceDao: TokenPriceDao, selectedFiat: SelectedFiat) =
+        SoraStakingRewardsScenario(rpcCalls, chainRegistry, tokenPriceDao, selectedFiat)
 
     @Provides
     @Singleton

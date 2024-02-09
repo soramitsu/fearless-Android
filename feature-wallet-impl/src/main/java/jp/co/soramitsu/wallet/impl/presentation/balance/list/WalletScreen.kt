@@ -229,6 +229,7 @@ private fun PreviewWalletScreen() {
 
     val assets: List<AssetListItemViewState> = listOf(
         AssetListItemViewState(
+            index = 0,
             assetIconUrl = "",
             assetChainName = "Chain",
             assetSymbol = "SMB",
@@ -242,7 +243,6 @@ private fun PreviewWalletScreen() {
             chainAssetId = "",
             isSupported = true,
             isHidden = false,
-            priceId = null,
             isTestnet = false
         )
     )

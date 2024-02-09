@@ -1,5 +1,6 @@
 package jp.co.soramitsu.wallet.impl.domain
 
+import java.math.BigDecimal
 import java.math.BigInteger
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.accountId
@@ -20,6 +21,8 @@ import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.bokoloCashTokenId
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.kusamaChainId
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import jp.co.soramitsu.wallet.api.domain.ExistentialDepositUseCase
 import jp.co.soramitsu.wallet.api.domain.TransferValidationResult
 import jp.co.soramitsu.wallet.api.domain.ValidateTransferUseCase
@@ -48,7 +51,9 @@ class ValidateTransferUseCaseImpl(
         ownAddress: String,
         fee: BigInteger?,
         confirmedValidations: List<TransferValidationResult>,
-        transferMyselfAvailable: Boolean
+        transferMyselfAvailable: Boolean,
+        skipEdValidation: Boolean,
+        destinationFeeAmount: BigDecimal?
     ): Result<TransferValidationResult> = kotlin.runCatching {
         fee ?: return Result.success(TransferValidationResult.WaitForFee)
         val chainId = asset.token.configuration.chainId
@@ -68,7 +73,7 @@ class ValidateTransferUseCaseImpl(
             TransferValidationResult.TransferToTheSameAddress to (!transferMyselfAvailable && recipientAddress == ownAddress)
         )
 
-        val initialCheck = performChecks(initialChecks, confirmedValidations)
+        val initialCheck = performChecks(initialChecks, confirmedValidations, skipEdValidation)
         if (initialCheck != TransferValidationResult.Valid) {
             return Result.success(initialCheck)
         }
@@ -106,6 +111,33 @@ class ValidateTransferUseCaseImpl(
                 )
             }
 
+            destinationChain.isSoraBasedChain().not() && originChain.isSoraBasedChain() -> {
+                val metaAccount = accountRepository.getSelectedMetaAccount()
+                val utilityAsset = originChain.utilityAsset?.let {
+                    walletRepository.getAsset(
+                        metaAccount.id,
+                        metaAccount.accountId(originChain)!!,
+                        it,
+                        originChain.minSupportedVersion
+                    )
+                }
+                val utilityAssetBalance = utilityAsset?.transferableInPlanks.orZero()
+                val utilityAssetExistentialDeposit = originChain.utilityAsset?.let { existentialDepositUseCase(it) }.orZero()
+
+                val utilityEdFormatted = utilityAsset?.token?.configuration?.let { utilityAssetExistentialDeposit.formatCryptoDetailFromPlanks(it) }.orEmpty()
+
+                val bridgeMinimumAmountValidation = bridgeMinimumAmountValidation(destinationChain, asset, amountInPlanks)
+
+                mapOf(
+                    bridgeMinimumAmountValidation,
+                    TransferValidationResult.InsufficientBalance to (amountInPlanks > transferable),
+                    TransferValidationResult.InsufficientUtilityAssetBalance to (fee + tip > utilityAssetBalance),
+                    TransferValidationResult.ExistentialDepositWarning(assetEdFormatted) to (transferable - amountInPlanks < assetExistentialDeposit),
+                    TransferValidationResult.UtilityExistentialDepositWarning(utilityEdFormatted) to (utilityAssetBalance - (fee + tip) < utilityAssetExistentialDeposit),
+                    TransferValidationResult.DeadRecipient to (totalRecipientBalanceInPlanks + amountInPlanks < assetExistentialDeposit)
+                )
+            }
+
             destinationChain.isSoraBasedChain() && originChain.isSoraBasedChain().not() -> {
                 val metaAccount = accountRepository.getSelectedMetaAccount()
                 val utilityAsset = originChain.utilityAsset?.let {
@@ -121,9 +153,17 @@ class ValidateTransferUseCaseImpl(
 
                 val utilityEdFormatted = utilityAsset?.token?.configuration?.let { utilityAssetExistentialDeposit.formatCryptoDetailFromPlanks(it) }.orEmpty()
 
-                val substrateBridgeIncomingTransferMinAmount = BigInteger("50000000000")
+                val destinationFeeAmountInPlanks = destinationFeeAmount?.let { destinationAsset?.planksFromAmount(it) }
+                val bridgeMinimumAmountValidation = bridgeMinimumAmountValidation(originChain, asset, amountInPlanks)
+
                 mapOf(
-                    TransferValidationResult.SubstrateBridgeMinimumAmountRequired to (amountInPlanks < substrateBridgeIncomingTransferMinAmount),
+                    bridgeMinimumAmountValidation,
+                    TransferValidationResult.SubstrateBridgeAmountLessThenFeeWarning to
+                            if (destinationFeeAmountInPlanks == null) {
+                                false
+                            } else {
+                                amountInPlanks < destinationFeeAmountInPlanks
+                            },
                     TransferValidationResult.InsufficientBalance to (amountInPlanks > transferable),
                     TransferValidationResult.InsufficientUtilityAssetBalance to (fee + tip > utilityAssetBalance),
                     TransferValidationResult.ExistentialDepositWarning(assetEdFormatted) to (transferable - amountInPlanks < assetExistentialDeposit),
@@ -204,8 +244,30 @@ class ValidateTransferUseCaseImpl(
                 )
             }
         }
-        val result = performChecks(validationChecks, confirmedValidations)
+        val result = performChecks(validationChecks, confirmedValidations, skipEdValidation)
         return Result.success(result)
+    }
+
+    private fun bridgeMinimumAmountValidation(
+        utilityChain: Chain,
+        asset: Asset,
+        amountInPlanks: BigInteger
+    ): Pair<TransferValidationResult.SubstrateBridgeMinimumAmountRequired, Boolean> {
+        val minAmountTokens = when (utilityChain.utilityAsset?.chainId) {
+            polkadotChainId -> "1.1"
+            kusamaChainId -> "0.05"
+            else -> null
+        }
+        val substrateBridgeIncomingTransferMinAmountText = minAmountTokens?.let {
+            "$minAmountTokens ${asset.token.configuration.symbol.uppercase()}"
+        }.orEmpty()
+
+        val substrateBridgeTransferMinAmount = minAmountTokens?.let {
+            asset.token.planksFromAmount(BigDecimal(it))
+        }
+
+        return (TransferValidationResult.SubstrateBridgeMinimumAmountRequired(substrateBridgeIncomingTransferMinAmountText)
+                to (substrateBridgeTransferMinAmount != null && amountInPlanks < substrateBridgeTransferMinAmount))
     }
 
     override suspend fun validateExistentialDeposit(
@@ -323,10 +385,11 @@ class ValidateTransferUseCaseImpl(
 
     private fun performChecks(
         checks: Map<TransferValidationResult, Boolean>,
-        confirmedValidations: List<TransferValidationResult>
+        confirmedValidations: List<TransferValidationResult>,
+        skipEdValidation: Boolean = false
     ): TransferValidationResult {
-        checks.filter { (result, _) ->
-            result !in confirmedValidations
+        checks.filterNot { (result, _) ->
+            result in confirmedValidations || skipEdValidation && result.isExistentialDepositWarning
         }.forEach { (result, condition) ->
             if (condition) return result
         }

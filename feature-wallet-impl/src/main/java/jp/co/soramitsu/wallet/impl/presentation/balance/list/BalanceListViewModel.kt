@@ -223,7 +223,7 @@ class BalanceListViewModel @Inject constructor(
 
         val assetStates: List<AssetListItemViewState> = balanceListItems
             .sortedWith(defaultBalanceListItemSort())
-            .map { it.toAssetState() }
+            .mapIndexed { index, item -> item.toAssetState(index) }
 
         assetStates
     }.onStart { emit(buildInitialAssetsList().toMutableList()) }.inBackground().share()
@@ -257,8 +257,9 @@ class BalanceListViewModel @Inject constructor(
         return withContext(Dispatchers.Default) {
             val assets = chainInteractor.getRawChainAssets()
 
-            assets.sortedWith(defaultChainAssetListSort()).map { chainAsset ->
+            assets.sortedWith(defaultChainAssetListSort()).mapIndexed { index, chainAsset ->
                 AssetListItemViewState(
+                    index = index,
                     assetIconUrl = chainAsset.iconUrl,
                     assetChainName = chainAsset.chainName,
                     assetName = chainAsset.name.orEmpty(),
@@ -272,7 +273,6 @@ class BalanceListViewModel @Inject constructor(
                     chainAssetId = chainAsset.id,
                     isSupported = true,
                     isHidden = false,
-                    priceId = chainAsset.priceId,
                     isTestnet = chainAsset.isTestNet ?: false
                 )
             }.filter { selectedChainId.value == null || selectedChainId.value == it.chainId }

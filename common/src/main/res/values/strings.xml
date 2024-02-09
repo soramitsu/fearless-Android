@@ -727,13 +727,17 @@
   <string name="select_network_template">Select %s network</string>
   <string name="select_save_type">Select save type</string>
   <string name="select_validators_disclaimer">DISCLAIMER: Algorithmic validator suggestions do not constitute financial consultation or advice. Staking is a high-risk activity and algorithmic validator suggestions do not necessarily mitigate this risk. A validator suggested by the algorithm could still be slashed. A validator suggested by the algorithm could also change their parameters (e.g. commission rates, etc.) at any time after having been suggested and/or selected. You could lose tokens or rewards for these or other reasons. Only stake tokens and use validator suggestions at your own discretion, after conducting due diligence and carefully considering the risks involved.</string>
+  <string name="send_all_and_reap_account">Send all tokens and reap the account</string>
   <string name="send_fund">Send Fund</string>
   <string name="send_to">Send to</string>
   <string name="sending">Sending</string>
   <string name="settings_hide_zero_balances">Hide zero balances</string>
+  <string name="set_max_amount">Set max amount</string>
   <string name="share_referral_code">Share referral code</string>
   <string name="social_media">Social Media</string>
+  <string name="sora_bridge_amount_less_fee">The amount you\'re trying to transfer is insufficient to cover the transaction fees on the Kusama network. Although the transaction won\'t process, you\'ll still be charged the fees on the Sora network.</string>
   <string name="sora_bridge_low_amount_alert">Currently, there\'s a min. amount 0.05 KSM for bridging to ensure the stability and security of the SORA Network. We appreciate your understanding.</string>
+  <string name="sora_bridge_low_amount_format_alert">Currently, there\'s a min. amount %s for bridging to ensure the stability and security of the SORA Network. We appreciate your understanding.</string>
   <string name="sora_card_annual_service_fee">0 € annual service fee</string>
   <string name="sora_card_blacklisted_countires_title">Excluded of application</string>
   <string name="sora_card_blacklisted_countires_warning"><![CDATA[Residents from <b>certain countries<br>can not apply</b> for SORA Card at this moment<br><a href=\"https://soracard.com/blacklist/\">See the list</a>]]></string>

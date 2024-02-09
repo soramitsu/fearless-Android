@@ -1,7 +1,7 @@
 package jp.co.soramitsu.account.impl.presentation
 
 import jp.co.soramitsu.account.api.presentation.account.create.ChainAccountCreatePayload
-import jp.co.soramitsu.account.api.presentation.actions.AddAccountBottomSheet
+import jp.co.soramitsu.account.api.presentation.actions.AddAccountPayload
 import jp.co.soramitsu.account.api.presentation.create_backup_password.CreateBackupPasswordPayload
 import jp.co.soramitsu.account.impl.domain.account.details.AccountInChain
 import jp.co.soramitsu.account.impl.presentation.exporting.json.confirm.ExportJsonConfirmPayload
@@ -85,7 +85,7 @@ interface AccountRouter : SecureRouter {
 
     fun openExperimentalFeatures()
 
-    fun openOptionsAddAccount(payload: AddAccountBottomSheet.Payload)
+    fun openOptionsAddAccount(payload: AddAccountPayload)
 
     fun openPolkaswapDisclaimerFromProfile()
 

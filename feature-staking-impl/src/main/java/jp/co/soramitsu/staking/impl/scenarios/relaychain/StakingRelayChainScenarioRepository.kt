@@ -1,6 +1,7 @@
 package jp.co.soramitsu.staking.impl.scenarios.relaychain
 
 import java.math.BigInteger
+import jp.co.soramitsu.common.data.network.runtime.binding.BinderWithType
 import jp.co.soramitsu.common.data.network.runtime.binding.NonNullBinderWithType
 import jp.co.soramitsu.common.data.network.runtime.binding.incompatible
 import jp.co.soramitsu.common.utils.Modules
@@ -18,6 +19,7 @@ import jp.co.soramitsu.common.utils.storageKeys
 import jp.co.soramitsu.common.utils.u32ArgumentFromStorageKey
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.core.runtime.storage.returnType
+import jp.co.soramitsu.core.storage.StorageCache
 import jp.co.soramitsu.coredb.dao.AccountStakingDao
 import jp.co.soramitsu.coredb.model.AccountStakingLocal
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
@@ -29,8 +31,10 @@ import jp.co.soramitsu.runtime.storage.source.queryNonNull
 import jp.co.soramitsu.shared_utils.extensions.fromHex
 import jp.co.soramitsu.shared_utils.extensions.toHexString
 import jp.co.soramitsu.shared_utils.runtime.AccountId
+import jp.co.soramitsu.shared_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.shared_utils.runtime.definitions.types.fromByteArrayOrNull
 import jp.co.soramitsu.shared_utils.runtime.definitions.types.fromHex
+import jp.co.soramitsu.shared_utils.runtime.metadata.module.StorageEntry
 import jp.co.soramitsu.shared_utils.runtime.metadata.moduleOrNull
 import jp.co.soramitsu.shared_utils.runtime.metadata.storage
 import jp.co.soramitsu.shared_utils.runtime.metadata.storageKey
@@ -44,10 +48,12 @@ import jp.co.soramitsu.staking.api.domain.model.SlashingSpans
 import jp.co.soramitsu.staking.api.domain.model.StakingLedger
 import jp.co.soramitsu.staking.api.domain.model.StakingState
 import jp.co.soramitsu.staking.api.domain.model.ValidatorPrefs
+import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.EraRewardPoints
 import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindActiveEra
 import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindCurrentEra
 import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindCurrentIndex
 import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindCurrentSlot
+import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindEraRewardPoints
 import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindErasStartSessionIndex
 import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindExposure
 import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindHistoryDepth
@@ -59,8 +65,10 @@ import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindRewardDe
 import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindSlashDeferDuration
 import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindSlashingSpans
 import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindStakingLedger
+import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindTotalValidatorEraReward
 import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindValidatorPrefs
 import jp.co.soramitsu.staking.impl.data.network.blockhain.updaters.activeEraStorageKeyOrNull
+import jp.co.soramitsu.staking.impl.data.repository.HistoricalMapping
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletConstants
 import kotlin.math.floor
 import kotlin.math.max
@@ -82,7 +90,8 @@ class StakingRelayChainScenarioRepository(
     private val localStorage: StorageDataSource,
     private val chainRegistry: ChainRegistry,
     private val walletConstants: WalletConstants,
-    private val accountStakingDao: AccountStakingDao
+    private val accountStakingDao: AccountStakingDao,
+    private val storageCache: StorageCache
 ) {
     suspend fun sessionLength(chainId: ChainId): BigInteger {
         val runtime = runtimeFor(chainId)
@@ -396,6 +405,42 @@ class StakingRelayChainScenarioRepository(
             val type = runtime.metadata.staking().storage("ErasValidatorReward").returnType()
             scale?.let { type.fromHex(runtime, it) as BigInteger }
         }
+    }
+
+    suspend fun retrieveEraPointsDistribution(
+        chainId: ChainId
+    ): HistoricalMapping<EraRewardPoints> {
+        val historicalRange = historicalEras(chainId)
+        val runtime = requireNotNull(chainRegistry.getRuntimeOrNull(chainId))
+        val storage = runtime.metadata.staking().storage("ErasRewardPoints")
+
+        return retrieveHistoricalInfo(
+            chainId,
+            runtime,
+            historicalRange,
+            storage,
+            ::bindEraRewardPoints
+        )
+    }
+
+    private suspend fun <T> retrieveHistoricalInfo(
+        chainId: ChainId,
+        runtime: RuntimeSnapshot,
+        historicalRange: List<BigInteger>,
+        storage: StorageEntry,
+        binder: BinderWithType<T>
+    ): HistoricalMapping<T> {
+        val historicalKeysMapping = historicalRange.associateBy { storage.storageKey(runtime, it) }
+        val storageReturnType = storage.returnType()
+
+        return storageCache.getEntries(historicalKeysMapping.keys.toList(), chainId)
+            .associate {
+                historicalKeysMapping[it.storageKey]!! to binder(
+                    it.content,
+                    runtime,
+                    storageReturnType
+                )
+            }
     }
 }
 

@@ -41,7 +41,8 @@ class ChainSyncServiceTest {
                 existentialDeposit = null,
                 color = null,
                 isNative = null,
-                ethereumType = null
+                ethereumType = null,
+                priceProvider = null
             )
         ),
         nodes = listOf(
@@ -55,7 +56,8 @@ class ChainSyncServiceTest {
         options = emptyList(),
         parentId = null,
         externalApi = null,
-        minSupportedVersion = null
+        minSupportedVersion = null,
+        paraId = null
     )
 
     private val LOCAL_CHAIN = mapChainToChainLocal(REMOTE_CHAIN.toChain())
