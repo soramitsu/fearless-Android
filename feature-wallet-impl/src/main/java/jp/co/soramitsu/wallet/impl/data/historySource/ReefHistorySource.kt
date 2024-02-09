@@ -96,11 +96,6 @@ class ReefHistorySource(
         return CursorPage(nextCursor, operations.sortedByDescending { it.time })
     }
 
-    private fun TransactionFilter.isAppliedOrNull(filters: Collection<TransactionFilter>) = when {
-        this in filters -> true
-        else -> null
-    }
-
     private val reefDateFormat by lazy {
         SimpleDateFormat(
             "yyyy-MM-dd'T'HH:mm:ss.SSSSSSZ",

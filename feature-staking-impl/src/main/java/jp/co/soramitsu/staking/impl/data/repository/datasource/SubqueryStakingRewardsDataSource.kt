@@ -2,7 +2,6 @@ package jp.co.soramitsu.staking.impl.data.repository.datasource
 
 import java.math.BigInteger
 import jp.co.soramitsu.common.base.errors.RewardsNotSupportedWarning
-import jp.co.soramitsu.common.data.network.subquery.ReefRewardsNode
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.sumByBigDecimal
 import jp.co.soramitsu.common.utils.sumByBigInteger

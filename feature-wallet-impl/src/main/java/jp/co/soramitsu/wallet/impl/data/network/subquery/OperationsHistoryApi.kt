@@ -2,7 +2,6 @@ package jp.co.soramitsu.wallet.impl.data.network.subquery
 
 import jp.co.soramitsu.common.BuildConfig
 import jp.co.soramitsu.common.data.network.subquery.GiantsquidResponse
-import jp.co.soramitsu.common.data.network.subquery.ReefStakingRewardsResponse
 import jp.co.soramitsu.common.data.network.subquery.SubQueryResponse
 import jp.co.soramitsu.common.data.network.subquery.SubsquidResponse
 import jp.co.soramitsu.wallet.impl.data.network.model.request.GiantsquidHistoryRequest
