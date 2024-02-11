@@ -175,10 +175,9 @@ class BalancesUpdateSystem(
                             storageKeyToHex.mapNotNull { (key, hexRaw) ->
                                 val metadata = storageKeys.firstOrNull { it.key == key }
                                     ?: return@mapNotNull null
-
                                 val balanceData = handleBalanceResponse(
                                     runtime,
-                                    metadata.asset.typeExtra,
+                                    metadata.asset,
                                     hexRaw
                                 ).onFailure { logError(chain, it) }
 
@@ -240,7 +239,7 @@ class BalancesUpdateSystem(
 
                     val balanceData = handleBalanceResponse(
                         runtime,
-                        keyWithMetadata.asset.typeExtra,
+                        keyWithMetadata.asset,
                         hexRaw
                     ).onFailure { logError(chain, it) }
 

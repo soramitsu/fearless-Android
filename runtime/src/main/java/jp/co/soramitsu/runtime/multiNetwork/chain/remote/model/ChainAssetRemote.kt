@@ -1,5 +1,7 @@
 package jp.co.soramitsu.runtime.multiNetwork.chain.remote.model
 
+import jp.co.soramitsu.core.models.remote.PriceProvider
+
 class ChainAssetRemote(
     val id: String?,
     val name: String?,
@@ -15,5 +17,6 @@ class ChainAssetRemote(
     val staking: String?,
     val purchaseProviders: List<String>?,
     val type: String?,
-    val ethereumType: String?
+    val ethereumType: String?,
+    val priceProvider: PriceProvider?
 )

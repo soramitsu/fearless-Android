@@ -413,10 +413,6 @@ class WalletInteractorImpl(
         }
     }
 
-    override suspend fun updateAssets(newItems: List<AssetUpdateItem>) {
-        walletRepository.updateAssets(newItems)
-    }
-
     private fun mapAccountToWalletAccount(chain: Chain, account: MetaAccount) = with(account) {
         WalletAccount(account.address(chain)!!, name)
     }

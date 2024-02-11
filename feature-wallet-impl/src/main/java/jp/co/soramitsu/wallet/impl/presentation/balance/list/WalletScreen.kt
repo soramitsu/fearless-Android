@@ -243,7 +243,6 @@ private fun PreviewWalletScreen() {
             chainAssetId = "",
             isSupported = true,
             isHidden = false,
-            priceId = null,
             isTestnet = false
         )
     )

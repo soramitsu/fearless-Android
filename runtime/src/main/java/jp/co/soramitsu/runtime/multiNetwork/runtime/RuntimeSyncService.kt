@@ -109,7 +109,6 @@ class RuntimeSyncService(
                     GetMetadataRequest,
                     mapper = pojo<String>().nonNull()
                 ).getOrNull()
-
             runtimeMetadata?.let {
 
                 runtimeFilesCache.saveChainMetadata(chainId, runtimeMetadata)
@@ -138,13 +137,14 @@ class RuntimeSyncService(
 
     suspend fun syncTypes() {
         val types = typesFetcher.getTypes(BuildConfig.TYPES_URL)
+        val defaultTypes = typesFetcher.getTypes(BuildConfig.DEFAULT_V13_TYPES_URL)
         val array = Json.decodeFromString<JsonArray>(types)
         val chainIdToTypes =
             array.mapNotNull { element ->
                 val chainId =
                     element.jsonObject["chainId"]?.jsonPrimitive?.content ?: return@mapNotNull null
                 ChainTypesLocal(chainId, element.toString())
-            }
+            }.toMutableList().apply { add(ChainTypesLocal("default", defaultTypes)) }
         chainDao.insertTypes(chainIdToTypes)
     }
 
