@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.transformLatest
@@ -47,9 +48,15 @@ class NftDetailsPresenter @Inject constructor(
 
     init {
         coroutineScope.launch {
-            ownerAddress = nftInteractor.getOwnersForNFT(
-                token = screenArgsFlow.first().token
-            ).getOrNull()?.firstOrNull()
+            ownerAddress = screenArgsFlow.firstOrNull()?.token?.let { token ->
+                if (!token.isUserOwnedToken) {
+                    return@let null
+                }
+
+                nftInteractor.getOwnersForNFT(
+                    token = screenArgsFlow.first().token
+                ).getOrNull()?.firstOrNull()
+            }
         }
     }
 
