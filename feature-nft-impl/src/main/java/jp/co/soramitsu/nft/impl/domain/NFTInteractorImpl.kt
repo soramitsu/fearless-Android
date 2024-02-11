@@ -125,7 +125,7 @@ class NFTInteractorImpl(
         }.flowOn(Dispatchers.Default)
     }
 
-    @Suppress("VariableNaming")
+    @Suppress("VariableNaming", "CyclomaticComplexMethod")
     override fun collectionNFTsFlow(
         paginationRequestFlow: Flow<PaginationRequest>,
         chainSelectionFlow: Flow<String>,
@@ -175,7 +175,7 @@ class NFTInteractorImpl(
                 contractAddressFlow = contractAddressFlow,
                 selectedMetaAccountFlow = accountRepository.selectedMetaAccountFlow(),
                 exclusionFiltersFlow = exclusionFiltersHelperFlow
-            ).onEach { pagedResponse ->
+            ).transform { pagedResponse ->
                 val (chainId, chainName) = pagedResponse.chain.run { id to name }
 
                 val result = pagedResponse.result.mapCatching { paginationEvent ->
@@ -205,14 +205,29 @@ class NFTInteractorImpl(
                     )
                 }
 
-                send(Pair(result, pagedResponse.paginationRequest))
+                emit(Pair(result, pagedResponse.paginationRequest))
+            }.rememberAndZipAsPreviousIf { (collection, _) ->
+                collection is NFTCollectionResult.Data.WithTokens
+            }.onEach { (prevDataCollectionPair, currentCollectionPair) ->
+                val (currentCollection, _) = currentCollectionPair
+
+                val collectionToSend = if (
+                    currentCollection !is NFTCollectionResult.Data.WithTokens &&
+                    prevDataCollectionPair != null
+                ) {
+                    prevDataCollectionPair
+                } else {
+                    currentCollectionPair
+                }
+
+                send(collectionToSend)
             }.launchIn(this)
 
             nftRepository.paginatedNFTCollectionByContractAddressFlow(
                 paginationRequestFlow = paginationRequestFlow.withNonBlockingLock(AvailableNFTsStartedLoading),
                 chainSelectionFlow = chainSelectionHelperFlow,
                 contractAddressFlow = contractAddressFlow
-            ).onEach { pagedResponse ->
+            ).transform { pagedResponse ->
                 val (chainId, chainName) = pagedResponse.chain.run { id to name }
 
                 val result = pagedResponse.result.mapCatching { paginationEvent ->
@@ -241,15 +256,30 @@ class NFTInteractorImpl(
                     )
                 }
 
-                send(Pair(result, pagedResponse.paginationRequest))
+                emit(Pair(result, pagedResponse.paginationRequest))
+            }.rememberAndZipAsPreviousIf { (collection, _) ->
+                collection is NFTCollectionResult.Data.WithTokens
+            }.onEach { (prevDataCollectionPair, currentCollectionPair) ->
+                val (currentCollection, _) = currentCollectionPair
+
+                val collectionToSend = if (
+                    currentCollection !is NFTCollectionResult.Data.WithTokens &&
+                    prevDataCollectionPair != null
+                ) {
+                    prevDataCollectionPair
+                } else {
+                    currentCollectionPair
+                }
+
+                send(collectionToSend)
             }.launchIn(this)
         }.rememberAndZipAsPreviousIf { (collection, _) ->
-            collection is NFTCollectionResult.Data
+            collection is NFTCollectionResult.Data.WithTokens
         }.transform { (prevDataCollectionPair, currentCollectionPair) ->
             val (currentCollection, _) = currentCollectionPair
 
             val collectionToSend = if (
-                currentCollection !is NFTCollectionResult.Data &&
+                currentCollection !is NFTCollectionResult.Data.WithTokens &&
                 prevDataCollectionPair != null
             ) {
                 prevDataCollectionPair

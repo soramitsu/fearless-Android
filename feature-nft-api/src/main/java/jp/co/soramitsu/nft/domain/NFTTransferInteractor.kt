@@ -3,6 +3,7 @@ package jp.co.soramitsu.nft.domain
 import jp.co.soramitsu.nft.domain.models.NFT
 import kotlinx.coroutines.flow.Flow
 import java.math.BigDecimal
+import java.math.BigInteger
 
 interface NFTTransferInteractor {
 
@@ -57,4 +58,6 @@ interface NFTTransferInteractor {
         receiver: String,
         canReceiverAcceptToken: Boolean
     ): Result<String>
+
+    suspend fun balance(token: NFT): Result<BigInteger>
 }

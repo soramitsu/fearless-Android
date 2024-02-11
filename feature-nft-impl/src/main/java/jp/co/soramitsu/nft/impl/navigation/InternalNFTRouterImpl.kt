@@ -72,8 +72,8 @@ class InternalNFTRouterImpl(
         walletRouter.openOperationSuccess(txHash, chainId)
     }
 
-    override fun openErrorsScreen(message: String) {
-        mutableActionsFlow.tryEmit(NavAction.ShowError(message))
+    override fun openErrorsScreen(title: String?, message: String) {
+        mutableActionsFlow.tryEmit(NavAction.ShowError(title, message))
     }
 
     override fun showToast(message: String) {

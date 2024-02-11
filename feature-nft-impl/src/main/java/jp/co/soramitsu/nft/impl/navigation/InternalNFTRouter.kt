@@ -32,7 +32,7 @@ interface InternalNFTRouter {
 
     fun openSuccessScreen(txHash: String, chainId: ChainId)
 
-    fun openErrorsScreen(message: String)
+    fun openErrorsScreen(title: String? = null, message: String)
 
     fun showToast(message: String)
 

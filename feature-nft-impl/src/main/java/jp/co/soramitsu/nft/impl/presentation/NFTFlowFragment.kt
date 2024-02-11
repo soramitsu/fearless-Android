@@ -149,7 +149,6 @@ class NFTFlowFragment : BaseComposeBottomSheetDialogFragment<NFTFlowViewModel>()
             viewModel.navGraphActionsFlow.onEach {
                 when (it) {
                     is NavAction.BackPressed -> {
-                        println("This is checkpoint: backPressedActionReceived")
                         val isBackNavigationSuccess = navController.popBackStack()
 
                         val currentRoute = navController.currentDestination?.route
@@ -165,7 +164,7 @@ class NFTFlowFragment : BaseComposeBottomSheetDialogFragment<NFTFlowViewModel>()
 
                     is NavAction.ShowError ->
                         showErrorDialog(
-                            title = resources.getString(R.string.common_error_general_title),
+                            title = it.errorTitle ?: resources.getString(R.string.common_error_general_title),
                             message = it.errorText,
                             positiveClick = viewModel::onNavigationClick,
                             negativeClick = viewModel::onNavigationClick,

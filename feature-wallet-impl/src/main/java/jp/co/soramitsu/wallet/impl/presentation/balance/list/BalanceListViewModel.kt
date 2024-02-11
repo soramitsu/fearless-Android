@@ -316,10 +316,8 @@ class BalanceListViewModel @Inject constructor(
                 }
 
                 allNFTCollectionsData.filterIsInstance<NFTCollectionResult.Data>()
-                    .toStableViewsList(
-                        screenLayout = screenLayout,
-                        onItemClick = { router.openNftCollection(it.chainId, it.contractAddress, it.collectionName) }
-                    ).also { emit(it) }
+                    .toStableViewsList(screenLayout, ::onNFTCollectionClick)
+                    .also { emit(it) }
             }.combine(paginationRequestHelperFlow) { views, paginationRequest ->
                 if (!isLoadingCompleted.get()) {
                     if (paginationRequest is PaginationRequest.Prev)
@@ -336,6 +334,10 @@ class BalanceListViewModel @Inject constructor(
                 send(viewsStableList)
             }.launchIn(this)
         }
+    }
+
+    private fun onNFTCollectionClick(collection: NFTCollectionResult.Data) {
+        router.openNftCollection(collection.chainId, collection.contractAddress, collection.collectionName)
     }
 
     private val assetTypeState = combine(

@@ -2,6 +2,8 @@ package jp.co.soramitsu.nft.impl.presentation.confirmsend
 
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.model.address
+import jp.co.soramitsu.common.base.errors.TitledException
+import jp.co.soramitsu.common.base.errors.ValidationException
 import jp.co.soramitsu.common.compose.component.ButtonViewState
 import jp.co.soramitsu.common.compose.component.TitleValueViewState
 import jp.co.soramitsu.common.compose.models.ImageModel
@@ -11,14 +13,17 @@ import jp.co.soramitsu.common.utils.applyFiatRate
 import jp.co.soramitsu.common.utils.formatCryptoDetail
 import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.formatting.shortenAddress
+import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.feature_nft_impl.R
 import jp.co.soramitsu.nft.domain.NFTTransferInteractor
+import jp.co.soramitsu.nft.impl.domain.usecase.validation.ValidateNFTTransferUseCase
 import jp.co.soramitsu.nft.impl.navigation.InternalNFTRouter
 import jp.co.soramitsu.nft.impl.presentation.confirmsend.contract.ConfirmNFTSendCallback
 import jp.co.soramitsu.nft.impl.presentation.confirmsend.contract.ConfirmNFTSendScreenState
 import jp.co.soramitsu.nft.navigation.NestedNavGraphRoute
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
+import jp.co.soramitsu.wallet.api.domain.fromValidationResult
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -30,6 +35,7 @@ import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
@@ -37,6 +43,8 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
+import java.math.BigInteger
 import javax.inject.Inject
 
 class ConfirmNFTSendPresenter @Inject constructor(
@@ -45,6 +53,7 @@ class ConfirmNFTSendPresenter @Inject constructor(
     private val walletInteractor: WalletInteractor,
     private val chainsRepository: ChainsRepository,
     private val nftTransferInteractor: NFTTransferInteractor,
+    private val validateNFTTransferUseCase: ValidateNFTTransferUseCase,
     private val internalNFTRouter: InternalNFTRouter
 ) : ConfirmNFTSendCallback {
 
@@ -64,8 +73,10 @@ class ConfirmNFTSendPresenter @Inject constructor(
                     destinationArgs.isReceiverKnown
                 )
             }.onEach { result ->
-                result.onFailure {
-                    it.message?.let(internalNFTRouter::openErrorsScreen)
+                result.onFailure { throwable ->
+                    throwable.message?.let {
+                        internalNFTRouter.openErrorsScreen(message = it)
+                    }
                 }
             }
 
@@ -138,6 +149,46 @@ class ConfirmNFTSendPresenter @Inject constructor(
         val destination = screenArgsFlow.replayCache.lastOrNull() ?: return
 
         coroutineScope.launch {
+            val chain = chainsRepository.getChain(destination.token.chainId)
+
+            val utilityAssetId = chain.utilityAsset?.id ?: return@launch
+            val utilityAsset = walletInteractor.getCurrentAsset(chain.id, utilityAssetId)
+
+            val selectedAccountAddress =
+                accountInteractor.selectedMetaAccount().address(chain) ?: return@launch
+
+            val tokenBalance = nftTransferInteractor.balance(destination.token).getOrElse { BigInteger.ZERO }
+
+            val fee = nftTransferInteractor.networkFeeFlow(
+                destination.token,
+                destination.receiver,
+                destination.isReceiverKnown
+            ).first().getOrElse { BigDecimal.ZERO }
+
+            val validationProcessResult = validateNFTTransferUseCase(
+                chain = chain,
+                recipient = destination.receiver,
+                ownAddress = selectedAccountAddress,
+                utilityAsset = utilityAsset,
+                fee = fee.toBigInteger(),
+                skipEdValidation = false,
+                balance = tokenBalance,
+                confirmedValidations = emptyList(),
+            )
+
+            // error occurred inside validation
+            validationProcessResult.exceptionOrNull()?.let {
+                showError(it)
+                return@launch
+            }
+            val validationResult = validationProcessResult.requireValue()
+
+            ValidationException.fromValidationResult(validationResult, resourceManager)?.let {
+                showError(it)
+                return@launch
+            }
+            // all checks have passed - go to next step
+
             nftTransferInteractor.send(
                 token = destination.token,
                 receiver = destination.receiver,
@@ -147,9 +198,26 @@ class ConfirmNFTSendPresenter @Inject constructor(
                     internalNFTRouter.openSuccessScreen(it, destination.token.chainId)
                 },
                 onFailure = {
-                    it.message?.let(internalNFTRouter::openErrorsScreen)
+                    it.message?.let { internalNFTRouter.openErrorsScreen(message = it) }
                 }
             )
+        }
+    }
+
+    private fun showError(throwable: Throwable) {
+        when (throwable) {
+            is ValidationException -> {
+                val (title, text) = throwable
+                internalNFTRouter.openErrorsScreen(title, text)
+            }
+
+            is TitledException -> {
+                internalNFTRouter.openErrorsScreen(throwable.title, throwable.message.orEmpty())
+            }
+
+            else -> {
+                throwable.message?.let { internalNFTRouter.openErrorsScreen(message = it) }
+            }
         }
     }
 

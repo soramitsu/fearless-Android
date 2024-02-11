@@ -7,9 +7,11 @@ import jp.co.soramitsu.common.data.secrets.v2.KeyPairSchema
 import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
 import jp.co.soramitsu.nft.domain.NFTTransferInteractor
 import jp.co.soramitsu.nft.domain.models.NFT
+import jp.co.soramitsu.nft.impl.domain.adapters.NFTAccountBalanceAdapter
 import jp.co.soramitsu.nft.impl.domain.adapters.NFTTransferAdapter
 import jp.co.soramitsu.nft.impl.domain.usecase.eth.CreateRawEthTransaction
 import jp.co.soramitsu.nft.impl.domain.usecase.eth.EstimateEthTransactionNetworkFee
+import jp.co.soramitsu.nft.impl.domain.usecase.eth.ExecuteEthFunction
 import jp.co.soramitsu.nft.impl.domain.usecase.eth.SendRawEthTransaction
 import jp.co.soramitsu.nft.impl.domain.utils.nonNullWeb3j
 import jp.co.soramitsu.nft.impl.domain.utils.subscribeNewHeads
@@ -22,6 +24,7 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.transform
 import org.web3j.utils.Numeric
 import java.math.BigDecimal
+import java.math.BigInteger
 
 class NFTTransferInteractorImpl(
     private val accountRepository: AccountRepository,
@@ -118,6 +121,28 @@ class NFTTransferInteractorImpl(
                     call = nftTransfer
                 )
             )
+        }
+    }
+
+    override suspend fun balance(token: NFT): Result<BigInteger> {
+        val chain = chainsRepository.getChain(token.chainId)
+        val connection = getWeb3Connection(chain.id)
+
+        return runCatching {
+            val sender = accountRepository.getSelectedMetaAccount().address(chain) ?: error(
+                """
+                    Currently selected account is unavailable now.
+                """.trimIndent()
+            )
+
+            val nftTransfer = NFTAccountBalanceAdapter(
+                sender = sender,
+                token = token
+            )
+
+            return@runCatching connection.ExecuteEthFunction(
+                call = nftTransfer
+            ) { Numeric.decodeQuantity(it?.value!!.toString()) }
         }
     }
 }

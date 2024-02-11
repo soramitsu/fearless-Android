@@ -2,14 +2,22 @@ package jp.co.soramitsu.nft.data.pagination
 
 sealed interface Page {
 
-    object NoPrevPages : Page
+    object NoPrevPages : Page {
+        override fun toString(): String {
+            return "Page.NoPrevPages"
+        }
+    }
 
     @JvmInline
     value class ValidPage(
         val key: String?
     ) : Page
 
-    object NoNextPages : Page
+    object NoNextPages : Page {
+        override fun toString(): String {
+            return "Page.NoNextPages"
+        }
+    }
 }
 
 suspend inline fun <T> Page.mapToPaginationEvent(crossinline transform: suspend (String?) -> T): PaginationEvent<T> {

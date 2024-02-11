@@ -6,8 +6,8 @@ sealed interface NavAction {
 
     object QRCodeScanner : NavAction
 
-    @JvmInline
-    value class ShowError(
+    class ShowError(
+        val errorTitle: String?,
         val errorText: String
     ) : NavAction
 
