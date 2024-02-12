@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -25,6 +26,8 @@ import jp.co.soramitsu.common.compose.component.AddressInputState
 import jp.co.soramitsu.common.compose.component.Badge
 import jp.co.soramitsu.common.compose.component.BottomSheetScreen
 import jp.co.soramitsu.common.compose.component.ButtonViewState
+import jp.co.soramitsu.common.compose.component.FeeInfo
+import jp.co.soramitsu.common.compose.component.FeeInfoViewState
 import jp.co.soramitsu.common.compose.component.FullScreenLoading
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
@@ -99,6 +102,12 @@ private fun ChooseNFTRecipientScreen(state: ChooseNFTRecipientScreenState, callb
                     )
                 }
 
+                MarginVertical(margin = 12.dp)
+                FeeInfo(
+                    state = state.feeInfoState,
+                    modifier = Modifier.defaultMinSize(minHeight = 52.dp)
+                )
+
                 Spacer(modifier = Modifier.weight(1f))
             }
 
@@ -128,7 +137,8 @@ private fun SendSetupPreview() {
         addressInputState = AddressInputState("Send to", "", ""),
         buttonState = ButtonViewState("Continue", true),
         isHistoryAvailable = false,
-        isLoading = true
+        feeInfoState = FeeInfoViewState.default,
+        isLoading = false
     )
 
     FearlessTheme {

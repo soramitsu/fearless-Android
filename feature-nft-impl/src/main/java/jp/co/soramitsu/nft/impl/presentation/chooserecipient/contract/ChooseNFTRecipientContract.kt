@@ -4,6 +4,7 @@ import android.graphics.drawable.Drawable
 import androidx.compose.runtime.Stable
 import jp.co.soramitsu.common.compose.component.AddressInputState
 import jp.co.soramitsu.common.compose.component.ButtonViewState
+import jp.co.soramitsu.common.compose.component.FeeInfoViewState
 import jp.co.soramitsu.feature_nft_impl.R
 
 @Stable
@@ -12,6 +13,7 @@ data class ChooseNFTRecipientScreenState(
     val addressInputState: AddressInputState,
     val buttonState: ButtonViewState,
     val isHistoryAvailable: Boolean,
+    val feeInfoState: FeeInfoViewState,
     val isLoading: Boolean
 ) {
     companion object {
@@ -26,6 +28,7 @@ data class ChooseNFTRecipientScreenState(
             ),
             buttonState = ButtonViewState("", false),
             isHistoryAvailable = false,
+            feeInfoState = FeeInfoViewState.default,
             isLoading = true
         )
     }

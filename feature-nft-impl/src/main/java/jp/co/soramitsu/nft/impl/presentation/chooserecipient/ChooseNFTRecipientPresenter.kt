@@ -5,17 +5,30 @@ import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressModel
+import jp.co.soramitsu.common.base.errors.TitledException
+import jp.co.soramitsu.common.base.errors.ValidationException
 import jp.co.soramitsu.common.compose.component.AddressInputState
 import jp.co.soramitsu.common.compose.component.ButtonViewState
+import jp.co.soramitsu.common.compose.component.FeeInfoViewState
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.utils.applyFiatRate
+import jp.co.soramitsu.common.utils.combine
+import jp.co.soramitsu.common.utils.formatCryptoDetail
+import jp.co.soramitsu.common.utils.formatFiat
+import jp.co.soramitsu.common.utils.requireValue
+import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.feature_nft_impl.R
+import jp.co.soramitsu.nft.domain.NFTTransferInteractor
 import jp.co.soramitsu.nft.domain.models.NFT
+import jp.co.soramitsu.nft.impl.domain.usecase.validation.ValidateNFTTransferUseCase
 import jp.co.soramitsu.nft.impl.navigation.InternalNFTRouter
 import jp.co.soramitsu.nft.impl.presentation.chooserecipient.contract.ChooseNFTRecipientCallback
 import jp.co.soramitsu.nft.impl.presentation.chooserecipient.contract.ChooseNFTRecipientScreenState
 import jp.co.soramitsu.nft.navigation.NestedNavGraphRoute
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
+import jp.co.soramitsu.wallet.api.domain.fromValidationResult
+import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -29,13 +42,17 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
+import java.math.BigInteger
 import javax.inject.Inject
 
 class ChooseNFTRecipientPresenter @Inject constructor(
@@ -45,6 +62,9 @@ class ChooseNFTRecipientPresenter @Inject constructor(
     private val accountInteractor: AccountInteractor,
     private val walletInteractor: WalletInteractor,
     private val resourceManager: ResourceManager,
+    private val nftTransferInteractor: NFTTransferInteractor,
+    private val validateNFTTransferUseCase: ValidateNFTTransferUseCase,
+    private val currentAccountAddressUseCase: CurrentAccountAddressUseCase,
     private val internalNFTRouter: InternalNFTRouter
 ) : ChooseNFTRecipientCallback {
 
@@ -83,11 +103,19 @@ class ChooseNFTRecipientPresenter @Inject constructor(
 
         return combine(
             addressInputHelperFlow,
-            createAddressIconFlow(tokenFlow, addressInputHelperFlow, DEFAULT_ADDRESS_ICON_SIZE_IN_DP),
-            createSelectedAccountIconFlow(tokenFlow, DEFAULT_ADDRESS_ICON_SIZE_IN_DP),
+            createAddressIconFlow(tokenFlow, addressInputHelperFlow, AddressIconGenerator.SIZE_MEDIUM),
+            createSelectedAccountIconFlow(tokenFlow, AddressIconGenerator.SIZE_SMALL),
             createButtonState(tokenFlow, addressInputHelperFlow),
-            isHistoryAvailableFlow
-        ) { addressInput, addressIcon, selectedWalletIcon, buttonState, isHistoryAvailable ->
+            createFeeInfoViewState(addressInputHelperFlow),
+            isHistoryAvailableFlow,
+        ) {
+            addressInput,
+            addressIcon,
+            selectedWalletIcon,
+            buttonState,
+            feeInfoViewState,
+            isHistoryAvailable ->
+
             return@combine ChooseNFTRecipientScreenState(
                 selectedWalletIcon = selectedWalletIcon,
                 addressInputState = AddressInputState(
@@ -99,6 +127,7 @@ class ChooseNFTRecipientPresenter @Inject constructor(
                 ),
                 buttonState = buttonState,
                 isHistoryAvailable = isHistoryAvailable,
+                feeInfoState = feeInfoViewState,
                 isLoading = false
             )
         }
@@ -154,6 +183,55 @@ class ChooseNFTRecipientPresenter @Inject constructor(
         }
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private fun createFeeInfoViewState(addressInputFlow: Flow<String>): Flow<FeeInfoViewState> {
+        val networkFeeHelperFlow = combine(
+            tokenFlow,
+            addressInputFlow
+        ) { token, receiver ->
+            val isReceiverAddressValid = walletInteractor.validateSendAddress(
+                chainId = token.chainId,
+                address = receiver
+            )
+
+            return@combine if (isReceiverAddressValid) {
+                token to receiver
+            } else {
+                token to (currentAccountAddressUseCase(token.chainId) ?: "")
+            }
+        }.flatMapLatest { (token, receiver) ->
+            nftTransferInteractor.networkFeeFlow(
+                token = token,
+                receiver = receiver,
+                canReceiverAcceptToken = false
+            )
+        }
+
+        val tokenChainFlow = tokenFlow.map { token ->
+            chainsRepository.getChain(token.chainId)
+        }.distinctUntilChanged()
+
+        val utilityAssetFlow = tokenChainFlow.mapNotNull { chain ->
+            val utilityAssetId = chain.utilityAsset?.id ?: return@mapNotNull null
+            return@mapNotNull chain.id to utilityAssetId
+        }.flatMapLatest { (chainId, utilityAssetId) ->
+            walletInteractor.assetFlow(chainId, utilityAssetId)
+        }.distinctUntilChanged()
+
+        return combine(networkFeeHelperFlow, utilityAssetFlow) { networkFeeResult, utilityAsset ->
+            val tokenSymbol = utilityAsset.token.configuration.symbol
+            val tokenFiatRate = utilityAsset.token.fiatRate
+            val tokenFiatSymbol = utilityAsset.token.fiatSymbol
+
+            val networkFee = networkFeeResult.getOrNull() ?: return@combine FeeInfoViewState.default
+
+            return@combine FeeInfoViewState(
+                feeAmount = networkFee.formatCryptoDetail(tokenSymbol),
+                feeAmountFiat = networkFee.applyFiatRate(tokenFiatRate)?.formatFiat(tokenFiatSymbol),
+            )
+        }
+    }
+
     override fun onAddressInput(input: String) {
         selectedWalletIdFlow.value = null
         addressInputFlow.value = input
@@ -169,6 +247,46 @@ class ChooseNFTRecipientPresenter @Inject constructor(
         val receiver = addressInputFlow.value.trim()
 
         coroutineScope.launch {
+            val chain = chainsRepository.getChain(token.chainId)
+
+            val utilityAssetId = chain.utilityAsset?.id ?: return@launch
+            val utilityAsset = walletInteractor.getCurrentAsset(chain.id, utilityAssetId)
+
+            val selectedAccountAddress =
+                accountInteractor.selectedMetaAccount().address(chain) ?: return@launch
+
+            val tokenBalance = nftTransferInteractor.balance(token).getOrElse { BigInteger.ZERO }
+
+            val fee = nftTransferInteractor.networkFeeFlow(
+                token,
+                receiver,
+                false
+            ).first().getOrElse { BigDecimal.ZERO }
+
+            val validationProcessResult = validateNFTTransferUseCase(
+                chain = chain,
+                recipient = receiver,
+                ownAddress = selectedAccountAddress,
+                utilityAsset = utilityAsset,
+                fee = fee.toBigInteger(),
+                skipEdValidation = false,
+                balance = tokenBalance,
+                confirmedValidations = emptyList(),
+            )
+
+            // error occurred inside validation
+            validationProcessResult.exceptionOrNull()?.let {
+                showError(it)
+                return@launch
+            }
+            val validationResult = validationProcessResult.requireValue()
+
+            ValidationException.fromValidationResult(validationResult, resourceManager)?.let {
+                showError(it)
+                return@launch
+            }
+            // all checks have passed - go to next step
+
             val isReceiverAddressValid = walletInteractor.validateSendAddress(
                 chainId = token.chainId,
                 address = receiver
@@ -179,6 +297,23 @@ class ChooseNFTRecipientPresenter @Inject constructor(
             }
 
             internalNFTRouter.openNFTSendScreen(token, addressInputFlow.value.trim())
+        }
+    }
+
+    private fun showError(throwable: Throwable) {
+        when (throwable) {
+            is ValidationException -> {
+                val (title, text) = throwable
+                internalNFTRouter.openErrorsScreen(title, text)
+            }
+
+            is TitledException -> {
+                internalNFTRouter.openErrorsScreen(throwable.title, throwable.message.orEmpty())
+            }
+
+            else -> {
+                throwable.message?.let { internalNFTRouter.openErrorsScreen(message = it) }
+            }
         }
     }
 
@@ -219,7 +354,6 @@ class ChooseNFTRecipientPresenter @Inject constructor(
     }
 
     private companion object {
-        const val DEFAULT_ADDRESS_ICON_SIZE_IN_DP = 40
         const val DEFAULT_DEBOUNCE_TIMEOUT = 300L
     }
 }
