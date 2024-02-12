@@ -79,11 +79,11 @@ buildscript {
         serializationVersion = '1.5.1'
 
         activityKtx = '1.7.0'
-        fragmentKtx = '1.5.6'
+        fragmentKtx = '1.6.2'
         minifyRelease = true
         beaconVersion = "3.2.4"
 
-        sharedFeaturesVersion = "1.1.1.22-FLW"
+        sharedFeaturesVersion = "1.1.1.23-FLW"
 
         coilDep = "io.coil-kt:coil:$coilVersion"
         coilSvg = "io.coil-kt:coil-svg:$coilVersion"

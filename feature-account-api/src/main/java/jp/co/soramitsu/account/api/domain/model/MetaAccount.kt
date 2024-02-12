@@ -135,6 +135,13 @@ fun MetaAccount.address(chain: Chain): String? {
     }
 }
 
+fun LightMetaAccount.address(chain: Chain): String? {
+    return when {
+        chain.isEthereumBased -> ethereumAddress?.ethereumAddressToHex()
+        else -> substrateAccountId.toAddress(chain.addressPrefix.toShort())
+    }
+}
+
 fun MetaAccount.chainAddress(chain: Chain): String? {
     return when {
         hasChainAccount(chain.id) -> chain.addressOf(chainAccounts.getValue(chain.id).accountId)
