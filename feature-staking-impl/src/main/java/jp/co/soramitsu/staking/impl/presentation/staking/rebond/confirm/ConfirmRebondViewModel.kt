@@ -5,6 +5,8 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
+import javax.inject.Named
 import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressModel
@@ -34,8 +36,6 @@ import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import javax.inject.Inject
-import javax.inject.Named
 
 @HiltViewModel
 class ConfirmRebondViewModel @Inject constructor(
@@ -68,8 +68,14 @@ class ConfirmRebondViewModel @Inject constructor(
 
     val assetModelFlow = assetFlow
         .map {
-            val retrieveAmount = stakingScenarioInteractor.getRebondAvailableAmount(it, payload.amount)
-            mapAssetToAssetModel(it, resourceManager, { retrieveAmount }, R.string.staking_unbonding_format)
+            val retrieveAmount =
+                stakingScenarioInteractor.getRebondAvailableAmount(it, payload.amount)
+            mapAssetToAssetModel(
+                it,
+                resourceManager,
+                { retrieveAmount },
+                R.string.staking_unbonding_format
+            )
         }
         .inBackground()
         .asLiveData()
@@ -86,7 +92,8 @@ class ConfirmRebondViewModel @Inject constructor(
         val address = it.executionAddress
         val account = interactor.getProjectedAccount(address)
 
-        val addressModel = iconGenerator.createAddressModel(address, AddressIconGenerator.SIZE_SMALL, account.name)
+        val addressModel =
+            iconGenerator.createAddressModel(address, AddressIconGenerator.SIZE_SMALL, account.name)
 
         addressModel
     }
@@ -109,7 +116,10 @@ class ConfirmRebondViewModel @Inject constructor(
         val originAddressModel = originAddressModelLiveData.value ?: return@launch
         val chainId = assetFlow.first().token.configuration.chainId
         val chain = chainRegistry.getChain(chainId)
-        val supportedExplorers = chain.explorers.getSupportedExplorers(BlockExplorerUrlBuilder.Type.ACCOUNT, originAddressModel.address)
+        val supportedExplorers = chain.explorers.getSupportedExplorers(
+            BlockExplorerUrlBuilder.Type.ACCOUNT,
+            originAddressModel.address
+        )
         val externalActionsPayload = ExternalAccountActions.Payload(
             value = originAddressModel.address,
             chainId = chainId,
@@ -166,6 +176,10 @@ class ConfirmRebondViewModel @Inject constructor(
                 showMessage(resourceManager.getString(R.string.common_transaction_submitted))
 
                 router.returnToStakingBalance()
+                router.openOperationSuccess(
+                    it,
+                    validPayload.controllerAsset.token.configuration.chainId
+                )
             }
             .onFailure(::showError)
 
