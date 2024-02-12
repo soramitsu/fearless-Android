@@ -1,6 +1,7 @@
 package jp.co.soramitsu.staking.impl.domain.rewards
 
 import java.math.BigInteger
+import jp.co.soramitsu.common.domain.SelectedFiat
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.core.rpc.RpcCalls
 import jp.co.soramitsu.core.rpc.calls.liquidityProxyQuote
@@ -12,7 +13,8 @@ import jp.co.soramitsu.wallet.impl.domain.model.Token
 class SoraStakingRewardsScenario(
     private val rpcCalls: RpcCalls,
     private val chainRegistry: ChainRegistry,
-    private val tokenDao: TokenPriceDao
+    private val tokenDao: TokenPriceDao,
+    private val selectedFiat: SelectedFiat
 ) {
     companion object {
         private const val SORA_MAIN_NET_CHAIN_ID =
@@ -37,8 +39,9 @@ class SoraStakingRewardsScenario(
     suspend fun getRewardAsset(): Token {
         val chain = chainRegistry.getChain(SORA_MAIN_NET_CHAIN_ID)
         val rewardAsset = requireNotNull(chain.assetsById[REWARD_ASSET_ID])
-        val priceId = requireNotNull(rewardAsset.priceId)
-        val token = tokenDao.getTokenPrice(priceId)
+        val priceId = rewardAsset.priceProvider?.id?.takeIf { selectedFiat.isUsd() } ?: rewardAsset.priceId
+        val requirePriceId = requireNotNull(priceId)
+        val token = tokenDao.getTokenPrice(requirePriceId)
 
         return Token(
             configuration = rewardAsset,

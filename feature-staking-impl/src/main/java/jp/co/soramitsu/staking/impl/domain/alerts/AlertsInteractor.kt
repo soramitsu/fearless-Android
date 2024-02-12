@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import java.math.BigDecimal
 import java.math.BigInteger
+import jp.co.soramitsu.shared_utils.extensions.toHexString
 import jp.co.soramitsu.core.models.Asset as CoreAsset
 
 private const val NOMINATIONS_ACTIVE_MEMO = "NOMINATIONS_ACTIVE_MEMO"
@@ -38,7 +39,8 @@ class AlertsInteractor(
         val maxRewardedNominatorsPerValidator: Int,
         val minimumNominatorBond: BigInteger,
         val activeEra: BigInteger,
-        val asset: Asset
+        val asset: Asset,
+        val maxNominators: Int
     ) {
 
         val memo = mutableMapOf<Any, Any?>()
@@ -63,11 +65,17 @@ class AlertsInteractor(
 
     private fun produceChangeValidatorsAlert(context: AlertContext): Alert? {
         return requireState(context.stakingState) { nominatorState: StakingState.Stash.Nominator ->
-            Alert.ChangeValidators.takeIf {
-                // staking is inactive
-                context.isStakingActive(nominatorState.stashId).not() &&
-                    // there is no pending change
-                    nominatorState.nominations.isWaiting(context.activeEra).not()
+            val allValidatorsAreOversubscribed = nominatorState.nominations.targets.mapNotNull { context.exposures[it.toHexString()] }.all { it.others.size > context.maxNominators }
+            val stakingIsNotActive = context.isStakingActive(nominatorState.stashId).not()
+
+            if (stakingIsNotActive.not()) return null
+
+            return@requireState when {
+                stakingIsNotActive && allValidatorsAreOversubscribed -> Alert.AllValidatorsAreOversubscribed
+                stakingIsNotActive && nominatorState.nominations.isWaiting(context.activeEra)
+                    .not() -> Alert.ChangeValidators
+
+                else -> null
             }
         }
     }
@@ -124,6 +132,8 @@ class AlertsInteractor(
         val minimumNominatorBond = stakingRepository.minimumNominatorBond(chainAsset)
         val meta = accountRepository.getSelectedMetaAccount()
 
+        val maxNominators = stakingConstantsRepository.maxRewardedNominatorPerValidator(chain.id)
+
         val alertsFlow = combine(
             stakingRepository.electedExposuresInActiveEra(chain.id),
             walletRepository.assetFlow(meta.id, stakingState.accountId, chainAsset, chain.minSupportedVersion),
@@ -136,7 +146,8 @@ class AlertsInteractor(
                 maxRewardedNominatorsPerValidator = maxRewardedNominatorsPerValidator,
                 minimumNominatorBond = minimumNominatorBond,
                 asset = asset,
-                activeEra = activeEra
+                activeEra = activeEra,
+                maxNominators = maxNominators
             )
 
             alertProducers.mapNotNull { it.invoke(context) }

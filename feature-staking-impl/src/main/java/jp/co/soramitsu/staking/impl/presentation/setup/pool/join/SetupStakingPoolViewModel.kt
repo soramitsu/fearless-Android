@@ -22,7 +22,6 @@ import jp.co.soramitsu.common.utils.formatCrypto
 import jp.co.soramitsu.common.utils.formatCryptoDetail
 import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.inBackground
-import jp.co.soramitsu.common.utils.isNotZero
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.validation.AmountTooLowToStakeException
 import jp.co.soramitsu.common.validation.ExistentialDepositCrossedException
@@ -155,43 +154,48 @@ class SetupStakingPoolViewModel @Inject constructor(
         val amount = enteredAmountFlow.value
 
         viewModelScope.launch {
-            isValid(amount).fold({
-                stakingPoolSharedStateProvider.joinFlowState.set(setupFlow.copy(amount = amount))
-                router.openSelectPool()
-            }, { throwable ->
-                val message =
-                    throwable.localizedMessage ?: throwable.message ?: resourceManager.getString(R.string.common_undefined_error_message)
-                val errorAlertViewState = (throwable as? ValidationException)?.let { (title, message) ->
-                    AlertViewState(
-                        title = title,
+            isValid(amount).fold(
+                onSuccess = {
+                    stakingPoolSharedStateProvider.joinFlowState.set(setupFlow.copy(amount = amount))
+                    router.openSelectPool()
+                },
+                onFailure = { throwable ->
+                    val message =
+                        throwable.localizedMessage ?: throwable.message ?: resourceManager.getString(R.string.common_undefined_error_message)
+                    val errorAlertViewState = (throwable as? ValidationException)?.let { (title, message) ->
+                        AlertViewState(
+                            title = title,
+                            message = message,
+                            buttonText = resourceManager.getString(R.string.common_ok),
+                            iconRes = R.drawable.ic_status_warning_16
+                        )
+                    } ?: AlertViewState(
+                        title = resourceManager.getString(R.string.common_error_general_title),
                         message = message,
-                        buttonText = resourceManager.getString(R.string.common_ok),
+                        buttonText = resourceManager.getString(R.string.common_got_it),
                         iconRes = R.drawable.ic_status_warning_16
                     )
-                } ?: AlertViewState(
-                    title = resourceManager.getString(R.string.common_error_general_title),
-                    message = message,
-                    buttonText = resourceManager.getString(R.string.common_got_it),
-                    iconRes = R.drawable.ic_status_warning_16
-                )
-                router.openAlert(errorAlertViewState)
-            })
+                    router.openAlert(errorAlertViewState)
+                })
         }
     }
 
     private suspend fun isValid(amount: BigDecimal): Result<Any> {
-        val amountInPlanks = asset.token.planksFromAmount(amount)
-        val transferableInPlanks = asset.token.planksFromAmount(asset.transferable)
-        val minToJoinInPlanks = stakingPoolInteractor.getMinToJoinPool(chain.id)
-        val minToJoinFormatted = minToJoinInPlanks.formatCryptoDetailFromPlanks(asset.token.configuration)
-        val existentialDeposit = existentialDepositUseCase(asset.token.configuration)
-        val feeInPlanks = feeInPlanksFlow.value ?: return Result.failure(WaitForFeeCalculationException(resourceManager))
+        return runCatching {
+            val amountInPlanks = asset.token.planksFromAmount(amount)
+            val transferableInPlanks = asset.token.planksFromAmount(asset.transferable)
+            val minToJoinInPlanks = stakingPoolInteractor.getMinToJoinPool(chain.id)
+            val minToJoinFormatted = minToJoinInPlanks.formatCryptoDetailFromPlanks(asset.token.configuration)
+            val existentialDeposit = existentialDepositUseCase(asset.token.configuration)
+            val feeInPlanks = feeInPlanksFlow.value
 
-        return when {
-            amountInPlanks + feeInPlanks >= transferableInPlanks -> Result.failure(StakeInsufficientBalanceException(resourceManager))
-            transferableInPlanks - amountInPlanks - feeInPlanks <= existentialDeposit -> Result.failure(ExistentialDepositCrossedException(resourceManager, existentialDeposit.formatCryptoDetailFromPlanks(asset.token.configuration)))
-            amountInPlanks < minToJoinInPlanks -> Result.failure(AmountTooLowToStakeException(resourceManager, minToJoinFormatted))
-            else -> Result.success(Unit)
+            when {
+                feeInPlanks == null -> throw WaitForFeeCalculationException(resourceManager)
+                amountInPlanks + feeInPlanks >= transferableInPlanks -> throw StakeInsufficientBalanceException(resourceManager)
+                transferableInPlanks - amountInPlanks - feeInPlanks <= existentialDeposit -> throw ExistentialDepositCrossedException(resourceManager, existentialDeposit.formatCryptoDetailFromPlanks(asset.token.configuration))
+                amountInPlanks < minToJoinInPlanks -> throw AmountTooLowToStakeException(resourceManager, minToJoinFormatted)
+                else -> Unit
+            }
         }
     }
 

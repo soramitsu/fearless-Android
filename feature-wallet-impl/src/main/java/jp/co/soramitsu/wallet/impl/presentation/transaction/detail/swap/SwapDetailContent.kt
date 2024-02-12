@@ -39,6 +39,7 @@ data class SwapDetailState(
     val toTokenName: String,
     val statusAppearance: SwapStatusAppearance,
     val address: String,
+    val addressName: String?,
     val hash: String,
     val fromTokenOnToToken: String,
     val liquidityProviderFee: String,
@@ -110,7 +111,8 @@ fun SwapPreviewContent(
                     ),
                     TitleValueViewState(
                         title = stringResource(R.string.polkaswap_from),
-                        value = state.address
+                        value = state.addressName ?: state.address,
+                        additionalValue = state.address.takeIf { state.addressName != null }
                     ),
                     TitleValueViewState(
                         title = stringResource(R.string.common_date),
@@ -175,6 +177,7 @@ fun SwapDetailContentPreview() {
             fromTokenOnToToken = "0",
             networkFee = "0.0007",
             address = "asdfqwaefgqwef2fr",
+            addressName = "Contact addressbook name",
             hash = "asdfqwaefgqwef2fr",
             statusAppearance = SwapStatusAppearance.COMPLETED,
             time = 1675834923575L,

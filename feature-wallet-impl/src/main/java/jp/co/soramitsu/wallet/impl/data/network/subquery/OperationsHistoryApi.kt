@@ -5,11 +5,13 @@ import jp.co.soramitsu.common.data.network.subquery.GiantsquidResponse
 import jp.co.soramitsu.common.data.network.subquery.SubQueryResponse
 import jp.co.soramitsu.common.data.network.subquery.SubsquidResponse
 import jp.co.soramitsu.wallet.impl.data.network.model.request.GiantsquidHistoryRequest
+import jp.co.soramitsu.wallet.impl.data.network.model.request.ReefHistoryRequest
 import jp.co.soramitsu.wallet.impl.data.network.model.request.SubqueryHistoryRequest
 import jp.co.soramitsu.wallet.impl.data.network.model.request.SubsquidHistoryRequest
 import jp.co.soramitsu.wallet.impl.data.network.model.response.EtherscanHistoryResponse
 import jp.co.soramitsu.wallet.impl.data.network.model.response.GiantsquidHistoryResponse
 import jp.co.soramitsu.wallet.impl.data.network.model.response.OkLinkHistoryResponse
+import jp.co.soramitsu.wallet.impl.data.network.model.response.ReefHistoryResponse
 import jp.co.soramitsu.wallet.impl.data.network.model.response.SubqueryHistoryElementResponse
 import jp.co.soramitsu.wallet.impl.data.network.model.response.SubsquidHistoryElementsConnectionResponse
 import jp.co.soramitsu.wallet.impl.data.network.model.response.ZetaHistoryResponse
@@ -65,4 +67,10 @@ interface OperationsHistoryApi {
     suspend fun getZetaOperationsHistory(
         @Url url: String
     ): ZetaHistoryResponse
+
+    @POST
+    suspend fun getReefOperationsHistory(
+        @Url url: String,
+        @Body body: ReefHistoryRequest
+    ): SubsquidResponse<ReefHistoryResponse>
 }

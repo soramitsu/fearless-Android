@@ -266,7 +266,6 @@ fun Chain.toSyncIssue(): NetworkIssueItemState {
         },
         chainId = this.id,
         chainName = this.name,
-        assetId = this.utilityAsset?.id.orEmpty(),
-        priceId = this.utilityAsset?.priceId
+        assetId = this.utilityAsset?.id.orEmpty()
     )
 }

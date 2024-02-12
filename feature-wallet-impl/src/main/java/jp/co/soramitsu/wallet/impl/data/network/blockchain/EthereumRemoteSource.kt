@@ -25,9 +25,13 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.yield
+import org.web3j.abi.DefaultFunctionReturnDecoder
 import org.web3j.abi.FunctionEncoder
+import org.web3j.abi.TypeReference
 import org.web3j.abi.datatypes.Address
 import org.web3j.abi.datatypes.Function
+import org.web3j.abi.datatypes.generated.Int256
+import org.web3j.abi.datatypes.generated.Uint80
 import org.web3j.crypto.Credentials
 import org.web3j.crypto.RawTransaction
 import org.web3j.crypto.TransactionEncoder
@@ -137,6 +141,19 @@ class EthereumRemoteSource(private val ethereumConnectionPool: EthereumConnectio
         return web3.fetchEthBalance(asset, address)
     }
 
+    suspend fun fetchPriceFeed(
+        chainId: ChainId,
+        receiverAddress: String
+    ): BigInteger? {
+        val connection = ethereumConnectionPool.get(chainId)
+        connection?.connect()
+
+        val web3 = connection?.web3j
+            ?: throw RuntimeException("There is no connection created for chain ${chainId}")
+
+        return web3.fetchPriceFeed(receiverAddress)
+    }
+
     private suspend fun Ethereum.fetchEthBalance(asset: Asset, address: String): BigInteger {
         return if (asset.isUtility) {
             withContext(Dispatchers.IO) {
@@ -165,6 +182,44 @@ class EthereumRemoteSource(private val ethereumConnectionPool: EthereumConnectio
 
             Numeric.decodeQuantity(erc20BalanceWei)
         }
+    }
+
+    private suspend fun Ethereum.fetchPriceFeed(address: String): BigInteger? {
+        val outParameters = listOf(
+            Uint80::class.java,
+            Int256::class.java,
+            Int256::class.java,
+            Int256::class.java,
+            Uint80::class.java
+        ).map {
+            TypeReference.create(it)
+        }
+
+        val latestRoundDataFunction = Function(
+            "latestRoundData",
+            emptyList(),
+            outParameters
+        )
+
+        val latestRoundData = withContext(Dispatchers.IO) {
+            kotlin.runCatching {
+                ethCall(
+                    Transaction.createEthCallTransaction(
+                        null,
+                        Address(address).value,
+                        latestRoundDataFunction.encode()
+                    ),
+                    DefaultBlockParameterName.LATEST
+                ).send().value
+            }.getOrNull()
+        }
+
+        val decodeResult = DefaultFunctionReturnDecoder.decode(
+            latestRoundData,
+            latestRoundDataFunction.outputParameters
+        )
+
+        return decodeResult[1].value as? BigInteger
     }
 
     fun listenGas(transfer: Transfer, chain: Chain): Flow<BigInteger> {

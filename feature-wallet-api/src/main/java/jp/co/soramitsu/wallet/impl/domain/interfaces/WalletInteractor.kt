@@ -105,8 +105,6 @@ interface WalletInteractor {
 
     suspend fun getChainAddressForSelectedMetaAccount(chainId: ChainId): String?
 
-    suspend fun updateAssets(newItems: List<AssetUpdateItem>)
-
     suspend fun markAssetAsHidden(chainId: ChainId, chainAssetId: String)
 
     suspend fun markAssetAsShown(chainId: ChainId, chainAssetId: String)

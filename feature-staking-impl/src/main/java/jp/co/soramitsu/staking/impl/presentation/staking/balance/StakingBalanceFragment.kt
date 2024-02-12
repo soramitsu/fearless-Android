@@ -61,7 +61,7 @@ class StakingBalanceFragment : BaseFragment<StakingBalanceViewModel>(R.layout.fr
 
         viewModel.redeemTitle?.let { binding.stakingBalanceActions.redeem.setText(it) }
 
-        viewModel.stakingBalanceModelLiveData.observe {
+        viewModel.stakingBalanceModelFlow.observe {
             binding.stakingBalanceSwipeRefresh.isRefreshing = false
 
             with(binding.stakingBalanceInfo) {

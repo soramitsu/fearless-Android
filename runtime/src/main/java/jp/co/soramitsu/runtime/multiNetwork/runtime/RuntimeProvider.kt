@@ -5,6 +5,7 @@ import jp.co.soramitsu.core.runtime.ConstructedRuntime
 import jp.co.soramitsu.core.runtime.RuntimeFactory
 import jp.co.soramitsu.coredb.dao.ChainDao
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.reefChainId
 import jp.co.soramitsu.runtime.multiNetwork.toSyncIssue
 import jp.co.soramitsu.shared_utils.runtime.RuntimeSnapshot
 import kotlinx.coroutines.CoroutineScope
@@ -126,8 +127,16 @@ class RuntimeProvider(
                     runCatching { chainDao.getTypes(chainId) ?: throw ChainInfoNotInCacheException }
                         .getOrElse { throw ChainInfoNotInCacheException }
 
-                val runtime =
+                val runtime = if (chainId == reefChainId) {
+                    val defaultTypes =
+                        runCatching {
+                            chainDao.getTypes("default") ?: throw ChainInfoNotInCacheException
+                        }
+                            .getOrElse { throw ChainInfoNotInCacheException }
+                    runtimeFactory.constructRuntimeV13(metadataRaw, ownTypesRaw, defaultTypes, runtimeVersion)
+                } else {
                     runtimeFactory.constructRuntime(metadataRaw, ownTypesRaw, runtimeVersion)
+                }
                 runtimeFlow.emit(runtime)
                 networkStateMixin.notifyChainSyncSuccess(chainId)
             }.onFailure {
