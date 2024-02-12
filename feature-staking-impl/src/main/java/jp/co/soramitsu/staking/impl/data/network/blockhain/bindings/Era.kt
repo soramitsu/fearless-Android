@@ -53,31 +53,31 @@ fun bindCurrentEra(
 
 @UseCaseBinding
 fun bindCurrentIndex(
-    scale: String,
+    scale: String?,
     runtime: RuntimeSnapshot
 ): BigInteger {
     val returnType = runtime.metadata.storageReturnType("Session", "CurrentIndex")
 
-    return bindSessionIndex(returnType.fromHexOrNull(runtime, scale))
+    return scale ?. let { bindSessionIndex(returnType.fromHexOrNull(runtime, scale)) } ?: BigInteger.ZERO
 }
 
 @UseCaseBinding
 fun bindCurrentSlot(
-    scale: String,
+    scale: String?,
     runtime: RuntimeSnapshot
 ): BigInteger {
     val returnType = runtime.metadata.storageReturnType("Babe", "CurrentSlot")
 
-    return bindSlot(returnType.fromHexOrNull(runtime, scale))
+    return scale?.let { bindSlot(returnType.fromHexOrNull(runtime, scale)) } ?: BigInteger.ZERO
 }
 
 @UseCaseBinding
 fun bindErasStartSessionIndex(
-    scale: String,
+    scale: String?,
     runtime: RuntimeSnapshot
 ): BigInteger {
     val returnType = runtime.metadata.storageReturnType("Staking", "ErasStartSessionIndex")
-    val decoded = returnType.fromHexOrNull(runtime, scale)
+    val decoded = scale?.let { returnType.fromHexOrNull(runtime, scale) }
 
     return bindSessionIndex(decoded)
 }
