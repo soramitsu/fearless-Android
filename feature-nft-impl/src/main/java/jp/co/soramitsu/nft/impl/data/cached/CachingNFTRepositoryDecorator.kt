@@ -4,7 +4,6 @@ import androidx.collection.LruCache
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.nft.data.NFTCollectionByContractAddressPagedResponse
 import jp.co.soramitsu.nft.data.NFTRepository
-import jp.co.soramitsu.nft.data.UserOwnedTokensByContractAddressPagedResponse
 import jp.co.soramitsu.nft.data.UserOwnedTokensPagedResponse
 import jp.co.soramitsu.nft.data.models.TokenInfo
 import jp.co.soramitsu.nft.data.models.wrappers.NFTResponse
@@ -30,9 +29,6 @@ class CachingNFTRepositoryDecorator(
     private val nftRepository: NFTRepository
 ) : NFTRepository by nftRepository {
 
-    private val lruCacheMutex = Mutex()
-    private val tokensWithMetadataLRUCache: LruCache<Int, TokenInfo> = LruCache(3 * DEFAULT_PAGE_SIZE)
-
     override fun paginatedUserOwnedContractsFlow(
         paginationRequestFlow: Flow<PaginationRequest>,
         chainSelectionFlow: Flow<List<Chain>>,
@@ -54,7 +50,7 @@ class CachingNFTRepositoryDecorator(
         contractAddressFlow: Flow<String>,
         selectedMetaAccountFlow: Flow<MetaAccount>,
         exclusionFiltersFlow: Flow<List<String>>
-    ): Flow<UserOwnedTokensByContractAddressPagedResponse> {
+    ): Flow<NFTCollectionByContractAddressPagedResponse> {
         return flow {
             val mutex = Mutex()
             val savedTokensCollections = ArrayDeque<NFTResponse.TokensCollection>()
@@ -83,11 +79,6 @@ class CachingNFTRepositoryDecorator(
                     if (paginationEvent !is PaginationEvent.PageIsLoaded) {
                         return@map paginationEvent
                     }
-
-                    saveTokensToCache(
-                        chain = pagedResponse.chain,
-                        tokens = paginationEvent.data.tokenInfoList
-                    )
 
                     val tokenInfoListFromCache = updateAndFlattenCacheLocked(
                         paginationRequest = pagedResponse.paginationRequest,
@@ -143,11 +134,6 @@ class CachingNFTRepositoryDecorator(
                     if (paginationEvent !is PaginationEvent.PageIsLoaded) {
                         return@map paginationEvent
                     }
-
-                    saveTokensToCache(
-                        chain = pagedResponse.chain,
-                        tokens = paginationEvent.data.tokenInfoList
-                    )
 
                     val tokenInfoListFromCache = updateAndFlattenCacheLocked(
                         paginationRequest = pagedResponse.paginationRequest,
@@ -284,71 +270,6 @@ class CachingNFTRepositoryDecorator(
             }
 
             return@withLock collectionsCache.flatMap { it.tokenInfoList }
-        }
-    }
-
-    override suspend fun tokenMetadata(
-        chain: Chain,
-        contractAddress: String,
-        tokenId: String
-    ): Result<TokenInfo> {
-        val tokenFromCache =
-            getTokenFromCache(
-                chainId = chain.id,
-                contractAddress = contractAddress,
-                tokenId = tokenId
-            )
-
-        if (tokenFromCache != null) {
-            return Result.success(tokenFromCache)
-        }
-
-        return runCatching {
-            val result = nftRepository.tokenMetadata(
-                chain = chain,
-                contractAddress = contractAddress,
-                tokenId = tokenId
-            ).getOrThrow()
-
-            saveTokensToCache(
-                chain = chain,
-                tokens = listOf(result)
-            )
-
-            return@runCatching result
-        }
-    }
-
-    private suspend fun saveTokensToCache(chain: Chain, tokens: List<TokenInfo>) {
-        lruCacheMutex.withLock {
-            for (token in tokens) {
-                Triple(
-                    first = chain.id,
-                    second = token.contract?.address,
-                    third = token.id?.tokenId
-                ).also { uniqueTokenTriple ->
-                    tokensWithMetadataLRUCache.put(
-                        uniqueTokenTriple.hashCode(),
-                        token
-                    )
-                }
-            }
-        }
-    }
-
-    private suspend fun getTokenFromCache(
-        chainId: ChainId,
-        contractAddress: String,
-        tokenId: String
-    ): TokenInfo? {
-        return lruCacheMutex.withLock {
-            Triple(
-                first = chainId,
-                second = contractAddress,
-                third = tokenId
-            ).run {
-                tokensWithMetadataLRUCache[this.hashCode()]
-            }
         }
     }
 }

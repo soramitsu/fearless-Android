@@ -22,7 +22,7 @@ sealed interface NFTCollectionResult {
 
         class WithTokens(
             val data: Data,
-            val tokens: List<NFT>
+            val tokens: ArrayDeque<NFT>
         ) : NFTCollectionResult by data
     }
 

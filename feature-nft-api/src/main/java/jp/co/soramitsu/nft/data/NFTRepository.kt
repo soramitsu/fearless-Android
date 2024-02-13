@@ -19,12 +19,6 @@ data class UserOwnedTokensPagedResponse(
     val paginationRequest: PaginationRequest
 )
 
-data class UserOwnedTokensByContractAddressPagedResponse(
-    val chain: Chain,
-    val result: Result<PaginationEvent<NFTResponse.TokensCollection>>,
-    val paginationRequest: PaginationRequest
-)
-
 data class NFTCollectionByContractAddressPagedResponse(
     val chain: Chain,
     val result: Result<PaginationEvent<NFTResponse.TokensCollection>>,
@@ -54,7 +48,7 @@ interface NFTRepository {
         contractAddressFlow: Flow<String>,
         selectedMetaAccountFlow: Flow<MetaAccount>,
         exclusionFiltersFlow: Flow<List<String>>
-    ): Flow<UserOwnedTokensByContractAddressPagedResponse>
+    ): Flow<NFTCollectionByContractAddressPagedResponse>
 
     fun paginatedNFTCollectionByContractAddressFlow(
         paginationRequestFlow: Flow<PaginationRequest>,

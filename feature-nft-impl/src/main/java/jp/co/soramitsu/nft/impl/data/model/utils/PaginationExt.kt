@@ -175,12 +175,16 @@ inline fun PaginationRequest.transformToSpecificOrDoNothing(page: String?): Pagi
         is PaginationRequest.Next.Specific,
         is PaginationRequest.Prev.TwoBeforeSpecific -> this
 
-        is PaginationRequest.Next.Page,
-        is PaginationRequest.Next.WithSize ->
+        is PaginationRequest.Next.Page ->
             PaginationRequest.Next.Specific(page)
 
-        is PaginationRequest.Prev.Page,
-        is PaginationRequest.Prev.WithSize ->
+        is PaginationRequest.Next.WithSize ->
+            PaginationRequest.Next.Specific(page, pageLimit)
+
+        is PaginationRequest.Prev.Page ->
             PaginationRequest.Prev.TwoBeforeSpecific(page)
+
+        is PaginationRequest.Prev.WithSize ->
+            PaginationRequest.Prev.TwoBeforeSpecific(page, pageLimit)
     }
 }

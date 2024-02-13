@@ -25,7 +25,7 @@ import jp.co.soramitsu.nft.impl.domain.usecase.validation.ValidateNFTTransferUse
 import jp.co.soramitsu.nft.impl.navigation.InternalNFTRouter
 import jp.co.soramitsu.nft.impl.presentation.chooserecipient.contract.ChooseNFTRecipientCallback
 import jp.co.soramitsu.nft.impl.presentation.chooserecipient.contract.ChooseNFTRecipientScreenState
-import jp.co.soramitsu.nft.navigation.NestedNavGraphRoute
+import jp.co.soramitsu.nft.navigation.NFTNavGraphRoute
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.wallet.api.domain.fromValidationResult
 import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
@@ -71,7 +71,7 @@ class ChooseNFTRecipientPresenter @Inject constructor(
     private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 
     private val tokenFlow = internalNFTRouter.createNavGraphRoutesFlow()
-        .filterIsInstance<NestedNavGraphRoute.ChooseNFTRecipientScreen>()
+        .filterIsInstance<NFTNavGraphRoute.ChooseNFTRecipientScreen>()
         .map { destinationArgs -> destinationArgs.token }
         .shareIn(coroutineScope, SharingStarted.Eagerly, 1)
 

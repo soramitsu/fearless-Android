@@ -6,7 +6,6 @@ import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.utils.concurrentRequestFlow
 import jp.co.soramitsu.nft.data.NFTCollectionByContractAddressPagedResponse
 import jp.co.soramitsu.nft.data.NFTRepository
-import jp.co.soramitsu.nft.data.UserOwnedTokensByContractAddressPagedResponse
 import jp.co.soramitsu.nft.data.UserOwnedTokensPagedResponse
 import jp.co.soramitsu.nft.data.models.TokenInfo
 import jp.co.soramitsu.nft.data.models.wrappers.NFTResponse
@@ -252,7 +251,7 @@ class NFTRepositoryImpl(
         contractAddressFlow: Flow<String>,
         selectedMetaAccountFlow: Flow<MetaAccount>,
         exclusionFiltersFlow: Flow<List<String>>
-    ): Flow<UserOwnedTokensByContractAddressPagedResponse> {
+    ): Flow<NFTCollectionByContractAddressPagedResponse> {
         class LocalHolder(
             val paginationRequest: PaginationRequest,
             val chain: Chain,
@@ -314,7 +313,7 @@ class NFTRepositoryImpl(
                     }
                 }.also { result ->
                     emit(
-                        UserOwnedTokensByContractAddressPagedResponse(
+                        NFTCollectionByContractAddressPagedResponse(
                             chain = holder.chain,
                             result = result,
                             paginationRequest = holder.paginationRequest

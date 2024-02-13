@@ -1,7 +1,7 @@
 package jp.co.soramitsu.nft.impl.navigation
 
 import jp.co.soramitsu.nft.domain.models.NFT
-import jp.co.soramitsu.nft.navigation.NestedNavGraphRoute
+import jp.co.soramitsu.nft.navigation.NFTNavGraphRoute
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.presentation.balance.walletselector.light.WalletSelectionMode
@@ -15,21 +15,21 @@ class InternalNFTRouterImpl(
     private val walletRouter: WalletRouter
 ) : InternalNFTRouter {
 
-    private val routesStack = Stack<NestedNavGraphRoute>()
+    private val routesStack = Stack<NFTNavGraphRoute>()
 
     private val mutableRoutesFlow =
-        MutableSharedFlow<NestedNavGraphRoute>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+        MutableSharedFlow<NFTNavGraphRoute>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 
     private val mutableActionsFlow =
         MutableSharedFlow<NavAction>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 
-    override fun createNavGraphRoutesFlow(): Flow<NestedNavGraphRoute> =
+    override fun createNavGraphRoutesFlow(): Flow<NFTNavGraphRoute> =
         mutableRoutesFlow.onEach { routesStack.push(it) }
 
     override fun createNavGraphActionsFlow(): Flow<NavAction> =
         mutableActionsFlow.onEach { if (it is NavAction.BackPressed && !routesStack.isEmpty()) routesStack.pop() }
 
-    override fun <T : NestedNavGraphRoute> destination(clazz: Class<T>): T? {
+    override fun <T : NFTNavGraphRoute> destination(clazz: Class<T>): T? {
         return routesStack.filterIsInstance(clazz).lastOrNull()
     }
 
@@ -38,19 +38,19 @@ class InternalNFTRouterImpl(
     }
 
     override fun openCollectionNFTsScreen(selectedChainId: ChainId, contractAddress: String) {
-        mutableRoutesFlow.tryEmit(NestedNavGraphRoute.CollectionNFTsScreen(selectedChainId, contractAddress))
+        mutableRoutesFlow.tryEmit(NFTNavGraphRoute.CollectionNFTsScreen(selectedChainId, contractAddress))
     }
 
     override fun openDetailsNFTScreen(token: NFT) {
-        mutableRoutesFlow.tryEmit(NestedNavGraphRoute.DetailsNFTScreen(token))
+        mutableRoutesFlow.tryEmit(NFTNavGraphRoute.DetailsNFTScreen(token))
     }
 
     override fun openChooseRecipientScreen(token: NFT) {
-        mutableRoutesFlow.tryEmit(NestedNavGraphRoute.ChooseNFTRecipientScreen(token))
+        mutableRoutesFlow.tryEmit(NFTNavGraphRoute.ChooseNFTRecipientScreen(token))
     }
 
     override fun openNFTSendScreen(token: NFT, receiver: String) {
-        mutableRoutesFlow.tryEmit(NestedNavGraphRoute.ConfirmNFTSendScreen(token, receiver, false))
+        mutableRoutesFlow.tryEmit(NFTNavGraphRoute.ConfirmNFTSendScreen(token, receiver, false))
     }
 
     override fun openAddressHistory(chainId: ChainId): Flow<String> {

@@ -21,8 +21,12 @@ import jp.co.soramitsu.nft.impl.data.NFTRepositoryImpl
 import jp.co.soramitsu.nft.impl.data.cached.CachingNFTRepositoryDecorator
 import jp.co.soramitsu.nft.impl.data.model.utils.deserializer
 import jp.co.soramitsu.nft.impl.data.remote.AlchemyNftApi
+import jp.co.soramitsu.nft.impl.domain.NFTCollectionsByContractAlteringAdapter
+import jp.co.soramitsu.nft.impl.domain.NFTCollectionsByContractBufferingMediator
+import jp.co.soramitsu.nft.impl.domain.NFTCollectionsByContractMappingAdapter
 import jp.co.soramitsu.nft.impl.domain.NFTInteractorImpl
 import jp.co.soramitsu.nft.impl.domain.NFTTransferInteractorImpl
+import jp.co.soramitsu.nft.impl.domain.PaginationRequestAlteringMediator
 import jp.co.soramitsu.nft.impl.navigation.InternalNFTRouter
 import jp.co.soramitsu.nft.impl.navigation.InternalNFTRouterImpl
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
@@ -114,11 +118,17 @@ class NFTModule {
     fun provideNFTInteractor(
         @CachedNFTRepository nftRepository: NFTRepository,
         accountRepository: AccountRepository,
-        chainsRepository: ChainsRepository
+        chainsRepository: ChainsRepository,
+        collectionsByContractBufferingMediator: NFTCollectionsByContractBufferingMediator,
+        paginationRequestAlteringMediator: PaginationRequestAlteringMediator,
+        collectionsByContractMappingAdapter: NFTCollectionsByContractMappingAdapter
     ): NFTInteractor = NFTInteractorImpl(
         nftRepository = nftRepository,
         accountRepository = accountRepository,
-        chainsRepository = chainsRepository
+        chainsRepository = chainsRepository,
+        collectionsByContractBufferingMediator,
+        paginationRequestAlteringMediator,
+        collectionsByContractMappingAdapter
     )
 
     @Provides

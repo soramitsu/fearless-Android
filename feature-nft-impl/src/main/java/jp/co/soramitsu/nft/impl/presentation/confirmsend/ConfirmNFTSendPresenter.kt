@@ -21,7 +21,7 @@ import jp.co.soramitsu.nft.impl.domain.usecase.validation.ValidateNFTTransferUse
 import jp.co.soramitsu.nft.impl.navigation.InternalNFTRouter
 import jp.co.soramitsu.nft.impl.presentation.confirmsend.contract.ConfirmNFTSendCallback
 import jp.co.soramitsu.nft.impl.presentation.confirmsend.contract.ConfirmNFTSendScreenState
-import jp.co.soramitsu.nft.navigation.NestedNavGraphRoute
+import jp.co.soramitsu.nft.navigation.NFTNavGraphRoute
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.wallet.api.domain.fromValidationResult
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
@@ -60,7 +60,7 @@ class ConfirmNFTSendPresenter @Inject constructor(
     private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 
     private val screenArgsFlow = internalNFTRouter.createNavGraphRoutesFlow()
-        .filterIsInstance<NestedNavGraphRoute.ConfirmNFTSendScreen>()
+        .filterIsInstance<NFTNavGraphRoute.ConfirmNFTSendScreen>()
         .shareIn(coroutineScope, SharingStarted.Eagerly, 1)
 
     @OptIn(ExperimentalCoroutinesApi::class)

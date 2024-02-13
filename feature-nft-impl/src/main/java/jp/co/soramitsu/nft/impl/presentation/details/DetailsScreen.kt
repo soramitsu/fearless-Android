@@ -52,7 +52,7 @@ import jp.co.soramitsu.common.compose.theme.black3
 import jp.co.soramitsu.common.compose.theme.customColors
 import jp.co.soramitsu.common.compose.theme.shimmerColor
 import jp.co.soramitsu.common.utils.clickableSingle
-import jp.co.soramitsu.nft.navigation.NestedNavGraphRoute
+import jp.co.soramitsu.nft.navigation.NFTNavGraphRoute
 import kotlinx.coroutines.flow.SharedFlow
 
 @Stable
@@ -95,7 +95,7 @@ fun NavGraphBuilder.NftDetailsNavComposable(
     stateFlow: SharedFlow<NftDetailsScreenState>,
     screenInterface: NftDetailsScreenInterface
 ) {
-    composable(NestedNavGraphRoute.DetailsNFTScreen.routeName) {
+    composable(NFTNavGraphRoute.DetailsNFTScreen.routeName) {
         val state = stateFlow.collectAsStateWithLifecycle(NftDetailsScreenState())
 
         NftDetailsScreen(

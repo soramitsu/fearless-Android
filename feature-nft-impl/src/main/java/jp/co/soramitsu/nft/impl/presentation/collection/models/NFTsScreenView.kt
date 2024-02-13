@@ -2,7 +2,6 @@ package jp.co.soramitsu.nft.impl.presentation.collection.models
 
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import jp.co.soramitsu.common.compose.models.ImageModel
 import jp.co.soramitsu.common.compose.models.Loadable
 import jp.co.soramitsu.common.compose.models.ScreenLayout
@@ -11,8 +10,23 @@ import jp.co.soramitsu.common.compose.utils.PageScrollingCallback
 import jp.co.soramitsu.feature_nft_impl.R
 
 @Immutable
+sealed interface LoadableListPage<T> {
+
+    class PageReloading<T>: LoadableListPage<T>
+
+    class PreviousPageLoading<T>: LoadableListPage<T>
+
+    class NextPageLoading<T>: LoadableListPage<T>
+
+    class ReadyToRender<T>(
+        val data: List<T>
+    ): LoadableListPage<T>
+
+}
+
+@Immutable
 class NFTsScreenModel(
-    val views: SnapshotStateList<NFTsScreenView>,
+    val views: LoadableListPage<NFTsScreenView>,
     val pageScrollingCallback: PageScrollingCallback
 )
 

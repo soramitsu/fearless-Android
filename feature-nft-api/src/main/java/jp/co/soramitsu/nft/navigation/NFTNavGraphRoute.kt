@@ -3,35 +3,35 @@ package jp.co.soramitsu.nft.navigation
 import jp.co.soramitsu.nft.domain.models.NFT
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 
-sealed interface NestedNavGraphRoute {
+sealed interface NFTNavGraphRoute {
 
     val routeName: String
 
-    object Loading : NestedNavGraphRoute {
+    object Loading : NFTNavGraphRoute {
         override val routeName: String = "Loading"
     }
 
     class CollectionNFTsScreen(
         val chainId: ChainId,
         val contractAddress: String
-    ) : NestedNavGraphRoute by Companion {
-        companion object : NestedNavGraphRoute {
+    ) : NFTNavGraphRoute by Companion {
+        companion object : NFTNavGraphRoute {
             override val routeName: String = "CollectionNFTsScreen"
         }
     }
 
     class DetailsNFTScreen(
         val token: NFT
-    ) : NestedNavGraphRoute by Companion {
-        companion object : NestedNavGraphRoute {
+    ) : NFTNavGraphRoute by Companion {
+        companion object : NFTNavGraphRoute {
             override val routeName: String = "DetailsNFTScreen"
         }
     }
 
     class ChooseNFTRecipientScreen(
         val token: NFT
-    ) : NestedNavGraphRoute by Companion {
-        companion object : NestedNavGraphRoute {
+    ) : NFTNavGraphRoute by Companion {
+        companion object : NFTNavGraphRoute {
             override val routeName: String = "ChooseNFTRecipientScreen"
         }
     }
@@ -40,8 +40,8 @@ sealed interface NestedNavGraphRoute {
         val token: NFT,
         val receiver: String,
         val isReceiverKnown: Boolean
-    ) : NestedNavGraphRoute by Companion {
-        companion object : NestedNavGraphRoute {
+    ) : NFTNavGraphRoute by Companion {
+        companion object : NFTNavGraphRoute {
             override val routeName: String = "ConfirmNFTSendScreen"
         }
     }

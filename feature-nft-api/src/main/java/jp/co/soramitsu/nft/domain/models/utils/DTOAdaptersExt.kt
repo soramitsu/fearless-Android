@@ -89,15 +89,17 @@ fun NFTResponse.TokensCollection.toNFTCollectionWithTokens(
 
     val tokenType = contractMetadata?.tokenType.orEmpty()
 
-    val tokens = tokenInfoList.mapNotNull {
-        if (it.id?.tokenId != null && excludeTokensWithIds?.contains(it.id.tokenId) == true) {
-            return@mapNotNull null
-        }
+    val tokens = ArrayDeque(
+        tokenInfoList.mapNotNull {
+            if (it.id?.tokenId != null && excludeTokensWithIds?.contains(it.id.tokenId) == true) {
+                return@mapNotNull null
+            }
 
-        it.toNFT(
-            chain = chain
-        )
-    }.takeIf { it.isNotEmpty() } ?: return NFTCollectionResult.Empty(chain.id, chain.name)
+            it.toNFT(
+                chain = chain
+            )
+        }
+    ).ifEmpty { return NFTCollectionResult.Empty(chain.id, chain.name) }
 
     return NFTCollectionResult.Data(
         chainId = chain.id,

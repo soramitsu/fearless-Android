@@ -21,6 +21,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Divider
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
@@ -61,17 +64,18 @@ import jp.co.soramitsu.common.compose.utils.nestedScrollConnectionForPageScrolli
 import jp.co.soramitsu.common.utils.clickableSingle
 import jp.co.soramitsu.nft.impl.presentation.collection.models.NFTsScreenModel
 import jp.co.soramitsu.nft.impl.presentation.collection.models.NFTsScreenView
+import jp.co.soramitsu.nft.impl.presentation.collection.models.LoadableListPage
 import jp.co.soramitsu.nft.impl.presentation.collection.utils.createShimmeredNFTViewsList
-import jp.co.soramitsu.nft.navigation.NestedNavGraphRoute
+import jp.co.soramitsu.nft.navigation.NFTNavGraphRoute
 import kotlinx.coroutines.flow.SharedFlow
 
 @Suppress("FunctionName")
 fun NavGraphBuilder.CollectionNFTsNavComposable(
-    viewsListFlow: SharedFlow<SnapshotStateList<NFTsScreenView>>,
+    viewsListFlow: SharedFlow<LoadableListPage<NFTsScreenView>>,
     pageScrollingCallback: PageScrollingCallback
 ) {
-    composable(NestedNavGraphRoute.CollectionNFTsScreen.routeName) {
-        val viewsList = viewsListFlow.collectAsStateWithLifecycle(createShimmeredNFTViewsList())
+    composable(NFTNavGraphRoute.CollectionNFTsScreen.routeName) {
+        val viewsList = viewsListFlow.collectAsStateWithLifecycle(LoadableListPage.PageReloading())
 
         CollectionNFTsScreen(
             screenModel = NFTsScreenModel(
@@ -90,19 +94,92 @@ private fun CollectionNFTsScreen(screenModel: NFTsScreenModel) {
         lazyGridState.nestedScrollConnectionForPageScrolling(screenModel.pageScrollingCallback)
     }
 
+//    LazyVerticalGrid(
+//        state = lazyGridState,
+//        columns = GridCells.Fixed(2),
+//        verticalArrangement = Arrangement.spacedBy(8.dp),
+//        horizontalArrangement = Arrangement.spacedBy(8.dp),
+//        modifier = Modifier
+//            .nestedScroll(nestedScrollConnection)
+//            .padding(horizontal = 16.dp)
+//            .padding(
+//                top = 8.dp,
+//                bottom = 16.dp
+//            )
+//    ) {
+//        for (view in screenModel.views) {
+//            when (view) {
+//                is NFTsScreenView.ScreenHeader ->
+//                    NFTScreenHeader(view)
+//
+//                is NFTsScreenView.SectionHeader ->
+//                    NFTSectionHeader(view)
+//
+//                is NFTsScreenView.ItemModel ->
+//                    NFTItem(view)
+//
+//                is NFTsScreenView.LoadingIndication ->
+//                    NFTLoadingIndication(view)
+//
+//                is NFTsScreenView.EmptyPlaceHolder ->
+//                    NFTEmptyPlaceholder(view)
+//            }
+//        }
+//
+//        item { MarginVertical(margin = 80.dp) }
+//    }
+
+    val views = remember { mutableStateListOf<NFTsScreenView>() }
+
+    LaunchedEffect(screenModel) {
+        when(screenModel.views) {
+            is LoadableListPage.ReadyToRender -> {
+                val data = screenModel.views.data
+
+                if (
+                    !data.contains(NFTsScreenView.EmptyPlaceHolder) ||
+                    views.isEmpty()
+                ) {
+                    views.clear()
+                    views.addAll(data)
+                    println("This is checkpoint: updating loadable list page")
+                }
+            }
+
+            is LoadableListPage.PreviousPageLoading -> {
+                val index = views.indexOfFirst { it is NFTsScreenView.SectionHeader }.plus(1)
+                views.add(index, NFTsScreenView.LoadingIndication)
+                println("This is checkpoint: adding loading indication at index $index, with prev page loading")
+            }
+
+            is LoadableListPage.NextPageLoading -> {
+                val index = views.indexOfLast { it is NFTsScreenView.ItemModel }.plus(1)
+                views.add(index, NFTsScreenView.LoadingIndication)
+                println("This is checkpoint: adding loading indication at index $index, with next page loading")
+            }
+
+            is LoadableListPage.PageReloading -> {
+                views.clear()
+                views.addAll(createShimmeredNFTViewsList())
+                println("This is checkpoint: page is reloading")
+            }
+        }
+    }
+
     LazyVerticalGrid(
         state = lazyGridState,
         columns = GridCells.Fixed(2),
         verticalArrangement = Arrangement.spacedBy(8.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
-        modifier = Modifier.nestedScroll(nestedScrollConnection)
+        modifier = Modifier
+            .nestedScroll(nestedScrollConnection)
             .padding(horizontal = 16.dp)
             .padding(
                 top = 8.dp,
                 bottom = 16.dp
             )
     ) {
-        for (view in screenModel.views) {
+        for (view in views) {
             when (view) {
                 is NFTsScreenView.ScreenHeader ->
                     NFTScreenHeader(view)

@@ -53,7 +53,7 @@ import jp.co.soramitsu.nft.impl.presentation.chooserecipient.ChooseNFTRecipientN
 import jp.co.soramitsu.nft.impl.presentation.collection.CollectionNFTsNavComposable
 import jp.co.soramitsu.nft.impl.presentation.confirmsend.ConfirmNFTSendNavComposable
 import jp.co.soramitsu.nft.impl.presentation.details.NftDetailsNavComposable
-import jp.co.soramitsu.nft.navigation.NestedNavGraphRoute
+import jp.co.soramitsu.nft.navigation.NFTNavGraphRoute
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -152,7 +152,7 @@ class NFTFlowFragment : BaseComposeBottomSheetDialogFragment<NFTFlowViewModel>()
                         val isBackNavigationSuccess = navController.popBackStack()
 
                         val currentRoute = navController.currentDestination?.route
-                        val loadingRoute = NestedNavGraphRoute.Loading.routeName
+                        val loadingRoute = NFTNavGraphRoute.Loading.routeName
 
                         if (currentRoute == loadingRoute || !isBackNavigationSuccess) {
                             viewModel.exitFlow()
@@ -202,7 +202,7 @@ class NFTFlowFragment : BaseComposeBottomSheetDialogFragment<NFTFlowViewModel>()
 
             MarginVertical(margin = 24.dp)
             NavHost(
-                startDestination = NestedNavGraphRoute.Loading.routeName,
+                startDestination = NFTNavGraphRoute.Loading.routeName,
                 contentAlignment = Alignment.TopCenter,
                 navController = navController,
                 modifier = Modifier
@@ -229,7 +229,7 @@ class NFTFlowFragment : BaseComposeBottomSheetDialogFragment<NFTFlowViewModel>()
                     callback = viewModel
                 )
 
-                composable(NestedNavGraphRoute.Loading.routeName) {
+                composable(NFTNavGraphRoute.Loading.routeName) {
                     Box(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
