@@ -211,6 +211,7 @@ class RedeemViewModel @Inject constructor(
                 result.requireValue().willKillStash -> router.returnToMain()
                 else -> router.returnToStakingBalance()
             }
+            result.getOrNull()?.let { router.openOperationSuccess(it.hash, redeemValidationPayload.asset.token.configuration.chainId) }
         } else {
             showError(result.requireException())
         }
