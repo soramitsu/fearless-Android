@@ -446,7 +446,6 @@ class BalanceDetailViewModel @Inject constructor(
     }
 
     fun claimRewardClicked() {
-        println("!!! claimRewardClicked")
         router.openClaimRewards(assetPayload.value.chainId)
     }
 

@@ -532,18 +532,6 @@ class WalletInteractorImpl(
     override suspend fun checkClaimSupport(chainId: ChainId): Boolean {
         val metadata = chainRegistry.getRuntimeOrNull(chainId)?.metadata
 
-        if (metadata?.moduleOrNull(Modules.VESTING)?.calls?.get("claim") != null) {
-            println("!!! checkClaimSupport: VESTING claim")
-        }
-        else if (metadata?.moduleOrNull(Modules.VESTING)?.calls?.get("vest") != null) {
-            println("!!! checkClaimSupport: VESTING vest")
-        }
-        else if (metadata?.moduleOrNull(Modules.VESTED_REWARDS)?.calls?.get("claim_rewards") != null) {
-            println("!!! checkClaimSupport: VESTED_REWARDS claim_rewards")
-        }
-        else {
-            println("!!! checkClaimSupport: false for chainId = $chainId")
-        }
         return metadata?.moduleOrNull(Modules.VESTING)?.calls?.get("claim") != null
                 || metadata?.moduleOrNull(Modules.VESTING)?.calls?.get("vest") != null
                 || metadata?.moduleOrNull(Modules.VESTED_REWARDS)?.calls?.get("claim_rewards") != null
