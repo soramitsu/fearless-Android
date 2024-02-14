@@ -19,7 +19,7 @@ import it.airgap.beaconsdk.blockchain.substrate.data.SubstrateSignerPayload
 import java.math.BigDecimal
 import jp.co.soramitsu.account.api.domain.model.ImportMode
 import jp.co.soramitsu.account.api.presentation.account.create.ChainAccountCreatePayload
-import jp.co.soramitsu.account.api.presentation.actions.AddAccountBottomSheet
+import jp.co.soramitsu.account.api.presentation.actions.AddAccountPayload
 import jp.co.soramitsu.account.api.presentation.create_backup_password.CreateBackupPasswordPayload
 import jp.co.soramitsu.account.impl.domain.account.details.AccountInChain
 import jp.co.soramitsu.account.impl.presentation.AccountRouter
@@ -1279,7 +1279,7 @@ class Navigator :
         navController?.navigate(R.id.networkIssuesFragment)
     }
 
-    override fun openOptionsAddAccount(payload: AddAccountBottomSheet.Payload) {
+    override fun openOptionsAddAccount(payload: AddAccountPayload) {
         val bundle = OptionsAddAccountFragment.getBundle(payload)
         navController?.navigate(R.id.optionsAddAccountFragment, bundle)
     }

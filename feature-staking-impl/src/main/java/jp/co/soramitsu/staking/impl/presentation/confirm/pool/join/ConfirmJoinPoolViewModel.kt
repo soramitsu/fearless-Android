@@ -22,6 +22,7 @@ import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -77,7 +78,9 @@ class ConfirmJoinPoolViewModel @Inject constructor(
             feeFormatted,
             feeFiat
         )
-    }.stateIn(
+    }
+        .catch { emit(defaultFeeState) }
+        .stateIn(
         viewModelScope,
         SharingStarted.Eagerly,
         defaultFeeState

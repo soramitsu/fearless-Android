@@ -28,12 +28,13 @@ data class ChainAssetLocal(
     val priceId: String?,
     val staking: String,
     val precision: Int,
-    val priceProviders: String?,
+    val purchaseProviders: String?,
     val isUtility: Boolean?,
     val type: String?,
     val currencyId: String?,
     val existentialDeposit: String?,
     val color: String?,
     val isNative: Boolean?,
-    val ethereumType: String?
+    val ethereumType: String?,
+    val priceProvider: String?
 )

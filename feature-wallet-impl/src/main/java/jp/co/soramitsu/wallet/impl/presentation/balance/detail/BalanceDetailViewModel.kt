@@ -65,7 +65,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -112,20 +112,22 @@ class BalanceDetailViewModel @Inject constructor(
     private val chainsItemStateFlow = chainsFlow.mapList { it.toChainItemState() }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    private val assetModelFlow = selectedChainId.map { selectedChainId ->
-        val chains = chainsFlow.first()
-        val selectedChain = chains.first { it.id == selectedChainId }
-        val initialSelectedChain = chains.first { it.id == assetPayloadInitial.chainId }
+    private val assetModelFlow = selectedChainId.mapNotNull { selectedChainId ->
+        val chains = chainsFlow.firstOrNull()
+        val selectedChain = chains?.firstOrNull { it.id == selectedChainId }
+        val initialSelectedChain = chains?.firstOrNull { it.id == assetPayloadInitial.chainId }
 
         val initialSelectedAssetSymbol =
-            initialSelectedChain.assets.first { it.id == assetPayloadInitial.chainAssetId }.symbol
+            initialSelectedChain?.assets?.firstOrNull { it.id == assetPayloadInitial.chainAssetId }?.symbol
         val newSelectedAsset =
-            selectedChain.assets.first { it.symbol == initialSelectedAssetSymbol }
+            selectedChain?.assets?.firstOrNull { it.symbol == initialSelectedAssetSymbol }
 
-        AssetPayload(
-            chainId = selectedChainId,
-            chainAssetId = newSelectedAsset.id
-        )
+        newSelectedAsset?.id?.let {
+            AssetPayload(
+                chainId = selectedChainId,
+                chainAssetId = it
+            )
+        }
     }
         .flatMapLatest {
             interactor.assetFlow(it.chainId, it.chainAssetId)
@@ -170,14 +172,14 @@ class BalanceDetailViewModel @Inject constructor(
         selectedChainId,
         chainsItemStateFlow
     ) { chainId, chainItems ->
-        val selectedChain = chainItems.first {
+        val selectedChain = chainItems.firstOrNull {
             it.id == chainId
         }
         LoadingState.Loaded(
             MainToolbarViewState(
                 title = interactor.getSelectedMetaAccount().name,
                 homeIconState = ToolbarHomeIconState(navigationIcon = R.drawable.ic_arrow_back_24dp),
-                selectorViewState = ChainSelectorViewState(selectedChain.title, selectedChain.id)
+                selectorViewState = ChainSelectorViewState(selectedChain?.title, selectedChain?.id)
             )
         )
     }.stateIn(scope = this, started = SharingStarted.Eagerly, initialValue = LoadingState.Loading())
@@ -492,15 +494,16 @@ class BalanceDetailViewModel @Inject constructor(
 
     private fun openBalanceDetails() {
         launch {
-            val assetModel = assetModelFlow.first()
-            router.openFrozenTokens(
-                FrozenAssetPayload(
-                    assetSymbol = assetModel.token.configuration.symbol,
-                    locked = assetModel.locked,
-                    reserved = assetModel.reserved,
-                    redeemable = assetModel.redeemable
+            assetModelFlow.firstOrNull()?.let { assetModel ->
+                router.openFrozenTokens(
+                    FrozenAssetPayload(
+                        assetSymbol = assetModel.token.configuration.symbol,
+                        locked = assetModel.locked,
+                        reserved = assetModel.reserved,
+                        redeemable = assetModel.redeemable
+                    )
                 )
-            )
+            }
         }
     }
 }

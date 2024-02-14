@@ -6,7 +6,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.AssetNotNeedAccountUseCase
-import jp.co.soramitsu.account.api.presentation.actions.AddAccountBottomSheet
+import jp.co.soramitsu.account.api.presentation.actions.AddAccountPayload
 import jp.co.soramitsu.account.impl.presentation.AccountRouter
 import jp.co.soramitsu.account.impl.presentation.optionsaddaccount.OptionsAddAccountFragment.Companion.KEY_PAYLOAD
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -31,14 +31,13 @@ class OptionsAddAccountViewModel @Inject constructor(
         .share()
 
     val state: StateFlow<OptionsAddAccountScreenViewState> = selectedWallet.mapNotNull {
-        savedStateHandle.get<AddAccountBottomSheet.Payload>(KEY_PAYLOAD)?.let { payload ->
+        savedStateHandle.get<AddAccountPayload>(KEY_PAYLOAD)?.let { payload ->
             OptionsAddAccountScreenViewState(
                 metaId = it.id,
                 chainId = payload.chainId,
                 chainName = payload.chainName,
                 markedAsNotNeed = payload.markedAsNotNeed,
-                assetId = payload.assetId,
-                priceId = payload.priceId
+                assetId = payload.assetId
             )
         }
     }.stateIn(
@@ -49,8 +48,7 @@ class OptionsAddAccountViewModel @Inject constructor(
             chainId = "",
             chainName = "Dotsama",
             markedAsNotNeed = false,
-            assetId = "",
-            priceId = null
+            assetId = ""
         )
     )
 
