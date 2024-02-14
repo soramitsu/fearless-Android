@@ -27,14 +27,14 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility 11
-        targetCompatibility 11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
     kotlinOptions {
         freeCompilerArgs = ["-Xallow-result-return-type"]
 
-        jvmTarget = '11'
+        jvmTarget = '17'
     }
 
     sourceSets {

@@ -16,6 +16,8 @@ android {
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
         buildConfigField "String", "APP_VERSION_NAME", "\"${rootProject.versionName}\""
+        buildConfigField "long", "VERSION_CODE", "${rootProject.versionCode}"
+        buildConfigField "String", "VERSION_NAME", "\"${rootProject.versionName}\""
 
         buildConfigField "String", "POLKASWAP_CONFIG_URL", "\"https://raw.githubusercontent.com/soramitsu/fearless-utils/ios/v3-jsonupd/polkaswapSettings.json\""
         buildConfigField "String", "FEATURE_TOGGLE_URL", "\"https://raw.githubusercontent.com/soramitsu/shared-features-utils/master/appConfigs/feature_toggle\""
@@ -83,17 +85,18 @@ android {
     buildFeatures {
         viewBinding = true
         compose = true
+        buildConfig = true
     }
 
     compileOptions {
-        sourceCompatibility 11
-        targetCompatibility 11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
     kotlinOptions {
         freeCompilerArgs = ["-Xallow-result-return-type"]
 
-        jvmTarget = '11'
+        jvmTarget = '17'
     }
     composeOptions {
         kotlinCompilerExtensionVersion composeCompilerVersion

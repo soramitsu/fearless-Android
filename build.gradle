@@ -13,7 +13,7 @@ buildscript {
         minSdkVersion = 24
         targetSdkVersion = 33
 
-        kotlinVersion = '1.8.20'
+        kotlinVersion = '1.9.22'
 
         materialVersion = '1.8.0'
         cardViewVersion = '1.0.0'
@@ -32,7 +32,7 @@ buildscript {
         javaxInjectVersion = '1'
 
         architectureComponentVersion = '2.6.1'
-        roomVersion = '2.5.1'
+        roomVersion = '2.6.1'
 
         retrofitVersion = '2.9.0'
         okhttpVersion = '4.11.0'
@@ -66,11 +66,11 @@ buildscript {
 
         coilVersion = '2.2.2'
 
-        androidxCoreVersion = '1.8.0'
+        androidxCoreVersion = '1.12.0'
 
         composeVersion = '1.5.1'
         composeFoundationVersion = '1.5.1'
-        composeCompilerVersion = '1.4.4'
+        composeCompilerVersion = '1.5.9'
 
         appcompatVersion = '1.6.1'
         recyclerviewVersion = '1.2.0'

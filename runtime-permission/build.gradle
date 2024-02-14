@@ -11,6 +11,12 @@ android {
         targetSdkVersion rootProject.targetSdkVersion
     }
     namespace 'jp.co.soramitsu.runtime_permission'
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+
 }
 
 dependencies {
