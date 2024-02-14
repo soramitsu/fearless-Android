@@ -62,7 +62,7 @@ buildscript {
 
         shimmerVersion = '0.5.0'
 
-        storiesVersion = '3.0.0'
+        storiesVersion = '3.0.1'
 
         coilVersion = '2.2.2'
 
@@ -179,7 +179,7 @@ buildscript {
 
         shimmerDep = "com.facebook.shimmer:shimmer:$shimmerVersion"
 
-        storiesDep = "com.github.shts:StoriesProgressView:$storiesVersion"
+        storiesDep = "com.github.ildixhaferri:StoriesProgressView:$storiesVersion"
         opencsvDep = "com.opencsv:opencsv:5.7.1"
 
         jUnitDep = "junit:junit:$junitVersion"
