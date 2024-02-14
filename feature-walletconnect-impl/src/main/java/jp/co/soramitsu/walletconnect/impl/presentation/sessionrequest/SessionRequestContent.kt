@@ -31,6 +31,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.compose.component.AccentButton
+import jp.co.soramitsu.common.compose.component.AttentionMessage
 import jp.co.soramitsu.common.compose.component.BottomSheetScreen
 import jp.co.soramitsu.common.compose.component.GradientIcon
 import jp.co.soramitsu.common.compose.component.Image
@@ -131,27 +132,9 @@ fun SessionRequestContent(state: SessionRequestViewState, callback: SessionReque
                     state = state.message
                 )
 
-                val warningText = stringResource(id = R.string.common_warning_capitalized_with_dots)
-                val remainingText = stringResource(id = R.string.connection_sign_message_warning)
-                val styledText = buildAnnotatedString {
-                    withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, color = warningOrange)) {
-                        append(warningText)
-                    }
-                    withStyle(style = SpanStyle()) {
-                        append(" ")
-                        append(remainingText)
-                    }
-                }.withNoFontPadding()
-
-                Row {
-                    Image(res = R.drawable.ic_alert_16)
-                    MarginHorizontal(margin = 8.dp)
-                    Text(
-                        style = MaterialTheme.customTypography.body2,
-                        text = styledText,
-                        color = white50
-                    )
-                }
+                AttentionMessage(
+                    message = stringResource(id = R.string.connection_sign_message_warning)
+                )
             }
 
             Column(

@@ -120,6 +120,7 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
     fun setBeaconSignStatus(status: SignStatus)
 
     fun openNodes(chainId: ChainId)
+    fun openClaimRewards(chainId: ChainId)
 
     @PinRequired
     fun openExportMnemonic(metaId: Long, chainId: ChainId): DelayedNavigation

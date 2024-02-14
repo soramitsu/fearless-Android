@@ -98,8 +98,8 @@ class BalanceDetailViewModel @Inject constructor(
     private val assetPayloadInitial: AssetPayload =
         savedStateHandle[KEY_ASSET_PAYLOAD] ?: error("No asset specified")
 
-    private val _showAccountOptions = MutableLiveData<Event<String>>()
-    val showAccountOptions: LiveData<Event<String>> = _showAccountOptions
+    private val _showAccountOptions = MutableLiveData<Event<Pair<String, Boolean>>>()
+    val showAccountOptions: LiveData<Event<Pair<String, Boolean>>> = _showAccountOptions
 
     private val _showExportSourceChooser = MutableLiveData<Event<ExportSourceChooserPayload>>()
     val showExportSourceChooser: LiveData<Event<ExportSourceChooserPayload>> =
@@ -271,6 +271,8 @@ class BalanceDetailViewModel @Inject constructor(
                         it.message
                             ?: resourceManager.getString(R.string.common_undefined_error_message)
                     )
+
+                    else -> {}
                 }
             }
         }
@@ -340,7 +342,8 @@ class BalanceDetailViewModel @Inject constructor(
         interactor.getChainAddressForSelectedMetaAccount(
             assetPayload.value.chainId
         )?.let { address ->
-            _showAccountOptions.postValue(Event(address))
+            val isClaimSupported: Boolean = interactor.checkClaimSupport(assetPayload.value.chainId)
+            _showAccountOptions.postValue(Event(Pair(address, isClaimSupported)))
         }
     }
 
@@ -442,6 +445,11 @@ class BalanceDetailViewModel @Inject constructor(
         router.openNodes(assetPayload.value.chainId)
     }
 
+    fun claimRewardClicked() {
+        println("!!! claimRewardClicked")
+        router.openClaimRewards(assetPayload.value.chainId)
+    }
+
     fun exportClicked() {
         viewModelScope.launch {
             val isEthereumBased = interactor
@@ -464,6 +472,7 @@ class BalanceDetailViewModel @Inject constructor(
                 is ExportSource.Json -> router.openExportJsonPassword(metaId, chainId)
                 is ExportSource.Seed -> router.openExportSeed(metaId, chainId)
                 is ExportSource.Mnemonic -> router.openExportMnemonic(metaId, chainId)
+                else -> return@launch
             }
 
             router.withPinCodeCheckRequired(destination, pinCodeTitleRes = R.string.account_export)
