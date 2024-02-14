@@ -207,7 +207,9 @@ class SwapTokensViewModel @Inject constructor(
         )
         val fee = desiredAsset.token.amountFromPlanks(feeInPlanks)
         emit(LoadingState.Loaded(fee))
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, LoadingState.Loaded(null))
+    }
+        .catch { emit(LoadingState.Loaded(null)) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, LoadingState.Loaded(null))
 
     private val networkFeeViewStateFlow = networkFeeFlow.map { amountLoading ->
         amountLoading.map {

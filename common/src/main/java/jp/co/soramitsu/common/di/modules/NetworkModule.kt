@@ -20,6 +20,7 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.shared_utils.wsrpc.SocketService
 import jp.co.soramitsu.shared_utils.wsrpc.logging.Logger
 import jp.co.soramitsu.shared_utils.wsrpc.recovery.Reconnector
+import jp.co.soramitsu.shared_utils.wsrpc.request.CoroutinesRequestExecutor
 import jp.co.soramitsu.shared_utils.wsrpc.request.RequestExecutor
 import okhttp3.Cache
 import okhttp3.OkHttpClient
@@ -93,7 +94,7 @@ class NetworkModule {
 
     @Provides
     @Singleton
-    fun provideRequestExecutor() = RequestExecutor()
+    fun provideRequestExecutor(): RequestExecutor = CoroutinesRequestExecutor()
 
     @Provides
     fun provideSocketService(

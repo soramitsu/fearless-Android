@@ -154,6 +154,7 @@ class ConfirmUnbondViewModel @Inject constructor(
             showMessage(resourceManager.getString(R.string.common_transaction_submitted))
 
             router.returnToStakingBalance()
+            result.getOrNull()?.let { router.openOperationSuccess(it, validPayload.asset.token.configuration.chainId) }
         } else {
             showError(result.requireException())
         }
