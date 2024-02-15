@@ -100,3 +100,19 @@
 # Needed by google-play-services when linking against an older platform version
 
 -dontwarn com.google.android.gms.**
+
+# This is generated automatically by the Android Gradle plugin.
+-dontwarn org.slf4j.impl.StaticLoggerBinder
+-dontwarn org.slf4j.impl.StaticMDCBinder
+-dontwarn org.w3c.dom.events.DocumentEvent
+-dontwarn org.w3c.dom.events.Event
+-dontwarn org.w3c.dom.events.EventException
+-dontwarn org.w3c.dom.events.EventListener
+-dontwarn org.w3c.dom.events.EventTarget
+-dontwarn org.w3c.dom.events.MutationEvent
+-dontwarn org.w3c.dom.ls.LSSerializerFilter
+-dontwarn org.w3c.dom.ranges.DocumentRange
+-dontwarn org.w3c.dom.ranges.Range
+-dontwarn org.w3c.dom.traversal.DocumentTraversal
+-dontwarn org.w3c.dom.traversal.NodeFilter
+-dontwarn org.w3c.dom.traversal.NodeIterator
