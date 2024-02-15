@@ -30,23 +30,22 @@ android {
 }
 
 dependencies {
-    implementation coroutinesDep
+    implementation libs.coroutines.core
     implementation project(':runtime')
     implementation project(':feature-account-api')
     implementation project(":common")
 
-    implementation androidDep
-    implementation materialDep
+    implementation libs.appcompat
+    implementation libs.material
 
-    implementation daggerDep
+    implementation libs.hilt.android
 
-    implementation androidDep
-    implementation constraintDep
+    implementation libs.constraintlayout
 
-    implementation viewModelKtxDep
+    implementation libs.lifecycle.viewmodel.ktx
 
-    implementation compose
-    debugImplementation composeDebug
+    implementation libs.bundles.compose
+    debugImplementation libs.bundles.composeDebug
 
     api project(':core-api')
     api project(':core-db')

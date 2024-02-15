@@ -26,6 +26,6 @@ android {
 }
 
 dependencies {
-    implementation coroutinesDep
-    implementation sharedFeaturesCoreDep
+    implementation libs.coroutines.core
+    implementation libs.sharedFeaturesCoreDep
 }

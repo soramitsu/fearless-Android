@@ -12,29 +12,23 @@ android {
 
     }
 
-    buildTypes {
-        release {
-
-        }
-    }
     namespace 'jp.co.soramitsu.test_shared'
 }
 
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation projects.common
 
-    implementation kotlinDep
+    implementation libs.kotlin.stdlib.jdk7
 
-    implementation project(':common')
+    api libs.junit
+    api libs.mockito.inline
+    api libs.mockito.core
+    api libs.mockito.kotlin
+    api libs.kotlinx.coroutines.test
 
-    api jUnitDep
-    api mockitoDep
-    api mockitoCoreDep
-    api coroutinesTest
-    api mockitoKotlinDep
+    api libs.nv.websocket.client
 
-    api wsDep
-
-    api gsonDep
+    api libs.gson
 }

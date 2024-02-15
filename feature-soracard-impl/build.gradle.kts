@@ -17,12 +17,6 @@ android {
         targetSdk = rootProject.ext["targetSdkVersion"] as Int
     }
 
-    buildTypes {
-        release {
-
-        }
-    }
-
     buildFeatures {
         compose = true
     }

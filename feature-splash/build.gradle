@@ -14,12 +14,6 @@ android {
 
     }
 
-    buildTypes {
-        release {
-
-        }
-    }
-
     buildFeatures {
         viewBinding = true
     }
@@ -39,27 +33,26 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation project(':common')
-    implementation project(':feature-account-api')
+    implementation projects.common
+    implementation projects.featureAccountApi
 
-    implementation kotlinDep
+    implementation libs.kotlin.stdlib.jdk7
 
-    implementation androidDep
+    implementation libs.appcompat
 
-    implementation daggerDep
-    kapt daggerKapt
+    implementation libs.hilt.android
+    kapt libs.hilt.compiler
 
-    implementation viewModelKtxDep
-    kapt lifecycleKapt
+    implementation libs.lifecycle.viewmodel.ktx
+    kapt libs.lifecycle.compiler
 
-    implementation fragmentKtxDep
+    implementation libs.fragmentKtx
 
-    testImplementation jUnitDep
-    testImplementation mockitoDep
-    implementation gsonConvertedDep
+    testImplementation libs.junit
+    testImplementation libs.mockito.inline
+    implementation libs.converter.gson
 
-    implementation coroutinesDep
-    implementation coroutinesAndroidDep
-    implementation viewModelKtxDep
-    implementation liveDataKtxDep
+    implementation libs.coroutines.core
+    implementation libs.coroutines.android
+    implementation libs.lifecycle.livedata.ktx
 }

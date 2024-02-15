@@ -27,9 +27,9 @@ android {
 }
 
 dependencies {
-    implementation coroutinesDep
+    implementation libs.coroutines.core
 
-    implementation daggerDep
+    implementation libs.hilt.android
 
     implementation project(':runtime')
     implementation project(':common')

@@ -15,12 +15,6 @@ android {
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
 
-    buildTypes {
-        release {
-
-        }
-    }
-
     buildFeatures {
         viewBinding = true
     }
@@ -46,42 +40,42 @@ dependencies {
     implementation project(':feature-wallet-api')
     implementation project(':runtime')
 
-    implementation kotlinDep
+    implementation libs.kotlin.stdlib.jdk7
 
-    implementation androidDep
-    implementation materialDep
-    implementation cardViewDep
-    implementation constraintDep
+    implementation libs.appcompat
+    implementation libs.material
+    implementation libs.cardview
+    implementation libs.constraintlayout
 
-    implementation coroutinesDep
-    implementation coroutinesAndroidDep
-    implementation viewModelKtxDep
-    implementation liveDataKtxDep
-    implementation lifeCycleKtxDep
+    implementation libs.coroutines.core
+    implementation libs.coroutines.android
+    implementation libs.lifecycle.viewmodel.ktx
+    implementation libs.lifecycle.livedata.ktx
+    implementation libs.lifecycle.runtime.ktx
 
-    implementation fragmentKtxDep
+    implementation libs.fragmentKtx
 
-    implementation insetterDep
+    implementation libs.insetter.widgets
 
-    implementation daggerDep
-    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
-    kapt daggerKapt
+    implementation libs.hilt.android
+    implementation libs.legacy.support.v4
+    kapt libs.hilt.compiler
 
-    implementation roomDep
-    kapt roomKapt
+    implementation libs.room.runtime
+    kapt libs.room.compiler
 
-    kapt lifecycleKapt
+    kapt libs.lifecycle.compiler
 
-    testImplementation jUnitDep
-    testImplementation mockitoDep
+    testImplementation libs.junit
+    testImplementation libs.mockito.inline
 
-    compileOnly wsDep
+    compileOnly libs.nv.websocket.client
 
-    implementation gsonDep
-    implementation retrofitDep
+    implementation libs.gson
+    implementation libs.retrofit
 
-    implementation shimmerDep
-    implementation storiesDep
+    implementation libs.shimmer
+    implementation libs.storiesProgressView
 
-    implementation coilDep
+    implementation libs.coil
 }

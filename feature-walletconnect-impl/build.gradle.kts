@@ -46,8 +46,8 @@ dependencies {
     implementation(libs.walletconnectCoreDep)
     implementation(libs.walletconnectWeb3WalletDep)
 
-    implementation(libs.zXing.core)
-    implementation(libs.zXing.embedded)
+    implementation(libs.zxing.core)
+    implementation(libs.zxing.embedded)
 
     implementation(projects.featureAccountApi)
     implementation(projects.featureAccountImpl)
@@ -61,6 +61,4 @@ dependencies {
     implementation(projects.featureWalletImpl)
 
     testImplementation(libs.junit)
-//            testImplementation mockitoDep
-//            testImplementation project(':test-shared')
 }

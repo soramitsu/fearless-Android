@@ -15,7 +15,6 @@ android {
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
-        buildConfigField "String", "APP_VERSION_NAME", "\"${rootProject.versionName}\""
         buildConfigField "long", "VERSION_CODE", "${rootProject.versionCode}"
         buildConfigField "String", "VERSION_NAME", "\"${rootProject.versionName}\""
 
@@ -110,56 +109,55 @@ dependencies {
     api project(":core-api")
     implementation project(':runtime-permission')
 
-    implementation kotlinDep
+    implementation libs.kotlin.stdlib.jdk7
 
-    implementation androidxCoreDep
-    implementation androidDep
-    implementation cardViewDep
-    implementation recyclerViewDep
-    implementation materialDep
-    implementation constraintDep
+    implementation libs.core.ktx
+    implementation libs.appcompat
+    implementation libs.cardview
+    implementation libs.recyclerview
+    implementation libs.material
+    implementation libs.constraintlayout
 
-    implementation bouncyCastleDep
+    implementation libs.bouncycastle
 
-    implementation coroutinesDep
-    implementation liveDataKtxDep
-    implementation lifeCycleKtxDep
+    implementation libs.coroutines.core
+    implementation libs.lifecycle.livedata.ktx
+    implementation libs.lifecycle.runtime.ktx
 
-    implementation viewModelKtxDep
+    implementation libs.lifecycle.viewmodel.ktx
 
-    implementation daggerDep
-    implementation 'androidx.navigation:navigation-fragment-ktx:2.5.3'
-    kapt daggerKapt
+    implementation libs.hilt.android
+    implementation libs.navigation.fragment.ktx
+    kapt libs.hilt.compiler
 
-    kapt lifecycleKapt
-    implementation lifecycleProcessDep
+    implementation libs.lifecycle.process
+    kapt libs.lifecycle.compiler
 
-//    implementation retrofitDep
-    implementation gsonConvertedDep
-    implementation scalarsConverterDep
-    implementation interceptorVersion
+    implementation libs.converter.gson
+    implementation libs.converter.scalars
+    implementation libs.logging.interceptor
 
-    implementation zXingCoreDep
-    implementation zXingEmbeddedDep
+    implementation libs.zxing.core
+    implementation libs.zxing.embedded
 
-    implementation progressButtonDep
+    implementation libs.progressbutton
 
-    implementation wsDep
-    implementation xNetworkingBasicDep
-    implementation xNetworkingFearlessDep, withoutBasic
-    implementation xNetworkingSorawalletDep, withoutBasic
+    implementation libs.nv.websocket.client
+    implementation libs.xnetworking.basic
+    implementation libs.xnetworking.fearless, withoutBasic
+    implementation libs.xnetworking.sorawallet, withoutBasic
 
-    implementation compose
-    debugImplementation composeDebug
+    implementation libs.bundles.compose
+    debugImplementation libs.bundles.composeDebug
 
-    implementation soraUiCoreDep
+    implementation libs.sora.ui
 
-    api coilDep
-    api coilSvg
+    api libs.coil
+    api libs.coil.svg
 
-    testImplementation jUnitDep
-    testImplementation mockitoDep
+    testImplementation libs.junit
+    testImplementation libs.mockito.inline
     testImplementation project(':test-shared')
 
-    api sharedFeaturesCoreDep
+    api libs.sharedFeaturesCoreDep
 }
