@@ -34,6 +34,9 @@ import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeSyncService
 import jp.co.soramitsu.shared_utils.runtime.RuntimeSnapshot
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -41,7 +44,9 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
+import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withContext
 
 data class ChainService(
@@ -85,7 +90,7 @@ class ChainRegistry @Inject constructor(
             }
             chainDao.joinChainInfoFlow().mapList(::mapChainLocalToChain).diffed()
                 .collect { (removed, addedOrModified, all) ->
-                    launch {
+                    val s = supervisorScope {
                         runCatching {
                             removed.forEach {
                                 val chainId = it.id
@@ -102,43 +107,49 @@ class ChainRegistry @Inject constructor(
                                 .map { it.id })
                             addedOrModified
                                 .filter { /*it.disabled*/ it.nodes.isNotEmpty() }
-                                .forEach { chain ->
+                                .map { chain ->
+                                    launch chainLaunch@{
+                                        if (chain.isEthereumChain) {
+                                            runCatching {
+                                                ethereumConnectionPool.setupConnection(
+                                                    chain,
+                                                    onSelectedNodeChange = { chainId, newNodeUrl ->
+                                                        notifyNodeSwitched(NodeId(chainId to newNodeUrl))
+                                                    })
+                                            }
+                                            return@chainLaunch
+                                        }
 
-                                    if (chain.isEthereumChain) {
                                         runCatching {
-                                            ethereumConnectionPool.setupConnection(
+                                            val connection = connectionPool.setupConnection(
                                                 chain,
                                                 onSelectedNodeChange = { chainId, newNodeUrl ->
-                                                    launch { notifyNodeSwitched(NodeId(chainId to newNodeUrl)) }
-                                                })
-                                        }
-                                        return@forEach
-                                    }
-
-                                    runCatching {
-                                        val connection = connectionPool.setupConnection(
-                                            chain,
-                                            onSelectedNodeChange = { chainId, newNodeUrl ->
-                                                launch { notifyNodeSwitched(NodeId(chainId to newNodeUrl)) }
+                                                    notifyNodeSwitched(NodeId(chainId to newNodeUrl))
+                                                }
+                                            )
+                                            runtimeSubscriptionPool.setupRuntimeSubscription(
+                                                chain,
+                                                connection
+                                            )
+                                            runtimeSyncService.registerChain(chain)
+                                            runtimeProviderPool.setupRuntimeProvider(chain)
+                                        }.onFailure { networkStateMixin.notifyChainSyncProblem(chain.toSyncIssue()) }
+                                            .onSuccess {
+                                                networkStateMixin.notifyChainSyncSuccess(
+                                                    chain.id
+                                                )
                                             }
-                                        )
-                                        runtimeSubscriptionPool.setupRuntimeSubscription(
-                                            chain,
-                                            connection
-                                        )
-                                        runtimeSyncService.registerChain(chain)
-                                        runtimeProviderPool.setupRuntimeProvider(chain)
-                                    }.onFailure { networkStateMixin.notifyChainSyncProblem(chain.toSyncIssue()) }
-                                        .onSuccess { networkStateMixin.notifyChainSyncSuccess(chain.id) }
+                                    }
                                 }
-                            all
-                        }.onFailure {
-                            Log.e(
-                                "ChainRegistry",
-                                "error while sync in chain registry $it"
-                            )
                         }
-                    }.join()
+                    }.onFailure {
+                        Log.e(
+                            "ChainRegistry",
+                            "error while sync in chain registry $it"
+                        )
+                    }.requireValue()
+                    joinAll(*s.toTypedArray())
+//                    awaitAll(*d.toTypedArray())
                     this@ChainRegistry.syncedChains.emit(all)
                 }
         }
@@ -188,8 +199,8 @@ class ChainRegistry @Inject constructor(
         withContext(Dispatchers.Default) {
             val chain = getChain(id.chainId)
             if (chain.isEthereumChain) {
-                val connection = ethereumConnectionPool.get(chain.id)
-                connection?.switchNode(id.nodeUrl)?.onSuccess { notifyNodeSwitched(id) }
+//                val connection = ethereumConnectionPool.get(chain.id)
+//                connection?.switchNode(id.nodeUrl)?.onSuccess { notifyNodeSwitched(id) }
             } else {
                 connectionPool.getConnection(id.chainId).socketService.switchUrl(id.nodeUrl)
                 notifyNodeSwitched(id)
@@ -197,8 +208,10 @@ class ChainRegistry @Inject constructor(
         }
     }
 
-    private suspend fun notifyNodeSwitched(id: NodeId) {
-        chainDao.selectNode(id.chainId, id.nodeUrl)
+    private fun notifyNodeSwitched(id: NodeId) {
+        launch(Dispatchers.IO) {
+            chainDao.selectNode(id.chainId, id.nodeUrl)
+        }
     }
 
     suspend fun addNode(chainId: ChainId, nodeName: String, nodeUrl: String) =

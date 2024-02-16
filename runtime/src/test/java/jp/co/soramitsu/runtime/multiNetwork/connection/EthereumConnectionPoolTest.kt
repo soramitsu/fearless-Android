@@ -76,6 +76,7 @@ class EthereumConnectionTest {
             kotlin.runCatching {
                 EthereumWebSocketConnection(
                     chain,
+                    externalRequirementFlow,
                     socketFactory,
                     { true },
                     { _, _ -> })
@@ -94,6 +95,7 @@ class EthereumConnectionTest {
             kotlin.runCatching {
                 EthereumWebSocketConnection(
                     chain,
+                    externalRequirementFlow,
                     socketFactory,
                     { true },
                     { _, _ -> })
@@ -112,6 +114,7 @@ class EthereumConnectionTest {
             kotlin.runCatching {
                 EthereumWebSocketConnection(
                     chain,
+                    externalRequirementFlow,
                     socketFactory,
                     { true },
                     { _, _ -> })
@@ -126,7 +129,12 @@ class EthereumConnectionTest {
 
         whenever(chain.nodes).thenReturn(wssNodes)
 
-        val connection = EthereumWebSocketConnection(chain, socketFactory, { true }, { _, _ -> })
+        val connection = EthereumWebSocketConnection(
+            chain,
+            externalRequirementFlow,
+            socketFactory,
+            { true },
+            { _, _ -> })
         // todo fix it
         val webSocketService = WebSocketService(wssNodes.first().url, false)
         whenever(socketFactory.create(wssNodes.first().url)).thenReturn(webSocketService)

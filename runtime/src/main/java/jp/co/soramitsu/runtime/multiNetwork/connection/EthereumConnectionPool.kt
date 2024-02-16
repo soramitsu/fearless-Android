@@ -5,9 +5,9 @@ import java.net.URI
 import java.util.concurrent.ConcurrentHashMap
 import jp.co.soramitsu.common.BuildConfig
 import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
-import jp.co.soramitsu.common.utils.failure
-import jp.co.soramitsu.common.utils.requireValue
+import jp.co.soramitsu.common.utils.cycle
 import jp.co.soramitsu.core.models.ChainNode
+import jp.co.soramitsu.core.runtime.ChainConnection
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.BSCChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.BSCTestnetChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
@@ -19,6 +19,16 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.polygonTestnetChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.sepoliaChainId
 import jp.co.soramitsu.runtime.multiNetwork.toSyncIssue
 import jp.co.soramitsu.runtime.storage.NodesSettingsStorage
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.supervisorScope
 import org.web3j.protocol.Web3j
 import org.web3j.protocol.Web3jService
 import org.web3j.protocol.http.HttpService
@@ -29,57 +39,32 @@ private const val EVM_CONNECTION_TAG = "EVM Connection"
 
 class EthereumConnectionPool(
     private val networkStateMixin: NetworkStateMixin,
-    private val nodesSettingsStorage: NodesSettingsStorage
+    private val nodesSettingsStorage: NodesSettingsStorage,
+    private val externalRequirementFlow: MutableStateFlow<ChainConnection.ExternalRequirement>,
 ) {
     private val pool = ConcurrentHashMap<ChainId, EthereumWebSocketConnection>()
+
 
     fun setupConnection(
         chain: Chain,
         onSelectedNodeChange: (chainId: ChainId, newNodeUrl: String) -> Unit
     ) {
-        val setupResult = kotlin.runCatching {
-            EthereumWebSocketConnection(
-                chain,
-                autoBalanceEnabled = {
-                    nodesSettingsStorage.getIsAutoSelectNodes(chain.id)
-                },
-                onSelectedNodeChange = onSelectedNodeChange
-            )
-        }
-
-        if (setupResult.isFailure) {
-            Log.d(
-                EVM_CONNECTION_TAG,
-                "create EthereumWebSocketConnection failed for chain ${chain.name}, error: ${setupResult.exceptionOrNull()} ${setupResult.exceptionOrNull()?.message}"
-            )
-            networkStateMixin.notifyChainSyncProblem(chain.toSyncIssue())
-            return
-        }
-
-        pool[chain.id] = setupResult.requireValue()
-
-        val connectionResult = pool[chain.id]?.connect()
-
-        if (connectionResult?.isFailure == true) {
-            Log.d(
-                EVM_CONNECTION_TAG,
-                "create EVMConnection failed for chain ${chain.name}, error: ${connectionResult.exceptionOrNull()} ${connectionResult.exceptionOrNull()?.message}"
-            )
-            networkStateMixin.notifyChainSyncProblem(chain.toSyncIssue())
-            return
-        }
-        Log.d(EVM_CONNECTION_TAG, "setup connection successfully for ${chain.name}")
-        networkStateMixin.notifyChainSyncSuccess(chain.id)
+        pool[chain.id] = EthereumWebSocketConnection(
+            chain,
+            externalRequirementFlow,
+            autoBalanceEnabled = {
+                nodesSettingsStorage.getIsAutoSelectNodes(chain.id)
+            },
+            onSelectedNodeChange = onSelectedNodeChange
+        ) { networkStateMixin.notifyChainSyncProblem(chain.toSyncIssue()) }
     }
 
     fun get(chainId: String): EthereumWebSocketConnection? {
-        return pool.getOrDefault(chainId, null)
-            .apply {
-                this ?: Log.d(
-                    EVM_CONNECTION_TAG,
-                    "don't have a connection for chainOd: $chainId"
-                )
-            }
+        val connection = pool.getOrDefault(chainId, null)
+        if (connection != null && connection.statusFlow.value !is EvmConnectionStatus.Connected) {
+            connection.statusFlow.update { null }
+        }
+        return connection
     }
 
     fun stop(chainId: String) {
@@ -92,72 +77,130 @@ class EthereumConnectionPool(
 
 class EthereumWebSocketConnection(
     val chain: Chain,
+    externalRequirementFlow: MutableStateFlow<ChainConnection.ExternalRequirement>,
     private val autoBalanceEnabled: () -> Boolean,
-    private val onSelectedNodeChange: (chainId: ChainId, newNodeUrl: String) -> Unit
+    private val onSelectedNodeChange: (chainId: ChainId, newNodeUrl: String) -> Unit,
+    private val allNodesHaveFailed: () -> Unit
 ) {
+    private val scope =
+        CoroutineScope(Dispatchers.Default + SupervisorJob() + CoroutineExceptionHandler { coroutineContext, throwable ->
+            Log.e(
+                "EthereumWebSocketConnection",
+                "${chain.name} connection error: $throwable"
+            )
+        })
 
     companion object {
         private const val BLAST_NODE_KEYWORD = "blastapi"
         private const val WSS_NODE_PREFIX = "wss"
     }
 
-    init {
-        require(chain.isEthereumChain)
-        check(chain.nodes.isNotEmpty()) { "There are no nodes for chain ${chain.name}" }
-    }
 
     private val nodes: List<ChainNode> = formatWithApiKeys(chain)
+    private var nodesCycle = nodes.cycle().iterator()
 
     private var connection: EVMConnection? = null
     val web3j get() = connection?.web3j
     val service: Web3jService? get() = connection?.service
 
-    val switchRelay = NodesSwitchRelay(nodes)
+    val statusFlow = MutableStateFlow<EvmConnectionStatus?>(null)
 
-    fun connect(): Result<ChainNode> {
-        return if (autoBalanceEnabled()) {
-            switchRelay { node ->
-                connectInternal(node)
-            }
-        } else {
-            val firstNode = nodes.first()
-            connectInternal(firstNode)
-        }.onSuccess {
-            val url = if (it.url.contains(BLAST_NODE_KEYWORD)) {
-                it.url.removeSuffix(blastApiKeys[chain.id].orEmpty())
-            } else {
-                it.url
-            }
-            onSelectedNodeChange(chain.id, url)
-        }.onFailure { Log.e(EVM_CONNECTION_TAG, "failed to connect to chain ${chain.name}") }
+    private val nodesAttempts = ConcurrentHashMap<String, Int>().also {
+        nodes.forEach { node ->
+            it[node.url] = 0
+        }
     }
 
-    private fun connectInternal(node: ChainNode): Result<ChainNode> {
-        if (connection != null && connection is EVMConnection.WSS && (connection as EVMConnection.WSS).socket.isOpen) {
-            connection?.web3j?.shutdown()
-        }
+    init {
+        require(chain.isEthereumChain)
+        check(chain.nodes.isNotEmpty()) { "There are no nodes for chain ${chain.name}" }
 
-        when {
-            node.url.startsWith("wss") -> {
-                connection = EVMConnection.WSS(node.url)
+        statusFlow.onEach {
+            Log.d("&&&", "${chain.name} status changed: $it")
+            when (it) {
+                is EvmConnectionStatus.Connected -> {
+                    val url = if (it.node.contains(BLAST_NODE_KEYWORD)) {
+                        it.node.removeSuffix(blastApiKeys[chain.id].orEmpty())
+                    } else {
+                        it.node
+                    }
+                    onSelectedNodeChange(chain.id, url)
+                }
 
-                runCatching { (connection as? EVMConnection.WSS)?.connect() }
-                    .onFailure { return Result.failure("Node ${node.name} : ${node.url} connect failed $it") }
+                is EvmConnectionStatus.Error,
+                is EvmConnectionStatus.Closed,
+                null -> {
+                    connectNextNode()
+                }
+
+                else -> Unit
             }
+        }.launchIn(scope)
 
-            node.url.startsWith("http") -> {
-                connection = EVMConnection.HTTP(node.url)
+//        externalRequirementFlow.onEach {
+//            Log.d("&&&", "external requirement: $it")
+//            if (it == ChainConnection.ExternalRequirement.ALLOWED) {
+//
+//                runCatching {
+//                    // reconnects
+//                    statusFlow.update { null }
+//                }
+//            } else {
+//                statusFlow.update { EvmConnectionStatus.ClosedByApp }
+//                nodesCycle = nodes.cycle().iterator()
+//                nodesAttempts.clear()
+////                scope.coroutineContext.job.cancelChildren()
+//                (connection?.service as? WebSocketService)?.close()
+//            }
+//        }.launchIn(scope)
+    }
+
+    private fun connectNextNode() {
+        scope.launch {
+            supervisorScope {
+                if (nodesAttempts.all { it.value >= 5 }) {
+                    allNodesHaveFailed()
+                    return@supervisorScope
+                }
+                val nextNode = nodesCycle.next()
+
+                if (nodesAttempts.getOrDefault(nextNode.url, 0) >= 5) {
+                    statusFlow.update { null }
+                    return@supervisorScope
+                }
+
+                if (connection != null && connection is EVMConnection.WSS && (connection as EVMConnection.WSS).socket.isOpen) {
+                    connection?.web3j?.shutdown()
+                }
+
+                when {
+                    nextNode.url.startsWith("wss") -> {
+                        connection = EVMConnection.WSS(nextNode.url) { newStatus ->
+                            statusFlow.update { prevStatus ->
+                                if (newStatus is EvmConnectionStatus.Closed && prevStatus is EvmConnectionStatus.ClosedByApp) {
+                                    EvmConnectionStatus.ClosedByApp
+                                } else {
+                                    newStatus
+                                }
+                            }
+                        }
+                        (connection as? EVMConnection.WSS)?.connect()
+                    }
+
+                    nextNode.url.startsWith("http") -> {
+                        connection = EVMConnection.HTTP(nextNode.url) { newStatus ->
+                            statusFlow.update { newStatus }
+                        }
+                    }
+
+                    else -> {
+                        statusFlow.update { null }
+                        return@supervisorScope
+                    }
+                }
+
+                nodesAttempts[nextNode.url] = (nodesAttempts[nextNode.url] ?: 0) + 1
             }
-
-            else -> return Result.failure("Wrong node ${node.url}")
-        }
-
-
-        val response = kotlin.runCatching { web3j?.ethBlockNumber()?.send() }
-        return if (response.isFailure) {
-            Result.failure("Node ${node.name} : ${node.url} connect failed ${response.exceptionOrNull()}")
-        } else {
-            Result.success(node)
         }
     }
 
@@ -169,17 +212,6 @@ class EthereumWebSocketConnection(
                 it
             }
         }
-    }
-
-    fun switchNode(nodeUrl: String): Result<Any> {
-        val url = if (nodeUrl.contains(BLAST_NODE_KEYWORD)) {
-            nodeUrl.removeSuffix(blastApiKeys[chain.id].orEmpty())
-        } else {
-            nodeUrl
-        }
-        val node =
-            nodes.firstOrNull { it.url == url || it.url.contains(url) } ?: return Result.failure("")
-        return connectInternal(node)
     }
 }
 
@@ -193,19 +225,64 @@ private val blastApiKeys = mapOf(
     polygonTestnetChainId to BuildConfig.BLAST_API_POLYGON_KEY
 )
 
-sealed class EVMConnection(val url: String, val service: Web3jService) {
-
+sealed class EVMConnection(
+    val url: String,
+    val service: Web3jService,
+    internal val onStatusChanged: (EvmConnectionStatus) -> Unit
+) {
     private val _web3j: Web3j = Web3j.build(service)
     open val web3j: Web3j
         get() {
             return _web3j
         }
 
-    class HTTP(url: String) : EVMConnection(url, HttpService(url, false))
-    class WSS(url: String, val socket: WebSocketClient = WebSocketClient(URI(url))) :
-        EVMConnection(url, WebSocketService(socket, false)) {
+    class HTTP(url: String, onStatusChanged: (EvmConnectionStatus) -> Unit) :
+        EVMConnection(url, HttpService(url, false), onStatusChanged) {
+        init {
+            onStatusChanged(EvmConnectionStatus.Connecting(url))
+            runCatching { web3j.ethBlockNumber().send() }
+                .onFailure {
+                    onStatusChanged(EvmConnectionStatus.Error(url, it))
+                }
+                .onSuccess {
+                    onStatusChanged(EvmConnectionStatus.Connected(url))
+                }
+        }
+    }
+
+    class WSS(
+        url: String,
+        val socket: WebSocketClient = WebSocketClient(URI(url)),
+        onStatusChanged: (EvmConnectionStatus) -> Unit
+    ) :
+        EVMConnection(url, WebSocketService(socket, false), onStatusChanged) {
         fun connect() {
-            (service as WebSocketService).connect()
+            onStatusChanged(EvmConnectionStatus.Connecting(url))
+            runCatching {
+                (service as WebSocketService).connect(
+                    /* onMessage = */ {},
+                    /* onError = */
+                    {
+                        onStatusChanged(EvmConnectionStatus.Error(url, it)); Log.d(
+                        "&&&&",
+                        "connection to $url got error: $it"
+                    )
+                    },
+                    /* onClose = */
+                    {
+                        onStatusChanged(EvmConnectionStatus.Closed); Log.d(
+                        "&&&&",
+                        "connection to $url was closed"
+                    )
+                    }
+                )
+            }.onFailure {
+                onStatusChanged(EvmConnectionStatus.Error(url, it))
+                return
+            }
+            runCatching { web3j.ethBlockNumber().send() }
+                .onFailure { onStatusChanged(EvmConnectionStatus.Error(url, it)) }
+                .onSuccess { onStatusChanged(EvmConnectionStatus.Connected(url)) }
         }
 
         override val web3j: Web3j
@@ -213,4 +290,15 @@ sealed class EVMConnection(val url: String, val service: Web3jService) {
                 return super.web3j
             }
     }
+}
+
+
+sealed class EvmConnectionStatus {
+    object Created : EvmConnectionStatus()
+    data class Connecting(val node: String) : EvmConnectionStatus()
+    data class Connected(val node: String) : EvmConnectionStatus()
+    object Closed : EvmConnectionStatus()
+    data class Error(val node: String, val error: Throwable) : EvmConnectionStatus()
+
+    object ClosedByApp : EvmConnectionStatus()
 }

@@ -137,9 +137,10 @@ class ChainRegistryModule {
     @Singleton
     fun provideEthereumPool(
         networkStateMixin: NetworkStateMixin,
-        nodesSettingsStorage: NodesSettingsStorage
+        nodesSettingsStorage: NodesSettingsStorage,
+        externalRequirementsFlow: MutableStateFlow<ChainConnection.ExternalRequirement>,
     ) =
-        EthereumConnectionPool(networkStateMixin, nodesSettingsStorage)
+        EthereumConnectionPool(networkStateMixin, nodesSettingsStorage, externalRequirementsFlow)
 
     @Provides
     @Singleton
