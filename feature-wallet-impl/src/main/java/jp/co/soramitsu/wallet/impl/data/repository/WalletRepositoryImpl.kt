@@ -637,17 +637,16 @@ class WalletRepositoryImpl(
         val currentMetaAccount = accountRepository.getSelectedMetaAccount()
         val chain = chainsRepository.getChain(chainId)
         val accountId = currentMetaAccount.accountId(chain)
-        val currencyId = chain.utilityAsset?.currencyId
 
         val locksStorageKeyAndReturnType = chainRegistry.getRuntimeOrNull(chainId)?.let { runtime ->
-            if (runtime.metadata.balances().storage?.get("Locks") != null) {
+            if (runtime.metadata.moduleOrNull(Modules.BALANCES)?.storage?.get("Locks") != null) {
                 runtime.metadata.balances().storage("Locks").storageKey(runtime, accountId) to
                         runtime.metadata.balances().storage("Locks").returnType()
             } else if (runtime.metadata.moduleOrNull(Modules.TOKENS)?.storage?.get("Locks") != null) {
-                runtime.metadata.tokens().storage("Locks").storageKey(runtime, accountId, currencyId) to
+                val currency = chain.utilityAsset?.currency
+                runtime.metadata.tokens().storage("Locks").storageKey(runtime, accountId, currency) to
                         runtime.metadata.tokens().storage("Locks").returnType()
             } else {
-                println("!!! NO storage key for chain ${chain.name}")
                 null
             }
         }
