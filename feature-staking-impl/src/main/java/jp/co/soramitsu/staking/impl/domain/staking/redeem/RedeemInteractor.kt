@@ -33,7 +33,8 @@ class RedeemInteractor(
                 formExtrinsic.invoke(this)
             }.map {
                 RedeemConsequences(
-                    willKillStash = asset.redeemable == asset.locked
+                    willKillStash = asset.redeemable == asset.locked,
+                    hash = it
                 )
             }
         }
