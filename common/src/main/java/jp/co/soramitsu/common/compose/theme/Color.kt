@@ -8,6 +8,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.graphics.Color
+import androidx.core.graphics.toColorInt
+import jp.co.soramitsu.shared_utils.extensions.requirePrefix
 
 val colorPrimary = Color(0xFF004CB7)
 val colorSelected = Color(0x66FF009A)
@@ -148,4 +150,9 @@ val accentRadioButtonColors = object : RadioButtonColors {
             rememberUpdatedState(target)
         }
     }
+}
+
+fun String.colorFromHex(): Color? {
+    val hexColor = this.requirePrefix("#")
+    return runCatching { Color(hexColor.toColorInt()) }.getOrNull()
 }

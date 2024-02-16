@@ -12,6 +12,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -33,6 +34,7 @@ import jp.co.soramitsu.feature_wallet_impl.R
 
 data class ClaimRewardsViewState(
     val chainIconUrl: String?,
+    val chainIconColor: Color = colorAccentDark,
     val lockedInfoItem: TitleValueViewState? = null,
     val transferableInfoItem: TitleValueViewState? = null,
     val feeInfoItem: TitleValueViewState? = null,
@@ -91,7 +93,7 @@ fun ClaimRewardsContent(
                 } else {
                     GradientIcon(
                         icon = state.chainIconUrl,
-                        color = colorAccentDark,
+                        color = state.chainIconColor,
                         modifier = Modifier.align(Alignment.CenterHorizontally)
                     )
                 }
@@ -104,13 +106,14 @@ fun ClaimRewardsContent(
                 MarginVertical(margin = 24.dp)
                 InfoTable(items = state.tableItems, onItemClick = callback::onItemClick)
                 MarginVertical(margin = 12.dp)
+
+                Spacer(modifier = Modifier.weight(1f))
+
                 AttentionMessage(
                     attentionText = stringResource(id = R.string.vesting_claim_disclaimer_title),
                     message = stringResource(id = R.string.vesting_claim_disclaimer_text)
                 )
                 MarginVertical(margin = 12.dp)
-
-                Spacer(modifier = Modifier.weight(1f))
 
                 AccentButton(
                     modifier = Modifier
@@ -133,14 +136,13 @@ fun ClaimRewardsContent(
 private fun ClaimRewardsPreview() {
     val state = ClaimRewardsViewState(
         chainIconUrl = "",
-        tokenSymbol = "XOR",
-        transferableInfoItem = TitleValueViewState(
-            title = "Transferable",
+        lockedInfoItem = TitleValueViewState(
+            title = "Vested Locked",
             value = "3 KSM",
             additionalValue = "\$5,05"
         ),
-        lockedInfoItem = TitleValueViewState(
-            title = "Vested Locked",
+        transferableInfoItem = TitleValueViewState(
+            title = "Transferable",
             value = "3 KSM",
             additionalValue = "\$5,05"
         ),
@@ -149,6 +151,7 @@ private fun ClaimRewardsPreview() {
             value = "3 KSM",
             additionalValue = "\$5,05"
         ),
+        tokenSymbol = "XOR",
         buttonState = ButtonViewState("Confirm", true)
     )
 

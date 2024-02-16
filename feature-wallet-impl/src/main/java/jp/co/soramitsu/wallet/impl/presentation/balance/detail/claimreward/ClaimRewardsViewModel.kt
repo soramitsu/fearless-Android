@@ -8,6 +8,8 @@ import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.ButtonViewState
 import jp.co.soramitsu.common.compose.component.TitleValueViewState
+import jp.co.soramitsu.common.compose.theme.colorAccentDark
+import jp.co.soramitsu.common.compose.theme.colorFromHex
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.applyFiatRate
 import jp.co.soramitsu.common.utils.flowOf
@@ -112,12 +114,14 @@ class ClaimRewardsViewModel @Inject constructor(
             additionalValue = feeFiat
         )
 
+        val chainIconColor = asset.token.configuration.color?.colorFromHex() ?: colorAccentDark
         ClaimRewardsViewState(
             chainIconUrl = asset.token.configuration.chainIcon ?: asset.token.configuration.iconUrl,
+            chainIconColor = chainIconColor,
             lockedInfoItem = lockedInfoItem,
             transferableInfoItem = transferableInfoItem,
             feeInfoItem = feeInfoItem,
-            tokenSymbol = asset.token.configuration.symbol,
+            tokenSymbol = asset.token.configuration.symbol.uppercase(),
             buttonState = buttonState,
             isLoading = isRequesting
         )
