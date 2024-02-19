@@ -146,7 +146,6 @@ class EthereumRemoteSource(private val ethereumConnectionPool: EthereumConnectio
         receiverAddress: String
     ): BigInteger? {
         val connection = ethereumConnectionPool.get(chainId)
-        connection?.connect()
 
         val web3 = connection?.web3j
             ?: throw RuntimeException("There is no connection created for chain ${chainId}")
