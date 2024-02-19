@@ -40,3 +40,25 @@ class BalanceDetailOptionsBottomSheet(
         }
     }
 }
+
+class BalanceDetailEthereumOptionsBottomSheet(
+    context: Context,
+    val address: String,
+    private val onExportAccount: () -> Unit,
+    private val onCopy: CopyCallback
+) : FixedListBottomSheet(context) {
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        setTitle(R.string.account_option)
+
+        item(R.drawable.ic_share_arrow_white_24, R.string.account_export) {
+            onExportAccount()
+        }
+
+        item(R.drawable.ic_copy_24, R.string.common_copy_address) {
+            onCopy(address)
+        }
+    }
+}

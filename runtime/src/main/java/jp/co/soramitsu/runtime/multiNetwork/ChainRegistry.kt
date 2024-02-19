@@ -149,7 +149,6 @@ class ChainRegistry @Inject constructor(
                         )
                     }.requireValue()
                     joinAll(*s.toTypedArray())
-//                    awaitAll(*d.toTypedArray())
                     this@ChainRegistry.syncedChains.emit(all)
                 }
         }
@@ -198,10 +197,7 @@ class ChainRegistry @Inject constructor(
     suspend fun switchNode(id: NodeId) {
         withContext(Dispatchers.Default) {
             val chain = getChain(id.chainId)
-            if (chain.isEthereumChain) {
-//                val connection = ethereumConnectionPool.get(chain.id)
-//                connection?.switchNode(id.nodeUrl)?.onSuccess { notifyNodeSwitched(id) }
-            } else {
+            if (!chain.isEthereumChain) {
                 connectionPool.getConnection(id.chainId).socketService.switchUrl(id.nodeUrl)
                 notifyNodeSwitched(id)
             }

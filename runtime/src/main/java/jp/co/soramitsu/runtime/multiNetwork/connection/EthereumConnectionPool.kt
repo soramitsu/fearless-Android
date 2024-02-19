@@ -7,7 +7,6 @@ import jp.co.soramitsu.common.BuildConfig
 import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
 import jp.co.soramitsu.common.utils.cycle
 import jp.co.soramitsu.core.models.ChainNode
-import jp.co.soramitsu.core.runtime.ChainConnection
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.BSCChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.BSCTestnetChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
@@ -18,7 +17,6 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.polygonChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polygonTestnetChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.sepoliaChainId
 import jp.co.soramitsu.runtime.multiNetwork.toSyncIssue
-import jp.co.soramitsu.runtime.storage.NodesSettingsStorage
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -39,27 +37,21 @@ private const val EVM_CONNECTION_TAG = "EVM Connection"
 
 class EthereumConnectionPool(
     private val networkStateMixin: NetworkStateMixin,
-    private val nodesSettingsStorage: NodesSettingsStorage,
-    private val externalRequirementFlow: MutableStateFlow<ChainConnection.ExternalRequirement>,
 ) {
-    private val pool = ConcurrentHashMap<ChainId, EthereumWebSocketConnection>()
+    private val pool = ConcurrentHashMap<ChainId, EthereumChainConnection>()
 
 
     fun setupConnection(
         chain: Chain,
         onSelectedNodeChange: (chainId: ChainId, newNodeUrl: String) -> Unit
     ) {
-        pool[chain.id] = EthereumWebSocketConnection(
+        pool[chain.id] = EthereumChainConnection(
             chain,
-            externalRequirementFlow,
-            autoBalanceEnabled = {
-                nodesSettingsStorage.getIsAutoSelectNodes(chain.id)
-            },
             onSelectedNodeChange = onSelectedNodeChange
         ) { networkStateMixin.notifyChainSyncProblem(chain.toSyncIssue()) }
     }
 
-    fun get(chainId: String): EthereumWebSocketConnection? {
+    fun get(chainId: String): EthereumChainConnection? {
         val connection = pool.getOrDefault(chainId, null)
         if (connection != null && connection.statusFlow.value !is EvmConnectionStatus.Connected) {
             connection.statusFlow.update { null }
@@ -75,17 +67,15 @@ class EthereumConnectionPool(
     }
 }
 
-class EthereumWebSocketConnection(
+class EthereumChainConnection(
     val chain: Chain,
-    externalRequirementFlow: MutableStateFlow<ChainConnection.ExternalRequirement>,
-    private val autoBalanceEnabled: () -> Boolean,
     private val onSelectedNodeChange: (chainId: ChainId, newNodeUrl: String) -> Unit,
     private val allNodesHaveFailed: () -> Unit
 ) {
     private val scope =
-        CoroutineScope(Dispatchers.Default + SupervisorJob() + CoroutineExceptionHandler { coroutineContext, throwable ->
+        CoroutineScope(Dispatchers.Default + SupervisorJob() + CoroutineExceptionHandler { _, throwable ->
             Log.e(
-                "EthereumWebSocketConnection",
+                EVM_CONNECTION_TAG,
                 "${chain.name} connection error: $throwable"
             )
         })
@@ -116,7 +106,6 @@ class EthereumWebSocketConnection(
         check(chain.nodes.isNotEmpty()) { "There are no nodes for chain ${chain.name}" }
 
         statusFlow.onEach {
-            Log.d("&&&", "${chain.name} status changed: $it")
             when (it) {
                 is EvmConnectionStatus.Connected -> {
                     val url = if (it.node.contains(BLAST_NODE_KEYWORD)) {
@@ -136,23 +125,6 @@ class EthereumWebSocketConnection(
                 else -> Unit
             }
         }.launchIn(scope)
-
-//        externalRequirementFlow.onEach {
-//            Log.d("&&&", "external requirement: $it")
-//            if (it == ChainConnection.ExternalRequirement.ALLOWED) {
-//
-//                runCatching {
-//                    // reconnects
-//                    statusFlow.update { null }
-//                }
-//            } else {
-//                statusFlow.update { EvmConnectionStatus.ClosedByApp }
-//                nodesCycle = nodes.cycle().iterator()
-//                nodesAttempts.clear()
-////                scope.coroutineContext.job.cancelChildren()
-//                (connection?.service as? WebSocketService)?.close()
-//            }
-//        }.launchIn(scope)
     }
 
     private fun connectNextNode() {
@@ -263,17 +235,11 @@ sealed class EVMConnection(
                     /* onMessage = */ {},
                     /* onError = */
                     {
-                        onStatusChanged(EvmConnectionStatus.Error(url, it)); Log.d(
-                        "&&&&",
-                        "connection to $url got error: $it"
-                    )
+                        onStatusChanged(EvmConnectionStatus.Error(url, it))
                     },
                     /* onClose = */
                     {
-                        onStatusChanged(EvmConnectionStatus.Closed); Log.d(
-                        "&&&&",
-                        "connection to $url was closed"
-                    )
+                        onStatusChanged(EvmConnectionStatus.Closed)
                     }
                 )
             }.onFailure {
@@ -291,7 +257,6 @@ sealed class EVMConnection(
             }
     }
 }
-
 
 sealed class EvmConnectionStatus {
     object Created : EvmConnectionStatus()
