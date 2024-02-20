@@ -83,9 +83,11 @@ class ValidateTransferUseCaseImpl(
         val totalRecipientBalanceInPlanks =
             kotlin.runCatching { destinationAsset?.let { walletRepository.getTotalBalance(it, destinationChain, recipientAccountId) } }.getOrNull().orZero()
 
+        val destinationExistentialDeposit = existentialDepositUseCase(destinationAsset ?: chainAsset)
+
         val validationChecks = when {
             chainAsset.type == ChainAssetType.Equilibrium -> {
-                getEquilibriumValidationChecks(asset, recipientAccountId, originChain, ownAddress, amountInPlanks, fee, tip)
+                getEquilibriumValidationChecks(asset, recipientAccountId, originChain, ownAddress, amountInPlanks, fee, tip, destinationExistentialDeposit)
             }
 
             originChain.isEthereumChain -> {
@@ -178,7 +180,7 @@ class ValidateTransferUseCaseImpl(
                 mapOf(
                     TransferValidationResult.InsufficientBalance to (amountInPlanks + fee + tip > transferable),
                     TransferValidationResult.ExistentialDepositWarning(assetEdFormatted) to (resultedBalance < assetExistentialDeposit),
-                    TransferValidationResult.DeadRecipient to (totalRecipientBalanceInPlanks + amountInPlanks < assetExistentialDeposit)
+                    TransferValidationResult.DeadRecipient to (totalRecipientBalanceInPlanks + amountInPlanks < destinationExistentialDeposit)
                 )
             }
 
@@ -217,7 +219,7 @@ class ValidateTransferUseCaseImpl(
                 mapOf(
                     TransferValidationResult.InsufficientBalance to (amountInPlanks + feeRequiredTokenInPlanks.orZero() > transferable),
                     TransferValidationResult.ExistentialDepositWarning(assetEdFormatted) to (transferable - amountInPlanks - feeRequiredTokenInPlanks.orZero() < assetExistentialDeposit),
-                    TransferValidationResult.DeadRecipient to (totalRecipientBalanceInPlanks + amountInPlanks < assetExistentialDeposit)
+                    TransferValidationResult.DeadRecipient to (totalRecipientBalanceInPlanks + amountInPlanks < destinationExistentialDeposit)
                 )
             }
 
@@ -240,7 +242,7 @@ class ValidateTransferUseCaseImpl(
                     TransferValidationResult.InsufficientUtilityAssetBalance to (fee + tip > utilityAssetBalance),
                     TransferValidationResult.ExistentialDepositWarning(assetEdFormatted) to (transferable - amountInPlanks < assetExistentialDeposit),
                     TransferValidationResult.UtilityExistentialDepositWarning(utilityEdFormatted) to (utilityAssetBalance - (fee + tip) < utilityAssetExistentialDeposit),
-                    TransferValidationResult.DeadRecipient to (totalRecipientBalanceInPlanks + amountInPlanks < assetExistentialDeposit)
+                    TransferValidationResult.DeadRecipient to (totalRecipientBalanceInPlanks + amountInPlanks < destinationExistentialDeposit)
                 )
             }
         }
@@ -294,7 +296,7 @@ class ValidateTransferUseCaseImpl(
 
         val validationChecks = when {
             chainAsset.type == ChainAssetType.Equilibrium -> {
-                getEquilibriumValidationChecks(asset, recipientAccountId, originChain, ownAddress, amountInPlanks, fee, tip)
+                getEquilibriumValidationChecks(asset, recipientAccountId, originChain, ownAddress, amountInPlanks, fee, tip, destinationExistentialDeposit)
             }
 
             chainAsset.isUtility -> {
@@ -323,7 +325,8 @@ class ValidateTransferUseCaseImpl(
         ownAddress: String,
         amountInPlanks: BigInteger,
         fee: BigInteger,
-        tip: BigInteger
+        tip: BigInteger,
+        destinationExistentialDeposit: BigInteger
     ): Map<TransferValidationResult, Boolean> {
         val chainAsset = asset.token.configuration
         val assetExistentialDeposit = existentialDepositUseCase(chainAsset)
@@ -379,7 +382,7 @@ class ValidateTransferUseCaseImpl(
 
         return mapOf(
             TransferValidationResult.ExistentialDepositWarning(assetExistentialDeposit.formatCryptoDetailFromPlanks(asset.token.configuration)) to (ownNewTotalInPlanks < assetExistentialDeposit),
-            TransferValidationResult.DeadRecipient to (recipientNewTotalInPlanks < assetExistentialDeposit)
+            TransferValidationResult.DeadRecipient to (recipientNewTotalInPlanks < destinationExistentialDeposit)
         )
     }
 
