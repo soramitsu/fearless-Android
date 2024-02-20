@@ -1,5 +1,7 @@
 package jp.co.soramitsu.staking.impl.domain.validators
 
+import android.util.Log
+import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.toHexAccountId
 import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.runtime.ext.addressOf
@@ -40,22 +42,23 @@ class ValidatorProvider(
         val chainId = chain.id
 
         val electedValidatorExposures = cachedExposures ?: stakingRepository.getActiveElectedValidatorsExposures(chainId)
+        val allValidatorPrefs = stakingRepository.getAllValidatorPrefs(chainId)
 
         val requestedValidatorIds = when (source) {
-            ValidatorSource.Elected -> electedValidatorExposures.keys.toList()
+            ValidatorSource.Elected -> allValidatorPrefs.keys.toList()
             is ValidatorSource.Custom -> source.validatorIds
         }
 
-        val validatorIdsToQueryPrefs = electedValidatorExposures.keys + requestedValidatorIds
+//        val validatorIdsToQueryPrefs = electedValidatorExposures.keys + requestedValidatorIds
 
-        val validatorPrefs = stakingRepository.getValidatorPrefs(chainId, validatorIdsToQueryPrefs.toList())
+//        val validatorPrefs = stakingRepository.getValidatorPrefs(chainId, validatorIdsToQueryPrefs.toList())
 
         val identities = identityRepository.getIdentitiesFromIds(chain, requestedValidatorIds)
         val slashes = stakingRepository.getSlashes(chainId, requestedValidatorIds)
 
         val calculationTargets = electedValidatorExposures.keys.mapNotNull { accountIdHex ->
-            val exposure = electedValidatorExposures[accountIdHex] ?: accountIdNotFound(accountIdHex)
-            val prefs = validatorPrefs[accountIdHex] ?: return@mapNotNull null
+            val exposure = electedValidatorExposures[accountIdHex] ?: return@mapNotNull null
+            val prefs = allValidatorPrefs[accountIdHex] ?: return@mapNotNull null
 
             RewardCalculationTarget(
                 accountIdHex = accountIdHex,
@@ -85,14 +88,18 @@ class ValidatorProvider(
         val maxNominators = stakingConstantsRepository.maxRewardedNominatorPerValidator(chainId)
 
         return requestedValidatorIds.map { accountIdHex ->
-            val prefs = validatorPrefs[accountIdHex]
+            val prefs = allValidatorPrefs[accountIdHex]
 
             val electedInfo = electedValidatorExposures[accountIdHex]?.let {
                 Validator.ElectedInfo(
                     totalStake = it.total,
                     ownStake = it.own,
                     nominatorStakes = it.others,
-                    apy = rewardCalculator.getApyFor(accountIdHex.fromHex()),
+                    apy = runCatching { rewardCalculator.getApyFor(accountIdHex.fromHex()) }
+                        .onFailure {
+                            Log.d("&&&", "rewardCalculator.getApyFor error: $it")
+                        }
+                        .getOrNull().orZero(),
                     isOversubscribed = it.others.size > maxNominators
                 )
             }
