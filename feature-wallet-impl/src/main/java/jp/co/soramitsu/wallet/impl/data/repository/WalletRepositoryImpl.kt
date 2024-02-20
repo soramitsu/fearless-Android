@@ -12,6 +12,10 @@ import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.coingecko.CoingeckoApi
 import jp.co.soramitsu.common.data.network.config.AppConfigRemote
 import jp.co.soramitsu.common.data.network.config.RemoteConfigFetcher
+import jp.co.soramitsu.common.data.network.runtime.binding.UseCaseBinding
+import jp.co.soramitsu.common.data.network.runtime.binding.bindNumber
+import jp.co.soramitsu.common.data.network.runtime.binding.bindString
+import jp.co.soramitsu.common.data.network.runtime.binding.cast
 import jp.co.soramitsu.common.data.secrets.v2.KeyPairSchema
 import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
 import jp.co.soramitsu.common.data.storage.Preferences
@@ -19,9 +23,15 @@ import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
 import jp.co.soramitsu.common.domain.SelectedFiat
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
+import jp.co.soramitsu.common.utils.Modules
+import jp.co.soramitsu.common.utils.balances
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.requireValue
+import jp.co.soramitsu.common.utils.tokens
+import jp.co.soramitsu.core.extrinsic.ExtrinsicService
 import jp.co.soramitsu.core.models.Asset.PriceProvider
+import jp.co.soramitsu.core.models.IChain
+import jp.co.soramitsu.core.runtime.storage.returnType
 import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.coredb.dao.OperationDao
 import jp.co.soramitsu.coredb.dao.PhishingDao
@@ -39,9 +49,17 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.runtime.multiNetwork.chain.mapChainLocalToChain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 import jp.co.soramitsu.shared_utils.extensions.toHexString
 import jp.co.soramitsu.shared_utils.runtime.AccountId
+import jp.co.soramitsu.shared_utils.runtime.RuntimeSnapshot
+import jp.co.soramitsu.shared_utils.runtime.definitions.types.Type
+import jp.co.soramitsu.shared_utils.runtime.definitions.types.composite.Struct
+import jp.co.soramitsu.shared_utils.runtime.definitions.types.fromHexOrNull
 import jp.co.soramitsu.shared_utils.runtime.extrinsic.ExtrinsicBuilder
+import jp.co.soramitsu.shared_utils.runtime.metadata.moduleOrNull
+import jp.co.soramitsu.shared_utils.runtime.metadata.storage
+import jp.co.soramitsu.shared_utils.runtime.metadata.storageKey
 import jp.co.soramitsu.wallet.api.data.cache.AssetCache
 import jp.co.soramitsu.wallet.impl.data.mappers.mapAssetLocalToAsset
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.EthereumRemoteSource
@@ -87,7 +105,9 @@ class WalletRepositoryImpl(
     private val accountRepository: AccountRepository,
     private val chainsRepository: ChainsRepository,
     private val selectedFiat: SelectedFiat,
-    private val tokenPriceDao: TokenPriceDao
+    private val tokenPriceDao: TokenPriceDao,
+    private val extrinsicService: ExtrinsicService,
+    private val remoteStorageSource: StorageDataSource
 ) : WalletRepository, UpdatesProviderUi by updatesMixin {
 
     companion object {
@@ -611,6 +631,79 @@ class WalletRepositoryImpl(
             val assets = it.values.map { mapAssetLocalToAsset(chainsById, it) }
             chains.zip(assets).toMap()
         }
+    }
+
+    override suspend fun getVestingLockedAmount(chainId: ChainId): BigInteger? {
+        val currentMetaAccount = accountRepository.getSelectedMetaAccount()
+        val chain = chainsRepository.getChain(chainId)
+        val accountId = currentMetaAccount.accountId(chain)
+
+        val locksStorageKeyAndReturnType = chainRegistry.getRuntimeOrNull(chainId)?.let { runtime ->
+            if (runtime.metadata.moduleOrNull(Modules.BALANCES)?.storage?.get("Locks") != null) {
+                runtime.metadata.balances().storage("Locks").storageKey(runtime, accountId) to
+                        runtime.metadata.balances().storage("Locks").returnType()
+            } else if (runtime.metadata.moduleOrNull(Modules.TOKENS)?.storage?.get("Locks") != null) {
+                val currency = chain.utilityAsset?.currency
+                runtime.metadata.tokens().storage("Locks").storageKey(runtime, accountId, currency) to
+                        runtime.metadata.tokens().storage("Locks").returnType()
+            } else {
+                null
+            }
+        }
+
+        return locksStorageKeyAndReturnType?.let { (locksStorageKey, returnType) ->
+            remoteStorageSource.query(
+                chainId = chainId,
+                keyBuilder = { locksStorageKey },
+                binding = { scale, runtime ->
+                    bindVestingLockedAmount(scale, runtime, returnType)
+                }
+            )
+        }
+    }
+
+    @UseCaseBinding
+    fun bindVestingLockedAmount(scale: String?, runtime: RuntimeSnapshot, returnType: Type<*>): BigInteger? {
+        scale ?: return null
+
+        val locksDynamicInstance = returnType.fromHexOrNull(runtime, scale).cast<List<Struct.Instance>>()
+
+        return locksDynamicInstance.firstOrNull {
+            bindString(it["id"]) == "ormlvest"
+        }?.let {
+            bindNumber(it["amount"])
+        }
+    }
+
+    override suspend fun estimateClaimRewardsFee(chainId: ChainId): BigInteger {
+        return withContext(Dispatchers.IO) {
+            val chain = chainsRepository.getChain(chainId)
+
+            extrinsicService.estimateFee(chain) {
+                claimRewards()
+            }
+        }
+    }
+
+    override suspend fun claimRewards(chain: IChain, accountId: AccountId): Result<String> {
+        return withContext(Dispatchers.IO) {
+            extrinsicService.submitExtrinsic(chain, accountId) {
+                claimRewards()
+            }
+        }
+    }
+
+}
+
+fun ExtrinsicBuilder.claimRewards(): ExtrinsicBuilder {
+    return if (runtime.metadata.moduleOrNull(Modules.VESTING)?.calls?.get("claim") != null) {
+        call(Modules.VESTING, "claim", emptyMap())
+    } else if (runtime.metadata.moduleOrNull(Modules.VESTING)?.calls?.get("vest") != null) {
+        call(Modules.VESTING, "vest", emptyMap())
+    } else if (runtime.metadata.moduleOrNull(Modules.VESTED_REWARDS)?.calls?.get("claim_rewards") != null) {
+        call(Modules.VESTED_REWARDS, "claim_rewards", emptyMap())
+    } else {
+        this
     }
 }
 

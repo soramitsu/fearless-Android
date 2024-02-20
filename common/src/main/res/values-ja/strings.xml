@@ -249,6 +249,7 @@
   <string name="common_origin_network_fee">元ネットワーク手数料</string>
   <string name="common_payout">配当性向</string>
   <string name="common_preview">プレビュー</string>
+  <string name="common_price">価格</string>
   <string name="common_proceed">続行</string>
   <string name="common_read">読む</string>
   <string name="common_receive_alert_description">これはポルカドット(Polkadot)のウォレットです。ポルカドット(Polkadot)ブロックチェーンのアセットのみ送信してください</string>
@@ -506,6 +507,7 @@
   <string name="nft_collection_available_nfts">%sコレクションで利用可能なNFT</string>
   <string name="nft_collection_my_nfts">私のNFT</string>
   <string name="nft_collection_title">コレクション</string>
+  <string name="nft_creator_title">作成者</string>
   <string name="nft_owner_title">所有</string>
   <string name="nft_stub_text">NFTがもうすぐ登場します</string>
   <string name="nft_stub_title">失礼しました</string>
@@ -724,7 +726,7 @@
   <string name="settings_hide_zero_balances">残高ゼロを隠す</string>
   <string name="share_referral_code">紹介コードを共有</string>
   <string name="social_media">ソーシャル・メディア</string>
-  <string name="sora_bridge_low_amount_alert">現在、SORAネットワークの安定性と安全性を確保するため、ブリッジングには最低0.05 KSMが設定されています。ご理解のほどよろしくお願いいたします。</string>
+  <string name="sora_bridge_low_amount_format_alert">現在、SORAネットワークの安定性と安全性を確保するため、ブリッジングには最低%sが設定されています。ご理解のほどよろしくお願いいたします。</string>
   <string name="sora_card_annual_service_fee">年間サービス料€0</string>
   <string name="sora_card_blacklisted_countires_title">適用除外</string>
   <string name="sora_card_blacklisted_countires_warning"><![CDATA[現在SORAカードは<b>特定の国</b>の居住者は<b>申請できません</b><br><a href=\"https://soracard.com/blacklist/\">特定の国を見る</a>]]></string>

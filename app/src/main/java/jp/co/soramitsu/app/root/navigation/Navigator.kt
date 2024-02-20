@@ -131,6 +131,7 @@ import jp.co.soramitsu.wallet.impl.presentation.balance.assetDetails.AssetDetail
 import jp.co.soramitsu.wallet.impl.presentation.balance.assetselector.AssetSelectFragment
 import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.ChainSelectFragment
 import jp.co.soramitsu.wallet.impl.presentation.balance.detail.BalanceDetailFragment
+import jp.co.soramitsu.wallet.impl.presentation.balance.detail.claimreward.ClaimRewardsFragment
 import jp.co.soramitsu.wallet.impl.presentation.balance.detail.frozen.FrozenAssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.balance.detail.frozen.FrozenTokensFragment
 import jp.co.soramitsu.wallet.impl.presentation.balance.optionswallet.OptionsWalletFragment
@@ -1058,6 +1059,11 @@ class Navigator :
 
     override fun openNodes(chainId: ChainId) {
         navController?.navigate(R.id.action_open_nodesFragment, NodesFragment.getBundle(chainId))
+    }
+
+    override fun openClaimRewards(chainId: ChainId) {
+        val args = ClaimRewardsFragment.getBundle(chainId)
+        navController?.navigate(R.id.claimRewardsFragment, args)
     }
 
     override fun openLanguages() {

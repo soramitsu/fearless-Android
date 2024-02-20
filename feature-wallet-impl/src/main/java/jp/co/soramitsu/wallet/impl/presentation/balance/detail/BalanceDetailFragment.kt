@@ -63,13 +63,21 @@ class BalanceDetailFragment : BaseComposeFragment<BalanceDetailViewModel>() {
         viewModel.showAccountOptions.observeEvent(::showAccountOptions)
     }
 
-    private fun showAccountOptions(address: String) {
+    private fun showAccountOptions(addressAndClaimSupport: Pair<String, Boolean>) {
+        val (address, supportClaim) = addressAndClaimSupport
         BalanceDetailOptionsBottomSheet(
             requireContext(),
             address = address,
             onExportAccount = viewModel::exportClicked,
             onSwitchNode = viewModel::switchNode,
-            onCopy = viewModel::copyAddressClicked
+            onCopy = viewModel::copyAddressClicked,
+            onClaimReward = if (supportClaim) {
+                {
+                    viewModel.claimRewardClicked()
+                }
+            } else {
+                null
+            }
         ).show()
     }
 
