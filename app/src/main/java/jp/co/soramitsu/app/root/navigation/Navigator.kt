@@ -1452,7 +1452,7 @@ class Navigator :
     }
 
     override fun listenAlertResultFlowFromNetworkIssuesScreen(key: String): Flow<Result<Unit>> {
-        val currentEntry = navController?.getBackStackEntry(R.id.networkIssuesFragment)
+        val currentEntry = navController?.currentBackStackEntry
         val onResumeObserver = currentEntry?.lifecycle?.onResumeObserver()
 
         return (onResumeObserver?.asFlow() ?: emptyFlow()).map {
