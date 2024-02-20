@@ -3,7 +3,7 @@ package jp.co.soramitsu.wallet.impl.data.network.blockchain
 import java.math.BigInteger
 import jp.co.soramitsu.common.utils.failure
 import jp.co.soramitsu.core.models.Asset
-import jp.co.soramitsu.runtime.multiNetwork.connection.EthereumWebSocketConnection
+import jp.co.soramitsu.runtime.multiNetwork.connection.EthereumChainConnection
 import jp.co.soramitsu.shared_utils.extensions.requireHexPrefix
 import jp.co.soramitsu.wallet.impl.data.network.model.EvmTransfer
 import jp.co.soramitsu.wallet.impl.domain.model.Transfer
@@ -18,7 +18,7 @@ import org.web3j.protocol.core.DefaultBlockParameterName
 import org.web3j.protocol.core.methods.request.Transaction
 import org.web3j.utils.Numeric
 
-class EthereumTransactionBuilder(ethereumWebSocketConnection: EthereumWebSocketConnection) {
+class EthereumTransactionBuilder(ethereumWebSocketConnection: EthereumChainConnection) {
 
     private val service = ethereumWebSocketConnection.service
         ?: throw IllegalStateException("There is no connection established for chain ${ethereumWebSocketConnection.chain.name}, ${ethereumWebSocketConnection.chain.id}")

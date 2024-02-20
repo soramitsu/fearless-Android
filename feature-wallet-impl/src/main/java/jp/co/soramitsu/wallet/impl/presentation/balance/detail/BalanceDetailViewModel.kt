@@ -98,8 +98,8 @@ class BalanceDetailViewModel @Inject constructor(
     private val assetPayloadInitial: AssetPayload =
         savedStateHandle[KEY_ASSET_PAYLOAD] ?: error("No asset specified")
 
-    private val _showAccountOptions = MutableLiveData<Event<Pair<String, Boolean>>>()
-    val showAccountOptions: LiveData<Event<Pair<String, Boolean>>> = _showAccountOptions
+    private val _showAccountOptions = MutableLiveData<Event<AccountOptionsPayload>>()
+    val showAccountOptions: LiveData<Event<AccountOptionsPayload>> = _showAccountOptions
 
     private val _showExportSourceChooser = MutableLiveData<Event<ExportSourceChooserPayload>>()
     val showExportSourceChooser: LiveData<Event<ExportSourceChooserPayload>> =
@@ -343,7 +343,11 @@ class BalanceDetailViewModel @Inject constructor(
             assetPayload.value.chainId
         )?.let { address ->
             val isClaimSupported: Boolean = interactor.checkClaimSupport(assetPayload.value.chainId)
-            _showAccountOptions.postValue(Event(Pair(address, isClaimSupported)))
+            val isEthereum = interactor
+                .getChain(assetPayload.value.chainId)
+                .isEthereumChain
+            val payload = AccountOptionsPayload(address, isClaimSupported, isEthereum)
+            _showAccountOptions.postValue(Event(payload))
         }
     }
 
