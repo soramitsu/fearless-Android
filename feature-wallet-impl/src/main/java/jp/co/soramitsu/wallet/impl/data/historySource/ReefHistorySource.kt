@@ -5,6 +5,7 @@ import java.text.SimpleDateFormat
 import java.time.Instant
 import java.util.Locale
 import jp.co.soramitsu.common.data.model.CursorPage
+import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.shared_utils.runtime.AccountId
@@ -29,19 +30,26 @@ class ReefHistorySource(
         val overridePageSize = 50
         val offset = cursor?.toIntOrNull().takeIf { it != 0 }
 
-        val response = walletOperationsApi.getReefOperationsHistory(
-            url = url,
-            ReefRequestBuilder(
-                filters,
-                accountAddress = accountAddress,
-                overridePageSize,
-                offset?.toString()
-            ).buildRequest()
-        )
+        var shouldLoadTransfersNextPage = false
+        var shouldLoadRewardsNextPage = false
+        var shouldLoadExtrinsicsNextPage = false
+        var transfersResultOffset = 0
+        var rewardsResultOffset = 0
+        var extrinsicsResultOffset = 0
 
         val operations = mutableListOf<Operation>()
-        if(filters.contains(TransactionFilter.TRANSFER) && response.data.transfersConnection != null) {
-            operations.addAll(response.data.transfersConnection?.edges?.map { it.node }?.map {
+        if (filters.contains(TransactionFilter.TRANSFER)) {
+            val transfersResponse = walletOperationsApi.getReefOperationsHistory(
+                url = url,
+                body = ReefRequestBuilder(
+                    filters = setOf(TransactionFilter.TRANSFER),
+                    accountAddress = accountAddress,
+                    limit = overridePageSize,
+                    transfersOffset = offset?.toString()
+                ).buildRequest()
+            )
+
+            operations.addAll(transfersResponse.data.transfersConnection?.edges?.map { it.node }?.map {
                 Operation(
                     id = it.extrinsicHash ?: it.id ?: it.hashCode().toString(),
                     address = accountAddress,
@@ -58,9 +66,23 @@ class ReefHistorySource(
                     )
                 )
             }.orEmpty())
+
+            shouldLoadTransfersNextPage = transfersResponse.data.transfersConnection?.pageInfo?.hasNextPage ?: false
+            transfersResultOffset = transfersResponse.data.transfersConnection?.pageInfo?.endCursor?.toIntOrNull() ?: 0
         }
-        if(filters.contains(TransactionFilter.REWARD) && response.data.stakingsConnection != null) {
-            operations.addAll(response.data.stakingsConnection?.edges?.map { it.node }?.map {
+
+        if (filters.contains(TransactionFilter.REWARD)) {
+            val stakingsResponse = walletOperationsApi.getReefOperationsHistory(
+                url = url,
+                body = ReefRequestBuilder(
+                    filters = setOf(TransactionFilter.REWARD),
+                    accountAddress = accountAddress,
+                    limit = overridePageSize,
+                    transfersOffset = offset?.toString()
+                ).buildRequest()
+            )
+
+            operations.addAll(stakingsResponse.data.stakingsConnection?.edges?.map { it.node }?.map {
                 Operation(
                     id = it.id,
                     address = accountAddress,
@@ -74,21 +96,47 @@ class ReefHistorySource(
                     )
                 )
             }.orEmpty())
+
+            shouldLoadRewardsNextPage = stakingsResponse.data.stakingsConnection?.pageInfo?.hasNextPage ?: false
+            rewardsResultOffset = stakingsResponse.data.stakingsConnection?.pageInfo?.endCursor?.toIntOrNull() ?: 0
         }
 
-        val transfersPageInfo = response.data.transfersConnection?.pageInfo
-        val rewardsPageInfo = response.data.stakingsConnection?.pageInfo
+        if (filters.contains(TransactionFilter.EXTRINSIC)) {
+            val extrinsicsResponse = walletOperationsApi.getReefOperationsHistory(
+                url = url,
+                body = ReefRequestBuilder(
+                    filters = setOf(TransactionFilter.EXTRINSIC),
+                    accountAddress = accountAddress,
+                    limit = overridePageSize,
+                    transfersOffset = offset?.toString()
+                ).buildRequest()
+            )
 
-        val shouldLoadTransfersNextPage = transfersPageInfo?.hasNextPage ?: false
-        val shouldLoadRewardsNextPage = rewardsPageInfo?.hasNextPage ?: false
+            operations.addAll(extrinsicsResponse.data.extrinsicsConnection?.edges?.map { it.node }?.map {
+                Operation(
+                    id = it.id,
+                    address = accountAddress,
+                    time = parseTimeToMillis(it.timestamp),
+                    chainAsset = chainAsset,
+                    type = Operation.Type.Extrinsic(
+                        hash = it.hash,
+                        module = it.section,
+                        call = it.method,
+                        fee = it.signedData?.fee?.partialFee.orZero(),
+                        status = Operation.Status.fromSuccess(it.status == "success")
+                    )
+                )
+            }.orEmpty())
 
-        val hasNextPage = shouldLoadTransfersNextPage || shouldLoadRewardsNextPage
+            shouldLoadExtrinsicsNextPage = extrinsicsResponse.data.extrinsicsConnection?.pageInfo?.hasNextPage ?: false
+            extrinsicsResultOffset = extrinsicsResponse.data.extrinsicsConnection?.pageInfo?.endCursor?.toIntOrNull() ?: 0
+        }
 
-        val nextCursor = if(hasNextPage) {
-            val transfersOffset = transfersPageInfo?.endCursor?.toIntOrNull() ?: 0
-            val rewardsOffset = rewardsPageInfo?.endCursor?.toIntOrNull() ?: 0
-            val nextOffset = maxOf(transfersOffset, rewardsOffset)
-            if(nextOffset >= overridePageSize) nextOffset.toString() else null
+        val hasNextPage = shouldLoadTransfersNextPage || shouldLoadRewardsNextPage || shouldLoadExtrinsicsNextPage
+
+        val nextCursor = if (hasNextPage) {
+            val nextOffset = maxOf(transfersResultOffset, rewardsResultOffset, extrinsicsResultOffset)
+            if (nextOffset >= overridePageSize) nextOffset.toString() else null
         } else {
             null
         }
