@@ -50,6 +50,7 @@ fun BigDecimal.formatFiat(fiatSymbol: String?) = (fiatSymbol ?: DOLLAR_SIGN) + f
 fun BigDecimal.formatPercent() = percentAmountFormatter.format(this)
 
 fun BigDecimal.formatCryptoFull() = fullPrecisionFormatter.format(this)
+fun BigDecimal.formatCryptoDetail() = cryptoAmountDetailFormatter.format(this)
 fun BigDecimal.formatCrypto(symbol: String? = null): String {
     return when (symbol) {
         null -> cryptoShortAbbreviatedFormatter.format(this)
