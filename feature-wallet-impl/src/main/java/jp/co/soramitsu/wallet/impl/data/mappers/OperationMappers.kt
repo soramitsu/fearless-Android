@@ -4,6 +4,7 @@ import java.math.BigInteger
 import jp.co.soramitsu.account.api.presentation.account.AddressDisplayUseCase
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressIcon
+import jp.co.soramitsu.common.address.createEthereumAddressIcon
 import jp.co.soramitsu.common.compose.theme.gray2
 import jp.co.soramitsu.common.compose.theme.greenText
 import jp.co.soramitsu.common.compose.theme.white
@@ -432,6 +433,13 @@ suspend fun mapOperationToOperationModel(
                     else -> white
                 }
 
+                val isEthereum = chainAsset.ethereumType != null
+                val operationIcon = if (isEthereum) {
+                    iconGenerator.createEthereumAddressIcon(operationType.displayAddress, AddressIconGenerator.SIZE_MEDIUM)
+                } else {
+                    iconGenerator.createAddressIcon(operationType.displayAddress, AddressIconGenerator.SIZE_BIG)
+                }
+
                 OperationModel(
                     id = id,
                     time = time,
@@ -439,10 +447,7 @@ suspend fun mapOperationToOperationModel(
                     amountColor = amountColor,
                     header = nameIdentifier.nameOrAddress(operationType.displayAddress),
                     statusAppearance = statusAppearance,
-                    operationIcon = iconGenerator.createAddressIcon(
-                        operationType.displayAddress,
-                        AddressIconGenerator.SIZE_BIG
-                    ),
+                    operationIcon = operationIcon,
                     subHeader = resourceManager.getString(R.string.transfer_title),
                     type = operationType.toModel()
                 )
