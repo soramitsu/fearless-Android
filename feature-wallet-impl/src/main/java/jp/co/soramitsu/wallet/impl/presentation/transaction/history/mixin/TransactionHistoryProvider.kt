@@ -29,11 +29,13 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.onErrorResume
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -116,6 +118,9 @@ class TransactionHistoryProvider(
         )
             .distinctUntilChangedBy { it.cursorPage }
             .map { it.cursorPage }
+            .catch {
+                emit(CursorPage(null, listOf()))
+            }
     }
 
     private var firstPageSyncJob: Job? = null
