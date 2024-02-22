@@ -121,16 +121,20 @@ class PolkaswapRepositoryImpl @Inject constructor(
         curMarkets: List<Market>,
         dexId: Int
     ): QuoteResponse? {
-        return rpcCalls.liquidityProxyQuote(
-            chainId,
-            tokenFromId,
-            tokenToId,
-            amount,
-            desired.backString,
-            curMarkets.backStrings(),
-            curMarkets.toFilters(),
-            dexId
-        )
+        return try {
+            rpcCalls.liquidityProxyQuote(
+                chainId,
+                tokenFromId,
+                tokenToId,
+                amount,
+                desired.backString,
+                curMarkets.backStrings(),
+                curMarkets.toFilters(),
+                dexId
+            )
+        } catch (e: Exception) {
+            null
+        }
     }
 
     override suspend fun estimateSwapFee(
