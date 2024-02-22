@@ -200,7 +200,11 @@ class SelectCustomValidatorsViewModel @Inject constructor(
     }
 
     private fun updateSetupStakingState() {
-        setupStakingSharedState.setCustomValidators(selectedValidators.value.toList())
+        try {
+            setupStakingSharedState.setCustomValidators(selectedValidators.value.toList())
+        } catch (e: Exception) {
+            showError(e)
+        }
     }
 
     fun deselectAll() {
