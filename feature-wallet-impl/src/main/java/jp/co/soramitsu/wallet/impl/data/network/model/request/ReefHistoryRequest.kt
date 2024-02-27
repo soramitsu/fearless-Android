@@ -42,7 +42,7 @@ class ReefRequestBuilder(
         if (filters.contains(TransactionFilter.REWARD)) {
             query.append(
                 """
-                stakingsConnection(orderBy: timestamp_DESC, where: {AND: {signer: {id_eq: "$accountAddress"}, amount_gt: "0"}}, first: ${limit * 2}, after: $offset) {
+                stakingsConnection(orderBy: timestamp_DESC, where: {AND: {signer: {id_eq: "$accountAddress"}, amount_gt: "0"}}, first: $limit, after: $offset) {
                     edges {
                       node {
                         id
@@ -62,7 +62,32 @@ class ReefRequestBuilder(
             """.trimIndent()
             )
         }
-
+        if (filters.contains(TransactionFilter.EXTRINSIC)) {
+            query.append(
+                """
+                  extrinsicsConnection(orderBy: id_ASC, where: {signer_eq: "$accountAddress"}, first: $limit, after: $offset) {
+                    edges {
+                      node {
+                        id
+                        hash
+                        method
+                        section
+                        signedData
+                        status
+                        signer
+                        timestamp
+                        type
+                      }
+                    }
+                    totalCount
+                    pageInfo {
+                      endCursor
+                      hasNextPage
+                    }
+                  }
+                """.trimIndent()
+            )
+        }
         return ReefHistoryRequest(query.toString())
     }
 
