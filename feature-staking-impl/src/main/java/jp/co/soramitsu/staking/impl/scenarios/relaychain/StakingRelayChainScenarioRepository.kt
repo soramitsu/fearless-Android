@@ -244,7 +244,7 @@ class StakingRelayChainScenarioRepository(
                 runtime.metadata.stakingOrNull()?.storage("Validators")?.storageKey()
             },
             keyExtractor = { it.accountIdFromMapKey() },
-            binding = { scale, runtime, key ->
+            binding = { scale, runtime, _ ->
                 val storageType = runtime.metadata.staking().storage("Validators").returnType()
                 scale?.let { bindValidatorPrefs(scale, runtime, storageType) }
             })
@@ -421,17 +421,6 @@ class StakingRelayChainScenarioRepository(
                 val storageType = runtime.metadata.staking().storage("Validators").returnType()
                 scale?.let { bindValidatorPrefs(it, runtime, storageType) }
             }
-        )
-    }
-
-    private fun observeAccountNominations(
-        chainId: ChainId,
-        stashId: AccountId
-    ): Flow<Nominations?> {
-        return localStorage.observe(
-            chainId = chainId,
-            keyBuilder = { it.metadata.staking().storage("Nominators").storageKey(it, stashId) },
-            binder = { scale, runtime -> scale?.let { bindNominations(it, runtime) } }
         )
     }
 

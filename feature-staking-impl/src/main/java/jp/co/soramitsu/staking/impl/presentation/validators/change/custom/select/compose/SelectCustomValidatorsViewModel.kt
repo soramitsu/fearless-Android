@@ -66,8 +66,8 @@ class SelectCustomValidatorsViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle
 ) : BaseViewModel(), SelectValidatorsScreenInterface {
 
-    private val selectMode =
-        requireNotNull(savedStateHandle.get<SelectValidatorFlowState.ValidatorSelectMode>("validatorsSelectMode"))
+    private val selectMode: SelectValidatorFlowState.ValidatorSelectMode =
+        requireNotNull(savedStateHandle["validatorsSelectMode"])
 
     val stakingSharedState =
         setupStakingSharedState.getOrNull<SetupStakingProcess.SelectBlockProducersStep.Validators>()

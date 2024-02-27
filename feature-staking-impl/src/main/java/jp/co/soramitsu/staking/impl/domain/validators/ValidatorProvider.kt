@@ -1,6 +1,5 @@
 package jp.co.soramitsu.staking.impl.domain.validators
 
-import android.util.Log
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.toHexAccountId
 import jp.co.soramitsu.core.utils.utilityAsset
@@ -14,7 +13,6 @@ import jp.co.soramitsu.staking.api.domain.api.IdentityRepository
 import jp.co.soramitsu.staking.api.domain.model.Exposure
 import jp.co.soramitsu.staking.api.domain.model.Validator
 import jp.co.soramitsu.staking.impl.data.repository.StakingConstantsRepository
-import jp.co.soramitsu.staking.impl.domain.error.accountIdNotFound
 import jp.co.soramitsu.staking.impl.domain.rewards.RewardCalculationTarget
 import jp.co.soramitsu.staking.impl.domain.rewards.RewardCalculatorFactory
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenarioRepository
@@ -48,10 +46,6 @@ class ValidatorProvider(
             ValidatorSource.Elected -> allValidatorPrefs.keys.toList()
             is ValidatorSource.Custom -> source.validatorIds
         }
-
-//        val validatorIdsToQueryPrefs = electedValidatorExposures.keys + requestedValidatorIds
-
-//        val validatorPrefs = stakingRepository.getValidatorPrefs(chainId, validatorIdsToQueryPrefs.toList())
 
         val identities = identityRepository.getIdentitiesFromIds(chain, requestedValidatorIds)
         val slashes = stakingRepository.getSlashes(chainId, requestedValidatorIds)
@@ -96,9 +90,6 @@ class ValidatorProvider(
                     ownStake = it.own,
                     nominatorStakes = it.others,
                     apy = runCatching { rewardCalculator.getApyFor(accountIdHex.fromHex()) }
-                        .onFailure {
-                            Log.d("&&&", "rewardCalculator.getApyFor error: $it")
-                        }
                         .getOrNull().orZero(),
                     isOversubscribed = it.others.size > maxNominators
                 )

@@ -1,7 +1,6 @@
 package jp.co.soramitsu.staking.impl.domain.recommendations.settings.sortings
 
 import java.math.BigDecimal
-import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.staking.api.domain.model.Collator
 import jp.co.soramitsu.staking.api.domain.model.Validator
 import jp.co.soramitsu.staking.impl.domain.recommendations.settings.notElected
