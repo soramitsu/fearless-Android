@@ -108,7 +108,7 @@ class ChooseNFTRecipientPresenter @Inject constructor(
         val isLoadingHelperFlow =
             tokenFlow.zipWithPrevious().flatMapLatest { (prevToken, currentToken) ->
                 isLoadingFlow.map {
-                    if (prevToken?.tokenId == currentToken.tokenId) {
+                    if (prevToken == null || prevToken.tokenId == currentToken.tokenId) {
                         it
                     } else {
                         false

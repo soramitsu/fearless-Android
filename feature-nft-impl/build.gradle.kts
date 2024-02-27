@@ -26,11 +26,12 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
     composeOptions {
@@ -38,7 +39,7 @@ android {
     }
 
     kotlinOptions {
-        jvmTarget = "11"
+        jvmTarget = "17"
     }
 }
 
@@ -57,15 +58,15 @@ dependencies {
         exclude(group = "org.java-websocket", module = "Java-WebSocket")
     }
 
-    implementation(libs.gsonConverter)
-    implementation(libs.scalarsConverter)
+    implementation(libs.converter.gson)
+    implementation(libs.converter.scalars)
 
-    implementation(libs.compose.navigation)
+    implementation(libs.navigation.compose)
 
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-rx2:1.7.3")
 
-    implementation(libs.zXing.core)
-    implementation(libs.zXing.embedded)
+    implementation(libs.zxing.core)
+    implementation(libs.zxing.embedded)
 
     implementation(projects.common)
     implementation(projects.runtime)

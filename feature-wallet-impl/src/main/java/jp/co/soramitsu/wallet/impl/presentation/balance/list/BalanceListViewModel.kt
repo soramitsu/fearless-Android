@@ -342,8 +342,8 @@ class BalanceListViewModel @Inject constructor(
 
                 send(screenModel to screenLayout)
             }.launchIn(this)
-        }.distinctUntilChangedBy { (screenModel, _) ->
-            screenModel::class.simpleName
+        }.distinctUntilChangedBy { (screenModel, screenLayout) ->
+            "${screenModel::class.simpleName}::${screenLayout.name}"
         }.flowOn(Dispatchers.Default)
     }
 

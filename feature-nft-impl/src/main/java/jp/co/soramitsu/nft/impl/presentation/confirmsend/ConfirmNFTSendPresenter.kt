@@ -97,7 +97,7 @@ class ConfirmNFTSendPresenter @Inject constructor(
             val isLoadingHelperFlow =
                 screenArgsFlow.zipWithPrevious().flatMapLatest { (prevArgs, currentArgs) ->
                     isLoadingFlow.map {
-                        if (prevArgs?.token?.tokenId == currentArgs.token.tokenId) {
+                        if (prevArgs?.token == null || prevArgs.token.tokenId == currentArgs.token.tokenId) {
                             it
                         } else {
                             false
