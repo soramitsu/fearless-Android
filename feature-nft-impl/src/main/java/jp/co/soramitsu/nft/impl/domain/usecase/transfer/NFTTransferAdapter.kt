@@ -1,7 +1,7 @@
-package jp.co.soramitsu.nft.impl.domain.adapters
+package jp.co.soramitsu.nft.impl.domain.usecase.transfer
 
 import jp.co.soramitsu.nft.domain.models.NFT
-import jp.co.soramitsu.nft.impl.domain.models.NFTCall
+import jp.co.soramitsu.nft.impl.domain.models.transfer.NFTCall
 import jp.co.soramitsu.nft.impl.domain.utils.getNonce
 import org.web3j.abi.FunctionEncoder
 import org.web3j.abi.datatypes.Address

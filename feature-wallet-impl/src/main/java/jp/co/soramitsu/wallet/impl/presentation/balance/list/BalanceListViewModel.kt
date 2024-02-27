@@ -3,7 +3,6 @@ package jp.co.soramitsu.wallet.impl.presentation.balance.list
 import android.widget.LinearLayout
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.SwipeableState
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
@@ -30,6 +29,7 @@ import jp.co.soramitsu.common.compose.component.MultiToggleButtonState
 import jp.co.soramitsu.common.compose.component.NetworkIssueItemState
 import jp.co.soramitsu.common.compose.component.SwipeState
 import jp.co.soramitsu.common.compose.component.ToolbarHomeIconState
+import jp.co.soramitsu.common.compose.models.LoadableListPage
 import jp.co.soramitsu.common.compose.models.ScreenLayout
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState
 import jp.co.soramitsu.common.data.network.coingecko.FiatChooserEvent
@@ -60,8 +60,6 @@ import jp.co.soramitsu.nft.domain.models.NFTCollectionResult
 import jp.co.soramitsu.common.compose.utils.PageScrollingCallback
 import jp.co.soramitsu.wallet.impl.presentation.balance.nft.list.models.NFTCollectionsScreenModel
 import jp.co.soramitsu.wallet.impl.presentation.balance.nft.list.models.NFTCollectionsScreenView
-import jp.co.soramitsu.wallet.impl.presentation.balance.nft.list.utils.createShimmeredNFTCollectionsViewsList
-import jp.co.soramitsu.wallet.impl.presentation.balance.nft.list.utils.toStableViewsList
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.defaultChainSort
@@ -84,6 +82,7 @@ import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.toChainIte
 import jp.co.soramitsu.wallet.impl.presentation.balance.list.model.AssetType
 import jp.co.soramitsu.wallet.impl.presentation.balance.list.model.BalanceListItemModel
 import jp.co.soramitsu.wallet.impl.presentation.balance.list.model.toAssetState
+import jp.co.soramitsu.wallet.impl.presentation.balance.nft.list.models.ScreenModel
 import jp.co.soramitsu.wallet.impl.presentation.model.ControllerDeprecationWarningModel
 import jp.co.soramitsu.wallet.impl.presentation.model.toModel
 import kotlinx.coroutines.Dispatchers
@@ -97,9 +96,11 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
@@ -110,7 +111,6 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.sample
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.concurrent.atomic.AtomicBoolean
@@ -158,11 +158,11 @@ class BalanceListViewModel @Inject constructor(
 
     private val pageScrollingCallback = object : PageScrollingCallback {
         override fun onAllPrevPagesScrolled() {
-            mutableNFTPaginationRequestFlow.tryEmit(PaginationRequest.Prev.Page)
+            mutableNFTPaginationRequestFlow.tryEmit(PaginationRequest.Prev)
         }
 
         override fun onAllNextPagesScrolled() {
-            mutableNFTPaginationRequestFlow.tryEmit(PaginationRequest.Next.Page)
+            mutableNFTPaginationRequestFlow.tryEmit(PaginationRequest.Next(100))
         }
     }
 
@@ -265,27 +265,38 @@ class BalanceListViewModel @Inject constructor(
         assetStates
     }.onStart { emit(buildInitialAssetsList().toMutableList()) }.inBackground().share()
 
-    @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
-    private fun createNFTCollectionScreenViewsFlow(): Flow<SnapshotStateList<NFTCollectionsScreenView>> {
+    @OptIn(FlowPreview::class)
+    private fun createNFTCollectionScreenViewsFlow(): Flow<Pair<LoadableListPage<NFTCollectionsScreenView>, ScreenLayout>> {
         return channelFlow {
             val isLoadingCompleted = AtomicBoolean(true)
 
             val pullToRefreshHelperFlow = BalanceUpdateTrigger.observe()
-                .map { PaginationRequest.Start }
+                .map { PaginationRequest.Start(100) }
 
             val paginationRequestHelperFlow = merge(mutableNFTPaginationRequestFlow, pullToRefreshHelperFlow)
                 .onStart {
-                    emit(PaginationRequest.Start)
-                }.sample(1_500L).filter {
+                    emit(PaginationRequest.Start(100))
+                }.debounce(5000L).filter {
                     isLoadingCompleted.get()
-                }.onEach {
-                    // Pagination Request Flow can quite many requests in a second, from which we need only one
-                    // so we TRY to set isLoadingCompleted, if we don't succeed then
-                    // we are already in process of loading
+                }.onEach { request ->
+                    when (request) {
+                        is PaginationRequest.Start ->
+                            Unit
+
+                        is PaginationRequest.Prev ->
+                            send(ScreenModel.PreviousPageLoading to ScreenLayout.Grid)
+
+                        is PaginationRequest.Next ->
+                            send(ScreenModel.NextPageLoading to ScreenLayout.Grid)
+
+                        is PaginationRequest.ProceedFromLastPage ->
+                            send(ScreenModel.NextPageLoading to ScreenLayout.Grid)
+                    }
+
                     isLoadingCompleted.compareAndSet(true, false)
                 }.shareIn(this, SharingStarted.Eagerly, 1)
 
-            nftInteractor.userOwnedCollectionsFlow(
+            nftInteractor.collectionsFlow(
                 paginationRequestFlow = paginationRequestHelperFlow,
                 chainSelectionFlow = selectedChainId
             ).combine(mutableScreenLayoutFlow) { allNFTCollectionsData, screenLayout ->
@@ -293,14 +304,13 @@ class BalanceListViewModel @Inject constructor(
                 isLoadingCompleted.set(true)
 
                 return@combine allNFTCollectionsData to screenLayout
-            }.transformLatest { (allNFTCollectionsData, screenLayout) ->
+            }.map { (allNFTCollectionsData, screenLayout) ->
                 if (allNFTCollectionsData.all { it is NFTCollectionResult.Error }) {
                     showError("Failed to load NFTs")
-                    return@transformLatest emit(
-                        ArrayDeque<NFTCollectionsScreenView>().apply {
-                            add(NFTCollectionsScreenView.EmptyPlaceholder)
-                        }
-                    )
+                    return@map ScreenModel.ReadyToRender(
+                        allNFTCollectionsData,
+                        screenLayout
+                    ) {} to screenLayout
                 }
 
                 if (allNFTCollectionsData.any { it is NFTCollectionResult.Error }) {
@@ -315,28 +325,18 @@ class BalanceListViewModel @Inject constructor(
                     showError("Failed to load NFTs for $joinedChainsWithFailedRequests")
                 }
 
-                allNFTCollectionsData.filterIsInstance<NFTCollectionResult.Data>()
-                    .toStableViewsList(screenLayout, ::onNFTCollectionClick)
-                    .also { emit(it) }
-            }.combine(paginationRequestHelperFlow) { views, paginationRequest ->
-                if (!isLoadingCompleted.get()) {
-                    if (paginationRequest is PaginationRequest.Prev)
-                        views.addFirst(NFTCollectionsScreenView.LoadingIndication)
-                    else views.addLast(NFTCollectionsScreenView.LoadingIndication)
-                }
-
-                return@combine views
+                ScreenModel.ReadyToRender(
+                    result = allNFTCollectionsData,
+                    screenLayout = screenLayout,
+                    onItemClick = ::onNFTCollectionClick
+                ).also { send(it to screenLayout) }
             }.onStart {
-                val shimmers = createShimmeredNFTCollectionsViewsList(ScreenLayout.Grid)
-                emit(shimmers)
-            }.onEach {
-                val viewsStableList = SnapshotStateList<NFTCollectionsScreenView>().apply { addAll(it) }
-                send(viewsStableList)
+                send(ScreenModel.Reloading to ScreenLayout.Grid)
             }.launchIn(this)
         }
     }
 
-    private fun onNFTCollectionClick(collection: NFTCollectionResult.Data) {
+    private fun onNFTCollectionClick(collection: NFTCollectionResult.Collection) {
         router.openNftCollection(collection.chainId, collection.contractAddress, collection.collectionName)
     }
 
@@ -345,7 +345,7 @@ class BalanceListViewModel @Inject constructor(
         assetStates,
         nftInteractor.nftFiltersFlow(),
         createNFTCollectionScreenViewsFlow()
-    ) { selectorState, assetStates, filters, views ->
+    ) { selectorState, assetStates, filters, (pageViews, screenLayout) ->
         when (selectorState.currentSelection) {
             AssetType.Currencies -> {
                 WalletAssetsState.Assets(assetStates)
@@ -355,7 +355,8 @@ class BalanceListViewModel @Inject constructor(
                 WalletAssetsState.NftAssets(
                     NFTCollectionsScreenModel(
                         areFiltersApplied = filters.any { (_, isEnabled) -> isEnabled },
-                        views = views,
+                        screenLayout = screenLayout,
+                        loadableListPage = pageViews,
                         onFiltersIconClick = { router.openNFTFilter() },
                         onScreenLayoutChanged = { mutableScreenLayoutFlow.value = it },
                         pageScrollingCallback = pageScrollingCallback

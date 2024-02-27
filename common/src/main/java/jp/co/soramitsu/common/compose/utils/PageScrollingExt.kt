@@ -40,13 +40,13 @@ fun LazyGridState.nestedScrollConnectionForPageScrolling(
             available: Offset,
             source: NestedScrollSource
         ): Offset {
-            val isDirectionToPrevPages = max(consumed.y, available.y) > 0
+            val isDirectionToPrevPages = max(consumed.y, available.y) > 0.5
 
             if (isDirectionToPrevPages && isFirstItemFullyVisible()) {
                 pageScrollingCallback.onAllPrevPagesScrolled()
             }
 
-            val isDirectionToNextPages = min(consumed.y, available.y) < -0
+            val isDirectionToNextPages = min(consumed.y, available.y) < -0.5
 
             if (isDirectionToNextPages && isLastItemFullyVisible()) {
                 pageScrollingCallback.onAllNextPagesScrolled()

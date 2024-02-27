@@ -91,6 +91,10 @@
   <string name="backup_wallet_show_mnemonic_phrase">Hiển thị cụm từ ghi nhớ</string>
   <string name="backup_wallet_show_raw_seed">Hiển thị Raw Seed</string>
   <string name="backup_wallet_warning_about_lose_phrase">Nếu bạn mất quyền truy cập vào thiết bị này, tiền của bạn sẽ bị mất, trừ khi bạn sao lưu!</string>
+  <string name="balance_locks_governance_row_title">Quản trị</string>
+  <string name="balance_locks_liquidity_pools_row_title">Pool thanh khoản</string>
+  <string name="balance_locks_nomination_pools_row_title">Nhóm Nomination</string>
+  <string name="balance_locks_screen_title">Chi tiết đã khóa</string>
   <string name="banners_backup_description">Nếu bạn làm mất thiết bị của mình, bạn\n sẽ mất tiền của bạn mãi mãi</string>
   <string name="banners_buy_xor">Mua XOR</string>
   <string name="banners_buy_xor_description">Mua hoặc bán tokr XOR với\ntiền Euro</string>
@@ -507,6 +511,7 @@
   <string name="network_status_connected">Đã kết nối</string>
   <string name="network_status_connecting">Đang kết nối...</string>
   <string name="network_url_address">Địa chỉ URL</string>
+  <string name="nft_choose_recipient_title">Chọn người nhận</string>
   <string name="nft_collection_available_nfts">NFT có sẵn trong bộ sưu tập %s</string>
   <string name="nft_collection_my_nfts">NFT của tôi</string>
   <string name="nft_collection_title">Bộ sưu tập</string>
@@ -730,11 +735,12 @@
   <string name="send_fund">Gửi tiền</string>
   <string name="send_to">Gửi đến</string>
   <string name="sending">Đang gửi</string>
+  <string name="set_max_amount">Số tiền tối đa</string>
   <string name="settings_hide_zero_balances">Ẩn số dư bằng không</string>
   <string name="share_referral_code">Chia sẻ mã giới thiệu</string>
   <string name="social_media">Truyền thông xã hội</string>
-  <string name="sora_bridge_amount_less_fee">Số tiền bạn đang cố chuyển không đủ để trả phí giao dịch trên mạng %@ . Mặc dù giao dịch không được xử lý nhưng bạn vẫn sẽ bị tính phí trên mạng Sora.</string>
-  <string name="sora_bridge_low_amount_alert">Hiện tại, có một phút. số tiền 0,05 KSM để bắc cầu nhằm đảm bảo tính ổn định và bảo mật của Mạng SORA. Chúng tôi đánh giá cao sự hiểu biết của bạn.</string>
+  <string name="sora_bridge_amount_less_fee">Số tiền bạn đang cố chuyển không đủ để trả phí giao dịch trên mạng %s . Mặc dù giao dịch không được xử lý nhưng bạn vẫn sẽ bị tính phí trên mạng Sora.</string>
+  <string name="sora_bridge_low_amount_format_alert">Hiện tại, có một phút. số tiền %s để bắc cầu nhằm đảm bảo tính ổn định và bảo mật của Mạng SORA. Chúng tôi đánh giá cao sự hiểu biết của bạn.</string>
   <string name="sora_card_annual_service_fee">0 € phí dịch vụ hàng năm</string>
   <string name="sora_card_blacklisted_countires_title">Không bao gồm ứng dụng</string>
   <string name="sora_card_blacklisted_countires_warning"><![CDATA[Cư dân từ <b>một số quốc gia<br>không thể đăng ký</b> Thẻ SORA tại thời điểm<br> này<a href=\"https://soracard.com/blacklist/\">Xem danh sách</a>]]></string>
@@ -1055,6 +1061,9 @@
   <string name="validator_info_comission_title">Sứ mệnh</string>
   <string name="validator_not_elected_description">Tài khoản này không được mạng (network) đề cử ở era hiện tại</string>
   <string name="validators_list_empty_message">Không tìm thấy trình xác thực nào. Vui lòng thử thay đổi bộ lọc</string>
+  <string name="vesting_claim_disclaimer_text">Do lịch trình trao quyền duy nhất của mỗi parachain, ứng dụng của chúng tôi không thể hiển thị số lượng mã thông báo bị khóa đủ điều kiện để yêu cầu. Xin lưu ý rằng việc bắt đầu yêu cầu bồi thường có thể không thực tế nếu số tiền tiềm năng là rất nhỏ và có thể so sánh được với phí giao dịch liên quan. Để có thông tin chi tiết toàn diện về số dư bị khóa của bạn, hãy tham khảo Subscan blockexplorer. Chúng tôi khuyên bạn nên đánh giá thông tin một cách cẩn thận và tiến hành theo ý riêng của bạn.</string>
+  <string name="vesting_claim_disclaimer_title">Thông báo quan trọng về yêu cầu token:</string>
+  <string name="vesting_locked_title">Vesting Locked</string>
   <string name="view_in">Xem trong %s</string>
   <string name="view_wallet">Xem ví</string>
   <string name="wallet_asset_buy_with">Mua %s với</string>

@@ -22,11 +22,12 @@ import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.feature_nft_impl.R
 import jp.co.soramitsu.nft.domain.NFTTransferInteractor
 import jp.co.soramitsu.nft.domain.models.NFT
-import jp.co.soramitsu.nft.impl.domain.usecase.validation.ValidateNFTTransferUseCase
+import jp.co.soramitsu.nft.impl.domain.usecase.transfer.ValidateNFTTransferUseCase
 import jp.co.soramitsu.nft.impl.navigation.InternalNFTRouter
+import jp.co.soramitsu.nft.impl.presentation.CoroutinesStore
 import jp.co.soramitsu.nft.impl.presentation.chooserecipient.contract.ChooseNFTRecipientCallback
 import jp.co.soramitsu.nft.impl.presentation.chooserecipient.contract.ChooseNFTRecipientScreenState
-import jp.co.soramitsu.nft.navigation.NestedNavGraphRoute
+import jp.co.soramitsu.nft.navigation.NFTNavGraphRoute
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.wallet.api.domain.fromValidationResult
 import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
@@ -35,10 +36,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -51,6 +52,7 @@ import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import java.math.BigInteger
@@ -60,6 +62,7 @@ class ChooseNFTRecipientPresenter @Inject constructor(
     private val addressIconGenerator: AddressIconGenerator,
     private val clipboardManager: ClipboardManager,
     private val chainsRepository: ChainsRepository,
+    private val coroutinesStore: CoroutinesStore,
     private val accountInteractor: AccountInteractor,
     private val walletInteractor: WalletInteractor,
     private val resourceManager: ResourceManager,
@@ -69,12 +72,10 @@ class ChooseNFTRecipientPresenter @Inject constructor(
     private val internalNFTRouter: InternalNFTRouter
 ) : ChooseNFTRecipientCallback {
 
-    private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
-
     private val tokenFlow = internalNFTRouter.createNavGraphRoutesFlow()
-        .filterIsInstance<NestedNavGraphRoute.ChooseNFTRecipientScreen>()
+        .filterIsInstance<NFTNavGraphRoute.ChooseNFTRecipientScreen>()
         .map { destinationArgs -> destinationArgs.token }
-        .shareIn(coroutineScope, SharingStarted.Eagerly, 1)
+        .shareIn(coroutinesStore.uiScope, SharingStarted.Eagerly, 1)
 
     private val addressInputFlow = MutableStateFlow("")
 
@@ -93,7 +94,7 @@ class ChooseNFTRecipientPresenter @Inject constructor(
     }
 
     @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
-    fun createScreenStateFlow(): Flow<ChooseNFTRecipientScreenState> {
+    fun createScreenStateFlow(coroutineScope: CoroutineScope): StateFlow<ChooseNFTRecipientScreenState> {
         val addressInputHelperFlow =
             addressInputFlow.debounce(DEFAULT_DEBOUNCE_TIMEOUT).map { it.trim() }
 
@@ -146,7 +147,7 @@ class ChooseNFTRecipientPresenter @Inject constructor(
                 feeInfoState = feeInfoViewState,
                 isLoading = isLoading
             )
-        }
+        }.stateIn(coroutineScope, SharingStarted.Lazily, ChooseNFTRecipientScreenState.default)
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -268,7 +269,7 @@ class ChooseNFTRecipientPresenter @Inject constructor(
 
         isLoadingFlow.value = true
 
-        coroutineScope.launch {
+        coroutinesStore.uiScope.launch {
             val chain = chainsRepository.getChain(token.chainId)
 
             val utilityAssetId = chain.utilityAsset?.id ?: return@launch
@@ -351,14 +352,14 @@ class ChooseNFTRecipientPresenter @Inject constructor(
         internalNFTRouter.openAddressHistory(chainId).onEach {
             selectedWalletIdFlow.value = null
             addressInputFlow.value = it
-        }.launchIn(coroutineScope)
+        }.launchIn(coroutinesStore.uiScope)
     }
 
     override fun onWalletsClick() {
         val chainId = currentToken?.chainId ?: return
 
         internalNFTRouter.openWalletSelectionScreen(selectedWalletIdFlow.value).onEach { metaAccountId ->
-            coroutineScope.launch(Dispatchers.IO) {
+            coroutinesStore.uiScope.launch(Dispatchers.IO) {
                 selectedWalletIdFlow.value = metaAccountId
 
                 val metaAccount = accountInteractor.getMetaAccount(metaAccountId)
@@ -367,7 +368,7 @@ class ChooseNFTRecipientPresenter @Inject constructor(
 
                 addressInputFlow.value = address
             }
-        }.launchIn(coroutineScope)
+        }.launchIn(coroutinesStore.uiScope)
     }
 
     override fun onPasteClick() {

@@ -21,8 +21,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Divider
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -47,6 +49,7 @@ import jp.co.soramitsu.common.compose.component.H5Bold
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.component.Shimmer
 import jp.co.soramitsu.common.compose.models.Loadable
+import jp.co.soramitsu.common.compose.models.LoadableListPage
 import jp.co.soramitsu.common.compose.models.Render
 import jp.co.soramitsu.common.compose.models.ScreenLayout
 import jp.co.soramitsu.common.compose.models.retrievePainter
@@ -59,35 +62,81 @@ import jp.co.soramitsu.common.compose.theme.white50
 import jp.co.soramitsu.common.compose.utils.PageScrollingCallback
 import jp.co.soramitsu.common.compose.utils.nestedScrollConnectionForPageScrolling
 import jp.co.soramitsu.common.utils.clickableSingle
-import jp.co.soramitsu.nft.impl.presentation.collection.models.NFTsScreenModel
 import jp.co.soramitsu.nft.impl.presentation.collection.models.NFTsScreenView
-import jp.co.soramitsu.nft.impl.presentation.collection.utils.createShimmeredNFTViewsList
-import jp.co.soramitsu.nft.navigation.NestedNavGraphRoute
-import kotlinx.coroutines.flow.SharedFlow
+import jp.co.soramitsu.nft.navigation.NFTNavGraphRoute
+import kotlinx.coroutines.flow.StateFlow
 
 @Suppress("FunctionName")
 fun NavGraphBuilder.CollectionNFTsNavComposable(
-    viewsListFlow: SharedFlow<SnapshotStateList<NFTsScreenView>>,
+    viewsListFlow: StateFlow<LoadableListPage<NFTsScreenView>>,
     pageScrollingCallback: PageScrollingCallback
 ) {
-    composable(NestedNavGraphRoute.CollectionNFTsScreen.routeName) {
-        val viewsList = viewsListFlow.collectAsStateWithLifecycle(createShimmeredNFTViewsList())
+    composable(NFTNavGraphRoute.CollectionNFTsScreen.routeName) {
+        val viewsList = viewsListFlow.collectAsStateWithLifecycle()
 
         CollectionNFTsScreen(
-            screenModel = NFTsScreenModel(
-                views = viewsList.value,
-                pageScrollingCallback = pageScrollingCallback
-            )
+            loadablePage = viewsList.value,
+            pageScrollingCallback = pageScrollingCallback
         )
     }
 }
 
 @Composable
-private fun CollectionNFTsScreen(screenModel: NFTsScreenModel) {
+private fun CollectionNFTsScreen(
+    loadablePage: LoadableListPage<NFTsScreenView>,
+    pageScrollingCallback: PageScrollingCallback
+) {
     val lazyGridState = rememberLazyGridState()
 
     val nestedScrollConnection = remember(lazyGridState) {
-        lazyGridState.nestedScrollConnectionForPageScrolling(screenModel.pageScrollingCallback)
+        lazyGridState.nestedScrollConnectionForPageScrolling(pageScrollingCallback)
+    }
+
+    val mutableViewsList = remember { mutableStateListOf<NFTsScreenView>() }
+    val loadingIndicationIndex = remember { mutableIntStateOf(-1) }
+
+    LaunchedEffect(loadablePage) {
+        when (loadablePage) {
+            is LoadableListPage.ReadyToRender -> {
+                val shouldSkipEmptyPlaceHolder = !mutableViewsList.isEmpty() &&
+                    loadablePage.views.contains(NFTsScreenView.EmptyPlaceHolder)
+
+                if (!shouldSkipEmptyPlaceHolder) {
+                    mutableViewsList.clear()
+                    mutableViewsList.addAll(loadablePage.views)
+                } else if (loadingIndicationIndex.intValue > 0) {
+                    mutableViewsList.removeAt(loadingIndicationIndex.intValue)
+                    loadingIndicationIndex.intValue = -1
+                }
+            }
+
+            is LoadableListPage.PreviousPageLoading -> {
+                val index = mutableViewsList.indexOfFirst {
+                    it is NFTsScreenView.SectionHeader
+                }.plus(1)
+
+                loadingIndicationIndex.intValue = index
+
+                mutableViewsList.add(index, NFTsScreenView.LoadingIndication)
+            }
+
+            is LoadableListPage.NextPageLoading -> {
+                val index = mutableViewsList.indexOfLast {
+                    it is NFTsScreenView.ItemModel
+                }.plus(1)
+
+                loadingIndicationIndex.intValue = index
+
+                mutableViewsList.add(index, NFTsScreenView.LoadingIndication)
+            }
+
+            is LoadableListPage.Reloading -> {
+                mutableViewsList.clear()
+                mutableViewsList.addAll(loadablePage.views)
+
+                loadingIndicationIndex.intValue = -1
+            }
+        }
     }
 
     LazyVerticalGrid(
@@ -95,14 +144,15 @@ private fun CollectionNFTsScreen(screenModel: NFTsScreenModel) {
         columns = GridCells.Fixed(2),
         verticalArrangement = Arrangement.spacedBy(8.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
-        modifier = Modifier.nestedScroll(nestedScrollConnection)
+        modifier = Modifier
+            .nestedScroll(nestedScrollConnection)
             .padding(horizontal = 16.dp)
             .padding(
                 top = 8.dp,
                 bottom = 16.dp
             )
     ) {
-        for (view in screenModel.views) {
+        for (view in mutableViewsList) {
             when (view) {
                 is NFTsScreenView.ScreenHeader ->
                     NFTScreenHeader(view)

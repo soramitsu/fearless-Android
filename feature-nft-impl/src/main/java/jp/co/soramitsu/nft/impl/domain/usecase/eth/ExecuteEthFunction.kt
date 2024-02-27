@@ -1,6 +1,6 @@
 package jp.co.soramitsu.nft.impl.domain.usecase.eth
 
-import jp.co.soramitsu.nft.impl.domain.models.EthCall
+import jp.co.soramitsu.nft.impl.domain.models.transfer.EthCall
 import jp.co.soramitsu.nft.impl.domain.utils.map
 import jp.co.soramitsu.nft.impl.domain.utils.nonNullWeb3j
 import jp.co.soramitsu.runtime.multiNetwork.connection.EthereumWebSocketConnection

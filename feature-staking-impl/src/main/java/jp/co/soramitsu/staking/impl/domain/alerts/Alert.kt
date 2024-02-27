@@ -12,6 +12,7 @@ sealed class Alert {
     class BondMoreTokens(val minimalStake: BigDecimal, val token: Token) : Alert()
 
     object ChangeValidators : Alert()
+    object AllValidatorsAreOversubscribed : Alert()
 
     object WaitingForNextEra : Alert()
 

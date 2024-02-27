@@ -43,16 +43,16 @@ import jp.co.soramitsu.common.compose.theme.colorAccentDark
 import jp.co.soramitsu.feature_nft_impl.R
 import jp.co.soramitsu.nft.impl.presentation.confirmsend.contract.ConfirmNFTSendCallback
 import jp.co.soramitsu.nft.impl.presentation.confirmsend.contract.ConfirmNFTSendScreenState
-import jp.co.soramitsu.nft.navigation.NestedNavGraphRoute
-import kotlinx.coroutines.flow.Flow
+import jp.co.soramitsu.nft.navigation.NFTNavGraphRoute
+import kotlinx.coroutines.flow.StateFlow
 
 @Suppress("FunctionName")
 fun NavGraphBuilder.ConfirmNFTSendNavComposable(
-    stateFlow: Flow<ConfirmNFTSendScreenState>,
+    stateFlow: StateFlow<ConfirmNFTSendScreenState>,
     callback: ConfirmNFTSendCallback
 ) {
-    composable(NestedNavGraphRoute.ConfirmNFTSendScreen.routeName) {
-        val state = stateFlow.collectAsStateWithLifecycle(ConfirmNFTSendScreenState.default)
+    composable(NFTNavGraphRoute.ConfirmNFTSendScreen.routeName) {
+        val state = stateFlow.collectAsStateWithLifecycle()
 
         ConfirmNFTSendScreen(
             state = state.value,

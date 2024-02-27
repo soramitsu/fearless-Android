@@ -7,12 +7,12 @@ import jp.co.soramitsu.common.data.secrets.v2.KeyPairSchema
 import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
 import jp.co.soramitsu.nft.domain.NFTTransferInteractor
 import jp.co.soramitsu.nft.domain.models.NFT
-import jp.co.soramitsu.nft.impl.domain.adapters.NFTAccountBalanceAdapter
-import jp.co.soramitsu.nft.impl.domain.adapters.NFTTransferAdapter
 import jp.co.soramitsu.nft.impl.domain.usecase.eth.CreateRawEthTransaction
 import jp.co.soramitsu.nft.impl.domain.usecase.eth.EstimateEthTransactionNetworkFee
 import jp.co.soramitsu.nft.impl.domain.usecase.eth.ExecuteEthFunction
 import jp.co.soramitsu.nft.impl.domain.usecase.eth.SendRawEthTransaction
+import jp.co.soramitsu.nft.impl.domain.usecase.transfer.NFTAccountBalanceAdapter
+import jp.co.soramitsu.nft.impl.domain.usecase.transfer.NFTTransferAdapter
 import jp.co.soramitsu.nft.impl.domain.utils.nonNullWeb3j
 import jp.co.soramitsu.nft.impl.domain.utils.subscribeNewHeads
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository

@@ -1,4 +1,4 @@
-package jp.co.soramitsu.nft.impl.domain.models
+package jp.co.soramitsu.nft.impl.domain.models.transfer
 
 import jp.co.soramitsu.nft.impl.domain.utils.getBaseFee
 import jp.co.soramitsu.nft.impl.domain.utils.getMaxPriorityFeePerGas

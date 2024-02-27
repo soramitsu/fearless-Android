@@ -1,8 +1,8 @@
 package jp.co.soramitsu.nft.impl.domain.usecase.eth
 
-import jp.co.soramitsu.nft.impl.domain.models.EIP1559Call
-import jp.co.soramitsu.nft.impl.domain.models.EIP1559CallImpl
-import jp.co.soramitsu.nft.impl.domain.models.EthCall
+import jp.co.soramitsu.nft.impl.domain.models.transfer.EIP1559Call
+import jp.co.soramitsu.nft.impl.domain.models.transfer.EIP1559CallImpl
+import jp.co.soramitsu.nft.impl.domain.models.transfer.EthCall
 import jp.co.soramitsu.runtime.multiNetwork.connection.EthereumWebSocketConnection
 import org.web3j.crypto.RawTransaction
 import java.math.BigInteger

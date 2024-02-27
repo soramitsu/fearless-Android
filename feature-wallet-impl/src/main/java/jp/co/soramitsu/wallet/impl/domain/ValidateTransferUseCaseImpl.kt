@@ -158,7 +158,7 @@ class ValidateTransferUseCaseImpl(
 
                 mapOf(
                     bridgeMinimumAmountValidation,
-                    TransferValidationResult.SubstrateBridgeAmountLessThenFeeWarning to
+                    TransferValidationResult.SubstrateBridgeAmountLessThenFeeWarning(originChain.name) to
                             if (destinationFeeAmountInPlanks == null) {
                                 false
                             } else {

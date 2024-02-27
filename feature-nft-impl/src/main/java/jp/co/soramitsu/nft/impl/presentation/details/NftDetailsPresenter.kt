@@ -10,20 +10,20 @@ import jp.co.soramitsu.feature_nft_impl.R
 import jp.co.soramitsu.nft.domain.NFTInteractor
 import jp.co.soramitsu.nft.impl.domain.utils.convertToShareMessage
 import jp.co.soramitsu.nft.impl.navigation.InternalNFTRouter
-import jp.co.soramitsu.nft.navigation.NestedNavGraphRoute
+import jp.co.soramitsu.nft.impl.presentation.CoroutinesStore
+import jp.co.soramitsu.nft.navigation.NFTNavGraphRoute
 import jp.co.soramitsu.shared_utils.extensions.toHexString
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.launch
 import java.math.BigInteger
@@ -31,6 +31,7 @@ import javax.inject.Inject
 
 class NftDetailsPresenter @Inject constructor(
     private val nftInteractor: NFTInteractor,
+    private val coroutinesStore: CoroutinesStore,
     private val walletInteractor: WalletInteractor,
     private val clipboardManager: ClipboardManager,
     private val resourceManager: ResourceManager,
@@ -38,16 +39,14 @@ class NftDetailsPresenter @Inject constructor(
     private val iconGenerator: AddressIconGenerator,
 ) : NftDetailsScreenInterface {
 
-    private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
-
     private val screenArgsFlow = internalNFTRouter.createNavGraphRoutesFlow()
-        .filterIsInstance<NestedNavGraphRoute.DetailsNFTScreen>()
-        .shareIn(coroutineScope, SharingStarted.Eagerly, 1)
+        .filterIsInstance<NFTNavGraphRoute.DetailsNFTScreen>()
+        .shareIn(coroutinesStore.uiScope, SharingStarted.Eagerly, 1)
 
     private var ownerAddress: String? = null
 
     init {
-        coroutineScope.launch {
+        coroutinesStore.uiScope.launch {
             ownerAddress = screenArgsFlow.firstOrNull()?.token?.let { token ->
                 if (!token.isUserOwnedToken) {
                     return@let null
@@ -61,7 +60,7 @@ class NftDetailsPresenter @Inject constructor(
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    fun createScreenStateFlow(): Flow<NftDetailsScreenState> {
+    fun createScreenStateFlow(coroutineScope: CoroutineScope): StateFlow<NftDetailsScreenState> {
         return screenArgsFlow.map { it.token }.transformLatest { token ->
             NftDetailsScreenState(
                 name = token.title,
@@ -84,7 +83,7 @@ class NftDetailsPresenter @Inject constructor(
                 price = token.price,
                 priceFiat = token.price
             ).also { emit(it) }
-        }
+        }.stateIn(coroutineScope, SharingStarted.Lazily, NftDetailsScreenState())
     }
 
     override fun sendClicked() {
@@ -93,7 +92,7 @@ class NftDetailsPresenter @Inject constructor(
     }
 
     override fun shareClicked() {
-        coroutineScope.launch {
+        coroutinesStore.uiScope.launch {
             val address = walletInteractor.getSelectedMetaAccount().ethereumAddress?.toHexString(true)
             internalNFTRouter.shareText(generateShareMessage(address))
         }
@@ -130,7 +129,7 @@ class NftDetailsPresenter @Inject constructor(
     }
 
     private fun copyToClipboardWithMessage(text: String) {
-        coroutineScope.launch {
+        coroutinesStore.uiScope.launch {
             clipboardManager.addToClipboard(text)
             val message = resourceManager.getString(R.string.common_copied)
             internalNFTRouter.showToast(message)

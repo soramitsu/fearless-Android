@@ -2,19 +2,11 @@ package jp.co.soramitsu.nft.impl.presentation.collection.models
 
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import jp.co.soramitsu.common.compose.models.ImageModel
 import jp.co.soramitsu.common.compose.models.Loadable
 import jp.co.soramitsu.common.compose.models.ScreenLayout
 import jp.co.soramitsu.common.compose.models.TextModel
-import jp.co.soramitsu.common.compose.utils.PageScrollingCallback
 import jp.co.soramitsu.feature_nft_impl.R
-
-@Immutable
-class NFTsScreenModel(
-    val views: SnapshotStateList<NFTsScreenView>,
-    val pageScrollingCallback: PageScrollingCallback
-)
 
 @Stable
 sealed interface NFTsScreenView {
@@ -60,12 +52,14 @@ sealed interface NFTsScreenView {
 
         val onItemClick: () -> Unit
 
-        class WithButtonDecorator(
-            initialItemModel: ItemModel,
-            val buttonText: TextModel,
-            val buttonImage: ImageModel.ResId,
+        interface WithButtonDecorator : ItemModel {
+
+            val buttonText: TextModel
+
+            val buttonImage: ImageModel.ResId
+
             val onButtonClick: () -> Unit
-        ) : ItemModel by initialItemModel
+        }
     }
 
     @Immutable
@@ -99,4 +93,6 @@ sealed interface NFTsScreenView {
                 TextModel.ResId(R.string.nft_list_empty_message)
         }
     }
+
+    companion object;
 }
