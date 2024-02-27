@@ -17,11 +17,11 @@ internal val NFTResponse.UserOwnedContracts.Companion.deserializer: JsonDeserial
         val jsonObj = json?.asJsonObjectNullable ?: return@JsonDeserializer null
 
         return@JsonDeserializer NFTResponse.UserOwnedContracts(
-            contracts = jsonObj.get("contracts")?.asJsonArray?.mapNotNull { jsonElem ->
+            items = jsonObj.get("contracts")?.asJsonArray?.asSequence()?.mapNotNull { jsonElem ->
                 context?.deserialize<ContractInfo>(
                     jsonElem, ContractInfo::class.java
                 )
-            } ?: emptyList(),
+            } ?: emptySequence(),
             nextPage = jsonObj.get("pageKey")?.asString
         )
     }
@@ -69,11 +69,11 @@ internal val NFTResponse.TokensCollection.Companion.deserializer: JsonDeserializ
         }
 
         return@JsonDeserializer NFTResponse.TokensCollection(
-            tokenInfoList = tokensJsonObj?.asJsonArray?.mapNotNull { jsonElem ->
+            items = tokensJsonObj?.asJsonArray?.asSequence()?.mapNotNull { jsonElem ->
                 context?.deserialize<TokenInfo>(
                     jsonElem, TokenInfo::class.java
                 )
-            } ?: emptyList(),
+            } ?: emptySequence(),
             nextPage = jsonObj.get("nextToken")?.asString
         )
     }

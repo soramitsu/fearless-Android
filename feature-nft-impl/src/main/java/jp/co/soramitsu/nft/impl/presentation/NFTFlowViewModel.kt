@@ -1,10 +1,9 @@
 package jp.co.soramitsu.nft.impl.presentation
 
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.SavedStateHandle
-import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.compose.models.LoadableListPage
 import jp.co.soramitsu.common.compose.models.TextModel
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.feature_nft_impl.R
@@ -17,7 +16,6 @@ import jp.co.soramitsu.nft.impl.presentation.chooserecipient.ChooseNFTRecipientP
 import jp.co.soramitsu.nft.impl.presentation.chooserecipient.contract.ChooseNFTRecipientCallback
 import jp.co.soramitsu.nft.impl.presentation.chooserecipient.contract.ChooseNFTRecipientScreenState
 import jp.co.soramitsu.nft.impl.presentation.collection.CollectionNFTsPresenter
-import jp.co.soramitsu.nft.impl.presentation.collection.models.LoadableListPage
 import jp.co.soramitsu.nft.impl.presentation.collection.models.NFTsScreenView
 import jp.co.soramitsu.nft.impl.presentation.confirmsend.ConfirmNFTSendPresenter
 import jp.co.soramitsu.nft.impl.presentation.confirmsend.contract.ConfirmNFTSendCallback
@@ -25,8 +23,8 @@ import jp.co.soramitsu.nft.impl.presentation.confirmsend.contract.ConfirmNFTSend
 import jp.co.soramitsu.nft.impl.presentation.details.NftDetailsPresenter
 import jp.co.soramitsu.nft.impl.presentation.details.NftDetailsScreenInterface
 import jp.co.soramitsu.nft.impl.presentation.details.NftDetailsScreenState
-import jp.co.soramitsu.nft.navigation.NFTRouter
 import jp.co.soramitsu.nft.navigation.NFTNavGraphRoute
+import jp.co.soramitsu.nft.navigation.NFTRouter
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -41,6 +39,7 @@ class NFTFlowViewModel @Inject constructor(
     collectionNFTsPresenter: CollectionNFTsPresenter,
     nftDetailsPresenter: NftDetailsPresenter,
     confirmNFTSendPresenter: ConfirmNFTSendPresenter,
+    private val coroutinesStore: CoroutinesStore,
     private val chooseNFTRecipientPresenter: ChooseNFTRecipientPresenter,
     private val internalNFTRouter: InternalNFTRouter,
     private val nftRouter: NFTRouter
@@ -51,44 +50,28 @@ class NFTFlowViewModel @Inject constructor(
 
     val pageScrollingCallback = collectionNFTsPresenter.pageScrollingCallback
 
-    val collectionNFTsScreenState: SharedFlow<LoadableListPage<NFTsScreenView>> =
-        collectionNFTsPresenter.createCollectionsNFTsFlow().shareIn(
-            scope = viewModelScope,
-            started = SharingStarted.Lazily,
-            replay = 1
-        )
+    val collectionNFTsScreenState: StateFlow<LoadableListPage<NFTsScreenView>> =
+        collectionNFTsPresenter.createCollectionsNFTsFlow(coroutinesStore.uiScope)
 
-    val nftDetailsScreenState: SharedFlow<NftDetailsScreenState> =
-        nftDetailsPresenter.createScreenStateFlow().shareIn(
-            scope = viewModelScope,
-            started = SharingStarted.Lazily,
-            replay = 1
-        )
+    val nftDetailsScreenState: StateFlow<NftDetailsScreenState> =
+        nftDetailsPresenter.createScreenStateFlow(coroutinesStore.uiScope)
 
-    val recipientChooserScreenState: SharedFlow<ChooseNFTRecipientScreenState> =
-        chooseNFTRecipientPresenter.createScreenStateFlow().shareIn(
-            scope = viewModelScope,
-            started = SharingStarted.Lazily,
-            replay = 1
-        )
+    val recipientChooserScreenState: StateFlow<ChooseNFTRecipientScreenState> =
+        chooseNFTRecipientPresenter.createScreenStateFlow(coroutinesStore.uiScope)
 
-    val confirmSendScreenState: SharedFlow<ConfirmNFTSendScreenState> =
-        confirmNFTSendPresenter.createScreenStateFlow().shareIn(
-            scope = viewModelScope,
-            started = SharingStarted.Lazily,
-            replay = 1
-        )
+    val confirmSendScreenState: StateFlow<ConfirmNFTSendScreenState> =
+        confirmNFTSendPresenter.createScreenStateFlow(coroutinesStore.uiScope)
 
     val navGraphRoutesFlow: StateFlow<NFTNavGraphRoute> =
         internalNFTRouter.createNavGraphRoutesFlow().stateIn(
-            scope = viewModelScope,
+            scope = coroutinesStore.uiScope,
             started = SharingStarted.Eagerly,
             initialValue = NFTNavGraphRoute.Loading
         )
 
     val navGraphActionsFlow: SharedFlow<NavAction> =
         internalNFTRouter.createNavGraphActionsFlow().shareIn(
-            scope = viewModelScope,
+            scope = coroutinesStore.uiScope,
             started = SharingStarted.Eagerly,
             replay = 1
         )

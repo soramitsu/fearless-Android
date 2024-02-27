@@ -17,8 +17,9 @@ import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.feature_nft_impl.R
 import jp.co.soramitsu.nft.domain.NFTTransferInteractor
-import jp.co.soramitsu.nft.impl.domain.usecase.validation.ValidateNFTTransferUseCase
+import jp.co.soramitsu.nft.impl.domain.usecase.transfer.ValidateNFTTransferUseCase
 import jp.co.soramitsu.nft.impl.navigation.InternalNFTRouter
+import jp.co.soramitsu.nft.impl.presentation.CoroutinesStore
 import jp.co.soramitsu.nft.impl.presentation.confirmsend.contract.ConfirmNFTSendCallback
 import jp.co.soramitsu.nft.impl.presentation.confirmsend.contract.ConfirmNFTSendScreenState
 import jp.co.soramitsu.nft.navigation.NFTNavGraphRoute
@@ -26,11 +27,9 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.wallet.api.domain.fromValidationResult
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -42,6 +41,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import java.math.BigInteger
@@ -50,6 +50,7 @@ import javax.inject.Inject
 class ConfirmNFTSendPresenter @Inject constructor(
     private val accountInteractor: AccountInteractor,
     private val resourceManager: ResourceManager,
+    private val coroutinesStore: CoroutinesStore,
     private val walletInteractor: WalletInteractor,
     private val chainsRepository: ChainsRepository,
     private val nftTransferInteractor: NFTTransferInteractor,
@@ -57,14 +58,12 @@ class ConfirmNFTSendPresenter @Inject constructor(
     private val internalNFTRouter: InternalNFTRouter
 ) : ConfirmNFTSendCallback {
 
-    private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
-
     private val screenArgsFlow = internalNFTRouter.createNavGraphRoutesFlow()
         .filterIsInstance<NFTNavGraphRoute.ConfirmNFTSendScreen>()
-        .shareIn(coroutineScope, SharingStarted.Eagerly, 1)
+        .shareIn(coroutinesStore.uiScope, SharingStarted.Eagerly, 1)
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    fun createScreenStateFlow(): Flow<ConfirmNFTSendScreenState> {
+    fun createScreenStateFlow(coroutineScope: CoroutineScope): StateFlow<ConfirmNFTSendScreenState> {
         return channelFlow {
             val networkFeeHelperFlow = screenArgsFlow.flatMapLatest { destinationArgs ->
                 nftTransferInteractor.networkFeeFlow(
@@ -142,13 +141,13 @@ class ConfirmNFTSendPresenter @Inject constructor(
             }.onEach {
                 send(it)
             }.launchIn(this)
-        }
+        }.stateIn(coroutineScope, SharingStarted.Lazily, ConfirmNFTSendScreenState.default)
     }
 
     override fun onConfirmClick() {
         val destination = screenArgsFlow.replayCache.lastOrNull() ?: return
 
-        coroutineScope.launch {
+        coroutinesStore.uiScope.launch {
             val chain = chainsRepository.getChain(destination.token.chainId)
 
             val utilityAssetId = chain.utilityAsset?.id ?: return@launch

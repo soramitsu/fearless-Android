@@ -2,9 +2,9 @@ package jp.co.soramitsu.wallet.impl.presentation.balance.nft.list.models
 
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import jp.co.soramitsu.common.compose.models.ImageModel
 import jp.co.soramitsu.common.compose.models.Loadable
+import jp.co.soramitsu.common.compose.models.LoadableListPage
 import jp.co.soramitsu.common.compose.models.ScreenLayout
 import jp.co.soramitsu.common.compose.models.TextModel
 import jp.co.soramitsu.common.compose.utils.PageScrollingCallback
@@ -13,7 +13,8 @@ import jp.co.soramitsu.feature_wallet_impl.R
 @Immutable
 class NFTCollectionsScreenModel(
     val areFiltersApplied: Boolean,
-    val views: SnapshotStateList<NFTCollectionsScreenView>,
+    val screenLayout: ScreenLayout,
+    val loadableListPage: LoadableListPage<NFTCollectionsScreenView>,
     val onFiltersIconClick: () -> Unit,
     val onScreenLayoutChanged: (ScreenLayout) -> Unit,
     val pageScrollingCallback: PageScrollingCallback
@@ -73,10 +74,9 @@ sealed interface NFTCollectionsScreenView {
 
         val onItemClick: () -> Unit
 
-        class WithQuantityDecorator(
-            initialItemModel: ItemModel,
+        interface WithQuantityDecorator: ItemModel{
             val quantity: TextModel
-        ): ItemModel by initialItemModel
+        }
 
     }
 

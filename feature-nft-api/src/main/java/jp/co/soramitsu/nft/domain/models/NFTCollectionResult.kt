@@ -8,32 +8,43 @@ sealed interface NFTCollectionResult {
 
     val chainName: String
 
-    class Data(
-        override val chainId: ChainId,
-        override val chainName: String,
-        val collectionName: String,
-        val contractAddress: String,
-        val description: String,
-        val imageUrl: String,
-        val type: String,
-        val balance: Int,
-        val collectionSize: Int
-    ) : NFTCollectionResult {
+    interface Collection : NFTCollectionResult {
 
-        class WithTokens(
-            val data: Data,
-            val tokens: ArrayDeque<NFT>
-        ) : NFTCollectionResult by data
+        val contractAddress: String
+
+        val collectionName: String
+
+        val description: String
+
+        val imageUrl: String
+
+        val type: String
+
+        val balance: Int
+
+        val collectionSize: Int
+
+        interface WithTokens : Collection {
+            val tokens: Sequence<NFT>
+        }
     }
 
     class Empty(
         override val chainId: ChainId,
         override val chainName: String
-    ) : NFTCollectionResult
+    ) : NFTCollectionResult {
+        override fun toString(): String {
+            return "NFTCollectionResult.Empty"
+        }
+    }
 
     class Error(
         override val chainId: ChainId,
         override val chainName: String,
         val throwable: Throwable
-    ) : NFTCollectionResult
+    ) : NFTCollectionResult {
+        override fun toString(): String {
+            return "NFTCollectionResult.Error"
+        }
+    }
 }

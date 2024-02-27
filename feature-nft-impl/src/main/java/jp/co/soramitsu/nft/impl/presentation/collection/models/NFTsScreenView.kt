@@ -6,29 +6,7 @@ import jp.co.soramitsu.common.compose.models.ImageModel
 import jp.co.soramitsu.common.compose.models.Loadable
 import jp.co.soramitsu.common.compose.models.ScreenLayout
 import jp.co.soramitsu.common.compose.models.TextModel
-import jp.co.soramitsu.common.compose.utils.PageScrollingCallback
 import jp.co.soramitsu.feature_nft_impl.R
-
-@Immutable
-sealed interface LoadableListPage<T> {
-
-    class PageReloading<T>: LoadableListPage<T>
-
-    class PreviousPageLoading<T>: LoadableListPage<T>
-
-    class NextPageLoading<T>: LoadableListPage<T>
-
-    class ReadyToRender<T>(
-        val data: List<T>
-    ): LoadableListPage<T>
-
-}
-
-@Immutable
-class NFTsScreenModel(
-    val views: LoadableListPage<NFTsScreenView>,
-    val pageScrollingCallback: PageScrollingCallback
-)
 
 @Stable
 sealed interface NFTsScreenView {
@@ -74,12 +52,14 @@ sealed interface NFTsScreenView {
 
         val onItemClick: () -> Unit
 
-        class WithButtonDecorator(
-            initialItemModel: ItemModel,
-            val buttonText: TextModel,
-            val buttonImage: ImageModel.ResId,
+        interface WithButtonDecorator : ItemModel {
+
+            val buttonText: TextModel
+
+            val buttonImage: ImageModel.ResId
+
             val onButtonClick: () -> Unit
-        ) : ItemModel by initialItemModel
+        }
     }
 
     @Immutable
@@ -113,4 +93,6 @@ sealed interface NFTsScreenView {
                 TextModel.ResId(R.string.nft_list_empty_message)
         }
     }
+
+    companion object;
 }

@@ -7,9 +7,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.common.data.storage.Preferences
-import jp.co.soramitsu.nft.data.CachedNFTRepository
 import jp.co.soramitsu.nft.data.NFTRepository
-import jp.co.soramitsu.nft.data.RemoteNFTRepository
 import jp.co.soramitsu.nft.data.models.Contract
 import jp.co.soramitsu.nft.data.models.ContractInfo
 import jp.co.soramitsu.nft.data.models.TokenId
@@ -18,15 +16,16 @@ import jp.co.soramitsu.nft.data.models.wrappers.NFTResponse
 import jp.co.soramitsu.nft.domain.NFTInteractor
 import jp.co.soramitsu.nft.domain.NFTTransferInteractor
 import jp.co.soramitsu.nft.impl.data.NFTRepositoryImpl
-import jp.co.soramitsu.nft.impl.data.cached.CachingNFTRepositoryDecorator
+import jp.co.soramitsu.nft.impl.data.domain.PageCachingDecorator
+import jp.co.soramitsu.nft.impl.data.domain.PagingRequestMediator
 import jp.co.soramitsu.nft.impl.data.model.utils.deserializer
 import jp.co.soramitsu.nft.impl.data.remote.AlchemyNftApi
-import jp.co.soramitsu.nft.impl.domain.NFTCollectionsByContractAlteringAdapter
-import jp.co.soramitsu.nft.impl.domain.NFTCollectionsByContractBufferingMediator
-import jp.co.soramitsu.nft.impl.domain.NFTCollectionsByContractMappingAdapter
 import jp.co.soramitsu.nft.impl.domain.NFTInteractorImpl
 import jp.co.soramitsu.nft.impl.domain.NFTTransferInteractorImpl
-import jp.co.soramitsu.nft.impl.domain.PaginationRequestAlteringMediator
+import jp.co.soramitsu.nft.impl.domain.usecase.collections.CollectionsMappingAdapter
+import jp.co.soramitsu.nft.impl.domain.usecase.tokensbycontract.RequestSwitchingMediator
+import jp.co.soramitsu.nft.impl.domain.usecase.tokensbycontract.TokensMappingAdapter
+import jp.co.soramitsu.nft.impl.domain.usecase.tokensbycontract.TokensTrimmingMediator
 import jp.co.soramitsu.nft.impl.navigation.InternalNFTRouter
 import jp.co.soramitsu.nft.impl.navigation.InternalNFTRouterImpl
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
@@ -96,39 +95,38 @@ class NFTModule {
 
     @Provides
     @Singleton
-    @RemoteNFTRepository
-    fun provideRemoteNFTRepository(alchemyNftApi: AlchemyNftApi, preferences: Preferences): NFTRepository {
+    fun provideRemoteNFTRepository(
+        alchemyNftApi: AlchemyNftApi,
+        preferences: Preferences,
+        pagingRequestMediator: PagingRequestMediator,
+        pageCachingDecorator: PageCachingDecorator
+    ): NFTRepository {
         return NFTRepositoryImpl(
             alchemyNftApi = alchemyNftApi,
-            preferences = preferences
-        )
-    }
-
-    @Provides
-    @Singleton
-    @CachedNFTRepository
-    fun provideCachingNFTRepositoryDecorator(@RemoteNFTRepository nftRepository: NFTRepository): NFTRepository {
-        return CachingNFTRepositoryDecorator(
-            nftRepository = nftRepository
+            preferences = preferences,
+            pagingRequestMediator = pagingRequestMediator,
+            pageCachingDecorator = pageCachingDecorator
         )
     }
 
     @Provides
     @Singleton
     fun provideNFTInteractor(
-        @CachedNFTRepository nftRepository: NFTRepository,
+        nftRepository: NFTRepository,
         accountRepository: AccountRepository,
         chainsRepository: ChainsRepository,
-        collectionsByContractBufferingMediator: NFTCollectionsByContractBufferingMediator,
-        paginationRequestAlteringMediator: PaginationRequestAlteringMediator,
-        collectionsByContractMappingAdapter: NFTCollectionsByContractMappingAdapter
+        collectionsMappingAdapter: CollectionsMappingAdapter,
+        requestSwitchingMediator: RequestSwitchingMediator,
+        tokensMappingAdapter: TokensMappingAdapter,
+        tokensTrimmingMediator: TokensTrimmingMediator
     ): NFTInteractor = NFTInteractorImpl(
         nftRepository = nftRepository,
         accountRepository = accountRepository,
         chainsRepository = chainsRepository,
-        collectionsByContractBufferingMediator,
-        paginationRequestAlteringMediator,
-        collectionsByContractMappingAdapter
+        collectionMappingAdapter = collectionsMappingAdapter,
+        requestSwitchingMediator = requestSwitchingMediator,
+        tokensMappingAdapter = tokensMappingAdapter,
+        tokensTrimmingMediator = tokensTrimmingMediator
     )
 
     @Provides

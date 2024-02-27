@@ -36,15 +36,15 @@ import jp.co.soramitsu.feature_nft_impl.R
 import jp.co.soramitsu.nft.impl.presentation.chooserecipient.contract.ChooseNFTRecipientCallback
 import jp.co.soramitsu.nft.impl.presentation.chooserecipient.contract.ChooseNFTRecipientScreenState
 import jp.co.soramitsu.nft.navigation.NFTNavGraphRoute
-import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.StateFlow
 
 @Suppress("FunctionName")
 fun NavGraphBuilder.ChooseNFTRecipientNavComposable(
-    stateFlow: Flow<ChooseNFTRecipientScreenState>,
+    stateFlow: StateFlow<ChooseNFTRecipientScreenState>,
     callback: ChooseNFTRecipientCallback
 ) {
     composable(NFTNavGraphRoute.ChooseNFTRecipientScreen.routeName) {
-        val state = stateFlow.collectAsStateWithLifecycle(ChooseNFTRecipientScreenState.default)
+        val state = stateFlow.collectAsStateWithLifecycle()
 
         ChooseNFTRecipientScreen(
             state = state.value,

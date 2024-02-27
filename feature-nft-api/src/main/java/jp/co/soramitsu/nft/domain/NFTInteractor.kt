@@ -13,16 +13,16 @@ interface NFTInteractor {
 
     fun nftFiltersFlow(): Flow<Map<NFTFilter, Boolean>>
 
-    fun userOwnedCollectionsFlow(
+    fun collectionsFlow(
         paginationRequestFlow: Flow<PaginationRequest>,
         chainSelectionFlow: Flow<String?>
-    ): Flow<List<NFTCollectionResult>>
+    ): Flow<Sequence<NFTCollectionResult>>
 
-    fun collectionNFTsFlow(
+    fun tokensFlow(
         paginationRequestFlow: Flow<PaginationRequest>,
         chainSelectionFlow: Flow<String>,
         contractAddressFlow: Flow<String>
-    ): Flow<Pair<NFTCollectionResult, PaginationRequest>>
+    ): Flow<NFTCollectionResult>
 
     suspend fun getNFTDetails(
         chainId: ChainId,

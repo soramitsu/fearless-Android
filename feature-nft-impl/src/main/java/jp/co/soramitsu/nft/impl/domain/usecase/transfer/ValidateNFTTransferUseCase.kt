@@ -1,4 +1,4 @@
-package jp.co.soramitsu.nft.impl.domain.usecase.validation
+package jp.co.soramitsu.nft.impl.domain.usecase.transfer
 
 import jp.co.soramitsu.core.utils.isValidAddress
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain

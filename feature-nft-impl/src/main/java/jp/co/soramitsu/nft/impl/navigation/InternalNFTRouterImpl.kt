@@ -23,8 +23,7 @@ class InternalNFTRouterImpl(
     private val mutableActionsFlow =
         MutableSharedFlow<NavAction>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 
-    override fun createNavGraphRoutesFlow(): Flow<NFTNavGraphRoute> =
-        mutableRoutesFlow.onEach { routesStack.push(it) }
+    override fun createNavGraphRoutesFlow(): Flow<NFTNavGraphRoute> = mutableRoutesFlow.onEach { routesStack.push(it) }
 
     override fun createNavGraphActionsFlow(): Flow<NavAction> =
         mutableActionsFlow.onEach { if (it is NavAction.BackPressed && !routesStack.isEmpty()) routesStack.pop() }

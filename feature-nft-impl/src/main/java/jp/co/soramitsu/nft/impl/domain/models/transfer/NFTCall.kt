@@ -1,4 +1,4 @@
-package jp.co.soramitsu.nft.impl.domain.models
+package jp.co.soramitsu.nft.impl.domain.models.transfer
 
 import org.web3j.abi.TypeReference
 import org.web3j.abi.datatypes.Type

@@ -3,33 +3,35 @@ package jp.co.soramitsu.nft.impl.domain
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.core.models.ChainId
 import jp.co.soramitsu.nft.data.NFTRepository
-import jp.co.soramitsu.nft.data.pagination.PaginationEvent
+import jp.co.soramitsu.nft.data.pagination.PageBackStack
 import jp.co.soramitsu.nft.data.pagination.PaginationRequest
 import jp.co.soramitsu.nft.domain.NFTInteractor
 import jp.co.soramitsu.nft.domain.models.NFT
 import jp.co.soramitsu.nft.domain.models.NFTCollectionResult
 import jp.co.soramitsu.nft.domain.models.NFTFilter
-import jp.co.soramitsu.nft.domain.models.utils.toNFT
+import jp.co.soramitsu.nft.impl.domain.models.nft.NFTImpl
+import jp.co.soramitsu.nft.impl.domain.usecase.collections.CollectionsMappingAdapter
+import jp.co.soramitsu.nft.impl.domain.usecase.tokensbycontract.RequestSwitchingMediator
+import jp.co.soramitsu.nft.impl.domain.usecase.tokensbycontract.TokensMappingAdapter
+import jp.co.soramitsu.nft.impl.domain.usecase.tokensbycontract.TokensTrimmingMediator
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.alchemyNftId
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.mapNotNull
 import java.math.BigInteger
 
 class NFTInteractorImpl(
     private val nftRepository: NFTRepository,
     private val accountRepository: AccountRepository,
     private val chainsRepository: ChainsRepository,
-    private val collectionsByContractBufferingMediator: NFTCollectionsByContractBufferingMediator,
-    private val paginationRequestAlteringMediator: PaginationRequestAlteringMediator,
-    private val collectionsByContractMappingAdapter: NFTCollectionsByContractMappingAdapter
+    private val collectionMappingAdapter: CollectionsMappingAdapter,
+    private val requestSwitchingMediator: RequestSwitchingMediator,
+    private val tokensMappingAdapter: TokensMappingAdapter,
+    private val tokensTrimmingMediator: TokensTrimmingMediator
 ) : NFTInteractor {
 
     override fun setNFTFilter(filter: NFTFilter, isApplied: Boolean) {
@@ -44,10 +46,10 @@ class NFTInteractorImpl(
         }
     }
 
-    override fun userOwnedCollectionsFlow(
+    override fun collectionsFlow(
         paginationRequestFlow: Flow<PaginationRequest>,
         chainSelectionFlow: Flow<String?>
-    ): Flow<List<NFTCollectionResult>> {
+    ): Flow<Sequence<NFTCollectionResult>> {
         val chainsHelperFlow = chainsRepository.chainsFlow().map { chains ->
             chains.filter { it.supportNft && !it.alchemyNftId.isNullOrEmpty() }
         }.combine(chainSelectionFlow) { chains, chainSelection ->
@@ -63,45 +65,22 @@ class NFTInteractorImpl(
                 filters.map { it.uppercase() }
             }
 
-        return AlterNFTCollectionsResultListUseCase {
-            MapUserOwnedNFTCollectionsListUseCase {
-                nftRepository.paginatedUserOwnedContractsFlow(
-                    paginationRequestFlow = paginationRequestFlow,
-                    chainSelectionFlow = chainsHelperFlow,
-                    selectedMetaAccountFlow = accountRepository.selectedMetaAccountFlow(),
-                    exclusionFiltersFlow = exclusionFiltersHelperFlow
-                )
-            }.invoke()
-        }.invoke().flowOn(Dispatchers.Default)
+        return collectionMappingAdapter {
+            nftRepository.paginatedUserOwnedContractsFlow(
+                paginationRequestFlow = paginationRequestFlow,
+                chainSelectionFlow = chainsHelperFlow,
+                selectedMetaAccountFlow = accountRepository.selectedMetaAccountFlow(),
+                exclusionFiltersFlow = exclusionFiltersHelperFlow
+            )
+        }.flowOn(Dispatchers.Default)
     }
 
     @Suppress("VariableNaming", "CyclomaticComplexMethod")
-    override fun collectionNFTsFlow(
+    override fun tokensFlow(
         paginationRequestFlow: Flow<PaginationRequest>,
         chainSelectionFlow: Flow<String>,
         contractAddressFlow: Flow<String>
-    ): Flow<Pair<NFTCollectionResult, PaginationRequest>> {
-        val UserOwnedNFTsStartedLoading = 0
-        val AvailableNFTsStartedLoading = 1
-
-        val mutableTriggerFlow = MutableStateFlow(0)
-
-        val paginationRequestHelperFlow =
-            paginationRequestFlow.combine(mutableTriggerFlow) { request, capacity ->
-                if (capacity == 0)
-                    return@combine request
-
-                return@combine when(request) {
-                    is PaginationRequest.Prev -> {
-                        PaginationRequest.Prev.WithSize(capacity)
-                    }
-
-                    is PaginationRequest.Next -> {
-                        PaginationRequest.Next.WithSize(capacity)
-                    }
-                }
-            }
-
+    ): Flow<NFTCollectionResult> {
         val chainSelectionHelperFlow = chainsRepository.chainsFlow()
             .map { chains -> chains.filter { it.supportNft && !it.alchemyNftId.isNullOrEmpty() } }
             .combine(chainSelectionFlow) { chains, chainSelection ->
@@ -116,50 +95,54 @@ class NFTInteractorImpl(
         val exclusionFiltersHelperFlow = nftRepository.nftFiltersFlow
             .map { filters -> filters.map { it.uppercase() } }
 
-        return collectionsByContractBufferingMediator(
-            callback = {
-                println("This is checkpoint: callback, value - $it")
-                mutableTriggerFlow.tryEmit(it)
-            }
-        ) {
-            paginationRequestAlteringMediator(
-                paginationRequestFlow = paginationRequestHelperFlow,
-                PaginationRequestAlteringMediator.Holder(
-                    UserOwnedNFTsStartedLoading
-                ) { alteredPaginationRequestFlow, alterRequestFlowCallback ->
-                    collectionsByContractMappingAdapter {
+        return tokensTrimmingMediator {
+            requestSwitchingMediator(
+                requestFlow = paginationRequestFlow,
+                RequestSwitchingMediator.Holder(
+                    flag = FLAG_USER_OWNED_TOKENS_FLOW
+                ) { alteredPaginationRequestFlow, switchFlowHandle ->
+                    tokensMappingAdapter {
                         nftRepository.paginatedUserOwnedNFTsByContractAddressFlow(
                             paginationRequestFlow = alteredPaginationRequestFlow,
                             chainSelectionFlow = chainSelectionHelperFlow,
                             contractAddressFlow = contractAddressFlow,
                             selectedMetaAccountFlow = accountRepository.selectedMetaAccountFlow(),
                             exclusionFiltersFlow = exclusionFiltersHelperFlow
-                        ).onEach {
-                            if (it.result.getOrNull() is PaginationEvent.AllNextPagesLoaded) {
-                                alterRequestFlowCallback.alterTo(AvailableNFTsStartedLoading)
+                        ).mapNotNull { pagedResponse ->
+                            if (pagedResponse.result.getOrNull() is PageBackStack.PageResult.NoNextPages) {
+                                switchFlowHandle.switchToFlowWithFlag(
+                                    flag = FLAG_ALL_CONTRACT_TOKENS_FLOW
+                                )
+                                return@mapNotNull null
                             }
+
+                            return@mapNotNull pagedResponse
                         }
                     }
                 },
-                PaginationRequestAlteringMediator.Holder(
-                    AvailableNFTsStartedLoading
-                ) { alteredPaginationRequestFlow, alterLoadingRequestFlow ->
-                    collectionsByContractMappingAdapter {
+                RequestSwitchingMediator.Holder(
+                    flag = FLAG_ALL_CONTRACT_TOKENS_FLOW
+                ) { alteredPaginationRequestFlow, switchFlowHandle ->
+                    tokensMappingAdapter {
                         nftRepository.paginatedNFTCollectionByContractAddressFlow(
                             paginationRequestFlow = alteredPaginationRequestFlow,
                             chainSelectionFlow = chainSelectionHelperFlow,
                             contractAddressFlow = contractAddressFlow
-                        ).onEach {
-                            if (it.result.getOrNull() is PaginationEvent.AllPreviousPagesLoaded) {
-                                alterLoadingRequestFlow.alterTo(UserOwnedNFTsStartedLoading)
+                        ).mapNotNull { pagedResponse ->
+                            if (pagedResponse.result.getOrNull() is PageBackStack.PageResult.NoPrevPages) {
+                                switchFlowHandle.switchToFlowWithFlag(
+                                    flag = FLAG_USER_OWNED_TOKENS_FLOW
+                                )
+                                return@mapNotNull null
                             }
+
+                            return@mapNotNull pagedResponse
                         }
                     }
                 }
             )
         }
     }
-
 
     override suspend fun getNFTDetails(
         chainId: ChainId,
@@ -169,9 +152,7 @@ class NFTInteractorImpl(
         val chain = chainsRepository.getChain(chainId)
 
         return nftRepository.tokenMetadata(chain, contractAddress, tokenId).map { result ->
-            result.toNFT(
-                chain = chain
-            )
+            NFTImpl(result, chain.id, chain.name)
         }
     }
 
@@ -201,5 +182,10 @@ class NFTInteractorImpl(
                 tokenId = token.tokenId.toString()
             ).getOrThrow().ownersList
         }
+    }
+
+    private companion object {
+        const val FLAG_USER_OWNED_TOKENS_FLOW = 0
+        const val FLAG_ALL_CONTRACT_TOKENS_FLOW = 1
     }
 }
