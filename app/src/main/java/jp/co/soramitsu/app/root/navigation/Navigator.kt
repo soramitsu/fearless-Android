@@ -89,6 +89,7 @@ import jp.co.soramitsu.soracard.api.presentation.SoraCardRouter
 import jp.co.soramitsu.splash.SplashRouter
 import jp.co.soramitsu.staking.api.domain.model.PoolInfo
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
+import jp.co.soramitsu.staking.impl.presentation.common.SelectValidatorFlowState
 import jp.co.soramitsu.staking.impl.presentation.payouts.confirm.ConfirmPayoutFragment
 import jp.co.soramitsu.staking.impl.presentation.payouts.confirm.model.ConfirmPayoutPayload
 import jp.co.soramitsu.staking.impl.presentation.payouts.detail.PayoutDetailsFragment
@@ -113,6 +114,7 @@ import jp.co.soramitsu.staking.impl.presentation.staking.unbond.confirm.ConfirmU
 import jp.co.soramitsu.staking.impl.presentation.staking.unbond.confirm.ConfirmUnbondPayload
 import jp.co.soramitsu.staking.impl.presentation.staking.unbond.select.SelectUnbondFragment
 import jp.co.soramitsu.staking.impl.presentation.staking.unbond.select.SelectUnbondPayload
+import jp.co.soramitsu.staking.impl.presentation.validators.change.custom.select.compose.SelectCustomValidatorsFragment
 import jp.co.soramitsu.staking.impl.presentation.validators.change.custom.settings.CustomValidatorsSettingsFragment
 import jp.co.soramitsu.staking.impl.presentation.validators.details.CollatorDetailsFragment
 import jp.co.soramitsu.staking.impl.presentation.validators.details.ValidatorDetailsFragment
@@ -675,11 +677,13 @@ class Navigator :
     }
 
     override fun openRecommendedValidators() {
-        navController?.navigate(R.id.action_startChangeValidatorsFragment_to_recommendedValidatorsFragment)
+        val args = SelectCustomValidatorsFragment.getBundle(SelectValidatorFlowState.ValidatorSelectMode.RECOMMENDED)
+        navController?.navigate(R.id.action_startChangeValidatorsFragment_to_recommendedValidatorsFragment, args)
     }
 
     override fun openSelectCustomValidators() {
-        navController?.navigate(R.id.action_startChangeValidatorsFragment_to_selectCustomValidatorsFragment)
+        val args = SelectCustomValidatorsFragment.getBundle(SelectValidatorFlowState.ValidatorSelectMode.CUSTOM)
+        navController?.navigate(R.id.action_startChangeValidatorsFragment_to_selectCustomValidatorsFragment, args)
     }
 
     override fun openCustomValidatorsSettingsFromValidator() {

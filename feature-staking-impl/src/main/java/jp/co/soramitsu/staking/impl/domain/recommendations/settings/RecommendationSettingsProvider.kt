@@ -50,7 +50,7 @@ abstract class RecommendationSettingsProvider<T> {
         private val maximumValidatorsPerNominator: Int
     ) : RecommendationSettingsProvider<Validator>() {
 
-        override val alwaysEnabledFilters = listOf(
+        override val alwaysEnabledFilters = listOf<BlockProducerFilters.ValidatorFilter>(
             BlockProducerFilters.ValidatorFilter.HasBlocked
         )
 
@@ -60,9 +60,7 @@ abstract class RecommendationSettingsProvider<T> {
             BlockProducerFilters.ValidatorFilter.NotOverSubscribedFilter(maximumRewardedNominators)
         )
 
-        override val allPostProcessors = listOf(
-            RemoveClusteringPostprocessor
-        )
+        override val allPostProcessors = listOf<RecommendationPostProcessor<Validator>>()
 
         override val sorting: List<BlockProducersSorting<Validator>> = listOf(
             BlockProducersSorting.ValidatorSorting.APYSorting,

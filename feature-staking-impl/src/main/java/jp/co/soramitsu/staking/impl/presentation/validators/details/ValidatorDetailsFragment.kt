@@ -68,6 +68,7 @@ class ValidatorDetailsFragment : BaseBottomSheetDialogFragment<ValidatorDetailsV
             with(validator.stake) {
                 binding.validatorInfo.visibility = View.VISIBLE
                 binding.validatorInfo.setStatus(statusText, statusColorRes)
+                binding.validatorInfo.setCommissionValue(prefs?.commission)
 
                 if (activeStakeModel != null) {
                     with(binding) {
@@ -77,7 +78,7 @@ class ValidatorDetailsFragment : BaseBottomSheetDialogFragment<ValidatorDetailsV
                         validatorInfo.setEstimatedRewardApy(activeStakeModel.apy)
                         validatorInfo.setTotalStakeValue(activeStakeModel.totalStake)
                         validatorInfo.setTotalStakeValueFiat(activeStakeModel.totalStakeFiat)
-                        validatorInfo.setCommissionValue(activeStakeModel.commission)
+
                     }
                 } else {
                     binding.validatorInfo.hideActiveStakeFields()

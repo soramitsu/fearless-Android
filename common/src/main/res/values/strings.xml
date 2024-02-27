@@ -176,6 +176,7 @@
   <string name="common_claim">Claim</string>
   <string name="common_claimable">Claimable</string>
   <string name="common_close">Close</string>
+  <string name="common_commission">Commission</string>
   <string name="common_completed">Completed</string>
   <string name="common_completed_with_count">Completed (%s)</string>
   <string name="common_confirm">Confirm</string>

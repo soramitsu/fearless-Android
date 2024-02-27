@@ -52,9 +52,6 @@ class SoraRewardCalculator(
     }
 
     private fun calculateValidatorAPY(validator: RewardCalculationTarget): Double {
-        if(validator.accountIdHex == "e2fe9aa30575261dfed2f83a95f30bdc1e1cd8c5813de31d0b8ee1071c1f4d10"){
-            hashCode()
-        }
         val averageValidatorRewardPoints =
             historicalRewardDistribution.values.asSequence().map { it.individual }.flatten()
                 .filter { it.accountId.toHexString(false) == validator.accountIdHex }

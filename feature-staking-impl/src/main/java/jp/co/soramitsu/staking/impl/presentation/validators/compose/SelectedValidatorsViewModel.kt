@@ -30,6 +30,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.math.BigInteger
 import javax.inject.Inject
+import jp.co.soramitsu.staking.impl.presentation.validators.toModel
 
 @HiltViewModel
 class SelectedValidatorsViewModel @Inject constructor(

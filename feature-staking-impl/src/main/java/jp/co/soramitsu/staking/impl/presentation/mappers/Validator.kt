@@ -23,6 +23,7 @@ import jp.co.soramitsu.staking.impl.presentation.validators.details.model.Valida
 import jp.co.soramitsu.staking.impl.presentation.validators.details.model.ValidatorStakeModel.ActiveStakeModel
 import jp.co.soramitsu.staking.impl.presentation.validators.details.view.Error
 import jp.co.soramitsu.staking.impl.presentation.validators.parcel.ValidatorDetailsParcelModel
+import jp.co.soramitsu.staking.impl.presentation.validators.parcel.ValidatorPrefsParcelModel
 import jp.co.soramitsu.staking.impl.presentation.validators.parcel.ValidatorStakeParcelModel
 import jp.co.soramitsu.staking.impl.presentation.validators.parcel.ValidatorStakeParcelModel.Active.NominatorInfo
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
@@ -112,7 +113,9 @@ private fun mapValidatorToValidatorDetailsParcelModel(
             )
         } ?: ValidatorStakeParcelModel.Inactive
 
-        ValidatorDetailsParcelModel(accountIdHex, stakeModel, prefs?.commission, identityModel)
+        val prefsParcelModel = prefs?.let { ValidatorPrefsParcelModel(it.commission, it.blocked) }
+
+        ValidatorDetailsParcelModel(accountIdHex, stakeModel, identityModel, prefsParcelModel)
     }
 }
 
@@ -123,11 +126,11 @@ fun mapValidatorDetailsToErrors(
     return when (val stake = validator.stake) {
         ValidatorStakeParcelModel.Inactive -> null
         is ValidatorStakeParcelModel.Active -> {
-            val nominatorInfo = stake.nominatorInfo ?: return null
+            val nominatorInfo = stake.nominatorInfo
 
             return mutableListOf<Error>().apply {
                 if (stake.isOversubscribed) {
-                    if (nominatorInfo.willBeRewarded) {
+                    if (nominatorInfo?.willBeRewarded == true) {
                         add(Error.OversubscribedPaid)
                     } else {
                         add(Error.OversubscribedUnpaid)
@@ -155,12 +158,13 @@ suspend fun mapValidatorDetailsParcelToValidatorDetailsModel(
         val addressImage = iconGenerator.createAddressModel(address, ICON_DETAILS_SIZE_DP)
 
         val identity = identity?.let(::mapIdentityParcelModelToIdentityModel)
-
+        val prefs = prefs?.let { ValidatorStakeModel.Prefs(it.isBlocked, it.commission.fractionToPercentage().formatAsPercentage()) }
         val stake = when (val stake = validator.stake) {
             ValidatorStakeParcelModel.Inactive -> ValidatorStakeModel(
                 statusText = resourceManager.getString(R.string.staking_nominator_status_inactive),
                 statusColorRes = R.color.gray2,
-                activeStakeModel = null
+                activeStakeModel = null,
+                prefs = prefs
             )
 
             is ValidatorStakeParcelModel.Active -> {
@@ -173,13 +177,13 @@ suspend fun mapValidatorDetailsParcelToValidatorDetailsModel(
                 ValidatorStakeModel(
                     statusText = resourceManager.getString(R.string.staking_nominator_status_active),
                     statusColorRes = R.color.green,
+                    prefs = prefs,
                     activeStakeModel = ActiveStakeModel(
                         totalStake = totalStakeFormatted,
                         totalStakeFiat = totalStakeFiatFormatted,
                         nominatorsCount = nominatorsCount.toString(),
                         apy = apyPercentageFormatted,
-                        maxNominations = maxNominators.toString(),
-                        commission = comission?.fractionToPercentage()?.formatAsPercentage()
+                        maxNominations = maxNominators.toString()
                     )
                 )
             }
