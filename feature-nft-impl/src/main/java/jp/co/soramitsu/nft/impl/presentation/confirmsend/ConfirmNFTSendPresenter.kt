@@ -10,10 +10,12 @@ import jp.co.soramitsu.common.compose.models.ImageModel
 import jp.co.soramitsu.common.compose.models.Loadable
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.applyFiatRate
+import jp.co.soramitsu.common.utils.combine
 import jp.co.soramitsu.common.utils.formatCryptoDetail
 import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.formatting.shortenAddress
 import jp.co.soramitsu.common.utils.requireValue
+import jp.co.soramitsu.common.utils.zipWithPrevious
 import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.feature_nft_impl.R
 import jp.co.soramitsu.nft.domain.NFTTransferInteractor
@@ -31,7 +33,6 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.channelFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
@@ -62,6 +63,8 @@ class ConfirmNFTSendPresenter @Inject constructor(
         .filterIsInstance<NFTNavGraphRoute.ConfirmNFTSendScreen>()
         .shareIn(coroutinesStore.uiScope, SharingStarted.Eagerly, 1)
 
+    private val isLoadingFlow = MutableStateFlow(false)
+
     @OptIn(ExperimentalCoroutinesApi::class)
     fun createScreenStateFlow(coroutineScope: CoroutineScope): StateFlow<ConfirmNFTSendScreenState> {
         return channelFlow {
@@ -90,13 +93,25 @@ class ConfirmNFTSendPresenter @Inject constructor(
                 walletInteractor.assetFlow(chainId, utilityAssetId)
             }.distinctUntilChanged()
 
+            val isLoadingHelperFlow =
+                screenArgsFlow.zipWithPrevious().flatMapLatest { (prevArgs, currentArgs) ->
+                    isLoadingFlow.map {
+                        if (prevArgs?.token?.tokenId == currentArgs.token.tokenId) {
+                            it
+                        } else {
+                            false
+                        }
+                    }
+                }
+
             combine(
                 screenArgsFlow,
                 tokenChainFlow,
                 utilityAssetFlow,
                 networkFeeHelperFlow,
-                accountInteractor.selectedMetaAccountFlow()
-            ) { screenArgs, selectedChain, utilityAsset, networkFeeResult, metaAccount ->
+                accountInteractor.selectedMetaAccountFlow(),
+                isLoadingHelperFlow
+            ) { screenArgs, selectedChain, utilityAsset, networkFeeResult, metaAccount, isLoading ->
                 val tokenSymbol = utilityAsset.token.configuration.symbol
                 val tokenFiatRate = utilityAsset.token.fiatRate
                 val tokenFiatSymbol = utilityAsset.token.fiatSymbol
@@ -134,9 +149,9 @@ class ConfirmNFTSendPresenter @Inject constructor(
                     ),
                     buttonState = ButtonViewState(
                         text = resourceManager.getString(R.string.common_confirm),
-                        enabled = networkFeeResult.isSuccess
+                        enabled = networkFeeResult.isSuccess && !isLoading
                     ),
-                    isLoading = false
+                    isLoading = isLoading
                 )
             }.onEach {
                 send(it)
@@ -146,6 +161,8 @@ class ConfirmNFTSendPresenter @Inject constructor(
 
     override fun onConfirmClick() {
         val destination = screenArgsFlow.replayCache.lastOrNull() ?: return
+
+        isLoadingFlow.value = true
 
         coroutinesStore.uiScope.launch {
             val chain = chainsRepository.getChain(destination.token.chainId)
@@ -200,6 +217,8 @@ class ConfirmNFTSendPresenter @Inject constructor(
                     it.message?.let { internalNFTRouter.openErrorsScreen(message = it) }
                 }
             )
+        }.invokeOnCompletion {
+            isLoadingFlow.value = false
         }
     }
 

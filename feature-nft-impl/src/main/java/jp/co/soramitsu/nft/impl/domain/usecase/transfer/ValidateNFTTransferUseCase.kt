@@ -34,7 +34,7 @@ class ValidateNFTTransferUseCase @Inject constructor() {
             }
 
             val validationChecks = mapOf(
-                TransferValidationResult.InsufficientBalance to (balance >= BigInteger.ONE),
+                TransferValidationResult.InsufficientBalance to (BigInteger.ONE > balance),
                 TransferValidationResult.InsufficientUtilityAssetBalance to (fee > utilityAsset.transferableInPlanks)
             )
 

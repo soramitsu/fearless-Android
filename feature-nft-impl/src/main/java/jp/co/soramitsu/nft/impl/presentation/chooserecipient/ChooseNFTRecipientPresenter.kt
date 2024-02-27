@@ -17,6 +17,7 @@ import jp.co.soramitsu.common.utils.combine
 import jp.co.soramitsu.common.utils.formatCryptoDetail
 import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.requireValue
+import jp.co.soramitsu.common.utils.zipWithPrevious
 import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.feature_nft_impl.R
 import jp.co.soramitsu.nft.domain.NFTTransferInteractor
@@ -80,6 +81,8 @@ class ChooseNFTRecipientPresenter @Inject constructor(
 
     private val selectedWalletIdFlow = MutableStateFlow<Long?>(null)
 
+    private val isLoadingFlow = MutableStateFlow(false)
+
     private val currentToken: NFT?
         get() = tokenFlow.replayCache.lastOrNull()
 
@@ -90,7 +93,7 @@ class ChooseNFTRecipientPresenter @Inject constructor(
         addressInputFlow.value = result
     }
 
-    @OptIn(FlowPreview::class)
+    @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
     fun createScreenStateFlow(coroutineScope: CoroutineScope): StateFlow<ChooseNFTRecipientScreenState> {
         val addressInputHelperFlow =
             addressInputFlow.debounce(DEFAULT_DEBOUNCE_TIMEOUT).map { it.trim() }
@@ -102,20 +105,33 @@ class ChooseNFTRecipientPresenter @Inject constructor(
                 ).externalApi?.history != null
             }
 
+        val isLoadingHelperFlow =
+            tokenFlow.zipWithPrevious().flatMapLatest { (prevToken, currentToken) ->
+                isLoadingFlow.map {
+                    if (prevToken?.tokenId == currentToken.tokenId) {
+                        it
+                    } else {
+                        false
+                    }
+                }
+            }
+
         return combine(
             addressInputHelperFlow,
             createAddressIconFlow(tokenFlow, addressInputHelperFlow, AddressIconGenerator.SIZE_MEDIUM),
             createSelectedAccountIconFlow(tokenFlow, AddressIconGenerator.SIZE_SMALL),
-            createButtonState(tokenFlow, addressInputHelperFlow),
+            createButtonState(tokenFlow, addressInputHelperFlow, isLoadingHelperFlow),
             createFeeInfoViewState(addressInputHelperFlow),
             isHistoryAvailableFlow,
+            isLoadingHelperFlow
         ) {
             addressInput,
             addressIcon,
             selectedWalletIcon,
             buttonState,
             feeInfoViewState,
-            isHistoryAvailable ->
+            isHistoryAvailable,
+            isLoading ->
 
             return@combine ChooseNFTRecipientScreenState(
                 selectedWalletIcon = selectedWalletIcon,
@@ -129,7 +145,7 @@ class ChooseNFTRecipientPresenter @Inject constructor(
                 buttonState = buttonState,
                 isHistoryAvailable = isHistoryAvailable,
                 feeInfoState = feeInfoViewState,
-                isLoading = false
+                isLoading = isLoading
             )
         }.stateIn(coroutineScope, SharingStarted.Lazily, ChooseNFTRecipientScreenState.default)
     }
@@ -170,8 +186,12 @@ class ChooseNFTRecipientPresenter @Inject constructor(
         }
     }
 
-    private fun createButtonState(tokenFlow: Flow<NFT>, receiverAddressFlow: Flow<String>): Flow<ButtonViewState> {
-        return combine(tokenFlow, receiverAddressFlow) { token, addressInput ->
+    private fun createButtonState(
+        tokenFlow: Flow<NFT>,
+        receiverAddressFlow: Flow<String>,
+        isLoadingFlow: Flow<Boolean>
+    ): Flow<ButtonViewState> {
+        return combine(tokenFlow, receiverAddressFlow, isLoadingFlow) { token, addressInput, isLoading ->
             val isReceiverAddressValid = walletInteractor.validateSendAddress(
                 chainId = token.chainId,
                 address = addressInput
@@ -179,7 +199,7 @@ class ChooseNFTRecipientPresenter @Inject constructor(
 
             return@combine ButtonViewState(
                 text = resourceManager.getString(R.string.common_preview),
-                enabled = isReceiverAddressValid && token.isUserOwnedToken
+                enabled = isReceiverAddressValid && token.isUserOwnedToken && !isLoading
             )
         }
     }
@@ -247,6 +267,8 @@ class ChooseNFTRecipientPresenter @Inject constructor(
         val token = currentToken ?: return
         val receiver = addressInputFlow.value.trim()
 
+        isLoadingFlow.value = true
+
         coroutinesStore.uiScope.launch {
             val chain = chainsRepository.getChain(token.chainId)
 
@@ -298,6 +320,8 @@ class ChooseNFTRecipientPresenter @Inject constructor(
             }
 
             internalNFTRouter.openNFTSendScreen(token, addressInputFlow.value.trim())
+        }.invokeOnCompletion {
+            isLoadingFlow.value = false
         }
     }
 
