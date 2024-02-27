@@ -35,7 +35,6 @@ import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.onErrorResume
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -214,7 +213,7 @@ class TransactionHistoryProvider(
         launch {
             val operations = currentData
 
-            val clickedOperation = operations.first { it.id == transactionModel.id }
+            val clickedOperation = operations.firstOrNull { it.id == transactionModel.id } ?: return@launch
 
             val chain = walletInteractor.getChain(assetPayload.chainId)
             val utilityAsset = chain.assets.firstOrNull { it.isUtility }
