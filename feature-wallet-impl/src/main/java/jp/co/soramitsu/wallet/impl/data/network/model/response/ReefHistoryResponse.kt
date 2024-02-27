@@ -4,7 +4,11 @@ import java.math.BigInteger
 import jp.co.soramitsu.common.data.network.subquery.ReefAddress
 import jp.co.soramitsu.common.data.network.subquery.ReefRewardsConnection
 
-data class ReefHistoryResponse(val transfersConnection: ReefElementsConnection? = null, val stakingsConnection: ReefRewardsConnection? = null)
+data class ReefHistoryResponse(
+    val transfersConnection: ReefElementsConnection? = null,
+    val stakingsConnection: ReefRewardsConnection? = null,
+    val extrinsicsConnection: ReefExtrinsicConnection? = null
+)
 
 class ReefElementsConnection(
     val pageInfo: SubsquidPageInfo,
@@ -22,6 +26,24 @@ class ReefHistoryNode(
     val from: ReefAddress,
     val extrinsicHash: String?,
     val signedData: ReefSignedData?
+)
+
+class ReefExtrinsicConnection(
+    val pageInfo: SubsquidPageInfo,
+    val edges: List<ReefExtrinsicEdge>
+)
+
+class ReefExtrinsicEdge(val node: ReefExtrinsicNode)
+class ReefExtrinsicNode(
+    val id: String,
+    val hash: String,
+    val method: String,
+    val section: String,
+    val signedData: ReefSignedData?,
+    val status: String,
+    val signer: String,
+    val timestamp: String,
+    val type: String
 )
 
 class ReefSignedData(val fee: ReefFeeData?)
