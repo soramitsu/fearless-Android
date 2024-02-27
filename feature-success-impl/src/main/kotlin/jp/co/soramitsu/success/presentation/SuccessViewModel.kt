@@ -74,6 +74,7 @@ class SuccessViewModel @Inject constructor(
                     BlockExplorerUrlBuilder(explorerItem.url, explorerItem.types).build(BlockExplorerUrlBuilder.Type.TX, operationHash)
                 }
 
+                Chain.Explorer.Type.REEF -> BlockExplorerUrlBuilder(explorerItem.url, explorerItem.types).build(BlockExplorerUrlBuilder.Type.EXTRINSIC, operationHash)
                 Chain.Explorer.Type.UNKNOWN -> null
             }?.let { url ->
                 explorerItem.type to url

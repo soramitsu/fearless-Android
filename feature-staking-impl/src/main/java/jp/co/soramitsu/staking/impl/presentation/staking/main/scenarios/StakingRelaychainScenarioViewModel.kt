@@ -194,11 +194,20 @@ class StakingRelaychainScenarioViewModel(
 
     private fun mapAlertToAlertModel(alert: Alert): AlertModel {
         return when (alert) {
-            Alert.ChangeValidators -> {
+            is Alert.ChangeValidators -> {
                 AlertModel(
                     WARNING_ICON,
                     resourceManager.getString(R.string.staking_alert_change_validators),
                     resourceManager.getString(R.string.staking_nominator_status_alert_no_validators),
+                    AlertModel.Type.CallToAction { baseViewModel.openCurrentValidators() }
+                )
+            }
+
+            is Alert.AllValidatorsAreOversubscribed -> {
+                AlertModel(
+                    WARNING_ICON,
+                    resourceManager.getString(R.string.staking_alert_change_validators),
+                    resourceManager.getString(R.string.staking_your_oversubscribed_message),
                     AlertModel.Type.CallToAction { baseViewModel.openCurrentValidators() }
                 )
             }
@@ -230,7 +239,7 @@ class StakingRelaychainScenarioViewModel(
                 AlertModel.Type.Info
             )
 
-            Alert.SetValidators -> AlertModel(
+            is Alert.SetValidators -> AlertModel(
                 WARNING_ICON,
                 resourceManager.getString(R.string.staking_set_validators_title),
                 resourceManager.getString(R.string.staking_set_validators_message),

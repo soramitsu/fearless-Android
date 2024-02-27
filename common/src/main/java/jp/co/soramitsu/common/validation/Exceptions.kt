@@ -20,9 +20,9 @@ class SubstrateBridgeMinimumAmountRequired(resourceManager: ResourceManager, amo
     resourceManager.getString(R.string.sora_bridge_low_amount_format_alert, amount)
 )
 
-class SubstrateBridgeAmountLessThenFeeException(resourceManager: ResourceManager) : ValidationWarning(
+class SubstrateBridgeAmountLessThenFeeException(resourceManager: ResourceManager, chainName: String) : ValidationWarning(
     resourceManager.getString(R.string.common_warning),
-    resourceManager.getString(R.string.sora_bridge_amount_less_fee),
+    resourceManager.getString(R.string.sora_bridge_amount_less_fee, chainName),
     resourceManager.getString(R.string.common_proceed),
     resourceManager.getString(R.string.common_cancel),
     null

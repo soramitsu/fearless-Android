@@ -99,20 +99,20 @@ class StakingRelayChainScenarioRepository(
         return runtime.metadata.babe().numberConstant("EpochDuration", runtime) // How many blocks per session
     }
 
-    suspend fun currentSessionIndex(chainId: ChainId) = remoteStorage.queryNonNull(
+    suspend fun currentSessionIndex(chainId: ChainId) = remoteStorage.query(
         // Current session index
         keyBuilder = { it.metadata.session().storage("CurrentIndex").storageKey() },
         binding = ::bindCurrentIndex,
         chainId = chainId
     )
 
-    suspend fun currentSlot(chainId: ChainId) = remoteStorage.queryNonNull(
+    suspend fun currentSlot(chainId: ChainId) = remoteStorage.query(
         keyBuilder = { it.metadata.babe().storage("CurrentSlot").storageKey() },
         binding = ::bindCurrentSlot,
         chainId = chainId
     )
 
-    suspend fun genesisSlot(chainId: ChainId) = remoteStorage.queryNonNull(
+    suspend fun genesisSlot(chainId: ChainId) = remoteStorage.query(
         keyBuilder = { it.metadata.babe().storage("GenesisSlot").storageKey() },
         binding = ::bindCurrentSlot,
         chainId = chainId
@@ -120,7 +120,7 @@ class StakingRelayChainScenarioRepository(
 
     suspend fun eraStartSessionIndex(chainId: ChainId, currentEra: BigInteger): EraIndex {
         val runtime = runtimeFor(chainId)
-        return remoteStorage.queryNonNull( // Index of session from with the era started
+        return remoteStorage.query( // Index of session from with the era started
             keyBuilder = { it.metadata.staking().storage("ErasStartSessionIndex").storageKey(runtime, currentEra) },
             binding = ::bindErasStartSessionIndex,
             chainId = chainId

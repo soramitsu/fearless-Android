@@ -218,10 +218,15 @@ class CreatePoolSetupViewModel @Inject constructor(
             val fee = feeInPlanksFlow.value
             val transferableInPlanks = asset.token.planksFromAmount(asset.transferable)
 
-            val minToCreate = poolInteractor.getMinToCreate(chain.id)
-            if (amountInPlanks < minToCreate) {
-                val minToCreateFormatted = minToCreate.formatCryptoDetailFromPlanks(asset.token.configuration)
-                showError(MinPoolCreationThresholdException(resourceManager, minToCreateFormatted))
+            try {
+                val minToCreate = poolInteractor.getMinToCreate(chain.id)
+                if (amountInPlanks < minToCreate) {
+                    val minToCreateFormatted = minToCreate.formatCryptoDetailFromPlanks(asset.token.configuration)
+                    showError(MinPoolCreationThresholdException(resourceManager, minToCreateFormatted))
+                    return@launch
+                }
+            } catch (e: NullPointerException) {
+                showError(e.message.orEmpty())
                 return@launch
             }
 
