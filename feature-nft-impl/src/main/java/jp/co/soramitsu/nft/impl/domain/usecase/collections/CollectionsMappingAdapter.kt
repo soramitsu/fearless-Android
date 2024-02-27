@@ -2,7 +2,6 @@ package jp.co.soramitsu.nft.impl.domain.usecase.collections
 
 import jp.co.soramitsu.common.utils.concurrentRequestFlow
 import jp.co.soramitsu.nft.data.models.ContractInfo
-import jp.co.soramitsu.nft.data.pagination.PageBackStack
 import jp.co.soramitsu.nft.data.pagination.PagedResponse
 import jp.co.soramitsu.nft.domain.models.NFTCollectionResult
 import jp.co.soramitsu.nft.impl.domain.models.nft.CollectionImpl
@@ -34,10 +33,6 @@ class CollectionsMappingAdapter @Inject constructor(
         val (chainId, chainName) = chainsRepository.getChain(tag as ChainId).run { id to name }
 
         val mappedSequence = result.mapCatching { pageResult ->
-            if (pageResult !is PageBackStack.PageResult.ValidPage) {
-                return@mapCatching sequenceOf(NFTCollectionResult.Empty(chainId, chainName))
-            }
-
             pageResult.items.map { contract ->
                 CollectionImpl(chainId, chainName, contract)
             }.ifEmpty { sequenceOf(NFTCollectionResult.Empty(chainId, chainName)) }

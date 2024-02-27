@@ -28,17 +28,26 @@ interface PageBackStack {
     }
 
     sealed interface PageResult<T> {
+        val items: Sequence<T>
 
-        class NoPrevPages<T> : PageResult<T>
+        fun updateItems(items: Sequence<T>): PageResult<T>
 
-        class NoNextPages<T> : PageResult<T>
+        @JvmInline
+        value class NoPrevPages<T>(
+            override val items: Sequence<T> = emptySequence()
+        ) : PageResult<T> {
+            override fun updateItems(items: Sequence<T>): PageResult<T> = NoPrevPages(items)
+        }
+
+        @JvmInline
+        value class NoNextPages<T>(
+            override val items: Sequence<T> = emptySequence()
+        ) : PageResult<T> {
+            override fun updateItems(items: Sequence<T>): PageResult<T> = NoNextPages(items)
+        }
 
         interface ValidPage<T> : PageResult<T> {
             val nextPage: String?
-
-            val items: Sequence<T>
-
-            fun updateItems(items: Sequence<T>): PageResult<T>
         }
     }
 

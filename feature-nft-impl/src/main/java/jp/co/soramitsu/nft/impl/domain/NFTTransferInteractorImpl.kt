@@ -17,8 +17,8 @@ import jp.co.soramitsu.nft.impl.domain.utils.nonNullWeb3j
 import jp.co.soramitsu.nft.impl.domain.utils.subscribeNewHeads
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.runtime.multiNetwork.connection.EthereumChainConnection
 import jp.co.soramitsu.runtime.multiNetwork.connection.EthereumConnectionPool
-import jp.co.soramitsu.runtime.multiNetwork.connection.EthereumWebSocketConnection
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.transform
@@ -32,7 +32,7 @@ class NFTTransferInteractorImpl(
     private val ethereumConnectionPool: EthereumConnectionPool
 ) : NFTTransferInteractor {
 
-    private fun getWeb3Connection(chainId: ChainId): EthereumWebSocketConnection {
+    private fun getWeb3Connection(chainId: ChainId): EthereumChainConnection {
         return ethereumConnectionPool.get(chainId) ?: error(
             """
                 EthereumConnection to chain with id - $chainId - could not have been established.

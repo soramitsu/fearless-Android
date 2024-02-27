@@ -90,7 +90,7 @@ class PageCachingDecorator @Inject constructor() {
     ): PagedResponse<T> {
         val pageResult = pagedResponse.result.map { pageResult ->
             if (pageResult !is PageBackStack.PageResult.ValidPage) {
-                return@map pageResult
+                return@map pageResult.updateItems(responseCache.asSequence().flatMap { it.items })
             }
 
             val tokenInfoListFromCache = updateAndFlattenCacheLocked(

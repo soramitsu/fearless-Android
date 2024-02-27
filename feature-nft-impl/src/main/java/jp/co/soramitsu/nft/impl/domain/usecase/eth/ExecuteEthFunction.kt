@@ -3,7 +3,7 @@ package jp.co.soramitsu.nft.impl.domain.usecase.eth
 import jp.co.soramitsu.nft.impl.domain.models.transfer.EthCall
 import jp.co.soramitsu.nft.impl.domain.utils.map
 import jp.co.soramitsu.nft.impl.domain.utils.nonNullWeb3j
-import jp.co.soramitsu.runtime.multiNetwork.connection.EthereumWebSocketConnection
+import jp.co.soramitsu.runtime.multiNetwork.connection.EthereumChainConnection
 import kotlinx.coroutines.future.await
 import org.web3j.abi.FunctionReturnDecoder
 import org.web3j.abi.datatypes.Type
@@ -11,7 +11,7 @@ import org.web3j.protocol.core.DefaultBlockParameterName
 import org.web3j.protocol.core.methods.request.Transaction
 
 @Suppress("FunctionName", "UseIfInsteadOfWhen")
-suspend inline fun <T> EthereumWebSocketConnection.ExecuteEthFunction(
+suspend inline fun <T> EthereumChainConnection.ExecuteEthFunction(
     call: EthCall,
     crossinline transform: (result: Type<*>?) -> T
 ): T {

@@ -1,6 +1,6 @@
 package jp.co.soramitsu.nft.impl.domain.utils
 
-import jp.co.soramitsu.runtime.multiNetwork.connection.EthereumWebSocketConnection
+import jp.co.soramitsu.runtime.multiNetwork.connection.EthereumChainConnection
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.reactive.asFlow
@@ -14,14 +14,14 @@ import org.web3j.protocol.websocket.events.Notification
 import org.web3j.utils.Numeric
 import java.math.BigInteger
 
-val EthereumWebSocketConnection.nonNullWeb3j: Web3j
+val EthereumChainConnection.nonNullWeb3j: Web3j
     get() = web3j ?: error(
         """
             Established connection to web3 contains errors.
         """.trimIndent()
     )
 
-val EthereumWebSocketConnection.nonNullWeb3jService: Web3jService
+val EthereumChainConnection.nonNullWeb3jService: Web3jService
     get() = service ?: error(
         """
             Could not have establish subscription to web3jService.
@@ -55,7 +55,7 @@ suspend fun Web3j.getNonce(address: String): BigInteger {
     return response.map { Numeric.decodeQuantity(it) }
 }
 
-suspend fun EthereumWebSocketConnection.getMaxPriorityFeePerGas(): BigInteger {
+suspend fun EthereumChainConnection.getMaxPriorityFeePerGas(): BigInteger {
     val response = Request<Any, MaxPriorityFeePerGas>(
         "eth_maxPriorityFeePerGas",
         emptyList(),
@@ -81,7 +81,7 @@ suspend fun Web3j.getBaseFee(): BigInteger {
     return response.map { Numeric.decodeQuantity(it.baseFeePerGas) }
 }
 
-fun EthereumWebSocketConnection.subscribeNewHeads(): Flow<NewHeadsNotificationExtended> {
+fun EthereumChainConnection.subscribeNewHeads(): Flow<NewHeadsNotificationExtended> {
     return nonNullWeb3jService.subscribe(
         Request(
             // method
