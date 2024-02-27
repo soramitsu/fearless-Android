@@ -22,8 +22,10 @@ import jp.co.soramitsu.nft.impl.data.model.utils.deserializer
 import jp.co.soramitsu.nft.impl.data.remote.AlchemyNftApi
 import jp.co.soramitsu.nft.impl.domain.NFTInteractorImpl
 import jp.co.soramitsu.nft.impl.domain.NFTTransferInteractorImpl
+import jp.co.soramitsu.nft.impl.domain.usecase.collections.CollectionsFetchingUseCase
 import jp.co.soramitsu.nft.impl.domain.usecase.collections.CollectionsMappingAdapter
 import jp.co.soramitsu.nft.impl.domain.usecase.tokensbycontract.RequestSwitchingMediator
+import jp.co.soramitsu.nft.impl.domain.usecase.tokensbycontract.TokensFetchingUseCase
 import jp.co.soramitsu.nft.impl.domain.usecase.tokensbycontract.TokensMappingAdapter
 import jp.co.soramitsu.nft.impl.domain.usecase.tokensbycontract.TokensTrimmingMediator
 import jp.co.soramitsu.nft.impl.navigation.InternalNFTRouter
@@ -112,18 +114,46 @@ class NFTModule {
     @Provides
     @Singleton
     fun provideNFTInteractor(
-        nftRepository: NFTRepository,
         accountRepository: AccountRepository,
         chainsRepository: ChainsRepository,
-        collectionsMappingAdapter: CollectionsMappingAdapter,
+        nftRepository: NFTRepository,
+        collectionsFetchingUseCase: CollectionsFetchingUseCase,
+        tokensFetchingUseCase: TokensFetchingUseCase
+    ): NFTInteractor = NFTInteractorImpl(
+        accountRepository = accountRepository,
+        chainsRepository = chainsRepository,
+        nftRepository = nftRepository,
+        collectionsFetchingUseCase = collectionsFetchingUseCase,
+        tokensFetchingUseCase = tokensFetchingUseCase
+    )
+
+    @Provides
+    @Singleton
+    fun provideCollectionsFetchingUseCase(
+        accountRepository: AccountRepository,
+        chainsRepository: ChainsRepository,
+        nftRepository: NFTRepository,
+        collectionsMappingAdapter: CollectionsMappingAdapter
+    ) = CollectionsFetchingUseCase(
+        accountRepository = accountRepository,
+        chainsRepository = chainsRepository,
+        nftRepository = nftRepository,
+        collectionsMappingAdapter = collectionsMappingAdapter,
+    )
+
+    @Provides
+    @Singleton
+    fun provideTokensFetchingUseCase(
+        accountRepository: AccountRepository,
+        chainsRepository: ChainsRepository,
+        nftRepository: NFTRepository,
         requestSwitchingMediator: RequestSwitchingMediator,
         tokensMappingAdapter: TokensMappingAdapter,
         tokensTrimmingMediator: TokensTrimmingMediator
-    ): NFTInteractor = NFTInteractorImpl(
-        nftRepository = nftRepository,
+    ) = TokensFetchingUseCase(
         accountRepository = accountRepository,
         chainsRepository = chainsRepository,
-        collectionMappingAdapter = collectionsMappingAdapter,
+        nftRepository = nftRepository,
         requestSwitchingMediator = requestSwitchingMediator,
         tokensMappingAdapter = tokensMappingAdapter,
         tokensTrimmingMediator = tokensTrimmingMediator

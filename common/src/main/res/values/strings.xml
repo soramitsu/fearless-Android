@@ -155,6 +155,7 @@
   <string name="common_amount">Amount</string>
   <string name="common_amount_low">Amount is too low</string>
   <string name="common_and">and</string>
+  <string name="common_and_others_placeholder">%s &amp; others</string>
   <string name="common_applied">Applied</string>
   <string name="common_apply">Apply</string>
   <string name="common_assets_filters_fiat">Fiat balance</string>
@@ -176,6 +177,7 @@
   <string name="common_claim">Claim</string>
   <string name="common_claimable">Claimable</string>
   <string name="common_close">Close</string>
+  <string name="common_commission">Commission</string>
   <string name="common_completed">Completed</string>
   <string name="common_completed_with_count">Completed (%s)</string>
   <string name="common_confirm">Confirm</string>
@@ -1038,6 +1040,7 @@
   <string name="tabbar_wallet_title">Wallet</string>
   <string name="today">Today</string>
   <string name="top_up">Top Up</string>
+  <string name="tranaction_history_others_tab_title">Others</string>
   <string name="transaction_detail_status">Status</string>
   <string name="transaction_details_copy_hash">Copy hash</string>
   <string name="transaction_details_extrinsic_fee">Fee</string>

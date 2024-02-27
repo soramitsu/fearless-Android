@@ -53,11 +53,12 @@ class PageCachingDecorator @Inject constructor() {
             val savedTokensCollections = mutableMapOf<Any, ArrayDeque<PageBackStack.PageResult.ValidPage<T>>>()
 
             val handle = object : UpdateCacheHandle {
+                @Suppress("FunctionSignature")
                 override suspend fun swapRequests(request: PaginationRequest) =
-                    savedTokensCollections.mapValues { (tag, responseCache) ->
+                    mutexMap.mapValues { (tag, mutex) ->
                         request.switchRequestsAndWipeCache(
-                            responseCache = responseCache,
-                            mutex = mutexMap.getOrPut(tag) { Mutex() }
+                            responseCache = savedTokensCollections.getOrPut(tag, ::ArrayDeque),
+                            mutex = mutex
                         )
                     }
 

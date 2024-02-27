@@ -1,5 +1,6 @@
 package jp.co.soramitsu.nft.impl.presentation.collection
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -175,6 +176,7 @@ private fun CollectionNFTsScreen(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Suppress("FunctionName", "MagicNumber")
 private fun LazyGridScope.NFTScreenHeader(screenHeader: NFTsScreenView.ScreenHeader) {
     when (val thumbnail = screenHeader.thumbnail) {
@@ -186,6 +188,7 @@ private fun LazyGridScope.NFTScreenHeader(screenHeader: NFTsScreenView.ScreenHea
             ) {
                 Image(
                     modifier = Modifier
+                        .animateItemPlacement()
                         .clip(RoundedCornerShape(8.dp))
                         .fillMaxWidth()
                         .aspectRatio(1f),
@@ -204,6 +207,7 @@ private fun LazyGridScope.NFTScreenHeader(screenHeader: NFTsScreenView.ScreenHea
             ) {
                 Box(
                     modifier = Modifier
+                        .animateItemPlacement()
                         .clip(RoundedCornerShape(8.dp))
                         .fillMaxWidth()
                         .aspectRatio(1f)
@@ -227,6 +231,7 @@ private fun LazyGridScope.NFTScreenHeader(screenHeader: NFTsScreenView.ScreenHea
                     span = { GridItemSpan(2) }
                 ) {
                     B1(
+                        modifier = Modifier.animateItemPlacement(),
                         text = textModel.retrieveString(),
                         color = white
                     )
@@ -239,7 +244,8 @@ private fun LazyGridScope.NFTScreenHeader(screenHeader: NFTsScreenView.ScreenHea
                 span = { GridItemSpan(2) }
             ) {
                 Column(
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                    modifier = Modifier.animateItemPlacement()
                 ) {
                     Shimmer(
                         modifier = Modifier
@@ -263,6 +269,7 @@ private fun LazyGridScope.NFTScreenHeader(screenHeader: NFTsScreenView.ScreenHea
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Suppress("FunctionName", "MagicNumber")
 private fun LazyGridScope.NFTSectionHeader(sectionHeader: NFTsScreenView.SectionHeader) {
     item(
@@ -272,6 +279,7 @@ private fun LazyGridScope.NFTSectionHeader(sectionHeader: NFTsScreenView.Section
     ) {
         Column(
             modifier = Modifier.padding(horizontal = 12.dp)
+                .animateItemPlacement()
         ) {
             sectionHeader.title.Render(
                 shimmerModifier = Modifier
@@ -297,6 +305,7 @@ private fun LazyGridScope.NFTSectionHeader(sectionHeader: NFTsScreenView.Section
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Suppress("FunctionName", "MagicNumber")
 private fun LazyGridScope.NFTItem(itemModel: NFTsScreenView.ItemModel) {
     item(
@@ -312,6 +321,7 @@ private fun LazyGridScope.NFTItem(itemModel: NFTsScreenView.ItemModel) {
     ) {
         BackgroundCornered(
             modifier = Modifier.clickableSingle(onClick = itemModel.onItemClick)
+                .animateItemPlacement()
         ) {
             itemModel.screenLayout.Render(
                 modifier = Modifier
@@ -389,6 +399,7 @@ private fun LazyGridScope.NFTItem(itemModel: NFTsScreenView.ItemModel) {
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Suppress("FunctionName")
 private fun LazyGridScope.NFTLoadingIndication(loadingIndication: NFTsScreenView.LoadingIndication) {
     item(
@@ -399,6 +410,7 @@ private fun LazyGridScope.NFTLoadingIndication(loadingIndication: NFTsScreenView
     ) {
         Box(
             modifier = Modifier
+                .animateItemPlacement()
                 .fillMaxWidth()
                 .height(60.dp),
             contentAlignment = Alignment.Center

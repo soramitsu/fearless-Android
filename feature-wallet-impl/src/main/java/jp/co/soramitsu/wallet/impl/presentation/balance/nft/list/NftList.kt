@@ -1,5 +1,7 @@
 package jp.co.soramitsu.wallet.impl.presentation.balance.nft.list
 
+import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -165,6 +167,7 @@ private fun NFTLayout(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Suppress("FunctionName")
 private fun LazyGridScope.NFTEmptyPlaceholder(placeholderModel: NFTCollectionsScreenView.EmptyPlaceholder) {
     item(
@@ -178,6 +181,7 @@ private fun LazyGridScope.NFTEmptyPlaceholder(placeholderModel: NFTCollectionsSc
             modifier = Modifier
                 .fillMaxSize()
                 .padding(bottom = 80.dp)
+                .animateItemPlacement()
         ) {
             Column(
                 verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -202,6 +206,7 @@ private fun LazyGridScope.NFTEmptyPlaceholder(placeholderModel: NFTCollectionsSc
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Suppress("FunctionName")
 private fun LazyGridScope.NFTLoadingIndication(loadingIndication: NFTCollectionsScreenView.LoadingIndication) {
     item(
@@ -211,7 +216,8 @@ private fun LazyGridScope.NFTLoadingIndication(loadingIndication: NFTCollections
         contentType = loadingIndication.contentType
     ) {
         Box(
-            modifier = Modifier.fillMaxWidth().height(60.dp),
+            modifier = Modifier.fillMaxWidth().height(60.dp)
+                .animateItemPlacement(),
             contentAlignment = Alignment.Center
         ) {
             CircularProgressIndicator(
@@ -222,6 +228,7 @@ private fun LazyGridScope.NFTLoadingIndication(loadingIndication: NFTCollections
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Suppress("FunctionName")
 private fun LazyGridScope.NFTCollectionItem(itemModel: NFTCollectionsScreenView.ItemModel) {
     item(
@@ -235,6 +242,7 @@ private fun LazyGridScope.NFTCollectionItem(itemModel: NFTCollectionsScreenView.
     ) {
         BackgroundCornered(
             modifier = Modifier.clickableSingle(onClick = itemModel.onItemClick)
+                .animateItemPlacement()
         ) {
             itemModel.screenLayout.Render(
                 modifier = Modifier

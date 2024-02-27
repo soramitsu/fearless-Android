@@ -11,22 +11,24 @@ import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicInteger
 import javax.inject.Inject
+import javax.inject.Singleton
 
+@Singleton
 class RequestSwitchingMediator @Inject constructor() {
 
     interface SwitchFlowHandle {
         fun switchToFlowWithFlag(flag: Int)
     }
 
-    class Holder<T>(
+    class Node<T>(
         val flag: Int,
         val factory: (Flow<PaginationRequest>, SwitchFlowHandle) -> Flow<T>
     )
 
-    operator fun <T> invoke(requestFlow: Flow<PaginationRequest>, vararg holders: Holder<T>): Flow<T> {
+    operator fun <T> invoke(requestFlow: Flow<PaginationRequest>, vararg nodes: Node<T>): Flow<T> {
         return channelFlow {
             val triggerFlow = createTriggerFlow()
-            val nonBlockingSemaphore = AtomicInteger(holders.first().flag)
+            val nonBlockingSemaphore = AtomicInteger(nodes.first().flag)
 
             val handle = object : SwitchFlowHandle {
                 override fun switchToFlowWithFlag(flag: Int) {
@@ -43,7 +45,7 @@ class RequestSwitchingMediator @Inject constructor() {
                 }
             }
 
-            for (holder in holders) {
+            for (holder in nodes) {
                 launch {
                     holder.factory(
                         requestFlow.withNonBlockingLock(

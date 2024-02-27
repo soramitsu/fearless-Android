@@ -21,7 +21,7 @@ fun NFTAccountBalanceAdapter(sender: String, token: NFT): NFTCall.AccountBalance
         )
     }
 
-    if (token.tokenId < BigInteger("-1")) {
+    if (token.tokenId < BigInteger.ZERO) {
         error(
             """
                 TokenId supplied is incorrect.

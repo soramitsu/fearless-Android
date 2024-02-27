@@ -16,15 +16,18 @@ import jp.co.soramitsu.shared_utils.extensions.toHexString
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterIsInstance
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.launch
 import java.math.BigInteger
 import javax.inject.Inject
@@ -43,33 +46,50 @@ class NftDetailsPresenter @Inject constructor(
         .filterIsInstance<NFTNavGraphRoute.DetailsNFTScreen>()
         .shareIn(coroutinesStore.uiScope, SharingStarted.Eagerly, 1)
 
-    private var ownerAddress: String? = null
-
-    init {
-        coroutinesStore.uiScope.launch {
-            ownerAddress = screenArgsFlow.firstOrNull()?.token?.let { token ->
-                if (!token.isUserOwnedToken) {
-                    return@let null
-                }
-
-                nftInteractor.getOwnersForNFT(
-                    token = screenArgsFlow.first().token
-                ).getOrNull()?.firstOrNull()
-            }
-        }
-    }
+    private val mutableClipboardCopyRequestFlow = MutableSharedFlow<String>(
+        extraBufferCapacity = 1,
+        onBufferOverflow = BufferOverflow.DROP_LATEST
+    )
 
     @OptIn(ExperimentalCoroutinesApi::class)
+    private val ownersAddressFlow = screenArgsFlow.mapLatest { screenArg ->
+        nftInteractor.getOwnersForNFT(
+            token = screenArg.token
+        ).getOrNull()
+    }.shareIn(coroutinesStore.uiScope, SharingStarted.Eagerly, 1)
+
+    init {
+        mutableClipboardCopyRequestFlow.onEach { text ->
+            clipboardManager.addToClipboard(text)
+            val message = resourceManager.getString(R.string.common_copied)
+            internalNFTRouter.showToast(message)
+        }.launchIn(coroutinesStore.uiScope)
+    }
+
     fun createScreenStateFlow(coroutineScope: CoroutineScope): StateFlow<NftDetailsScreenState> {
-        return screenArgsFlow.map { it.token }.transformLatest { token ->
+        return screenArgsFlow.map { it.token }.combine(ownersAddressFlow) { token, ownersAddress ->
+            val ownerAddress = ownersAddress?.run {
+                val shortedFirstUserOwnerAddress =
+                    firstOrNull()?.shortenAddress(ADDRESS_SHORTEN_COUNT) ?: return@run null
+
+                if (size <= 1) {
+                    return@run shortedFirstUserOwnerAddress
+                }
+
+                resourceManager.getString(
+                    R.string.common_and_others_placeholder,
+                    shortedFirstUserOwnerAddress
+                )
+            }
+
             NftDetailsScreenState(
                 name = token.title,
                 isTokenUserOwned = token.isUserOwnedToken,
                 imageUrl = token.thumbnail,
                 description = token.description,
                 collectionName = token.collectionName,
-                owner = ownerAddress?.shortenAddress(ADDRESS_SHORTEN_COUNT) ?: "",
-                ownerIcon = ownerAddress?.let {
+                owner = ownerAddress ?: "",
+                ownerIcon = ownersAddress?.firstOrNull()?.let {
                     iconGenerator.createEthereumAddressModel(it, SIZE_MEDIUM).image
                 },
                 creator = token.creatorAddress?.shortenAddress(ADDRESS_SHORTEN_COUNT) ?: "",
@@ -82,7 +102,7 @@ class NftDetailsPresenter @Inject constructor(
                 dateTime = token.date ?: "",
                 price = token.price,
                 priceFiat = token.price
-            ).also { emit(it) }
+            )
         }.stateIn(coroutineScope, SharingStarted.Lazily, NftDetailsScreenState())
     }
 
@@ -99,6 +119,8 @@ class NftDetailsPresenter @Inject constructor(
     }
 
     private fun generateShareMessage(address: String?): String {
+        val ownerAddress = ownersAddressFlow.replayCache.lastOrNull()?.firstOrNull() ?: ""
+
         return screenArgsFlow.replayCache.lastOrNull()?.token?.run {
             convertToShareMessage(
                 resourceManager,
@@ -110,34 +132,24 @@ class NftDetailsPresenter @Inject constructor(
 
     override fun creatorClicked() {
         screenArgsFlow.replayCache.lastOrNull()?.token?.creatorAddress?.let {
-            copyToClipboardWithMessage(it)
+            mutableClipboardCopyRequestFlow.tryEmit(it)
         }
     }
 
     override fun tokenIdClicked() {
         val tokenId = screenArgsFlow.replayCache.lastOrNull()?.token?.tokenId ?: return
 
-        if (tokenId < BigInteger.ZERO) {
-            copyToClipboardWithMessage(tokenId.toString())
+        if (tokenId >= BigInteger.ZERO) {
+            mutableClipboardCopyRequestFlow.tryEmit(tokenId.toString())
         }
     }
 
     override fun ownerClicked() {
-        ownerAddress?.let {
-            copyToClipboardWithMessage(it)
-        }
-    }
-
-    private fun copyToClipboardWithMessage(text: String) {
-        coroutinesStore.uiScope.launch {
-            clipboardManager.addToClipboard(text)
-            val message = resourceManager.getString(R.string.common_copied)
-            internalNFTRouter.showToast(message)
-        }
+        val ownerAddress = ownersAddressFlow.replayCache.lastOrNull()?.firstOrNull() ?: ""
+        mutableClipboardCopyRequestFlow.tryEmit(ownerAddress)
     }
 
     companion object {
         const val ADDRESS_SHORTEN_COUNT = 4
-        const val HEX_RADIX = 16
     }
 }

@@ -56,8 +56,8 @@ import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.nft.data.pagination.PaginationRequest
 import jp.co.soramitsu.nft.domain.NFTInteractor
-import jp.co.soramitsu.nft.domain.models.NFTCollectionResult
 import jp.co.soramitsu.common.compose.utils.PageScrollingCallback
+import jp.co.soramitsu.nft.domain.models.NFTCollection
 import jp.co.soramitsu.wallet.impl.presentation.balance.nft.list.models.NFTCollectionsScreenModel
 import jp.co.soramitsu.wallet.impl.presentation.balance.nft.list.models.NFTCollectionsScreenView
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
@@ -86,7 +86,6 @@ import jp.co.soramitsu.wallet.impl.presentation.balance.nft.list.models.ScreenMo
 import jp.co.soramitsu.wallet.impl.presentation.model.ControllerDeprecationWarningModel
 import jp.co.soramitsu.wallet.impl.presentation.model.toModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
@@ -97,18 +96,18 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
-import kotlinx.coroutines.flow.sample
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -203,14 +202,13 @@ class BalanceListViewModel @Inject constructor(
         networkIssuesFlow,
         interactor.observeSelectedAccountChainSelectFilter(),
         interactor.observeHideZeroBalanceEnabledForCurrentWallet()
-    ) {
-            assets: List<AssetWithStatus>,
-            chains: List<Chain>,
-            selectedChainId: ChainId?,
-            currentMetaAccountFlow: MetaAccount,
-            networkIssues: Set<NetworkIssueItemState>,
-            appliedFilterAsString: String,
-            hideZeroBalancesEnabled: Boolean ->
+    ) { assets: List<AssetWithStatus>,
+        chains: List<Chain>,
+        selectedChainId: ChainId?,
+        currentMetaAccountFlow: MetaAccount,
+        networkIssues: Set<NetworkIssueItemState>,
+        appliedFilterAsString: String,
+        hideZeroBalancesEnabled: Boolean ->
 
         val filter = ChainSelectorViewStateWithFilters.Filter.values().find {
             it.name == appliedFilterAsString
@@ -273,71 +271,88 @@ class BalanceListViewModel @Inject constructor(
             val pullToRefreshHelperFlow = BalanceUpdateTrigger.observe()
                 .map { PaginationRequest.Start(100) }
 
-            val paginationRequestHelperFlow = merge(mutableNFTPaginationRequestFlow, pullToRefreshHelperFlow)
-                .onStart {
+            val paginationRequestHelperFlow =
+                merge(
+                    mutableNFTPaginationRequestFlow,
+                    pullToRefreshHelperFlow
+                ).onStart {
                     emit(PaginationRequest.Start(100))
-                }.debounce(5000L).filter {
-                    isLoadingCompleted.get()
                 }.onEach { request ->
                     when (request) {
-                        is PaginationRequest.Start ->
-                            Unit
+                        is PaginationRequest.Start -> ScreenModel.Reloading
 
-                        is PaginationRequest.Prev ->
-                            send(ScreenModel.PreviousPageLoading to ScreenLayout.Grid)
+                        is PaginationRequest.Prev -> ScreenModel.PreviousPageLoading
 
-                        is PaginationRequest.Next ->
-                            send(ScreenModel.NextPageLoading to ScreenLayout.Grid)
+                        is PaginationRequest.Next -> ScreenModel.NextPageLoading
 
-                        is PaginationRequest.ProceedFromLastPage ->
-                            send(ScreenModel.NextPageLoading to ScreenLayout.Grid)
-                    }
-
-                    isLoadingCompleted.compareAndSet(true, false)
+                        is PaginationRequest.ProceedFromLastPage -> ScreenModel.NextPageLoading
+                    }.also { model -> send(model to mutableScreenLayoutFlow.value) }
+                }.debounce(300L).filter {
+                    isLoadingCompleted.get()
+                }.onEach {
+                    isLoadingCompleted.set(false)
                 }.shareIn(this, SharingStarted.Eagerly, 1)
 
             nftInteractor.collectionsFlow(
                 paginationRequestFlow = paginationRequestHelperFlow,
                 chainSelectionFlow = selectedChainId
-            ).combine(mutableScreenLayoutFlow) { allNFTCollectionsData, screenLayout ->
-                // each new element indicated that loading has been completed
+            ).onEach {
                 isLoadingCompleted.set(true)
+            }.combine(mutableScreenLayoutFlow) { allNFTCollectionsData, screenLayout ->
+                val chainsWithFailedRequests = mutableSetOf<String>()
 
-                return@combine allNFTCollectionsData to screenLayout
-            }.map { (allNFTCollectionsData, screenLayout) ->
-                if (allNFTCollectionsData.all { it is NFTCollectionResult.Error }) {
-                    showError("Failed to load NFTs")
-                    return@map ScreenModel.ReadyToRender(
-                        allNFTCollectionsData,
-                        screenLayout
-                    ) {} to screenLayout
-                }
+                val successfulCollections = ArrayDeque<NFTCollection.Loaded.Result>()
+                    .apply {
+                        allNFTCollectionsData.forEach {
+                            if (it is NFTCollection.Reloading) {
+                                send(ScreenModel.Reloading to screenLayout)
+                                return@combine
+                            }
 
-                if (allNFTCollectionsData.any { it is NFTCollectionResult.Error }) {
-                    val joinedChainsWithFailedRequests =
-                        allNFTCollectionsData.mapNotNull {
-                            if (it !is NFTCollectionResult.Error)
-                                return@mapNotNull null
+                            if (it is NFTCollection.Loaded.WithFailure) {
+                                chainsWithFailedRequests.add(it.chainName)
+                            }
 
-                            return@mapNotNull it.chainName
-                        }.joinToString(", ")
+                            if (it is NFTCollection.Loaded.Result) {
+                                addLast(it)
+                            }
+                        }
+                    }
 
-                    showError("Failed to load NFTs for $joinedChainsWithFailedRequests")
-                }
+                val screenModel =
+                    if (successfulCollections.isEmpty() && chainsWithFailedRequests.isNotEmpty()) {
+                        showError("Failed to load NFTs")
 
-                ScreenModel.ReadyToRender(
-                    result = allNFTCollectionsData,
-                    screenLayout = screenLayout,
-                    onItemClick = ::onNFTCollectionClick
-                ).also { send(it to screenLayout) }
-            }.onStart {
-                send(ScreenModel.Reloading to ScreenLayout.Grid)
+                        ScreenModel.ReadyToRender(
+                            result = successfulCollections,
+                            screenLayout = screenLayout,
+                            onItemClick = {}
+                        )
+                    } else {
+                        if (successfulCollections.isNotEmpty() && chainsWithFailedRequests.isNotEmpty()) {
+                            showError("Failed to load NFTs for ${chainsWithFailedRequests.joinToString(", ")}")
+                        }
+
+                        ScreenModel.ReadyToRender(
+                            result = successfulCollections,
+                            screenLayout = screenLayout,
+                            onItemClick = ::onNFTCollectionClick
+                        )
+                    }
+
+                send(screenModel to screenLayout)
             }.launchIn(this)
-        }
+        }.distinctUntilChangedBy { (screenModel, _) ->
+            screenModel::class.simpleName
+        }.flowOn(Dispatchers.Default)
     }
 
-    private fun onNFTCollectionClick(collection: NFTCollectionResult.Collection) {
-        router.openNftCollection(collection.chainId, collection.contractAddress, collection.collectionName)
+    private fun onNFTCollectionClick(collection: NFTCollection.Loaded.Result.Collection) {
+        router.openNftCollection(
+            collection.chainId,
+            collection.contractAddress,
+            collection.collectionName
+        )
     }
 
     private val assetTypeState = combine(

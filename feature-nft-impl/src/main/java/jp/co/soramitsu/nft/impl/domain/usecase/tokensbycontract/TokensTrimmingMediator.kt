@@ -1,16 +1,18 @@
 package jp.co.soramitsu.nft.impl.domain.usecase.tokensbycontract
 
-import jp.co.soramitsu.nft.domain.models.NFTCollectionResult
+import jp.co.soramitsu.nft.domain.models.NFTCollection
 import jp.co.soramitsu.nft.impl.domain.models.nft.CollectionWithTokensImpl
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import java.math.BigInteger
 import javax.inject.Inject
+import javax.inject.Singleton
 
+@Singleton
 class TokensTrimmingMediator @Inject constructor() {
 
-    operator fun invoke(factory: () -> Flow<NFTCollectionResult>): Flow<NFTCollectionResult> {
+    operator fun invoke(factory: () -> Flow<NFTCollection.Loaded>): Flow<NFTCollection.Loaded> {
         return flow {
             val userOwnedTokensIds = mutableSetOf<BigInteger>()
 

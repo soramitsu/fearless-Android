@@ -8,6 +8,7 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.nft.data.pagination.PaginationRequest
 import jp.co.soramitsu.nft.domain.NFTInteractor
 import jp.co.soramitsu.nft.domain.models.NFT
+import jp.co.soramitsu.nft.domain.models.NFTCollection
 import jp.co.soramitsu.nft.impl.data.DEFAULT_PAGE_SIZE
 import jp.co.soramitsu.nft.impl.domain.utils.convertToShareMessage
 import jp.co.soramitsu.nft.impl.navigation.InternalNFTRouter
@@ -26,6 +27,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.flowOn
@@ -75,24 +77,20 @@ class CollectionNFTsPresenter @Inject constructor(
             val paginationRequestHelperFlow = mutablePaginationRequestFlow
                 .onStart {
                     emit(PaginationRequest.Start(DEFAULT_PAGE_SIZE))
-                }.debounce(DEFAULT_SAMPLING_FREQUENCY).filter {
-                    isLoadingCompleted.get()
                 }.onEach { request ->
                     when (request) {
-                        is PaginationRequest.Start ->
-                            Unit
+                        is PaginationRequest.Start -> Unit
 
-                        is PaginationRequest.Prev ->
-                            send(ScreenModel.PreviousPageLoading)
+                        is PaginationRequest.Prev -> send(ScreenModel.PreviousPageLoading)
 
-                        is PaginationRequest.Next ->
-                            send(ScreenModel.NextPageLoading)
+                        is PaginationRequest.Next -> send(ScreenModel.NextPageLoading)
 
-                        is PaginationRequest.ProceedFromLastPage ->
-                            send(ScreenModel.NextPageLoading)
+                        is PaginationRequest.ProceedFromLastPage -> send(ScreenModel.NextPageLoading)
                     }
-
-                    isLoadingCompleted.compareAndSet(true, false)
+                }.debounce(DEFAULT_SAMPLING_FREQUENCY).filter {
+                    isLoadingCompleted.get()
+                }.onEach {
+                    isLoadingCompleted.set(false)
                 }.shareIn(this, SharingStarted.Eagerly, 1)
 
             nftInteractor.tokensFlow(
@@ -100,16 +98,26 @@ class CollectionNFTsPresenter @Inject constructor(
                 chainSelectionFlow = screenArgsFlow.distinctUntilChanged().map { it.chainId },
                 contractAddressFlow = screenArgsFlow.distinctUntilChanged()
                     .map { it.contractAddress },
-            ).map { collection ->
+            ).onEach { collection ->
                 // each new element indicated that loading has been completed
                 isLoadingCompleted.set(true)
 
-                ScreenModel.ReadyToRender(
-                    collection,
-                    ::onItemClick,
-                    ::onActionButtonClick
-                ).also { send(it) }
+                when (collection) {
+                    is NFTCollection.Reloading ->
+                        send(ScreenModel.Reloading)
+
+                    is NFTCollection.Loaded.Result ->
+                        ScreenModel.ReadyToRender(
+                            result = collection,
+                            onItemClick = ::onItemClick,
+                            onActionButtonClick = ::onActionButtonClick
+                        ).also { send(it) }
+
+                    else -> { /* in case of error, or something similar, on this screen do nothing */ }
+                }
             }.launchIn(this)
+        }.distinctUntilChangedBy { screenModel ->
+            screenModel::class.simpleName
         }.flowOn(Dispatchers.Default).stateIn(
             coroutineScope,
             SharingStarted.Lazily,
@@ -121,24 +129,24 @@ class CollectionNFTsPresenter @Inject constructor(
 
     private fun onActionButtonClick(token: NFT) {
         if (token.isUserOwnedToken) {
-            internalNFTRouter.openChooseRecipientScreen(token)
-        } else {
-            coroutinesStore.uiScope.launch {
-                val chain = chainsRepository.getChain(token.chainId)
-                val selectedMetaAccount = accountInteractor.selectedMetaAccount()
+            return internalNFTRouter.openChooseRecipientScreen(token)
+        }
 
-                val shareMessage = token.convertToShareMessage(
+        coroutinesStore.uiScope.launch {
+            val selectedMetaAccountAddress = accountInteractor.selectedMetaAccount()
+                .address(chain = chainsRepository.getChain(token.chainId))
+
+            internalNFTRouter.shareText(
+                token.convertToShareMessage(
                     resourceManager,
                     null,
-                    selectedMetaAccount.address(chain)
+                    selectedMetaAccountAddress
                 )
-
-                internalNFTRouter.shareText(shareMessage)
-            }
+            )
         }
     }
 
     private companion object {
-        const val DEFAULT_SAMPLING_FREQUENCY = 5000L
+        const val DEFAULT_SAMPLING_FREQUENCY = 300L
     }
 }

@@ -176,6 +176,7 @@
   <string name="common_claim">Lấy</string>
   <string name="common_claimable">Có thể yêu cầu</string>
   <string name="common_close">Đóng</string>
+  <string name="common_commission">Uỷ ban (Commission)</string>
   <string name="common_completed">Đã hoàn thành</string>
   <string name="common_completed_with_count">Đã hoàn thành (%s)</string>
   <string name="common_confirm">Xác nhận</string>
@@ -1034,6 +1035,7 @@
   <string name="tabbar_wallet_title">Ví</string>
   <string name="today">Hôm nay</string>
   <string name="top_up">Nạp tiền</string>
+  <string name="tranaction_history_others_tab_title">Khác</string>
   <string name="transaction_detail_status">Trạng thái</string>
   <string name="transaction_details_copy_hash">Sao chép hash</string>
   <string name="transaction_details_extrinsic_fee">Phí</string>

@@ -66,7 +66,7 @@ class PagingRequestMediator @Inject constructor() {
                 // running request for each pageStack concurrently
                 val results = readOnlyChainToPageStackList
                     .concurrentRequestFlow { (tag, pageBackStack) ->
-                        val backStackRequest = holder.requestsByTag[tag]!!
+                        val backStackRequest = holder.requestsByTag[tag] ?: return@concurrentRequestFlow
 
                         val result = runCatching {
                             pageBackStack.runPagedRequest(
@@ -80,6 +80,10 @@ class PagingRequestMediator @Inject constructor() {
                             result = result
                         ).also { emit(it) }
                     }.toList()
+
+                if (results.isEmpty()) {
+                    return@transformLatest
+                }
 
                 emit(results)
             }.collect(this)

@@ -6,8 +6,9 @@ import jp.co.soramitsu.common.compose.models.Loadable
 import jp.co.soramitsu.common.compose.models.LoadableListPage
 import jp.co.soramitsu.common.compose.models.ScreenLayout
 import jp.co.soramitsu.common.compose.models.TextModel
+import jp.co.soramitsu.common.utils.castOrNull
 import jp.co.soramitsu.nft.domain.models.NFT
-import jp.co.soramitsu.nft.domain.models.NFTCollectionResult
+import jp.co.soramitsu.nft.domain.models.NFTCollection
 
 internal sealed interface ScreenModel {
     object PreviousPageLoading :
@@ -50,62 +51,46 @@ internal sealed interface ScreenModel {
     }
 
     class ReadyToRender(
-        result: NFTCollectionResult,
+        result: NFTCollection.Loaded.Result,
         onItemClick: (NFT) -> Unit,
         onActionButtonClick: (NFT) -> Unit
     ) : ScreenModel, LoadableListPage.ReadyToRender<NFTsScreenView> {
         override val views: Collection<NFTsScreenView> =
-            ArrayDeque<NFTsScreenView>().apply {
-                if (result !is NFTCollectionResult.Collection.WithTokens) {
-                    add(NFTsScreenView.EmptyPlaceHolder)
-                    return@apply
-                }
+            result.castOrNull<NFTCollection.Loaded.Result.Collection.WithTokens>()
+                ?.run {
+                    val firstToken = tokens.firstOrNull()
+                        ?: return@run null
+                    val lastToken = tokens.last()
 
-                val screenLayout = if (result.tokens.count() > 1) {
-                    ScreenLayout.Grid
-                } else {
-                    ScreenLayout.List
-                }
-
-                var isUserOwnedTokensSectionHeaderApplied = false
-                var isAllTokensSectionHeaderApplied = false
-
-                result.tokens.sortedBy { !it.isUserOwnedToken }.forEach { token ->
-                    when {
-                        !isUserOwnedTokensSectionHeaderApplied && token.isUserOwnedToken -> {
-                            add(ScreenHeader(result))
-                            add(SectionHeader(token))
-
-                            isUserOwnedTokensSectionHeaderApplied = true
-                        }
-
-                        !isAllTokensSectionHeaderApplied && !token.isUserOwnedToken -> {
-                            add(SectionHeader(token))
-
-                            isAllTokensSectionHeaderApplied = true
-                        }
+                    val screenLayout = if (firstToken.tokenId != lastToken.tokenId) {
+                        ScreenLayout.Grid
+                    } else {
+                        ScreenLayout.List
                     }
 
-                    add(
+                    val deque = ArrayDeque<NFTsScreenView>().apply {
+                        if (firstToken.isUserOwnedToken) {
+                            add(ScreenHeader(this@run))
+                        }
+
+                        add(SectionHeader(firstToken))
+                    }
+
+                    tokens.map { token ->
                         ItemModel(
                             token = token,
                             screenLayout = screenLayout,
                             onItemClick = { onItemClick.invoke(token) },
                             onButtonClick = { onActionButtonClick.invoke(token) }
                         )
-                    )
-                }
-
-                if (isEmpty()) {
-                    clear()
-                    add(NFTsScreenView.EmptyPlaceHolder)
-                }
-            }
+                    }.toCollection(deque)
+                        .ifEmpty { null }
+                } ?: listOf(NFTsScreenView.EmptyPlaceHolder)
     }
 }
 
 private class ScreenHeader(
-    collection: NFTCollectionResult.Collection
+    collection: NFTCollection.Loaded.Result.Collection
 ) : NFTsScreenView.ScreenHeader {
 
     override val key: Any = R.drawable.animated_bird
@@ -132,7 +117,7 @@ private class SectionHeader(
         R.string.nft_collection_my_nfts
     } else {
         R.string.nft_collection_available_nfts
-        }
+    }
 
     override val title: Loadable<TextModel> =
         Loadable.ReadyToRender(
@@ -140,10 +125,10 @@ private class SectionHeader(
                 TextModel.ResId(R.string.nft_collection_my_nfts)
             } else {
                 TextModel.ResIdWithArgs(
-                R.string.nft_collection_available_nfts,
-                arrayOf(token.collectionName)
-            )
-                }
+                    R.string.nft_collection_available_nfts,
+                    arrayOf(token.collectionName)
+                )
+            }
         )
 }
 
@@ -178,10 +163,12 @@ private class ItemModel(
     override val buttonText: TextModel = if (token.isUserOwnedToken) {
         TextModel.ResId(R.string.common_action_send)
     } else {
-        TextModel.ResId(R.string.common_share) }
+        TextModel.ResId(R.string.common_share)
+    }
 
     override val buttonImage: ImageModel.ResId = if (token.isUserOwnedToken) {
         ImageModel.ResId(R.drawable.ic_send_outlined)
     } else {
-        ImageModel.ResId(R.drawable.ic_share_arrow_white_24) }
+        ImageModel.ResId(R.drawable.ic_share_arrow_white_24)
+    }
 }

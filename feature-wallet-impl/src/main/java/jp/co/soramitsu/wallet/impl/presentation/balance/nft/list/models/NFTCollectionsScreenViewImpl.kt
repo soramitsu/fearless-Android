@@ -6,7 +6,7 @@ import jp.co.soramitsu.common.compose.models.LoadableListPage
 import jp.co.soramitsu.common.compose.models.ScreenLayout
 import jp.co.soramitsu.common.compose.models.TextModel
 import jp.co.soramitsu.feature_wallet_impl.R
-import jp.co.soramitsu.nft.domain.models.NFTCollectionResult
+import jp.co.soramitsu.nft.domain.models.NFTCollection
 
 internal sealed interface ScreenModel {
     object PreviousPageLoading : ScreenModel,
@@ -36,40 +36,28 @@ internal sealed interface ScreenModel {
     }
 
     class ReadyToRender(
-        result: Sequence<NFTCollectionResult>,
+        result: Collection<NFTCollection.Loaded>,
         screenLayout: ScreenLayout,
-        onItemClick: (NFTCollectionResult.Collection) -> Unit
+        onItemClick: (NFTCollection.Loaded.Result.Collection) -> Unit
     ) : ScreenModel, LoadableListPage.ReadyToRender<NFTCollectionsScreenView> {
         override val views: Collection<NFTCollectionsScreenView> =
-            ArrayDeque<NFTCollectionsScreenView>().apply {
-                if (result.all { it !is NFTCollectionResult.Collection }) {
-                    add(NFTCollectionsScreenView.EmptyPlaceholder)
-                    return@apply
-                }
-
-                result.filterIsInstance<NFTCollectionResult.Collection>()
-                    .sortedBy { it.collectionName }
-                    .map { collection ->
-                        ItemModel(
-                            collection = collection,
-                            screenLayout = screenLayout,
-                            onItemClick = { onItemClick.invoke(collection) },
-                        )
-                    }.toCollection(this)
-
-                if (isEmpty()) {
-                    clear()
-                    add(NFTCollectionsScreenView.EmptyPlaceholder)
-                }
-            }
+            result.asSequence().filterIsInstance<NFTCollection.Loaded.Result.Collection>()
+                .sortedBy { it.collectionName }
+                .map { collection ->
+                    ItemModel(
+                        collection = collection,
+                        screenLayout = screenLayout,
+                        onItemClick = { onItemClick.invoke(collection) },
+                    )
+                }.ifEmpty { sequenceOf(NFTCollectionsScreenView.EmptyPlaceholder) }.toList()
     }
 }
 
 private class ItemModel(
-    collection: NFTCollectionResult.Collection,
+    collection: NFTCollection.Loaded.Result.Collection,
     override val screenLayout: ScreenLayout,
     override val onItemClick: () -> Unit
-): NFTCollectionsScreenView.ItemModel.WithQuantityDecorator {
+) : NFTCollectionsScreenView.ItemModel.WithQuantityDecorator {
 
     override val key: Any = collection.contractAddress
 
@@ -95,10 +83,11 @@ private class ItemModel(
             )
         )
 
-    private val fractionAsString = "${collection.balance}/${collection.collectionSize}"
-
-    override val quantity: TextModel = if (screenLayout === ScreenLayout.Grid) {
-        TextModel.SimpleString(fractionAsString)
-    } else TextModel.SimpleString(fractionAsString)
+    override val quantity: TextModel = if (screenLayout === ScreenLayout.List) {
+        TextModel.ResIdWithArgs(
+            R.string.nfts_collection_count,
+            arrayOf(collection.balance, collection.collectionSize)
+        )
+    } else TextModel.SimpleString("${collection.balance}/${collection.collectionSize}")
 
 }

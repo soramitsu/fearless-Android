@@ -5,7 +5,7 @@ import jp.co.soramitsu.core.models.ChainId
 import jp.co.soramitsu.nft.data.models.TokenInfo
 import jp.co.soramitsu.nft.data.pagination.PageBackStack
 import jp.co.soramitsu.nft.domain.models.NFT
-import jp.co.soramitsu.nft.domain.models.NFTCollectionResult
+import jp.co.soramitsu.nft.domain.models.NFTCollection
 import jp.co.soramitsu.shared_utils.extensions.requireHexPrefix
 
 class CollectionWithTokensImpl(
@@ -13,7 +13,7 @@ class CollectionWithTokensImpl(
     override val chainId: ChainId,
     override val chainName: String,
     override val tokens: Sequence<NFT>
-) : NFTCollectionResult.Collection.WithTokens {
+) : NFTCollection.Loaded.Result.Collection.WithTokens {
 
     private val suitableToken by lazy {
         response.items.firstOrNull {
@@ -83,10 +83,6 @@ class CollectionWithTokensImpl(
         return CollectionWithTokensImpl(
             response, chainId, chainName, tokens
         )
-    }
-
-    override fun toString(): String {
-        return "CollectionWithTokensImpl(size = $itemsCount)"
     }
 
     private companion object {
