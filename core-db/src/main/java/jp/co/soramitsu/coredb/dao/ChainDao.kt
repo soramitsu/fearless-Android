@@ -99,6 +99,7 @@ abstract class ChainDao {
     abstract suspend fun getJoinChainInfo(): List<JoinedChainInfo>
 
     @Query("SELECT * FROM chains WHERE id = :chainId")
+    @Transaction
     abstract suspend fun getJoinChainInfo(chainId: String): JoinedChainInfo
 
     @Query("SELECT * FROM chains")
