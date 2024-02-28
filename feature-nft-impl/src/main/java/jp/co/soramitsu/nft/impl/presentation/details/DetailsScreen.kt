@@ -161,7 +161,7 @@ fun NftDetailsScreen(state: NftDetailsScreenState, screenInterface: NftDetailsSc
                 title = stringResource(id = R.string.nft_owner_title),
                 value = state.owner,
                 leftIcon = state.ownerIcon,
-                rightIcon = R.drawable.ic_share_arrow_white_24,
+                rightIcon = R.drawable.ic_copy_24,
                 shimmerFraction = 0.5f,
                 shimmerEnabled = shimmerEnabled
             )
@@ -181,7 +181,7 @@ fun NftDetailsScreen(state: NftDetailsScreenState, screenInterface: NftDetailsSc
                     .padding(horizontal = 16.dp)
                     .clickableSingle { screenInterface.tokenIdClicked() },
                 title = stringResource(id = R.string.nft_tokenid_title),
-                rightIcon = R.drawable.ic_share_arrow_white_24,
+                rightIcon = R.drawable.ic_copy_24,
                 value = state.tokenId,
                 shimmerFraction = 0.1f,
                 shimmerEnabled = shimmerEnabled
@@ -203,7 +203,7 @@ fun NftDetailsScreen(state: NftDetailsScreenState, screenInterface: NftDetailsSc
             title = stringResource(id = R.string.nft_creator_title),
             value = state.creator,
             leftIcon = state.creatorIcon,
-            rightIcon = R.drawable.ic_share_arrow_white_24,
+            rightIcon = R.drawable.ic_copy_24,
             shimmerFraction = 0.5f,
             shimmerEnabled = shimmerEnabled
         )

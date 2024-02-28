@@ -58,15 +58,7 @@ internal sealed interface ScreenModel {
         override val views: Collection<NFTsScreenView> =
             result.castOrNull<NFTCollection.Loaded.Result.Collection.WithTokens>()
                 ?.run {
-                    val firstToken = tokens.firstOrNull()
-                        ?: return@run null
-                    val lastToken = tokens.last()
-
-                    val screenLayout = if (firstToken.tokenId != lastToken.tokenId) {
-                        ScreenLayout.Grid
-                    } else {
-                        ScreenLayout.List
-                    }
+                    val firstToken = tokens.firstOrNull() ?: return@run null
 
                     val deque = ArrayDeque<NFTsScreenView>().apply {
                         if (firstToken.isUserOwnedToken) {
@@ -79,7 +71,7 @@ internal sealed interface ScreenModel {
                     tokens.map { token ->
                         ItemModel(
                             token = token,
-                            screenLayout = screenLayout,
+                            screenLayout = ScreenLayout.Grid,
                             onItemClick = { onItemClick.invoke(token) },
                             onButtonClick = { onActionButtonClick.invoke(token) }
                         )

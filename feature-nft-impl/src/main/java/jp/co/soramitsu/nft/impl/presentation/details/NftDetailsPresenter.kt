@@ -61,8 +61,6 @@ class NftDetailsPresenter @Inject constructor(
     init {
         mutableClipboardCopyRequestFlow.onEach { text ->
             clipboardManager.addToClipboard(text)
-            val message = resourceManager.getString(R.string.common_copied)
-            internalNFTRouter.showToast(message)
         }.launchIn(coroutinesStore.uiScope)
     }
 

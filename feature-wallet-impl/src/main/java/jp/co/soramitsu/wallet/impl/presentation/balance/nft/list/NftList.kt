@@ -98,7 +98,6 @@ private fun NFTLayout(
         lazyGridState.nestedScrollConnectionForPageScrolling(pageScrollingCallback)
     }
     val mutableViewsList = remember { mutableStateListOf<NFTCollectionsScreenView>() }
-    val loadingIndicationIndex = remember { mutableIntStateOf(-1) }
 
     LaunchedEffect(loadablePage) {
         when (loadablePage) {
@@ -109,24 +108,28 @@ private fun NFTLayout(
                 if (!shouldSkipEmptyPlaceHolder) {
                     mutableViewsList.clear()
                     mutableViewsList.addAll(loadablePage.views)
-                } else if (loadingIndicationIndex.intValue >= 0) {
-                    mutableViewsList.removeAt(loadingIndicationIndex.intValue)
-                    loadingIndicationIndex.intValue = -1
+                } else if (NFTCollectionsScreenView.LoadingIndication in mutableViewsList) {
+                    mutableViewsList.remove(NFTCollectionsScreenView.LoadingIndication)
                 }
             }
 
             is LoadableListPage.PreviousPageLoading -> {
+                if (NFTCollectionsScreenView.LoadingIndication in mutableViewsList) {
+                    mutableViewsList.remove(NFTCollectionsScreenView.LoadingIndication)
+                }
+
                 val index = 0
-                loadingIndicationIndex.intValue = index
                 mutableViewsList.add(index, NFTCollectionsScreenView.LoadingIndication)
             }
 
             is LoadableListPage.NextPageLoading -> {
+                if (NFTCollectionsScreenView.LoadingIndication in mutableViewsList) {
+                    mutableViewsList.remove(NFTCollectionsScreenView.LoadingIndication)
+                }
+
                 val index = mutableViewsList.indexOfLast {
                     it is NFTCollectionsScreenView.ItemModel
                 }.plus(1)
-
-                loadingIndicationIndex.intValue = index
 
                 mutableViewsList.add(index, NFTCollectionsScreenView.LoadingIndication)
             }
@@ -134,8 +137,6 @@ private fun NFTLayout(
             is LoadableListPage.Reloading -> {
                 mutableViewsList.clear()
                 mutableViewsList.addAll(loadablePage.views)
-
-                loadingIndicationIndex.intValue = -1
             }
         }
     }

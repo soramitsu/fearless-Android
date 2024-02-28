@@ -117,18 +117,18 @@ class ChooseNFTRecipientPresenter @Inject constructor(
             }
 
         return combine(
+            tokenFlow,
             addressInputHelperFlow,
             createAddressIconFlow(tokenFlow, addressInputHelperFlow, AddressIconGenerator.SIZE_MEDIUM),
             createSelectedAccountIconFlow(tokenFlow, AddressIconGenerator.SIZE_SMALL),
-            createButtonState(tokenFlow, addressInputHelperFlow, isLoadingHelperFlow),
             createFeeInfoViewState(addressInputHelperFlow),
             isHistoryAvailableFlow,
             isLoadingHelperFlow
         ) {
+            token,
             addressInput,
             addressIcon,
             selectedWalletIcon,
-            buttonState,
             feeInfoViewState,
             isHistoryAvailable,
             isLoading ->
@@ -142,7 +142,10 @@ class ChooseNFTRecipientPresenter @Inject constructor(
                     editable = false,
                     showClear = false
                 ),
-                buttonState = buttonState,
+                buttonState = ButtonViewState(
+                    text = resourceManager.getString(R.string.common_preview),
+                    enabled = addressInput.isNotBlank() && token.isUserOwnedToken && feeInfoViewState.feeAmount != null && !isLoading
+                ),
                 isHistoryAvailable = isHistoryAvailable,
                 feeInfoState = feeInfoViewState,
                 isLoading = isLoading
@@ -183,24 +186,6 @@ class ChooseNFTRecipientPresenter @Inject constructor(
                 accountAddress = receiverAddress,
                 sizeInDp = sizeInDp
             ).image
-        }
-    }
-
-    private fun createButtonState(
-        tokenFlow: Flow<NFT>,
-        receiverAddressFlow: Flow<String>,
-        isLoadingFlow: Flow<Boolean>
-    ): Flow<ButtonViewState> {
-        return combine(tokenFlow, receiverAddressFlow, isLoadingFlow) { token, addressInput, isLoading ->
-            val isReceiverAddressValid = walletInteractor.validateSendAddress(
-                chainId = token.chainId,
-                address = addressInput
-            )
-
-            return@combine ButtonViewState(
-                text = resourceManager.getString(R.string.common_preview),
-                enabled = isReceiverAddressValid && token.isUserOwnedToken && !isLoading
-            )
         }
     }
 

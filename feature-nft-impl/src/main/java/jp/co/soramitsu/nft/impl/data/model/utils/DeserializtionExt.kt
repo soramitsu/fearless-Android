@@ -46,7 +46,7 @@ internal val ContractInfo.Companion.deserializer: JsonDeserializer<ContractInfo>
             openSea = context?.deserialize<TokenInfo.ContractMetadata.OpenSea?>(
                 jsonObj.get("opensea"), TokenInfo.ContractMetadata.OpenSea::class.java
             ),
-            media = jsonObj.get("media").asJsonArray?.mapNotNull { mediaElement ->
+            media = jsonObj.get("media")?.asJsonArray?.mapNotNull { mediaElement ->
                 context?.deserialize<TokenInfo.Media?>(
                     mediaElement, TokenInfo.Media::class.java
                 )
@@ -133,7 +133,7 @@ internal val TokenInfo.Companion.deserializer: JsonDeserializer<TokenInfo>
             title = jsonObj.get("title")?.asString,
             balance = jsonObj.get("balance")?.asString,
             description = jsonObj.get("description")?.asString,
-            media = jsonObj.get("media").asJsonArray?.mapNotNull { mediaElement ->
+            media = jsonObj.get("media")?.asJsonArray?.mapNotNull { mediaElement ->
                 context?.deserialize<TokenInfo.Media?>(
                     mediaElement, TokenInfo.Media::class.java
                 )

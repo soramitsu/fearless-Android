@@ -23,7 +23,6 @@ import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Divider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -94,7 +93,6 @@ private fun CollectionNFTsScreen(
     }
 
     val mutableViewsList = remember { mutableStateListOf<NFTsScreenView>() }
-    val loadingIndicationIndex = remember { mutableIntStateOf(-1) }
 
     LaunchedEffect(loadablePage) {
         when (loadablePage) {
@@ -105,28 +103,31 @@ private fun CollectionNFTsScreen(
                 if (!shouldSkipEmptyPlaceHolder) {
                     mutableViewsList.clear()
                     mutableViewsList.addAll(loadablePage.views)
-                } else if (loadingIndicationIndex.intValue > 0) {
-                    mutableViewsList.removeAt(loadingIndicationIndex.intValue)
-                    loadingIndicationIndex.intValue = -1
+                } else if (NFTsScreenView.LoadingIndication in mutableViewsList) {
+                    mutableViewsList.remove(NFTsScreenView.LoadingIndication)
                 }
             }
 
             is LoadableListPage.PreviousPageLoading -> {
+                if (NFTsScreenView.LoadingIndication in mutableViewsList) {
+                    mutableViewsList.remove(NFTsScreenView.LoadingIndication)
+                }
+
                 val index = mutableViewsList.indexOfFirst {
                     it is NFTsScreenView.SectionHeader
                 }.plus(1)
-
-                loadingIndicationIndex.intValue = index
 
                 mutableViewsList.add(index, NFTsScreenView.LoadingIndication)
             }
 
             is LoadableListPage.NextPageLoading -> {
+                if (NFTsScreenView.LoadingIndication in mutableViewsList) {
+                    mutableViewsList.remove(NFTsScreenView.LoadingIndication)
+                }
+
                 val index = mutableViewsList.indexOfLast {
                     it is NFTsScreenView.ItemModel
                 }.plus(1)
-
-                loadingIndicationIndex.intValue = index
 
                 mutableViewsList.add(index, NFTsScreenView.LoadingIndication)
             }
@@ -134,8 +135,6 @@ private fun CollectionNFTsScreen(
             is LoadableListPage.Reloading -> {
                 mutableViewsList.clear()
                 mutableViewsList.addAll(loadablePage.views)
-
-                loadingIndicationIndex.intValue = -1
             }
         }
     }

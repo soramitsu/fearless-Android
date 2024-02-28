@@ -25,6 +25,7 @@ import jp.co.soramitsu.nft.impl.presentation.details.NftDetailsScreenInterface
 import jp.co.soramitsu.nft.impl.presentation.details.NftDetailsScreenState
 import jp.co.soramitsu.nft.navigation.NFTNavGraphRoute
 import jp.co.soramitsu.nft.navigation.NFTRouter
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -144,5 +145,10 @@ class NFTFlowViewModel @Inject constructor(
         }
 
         chooseNFTRecipientPresenter.handleQRCodeResult(result)
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        coroutinesStore.uiScope.cancel()
     }
 }
