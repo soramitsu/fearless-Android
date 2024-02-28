@@ -4,6 +4,7 @@ import androidx.compose.runtime.Stable
 import jp.co.soramitsu.common.compose.component.AssetBalanceViewState
 import jp.co.soramitsu.common.compose.component.MultiToggleButtonState
 import jp.co.soramitsu.common.compose.component.MultiToggleItem
+import jp.co.soramitsu.common.compose.component.NetworkIssueType
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.wallet.impl.domain.interfaces.AssetSorting
@@ -31,6 +32,7 @@ interface AssetDetailsState {
 
         val fiatRepresentation: String?
 
+        val networkIssueType: NetworkIssueType?
     }
 
     val assetSorting: AssetSorting
@@ -63,7 +65,8 @@ data class AssetDetailsItemViewState(
     override val iconUrl: String,
     override val chainName: String,
     override val assetRepresentation: String?,
-    override val fiatRepresentation: String?
+    override val fiatRepresentation: String?,
+    override val networkIssueType: NetworkIssueType?
 ) : AssetDetailsState.ItemState
 
 @Stable // callbacks always produce Unit, so they're stable

@@ -45,11 +45,13 @@ import jp.co.soramitsu.common.compose.component.MainToolbarViewState
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.component.MultiToggleButton
 import jp.co.soramitsu.common.compose.component.MultiToggleButtonState
+import jp.co.soramitsu.common.compose.component.NetworkIssueType
 import jp.co.soramitsu.common.compose.component.Shimmer
 import jp.co.soramitsu.common.compose.component.ToolbarHomeIcon
 import jp.co.soramitsu.common.compose.component.ToolbarHomeIconState
 import jp.co.soramitsu.common.compose.component.getImageRequest
 import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
+import jp.co.soramitsu.common.compose.theme.alertYellow
 import jp.co.soramitsu.common.compose.theme.customTypography
 import jp.co.soramitsu.common.compose.theme.white
 import jp.co.soramitsu.common.compose.theme.white16
@@ -230,7 +232,8 @@ private fun AssetDetailsContentPreview() {
                         iconUrl = "",
                         chainName = "Sora TestNet",
                         assetRepresentation = "1630.62 XOR",
-                        fiatRepresentation = "$3,342.77"
+                        fiatRepresentation = "$3,342.77",
+                        networkIssueType = null
                     ),
                     AssetDetailsItemViewState(
                         assetId = "1",
@@ -238,7 +241,8 @@ private fun AssetDetailsContentPreview() {
                         iconUrl = "",
                         chainName = "Sora TestNet",
                         assetRepresentation = "1630.62 XOR",
-                        fiatRepresentation = "$3,342.77"
+                        fiatRepresentation = "$3,342.77",
+                        networkIssueType = NetworkIssueType.Account
                     ),
                     AssetDetailsItemViewState(
                         assetId = "1",
@@ -246,7 +250,8 @@ private fun AssetDetailsContentPreview() {
                         iconUrl = "",
                         chainName = "Sora TestNet",
                         assetRepresentation = "1630.62 XOR",
-                        fiatRepresentation = "$3,342.77"
+                        fiatRepresentation = "$3,342.77",
+                        networkIssueType = null
                     ),
                     AssetDetailsItemViewState(
                         assetId = "1",
@@ -254,7 +259,8 @@ private fun AssetDetailsContentPreview() {
                         iconUrl = "",
                         chainName = "Sora TestNet",
                         assetRepresentation = "1630.62 XOR",
-                        fiatRepresentation = "$3,342.77"
+                        fiatRepresentation = "$3,342.77",
+                        networkIssueType = null
                     )
                 )
             ),
@@ -309,29 +315,38 @@ fun AssetDetailsItem(
 
             Spacer(modifier = Modifier.weight(1f))
 
-            Column(
-                horizontalAlignment = Alignment.End,
-                verticalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                if (itemState.assetRepresentation == null) {
-                    Shimmer(
-                        modifier = Modifier
-                            .padding(top = 8.dp, bottom = 4.dp)
-                            .size(height = 16.dp, width = 54.dp)
-                    )
-                } else {
-                    Text(
-                        text = itemState.assetRepresentation.orEmpty(),
-                        maxLines = 1,
-                        style = MaterialTheme.customTypography.header3
-                            .copy(textAlign = TextAlign.End),
-                    )
-                    Text(
-                        text = itemState.fiatRepresentation.orEmpty(),
-                        maxLines = 1,
-                        style = MaterialTheme.customTypography.body1,
-                        modifier = Modifier.alpha(0.64f)
-                    )
+            if (itemState.networkIssueType != null) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_alert_24),
+                    contentDescription = null,
+                    modifier = Modifier.padding(end = 14.dp),
+                    tint = alertYellow
+                )
+            } else {
+                Column(
+                    horizontalAlignment = Alignment.End,
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    if (itemState.assetRepresentation == null) {
+                        Shimmer(
+                            modifier = Modifier
+                                .padding(top = 8.dp, bottom = 4.dp)
+                                .size(height = 16.dp, width = 54.dp)
+                        )
+                    } else {
+                        Text(
+                            text = itemState.assetRepresentation.orEmpty(),
+                            maxLines = 1,
+                            style = MaterialTheme.customTypography.header3
+                                .copy(textAlign = TextAlign.End),
+                        )
+                        Text(
+                            text = itemState.fiatRepresentation.orEmpty(),
+                            maxLines = 1,
+                            style = MaterialTheme.customTypography.body1,
+                            modifier = Modifier.alpha(0.64f)
+                        )
+                    }
                 }
             }
         }
@@ -351,7 +366,8 @@ private fun AssetDetailsItemPreview() {
                 iconUrl = "",
                 chainName = "Sora TestNet",
                 assetRepresentation = "1630.62 XOR",
-                fiatRepresentation = "$3,342.77"
+                fiatRepresentation = "$3,342.77",
+                networkIssueType = null
             ),
             callback = emptyAssetDetailsCallback()
         )
