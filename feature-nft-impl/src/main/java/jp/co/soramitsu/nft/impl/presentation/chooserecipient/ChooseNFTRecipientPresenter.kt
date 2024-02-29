@@ -94,16 +94,10 @@ class ChooseNFTRecipientPresenter @Inject constructor(
     }
 
     @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
+    @Suppress("ChainWrapping")
     fun createScreenStateFlow(coroutineScope: CoroutineScope): StateFlow<ChooseNFTRecipientScreenState> {
         val addressInputHelperFlow =
             addressInputFlow.debounce(DEFAULT_DEBOUNCE_TIMEOUT).map { it.trim() }
-
-        val isHistoryAvailableFlow =
-            tokenFlow.distinctUntilChanged().map { token ->
-                chainsRepository.getChain(
-                    chainId = token.chainId
-                ).externalApi?.history != null
-            }
 
         val isLoadingHelperFlow =
             tokenFlow.zipWithPrevious().flatMapLatest { (prevToken, currentToken) ->
@@ -122,7 +116,6 @@ class ChooseNFTRecipientPresenter @Inject constructor(
             createAddressIconFlow(tokenFlow, addressInputHelperFlow, AddressIconGenerator.SIZE_MEDIUM),
             createSelectedAccountIconFlow(tokenFlow, AddressIconGenerator.SIZE_SMALL),
             createFeeInfoViewState(addressInputHelperFlow),
-            isHistoryAvailableFlow,
             isLoadingHelperFlow
         ) {
             token,
@@ -130,8 +123,12 @@ class ChooseNFTRecipientPresenter @Inject constructor(
             addressIcon,
             selectedWalletIcon,
             feeInfoViewState,
-            isHistoryAvailable,
             isLoading ->
+
+            val isPreviewButtonEnabled = addressInput.isNotBlank() &&
+                    token.isUserOwnedToken &&
+                    feeInfoViewState.feeAmount != null &&
+                    !isLoading
 
             return@combine ChooseNFTRecipientScreenState(
                 selectedWalletIcon = selectedWalletIcon,
@@ -144,9 +141,8 @@ class ChooseNFTRecipientPresenter @Inject constructor(
                 ),
                 buttonState = ButtonViewState(
                     text = resourceManager.getString(R.string.common_preview),
-                    enabled = addressInput.isNotBlank() && token.isUserOwnedToken && feeInfoViewState.feeAmount != null && !isLoading
+                    enabled = isPreviewButtonEnabled
                 ),
-                isHistoryAvailable = isHistoryAvailable,
                 feeInfoState = feeInfoViewState,
                 isLoading = isLoading
             )
@@ -331,10 +327,10 @@ class ChooseNFTRecipientPresenter @Inject constructor(
         internalNFTRouter.openQRCodeScanner()
     }
 
-    override fun onHistoryClick() {
+    override fun onContactsClick() {
         val chainId = currentToken?.chainId ?: return
 
-        internalNFTRouter.openAddressHistory(chainId).onEach {
+        internalNFTRouter.openContacts(chainId).onEach {
             selectedWalletIdFlow.value = null
             addressInputFlow.value = it
         }.launchIn(coroutinesStore.uiScope)

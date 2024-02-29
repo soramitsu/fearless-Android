@@ -52,8 +52,8 @@ class InternalNFTRouterImpl(
         mutableRoutesFlow.tryEmit(NFTNavGraphRoute.ConfirmNFTSendScreen(token, receiver, false))
     }
 
-    override fun openAddressHistory(chainId: ChainId): Flow<String> {
-        return walletRouter.openAddressHistoryWithResult(chainId)
+    override fun openContacts(chainId: ChainId): Flow<String> {
+        return walletRouter.openContactsWithResult(chainId)
     }
 
     override fun openWalletSelectionScreen(selectedWalletId: Long?): Flow<Long> {

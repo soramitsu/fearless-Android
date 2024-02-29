@@ -143,6 +143,7 @@ import jp.co.soramitsu.wallet.impl.presentation.beacon.main.BeaconFragment
 import jp.co.soramitsu.wallet.impl.presentation.beacon.main.DAppMetadataModel
 import jp.co.soramitsu.wallet.impl.presentation.beacon.sign.SignBeaconTransactionFragment
 import jp.co.soramitsu.wallet.impl.presentation.beacon.sign.TransactionRawDataFragment
+import jp.co.soramitsu.wallet.impl.presentation.contacts.ContactsFragment
 import jp.co.soramitsu.wallet.impl.presentation.cross_chain.CrossChainTransferDraft
 import jp.co.soramitsu.wallet.impl.presentation.cross_chain.confirm.CrossChainConfirmFragment
 import jp.co.soramitsu.wallet.impl.presentation.cross_chain.setup.CrossChainSetupFragment
@@ -1501,6 +1502,15 @@ class Navigator :
 
     override fun openGetMoreXor() {
         navController?.navigate(R.id.getMoreXorFragment)
+    }
+
+    override fun openContactsWithResult(chainId: ChainId): Flow<String> {
+        val bundle = ContactsFragment.getBundle(chainId)
+        return openWithResult(
+            destinationId = R.id.contactsFragment,
+            bundle = bundle,
+            resultKey = ContactsFragment.RESULT_CONTACT
+        )
     }
 
     override fun openNftCollection(selectedAssetId: ChainId, contractAddress: String, collectionName: String) {

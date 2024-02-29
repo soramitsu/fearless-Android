@@ -155,6 +155,7 @@
   <string name="common_amount">Số lượng</string>
   <string name="common_amount_low">Số tiền quá ít</string>
   <string name="common_and">và</string>
+  <string name="common_and_others_placeholder">%s và những vị trí khác</string>
   <string name="common_applied">Đã áp dụng</string>
   <string name="common_apply">Áp dụng</string>
   <string name="common_assets_filters_fiat">Số dư tiền pháp định</string>

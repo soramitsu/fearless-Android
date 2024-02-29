@@ -84,14 +84,12 @@ private fun ChooseNFTRecipientScreen(state: ChooseNFTRecipientScreenState, callb
                         labelResId = R.string.chip_qr,
                         onClick = callback::onQrClick
                     )
-                    if (state.isHistoryAvailable) {
-                        Badge(
-                            modifier = Modifier.wrapContentSize(),
-                            iconResId = R.drawable.ic_history_16,
-                            labelResId = R.string.chip_history,
-                            onClick = callback::onHistoryClick
-                        )
-                    }
+                    Badge(
+                        modifier = Modifier.wrapContentSize(),
+                        iconResId = R.drawable.ic_user_24,
+                        labelResId = R.string.common_contacts,
+                        onClick = callback::onContactsClick
+                    )
                     Badge(
                         modifier = Modifier
                             .wrapContentSize(Alignment.CenterEnd)
@@ -136,7 +134,6 @@ private fun SendSetupPreview() {
         selectedWalletIcon = null,
         addressInputState = AddressInputState("Send to", "", ""),
         buttonState = ButtonViewState("Continue", true),
-        isHistoryAvailable = false,
         feeInfoState = FeeInfoViewState.default,
         isLoading = false
     )

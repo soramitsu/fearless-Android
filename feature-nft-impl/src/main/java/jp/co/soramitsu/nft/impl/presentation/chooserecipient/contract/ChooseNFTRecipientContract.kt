@@ -12,7 +12,6 @@ data class ChooseNFTRecipientScreenState(
     val selectedWalletIcon: Drawable?,
     val addressInputState: AddressInputState,
     val buttonState: ButtonViewState,
-    val isHistoryAvailable: Boolean,
     val feeInfoState: FeeInfoViewState,
     val isLoading: Boolean
 ) {
@@ -27,7 +26,6 @@ data class ChooseNFTRecipientScreenState(
                 showClear = false
             ),
             buttonState = ButtonViewState("", false),
-            isHistoryAvailable = false,
             feeInfoState = FeeInfoViewState.default,
             isLoading = true
         )
@@ -44,7 +42,7 @@ interface ChooseNFTRecipientCallback {
 
     fun onQrClick()
 
-    fun onHistoryClick()
+    fun onContactsClick()
 
     fun onWalletsClick()
 
@@ -56,7 +54,7 @@ interface ChooseNFTRecipientCallback {
         override fun onAddressInputClear() = Unit
         override fun onNextClick() = Unit
         override fun onQrClick() = Unit
-        override fun onHistoryClick() = Unit
+        override fun onContactsClick() = Unit
         override fun onWalletsClick() = Unit
         override fun onPasteClick() = Unit
     }

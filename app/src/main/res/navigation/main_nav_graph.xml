@@ -794,6 +794,11 @@
         android:label="assetSelectFragment" />
 
     <dialog
+        android:id="@+id/contactsFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.contacts.ContactsFragment"
+        android:label="contactsFragment" />
+
+    <dialog
         android:id="@+id/nftFiltersFragment"
         android:name="jp.co.soramitsu.wallet.impl.presentation.balance.nft.filters.NftFiltersFragment"
         android:label="nftFiltersFragment" />

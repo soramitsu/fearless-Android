@@ -24,7 +24,7 @@ interface InternalNFTRouter {
 
     fun openNFTSendScreen(token: NFT, receiver: String)
 
-    fun openAddressHistory(chainId: ChainId): Flow<String>
+    fun openContacts(chainId: ChainId): Flow<String>
 
     fun openWalletSelectionScreen(selectedWalletId: Long?): Flow<Long>
 
