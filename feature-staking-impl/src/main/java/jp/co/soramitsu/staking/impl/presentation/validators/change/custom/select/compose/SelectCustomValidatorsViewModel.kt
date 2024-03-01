@@ -1,5 +1,6 @@
 package jp.co.soramitsu.staking.impl.presentation.validators.change.custom.select.compose
 
+import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -32,6 +33,7 @@ import jp.co.soramitsu.staking.impl.presentation.mappers.mapValidatorToValidator
 import jp.co.soramitsu.staking.impl.presentation.pools.compose.SelectableListItemState
 import jp.co.soramitsu.staking.impl.presentation.validators.buildSegmentedValidatorsListState
 import jp.co.soramitsu.staking.impl.presentation.validators.change.setCustomValidators
+import jp.co.soramitsu.staking.impl.presentation.validators.change.setRecommendedValidators
 import jp.co.soramitsu.staking.impl.presentation.validators.compose.SelectValidatorsScreenInterface
 import jp.co.soramitsu.staking.impl.presentation.validators.compose.SelectValidatorsScreenViewState
 import kotlinx.coroutines.Deferred
@@ -105,7 +107,7 @@ class SelectCustomValidatorsViewModel @Inject constructor(
             SelectValidatorFlowState.ValidatorSelectMode.CUSTOM -> resourceManager.getString(R.string.staking_select_custom)
             SelectValidatorFlowState.ValidatorSelectMode.RECOMMENDED -> resourceManager.getString(R.string.staking_select_suggested)
         }
-
+    private var initiallySelected = emptySet<String>()
     init {
         setupFilters()
 
@@ -116,6 +118,8 @@ class SelectCustomValidatorsViewModel @Inject constructor(
                 .filterIsInstance<SetupStakingProcess.ReadyToSubmit.Stash>()
                 .map { it.payload.blockProducers.map(Validator::accountIdHex).toSet() }
                 .first()
+            initiallySelected = selectedItems.value
+            Log.d("&&&", "selectedItems = ${selectedItems.value.size}")
         }
 
         subscribeListState()
@@ -166,7 +170,25 @@ class SelectCustomValidatorsViewModel @Inject constructor(
         state.update { it.copy(listState = listState) }
     }.launchIn(viewModelScope)
 
-    override fun onNavigationClick() = router.back()
+    override fun onNavigationClick() {
+        when (selectMode) {
+            SelectValidatorFlowState.ValidatorSelectMode.CUSTOM -> {
+
+            }
+            SelectValidatorFlowState.ValidatorSelectMode.RECOMMENDED -> {
+                setupStakingSharedState.mutate {
+                    if (it is SetupStakingProcess.ReadyToSubmit<*> && it.payload.selectionMethod == SetupStakingProcess.ReadyToSubmit.SelectionMethod.RECOMMENDED) {
+                        it.previous()
+                    } else {
+                        it
+                    }
+                }
+                router.openConfirmStaking()
+            }
+        }
+
+        router.back()
+    }
 
     override fun onSelected(item: SelectableListItemState<String>) {
         if (selectMode == SelectValidatorFlowState.ValidatorSelectMode.RECOMMENDED) {
@@ -214,11 +236,22 @@ class SelectCustomValidatorsViewModel @Inject constructor(
 
     override fun onChooseClick() {
         recommendedValidators.value.dataOrNull()?.let { allValidators ->
-            val selected = allValidators.filter { selectedItems.value.contains(it.accountIdHex) }
-            setupStakingSharedState.setCustomValidators(selected)
-        }
+            Log.d("&&&", "allValidators = ${allValidators.size}")
 
-        router.openReviewCustomValidators()
+            Log.d("&&&", "selected = ${allValidators.size}")
+
+            when (selectMode) {
+                SelectValidatorFlowState.ValidatorSelectMode.CUSTOM -> {
+                    val selected = allValidators.filter { selectedItems.value.contains(it.accountIdHex) }
+                    setupStakingSharedState.setCustomValidators(selected)
+                    router.openReviewCustomValidators()
+                }
+                SelectValidatorFlowState.ValidatorSelectMode.RECOMMENDED -> {
+                    setupStakingSharedState.setRecommendedValidators(allValidators)
+                    router.openConfirmStaking()
+                }
+            }
+        }
     }
 
     override fun onOptionsClick() {

@@ -2,6 +2,7 @@ package jp.co.soramitsu.staking.impl.presentation.common
 
 import android.util.Log
 import java.math.BigDecimal
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.staking.api.data.StakingType
 import jp.co.soramitsu.staking.api.domain.model.Collator
 import jp.co.soramitsu.staking.api.domain.model.RewardDestination
@@ -292,7 +293,7 @@ class SetupStakingSharedState {
     val setupStakingProcess = MutableStateFlow<SetupStakingProcess>(SetupStakingProcess.Initial(StakingType.PARACHAIN))
 
     fun set(newState: SetupStakingProcess) {
-        Log.d("RX", "${setupStakingProcess.value.javaClass.simpleName} → ${newState.javaClass.simpleName}")
+        Log.d("RX", "${setupStakingProcess.value} → ${newState}")
 
         setupStakingProcess.value = newState
     }
@@ -305,3 +306,15 @@ class SetupStakingSharedState {
         set(mutation(get()))
     }
 }
+
+class SetupStakingSharedState1 {
+    val state = MutableStateFlow<UserStake?>(null)
+}
+
+data class UserStake(
+    val amount: BigDecimal,
+    val controllerAddress: String,
+    val rewardDestination: RewardDestination,
+    val chainId: ChainId,
+    val assetId: String
+)
