@@ -28,12 +28,17 @@ class SubstrateBridgeAmountLessThenFeeException(resourceManager: ResourceManager
     null
 )
 
-class ExistentialDepositCrossedException(resourceManager: ResourceManager, edAmount: String) : ValidationWarning(
+class ExistentialDepositCrossedWarning(resourceManager: ResourceManager, edAmount: String) : ValidationWarning(
     resourceManager.getString(R.string.common_existential_warning_title),
     resourceManager.getString(R.string.common_existential_warning_message, edAmount),
     resourceManager.getString(R.string.common_proceed),
     resourceManager.getString(R.string.common_cancel),
     resourceManager.getString(R.string.set_max_amount),
+)
+
+class ExistentialDepositCrossedException(resourceManager: ResourceManager, edAmount: String) : ValidationException(
+    resourceManager.getString(R.string.common_existential_warning_title),
+    resourceManager.getString(R.string.common_existential_error_message, edAmount)
 )
 
 class TransferToTheSameAddressException(resourceManager: ResourceManager) : ValidationWarning(

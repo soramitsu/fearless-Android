@@ -35,7 +35,7 @@ import jp.co.soramitsu.common.utils.isNotZero
 import jp.co.soramitsu.common.utils.isZero
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.requireValue
-import jp.co.soramitsu.common.validation.ExistentialDepositCrossedException
+import jp.co.soramitsu.common.validation.ExistentialDepositCrossedWarning
 import jp.co.soramitsu.core.utils.isValidAddress
 import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.feature_wallet_impl.BuildConfig
@@ -507,7 +507,7 @@ class SendSetupViewModel @Inject constructor(
 
                         if (validationResult.isExistentialDepositWarning && sendAllState != ToggleState.CONFIRMED) {
                             ValidationException.fromValidationResult(validationResult, resourceManager)?.let {
-                                if (it is ExistentialDepositCrossedException) {
+                                if (it is ExistentialDepositCrossedWarning) {
                                     val warning = ValidationWarning(
                                         it.message,
                                         it.explanation,
