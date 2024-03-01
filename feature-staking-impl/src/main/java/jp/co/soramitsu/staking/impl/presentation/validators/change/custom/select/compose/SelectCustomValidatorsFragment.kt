@@ -17,8 +17,9 @@ class SelectCustomValidatorsFragment :
     BaseComposeBottomSheetDialogFragment<SelectCustomValidatorsViewModel>() {
 
     companion object {
+         const val KEY_SELECTION_MODE = "validatorsSelectMode"
         fun getBundle(mode: SelectValidatorFlowState.ValidatorSelectMode): Bundle {
-            return bundleOf("validatorsSelectMode" to mode)
+            return bundleOf(KEY_SELECTION_MODE to mode)
         }
     }
 
