@@ -27,7 +27,6 @@ import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.core.models.Asset.StakingType
 import jp.co.soramitsu.core.models.ChainId
 import jp.co.soramitsu.core.utils.isValidAddress
-import jp.co.soramitsu.coredb.model.AssetUpdateItem
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
@@ -529,6 +528,30 @@ class WalletInteractorImpl(
 
     override suspend fun getEquilibriumAssetRates(chainAsset: CoreAsset): Map<BigInteger, EqOraclePricePoint?> =
         walletRepository.getEquilibriumAssetRates(chainAsset)
+
+    override suspend fun checkClaimSupport(chainId: ChainId): Boolean {
+        val metadata = chainRegistry.getRuntimeOrNull(chainId)?.metadata
+
+        return metadata?.moduleOrNull(Modules.VESTING)?.calls?.get("claim") != null
+                || metadata?.moduleOrNull(Modules.VESTING)?.calls?.get("vest") != null
+                || metadata?.moduleOrNull(Modules.VESTED_REWARDS)?.calls?.get("claim_rewards") != null
+    }
+
+    override suspend fun estimateClaimRewardsFee(chainId: ChainId): BigInteger {
+        return walletRepository.estimateClaimRewardsFee(chainId)
+    }
+
+    override suspend fun getVestingLockedAmount(chainId: ChainId): BigInteger? {
+        return walletRepository.getVestingLockedAmount(chainId)
+    }
+
+    override suspend fun claimRewards(chainId: ChainId): Result<String> {
+        val currentAccount = accountRepository.getSelectedMetaAccount()
+        val chain = chainsRepository.getChain(chainId)
+        val accountId: AccountId = currentAccount.accountId(chain) ?: throw IllegalArgumentException("Error retrieving accountId for chain ${chain.name}")
+        return walletRepository.claimRewards(chain, accountId)
+    }
+
 
     override suspend fun checkControllerDeprecations(): List<ControllerDeprecationWarning> {
         val currentAccount = accountRepository.getSelectedMetaAccount()

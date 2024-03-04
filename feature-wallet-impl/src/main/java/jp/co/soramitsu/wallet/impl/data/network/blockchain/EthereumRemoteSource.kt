@@ -10,7 +10,7 @@ import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.connection.EthereumConnectionPool
-import jp.co.soramitsu.runtime.multiNetwork.connection.EthereumWebSocketConnection
+import jp.co.soramitsu.runtime.multiNetwork.connection.EthereumChainConnection
 import jp.co.soramitsu.shared_utils.extensions.toHexString
 import jp.co.soramitsu.shared_utils.runtime.AccountId
 import jp.co.soramitsu.wallet.impl.data.network.model.response.NewHeadsNotificationExtended
@@ -146,7 +146,6 @@ class EthereumRemoteSource(private val ethereumConnectionPool: EthereumConnectio
         receiverAddress: String
     ): BigInteger? {
         val connection = ethereumConnectionPool.get(chainId)
-        connection?.connect()
 
         val web3 = connection?.web3j
             ?: throw RuntimeException("There is no connection created for chain ${chainId}")
@@ -384,7 +383,7 @@ class MaxPriorityFeePerGas : Response<String?>() {
         get() = Numeric.decodeQuantity(result)
 }
 
-fun EthereumWebSocketConnection.subscribeBaseFeePerGas(): Flow<BigInteger?> {
+fun EthereumChainConnection.subscribeBaseFeePerGas(): Flow<BigInteger?> {
     val wsService = requireNotNull(service)
     val web3j = requireNotNull(web3j)
 

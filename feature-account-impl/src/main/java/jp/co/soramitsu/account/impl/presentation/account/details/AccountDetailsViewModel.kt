@@ -247,9 +247,13 @@ class AccountDetailsViewModel @Inject constructor(
     override fun chainAccountOptionsClicked(item: AccountInChainUi) {
         launch {
             if (item.hasAccount) {
+                val chain = chainRegistry.getChain(item.chainId)
                 val supportedExplorers =
-                    chainRegistry.getChain(item.chainId).explorers.getSupportedExplorers(BlockExplorerUrlBuilder.Type.ACCOUNT, item.address)
-                externalAccountActions.showExternalActions(ExternalAccountActions.Payload(item.address, item.chainId, item.chainName, supportedExplorers))
+                    chain.explorers.getSupportedExplorers(BlockExplorerUrlBuilder.Type.ACCOUNT, item.address)
+
+                externalAccountActions.showExternalActions(ExternalAccountActions.Payload(item.address, item.chainId, item.chainName, supportedExplorers,
+                    !chain.isEthereumChain
+                ))
             } else {
                 val utilityAsset = chainRegistry.getChain(item.chainId).utilityAsset
                 val payload = AddAccountPayload(

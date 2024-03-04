@@ -16,12 +16,6 @@ android {
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
 
-    buildTypes {
-        release {
-
-        }
-    }
-
     buildFeatures {
         viewBinding = true
         compose = true
@@ -30,17 +24,16 @@ android {
     kotlinOptions {
         freeCompilerArgs = ["-Xallow-result-return-type"]
 
-        jvmTarget = '11'
+        jvmTarget = '17'
     }
 
     composeOptions {
         kotlinCompilerExtensionVersion composeCompilerVersion
-        kotlinCompilerVersion kotlinVersion
     }
 
     compileOptions {
-        sourceCompatibility 11
-        targetCompatibility 11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     namespace 'jp.co.soramitsu.feature_staking_impl'
 }
@@ -53,46 +46,46 @@ dependencies {
     implementation project(':feature-wallet-api')
     implementation project(':runtime')
 
-    implementation kotlinDep
+    implementation libs.kotlin.stdlib.jdk7
 
-    implementation androidDep
-    implementation materialDep
-    implementation cardViewDep
-    implementation constraintDep
+    implementation libs.appcompat
+    implementation libs.material
+    implementation libs.cardview
+    implementation libs.constraintlayout
 
-    implementation coroutinesDep
-    implementation coroutinesAndroidDep
-    implementation viewModelKtxDep
-    implementation liveDataKtxDep
-    implementation lifeCycleKtxDep
+    implementation libs.coroutines.core
+    implementation libs.coroutines.android
+    implementation libs.lifecycle.viewmodel.ktx
+    implementation libs.lifecycle.livedata.ktx
+    implementation libs.lifecycle.runtime.ktx
 
-    implementation fragmentKtxDep
+    implementation libs.fragmentKtx
 
-    implementation insetterDep
+    implementation libs.insetter.widgets
 
-    implementation daggerDep
-    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
-    kapt daggerKapt
+    implementation libs.hilt.android
+    implementation libs.legacy.support.v4
+    kapt libs.hilt.compiler
 
-    implementation roomDep
-    kapt roomKapt
+    implementation libs.room.runtime
+    kapt libs.room.compiler
 
-    implementation lifecycleProcessDep
-    kapt lifecycleKapt
+    implementation libs.lifecycle.process
+    kapt libs.lifecycle.compiler
 
-    testImplementation jUnitDep
-    testImplementation mockitoDep
+    testImplementation libs.junit
+    testImplementation libs.mockito.inline
 
-    compileOnly wsDep
+    compileOnly libs.nv.websocket.client
 
-    implementation gsonDep
-    implementation retrofitDep
+    implementation libs.gson
+    implementation libs.retrofit
 
-    implementation shimmerDep
+    implementation libs.shimmer
 
-    implementation compose
-    debugImplementation composeDebug
+    implementation libs.bundles.compose
+    debugImplementation libs.bundles.composeDebug
 
-    implementation gsonConvertedDep
-    implementation scalarsConverterDep
+    implementation libs.converter.gson
+    implementation libs.converter.scalars
 }

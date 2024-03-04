@@ -9,6 +9,7 @@ import com.walletconnect.android.relay.ConnectionType
 import com.walletconnect.web3.wallet.client.Wallet
 import com.walletconnect.web3.wallet.client.Web3Wallet
 import dagger.hilt.android.HiltAndroidApp
+import jp.co.soramitsu.common.BuildConfig
 import jp.co.soramitsu.common.data.network.OptionsProvider
 import jp.co.soramitsu.common.resources.ContextManager
 import jp.co.soramitsu.common.resources.LanguagesHolder
@@ -32,7 +33,7 @@ open class App : Application() {
     override fun onCreate() {
         super.onCreate()
 
-        OptionsProvider.APPLICATION_ID = BuildConfig.APPLICATION_ID
+        OptionsProvider.APPLICATION_ID = BuildConfig.LIBRARY_PACKAGE_NAME
         OptionsProvider.CURRENT_VERSION_CODE = BuildConfig.VERSION_CODE
         OptionsProvider.CURRENT_VERSION_NAME = BuildConfig.VERSION_NAME
         OptionsProvider.CURRENT_BUILD_TYPE = BuildConfig.BUILD_TYPE
@@ -42,7 +43,7 @@ open class App : Application() {
 
     private fun setupWalletConnect() {
         val connectionType = ConnectionType.AUTOMATIC // ConnectionType.AUTOMATIC or ConnectionType.MANUAL
-        val projectId = jp.co.soramitsu.common.BuildConfig.WALLET_CONNECT_PROJECT_ID // Project ID at https://cloud.walletconnect.com/
+        val projectId = BuildConfig.WALLET_CONNECT_PROJECT_ID // Project ID at https://cloud.walletconnect.com/
         val relayUrl = "relay.walletconnect.com"
         val serverUrl = "wss://$relayUrl?projectId=${projectId}"
 

@@ -2,11 +2,11 @@ package jp.co.soramitsu.account.impl.presentation.account.details
 
 import android.content.Context
 import android.os.Bundle
-import jp.co.soramitsu.common.view.bottomSheet.list.fixed.item
 import jp.co.soramitsu.account.api.presentation.actions.CopyCallback
 import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.account.api.presentation.actions.ExternalActionsSheet
 import jp.co.soramitsu.account.api.presentation.actions.ExternalViewCallback
+import jp.co.soramitsu.common.view.bottomSheet.list.fixed.item
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 
@@ -36,9 +36,10 @@ class WalletAccountActionsSheet(
             item(R.drawable.ic_change_account, R.string.replace_account) {
                 onReplace(chainId)
             }
-
-            item(R.drawable.ic_refresh_white_24, R.string.switch_node) {
-                onSwitchNode(chainId)
+            if (content.canSwitchNode) {
+                item(R.drawable.ic_refresh_white_24, R.string.switch_node) {
+                    onSwitchNode(chainId)
+                }
             }
         }
 

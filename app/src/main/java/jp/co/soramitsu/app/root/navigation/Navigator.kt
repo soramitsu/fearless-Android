@@ -131,6 +131,7 @@ import jp.co.soramitsu.wallet.impl.presentation.balance.assetDetails.AssetDetail
 import jp.co.soramitsu.wallet.impl.presentation.balance.assetselector.AssetSelectFragment
 import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.ChainSelectFragment
 import jp.co.soramitsu.wallet.impl.presentation.balance.detail.BalanceDetailFragment
+import jp.co.soramitsu.wallet.impl.presentation.balance.detail.claimreward.ClaimRewardsFragment
 import jp.co.soramitsu.wallet.impl.presentation.balance.detail.frozen.FrozenAssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.balance.detail.frozen.FrozenTokensFragment
 import jp.co.soramitsu.wallet.impl.presentation.balance.optionswallet.OptionsWalletFragment
@@ -1060,6 +1061,11 @@ class Navigator :
         navController?.navigate(R.id.action_open_nodesFragment, NodesFragment.getBundle(chainId))
     }
 
+    override fun openClaimRewards(chainId: ChainId) {
+        val args = ClaimRewardsFragment.getBundle(chainId)
+        navController?.navigate(R.id.claimRewardsFragment, args)
+    }
+
     override fun openLanguages() {
         navController?.navigate(R.id.action_mainFragment_to_languagesFragment)
     }
@@ -1446,7 +1452,7 @@ class Navigator :
     }
 
     override fun listenAlertResultFlowFromNetworkIssuesScreen(key: String): Flow<Result<Unit>> {
-        val currentEntry = navController?.getBackStackEntry(R.id.networkIssuesFragment)
+        val currentEntry = navController?.currentBackStackEntry
         val onResumeObserver = currentEntry?.lifecycle?.onResumeObserver()
 
         return (onResumeObserver?.asFlow() ?: emptyFlow()).map {
