@@ -23,8 +23,13 @@ import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Divider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.Saver
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -64,7 +69,11 @@ import jp.co.soramitsu.common.compose.utils.nestedScrollConnectionForPageScrolli
 import jp.co.soramitsu.common.utils.clickableSingle
 import jp.co.soramitsu.nft.impl.presentation.collection.models.NFTsScreenView
 import jp.co.soramitsu.nft.navigation.NFTNavGraphRoute
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 
 @Suppress("FunctionName")
 fun NavGraphBuilder.CollectionNFTsNavComposable(
@@ -139,6 +148,26 @@ private fun CollectionNFTsScreen(
         }
     }
 
+    val savableIndex = rememberSaveable(
+        stateSaver = Saver(
+            save = { it },
+            restore = { it }
+        )
+    ) {
+        mutableIntStateOf(0)
+    }
+
+    val firstVisibleItemIndexAsState = remember(lazyGridState) {
+        derivedStateOf { lazyGridState.firstVisibleItemIndex }
+    }
+
+    LaunchedEffect(firstVisibleItemIndexAsState) {
+        snapshotFlow { firstVisibleItemIndexAsState.value }
+            .onEach { index -> savableIndex.value = index }
+            .flowOn(Dispatchers.Default)
+            .launchIn(this)
+    }
+
     LazyVerticalGrid(
         state = lazyGridState,
         columns = GridCells.Fixed(2),
@@ -172,6 +201,11 @@ private fun CollectionNFTsScreen(
         }
 
         item { MarginVertical(margin = 80.dp) }
+    }
+
+    // Be sure to scroll only after items are loaded into mutableViewsList, and from it to LazyGrid
+    LaunchedEffect(loadablePage) {
+        lazyGridState.scrollToItem(savableIndex.value)
     }
 }
 
@@ -277,7 +311,8 @@ private fun LazyGridScope.NFTSectionHeader(sectionHeader: NFTsScreenView.Section
         contentType = sectionHeader.contentType
     ) {
         Column(
-            modifier = Modifier.padding(horizontal = 12.dp)
+            modifier = Modifier
+                .padding(horizontal = 12.dp)
                 .animateItemPlacement()
         ) {
             sectionHeader.title.Render(
@@ -319,7 +354,8 @@ private fun LazyGridScope.NFTItem(itemModel: NFTsScreenView.ItemModel) {
         contentType = itemModel.contentType
     ) {
         BackgroundCornered(
-            modifier = Modifier.clickableSingle(onClick = itemModel.onItemClick)
+            modifier = Modifier
+                .clickableSingle(onClick = itemModel.onItemClick)
                 .animateItemPlacement()
         ) {
             itemModel.screenLayout.Render(
