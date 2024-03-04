@@ -23,6 +23,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.bokoloCashTokenId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.kusamaChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId
 import jp.co.soramitsu.wallet.api.domain.ExistentialDepositUseCase
 import jp.co.soramitsu.wallet.api.domain.TransferValidationResult
 import jp.co.soramitsu.wallet.api.domain.ValidateTransferUseCase
@@ -130,10 +131,18 @@ class ValidateTransferUseCaseImpl(
 
                 val utilityEdFormatted = utilityAsset?.token?.configuration?.let { utilityAssetExistentialDeposit.formatCryptoDetailFromPlanks(it) }.orEmpty()
 
-                val bridgeMinimumAmountValidation = bridgeMinimumAmountValidation(destinationChain, asset, amountInPlanks)
+                val destinationFeeAmountInPlanks = destinationFeeAmount?.let { destinationAsset?.planksFromAmount(it) }
+
+                val bridgeMinimumAmountValidation = bridgeMinimumAmountValidation(originChain, destinationChain, asset, amountInPlanks)
 
                 mapOf(
                     bridgeMinimumAmountValidation,
+                    TransferValidationResult.SubstrateBridgeAmountLessThenFeeWarning(originChain.name) to
+                            if (destinationFeeAmountInPlanks == null) {
+                                false
+                            } else {
+                                amountInPlanks < destinationFeeAmountInPlanks
+                            },
                     TransferValidationResult.InsufficientBalance to (amountInPlanks > transferable),
                     TransferValidationResult.InsufficientUtilityAssetBalance to (fee + tip > utilityAssetBalance),
                     getTransferValidationResultExistentialDeposit(isCrossChainTransfer, assetEdFormatted) to (transferable - amountInPlanks < assetExistentialDeposit),
@@ -158,11 +167,11 @@ class ValidateTransferUseCaseImpl(
                 val utilityEdFormatted = utilityAsset?.token?.configuration?.let { utilityAssetExistentialDeposit.formatCryptoDetailFromPlanks(it) }.orEmpty()
 
                 val destinationFeeAmountInPlanks = destinationFeeAmount?.let { destinationAsset?.planksFromAmount(it) }
-                val bridgeMinimumAmountValidation = bridgeMinimumAmountValidation(originChain, asset, amountInPlanks)
+                val bridgeMinimumAmountValidation = bridgeMinimumAmountValidation(originChain, destinationChain, asset, amountInPlanks)
 
                 mapOf(
                     bridgeMinimumAmountValidation,
-                    TransferValidationResult.SubstrateBridgeAmountLessThenFeeWarning(originChain.name) to
+                    TransferValidationResult.SubstrateBridgeAmountLessThenFeeWarning(destinationChain.name) to
                             if (destinationFeeAmountInPlanks == null) {
                                 false
                             } else {
@@ -265,16 +274,18 @@ class ValidateTransferUseCaseImpl(
     }
 
     private fun bridgeMinimumAmountValidation(
-        utilityChain: Chain,
+        originChain: Chain,
+        destinationChain: Chain,
         asset: Asset,
         amountInPlanks: BigInteger
     ): Pair<TransferValidationResult.SubstrateBridgeMinimumAmountRequired, Boolean> {
-        val minAmountTokens = when (utilityChain.utilityAsset?.chainId) {
-            polkadotChainId -> "1.1"
-            kusamaChainId -> "0.05"
+        val minAmountTokens = when (originChain.id to destinationChain.id) {
+            polkadotChainId to soraMainChainId,
+            soraMainChainId to polkadotChainId -> "1.1"
+            kusamaChainId to soraMainChainId -> "0.05"
             else -> null
         }
-        val substrateBridgeIncomingTransferMinAmountText = minAmountTokens?.let {
+        val substrateBridgeMinAmountText = minAmountTokens?.let {
             "$minAmountTokens ${asset.token.configuration.symbol.uppercase()}"
         }.orEmpty()
 
@@ -282,7 +293,7 @@ class ValidateTransferUseCaseImpl(
             asset.token.planksFromAmount(BigDecimal(it))
         }
 
-        return (TransferValidationResult.SubstrateBridgeMinimumAmountRequired(substrateBridgeIncomingTransferMinAmountText)
+        return (TransferValidationResult.SubstrateBridgeMinimumAmountRequired(substrateBridgeMinAmountText)
                 to (substrateBridgeTransferMinAmount != null && amountInPlanks < substrateBridgeTransferMinAmount))
     }
 
