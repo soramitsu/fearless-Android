@@ -15,12 +15,10 @@ import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.Surface
 import androidx.compose.material.SwipeableState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.compose.component.ActionItemType
@@ -227,49 +225,50 @@ private fun PreviewWalletScreen() {
         override fun onRefresh() {}
     }
 
-    val assets: List<AssetListItemViewState> = listOf(
-        AssetListItemViewState(
-            index = 0,
-            assetIconUrl = "",
-            assetChainName = "Chain",
-            assetSymbol = "SMB",
-            assetName = "Sora Asset",
-            assetTokenFiat = null,
-            assetTokenRate = null,
-            assetTransferableBalance = null,
-            assetTransferableBalanceFiat = null,
-            assetChainUrls = emptyMap(),
-            chainId = "",
-            chainAssetId = "",
-            isSupported = true,
-            isHidden = false,
-            isTestnet = false
-        )
+    val element = AssetListItemViewState(
+        index = 0,
+        assetIconUrl = "",
+        assetChainName = "Chain",
+        assetSymbol = "SMB",
+        assetName = "Sora Asset",
+        assetTokenFiat = null,
+        assetTokenRate = null,
+        assetTransferableBalance = null,
+        assetTransferableBalanceFiat = null,
+        assetChainUrls = emptyMap(),
+        chainId = "",
+        chainAssetId = "",
+        isSupported = true,
+        isHidden = false,
+        isTestnet = false
     )
+    val assets: List<AssetListItemViewState> = listOf(
+        element, element, element
+    ).mapIndexed { index, assetListItemViewState ->
+        assetListItemViewState.copy(index = index)
+    }
 
     FearlessAppTheme(true) {
-        Surface(Modifier.background(Color.Black)) {
-            Column {
-                WalletScreen(
-                    data = WalletState(
-                        multiToggleButtonState = MultiToggleButtonState(
-                            AssetType.Currencies,
-                            listOf(AssetType.Currencies, AssetType.NFTs)
-                        ),
-                        assetsState = WalletAssetsState.Assets(emptyList()),
-                        balance = AssetBalanceViewState(
-                            "TRANSFERABLE BALANCE",
-                            "ADDRESS",
-                            true,
-                            ChangeBalanceViewState("+100%", "+50$")
-                        ),
-                        hasNetworkIssues = true,
-                        soraCardState = SoraCardItemViewState(null, null, null, true),
-                        isBackedUp = false
+        Column {
+            WalletScreen(
+                data = WalletState(
+                    multiToggleButtonState = MultiToggleButtonState(
+                        AssetType.Currencies,
+                        listOf(AssetType.Currencies, AssetType.NFTs)
                     ),
-                    callback = emptyCallback
-                )
-            }
+                    assetsState = WalletAssetsState.Assets(emptyList()),
+                    balance = AssetBalanceViewState(
+                        "TRANSFERABLE BALANCE",
+                        "ADDRESS",
+                        true,
+                        ChangeBalanceViewState("+100%", "+50$")
+                    ),
+                    hasNetworkIssues = true,
+                    soraCardState = SoraCardItemViewState(null, null, null, true),
+                    isBackedUp = false
+                ),
+                callback = emptyCallback
+            )
         }
     }
 }
