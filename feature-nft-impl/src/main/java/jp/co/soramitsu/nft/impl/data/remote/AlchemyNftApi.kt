@@ -48,6 +48,7 @@ interface AlchemyNftApi {
     suspend fun getNFTOwners(
         @Url requestUrl: String,
         @Query("contractAddress") contractAddress: String,
-        @Query("tokenId") tokenId: String
+        @Query("tokenId") tokenId: String,
+        @Query("pageSize") pageSize: Int
     ): NFTResponse.TokenOwners
 }

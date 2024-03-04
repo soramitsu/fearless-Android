@@ -40,6 +40,9 @@ internal const val DEFAULT_CACHED_PAGES_AMOUNT = 3
 internal const val DEFAULT_PAGE_SIZE = 100
 internal const val NFT_FILTERS_KEY = "NFT_FILTERS_KEY"
 
+// if not set, some NFTs can return up to 94000 of owners (might end up in out of memory exception)
+internal const val DEFAULT_OWNERS_PAGE_SIZE = 10
+
 class NFTRepositoryImpl(
     private val alchemyNftApi: AlchemyNftApi,
     private val preferences: Preferences,
@@ -341,7 +344,8 @@ class NFTRepositoryImpl(
                 alchemyNftApi.getNFTOwners(
                     requestUrl = NFTRequest.TokenOwners.requestUrl(chain.alchemyNftId),
                     contractAddress = contractAddress,
-                    tokenId = tokenId
+                    tokenId = tokenId,
+                    pageSize = DEFAULT_OWNERS_PAGE_SIZE
                 )
             }
         }

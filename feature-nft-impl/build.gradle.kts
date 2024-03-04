@@ -79,5 +79,5 @@ dependencies {
 }
 
 fun readAlchemyApiKey(): String{
-    return (rootProject.ext["readSecretInQuotes"] as Closure<String>).invoke("FL_ALCHEMY_API_ETHEREUM_KEY")
+    return (rootProject.ext["readSecretInQuotes"] as Closure<String>).invoke("FL_ANDROID_ALCHEMY_API_ETHEREUM_KEY")
 }
