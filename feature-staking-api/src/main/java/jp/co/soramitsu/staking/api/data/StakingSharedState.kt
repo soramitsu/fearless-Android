@@ -7,6 +7,7 @@ import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.reefChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraTestChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ternoaChainId
@@ -34,7 +35,7 @@ enum class StakingType {
 }
 
 enum class SyntheticStakingType {
-    DEFAULT, SORA, TERNOA
+    DEFAULT, SORA, TERNOA, REEF
 }
 
 fun CoreAsset.syntheticStakingType(): SyntheticStakingType {
@@ -43,6 +44,9 @@ fun CoreAsset.syntheticStakingType(): SyntheticStakingType {
                 staking == CoreAsset.StakingType.RELAYCHAIN -> SyntheticStakingType.SORA
 
         chainId == ternoaChainId && staking == CoreAsset.StakingType.RELAYCHAIN -> SyntheticStakingType.TERNOA
+
+        chainId == reefChainId && staking == CoreAsset.StakingType.RELAYCHAIN -> SyntheticStakingType.REEF
+
         else -> SyntheticStakingType.DEFAULT
     }
 }
