@@ -131,8 +131,14 @@ fun SelectValidatorsScreen(
                                 .padding(horizontal = 16.dp)
                                 .fillMaxSize()
                         ) {
+                            val message = if(state.isCustom) {
+                                R.string.validators_list_empty_message
+                            } else {
+                                R.string.validators_list_empty_message_recommended
+                            }
+
                             EmptyMessage(
-                                message = R.string.validators_list_empty_message,
+                                message = message,
                                 modifier = Modifier.align(BiasAlignment(0f, -0.3f))
                             )
                         }

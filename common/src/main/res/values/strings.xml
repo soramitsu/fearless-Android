@@ -1066,6 +1066,7 @@
   <string name="validator_info_comission_title">Comission</string>
   <string name="validator_not_elected_description">This account has not been elected by the network to participate in the current era</string>
   <string name="validators_list_empty_message">No validators found. Please try to change filters</string>
+  <string name="validators_list_empty_message_recommended">No validators found</string>
   <string name="vesting_claim_disclaimer_text">Due to the unique vesting schedules of each parachain, our app is unable to display the quantity of locked tokens eligible for claiming. Please be advised that initiating a claim may be impractical if the prospective amount is marginal and comparable to the transaction fee involved. For comprehensive insights into your locked balances, consult the Subscan blockexplorer. We urge you to assess the information carefully and proceed at your own discretion.</string>
   <string name="vesting_claim_disclaimer_title">Important Notice Regarding Token Claims:</string>
   <string name="vesting_locked_title">Vesting Locked</string>

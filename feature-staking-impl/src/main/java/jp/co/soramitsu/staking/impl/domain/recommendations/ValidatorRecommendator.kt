@@ -16,7 +16,7 @@ class ValidatorRecommendator(val availableValidators: List<Validator>) : BlockCr
         val filteredAndSortedElectedValidators = electedValidators.applyFilters(settings.allFilters)
             .sortedWith(settings.sorting.comparator)
 
-        val allowedForNotElectedValidatorsFilters = settings.allFilters.filter { it is BlockProducerFilters.ValidatorFilter.HasIdentity || it is BlockProducerFilters.ValidatorFilter.HasBlocked }
+        val allowedForNotElectedValidatorsFilters = settings.allFilters.filter { it is BlockProducerFilters.ValidatorFilter.HasIdentity || it is BlockProducerFilters.ValidatorFilter.HasBlocked || it is BlockProducerFilters.ValidatorFilter.ElectedFilter || it is BlockProducerFilters.ValidatorFilter.HundredPercentCommissionFilter}
         val filteredNotElectedValidators = notElectedValidators.filter { item ->
             allowedForNotElectedValidatorsFilters.all { filter -> filter.shouldInclude(item) }
         }
