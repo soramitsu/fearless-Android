@@ -41,6 +41,11 @@ interface Preferences {
         initialValueProducer: InitialValueProducer<String>? = null
     ): Flow<String?>
 
+    fun stringSetFlow(
+        field: String,
+        initialValueProducer: InitialValueProducer<Set<String>>? = null
+    ): Flow<Set<String>>
+
     fun intFlow(field: String, initialValue: Int): Flow<Int>
 
     fun booleanFlow(field: String, initialValue: Boolean): Flow<Boolean>
