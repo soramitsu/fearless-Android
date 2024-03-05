@@ -57,21 +57,19 @@ class ReefRewardCalculator(
                     .filter { it.accountId.contentEquals(validator.accountIdHex.fromHex()) }
                     .map { it.rewardPoints.toDouble() }.average()
 
-            val lastEra = historicalRewardDistribution.maxBy { it.key }.key
-
-            val rewardDistributionForLastEra = historicalRewardDistribution[lastEra.minus(BigInteger.ONE)]
+            val rewardDistributionForLastEra = historicalRewardDistribution.maxBy { it.key }.value
 
             val lastEraPayout = erasPayouts.maxBy { it.key }
 
             val portion =
-                averageValidatorRewardPoints / rewardDistributionForLastEra!!.totalPoints.toDouble()
+                averageValidatorRewardPoints / rewardDistributionForLastEra.totalPoints.toDouble()
             val validatorTotalStake = asset.amountFromPlanks(validator.totalStake)
             val userPortion = amount.toDouble() / validatorTotalStake.toDouble()
             val validatorReward = (lastEraPayout.value * portion)
 
             val rewardForAmountInCurrentEra =
                 userPortion * validatorReward - (validator.commission.toDouble() * userPortion * validatorReward)
-
+            hashCode()
             (rewardForAmountInCurrentEra / amount.toDouble())  * DAYS_IN_YEAR
         }.getOrNull() ?: 0.0
     }
@@ -88,15 +86,15 @@ class ReefRewardCalculator(
     }
 
     override suspend fun calculateAvgAPY(): BigDecimal {
-        val average = apyByCalculationTargets.values.average()
-        val dailyPercentage = average / DAYS_IN_YEAR
-
-        return calculateReward(
-            amount = BigDecimal.ONE.toDouble(),
-            days = DAYS_IN_YEAR,
-            dailyPercentage = dailyPercentage,
-            isCompound = true
-        ).gainPercentage
+        return apyByCalculationTargets.values.map {
+            val dailyPercentage = it / DAYS_IN_YEAR
+            calculateReward(
+                amount = BigDecimal.ONE.toDouble(),
+                days = DAYS_IN_YEAR,
+                dailyPercentage = dailyPercentage,
+                isCompound = true
+            ).gainPercentage.toDouble()
+        }.average().toBigDecimal()
     }
 
     override suspend fun getApyFor(targetId: ByteArray): BigDecimal {
