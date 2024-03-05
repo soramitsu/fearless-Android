@@ -217,6 +217,7 @@
   <string name="common_error_internal">Dahili hata oluştu</string>
   <string name="common_error_network">Uzak sunucuyla iletişim kurulurken hata oluştu</string>
   <string name="common_event">Etkinlik</string>
+  <string name="common_existential_error_message">Bu işlem, bakiyenin varolma tutarının%s altına inmesine neden olacak ve bu da onun hesabın silinmesine neden olacaktır (yer kazanmak için hesap blok zincirinden silinecektir).</string>
   <string name="common_existential_warning_message">Bu işlem, bakiyenin varolma tutarının%s altına inmesine neden olacak ve bu da onun hesabın silinmesine neden olacaktır (yer kazanmak için hesap blok zincirinden silinecektir). Devam etmeyi seçerseniz, ağ tarafından belirlenen varolma tutarının altındaki tüm fonları kaybedersiniz. Ayrıntılı bilgi için lütfen resmi ağ belgelerine bakın (örn. Polkadot Wikisi). Fearless Wallet, fonlarınız üzerinde yetkisi olmayan bir uygulamadır ve ağ üzerindeki eylemlerinizden herhangi birinin kontrolü veya bilgisi yoktur. YALNIZCA UYGULAMALARI TAMAMEN KABUL EDİYORSANIZ VE ANLIYORSANIZ DEVAM EDİN.</string>
   <string name="common_existential_warning_title">İşlem hesabı kaldıracak.</string>
   <string name="common_filter_sort_header">Göre sırala:</string>
@@ -402,6 +403,7 @@
   <string name="crownloans_raised_format" formatted="false">Toplandı: %s/%s</string>
   <string name="currencies_stub_text">Para birimleri</string>
   <string name="custom_collators_title">Bilinen derleyicilerden hisse alın</string>
+  <string name="custom_validators_empty_message">Doğrulayıcı bulunamadı. \n Lütfen filtreleri değiştirmeyi deneyin</string>
   <string name="default_account_shared_secret">Mevcut paylaşılmış gizli bilgili hesaplar.</string>
   <string name="delete_custom_node_title">Özel düğüm silinsin mi?</string>
   <string name="donation_alert_title">Bu adres şüpheli olarak işaretlendi.</string>
@@ -991,6 +993,7 @@
   <string name="staking_validator_own_stake">Sahip olmak</string>
   <string name="staking_validator_search_empty_title">Arama sonucu bulunamadı. \n Tam hesap adresini yazdığınızdan emin olun.</string>
   <string name="staking_validator_slashed_desc">Doğrulayıcı, ağdaki hatalı davranışlar (örn. çevrimdışı olur, ağa saldırır veya değiştirilmiş yazılımları çalıştırır) için kesme cezası uygulanır</string>
+  <string name="staking_validator_status_unelected">Seçilmedi</string>
   <string name="staking_validator_summary_description">Gelecekteki güncellemelerde, doğrulayıcılar için stake etme özellikleri ekleyeceğiz. \n \n #StayFearless</string>
   <string name="staking_validator_summary_title">Doğrulayıcı için stake etme</string>
   <string name="staking_validator_total">Toplam</string>
@@ -1066,7 +1069,7 @@
   <string name="username_setup_title_2_0">Yeni bir cüzdan oluştur</string>
   <string name="validator_info_comission_title">Komisyon</string>
   <string name="validator_not_elected_description">Bu hesap mevcut döneme katılmak için ağ tarafından seçilmedi</string>
-  <string name="validators_list_empty_message">Doğrulayıcı bulunamadı. Lütfen filtreleri değiştirmeyi deneyin</string>
+  <string name="validators_list_empty_message">Doğrulayıcı bulunamadı</string>
   <string name="vesting_claim_disclaimer_text">Her parachain\'in benzersiz hak kazanma programları nedeniyle, uygulamamız talep edilmeye uygun kilitli tokenlerin miktarını görüntüleyemiyor. Olası tutarın marjinal olması ve söz konusu işlem ücretiyle karşılaştırılabilir olması durumunda, hak talebinde bulunmanın pratik olmayabileceğini lütfen unutmayın. Kilitli bakiyelerinize ilişkin kapsamlı bilgiler için Subscan blok araştırmacısına başvurun. Bilgileri dikkatlice değerlendirmenizi ve kendi takdirinize göre ilerlemenizi öneririz.</string>
   <string name="vesting_claim_disclaimer_title">Token Taleplerine İlişkin Önemli Uyarı:</string>
   <string name="vesting_locked_title">Vesting Kilitli</string>
