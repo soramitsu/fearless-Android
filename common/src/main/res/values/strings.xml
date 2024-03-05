@@ -155,6 +155,7 @@
   <string name="common_amount">Amount</string>
   <string name="common_amount_low">Amount is too low</string>
   <string name="common_and">and</string>
+  <string name="common_and_others_placeholder">%s &amp; others</string>
   <string name="common_applied">Applied</string>
   <string name="common_apply">Apply</string>
   <string name="common_assets_filters_fiat">Fiat balance</string>
@@ -185,6 +186,7 @@
   <string name="common_confirmed">Confirmed</string>
   <string name="common_connect">Connect</string>
   <string name="common_connection_problems">Connection Problems</string>
+  <string name="common_contacts">Contacts</string>
   <string name="common_continue">Continue</string>
   <string name="common_copied">Copied to clipboard</string>
   <string name="common_copy">Copy</string>
@@ -344,6 +346,7 @@
   <string name="connections_search_hint">Search by connection</string>
   <string name="contact_address">Contact Address</string>
   <string name="contact_name">Contact Name</string>
+  <string name="contacts_empty_message">No contacts found</string>
   <string name="contribution_type">Contribution type</string>
   <string name="contribution_type_direct_dot">Direct DOT</string>
   <string name="contribution_type_lcdot">lcDOT</string>
@@ -1039,6 +1042,7 @@
   <string name="tabbar_wallet_title">Wallet</string>
   <string name="today">Today</string>
   <string name="top_up">Top Up</string>
+  <string name="tranaction_history_others_tab_title">Others</string>
   <string name="transaction_detail_status">Status</string>
   <string name="transaction_details_copy_hash">Copy hash</string>
   <string name="transaction_details_extrinsic_fee">Fee</string>

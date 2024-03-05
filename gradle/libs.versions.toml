@@ -67,6 +67,7 @@ biometric = { module = "androidx.biometric:biometric", version.ref = "biometricV
 cardview = { module = "androidx.cardview:cardview", version.ref = "cardViewVersion" }
 coil = { module = "io.coil-kt:coil", version.ref = "coilVersion" }
 coil-svg = { module = "io.coil-kt:coil-svg", version.ref = "coilVersion" }
+coil-gif = { module = "io.coil-kt:coil-gif", version.ref = "coilVersion" }
 constraintlayout = { module = "androidx.constraintlayout:constraintlayout", version.ref = "constraintVersion" }
 converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "retrofit" }
 converter-scalars = { module = "com.squareup.retrofit2:converter-scalars", version.ref = "retrofit" }
@@ -141,6 +142,7 @@ compose-uiToolingPreview = { module = "androidx.compose.ui:ui-tooling-preview", 
 compose-uiTooling = { module = "androidx.compose.ui:ui-tooling", version.ref = "compose" }
 compose-shimmer = { module = "com.valentinilk.shimmer:compose-shimmer", version.ref = "composeShimmer" }
 activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activityCompose" }
+lifecycle-runtime-compose = { module = "androidx.lifecycle:lifecycle-runtime-compose", version.ref = "architectureComponentVersion"}
 lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "architectureComponentVersion" }
 constraintlayout-compose = { module = "androidx.constraintlayout:constraintlayout-compose", version.ref = "constraintlayoutComposeVersion" }
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilVersion" }
@@ -178,7 +180,7 @@ compose = [
     "compose-runtime", "compose-ui", "compose-runtimeLiveData", "compose-compiler",
     "compose-foundation", "compose-material", "compose-themeAdapter", "compose-animation",
     "compose-animationGraphics", "compose-uiToolingPreview", "coil-compose", "compose-shimmer",
-    "activity-compose", "lifecycle-viewmodel-compose", "constraintlayout-compose",
+    "activity-compose", "lifecycle-viewmodel-compose", "constraintlayout-compose", "lifecycle-runtime-compose",
     "navigation-compose", "hilt-navigation-compose", "accompanist-swiperefresh", "accompanist-webview"
 ]
 composeDebug = [

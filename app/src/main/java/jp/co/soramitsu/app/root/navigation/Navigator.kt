@@ -72,6 +72,8 @@ import jp.co.soramitsu.crowdloan.impl.presentation.contribute.custom.CustomContr
 import jp.co.soramitsu.crowdloan.impl.presentation.contribute.custom.model.CustomContributePayload
 import jp.co.soramitsu.crowdloan.impl.presentation.contribute.select.CrowdloanContributeFragment
 import jp.co.soramitsu.crowdloan.impl.presentation.contribute.select.parcel.ContributePayload
+import jp.co.soramitsu.nft.impl.presentation.NFTFlowFragment
+import jp.co.soramitsu.nft.navigation.NFTRouter
 import jp.co.soramitsu.onboarding.impl.OnboardingRouter
 import jp.co.soramitsu.onboarding.impl.welcome.WelcomeFragment
 import jp.co.soramitsu.onboarding.impl.welcome.select_import_mode.SelectImportModeDialog
@@ -143,6 +145,7 @@ import jp.co.soramitsu.wallet.impl.presentation.beacon.main.BeaconFragment
 import jp.co.soramitsu.wallet.impl.presentation.beacon.main.DAppMetadataModel
 import jp.co.soramitsu.wallet.impl.presentation.beacon.sign.SignBeaconTransactionFragment
 import jp.co.soramitsu.wallet.impl.presentation.beacon.sign.TransactionRawDataFragment
+import jp.co.soramitsu.wallet.impl.presentation.contacts.ContactsFragment
 import jp.co.soramitsu.wallet.impl.presentation.cross_chain.CrossChainTransferDraft
 import jp.co.soramitsu.wallet.impl.presentation.cross_chain.confirm.CrossChainConfirmFragment
 import jp.co.soramitsu.wallet.impl.presentation.cross_chain.setup.CrossChainSetupFragment
@@ -198,7 +201,9 @@ class Navigator :
     PolkaswapRouter,
     SuccessRouter,
     SoraCardRouter,
-    WalletConnectRouter {
+    WalletConnectRouter,
+    NFTRouter
+{
 
     private var navController: NavController? = null
     private var activity: AppCompatActivity? = null
@@ -1501,5 +1506,23 @@ class Navigator :
 
     override fun openGetMoreXor() {
         navController?.navigate(R.id.getMoreXorFragment)
+    }
+
+    override fun openContactsWithResult(chainId: ChainId): Flow<String> {
+        val bundle = ContactsFragment.getBundle(chainId)
+        return openWithResult(
+            destinationId = R.id.contactsFragment,
+            bundle = bundle,
+            resultKey = ContactsFragment.RESULT_CONTACT
+        )
+    }
+
+    override fun openNftCollection(selectedAssetId: ChainId, contractAddress: String, collectionName: String) {
+        val bundle = NFTFlowFragment.getCollectionDetailsBundle(selectedAssetId, contractAddress, collectionName)
+        navController?.navigate(R.id.nftFlowFragment, bundle)
+    }
+
+    override fun openNFTFilter() {
+        navController?.navigate(R.id.nftFiltersFragment)
     }
 }

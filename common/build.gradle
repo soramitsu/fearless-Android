@@ -153,6 +153,7 @@ dependencies {
     implementation libs.sora.ui
 
     api libs.coil
+    api libs.coil.gif
     api libs.coil.svg
 
     testImplementation libs.junit

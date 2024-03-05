@@ -27,7 +27,7 @@ fun BottomSheetScreen(
     modifier: Modifier = Modifier,
     Content: @Composable ColumnScope.() -> Unit
 ) {
-    Column {
+    Column(verticalArrangement = Arrangement.Bottom) {
         MarginVertical(margin = 12.dp)
         Column(
             modifier = modifier.background(backgroundBlack, RoundedCornerShape(topEnd = 24.dp, topStart = 24.dp))
