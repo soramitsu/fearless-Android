@@ -14,6 +14,7 @@ import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.mixin.api.Browserable
 import jp.co.soramitsu.common.utils.Event
+import jp.co.soramitsu.onboarding.api.domain.OnboardingInteractor
 import jp.co.soramitsu.onboarding.impl.OnboardingRouter
 import jp.co.soramitsu.onboarding.impl.welcome.WelcomeFragment.Companion.KEY_PAYLOAD
 import kotlinx.coroutines.channels.BufferOverflow
@@ -32,10 +33,13 @@ class WelcomeViewModel @Inject constructor(
     private val appLinksProvider: AppLinksProvider,
     savedStateHandle: SavedStateHandle,
     private val backupService: BackupService,
-    private val pendulumPreInstalledAccountsScenario: PendulumPreInstalledAccountsScenario
-) : BaseViewModel(), Browserable, WelcomeScreenInterface {
+    private val pendulumPreInstalledAccountsScenario: PendulumPreInstalledAccountsScenario,
+    private val onboardingInteractor: OnboardingInteractor
+) : BaseViewModel(), Browserable, WelcomeScreenInterface, OnboardingScreenCallback, OnboardingSplashScreenClickListener {
 
     private val payload = savedStateHandle.get<WelcomeFragmentPayload>(KEY_PAYLOAD)!!
+
+    val onboardingFlowState = MutableStateFlow<OnboardingFlow?>(null)
 
     val state = MutableStateFlow(
         WelcomeState(
@@ -57,6 +61,12 @@ class WelcomeViewModel @Inject constructor(
             when (isImport) {
                 true -> router.openImportAccountSkipWelcome(this)
                 else -> router.openCreateAccountSkipWelcome(this)
+            }
+        }
+
+        viewModelScope.launch {
+            onboardingInteractor.getConfig().getOrNull()?.en_EN?.let {
+                onboardingFlowState.value = OnboardingFlow(it.new)
             }
         }
     }
@@ -139,5 +149,21 @@ class WelcomeViewModel @Inject constructor(
                     router.openCreatePincode()
                 }
         }
+    }
+
+    override fun onStart() {
+        _events.trySend(WelcomeEvent.Onboarding.PagerScreen)
+    }
+
+    override fun onClose() {
+        _events.trySend(WelcomeEvent.Onboarding.WelcomeScreen)
+    }
+
+    override fun onNext() {
+        _events.trySend(WelcomeEvent.Onboarding.WelcomeScreen)
+    }
+
+    override fun onSkip() {
+        _events.trySend(WelcomeEvent.Onboarding.WelcomeScreen)
     }
 }

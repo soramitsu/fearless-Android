@@ -8,14 +8,19 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.ModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.core.os.bundleOf
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.rememberNavController
 import com.journeyapps.barcodescanner.ScanOptions
 import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.account.api.presentation.account.create.ChainAccountCreatePayload
@@ -70,16 +75,7 @@ class WelcomeFragment : BaseComposeFragment<WelcomeViewModel>() {
 
         observeBrowserEvents(viewModel)
 
-        viewModel.events
-            .onEach(::handleEvents)
-            .launchIn(viewLifecycleOwner.lifecycleScope)
-    }
 
-    private fun handleEvents(event: WelcomeEvent) {
-        when (event) {
-            WelcomeEvent.AuthorizeGoogle -> handleAuthorizeGoogleEvent()
-            WelcomeEvent.ScanQR -> requestCameraPermission()
-        }
     }
 
     private fun handleAuthorizeGoogleEvent() {
@@ -88,14 +84,55 @@ class WelcomeFragment : BaseComposeFragment<WelcomeViewModel>() {
 
     @ExperimentalMaterialApi
     @Composable
-    override fun Content(padding: PaddingValues, scrollState: ScrollState, modalBottomSheetState: ModalBottomSheetState) {
-        val state by viewModel.state.collectAsState()
+    override fun Content(
+        padding: PaddingValues,
+        scrollState: ScrollState,
+        modalBottomSheetState: ModalBottomSheetState
+    ) {
+        val navController = rememberNavController()
+
+        LaunchedEffect(Unit) {
+            viewModel.events
+                .onEach { event ->
+                    when (event) {
+                        WelcomeEvent.AuthorizeGoogle ->
+                            handleAuthorizeGoogleEvent()
+
+                        WelcomeEvent.ScanQR ->
+                            requestCameraPermission()
+
+                        is WelcomeEvent.Onboarding ->
+                            navController.navigate(event.route)
+                    }
+                }.launchIn(this)
+        }
 
         FearlessAppTheme {
-            WelcomeScreen(
-                state = state,
-                callbacks = viewModel
-            )
+            NavHost(
+                startDestination = WelcomeEvent.Onboarding.SplashScreen.route,
+                contentAlignment = Alignment.TopCenter,
+                navController = navController,
+                modifier = Modifier
+                    .padding(padding)
+                    .fillMaxSize(),
+            ) {
+
+                OnboardingSplashScreen(
+                    listener = viewModel
+                )
+
+                OnboardingScreen(
+                    onboardingStateFlow = viewModel.onboardingFlowState,
+                    callback = viewModel
+                )
+
+                WelcomeScreen(
+                    welcomeStateFlow = viewModel.state,
+                    callbacks = viewModel
+                )
+
+            }
+
         }
     }
 
