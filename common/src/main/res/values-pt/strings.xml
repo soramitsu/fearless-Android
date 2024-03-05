@@ -211,7 +211,8 @@
   <string name="common_error_internal">Ocorreu um erro interno</string>
   <string name="common_error_network">Ocorreu um erro durante a comunicação com o servidor remoto</string>
   <string name="common_event">Evento</string>
-  <string name="common_existential_warning_message">Esta transação terá como resultado que a conta passe abaixo do Depósito Existencial, o que fará com que ela seja colhida (a conta será apagada da blockchain para conservar espaço). Se optar por continuar, perderá quaisquer fundos que estejam abaixo do montante do depósito existencial estabelecido pela rede. Para informações detalhadas, consulte a documentação oficial da rede (por exemplo, a Polkadot Wiki). A Fearless Wallet é uma aplicação totalmente não custodial, e não tem nenhum controlo ou conhecimento de qualquer das suas ações na própria rede. CONTINUE SÓ SE CONCORDAR PLENAMENTE E COMPREENDER AS IMPLICAÇÕES.</string>
+  <string name="common_existential_error_message">Esta transação terá como resultado que a conta passe abaixo do Depósito Existencial(%s), o que fará com que ela seja colhida (a conta será apagada da blockchain para conservar espaço).</string>
+  <string name="common_existential_warning_message">Esta transação terá como resultado que a conta passe abaixo do Depósito Existencial(%s), o que fará com que ela seja colhida (a conta será apagada da blockchain para conservar espaço). Se optar por continuar, perderá quaisquer fundos que estejam abaixo do montante do depósito existencial estabelecido pela rede. Para informações detalhadas, consulte a documentação oficial da rede (por exemplo, a Polkadot Wiki). A Fearless Wallet é uma aplicação totalmente não custodial, e não tem nenhum controlo ou conhecimento de qualquer das suas ações na própria rede. CONTINUE SÓ SE CONCORDAR PLENAMENTE E COMPREENDER AS IMPLICAÇÕES.</string>
   <string name="common_existential_warning_title">A operação irá remover a conta</string>
   <string name="common_filter_sort_header">Ordenar por</string>
   <string name="common_friend_bonus">Bónus para o seu amigo</string>
@@ -392,6 +393,7 @@
   <string name="crownloans_raised_format" formatted="false">Angariado: %s de %s</string>
   <string name="currencies_stub_text">Moedas</string>
   <string name="custom_collators_title">Stake com coletores conhecidos</string>
+  <string name="custom_validators_empty_message">Nenhum validador encontrado. Por favor, tente alterar os filtros</string>
   <string name="default_account_shared_secret">Contas padrão com um segredo partilhado</string>
   <string name="delete_custom_node_title">Eliminar o node personalizado?</string>
   <string name="donation_alert_title">Este endereço foi sinalizado como suspeito.</string>
@@ -969,6 +971,7 @@
   <string name="staking_validator_own_stake">Pertencente ao validador</string>
   <string name="staking_validator_search_empty_title">Sem resultados de pesquisa.\nTenha a certeza de que digitou o endereço completo da conta</string>
   <string name="staking_validator_slashed_desc">O Validador é penalizado por se comportar mal (por exemplo, ficar offline, atacar a rede ou executar softwares modificados) na rede.</string>
+  <string name="staking_validator_status_unelected">Não eleito</string>
   <string name="staking_validator_summary_description">Em atualizações futuras, adicionaremos recursos de staking para os validadores. \n \n #StayFearless</string>
   <string name="staking_validator_summary_title">Staking para validador</string>
   <string name="staking_validator_total">Total</string>
@@ -1042,7 +1045,7 @@
   <string name="username_setup_title_2_0">Criar nova carteira</string>
   <string name="validator_info_comission_title">Comissão</string>
   <string name="validator_not_elected_description">Esta conta não foi eleita pela rede para participar na era atual</string>
-  <string name="validators_list_empty_message">Nenhum validador encontrado. Por favor, tente alterar os filtros</string>
+  <string name="validators_list_empty_message">Não foram encontrados validadores</string>
   <string name="view_in">Ver em %s</string>
   <string name="view_wallet">Ver carteira</string>
   <string name="wallet_asset_buy_with">Comprar %s com</string>

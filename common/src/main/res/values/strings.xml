@@ -219,6 +219,7 @@
   <string name="common_error_internal">Internal error occurred</string>
   <string name="common_error_network">Error occurred while communicating with the remote server</string>
   <string name="common_event">Event</string>
+  <string name="common_existential_error_message">This transaction will result in the account going below the Existential Deposit (%s), which will cause it to be reaped (the account will be wiped from the blockchain\'s state to conserve space).</string>
   <string name="common_existential_warning_message">This transaction will result in the account going below the Existential Deposit (%s), which will cause it to be reaped (the account will be wiped from the blockchain\'s state to conserve space). If you choose to continue you will lose any funds that are below the existential deposit amount set by the network. For detailed information please refer to the official network documentation (e.g., the Polkadot Wiki). Fearless Wallet is a fully non-custodial application and has no control or knowledge of any of your actions on the network itself. ONLY CONTINUE IF YOU FULLY AGREE TO AND UNDERSTAND THE IMPLICATIONS.</string>
   <string name="common_existential_warning_title">This operation will remove the account</string>
   <string name="common_filter_sort_header">Sort by:</string>
@@ -405,6 +406,7 @@
   <string name="crownloans_raised_format" formatted="false">Raised: %s of %s</string>
   <string name="currencies_stub_text">Currencies</string>
   <string name="custom_collators_title">Stake with known collators</string>
+  <string name="custom_validators_empty_message">No validators found.\nPlease try to change filters</string>
   <string name="default_account_shared_secret">Accounts with a shared secret</string>
   <string name="delete_custom_node_title">Delete custom node?</string>
   <string name="donation_alert_title">This address has been flagged as suspicious.</string>
@@ -994,6 +996,7 @@
   <string name="staking_validator_own_stake">Own</string>
   <string name="staking_validator_search_empty_title">No search results.\nBe sure you typed the full account address</string>
   <string name="staking_validator_slashed_desc">The Validator is slashed for misbehaviour (e.g. goes offline, attacks the network, or runs modified software) in the network.</string>
+  <string name="staking_validator_status_unelected">Not elected</string>
   <string name="staking_validator_summary_description">In future updates, we will add staking features for validators. \n \n #StayFearless</string>
   <string name="staking_validator_summary_title">Staking for validators</string>
   <string name="staking_validator_total">Total</string>
@@ -1069,8 +1072,7 @@
   <string name="username_setup_title_2_0">Create a new wallet</string>
   <string name="validator_info_comission_title">Comission</string>
   <string name="validator_not_elected_description">This account has not been elected by the network to participate in the current era</string>
-  <string name="validators_list_empty_message">No validators found. Please try to change filters</string>
-  <string name="validators_list_empty_message_recommended">No validators found</string>
+  <string name="validators_list_empty_message">No validators found</string>
   <string name="vesting_claim_disclaimer_text">Due to the unique vesting schedules of each parachain, our app is unable to display the quantity of locked tokens eligible for claiming. Please be advised that initiating a claim may be impractical if the prospective amount is marginal and comparable to the transaction fee involved. For comprehensive insights into your locked balances, consult the Subscan blockexplorer. We urge you to assess the information carefully and proceed at your own discretion.</string>
   <string name="vesting_claim_disclaimer_title">Important Notice Regarding Token Claims:</string>
   <string name="vesting_locked_title">Vesting Locked</string>

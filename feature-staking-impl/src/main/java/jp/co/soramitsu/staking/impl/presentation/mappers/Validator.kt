@@ -161,7 +161,7 @@ suspend fun mapValidatorDetailsParcelToValidatorDetailsModel(
         val prefs = prefs?.let { ValidatorStakeModel.Prefs(it.isBlocked, it.commission.fractionToPercentage().formatAsPercentage()) }
         val stake = when (val stake = validator.stake) {
             ValidatorStakeParcelModel.Inactive -> ValidatorStakeModel(
-                statusText = resourceManager.getString(R.string.staking_nominator_status_inactive),
+                statusText = resourceManager.getString(R.string.staking_validator_status_unelected),
                 statusColorRes = R.color.gray2,
                 activeStakeModel = null,
                 prefs = prefs

@@ -186,6 +186,7 @@
   <string name="common_confirmed">Đã xác nhận</string>
   <string name="common_connect">Kết nối</string>
   <string name="common_connection_problems">Sự cố kết nối</string>
+  <string name="common_contacts">Liên hệ</string>
   <string name="common_continue">Tiếp tục</string>
   <string name="common_copied">Sao chép vào clipboard</string>
   <string name="common_copy">Sao chép</string>
@@ -217,7 +218,8 @@
   <string name="common_error_internal">Đã xảy ra lỗi nội bộ</string>
   <string name="common_error_network">Lỗi xảy ra trong khi giao tiếp với máy chủ</string>
   <string name="common_event">Sự kiện</string>
-  <string name="common_existential_warning_message">Giao dịch này sẽ dẫn đến việc tài khoản sẽ xuống thâp hơn Khoản tiền gửi tối thiểu để duy trì tài khoản, điều này sẽ khiến tài khoản bị thu hồi (tài khoản sẽ bị xóa khỏi trạng thái của blockchain để bảo toàn không gian). Nếu bạn chọn tiếp tục, bạn sẽ mất bất kỳ khoản tiền nào thấp hơn số tiền ký quỹ hiện có do mạng đặt ra. Để biết thông tin chi tiết, vui lòng tham khảo tài liệu mạng chính thức (ví dụ: Polkadot Wiki). Fearless Wallet là một ứng dụng hoàn toàn không bị quản lý và không có quyền kiểm soát hoặc không biết về bất kỳ hành động nào của bạn trên chính mạng đó. CHỈ TIẾP TỤC NẾU BẠN HOÀN TOÀN ĐỒNG Ý VÀ HIỂU Ý.</string>
+  <string name="common_existential_error_message">Giao dịch này sẽ dẫn đến việc tài khoản sẽ xuống thâp hơn Khoản tiền gửi tối thiểu để duy trì tài khoản(%s), điều này sẽ khiến tài khoản bị thu hồi (tài khoản sẽ bị xóa khỏi trạng thái của blockchain để bảo toàn không gian).</string>
+  <string name="common_existential_warning_message">Giao dịch này sẽ dẫn đến việc tài khoản sẽ xuống thâp hơn Khoản tiền gửi tối thiểu để duy trì tài khoản (%s), điều này sẽ khiến tài khoản bị thu hồi (tài khoản sẽ bị xóa khỏi trạng thái của blockchain để bảo toàn không gian). Nếu bạn chọn tiếp tục, bạn sẽ mất bất kỳ khoản tiền nào thấp hơn số tiền ký quỹ hiện có do mạng đặt ra. Để biết thông tin chi tiết, vui lòng tham khảo tài liệu mạng chính thức (ví dụ: Polkadot Wiki). Fearless Wallet là một ứng dụng hoàn toàn không bị quản lý và không có quyền kiểm soát hoặc không biết về bất kỳ hành động nào của bạn trên chính mạng đó. CHỈ TIẾP TỤC NẾU BẠN HOÀN TOÀN ĐỒNG Ý VÀ HIỂU Ý.</string>
   <string name="common_existential_warning_title">Thao tác này sẽ xóa tài khoản</string>
   <string name="common_filter_sort_header">Sắp xếp theo:</string>
   <string name="common_friend_bonus">Tiền thưởng cho bạn của bạn</string>
@@ -343,6 +345,7 @@
   <string name="connections_search_hint">Tìm kiếm theo kết nối</string>
   <string name="contact_address">Địa chỉ liên hệ</string>
   <string name="contact_name">Tên liên hệ</string>
+  <string name="contacts_empty_message">Không tìm thấy thông tin liên hệ</string>
   <string name="contribution_type">Loại đóng góp</string>
   <string name="contribution_type_direct_dot">Direct DOT</string>
   <string name="contribution_type_lcdot">lcDOT</string>
@@ -401,6 +404,7 @@
   <string name="crownloans_raised_format" formatted="false">Đã huy động: %s của %s</string>
   <string name="currencies_stub_text">Tiền tệ</string>
   <string name="custom_collators_title">Cổ phần với những collators đã biết</string>
+  <string name="custom_validators_empty_message">Không tìm thấy validator nào.\nVui lòng thử thay đổi bộ lọc</string>
   <string name="default_account_shared_secret">Tài khoản với khóa bí mật chia sẻ</string>
   <string name="delete_custom_node_title">Xóa node tùy chỉnh?</string>
   <string name="donation_alert_title">Địa chỉ này đã được gắn cờ là đáng ngờ.</string>
@@ -988,6 +992,7 @@
   <string name="staking_validator_own_stake">Sở hữu</string>
   <string name="staking_validator_search_empty_title">Không tìm thấy kết quả.\nHãy chắc chắn bạn nhập địa chỉ tài khoản đầy đủ</string>
   <string name="staking_validator_slashed_desc">Validator bị tạm ngưng do các hành vi sai trái (ví dụ: ngoại tuyến, tấn công mạng hoặc chạy phần mềm sửa đổi) trong mạng.</string>
+  <string name="staking_validator_status_unelected">Không được bầu</string>
   <string name="staking_validator_summary_description">Các bản cập nhập sau này, chúng tôi sẽ thêm các tính năng staking cho các validator. \n \n #StayFearless</string>
   <string name="staking_validator_summary_title">Staking cho validator</string>
   <string name="staking_validator_total">Tổng</string>
@@ -1063,7 +1068,7 @@
   <string name="username_setup_title_2_0">Tạo một ví mới</string>
   <string name="validator_info_comission_title">Sứ mệnh</string>
   <string name="validator_not_elected_description">Tài khoản này không được mạng (network) đề cử ở era hiện tại</string>
-  <string name="validators_list_empty_message">Không tìm thấy trình xác thực nào. Vui lòng thử thay đổi bộ lọc</string>
+  <string name="validators_list_empty_message">Không tìm thấy validator nào</string>
   <string name="vesting_claim_disclaimer_text">Do lịch trình trao quyền duy nhất của mỗi parachain, ứng dụng của chúng tôi không thể hiển thị số lượng mã thông báo bị khóa đủ điều kiện để yêu cầu. Xin lưu ý rằng việc bắt đầu yêu cầu bồi thường có thể không thực tế nếu số tiền tiềm năng là rất nhỏ và có thể so sánh được với phí giao dịch liên quan. Để có thông tin chi tiết toàn diện về số dư bị khóa của bạn, hãy tham khảo Subscan blockexplorer. Chúng tôi khuyên bạn nên đánh giá thông tin một cách cẩn thận và tiến hành theo ý riêng của bạn.</string>
   <string name="vesting_claim_disclaimer_title">Thông báo quan trọng về yêu cầu token:</string>
   <string name="vesting_locked_title">Vesting Locked</string>

@@ -119,7 +119,6 @@ class SelectCustomValidatorsViewModel @Inject constructor(
                 .map { it.payload.blockProducers.map(Validator::accountIdHex).toSet() }
                 .first()
             initiallySelected = selectedItems.value
-            Log.d("&&&", "selectedItems = ${selectedItems.value.size}")
         }
 
         subscribeListState()
@@ -236,10 +235,6 @@ class SelectCustomValidatorsViewModel @Inject constructor(
 
     override fun onChooseClick() {
         recommendedValidators.value.dataOrNull()?.let { allValidators ->
-            Log.d("&&&", "allValidators = ${allValidators.size}")
-
-            Log.d("&&&", "selected = ${allValidators.size}")
-
             when (selectMode) {
                 SelectValidatorFlowState.ValidatorSelectMode.CUSTOM -> {
                     val selected = allValidators.filter { selectedItems.value.contains(it.accountIdHex) }

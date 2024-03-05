@@ -132,9 +132,9 @@ fun SelectValidatorsScreen(
                                 .fillMaxSize()
                         ) {
                             val message = if(state.isCustom) {
-                                R.string.validators_list_empty_message
+                                R.string.custom_validators_empty_message
                             } else {
-                                R.string.validators_list_empty_message_recommended
+                                R.string.validators_list_empty_message
                             }
 
                             EmptyMessage(
