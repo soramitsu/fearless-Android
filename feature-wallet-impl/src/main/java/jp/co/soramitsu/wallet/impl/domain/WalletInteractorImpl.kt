@@ -132,6 +132,20 @@ class WalletInteractorImpl(
             }
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
+    override fun assetsFlowAndAccount(): Flow<Pair<Long, List<AssetWithStatus>>> {
+        return accountRepository.selectedMetaAccountFlow()
+            .flatMapLatest { meta ->
+                walletRepository.assetsFlow(meta).map {
+                    meta.id to it
+                }
+            }
+            .filter { it.second.isNotEmpty() }
+            .map { (walletId, assets) ->
+                walletId to assets.sortedWith(defaultAssetListSort())
+            }
+    }
+
     private fun defaultAssetListSort() =
         compareByDescending<AssetWithStatus> { it.asset.total.orZero() > BigDecimal.ZERO }
             .thenByDescending { it.asset.fiatAmount.orZero() }

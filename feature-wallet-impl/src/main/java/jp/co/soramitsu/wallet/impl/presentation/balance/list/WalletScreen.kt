@@ -17,6 +17,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.SwipeableState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.tooling.preview.Preview
@@ -62,6 +63,14 @@ fun WalletScreen(
     data: WalletState,
     callback: WalletScreenInterface
 ) {
+    val listState = rememberForeverLazyListState("wallet_screen")
+
+    LaunchedEffect(data.scrollToTopEvent) {
+        data.scrollToTopEvent?.getContentIfNotHandled()?.let {
+            listState.animateScrollToItem(0)
+        }
+    }
+
     Column(modifier = Modifier.padding(horizontal = 16.dp)) {
         MarginVertical(margin = 16.dp)
         AssetBalance(
@@ -265,7 +274,8 @@ private fun PreviewWalletScreen() {
                     ),
                     hasNetworkIssues = true,
                     soraCardState = SoraCardItemViewState(null, null, null, true),
-                    isBackedUp = false
+                    isBackedUp = false,
+                    scrollToTopEvent = null
                 ),
                 callback = emptyCallback
             )
