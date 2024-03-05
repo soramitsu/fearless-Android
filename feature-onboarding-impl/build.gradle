@@ -16,7 +16,18 @@ android {
 
     }
 
+    buildTypes {
+        debug {
+            buildConfigField "String", "ONBOARDING_CONFIG", "\"https://raw.githubusercontent.com/soramitsu/shared-features-utils/develop-free/appConfigs/onboarding/mobile.json\""
+        }
+
+        release {
+            buildConfigField "String", "ONBOARDING_CONFIG", "\"https://raw.githubusercontent.com/soramitsu/shared-features-utils/develop-free/appConfigs/onboarding/mobile.json\""
+        }
+    }
+
     buildFeatures {
+        buildConfig = true
         viewBinding = true
         compose true
     }
