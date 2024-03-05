@@ -21,6 +21,7 @@ private const val CHAINLINK_PROVIDER_OPTION = "chainlinkProvider"
 private const val CROWDLOAN_OPTION = "crowdloans"
 private const val TESTNET_OPTION = "testnet"
 private const val NOMINATION_POOL_OPTION = "poolStaking"
+private const val NFT_OPTION = "nft"
 
 private fun mapSectionTypeRemoteToSectionType(section: String) = when (section) {
     "subquery" -> Chain.ExternalApi.Section.Type.SUBQUERY
@@ -151,6 +152,7 @@ fun ChainRemote.toChain(): Chain {
         supportStakingPool = NOMINATION_POOL_OPTION in optionsOrEmpty,
         isEthereumChain = ETHEREUM_OPTION in optionsOrEmpty,
         chainlinkProvider = CHAINLINK_PROVIDER_OPTION in optionsOrEmpty,
+        supportNft = NFT_OPTION in optionsOrEmpty,
         paraId = this.paraId
     )
 }
@@ -258,7 +260,8 @@ fun mapChainLocalToChain(chainLocal: JoinedChainInfo): Chain {
             supportStakingPool = supportStakingPool,
             isEthereumChain = isEthereumChain,
             paraId = paraId,
-            chainlinkProvider = isChainlinkProvider
+            chainlinkProvider = isChainlinkProvider,
+            supportNft = supportNft
         )
     }
 }
@@ -329,7 +332,8 @@ fun mapChainToChainLocal(chain: Chain): JoinedChainInfo {
             supportStakingPool = supportStakingPool,
             isEthereumChain = isEthereumChain,
             paraId = paraId,
-            isChainlinkProvider = chainlinkProvider
+            isChainlinkProvider = chainlinkProvider,
+            supportNft = supportNft
         )
     }
 

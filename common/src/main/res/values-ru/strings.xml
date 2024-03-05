@@ -140,6 +140,7 @@
   <string name="common_choose_network">Выберите сеть</string>
   <string name="common_claim">Получить</string>
   <string name="common_close">Закрыть</string>
+  <string name="common_commission">Комиссия</string>
   <string name="common_completed">Успешно</string>
   <string name="common_completed_with_count">Завершённые (%s)</string>
   <string name="common_confirm">Подтвердить</string>

@@ -176,6 +176,9 @@ dependencies {
     implementation project(':feature-walletconnect-api')
     implementation project(':feature-walletconnect-impl')
 
+    implementation project(':feature-nft-api')
+    implementation project(':feature-nft-impl')
+
     implementation libs.kotlin.stdlib.jdk7
 
     implementation libs.appcompat

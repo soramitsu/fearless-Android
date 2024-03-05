@@ -91,6 +91,10 @@
   <string name="backup_wallet_show_mnemonic_phrase">显示助记词短语</string>
   <string name="backup_wallet_show_raw_seed">展示原始种子</string>
   <string name="backup_wallet_warning_about_lose_phrase">如果你失去了对这个设备的访问权限，除非你进行备份，否则你的资金将会丢失！</string>
+  <string name="balance_locks_governance_row_title">治理</string>
+  <string name="balance_locks_liquidity_pools_row_title">流动性池</string>
+  <string name="balance_locks_nomination_pools_row_title">提名池</string>
+  <string name="balance_locks_screen_title">锁定的详细信息</string>
   <string name="banners_backup_description">保护自己避免失去对资金的访问权限。</string>
   <string name="banners_buy_xor">购买XOR</string>
   <string name="banners_buy_xor_description">使用欧元现金购买或出售XOR代币</string>
@@ -507,6 +511,7 @@
   <string name="network_status_connected">已连接</string>
   <string name="network_status_connecting">正在连接...</string>
   <string name="network_url_address">URL地址</string>
+  <string name="nft_choose_recipient_title">选择接收人</string>
   <string name="nft_collection_available_nfts">%s 集合中可用的 NFT</string>
   <string name="nft_collection_my_nfts">我的 NFT</string>
   <string name="nft_collection_title">收藏品</string>
@@ -515,6 +520,7 @@
   <string name="nft_owner_title">拥有</string>
   <string name="nft_stub_text">NFTs 很快就会到来</string>
   <string name="nft_stub_title">对不起！</string>
+  <string name="nft_token_type_title">代币类型</string>
   <string name="nft_tokenid_title">代币ID</string>
   <string name="nfts_collection_count" formatted="false">数量：%d/%d</string>
   <string name="nfts_stub">NFTs</string>
@@ -1019,7 +1025,7 @@
   <string name="switch_node">切换节点</string>
   <string name="switch_node_autoselect_title">自动选择节点</string>
   <string name="tabbar_crowdloan_attention">请检查众贷选项卡\n需要注意</string>
-  <string name="tabbar_extrinsics_title">外部信息</string>
+  <string name="tabbar_extrinsics_title">外部交易</string>
   <string name="tabbar_governance_title">治理</string>
   <string name="tabbar_polkaswap_title">Polkaswap</string>
   <string name="tabbar_profile_title">个人资料</string>
@@ -1027,6 +1033,7 @@
   <string name="tabbar_wallet_title">钱包</string>
   <string name="today">今天</string>
   <string name="top_up">充值</string>
+  <string name="tranaction_history_others_tab_title">其他</string>
   <string name="transaction_detail_status">状态</string>
   <string name="transaction_details_copy_hash">复制哈希</string>
   <string name="transaction_details_extrinsic_fee">费用</string>
@@ -1054,6 +1061,9 @@
   <string name="validator_info_comission_title">佣金</string>
   <string name="validator_not_elected_description">此账户尚未被网络选中参与当前时间段</string>
   <string name="validators_list_empty_message">未找到验证人。请尝试更改过滤器。</string>
+  <string name="vesting_claim_disclaimer_text">由于每个平行链的独特归属计划，我们的应用无法显示可认领的锁定代币数量。请注意，如果预计金额微不足道且与涉及的交易费用相当，发起认领可能是不切实际的。要全面了解您的锁定余额，请咨询Subscan区块浏览器。我们敦促您仔细评估信息，并根据自己的判断继续操作。</string>
+  <string name="vesting_claim_disclaimer_title">关于代币申领的重要通知：</string>
+  <string name="vesting_locked_title">归属锁定</string>
   <string name="view_in">在%s中查看</string>
   <string name="view_wallet">查看钱包</string>
   <string name="wallet_asset_buy_with">购买%s用</string>

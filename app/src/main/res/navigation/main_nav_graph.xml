@@ -793,6 +793,21 @@
         android:name="jp.co.soramitsu.wallet.impl.presentation.balance.assetselector.AssetSelectFragment"
         android:label="assetSelectFragment" />
 
+    <dialog
+        android:id="@+id/contactsFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.contacts.ContactsFragment"
+        android:label="contactsFragment" />
+
+    <dialog
+        android:id="@+id/nftFiltersFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.balance.nft.filters.NftFiltersFragment"
+        android:label="nftFiltersFragment" />
+
+    <dialog
+        android:id="@+id/nftFlowFragment"
+        android:name="jp.co.soramitsu.nft.impl.presentation.NFTFlowFragment"
+        android:label="nftFlowFragment" />
+
     <action
         android:id="@+id/openStartChangeValidatorsFragment"
         app:destination="@id/startChangeValidatorsFragment"

@@ -116,6 +116,35 @@ class PreferencesImpl(
         }
     }
 
+    override fun stringSetFlow(
+        field: String,
+        initialValueProducer: InitialValueProducer<Set<String>>?
+    ): Flow<Set<String>> = callbackFlow {
+        if (contains(field)) {
+            send(getStringSet(field, emptySet()))
+        } else {
+            val initialValue = initialValueProducer?.invoke() ?: emptySet()
+
+            putStringSet(field, initialValue)
+
+            send(initialValue)
+        }
+
+        val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+            if (key == field) {
+                trySend(getStringSet(field, emptySet()))
+            }
+        }
+
+        listeners.add(listener)
+        sharedPreferences.registerOnSharedPreferenceChangeListener(listener)
+
+        awaitClose {
+            listeners.remove(listener)
+            sharedPreferences.unregisterOnSharedPreferenceChangeListener(listener)
+        }
+    }
+
     override fun intFlow(
         field: String,
         initialValue: Int

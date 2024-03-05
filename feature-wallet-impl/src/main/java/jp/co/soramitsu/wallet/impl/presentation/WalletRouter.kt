@@ -188,4 +188,10 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
     fun openConnectionDetails(topic: String)
 
     fun listenPolkaswapDisclaimerResultFlowFromMainScreen(): Flow<Boolean>
+
+    fun openContactsWithResult(chainId: ChainId): Flow<String>
+
+    fun openNftCollection(selectedAssetId: ChainId, contractAddress: String, collectionName: String)
+
+    fun openNFTFilter()
 }
