@@ -117,6 +117,7 @@ class SetupStakingInteractor(
 
         when (chainAsset.syntheticStakingType()) {
             SyntheticStakingType.TERNOA,
+            SyntheticStakingType.REEF,
             SyntheticStakingType.DEFAULT -> {
                 val targets = validatorsIds.map(chain::multiAddressOf)
 

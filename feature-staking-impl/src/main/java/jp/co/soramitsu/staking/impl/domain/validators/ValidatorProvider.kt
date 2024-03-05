@@ -5,6 +5,7 @@ import jp.co.soramitsu.common.utils.toHexAccountId
 import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.runtime.ext.addressOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.reefChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ternoaChainId
 import jp.co.soramitsu.shared_utils.extensions.fromHex
@@ -67,6 +68,10 @@ class ValidatorProvider(
             soraMainChainId -> {
                 val utilityAsset = chain.utilityAsset ?: error("Utility asset not specified for chain ${chain.name} - ${chain.id}")
                 rewardCalculatorFactory.createSora(utilityAsset, calculationTargets)
+            }
+            reefChainId -> {
+                val utilityAsset = chain.utilityAsset ?: error("Utility asset not specified for chain ${chain.name} - ${chain.id}")
+                rewardCalculatorFactory.createReef(utilityAsset, calculationTargets)
             }
 
             ternoaChainId -> {
