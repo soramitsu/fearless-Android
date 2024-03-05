@@ -1,6 +1,5 @@
 package jp.co.soramitsu.staking.impl.presentation.validators.change.custom.select.compose
 
-import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel

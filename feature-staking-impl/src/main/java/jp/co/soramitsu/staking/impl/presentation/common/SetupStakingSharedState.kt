@@ -306,15 +306,3 @@ class SetupStakingSharedState {
         set(mutation(get()))
     }
 }
-
-class SetupStakingSharedState1 {
-    val state = MutableStateFlow<UserStake?>(null)
-}
-
-data class UserStake(
-    val amount: BigDecimal,
-    val controllerAddress: String,
-    val rewardDestination: RewardDestination,
-    val chainId: ChainId,
-    val assetId: String
-)
