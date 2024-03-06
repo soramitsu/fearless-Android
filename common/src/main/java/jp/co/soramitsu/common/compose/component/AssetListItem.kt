@@ -354,7 +354,7 @@ private fun PreviewAssetListItem() {
         isTestnet = false
     )
     FearlessAppTheme {
-        Box(modifier = Modifier.background(Color.Black)) {
+        Box {
             Column {
                 AssetListItem(state) {}
                 MarginVertical(margin = 8.dp)

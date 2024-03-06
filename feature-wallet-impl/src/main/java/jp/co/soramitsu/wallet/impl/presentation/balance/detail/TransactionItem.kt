@@ -25,6 +25,7 @@ import jp.co.soramitsu.common.compose.component.B2
 import jp.co.soramitsu.common.compose.component.Image
 import jp.co.soramitsu.common.compose.component.getImageRequest
 import jp.co.soramitsu.common.utils.formatDateTime
+import jp.co.soramitsu.common.utils.formatTime
 import jp.co.soramitsu.wallet.impl.presentation.model.OperationModel
 import jp.co.soramitsu.wallet.impl.presentation.model.OperationStatusAppearance
 
@@ -144,7 +145,7 @@ fun TransactionItem(
             )
 
             B2(
-                text = item.time.formatDateTime(LocalContext.current).toString(),
+                text = item.time.formatTime(),
                 textAlign = TextAlign.End,
                 maxLines = 1,
                 color = Color.White.copy(alpha = 0.64f),

@@ -92,7 +92,7 @@ class NodeHolder(view: View) : GroupedListHolder(view) {
 
             val isChecked = nodeModel.isActive
 
-            nodeCheck.visibility = if (isChecked && !isAuto) View.VISIBLE else View.INVISIBLE
+            nodeCheck.visibility = if (isChecked) View.VISIBLE else View.INVISIBLE
 
             if (getEditMode() && !isChecked && !nodeModel.isDefault) {
                 nodeDelete.visibility = View.VISIBLE

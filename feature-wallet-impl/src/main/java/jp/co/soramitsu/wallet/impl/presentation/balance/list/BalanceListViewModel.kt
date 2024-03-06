@@ -188,29 +188,29 @@ class BalanceListViewModel @Inject constructor(
     private val assetTypeSelectorState = MutableStateFlow(
         MultiToggleButtonState(
             currentSelection = AssetType.Currencies,
-            toggleStates = AssetType.values().toList()
+            toggleStates = AssetType.entries
         )
     )
 
     private val showNetworkIssues = MutableStateFlow(false)
 
     private val assetStates = combine(
-        interactor.assetsFlow(),
+        interactor.assetsFlowAndAccount(),
         chainInteractor.getChainsFlow(),
         selectedChainId,
         interactor.selectedMetaAccountFlow(),
         networkIssuesFlow,
         interactor.observeSelectedAccountChainSelectFilter(),
         interactor.observeHideZeroBalanceEnabledForCurrentWallet()
-    ) { assets: List<AssetWithStatus>,
-        chains: List<Chain>,
-        selectedChainId: ChainId?,
-        currentMetaAccountFlow: MetaAccount,
-        networkIssues: Set<NetworkIssueItemState>,
-        appliedFilterAsString: String,
-        hideZeroBalancesEnabled: Boolean ->
+    ) { (walletId: Long, assets: List<AssetWithStatus>),
+            chains: List<Chain>,
+            selectedChainId: ChainId?,
+            currentMetaAccountFlow: MetaAccount,
+            networkIssues: Set<NetworkIssueItemState>,
+            appliedFilterAsString: String,
+            hideZeroBalancesEnabled: Boolean ->
 
-        val filter = ChainSelectorViewStateWithFilters.Filter.values().find {
+        val filter = ChainSelectorViewStateWithFilters.Filter.entries.find {
             it.name == appliedFilterAsString
         } ?: ChainSelectorViewStateWithFilters.Filter.All
 
@@ -258,7 +258,14 @@ class BalanceListViewModel @Inject constructor(
 
         val assetStates: List<AssetListItemViewState> = balanceListItems
             .sortedWith(defaultBalanceListItemSort())
-            .mapIndexed { index, item -> item.toAssetState(index) }
+            .mapIndexed { index, item ->
+                if (currentMetaAccountFlow.id == walletId) {
+                    item.toAssetState(index)
+                } else {
+                    // invoke shimmers
+                    item.toAssetState(index).copy(assetTransferableBalance = null)
+                }
+            }
 
         assetStates
     }.onStart { emit(buildInitialAssetsList().toMutableList()) }.inBackground().share()
@@ -472,7 +479,10 @@ class BalanceListViewModel @Inject constructor(
         }.launchIn(this)
 
         currentMetaAccountFlow.onEach {
-            state.value = state.value.copy(isBackedUp = it.isBackedUp)
+            state.value = state.value.copy(
+                isBackedUp = it.isBackedUp,
+                scrollToTopEvent = Event(Unit)
+            )
         }.launchIn(this)
 
         showNetworkIssues.onEach {
@@ -515,7 +525,7 @@ class BalanceListViewModel @Inject constructor(
                     selectedChainName = chain?.title,
                     selectedChainId = chain?.id,
                     selectedChainImageUrl = chain?.imageUrl,
-                    filterApplied = ChainSelectorViewStateWithFilters.Filter.values().find {
+                    filterApplied = ChainSelectorViewStateWithFilters.Filter.entries.find {
                         it.name == filter
                     } ?: ChainSelectorViewStateWithFilters.Filter.All
                 )

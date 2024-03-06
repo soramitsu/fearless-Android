@@ -97,8 +97,8 @@ class AssetDetailsViewModel @Inject constructor(
                     val resultWithStatuses = resultMap.mapValues { resultEntry ->
                         resultEntry.value?.let { resultAsset ->
                             assetsWithStatus.firstOrNull {
-                                resultEntry.key.id == resultAsset.token.configuration.chainId &&
-                                        it.asset.token.configuration.id == resultAsset.token.configuration.id
+                                resultEntry.key.id == it.asset.token.configuration.chainId &&
+                                        resultAsset.token.configuration.id == it.asset.token.configuration.id
                             }
                         }
                     }

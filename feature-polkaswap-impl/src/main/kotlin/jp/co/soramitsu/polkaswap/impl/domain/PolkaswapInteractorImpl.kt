@@ -245,6 +245,7 @@ class PolkaswapInteractorImpl @Inject constructor(
 
         val sources = polkaswapRepository.getAvailableSources(polkaswapChainId, tokenFromId, tokenToId, availableDexes)
             .mapValues { listOf(Market.SMART, *it.value.toTypedArray()) }
+
         availableMarkets.clear()
         availableMarkets.putAll(sources)
         return sources.values.flatten().toSet()

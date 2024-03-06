@@ -39,6 +39,7 @@ enum class AssetSorting {
 interface WalletInteractor {
 
     fun assetsFlow(): Flow<List<AssetWithStatus>>
+    fun assetsFlowAndAccount(): Flow<Pair<Long, List<AssetWithStatus>>>
 
     suspend fun syncAssetsRates(): Result<Unit>
 

@@ -167,6 +167,7 @@ class ConfirmStakingViewModel @Inject constructor(
                 it.payload is Payload.ExistingStash -> runCatching {
                     scenarioInteractor.getRewardDestination(stateFlow.last())
                 }.getOrNull()
+
                 else -> null
             }
 

@@ -97,10 +97,14 @@ class ReviewCustomValidatorsViewModel @Inject constructor(
 
             val withoutRemoved = validators - validatorModel.validator
 
-            sharedStateSetup.setCustomValidators(withoutRemoved)
+            try {
+                sharedStateSetup.setCustomValidators(withoutRemoved)
 
-            if (withoutRemoved.isEmpty()) {
-                router.back()
+                if (withoutRemoved.isEmpty()) {
+                    router.back()
+                }
+            } catch (e: Exception) {
+                showError(e)
             }
         }
     }

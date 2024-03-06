@@ -78,9 +78,13 @@ class RecommendedValidatorsViewModel @Inject constructor(
 
     fun nextClicked() {
         viewModelScope.launch {
-            sharedStateSetup.setRecommendedValidators(recommendedValidators.first())
+            try {
+                sharedStateSetup.setRecommendedValidators(recommendedValidators.first())
 
-            router.openConfirmStaking()
+                router.openConfirmStaking()
+            } catch (e: Exception) {
+                showError(e)
+            }
         }
     }
 

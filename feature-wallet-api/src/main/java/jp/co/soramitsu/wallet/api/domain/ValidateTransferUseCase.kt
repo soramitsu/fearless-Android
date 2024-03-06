@@ -7,6 +7,7 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.validation.DeadRecipientEthereumException
 import jp.co.soramitsu.common.validation.DeadRecipientException
 import jp.co.soramitsu.common.validation.ExistentialDepositCrossedException
+import jp.co.soramitsu.common.validation.ExistentialDepositCrossedWarning
 import jp.co.soramitsu.common.validation.SpendInsufficientBalanceException
 import jp.co.soramitsu.common.validation.SubstrateBridgeAmountLessThenFeeException
 import jp.co.soramitsu.common.validation.SubstrateBridgeMinimumAmountRequired
@@ -48,7 +49,9 @@ sealed class TransferValidationResult {
     data class SubstrateBridgeMinimumAmountRequired(val amount: String): TransferValidationResult()
     data class SubstrateBridgeAmountLessThenFeeWarning(val chainName: String): TransferValidationResult()
     data class ExistentialDepositWarning(val edAmount: String) : TransferValidationResult()
+    data class ExistentialDepositError(val edAmount: String) : TransferValidationResult()
     data class UtilityExistentialDepositWarning(val edAmount: String) : TransferValidationResult()
+    data class UtilityExistentialDepositError(val edAmount: String) : TransferValidationResult()
     object DeadRecipient : TransferValidationResult()
     object DeadRecipientEthereum : TransferValidationResult()
     object InvalidAddress : TransferValidationResult()
@@ -66,8 +69,10 @@ fun ValidationException.Companion.fromValidationResult(result: TransferValidatio
         TransferValidationResult.InsufficientUtilityAssetBalance -> SpendInsufficientBalanceException(resourceManager)
         is TransferValidationResult.SubstrateBridgeMinimumAmountRequired -> SubstrateBridgeMinimumAmountRequired(resourceManager, result.amount)
         is TransferValidationResult.SubstrateBridgeAmountLessThenFeeWarning -> SubstrateBridgeAmountLessThenFeeException(resourceManager, result.chainName)
-        is TransferValidationResult.ExistentialDepositWarning -> ExistentialDepositCrossedException(resourceManager, result.edAmount)
-        is TransferValidationResult.UtilityExistentialDepositWarning -> ExistentialDepositCrossedException(resourceManager, result.edAmount)
+        is TransferValidationResult.ExistentialDepositWarning -> ExistentialDepositCrossedWarning(resourceManager, result.edAmount)
+        is TransferValidationResult.UtilityExistentialDepositWarning -> ExistentialDepositCrossedWarning(resourceManager, result.edAmount)
+        is TransferValidationResult.ExistentialDepositError -> ExistentialDepositCrossedException(resourceManager, result.edAmount)
+        is TransferValidationResult.UtilityExistentialDepositError -> ExistentialDepositCrossedException(resourceManager, result.edAmount)
         TransferValidationResult.DeadRecipient -> DeadRecipientException(resourceManager)
         TransferValidationResult.InvalidAddress -> TransferAddressNotValidException(resourceManager)
         TransferValidationResult.WaitForFee -> WaitForFeeCalculationException(resourceManager)

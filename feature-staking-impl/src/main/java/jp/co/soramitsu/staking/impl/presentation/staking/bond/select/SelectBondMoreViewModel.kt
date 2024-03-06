@@ -11,6 +11,7 @@ import javax.inject.Named
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.utils.applyFiatRate
 import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.common.utils.formatCrypto
 import jp.co.soramitsu.common.utils.formatFiat
@@ -80,7 +81,9 @@ class SelectBondMoreViewModel @Inject constructor(
         val balance = stakingScenarioInteractor.getAvailableForBondMoreBalance()
         val asset = assetFlow.first()
         val balanceAmount = balance.formatCrypto(asset.token.configuration.symbol)
-        resourceManager.getString(R.string.common_available_format, balanceAmount)
+        val balanceFiatAmount = balance.applyFiatRate(asset.token.fiatRate)?.formatFiat(asset.token.fiatSymbol)
+        val balanceWithFiat = balanceAmount + balanceFiatAmount?.let { " ($it)" }
+        resourceManager.getString(R.string.common_available_format, balanceWithFiat)
     }.inBackground().share()
 
     val assetModelFlow = assetFlow

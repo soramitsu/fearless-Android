@@ -51,7 +51,7 @@ class ReefHistorySource(
 
             operations.addAll(transfersResponse.data.transfersConnection?.edges?.map { it.node }?.map {
                 Operation(
-                    id = it.extrinsicHash ?: it.id ?: it.hashCode().toString(),
+                    id = it.id ?: it.extrinsicHash ?: it.hashCode().toString(),
                     address = accountAddress,
                     time = parseTimeToMillis(it.timestamp),
                     chainAsset = chainAsset,

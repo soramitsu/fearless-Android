@@ -11,6 +11,7 @@ import jp.co.soramitsu.common.utils.withLoading
 import jp.co.soramitsu.common.validation.CompositeValidation
 import jp.co.soramitsu.common.validation.ValidationSystem
 import jp.co.soramitsu.feature_staking_impl.R
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import jp.co.soramitsu.shared_utils.extensions.toHexString
 import jp.co.soramitsu.staking.api.data.StakingSharedState
 import jp.co.soramitsu.staking.api.domain.model.StakingState
@@ -159,7 +160,13 @@ class StakingRelaychainScenarioViewModel(
             scenarioInteractor.observeNetworkInfoState().map { it as NetworkInfo.RelayChain },
             stakingInteractor.currentAssetFlow()
         ) { networkInfo, asset ->
-            val minimumStake = asset.token.amountFromPlanks(networkInfo.minimumStake)
+            val minStakeMultiplier: Double = if (asset.token.configuration.chainId == polkadotChainId) {
+                1.15 // 15% increase
+            } else {
+                1.0
+            }
+
+            val minimumStake = asset.token.amountFromPlanks(networkInfo.minimumStake) * BigDecimal(minStakeMultiplier)
             val minimumStakeFormatted = minimumStake.formatCryptoDetail(asset.token.configuration.symbol)
 
             val minimumStakeFiat = asset.token.fiatAmount(minimumStake)?.formatFiat(asset.token.fiatSymbol)
