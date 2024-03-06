@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -16,12 +15,11 @@ import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.Surface
 import androidx.compose.material.SwipeableState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.compose.component.ActionItemType
@@ -34,14 +32,13 @@ import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.component.MultiToggleButton
 import jp.co.soramitsu.common.compose.component.MultiToggleButtonState
 import jp.co.soramitsu.common.compose.component.NetworkIssuesBadge
-import jp.co.soramitsu.common.compose.component.NftStub
 import jp.co.soramitsu.common.compose.component.SwipeState
 import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
 import jp.co.soramitsu.common.compose.theme.white16
 import jp.co.soramitsu.common.compose.theme.white50
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState
-import jp.co.soramitsu.common.data.network.runtime.binding.cast
 import jp.co.soramitsu.common.utils.rememberForeverLazyListState
+import jp.co.soramitsu.wallet.impl.presentation.balance.nft.list.NFTScreen
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.soracard.impl.presentation.SoraCardItem
 import jp.co.soramitsu.soracard.impl.presentation.SoraCardItemViewState
@@ -66,6 +63,14 @@ fun WalletScreen(
     data: WalletState,
     callback: WalletScreenInterface
 ) {
+    val listState = rememberForeverLazyListState("wallet_screen")
+
+    LaunchedEffect(data.scrollToTopEvent) {
+        data.scrollToTopEvent?.getContentIfNotHandled()?.let {
+            listState.animateScrollToItem(0)
+        }
+    }
+
     Column(modifier = Modifier.padding(horizontal = 16.dp)) {
         MarginVertical(margin = 16.dp)
         AssetBalance(
@@ -82,20 +87,19 @@ fun WalletScreen(
             state = data.multiToggleButtonState,
             onToggleChange = callback::assetTypeChanged
         )
-        if (data.multiToggleButtonState.currentSelection == AssetType.NFTs) {
-            NftStub(
-                Modifier
-                    .fillMaxSize()
-                    .padding(bottom = 80.dp)
-            )
-        } else {
-            val header = Banners(data, callback)
-            AssetsList(
-                data = data,
-                callback = callback,
-                header = header,
-                listState = rememberForeverLazyListState("wallet_screen")
-            )
+        when (data.assetsState) {
+            is WalletAssetsState.NftAssets -> {
+                NFTScreen(collectionsScreen = data.assetsState.collectionScreenModel)
+            }
+            is WalletAssetsState.Assets -> {
+                val header = Banners(data, callback)
+                AssetsList(
+                    data = data.assetsState,
+                    callback = callback,
+                    header = header,
+                    listState = rememberForeverLazyListState("wallet_screen")
+                )
+            }
         }
     }
 }
@@ -155,7 +159,9 @@ private fun Banners(data: WalletState, callback: WalletScreenInterface): @Compos
                 }
             }
         }
-    return if(soraCardBanner == null && bannersCarousel == null) {null} else {
+    return if (soraCardBanner == null && bannersCarousel == null) {
+        null
+    } else {
         {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 soraCardBanner?.invoke()
@@ -216,6 +222,7 @@ private fun PreviewWalletScreen() {
         override fun onBackupCloseClick() {}
         override fun assetTypeChanged(type: AssetType) {}
         override fun assetClicked(asset: AssetListItemViewState) {}
+
         override fun actionItemClicked(
             actionType: ActionItemType,
             chainId: ChainId,
@@ -227,49 +234,51 @@ private fun PreviewWalletScreen() {
         override fun onRefresh() {}
     }
 
-    val assets: List<AssetListItemViewState> = listOf(
-        AssetListItemViewState(
-            index = 0,
-            assetIconUrl = "",
-            assetChainName = "Chain",
-            assetSymbol = "SMB",
-            assetName = "Sora Asset",
-            assetTokenFiat = null,
-            assetTokenRate = null,
-            assetTransferableBalance = null,
-            assetTransferableBalanceFiat = null,
-            assetChainUrls = emptyMap(),
-            chainId = "",
-            chainAssetId = "",
-            isSupported = true,
-            isHidden = false,
-            isTestnet = false
-        )
+    val element = AssetListItemViewState(
+        index = 0,
+        assetIconUrl = "",
+        assetChainName = "Chain",
+        assetSymbol = "SMB",
+        assetName = "Sora Asset",
+        assetTokenFiat = null,
+        assetTokenRate = null,
+        assetTransferableBalance = null,
+        assetTransferableBalanceFiat = null,
+        assetChainUrls = emptyMap(),
+        chainId = "",
+        chainAssetId = "",
+        isSupported = true,
+        isHidden = false,
+        isTestnet = false
     )
+    val assets: List<AssetListItemViewState> = listOf(
+        element, element, element
+    ).mapIndexed { index, assetListItemViewState ->
+        assetListItemViewState.copy(index = index)
+    }
 
     FearlessAppTheme(true) {
-        Surface(Modifier.background(Color.Black)) {
-            Column {
-                WalletScreen(
-                    data = WalletState(
-                        multiToggleButtonState = MultiToggleButtonState(
-                            AssetType.Currencies,
-                            listOf(AssetType.Currencies, AssetType.NFTs)
-                        ),
-                        assets = assets,
-                        balance = AssetBalanceViewState(
-                            "TRANSFERABLE BALANCE",
-                            "ADDRESS",
-                            true,
-                            ChangeBalanceViewState("+100%", "+50$")
-                        ),
-                        hasNetworkIssues = true,
-                        soraCardState = SoraCardItemViewState(null, null, null, true),
-                        isBackedUp = false
+        Column {
+            WalletScreen(
+                data = WalletState(
+                    multiToggleButtonState = MultiToggleButtonState(
+                        AssetType.Currencies,
+                        listOf(AssetType.Currencies, AssetType.NFTs)
                     ),
-                    callback = emptyCallback
-                )
-            }
+                    assetsState = WalletAssetsState.Assets(emptyList()),
+                    balance = AssetBalanceViewState(
+                        "TRANSFERABLE BALANCE",
+                        "ADDRESS",
+                        true,
+                        ChangeBalanceViewState("+100%", "+50$")
+                    ),
+                    hasNetworkIssues = true,
+                    soraCardState = SoraCardItemViewState(null, null, null, true),
+                    isBackedUp = false,
+                    scrollToTopEvent = null
+                ),
+                callback = emptyCallback
+            )
         }
     }
 }

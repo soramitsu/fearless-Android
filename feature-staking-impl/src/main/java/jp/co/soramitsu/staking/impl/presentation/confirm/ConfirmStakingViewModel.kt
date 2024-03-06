@@ -51,6 +51,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.transform
@@ -163,7 +164,10 @@ class ConfirmStakingViewModel @Inject constructor(
             val rewardDestination = when {
                 it is SetupStakingProcess.ReadyToSubmit.Parachain -> null
                 it.payload is Payload.Full -> it.payload.rewardDestination
-                it.payload is Payload.ExistingStash -> scenarioInteractor.getRewardDestination(stateFlow.first())
+                it.payload is Payload.ExistingStash -> runCatching {
+                    scenarioInteractor.getRewardDestination(stateFlow.last())
+                }.getOrNull()
+
                 else -> null
             }
 

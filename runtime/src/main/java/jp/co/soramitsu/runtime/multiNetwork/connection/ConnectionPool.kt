@@ -3,11 +3,13 @@ package jp.co.soramitsu.runtime.multiNetwork.connection
 import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import javax.inject.Provider
+import jp.co.soramitsu.common.BuildConfig
 import jp.co.soramitsu.common.compose.component.NetworkIssueItemState
 import jp.co.soramitsu.common.compose.component.NetworkIssueType
 import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
 import jp.co.soramitsu.common.mixin.api.NetworkStateUi
 import jp.co.soramitsu.common.utils.Event
+import jp.co.soramitsu.core.models.ChainNode
 import jp.co.soramitsu.core.runtime.ChainConnection
 import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
@@ -126,12 +128,17 @@ class ConnectionPool @Inject constructor(
         var isNew = false
         val connection = pool.getOrPut(chain.id) {
             isNew = true
+
+            val nodes = chain.nodes.map {
+                it.fillDwellirApiKey()
+            }
+
             ChainConnection(
                 chain = chain,
                 socketService = socketServiceProvider.get(),
-                initialNodes = chain.nodes,
+                initialNodes = nodes,
                 externalRequirementFlow = externalRequirementFlow,
-                onSelectedNodeChange = { onSelectedNodeChange(chain.id, it) },
+                onSelectedNodeChange = { onSelectedNodeChange(chain.id, clearDwellirApiKey(it)) },
                 isAutoBalanceEnabled = { nodesSettingsStorage.getIsAutoSelectNodes(chain.id) }
             )
         }
@@ -148,5 +155,26 @@ class ConnectionPool @Inject constructor(
     fun removeConnection(chainId: ChainId) {
         pool.remove(chainId)?.apply { finish() }
         connectionWatcher.tryEmit(Event(Unit))
+    }
+}
+
+fun ChainNode.fillDwellirApiKey(): ChainNode {
+    return copy(url = fillDwellirApiKey(url))
+}
+
+fun clearDwellirApiKey(url: String): String {
+    val key = BuildConfig.FL_DWELLIR_API_KEY
+    return if(url.lowercase().contains(key)){
+        url.removeSuffix("/$key")
+    } else {
+        url
+    }
+}
+
+fun fillDwellirApiKey(url: String): String {
+    return if(url.lowercase().contains("dwellir")){
+        "${url}/${BuildConfig.FL_DWELLIR_API_KEY}"
+    } else {
+        url
     }
 }

@@ -175,7 +175,10 @@ class WalletFeatureModule {
         accountRepository: AccountRepository,
         chainsRepository: ChainsRepository,
         selectedFiat: SelectedFiat,
-        tokenPriceDao: TokenPriceDao
+        tokenPriceDao: TokenPriceDao,
+        extrinsicService: ExtrinsicService,
+        @Named(REMOTE_STORAGE_SOURCE)
+        remoteStorageSource: StorageDataSource
     ): WalletRepository = WalletRepositoryImpl(
         substrateSource,
         ethereumRemoteSource,
@@ -194,7 +197,9 @@ class WalletFeatureModule {
         accountRepository,
         chainsRepository,
         selectedFiat,
-        tokenPriceDao
+        tokenPriceDao,
+        extrinsicService,
+        remoteStorageSource
     )
 
     @Provides

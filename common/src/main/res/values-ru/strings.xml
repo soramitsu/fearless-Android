@@ -140,6 +140,7 @@
   <string name="common_choose_network">Выберите сеть</string>
   <string name="common_claim">Получить</string>
   <string name="common_close">Закрыть</string>
+  <string name="common_commission">Комиссия</string>
   <string name="common_completed">Успешно</string>
   <string name="common_completed_with_count">Завершённые (%s)</string>
   <string name="common_confirm">Подтвердить</string>
@@ -179,6 +180,7 @@
   <string name="common_error_internal">Внутренняя ошибка</string>
   <string name="common_error_network">Возникла ошибка при обмене данными с удаленным сервером</string>
   <string name="common_event">Событие</string>
+  <string name="common_existential_error_message">Эта операция приведет к тому, что счет опустится ниже экзистенциального депозита %s, что приведет к его деактивации (счет будет стерт из состояния блокчейна для экономии места).</string>
   <string name="common_existential_warning_message">Эта операция приведет к тому, что счет опустится ниже экзистенциального депозита %s, что приведет к его деактивации (счет будет стерт из состояния блокчейна для экономии места). Если вы решите продолжить, вы потеряете все средства, которые находятся ниже суммы экзистенциального депозита, установленного сетью. За подробной информацией обращайтесь к официальной документации сети (например, Polkadot Wiki). Fearless Wallet является полностью не опекунским приложением и не контролирует и не знает о любых ваших действиях в самой сети. ПРОДОЛЖАЙТЕ ТОЛЬКО В ТОМ СЛУЧАЕ, ЕСЛИ ВЫ ПОЛНОСТЬЮ СОГЛАСНЫ И ПОНИМАЕТЕ ПОСЛЕДСТВИЯ.</string>
   <string name="common_existential_warning_title">Операция сделает аккаунт неактивным</string>
   <string name="common_filter_sort_header">Сортировать по:</string>
@@ -327,6 +329,7 @@
   <string name="crownloans_raised_format" formatted="false">Собрано: %s из %s</string>
   <string name="currencies_stub_text">Токены</string>
   <string name="custom_collators_title">Стейк с известными коллаторами</string>
+  <string name="custom_validators_empty_message">Валидаторы не найдены.\nПожалуйста, попробуйте изменить фильтры</string>
   <string name="default_account_shared_secret">Аккаунты с одним ключом</string>
   <string name="delete_custom_node_title">Удалить выбранную ноду?</string>
   <string name="donation_alert_title">Этот адрес подозрителен.</string>
@@ -845,6 +848,7 @@
   <string name="staking_validator_own_stake">Собственный</string>
   <string name="staking_validator_search_empty_title">Поиск не дал результатов.\nПроверьте, что вы указали полный адрес аккаунта</string>
   <string name="staking_validator_slashed_desc">Валидатор наказан за неправильные действия в сети (например, был оффлайн, атаковал сеть, работал с модифицированным ПО).</string>
+  <string name="staking_validator_status_unelected">Не избран</string>
   <string name="staking_validator_summary_description">В будущих обновлениях мы добавим функции стекинга для валидаторов. \n \n Оставайся бесстрашным</string>
   <string name="staking_validator_summary_title">Стейкинг для валидатора</string>
   <string name="staking_validator_total">Всего</string>
@@ -913,6 +917,7 @@
   <string name="username_setup_hint">Данное имя будет отображаться только для вас и храниться только на вашем мобильном устройстве.</string>
   <string name="username_setup_title_2_0">Создать новый кошелек</string>
   <string name="validator_not_elected_description">Эта учетная запись не выбрана сетью для участия в текущей эпохе</string>
+  <string name="validators_list_empty_message">Валидаторы не найдены</string>
   <string name="view_in">Посмотреть в %s</string>
   <string name="view_wallet">Посмотреть кошелек</string>
   <string name="wallet_asset_buy_with">Купить %s с</string>

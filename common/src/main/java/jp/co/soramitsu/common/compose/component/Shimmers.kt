@@ -26,6 +26,14 @@ fun ShimmerB0(modifier: Modifier = Modifier) {
 }
 
 @Composable
+fun ShimmerB1(modifier: Modifier = Modifier) {
+    Shimmer(
+        modifier = modifier
+            .height(15.dp)
+    )
+}
+
+@Composable
 fun ShimmerB2(modifier: Modifier = Modifier) {
     Shimmer(
         modifier = modifier
@@ -61,6 +69,14 @@ fun ShimmerRectangle(modifier: Modifier = Modifier) {
                 .background(shimmerColor, RoundedCornerShape(size = 16.dp))
         )
     }
+}
+
+@Composable
+fun RoundedRect(modifier: Modifier){
+    Box(
+        modifier = modifier
+            .background(shimmerColor, RoundedCornerShape(size = 50.dp))
+    )
 }
 
 @Preview

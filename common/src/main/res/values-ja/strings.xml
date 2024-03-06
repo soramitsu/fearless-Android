@@ -211,7 +211,8 @@
   <string name="common_error_internal">内部エラーが発生しました</string>
   <string name="common_error_network">リモートサーバーとの通信中にエラーが発生しました</string>
   <string name="common_event">イベント</string>
-  <string name="common_existential_warning_message">このトランザクションにより、アカウント存続預金を下回るため、「刈り取られる」ことになります(スペースを節約するためにブロックチェーンの状態からアカウントは消去されます)。継続を選択した場合、ネットワークによって設定された存続預金額を下回る資金を失うことになります。詳細な情報については、ネットワークの公式ドキュメント(例：Polkadot Wiki)を参照してください。フィアレス・ウォレットは完全な非管理的なアプリであり、ネットワークでのあなたの行動については一切判らないし制御もできません。あなたが、その意味を理解して完全に同意した場合のみ、続行してください</string>
+  <string name="common_existential_error_message">このトランザクションにより、アカウント存続預金を下回るため(%s)、「刈り取られる」ことになります(スペースを節約するためにブロックチェーンの状態からアカウントは消去されます)。</string>
+  <string name="common_existential_warning_message">このトランザクションにより、アカウント存続預金を下回るため (%s)、「刈り取られる」ことになります(スペースを節約するためにブロックチェーンの状態からアカウントは消去されます)。継続を選択した場合、ネットワークによって設定された存続預金額を下回る資金を失うことになります。詳細な情報については、ネットワークの公式ドキュメント(例：Polkadot Wiki)を参照してください。フィアレス・ウォレットは完全な非管理的なアプリであり、ネットワークでのあなたの行動については一切判らないし制御もできません。あなたが、その意味を理解して完全に同意した場合のみ、続行してください</string>
   <string name="common_existential_warning_title">操作によりアカウントが削除されます</string>
   <string name="common_filter_sort_header">並び替え：</string>
   <string name="common_friend_bonus">ご友人へのボーナス</string>
@@ -249,6 +250,7 @@
   <string name="common_origin_network_fee">元ネットワーク手数料</string>
   <string name="common_payout">配当性向</string>
   <string name="common_preview">プレビュー</string>
+  <string name="common_price">価格</string>
   <string name="common_proceed">続行</string>
   <string name="common_read">読む</string>
   <string name="common_receive_alert_description">これはポルカドット(Polkadot)のウォレットです。ポルカドット(Polkadot)ブロックチェーンのアセットのみ送信してください</string>
@@ -391,6 +393,7 @@
   <string name="crownloans_raised_format" formatted="false">上昇： %sの%s</string>
   <string name="currencies_stub_text">通貨</string>
   <string name="custom_collators_title">既知のコレーターとステーク</string>
+  <string name="custom_validators_empty_message">バリデーターが見つかりません。\nフィルターを変更してみてください</string>
   <string name="default_account_shared_secret">共有シークレットを持つデフォルトのアカウント</string>
   <string name="delete_custom_node_title">カスタムノードを削除しますか？</string>
   <string name="donation_alert_title">このアドレスは、疑わしいアドレスだと喚起されています。</string>
@@ -506,6 +509,7 @@
   <string name="nft_collection_available_nfts">%sコレクションで利用可能なNFT</string>
   <string name="nft_collection_my_nfts">私のNFT</string>
   <string name="nft_collection_title">コレクション</string>
+  <string name="nft_creator_title">作成者</string>
   <string name="nft_owner_title">所有</string>
   <string name="nft_stub_text">NFTがもうすぐ登場します</string>
   <string name="nft_stub_title">失礼しました</string>
@@ -724,7 +728,7 @@
   <string name="settings_hide_zero_balances">残高ゼロを隠す</string>
   <string name="share_referral_code">紹介コードを共有</string>
   <string name="social_media">ソーシャル・メディア</string>
-  <string name="sora_bridge_low_amount_alert">現在、SORAネットワークの安定性と安全性を確保するため、ブリッジングには最低0.05 KSMが設定されています。ご理解のほどよろしくお願いいたします。</string>
+  <string name="sora_bridge_low_amount_format_alert">現在、SORAネットワークの安定性と安全性を確保するため、ブリッジングには最低%sが設定されています。ご理解のほどよろしくお願いいたします。</string>
   <string name="sora_card_annual_service_fee">年間サービス料€0</string>
   <string name="sora_card_blacklisted_countires_title">適用除外</string>
   <string name="sora_card_blacklisted_countires_warning"><![CDATA[現在SORAカードは<b>特定の国</b>の居住者は<b>申請できません</b><br><a href=\"https://soracard.com/blacklist/\">特定の国を見る</a>]]></string>
@@ -969,6 +973,7 @@
   <string name="staking_validator_own_stake">自分の</string>
   <string name="staking_validator_search_empty_title">検索結果はありません。 \n完全なアカウント・アドレスを入力したことを確認してください</string>
   <string name="staking_validator_slashed_desc">バリデーターは、ネットワーク内の不正行為(オフラインになる、ネットワークを攻撃する、変更されたソフトウェアを実行するなど)に対して斬られます</string>
+  <string name="staking_validator_status_unelected">未選出</string>
   <string name="staking_validator_summary_description">将来のアップデートでは、バリデーターのステーキング機能を追加する予定です。 \n \n #StayFearless</string>
   <string name="staking_validator_summary_title">バリデーターのステーキング</string>
   <string name="staking_validator_total">合計</string>
@@ -1042,7 +1047,7 @@
   <string name="username_setup_title_2_0">新しいウォレットを作成</string>
   <string name="validator_info_comission_title">コミッション</string>
   <string name="validator_not_elected_description">このアカウントは、現在の時代に参加するためにネットワークによって選出されていません</string>
-  <string name="validators_list_empty_message">バリデーターが見つかりません。フィルターを変更してみてください</string>
+  <string name="validators_list_empty_message">バリデーターが見つかりません</string>
   <string name="view_in">%sで見る</string>
   <string name="view_wallet">ウォレットを見る</string>
   <string name="wallet_asset_buy_with">で購入</string>

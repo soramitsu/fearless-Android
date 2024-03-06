@@ -85,7 +85,7 @@ abstract class BaseComposeBottomSheetDialogFragment<T : BaseViewModel> : BottomS
         }
     }
 
-    private fun showErrorDialog(
+    protected fun showErrorDialog(
         title: String? = null,
         message: String,
         positiveButtonText: String? = requireContext().resources.getString(R.string.common_ok),

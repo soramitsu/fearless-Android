@@ -4,6 +4,7 @@ import java.math.BigInteger
 import jp.co.soramitsu.account.api.presentation.account.AddressDisplayUseCase
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressIcon
+import jp.co.soramitsu.common.address.createEthereumAddressIcon
 import jp.co.soramitsu.common.compose.theme.gray2
 import jp.co.soramitsu.common.compose.theme.greenText
 import jp.co.soramitsu.common.compose.theme.white
@@ -15,6 +16,7 @@ import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.coredb.model.OperationLocal
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.reefChainId
 import jp.co.soramitsu.wallet.api.presentation.formatters.formatCryptoDetailFromPlanks
 import jp.co.soramitsu.wallet.api.presentation.formatters.formatCryptoFromPlanks
 import jp.co.soramitsu.wallet.api.presentation.formatters.formatSigned
@@ -432,6 +434,13 @@ suspend fun mapOperationToOperationModel(
                     else -> white
                 }
 
+                val isEthereum = chainAsset.ethereumType != null
+                val operationIcon = if (isEthereum) {
+                    iconGenerator.createEthereumAddressIcon(operationType.displayAddress, AddressIconGenerator.SIZE_MEDIUM)
+                } else {
+                    iconGenerator.createAddressIcon(operationType.displayAddress, AddressIconGenerator.SIZE_BIG)
+                }
+
                 OperationModel(
                     id = id,
                     time = time,
@@ -439,10 +448,7 @@ suspend fun mapOperationToOperationModel(
                     amountColor = amountColor,
                     header = nameIdentifier.nameOrAddress(operationType.displayAddress),
                     statusAppearance = statusAppearance,
-                    operationIcon = iconGenerator.createAddressIcon(
-                        operationType.displayAddress,
-                        AddressIconGenerator.SIZE_BIG
-                    ),
+                    operationIcon = operationIcon,
                     subHeader = resourceManager.getString(R.string.transfer_title),
                     type = operationType.toModel()
                 )
@@ -509,10 +515,18 @@ fun mapOperationToParcel(
                     operationFee.formatFee(utilityAsset)
                 }
 
+                val operationHash = if (utilityAsset?.chainId == reefChainId) {
+                    val reefscanSuffix = operation.id.split("-").getOrNull(1)?.let { "-$it" }.orEmpty()
+                    val reefOperationHash = operationType.hash?.removeSuffix(reefscanSuffix)?.let { "$it$reefscanSuffix" }
+                    reefOperationHash
+                } else {
+                    operationType.hash
+                }
+
                 OperationParcelizeModel.Transfer(
                     time = time,
                     address = address,
-                    hash = operationType.hash,
+                    hash = operationHash,
                     amount = formatDetailsAmount(operation.chainAsset, operationType),
                     receiver = operationType.receiver,
                     sender = operationType.sender,
@@ -538,11 +552,9 @@ fun mapOperationToParcel(
                 OperationParcelizeModel.Extrinsic(
                     time = time,
                     originAddress = address,
-                    hash = operation.id,
-                    module = operationType.formattedAndReplaced()[operationType.module]
-                        ?: operationType.module,
-                    call = operationType.formattedAndReplaced()[operationType.call]
-                        ?: operationType.call,
+                    hash = operationType.hash,
+                    module = operationType.formattedAndReplaced()[operationType.module] ?: operationType.module,
+                    call = operationType.formattedAndReplaced()[operationType.call] ?: operationType.call,
                     fee = operationType.fee.formatFee(chainAsset),
                     statusAppearance = mapStatusToStatusAppearance(operationType.operationStatus)
                 )
@@ -555,7 +567,7 @@ fun mapOperationToParcel(
                     chainAsset = chainAsset,
                     targetAsset = operationType.targetAsset,
                     time = time,
-                    hash = operation.id,
+                    hash = operationType.hash,
                     module = operationType.module,
                     baseAssetAmount = operationType.baseAssetAmount,
                     liquidityProviderFee = operationType.liquidityProviderFee,

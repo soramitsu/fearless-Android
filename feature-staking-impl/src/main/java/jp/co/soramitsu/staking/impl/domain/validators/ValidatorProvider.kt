@@ -1,9 +1,11 @@
 package jp.co.soramitsu.staking.impl.domain.validators
 
+import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.toHexAccountId
 import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.runtime.ext.addressOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.reefChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ternoaChainId
 import jp.co.soramitsu.shared_utils.extensions.fromHex
@@ -12,7 +14,6 @@ import jp.co.soramitsu.staking.api.domain.api.IdentityRepository
 import jp.co.soramitsu.staking.api.domain.model.Exposure
 import jp.co.soramitsu.staking.api.domain.model.Validator
 import jp.co.soramitsu.staking.impl.data.repository.StakingConstantsRepository
-import jp.co.soramitsu.staking.impl.domain.error.accountIdNotFound
 import jp.co.soramitsu.staking.impl.domain.rewards.RewardCalculationTarget
 import jp.co.soramitsu.staking.impl.domain.rewards.RewardCalculatorFactory
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenarioRepository
@@ -40,22 +41,19 @@ class ValidatorProvider(
         val chainId = chain.id
 
         val electedValidatorExposures = cachedExposures ?: stakingRepository.getActiveElectedValidatorsExposures(chainId)
+        val allValidatorPrefs = stakingRepository.getAllValidatorPrefs(chainId)
 
         val requestedValidatorIds = when (source) {
-            ValidatorSource.Elected -> electedValidatorExposures.keys.toList()
+            ValidatorSource.Elected -> allValidatorPrefs.keys.toList()
             is ValidatorSource.Custom -> source.validatorIds
         }
-
-        val validatorIdsToQueryPrefs = electedValidatorExposures.keys + requestedValidatorIds
-
-        val validatorPrefs = stakingRepository.getValidatorPrefs(chainId, validatorIdsToQueryPrefs.toList())
 
         val identities = identityRepository.getIdentitiesFromIds(chain, requestedValidatorIds)
         val slashes = stakingRepository.getSlashes(chainId, requestedValidatorIds)
 
         val calculationTargets = electedValidatorExposures.keys.mapNotNull { accountIdHex ->
-            val exposure = electedValidatorExposures[accountIdHex] ?: accountIdNotFound(accountIdHex)
-            val prefs = validatorPrefs[accountIdHex] ?: return@mapNotNull null
+            val exposure = electedValidatorExposures[accountIdHex] ?: return@mapNotNull null
+            val prefs = allValidatorPrefs[accountIdHex] ?: return@mapNotNull null
 
             RewardCalculationTarget(
                 accountIdHex = accountIdHex,
@@ -71,6 +69,10 @@ class ValidatorProvider(
                 val utilityAsset = chain.utilityAsset ?: error("Utility asset not specified for chain ${chain.name} - ${chain.id}")
                 rewardCalculatorFactory.createSora(utilityAsset, calculationTargets)
             }
+            reefChainId -> {
+                val utilityAsset = chain.utilityAsset ?: error("Utility asset not specified for chain ${chain.name} - ${chain.id}")
+                rewardCalculatorFactory.createReef(utilityAsset, calculationTargets)
+            }
 
             ternoaChainId -> {
                 val utilityAsset = chain.utilityAsset ?: error("Utility asset not specified for chain ${chain.name} - ${chain.id}")
@@ -85,14 +87,15 @@ class ValidatorProvider(
         val maxNominators = stakingConstantsRepository.maxRewardedNominatorPerValidator(chainId)
 
         return requestedValidatorIds.map { accountIdHex ->
-            val prefs = validatorPrefs[accountIdHex]
+            val prefs = allValidatorPrefs[accountIdHex]
 
             val electedInfo = electedValidatorExposures[accountIdHex]?.let {
                 Validator.ElectedInfo(
                     totalStake = it.total,
                     ownStake = it.own,
                     nominatorStakes = it.others,
-                    apy = rewardCalculator.getApyFor(accountIdHex.fromHex()),
+                    apy = runCatching { rewardCalculator.getApyFor(accountIdHex.fromHex()) }
+                        .getOrNull().orZero(),
                     isOversubscribed = it.others.size > maxNominators
                 )
             }

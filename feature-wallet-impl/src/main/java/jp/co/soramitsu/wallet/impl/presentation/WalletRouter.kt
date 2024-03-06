@@ -120,6 +120,7 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
     fun setBeaconSignStatus(status: SignStatus)
 
     fun openNodes(chainId: ChainId)
+    fun openClaimRewards(chainId: ChainId)
 
     @PinRequired
     fun openExportMnemonic(metaId: Long, chainId: ChainId): DelayedNavigation
@@ -187,4 +188,10 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
     fun openConnectionDetails(topic: String)
 
     fun listenPolkaswapDisclaimerResultFlowFromMainScreen(): Flow<Boolean>
+
+    fun openContactsWithResult(chainId: ChainId): Flow<String>
+
+    fun openNftCollection(selectedAssetId: ChainId, contractAddress: String, collectionName: String)
+
+    fun openNFTFilter()
 }

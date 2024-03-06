@@ -2,7 +2,7 @@ package jp.co.soramitsu.common.data.network
 
 class BlockExplorerUrlBuilder(private val baseUrl: String, private val types: List<String>) {
     enum class Type {
-        EXTRINSIC, ACCOUNT, EVENT, TX;
+        EXTRINSIC, ACCOUNT, EVENT, TX, TRANSFER;
 
         val nameLowercase = name.lowercase()
     }

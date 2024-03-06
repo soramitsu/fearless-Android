@@ -99,6 +99,7 @@ abstract class ChainDao {
     abstract suspend fun getJoinChainInfo(): List<JoinedChainInfo>
 
     @Query("SELECT * FROM chains WHERE id = :chainId")
+    @Transaction
     abstract suspend fun getJoinChainInfo(chainId: String): JoinedChainInfo
 
     @Query("SELECT * FROM chains")
@@ -170,10 +171,9 @@ abstract class ChainDao {
     @Query(
         """
             SELECT c.*, a.*, tp.* FROM chains c
-            JOIN assets a ON c.id = a.chainId
-            LEFT JOIN token_price AS tp ON a.tokenPriceId = tp.priceId 
-            LEFT JOIN chain_assets ca ON ca.id = a.id
-            WHERE ca.symbol in (:assetSymbol, '$xcPrefix'||:assetSymbol)
+            JOIN chain_assets ca ON ca.chainId = c.id AND ca.symbol in (:assetSymbol, '$xcPrefix'||:assetSymbol)
+            LEFT JOIN assets a ON a.chainId = c.id AND a.id = ca.id
+            LEFT JOIN token_price tp ON tp.priceId = a.tokenPriceId
             AND a.metaId = :accountMetaId
         """
     )

@@ -65,6 +65,7 @@ class TransactionDetailViewModel @Inject constructor(
     fun getSupportedExplorers(historyType: Chain.ExternalApi.Section.Type, value: String): Map<Chain.Explorer.Type, String> {
         val explorerUrlType: BlockExplorerUrlBuilder.Type = when (historyType) {
             Chain.ExternalApi.Section.Type.ETHERSCAN -> BlockExplorerUrlBuilder.Type.TX
+            Chain.ExternalApi.Section.Type.REEF -> BlockExplorerUrlBuilder.Type.TRANSFER
             else -> BlockExplorerUrlBuilder.Type.EXTRINSIC
         }
         return chainExplorers.replayCache.firstOrNull()?.getSupportedExplorers(explorerUrlType, value).orEmpty()

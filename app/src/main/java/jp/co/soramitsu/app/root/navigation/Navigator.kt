@@ -72,6 +72,8 @@ import jp.co.soramitsu.crowdloan.impl.presentation.contribute.custom.CustomContr
 import jp.co.soramitsu.crowdloan.impl.presentation.contribute.custom.model.CustomContributePayload
 import jp.co.soramitsu.crowdloan.impl.presentation.contribute.select.CrowdloanContributeFragment
 import jp.co.soramitsu.crowdloan.impl.presentation.contribute.select.parcel.ContributePayload
+import jp.co.soramitsu.nft.impl.presentation.NFTFlowFragment
+import jp.co.soramitsu.nft.navigation.NFTRouter
 import jp.co.soramitsu.onboarding.impl.OnboardingRouter
 import jp.co.soramitsu.onboarding.impl.welcome.WelcomeFragment
 import jp.co.soramitsu.onboarding.impl.welcome.select_import_mode.SelectImportModeDialog
@@ -89,6 +91,7 @@ import jp.co.soramitsu.soracard.api.presentation.SoraCardRouter
 import jp.co.soramitsu.splash.SplashRouter
 import jp.co.soramitsu.staking.api.domain.model.PoolInfo
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
+import jp.co.soramitsu.staking.impl.presentation.common.SelectValidatorFlowState
 import jp.co.soramitsu.staking.impl.presentation.payouts.confirm.ConfirmPayoutFragment
 import jp.co.soramitsu.staking.impl.presentation.payouts.confirm.model.ConfirmPayoutPayload
 import jp.co.soramitsu.staking.impl.presentation.payouts.detail.PayoutDetailsFragment
@@ -113,6 +116,7 @@ import jp.co.soramitsu.staking.impl.presentation.staking.unbond.confirm.ConfirmU
 import jp.co.soramitsu.staking.impl.presentation.staking.unbond.confirm.ConfirmUnbondPayload
 import jp.co.soramitsu.staking.impl.presentation.staking.unbond.select.SelectUnbondFragment
 import jp.co.soramitsu.staking.impl.presentation.staking.unbond.select.SelectUnbondPayload
+import jp.co.soramitsu.staking.impl.presentation.validators.change.custom.select.compose.SelectCustomValidatorsFragment
 import jp.co.soramitsu.staking.impl.presentation.validators.change.custom.settings.CustomValidatorsSettingsFragment
 import jp.co.soramitsu.staking.impl.presentation.validators.details.CollatorDetailsFragment
 import jp.co.soramitsu.staking.impl.presentation.validators.details.ValidatorDetailsFragment
@@ -131,6 +135,7 @@ import jp.co.soramitsu.wallet.impl.presentation.balance.assetDetails.AssetDetail
 import jp.co.soramitsu.wallet.impl.presentation.balance.assetselector.AssetSelectFragment
 import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.ChainSelectFragment
 import jp.co.soramitsu.wallet.impl.presentation.balance.detail.BalanceDetailFragment
+import jp.co.soramitsu.wallet.impl.presentation.balance.detail.claimreward.ClaimRewardsFragment
 import jp.co.soramitsu.wallet.impl.presentation.balance.detail.frozen.FrozenAssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.balance.detail.frozen.FrozenTokensFragment
 import jp.co.soramitsu.wallet.impl.presentation.balance.optionswallet.OptionsWalletFragment
@@ -140,6 +145,7 @@ import jp.co.soramitsu.wallet.impl.presentation.beacon.main.BeaconFragment
 import jp.co.soramitsu.wallet.impl.presentation.beacon.main.DAppMetadataModel
 import jp.co.soramitsu.wallet.impl.presentation.beacon.sign.SignBeaconTransactionFragment
 import jp.co.soramitsu.wallet.impl.presentation.beacon.sign.TransactionRawDataFragment
+import jp.co.soramitsu.wallet.impl.presentation.contacts.ContactsFragment
 import jp.co.soramitsu.wallet.impl.presentation.cross_chain.CrossChainTransferDraft
 import jp.co.soramitsu.wallet.impl.presentation.cross_chain.confirm.CrossChainConfirmFragment
 import jp.co.soramitsu.wallet.impl.presentation.cross_chain.setup.CrossChainSetupFragment
@@ -195,7 +201,9 @@ class Navigator :
     PolkaswapRouter,
     SuccessRouter,
     SoraCardRouter,
-    WalletConnectRouter {
+    WalletConnectRouter,
+    NFTRouter
+{
 
     private var navController: NavController? = null
     private var activity: AppCompatActivity? = null
@@ -674,11 +682,13 @@ class Navigator :
     }
 
     override fun openRecommendedValidators() {
-        navController?.navigate(R.id.action_startChangeValidatorsFragment_to_recommendedValidatorsFragment)
+        val args = SelectCustomValidatorsFragment.getBundle(SelectValidatorFlowState.ValidatorSelectMode.RECOMMENDED)
+        navController?.navigate(R.id.action_startChangeValidatorsFragment_to_recommendedValidatorsFragment, args)
     }
 
     override fun openSelectCustomValidators() {
-        navController?.navigate(R.id.action_startChangeValidatorsFragment_to_selectCustomValidatorsFragment)
+        val args = SelectCustomValidatorsFragment.getBundle(SelectValidatorFlowState.ValidatorSelectMode.CUSTOM)
+        navController?.navigate(R.id.action_startChangeValidatorsFragment_to_selectCustomValidatorsFragment, args)
     }
 
     override fun openCustomValidatorsSettingsFromValidator() {
@@ -1058,6 +1068,11 @@ class Navigator :
 
     override fun openNodes(chainId: ChainId) {
         navController?.navigate(R.id.action_open_nodesFragment, NodesFragment.getBundle(chainId))
+    }
+
+    override fun openClaimRewards(chainId: ChainId) {
+        val args = ClaimRewardsFragment.getBundle(chainId)
+        navController?.navigate(R.id.claimRewardsFragment, args)
     }
 
     override fun openLanguages() {
@@ -1446,7 +1461,7 @@ class Navigator :
     }
 
     override fun listenAlertResultFlowFromNetworkIssuesScreen(key: String): Flow<Result<Unit>> {
-        val currentEntry = navController?.getBackStackEntry(R.id.networkIssuesFragment)
+        val currentEntry = navController?.currentBackStackEntry
         val onResumeObserver = currentEntry?.lifecycle?.onResumeObserver()
 
         return (onResumeObserver?.asFlow() ?: emptyFlow()).map {
@@ -1491,5 +1506,23 @@ class Navigator :
 
     override fun openGetMoreXor() {
         navController?.navigate(R.id.getMoreXorFragment)
+    }
+
+    override fun openContactsWithResult(chainId: ChainId): Flow<String> {
+        val bundle = ContactsFragment.getBundle(chainId)
+        return openWithResult(
+            destinationId = R.id.contactsFragment,
+            bundle = bundle,
+            resultKey = ContactsFragment.RESULT_CONTACT
+        )
+    }
+
+    override fun openNftCollection(selectedAssetId: ChainId, contractAddress: String, collectionName: String) {
+        val bundle = NFTFlowFragment.getCollectionDetailsBundle(selectedAssetId, contractAddress, collectionName)
+        navController?.navigate(R.id.nftFlowFragment, bundle)
+    }
+
+    override fun openNFTFilter() {
+        navController?.navigate(R.id.nftFiltersFragment)
     }
 }

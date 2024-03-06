@@ -21,7 +21,6 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.ChainFetcher
 import jp.co.soramitsu.runtime.multiNetwork.connection.ConnectionPool
 import jp.co.soramitsu.runtime.multiNetwork.connection.EthereumConnectionPool
-import jp.co.soramitsu.runtime.multiNetwork.connection.EthereumWebSocketFactory
 import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeFilesCache
 import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeProviderPool
 import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeSubscriptionPool
@@ -135,16 +134,11 @@ class ChainRegistryModule {
         MutableStateFlow(ChainConnection.ExternalRequirement.ALLOWED)
 
     @Provides
-    fun provideEthereumSocketFactory(): EthereumWebSocketFactory = EthereumWebSocketFactory()
-
-    @Provides
     @Singleton
     fun provideEthereumPool(
-        networkStateMixin: NetworkStateMixin,
-        ethereumWebSocketFactory: EthereumWebSocketFactory,
-        nodesSettingsStorage: NodesSettingsStorage
+        networkStateMixin: NetworkStateMixin
     ) =
-        EthereumConnectionPool(networkStateMixin, ethereumWebSocketFactory, nodesSettingsStorage)
+        EthereumConnectionPool(networkStateMixin)
 
     @Provides
     @Singleton
