@@ -215,6 +215,7 @@
   <string name="common_error_internal">发生内部错误</string>
   <string name="common_error_network">与远程服务器通信时发生错误</string>
   <string name="common_event">事件</string>
+  <string name="common_existential_error_message">此交易将导致账户余额低于存在性存款（%s），从而使其被清除（账户将从区块链状态中删除以节省空间）。</string>
   <string name="common_existential_warning_message">此交易将导致账户余额低于存在性存款（%s），从而使其被清除（账户将从区块链状态中删除以节省空间）。如果您选择继续，您将失去低于网络设置的存在性存款金额的任何资金。有关详细信息，请参阅官方网络文档（例如 Polkadot Wiki）。Fearless 钱包是一个完全非托管的应用程序，对网络上的任何操作都没有控制权或知识。只有在您完全同意并理解相关影响后才能继续。</string>
   <string name="common_existential_warning_title">此操作将删除账户</string>
   <string name="common_filter_sort_header">排序方式：</string>
@@ -399,6 +400,7 @@
   <string name="crownloans_raised_format" formatted="false">已筹集：%s，共%s</string>
   <string name="currencies_stub_text">货币</string>
   <string name="custom_collators_title">与已知的收集人进行质押</string>
+  <string name="custom_validators_empty_message">没有找到验证人。\n请尝试更改筛选条件。</string>
   <string name="default_account_shared_secret">具有共享密钥的账户</string>
   <string name="delete_custom_node_title">删除自定义节点？</string>
   <string name="donation_alert_title">此地址已被标记为可疑。</string>
@@ -985,6 +987,7 @@
   <string name="staking_validator_own_stake">自己的</string>
   <string name="staking_validator_search_empty_title">没有搜索结果。\n请确保您输入了完整的账户地址</string>
   <string name="staking_validator_slashed_desc">验证人在网络中因不当行为（例如离线、攻击网络或运行修改过的软件）而被惩罚。</string>
+  <string name="staking_validator_status_unelected">未当选</string>
   <string name="staking_validator_summary_description">在未来的更新中，我们将为验证人添加质押功能。\n \n #StayFearless</string>
   <string name="staking_validator_summary_title">为验证人质押</string>
   <string name="staking_validator_total">总共</string>
@@ -1060,7 +1063,7 @@
   <string name="username_setup_title_2_0">创建一个新的钱包</string>
   <string name="validator_info_comission_title">佣金</string>
   <string name="validator_not_elected_description">此账户尚未被网络选中参与当前时间段</string>
-  <string name="validators_list_empty_message">未找到验证人。请尝试更改过滤器。</string>
+  <string name="validators_list_empty_message">未找到验证人</string>
   <string name="vesting_claim_disclaimer_text">由于每个平行链的独特归属计划，我们的应用无法显示可认领的锁定代币数量。请注意，如果预计金额微不足道且与涉及的交易费用相当，发起认领可能是不切实际的。要全面了解您的锁定余额，请咨询Subscan区块浏览器。我们敦促您仔细评估信息，并根据自己的判断继续操作。</string>
   <string name="vesting_claim_disclaimer_title">关于代币申领的重要通知：</string>
   <string name="vesting_locked_title">归属锁定</string>

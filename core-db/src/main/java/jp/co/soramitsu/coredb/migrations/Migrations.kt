@@ -3,6 +3,12 @@ package jp.co.soramitsu.coredb.migrations
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
+val Migration_61_62 = object : Migration(61, 62) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+        database.execSQL("ALTER TABLE chains ADD COLUMN `supportNft` INTEGER NOT NULL DEFAULT 0")
+    }
+}
+
 val Migration_60_61 = object : Migration(60, 61) {
     override fun migrate(database: SupportSQLiteDatabase) {
         database.execSQL("ALTER TABLE chains ADD COLUMN `isChainlinkProvider` INTEGER NOT NULL DEFAULT 0")
