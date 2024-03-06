@@ -76,7 +76,7 @@ private fun OnboardingSplashScreenContent(
 
 
         AccentButton(
-            text = stringResource(id = R.string.common_next),
+            text = stringResource(id = R.string.common_start),
             modifier = Modifier
                 .fillMaxWidth()
                 .height(48.dp)
