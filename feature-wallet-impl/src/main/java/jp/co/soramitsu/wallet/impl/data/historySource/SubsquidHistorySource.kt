@@ -23,7 +23,7 @@ class SubsquidHistorySource(
         chainAsset: Asset,
         accountAddress: String
     ): CursorPage<Operation> {
-        val offset = cursor?.toIntOrNull().takeIf { it != 0 }
+        val offset = cursor?.toIntOrNull().takeIf { it != 0 }?.let { "\"$it\"" }
         val response = walletOperationsApi.getSubsquidOperationsHistory(
             url = url,
             SubsquidHistoryRequest(
