@@ -95,12 +95,14 @@ class BalancesUpdateSystem(
                         if (chain.isEthereumChain) {
                             listenEthereumBalancesByTrigger(chain, metaAccount).launchIn(scope)
                         } else {
-                            subscribeChainBalances(chain, metaAccount).onEachFailure {
-                                logError(
-                                    chain,
-                                    it
-                                )
-                            }.launchIn(scope)
+                            if (!chain.isEthereumBased || metaAccount.ethereumPublicKey != null) {
+                                subscribeChainBalances(chain, metaAccount).onEachFailure {
+                                    logError(
+                                        chain,
+                                        it
+                                    )
+                                }.launchIn(scope)
+                            }
                         }
                     }
                 }

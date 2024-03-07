@@ -34,6 +34,9 @@ class CollectionsFetchingUseCase(
             } else {
                 chains.filter { it.id == chainSelection }
             }
+                .filter {
+                    !it.isEthereumChain || accountRepository.getSelectedMetaAccount().ethereumPublicKey != null
+                }
         }
 
         val exclusionFiltersHelperFlow =

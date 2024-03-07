@@ -33,7 +33,12 @@ class TokensFetchingUseCase(
         contractAddressFlow: Flow<String>
     ): Flow<NFTCollection> {
         val chainSelectionHelperFlow = chainsRepository.chainsFlow()
-            .map { chains -> chains.filter { it.supportNft && !it.alchemyNftId.isNullOrEmpty() } }
+            .map { chains ->
+                chains.filter { it.supportNft && !it.alchemyNftId.isNullOrEmpty() }
+                    .filter {
+                        !it.isEthereumChain || accountRepository.getSelectedMetaAccount().ethereumPublicKey != null
+                    }
+            }
             .combine(chainSelectionFlow) { chains, chainSelection ->
                 chains.find { it.id == chainSelection } ?: error(
                     """
