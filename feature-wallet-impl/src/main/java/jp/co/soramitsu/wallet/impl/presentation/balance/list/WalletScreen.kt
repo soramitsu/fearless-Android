@@ -97,7 +97,7 @@ fun WalletScreen(
                     data = data.assetsState,
                     callback = callback,
                     header = header,
-                    listState = rememberForeverLazyListState("wallet_screen")
+                    listState = listState
                 )
             }
         }
