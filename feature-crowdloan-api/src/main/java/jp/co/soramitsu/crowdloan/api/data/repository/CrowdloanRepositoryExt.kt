@@ -26,5 +26,5 @@ suspend fun CrowdloanRepository.getContributions(
 suspend fun CrowdloanRepository.hasWonAuction(chainId: ChainId, fundInfo: FundInfo): Boolean {
     val paraId = fundInfo.paraId
 
-    return getWinnerInfo(chainId, mapOf(paraId to fundInfo)).getValue(paraId)
+    return getWinnerInfo(chainId, mapOf(paraId to fundInfo)).getOrDefault(paraId, false)
 }
