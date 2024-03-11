@@ -30,18 +30,17 @@ import jp.co.soramitsu.wallet.api.domain.fromValidationResult
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.channelFlow
-import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapNotNull
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -68,51 +67,42 @@ class ConfirmNFTSendPresenter @Inject constructor(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     fun createScreenStateFlow(coroutineScope: CoroutineScope): StateFlow<ConfirmNFTSendScreenState> {
-        return channelFlow {
-            val networkFeeHelperFlow = screenArgsFlow.flatMapLatest { destinationArgs ->
-                nftTransferInteractor.networkFeeFlow(
-                    destinationArgs.token,
-                    destinationArgs.receiver,
-                    destinationArgs.isReceiverKnown
+        return screenArgsFlow.zipWithPrevious().flatMapLatest { (prevScreenArgs, currentScreenArgs) ->
+            privateCreateScreenStateFlow(prevScreenArgs, currentScreenArgs).catch {
+                internalNFTRouter.openErrorsScreen(
+                    title = resourceManager.getString(R.string.common_error_general_title),
+                    message = resourceManager.getString(R.string.common_error_network)
                 )
-            }.onEach { result ->
-                result.onFailure { throwable ->
-                    throwable.message?.let {
-                        internalNFTRouter.openErrorsScreen(message = it)
-                    }
+            }
+        }.stateIn(coroutineScope, SharingStarted.Lazily, ConfirmNFTSendScreenState.default)
+    }
+
+    private fun privateCreateScreenStateFlow(
+        prevScreenArgs: NFTNavGraphRoute.ConfirmNFTSendScreen?,
+        currentScreenArgs: NFTNavGraphRoute.ConfirmNFTSendScreen
+    ): Flow<ConfirmNFTSendScreenState> {
+        return flow {
+            val chain = chainsRepository.getChain(currentScreenArgs.token.chainId)
+            val (chainId, utilityAssetId) = chain.run { id to requireNotNull(utilityAsset?.id) }
+
+            val isLoadingHelperFlow = isLoadingFlow.map {
+                if (prevScreenArgs?.token == null || prevScreenArgs.token.tokenId == currentScreenArgs.token.tokenId) {
+                    it
+                } else {
+                    false
                 }
             }
 
-            val tokenChainFlow = screenArgsFlow.map { destination ->
-                chainsRepository.getChain(destination.token.chainId)
-            }.distinctUntilChanged().shareIn(this, SharingStarted.Eagerly, 1)
-
-            val utilityAssetFlow = tokenChainFlow.mapNotNull { chain ->
-                val utilityAssetId = chain.utilityAsset?.id ?: return@mapNotNull null
-                return@mapNotNull chain.id to utilityAssetId
-            }.flatMapLatest { (chainId, utilityAssetId) ->
-                walletInteractor.assetFlow(chainId, utilityAssetId)
-            }.distinctUntilChanged()
-
-            val isLoadingHelperFlow =
-                screenArgsFlow.zipWithPrevious().flatMapLatest { (prevArgs, currentArgs) ->
-                    isLoadingFlow.map {
-                        if (prevArgs?.token == null || prevArgs.token.tokenId == currentArgs.token.tokenId) {
-                            it
-                        } else {
-                            false
-                        }
-                    }
-                }
-
             combine(
-                screenArgsFlow,
-                tokenChainFlow,
-                utilityAssetFlow,
-                networkFeeHelperFlow,
                 accountInteractor.selectedMetaAccountFlow(),
+                nftTransferInteractor.networkFeeFlow(
+                    currentScreenArgs.token,
+                    currentScreenArgs.receiver,
+                    currentScreenArgs.isReceiverKnown
+                ),
+                walletInteractor.assetFlow(chainId, utilityAssetId),
                 isLoadingHelperFlow
-            ) { screenArgs, selectedChain, utilityAsset, networkFeeResult, metaAccount, isLoading ->
+            ) { metaAccount, networkFeeResult, utilityAsset, isLoading ->
                 val tokenSymbol = utilityAsset.token.configuration.symbol
                 val tokenFiatRate = utilityAsset.token.fiatRate
                 val tokenFiatSymbol = utilityAsset.token.fiatSymbol
@@ -122,22 +112,22 @@ class ConfirmNFTSendPresenter @Inject constructor(
                 ConfirmNFTSendScreenState(
                     thumbnailImageModel = Loadable.ReadyToRender(
                         ImageModel.UrlWithFallbackOption(
-                            screenArgs.token.thumbnail,
+                            currentScreenArgs.token.thumbnail,
                             ImageModel.ResId(R.drawable.drawable_fearless_bird)
                         )
                     ),
                     fromInfoItem = TitleValueViewState(
                         title = resourceManager.getString(R.string.transaction_details_from),
                         value = metaAccount.name,
-                        additionalValue = metaAccount.address(selectedChain)
+                        additionalValue = metaAccount.address(chain)
                             ?.shortenAddress(ADDRESS_SHORTEN_COUNT),
                     ),
                     toInfoItem = TitleValueViewState(
                         title = resourceManager.getString(R.string.polkaswap_to),
-                        value = screenArgs.receiver
+                        value = currentScreenArgs.receiver
                             .shortenAddress(ADDRESS_SHORTEN_COUNT)
                     ),
-                    collectionInfoItem = screenArgs.token.collectionName.let {
+                    collectionInfoItem = currentScreenArgs.token.collectionName.let {
                         TitleValueViewState(
                             title = resourceManager.getString(R.string.nft_collection_title),
                             value = it
@@ -154,10 +144,8 @@ class ConfirmNFTSendPresenter @Inject constructor(
                     ),
                     isLoading = isLoading
                 )
-            }.onEach {
-                send(it)
-            }.launchIn(this)
-        }.stateIn(coroutineScope, SharingStarted.Lazily, ConfirmNFTSendScreenState.default)
+            }.collect(this)
+        }
     }
 
     override fun onConfirmClick() {
