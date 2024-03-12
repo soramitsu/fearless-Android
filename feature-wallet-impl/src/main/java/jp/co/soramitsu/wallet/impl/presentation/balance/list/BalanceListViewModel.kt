@@ -182,7 +182,6 @@ class BalanceListViewModel @Inject constructor(
             if (pendulumPreInstalledAccountsScenario.isPendulumMode(it.id)) {
                 selectedChainId.value = pendulumChainId
             }
-
         }
 
     private val assetTypeSelectorState = MutableStateFlow(
