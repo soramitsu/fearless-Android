@@ -12,8 +12,10 @@ import jp.co.soramitsu.core.updater.UpdateSystem
 import jp.co.soramitsu.core.updater.Updater
 import jp.co.soramitsu.wallet.impl.data.buyToken.ExternalProvider
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.withContext
 
 class RootInteractor(
     private val updateSystem: UpdateSystem,
@@ -35,20 +37,22 @@ class RootInteractor(
     }
 
     suspend fun getRemoteConfig(): Result<AppConfig> {
-        val remoteVersion = walletRepository.getRemoteConfig()
+        return withContext(Dispatchers.Default) {
+            val remoteVersion = walletRepository.getRemoteConfig()
 
-        return if (remoteVersion.isSuccess) {
-            preferences.appConfig = remoteVersion.requireValue()
-            remoteVersion
-        } else {
-            val localVersion = preferences.appConfig
-            Result.success(localVersion)
-        }.map { it.toDomain() }
+            if (remoteVersion.isSuccess) {
+                preferences.appConfig = remoteVersion.requireValue()
+                remoteVersion
+            } else {
+                val localVersion = preferences.appConfig
+                Result.success(localVersion)
+            }.map { it.toDomain() }
+        }
     }
 
     fun chainRegistrySyncUp() = walletRepository.chainRegistrySyncUp()
 
-    suspend fun fetchFeatureToggle() = pendulumPreInstalledAccountsScenario.fetchFeatureToggle()
+    suspend fun fetchFeatureToggle() = withContext(Dispatchers.Default){ pendulumPreInstalledAccountsScenario.fetchFeatureToggle() }
 
-    fun getPendingListOfSessionRequests(topic: String) = Web3Wallet.getPendingListOfSessionRequests(topic)
+    suspend fun getPendingListOfSessionRequests(topic: String) = withContext(Dispatchers.Default){ Web3Wallet.getPendingListOfSessionRequests(topic) }
 }
