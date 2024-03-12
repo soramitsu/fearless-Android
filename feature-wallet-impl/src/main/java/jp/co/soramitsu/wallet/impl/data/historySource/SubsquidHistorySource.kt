@@ -47,7 +47,7 @@ class SubsquidHistorySource(
                             amount = transfer.amount.toBigIntegerOrNull().orZero(),
                             receiver = transfer.to,
                             sender = transfer.from,
-                            status = Operation.Status.fromSuccess(transfer.success),
+                            status = Operation.Status.fromSuccess(it.success),
                             fee = transfer.fee
                         )
                     )
@@ -62,31 +62,14 @@ class SubsquidHistorySource(
                         chainAsset = chainAsset,
                         type = Operation.Type.Reward(
                             amount = reward.amount.toBigIntegerOrNull().orZero(),
-                            isReward = reward.isReward,
+                            isReward = true,
                             era = reward.era ?: 0,
                             validator = reward.validator
                         )
                     )
                 }
             }
-            val extrinsic = TransactionFilter.EXTRINSIC.isAppliedOrNull(filters)?.let { extrinsicApplied ->
-                it.extrinsic?.let { extrinsic ->
-                    Operation(
-                        id = it.id,
-                        address = it.address,
-                        time = it.timestamp,
-                        chainAsset = chainAsset,
-                        type = Operation.Type.Extrinsic(
-                            hash = extrinsic.hash,
-                            module = extrinsic.module,
-                            call = extrinsic.call,
-                            fee = extrinsic.fee.toBigIntegerOrNull().orZero(),
-                            status = Operation.Status.fromSuccess(extrinsic.success)
-                        )
-                    )
-                }
-            }
-            listOfNotNull(transfer, reward, extrinsic)
+            listOfNotNull(transfer, reward)
         }.flatten()
         val pageInfo = response.data.historyElementsConnection.pageInfo
         val nextCursor = if(pageInfo.hasNextPage && (pageInfo.endCursor.toIntOrNull()

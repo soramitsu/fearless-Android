@@ -18,30 +18,18 @@ class SubsquidHistoryRequest(
         id
         extrinsicIdx
         extrinsicHash
-        blockNumber
         address
-        extrinsic {
-          call
-          fee
-          hash
-          module
-          success
-        }
+        success
         transfer {
           amount
-          eventIdx
           fee
           from
-          success
           to
         }
         reward {
           amount
           era
-          eventIdx
-          isReward
           stash
-          validator
         }
       }
     }
