@@ -20,24 +20,24 @@ import jp.co.soramitsu.wallet.impl.domain.model.Asset
 interface ValidateTransferUseCase {
     suspend operator fun invoke(
         amountInPlanks: BigInteger,
-        asset: Asset,
+        originAsset: Asset,
         destinationChainId: ChainId,
-        recipientAddress: String,
-        ownAddress: String,
-        fee: BigInteger?,
+        destinationAddress: String,
+        originAddress: String,
+        originFee: BigInteger?,
         confirmedValidations: List<TransferValidationResult> = emptyList(),
         transferMyselfAvailable: Boolean,
         skipEdValidation: Boolean = false,
-        destinationFeeAmount: BigDecimal? = null,
+        destinationFee: BigDecimal? = null,
     ): Result<TransferValidationResult>
 
     suspend fun validateExistentialDeposit(
         amountInPlanks: BigInteger,
-        asset: Asset,
+        originAsset: Asset,
         destinationChainId: ChainId,
-        recipientAddress: String,
-        ownAddress: String,
-        fee: BigInteger,
+        destinationAddress: String,
+        originAddress: String,
+        originFee: BigInteger,
         confirmedValidations: List<TransferValidationResult> = emptyList()
     ): Result<TransferValidationResult>
 }

@@ -490,11 +490,11 @@ class SendSetupViewModel @Inject constructor(
 
             validateTransferUseCase.validateExistentialDeposit(
                 amountInPlanks = asset.token.planksFromAmount(amount.orZero()),
-                asset = asset,
+                originAsset = asset,
                 destinationChainId = asset.token.configuration.chainId,
-                recipientAddress = recipientAddress,
-                ownAddress = ownAddress,
-                fee = fee,
+                destinationAddress = recipientAddress,
+                originAddress = ownAddress,
+                originFee = fee,
             )
         }
             .onEach { it ->
@@ -584,11 +584,11 @@ class SendSetupViewModel @Inject constructor(
             val destinationChainId = asset.token.configuration.chainId
             val validationProcessResult = validateTransferUseCase(
                 amountInPlanks = inPlanks,
-                asset = asset,
+                originAsset = asset,
                 destinationChainId = destinationChainId,
-                recipientAddress = recipientAddress,
-                ownAddress = selfAddress,
-                fee = fee,
+                destinationAddress = recipientAddress,
+                originAddress = selfAddress,
+                originFee = fee,
                 confirmedValidations = confirmedValidations,
                 transferMyselfAvailable = false,
                 skipEdValidation = sendAllToggleState.value == ToggleState.CONFIRMED
