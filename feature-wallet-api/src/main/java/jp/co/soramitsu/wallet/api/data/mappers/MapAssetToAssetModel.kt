@@ -26,7 +26,7 @@ fun mapAssetToAssetModel(
             chainAssetId = asset.token.configuration.id,
             imageUrl = token.configuration.iconUrl,
             tokenName = token.configuration.chainName,
-            assetBalance = formattedAmount + fiatAmount?.let { " ($it)" }
+            assetBalance = formattedAmount + fiatAmount?.let { " ($it)" }.orEmpty()
         )
     }
 }
