@@ -1,4 +1,4 @@
-@Library('jenkins-library')
+@Library('jenkins-library@feature/DOPS-2923/Add-trivy')
 
 // Job properties
 def jobParams = [
