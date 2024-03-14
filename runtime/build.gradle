@@ -18,7 +18,7 @@ android {
 
     buildTypes {
         debug {
-            buildConfigField "String", "CHAINS_URL", "\"https://raw.githubusercontent.com/soramitsu/shared-features-utils/develop-free/chains/v8/chains_dev.json\""
+            buildConfigField "String", "CHAINS_URL", "\"https://raw.githubusercontent.com/soramitsu/shared-features-utils/develop-free/chains/v9/chains_dev.json\""
         }
 
         release {
