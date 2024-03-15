@@ -1525,4 +1525,8 @@ class Navigator :
     override fun openNFTFilter() {
         navController?.navigate(R.id.nftFiltersFragment)
     }
+
+    override fun openServiceScreen() {
+        navController?.navigate(R.id.serviceFragment)
+    }
 }
