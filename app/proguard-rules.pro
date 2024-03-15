@@ -1,4 +1,9 @@
 ## General
+
+# Application classes that will be serialized/deserialized over Gson (Web3j Jackson)
+-keep, allowobfuscation class jp.co.soramitsu.nft.data.models.** { *; }
+-keep, allowobfuscation class jp.co.soramitsu.nft.impl.domain.utils.** { *;}
+
 #-keep class ** { *; }
 #-dontobfuscate
 -keep class jp.co.soramitsu.shared_utils.** { *; }
@@ -36,6 +41,19 @@
 
 -keep class net.jpountz.** { *; }
 -keep class org.web3j.** { *; }
+
+# Jackson (serializer used in web3j lib) tries to get Enum classes from the whole application (not only its packages)
+# by doing so it tries to find Enums that are defined inside its packages :/
+# So, if this keep rule is not enabled, R8 removes (obfucates, etc..) all application enums to its liking
+# leaving Jackson unaware of it is looking for, and thus an exception will be thrown
+# Actual exception is: ExceptionInInitializerError(), but it happens in static code of Enum classes
+# while searching for the needed Jackson defined enum
+-keepclassmembers,allowoptimization enum com.fasterxml.jackson.databind.** {
+    public static **[] values();
+    public static ** valueOf(java.lang.String);
+    **[] $VALUES;
+    public *;
+}
 
 -keep class jp.co.soramitsu.backup.** { *; }
 -keep class com.google.api.** { *; }
