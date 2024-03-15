@@ -48,8 +48,8 @@ android {
             signingConfig signingConfigs.debug
         }
         release {
-            minifyEnabled shouldEnableR8D8
-            shrinkResources shouldEnableR8D8
+            minifyEnabled true
+            shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.ci
         }
