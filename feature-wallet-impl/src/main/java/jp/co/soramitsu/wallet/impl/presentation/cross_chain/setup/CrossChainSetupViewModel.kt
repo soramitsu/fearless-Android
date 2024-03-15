@@ -41,6 +41,7 @@ import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.core.models.ChainId
 import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.feature_wallet_impl.R
+import jp.co.soramitsu.wallet.api.domain.ExistentialDepositUseCase
 import jp.co.soramitsu.wallet.api.domain.TransferValidationResult
 import jp.co.soramitsu.wallet.api.domain.ValidateTransferUseCase
 import jp.co.soramitsu.wallet.api.domain.fromValidationResult
@@ -97,7 +98,8 @@ class CrossChainSetupViewModel @Inject constructor(
     private val currentAccountAddress: CurrentAccountAddressUseCase,
     private val validateTransferUseCase: ValidateTransferUseCase,
     private val chainAssetsManager: ChainAssetsManager,
-    private val xcmInteractor: XcmInteractor
+    private val xcmInteractor: XcmInteractor,
+    private val existentialDepositUseCase: ExistentialDepositUseCase
 ) : BaseViewModel(), CrossChainSetupScreenInterface {
 
     private val isSoftKeyboardOpenFlow = MutableStateFlow(false)
@@ -200,7 +202,12 @@ class CrossChainSetupViewModel @Inject constructor(
         if (asset == null) {
             defaultAmountInputState
         } else {
-            val tokenBalance = asset.transferable.formatCrypto(asset.token.configuration.symbol)
+            val existentialDepositInPlanks = existentialDepositUseCase(asset.token.configuration)
+            val existentialDepositDecimal = asset.token.configuration.amountFromPlanks(existentialDepositInPlanks)
+            val existentialDepositWithExtra = existentialDepositDecimal * BigDecimal(1.1)
+            val transferable = maxOf(BigDecimal.ZERO, asset.transferable - existentialDepositWithExtra)
+            val tokenBalance = transferable.formatCrypto(asset.token.configuration.symbol)
+
             val fiatAmount = amount.applyFiatRate(asset.token.fiatRate)?.formatFiat(asset.token.fiatSymbol)
 
             AmountInputViewState(
@@ -659,8 +666,12 @@ class CrossChainSetupViewModel @Inject constructor(
                 else -> BigDecimal.ZERO
             }
 
-            val allAmount = asset.transferable
-            val amountToTransfer = (allAmount * input.toBigDecimal()) - utilityTipReserve
+            val existentialDepositInPlanks = existentialDepositUseCase(asset.token.configuration)
+            val existentialDepositDecimal = asset.token.amountFromPlanks(existentialDepositInPlanks)
+            val existentialDepositWithExtra = existentialDepositDecimal * BigDecimal(1.1)
+            val transferable = maxOf(BigDecimal.ZERO, asset.transferable - existentialDepositWithExtra)
+
+            val amountToTransfer = (transferable * input.toBigDecimal()) - utilityTipReserve
 
             val selfAddress = originChainId?.let { currentAccountAddress(it) } ?: return@launch
             val transfer = Transfer(

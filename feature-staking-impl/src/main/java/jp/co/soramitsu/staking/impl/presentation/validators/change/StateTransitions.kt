@@ -30,6 +30,7 @@ private fun SetupStakingSharedState.setValidators(
     when (it) {
         is SetupStakingProcess.SelectBlockProducersStep.Validators -> it.next(validators, selectionMethod)
         is SetupStakingProcess.ReadyToSubmit.Stash -> it.changeBlockProducers(validators, selectionMethod)
+        is SetupStakingProcess.Initial -> it
         else -> throw IllegalArgumentException("Cannot set validators from $it state")
     }
 }
@@ -49,6 +50,7 @@ private fun SetupStakingSharedState.setCollators(
     when (it) {
         is SetupStakingProcess.SelectBlockProducersStep.Collators -> it.next(collators, selectionMethod)
         is SetupStakingProcess.ReadyToSubmit.Parachain -> it.changeBlockProducers(collators, selectionMethod)
+        is SetupStakingProcess.Initial -> it
         else -> throw IllegalArgumentException("Cannot set collators from $it state")
     }
 }
