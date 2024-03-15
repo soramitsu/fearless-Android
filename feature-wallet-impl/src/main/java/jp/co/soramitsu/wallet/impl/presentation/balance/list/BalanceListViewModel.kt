@@ -869,4 +869,8 @@ class BalanceListViewModel @Inject constructor(
 
     private fun onSoraCardStatusClicked() {
     }
+
+    fun onServiceButtonClick() {
+        router.openServiceScreen()
+    }
 }
