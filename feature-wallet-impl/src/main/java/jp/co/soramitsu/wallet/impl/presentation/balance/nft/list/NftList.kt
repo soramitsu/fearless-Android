@@ -102,15 +102,8 @@ private fun NFTLayout(
     LaunchedEffect(loadablePage) {
         when (loadablePage) {
             is LoadableListPage.ReadyToRender -> {
-                val shouldSkipEmptyPlaceHolder = !mutableViewsList.isEmpty() &&
-                    loadablePage.views.contains(NFTCollectionsScreenView.EmptyPlaceholder)
-
-                if (!shouldSkipEmptyPlaceHolder) {
-                    mutableViewsList.clear()
-                    mutableViewsList.addAll(loadablePage.views)
-                } else if (NFTCollectionsScreenView.LoadingIndication in mutableViewsList) {
-                    mutableViewsList.remove(NFTCollectionsScreenView.LoadingIndication)
-                }
+                mutableViewsList.clear()
+                mutableViewsList.addAll(loadablePage.views)
             }
 
             is LoadableListPage.PreviousPageLoading -> {

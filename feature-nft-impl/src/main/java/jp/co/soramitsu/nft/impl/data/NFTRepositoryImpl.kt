@@ -147,7 +147,6 @@ class NFTRepositoryImpl(
                             updateCacheHandle.swapRequests(it)
                         },
                         chainSelectionFlow.distinctUntilChanged().onEach { chains ->
-                            println()
                             pageBackStackHandle.span(*chains.map { it.id }.toTypedArray())
                             updateCacheHandle.wipeCache()
                         },

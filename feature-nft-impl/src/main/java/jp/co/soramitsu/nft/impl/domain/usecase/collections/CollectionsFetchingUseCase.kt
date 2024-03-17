@@ -29,14 +29,17 @@ class CollectionsFetchingUseCase(
         val chainsHelperFlow = chainsRepository.chainsFlow().map { chains ->
             chains.filter { it.supportNft && !it.alchemyNftId.isNullOrEmpty() }
         }.combine(chainSelectionFlow) { chains, chainSelection ->
-            if (chainSelection.isNullOrEmpty()) {
-                chains
-            } else {
-                chains.filter { it.id == chainSelection }
+            val newChains = when {
+                chainSelection.isNullOrEmpty() -> chains
+
+                chains.find { it.id == chainSelection } == null -> emptyList()
+
+                else -> chains.filter { it.id == chainSelection }
             }
-                .filter {
-                    !it.isEthereumChain || accountRepository.getSelectedMetaAccount().ethereumPublicKey != null
-                }
+
+            newChains.filter {
+                !it.isEthereumChain || accountRepository.getSelectedMetaAccount().ethereumPublicKey != null
+            }
         }
 
         val exclusionFiltersHelperFlow =
