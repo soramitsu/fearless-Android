@@ -39,7 +39,7 @@ class SubsquidHistorySource(
                     Operation(
                         id = it.extrinsicIdx ?: it.id,
                         address = it.address,
-                        time = it.timestamp,
+                        time = it.timestampMillis,
                         chainAsset = chainAsset,
                         type = Operation.Type.Transfer(
                             hash = it.extrinsicHash,
@@ -58,7 +58,7 @@ class SubsquidHistorySource(
                     Operation(
                         id = it.id,
                         address = it.address,
-                        time = it.timestamp,
+                        time = it.timestampMillis,
                         chainAsset = chainAsset,
                         type = Operation.Type.Reward(
                             amount = reward.amount.toBigIntegerOrNull().orZero(),

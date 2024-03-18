@@ -28,6 +28,9 @@ class SubsquidHistoryResponse(val historyElements: Array<HistoryElement>) {
         val transfer: SubsquidTransfer?
     ) {
 
+        val timestampMillis: Long
+            get() = timestamp * 1000
+
         class SubsquidReward(
             val amount: String,
             val era: Int?,
