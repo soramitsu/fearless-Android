@@ -30,6 +30,7 @@ import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.common.utils.tokens
 import jp.co.soramitsu.core.extrinsic.ExtrinsicService
 import jp.co.soramitsu.core.models.Asset.PriceProvider
+import jp.co.soramitsu.core.models.Asset.PriceProviderType.Chainlink
 import jp.co.soramitsu.core.models.IChain
 import jp.co.soramitsu.core.runtime.storage.returnType
 import jp.co.soramitsu.core.utils.utilityAsset
@@ -221,9 +222,23 @@ class WalletRepositoryImpl(
     }
 
     private suspend fun syncAllRates(chains: List<Chain>, currencyId: String)  {
-        val priceIds = chains.map { it.assets.mapNotNull { it.priceId } }.flatten().toSet()
+        val priceIdsWithChainlinkId = chains.map {
+            it.assets.mapNotNull { asset ->
+                asset.priceId?.let { priceId ->
+                    priceId to if (asset.priceProvider?.type == Chainlink) {
+                        asset.priceProvider?.id
+                    } else {
+                        null
+                    }
+                }
+            }
+        }.flatten().toSet()
 
-        updatesMixin.startUpdateTokens(priceIds)
+        val priceIds = priceIdsWithChainlinkId.map { it.first }
+        val chainlinkProviderIds = priceIdsWithChainlinkId.mapNotNull { it.second }
+        val allPriceIds = (priceIds + chainlinkProviderIds).toSet()
+
+        updatesMixin.startUpdateTokens(allPriceIds)
 
         var coingeckoPriceStats: Map<String, Map<String, BigDecimal>> = emptyMap()
         var chainlinkPrices: Map<String, BigDecimal> =  emptyMap()
@@ -242,17 +257,22 @@ class WalletRepositoryImpl(
             }
         }.join()
 
-        val newPrices = priceIds.mapNotNull { priceId ->
+        val newPrices = priceIdsWithChainlinkId.mapNotNull { (priceId, chainlinkId) ->
             val stat = coingeckoPriceStats[priceId] ?: return@mapNotNull null
-            val price = chainlinkPrices.getOrDefault(priceId, stat[currencyId])
+
             val changeKey = "${currencyId}_24h_change"
             val change = stat[changeKey]
             val fiatCurrency = availableFiatCurrencies[currencyId]
 
-            TokenPriceLocal(priceId, price, fiatCurrency?.symbol, change)
-        }
+            listOf(
+                TokenPriceLocal(priceId, stat[currencyId], fiatCurrency?.symbol, change),
+                chainlinkId?.let {
+                    TokenPriceLocal(chainlinkId, chainlinkPrices[chainlinkId], fiatCurrency?.symbol, change)
+                }
+            )
+        }.flatten().filterNotNull()
         assetCache.updateTokensPrice(newPrices)
-        updatesMixin.finishUpdateTokens(priceIds)
+        updatesMixin.finishUpdateTokens(allPriceIds)
     }
 
     private suspend fun getChainlinkPrices(chains: List<Chain>): Map<String, BigDecimal> {
@@ -263,12 +283,11 @@ class WalletRepositoryImpl(
                 .toList()
 
         return allAssets.mapNotNull {
-            val priceId = it.priceId ?: return@mapNotNull null
             val priceProvider = it.priceProvider ?: return@mapNotNull null
             val price =
                 getChainlinkPrices(priceProvider = priceProvider, chainId = chainlinkProvider.id)
                     ?: return@mapNotNull null
-            priceId to price
+            priceProvider.id to price
         }.toMap()
     }
 
