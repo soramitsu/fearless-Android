@@ -125,7 +125,7 @@ class PayoutsListViewModel @Inject constructor(
         } else {
             currentAsset.token
         }
-        val totalAmount = token.amountFromPlanks(statistics.totalAmountInPlanks).formatCrypto(token.configuration.symbol)
+        val totalAmount = token.amountFromPlanks(statistics.totalAmountInPlanks).formatCryptoDetail(token.configuration.symbol)
 
         val payouts = statistics.payouts.map { mapPayoutToPayoutModel(token, it) }
 

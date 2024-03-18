@@ -88,11 +88,11 @@ class AssetDetailsViewModel @Inject constructor(
             selectedMetaAccount.id to assetId
         }.flatMapLatest { (selectedMetaAccountId, assetId) ->
             interactor.observeChainsPerAsset(selectedMetaAccountId, assetId)
-                .also { valuesFlow ->
+                .also { chainsPerAssetFlow ->
                     val chainSelection = interactor.getSavedChainId(walletId = selectedMetaAccountId)
-                    val valuesAsList = valuesFlow.first().toList()
+                    val chainsWithAsset = chainsPerAssetFlow.first().toList()
 
-                    openBalanceDetailsForSelectedOrSingleChain(chainSelection, valuesAsList, assetId)
+                    openBalanceDetailsForSelectedOrSingleChain(chainSelection, chainsWithAsset, assetId)
                 }.combine(interactor.assetsFlow()) { resultMap, assetsWithStatus ->
                     val resultWithStatuses = resultMap.mapValues { resultEntry ->
                         resultEntry.value?.let { resultAsset ->
@@ -106,11 +106,11 @@ class AssetDetailsViewModel @Inject constructor(
                 }
         }.flowOn(Dispatchers.IO).share()
 
-    private fun openBalanceDetailsForSelectedOrSingleChain(selectedChainId: ChainId?, valuesAsList: List<Pair<Chain, Asset?>>, assetId: String) {
+    private fun openBalanceDetailsForSelectedOrSingleChain(selectedChainId: ChainId?, chainsWithAsset: List<Pair<Chain, Asset?>>, assetId: String) {
         launch {
             val singleChainId = when {
-                selectedChainId != null -> selectedChainId
-                valuesAsList.size == 1 -> valuesAsList.first().first.id
+                selectedChainId != null && selectedChainId in chainsWithAsset.map { it.first.id } -> selectedChainId
+                chainsWithAsset.size == 1 -> chainsWithAsset.first().first.id
                 else -> null
             }
 

@@ -1,7 +1,5 @@
 package jp.co.soramitsu.wallet.impl.presentation.cross_chain.setup
 
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
@@ -61,7 +59,6 @@ import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.presentation.balance.walletselector.light.WalletSelectionMode
 import jp.co.soramitsu.wallet.impl.presentation.cross_chain.CrossChainTransferDraft
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -84,6 +81,7 @@ import kotlinx.coroutines.launch
 
 private const val SLIPPAGE_TOLERANCE = 1.35
 private const val CURRENT_ICON_SIZE = 16
+private const val CROSS_CHAIN_ED_SAFE_TRANSFER_MULTIPLIER = 1.1
 
 @HiltViewModel
 class CrossChainSetupViewModel @Inject constructor(
@@ -124,7 +122,7 @@ class CrossChainSetupViewModel @Inject constructor(
     private val originChainIdFlow: StateFlow<ChainId?> = chainAssetsManager.originChainIdFlow
         .stateIn(viewModelScope, SharingStarted.Eagerly, initialValue = null)
 
-    @OptIn(FlowPreview::class)
+    @OptIn(ExperimentalCoroutinesApi::class)
     private val walletIconFlow = originChainIdFlow.flatMapConcat { chainId ->
         if (chainId == null) return@flatMapConcat flowOf(null)
 
@@ -179,32 +177,21 @@ class CrossChainSetupViewModel @Inject constructor(
 
     private val amountInputFocusFlow = MutableStateFlow(false)
     private val addressInputFlow = MutableStateFlow("")
-    private val isInputAddressValidFlow = combine(
-        addressInputFlow,
-        chainAssetsManager.originChainIdFlow
-    ) { addressInput, chainId ->
-        when (chainId) {
-            null -> false
-            else -> walletInteractor.validateSendAddress(chainId, addressInput)
-        }
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     private val enteredAmountBigDecimalFlow = MutableStateFlow(initialAmount)
     private val visibleAmountFlow = MutableStateFlow(initialAmount)
-    private val initialAmountFlow = MutableStateFlow(initialAmount.takeIf { it.isNotZero() })
 
     private val amountInputViewState: Flow<AmountInputViewState> = combine(
         visibleAmountFlow,
-        initialAmountFlow,
         assetFlow,
         amountInputFocusFlow
-    ) { amount, initialAmount, asset, isAmountInputFocused ->
+    ) { amount, asset, isAmountInputFocused ->
         if (asset == null) {
             defaultAmountInputState
         } else {
             val existentialDepositInPlanks = existentialDepositUseCase(asset.token.configuration)
             val existentialDepositDecimal = asset.token.configuration.amountFromPlanks(existentialDepositInPlanks)
-            val existentialDepositWithExtra = existentialDepositDecimal * BigDecimal(1.1)
+            val existentialDepositWithExtra = existentialDepositDecimal * CROSS_CHAIN_ED_SAFE_TRANSFER_MULTIPLIER.toBigDecimal()
             val transferable = maxOf(BigDecimal.ZERO, asset.transferable - existentialDepositWithExtra)
             val tokenBalance = transferable.formatCrypto(asset.token.configuration.symbol)
 
@@ -668,7 +655,7 @@ class CrossChainSetupViewModel @Inject constructor(
 
             val existentialDepositInPlanks = existentialDepositUseCase(asset.token.configuration)
             val existentialDepositDecimal = asset.token.amountFromPlanks(existentialDepositInPlanks)
-            val existentialDepositWithExtra = existentialDepositDecimal * BigDecimal(1.1)
+            val existentialDepositWithExtra = existentialDepositDecimal * CROSS_CHAIN_ED_SAFE_TRANSFER_MULTIPLIER.toBigDecimal()
             val transferable = maxOf(BigDecimal.ZERO, asset.transferable - existentialDepositWithExtra)
 
             val amountToTransfer = (transferable * input.toBigDecimal()) - utilityTipReserve
@@ -696,7 +683,6 @@ class CrossChainSetupViewModel @Inject constructor(
                 RoundingMode.HALF_DOWN
             )
             visibleAmountFlow.value = scaled
-            initialAmountFlow.value = scaled
             enteredAmountBigDecimalFlow.value = quickAmountWithoutExtraPays
         }
     }
