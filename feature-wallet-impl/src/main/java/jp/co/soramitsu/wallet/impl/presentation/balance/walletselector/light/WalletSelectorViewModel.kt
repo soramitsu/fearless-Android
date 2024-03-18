@@ -17,12 +17,15 @@ import jp.co.soramitsu.common.navigation.payload.WalletSelectorPayload
 import jp.co.soramitsu.common.utils.formatAsChange
 import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.inBackground
-import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 @HiltViewModel
@@ -35,26 +38,48 @@ class WalletSelectorViewModel @Inject constructor(
 ) : BaseViewModel(), UpdatesProviderUi by updatesMixin {
 
     private val tag = savedStateHandle.get<String>(WalletSelectorFragment.TAG_ARGUMENT_KEY)!!
-    private val selectedWalletId = savedStateHandle.get<Long?>(WalletSelectorFragment.SELECTED_WALLET_ID)
-    private val walletSelectionMode = savedStateHandle[WalletSelectorFragment.WALLET_SELECTION_MODE] ?: WalletSelectionMode.CurrentWallet
+    private val selectedWalletId =
+        savedStateHandle.get<Long?>(WalletSelectorFragment.SELECTED_WALLET_ID)
+    private val walletSelectionMode = savedStateHandle[WalletSelectorFragment.WALLET_SELECTION_MODE]
+        ?: WalletSelectionMode.CurrentWallet
 
-    private val walletItemsFlow = accountListingMixin.accountsFlow(AddressIconGenerator.SIZE_BIG).mapList {
-        val balanceModel = totalBalanceUseCase(it.id)
+    private val walletItemsFlow = MutableStateFlow<List<WalletItemViewState>>(emptyList())
 
-        WalletItemViewState(
-            id = it.id,
-            title = it.name,
-            isSelected = it.isSelected,
-            walletIcon = it.picture.value,
-            balance = balanceModel.balance.formatFiat(balanceModel.fiatSymbol),
-            changeBalanceViewState = ChangeBalanceViewState(
-                percentChange = balanceModel.rateChange?.formatAsChange().orEmpty(),
-                fiatChange = balanceModel.balanceChange.abs().formatFiat(balanceModel.fiatSymbol)
-            )
-        )
+    init {
+        accountListingMixin.accountsFlow(AddressIconGenerator.SIZE_BIG)
+            .inBackground()
+            .onEach { newList ->
+                walletItemsFlow.value =
+                    newList.map {
+                        WalletItemViewState(
+                            id = it.id,
+                            title = it.name,
+                            isSelected = it.isSelected,
+                            walletIcon = it.picture.value,
+                            balance = null,
+                            changeBalanceViewState = null
+                        )
+                    }
+
+            }
+            .onEach {
+                walletItemsFlow.update { prevList ->
+                    prevList.map { prevState ->
+                        val balanceModel = totalBalanceUseCase(prevState.id)
+                        prevState.copy(
+                            balance = balanceModel.balance.formatFiat(balanceModel.fiatSymbol),
+                            changeBalanceViewState = ChangeBalanceViewState(
+                                percentChange = balanceModel.rateChange?.formatAsChange().orEmpty(),
+                                fiatChange = balanceModel.balanceChange.abs()
+                                    .formatFiat(balanceModel.fiatSymbol)
+                            )
+                        )
+                    }
+                }
+            }
+            .launchIn(viewModelScope)
     }
-        .inBackground()
-        .share()
+
     private val selectedWalletItem = walletItemsFlow
         .map { it.firstOrNull { it.id == selectedWalletId } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
@@ -67,7 +92,7 @@ class WalletSelectorViewModel @Inject constructor(
             wallets = walletItems,
             selectedWallet = when (walletSelectionMode) {
                 WalletSelectionMode.CurrentWallet -> {
-                    selectedWallet ?: walletItems.first { it.isSelected }
+                    selectedWallet ?: walletItems.firstOrNull { it.isSelected }
                 }
 
                 WalletSelectionMode.ExternalSelectedWallet -> {

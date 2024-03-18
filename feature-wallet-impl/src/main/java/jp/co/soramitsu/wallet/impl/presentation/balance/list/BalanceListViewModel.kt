@@ -490,9 +490,7 @@ class BalanceListViewModel @Inject constructor(
     private fun subscribeTotalBalance() {
         combine(
             selectedChainId.map { chainId -> chainId?.let { currentAccountAddress(it) }.orEmpty() },
-            interactor.selectedLightMetaAccountFlow().flatMapLatest {
-                getTotalBalance.observe()
-            }
+            getTotalBalance.observe()
         ) { selectedChainAddress, balanceModel ->
             AssetBalanceViewState(
                 transferableBalance = balanceModel.balance.formatFiat(balanceModel.fiatSymbol),
@@ -603,12 +601,15 @@ class BalanceListViewModel @Inject constructor(
 
     private fun sync() {
         viewModelScope.launch {
-            val result = withContext(Dispatchers.Default) {
+            withContext(Dispatchers.Default) {
                 getAvailableFiatCurrencies.sync()
-                interactor.syncAssetsRates()
+                interactor.syncAssetsRates().onFailure {
+                    withContext(Dispatchers.Main) {
+                        selectedFiat.notifySyncFailed()
+                        showError(it)
+                    }
+                }
             }
-
-            result.exceptionOrNull()?.let(::showError)
         }
     }
 
