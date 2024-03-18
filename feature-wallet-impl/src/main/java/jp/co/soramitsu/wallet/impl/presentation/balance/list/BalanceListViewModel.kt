@@ -277,14 +277,10 @@ class BalanceListViewModel @Inject constructor(
             val pullToRefreshHelperFlow = BalanceUpdateTrigger.observe()
                 .map { PaginationRequest.Start(100) }
 
-            val paginationRequestHelperFlow =
-                merge(
-                    mutableNFTPaginationRequestFlow,
-                    pullToRefreshHelperFlow
-                ).onStart {
-                    emit(PaginationRequest.Start(100))
-                }.onEach { request ->
-                    when (request) {
+            val paginationRequestHelperFlow = merge(mutableNFTPaginationRequestFlow, pullToRefreshHelperFlow)
+                .onStart { emit(PaginationRequest.Start(100)) }
+                .onEach { request ->
+                    val screenModel = when (request) {
                         is PaginationRequest.Start -> ScreenModel.Reloading
 
                         is PaginationRequest.Prev -> ScreenModel.PreviousPageLoading
@@ -292,12 +288,13 @@ class BalanceListViewModel @Inject constructor(
                         is PaginationRequest.Next -> ScreenModel.NextPageLoading
 
                         is PaginationRequest.ProceedFromLastPage -> ScreenModel.NextPageLoading
-                    }.also { model -> send(model to mutableScreenLayoutFlow.value) }
-                }.debounce(300L).filter {
-                    isLoadingCompleted.get()
-                }.onEach {
-                    isLoadingCompleted.set(false)
-                }.shareIn(this, SharingStarted.Eagerly, 1)
+                    }
+
+                    send(screenModel to mutableScreenLayoutFlow.value)
+                }.debounce(300L)
+                .filter { isLoadingCompleted.get() }
+                .onEach { isLoadingCompleted.set(false) }
+                .shareIn(this, SharingStarted.Eagerly, 1)
 
             nftInteractor.collectionsFlow(
                 paginationRequestFlow = paginationRequestHelperFlow,

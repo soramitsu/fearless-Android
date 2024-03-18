@@ -22,7 +22,9 @@ class PageBackStackImpl : PageBackStack {
         if (request.page == null) {
             when (request) {
                 is PageBackStack.Request.Prev ->
-                    return PageBackStack.PageResult.NoPrevPages()
+                    if (!historyStack.isEmpty()) {
+                        return PageBackStack.PageResult.NoPrevPages()
+                    }
 
                 is PageBackStack.Request.Next ->
                     if (!historyStack.isEmpty()) {
@@ -33,14 +35,20 @@ class PageBackStackImpl : PageBackStack {
             }
         }
 
-        val page = when (request) {
+        val newRequest = if (historyStack.isEmpty() && request is PageBackStack.Request.Prev) {
+            PageBackStack.Request.Next(null, 100)
+        } else {
+            request
+        }
+
+        val page = when (newRequest) {
             is PageBackStack.Request.Prev ->
-                localMutex.withLock { getPrevPageAndTrimStack(request) }
+                localMutex.withLock { getPrevPageAndTrimStack(newRequest) }
                     ?: return PageBackStack.PageResult.NoPrevPages()
 
             is PageBackStack.Request.Next ->
-                localMutex.withLock { getNextPageAndTrimStack(request) }
-                    ?: VisitedPage(request.page, request.size)
+                localMutex.withLock { getNextPageAndTrimStack(newRequest) }
+                    ?: VisitedPage(newRequest.page, newRequest.size)
 
             is PageBackStack.Request.ReplayCurrent ->
                 localMutex.withLock { historyStack.peek() }
@@ -49,7 +57,7 @@ class PageBackStackImpl : PageBackStack {
         val pagedRequestResult = block(page.page, page.size)
 
         // if request has been executed successfully, save request as visitedPage
-        if (page.page == request.page) {
+        if (page.page == newRequest.page) {
             localMutex.withLock { historyStack.push(page) }
         }
 

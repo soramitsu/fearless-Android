@@ -1,8 +1,9 @@
 ## General
 
 # Application classes that will be serialized/deserialized over Gson (Web3j Jackson)
--keep, allowobfuscation class jp.co.soramitsu.nft.data.models.** { *; }
--keep, allowobfuscation class jp.co.soramitsu.nft.impl.domain.utils.** { *;}
+-keep, allowobfuscation class jp.co.soramitsu.nft.data.models.** { public <init>(*); }
+-keep, allowobfuscation class jp.co.soramitsu.nft.impl.data.model.** { public <init>(*); }
+-keep class jp.co.soramitsu.nft.impl.domain.utils.** { *; }
 
 #-keep class ** { *; }
 #-dontobfuscate

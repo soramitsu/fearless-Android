@@ -81,10 +81,6 @@ class PagingRequestMediator @Inject constructor() {
                         ).also { emit(it) }
                     }.toList()
 
-                if (results.isEmpty()) {
-                    return@transformLatest
-                }
-
                 emit(results)
             }.collect(this)
         }.flowOn(Dispatchers.IO)
