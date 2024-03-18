@@ -8,6 +8,7 @@ import jp.co.soramitsu.account.api.domain.model.TotalBalance
 import jp.co.soramitsu.common.utils.DOLLAR_SIGN
 import jp.co.soramitsu.common.utils.applyFiatRate
 import jp.co.soramitsu.common.utils.fractionToPercentage
+import jp.co.soramitsu.common.utils.isNotZero
 import jp.co.soramitsu.common.utils.isZero
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.percentageToFraction
@@ -53,11 +54,21 @@ class TotalBalanceUseCaseImpl(
     }
 
     private suspend fun getTotalBalance(assets: List<AssetWithToken>): TotalBalance {
-        val fiatCurrency = assets.find { it.asset.chainId == polkadotChainId }?.token?.fiatSymbol
-
         val chainsById = chainsRepository.getChainsById()
 
-        return assets.fold(TotalBalance.Empty) { acc, current ->
+        val polkadotCurrency = assets.find { it.asset.chainId == polkadotChainId }?.token?.fiatSymbol
+
+        val filtered = assets
+            .asSequence()
+            .filter { it.asset.freeInPlanks != null && it.asset.freeInPlanks.isNotZero() && it.token?.fiatSymbol != null }
+            .toList()
+
+        // todo I did this workaround because sometimes there is a wrong symbol in asset list. Need research
+        val fiatSymbolsInAssets = filtered.map { it.token?.fiatSymbol }.toSet()
+        val fiatCurrency =
+            runCatching { fiatSymbolsInAssets.maxBy { s -> filtered.count { it.token?.fiatSymbol == s } } }.getOrNull() ?: polkadotCurrency
+
+        return filtered.fold(TotalBalance.Empty) { acc, current ->
             val chainAsset = chainsById.getValue(current.asset.chainId).assets
                 .firstOrNull { it.id == current.asset.id }
                 ?: return@fold TotalBalance.Empty
@@ -80,7 +91,7 @@ class TotalBalanceUseCaseImpl(
 
             TotalBalance(
                 balance = balance,
-                fiatSymbol = current.token?.fiatSymbol ?: fiatCurrency ?: DOLLAR_SIGN,
+                fiatSymbol = fiatCurrency ?: DOLLAR_SIGN,
                 balanceChange = balanceChange,
                 rateChange = rate
             )
