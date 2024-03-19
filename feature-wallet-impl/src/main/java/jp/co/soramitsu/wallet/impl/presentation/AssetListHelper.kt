@@ -2,6 +2,7 @@ package jp.co.soramitsu.wallet.impl.presentation
 
 import java.math.BigDecimal
 import jp.co.soramitsu.common.compose.component.NetworkIssueItemState
+import jp.co.soramitsu.common.utils.formatCryptoDetail
 import jp.co.soramitsu.common.utils.isZero
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.sumByBigDecimal
@@ -61,7 +62,12 @@ object AssetListHelper {
                 val assetTotal = symbolAssets.sumByBigDecimal { it.asset.total.orZero() }
                 val assetTotalFiat = symbolAssets.sumByBigDecimal { it.asset.fiatAmount.orZero() }
 
-                val isZeroBalance = assetTotal.isZero()
+                val assetVisibleTotal = symbolAssets.sumByBigDecimal {
+                    val raw = it.asset.total.orZero()
+                    val shownValue = raw.formatCryptoDetail()
+                    shownValue.replace(',', '.').toBigDecimal()
+                }
+                val isZeroBalance = assetVisibleTotal.isZero()
 
                 val assetDisabledByUser = symbolAssets.any { it.asset.enabled == false }
                 val assetManagedByUser = symbolAssets.any { it.asset.enabled != null }
