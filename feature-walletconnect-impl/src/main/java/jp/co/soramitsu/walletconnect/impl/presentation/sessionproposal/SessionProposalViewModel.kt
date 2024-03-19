@@ -7,6 +7,7 @@ import co.jp.soramitsu.walletconnect.domain.WalletConnectRouter
 import co.jp.soramitsu.walletconnect.model.ChainChooseResult
 import com.walletconnect.web3.wallet.client.Wallet
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.impl.presentation.account.mixin.api.AccountListingMixin
 import jp.co.soramitsu.common.address.AddressIconGenerator
@@ -14,6 +15,7 @@ import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.InfoItemSetViewState
 import jp.co.soramitsu.common.compose.component.InfoItemViewState
 import jp.co.soramitsu.common.compose.component.SelectorState
+import jp.co.soramitsu.common.compose.component.WalletNameItemViewState
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.walletconnect.impl.presentation.WCDelegate
@@ -29,8 +31,6 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import javax.inject.Inject
-import jp.co.soramitsu.common.compose.component.WalletNameItemViewState
 
 @HiltViewModel
 class SessionProposalViewModel @Inject constructor(
@@ -93,7 +93,7 @@ class SessionProposalViewModel @Inject constructor(
             subTitle = requiredChainNames,
             iconUrl = null,
             actionIcon = null
-        )
+        ).takeIf { requiredChains.isNotEmpty() }
         val optionalNetworksSelectorState = SelectorState(
             title = resourceManager.getString(R.string.connection_optional_networks),
             subTitle = optionalChainNames,
@@ -103,21 +103,18 @@ class SessionProposalViewModel @Inject constructor(
         val requiredMethods = proposal.requiredNamespaces.flatMap { it.value.methods }
         val requiredEvents = proposal.requiredNamespaces.flatMap { it.value.events }
 
-        val requiredInfoItems = listOf(
-            InfoItemViewState(
-                title = resourceManager.getString(R.string.connection_methods),
-                subtitle = requiredMethods.joinToString { it }
-            ),
-            InfoItemViewState(
-                title = resourceManager.getString(R.string.connection_events),
-                subtitle = requiredEvents.joinToString { it }
-            )
-        )
+        val requiredInfoItems = mutableListOf<InfoItemViewState>()
+        if (requiredMethods.isNotEmpty()) {
+            requiredInfoItems.add(InfoItemViewState(title = resourceManager.getString(R.string.connection_methods), subtitle = requiredMethods.joinToString { it }))
+        }
+        if (requiredEvents.isNotEmpty()) {
+            requiredInfoItems.add(InfoItemViewState(title = resourceManager.getString(R.string.connection_events), subtitle = requiredEvents.joinToString { it }))
+        }
 
         val requiredPermissions = InfoItemSetViewState(
             title = requiredChainNames,
             infoItems = requiredInfoItems
-        )
+        ).takeIf { requiredInfoItems.isNotEmpty() }
 
         // optional
         val optionalMethods = proposal.optionalNamespaces.flatMap { it.value.methods }
