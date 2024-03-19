@@ -10,7 +10,20 @@ import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.wallet.impl.domain.interfaces.AssetSorting
 
 @Stable // all descendants should be either data class or override equalsTo()
-interface AssetDetailsState {
+data class AssetDetailsState(
+    val assetSorting: AssetSorting,
+    val balanceState: LoadingState<AssetBalanceViewState>,
+    val tabState: MultiToggleButtonState<Tab>?,
+    val items: List<ItemState>
+) {
+    companion object {
+        val empty =  AssetDetailsState(
+            assetSorting = AssetSorting.FiatBalance,
+            balanceState = LoadingState.Loading(),
+            tabState = null,
+            items = emptyList()
+        )
+    }
 
     enum class Tab(override val titleResId: Int): MultiToggleItem {
         AvailableChains(R.string.common_available_networks),
@@ -34,29 +47,6 @@ interface AssetDetailsState {
 
         val networkIssueType: NetworkIssueType?
     }
-
-    val assetSorting: AssetSorting
-
-    val balanceState: LoadingState<AssetBalanceViewState>
-
-    val tabState: MultiToggleButtonState<Tab>?
-
-    val items: List<ItemState>
-
-}
-
-data class AssetDetailsViewState(
-    override val assetSorting: AssetSorting,
-    override val balanceState: LoadingState<AssetBalanceViewState>,
-    override val tabState: MultiToggleButtonState<AssetDetailsState.Tab>?,
-    override val items: List<AssetDetailsState.ItemState>
-) : AssetDetailsState
-
-object EmptyAssetDetailsViewState: AssetDetailsState {
-    override val assetSorting: AssetSorting = AssetSorting.FiatBalance
-    override val balanceState: LoadingState<AssetBalanceViewState> = LoadingState.Loading()
-    override val tabState: MultiToggleButtonState<AssetDetailsState.Tab>? = null
-    override val items: List<AssetDetailsState.ItemState> = emptyList()
 }
 
 data class AssetDetailsItemViewState(
