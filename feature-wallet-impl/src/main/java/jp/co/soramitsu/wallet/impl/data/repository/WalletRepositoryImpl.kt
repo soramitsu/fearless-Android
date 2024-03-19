@@ -145,8 +145,7 @@ class WalletRepositoryImpl(
                                 chainAsset = it,
                                 metaId = meta.id,
                                 accountId = meta.accountId(chain) ?: emptyAccountIdValue,
-                                minSupportedVersion = chain.minSupportedVersion,
-                                enabled = chain.nodes.isNotEmpty()
+                                minSupportedVersion = chain.minSupportedVersion
                             ),
                             hasAccount = !chain.isEthereumBased || meta.ethereumPublicKey != null,
                             hasChainAccount = chain.id in chainAccounts.mapNotNull { it.chain?.id }

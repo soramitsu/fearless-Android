@@ -9,7 +9,6 @@ import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.shared_utils.runtime.AccountId
-import kotlin.math.max
 import jp.co.soramitsu.core.models.Asset as CoreAsset
 
 data class Asset(
@@ -32,22 +31,12 @@ data class Asset(
     companion object {
         fun createEmpty(chainAccount: MetaAccount.ChainAccount) = chainAccount.chain?.let {
             it.utilityAsset?.let { utilityAsset ->
-                Asset(
+                createEmpty(
+                    chainAsset = utilityAsset,
                     metaId = chainAccount.metaId,
-                    token = Token(configuration = utilityAsset, fiatRate = null, fiatSymbol = null, recentRateChange = null),
                     accountId = chainAccount.accountId,
-                    freeInPlanks = null,
-                    reservedInPlanks = null,
-                    miscFrozenInPlanks = null,
-                    feeFrozenInPlanks = null,
-                    bondedInPlanks = null,
-                    redeemableInPlanks = null,
-                    unbondingInPlanks = null,
-                    sortIndex = Int.MAX_VALUE,
-                    enabled = null,
-                    minSupportedVersion = it.minSupportedVersion,
                     chainAccountName = chainAccount.accountName,
-                    markedNotNeed = false
+                    minSupportedVersion = it.minSupportedVersion
                 )
             }
         }
@@ -57,8 +46,7 @@ data class Asset(
             metaId: Long,
             accountId: AccountId,
             chainAccountName: String? = null,
-            minSupportedVersion: String?,
-            enabled: Boolean = true
+            minSupportedVersion: String?
         ) = Asset(
             metaId = metaId,
             Token(configuration = chainAsset, fiatRate = null, fiatSymbol = null, recentRateChange = null),
@@ -71,7 +59,7 @@ data class Asset(
             redeemableInPlanks = null,
             unbondingInPlanks = null,
             sortIndex = Int.MAX_VALUE,
-            enabled = enabled,
+            enabled = null,
             minSupportedVersion = minSupportedVersion,
             chainAccountName = chainAccountName,
             markedNotNeed = false
