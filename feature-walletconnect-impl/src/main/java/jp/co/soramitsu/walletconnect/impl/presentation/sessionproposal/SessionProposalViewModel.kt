@@ -7,7 +7,6 @@ import co.jp.soramitsu.walletconnect.domain.WalletConnectRouter
 import co.jp.soramitsu.walletconnect.model.ChainChooseResult
 import com.walletconnect.web3.wallet.client.Wallet
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.impl.presentation.account.mixin.api.AccountListingMixin
 import jp.co.soramitsu.common.address.AddressIconGenerator
@@ -31,6 +30,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @HiltViewModel
 class SessionProposalViewModel @Inject constructor(
@@ -105,10 +105,20 @@ class SessionProposalViewModel @Inject constructor(
 
         val requiredInfoItems = mutableListOf<InfoItemViewState>()
         if (requiredMethods.isNotEmpty()) {
-            requiredInfoItems.add(InfoItemViewState(title = resourceManager.getString(R.string.connection_methods), subtitle = requiredMethods.joinToString { it }))
+            requiredInfoItems.add(
+                InfoItemViewState(
+                    title = resourceManager.getString(R.string.connection_methods),
+                    subtitle = requiredMethods.joinToString { it }
+                )
+            )
         }
         if (requiredEvents.isNotEmpty()) {
-            requiredInfoItems.add(InfoItemViewState(title = resourceManager.getString(R.string.connection_events), subtitle = requiredEvents.joinToString { it }))
+            requiredInfoItems.add(
+                InfoItemViewState(
+                    title = resourceManager.getString(R.string.connection_events),
+                    subtitle = requiredEvents.joinToString { it }
+                )
+            )
         }
 
         val requiredPermissions = InfoItemSetViewState(
