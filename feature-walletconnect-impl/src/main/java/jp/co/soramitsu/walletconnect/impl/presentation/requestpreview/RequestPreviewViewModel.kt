@@ -34,6 +34,7 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import jp.co.soramitsu.common.compose.component.WalletNameItemViewState
 
 @HiltViewModel
 class RequestPreviewViewModel @Inject constructor(
@@ -65,7 +66,7 @@ class RequestPreviewViewModel @Inject constructor(
         }
         .stateIn(this, SharingStarted.Eagerly, null)
 
-    private val requestWalletItemFlow: SharedFlow<WalletItemViewState?> = requestChainFlow.filterNotNull().map { requestChain ->
+    private val requestWalletItemFlow: SharedFlow<WalletNameItemViewState?> = requestChainFlow.filterNotNull().map { requestChain ->
         val requestAddress = recentSession.request.address
 
         val requestedWallet = accountRepository.allMetaAccounts().firstOrNull { wallet ->
@@ -89,7 +90,7 @@ class RequestPreviewViewModel @Inject constructor(
             AddressIconGenerator.SIZE_BIG
         )
 
-        WalletItemViewState(
+        WalletNameItemViewState(
             id = requestedWallet.id,
             title = requestedWallet.name,
             isSelected = false,

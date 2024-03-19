@@ -14,7 +14,6 @@ import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.InfoItemSetViewState
 import jp.co.soramitsu.common.compose.component.InfoItemViewState
 import jp.co.soramitsu.common.compose.component.SelectorState
-import jp.co.soramitsu.common.compose.component.WalletItemViewState
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.walletconnect.impl.presentation.WCDelegate
@@ -31,6 +30,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import jp.co.soramitsu.common.compose.component.WalletNameItemViewState
 
 @HiltViewModel
 class SessionProposalViewModel @Inject constructor(
@@ -55,9 +55,9 @@ class SessionProposalViewModel @Inject constructor(
 
     private val accountsFlow = accountListingMixin.accountsFlow(AddressIconGenerator.SIZE_BIG)
 
-    private val walletItemsFlow: SharedFlow<List<WalletItemViewState>> = combine(accountsFlow, selectedWalletIds) { accounts, selectedWalletIds ->
+    private val walletItemsFlow: SharedFlow<List<WalletNameItemViewState>> = combine(accountsFlow, selectedWalletIds) { accounts, selectedWalletIds ->
         accounts.map {
-            WalletItemViewState(
+            WalletNameItemViewState(
                 id = it.id,
                 title = it.name,
                 isSelected = if (selectedWalletIds.isEmpty()) it.isSelected else it.id in selectedWalletIds,
@@ -309,7 +309,7 @@ class SessionProposalViewModel @Inject constructor(
         }
     }
 
-    override fun onWalletSelected(item: WalletItemViewState) {
+    override fun onWalletSelected(item: WalletNameItemViewState) {
         viewModelScope.launch {
             val currentIds = selectedWalletIds.value
 

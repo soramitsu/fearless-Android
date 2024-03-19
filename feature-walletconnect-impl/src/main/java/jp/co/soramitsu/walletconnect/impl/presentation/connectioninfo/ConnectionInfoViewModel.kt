@@ -27,6 +27,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import jp.co.soramitsu.common.compose.component.WalletNameItemViewState
 
 @HiltViewModel
 class ConnectionInfoViewModel @Inject constructor(
@@ -42,12 +43,12 @@ class ConnectionInfoViewModel @Inject constructor(
 
     private val accountsFlow = accountListingMixin.accountsFlow(AddressIconGenerator.SIZE_BIG)
 
-    private val walletItemsFlow: SharedFlow<List<WalletItemViewState>> = accountsFlow.mapList {
-        WalletItemViewState(
+    private val walletItemsFlow: SharedFlow<List<WalletNameItemViewState>> = accountsFlow.mapList {
+        WalletNameItemViewState(
             id = it.id,
             title = it.name,
             isSelected = it.isSelected,
-            walletIcon = it.picture.value,
+            walletIcon = it.picture.value
         )
     }
         .inBackground()
