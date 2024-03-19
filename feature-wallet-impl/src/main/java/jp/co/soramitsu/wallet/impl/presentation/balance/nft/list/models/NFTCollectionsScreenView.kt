@@ -41,7 +41,7 @@ sealed interface NFTCollectionsScreenView {
                 ImageModel.ResId(R.drawable.ic_screen_warning)
 
             override val header: TextModel =
-                TextModel.ResId(R.string.nft_stub_text)
+                TextModel.ResId(R.string.nft_stub_title)
 
             override val body: TextModel =
                 TextModel.ResId(R.string.nft_list_empty_message)
