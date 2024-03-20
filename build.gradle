@@ -6,7 +6,7 @@ buildscript {
     ext {
         // App version
         versionName = '3.4.1'
-        versionCode = 162
+        versionCode = 163
 
         // SDK and tools
         compileSdkVersion = 34
