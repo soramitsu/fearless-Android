@@ -26,8 +26,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -91,14 +91,15 @@ fun NavGraphBuilder.CollectionNFTsNavComposable(
 }
 
 @Composable
+@Suppress("CyclomaticComplexMethod")
 private fun CollectionNFTsScreen(
     loadablePage: LoadableListPage<NFTsScreenView>,
     pageScrollingCallback: PageScrollingCallback
 ) {
     val lazyGridState = rememberLazyGridState()
 
-    val nestedScrollConnection = remember(lazyGridState) {
-        lazyGridState.nestedScrollConnectionForPageScrolling(pageScrollingCallback)
+    val nestedScrollConnection = remember(pageScrollingCallback) {
+        nestedScrollConnectionForPageScrolling(pageScrollingCallback)
     }
 
     val mutableViewsList = remember { mutableStateListOf<NFTsScreenView>() }
@@ -148,12 +149,11 @@ private fun CollectionNFTsScreen(
         }
     }
 
-    val savableIndex = rememberSaveable(
-        stateSaver = Saver(
-            save = { it },
-            restore = { it }
-        )
-    ) {
+    val savableKey = rememberSaveable {
+        mutableStateOf("")
+    }
+
+    val savableOffset = rememberSaveable {
         mutableIntStateOf(0)
     }
 
@@ -161,9 +161,20 @@ private fun CollectionNFTsScreen(
         derivedStateOf { lazyGridState.firstVisibleItemIndex }
     }
 
+    val firstVisibleItemOffsetAsState = remember(lazyGridState) {
+        derivedStateOf { lazyGridState.firstVisibleItemScrollOffset }
+    }
+
     LaunchedEffect(firstVisibleItemIndexAsState) {
         snapshotFlow { firstVisibleItemIndexAsState.value }
-            .onEach { index -> savableIndex.value = index }
+            .onEach { index -> savableKey.value = mutableViewsList.getOrNull(index)?.key.toString() }
+            .flowOn(Dispatchers.Default)
+            .launchIn(this)
+    }
+
+    LaunchedEffect(firstVisibleItemOffsetAsState) {
+        snapshotFlow { firstVisibleItemOffsetAsState.value }
+            .onEach { offset -> savableOffset.value = offset }
             .flowOn(Dispatchers.Default)
             .launchIn(this)
     }
@@ -205,7 +216,13 @@ private fun CollectionNFTsScreen(
 
     // Be sure to scroll only after items are loaded into mutableViewsList, and from it to LazyGrid
     LaunchedEffect(loadablePage) {
-        lazyGridState.scrollToItem(savableIndex.value)
+        val index = mutableViewsList.indexOfFirst { it.key.toString() == savableKey.value }
+
+        if (index == -1) {
+            return@LaunchedEffect
+        }
+
+        lazyGridState.scrollToItem(index, savableOffset.value)
     }
 }
 

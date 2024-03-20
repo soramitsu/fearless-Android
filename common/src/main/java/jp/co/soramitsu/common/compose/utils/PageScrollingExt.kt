@@ -5,33 +5,10 @@ import androidx.compose.runtime.Stable
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import kotlin.math.abs
 import kotlin.math.max
-import kotlin.math.min
 
-@Suppress("NOTHING_TO_INLINE")
-inline fun LazyGridState.isFirstItemFullyVisible(): Boolean {
-    val itemVisibilityInfo = layoutInfo.visibleItemsInfo.firstOrNull() ?: return false
-
-    val isFirstVisible = itemVisibilityInfo.index == 0
-    val isFullyVisible = itemVisibilityInfo.offset.y >= 0
-
-    return isFirstVisible && isFullyVisible
-}
-
-@Suppress("NOTHING_TO_INLINE")
-inline fun LazyGridState.isLastItemFullyVisible(): Boolean {
-    val itemVisibilityInfo = layoutInfo.visibleItemsInfo.lastOrNull() ?: return false
-
-    val isLastItemVisible =
-        itemVisibilityInfo.index == layoutInfo.totalItemsCount.minus(1)
-
-    val itemVisibleHeight = layoutInfo.viewportSize.height - itemVisibilityInfo.offset.y
-    val isFullyVisible = itemVisibleHeight >= itemVisibilityInfo.size.height
-
-    return isLastItemVisible && isFullyVisible
-}
-
-fun LazyGridState.nestedScrollConnectionForPageScrolling(
+fun nestedScrollConnectionForPageScrolling(
     pageScrollingCallback: PageScrollingCallback
 ): NestedScrollConnection {
     return object : NestedScrollConnection {
@@ -40,19 +17,26 @@ fun LazyGridState.nestedScrollConnectionForPageScrolling(
             available: Offset,
             source: NestedScrollSource
         ): Offset {
-            val isDirectionToPrevPages = max(consumed.y, available.y) > 0.5
+            val isScrollThresholdBreached = isScrollThresholdBreached(abs(consumed.y), abs(available.y))
+            val isScrollDirectionDown = max(consumed.y, available.y) > 0f
 
-            if (isDirectionToPrevPages && isFirstItemFullyVisible()) {
+            if (isScrollDirectionDown && isScrollThresholdBreached) {
                 pageScrollingCallback.onAllPrevPagesScrolled()
             }
 
-            val isDirectionToNextPages = min(consumed.y, available.y) < -0.5
-
-            if (isDirectionToNextPages && isLastItemFullyVisible()) {
+            if (!isScrollDirectionDown && isScrollThresholdBreached) {
                 pageScrollingCallback.onAllNextPagesScrolled()
             }
 
             return Offset.Zero
+        }
+
+        private fun isScrollThresholdBreached(consumed: Float, available: Float): Boolean {
+            return if (consumed > 0) {
+                (available / (available + consumed)) in (0.15..0.85)
+            } else {
+                available > 15
+            }
         }
     }
 }

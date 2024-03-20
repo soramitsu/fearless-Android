@@ -94,8 +94,8 @@ private fun NFTLayout(
 ) {
     val lazyGridState = rememberLazyGridState()
 
-    val nestedScrollConnection = remember(lazyGridState) {
-        lazyGridState.nestedScrollConnectionForPageScrolling(pageScrollingCallback)
+    val nestedScrollConnection = remember(pageScrollingCallback) {
+        nestedScrollConnectionForPageScrolling(pageScrollingCallback)
     }
     val mutableViewsList = remember { mutableStateListOf<NFTCollectionsScreenView>() }
 
