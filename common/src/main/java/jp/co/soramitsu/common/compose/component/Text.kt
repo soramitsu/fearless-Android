@@ -62,10 +62,12 @@ fun B1(
 
 @Composable
 fun B1EllipsizeMiddle(
+    modifier: Modifier = Modifier,
     text: String,
     color: Color = Color.White
 ) {
     AndroidView(
+        modifier = modifier,
         factory = { context ->
             TextView(context).apply {
                 setTextColor(color.toArgb())

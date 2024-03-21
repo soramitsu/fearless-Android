@@ -182,7 +182,6 @@ class BalanceListViewModel @Inject constructor(
             if (pendulumPreInstalledAccountsScenario.isPendulumMode(it.id)) {
                 selectedChainId.value = pendulumChainId
             }
-
         }
 
     private val assetTypeSelectorState = MutableStateFlow(
@@ -278,14 +277,10 @@ class BalanceListViewModel @Inject constructor(
             val pullToRefreshHelperFlow = BalanceUpdateTrigger.observe()
                 .map { PaginationRequest.Start(100) }
 
-            val paginationRequestHelperFlow =
-                merge(
-                    mutableNFTPaginationRequestFlow,
-                    pullToRefreshHelperFlow
-                ).onStart {
-                    emit(PaginationRequest.Start(100))
-                }.onEach { request ->
-                    when (request) {
+            val paginationRequestHelperFlow = merge(mutableNFTPaginationRequestFlow, pullToRefreshHelperFlow)
+                .onStart { emit(PaginationRequest.Start(100)) }
+                .onEach { request ->
+                    val screenModel = when (request) {
                         is PaginationRequest.Start -> ScreenModel.Reloading
 
                         is PaginationRequest.Prev -> ScreenModel.PreviousPageLoading
@@ -293,12 +288,13 @@ class BalanceListViewModel @Inject constructor(
                         is PaginationRequest.Next -> ScreenModel.NextPageLoading
 
                         is PaginationRequest.ProceedFromLastPage -> ScreenModel.NextPageLoading
-                    }.also { model -> send(model to mutableScreenLayoutFlow.value) }
-                }.debounce(300L).filter {
-                    isLoadingCompleted.get()
-                }.onEach {
-                    isLoadingCompleted.set(false)
-                }.shareIn(this, SharingStarted.Eagerly, 1)
+                    }
+
+                    send(screenModel to mutableScreenLayoutFlow.value)
+                }.debounce(300L)
+                .filter { isLoadingCompleted.get() }
+                .onEach { isLoadingCompleted.set(false) }
+                .shareIn(this, SharingStarted.Eagerly, 1)
 
             nftInteractor.collectionsFlow(
                 paginationRequestFlow = paginationRequestHelperFlow,
@@ -494,9 +490,7 @@ class BalanceListViewModel @Inject constructor(
     private fun subscribeTotalBalance() {
         combine(
             selectedChainId.map { chainId -> chainId?.let { currentAccountAddress(it) }.orEmpty() },
-            interactor.selectedLightMetaAccountFlow().flatMapLatest {
-                getTotalBalance.observe()
-            }
+            getTotalBalance.observe()
         ) { selectedChainAddress, balanceModel ->
             AssetBalanceViewState(
                 transferableBalance = balanceModel.balance.formatFiat(balanceModel.fiatSymbol),
@@ -607,12 +601,15 @@ class BalanceListViewModel @Inject constructor(
 
     private fun sync() {
         viewModelScope.launch {
-            val result = withContext(Dispatchers.Default) {
+            withContext(Dispatchers.Default) {
                 getAvailableFiatCurrencies.sync()
-                interactor.syncAssetsRates()
+                interactor.syncAssetsRates().onFailure {
+                    withContext(Dispatchers.Main) {
+                        selectedFiat.notifySyncFailed()
+                        showError(it)
+                    }
+                }
             }
-
-            result.exceptionOrNull()?.let(::showError)
         }
     }
 
@@ -813,8 +810,8 @@ class BalanceListViewModel @Inject constructor(
                 viewModelScope.launch(Dispatchers.Main.immediate) {
                     if (error.throwable is MalformedWalletConnectUri) {
                         showError(
-                            title = resourceManager.getString(R.string.common_copy_id),
-                            message = resourceManager.getString(R.string.common_copy_id),
+                            title = resourceManager.getString(R.string.connection_invalid_url_error_title),
+                            message = resourceManager.getString(R.string.connection_invalid_url_error_message),
                             positiveButtonText = resourceManager.getString(R.string.common_close)
                         )
                     } else {
@@ -869,5 +866,9 @@ class BalanceListViewModel @Inject constructor(
     }
 
     private fun onSoraCardStatusClicked() {
+    }
+
+    fun onServiceButtonClick() {
+        router.openServiceScreen()
     }
 }

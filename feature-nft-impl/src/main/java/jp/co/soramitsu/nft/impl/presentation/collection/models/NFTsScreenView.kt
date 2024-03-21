@@ -13,12 +13,12 @@ sealed interface NFTsScreenView {
 
     val contentType: Any
 
+    val key: Any
+
     @Immutable
     interface ScreenHeader : NFTsScreenView {
         override val contentType: Any
             get() = 0
-
-        val key: Any
 
         val thumbnail: Loadable<ImageModel>
 
@@ -30,8 +30,6 @@ sealed interface NFTsScreenView {
         override val contentType: Any
             get() = 1
 
-        val key: Any
-
         val title: Loadable<TextModel>
     }
 
@@ -39,8 +37,6 @@ sealed interface NFTsScreenView {
     interface ItemModel : NFTsScreenView {
         override val contentType: Any
             get() = 2
-
-        val key: Any
 
         val screenLayout: ScreenLayout
 
@@ -67,6 +63,9 @@ sealed interface NFTsScreenView {
         override val contentType: Any
             get() = 3
 
+        override val key: Any
+            get() = -1
+
         companion object : LoadingIndication
     }
 
@@ -75,6 +74,9 @@ sealed interface NFTsScreenView {
 
         override val contentType: Any
             get() = 4
+
+        override val key: Any
+            get() = 0
 
         val image: ImageModel.ResId
 
@@ -87,7 +89,7 @@ sealed interface NFTsScreenView {
                 ImageModel.ResId(R.drawable.ic_screen_warning)
 
             override val header: TextModel =
-                TextModel.ResId(R.string.nft_stub_text)
+                TextModel.ResId(R.string.nft_stub_title)
 
             override val body: TextModel =
                 TextModel.ResId(R.string.nft_list_empty_message)

@@ -13,7 +13,6 @@ import jp.co.soramitsu.common.compose.component.FeeInfoViewState
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.applyFiatRate
-import jp.co.soramitsu.common.utils.combine
 import jp.co.soramitsu.common.utils.formatCryptoDetail
 import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.requireValue
@@ -40,16 +39,16 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapLatest
-import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
@@ -93,14 +92,26 @@ class ChooseNFTRecipientPresenter @Inject constructor(
         addressInputFlow.value = result
     }
 
-    @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
-    @Suppress("ChainWrapping")
+    @OptIn(ExperimentalCoroutinesApi::class)
     fun createScreenStateFlow(coroutineScope: CoroutineScope): StateFlow<ChooseNFTRecipientScreenState> {
-        val addressInputHelperFlow =
-            addressInputFlow.debounce(DEFAULT_DEBOUNCE_TIMEOUT).map { it.trim() }
+        return tokenFlow.zipWithPrevious().flatMapLatest { (prevToken, currentToken) ->
+            privateCreateScreenStateFlow(prevToken, currentToken).catch {
+                internalNFTRouter.openErrorsScreen(
+                    title = resourceManager.getString(R.string.common_error_general_title),
+                    message = resourceManager.getString(R.string.common_error_network)
+                )
+            }
+        }.stateIn(coroutineScope, SharingStarted.Lazily, ChooseNFTRecipientScreenState.default)
+    }
 
-        val isLoadingHelperFlow =
-            tokenFlow.zipWithPrevious().flatMapLatest { (prevToken, currentToken) ->
+    @OptIn(FlowPreview::class)
+    @Suppress("ChainWrapping")
+    private fun privateCreateScreenStateFlow(prevToken: NFT?, currentToken: NFT): Flow<ChooseNFTRecipientScreenState> {
+        return flow {
+            val addressInputHelperFlow =
+                addressInputFlow.debounce(DEFAULT_DEBOUNCE_TIMEOUT).map { it.trim() }
+
+            val isLoadingHelperFlow =
                 isLoadingFlow.map {
                     if (prevToken == null || prevToken.tokenId == currentToken.tokenId) {
                         it
@@ -108,76 +119,58 @@ class ChooseNFTRecipientPresenter @Inject constructor(
                         false
                     }
                 }
-            }
 
-        return combine(
-            tokenFlow,
-            addressInputHelperFlow,
-            createAddressIconFlow(tokenFlow, addressInputHelperFlow, AddressIconGenerator.SIZE_MEDIUM),
-            createSelectedAccountIconFlow(tokenFlow, AddressIconGenerator.SIZE_SMALL),
-            createFeeInfoViewState(addressInputHelperFlow),
-            isLoadingHelperFlow
-        ) {
-            token,
-            addressInput,
-            addressIcon,
-            selectedWalletIcon,
-            feeInfoViewState,
-            isLoading ->
+            combine(
+                addressInputHelperFlow,
+                createAddressIconFlow(currentToken, addressInputHelperFlow, AddressIconGenerator.SIZE_MEDIUM),
+                createSelectedAccountIconFlow(currentToken, AddressIconGenerator.SIZE_SMALL),
+                createFeeInfoViewState(currentToken, addressInputHelperFlow),
+                isLoadingHelperFlow
+            ) {
+                    addressInput,
+                    addressIcon,
+                    selectedWalletIcon,
+                    feeInfoViewState,
+                    isLoading ->
 
-            val isPreviewButtonEnabled = addressInput.isNotBlank() &&
-                    token.isUserOwnedToken &&
-                    feeInfoViewState.feeAmount != null &&
-                    !isLoading
+                val isPreviewButtonEnabled = addressInput.isNotBlank() &&
+                        currentToken.isUserOwnedToken &&
+                        feeInfoViewState.feeAmount != null &&
+                        !isLoading
 
-            return@combine ChooseNFTRecipientScreenState(
-                selectedWalletIcon = selectedWalletIcon,
-                addressInputState = AddressInputState(
-                    title = resourceManager.getString(R.string.send_to),
-                    input = addressInput,
-                    image = addressIcon,
-                    editable = false,
-                    showClear = false
-                ),
-                buttonState = ButtonViewState(
-                    text = resourceManager.getString(R.string.common_preview),
-                    enabled = isPreviewButtonEnabled
-                ),
-                feeInfoState = feeInfoViewState,
-                isLoading = isLoading
-            )
-        }.stateIn(coroutineScope, SharingStarted.Lazily, ChooseNFTRecipientScreenState.default)
-    }
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    private fun createSelectedAccountIconFlow(tokenFlow: Flow<NFT>, sizeInDp: Int): Flow<PictureDrawable> {
-        return tokenFlow.mapLatest {
-            chainsRepository.getChain(it.chainId)
-        }.flatMapLatest { chain ->
-            walletInteractor.selectedAccountFlow(chain.id).map { walletAccount ->
-                addressIconGenerator.createAddressModel(
-                    isEthereumBased = chain.isEthereumBased,
-                    accountAddress = walletAccount.address,
-                    sizeInDp = sizeInDp
-                ).image
-            }
+                return@combine ChooseNFTRecipientScreenState(
+                    selectedWalletIcon = selectedWalletIcon,
+                    addressInputState = AddressInputState(
+                        title = resourceManager.getString(R.string.send_to),
+                        input = addressInput,
+                        image = addressIcon,
+                        editable = false,
+                        showClear = false
+                    ),
+                    buttonState = ButtonViewState(
+                        text = resourceManager.getString(R.string.common_preview),
+                        enabled = isPreviewButtonEnabled
+                    ),
+                    feeInfoState = feeInfoViewState,
+                    isLoading = isLoading
+                )
+            }.collect(this)
         }
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
-    private fun createAddressIconFlow(
-        tokenFlow: Flow<NFT>,
+    private suspend fun createAddressIconFlow(
+        token: NFT,
         receiverAddressFlow: Flow<String>,
         sizeInDp: Int
     ): Flow<Any> {
-        return tokenFlow.mapLatest {
-            chainsRepository.getChain(it.chainId)
-        }.combine(receiverAddressFlow) { chain, receiverAddress ->
+        val chain = chainsRepository.getChain(token.chainId)
+
+        return receiverAddressFlow.map { receiverAddress ->
             if (!walletInteractor.validateSendAddress(chain.id, receiverAddress)) {
-                return@combine R.drawable.ic_address_placeholder
+                return@map R.drawable.ic_address_placeholder
             }
 
-            return@combine addressIconGenerator.createAddressModel(
+            return@map addressIconGenerator.createAddressModel(
                 isEthereumBased = chain.isEthereumBased,
                 accountAddress = receiverAddress,
                 sizeInDp = sizeInDp
@@ -185,18 +178,30 @@ class ChooseNFTRecipientPresenter @Inject constructor(
         }
     }
 
+    private suspend fun createSelectedAccountIconFlow(token: NFT, sizeInDp: Int): Flow<PictureDrawable> {
+        val chain = chainsRepository.getChain(token.chainId)
+
+        return walletInteractor.selectedAccountFlow(chain.id).map { walletAccount ->
+            addressIconGenerator.createAddressModel(
+                isEthereumBased = chain.isEthereumBased,
+                accountAddress = walletAccount.address,
+                sizeInDp = sizeInDp
+            ).image
+        }
+    }
+
     @OptIn(ExperimentalCoroutinesApi::class)
-    private fun createFeeInfoViewState(addressInputFlow: Flow<String>): Flow<FeeInfoViewState> {
-        val networkFeeHelperFlow = combine(
-            tokenFlow,
-            addressInputFlow
-        ) { token, receiver ->
+    private suspend fun createFeeInfoViewState(token: NFT, addressInputFlow: Flow<String>): Flow<FeeInfoViewState> {
+        val (chainId, utilityAssetId) = chainsRepository.getChain(token.chainId)
+            .run { id to requireNotNull(utilityAsset?.id) }
+
+        val networkFeeHelperFlow = addressInputFlow.map { receiver ->
             val isReceiverAddressValid = walletInteractor.validateSendAddress(
                 chainId = token.chainId,
                 address = receiver
             )
 
-            return@combine if (isReceiverAddressValid) {
+            return@map if (isReceiverAddressValid) {
                 token to receiver
             } else {
                 token to (currentAccountAddressUseCase(token.chainId) ?: "")
@@ -209,18 +214,10 @@ class ChooseNFTRecipientPresenter @Inject constructor(
             )
         }
 
-        val tokenChainFlow = tokenFlow.map { token ->
-            chainsRepository.getChain(token.chainId)
-        }.distinctUntilChanged()
-
-        val utilityAssetFlow = tokenChainFlow.mapNotNull { chain ->
-            val utilityAssetId = chain.utilityAsset?.id ?: return@mapNotNull null
-            return@mapNotNull chain.id to utilityAssetId
-        }.flatMapLatest { (chainId, utilityAssetId) ->
+        return combine(
+            networkFeeHelperFlow,
             walletInteractor.assetFlow(chainId, utilityAssetId)
-        }.distinctUntilChanged()
-
-        return combine(networkFeeHelperFlow, utilityAssetFlow) { networkFeeResult, utilityAsset ->
+        ) { networkFeeResult, utilityAsset ->
             val tokenSymbol = utilityAsset.token.configuration.symbol
             val tokenFiatRate = utilityAsset.token.fiatRate
             val tokenFiatSymbol = utilityAsset.token.fiatSymbol

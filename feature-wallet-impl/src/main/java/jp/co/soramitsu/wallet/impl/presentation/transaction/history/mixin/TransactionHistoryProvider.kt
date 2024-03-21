@@ -191,7 +191,7 @@ class TransactionHistoryProvider(
                 nextPageLoading = false
                 _sideEffects.emit(
                     TransactionHistoryUi.SideEffect.Error(
-                        it.localizedMessage ?: it.localizedMessage
+                        it.localizedMessage ?: it.message
                     )
                 )
             }.onSuccess {

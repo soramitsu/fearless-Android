@@ -804,6 +804,11 @@
         android:label="nftFiltersFragment" />
 
     <dialog
+        android:id="@+id/serviceFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.balance.list.ServiceFragment"
+        android:label="serviceFragment" />
+
+    <dialog
         android:id="@+id/nftFlowFragment"
         android:name="jp.co.soramitsu.nft.impl.presentation.NFTFlowFragment"
         android:label="nftFlowFragment" />

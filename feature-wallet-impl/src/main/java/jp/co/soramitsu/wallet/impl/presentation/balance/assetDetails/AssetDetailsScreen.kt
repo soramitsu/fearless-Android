@@ -209,7 +209,7 @@ fun AssetDetailsContent(
 private fun AssetDetailsContentPreview() {
     FearlessAppTheme {
         AssetDetailsContent(
-            state = AssetDetailsViewState(
+            state = AssetDetailsState(
                 assetSorting = AssetSorting.FiatBalance,
                 balanceState = LoadingState.Loaded(
                     AssetBalanceViewState(

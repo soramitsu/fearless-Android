@@ -194,4 +194,6 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
     fun openNftCollection(selectedAssetId: ChainId, contractAddress: String, collectionName: String)
 
     fun openNFTFilter()
+
+    fun openServiceScreen()
 }

@@ -4,6 +4,8 @@ import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
 import jp.co.soramitsu.core.runtime.ConstructedRuntime
 import jp.co.soramitsu.core.runtime.RuntimeFactory
 import jp.co.soramitsu.coredb.dao.ChainDao
+import jp.co.soramitsu.runtime.multiNetwork.ChainState
+import jp.co.soramitsu.runtime.multiNetwork.ChainsStateTracker
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.reefChainId
 import jp.co.soramitsu.runtime.multiNetwork.toSyncIssue
@@ -118,7 +120,7 @@ class RuntimeProvider(
 
         currentConstructionJob = launch {
             invalidateRuntime()
-
+            ChainsStateTracker.updateState(chainId) { it.copy(runtimeConstruction = ChainState.Status.Started) }
             runCatching {
                 val runtimeVersion = chainDao.runtimeInfo(chainId)?.syncedVersion ?: return@launch
                 val metadataRaw = runCatching { runtimeFilesCache.getChainMetadata(chainId) }
@@ -138,12 +140,14 @@ class RuntimeProvider(
                     runtimeFactory.constructRuntime(metadataRaw, ownTypesRaw, runtimeVersion)
                 }
                 runtimeFlow.emit(runtime)
+                ChainsStateTracker.updateState(chainId) { it.copy(runtimeConstruction = ChainState.Status.Completed) }
                 networkStateMixin.notifyChainSyncSuccess(chainId)
-            }.onFailure {
+            }.onFailure { error ->
+                ChainsStateTracker.updateState(chainId) { it.copy(runtimeConstruction = ChainState.Status.Failed(error)) }
                 networkStateMixin.notifyChainSyncProblem(chain.toSyncIssue())
-                when (it) {
+                when (error) {
                     ChainInfoNotInCacheException -> runtimeSyncService.cacheNotFound(chainId)
-                    else -> it.printStackTrace()
+                    else -> error.printStackTrace()
                 }
             }
 

@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
@@ -31,23 +30,19 @@ import jp.co.soramitsu.common.compose.theme.gray2
 import jp.co.soramitsu.common.compose.theme.white08
 import jp.co.soramitsu.common.utils.clickableWithNoIndication
 
-data class WalletItemViewState(
+data class WalletNameItemViewState(
     val id: Long,
-    val balance: String? = null,
-    val assetSymbol: String? = null,
-    val changeBalanceViewState: ChangeBalanceViewState? = null,
     val title: String,
     val walletIcon: Any,
-    val isSelected: Boolean,
-    val additionalMetadata: String = ""
+    val isSelected: Boolean
 )
 
 @Composable
-fun WalletItem(
-    state: WalletItemViewState,
-    onOptionsClick: ((WalletItemViewState) -> Unit)? = null,
-    onSelected: (WalletItemViewState) -> Unit,
-    onLongClick: (WalletItemViewState) -> Unit = {},
+fun WalletNameItem(
+    state: WalletNameItemViewState,
+    onOptionsClick: ((WalletNameItemViewState) -> Unit)? = null,
+    onSelected: (WalletNameItemViewState) -> Unit,
+    onLongClick: (WalletNameItemViewState) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val borderColor = if (state.isSelected) {
@@ -97,28 +92,10 @@ fun WalletItem(
                 )
             }
             MarginHorizontal(margin = 12.dp)
-            Column(
-                horizontalAlignment = Alignment.Start
-            ) {
-                B2(
-                    text = state.title,
-                    color = gray2
-                )
-                if (state.balance != null) {
-                    H4(
-                        text = state.assetSymbol.orEmpty() + state.balance.orEmpty()
-                    )
-                } else {
-                    MarginVertical(margin = 2.dp)
-                    ShimmerB0(modifier = Modifier.width(60.dp))
-                }
-                if (state.changeBalanceViewState != null) {
-                    ChangeBalance(state = state.changeBalanceViewState)
-                } else {
-                    MarginVertical(margin = 2.dp)
-                    ShimmerB2(modifier = Modifier.width(100.dp))
-                }
-            }
+            B2(
+                text = state.title,
+                color = gray2
+            )
             Spacer(modifier = Modifier.weight(1f))
             onOptionsClick?.let { optionsAction ->
                 Box(
@@ -146,45 +123,28 @@ fun WalletItem(
 
 @Preview
 @Composable
-private fun WalletItemPreview() {
-    val percentChange = "+5.67%"
-    val assetBalanceFiat = "$2345.32"
-    val assetBalance = "44400.3"
-    val assetSymbol = "$"
-    val walletTitle = "My Wallet"
-    val isSelected = true
-
-    val changeBalanceViewState = ChangeBalanceViewState(
-        percentChange = percentChange,
-        fiatChange = assetBalanceFiat
-    )
-
-    val state = WalletItemViewState(
+private fun WalletNameItemPreview() {
+    val state = WalletNameItemViewState(
         id = 111,
-        balance = assetBalance,
-        assetSymbol = assetSymbol,
-        title = walletTitle,
+        title = "My Wallet",
         walletIcon = R.drawable.ic_wallet,
-        isSelected = isSelected,
-        changeBalanceViewState = changeBalanceViewState
+        isSelected = true
     )
 
     Column {
-        WalletItem(
+        WalletNameItem(
             state = state,
             onOptionsClick = {},
             onSelected = {}
         )
-        WalletItem(
+        WalletNameItem(
             state = state.copy(isSelected = false),
             onOptionsClick = {},
             onSelected = {}
         )
-        WalletItem(
+        WalletNameItem(
             state = state.copy(
-                isSelected = false,
-                changeBalanceViewState = null,
-                balance = null
+                isSelected = false
             ),
             onSelected = {}
         )

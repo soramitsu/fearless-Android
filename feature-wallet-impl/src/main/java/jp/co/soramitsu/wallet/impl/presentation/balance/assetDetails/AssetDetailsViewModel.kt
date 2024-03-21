@@ -51,6 +51,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -88,11 +89,16 @@ class AssetDetailsViewModel @Inject constructor(
             selectedMetaAccount.id to assetId
         }.flatMapLatest { (selectedMetaAccountId, assetId) ->
             interactor.observeChainsPerAsset(selectedMetaAccountId, assetId)
-                .also { valuesFlow ->
-                    val chainSelection = interactor.getSavedChainId(walletId = selectedMetaAccountId)
-                    val valuesAsList = valuesFlow.first().toList()
+                .also { chainsPerAssetFlow ->
+                    val chainSelection =
+                        interactor.getSavedChainId(walletId = selectedMetaAccountId)
+                    val chainsWithAsset = chainsPerAssetFlow.first().toList()
 
-                    openBalanceDetailsForSelectedOrSingleChain(chainSelection, valuesAsList, assetId)
+                    openBalanceDetailsForSelectedOrSingleChain(
+                        chainSelection,
+                        chainsWithAsset,
+                        assetId
+                    )
                 }.combine(interactor.assetsFlow()) { resultMap, assetsWithStatus ->
                     val resultWithStatuses = resultMap.mapValues { resultEntry ->
                         resultEntry.value?.let { resultAsset ->
@@ -106,11 +112,15 @@ class AssetDetailsViewModel @Inject constructor(
                 }
         }.flowOn(Dispatchers.IO).share()
 
-    private fun openBalanceDetailsForSelectedOrSingleChain(selectedChainId: ChainId?, valuesAsList: List<Pair<Chain, Asset?>>, assetId: String) {
+    private fun openBalanceDetailsForSelectedOrSingleChain(
+        selectedChainId: ChainId?,
+        chainsWithAsset: List<Pair<Chain, Asset?>>,
+        assetId: String
+    ) {
         launch {
             val singleChainId = when {
-                selectedChainId != null -> selectedChainId
-                valuesAsList.size == 1 -> valuesAsList.first().first.id
+                selectedChainId != null && selectedChainId in chainsWithAsset.map { it.first.id } -> selectedChainId
+                chainsWithAsset.size == 1 -> chainsWithAsset.first().first.id
                 else -> null
             }
 
@@ -142,19 +152,47 @@ class AssetDetailsViewModel @Inject constructor(
         )
     }
 
-    val contentState: StateFlow<AssetDetailsState> = createContentStateFlow()
+    val contentState = MutableStateFlow(AssetDetailsState.empty)
 
-    private fun createContentStateFlow(): StateFlow<AssetDetailsState> {
-        val assetBalanceFlow =
-            combine(cachedSelectedMetaAccount, assetIdFlow) { selectedMetaAccount, assetId ->
-                selectedMetaAccount.id to assetId
-            }.flatMapLatest { (selectedAccountMetaId, assetId) ->
-                getAssetBalance.observe(selectedAccountMetaId, assetId)
+    private fun subscribeBalance() {
+        combine(cachedSelectedMetaAccount, assetIdFlow) { selectedMetaAccount, assetId ->
+            selectedMetaAccount.id to assetId
+        }.flatMapLatest { (selectedAccountMetaId, assetId) ->
+            getAssetBalance.observe(selectedAccountMetaId, assetId)
+        }.onEach { assetBalance ->
+            val assetBalanceState =
+                AssetBalanceViewState(
+                    transferableBalance = assetBalance.assetBalance.formatCrypto(assetBalance.assetSymbol),
+                    changeViewState = ChangeBalanceViewState(
+                        percentChange = assetBalance.rateChange?.formatAsChange().orEmpty(),
+                        fiatChange = assetBalance.fiatBalance.formatFiat(assetBalance.fiatSymbol)
+                    ),
+                    address = "" // implies invisible address state
+                )
+
+            contentState.update { prevState ->
+                prevState.copy(balanceState = LoadingState.Loaded(assetBalanceState))
             }
+        }
+            .launchIn(viewModelScope)
+    }
 
+    private fun subscribeTabSelection() {
+        tabSelectionFlow.onEach { selectedTab ->
+            contentState.update { prevState ->
+                prevState.copy(
+                    tabState = MultiToggleButtonState(
+                        currentSelection = selectedTab,
+                        toggleStates = AssetDetailsState.Tab.entries
+                    )
+                )
+            }
+        }.launchIn(viewModelScope)
+    }
+
+    private fun subscribeAssets() {
         val assetSortingFlow = interactor.observeAssetSorting()
-
-        val chainsPerAssetToAssetFlow = cachedPerChainBalanceWithAssetFlow
+        cachedPerChainBalanceWithAssetFlow
             .combine(tabSelectionFlow) { values, tabSelection ->
                 when (tabSelection) {
                     AssetDetailsState.Tab.AvailableChains -> values
@@ -167,7 +205,7 @@ class AssetDetailsViewModel @Inject constructor(
             }.combine(assetSortingFlow) { values, sorting ->
                 val valuesAsList = values.toList()
 
-                when(sorting) {
+                when (sorting) {
                     AssetSorting.FiatBalance ->
                         valuesAsList.sortedByDescending { (_, asset) -> asset?.asset?.transferable }
 
@@ -177,74 +215,58 @@ class AssetDetailsViewModel @Inject constructor(
                     AssetSorting.Popularity ->
                         valuesAsList.sortedByDescending { (chain, _) -> chain.rank }
                 } to sorting
+            }.combine(networkIssuesFlow) { (chainsPerAssetToAsset, sorting), networkIssues ->
+                chainsPerAssetToAsset.filter {
+                    it.second?.asset?.markedNotNeed != true
+                }.map { (chain, asset) ->
+                    val transferableBalance = asset?.asset?.transferable
+                    val transferableFiatBalance =
+                        transferableBalance?.applyFiatRate(asset.asset.token.fiatRate)
+
+                    val networkIssueType = if (asset?.hasAccount == false) {
+                        NetworkIssueType.Account
+                    } else {
+                        networkIssues.firstOrNull {
+                            it.chainId == chain.id
+                        }?.type
+                    }
+
+                    AssetDetailsItemViewState(
+                        assetId = asset?.asset?.token?.configuration?.id,
+                        chainId = chain.id,
+                        iconUrl = chain.icon,
+                        chainName = chain.name,
+                        assetRepresentation = transferableBalance?.formatCrypto(asset.asset.token.configuration.symbol),
+                        fiatRepresentation = transferableFiatBalance?.formatFiat(asset.asset.token.fiatSymbol),
+                        networkIssueType = networkIssueType
+                    )
+                } to sorting
             }
-
-        return combine(
-            tabSelectionFlow,
-            assetBalanceFlow,
-            chainsPerAssetToAssetFlow,
-            networkIssuesFlow
-        ) { selectedTab, assetBalance, (chainsPerAssetToAsset, sorting), networkIssues ->
-            val assetBalanceState =
-                AssetBalanceViewState(
-                    transferableBalance = assetBalance.assetBalance.formatCrypto(assetBalance.assetSymbol),
-                    changeViewState = ChangeBalanceViewState(
-                        percentChange = assetBalance.rateChange?.formatAsChange().orEmpty(),
-                        fiatChange = assetBalance.fiatBalance.formatFiat(assetBalance.fiatSymbol)
-                    ),
-                    address = "" // implies invisible address state
-                )
-
-            val chainItemViewStates = chainsPerAssetToAsset.filter {
-                it.second?.asset?.markedNotNeed != true
-            }.map { (chain, asset) ->
-                val transferableBalance = asset?.asset?.transferable
-                val transferableFiatBalance = transferableBalance?.applyFiatRate(asset.asset.token.fiatRate)
-
-                val networkIssueType = if (asset?.hasAccount == false) {
-                    NetworkIssueType.Account
-                } else {
-                    networkIssues.firstOrNull {
-                        it.chainId == chain.id
-                    }?.type
+            .onEach { (chainsStates, sorting) ->
+                contentState.update { prevState ->
+                    prevState.copy(
+                        assetSorting = sorting,
+                        items = chainsStates
+                    )
                 }
-
-                AssetDetailsItemViewState(
-                    assetId = asset?.asset?.token?.configuration?.id,
-                    chainId = chain.id,
-                    iconUrl = chain.icon,
-                    chainName = chain.name,
-                    assetRepresentation = transferableBalance?.formatCrypto(asset.asset.token.configuration.symbol),
-                    fiatRepresentation = transferableFiatBalance?.formatFiat(asset.asset.token.fiatSymbol),
-                    networkIssueType = networkIssueType
-                )
             }
-
-            return@combine AssetDetailsViewState(
-                assetSorting = sorting,
-                balanceState = LoadingState.Loaded(assetBalanceState),
-                tabState = MultiToggleButtonState(
-                    currentSelection = selectedTab,
-                    toggleStates = AssetDetailsState.Tab.values().toList()
-                ),
-                items = chainItemViewStates
-            )
-        }.stateIn(
-            this,
-            SharingStarted.WhileSubscribed(stopTimeoutMillis = 5_000L),
-            EmptyAssetDetailsViewState
-        )
+            .launchIn(viewModelScope)
     }
 
     init {
+        subscribeBalance()
+        subscribeTabSelection()
+        subscribeAssets()
+
         walletRouter.chainSelectorPayloadFlow.flatMapLatest { chainId ->
             walletRouter.trackReturnToAssetDetailsFromChainSelector()?.onEach {
                 if (chainId == null)
                     return@onEach
 
-                val assetId = cachedPerChainBalanceWithAssetFlow.replayCache.firstOrNull()?.mapKeys {
-                    it.key.id
-                }?.get(chainId)?.asset?.token?.configuration?.id ?: return@onEach
+                val assetId =
+                    cachedPerChainBalanceWithAssetFlow.replayCache.firstOrNull()?.mapKeys {
+                        it.key.id
+                    }?.get(chainId)?.asset?.token?.configuration?.id ?: return@onEach
 
                 walletRouter.openAssetDetails(
                     AssetPayload(

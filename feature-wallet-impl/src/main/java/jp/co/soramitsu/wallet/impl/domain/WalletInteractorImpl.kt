@@ -157,8 +157,10 @@ class WalletInteractorImpl(
             .thenByDescending { it.asset.token.configuration.isNative == true }
 
     override suspend fun syncAssetsRates(): Result<Unit> {
-        return runCatching {
-            walletRepository.syncAssetsRates(selectedFiat.get())
+        return withContext(Dispatchers.Default) {
+            runCatching {
+                walletRepository.syncAssetsRates(selectedFiat.get())
+            }
         }
     }
 
@@ -562,7 +564,8 @@ class WalletInteractorImpl(
     override suspend fun claimRewards(chainId: ChainId): Result<String> {
         val currentAccount = accountRepository.getSelectedMetaAccount()
         val chain = chainsRepository.getChain(chainId)
-        val accountId: AccountId = currentAccount.accountId(chain) ?: throw IllegalArgumentException("Error retrieving accountId for chain ${chain.name}")
+        val accountId: AccountId = currentAccount.accountId(chain)
+            ?: throw IllegalArgumentException("Error retrieving accountId for chain ${chain.name}")
         return walletRepository.claimRewards(chain, accountId)
     }
 
@@ -580,7 +583,9 @@ class WalletInteractorImpl(
         val relayStakingChains = allRelayChainStakingAssets.map { it.chainId }
 
         val chainsWithDeprecatedControllerAccount = relayStakingChains.filter {
-            chainRegistry.getRuntimeOrNull(it)?.metadata?.moduleOrNull(Modules.STAKING)?.calls?.get("set_controller")?.arguments?.isEmpty() == true
+            chainRegistry.getRuntimeOrNull(it)?.metadata?.moduleOrNull(Modules.STAKING)?.calls?.get(
+                "set_controller"
+            )?.arguments?.isEmpty() == true
         }
 
         return chainsWithDeprecatedControllerAccount.mapNotNull { chainId ->
@@ -651,7 +656,10 @@ class WalletInteractorImpl(
         return "${CHAIN_SELECT_FILTER_APPLIED}_$walletId"
     }
 
-    override fun observeChainsPerAsset(accountMetaId: Long, assetId: String): Flow<Map<Chain, Asset?>> {
+    override fun observeChainsPerAsset(
+        accountMetaId: Long,
+        assetId: String
+    ): Flow<Map<Chain, Asset?>> {
         return walletRepository.observeChainsPerAsset(accountMetaId, assetId)
     }
 

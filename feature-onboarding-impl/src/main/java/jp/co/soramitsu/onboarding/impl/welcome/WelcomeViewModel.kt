@@ -1,6 +1,7 @@
 package jp.co.soramitsu.onboarding.impl.welcome
 
 import android.content.Intent
+import android.util.Log
 import androidx.activity.result.ActivityResultLauncher
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
@@ -20,9 +21,12 @@ import jp.co.soramitsu.onboarding.impl.welcome.WelcomeFragment.Companion.KEY_PAY
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 private const val SUBSTRATE_BLOCKCHAIN_TYPE = 0
@@ -35,11 +39,14 @@ class WelcomeViewModel @Inject constructor(
     private val backupService: BackupService,
     private val pendulumPreInstalledAccountsScenario: PendulumPreInstalledAccountsScenario,
     private val onboardingInteractor: OnboardingInteractor
-) : BaseViewModel(), Browserable, WelcomeScreenInterface, OnboardingScreenCallback, OnboardingSplashScreenClickListener {
+) : BaseViewModel(), Browserable, WelcomeScreenInterface, OnboardingScreenCallback,
+    OnboardingSplashScreenClickListener {
 
     private val payload = savedStateHandle.get<WelcomeFragmentPayload>(KEY_PAYLOAD)!!
 
-    val onboardingFlowState = MutableStateFlow<OnboardingFlow?>(null)
+    private val _onboardingFlowState = MutableStateFlow<Result<OnboardingFlow>?>(null)
+    val onboardingFlowState = _onboardingFlowState.map { it?.getOrNull() }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val state = MutableStateFlow(
         WelcomeState(
@@ -65,9 +72,14 @@ class WelcomeViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
-            onboardingInteractor.getConfig().getOrNull()?.en_EN?.let {
-                onboardingFlowState.value = OnboardingFlow(it.new)
-            }
+            onboardingInteractor.getConfig()
+                .onFailure {
+                    Log.e("OnboardingScreen", "onboardingInteractor.getConfig() failed: $it")
+                    showError(it)
+                }
+                .map { OnboardingFlow(it.en_EN.new) }.let {
+                    _onboardingFlowState.value = it
+                }
         }
     }
 
@@ -152,7 +164,11 @@ class WelcomeViewModel @Inject constructor(
     }
 
     override fun onStart() {
-        _events.trySend(WelcomeEvent.Onboarding.PagerScreen)
+        if (_onboardingFlowState.value?.isFailure == true) {
+            _events.trySend(WelcomeEvent.Onboarding.WelcomeScreen)
+        } else {
+            _events.trySend(WelcomeEvent.Onboarding.PagerScreen)
+        }
     }
 
     override fun onClose() {

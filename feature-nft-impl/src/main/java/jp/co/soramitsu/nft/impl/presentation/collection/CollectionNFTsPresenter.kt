@@ -75,9 +75,8 @@ class CollectionNFTsPresenter @Inject constructor(
             val isLoadingCompleted = AtomicBoolean(true)
 
             val paginationRequestHelperFlow = mutablePaginationRequestFlow
-                .onStart {
-                    emit(PaginationRequest.Start(DEFAULT_PAGE_SIZE))
-                }.onEach { request ->
+                .onStart { emit(PaginationRequest.Start(DEFAULT_PAGE_SIZE)) }
+                .onEach { request ->
                     when (request) {
                         is PaginationRequest.Start -> Unit
 
@@ -87,17 +86,15 @@ class CollectionNFTsPresenter @Inject constructor(
 
                         is PaginationRequest.ProceedFromLastPage -> send(ScreenModel.NextPageLoading)
                     }
-                }.debounce(DEFAULT_SAMPLING_FREQUENCY).filter {
-                    isLoadingCompleted.get()
-                }.onEach {
-                    isLoadingCompleted.set(false)
-                }.shareIn(this, SharingStarted.Eagerly, 1)
+                }.debounce(DEFAULT_SAMPLING_FREQUENCY)
+                .filter { isLoadingCompleted.get() }
+                .onEach { isLoadingCompleted.set(false) }
+                .shareIn(this, SharingStarted.Eagerly, 1)
 
             nftInteractor.tokensFlow(
                 paginationRequestFlow = paginationRequestHelperFlow,
                 chainSelectionFlow = screenArgsFlow.distinctUntilChanged().map { it.chainId },
-                contractAddressFlow = screenArgsFlow.distinctUntilChanged()
-                    .map { it.contractAddress },
+                contractAddressFlow = screenArgsFlow.distinctUntilChanged().map { it.contractAddress },
             ).onEach { collection ->
                 // each new element indicated that loading has been completed
                 isLoadingCompleted.set(true)
