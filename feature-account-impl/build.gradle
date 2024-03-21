@@ -13,29 +13,23 @@ android {
         targetSdkVersion rootProject.targetSdkVersion
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-        buildConfigField "String", "APP_VERSION_NAME", "\"${rootProject.versionName}\""
-    }
-
-    buildTypes {
-        release {
-
-        }
     }
 
     buildFeatures {
         viewBinding = true
         compose true
+        buildConfig = true
     }
 
     compileOptions {
-        sourceCompatibility 11
-        targetCompatibility 11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
     kotlinOptions {
         freeCompilerArgs = ["-Xallow-result-return-type"]
 
-        jvmTarget = '11'
+        jvmTarget = '17'
     }
     composeOptions {
         kotlinCompilerExtensionVersion composeCompilerVersion
@@ -54,49 +48,50 @@ dependencies {
     implementation project(':feature-soracard-api')
     implementation project(':feature-soracard-impl')
     implementation project(':feature-polkaswap-api')
-    implementation kotlinDep
+    implementation libs.kotlin.stdlib.jdk7
 
-    implementation androidDep
-    implementation androidxCoreDep
-    implementation materialDep
-    implementation cardViewDep
-    implementation constraintDep
+    implementation libs.appcompat
+    implementation libs.core.ktx
+    implementation libs.material
+    implementation libs.cardview
+    implementation libs.constraintlayout
 
-    implementation biometricDep
+    implementation libs.biometric
 
-    implementation zXingCoreDep
-    implementation zXingEmbeddedDep
+    implementation libs.zxing.core
+    implementation libs.zxing.embedded
 
-    implementation bouncyCastleDep
+    implementation libs.bouncycastle
 
-    implementation coroutinesDep
-    implementation coroutinesAndroidDep
-    implementation viewModelKtxDep
-    implementation liveDataKtxDep
-    implementation lifeCycleKtxDep
+    implementation libs.coroutines.core
+    implementation libs.coroutines.android
 
-    implementation fragmentKtxDep
+    implementation libs.lifecycle.viewmodel.ktx
+    implementation libs.lifecycle.livedata.ktx
+    implementation libs.lifecycle.runtime.ktx
 
-    implementation navigationFragmentDep
-    implementation navigationUiDep
+    implementation libs.fragmentKtx
 
-    implementation daggerDep
-    kapt daggerKapt
+    implementation libs.navigation.fragment.ktx
+    implementation libs.navigation.ui.ktx
 
-    implementation roomDep
-    kapt roomKapt
+    implementation libs.hilt.android
+    kapt libs.hilt.compiler
 
-    kapt lifecycleKapt
+    implementation libs.room.runtime
+    kapt libs.room.compiler
 
-    implementation compose
-    debugImplementation composeDebug
+    kapt libs.lifecycle.compiler
 
-    testImplementation jUnitDep
-    testImplementation mockitoDep
+    implementation libs.bundles.compose
+    debugImplementation libs.bundles.composeDebug
 
-    implementation gsonDep
+    testImplementation libs.junit
+    testImplementation libs.mockito.inline
 
-    api sharedFeaturesCoreDep
+    implementation libs.gson
 
-    implementation sharedFeaturesBackupDep
+    api libs.sharedFeaturesCoreDep
+
+    implementation libs.sharedFeaturesBackupDep
 }

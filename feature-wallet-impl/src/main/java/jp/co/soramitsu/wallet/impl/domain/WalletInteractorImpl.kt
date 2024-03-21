@@ -27,7 +27,6 @@ import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.core.models.Asset.StakingType
 import jp.co.soramitsu.core.models.ChainId
 import jp.co.soramitsu.core.utils.isValidAddress
-import jp.co.soramitsu.coredb.model.AssetUpdateItem
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
@@ -133,6 +132,20 @@ class WalletInteractorImpl(
             }
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
+    override fun assetsFlowAndAccount(): Flow<Pair<Long, List<AssetWithStatus>>> {
+        return accountRepository.selectedMetaAccountFlow()
+            .flatMapLatest { meta ->
+                walletRepository.assetsFlow(meta).map {
+                    meta.id to it
+                }
+            }
+            .filter { it.second.isNotEmpty() }
+            .map { (walletId, assets) ->
+                walletId to assets.sortedWith(defaultAssetListSort())
+            }
+    }
+
     private fun defaultAssetListSort() =
         compareByDescending<AssetWithStatus> { it.asset.total.orZero() > BigDecimal.ZERO }
             .thenByDescending { it.asset.fiatAmount.orZero() }
@@ -144,8 +157,10 @@ class WalletInteractorImpl(
             .thenByDescending { it.asset.token.configuration.isNative == true }
 
     override suspend fun syncAssetsRates(): Result<Unit> {
-        return runCatching {
-            walletRepository.syncAssetsRates(selectedFiat.get())
+        return withContext(Dispatchers.Default) {
+            runCatching {
+                walletRepository.syncAssetsRates(selectedFiat.get())
+            }
         }
     }
 
@@ -530,6 +545,31 @@ class WalletInteractorImpl(
     override suspend fun getEquilibriumAssetRates(chainAsset: CoreAsset): Map<BigInteger, EqOraclePricePoint?> =
         walletRepository.getEquilibriumAssetRates(chainAsset)
 
+    override suspend fun checkClaimSupport(chainId: ChainId): Boolean {
+        val metadata = chainRegistry.getRuntimeOrNull(chainId)?.metadata
+
+        return metadata?.moduleOrNull(Modules.VESTING)?.calls?.get("claim") != null
+                || metadata?.moduleOrNull(Modules.VESTING)?.calls?.get("vest") != null
+                || metadata?.moduleOrNull(Modules.VESTED_REWARDS)?.calls?.get("claim_rewards") != null
+    }
+
+    override suspend fun estimateClaimRewardsFee(chainId: ChainId): BigInteger {
+        return walletRepository.estimateClaimRewardsFee(chainId)
+    }
+
+    override suspend fun getVestingLockedAmount(chainId: ChainId): BigInteger? {
+        return walletRepository.getVestingLockedAmount(chainId)
+    }
+
+    override suspend fun claimRewards(chainId: ChainId): Result<String> {
+        val currentAccount = accountRepository.getSelectedMetaAccount()
+        val chain = chainsRepository.getChain(chainId)
+        val accountId: AccountId = currentAccount.accountId(chain)
+            ?: throw IllegalArgumentException("Error retrieving accountId for chain ${chain.name}")
+        return walletRepository.claimRewards(chain, accountId)
+    }
+
+
     override suspend fun checkControllerDeprecations(): List<ControllerDeprecationWarning> {
         val currentAccount = accountRepository.getSelectedMetaAccount()
         val chains = chainsRepository.getChainsById()
@@ -543,7 +583,9 @@ class WalletInteractorImpl(
         val relayStakingChains = allRelayChainStakingAssets.map { it.chainId }
 
         val chainsWithDeprecatedControllerAccount = relayStakingChains.filter {
-            chainRegistry.getRuntimeOrNull(it)?.metadata?.moduleOrNull(Modules.STAKING)?.calls?.get("set_controller")?.arguments?.isEmpty() == true
+            chainRegistry.getRuntimeOrNull(it)?.metadata?.moduleOrNull(Modules.STAKING)?.calls?.get(
+                "set_controller"
+            )?.arguments?.isEmpty() == true
         }
 
         return chainsWithDeprecatedControllerAccount.mapNotNull { chainId ->
@@ -614,7 +656,10 @@ class WalletInteractorImpl(
         return "${CHAIN_SELECT_FILTER_APPLIED}_$walletId"
     }
 
-    override fun observeChainsPerAsset(accountMetaId: Long, assetId: String): Flow<Map<Chain, Asset?>> {
+    override fun observeChainsPerAsset(
+        accountMetaId: Long,
+        assetId: String
+    ): Flow<Map<Chain, Asset?>> {
         return walletRepository.observeChainsPerAsset(accountMetaId, assetId)
     }
 

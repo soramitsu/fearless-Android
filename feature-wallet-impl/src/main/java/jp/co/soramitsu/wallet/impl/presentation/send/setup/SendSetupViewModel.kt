@@ -35,7 +35,7 @@ import jp.co.soramitsu.common.utils.isNotZero
 import jp.co.soramitsu.common.utils.isZero
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.requireValue
-import jp.co.soramitsu.common.validation.ExistentialDepositCrossedException
+import jp.co.soramitsu.common.validation.ExistentialDepositCrossedWarning
 import jp.co.soramitsu.core.utils.isValidAddress
 import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.feature_wallet_impl.BuildConfig
@@ -490,11 +490,11 @@ class SendSetupViewModel @Inject constructor(
 
             validateTransferUseCase.validateExistentialDeposit(
                 amountInPlanks = asset.token.planksFromAmount(amount.orZero()),
-                asset = asset,
+                originAsset = asset,
                 destinationChainId = asset.token.configuration.chainId,
-                recipientAddress = recipientAddress,
-                ownAddress = ownAddress,
-                fee = fee,
+                destinationAddress = recipientAddress,
+                originAddress = ownAddress,
+                originFee = fee,
             )
         }
             .onEach { it ->
@@ -507,7 +507,7 @@ class SendSetupViewModel @Inject constructor(
 
                         if (validationResult.isExistentialDepositWarning && sendAllState != ToggleState.CONFIRMED) {
                             ValidationException.fromValidationResult(validationResult, resourceManager)?.let {
-                                if (it is ExistentialDepositCrossedException) {
+                                if (it is ExistentialDepositCrossedWarning) {
                                     val warning = ValidationWarning(
                                         it.message,
                                         it.explanation,
@@ -584,11 +584,11 @@ class SendSetupViewModel @Inject constructor(
             val destinationChainId = asset.token.configuration.chainId
             val validationProcessResult = validateTransferUseCase(
                 amountInPlanks = inPlanks,
-                asset = asset,
+                originAsset = asset,
                 destinationChainId = destinationChainId,
-                recipientAddress = recipientAddress,
-                ownAddress = selfAddress,
-                fee = fee,
+                destinationAddress = recipientAddress,
+                originAddress = selfAddress,
+                originFee = fee,
                 confirmedValidations = confirmedValidations,
                 transferMyselfAvailable = false,
                 skipEdValidation = sendAllToggleState.value == ToggleState.CONFIRMED

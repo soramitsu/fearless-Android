@@ -45,6 +45,7 @@ class ControllerInteractor(
                 } else {
                     when (asset.syntheticStakingType()) {
                         SyntheticStakingType.TERNOA,
+                        SyntheticStakingType.REEF,
                         SyntheticStakingType.DEFAULT -> setController(chain.multiAddressOf(controllerAccountAddress))
 
                         SyntheticStakingType.SORA -> setControllerSora(controllerAccountAddress.toAccountId())
@@ -69,6 +70,7 @@ class ControllerInteractor(
                     setController()
                 } else {
                     when (asset.syntheticStakingType()) {
+                        SyntheticStakingType.REEF,
                         SyntheticStakingType.TERNOA,
                         SyntheticStakingType.DEFAULT -> setController(chain.multiAddressOf(controllerAccountAddress))
 

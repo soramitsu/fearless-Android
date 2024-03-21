@@ -1,11 +1,11 @@
 package jp.co.soramitsu.account.api.domain
 
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.common.BuildConfig
 import jp.co.soramitsu.common.data.network.config.RemoteConfigFetcher
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.utils.DEFAULT_DERIVATION_PATH
 import jp.co.soramitsu.core.models.CryptoType
-import jp.co.soramitsu.feature_account_api.BuildConfig
 import jp.co.soramitsu.shared_utils.encrypt.junction.BIP32JunctionDecoder
 import jp.co.soramitsu.shared_utils.extensions.fromHex
 

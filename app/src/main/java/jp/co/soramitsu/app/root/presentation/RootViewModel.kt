@@ -193,7 +193,7 @@ class RootViewModel @Inject constructor(
         }.stateIn(this, SharingStarted.Eagerly, null)
     }
 
-    private fun handleSessionRequest(sessionRequest: Wallet.Model.SessionRequest) {
+    private suspend fun handleSessionRequest(sessionRequest: Wallet.Model.SessionRequest) {
         val pendingListOfSessionRequests = interactor.getPendingListOfSessionRequests(sessionRequest.topic)
         if (pendingListOfSessionRequests.isEmpty()) {
             return

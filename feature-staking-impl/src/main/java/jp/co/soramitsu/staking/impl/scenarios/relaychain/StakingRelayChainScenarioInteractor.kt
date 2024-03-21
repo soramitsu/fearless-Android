@@ -368,7 +368,8 @@ class StakingRelayChainScenarioInteractor(
                 staked = mapAmountToAmountModel(
                     asset.bonded,
                     asset,
-                    R.string.wallet_balance_bonded
+                    R.string.wallet_balance_bonded,
+                    useDetailCryptoFormat = true
                 ),
                 unstaking = mapAmountToAmountModel(
                     asset.unbonding,

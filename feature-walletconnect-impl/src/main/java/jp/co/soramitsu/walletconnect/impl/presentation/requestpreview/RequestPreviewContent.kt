@@ -28,8 +28,8 @@ import jp.co.soramitsu.common.compose.component.InfoTable
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.component.TitleValueViewState
 import jp.co.soramitsu.common.compose.component.ToolbarBottomSheet
-import jp.co.soramitsu.common.compose.component.WalletItem
-import jp.co.soramitsu.common.compose.component.WalletItemViewState
+import jp.co.soramitsu.common.compose.component.WalletNameItem
+import jp.co.soramitsu.common.compose.component.WalletNameItemViewState
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.theme.colorAccentDark
 import jp.co.soramitsu.common.compose.theme.customTypography
@@ -39,7 +39,7 @@ data class RequestPreviewViewState(
     val chainIcon: GradientIconState,
     val method: String?,
     val tableItems: List<TitleValueViewState>,
-    val wallet: WalletItemViewState,
+    val wallet: WalletNameItemViewState,
     val loading: Boolean
 ) {
     companion object {
@@ -47,7 +47,7 @@ data class RequestPreviewViewState(
             chainIcon = GradientIconState.Local(R.drawable.ic_fearless_logo),
             method = null,
             tableItems = listOf(),
-            wallet = WalletItemViewState(
+            wallet = WalletNameItemViewState(
                 id = 0,
                 title = "",
                 walletIcon = R.drawable.ic_wallet,
@@ -102,7 +102,7 @@ fun RequestPreviewContent(state: RequestPreviewViewState, callback: RequestPrevi
                 }
                 MarginVertical(margin = 24.dp)
 
-                WalletItem(
+                WalletNameItem(
                     state = state.wallet,
                     onSelected = {}
                 )
@@ -165,7 +165,7 @@ private fun RequestPreviewPreview() {
         chainIcon = GradientIconState.Local(R.drawable.ic_fearless_logo),
         method = WalletConnectMethod.PolkadotSignMessage.method,
         tableItems = tableItems,
-        wallet = WalletItemViewState(
+        wallet = WalletNameItemViewState(
             id = 1,
             title = "Wallet",
             walletIcon = R.drawable.ic_wallet,

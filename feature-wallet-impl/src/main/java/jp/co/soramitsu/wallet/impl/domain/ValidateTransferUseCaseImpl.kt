@@ -10,6 +10,7 @@ import jp.co.soramitsu.common.utils.sumByBigDecimal
 import jp.co.soramitsu.core.models.ChainAssetType
 import jp.co.soramitsu.core.models.ChainId
 import jp.co.soramitsu.core.models.isSoraBasedChain
+import jp.co.soramitsu.core.utils.amountFromPlanks
 import jp.co.soramitsu.core.utils.isValidAddress
 import jp.co.soramitsu.core.utils.removedXcPrefix
 import jp.co.soramitsu.core.utils.utilityAsset
@@ -23,6 +24,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.bokoloCashTokenId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.kusamaChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId
 import jp.co.soramitsu.wallet.api.domain.ExistentialDepositUseCase
 import jp.co.soramitsu.wallet.api.domain.TransferValidationResult
 import jp.co.soramitsu.wallet.api.domain.ValidateTransferUseCase
@@ -30,7 +32,6 @@ import jp.co.soramitsu.wallet.api.presentation.formatters.formatCryptoDetailFrom
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletConstants
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
-import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
 import jp.co.soramitsu.wallet.impl.presentation.send.confirm.FEE_RESERVE_TOLERANCE
 
@@ -45,32 +46,40 @@ class ValidateTransferUseCaseImpl(
 
     override suspend fun invoke(
         amountInPlanks: BigInteger,
-        asset: Asset,
+        originAsset: Asset,
         destinationChainId: ChainId,
-        recipientAddress: String,
-        ownAddress: String,
-        fee: BigInteger?,
+        destinationAddress: String,
+        originAddress: String,
+        originFee: BigInteger?,
         confirmedValidations: List<TransferValidationResult>,
         transferMyselfAvailable: Boolean,
         skipEdValidation: Boolean,
-        destinationFeeAmount: BigDecimal?
+        destinationFee: BigDecimal?
     ): Result<TransferValidationResult> = kotlin.runCatching {
-        fee ?: return Result.success(TransferValidationResult.WaitForFee)
-        val chainId = asset.token.configuration.chainId
-        val originChain = chainRegistry.getChain(chainId)
-        val destinationChain = chainRegistry.getChain(destinationChainId)
-        val chainAsset = asset.token.configuration
-        val destinationAsset = destinationChain.assets.firstOrNull { it.symbol.removedXcPrefix() == asset.token.configuration.symbol.removedXcPrefix() }
-        val transferable = asset.transferableInPlanks
-        val assetExistentialDeposit = existentialDepositUseCase(chainAsset)
-        val assetEdFormatted = assetExistentialDeposit.formatCryptoDetailFromPlanks(chainAsset)
-        val tip = if (chainAsset.isUtility && originChain.isEthereumChain.not()) walletConstants.tip(chainId).orZero() else BigInteger.ZERO
 
-        val validateAddressResult = kotlin.runCatching { destinationChain.isValidAddress(recipientAddress) }
+        originFee ?: return Result.success(TransferValidationResult.WaitForFee)
+        val originChainId = originAsset.token.configuration.chainId
+        val originChain = chainRegistry.getChain(originChainId)
+        val originAssetConfig = originAsset.token.configuration
+        val originTransferable = originAsset.transferableInPlanks
+        val originExistentialDeposit = existentialDepositUseCase(originAssetConfig)
+        val originEdFormatted = originExistentialDeposit.formatCryptoDetailFromPlanks(originAssetConfig)
+
+        val amountDecimal = originAssetConfig.amountFromPlanks(amountInPlanks).orZero()
+
+
+        val tip = if (originAssetConfig.isUtility && originChain.isEthereumChain.not()) walletConstants.tip(originChainId).orZero() else BigInteger.ZERO
+
+        val isCrossChainTransfer = originChainId != destinationChainId
+
+        val destinationChain = if (isCrossChainTransfer) chainRegistry.getChain(destinationChainId) else originChain
+        val destinationAssetConfig = if (isCrossChainTransfer) destinationChain.assets.firstOrNull { it.symbol.removedXcPrefix() == originAssetConfig.symbol.removedXcPrefix() } else originAssetConfig
+
+        val validateAddressResult = kotlin.runCatching { destinationChain.isValidAddress(destinationAddress) }
 
         val initialChecks = mapOf(
             TransferValidationResult.InvalidAddress to (validateAddressResult.getOrNull() in listOf(null, false)),
-            TransferValidationResult.TransferToTheSameAddress to (!transferMyselfAvailable && recipientAddress == ownAddress)
+            TransferValidationResult.TransferToTheSameAddress to (!transferMyselfAvailable && destinationAddress == originAddress)
         )
 
         val initialCheck = performChecks(initialChecks, confirmedValidations, skipEdValidation)
@@ -78,18 +87,86 @@ class ValidateTransferUseCaseImpl(
             return Result.success(initialCheck)
         }
 
-        val recipientAccountId = destinationChain.accountIdOf(recipientAddress)
+        val destinationAccountId = destinationChain.accountIdOf(destinationAddress)
 
-        val totalRecipientBalanceInPlanks =
-            kotlin.runCatching { destinationAsset?.let { walletRepository.getTotalBalance(it, destinationChain, recipientAccountId) } }.getOrNull().orZero()
+        val totalDestinationBalanceInPlanks = kotlin.runCatching {
+            destinationAssetConfig?.let { walletRepository.getTotalBalance(it, destinationChain, destinationAccountId) }
+        }.getOrNull().orZero()
+        val totalDestinationBalanceDecimal = destinationAssetConfig?.amountFromPlanks(totalDestinationBalanceInPlanks).orZero()
+
+        val destinationExistentialDeposit = if (isCrossChainTransfer) existentialDepositUseCase(destinationAssetConfig ?: originAssetConfig) else originExistentialDeposit
+        val destinationExistentialDepositDecimal = destinationAssetConfig?.amountFromPlanks(destinationExistentialDeposit).orZero()
+
+        val metaAccount = accountRepository.getSelectedMetaAccount()
 
         val validationChecks = when {
-            chainAsset.type == ChainAssetType.Equilibrium -> {
-                getEquilibriumValidationChecks(asset, recipientAccountId, originChain, ownAddress, amountInPlanks, fee, tip)
+            originAssetConfig.type == ChainAssetType.Equilibrium -> {
+                getEquilibriumValidationChecks(originAsset, destinationAccountId, originChain, originAddress, amountInPlanks, originFee, tip, destinationExistentialDepositDecimal, isCrossChainTransfer)
+            }
+
+            originChain.isSoraBasedChain() && destinationChain.isSoraBasedChain().not() -> {
+                val utilityAsset = originChain.utilityAsset?.let {
+                    walletRepository.getAsset(
+                        metaAccount.id,
+                        metaAccount.accountId(originChain)!!,
+                        it,
+                        originChain.minSupportedVersion
+                    )
+                }
+                val utilityAssetBalance = utilityAsset?.transferableInPlanks.orZero()
+                val utilityAssetExistentialDeposit = originChain.utilityAsset?.let { existentialDepositUseCase(it) }.orZero()
+                val utilityEdFormatted = utilityAsset?.token?.configuration?.let { utilityAssetExistentialDeposit.formatCryptoDetailFromPlanks(it) }.orEmpty()
+
+                val bridgeMinimumAmountValidation = bridgeMinimumAmountValidation(originChain, destinationChain, originAsset, amountInPlanks)
+
+                mapOf(
+                    bridgeMinimumAmountValidation,
+                    TransferValidationResult.SubstrateBridgeAmountLessThenFeeWarning(originChain.name) to
+                            if (destinationFee == null) {
+                                false
+                            } else {
+                                amountDecimal < destinationFee
+                            },
+                    TransferValidationResult.InsufficientBalance to (amountInPlanks > originTransferable),
+                    TransferValidationResult.InsufficientUtilityAssetBalance to (originFee + tip > utilityAssetBalance),
+                    getTransferValidationResultExistentialDeposit(isCrossChainTransfer, originEdFormatted) to (originTransferable - amountInPlanks < originExistentialDeposit),
+                    getTransferValidationResultUtilityExistentialDeposit(isCrossChainTransfer, utilityEdFormatted) to (utilityAssetBalance - (originFee + tip) < utilityAssetExistentialDeposit),
+                    TransferValidationResult.DeadRecipient to (totalDestinationBalanceDecimal + amountDecimal < destinationExistentialDepositDecimal)
+                )
+            }
+
+            originChain.isSoraBasedChain().not() && destinationChain.isSoraBasedChain() -> {
+                val utilityAsset = originChain.utilityAsset?.let {
+                    walletRepository.getAsset(
+                        metaAccount.id,
+                        metaAccount.accountId(originChain)!!,
+                        it,
+                        originChain.minSupportedVersion
+                    )
+                }
+                val utilityAssetBalance = utilityAsset?.transferableInPlanks.orZero()
+                val utilityAssetExistentialDeposit = originChain.utilityAsset?.let { existentialDepositUseCase(it) }.orZero()
+                val utilityEdFormatted = utilityAsset?.token?.configuration?.let { utilityAssetExistentialDeposit.formatCryptoDetailFromPlanks(it) }.orEmpty()
+
+                val bridgeMinimumAmountValidation = bridgeMinimumAmountValidation(originChain, destinationChain, originAsset, amountInPlanks)
+
+                mapOf(
+                    bridgeMinimumAmountValidation,
+                    TransferValidationResult.SubstrateBridgeAmountLessThenFeeWarning(destinationChain.name) to
+                            if (destinationFee == null) {
+                                false
+                            } else {
+                                amountDecimal < destinationFee
+                            },
+                    TransferValidationResult.InsufficientBalance to (amountInPlanks + originFee + tip > originTransferable),
+                    TransferValidationResult.InsufficientUtilityAssetBalance to (originFee + tip > utilityAssetBalance),
+                    getTransferValidationResultExistentialDeposit(isCrossChainTransfer, originEdFormatted) to (originTransferable - amountInPlanks < originExistentialDeposit),
+                    getTransferValidationResultUtilityExistentialDeposit(isCrossChainTransfer, utilityEdFormatted) to (utilityAssetBalance - (originFee + tip) < utilityAssetExistentialDeposit),
+                    TransferValidationResult.DeadRecipient to (totalDestinationBalanceDecimal + amountDecimal < destinationExistentialDepositDecimal)
+                )
             }
 
             originChain.isEthereumChain -> {
-                val metaAccount = accountRepository.getSelectedMetaAccount()
                 val utilityAsset = originChain.utilityAsset?.let {
                     walletRepository.getAsset(
                         metaAccount.id,
@@ -99,91 +176,29 @@ class ValidateTransferUseCaseImpl(
                     )
                 }
                 val utilityAssetBalance = utilityAsset?.transferableInPlanks.orZero()
-                val originChainUtilityAsset = originChain.utilityAsset
-                val totalRecipientUtilityAssetBalanceInPlanks = kotlin.runCatching { originChainUtilityAsset?.let { walletRepository.getTotalBalance(it, destinationChain, recipientAccountId) } }.getOrNull().orZero()
-                val resultedBalance = (asset.freeInPlanks ?: transferable) - (amountInPlanks + fee + tip)
+                val destinationChainUtilityAsset = destinationChain.utilityAsset
+                val totalDestinationUtilityAssetBalanceInPlanks = kotlin.runCatching { destinationChainUtilityAsset?.let { walletRepository.getTotalBalance(it, destinationChain, destinationAccountId) } }.getOrNull().orZero()
+                val resultedBalance = (originAsset.freeInPlanks ?: originTransferable) - (amountInPlanks + originFee + tip)
 
                 mapOf(
-                    TransferValidationResult.InsufficientBalance to (amountInPlanks + fee + tip > transferable),
-                    TransferValidationResult.ExistentialDepositWarning(assetEdFormatted) to (resultedBalance < assetExistentialDeposit),
-                    TransferValidationResult.InsufficientUtilityAssetBalance to (fee + tip > utilityAssetBalance),
-                    TransferValidationResult.DeadRecipientEthereum to (!asset.token.configuration.isUtility && totalRecipientUtilityAssetBalanceInPlanks.isZero())
+                    TransferValidationResult.InsufficientBalance to (amountInPlanks + originFee + tip > originTransferable),
+                    getTransferValidationResultExistentialDeposit(isCrossChainTransfer, originEdFormatted) to (resultedBalance < originExistentialDeposit),
+                    TransferValidationResult.InsufficientUtilityAssetBalance to (originFee + tip > utilityAssetBalance),
+                    TransferValidationResult.DeadRecipientEthereum to (!originAsset.token.configuration.isUtility && totalDestinationUtilityAssetBalanceInPlanks.isZero())
                 )
             }
 
-            destinationChain.isSoraBasedChain().not() && originChain.isSoraBasedChain() -> {
-                val metaAccount = accountRepository.getSelectedMetaAccount()
-                val utilityAsset = originChain.utilityAsset?.let {
-                    walletRepository.getAsset(
-                        metaAccount.id,
-                        metaAccount.accountId(originChain)!!,
-                        it,
-                        originChain.minSupportedVersion
-                    )
-                }
-                val utilityAssetBalance = utilityAsset?.transferableInPlanks.orZero()
-                val utilityAssetExistentialDeposit = originChain.utilityAsset?.let { existentialDepositUseCase(it) }.orZero()
-
-                val utilityEdFormatted = utilityAsset?.token?.configuration?.let { utilityAssetExistentialDeposit.formatCryptoDetailFromPlanks(it) }.orEmpty()
-
-                val bridgeMinimumAmountValidation = bridgeMinimumAmountValidation(destinationChain, asset, amountInPlanks)
+            originAssetConfig.isUtility -> {
+                val resultedBalance = (originAsset.freeInPlanks ?: originTransferable) - (amountInPlanks + originFee + tip)
 
                 mapOf(
-                    bridgeMinimumAmountValidation,
-                    TransferValidationResult.InsufficientBalance to (amountInPlanks > transferable),
-                    TransferValidationResult.InsufficientUtilityAssetBalance to (fee + tip > utilityAssetBalance),
-                    TransferValidationResult.ExistentialDepositWarning(assetEdFormatted) to (transferable - amountInPlanks < assetExistentialDeposit),
-                    TransferValidationResult.UtilityExistentialDepositWarning(utilityEdFormatted) to (utilityAssetBalance - (fee + tip) < utilityAssetExistentialDeposit),
-                    TransferValidationResult.DeadRecipient to (totalRecipientBalanceInPlanks + amountInPlanks < assetExistentialDeposit)
+                    TransferValidationResult.InsufficientBalance to (amountInPlanks + originFee + tip > originTransferable),
+                    getTransferValidationResultExistentialDeposit(isCrossChainTransfer, originEdFormatted) to (resultedBalance < originExistentialDeposit),
+                    TransferValidationResult.DeadRecipient to (totalDestinationBalanceDecimal + amountDecimal < destinationExistentialDepositDecimal)
                 )
             }
 
-            destinationChain.isSoraBasedChain() && originChain.isSoraBasedChain().not() -> {
-                val metaAccount = accountRepository.getSelectedMetaAccount()
-                val utilityAsset = originChain.utilityAsset?.let {
-                    walletRepository.getAsset(
-                        metaAccount.id,
-                        metaAccount.accountId(originChain)!!,
-                        it,
-                        originChain.minSupportedVersion
-                    )
-                }
-                val utilityAssetBalance = utilityAsset?.transferableInPlanks.orZero()
-                val utilityAssetExistentialDeposit = originChain.utilityAsset?.let { existentialDepositUseCase(it) }.orZero()
-
-                val utilityEdFormatted = utilityAsset?.token?.configuration?.let { utilityAssetExistentialDeposit.formatCryptoDetailFromPlanks(it) }.orEmpty()
-
-                val destinationFeeAmountInPlanks = destinationFeeAmount?.let { destinationAsset?.planksFromAmount(it) }
-                val bridgeMinimumAmountValidation = bridgeMinimumAmountValidation(originChain, asset, amountInPlanks)
-
-                mapOf(
-                    bridgeMinimumAmountValidation,
-                    TransferValidationResult.SubstrateBridgeAmountLessThenFeeWarning to
-                            if (destinationFeeAmountInPlanks == null) {
-                                false
-                            } else {
-                                amountInPlanks < destinationFeeAmountInPlanks
-                            },
-                    TransferValidationResult.InsufficientBalance to (amountInPlanks > transferable),
-                    TransferValidationResult.InsufficientUtilityAssetBalance to (fee + tip > utilityAssetBalance),
-                    TransferValidationResult.ExistentialDepositWarning(assetEdFormatted) to (transferable - amountInPlanks < assetExistentialDeposit),
-                    TransferValidationResult.UtilityExistentialDepositWarning(utilityEdFormatted) to (utilityAssetBalance - (fee + tip) < utilityAssetExistentialDeposit),
-                    TransferValidationResult.DeadRecipient to (totalRecipientBalanceInPlanks + amountInPlanks < assetExistentialDeposit)
-                )
-            }
-
-            chainAsset.isUtility -> {
-                val resultedBalance = (asset.freeInPlanks ?: transferable) - (amountInPlanks + fee + tip)
-
-                mapOf(
-                    TransferValidationResult.InsufficientBalance to (amountInPlanks + fee + tip > transferable),
-                    TransferValidationResult.ExistentialDepositWarning(assetEdFormatted) to (resultedBalance < assetExistentialDeposit),
-                    TransferValidationResult.DeadRecipient to (totalRecipientBalanceInPlanks + amountInPlanks < assetExistentialDeposit)
-                )
-            }
-
-            chainAsset.currencyId == bokoloCashTokenId -> { // xorlessTransfer
-                val metaAccount = accountRepository.getSelectedMetaAccount()
+            originAssetConfig.currencyId == bokoloCashTokenId -> { // xorlessTransfer
                 val utilityAsset: Asset? = originChain.utilityAsset?.let {
                     walletRepository.getAsset(
                         metaAccount.id,
@@ -193,13 +208,13 @@ class ValidateTransferUseCaseImpl(
                     )
                 }
 
-                val feeRequiredTokenInPlanks = if (utilityAsset?.transferableInPlanks.orZero() < fee) {
+                val feeRequiredTokenInPlanks = if (utilityAsset?.transferableInPlanks.orZero() < originFee) {
                     val swapDetails = utilityAsset?.let {
                         polkaswapInteractor.calcDetails(
                             availableDexPaths = listOf(0),
-                            tokenFrom = asset,
+                            tokenFrom = originAsset,
                             tokenTo = utilityAsset,
-                            amount = asset.token.amountFromPlanks(fee),
+                            amount = originAssetConfig.amountFromPlanks(originFee),
                             desired = WithDesired.OUTPUT,
                             slippageTolerance = 1.5,
                             market = Market.SMART
@@ -215,14 +230,13 @@ class ValidateTransferUseCaseImpl(
                 }
 
                 mapOf(
-                    TransferValidationResult.InsufficientBalance to (amountInPlanks + feeRequiredTokenInPlanks.orZero() > transferable),
-                    TransferValidationResult.ExistentialDepositWarning(assetEdFormatted) to (transferable - amountInPlanks - feeRequiredTokenInPlanks.orZero() < assetExistentialDeposit),
-                    TransferValidationResult.DeadRecipient to (totalRecipientBalanceInPlanks + amountInPlanks < assetExistentialDeposit)
+                    TransferValidationResult.InsufficientBalance to (amountInPlanks + feeRequiredTokenInPlanks.orZero() > originTransferable),
+                    getTransferValidationResultExistentialDeposit(isCrossChainTransfer, originEdFormatted) to (originTransferable - amountInPlanks - feeRequiredTokenInPlanks.orZero() < originExistentialDeposit),
+                    TransferValidationResult.DeadRecipient to (totalDestinationBalanceDecimal + amountDecimal < destinationExistentialDepositDecimal)
                 )
             }
 
             else -> {
-                val metaAccount = accountRepository.getSelectedMetaAccount()
                 val utilityAsset = originChain.utilityAsset?.let {
                     walletRepository.getAsset(
                         metaAccount.id,
@@ -233,14 +247,14 @@ class ValidateTransferUseCaseImpl(
                 }
                 val utilityAssetBalance = utilityAsset?.transferableInPlanks.orZero()
                 val utilityAssetExistentialDeposit = originChain.utilityAsset?.let { existentialDepositUseCase(it) }.orZero()
-
                 val utilityEdFormatted = utilityAsset?.token?.configuration?.let { utilityAssetExistentialDeposit.formatCryptoDetailFromPlanks(it) }.orEmpty()
+
                 mapOf(
-                    TransferValidationResult.InsufficientBalance to (amountInPlanks > transferable),
-                    TransferValidationResult.InsufficientUtilityAssetBalance to (fee + tip > utilityAssetBalance),
-                    TransferValidationResult.ExistentialDepositWarning(assetEdFormatted) to (transferable - amountInPlanks < assetExistentialDeposit),
-                    TransferValidationResult.UtilityExistentialDepositWarning(utilityEdFormatted) to (utilityAssetBalance - (fee + tip) < utilityAssetExistentialDeposit),
-                    TransferValidationResult.DeadRecipient to (totalRecipientBalanceInPlanks + amountInPlanks < assetExistentialDeposit)
+                    TransferValidationResult.InsufficientBalance to (amountInPlanks > originTransferable),
+                    TransferValidationResult.InsufficientUtilityAssetBalance to (originFee + tip > utilityAssetBalance),
+                    getTransferValidationResultExistentialDeposit(isCrossChainTransfer, originEdFormatted) to (originTransferable - amountInPlanks < originExistentialDeposit),
+                    getTransferValidationResultUtilityExistentialDeposit(isCrossChainTransfer, utilityEdFormatted) to (utilityAssetBalance - (originFee + tip) < utilityAssetExistentialDeposit),
+                    TransferValidationResult.DeadRecipient to (totalDestinationBalanceDecimal + amountDecimal < destinationExistentialDepositDecimal)
                 )
             }
         }
@@ -248,17 +262,31 @@ class ValidateTransferUseCaseImpl(
         return Result.success(result)
     }
 
+    private fun getTransferValidationResultExistentialDeposit(isCrossChainTransfer: Boolean, assetEdFormatted: String) = if (isCrossChainTransfer) {
+        TransferValidationResult.ExistentialDepositError(assetEdFormatted)
+    } else {
+        TransferValidationResult.ExistentialDepositWarning(assetEdFormatted)
+    }
+
+    private fun getTransferValidationResultUtilityExistentialDeposit(isCrossChainTransfer: Boolean, utilityEdFormatted: String) = if (isCrossChainTransfer) {
+        TransferValidationResult.UtilityExistentialDepositError(utilityEdFormatted)
+    } else {
+        TransferValidationResult.UtilityExistentialDepositWarning(utilityEdFormatted)
+    }
+
     private fun bridgeMinimumAmountValidation(
-        utilityChain: Chain,
+        originChain: Chain,
+        destinationChain: Chain,
         asset: Asset,
         amountInPlanks: BigInteger
     ): Pair<TransferValidationResult.SubstrateBridgeMinimumAmountRequired, Boolean> {
-        val minAmountTokens = when (utilityChain.utilityAsset?.chainId) {
-            polkadotChainId -> "1.1"
-            kusamaChainId -> "0.05"
+        val minAmountTokens = when (originChain.id to destinationChain.id) {
+            polkadotChainId to soraMainChainId,
+            soraMainChainId to polkadotChainId -> "1.1"
+            kusamaChainId to soraMainChainId -> "0.05"
             else -> null
         }
-        val substrateBridgeIncomingTransferMinAmountText = minAmountTokens?.let {
+        val substrateBridgeMinAmountText = minAmountTokens?.let {
             "$minAmountTokens ${asset.token.configuration.symbol.uppercase()}"
         }.orEmpty()
 
@@ -266,49 +294,57 @@ class ValidateTransferUseCaseImpl(
             asset.token.planksFromAmount(BigDecimal(it))
         }
 
-        return (TransferValidationResult.SubstrateBridgeMinimumAmountRequired(substrateBridgeIncomingTransferMinAmountText)
+        return (TransferValidationResult.SubstrateBridgeMinimumAmountRequired(substrateBridgeMinAmountText)
                 to (substrateBridgeTransferMinAmount != null && amountInPlanks < substrateBridgeTransferMinAmount))
     }
 
     override suspend fun validateExistentialDeposit(
         amountInPlanks: BigInteger,
-        asset: Asset,
+        originAsset: Asset,
         destinationChainId: ChainId,
-        recipientAddress: String,
-        ownAddress: String,
-        fee: BigInteger,
+        destinationAddress: String,
+        originAddress: String,
+        originFee: BigInteger,
         confirmedValidations: List<TransferValidationResult>
     ): Result<TransferValidationResult> = kotlin.runCatching {
-        val chainId = asset.token.configuration.chainId
-        val originChain = chainRegistry.getChain(chainId)
-        val chainAsset = asset.token.configuration
-        val destinationChain = chainRegistry.getChain(destinationChainId)
-        val destinationAsset = destinationChain.assets.firstOrNull { it.symbol == asset.token.configuration.symbol }
-        val transferable = asset.transferableInPlanks
-        val assetExistentialDeposit = existentialDepositUseCase(chainAsset)
-        val destinationExistentialDeposit = existentialDepositUseCase(destinationAsset ?: chainAsset)
-        val tip = if (chainAsset.isUtility) walletConstants.tip(chainId).orZero() else BigInteger.ZERO
+        val originChainId = originAsset.token.configuration.chainId
+        val originChain = chainRegistry.getChain(originChainId)
+        val originAssetConfig = originAsset.token.configuration
+        val transferable = originAsset.transferableInPlanks
+        val originExistentialDeposit = existentialDepositUseCase(originAssetConfig)
 
-        val recipientAccountId = destinationChain.accountIdOf(recipientAddress)
-        val totalRecipientBalanceInPlanks = destinationAsset?.let { walletRepository.getTotalBalance(it, destinationChain, recipientAccountId) }.orZero()
+        val tip = if (originAssetConfig.isUtility) walletConstants.tip(originChainId).orZero() else BigInteger.ZERO
+        val amountDecimal = originAssetConfig.amountFromPlanks(amountInPlanks).orZero()
+
+        val destinationChain = chainRegistry.getChain(destinationChainId)
+        val destinationAsset = destinationChain.assets.firstOrNull { it.symbol == originAsset.token.configuration.symbol }
+        val destinationExistentialDeposit = existentialDepositUseCase(destinationAsset ?: originAssetConfig)
+        val destinationExistentialDepositDecimal = destinationAsset?.amountFromPlanks(destinationExistentialDeposit).orZero()
+
+        val destinationAccountId = destinationChain.accountIdOf(destinationAddress)
+        val totalDestinationBalanceInPlanks = destinationAsset?.let { walletRepository.getTotalBalance(it, destinationChain, destinationAccountId) }.orZero()
+        val totalDestinationBalanceDecimal = destinationAsset?.amountFromPlanks(totalDestinationBalanceInPlanks).orZero()
+        val isCrossChainTransfer = originChainId != destinationChainId
 
         val validationChecks = when {
-            chainAsset.type == ChainAssetType.Equilibrium -> {
-                getEquilibriumValidationChecks(asset, recipientAccountId, originChain, ownAddress, amountInPlanks, fee, tip)
+            originAssetConfig.type == ChainAssetType.Equilibrium -> {
+                getEquilibriumValidationChecks(originAsset, destinationAccountId, originChain, originAddress, amountInPlanks, originFee, tip, destinationExistentialDepositDecimal, isCrossChainTransfer)
             }
 
-            chainAsset.isUtility -> {
-                val resultedBalance = (asset.freeInPlanks ?: transferable) - (amountInPlanks + fee + tip)
+            originAssetConfig.isUtility -> {
+                val resultedBalance = (originAsset.freeInPlanks ?: transferable) - (amountInPlanks + originFee + tip)
+                val assetEdFormatted = originExistentialDeposit.formatCryptoDetailFromPlanks(originAsset.token.configuration)
                 mapOf(
-                    TransferValidationResult.ExistentialDepositWarning(assetExistentialDeposit.formatCryptoDetailFromPlanks(asset.token.configuration)) to (resultedBalance < assetExistentialDeposit),
-                    TransferValidationResult.DeadRecipient to (totalRecipientBalanceInPlanks + amountInPlanks < destinationExistentialDeposit)
+                    getTransferValidationResultExistentialDeposit(isCrossChainTransfer, assetEdFormatted) to (resultedBalance < originExistentialDeposit),
+                    TransferValidationResult.DeadRecipient to (totalDestinationBalanceDecimal + amountDecimal < destinationExistentialDepositDecimal)
                 )
             }
 
             else -> {
+                val originEdFormatted = originExistentialDeposit.formatCryptoDetailFromPlanks(originAsset.token.configuration)
                 mapOf(
-                    TransferValidationResult.ExistentialDepositWarning(assetExistentialDeposit.formatCryptoDetailFromPlanks(asset.token.configuration)) to (transferable - amountInPlanks < assetExistentialDeposit),
-                    TransferValidationResult.DeadRecipient to (totalRecipientBalanceInPlanks + amountInPlanks < destinationExistentialDeposit)
+                    getTransferValidationResultExistentialDeposit(isCrossChainTransfer, originEdFormatted) to (transferable - amountInPlanks < originExistentialDeposit),
+                    TransferValidationResult.DeadRecipient to (totalDestinationBalanceDecimal + amountDecimal < destinationExistentialDepositDecimal)
                 )
             }
         }
@@ -317,69 +353,71 @@ class ValidateTransferUseCaseImpl(
     }
 
     private suspend fun getEquilibriumValidationChecks(
-        asset: Asset,
-        recipientAccountId: ByteArray,
-        chain: Chain,
-        ownAddress: String,
+        originAsset: Asset,
+        destinationAccountId: ByteArray,
+        originChain: Chain,
+        originAddress: String,
         amountInPlanks: BigInteger,
-        fee: BigInteger,
-        tip: BigInteger
+        originFee: BigInteger,
+        tip: BigInteger,
+        destinationExistentialDepositDecimal: BigDecimal,
+        isCrossChainTransfer: Boolean
     ): Map<TransferValidationResult, Boolean> {
-        val chainAsset = asset.token.configuration
-        val assetExistentialDeposit = existentialDepositUseCase(chainAsset)
+        val originAssetConfig = originAsset.token.configuration
+        val originAssetExistentialDeposit = existentialDepositUseCase(originAssetConfig)
 
-        val recipientAccountInfo = walletRepository.getEquilibriumAccountInfo(chainAsset, recipientAccountId)
-        val ownAccountInfo = walletRepository.getEquilibriumAccountInfo(chainAsset, chain.accountIdOf(ownAddress))
-        val assetRates = walletRepository.getEquilibriumAssetRates(chainAsset)
+        val destinationAccountInfo = walletRepository.getEquilibriumAccountInfo(originAssetConfig, destinationAccountId)
+        val originAccountInfo = walletRepository.getEquilibriumAccountInfo(originAssetConfig, originChain.accountIdOf(originAddress))
+        val assetRates = walletRepository.getEquilibriumAssetRates(originAssetConfig)
 
-        val ownNewTotal = ownAccountInfo?.data?.balances?.entries?.sumByBigDecimal { (eqAssetId, amount) ->
+        val originNewTotal = originAccountInfo?.data?.balances?.entries?.sumByBigDecimal { (eqAssetId, amount) ->
             val tokenRateInPlanks = assetRates[eqAssetId]?.price.orZero()
 
             val newAmount = when {
-                chainAsset.isUtility -> {
-                    if (eqAssetId == chainAsset.currency) {
-                        if (amount < amountInPlanks + fee + tip) return mapOf(TransferValidationResult.InsufficientBalance to true)
-                        amount - amountInPlanks - fee - tip
+                originAssetConfig.isUtility -> {
+                    if (eqAssetId == originAssetConfig.currency) {
+                        if (amount < amountInPlanks + originFee + tip) return mapOf(TransferValidationResult.InsufficientBalance to true)
+                        amount - amountInPlanks - originFee - tip
                     } else {
                         amount
                     }
                 }
 
-                eqAssetId == chainAsset.currency -> {
+                eqAssetId == originAssetConfig.currency -> {
                     if (amount < amountInPlanks) return mapOf(TransferValidationResult.InsufficientBalance to true)
                     amount - amountInPlanks
                 }
 
-                eqAssetId == chain.utilityAsset?.currency -> {
-                    if (amount < fee + tip) return mapOf(TransferValidationResult.InsufficientUtilityAssetBalance to true)
-                    amount - fee - tip
+                eqAssetId == originChain.utilityAsset?.currency -> {
+                    if (amount < originFee + tip) return mapOf(TransferValidationResult.InsufficientUtilityAssetBalance to true)
+                    amount - originFee - tip
                 }
 
                 else -> amount
             }
 
-            val amountDecimal = asset.token.configuration.amountFromPlanks(newAmount)
-            val rateDecimal = asset.token.configuration.amountFromPlanks(tokenRateInPlanks)
+            val amountDecimal = originAsset.token.configuration.amountFromPlanks(newAmount)
+            val rateDecimal = originAsset.token.configuration.amountFromPlanks(tokenRateInPlanks)
 
             amountDecimal * rateDecimal
         }.orZero()
 
-        val recipientNewTotal = recipientAccountInfo?.data?.balances?.entries?.sumByBigDecimal { (eqAssetId, amount) ->
-            val newAmount = if (eqAssetId == chainAsset.currency) amount + amountInPlanks else amount
+        val destinationNewTotal = destinationAccountInfo?.data?.balances?.entries?.sumByBigDecimal { (eqAssetId, amount) ->
+            val newAmount = if (eqAssetId == originAssetConfig.currency) amount + amountInPlanks else amount
             val tokenRateInPlanks = assetRates[eqAssetId]?.price.orZero()
 
-            val amountDecimal = asset.token.configuration.amountFromPlanks(newAmount)
-            val rateDecimal = asset.token.configuration.amountFromPlanks(tokenRateInPlanks)
+            val amountDecimal = originAsset.token.configuration.amountFromPlanks(newAmount)
+            val rateDecimal = originAsset.token.configuration.amountFromPlanks(tokenRateInPlanks)
 
             amountDecimal * rateDecimal
         }.orZero()
 
-        val recipientNewTotalInPlanks = asset.token.configuration.planksFromAmount(recipientNewTotal)
-        val ownNewTotalInPlanks = asset.token.configuration.planksFromAmount(ownNewTotal)
+        val originNewTotalInPlanks = originAsset.token.configuration.planksFromAmount(originNewTotal)
 
+        val originAssetEdFormatted = originAssetExistentialDeposit.formatCryptoDetailFromPlanks(originAsset.token.configuration)
         return mapOf(
-            TransferValidationResult.ExistentialDepositWarning(assetExistentialDeposit.formatCryptoDetailFromPlanks(asset.token.configuration)) to (ownNewTotalInPlanks < assetExistentialDeposit),
-            TransferValidationResult.DeadRecipient to (recipientNewTotalInPlanks < assetExistentialDeposit)
+            getTransferValidationResultExistentialDeposit(isCrossChainTransfer, originAssetEdFormatted) to (originNewTotalInPlanks < originAssetExistentialDeposit),
+            TransferValidationResult.DeadRecipient to (destinationNewTotal < destinationExistentialDepositDecimal)
         )
     }
 

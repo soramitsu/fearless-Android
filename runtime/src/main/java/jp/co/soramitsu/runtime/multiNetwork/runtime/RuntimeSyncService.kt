@@ -11,6 +11,8 @@ import jp.co.soramitsu.coredb.dao.ChainDao
 import jp.co.soramitsu.coredb.model.chain.ChainRuntimeInfoLocal
 import jp.co.soramitsu.coredb.model.chain.ChainTypesLocal
 import jp.co.soramitsu.runtime.BuildConfig
+import jp.co.soramitsu.runtime.multiNetwork.ChainState
+import jp.co.soramitsu.runtime.multiNetwork.ChainsStateTracker
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.connection.ConnectionPool
 import jp.co.soramitsu.runtime.multiNetwork.runtime.types.TypesFetcher
@@ -87,9 +89,10 @@ class RuntimeSyncService(
 
     private fun launchSync(chainId: String, force: Boolean = false) {
         cancelExistingSync(chainId)
-
+        ChainsStateTracker.updateState(chainId) { it.copy(downloadMetadata = ChainState.Status.Started) }
         syncingChains[chainId] = launch(syncDispatcher) {
             sync(chainId, force)
+            ChainsStateTracker.updateState(chainId) { it.copy(downloadMetadata = ChainState.Status.Completed) }
         }
     }
 
@@ -101,9 +104,10 @@ class RuntimeSyncService(
             return
         }
 
-        val runtimeInfo = chainDao.runtimeInfo(chainId) ?: return
+        val runtimeInfo = chainDao.runtimeInfo(chainId)
+        val shouldSyncMetadata = runtimeInfo?.shouldSyncMetadata() ?: true
 
-        val metadataHash = if (force || runtimeInfo.shouldSyncMetadata()) {
+        val metadataHash = if (force || shouldSyncMetadata) {
             val runtimeMetadata =
                 connectionPool.getConnection(chainId).socketService.executeAsyncCatching(
                     GetMetadataRequest,
@@ -113,7 +117,7 @@ class RuntimeSyncService(
 
                 runtimeFilesCache.saveChainMetadata(chainId, runtimeMetadata)
 
-                chainDao.updateSyncedRuntimeVersion(chainId, runtimeInfo.remoteVersion)
+                chainDao.updateSyncedRuntimeVersion(chainId, runtimeInfo?.remoteVersion ?: 1)
 
                 runtimeMetadata.md5()
             }

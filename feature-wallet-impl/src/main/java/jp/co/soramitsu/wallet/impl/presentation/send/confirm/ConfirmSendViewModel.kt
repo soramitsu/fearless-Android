@@ -274,11 +274,11 @@ class ConfirmSendViewModel @Inject constructor(
             if (!skipEdValidation) {
                 val validationProcessResult = validateTransferUseCase.validateExistentialDeposit(
                     amountInPlanks = inPlanks,
-                    asset = asset,
+                    originAsset = asset,
                     destinationChainId = asset.token.configuration.chainId,
-                    recipientAddress = recipientAddress,
-                    ownAddress = selfAddress,
-                    fee = fee,
+                    destinationAddress = recipientAddress,
+                    originAddress = selfAddress,
+                    originFee = fee,
                     confirmedValidations = confirmedValidations
                 )
 

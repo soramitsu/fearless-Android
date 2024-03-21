@@ -91,6 +91,10 @@
   <string name="backup_wallet_show_mnemonic_phrase">Hiển thị cụm từ ghi nhớ</string>
   <string name="backup_wallet_show_raw_seed">Hiển thị Raw Seed</string>
   <string name="backup_wallet_warning_about_lose_phrase">Nếu bạn mất quyền truy cập vào thiết bị này, tiền của bạn sẽ bị mất, trừ khi bạn sao lưu!</string>
+  <string name="balance_locks_governance_row_title">Quản trị</string>
+  <string name="balance_locks_liquidity_pools_row_title">Pool thanh khoản</string>
+  <string name="balance_locks_nomination_pools_row_title">Nhóm Nomination</string>
+  <string name="balance_locks_screen_title">Chi tiết đã khóa</string>
   <string name="banners_backup_description">Nếu bạn làm mất thiết bị của mình, bạn\n sẽ mất tiền của bạn mãi mãi</string>
   <string name="banners_buy_xor">Mua XOR</string>
   <string name="banners_buy_xor_description">Mua hoặc bán tokr XOR với\ntiền Euro</string>
@@ -151,12 +155,14 @@
   <string name="common_amount">Số lượng</string>
   <string name="common_amount_low">Số tiền quá ít</string>
   <string name="common_and">và</string>
+  <string name="common_and_others_placeholder">%s và những vị trí khác</string>
   <string name="common_applied">Đã áp dụng</string>
   <string name="common_apply">Áp dụng</string>
   <string name="common_assets_filters_fiat">Số dư tiền pháp định</string>
   <string name="common_assets_filters_name">Tên</string>
   <string name="common_assets_filters_popularity">Phổ biến</string>
   <string name="common_available_format">Có sẵn: %s</string>
+  <string name="common_available_networks">Mạng có sẵn</string>
   <string name="common_backup_your_wallet">Sao lưu ví của bạn</string>
   <string name="common_balance">Số dư</string>
   <string name="common_balance_format">Số dư: %s</string>
@@ -171,6 +177,7 @@
   <string name="common_claim">Lấy</string>
   <string name="common_claimable">Có thể yêu cầu</string>
   <string name="common_close">Đóng</string>
+  <string name="common_commission">Uỷ ban (Commission)</string>
   <string name="common_completed">Đã hoàn thành</string>
   <string name="common_completed_with_count">Đã hoàn thành (%s)</string>
   <string name="common_confirm">Xác nhận</string>
@@ -179,6 +186,7 @@
   <string name="common_confirmed">Đã xác nhận</string>
   <string name="common_connect">Kết nối</string>
   <string name="common_connection_problems">Sự cố kết nối</string>
+  <string name="common_contacts">Liên hệ</string>
   <string name="common_continue">Tiếp tục</string>
   <string name="common_copied">Sao chép vào clipboard</string>
   <string name="common_copy">Sao chép</string>
@@ -204,17 +212,20 @@
   <string name="common_done">Hoàn tất</string>
   <string name="common_edit">Chỉnh sửa</string>
   <string name="common_email_chooser_title">Chọn ứng dụng email</string>
+  <string name="common_empty_search">Không tìm thấy gì cho yêu cầu của bạn</string>
   <string name="common_error_general_message">Chúng tôi đang cố gắng khắc phục sự cố. Vui lòng thử lại sau.</string>
   <string name="common_error_general_title">Lỗi</string>
   <string name="common_error_internal">Đã xảy ra lỗi nội bộ</string>
   <string name="common_error_network">Lỗi xảy ra trong khi giao tiếp với máy chủ</string>
   <string name="common_event">Sự kiện</string>
-  <string name="common_existential_warning_message">Giao dịch này sẽ dẫn đến việc tài khoản sẽ xuống thâp hơn Khoản tiền gửi tối thiểu để duy trì tài khoản, điều này sẽ khiến tài khoản bị thu hồi (tài khoản sẽ bị xóa khỏi trạng thái của blockchain để bảo toàn không gian). Nếu bạn chọn tiếp tục, bạn sẽ mất bất kỳ khoản tiền nào thấp hơn số tiền ký quỹ hiện có do mạng đặt ra. Để biết thông tin chi tiết, vui lòng tham khảo tài liệu mạng chính thức (ví dụ: Polkadot Wiki). Fearless Wallet là một ứng dụng hoàn toàn không bị quản lý và không có quyền kiểm soát hoặc không biết về bất kỳ hành động nào của bạn trên chính mạng đó. CHỈ TIẾP TỤC NẾU BẠN HOÀN TOÀN ĐỒNG Ý VÀ HIỂU Ý.</string>
+  <string name="common_existential_error_message">Giao dịch này sẽ dẫn đến việc tài khoản sẽ xuống thâp hơn Khoản tiền gửi tối thiểu để duy trì tài khoản(%s), điều này sẽ khiến tài khoản bị thu hồi (tài khoản sẽ bị xóa khỏi trạng thái của blockchain để bảo toàn không gian).</string>
+  <string name="common_existential_warning_message">Giao dịch này sẽ dẫn đến việc tài khoản sẽ xuống thâp hơn Khoản tiền gửi tối thiểu để duy trì tài khoản (%s), điều này sẽ khiến tài khoản bị thu hồi (tài khoản sẽ bị xóa khỏi trạng thái của blockchain để bảo toàn không gian). Nếu bạn chọn tiếp tục, bạn sẽ mất bất kỳ khoản tiền nào thấp hơn số tiền ký quỹ hiện có do mạng đặt ra. Để biết thông tin chi tiết, vui lòng tham khảo tài liệu mạng chính thức (ví dụ: Polkadot Wiki). Fearless Wallet là một ứng dụng hoàn toàn không bị quản lý và không có quyền kiểm soát hoặc không biết về bất kỳ hành động nào của bạn trên chính mạng đó. CHỈ TIẾP TỤC NẾU BẠN HOÀN TOÀN ĐỒNG Ý VÀ HIỂU Ý.</string>
   <string name="common_existential_warning_title">Thao tác này sẽ xóa tài khoản</string>
   <string name="common_filter_sort_header">Sắp xếp theo:</string>
   <string name="common_friend_bonus">Tiền thưởng cho bạn của bạn</string>
   <string name="common_got_it">Đã nhận được</string>
   <string name="common_history">Lịch sử</string>
+  <string name="common_host">Chủ nhà</string>
   <plurals name="common_hours_format">
     <item quantity="other">giờ</item>
   </plurals>
@@ -229,6 +240,7 @@
   <string name="common_message">Tin nhắn</string>
   <string name="common_min_received">Tối thiểu nhận được</string>
   <string name="common_module">Module</string>
+  <string name="common_my_networks">Mạng của tôi</string>
   <string name="common_network">Mạng</string>
   <string name="common_network_fee">Phí mạng</string>
   <string name="common_network_management">Quản lý mạng</string>
@@ -247,6 +259,7 @@
   <string name="common_origin_network_fee">Cước mạng gốc</string>
   <string name="common_payout">Thanh toán</string>
   <string name="common_preview">Xem trước</string>
+  <string name="common_price">Giá</string>
   <string name="common_proceed">Tiến hành</string>
   <string name="common_read">Đọc</string>
   <string name="common_receive_alert_description">Đây là ví Polkadot. Vui lòng chỉ gửi tài sản\n trên chuỗi khối Polkadot.</string>
@@ -308,10 +321,13 @@
   <string name="connection_chains_not_supported_error">Không thể kết nối với ví: Mạng blockchain được yêu cầu không được hỗ trợ hoặc khả dụng</string>
   <string name="connection_connections">Kết nối</string>
   <string name="connection_create_new">Tạo kết nối mới</string>
+  <string name="connection_details_title">Chi tiết kết nối</string>
   <string name="connection_disconnect_success_message">Việc ngắt kết nối khỏi %s ether đã hoàn tất thành công</string>
   <string name="connection_error_message">Vui lòng kiểm tra kết nối internet và thử lại sau.</string>
   <string name="connection_events">Sự kiện</string>
   <string name="connection_events_not_supported_warning">Thiếu thông báo sự kiện: Ứng dụng không hỗ trợ các thông báo sự kiện cần thiết</string>
+  <string name="connection_invalid_url_error_message">Ứng dụng của chúng tôi chỉ hỗ trợ Wallet Connect SDK v2 và không hỗ trợ SDK v1 không được dùng nữa. Vui lòng sử dụng phiên bản thích hợp để kết nối thành công.</string>
+  <string name="connection_invalid_url_error_title">Cảnh báo: SDK Connect Wallet v1 không được hỗ trợ</string>
   <string name="connection_management_custom_title">Tùy chỉnh node</string>
   <string name="connection_management_default_title">Node mặc định</string>
   <string name="connection_methods">Phương pháp</string>
@@ -329,6 +345,7 @@
   <string name="connections_search_hint">Tìm kiếm theo kết nối</string>
   <string name="contact_address">Địa chỉ liên hệ</string>
   <string name="contact_name">Tên liên hệ</string>
+  <string name="contacts_empty_message">Không tìm thấy thông tin liên hệ</string>
   <string name="contribution_type">Loại đóng góp</string>
   <string name="contribution_type_direct_dot">Direct DOT</string>
   <string name="contribution_type_lcdot">lcDOT</string>
@@ -387,6 +404,7 @@
   <string name="crownloans_raised_format" formatted="false">Đã huy động: %s của %s</string>
   <string name="currencies_stub_text">Tiền tệ</string>
   <string name="custom_collators_title">Cổ phần với những collators đã biết</string>
+  <string name="custom_validators_empty_message">Không tìm thấy validator nào.\nVui lòng thử thay đổi bộ lọc</string>
   <string name="default_account_shared_secret">Tài khoản với khóa bí mật chia sẻ</string>
   <string name="delete_custom_node_title">Xóa node tùy chỉnh?</string>
   <string name="donation_alert_title">Địa chỉ này đã được gắn cờ là đáng ngờ.</string>
@@ -495,14 +513,22 @@
   <string name="network_issues_resolve_option_title">Tùy chọn giải quyết</string>
   <string name="network_management_all">Tất cả</string>
   <string name="network_management_popular">Phổ biến</string>
+  <string name="network_managment_favourite">Yêu thích</string>
   <string name="network_status_connected">Đã kết nối</string>
   <string name="network_status_connecting">Đang kết nối...</string>
   <string name="network_url_address">Địa chỉ URL</string>
+  <string name="nft_choose_recipient_title">Chọn người nhận</string>
+  <string name="nft_collection_available_nfts">NFT có sẵn trong bộ sưu tập %s</string>
+  <string name="nft_collection_my_nfts">NFT của tôi</string>
   <string name="nft_collection_title">Bộ sưu tập</string>
+  <string name="nft_creator_title">Người sáng tạo</string>
+  <string name="nft_list_empty_message">Chưa có bất kỳ NFT nào. Mua hoặc đúc NFT để xem chúng tại đây.</string>
   <string name="nft_owner_title">Sở hữu</string>
   <string name="nft_stub_text">NFTs sẽ sớm ra mắt</string>
   <string name="nft_stub_title">Sumimasen!</string>
+  <string name="nft_token_type_title">Loại token</string>
   <string name="nft_tokenid_title">Token ID</string>
+  <string name="nfts_collection_count" formatted="false">Số lượng: %d / %d</string>
   <string name="nfts_stub">NFTs</string>
   <string name="no_access_to_google">Không có quyền truy cập vào Google</string>
   <string name="node">Node</string>
@@ -658,6 +684,7 @@
   <string name="profile_settings_title">Cài đặt</string>
   <string name="profile_soracard_title">Thẻ SORA</string>
   <string name="profile_title">Tài khoản</string>
+  <string name="profile_walletconnect_title">WalletConnect</string>
   <string name="profile_wallets_title">Ví</string>
   <string name="reason">Lý do</string>
   <string name="recent">Gần đây</string>
@@ -710,12 +737,16 @@
   <string name="select_network_template">Chọn mạng %s</string>
   <string name="select_save_type">Chọn kiểu lưu</string>
   <string name="select_validators_disclaimer">TUYÊN BỐ MIỄN TRỪ TRÁCH NHIỆM: Thuật toán đề xuất validator không phải là lời khuyên hoặc tư vấn đầu tư. Staking là một hoạt động có rủi ro cao và các đề xuất của thuật toán không nhất thiết giảm thiểu rủi ro này. Thuật toán đề xuất validator vẫn có thể bị slash. Các validator được đề xuất bởi thuật toán cũng có thể thay đổi các tham số của họ (ví dụ: tỷ lệ hoa hồng, v.v.) bất kỳ lúc nào sau khi được đề xuất và/hoặc chọn. Bạn có thể bị mất token hoặc phần thưởng vì những lý do này hoặc lý do khác. Chỉ stake token và sử dụng các validator theo quyết định của riêng bạn, sau khi bạn đã tiến hành thẩm định và xem xét cẩn thận các rủi ro liên quan.</string>
+  <string name="send_all_and_reap_account">Gửi tất cả các mã thông báo và gặt hái tài khoản</string>
   <string name="send_fund">Gửi tiền</string>
   <string name="send_to">Gửi đến</string>
   <string name="sending">Đang gửi</string>
+  <string name="set_max_amount">Số tiền tối đa</string>
   <string name="settings_hide_zero_balances">Ẩn số dư bằng không</string>
   <string name="share_referral_code">Chia sẻ mã giới thiệu</string>
   <string name="social_media">Truyền thông xã hội</string>
+  <string name="sora_bridge_amount_less_fee">Số tiền bạn đang cố chuyển không đủ để trả phí giao dịch trên mạng %s . Mặc dù giao dịch không được xử lý nhưng bạn vẫn sẽ bị tính phí trên mạng Sora.</string>
+  <string name="sora_bridge_low_amount_format_alert">Hiện tại, có một phút. số tiền %s để bắc cầu nhằm đảm bảo tính ổn định và bảo mật của Mạng SORA. Chúng tôi đánh giá cao sự hiểu biết của bạn.</string>
   <string name="sora_card_annual_service_fee">0 € phí dịch vụ hàng năm</string>
   <string name="sora_card_blacklisted_countires_title">Không bao gồm ứng dụng</string>
   <string name="sora_card_blacklisted_countires_warning"><![CDATA[Cư dân từ <b>một số quốc gia<br>không thể đăng ký</b> Thẻ SORA tại thời điểm<br> này<a href=\"https://soracard.com/blacklist/\">Xem danh sách</a>]]></string>
@@ -961,6 +992,7 @@
   <string name="staking_validator_own_stake">Sở hữu</string>
   <string name="staking_validator_search_empty_title">Không tìm thấy kết quả.\nHãy chắc chắn bạn nhập địa chỉ tài khoản đầy đủ</string>
   <string name="staking_validator_slashed_desc">Validator bị tạm ngưng do các hành vi sai trái (ví dụ: ngoại tuyến, tấn công mạng hoặc chạy phần mềm sửa đổi) trong mạng.</string>
+  <string name="staking_validator_status_unelected">Không được bầu</string>
   <string name="staking_validator_summary_description">Các bản cập nhập sau này, chúng tôi sẽ thêm các tính năng staking cho các validator. \n \n #StayFearless</string>
   <string name="staking_validator_summary_title">Staking cho validator</string>
   <string name="staking_validator_total">Tổng</string>
@@ -1009,6 +1041,7 @@
   <string name="tabbar_wallet_title">Ví</string>
   <string name="today">Hôm nay</string>
   <string name="top_up">Nạp tiền</string>
+  <string name="tranaction_history_others_tab_title">Khác</string>
   <string name="transaction_detail_status">Trạng thái</string>
   <string name="transaction_details_copy_hash">Sao chép hash</string>
   <string name="transaction_details_extrinsic_fee">Phí</string>
@@ -1017,6 +1050,7 @@
   <string name="transaction_details_title">Chi tiết giao dịch</string>
   <string name="transaction_details_view_etherscan">Xem trong Etherscan</string>
   <string name="transaction_details_view_polkascan">Xem trên Polkascan</string>
+  <string name="transaction_details_view_reefscan">Xem trong Reefscan</string>
   <string name="transaction_details_view_subscan">Xem trong Subscan</string>
   <string name="transaction_status_completed">Đã hoàn thành</string>
   <string name="transaction_status_failed">Thất bại</string>
@@ -1032,8 +1066,12 @@
   <string name="username_setup_choose_title_2_0">Nickname của ví</string>
   <string name="username_setup_hint">Tên này chỉ hiển thị với bạn và lưu trên điện thoại cá nhân.</string>
   <string name="username_setup_title_2_0">Tạo một ví mới</string>
+  <string name="validator_info_comission_title">Sứ mệnh</string>
   <string name="validator_not_elected_description">Tài khoản này không được mạng (network) đề cử ở era hiện tại</string>
-  <string name="validators_list_empty_message">Không tìm thấy trình xác thực nào. Vui lòng thử thay đổi bộ lọc</string>
+  <string name="validators_list_empty_message">Không tìm thấy validator nào</string>
+  <string name="vesting_claim_disclaimer_text">Do lịch trình trao quyền duy nhất của mỗi parachain, ứng dụng của chúng tôi không thể hiển thị số lượng mã thông báo bị khóa đủ điều kiện để yêu cầu. Xin lưu ý rằng việc bắt đầu yêu cầu bồi thường có thể không thực tế nếu số tiền tiềm năng là rất nhỏ và có thể so sánh được với phí giao dịch liên quan. Để có thông tin chi tiết toàn diện về số dư bị khóa của bạn, hãy tham khảo Subscan blockexplorer. Chúng tôi khuyên bạn nên đánh giá thông tin một cách cẩn thận và tiến hành theo ý riêng của bạn.</string>
+  <string name="vesting_claim_disclaimer_title">Thông báo quan trọng về yêu cầu token:</string>
+  <string name="vesting_locked_title">Vesting Locked</string>
   <string name="view_in">Xem trong %s</string>
   <string name="view_wallet">Xem ví</string>
   <string name="wallet_asset_buy_with">Mua %s với</string>

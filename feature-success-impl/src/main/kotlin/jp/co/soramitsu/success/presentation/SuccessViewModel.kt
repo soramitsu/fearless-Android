@@ -63,18 +63,16 @@ class SuccessViewModel @Inject constructor(
         it.firstNotNullOfOrNull { explorerItem ->
             when (explorerItem.type) {
                 Chain.Explorer.Type.POLKASCAN,
-                Chain.Explorer.Type.SUBSCAN -> {
+                Chain.Explorer.Type.SUBSCAN,
+                Chain.Explorer.Type.REEF -> {
                     BlockExplorerUrlBuilder(explorerItem.url, explorerItem.types).build(BlockExplorerUrlBuilder.Type.EXTRINSIC, operationHash)
                 }
                 Chain.Explorer.Type.OKLINK,
-                Chain.Explorer.Type.ETHERSCAN -> {
-                    BlockExplorerUrlBuilder(explorerItem.url, explorerItem.types).build(BlockExplorerUrlBuilder.Type.TX, operationHash)
-                }
+                Chain.Explorer.Type.ETHERSCAN,
                 Chain.Explorer.Type.ZETA -> {
                     BlockExplorerUrlBuilder(explorerItem.url, explorerItem.types).build(BlockExplorerUrlBuilder.Type.TX, operationHash)
                 }
 
-                Chain.Explorer.Type.REEF -> BlockExplorerUrlBuilder(explorerItem.url, explorerItem.types).build(BlockExplorerUrlBuilder.Type.EXTRINSIC, operationHash)
                 Chain.Explorer.Type.UNKNOWN -> null
             }?.let { url ->
                 explorerItem.type to url

@@ -24,7 +24,7 @@ import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.validation.AmountTooLowToStakeException
-import jp.co.soramitsu.common.validation.ExistentialDepositCrossedException
+import jp.co.soramitsu.common.validation.ExistentialDepositCrossedWarning
 import jp.co.soramitsu.common.validation.StakeInsufficientBalanceException
 import jp.co.soramitsu.common.validation.WaitForFeeCalculationException
 import jp.co.soramitsu.feature_staking_impl.R
@@ -192,7 +192,7 @@ class SetupStakingPoolViewModel @Inject constructor(
             when {
                 feeInPlanks == null -> throw WaitForFeeCalculationException(resourceManager)
                 amountInPlanks + feeInPlanks >= transferableInPlanks -> throw StakeInsufficientBalanceException(resourceManager)
-                transferableInPlanks - amountInPlanks - feeInPlanks <= existentialDeposit -> throw ExistentialDepositCrossedException(resourceManager, existentialDeposit.formatCryptoDetailFromPlanks(asset.token.configuration))
+                transferableInPlanks - amountInPlanks - feeInPlanks <= existentialDeposit -> throw ExistentialDepositCrossedWarning(resourceManager, existentialDeposit.formatCryptoDetailFromPlanks(asset.token.configuration))
                 amountInPlanks < minToJoinInPlanks -> throw AmountTooLowToStakeException(resourceManager, minToJoinFormatted)
                 else -> Unit
             }

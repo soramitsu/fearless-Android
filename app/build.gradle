@@ -48,8 +48,8 @@ android {
             signingConfig signingConfigs.debug
         }
         release {
-            minifyEnabled shouldEnableR8D8
-            shrinkResources shouldEnableR8D8
+            minifyEnabled true
+            shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.ci
         }
@@ -108,14 +108,14 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility 11
-        targetCompatibility 11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
     kotlinOptions {
         freeCompilerArgs = ["-Xallow-result-return-type"]
 
-        jvmTarget = '11'
+        jvmTarget = '17'
     }
     composeOptions {
         kotlinCompilerExtensionVersion composeCompilerVersion
@@ -176,58 +176,61 @@ dependencies {
     implementation project(':feature-walletconnect-api')
     implementation project(':feature-walletconnect-impl')
 
-    implementation kotlinDep
+    implementation project(':feature-nft-api')
+    implementation project(':feature-nft-impl')
 
-    implementation androidDep
-    implementation constraintDep
+    implementation libs.kotlin.stdlib.jdk7
 
-    implementation zXingEmbeddedDep
+    implementation libs.appcompat
+    implementation libs.constraintlayout
 
-    implementation navigationFragmentDep
-    implementation navigationUiDep
+    implementation libs.zxing.embedded
 
-    implementation roomDep
+    implementation libs.navigation.fragment.ktx
+    implementation libs.navigation.ui.ktx
 
-    implementation daggerDep
-    kapt daggerKapt
+    implementation libs.room.runtime
 
-    implementation lifecycleProcessDep
-    kapt lifecycleKapt
+    implementation libs.hilt.android
+    kapt libs.hilt.compiler
 
-    implementation lifeCycleKtxDep
+    implementation libs.lifecycle.process
+    kapt libs.lifecycle.compiler
 
-    implementation gsonConvertedDep
+    implementation libs.lifecycle.runtime.ktx
 
-    implementation gifDep
+    implementation libs.converter.gson
 
-    compileOnly wsDep
+//    implementation "pl.droidsonroids.gif:android-gif-drawable:1.2.25"
 
-    implementation coroutinesDep
+    compileOnly libs.nv.websocket.client
+
+    implementation libs.coroutines.core
 
     testImplementation project(':test-shared')
 
-    implementation insetterDep
+    implementation libs.insetter.widgets
 
-    implementation liveDataKtxDep
+    implementation libs.lifecycle.livedata.ktx
 
-    implementation jnaDep
-    implementation beaconDep, withoutJna
+    implementation libs.jna
+    implementation libs.beacon.android.sdk, withoutJna
 
-    kaptAndroidTest daggerKapt
-    implementation storiesDep
+    kaptAndroidTest libs.hilt.compiler
+    implementation libs.storiesProgressView
 
-    implementation compose
-    debugImplementation composeDebug
+    implementation libs.bundles.compose
+    debugImplementation libs.bundles.composeDebug
 
-    implementation soraUiCoreDep
+    implementation libs.sora.ui
 
-    implementation(platform(libs.walletconnectBomDep))
-    implementation(libs.walletconnectCoreDep)
-    implementation(libs.walletconnectWeb3WalletDep)
+    implementation platform(libs.walletconnectBomDep)
+    implementation libs.walletconnectCoreDep
+    implementation libs.walletconnectWeb3WalletDep
 
-    androidTestImplementation androidTestRunnerDep
-    androidTestImplementation androidTestRulesDep
-    androidTestImplementation androidJunitDep
+    androidTestImplementation libs.runner
+    androidTestImplementation libs.rules
+    androidTestImplementation libs.ext.junit
 }
 
 task printVersion {

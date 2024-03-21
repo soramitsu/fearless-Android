@@ -80,6 +80,7 @@ class SoraRewardCalculator(
     override suspend fun calculateAvgAPY(): BigDecimal {
         val average = apyByCalculationTargets.values.average()
         val dailyPercentage = average / DAYS_IN_YEAR
+
         return calculateReward(
             amount = BigDecimal.ONE.toDouble(),
             days = DAYS_IN_YEAR,
@@ -121,16 +122,21 @@ class SoraRewardCalculator(
         days: Int,
         dailyPercentage: Double
     ): PeriodReturns {
-        val gainAmount =
-            amount.toBigDecimal() * dailyPercentage.toBigDecimal() * days.toBigDecimal()
-        val gainPercentage = if (amount == 0.0) {
-            BigDecimal.ZERO
-        } else {
-            (gainAmount / amount.toBigDecimal()).fractionToPercentage()
+        return try {
+            val gainAmount = amount.toBigDecimal() * dailyPercentage.toBigDecimal() * days.toBigDecimal()
+
+            val gainPercentage = if (amount == 0.0) {
+                BigDecimal.ZERO
+            } else {
+                (gainAmount / amount.toBigDecimal()).fractionToPercentage()
+            }
+
+            PeriodReturns(
+                gainAmount = gainAmount * xorValRate.toBigDecimal(),
+                gainPercentage = gainPercentage
+            )
+        } catch (e: NumberFormatException) {
+            PeriodReturns(BigDecimal.ZERO, BigDecimal.ZERO)
         }
-        return PeriodReturns(
-            gainAmount = gainAmount * xorValRate.toBigDecimal(),
-            gainPercentage = gainPercentage
-        )
     }
 }

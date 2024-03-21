@@ -8,8 +8,8 @@ import kotlinx.parcelize.Parcelize
 class ValidatorDetailsParcelModel(
     val accountIdHex: String,
     val stake: ValidatorStakeParcelModel,
-    val comission: BigDecimal?,
-    val identity: IdentityParcelModel?
+    val identity: IdentityParcelModel?,
+    val prefs: ValidatorPrefsParcelModel?
 ) : Parcelable
 
 @Parcelize

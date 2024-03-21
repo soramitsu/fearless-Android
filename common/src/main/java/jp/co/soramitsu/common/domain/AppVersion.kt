@@ -16,7 +16,7 @@ data class AppVersion(val major: Int, val minor: Int, val buildNum: Int) {
         }
 
         fun current(): AppVersion {
-            return fromString(BuildConfig.APP_VERSION_NAME.split("-").first())
+            return fromString(BuildConfig.VERSION_NAME.split("-").first())
         }
 
         fun isSupported(versionText: String?): Boolean {

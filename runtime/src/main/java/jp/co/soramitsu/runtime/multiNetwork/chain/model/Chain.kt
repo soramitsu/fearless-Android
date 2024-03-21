@@ -51,6 +51,7 @@ data class Chain(
     val supportStakingPool: Boolean,
     val isEthereumChain: Boolean,
     val chainlinkProvider: Boolean,
+    val supportNft: Boolean
 ) : IChain {
     val assetsById = assets.associateBy(CoreAsset::id)
 
@@ -102,6 +103,7 @@ data class Chain(
         if (supportStakingPool != other.supportStakingPool) return false
         if (isEthereumChain != other.isEthereumChain) return false
         if (chainlinkProvider != other.chainlinkProvider) return false
+        if (supportNft != other.supportNft) return false
 
         // custom comparison logic
         val defaultNodes = nodes.filter { it.isDefault }
@@ -133,6 +135,7 @@ data class Chain(
         result = 31 * result + supportStakingPool.hashCode()
         result = 31 * result + isEthereumChain.hashCode()
         result = 31 * result + chainlinkProvider.hashCode()
+        result = 31 * result + supportNft.hashCode()
         return result
     }
 }
@@ -166,3 +169,15 @@ fun List<Chain>.getWithToken(symbol: String, filter: Map<ChainId, List<String>>?
         asset.symbol == symbol && allowAsset
     }
 }
+
+val Chain.alchemyNftId: String?
+    get() =
+        when(id){
+            ethereumChainId -> "eth-mainnet"
+            sepoliaChainId -> "eth-sepolia"
+            goerliChainId -> "eth-goerli"
+            BSCChainId -> null
+            BSCTestnetChainId -> null
+            polygonChainId -> "polygon-mainnet"
+            else -> null
+        }

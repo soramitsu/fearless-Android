@@ -32,6 +32,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
@@ -165,7 +166,7 @@ class AccountDataSourceImpl(
     override fun selectedLightMetaAccount(): Flow<LightMetaAccount> {
         return metaAccountDao.selectedLightMetaAccountFlow().map { accountLocal ->
             accountLocal?.let { mapMetaAccountLocalToLightMetaAccount(it) }
-        }.filterNotNull()
+        }.filterNotNull().flowOn(Dispatchers.Default)
     }
 
     override suspend fun getSelectedLightMetaAccount(): LightMetaAccount {

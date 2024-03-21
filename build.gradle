@@ -5,214 +5,19 @@ apply plugin: "org.sonarqube"
 buildscript {
     ext {
         // App version
-        versionName = '3.3.1'
-        versionCode = 155
+        versionName = '3.4.1'
+        versionCode = 163
 
         // SDK and tools
         compileSdkVersion = 34
         minSdkVersion = 24
         targetSdkVersion = 33
 
-        kotlinVersion = '1.8.20'
+        composeCompilerVersion = '1.5.9'
 
-        materialVersion = '1.8.0'
-        cardViewVersion = '1.0.0'
-        constraintVersion = '2.1.4'
-
-        coroutinesVersion = '1.7.3'
-
-        biometricVersion = '1.1.0'
-
-        progressButtonsVersion = '2.1.0'
-        xNetworkingVersion = '0.2.5-temp7'
-
-        soraUiCoreVersion = '0.2.17'
-
-        daggerVersion = '2.47'
-        javaxInjectVersion = '1'
-
-        architectureComponentVersion = '2.6.1'
-        roomVersion = '2.5.1'
-
-        retrofitVersion = '2.9.0'
-        okhttpVersion = '4.11.0'
-        gsonVersion = '2.10.1'
-
-        navControllerVersion = '2.7.0'
-
-        junitVersion = '4.13.2'
-        mockitoVersion = '5.2.0'
-        robolectricVersion = '4.9.2'
-
-        bouncyCastleVersion = '1.73'
-
-        gifVersion = '1.2.25'
-
-        zXingVersion = '3.5.1'
-        zXingEmbeddedVersion = '4.3.0'
-
-        biometricDep = "androidx.biometric:biometric:$biometricVersion"
-
-        firebaseAppDistrVersion = '4.0.0'
-        playPublisherVersion = '3.8.1'
-
-        wsVersion = '2.14'
-
-        insetterVersion = "0.5.0"
-
-        shimmerVersion = '0.5.0'
-
-        storiesVersion = '3.0.0'
-
-        coilVersion = '2.2.2'
-
-        androidxCoreVersion = '1.8.0'
-
-        composeVersion = '1.5.1'
-        composeFoundationVersion = '1.5.1'
-        composeCompilerVersion = '1.4.4'
-
-        appcompatVersion = '1.6.1'
-        recyclerviewVersion = '1.2.0'
-        lifecycleVersion = '2.6.1'
-
-        serializationVersion = '1.5.1'
-
-        activityKtx = '1.7.0'
-        fragmentKtx = '1.6.2'
-        minifyRelease = true
-        beaconVersion = "3.2.4"
-
-        sharedFeaturesVersion = "1.1.1.23-FLW"
-
-        coilDep = "io.coil-kt:coil:$coilVersion"
-        coilSvg = "io.coil-kt:coil-svg:$coilVersion"
-
-        kotlinDep = "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlinVersion"
-
-        insetterDep = "dev.chrisbanes.insetter:insetter-widgets:$insetterVersion"
-
-        androidDep = "androidx.appcompat:appcompat:$appcompatVersion"
-        cardViewDep = "androidx.cardview:cardview:$cardViewVersion"
-        recyclerViewDep = "androidx.recyclerview:recyclerview:$recyclerviewVersion"
-        constraintDep = "androidx.constraintlayout:constraintlayout:$constraintVersion"
-        materialDep = "com.google.android.material:material:$materialVersion"
-        androidxCoreDep = "androidx.core:core-ktx:$androidxCoreVersion"
-        activityKtxDep = "androidx.activity:activity-ktx:$activityKtx"
-        fragmentKtxDep = "androidx.fragment:fragment-ktx:$fragmentKtx"
-
-        daggerDep = "com.google.dagger:hilt-android:$daggerVersion"
-        daggerKapt = "com.google.dagger:hilt-compiler:$daggerVersion"
-
-        compose = [
-                "androidx.compose.runtime:runtime:$composeVersion",
-                "androidx.compose.ui:ui:$composeVersion",
-                "androidx.compose.runtime:runtime-livedata:$composeVersion",
-                "androidx.compose.compiler:compiler:$composeCompilerVersion",
-                "androidx.compose.foundation:foundation:$composeFoundationVersion",
-                "androidx.compose.material:material:$composeVersion",
-                "com.google.android.material:compose-theme-adapter:1.2.1",
-                "androidx.compose.animation:animation:$composeVersion",
-                "androidx.compose.animation:animation-graphics:$composeVersion",
-                "androidx.compose.ui:ui-tooling-preview:$composeVersion",
-                "androidx.activity:activity-compose:1.7.0",
-                "androidx.lifecycle:lifecycle-viewmodel-compose:2.6.1",
-                "com.valentinilk.shimmer:compose-shimmer:1.0.4",
-                "androidx.constraintlayout:constraintlayout-compose:1.0.1",
-                "com.google.accompanist:accompanist-swiperefresh:0.28.0",
-                "com.google.accompanist:accompanist-webview:0.28.0",
-                "io.coil-kt:coil-compose:$coilVersion",
-                "androidx.navigation:navigation-compose:$navControllerVersion",
-                "androidx.hilt:hilt-navigation-compose:1.0.0"
-        ]
-        composeDebug = [
-                "androidx.compose.ui:ui-tooling:$composeVersion",
-                //fix compose preview https://stackoverflow.com/a/71830120
-                "androidx.customview:customview:1.2.0-alpha02",
-                "androidx.customview:customview-poolingcontainer:1.0.0"
-        ]
-
-        lifecycleProcessDep = "androidx.lifecycle:lifecycle-process:$lifecycleVersion"
-
-        lifecycleKapt = "androidx.lifecycle:lifecycle-compiler:$architectureComponentVersion"
-
-        coroutinesDep = "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion"
-        coroutinesAndroidDep = "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutinesVersion"
-        coroutinesRxDep = "org.jetbrains.kotlinx:kotlinx-coroutines-rx2:$coroutinesVersion"
-
-        // viewModelScope
-        viewModelKtxDep = "androidx.lifecycle:lifecycle-viewmodel-ktx:$architectureComponentVersion"
-
-        // liveData builder
-        liveDataKtxDep = "androidx.lifecycle:lifecycle-livedata-ktx:$architectureComponentVersion"
-
-        // lifecycle scopes
-        lifeCycleKtxDep = "androidx.lifecycle:lifecycle-runtime-ktx:$architectureComponentVersion"
-
-        roomDep = "androidx.room:room-runtime:$roomVersion"
-        roomKtxDep = "androidx.room:room-ktx:$roomVersion"
-        roomKapt = "androidx.room:room-compiler:$roomVersion"
-
-        navigationFragmentDep = "androidx.navigation:navigation-fragment-ktx:$navControllerVersion"
-        navigationUiDep = "androidx.navigation:navigation-ui-ktx:$navControllerVersion"
-
-        bouncyCastleDep = "org.bouncycastle:bcprov-jdk18on:$bouncyCastleVersion"
-
-        retrofitDep = "com.squareup.retrofit2:retrofit:$retrofitVersion"
-        interceptorVersion = "com.squareup.okhttp3:logging-interceptor:$okhttpVersion"
-        gsonConvertedDep = "com.squareup.retrofit2:converter-gson:$retrofitVersion"
-        scalarsConverterDep = "com.squareup.retrofit2:converter-scalars:$retrofitVersion"
-
-        gsonDep = "com.google.code.gson:gson:$gsonVersion"
-
-        zXingCoreDep = "com.google.zxing:core:$zXingVersion"
-        zXingEmbeddedDep = "com.journeyapps:zxing-android-embedded:$zXingEmbeddedVersion"
-
-        gifDep = "pl.droidsonroids.gif:android-gif-drawable:$gifVersion"
-
-        wsDep = "com.neovisionaries:nv-websocket-client:$wsVersion"
         withoutBasic = { exclude group: 'jp.co.soramitsu.xnetworking', module: 'basic' }
-        xNetworkingSorawalletDep = "jp.co.soramitsu.xnetworking:sorawallet-android:$xNetworkingVersion"
-        xNetworkingFearlessDep = "jp.co.soramitsu.xnetworking:fearlesswallet-android:$xNetworkingVersion"
-        xNetworkingBasicDep = "jp.co.soramitsu.xnetworking:basic-android:$xNetworkingVersion"
-        soraUiCoreDep = "jp.co.soramitsu:ui-core:$soraUiCoreVersion"
-
-        shimmerDep = "com.facebook.shimmer:shimmer:$shimmerVersion"
-
-        storiesDep = "com.github.shts:StoriesProgressView:$storiesVersion"
-        opencsvDep = "com.opencsv:opencsv:5.7.1"
-
-        jUnitDep = "junit:junit:$junitVersion"
-        mockitoDep = "org.mockito:mockito-inline:$mockitoVersion"
-        mockitoCoreDep = "org.mockito:mockito-core:2.23.0"
-        mockitoKotlinDep = "org.mockito.kotlin:mockito-kotlin:4.1.0"
-        robolectricDep = "org.robolectric:robolectric:$robolectricVersion"
-        robolectricMultidexDep = "org.robolectric:shadows-multidex:$robolectricVersion"
-        archCoreTestDep = "androidx.arch.core:core-testing:$architectureComponentVersion"
-
-        progressButtonDep = "com.github.razir.progressbutton:progressbutton:$progressButtonsVersion"
-
-        androidTestRunnerDep = 'androidx.test:runner:1.5.2'
-        androidTestRulesDep = 'androidx.test:rules:1.5.0'
-        androidJunitDep = 'androidx.test.ext:junit:1.1.5'
-
-        roomTestsDep = "androidx.room:room-testing:$roomVersion"
-
         withoutJna = { exclude group: 'net.java.dev.jna' }
-        beaconDep = "com.github.airgap-it:beacon-android-sdk:$beaconVersion"
-        jnaDep = "net.java.dev.jna:jna:5.9.0@aar"
-
-        sharedFeaturesCoreDep = "jp.co.soramitsu.shared_features:core:$sharedFeaturesVersion"
-        sharedFeaturesXcmDep = "jp.co.soramitsu.shared_features:xcm:$sharedFeaturesVersion"
-        sharedFeaturesBackupDep = "jp.co.soramitsu.shared_features:backup:$sharedFeaturesVersion"
-
-        web3jDep = "org.web3j:core:4.8.8-android"
-
         withoutJavaWS = { exclude module: 'java-websocket-lib' }
-
-        serializationDep = "org.jetbrains.kotlinx:kotlinx-serialization-json:$serializationVersion"
-
-        coroutinesTest = "org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutinesVersion"
     }
 
     repositories {
@@ -223,17 +28,17 @@ buildscript {
     }
     dependencies {
         classpath libs.gradleplugins.android
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
-        classpath "org.jetbrains.kotlin:kotlin-serialization:$kotlinVersion"
+        classpath libs.gradleplugins.kotlin
+        classpath libs.kotlin.serialization
         classpath libs.google.services
-        classpath "com.google.firebase:firebase-appdistribution-gradle:$firebaseAppDistrVersion"
-        classpath "com.github.triplet.gradle:play-publisher:$playPublisherVersion"
-        classpath "com.google.dagger:hilt-android-gradle-plugin:$daggerVersion"
-        classpath 'org.jacoco:org.jacoco.core:0.8.8'
-        classpath "org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:3.3"
+        classpath libs.firebase.appdistribution.gradle
+        classpath libs.play.publisher
+        classpath libs.gradleplugins.hiltAndroid
+        classpath libs.org.jacoco.core
+        classpath libs.sonarqube.gradle.plugin
     }
 
-    configurations.all {
+    configurations.configureEach {
         resolutionStrategy {
             cacheChangingModulesFor 0, 'seconds'
         }
@@ -262,6 +67,6 @@ tasks.register('clean', Delete) {
     delete rootProject.buildDir
 }
 
-task runTest(type: GradleBuild) {
+tasks.register('runTest', GradleBuild) {
     tasks = ['clean', 'detektAll', 'runModuleTests', 'jacocoTestReport']
 }

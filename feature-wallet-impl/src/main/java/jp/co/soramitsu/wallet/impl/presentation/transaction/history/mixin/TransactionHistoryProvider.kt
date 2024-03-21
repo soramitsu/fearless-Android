@@ -29,6 +29,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.launchIn
@@ -116,6 +117,9 @@ class TransactionHistoryProvider(
         )
             .distinctUntilChangedBy { it.cursorPage }
             .map { it.cursorPage }
+            .catch {
+                emit(CursorPage(null, listOf()))
+            }
     }
 
     private var firstPageSyncJob: Job? = null
@@ -187,7 +191,7 @@ class TransactionHistoryProvider(
                 nextPageLoading = false
                 _sideEffects.emit(
                     TransactionHistoryUi.SideEffect.Error(
-                        it.localizedMessage ?: it.localizedMessage
+                        it.localizedMessage ?: it.message
                     )
                 )
             }.onSuccess {
@@ -209,7 +213,7 @@ class TransactionHistoryProvider(
         launch {
             val operations = currentData
 
-            val clickedOperation = operations.first { it.id == transactionModel.id }
+            val clickedOperation = operations.firstOrNull { it.id == transactionModel.id } ?: return@launch
 
             val chain = walletInteractor.getChain(assetPayload.chainId)
             val utilityAsset = chain.assets.firstOrNull { it.isUtility }

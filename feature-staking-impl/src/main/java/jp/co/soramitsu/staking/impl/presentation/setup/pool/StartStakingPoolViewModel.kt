@@ -29,6 +29,7 @@ import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 
 @HiltViewModel
@@ -131,7 +132,11 @@ class StartStakingPoolViewModel @Inject constructor(
     }
 
     fun onCreatePool() {
-        val limitHasReached = requireNotNull(poolsLimitHasReached.value)
+        val limitHasReached = poolsLimitHasReached.value
+        if (limitHasReached == null) {
+            showError("Error poolsLimitHasReached value not provided")
+            return
+        }
         if (limitHasReached) {
             router.openAlert(
                 AlertViewState(
