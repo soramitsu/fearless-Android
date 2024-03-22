@@ -111,8 +111,6 @@ interface SwapTokensCallbacks {
 
     fun minMaxToolTopClick()
 
-    fun liquidityProviderTooltipClick()
-
     fun networkFeeTooltipClick()
 
     fun onQuickAmountInput(value: Double)
@@ -304,7 +302,7 @@ private fun TransactionDescription(
         FeeInfo(
             state = FeeInfoViewState(
                 caption = stringResource(R.string.common_route),
-                feeAmount = "${swapDetailsViewState.fromTokenName}  ➝  ${swapDetailsViewState.toTokenName}",
+                feeAmount = swapDetailsViewState.route,
                 feeAmountFiat = null
             )
         )
@@ -323,16 +321,6 @@ private fun TransactionDescription(
                 feeAmount = swapDetailsViewState.toTokenOnFromToken,
                 feeAmountFiat = null
             )
-        )
-
-        FeeInfo(
-            state = FeeInfoViewState(
-                caption = stringResource(R.string.common_liquidity_provider_fee),
-                feeAmount = swapDetailsViewState.liquidityProviderFee.tokenAmount,
-                feeAmountFiat = swapDetailsViewState.liquidityProviderFee.fiatAmount,
-                tooltip = true
-            ),
-            tooltipClick = callbacks::liquidityProviderTooltipClick
         )
 
         when {
@@ -434,7 +422,6 @@ fun SwapTokensContentPreview() {
             override fun onFromAmountFocusChange(isFocused: Boolean) {}
             override fun onToAmountFocusChange(isFocused: Boolean) {}
             override fun minMaxToolTopClick() {}
-            override fun liquidityProviderTooltipClick() {}
             override fun networkFeeTooltipClick() {}
             override fun onQuickAmountInput(value: Double) {}
             override fun onDisclaimerClick() {}
