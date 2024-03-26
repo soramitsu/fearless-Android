@@ -12,23 +12,37 @@ import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.coingecko.CoingeckoApi
 import jp.co.soramitsu.common.data.network.config.AppConfigRemote
 import jp.co.soramitsu.common.data.network.config.RemoteConfigFetcher
+import jp.co.soramitsu.common.data.network.runtime.binding.UseCaseBinding
+import jp.co.soramitsu.common.data.network.runtime.binding.bindNumber
+import jp.co.soramitsu.common.data.network.runtime.binding.bindString
+import jp.co.soramitsu.common.data.network.runtime.binding.cast
 import jp.co.soramitsu.common.data.secrets.v2.KeyPairSchema
 import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
+import jp.co.soramitsu.common.domain.SelectedFiat
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
+import jp.co.soramitsu.common.utils.Modules
+import jp.co.soramitsu.common.utils.balances
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.requireValue
+import jp.co.soramitsu.common.utils.tokens
+import jp.co.soramitsu.core.extrinsic.ExtrinsicService
+import jp.co.soramitsu.core.models.Asset.PriceProvider
+import jp.co.soramitsu.core.models.Asset.PriceProviderType.Chainlink
+import jp.co.soramitsu.core.models.IChain
+import jp.co.soramitsu.core.runtime.storage.returnType
 import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.coredb.dao.OperationDao
 import jp.co.soramitsu.coredb.dao.PhishingDao
+import jp.co.soramitsu.coredb.dao.TokenPriceDao
 import jp.co.soramitsu.coredb.dao.emptyAccountIdValue
-import jp.co.soramitsu.coredb.model.AssetLocal
 import jp.co.soramitsu.coredb.model.AssetUpdateItem
 import jp.co.soramitsu.coredb.model.AssetWithToken
 import jp.co.soramitsu.coredb.model.OperationLocal
 import jp.co.soramitsu.coredb.model.PhishingLocal
+import jp.co.soramitsu.coredb.model.TokenPriceLocal
 import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.ext.addressOf
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
@@ -36,9 +50,17 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.runtime.multiNetwork.chain.mapChainLocalToChain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 import jp.co.soramitsu.shared_utils.extensions.toHexString
 import jp.co.soramitsu.shared_utils.runtime.AccountId
+import jp.co.soramitsu.shared_utils.runtime.RuntimeSnapshot
+import jp.co.soramitsu.shared_utils.runtime.definitions.types.Type
+import jp.co.soramitsu.shared_utils.runtime.definitions.types.composite.Struct
+import jp.co.soramitsu.shared_utils.runtime.definitions.types.fromHexOrNull
 import jp.co.soramitsu.shared_utils.runtime.extrinsic.ExtrinsicBuilder
+import jp.co.soramitsu.shared_utils.runtime.metadata.moduleOrNull
+import jp.co.soramitsu.shared_utils.runtime.metadata.storage
+import jp.co.soramitsu.shared_utils.runtime.metadata.storageKey
 import jp.co.soramitsu.wallet.api.data.cache.AssetCache
 import jp.co.soramitsu.wallet.impl.data.mappers.mapAssetLocalToAsset
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.EthereumRemoteSource
@@ -55,6 +77,7 @@ import jp.co.soramitsu.wallet.impl.domain.model.TransferValidityStatus
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -63,7 +86,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
-import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import jp.co.soramitsu.core.models.Asset as CoreAsset
 
@@ -83,7 +106,11 @@ class WalletRepositoryImpl(
     private val remoteConfigFetcher: RemoteConfigFetcher,
     private val preferences: Preferences,
     private val accountRepository: AccountRepository,
-    private val chainsRepository: ChainsRepository
+    private val chainsRepository: ChainsRepository,
+    private val selectedFiat: SelectedFiat,
+    private val tokenPriceDao: TokenPriceDao,
+    private val extrinsicService: ExtrinsicService,
+    private val remoteStorageSource: StorageDataSource
 ) : WalletRepository, UpdatesProviderUi by updatesMixin {
 
     companion object {
@@ -118,8 +145,7 @@ class WalletRepositoryImpl(
                                 chainAsset = it,
                                 metaId = meta.id,
                                 accountId = meta.accountId(chain) ?: emptyAccountIdValue,
-                                minSupportedVersion = chain.minSupportedVersion,
-                                enabled = chain.nodes.isNotEmpty()
+                                minSupportedVersion = chain.minSupportedVersion
                             ),
                             hasAccount = !chain.isEthereumBased || meta.ethereumPublicKey != null,
                             hasChainAccount = chain.id in chainAccounts.mapNotNull { it.chain?.id }
@@ -153,14 +179,14 @@ class WalletRepositoryImpl(
 
     private fun buildNetworkIssues(items: List<AssetWithStatus>): Set<NetworkIssueItemState> {
         return items.map {
+            val configuration = it.asset.token.configuration
             NetworkIssueItemState(
-                iconUrl = it.asset.token.configuration.iconUrl,
-                title = "${it.asset.token.configuration.chainName} ${it.asset.token.configuration.name}",
+                iconUrl = configuration.iconUrl,
+                title = "${configuration.chainName} ${configuration.name}",
                 type = NetworkIssueType.Node,
-                chainId = it.asset.token.configuration.chainId,
-                chainName = it.asset.token.configuration.chainName,
-                assetId = it.asset.token.configuration.id,
-                priceId = it.asset.token.configuration.priceId
+                chainId = configuration.chainId,
+                chainName = configuration.chainName,
+                assetId = configuration.id
             )
         }.toSet()
     }
@@ -191,21 +217,91 @@ class WalletRepositoryImpl(
 
     override suspend fun syncAssetsRates(currencyId: String) {
         val chains = chainsRepository.getChains()
-        val priceIds = chains.map { it.assets.mapNotNull { it.priceId } }.flatten().toSet()
-        val priceStats = getAssetPriceCoingecko(*priceIds.toTypedArray(), currencyId = currencyId)
+        syncAllRates(chains, currencyId)
+    }
 
-        updatesMixin.startUpdateTokens(priceIds)
+    private suspend fun syncAllRates(chains: List<Chain>, currencyId: String)  {
+        val priceIdsWithChainlinkId = chains.map {
+            it.assets.mapNotNull { asset ->
+                asset.priceId?.let { priceId ->
+                    priceId to if (asset.priceProvider?.type == Chainlink) {
+                        asset.priceProvider?.id
+                    } else {
+                        null
+                    }
+                }
+            }
+        }.flatten().toSet()
 
-        priceIds.forEach { priceId ->
-            val stat = priceStats[priceId] ?: return@forEach
-            val price = stat[currencyId]
+        val priceIds = priceIdsWithChainlinkId.map { it.first }
+        val chainlinkProviderIds = priceIdsWithChainlinkId.mapNotNull { it.second }
+        val allPriceIds = (priceIds + chainlinkProviderIds).toSet()
+
+        updatesMixin.startUpdateTokens(allPriceIds)
+
+        var coingeckoPriceStats: Map<String, Map<String, BigDecimal>> = emptyMap()
+        var chainlinkPrices: Map<String, BigDecimal> =  emptyMap()
+
+        coroutineScope {
+            launch {
+                coingeckoPriceStats =
+                    getAssetPriceCoingecko(*priceIds.toTypedArray(), currencyId = currencyId)
+            }
+            launch {
+                chainlinkPrices = if (currencyId == "usd") {
+                    getChainlinkPrices(chains)
+                } else {
+                    emptyMap()
+                }
+            }
+        }.join()
+
+        val newPrices = priceIdsWithChainlinkId.mapNotNull { (priceId, chainlinkId) ->
+            val stat = coingeckoPriceStats[priceId] ?: return@mapNotNull null
+
             val changeKey = "${currencyId}_24h_change"
             val change = stat[changeKey]
             val fiatCurrency = availableFiatCurrencies[currencyId]
 
-            updateAssetRates(priceId, fiatCurrency?.symbol, price, change)
-        }
-        updatesMixin.finishUpdateTokens(priceIds)
+            listOf(
+                TokenPriceLocal(priceId, stat[currencyId], fiatCurrency?.symbol, change),
+                chainlinkId?.let {
+                    TokenPriceLocal(chainlinkId, chainlinkPrices[chainlinkId], fiatCurrency?.symbol, change)
+                }
+            )
+        }.flatten().filterNotNull()
+        assetCache.updateTokensPrice(newPrices)
+        updatesMixin.finishUpdateTokens(allPriceIds)
+    }
+
+    private suspend fun getChainlinkPrices(chains: List<Chain>): Map<String, BigDecimal> {
+        val chainlinkProvider = chains.firstOrNull { it.chainlinkProvider } ?: return emptyMap()
+
+        val allAssets =
+            chains.map { it.assets }.flatten().asSequence().filter { it.priceProvider != null }
+                .toList()
+
+        return allAssets.mapNotNull {
+            val priceProvider = it.priceProvider ?: return@mapNotNull null
+            val price =
+                getChainlinkPrices(priceProvider = priceProvider, chainId = chainlinkProvider.id)
+                    ?: return@mapNotNull null
+            priceProvider.id to price
+        }.toMap()
+    }
+
+    private suspend fun getChainlinkPrices(
+        priceProvider: PriceProvider,
+        chainId: ChainId
+    ): BigDecimal? {
+        return runCatching {
+            ethereumSource.fetchPriceFeed(
+                chainId = chainId,
+                receiverAddress = priceProvider.id
+            )?.let { price ->
+                BigDecimal(price, priceProvider.precision)
+            }
+        }.getOrNull()
     }
 
     override fun assetFlow(
@@ -237,6 +333,8 @@ class WalletRepositoryImpl(
         isHidden: Boolean,
         chainAsset: CoreAsset
     ) {
+        val tokenPriceId =
+            chainAsset.priceProvider?.id?.takeIf { selectedFiat.isUsd() } ?: chainAsset.priceId
         val updateItems = listOf(
             AssetUpdateItem(
                 metaId = metaId,
@@ -245,7 +343,7 @@ class WalletRepositoryImpl(
                 id = chainAsset.id,
                 sortIndex = Int.MAX_VALUE, // Int.MAX_VALUE on sorting because we don't use it anymore - just random value
                 enabled = !isHidden,
-                tokenPriceId = chainAsset.priceId
+                tokenPriceId = tokenPriceId
             )
         )
 
@@ -443,10 +541,6 @@ class WalletRepositoryImpl(
     override suspend fun getEquilibriumAccountInfo(asset: CoreAsset, accountId: AccountId) =
         substrateSource.getEquilibriumAccountInfo(asset, accountId)
 
-    override suspend fun updateAssets(newItems: List<AssetUpdateItem>) {
-        assetCache.updateAsset(newItems)
-    }
-
     private fun createOperation(
         hash: String,
         transfer: Transfer,
@@ -480,6 +574,10 @@ class WalletRepositoryImpl(
             recentRateChange = change
         )
     }
+
+    private suspend fun updateAssetsRates(
+        items: List<TokenPriceLocal>
+    ) = assetCache.updateTokensPrice(items)
 
     override suspend fun getSingleAssetPriceCoingecko(
         priceId: String,
@@ -528,13 +626,95 @@ class WalletRepositoryImpl(
         return substrateSource.getStashAccount(chainId, accountId)
     }
 
-    override fun observeChainsPerAsset(accountMetaId: Long, assetId: String): Flow<Map<Chain, Asset?>> {
+    override fun observeChainsPerAsset(
+        accountMetaId: Long,
+        assetId: String
+    ): Flow<Map<Chain, Asset?>> {
         return chainsRepository.observeChainsPerAssetFlow(accountMetaId, assetId).map {
             val chains = it.keys.map { mapChainLocalToChain(it) }
             val chainsById = chains.associateBy { it.id }
             val assets = it.values.map { mapAssetLocalToAsset(chainsById, it) }
             chains.zip(assets).toMap()
         }
+    }
+
+    override suspend fun getVestingLockedAmount(chainId: ChainId): BigInteger? {
+        val currentMetaAccount = accountRepository.getSelectedMetaAccount()
+        val chain = chainsRepository.getChain(chainId)
+        val accountId = currentMetaAccount.accountId(chain)
+
+        val locksStorageKeyAndReturnType = chainRegistry.getRuntimeOrNull(chainId)?.let { runtime ->
+            if (runtime.metadata.moduleOrNull(Modules.BALANCES)?.storage?.get("Locks") != null) {
+                runtime.metadata.balances().storage("Locks").storageKey(runtime, accountId) to
+                        runtime.metadata.balances().storage("Locks").returnType()
+            } else if (runtime.metadata.moduleOrNull(Modules.TOKENS)?.storage?.get("Locks") != null) {
+                val currency = chain.utilityAsset?.currency
+                runtime.metadata.tokens().storage("Locks")
+                    .storageKey(runtime, accountId, currency) to
+                        runtime.metadata.tokens().storage("Locks").returnType()
+            } else {
+                null
+            }
+        }
+
+        return locksStorageKeyAndReturnType?.let { (locksStorageKey, returnType) ->
+            remoteStorageSource.query(
+                chainId = chainId,
+                keyBuilder = { locksStorageKey },
+                binding = { scale, runtime ->
+                    bindVestingLockedAmount(scale, runtime, returnType)
+                }
+            )
+        }
+    }
+
+    @UseCaseBinding
+    fun bindVestingLockedAmount(
+        scale: String?,
+        runtime: RuntimeSnapshot,
+        returnType: Type<*>
+    ): BigInteger? {
+        scale ?: return null
+
+        val locksDynamicInstance =
+            returnType.fromHexOrNull(runtime, scale).cast<List<Struct.Instance>>()
+
+        return locksDynamicInstance.firstOrNull {
+            bindString(it["id"]) == "ormlvest"
+        }?.let {
+            bindNumber(it["amount"])
+        }
+    }
+
+    override suspend fun estimateClaimRewardsFee(chainId: ChainId): BigInteger {
+        return withContext(Dispatchers.IO) {
+            val chain = chainsRepository.getChain(chainId)
+
+            extrinsicService.estimateFee(chain) {
+                claimRewards()
+            }
+        }
+    }
+
+    override suspend fun claimRewards(chain: IChain, accountId: AccountId): Result<String> {
+        return withContext(Dispatchers.IO) {
+            extrinsicService.submitExtrinsic(chain, accountId) {
+                claimRewards()
+            }
+        }
+    }
+
+}
+
+fun ExtrinsicBuilder.claimRewards(): ExtrinsicBuilder {
+    return if (runtime.metadata.moduleOrNull(Modules.VESTING)?.calls?.get("claim") != null) {
+        call(Modules.VESTING, "claim", emptyMap())
+    } else if (runtime.metadata.moduleOrNull(Modules.VESTING)?.calls?.get("vest") != null) {
+        call(Modules.VESTING, "vest", emptyMap())
+    } else if (runtime.metadata.moduleOrNull(Modules.VESTED_REWARDS)?.calls?.get("claim_rewards") != null) {
+        call(Modules.VESTED_REWARDS, "claim_rewards", emptyMap())
+    } else {
+        this
     }
 }
 

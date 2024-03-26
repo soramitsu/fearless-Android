@@ -1,8 +1,8 @@
 package jp.co.soramitsu.crowdloan.impl.data.network.api.parachain
 
+import jp.co.soramitsu.common.BuildConfig
 import jp.co.soramitsu.crowdloan.api.data.repository.ParachainMetadata
 import jp.co.soramitsu.crowdloan.api.data.repository.ParachainMetadataFlow
-import jp.co.soramitsu.feature_crowdloan_impl.BuildConfig
 
 fun mapParachainMetadataRemoteToParachainMetadata(parachainMetadata: ParachainMetadataRemote) =
     with(parachainMetadata) {

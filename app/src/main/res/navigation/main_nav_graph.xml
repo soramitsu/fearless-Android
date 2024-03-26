@@ -779,6 +779,11 @@
         android:label="swapDetailFragment" />
 
     <dialog
+        android:id="@+id/claimRewardsFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.balance.detail.claimreward.ClaimRewardsFragment"
+        android:label="claimRewardsFragment" />
+
+    <dialog
         android:id="@+id/selectMarketFragment"
         android:name="jp.co.soramitsu.polkaswap.impl.presentation.select_market.SelectMarketFragment"
         android:label="selectMarketFragment" />
@@ -787,6 +792,26 @@
         android:id="@+id/assetSelectFragment"
         android:name="jp.co.soramitsu.wallet.impl.presentation.balance.assetselector.AssetSelectFragment"
         android:label="assetSelectFragment" />
+
+    <dialog
+        android:id="@+id/contactsFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.contacts.ContactsFragment"
+        android:label="contactsFragment" />
+
+    <dialog
+        android:id="@+id/nftFiltersFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.balance.nft.filters.NftFiltersFragment"
+        android:label="nftFiltersFragment" />
+
+    <dialog
+        android:id="@+id/serviceFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.balance.list.ServiceFragment"
+        android:label="serviceFragment" />
+
+    <dialog
+        android:id="@+id/nftFlowFragment"
+        android:name="jp.co.soramitsu.nft.impl.presentation.NFTFlowFragment"
+        android:label="nftFlowFragment" />
 
     <action
         android:id="@+id/openStartChangeValidatorsFragment"
@@ -812,7 +837,7 @@
 
         <action
             android:id="@+id/action_startChangeValidatorsFragment_to_recommendedValidatorsFragment"
-            app:destination="@id/recommendedValidatorsFragment"
+            app:destination="@id/selectCustomValidatorsFragment"
             app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
             app:exitAnim="?android:attr/fragmentOpenExitAnimation"
             app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
@@ -873,9 +898,9 @@
 
     </fragment>
 
-    <fragment
+    <dialog
         android:id="@+id/selectCustomValidatorsFragment"
-        android:name="jp.co.soramitsu.staking.impl.presentation.validators.change.custom.select.SelectCustomValidatorsFragment"
+        android:name="jp.co.soramitsu.staking.impl.presentation.validators.change.custom.select.compose.SelectCustomValidatorsFragment"
         android:label="selectCustomValidatorsFragment"
         tools:layout="@layout/fragment_select_custom_validators">
 
@@ -902,7 +927,7 @@
             app:exitAnim="?android:attr/fragmentOpenExitAnimation"
             app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
             app:popExitAnim="?android:attr/fragmentCloseExitAnimation" />
-    </fragment>
+    </dialog>
 
     <fragment
         android:id="@+id/settingsCustomValidatorsFragment"

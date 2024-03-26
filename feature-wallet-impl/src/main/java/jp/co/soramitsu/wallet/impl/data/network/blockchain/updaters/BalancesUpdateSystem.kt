@@ -1,5 +1,6 @@
 package jp.co.soramitsu.wallet.impl.data.network.blockchain.updaters
 
+import android.annotation.SuppressLint
 import android.util.Log
 import it.airgap.beaconsdk.core.internal.utils.failure
 import it.airgap.beaconsdk.core.internal.utils.onEachFailure
@@ -11,6 +12,7 @@ import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
 import jp.co.soramitsu.common.data.network.runtime.binding.ExtrinsicStatusEvent
 import jp.co.soramitsu.common.data.network.runtime.binding.SimpleBalanceData
 import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
+import jp.co.soramitsu.common.utils.failure
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.requireException
 import jp.co.soramitsu.common.utils.requireValue
@@ -42,22 +44,28 @@ import jp.co.soramitsu.wallet.impl.data.network.blockchain.bindings.TransferExtr
 import jp.co.soramitsu.wallet.impl.data.network.model.constructBalanceKey
 import jp.co.soramitsu.wallet.impl.data.network.model.handleBalanceResponse
 import jp.co.soramitsu.wallet.impl.domain.model.Operation
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNot
-import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flatMapMerge
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.transform
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 private const val RUNTIME_AWAITING_TIMEOUT = 10_000L
 
+@SuppressLint("LogNotTimber")
 class BalancesUpdateSystem(
     private val chainRegistry: ChainRegistry,
     private val accountRepository: AccountRepository,
@@ -69,26 +77,38 @@ class BalancesUpdateSystem(
     private val ethereumRemoteSource: EthereumRemoteSource
 ) : UpdateSystem {
 
+    private val scope =
+        CoroutineScope(Dispatchers.Default + SupervisorJob() + CoroutineExceptionHandler { _, throwable ->
+            Log.e("BalancesUpdateSystem", "BalancesUpdateSystem got error: $throwable")
+        })
+
     private val trigger = BalanceUpdateTrigger.observe()
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     private fun subscribeFlow(): Flow<Updater.SideEffect> {
         return combine(
             chainRegistry.syncedChains,
             accountRepository.selectedMetaAccountFlow()
         ) { chains, metaAccount ->
-            chains to metaAccount
-        }.flatMapLatest { (chains, metaAccount) ->
-            val chainsFlow = chains.map { chain ->
-                if (chain.isEthereumChain) {
-                    listenEthereumBalancesByTrigger(chain, metaAccount)
-                } else {
-                    subscribeChainBalances(chain, metaAccount).onEachFailure { logError(chain, it) }
+            coroutineScope {
+                chains.map { chain ->
+                    launch {
+                        if (chain.isEthereumChain) {
+                            listenEthereumBalancesByTrigger(chain, metaAccount).launchIn(scope)
+                        } else {
+                            if (!chain.isEthereumBased || metaAccount.ethereumPublicKey != null) {
+                                subscribeChainBalances(chain, metaAccount).onEachFailure {
+                                    logError(
+                                        chain,
+                                        it
+                                    )
+                                }.launchIn(scope)
+                            }
+                        }
+                    }
                 }
             }
 
-            combine(chainsFlow) { }.transform { }
-        }
+        }.transform { }
     }
 
     private fun listenEthereumBalancesByTrigger(
@@ -111,8 +131,9 @@ class BalancesUpdateSystem(
         metaAccount: MetaAccount
     ): Flow<Result<Any>> {
         val chainUpdateFlow =
-            chainRegistry.getRuntimeProvider(chain.id).observeWithTimeout(RUNTIME_AWAITING_TIMEOUT)
-                .flatMapMerge { runtimeResult ->
+            chainRegistry.getRuntimeProviderOrNull(chain.id)
+                ?.observeWithTimeout(RUNTIME_AWAITING_TIMEOUT)
+                ?.flatMapMerge { runtimeResult ->
                     if (runtimeResult.isFailure) {
                         networkStateMixin.notifyChainSyncProblem(chain.toSyncIssue())
                         return@flatMapMerge flowOf(runtimeResult)
@@ -175,10 +196,9 @@ class BalancesUpdateSystem(
                             storageKeyToHex.mapNotNull { (key, hexRaw) ->
                                 val metadata = storageKeys.firstOrNull { it.key == key }
                                     ?: return@mapNotNull null
-
                                 val balanceData = handleBalanceResponse(
                                     runtime,
-                                    metadata.asset.typeExtra,
+                                    metadata.asset,
                                     hexRaw
                                 ).onFailure { logError(chain, it) }
 
@@ -198,64 +218,72 @@ class BalancesUpdateSystem(
                         }
                         Result.success(Unit)
                     }
-                }
+                } ?: flowOf(Result.failure("Can't find RuntimeProvider for chain: ${chain.name}"))
         return chainUpdateFlow
     }
 
     private val ethBalancesFlow = combine(chainRegistry.syncedChains,
         accountRepository.allMetaAccountsFlow().filterNot { it.isEmpty() }) { chains, accounts ->
         val filtered = chains.filter { it.isEthereumChain }
-        filtered.forEach { chain ->
-            fetchEthereumBalances(chain, accounts)
+        coroutineScope {
+            filtered.forEach { chain ->
+                launch {
+                    fetchEthereumBalances(chain, accounts)
+                }
+            }
         }
     }
 
     private val substrateBalancesFlow = combine(chainRegistry.syncedChains,
         accountRepository.allMetaAccountsFlow().filterNot { it.isEmpty() }) { chains, accounts ->
-        val filtered = chains.filterNot { it.isEthereumChain }
-        filtered.forEach { chain ->
-            runCatching {
-                val runtime =
-                    runCatching { chainRegistry.getRuntimeOrNull(chain.id) }.getOrNull()
-                        ?: return@forEach
-                val socketService =
-                    runCatching { chainRegistry.getSocket(chain.id) }.getOrNull()
-                        ?: return@forEach
-                val storageKeys =
-                    accounts.mapNotNull { metaAccount ->
-                        buildStorageKeys(chain, metaAccount, runtime)
-                            .onFailure { }
-                            .getOrNull()?.toList()
-                    }.flatten()
-                val queryResults = withContext(Dispatchers.IO) {
-                    bulkRetriever.queryKeys(
-                        socketService,
-                        storageKeys.map { it.key }
-                    )
-                }
+        coroutineScope {
+            val filtered = chains.filterNot { it.isEthereumChain }
+            filtered.forEach { chain ->
+                launch {
+                    runCatching {
+                        val runtime =
+                            runCatching { chainRegistry.getRuntimeOrNull(chain.id) }.getOrNull()
+                                ?: return@launch
+                        val socketService =
+                            runCatching { chainRegistry.getSocket(chain.id) }.getOrNull()
+                                ?: return@launch
+                        val storageKeys =
+                            accounts.mapNotNull { metaAccount ->
+                                buildStorageKeys(chain, metaAccount, runtime)
+                                    .onFailure { }
+                                    .getOrNull()?.toList()
+                            }.flatten()
+                        val queryResults = withContext(Dispatchers.IO) {
+                            bulkRetriever.queryKeys(
+                                socketService,
+                                storageKeys.map { it.key }
+                            )
+                        }
 
-                storageKeys.map { keyWithMetadata ->
-                    val hexRaw =
-                        queryResults[keyWithMetadata.key]
+                        storageKeys.map { keyWithMetadata ->
+                            val hexRaw =
+                                queryResults[keyWithMetadata.key]
 
-                    val balanceData = handleBalanceResponse(
-                        runtime,
-                        keyWithMetadata.asset.typeExtra,
-                        hexRaw
-                    ).onFailure { logError(chain, it) }
+                            val balanceData = handleBalanceResponse(
+                                runtime,
+                                keyWithMetadata.asset,
+                                hexRaw
+                            ).onFailure { logError(chain, it) }
 
-                    assetCache.updateAsset(
-                        keyWithMetadata.metaAccountId,
-                        keyWithMetadata.accountId,
-                        keyWithMetadata.asset,
-                        balanceData.getOrNull()
-                    )
+                            assetCache.updateAsset(
+                                keyWithMetadata.metaAccountId,
+                                keyWithMetadata.accountId,
+                                keyWithMetadata.asset,
+                                balanceData.getOrNull()
+                            )
+                        }
+                    }
+                        .onFailure {
+                            logError(chain, it)
+                            return@launch
+                        }
                 }
             }
-                .onFailure {
-                    logError(chain, it)
-                    return@forEach
-                }
         }
     }
 

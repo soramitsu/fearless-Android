@@ -206,7 +206,7 @@ sealed class StakeViewState<S>(
 
         return StakeSummaryModel(
             status = summary.status,
-            totalStaked = summary.totalStaked.formatCrypto(tokenType.symbol),
+            totalStaked = summary.totalStaked.formatCryptoDetail(tokenType.symbol),
             totalStakedFiat = token.fiatAmount(summary.totalStaked)?.formatFiat(token.fiatSymbol),
             totalRewards = summary.totalReward.formatCryptoDetail(tokenType.symbol),
             totalRewardsFiat = token.fiatAmount(summary.totalReward)?.formatFiat(token.fiatSymbol),

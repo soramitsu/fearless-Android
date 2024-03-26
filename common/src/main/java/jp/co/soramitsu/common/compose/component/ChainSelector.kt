@@ -28,6 +28,7 @@ import jp.co.soramitsu.common.compose.theme.backgroundBlurColor
 import jp.co.soramitsu.common.compose.theme.colorAccent
 import jp.co.soramitsu.common.compose.theme.customTypography
 import jp.co.soramitsu.common.compose.theme.white
+import jp.co.soramitsu.common.utils.withNoFontPadding
 import jp.co.soramitsu.ui_core.modifier.applyIf
 
 data class ChainSelectorViewState(
@@ -61,7 +62,8 @@ fun ChainSelector(
                     role = Role.Button,
                     onClick = onChangeChainClick!!
                 )
-            }
+            },
+        verticalAlignment = Alignment.CenterVertically
     ) {
         Box(Modifier.padding(8.dp)) {
             Canvas(
@@ -72,16 +74,18 @@ fun ChainSelector(
             }
         }
         Text(
-            text = selectorViewState.selectedChainName ?: stringResource(R.string.chain_selection_all_networks),
+            text = (selectorViewState.selectedChainName ?: stringResource(R.string.chain_selection_all_networks)).withNoFontPadding(),
             style = MaterialTheme.customTypography.body1,
             maxLines = 1
         )
-        Icon(
-            painter = painterResource(id = R.drawable.ic_arrow_down),
-            contentDescription = null,
-            modifier = Modifier.padding(8.dp),
-            tint = white
-        )
+        if (onChangeChainClick != null) {
+            Icon(
+                painter = painterResource(id = R.drawable.ic_arrow_down),
+                contentDescription = null,
+                modifier = Modifier.padding(8.dp),
+                tint = white
+            )
+        }
     }
 }
 
@@ -101,9 +105,10 @@ fun ChainSelector(
             )
     ) {
         Box(
-            Modifier
+            modifier = Modifier
                 .padding(8.dp)
-                .size(16.dp)) {
+                .size(16.dp)
+        ) {
             when {
                 selectorViewState.selectedChainImageUrl != null ->
                     AsyncImage(

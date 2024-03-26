@@ -24,6 +24,9 @@ class HistorySourceProvider(
             Chain.ExternalApi.Section.Type.SUBSQUID -> SubsquidHistorySource(walletOperationsApi, historyUrl)
             Chain.ExternalApi.Section.Type.GIANTSQUID -> GiantsquidHistorySource(walletOperationsApi, historyUrl)
             Chain.ExternalApi.Section.Type.ETHERSCAN -> EtherscanHistorySource(walletOperationsApi, historyUrl)
+            Chain.ExternalApi.Section.Type.OKLINK -> OkLinkHistorySource(walletOperationsApi, historyUrl)
+            Chain.ExternalApi.Section.Type.ZETA -> ZetaHistorySource(walletOperationsApi, historyUrl)
+            Chain.ExternalApi.Section.Type.REEF -> ReefHistorySource(walletOperationsApi, historyUrl)
             else -> null
         }
     }

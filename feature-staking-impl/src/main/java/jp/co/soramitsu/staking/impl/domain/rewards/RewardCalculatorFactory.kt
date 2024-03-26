@@ -1,5 +1,8 @@
 package jp.co.soramitsu.staking.impl.domain.rewards
 
+import java.math.BigDecimal
+import java.math.BigInteger
+import jp.co.soramitsu.common.data.network.runtime.binding.cast
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ternoaChainId
 import jp.co.soramitsu.shared_utils.extensions.toHexString
@@ -20,7 +23,7 @@ class RewardCalculatorFactory(
     private val relayChainRepository: StakingRelayChainScenarioRepository,
     private val stakingRepository: StakingRepository,
     private val soraStakingRewardsScenario: SoraStakingRewardsScenario,
-    stakingScenarioInteractor: StakingParachainScenarioInteractor,
+    private val stakingScenarioInteractor: StakingParachainScenarioInteractor,
     stakingApi: StakingApi
 ) {
 
@@ -57,13 +60,44 @@ class RewardCalculatorFactory(
         val averageValidatorPayout: Double = validatorsPayouts.average()
         val rateInPlanks = soraStakingRewardsScenario.mainAssetToRewardAssetRate()
         val rate = asset.amountFromPlanks(rateInPlanks).toDouble()
+        val historicalRewardDistribution = relayChainRepository.retrieveEraPointsDistribution(chainId)
 
         return SoraRewardCalculator(
             validators = allValidators,
             xorValRate = rate,
             averageValidatorPayout = averageValidatorPayout,
             asset = asset,
-            calculationTargets = calculationTargets ?: allValidators.map { it.accountIdHex }
+            calculationTargets = calculationTargets ?: allValidators.map { it.accountIdHex },
+            historicalRewardDistribution
+        )
+    }
+
+    suspend fun createReef(
+        asset: Asset,
+        allValidators: List<RewardCalculationTarget>,
+        calculationTargets: List<String>? = null
+    ): RewardCalculator {
+        val chainId = asset.chainId
+
+        val validatorsPayouts =
+            relayChainRepository.getErasValidatorRewards(chainId)
+                .filterValues { it != null }
+                .cast<Map<BigInteger, BigInteger>>()
+                .mapValues { asset.amountFromPlanks(it.value).toDouble() }
+
+        val historicalRewardDistribution = relayChainRepository.retrieveEraPointsDistribution(chainId)
+        val last14 = historicalRewardDistribution.keys.sortedByDescending { it.toDouble() }.take(14)
+            .associateWith { requireNotNull(historicalRewardDistribution[it]) }
+
+        val amount = BigDecimal.ONE
+
+        return ReefRewardCalculator(
+            amount = amount,
+            validators = allValidators,
+            erasPayouts = validatorsPayouts,
+            asset = asset,
+            calculationTargets = calculationTargets ?: allValidators.map { it.accountIdHex },
+            last14
         )
     }
 
@@ -96,8 +130,8 @@ class RewardCalculatorFactory(
         return when {
             syntheticType == SyntheticStakingType.SORA -> createSora(asset, calculationTargets)
             syntheticType == SyntheticStakingType.TERNOA -> createTernoa(asset, calculationTargets)
+            syntheticType == SyntheticStakingType.REEF -> createReef(asset, calculationTargets)
             stakingType == Asset.StakingType.RELAYCHAIN -> createManual(chainId, calculationTargets)
-            stakingType == Asset.StakingType.PARACHAIN -> createSubquery()
 
             stakingType == Asset.StakingType.UNSUPPORTED -> error("wrong staking type")
             else -> error("wrong staking type")
@@ -113,6 +147,11 @@ class RewardCalculatorFactory(
 
         return when {
             syntheticType == SyntheticStakingType.SORA -> createSora(
+                asset,
+                allElectedValidators,
+                validators.map { it.toHexString() })
+
+            syntheticType == SyntheticStakingType.REEF -> createReef(
                 asset,
                 allElectedValidators,
                 validators.map { it.toHexString() })

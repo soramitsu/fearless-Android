@@ -14,7 +14,7 @@ import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.InfoItemSetViewState
 import jp.co.soramitsu.common.compose.component.InfoItemViewState
-import jp.co.soramitsu.common.compose.component.WalletItemViewState
+import jp.co.soramitsu.common.compose.component.WalletNameItemViewState
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.mapList
@@ -42,12 +42,12 @@ class ConnectionInfoViewModel @Inject constructor(
 
     private val accountsFlow = accountListingMixin.accountsFlow(AddressIconGenerator.SIZE_BIG)
 
-    private val walletItemsFlow: SharedFlow<List<WalletItemViewState>> = accountsFlow.mapList {
-        WalletItemViewState(
+    private val walletItemsFlow: SharedFlow<List<WalletNameItemViewState>> = accountsFlow.mapList {
+        WalletNameItemViewState(
             id = it.id,
             title = it.name,
             isSelected = it.isSelected,
-            walletIcon = it.picture.value,
+            walletIcon = it.picture.value
         )
     }
         .inBackground()

@@ -2,8 +2,11 @@ package jp.co.soramitsu.common.compose.component
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -12,6 +15,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material.Card
 import androidx.compose.material.Divider
 import androidx.compose.material.Icon
@@ -43,6 +47,7 @@ import jp.co.soramitsu.common.compose.theme.white64
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemShimmerViewState
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun AssetListItem(
     state: AssetListItemViewState,
@@ -147,32 +152,38 @@ fun AssetListItem(
                             )
                         }
                     }
-                    Row {
-                        Text(
-                            text = state.assetTokenFiat.orEmpty(),
-                            style = MaterialTheme.customTypography.body1,
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceAround
+                    ) {
+                        FlowRow(
                             modifier = Modifier
-                                .alpha(0.64f)
-                                .testTag("AssetListItem_${state.assetSymbol}_change_fiat")
-                        )
-                        Text(
-                            text = state.assetTokenRate.orEmpty(),
-                            style = MaterialTheme.customTypography.body1.copy(
-                                color = assetRateColor
-                            ),
-                            modifier = Modifier
-                                .padding(start = 4.dp)
-                                .testTag("AssetListItem_${state.assetSymbol}_change_percent")
-                        )
-                        Spacer(
-                            modifier = Modifier
-                                .height(1.dp)
-                                .weight(1.0f)
-                        )
+                                .weight(1f)
+                        ) {
+                            Text(
+                                text = state.assetTokenFiat.orEmpty(),
+                                style = MaterialTheme.customTypography.body1,
+                                modifier = Modifier
+                                    .alpha(0.64f)
+                                    .testTag("AssetListItem_${state.assetSymbol}_change_fiat")
+                            )
+
+                            Text(
+                                text = state.assetTokenRate.orEmpty(),
+                                style = MaterialTheme.customTypography.body1.copy(
+                                    color = assetRateColor
+                                ),
+                                modifier = Modifier
+                                    .padding(start = 4.dp)
+                                    .testTag("AssetListItem_${state.assetSymbol}_change_percent")
+                            )
+                        }
                         Text(
                             text = state.assetTransferableBalanceFiat.orEmpty(),
-                            style = MaterialTheme.customTypography.body1,
+                            style = MaterialTheme.customTypography.body1.copy(textAlign = TextAlign.End),
                             modifier = Modifier
+                                .wrapContentWidth()
                                 .alpha(0.64f)
                                 .padding(start = 4.dp)
                                 .testTag("AssetListItem_${state.assetSymbol}_transferable_fiat")
@@ -326,24 +337,24 @@ private fun PreviewAssetListItem() {
     )
 
     val state = AssetListItemViewState(
+        index = 0,
         assetIconUrl = assetIconUrl,
         assetName = "Karura asset",
         assetChainName = "Karura",
         assetSymbol = "KSM",
-        assetTokenFiat = "$73.22",
+        assetTokenFiat = "$73.22000003242342",
         assetTokenRate = "+5.67%",
-        assetTransferableBalance = "444.3",
-        assetTransferableBalanceFiat = "$2345.32",
+        assetTransferableBalance = "444.30",
+        assetTransferableBalanceFiat = "$2345.3233434334",
         assetChainUrls = assetChainUrlsMap,
         chainId = "",
         chainAssetId = "",
         isSupported = true,
         isHidden = false,
-        priceId = null,
         isTestnet = false
     )
     FearlessAppTheme {
-        Box(modifier = Modifier.background(Color.Black)) {
+        Box {
             Column {
                 AssetListItem(state) {}
                 MarginVertical(margin = 8.dp)

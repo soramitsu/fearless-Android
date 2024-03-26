@@ -6,6 +6,7 @@ import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.common.data.network.config.AppConfigRemote
 import jp.co.soramitsu.common.data.network.runtime.binding.EqAccountInfo
 import jp.co.soramitsu.common.data.network.runtime.binding.EqOraclePricePoint
+import jp.co.soramitsu.core.models.IChain
 import jp.co.soramitsu.coredb.model.AssetLocal
 import jp.co.soramitsu.coredb.model.AssetUpdateItem
 import jp.co.soramitsu.coredb.model.PhishingLocal
@@ -95,8 +96,6 @@ interface WalletRepository {
 
     suspend fun getEquilibriumAccountInfo(asset: CoreAsset, accountId: AccountId): EqAccountInfo?
 
-    suspend fun updateAssets(newItems: List<AssetUpdateItem>)
-
     suspend fun getRemoteConfig(): Result<AppConfigRemote>
 
     fun chainRegistrySyncUp()
@@ -112,4 +111,8 @@ interface WalletRepository {
     ): BigInteger
 
     fun observeChainsPerAsset(accountMetaId: Long, assetId: String): Flow<Map<Chain, Asset?>>
+
+    suspend fun getVestingLockedAmount(chainId: ChainId): BigInteger?
+    suspend fun estimateClaimRewardsFee(chainId: ChainId): BigInteger
+    suspend fun claimRewards(chain: IChain, accountId: AccountId): Result<String>
 }

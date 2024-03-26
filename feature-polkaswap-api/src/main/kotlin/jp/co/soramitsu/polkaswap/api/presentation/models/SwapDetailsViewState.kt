@@ -27,10 +27,10 @@ data class SwapDetailsViewState(
     val toTokenAmount: String,
     val toTokenMinReceived: String,
     val toFiatMinReceived: String,
-    val liquidityProviderFee: NetworkFee,
     val fromTokenOnToToken: String,
     val toTokenOnFromToken: String,
-    val minmaxTitle: String
+    val minmaxTitle: String,
+    val route: String?
 ) : Parcelable {
 
     @Parcelize
@@ -43,11 +43,11 @@ data class SwapDetailsViewState(
 
 data class SwapQuote(
     val amount: BigDecimal,
-    val fee: BigDecimal
+    val route: List<String>?
 )
 
 fun QuoteResponse.toModel(chainAsset: CoreAsset): SwapQuote {
-    return SwapQuote(chainAsset.amountFromPlanks(this.amount), chainAsset.amountFromPlanks(this.fee))
+    return SwapQuote(chainAsset.amountFromPlanks(this.amount), this.route)
 }
 
 fun detailsToViewState(
@@ -99,10 +99,6 @@ fun detailsToViewState(
         toFiatMinReceived = minMaxFiat.orEmpty(),
         fromTokenOnToToken = details.fromTokenOnToToken.formatCryptoDetail(),
         toTokenOnFromToken = details.toTokenOnFromToken.formatCryptoDetail(),
-        liquidityProviderFee = SwapDetailsViewState.NetworkFee(
-            details.feeAsset.token.configuration.symbol.uppercase(),
-            details.liquidityProviderFee.formatCryptoDetail(details.feeAsset.token.configuration.symbol),
-            details.feeAsset.token.fiatAmount(details.liquidityProviderFee)?.formatFiat(details.feeAsset.token.fiatSymbol)
-        )
+        route = details.route
     )
 }

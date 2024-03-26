@@ -135,13 +135,13 @@ class SearchAssetsViewModel @Inject constructor(
         router.back()
     }
 
-    override fun assetClicked(asset: AssetListItemViewState) {
-        if (asset.isSupported.not()) {
+    override fun assetClicked(state: AssetListItemViewState) {
+        if (state.isSupported.not()) {
             _showUnsupportedChainAlert.value = Event(Unit)
             return
         }
 
-        router.openAssetIntermediateDetails(asset.chainAssetId)
+        router.openAssetIntermediateDetails(state.chainAssetId)
     }
 
     fun updateAppClicked() {

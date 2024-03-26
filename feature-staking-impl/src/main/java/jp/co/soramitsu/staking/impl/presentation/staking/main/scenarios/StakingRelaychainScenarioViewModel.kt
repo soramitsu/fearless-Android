@@ -11,6 +11,7 @@ import jp.co.soramitsu.common.utils.withLoading
 import jp.co.soramitsu.common.validation.CompositeValidation
 import jp.co.soramitsu.common.validation.ValidationSystem
 import jp.co.soramitsu.feature_staking_impl.R
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import jp.co.soramitsu.shared_utils.extensions.toHexString
 import jp.co.soramitsu.staking.api.data.StakingSharedState
 import jp.co.soramitsu.staking.api.domain.model.StakingState
@@ -159,7 +160,13 @@ class StakingRelaychainScenarioViewModel(
             scenarioInteractor.observeNetworkInfoState().map { it as NetworkInfo.RelayChain },
             stakingInteractor.currentAssetFlow()
         ) { networkInfo, asset ->
-            val minimumStake = asset.token.amountFromPlanks(networkInfo.minimumStake)
+            val minStakeMultiplier: Double = if (asset.token.configuration.chainId == polkadotChainId) {
+                1.15 // 15% increase
+            } else {
+                1.0
+            }
+
+            val minimumStake = asset.token.amountFromPlanks(networkInfo.minimumStake) * BigDecimal(minStakeMultiplier)
             val minimumStakeFormatted = minimumStake.formatCryptoDetail(asset.token.configuration.symbol)
 
             val minimumStakeFiat = asset.token.fiatAmount(minimumStake)?.formatFiat(asset.token.fiatSymbol)
@@ -194,11 +201,20 @@ class StakingRelaychainScenarioViewModel(
 
     private fun mapAlertToAlertModel(alert: Alert): AlertModel {
         return when (alert) {
-            Alert.ChangeValidators -> {
+            is Alert.ChangeValidators -> {
                 AlertModel(
                     WARNING_ICON,
                     resourceManager.getString(R.string.staking_alert_change_validators),
                     resourceManager.getString(R.string.staking_nominator_status_alert_no_validators),
+                    AlertModel.Type.CallToAction { baseViewModel.openCurrentValidators() }
+                )
+            }
+
+            is Alert.AllValidatorsAreOversubscribed -> {
+                AlertModel(
+                    WARNING_ICON,
+                    resourceManager.getString(R.string.staking_alert_change_validators),
+                    resourceManager.getString(R.string.staking_your_oversubscribed_message),
                     AlertModel.Type.CallToAction { baseViewModel.openCurrentValidators() }
                 )
             }
@@ -230,7 +246,7 @@ class StakingRelaychainScenarioViewModel(
                 AlertModel.Type.Info
             )
 
-            Alert.SetValidators -> AlertModel(
+            is Alert.SetValidators -> AlertModel(
                 WARNING_ICON,
                 resourceManager.getString(R.string.staking_set_validators_title),
                 resourceManager.getString(R.string.staking_set_validators_message),

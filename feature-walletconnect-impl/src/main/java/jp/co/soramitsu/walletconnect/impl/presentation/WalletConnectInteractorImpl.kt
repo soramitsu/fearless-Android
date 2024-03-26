@@ -9,15 +9,16 @@ import com.walletconnect.web3.wallet.utils.CacaoSigner
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.address
+import jp.co.soramitsu.common.data.Keypair
 import jp.co.soramitsu.common.data.secrets.v2.KeyPairSchema
 import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
+import jp.co.soramitsu.common.utils.decodeToInt
 import jp.co.soramitsu.common.utils.mapValuesNotNull
 import jp.co.soramitsu.core.crypto.mapCryptoTypeToEncryption
-import jp.co.soramitsu.core.extrinsic.ExtrinsicBuilderFactory
+import jp.co.soramitsu.core.extrinsic.ExtrinsicService
 import jp.co.soramitsu.core.extrinsic.keypair_provider.KeypairProvider
 import jp.co.soramitsu.core.models.ChainId
 import jp.co.soramitsu.runtime.ext.accountIdOf
-import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.shared_utils.encrypt.MultiChainEncryption
@@ -25,6 +26,9 @@ import jp.co.soramitsu.shared_utils.encrypt.SignatureWrapper
 import jp.co.soramitsu.shared_utils.encrypt.Signer
 import jp.co.soramitsu.shared_utils.extensions.fromHex
 import jp.co.soramitsu.shared_utils.extensions.toHexString
+import jp.co.soramitsu.shared_utils.hash.Hasher.blake2b256
+import jp.co.soramitsu.shared_utils.runtime.definitions.types.useScaleWriter
+import jp.co.soramitsu.shared_utils.scale.utils.directWrite
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.EthereumRemoteSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -42,8 +46,7 @@ class WalletConnectInteractorImpl(
     private val ethereumSource: EthereumRemoteSource,
     private val accountRepository: AccountRepository,
     private val keypairProvider: KeypairProvider,
-    private val chainRegistry: ChainRegistry,
-    private val extrinsicBuilderFactory: ExtrinsicBuilderFactory
+    private val extrinsicService: ExtrinsicService,
 ) : WalletConnectInteractor {
 
     @Suppress("MagicNumber")
@@ -250,7 +253,7 @@ class WalletConnectInteractorImpl(
             }
 
             WalletConnectMethod.PolkadotSignTransaction.method -> {
-                getPolkadotSignTransaction(recentSession)
+                getPolkadotSignTransaction(metaAccount, recentSession)
             }
 
             WalletConnectMethod.PolkadotSignMessage.method -> {
@@ -331,25 +334,55 @@ class WalletConnectInteractorImpl(
         ).s
     }
 
-    private suspend fun getPolkadotSignTransaction(recentSession: Wallet.Model.SessionRequest): String {
+    private suspend fun getPolkadotSignTransaction(
+        metaAccount: MetaAccount,
+        recentSession: Wallet.Model.SessionRequest
+    ): String {
         val params = JSONObject(recentSession.request.params)
 
         val signPayload = JSONObject(params.getString("transactionPayload"))
-        val address = signPayload.getString("address")
-        val genesisHash = signPayload.getString("genesisHash").drop(2)
-        val tip = signPayload.getString("tip").decodeNumericQuantity()
+        val genesisHash = signPayload.getString("genesisHash").fromHex()
+        val tip = signPayload.getString("tip").fromHex().decodeToInt()
+        val method = signPayload.getString("method").fromHex()
+        val blockHash = signPayload.getString("blockHash").fromHex()
+        val era = signPayload.getString("era").fromHex()
+        val nonce = signPayload.getString("nonce").fromHex().decodeToInt()
+        val specVersion = signPayload.getString("specVersion").fromHex().decodeToInt()
+        val transactionVersion = signPayload.getString("transactionVersion").fromHex().decodeToInt()
 
-        val chain = chainRegistry.getChain(genesisHash)
-        val accountId = chain.accountIdOf(address)
+        val payloadBytes = useScaleWriter {
+            directWrite(method)
+            directWrite(era)
+            writeCompact(nonce)
+            writeCompact(tip)
+            writeUint32(specVersion)
+            writeUint32(transactionVersion)
+            directWrite(genesisHash)
+            directWrite(blockHash)
+        }
 
-        val keypair = keypairProvider.getKeypairFor(chain, accountId)
-        val cryptoType = keypairProvider.getCryptoTypeFor(chain, accountId)
-        val extrinsicBuilder = extrinsicBuilderFactory.create(chain, keypair, cryptoType, tip)
+        val messageToSign = if (payloadBytes.size > PAYLOAD_HASH_THRESHOLD) {
+            payloadBytes.blake2b256()
+        } else {
+            payloadBytes
+        }
 
-        val signature = extrinsicBuilder.build()
+        val secrets = accountRepository.getMetaAccountSecrets(metaAccount.id) ?: error("There are no secrets for metaId: ${metaAccount.id}")
+        val keypairSchema = secrets[MetaAccountSecrets.SubstrateKeypair]
+        val publicKey = keypairSchema[KeyPairSchema.PublicKey]
+        val privateKey = keypairSchema[KeyPairSchema.PrivateKey]
+        val nonce1 = keypairSchema[KeyPairSchema.Nonce]
+        val keypair = Keypair(publicKey, privateKey, nonce1)
+        val encryption = mapCryptoTypeToEncryption(metaAccount.substrateCryptoType)
+
+        val signature = extrinsicService.createSignature(
+            encryption,
+            keypair,
+            messageToSign.toHexString()
+        )
 
         return JSONObject().apply {
-            put("id", 0)
+            put("id", recentSession.request.id)
             put("signature", signature)
         }.toString()
     }
@@ -362,12 +395,12 @@ class WalletConnectInteractorImpl(
 
         val chain = allChains.first { chain -> chain.caip2id == recentSession.chainId }
         val accountId = chain.accountIdOf(address)
-        val keypair = keypairProvider.getKeypairFor(chain, accountId)
+        val keypair = withContext(Dispatchers.IO) { keypairProvider.getKeypairFor(chain, accountId) }
 
         val multiChainEncryption = if (chain.isEthereumBased) {
             MultiChainEncryption.Ethereum
         } else {
-            val cryptoType = keypairProvider.getCryptoTypeFor(chain, accountId)
+            val cryptoType = withContext(Dispatchers.IO) { keypairProvider.getCryptoTypeFor(chain, accountId) }
             val encryption = mapCryptoTypeToEncryption(cryptoType)
             MultiChainEncryption.Substrate(encryption)
         }
@@ -399,10 +432,6 @@ class WalletConnectInteractorImpl(
 
     private fun String.safeDecodeNumericQuantity(): BigInteger? {
         return kotlin.runCatching { Numeric.decodeQuantity(this) }.getOrNull()
-    }
-
-    private fun String.decodeNumericQuantity(): BigInteger {
-        return Numeric.decodeQuantity(this)
     }
 
     override fun rejectSessionRequest(
@@ -455,5 +484,9 @@ class WalletConnectInteractorImpl(
             onSuccess = onSuccess,
             onError = onError
         )
+    }
+
+    companion object {
+        private const val PAYLOAD_HASH_THRESHOLD = 256
     }
 }

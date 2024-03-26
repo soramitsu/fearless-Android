@@ -193,11 +193,15 @@ class RootViewModel @Inject constructor(
         }.stateIn(this, SharingStarted.Eagerly, null)
     }
 
-    private fun handleSessionRequest(sessionRequest: Wallet.Model.SessionRequest) {
-        return rootRouter.openWalletConnectSessionRequest(sessionRequest.topic)
+    private suspend fun handleSessionRequest(sessionRequest: Wallet.Model.SessionRequest) {
+        val pendingListOfSessionRequests = interactor.getPendingListOfSessionRequests(sessionRequest.topic)
+        if (pendingListOfSessionRequests.isEmpty()) {
+            return
+        }
+        rootRouter.openWalletConnectSessionRequest(sessionRequest.topic)
     }
 
     private fun handleSessionProposal(sessionProposal: Wallet.Model.SessionProposal) {
-        return rootRouter.openWalletConnectSessionProposal(sessionProposal.pairingTopic)
+        rootRouter.openWalletConnectSessionProposal(sessionProposal.pairingTopic)
     }
 }

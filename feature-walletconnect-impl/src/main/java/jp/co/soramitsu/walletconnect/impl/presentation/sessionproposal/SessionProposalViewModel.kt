@@ -14,7 +14,7 @@ import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.InfoItemSetViewState
 import jp.co.soramitsu.common.compose.component.InfoItemViewState
 import jp.co.soramitsu.common.compose.component.SelectorState
-import jp.co.soramitsu.common.compose.component.WalletItemViewState
+import jp.co.soramitsu.common.compose.component.WalletNameItemViewState
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.walletconnect.impl.presentation.WCDelegate
@@ -55,9 +55,9 @@ class SessionProposalViewModel @Inject constructor(
 
     private val accountsFlow = accountListingMixin.accountsFlow(AddressIconGenerator.SIZE_BIG)
 
-    private val walletItemsFlow: SharedFlow<List<WalletItemViewState>> = combine(accountsFlow, selectedWalletIds) { accounts, selectedWalletIds ->
+    private val walletItemsFlow: SharedFlow<List<WalletNameItemViewState>> = combine(accountsFlow, selectedWalletIds) { accounts, selectedWalletIds ->
         accounts.map {
-            WalletItemViewState(
+            WalletNameItemViewState(
                 id = it.id,
                 title = it.name,
                 isSelected = if (selectedWalletIds.isEmpty()) it.isSelected else it.id in selectedWalletIds,
@@ -93,7 +93,7 @@ class SessionProposalViewModel @Inject constructor(
             subTitle = requiredChainNames,
             iconUrl = null,
             actionIcon = null
-        )
+        ).takeIf { requiredChains.isNotEmpty() }
         val optionalNetworksSelectorState = SelectorState(
             title = resourceManager.getString(R.string.connection_optional_networks),
             subTitle = optionalChainNames,
@@ -103,21 +103,28 @@ class SessionProposalViewModel @Inject constructor(
         val requiredMethods = proposal.requiredNamespaces.flatMap { it.value.methods }
         val requiredEvents = proposal.requiredNamespaces.flatMap { it.value.events }
 
-        val requiredInfoItems = listOf(
-            InfoItemViewState(
-                title = resourceManager.getString(R.string.connection_methods),
-                subtitle = requiredMethods.joinToString { it }
-            ),
-            InfoItemViewState(
-                title = resourceManager.getString(R.string.connection_events),
-                subtitle = requiredEvents.joinToString { it }
+        val requiredInfoItems = mutableListOf<InfoItemViewState>()
+        if (requiredMethods.isNotEmpty()) {
+            requiredInfoItems.add(
+                InfoItemViewState(
+                    title = resourceManager.getString(R.string.connection_methods),
+                    subtitle = requiredMethods.joinToString { it }
+                )
             )
-        )
+        }
+        if (requiredEvents.isNotEmpty()) {
+            requiredInfoItems.add(
+                InfoItemViewState(
+                    title = resourceManager.getString(R.string.connection_events),
+                    subtitle = requiredEvents.joinToString { it }
+                )
+            )
+        }
 
         val requiredPermissions = InfoItemSetViewState(
             title = requiredChainNames,
             infoItems = requiredInfoItems
-        )
+        ).takeIf { requiredInfoItems.isNotEmpty() }
 
         // optional
         val optionalMethods = proposal.optionalNamespaces.flatMap { it.value.methods }
@@ -309,7 +316,7 @@ class SessionProposalViewModel @Inject constructor(
         }
     }
 
-    override fun onWalletSelected(item: WalletItemViewState) {
+    override fun onWalletSelected(item: WalletNameItemViewState) {
         viewModelScope.launch {
             val currentIds = selectedWalletIds.value
 

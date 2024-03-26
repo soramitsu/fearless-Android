@@ -4,7 +4,7 @@ import android.graphics.drawable.Drawable
 import it.airgap.beaconsdk.blockchain.substrate.data.SubstrateSignerPayload
 import java.math.BigDecimal
 import jp.co.soramitsu.account.api.domain.model.ImportMode
-import jp.co.soramitsu.account.api.presentation.actions.AddAccountBottomSheet
+import jp.co.soramitsu.account.api.presentation.actions.AddAccountPayload
 import jp.co.soramitsu.common.AlertViewState
 import jp.co.soramitsu.common.navigation.DelayedNavigation
 import jp.co.soramitsu.common.navigation.PinRequired
@@ -83,7 +83,7 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
 
     fun openOperationSuccess(operationHash: String?, chainId: ChainId?)
 
-    fun openSendConfirm(transferDraft: TransferDraft, phishingType: PhishingType?, overrides: Map<String, Any?> = emptyMap(), transferComment: String? = null)
+    fun openSendConfirm(transferDraft: TransferDraft, phishingType: PhishingType?, overrides: Map<String, Any?> = emptyMap(), transferComment: String? = null, skipEdValidation: Boolean = false)
 
     fun openCrossChainSendConfirm(transferDraft: CrossChainTransferDraft, phishingType: PhishingType?)
 
@@ -103,7 +103,7 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
 
     fun openBackupWalletScreen(metaAccountId: Long)
 
-    fun openRenameWallet(metaAccountId: Long)
+    fun openRenameWallet(metaAccountId: Long, name: String?)
 
     fun openImportAccountScreen(blockChainType: Int, importMode: ImportMode)
 
@@ -120,6 +120,7 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
     fun setBeaconSignStatus(status: SignStatus)
 
     fun openNodes(chainId: ChainId)
+    fun openClaimRewards(chainId: ChainId)
 
     @PinRequired
     fun openExportMnemonic(metaId: Long, chainId: ChainId): DelayedNavigation
@@ -144,7 +145,7 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
 
     fun openGetSoraCard()
 
-    fun openOptionsAddAccount(payload: AddAccountBottomSheet.Payload)
+    fun openOptionsAddAccount(payload: AddAccountPayload)
 
     fun openOptionsSwitchNode(
         metaId: Long,
@@ -187,4 +188,12 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
     fun openConnectionDetails(topic: String)
 
     fun listenPolkaswapDisclaimerResultFlowFromMainScreen(): Flow<Boolean>
+
+    fun openContactsWithResult(chainId: ChainId): Flow<String>
+
+    fun openNftCollection(selectedAssetId: ChainId, contractAddress: String, collectionName: String)
+
+    fun openNFTFilter()
+
+    fun openServiceScreen()
 }

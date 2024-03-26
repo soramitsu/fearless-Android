@@ -13,7 +13,7 @@ import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.GradientIconState
 import jp.co.soramitsu.common.compose.component.TitleValueViewState
-import jp.co.soramitsu.common.compose.component.WalletItemViewState
+import jp.co.soramitsu.common.compose.component.WalletNameItemViewState
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
@@ -48,7 +48,9 @@ class RequestPreviewViewModel @Inject constructor(
     private val topic: String = savedStateHandle[RequestPreviewFragment.PAYLOAD_TOPIC_KEY] ?: error("No topic provided for request preview screen")
 
     private val sessions: List<Wallet.Model.SessionRequest> = walletConnectInteractor.getPendingListOfSessionRequests(topic).also {
-        if (it.isEmpty()) error("No session requests found")
+        if (it.isEmpty()) {
+            walletConnectRouter.back()
+        }
     }
 
     private val recentSession = sessions.sortedByDescending { it.request.id }[0]
@@ -63,7 +65,7 @@ class RequestPreviewViewModel @Inject constructor(
         }
         .stateIn(this, SharingStarted.Eagerly, null)
 
-    private val requestWalletItemFlow: SharedFlow<WalletItemViewState?> = requestChainFlow.filterNotNull().map { requestChain ->
+    private val requestWalletItemFlow: SharedFlow<WalletNameItemViewState?> = requestChainFlow.filterNotNull().map { requestChain ->
         val requestAddress = recentSession.request.address
 
         val requestedWallet = accountRepository.allMetaAccounts().firstOrNull { wallet ->
@@ -87,7 +89,7 @@ class RequestPreviewViewModel @Inject constructor(
             AddressIconGenerator.SIZE_BIG
         )
 
-        WalletItemViewState(
+        WalletNameItemViewState(
             id = requestedWallet.id,
             title = requestedWallet.name,
             isSelected = false,

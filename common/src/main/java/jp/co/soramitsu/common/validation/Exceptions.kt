@@ -15,23 +15,38 @@ class SpendInsufficientBalanceException(resourceManager: ResourceManager) : Vali
     resourceManager.getString(R.string.choose_amount_error_too_big)
 )
 
-class SubstrateBridgeMinimumAmountRequired(resourceManager: ResourceManager) : ValidationException(
+class SubstrateBridgeMinimumAmountRequired(resourceManager: ResourceManager, amount: String) : ValidationException(
     resourceManager.getString(R.string.common_warning),
-    resourceManager.getString(R.string.sora_bridge_low_amount_alert)
+    resourceManager.getString(R.string.sora_bridge_low_amount_format_alert, amount)
 )
 
-class ExistentialDepositCrossedException(resourceManager: ResourceManager, edAmount: String) : ValidationWarning(
+class SubstrateBridgeAmountLessThenFeeException(resourceManager: ResourceManager, chainName: String) : ValidationWarning(
+    resourceManager.getString(R.string.common_warning),
+    resourceManager.getString(R.string.sora_bridge_amount_less_fee, chainName),
+    resourceManager.getString(R.string.common_proceed),
+    resourceManager.getString(R.string.common_cancel),
+    null
+)
+
+class ExistentialDepositCrossedWarning(resourceManager: ResourceManager, edAmount: String) : ValidationWarning(
     resourceManager.getString(R.string.common_existential_warning_title),
     resourceManager.getString(R.string.common_existential_warning_message, edAmount),
     resourceManager.getString(R.string.common_proceed),
-    resourceManager.getString(R.string.common_cancel)
+    resourceManager.getString(R.string.common_cancel),
+    resourceManager.getString(R.string.set_max_amount),
+)
+
+class ExistentialDepositCrossedException(resourceManager: ResourceManager, edAmount: String) : ValidationException(
+    resourceManager.getString(R.string.common_existential_warning_title),
+    resourceManager.getString(R.string.common_existential_error_message, edAmount)
 )
 
 class TransferToTheSameAddressException(resourceManager: ResourceManager) : ValidationWarning(
     resourceManager.getString(R.string.common_warning),
     resourceManager.getString(R.string.same_address_transfer_warning_message),
     resourceManager.getString(R.string.common_proceed),
-    resourceManager.getString(R.string.common_cancel)
+    resourceManager.getString(R.string.common_cancel),
+    null
 )
 
 class DeadRecipientException(resourceManager: ResourceManager) : ValidationException(

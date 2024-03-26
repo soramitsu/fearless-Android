@@ -36,8 +36,8 @@ import jp.co.soramitsu.feature_staking_impl.R
 data class SelectableListItemState<T>(
     val id: T,
     val title: String,
-    val subtitle: String,
-    val caption: AnnotatedString,
+    val subtitle: String? = null,
+    val caption: AnnotatedString? = null,
     val isSelected: Boolean,
     val additionalStatuses: List<SelectableListItemAdditionalStatus> = listOf()
 ) {
@@ -52,9 +52,6 @@ fun <T> SelectableListItem(
     onSelected: (SelectableListItemState<T>) -> Unit,
     onInfoClick: (SelectableListItemState<T>) -> Unit
 ) {
-    val onSelectedCallback = remember { { onSelected(state) } }
-    val onInfoCallback = remember { { onInfoClick(state) } }
-
     Row(
         modifier = Modifier
             .clickableWithNoIndication { onSelected(state) }
@@ -63,15 +60,15 @@ fun <T> SelectableListItem(
     ) {
         FearlessRadioButton(
             selected = state.isSelected,
-            onClick = onSelectedCallback,
+            onClick = { onSelected(state) },
             modifier = Modifier.align(CenterVertically),
             colors = accentRadioButtonColors
         )
         MarginHorizontal(margin = 14.dp)
         Column(modifier = Modifier.weight(1f)) {
             H6(text = state.title)
-            B2(text = state.subtitle, color = black1)
-            B2(text = state.caption)
+            state.subtitle?.let { B2(text = it, color = black1) }
+            state.caption?.let { B2(text = it) }
         }
         state.additionalStatuses.takeIf { it.isNotEmpty() }?.let { items ->
             items.forEach {
@@ -86,7 +83,7 @@ fun <T> SelectableListItem(
         }
         Box(
             modifier = Modifier
-                .clickableWithNoIndication(onClick = onInfoCallback)
+                .clickableWithNoIndication(onClick = { onInfoClick(state) })
                 .align(CenterVertically)
                 .padding(start = 16.dp, top = 12.dp, bottom = 12.dp)
         ) {

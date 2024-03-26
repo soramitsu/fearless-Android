@@ -31,8 +31,8 @@ import jp.co.soramitsu.common.compose.component.SelectorState
 import jp.co.soramitsu.common.compose.component.SelectorWithBorder
 import jp.co.soramitsu.common.compose.component.Toolbar
 import jp.co.soramitsu.common.compose.component.ToolbarViewState
-import jp.co.soramitsu.common.compose.component.WalletItem
-import jp.co.soramitsu.common.compose.component.WalletItemViewState
+import jp.co.soramitsu.common.compose.component.WalletNameItem
+import jp.co.soramitsu.common.compose.component.WalletNameItemViewState
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
 
 data class SessionProposalViewState(
@@ -41,7 +41,7 @@ data class SessionProposalViewState(
     val optionalPermissions: InfoItemSetViewState?,
     val requiredNetworksSelectorState: SelectorState?,
     val optionalNetworksSelectorState: SelectorState?,
-    val wallets: List<WalletItemViewState>,
+    val wallets: List<WalletNameItemViewState>,
     val approving: Boolean,
     val rejecting: Boolean
 ) {
@@ -66,7 +66,7 @@ interface SessionProposalScreenInterface {
     fun onRejectClicked()
     fun onOptionalNetworksClicked()
     fun onRequiredNetworksClicked()
-    fun onWalletSelected(item: WalletItemViewState)
+    fun onWalletSelected(item: WalletNameItemViewState)
 }
 
 @Composable
@@ -128,7 +128,7 @@ fun SessionProposalContent(state: SessionProposalViewState, callback: SessionPro
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     state.wallets.map { walletItemState ->
-                        WalletItem(
+                        WalletNameItem(
                             state = walletItemState,
                             onSelected = callback::onWalletSelected
                         )
@@ -224,7 +224,7 @@ private fun SessionProposalPreview() {
         override fun onRejectClicked() {}
         override fun onRequiredNetworksClicked() {}
         override fun onOptionalNetworksClicked() {}
-        override fun onWalletSelected(item: WalletItemViewState) {}
+        override fun onWalletSelected(item: WalletNameItemViewState) {}
     }
 
     FearlessTheme {

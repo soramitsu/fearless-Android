@@ -33,6 +33,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 private const val SUBSTRATE_BLOCKCHAIN_TYPE = 0
@@ -49,26 +50,42 @@ class SelectWalletViewModel @Inject constructor(
     private val pendulumPreInstalledAccountsScenario: PendulumPreInstalledAccountsScenario
 ) : BaseViewModel(), UpdatesProviderUi by updatesMixin {
 
-    private val accountsFlow = accountListingMixin.accountsFlow(AddressIconGenerator.SIZE_BIG)
+    private val walletItemsFlow = MutableStateFlow<List<WalletItemViewState>>(emptyList())
 
-    private val walletItemsFlow = accountsFlow.mapList {
-        val balanceModel = getTotalBalance(it.id)
-
-        WalletItemViewState(
-            id = it.id,
-            title = it.name,
-            isSelected = it.isSelected,
-            walletIcon = it.picture.value,
-            balance = balanceModel.balance.formatFiat(balanceModel.fiatSymbol),
-            changeBalanceViewState = ChangeBalanceViewState(
-                percentChange = balanceModel.rateChange?.formatAsChange().orEmpty(),
-                fiatChange = balanceModel.balanceChange.abs().formatFiat(balanceModel.fiatSymbol)
-            )
-
-        )
+    init {
+        accountListingMixin.accountsFlow(AddressIconGenerator.SIZE_BIG)
+            .inBackground()
+            .onEach { newList ->
+                walletItemsFlow.update {
+                    newList.map {
+                        WalletItemViewState(
+                            id = it.id,
+                            title = it.name,
+                            isSelected = it.isSelected,
+                            walletIcon = it.picture.value,
+                            balance = null,
+                            changeBalanceViewState = null
+                        )
+                    }
+                }
+            }
+            .onEach {
+                walletItemsFlow.update { prevList ->
+                    prevList.map { prevState ->
+                        val balanceModel = getTotalBalance(prevState.id)
+                        prevState.copy(
+                            balance = balanceModel.balance.formatFiat(balanceModel.fiatSymbol),
+                            changeBalanceViewState = ChangeBalanceViewState(
+                                percentChange = balanceModel.rateChange?.formatAsChange().orEmpty(),
+                                fiatChange = balanceModel.balanceChange.abs()
+                                    .formatFiat(balanceModel.fiatSymbol)
+                            )
+                        )
+                    }
+                }
+            }
+            .launchIn(viewModelScope)
     }
-        .inBackground()
-        .share()
 
     private val selectedWalletItem = MutableStateFlow<WalletItemViewState?>(null)
     val googleAuthorizeLiveData = MutableLiveData<Event<Unit>>()
@@ -80,7 +97,7 @@ class SelectWalletViewModel @Inject constructor(
     ) { walletItems, selectedWallet ->
         WalletSelectorViewState(
             wallets = walletItems,
-            selectedWallet = selectedWallet ?: walletItems.first { it.isSelected }
+            selectedWallet = selectedWallet ?: walletItems.firstOrNull { it.isSelected }
         )
     }.stateIn(
         viewModelScope,

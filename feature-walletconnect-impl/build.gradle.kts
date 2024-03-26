@@ -15,8 +15,8 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
     buildFeatures {
@@ -28,7 +28,7 @@ android {
     }
 
     kotlinOptions {
-        jvmTarget = "11"
+        jvmTarget = "17"
     }
 }
 
@@ -46,8 +46,8 @@ dependencies {
     implementation(libs.walletconnectCoreDep)
     implementation(libs.walletconnectWeb3WalletDep)
 
-    implementation(libs.zXing.core)
-    implementation(libs.zXing.embedded)
+    implementation(libs.zxing.core)
+    implementation(libs.zxing.embedded)
 
     implementation(projects.featureAccountApi)
     implementation(projects.featureAccountImpl)
@@ -61,6 +61,4 @@ dependencies {
     implementation(projects.featureWalletImpl)
 
     testImplementation(libs.junit)
-//            testImplementation mockitoDep
-//            testImplementation project(':test-shared')
 }

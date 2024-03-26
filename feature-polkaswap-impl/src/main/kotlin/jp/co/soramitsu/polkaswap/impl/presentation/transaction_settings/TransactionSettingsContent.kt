@@ -196,10 +196,10 @@ fun TransactionSettingsContent(
             modifier = Modifier
                 .height(48.dp)
                 .padding(horizontal = 16.dp)
-                .padding(bottom = 8.dp)
                 .fillMaxWidth(),
             onClick = callbacks::onSaveClick
         )
+        MarginVertical(margin = 8.dp)
 
         val showQuickInput = state.slippageInputState.isFocused && isSoftKeyboardOpen
         if (showQuickInput) {

@@ -11,8 +11,6 @@ import jp.co.soramitsu.common.data.network.runtime.binding.EqOraclePricePoint
 import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
 import jp.co.soramitsu.core.models.ChainId
 import jp.co.soramitsu.coredb.model.AddressBookContact
-import jp.co.soramitsu.coredb.model.AssetLocal
-import jp.co.soramitsu.coredb.model.AssetUpdateItem
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.shared_utils.runtime.AccountId
 import jp.co.soramitsu.shared_utils.runtime.extrinsic.ExtrinsicBuilder
@@ -30,7 +28,6 @@ import jp.co.soramitsu.wallet.impl.domain.model.Transfer
 import jp.co.soramitsu.wallet.impl.domain.model.TransferValidityStatus
 import jp.co.soramitsu.wallet.impl.domain.model.WalletAccount
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.StateFlow
 import jp.co.soramitsu.core.models.Asset as CoreAsset
 
 class NotValidTransferStatus(val status: TransferValidityStatus) : Exception()
@@ -42,6 +39,7 @@ enum class AssetSorting {
 interface WalletInteractor {
 
     fun assetsFlow(): Flow<List<AssetWithStatus>>
+    fun assetsFlowAndAccount(): Flow<Pair<Long, List<AssetWithStatus>>>
 
     suspend fun syncAssetsRates(): Result<Unit>
 
@@ -105,8 +103,6 @@ interface WalletInteractor {
 
     suspend fun getChainAddressForSelectedMetaAccount(chainId: ChainId): String?
 
-    suspend fun updateAssets(newItems: List<AssetUpdateItem>)
-
     suspend fun markAssetAsHidden(chainId: ChainId, chainAssetId: String)
 
     suspend fun markAssetAsShown(chainId: ChainId, chainAssetId: String)
@@ -155,4 +151,8 @@ interface WalletInteractor {
     fun applyAssetSorting(sorting: AssetSorting)
 
     fun observeAssetSorting(): Flow<AssetSorting>
+    suspend fun checkClaimSupport(chainId: ChainId): Boolean
+    suspend fun estimateClaimRewardsFee(chainId: ChainId): BigInteger
+    suspend fun getVestingLockedAmount(chainId: ChainId): BigInteger?
+    suspend fun claimRewards(chainId: ChainId): Result<String>
 }

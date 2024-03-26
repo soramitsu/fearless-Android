@@ -30,8 +30,7 @@ data class OptionsAddAccountScreenViewState(
     val chainId: ChainId,
     val chainName: String,
     val markedAsNotNeed: Boolean,
-    val assetId: String,
-    val priceId: String?
+    val assetId: String
 )
 
 @Composable
@@ -114,8 +113,7 @@ private fun OptionsAddAccountScreenPreview() {
                 chainId = "",
                 chainName = "Kusama",
                 markedAsNotNeed = false,
-                assetId = "",
-                priceId = null
+                assetId = ""
             ),
             onCreate = { t, t2 -> },
             onImport = { t, t2 -> },

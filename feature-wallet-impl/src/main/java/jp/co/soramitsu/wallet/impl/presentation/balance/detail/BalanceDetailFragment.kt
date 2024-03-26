@@ -63,14 +63,29 @@ class BalanceDetailFragment : BaseComposeFragment<BalanceDetailViewModel>() {
         viewModel.showAccountOptions.observeEvent(::showAccountOptions)
     }
 
-    private fun showAccountOptions(address: String) {
-        BalanceDetailOptionsBottomSheet(
-            requireContext(),
-            address = address,
-            onExportAccount = viewModel::exportClicked,
-            onSwitchNode = viewModel::switchNode,
-            onCopy = viewModel::copyAddressClicked
-        ).show()
+    private fun showAccountOptions(args: AccountOptionsPayload) {
+        if (args.isEthereum) {
+            BalanceDetailEthereumOptionsBottomSheet(
+                requireContext(),
+                address = args.address,
+                onExportAccount = viewModel::exportClicked,
+                onCopy = viewModel::copyAddressClicked,
+            )
+        } else {
+            BalanceDetailOptionsBottomSheet(
+                requireContext(),
+                address = args.address,
+                onExportAccount = viewModel::exportClicked,
+                onSwitchNode = viewModel::switchNode,
+                onCopy = viewModel::copyAddressClicked,
+                onClaimReward = if (args.supportClaim) {
+                    viewModel::claimRewardClicked
+                } else {
+                    null
+                }
+
+            )
+        }.show()
     }
 
     private fun showExportSourceChooser(payload: ExportSourceChooserPayload) {
@@ -96,6 +111,7 @@ class BalanceDetailFragment : BaseComposeFragment<BalanceDetailViewModel>() {
                     )
                 )
             }
+
             is LoadingState.Loaded<MainToolbarViewState> -> {
                 MainToolbar(
                     state = (toolbarState as LoadingState.Loaded<MainToolbarViewState>).data,
@@ -114,7 +130,11 @@ class BalanceDetailFragment : BaseComposeFragment<BalanceDetailViewModel>() {
 
     @OptIn(ExperimentalMaterialApi::class)
     @Composable
-    override fun Content(padding: PaddingValues, scrollState: ScrollState, modalBottomSheetState: ModalBottomSheetState) {
+    override fun Content(
+        padding: PaddingValues,
+        scrollState: ScrollState,
+        modalBottomSheetState: ModalBottomSheetState
+    ) {
         val state by viewModel.state.collectAsState()
         BalanceDetailsScreenWithRefreshBox(
             state = state,

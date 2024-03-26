@@ -29,14 +29,14 @@ import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.component.TitleValueViewState
 import jp.co.soramitsu.common.compose.component.Toolbar
 import jp.co.soramitsu.common.compose.component.ToolbarViewState
-import jp.co.soramitsu.common.compose.component.WalletItem
-import jp.co.soramitsu.common.compose.component.WalletItemViewState
+import jp.co.soramitsu.common.compose.component.WalletNameItem
+import jp.co.soramitsu.common.compose.component.WalletNameItemViewState
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
 
 data class ConnectInfoViewState(
     val session: InfoItemViewState,
     val permissions: InfoItemSetViewState?,
-    val wallets: List<WalletItemViewState>,
+    val wallets: List<WalletNameItemViewState>,
     val expireDate: String
 ) {
     companion object {
@@ -85,7 +85,7 @@ fun ConnectionInfoContent(state: ConnectInfoViewState, callback: ConnectionInfoS
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     state.wallets.map { it.copy(isSelected = true) }.map { walletItemState ->
-                        WalletItem(
+                        WalletNameItem(
                             state = walletItemState,
                             onSelected = {}
                         )

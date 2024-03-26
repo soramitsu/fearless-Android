@@ -47,6 +47,12 @@ class ValidatorInfoView @JvmOverloads constructor(
         binding.validatorTotalStakeView.setExtraOrHide(fiat)
     }
 
+    fun setCommissionValue(commission: String?) {
+        commission?.let { binding.validatorCommission.setBody(it) } ?: run {
+            binding.validatorCommission.visibility = GONE
+        }
+    }
+
     fun setNominatorsCount(count: String, maxNominations: String?) {
         binding.validatorNominatorsView.setBody(
             if (maxNominations == null) {

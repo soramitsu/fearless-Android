@@ -14,6 +14,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.Icon
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
@@ -161,7 +162,9 @@ fun AssetItem(
                     B1(text = state.symbol)
                 }
                 Spacer(modifier = Modifier.weight(1f))
-                Column {
+                Column(
+                    horizontalAlignment = Alignment.End
+                ) {
                     B1(text = state.fiatAmount, color = black2)
                     H5(text = state.amount)
                 }
@@ -206,7 +209,7 @@ private fun SelectAssetScreenPreview() {
         )
     )
     val state = AssetSelectScreenViewState(
-        assets = listOf(),
+        assets = items,
         searchQuery = null
     )
     Column(

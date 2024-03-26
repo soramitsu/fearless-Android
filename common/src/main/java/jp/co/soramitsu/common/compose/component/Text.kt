@@ -62,10 +62,12 @@ fun B1(
 
 @Composable
 fun B1EllipsizeMiddle(
+    modifier: Modifier = Modifier,
     text: String,
     color: Color = Color.White
 ) {
     AndroidView(
+        modifier = modifier,
         factory = { context ->
             TextView(context).apply {
                 setTextColor(color.toArgb())
@@ -292,6 +294,26 @@ fun H4(
         textAlign = textAlign,
         text = text,
         style = MaterialTheme.customTypography.header4,
+        modifier = modifier,
+        color = color,
+        overflow = overflow,
+        maxLines = maxLines
+    )
+}
+
+@Composable
+fun H4Bold(
+    modifier: Modifier = Modifier,
+    text: String,
+    textAlign: TextAlign? = null,
+    color: Color = Color.Unspecified,
+    overflow: TextOverflow = TextOverflow.Clip,
+    maxLines: Int = Int.MAX_VALUE
+) {
+    Text(
+        textAlign = textAlign,
+        text = text,
+        style = MaterialTheme.customTypography.header4.bold(),
         modifier = modifier,
         color = color,
         overflow = overflow,

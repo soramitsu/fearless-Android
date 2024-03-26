@@ -37,8 +37,8 @@ afterEvaluate {
         if (!file.exists()) file.mkdirs()
 
         reports {
-            xml.enabled = true
-            html.enabled = true
+            xml.required = true
+            html.required = true
             html.setDestination(new File(outputFileNameHtml))
             xml.setDestination(new File(outputFileName))
         }

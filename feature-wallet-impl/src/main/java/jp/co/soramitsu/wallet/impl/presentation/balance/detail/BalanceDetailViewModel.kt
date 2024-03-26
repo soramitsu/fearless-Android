@@ -65,7 +65,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -98,8 +98,8 @@ class BalanceDetailViewModel @Inject constructor(
     private val assetPayloadInitial: AssetPayload =
         savedStateHandle[KEY_ASSET_PAYLOAD] ?: error("No asset specified")
 
-    private val _showAccountOptions = MutableLiveData<Event<String>>()
-    val showAccountOptions: LiveData<Event<String>> = _showAccountOptions
+    private val _showAccountOptions = MutableLiveData<Event<AccountOptionsPayload>>()
+    val showAccountOptions: LiveData<Event<AccountOptionsPayload>> = _showAccountOptions
 
     private val _showExportSourceChooser = MutableLiveData<Event<ExportSourceChooserPayload>>()
     val showExportSourceChooser: LiveData<Event<ExportSourceChooserPayload>> =
@@ -112,20 +112,22 @@ class BalanceDetailViewModel @Inject constructor(
     private val chainsItemStateFlow = chainsFlow.mapList { it.toChainItemState() }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    private val assetModelFlow = selectedChainId.map { selectedChainId ->
-        val chains = chainsFlow.first()
-        val selectedChain = chains.first { it.id == selectedChainId }
-        val initialSelectedChain = chains.first { it.id == assetPayloadInitial.chainId }
+    private val assetModelFlow = selectedChainId.mapNotNull { selectedChainId ->
+        val chains = chainsFlow.firstOrNull()
+        val selectedChain = chains?.firstOrNull { it.id == selectedChainId }
+        val initialSelectedChain = chains?.firstOrNull { it.id == assetPayloadInitial.chainId }
 
         val initialSelectedAssetSymbol =
-            initialSelectedChain.assets.first { it.id == assetPayloadInitial.chainAssetId }.symbol
+            initialSelectedChain?.assets?.firstOrNull { it.id == assetPayloadInitial.chainAssetId }?.symbol
         val newSelectedAsset =
-            selectedChain.assets.first { it.symbol == initialSelectedAssetSymbol }
+            selectedChain?.assets?.firstOrNull { it.symbol == initialSelectedAssetSymbol }
 
-        AssetPayload(
-            chainId = selectedChainId,
-            chainAssetId = newSelectedAsset.id
-        )
+        newSelectedAsset?.id?.let {
+            AssetPayload(
+                chainId = selectedChainId,
+                chainAssetId = it
+            )
+        }
     }
         .flatMapLatest {
             interactor.assetFlow(it.chainId, it.chainAssetId)
@@ -170,14 +172,14 @@ class BalanceDetailViewModel @Inject constructor(
         selectedChainId,
         chainsItemStateFlow
     ) { chainId, chainItems ->
-        val selectedChain = chainItems.first {
+        val selectedChain = chainItems.firstOrNull {
             it.id == chainId
         }
         LoadingState.Loaded(
             MainToolbarViewState(
                 title = interactor.getSelectedMetaAccount().name,
                 homeIconState = ToolbarHomeIconState(navigationIcon = R.drawable.ic_arrow_back_24dp),
-                selectorViewState = ChainSelectorViewState(selectedChain.title, selectedChain.id)
+                selectorViewState = ChainSelectorViewState(selectedChain?.title, selectedChain?.id)
             )
         )
     }.stateIn(scope = this, started = SharingStarted.Eagerly, initialValue = LoadingState.Loading())
@@ -269,6 +271,8 @@ class BalanceDetailViewModel @Inject constructor(
                         it.message
                             ?: resourceManager.getString(R.string.common_undefined_error_message)
                     )
+
+                    else -> {}
                 }
             }
         }
@@ -338,7 +342,12 @@ class BalanceDetailViewModel @Inject constructor(
         interactor.getChainAddressForSelectedMetaAccount(
             assetPayload.value.chainId
         )?.let { address ->
-            _showAccountOptions.postValue(Event(address))
+            val isClaimSupported: Boolean = interactor.checkClaimSupport(assetPayload.value.chainId)
+            val isEthereum = interactor
+                .getChain(assetPayload.value.chainId)
+                .isEthereumChain
+            val payload = AccountOptionsPayload(address, isClaimSupported, isEthereum)
+            _showAccountOptions.postValue(Event(payload))
         }
     }
 
@@ -440,6 +449,10 @@ class BalanceDetailViewModel @Inject constructor(
         router.openNodes(assetPayload.value.chainId)
     }
 
+    fun claimRewardClicked() {
+        router.openClaimRewards(assetPayload.value.chainId)
+    }
+
     fun exportClicked() {
         viewModelScope.launch {
             val isEthereumBased = interactor
@@ -462,6 +475,7 @@ class BalanceDetailViewModel @Inject constructor(
                 is ExportSource.Json -> router.openExportJsonPassword(metaId, chainId)
                 is ExportSource.Seed -> router.openExportSeed(metaId, chainId)
                 is ExportSource.Mnemonic -> router.openExportMnemonic(metaId, chainId)
+                else -> return@launch
             }
 
             router.withPinCodeCheckRequired(destination, pinCodeTitleRes = R.string.account_export)
@@ -492,15 +506,16 @@ class BalanceDetailViewModel @Inject constructor(
 
     private fun openBalanceDetails() {
         launch {
-            val assetModel = assetModelFlow.first()
-            router.openFrozenTokens(
-                FrozenAssetPayload(
-                    assetSymbol = assetModel.token.configuration.symbol,
-                    locked = assetModel.locked,
-                    reserved = assetModel.reserved,
-                    redeemable = assetModel.redeemable
+            assetModelFlow.firstOrNull()?.let { assetModel ->
+                router.openFrozenTokens(
+                    FrozenAssetPayload(
+                        assetSymbol = assetModel.token.configuration.symbol,
+                        locked = assetModel.locked,
+                        reserved = assetModel.reserved,
+                        redeemable = assetModel.redeemable
+                    )
                 )
-            )
+            }
         }
     }
 }

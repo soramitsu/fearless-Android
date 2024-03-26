@@ -2,8 +2,6 @@ package jp.co.soramitsu.polkaswap.impl.presentation.swap_tokens
 
 import android.app.Activity
 import androidx.annotation.StringRes
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
@@ -56,7 +54,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapConcat
@@ -207,7 +204,9 @@ class SwapTokensViewModel @Inject constructor(
         )
         val fee = desiredAsset.token.amountFromPlanks(feeInPlanks)
         emit(LoadingState.Loaded(fee))
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, LoadingState.Loaded(null))
+    }
+        .catch { emit(LoadingState.Loaded(null)) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, LoadingState.Loaded(null))
 
     private val networkFeeViewStateFlow = networkFeeFlow.map { amountLoading ->
         amountLoading.map {
@@ -510,7 +509,7 @@ class SwapTokensViewModel @Inject constructor(
 
             val swapDetails = requireNotNull(swapDetails.value.getOrNull())
 
-            validate(swapDetails)?.let {
+            validate()?.let {
                 isLoading.value = false
                 showError(it)
                 return@launch
@@ -567,13 +566,12 @@ class SwapTokensViewModel @Inject constructor(
         enteredToAmountFlow.value = BigDecimal.ZERO
     }
 
-    private suspend fun validate(swapDetails: SwapDetails): Throwable? {
+    private suspend fun validate(): Throwable? {
         val feeAsset = requireNotNull(polkaswapInteractor.getFeeAsset())
         val amountToSwap = enteredFromAmountFlow.value
         val toTokenAmount = enteredToAmountFlow.value
         val available = requireNotNull(fromAssetFlow.value?.transferable)
         val networkFee = requireNotNull(networkFeeFlow.value.dataOrNull())
-        val fee = networkFee + swapDetails.liquidityProviderFee
         val isFromFeeAsset =
             fromAssetFlow.value?.token?.configuration?.id == feeAsset.token.configuration.id
         val isToFeeAsset =
@@ -584,15 +582,15 @@ class SwapTokensViewModel @Inject constructor(
                 SpendInsufficientBalanceException(resourceManager)
             }
 
-            isToFeeAsset.not() && feeAsset.transferable <= fee -> {
+            isToFeeAsset.not() && feeAsset.transferable <= networkFee -> {
                 UnableToPayFeeException(resourceManager)
             }
 
-            isToFeeAsset && feeAsset.transferable + toTokenAmount <= fee -> {
+            isToFeeAsset && feeAsset.transferable + toTokenAmount <= networkFee -> {
                 NotEnoughResultedAmountToPayFeeException(resourceManager)
             }
 
-            isFromFeeAsset && available <= amountToSwap + fee -> {
+            isFromFeeAsset && available <= amountToSwap + networkFee -> {
                 SpendInsufficientBalanceException(resourceManager)
             }
 
@@ -655,13 +653,6 @@ class SwapTokensViewModel @Inject constructor(
             Event(resourceManager.getString(tooltip.first) to resourceManager.getString(tooltip.second))
     }
 
-    override fun liquidityProviderTooltipClick() {
-        _showTooltipEvent.value = Event(
-            resourceManager.getString(R.string.polkaswap_liqudity_fee_title) to
-                    resourceManager.getString(R.string.polkaswap_liqudity_fee_info)
-        )
-    }
-
     override fun networkFeeTooltipClick() {
         _showTooltipEvent.value = Event(
             resourceManager.getString(R.string.common_network_fee) to
@@ -721,13 +712,7 @@ class SwapTokensViewModel @Inject constructor(
                 fromAssetFlow.value?.token?.configuration?.id == polkaswapInteractor.getFeeAsset()?.token?.configuration?.id
             val amount = transferable.multiply(value.toBigDecimal())
             val networkFee = networkFeeFlow.value.dataOrNull() ?: initialFee
-            val fee = if (details == null) {
-                val liquidityProviderFee = amount.multiply(BigDecimal.valueOf(0.003))
-                liquidityProviderFee + initialFee
-            } else {
-                networkFee + details.liquidityProviderFee
-            }
-            val result = if (isFeeAsset) amount.minus(fee) else amount
+            val result = if (isFeeAsset) amount.minus(networkFee) else amount
             val amountFrom = result.takeIf { it >= BigDecimal.ZERO }.orZero()
 
             enteredFromAmountFlow.value =
@@ -737,16 +722,11 @@ class SwapTokensViewModel @Inject constructor(
 
             awaitNewFeeJob?.cancel()
             awaitNewFeeJob = viewModelScope.launch {
-                combine(
-                    swapDetails,
-                    networkFeeFlow
-                ) { details, networkFee -> details to networkFee }.collectLatest { (detailsResult, networkFeeLoadingState) ->
-                    val newDetails = detailsResult.getOrNull() ?: return@collectLatest
-                    val newNetworkFee = networkFeeLoadingState.dataOrNull() ?: return@collectLatest
+                networkFeeFlow.map { networkFeeLoadingState ->
+                    val newNetworkFee = networkFeeLoadingState.dataOrNull() ?: return@map
 
                     val newResult =
-                        amount.minus(newNetworkFee).minus(newDetails.liquidityProviderFee)
-                            .takeIf { it >= BigDecimal.ZERO }.orZero()
+                        amount.minus(newNetworkFee).takeIf { it >= BigDecimal.ZERO }.orZero()
                     enteredFromAmountFlow.value =
                         newResult.setScale(MAX_DECIMALS_8, RoundingMode.HALF_DOWN)
                     awaitNewFeeJob?.cancel()

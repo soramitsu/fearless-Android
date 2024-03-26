@@ -6,6 +6,7 @@ import jp.co.soramitsu.core.models.ChainAssetType
 import jp.co.soramitsu.core.models.ChainId
 import jp.co.soramitsu.coredb.dao.ChainDao
 import jp.co.soramitsu.runtime.multiNetwork.chain.mapChainLocalToChain
+import jp.co.soramitsu.runtime.multiNetwork.chain.mapToPriceProvider
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import jp.co.soramitsu.wallet.api.domain.model.XcmChainType
@@ -37,7 +38,7 @@ class ChainInteractor(
                     priceId = it.priceId,
                     precision = it.precision,
                     staking = Asset.StakingType.UNSUPPORTED,
-                    priceProviders = emptyList(),
+                    purchaseProviders = emptyList(),
                     chainName = "",
                     chainIcon = it.icon,
                     isTestNet = false,
@@ -47,9 +48,10 @@ class ChainInteractor(
                     currencyId = it.currencyId,
                     existentialDeposit = it.existentialDeposit,
                     color = it.color,
-                    isNative = it.isNative
+                    isNative = it.isNative,
+                    priceProvider = mapToPriceProvider(it.priceProvider)
                 )
-            }.sortedWith(compareBy<Asset> { it.isTestNet }.thenByDescending { polkadotChainId in listOf(it.chainId) })
+            }
         }
         return mapped
     }

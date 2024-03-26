@@ -167,21 +167,25 @@ class PolkaswapInteractorImpl @Inject constructor(
         if (swapQuote.amount.isZero()) return Result.success(null)
         val per1 = amount.divide(swapQuote.amount, scale, RoundingMode.HALF_EVEN)
         val per2 = swapQuote.amount.divide(amount, scale, RoundingMode.HALF_EVEN)
-        val liquidityFee = swapQuote.fee
 
         val (fromTokenOnToToken, toTokenOnFromToken) = when (desired) {
             WithDesired.INPUT -> per1 to per2
             WithDesired.OUTPUT -> per2 to per1
         }
 
+        val polkaswapAssets = chainsRepository.getChain(polkaswapChainId).assets
+        val route = swapQuote.route?.joinToString("  ➝  ") { routeId ->
+            polkaswapAssets.firstOrNull { it.currencyId == routeId }?.symbol ?: "?"
+        }?.uppercase()
+
         val details = SwapDetails(
             amount = swapQuote.amount,
             minMax = minMax,
-            liquidityProviderFee = liquidityFee,
             fromTokenOnToToken = fromTokenOnToToken,
             toTokenOnFromToken = toTokenOnFromToken,
             feeAsset = feeAsset,
-            bestDexId = bestDex
+            bestDexId = bestDex,
+            route = route
         )
         return Result.success(details)
     }
@@ -245,6 +249,7 @@ class PolkaswapInteractorImpl @Inject constructor(
 
         val sources = polkaswapRepository.getAvailableSources(polkaswapChainId, tokenFromId, tokenToId, availableDexes)
             .mapValues { listOf(Market.SMART, *it.value.toTypedArray()) }
+
         availableMarkets.clear()
         availableMarkets.putAll(sources)
         return sources.values.flatten().toSet()
@@ -275,15 +280,6 @@ class PolkaswapInteractorImpl @Inject constructor(
         val feeAsset = getFeeAsset() ?: return BigDecimal.ZERO
         val feeAssetId = feeAsset.token.configuration.currencyId ?: return BigDecimal.ZERO
         val markets = emptyList<Market>()
-        val liquidityProxyFee = polkaswapRepository.getSwapQuote(
-            chainId = polkaswapChainId,
-            tokenFromId = feeAssetId,
-            tokenToId = "0x0200080000000000000000000000000000000000000000000000000000000000",
-            amount = BigInteger.ONE,
-            desired = WithDesired.INPUT,
-            curMarkets = markets,
-            dexId = 0
-        )?.fee.orZero()
 
         val fee = polkaswapRepository.estimateSwapFee(
             polkaswapChainId,
@@ -296,6 +292,6 @@ class PolkaswapInteractorImpl @Inject constructor(
             markets.backStrings(),
             WithDesired.INPUT
         )
-        return feeAsset.token.configuration.amountFromPlanks(fee) + feeAsset.token.configuration.amountFromPlanks(liquidityProxyFee)
+        return feeAsset.token.configuration.amountFromPlanks(fee)
     }
 }

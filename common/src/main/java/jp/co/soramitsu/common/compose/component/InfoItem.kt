@@ -80,7 +80,7 @@ fun InfoItemContent(modifier: Modifier = Modifier, state: InfoItemViewState) {
             state.title?.let { H5(text = it, color = white50) }
             state.subtitle?.let {
                 if (state.singleLine) {
-                    B1EllipsizeMiddle(state.subtitle)
+                    B1EllipsizeMiddle(text = state.subtitle)
                 } else {
                     B1(text = it, color = white)
                 }

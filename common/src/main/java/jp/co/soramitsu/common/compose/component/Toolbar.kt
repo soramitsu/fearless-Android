@@ -70,6 +70,14 @@ data class ToolbarViewState(
     val menuItems: List<MenuIconItem>? = null
 )
 
+fun ToolbarViewState(
+    title: String,
+    @DrawableRes navigationIcon: Int? = null,
+    vararg menuItems: MenuIconItem
+): ToolbarViewState{
+    return ToolbarViewState(title, navigationIcon, menuItems.asList())
+}
+
 @Composable
 fun MainToolbar(
     state: MainToolbarViewState,
@@ -312,7 +320,7 @@ fun IconButton(
 }
 
 @Composable
-fun Toolbar(state: ToolbarViewState, modifier: Modifier = Modifier, onNavigationClick: () -> Unit) {
+fun Toolbar(state: ToolbarViewState, modifier: Modifier = Modifier, onNavigationClick: () -> Unit = {}) {
     Row(
         modifier = modifier
             .fillMaxWidth()

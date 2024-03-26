@@ -18,7 +18,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.account.impl.presentation.importing.remote_backup.ImportRemoteWalletState
 import jp.co.soramitsu.account.impl.presentation.importing.remote_backup.model.WrappedBackupAccountMeta
-import jp.co.soramitsu.account.impl.presentation.importing.remote_backup.views.CompactWalletItemViewState
+import jp.co.soramitsu.account.impl.presentation.importing.remote_backup.views.CompactWalletNameItemViewState
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.compose.component.AccentButton
 import jp.co.soramitsu.common.compose.component.B0
@@ -27,7 +27,7 @@ import jp.co.soramitsu.common.compose.component.H3
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.component.Toolbar
 import jp.co.soramitsu.common.compose.component.ToolbarViewState
-import jp.co.soramitsu.common.compose.component.WalletItem
+import jp.co.soramitsu.common.compose.component.WalletNameItem
 import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
 import jp.co.soramitsu.common.compose.theme.alertYellow
 import jp.co.soramitsu.common.compose.theme.white50
@@ -90,8 +90,8 @@ internal fun RemoteWalletListScreen(
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     items(state.wallets) { wallet ->
-                        WalletItem(
-                            state = CompactWalletItemViewState(
+                        WalletNameItem(
+                            state = CompactWalletNameItemViewState(
                                 title = wallet.backupMeta.name
                             ),
                             onSelected = {

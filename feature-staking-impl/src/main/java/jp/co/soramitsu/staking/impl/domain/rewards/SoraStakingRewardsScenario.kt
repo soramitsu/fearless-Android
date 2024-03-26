@@ -1,18 +1,21 @@
 package jp.co.soramitsu.staking.impl.domain.rewards
 
 import java.math.BigInteger
+import jp.co.soramitsu.common.domain.SelectedFiat
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.core.rpc.RpcCalls
 import jp.co.soramitsu.core.rpc.calls.liquidityProxyQuote
 import jp.co.soramitsu.coredb.dao.TokenPriceDao
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.shared_utils.wsrpc.exception.RpcException
 import jp.co.soramitsu.wallet.impl.domain.model.Token
 
 // Attention! Works only for the sora main net
 class SoraStakingRewardsScenario(
     private val rpcCalls: RpcCalls,
     private val chainRegistry: ChainRegistry,
-    private val tokenDao: TokenPriceDao
+    private val tokenDao: TokenPriceDao,
+    private val selectedFiat: SelectedFiat
 ) {
     companion object {
         private const val SORA_MAIN_NET_CHAIN_ID =
@@ -37,8 +40,9 @@ class SoraStakingRewardsScenario(
     suspend fun getRewardAsset(): Token {
         val chain = chainRegistry.getChain(SORA_MAIN_NET_CHAIN_ID)
         val rewardAsset = requireNotNull(chain.assetsById[REWARD_ASSET_ID])
-        val priceId = requireNotNull(rewardAsset.priceId)
-        val token = tokenDao.getTokenPrice(priceId)
+        val priceId = rewardAsset.priceProvider?.id?.takeIf { selectedFiat.isUsd() } ?: rewardAsset.priceId
+        val requirePriceId = requireNotNull(priceId)
+        val token = tokenDao.getTokenPrice(requirePriceId)
 
         return Token(
             configuration = rewardAsset,
@@ -52,15 +56,19 @@ class SoraStakingRewardsScenario(
         val amount = BigInteger.ONE
         val amountInPlanks = amount.multiply(BigInteger.TEN.pow(SORA_PRECISION))
 
-        return rpcCalls.liquidityProxyQuote(
-            SORA_MAIN_NET_CHAIN_ID,
-            STAKING_ASSET_CURRENCY_ID,
-            REWARD_ASSET_CURRENCY_ID,
-            amountInPlanks,
-            DESIRED,
-            emptyList(),
-            FILTER,
-            DEX_ID
-        )?.amount.orZero()
+        return try {
+            rpcCalls.liquidityProxyQuote(
+                SORA_MAIN_NET_CHAIN_ID,
+                STAKING_ASSET_CURRENCY_ID,
+                REWARD_ASSET_CURRENCY_ID,
+                amountInPlanks,
+                DESIRED,
+                emptyList(),
+                FILTER,
+                DEX_ID
+            )?.amount.orZero()
+        } catch (e: Exception) {
+            BigInteger.ZERO
+        }
     }
 }

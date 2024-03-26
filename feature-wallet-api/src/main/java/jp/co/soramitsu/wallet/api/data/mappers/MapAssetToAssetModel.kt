@@ -3,7 +3,9 @@ package jp.co.soramitsu.wallet.api.data.mappers
 import androidx.annotation.StringRes
 import java.math.BigDecimal
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.utils.applyFiatRate
 import jp.co.soramitsu.common.utils.formatCrypto
+import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.feature_wallet_api.R
 import jp.co.soramitsu.wallet.api.presentation.model.AssetModel
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
@@ -16,6 +18,7 @@ fun mapAssetToAssetModel(
 ): AssetModel {
     val amount = retrieveAmount(asset).formatCrypto(asset.token.configuration.symbol)
     val formattedAmount = patternId?.let { resourceManager.getString(patternId, amount) } ?: amount
+    val fiatAmount = retrieveAmount(asset).applyFiatRate(asset.token.fiatRate)?.formatFiat(asset.token.fiatSymbol)
 
     return with(asset) {
         AssetModel(
@@ -23,7 +26,7 @@ fun mapAssetToAssetModel(
             chainAssetId = asset.token.configuration.id,
             imageUrl = token.configuration.iconUrl,
             tokenName = token.configuration.chainName,
-            assetBalance = formattedAmount
+            assetBalance = formattedAmount + fiatAmount?.let { " ($it)" }.orEmpty()
         )
     }
 }

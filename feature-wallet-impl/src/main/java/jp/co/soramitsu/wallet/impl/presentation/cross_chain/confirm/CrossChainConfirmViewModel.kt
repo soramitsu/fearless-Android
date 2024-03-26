@@ -259,11 +259,11 @@ class CrossChainConfirmViewModel @Inject constructor(
 
             val validationProcessResult = validateTransferUseCase.validateExistentialDeposit(
                 amountInPlanks = rawAmountInPlanks + destinationFeeInPlanks,
-                asset = asset,
+                originAsset = asset,
                 destinationChainId = destinationChain.id,
-                recipientAddress = recipientAddress,
-                ownAddress = selfAddress,
-                fee = originFee,
+                destinationAddress = recipientAddress,
+                originAddress = selfAddress,
+                originFee = originFee,
                 confirmedValidations = confirmedValidations
             )
 

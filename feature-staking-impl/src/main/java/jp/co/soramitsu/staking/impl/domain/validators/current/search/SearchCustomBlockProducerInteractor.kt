@@ -111,7 +111,11 @@ class SearchCustomBlockProducerInteractor(
                 if (selectedValidator.prefs?.blocked == true) return Result.failure(BlockedValidatorException)
                 val selectedValidators =
                     setupStakingProcess.get<SetupStakingProcess.ReadyToSubmit.Stash>().payload.blockProducers.toSet().toggle(selectedValidator)
-                setupStakingProcess.setCustomValidators(selectedValidators.toList())
+                try {
+                    setupStakingProcess.setCustomValidators(selectedValidators.toList())
+                } catch (e: Exception) {
+                    return Result.failure(e)
+                }
                 return Result.success(Unit)
             }
 

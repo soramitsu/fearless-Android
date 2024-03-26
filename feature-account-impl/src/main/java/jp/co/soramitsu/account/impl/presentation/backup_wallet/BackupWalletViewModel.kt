@@ -127,7 +127,7 @@ class BackupWalletViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, BackupWalletState.Empty)
 
     init {
-        launch {
+        viewModelScope.launch {
             checkIsWalletWithChainAccounts()
         }
     }
@@ -188,7 +188,7 @@ class BackupWalletViewModel @Inject constructor(
     }
 
     override fun onDeleteGoogleBackupClick() {
-        launch {
+        viewModelScope.launch {
             val backupOrigin = googleBackupType.firstOrNull()
 
             if (backupOrigin == BackupOrigin.WEB) {
@@ -210,7 +210,7 @@ class BackupWalletViewModel @Inject constructor(
     }
 
     private fun deleteGoogleBackup() {
-        launch {
+        viewModelScope.launch {
             googleBackupAddressFlow.firstOrNull()?.let { address ->
                 runCatching {
                     backupService.deleteBackupAccount(address)
@@ -237,13 +237,15 @@ class BackupWalletViewModel @Inject constructor(
     }
 
     private fun checkIsWalletBackedUpToGoogle() {
-        launch {
-            refresh.emit(Event(Unit))
+        runCatching {
+            viewModelScope.launch {
+                refresh.emit(Event(Unit))
+            }
         }
     }
 
     fun authorizeGoogle(launcher: ActivityResultLauncher<Intent>) {
-        launch {
+        viewModelScope.launch {
             try {
                 backupService.logout()
                 if (backupService.authorize(launcher)) {

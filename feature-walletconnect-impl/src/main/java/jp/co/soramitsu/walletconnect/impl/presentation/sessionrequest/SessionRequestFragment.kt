@@ -1,6 +1,5 @@
 package jp.co.soramitsu.walletconnect.impl.presentation.sessionrequest
 
-import android.content.DialogInterface
 import android.widget.FrameLayout
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
@@ -28,13 +27,8 @@ class SessionRequestFragment : BaseComposeBottomSheetDialogFragment<SessionReque
 
     override fun setupBehavior(behavior: BottomSheetBehavior<FrameLayout>) {
         behavior.state = BottomSheetBehavior.STATE_EXPANDED
-        behavior.isHideable = true
+        behavior.isHideable = false
         behavior.skipCollapsed = true
-    }
-
-    override fun onDismiss(dialog: DialogInterface) {
-        super.onDismiss(dialog)
-        viewModel.onClose()
     }
 
     companion object {
