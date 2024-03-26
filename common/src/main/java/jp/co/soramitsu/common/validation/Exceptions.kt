@@ -49,9 +49,9 @@ class TransferToTheSameAddressException(resourceManager: ResourceManager) : Vali
     null
 )
 
-class DeadRecipientException(resourceManager: ResourceManager) : ValidationException(
+class DeadRecipientException(resourceManager: ResourceManager, resultAmount: String, edAmount: String, topUpAmount: String) : ValidationException(
     resourceManager.getString(R.string.common_amount_low),
-    resourceManager.getString(R.string.wallet_send_dead_recipient_message)
+    resourceManager.getString(R.string.wallet_send_dead_recipient_message_v2, resultAmount, edAmount, topUpAmount)
 )
 
 class InsufficientStakeBalanceException(resourceManager: ResourceManager) : ValidationException(

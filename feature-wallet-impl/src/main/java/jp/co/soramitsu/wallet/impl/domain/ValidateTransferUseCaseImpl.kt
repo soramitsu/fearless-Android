@@ -4,6 +4,7 @@ import java.math.BigDecimal
 import java.math.BigInteger
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.accountId
+import jp.co.soramitsu.common.utils.formatCryptoDetail
 import jp.co.soramitsu.common.utils.isZero
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.sumByBigDecimal
@@ -97,12 +98,16 @@ class ValidateTransferUseCaseImpl(
 
         val destinationExistentialDeposit = if (isCrossChainTransfer) existentialDepositUseCase(destinationAssetConfig ?: originAssetConfig) else originExistentialDeposit
         val destinationExistentialDepositDecimal = destinationAssetConfig?.amountFromPlanks(destinationExistentialDeposit).orZero()
+        val destinationEdFormatted = destinationExistentialDepositDecimal.formatCryptoDetail(destinationAssetConfig?.symbol)
+        val destinationResultFormatted = (totalDestinationBalanceDecimal + amountDecimal).formatCryptoDetail(destinationAssetConfig?.symbol)
+        val destinationExtra = destinationExistentialDepositDecimal - (totalDestinationBalanceDecimal + amountDecimal)
+        val destinationExtraFormatted = destinationExtra.formatCryptoDetail(destinationAssetConfig?.symbol)
 
         val metaAccount = accountRepository.getSelectedMetaAccount()
 
         val validationChecks = when {
             originAssetConfig.type == ChainAssetType.Equilibrium -> {
-                getEquilibriumValidationChecks(originAsset, destinationAccountId, originChain, originAddress, amountInPlanks, originFee, tip, destinationExistentialDepositDecimal, isCrossChainTransfer)
+                getEquilibriumValidationChecks(originAsset, destinationAccountId, originChain, originAddress, amountInPlanks, originFee, tip, destinationExistentialDepositDecimal, destinationAssetConfig?.symbol, isCrossChainTransfer)
             }
 
             originChain.isSoraBasedChain() && destinationChain.isSoraBasedChain().not() -> {
@@ -132,7 +137,7 @@ class ValidateTransferUseCaseImpl(
                     TransferValidationResult.InsufficientUtilityAssetBalance to (originFee + tip > utilityAssetBalance),
                     getTransferValidationResultExistentialDeposit(isCrossChainTransfer, originEdFormatted) to (originTransferable - amountInPlanks < originExistentialDeposit),
                     getTransferValidationResultUtilityExistentialDeposit(isCrossChainTransfer, utilityEdFormatted) to (utilityAssetBalance - (originFee + tip) < utilityAssetExistentialDeposit),
-                    TransferValidationResult.DeadRecipient to (totalDestinationBalanceDecimal + amountDecimal < destinationExistentialDepositDecimal)
+                    TransferValidationResult.DeadRecipient(destinationResultFormatted, destinationEdFormatted, destinationExtraFormatted) to (totalDestinationBalanceDecimal + amountDecimal < destinationExistentialDepositDecimal)
                 )
             }
 
@@ -163,7 +168,7 @@ class ValidateTransferUseCaseImpl(
                     TransferValidationResult.InsufficientUtilityAssetBalance to (originFee + tip > utilityAssetBalance),
                     getTransferValidationResultExistentialDeposit(isCrossChainTransfer, originEdFormatted) to (originTransferable - amountInPlanks < originExistentialDeposit),
                     getTransferValidationResultUtilityExistentialDeposit(isCrossChainTransfer, utilityEdFormatted) to (utilityAssetBalance - (originFee + tip) < utilityAssetExistentialDeposit),
-                    TransferValidationResult.DeadRecipient to (totalDestinationBalanceDecimal + amountDecimal < destinationExistentialDepositDecimal)
+                    TransferValidationResult.DeadRecipient(destinationResultFormatted, destinationEdFormatted, destinationExtraFormatted) to (totalDestinationBalanceDecimal + amountDecimal < destinationExistentialDepositDecimal)
                 )
             }
 
@@ -195,7 +200,7 @@ class ValidateTransferUseCaseImpl(
                 mapOf(
                     TransferValidationResult.InsufficientBalance to (amountInPlanks + originFee + tip > originAvailable),
                     getTransferValidationResultExistentialDeposit(isCrossChainTransfer, originEdFormatted) to (resultedBalance < originExistentialDeposit),
-                    TransferValidationResult.DeadRecipient to (totalDestinationBalanceDecimal + amountDecimal < destinationExistentialDepositDecimal)
+                    TransferValidationResult.DeadRecipient(destinationResultFormatted, destinationEdFormatted, destinationExtraFormatted) to (totalDestinationBalanceDecimal + amountDecimal < destinationExistentialDepositDecimal)
                 )
             }
 
@@ -233,7 +238,7 @@ class ValidateTransferUseCaseImpl(
                 mapOf(
                     TransferValidationResult.InsufficientBalance to (amountInPlanks + feeRequiredTokenInPlanks.orZero() > originAvailable),
                     getTransferValidationResultExistentialDeposit(isCrossChainTransfer, originEdFormatted) to (originTransferable - amountInPlanks - feeRequiredTokenInPlanks.orZero() < originExistentialDeposit),
-                    TransferValidationResult.DeadRecipient to (totalDestinationBalanceDecimal + amountDecimal < destinationExistentialDepositDecimal)
+                    TransferValidationResult.DeadRecipient(destinationResultFormatted, destinationEdFormatted, destinationExtraFormatted) to (totalDestinationBalanceDecimal + amountDecimal < destinationExistentialDepositDecimal)
                 )
             }
 
@@ -255,7 +260,7 @@ class ValidateTransferUseCaseImpl(
                     TransferValidationResult.InsufficientUtilityAssetBalance to (originFee + tip > utilityAssetBalance),
                     getTransferValidationResultExistentialDeposit(isCrossChainTransfer, originEdFormatted) to (originTransferable - amountInPlanks < originExistentialDeposit),
                     getTransferValidationResultUtilityExistentialDeposit(isCrossChainTransfer, utilityEdFormatted) to (utilityAssetBalance - (originFee + tip) < utilityAssetExistentialDeposit),
-                    TransferValidationResult.DeadRecipient to (totalDestinationBalanceDecimal + amountDecimal < destinationExistentialDepositDecimal)
+                    TransferValidationResult.DeadRecipient(destinationResultFormatted, destinationEdFormatted, destinationExtraFormatted) to (totalDestinationBalanceDecimal + amountDecimal < destinationExistentialDepositDecimal)
                 )
             }
         }
@@ -327,9 +332,14 @@ class ValidateTransferUseCaseImpl(
         val totalDestinationBalanceDecimal = destinationAsset?.amountFromPlanks(totalDestinationBalanceInPlanks).orZero()
         val isCrossChainTransfer = originChainId != destinationChainId
 
+        val destinationEdFormatted = destinationExistentialDepositDecimal.formatCryptoDetail(destinationAsset?.symbol)
+        val destinationResultFormatted = (totalDestinationBalanceDecimal + amountDecimal).formatCryptoDetail(destinationAsset?.symbol)
+        val destinationExtra = destinationExistentialDepositDecimal - (totalDestinationBalanceDecimal + amountDecimal)
+        val destinationExtraFormatted = destinationExtra.formatCryptoDetail(destinationAsset?.symbol)
+
         val validationChecks = when {
             originAssetConfig.type == ChainAssetType.Equilibrium -> {
-                getEquilibriumValidationChecks(originAsset, destinationAccountId, originChain, originAddress, amountInPlanks, originFee, tip, destinationExistentialDepositDecimal, isCrossChainTransfer)
+                getEquilibriumValidationChecks(originAsset, destinationAccountId, originChain, originAddress, amountInPlanks, originFee, tip, destinationExistentialDepositDecimal, destinationAsset?.symbol, isCrossChainTransfer)
             }
 
             originAssetConfig.isUtility -> {
@@ -337,7 +347,7 @@ class ValidateTransferUseCaseImpl(
                 val assetEdFormatted = originExistentialDeposit.formatCryptoDetailFromPlanks(originAsset.token.configuration)
                 mapOf(
                     getTransferValidationResultExistentialDeposit(isCrossChainTransfer, assetEdFormatted) to (resultedBalance < originExistentialDeposit),
-                    TransferValidationResult.DeadRecipient to (totalDestinationBalanceDecimal + amountDecimal < destinationExistentialDepositDecimal)
+                    TransferValidationResult.DeadRecipient(destinationResultFormatted, destinationEdFormatted, destinationExtraFormatted) to (totalDestinationBalanceDecimal + amountDecimal < destinationExistentialDepositDecimal)
                 )
             }
 
@@ -345,7 +355,7 @@ class ValidateTransferUseCaseImpl(
                 val originEdFormatted = originExistentialDeposit.formatCryptoDetailFromPlanks(originAsset.token.configuration)
                 mapOf(
                     getTransferValidationResultExistentialDeposit(isCrossChainTransfer, originEdFormatted) to (transferable - amountInPlanks < originExistentialDeposit),
-                    TransferValidationResult.DeadRecipient to (totalDestinationBalanceDecimal + amountDecimal < destinationExistentialDepositDecimal)
+                    TransferValidationResult.DeadRecipient(destinationResultFormatted, destinationEdFormatted, destinationExtraFormatted) to (totalDestinationBalanceDecimal + amountDecimal < destinationExistentialDepositDecimal)
                 )
             }
         }
@@ -362,6 +372,7 @@ class ValidateTransferUseCaseImpl(
         originFee: BigInteger,
         tip: BigInteger,
         destinationExistentialDepositDecimal: BigDecimal,
+        destinationAssetSymbol: String?,
         isCrossChainTransfer: Boolean
     ): Map<TransferValidationResult, Boolean> {
         val originAssetConfig = originAsset.token.configuration
@@ -416,9 +427,14 @@ class ValidateTransferUseCaseImpl(
         val originNewTotalInPlanks = originAsset.token.configuration.planksFromAmount(originNewTotal)
 
         val originAssetEdFormatted = originAssetExistentialDeposit.formatCryptoDetailFromPlanks(originAsset.token.configuration)
+        val destinationEdFormatted = destinationExistentialDepositDecimal.formatCryptoDetail(destinationAssetSymbol)
+        val destinationResultFormatted = destinationNewTotal.formatCryptoDetail(destinationAssetSymbol)
+        val destinationExtra = destinationExistentialDepositDecimal - destinationNewTotal
+        val destinationExtraFormatted = destinationExtra.formatCryptoDetail(destinationAssetSymbol)
+
         return mapOf(
             getTransferValidationResultExistentialDeposit(isCrossChainTransfer, originAssetEdFormatted) to (originNewTotalInPlanks < originAssetExistentialDeposit),
-            TransferValidationResult.DeadRecipient to (destinationNewTotal < destinationExistentialDepositDecimal)
+            TransferValidationResult.DeadRecipient(destinationResultFormatted, destinationEdFormatted, destinationExtraFormatted) to (destinationNewTotal < destinationExistentialDepositDecimal)
         )
     }
 
