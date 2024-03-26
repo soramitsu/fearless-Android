@@ -25,6 +25,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.mapNodeLocalToNode
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.NodeId
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import jp.co.soramitsu.runtime.multiNetwork.connection.ConnectionPool
 import jp.co.soramitsu.runtime.multiNetwork.connection.EthereumConnectionPool
 import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeProvider
@@ -34,9 +35,6 @@ import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeSyncService
 import jp.co.soramitsu.shared_utils.runtime.RuntimeSnapshot
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -88,7 +86,10 @@ class ChainRegistry @Inject constructor(
                 chainSyncService.syncUp()
                 runtimeSyncService.syncTypes()
             }
-            chainDao.joinChainInfoFlow().mapList(::mapChainLocalToChain).diffed()
+            chainDao.joinChainInfoFlow()
+                .mapList(::mapChainLocalToChain)
+                .diffed()
+                .filter { it.addedOrModified.isNotEmpty() || it.removed.isNotEmpty() }
                 .collect { (removed, addedOrModified, all) ->
                     val s = supervisorScope {
                         runCatching {
