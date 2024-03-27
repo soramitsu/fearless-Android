@@ -16,14 +16,15 @@ Track features development: [board link](https://soramitsucoltd.aha.io/shared/34
 
 ## How to build
 
-To build Fearless Wallet Android project, you need to provide several keys either in enviroment variables or in `local.properties` file:
+To build Fearless Wallet Android project, you need to provide several keys either in environment variables or in `local.properties` file:
 
 ### Moonpay properties
 ``` 
 MOONPAY_TEST_SECRET=stub
 MOONPAY_PRODUCTION_SECRET=stub
 ```
-Note, that with stub keys buy via moonpay will not work correctly. However, other parts of application will not be affected.
+
+Note, that with stub keys buy via moonpay will not work correctly. However, other parts of the application will not be affected.
 
 ### Sora CARD SDK
 
