@@ -36,7 +36,8 @@ data class AssetLocal(
     val sortIndex: Int = Int.MAX_VALUE,
     val enabled: Boolean? = null,
     val markedNotNeed: Boolean = false,
-    val chainAccountName: String? = null
+    val chainAccountName: String? = null,
+    val status: String? = null
 ) {
     companion object {
         fun createEmpty(

@@ -26,9 +26,12 @@ data class Asset(
     val enabled: Boolean?,
     val minSupportedVersion: String?,
     val chainAccountName: String?,
-    val markedNotNeed: Boolean
+    val markedNotNeed: Boolean,
+    val status: String?
 ) {
     companion object {
+        private const val STATUS_FROZEN = "Frozen"
+
         fun createEmpty(chainAccount: MetaAccount.ChainAccount) = chainAccount.chain?.let {
             it.utilityAsset?.let { utilityAsset ->
                 createEmpty(
@@ -62,7 +65,8 @@ data class Asset(
             enabled = null,
             minSupportedVersion = minSupportedVersion,
             chainAccountName = chainAccountName,
-            markedNotNeed = false
+            markedNotNeed = false,
+            status = null
         )
     }
 
@@ -79,6 +83,10 @@ data class Asset(
 
     val transferable = free - locked
     val transferableInPlanks = freeInPlanks?.let { it - miscFrozenInPlanks.orZero().max(feeFrozenInPlanks.orZero()) }.orZero()
+
+    val isAssetFrozen = status == STATUS_FROZEN
+    val sendAvailable: BigDecimal = if (isAssetFrozen) BigDecimal.ZERO else transferable
+    val sendAvailableInPlanks: BigInteger = if (isAssetFrozen) BigInteger.ZERO else transferableInPlanks
 
     val bonded = token.amountFromPlanks(bondedInPlanks.orZero())
     val redeemable = token.amountFromPlanks(redeemableInPlanks.orZero())

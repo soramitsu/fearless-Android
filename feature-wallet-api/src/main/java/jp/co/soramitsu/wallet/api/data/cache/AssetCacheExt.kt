@@ -59,7 +59,8 @@ suspend fun AssetCache.updateAsset(
             updateAsset(metaId, accountId, asset) {
                 it.copy(
                     accountId = accountId,
-                    freeInPlanks = balanceData.balance
+                    freeInPlanks = balanceData.balance,
+                    status = balanceData.status
                 )
             }
         }
