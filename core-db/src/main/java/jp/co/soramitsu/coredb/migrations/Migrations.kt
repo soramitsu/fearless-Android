@@ -6,6 +6,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 val Migration_62_63 = object : Migration(62, 63) {
     override fun migrate(db: SupportSQLiteDatabase) {
         db.execSQL("ALTER TABLE assets ADD COLUMN `status` TEXT NULL")
+        db.execSQL("UPDATE assets SET `status` = 'Frozen' where id == '8f79aa5a-9f31-442c-ac96-01ff80b105e0'")
     }
 }
 
