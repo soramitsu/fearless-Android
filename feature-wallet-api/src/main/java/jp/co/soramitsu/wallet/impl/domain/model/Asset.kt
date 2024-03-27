@@ -83,16 +83,10 @@ data class Asset(
 
     val transferable = free - locked
     val transferableInPlanks = freeInPlanks?.let { it - miscFrozenInPlanks.orZero().max(feeFrozenInPlanks.orZero()) }.orZero()
-    val sendAvailable: BigDecimal = if (status == STATUS_FROZEN) {
-        BigDecimal.ZERO
-    } else {
-        transferable
-    }
-    val sendAvailableInPlanks: BigInteger = if (status == STATUS_FROZEN) {
-        BigInteger.ZERO
-    } else {
-        transferableInPlanks
-    }
+
+    val isAssetFrozen = status == STATUS_FROZEN
+    val sendAvailable: BigDecimal = if (isAssetFrozen) BigDecimal.ZERO else transferable
+    val sendAvailableInPlanks: BigInteger = if (isAssetFrozen) BigInteger.ZERO else transferableInPlanks
 
     val bonded = token.amountFromPlanks(bondedInPlanks.orZero())
     val redeemable = token.amountFromPlanks(redeemableInPlanks.orZero())
