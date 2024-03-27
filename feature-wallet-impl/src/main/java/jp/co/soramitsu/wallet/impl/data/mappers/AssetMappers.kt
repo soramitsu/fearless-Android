@@ -53,7 +53,8 @@ fun mapAssetLocalToAsset(
             enabled = asset.enabled,
             minSupportedVersion = minSupportedVersion,
             chainAccountName = asset.chainAccountName,
-            markedNotNeed = asset.markedNotNeed
+            markedNotNeed = asset.markedNotNeed,
+            status = asset.status
         )
     }
 }

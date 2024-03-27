@@ -37,7 +37,7 @@ class SubsquidHistorySource(
             val transfer = TransactionFilter.TRANSFER.isAppliedOrNull(filters)?.let { transferApplied ->
                 it.transfer?.let { transfer ->
                     Operation(
-                        id = it.extrinsicIdx ?: it.id,
+                        id = it.id,
                         address = it.address,
                         time = it.timestampMillis,
                         chainAsset = chainAsset,

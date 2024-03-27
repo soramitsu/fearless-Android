@@ -53,7 +53,8 @@ class EqAccountInfo(
 ) : AssetBalanceData
 
 class AssetsAccountInfo(
-    val balance: BigInteger
+    val balance: BigInteger,
+    val status: String?
 ) : AssetBalanceData
 
 class SimpleBalanceData(val balance: BigInteger) : AssetBalanceData
@@ -120,7 +121,8 @@ fun bindAssetsAccountInfo(scale: String, runtime: RuntimeSnapshot): AssetsAccoun
 
     return dynamicInstance?.let {
         AssetsAccountInfo(
-            balance = bindNumber(dynamicInstance["balance"])
+            balance = bindNumber(dynamicInstance["balance"]),
+            status = dynamicInstance.get<DictEnum.Entry<*>>("status")?.name
         )
     }
 }

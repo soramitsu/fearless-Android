@@ -8,6 +8,7 @@ import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.accountId
 import jp.co.soramitsu.account.api.domain.model.address
+import jp.co.soramitsu.account.impl.data.mappers.mapMetaAccountLocalToMetaAccount
 import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
 import jp.co.soramitsu.common.data.network.runtime.binding.ExtrinsicStatusEvent
 import jp.co.soramitsu.common.data.network.runtime.binding.SimpleBalanceData
@@ -21,6 +22,7 @@ import jp.co.soramitsu.core.models.ChainAssetType
 import jp.co.soramitsu.core.updater.UpdateSystem
 import jp.co.soramitsu.core.updater.Updater
 import jp.co.soramitsu.core.utils.utilityAsset
+import jp.co.soramitsu.coredb.dao.MetaAccountDao
 import jp.co.soramitsu.coredb.dao.OperationDao
 import jp.co.soramitsu.coredb.model.OperationLocal
 import jp.co.soramitsu.runtime.ext.addressOf
@@ -32,7 +34,7 @@ import jp.co.soramitsu.runtime.multiNetwork.toSyncIssue
 import jp.co.soramitsu.runtime.network.subscriptionFlowCatching
 import jp.co.soramitsu.shared_utils.runtime.AccountId
 import jp.co.soramitsu.shared_utils.runtime.RuntimeSnapshot
-import jp.co.soramitsu.shared_utils.wsrpc.request.runtime.storage.SubscribeStorageRequest
+import jp.co.soramitsu.shared_utils.wsrpc.request.runtime.RuntimeRequest
 import jp.co.soramitsu.shared_utils.wsrpc.request.runtime.storage.storageChange
 import jp.co.soramitsu.wallet.api.data.cache.AssetCache
 import jp.co.soramitsu.wallet.api.data.cache.bindEquilibriumAccountData
@@ -49,11 +51,13 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNot
-import kotlinx.coroutines.flow.flatMapMerge
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
@@ -69,6 +73,7 @@ private const val RUNTIME_AWAITING_TIMEOUT = 10_000L
 class BalancesUpdateSystem(
     private val chainRegistry: ChainRegistry,
     private val accountRepository: AccountRepository,
+    private val metaAccountDao: MetaAccountDao,
     private val bulkRetriever: BulkRetriever,
     private val assetCache: AssetCache,
     private val substrateSource: SubstrateRemoteSource,
@@ -87,28 +92,34 @@ class BalancesUpdateSystem(
     private fun subscribeFlow(): Flow<Updater.SideEffect> {
         return combine(
             chainRegistry.syncedChains,
-            accountRepository.selectedMetaAccountFlow()
-        ) { chains, metaAccount ->
-            coroutineScope {
-                chains.map { chain ->
-                    launch {
-                        if (chain.isEthereumChain) {
-                            listenEthereumBalancesByTrigger(chain, metaAccount).launchIn(scope)
-                        } else {
-                            if (!chain.isEthereumBased || metaAccount.ethereumPublicKey != null) {
-                                subscribeChainBalances(chain, metaAccount).onEachFailure {
-                                    logError(
-                                        chain,
-                                        it
-                                    )
-                                }.launchIn(scope)
+            metaAccountDao.selectedMetaAccountInfoFlow().filterNotNull()
+        ) { chains, accountInfo ->
+            scope.coroutineContext.cancelChildren()
+            val metaAccount =
+                mapMetaAccountLocalToMetaAccount(chains.associateBy { it.id }, accountInfo)
+            chains to metaAccount
+        }
+            .map { (chains, metaAccount) ->
+                coroutineScope {
+                    chains.map { chain ->
+                        launch {
+                            if (chain.isEthereumChain) {
+                                listenEthereumBalancesByTrigger(chain, metaAccount).launchIn(scope)
+                            } else {
+                                if (!chain.isEthereumBased || metaAccount.ethereumPublicKey != null) {
+                                    subscribeChainBalances(chain, metaAccount).onEachFailure {
+                                        logError(
+                                            chain,
+                                            it
+                                        )
+                                    }.launchIn(scope)
+                                }
                             }
                         }
                     }
                 }
-            }
 
-        }.transform { }
+            }.transform { }
     }
 
     private fun listenEthereumBalancesByTrigger(
@@ -133,10 +144,10 @@ class BalancesUpdateSystem(
         val chainUpdateFlow =
             chainRegistry.getRuntimeProviderOrNull(chain.id)
                 ?.observeWithTimeout(RUNTIME_AWAITING_TIMEOUT)
-                ?.flatMapMerge { runtimeResult ->
+                ?.flatMapLatest { runtimeResult ->
                     if (runtimeResult.isFailure) {
                         networkStateMixin.notifyChainSyncProblem(chain.toSyncIssue())
-                        return@flatMapMerge flowOf(runtimeResult)
+                        return@flatMapLatest flowOf(runtimeResult)
                     }
                     val runtime = runtimeResult.requireValue()
                     networkStateMixin.notifyChainSyncSuccess(chain.id)
@@ -146,16 +157,16 @@ class BalancesUpdateSystem(
                             chain,
                             metaAccount,
                             runtime
-                        ).onFailure { return@flatMapMerge flowOf(Result.failure<Any>(it)) }
+                        ).onFailure { return@flatMapLatest flowOf(Result.failure<Any>(it)) }
                             .getOrNull()
-                            ?: return@flatMapMerge flowOf(Result.failure<Any>(RuntimeException("Can't build storage keys for meta account ${metaAccount.name}, chain: ${chain.name}")))
+                            ?: return@flatMapLatest flowOf(Result.failure<Any>(RuntimeException("Can't build storage keys for meta account ${metaAccount.name}, chain: ${chain.name}")))
 
                     val socketService = runCatching { chainRegistry.getSocketOrNull(chain.id) }
-                        .onFailure { return@flatMapMerge flowOf(Result.failure<Any>(it)) }
+                        .onFailure { return@flatMapLatest flowOf(Result.failure<Any>(it)) }
                         .getOrNull()
-                        ?: return@flatMapMerge flowOf(Result.failure<Any>(RuntimeException("Error getting socket for chain ${chain.name}")))
+                        ?: return@flatMapLatest flowOf(Result.failure<Any>(RuntimeException("Error getting socket for chain ${chain.name}")))
 
-                    val request = SubscribeStorageRequest(storageKeys.map { it.key })
+                    val request = SubscribeBalanceRequest(storageKeys.map { it.key })
 
                     combine(socketService.subscriptionFlowCatching(request)) { subscriptionsChangeResults ->
                         subscriptionsChangeResults.forEach { subscriptionChangeResult ->
@@ -453,3 +464,10 @@ class BalancesUpdateSystem(
         )
     }
 }
+
+// Request with id = 0 helps to indicate balances subscriptions in logs
+class SubscribeBalanceRequest(storageKeys: List<String>) : RuntimeRequest(
+    "state_subscribeStorage",
+    listOf(storageKeys),
+    0
+)

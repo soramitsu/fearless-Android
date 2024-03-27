@@ -226,18 +226,22 @@ class BalanceDetailViewModel @Inject constructor(
         )
 
         val transferableFormatted =
-            balanceModel.transferable.formatCryptoDetail(balanceModel.token.configuration.symbol)
-        val transferableFiat = balanceModel.token.fiatAmount(balanceModel.transferable)
+            balanceModel.sendAvailable.formatCryptoDetail(balanceModel.token.configuration.symbol)
+        val transferableFiat = balanceModel.token.fiatAmount(balanceModel.sendAvailable)
             ?.formatFiat(balanceModel.token.fiatSymbol)
         val newTransferableState = defaultState.transferableViewState.copy(
             value = transferableFormatted,
             additionalValue = transferableFiat
         )
 
-        val lockedFormatted =
-            balanceModel.locked.formatCryptoDetail(balanceModel.token.configuration.symbol)
-        val lockedFiat = balanceModel.token.fiatAmount(balanceModel.locked)
-            ?.formatFiat(balanceModel.token.fiatSymbol)
+        val showLocked = if (balanceModel.isAssetFrozen) {
+            balanceModel.transferable
+        } else {
+            balanceModel.locked
+        }
+        val lockedFormatted = showLocked.formatCryptoDetail(balanceModel.token.configuration.symbol)
+        val lockedFiat = balanceModel.token.fiatAmount(showLocked)?.formatFiat(balanceModel.token.fiatSymbol)
+
         val newLockedState = defaultState.lockedViewState.copy(
             value = lockedFormatted,
             additionalValue = lockedFiat,

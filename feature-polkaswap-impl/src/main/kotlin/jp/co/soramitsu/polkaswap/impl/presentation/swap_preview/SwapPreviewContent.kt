@@ -104,7 +104,7 @@ fun SwapPreviewContent(
                             ),
                             TitleValueViewState(
                                 title = stringResource(R.string.common_route),
-                                value = "$fromTokenName  ➝  $toTokenName"
+                                value = state.swapDetailsViewState.route
                             ),
                             TitleValueViewState(
                                 title = "$fromTokenName / $toTokenName",
@@ -113,11 +113,6 @@ fun SwapPreviewContent(
                             TitleValueViewState(
                                 title = "$toTokenName / $fromTokenName",
                                 value = state.swapDetailsViewState.toTokenOnFromToken
-                            ),
-                            TitleValueViewState(
-                                title = stringResource(R.string.common_liquidity_provider_fee),
-                                value = state.swapDetailsViewState.liquidityProviderFee.tokenAmount,
-                                additionalValue = state.swapDetailsViewState.liquidityProviderFee.fiatAmount
                             ),
                             TitleValueViewState(
                                 title = stringResource(R.string.common_network_fee),
@@ -161,14 +156,10 @@ fun SwapPreviewContentPreview() {
                 toFiatMinReceived = "\$0.98",
                 fromTokenAmount = "1",
                 toTokenAmount = "2",
-                liquidityProviderFee = SwapDetailsViewState.NetworkFee(
-                    tokenAmount = "0.0007",
-                    tokenName = "XOR",
-                    fiatAmount = "\$ 0.32"
-                ),
                 fromTokenOnToToken = "0.1234",
                 toTokenOnFromToken = "12345,0",
-                minmaxTitle = stringResource(id = R.string.common_min_received)
+                minmaxTitle = stringResource(id = R.string.common_min_received),
+                route = "USD -> XOR -> DOT -> VAL"
             ),
             networkFee = SwapDetailsViewState.NetworkFee(
                 tokenAmount = "0.0007",
