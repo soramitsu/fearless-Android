@@ -32,7 +32,8 @@ fun AssetsList(
     data: AssetListState,
     callback: AssetsListInterface,
     listState: LazyListState = rememberLazyListState(),
-    header: (@Composable () -> Unit)? = null
+    header: (@Composable () -> Unit)? = null,
+    footer: (@Composable () -> Unit)? = null
 ) {
     val isShowHidden = remember { mutableStateOf(data.visibleAssets.isEmpty()) }
     val onHiddenClick = remember { { isShowHidden.value = isShowHidden.value.not() } }
@@ -68,6 +69,9 @@ fun AssetsList(
                     )
                 }
             }
+        }
+        if (footer != null) {
+            item { footer() }
         }
         item { MarginVertical(margin = 80.dp) }
     }

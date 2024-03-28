@@ -562,6 +562,10 @@ class BalanceListViewModel @Inject constructor(
         }
     }
 
+    override fun onManageAssetClick() {
+        println("!!! CLICKED!!!")
+    }
+
     private fun refresh() {
         sync()
     }
