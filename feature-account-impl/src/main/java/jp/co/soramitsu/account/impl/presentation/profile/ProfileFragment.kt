@@ -50,7 +50,6 @@ class ProfileFragment : BaseFragment<ProfileViewModel>() {
             profileExperimentalFeatures.setOnClickListener { viewModel.onExperimentalClicked() }
             polkaswapDisclaimerTv.setOnClickListener { viewModel.polkaswapDisclaimerClicked() }
             profileSoraCard.setOnClickListener { viewModel.onSoraCardClicked() }
-            hideZeroBalancesContainer.setOnClickListener { viewModel.onHideZeroBalancesClick() }
             profileWalletConnect.setOnClickListener { viewModel.onWalletConnectClick() }
 
             viewModel.hasMissingAccountsFlow.observe {
@@ -83,10 +82,6 @@ class ProfileFragment : BaseFragment<ProfileViewModel>() {
         viewModel.showFiatChooser.observeEvent(::showFiatChooser)
 
         viewModel.selectedFiatLiveData.observe(binding.selectedCurrencyTv::setText)
-
-        viewModel.hideZeroBalancesState.observe {
-            binding.hideZeroBalancesSwitch.isChecked = it
-        }
     }
 
     private fun showFiatChooser(payload: DynamicListBottomSheet.Payload<FiatCurrency>) {

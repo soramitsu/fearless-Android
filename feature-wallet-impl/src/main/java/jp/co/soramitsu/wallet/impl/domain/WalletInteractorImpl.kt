@@ -96,30 +96,6 @@ class WalletInteractorImpl(
     private val chainsRepository: ChainsRepository
 ) : WalletInteractor, UpdatesProviderUi by updatesMixin {
 
-    override suspend fun getHideZeroBalancesForCurrentWallet(): Boolean {
-        val walletId = accountRepository.getSelectedMetaAccount().id
-        val key = getHideZeroBalancesKey(walletId)
-        return preferences.getBoolean(key, false)
-    }
-
-    override suspend fun toggleHideZeroBalancesForCurrentWallet() {
-        val walletId = accountRepository.getSelectedMetaAccount().id
-        val key = getHideZeroBalancesKey(walletId)
-        val value = preferences.getBoolean(key, false)
-        val newValue = value.not()
-        preferences.putBoolean(key, newValue)
-    }
-
-    override fun observeHideZeroBalanceEnabledForCurrentWallet(): Flow<Boolean> {
-        return accountRepository.selectedLightMetaAccountFlow().flatMapMerge { wallet ->
-            preferences.booleanFlow(getHideZeroBalancesKey(wallet.id), false)
-        }.distinctUntilChanged()
-    }
-
-    private fun getHideZeroBalancesKey(walletId: Long): String {
-        return "${HIDE_ZERO_BALANCES_PREFS_KEY}_$walletId"
-    }
-
     @OptIn(ExperimentalCoroutinesApi::class)
     override fun assetsFlow(): Flow<List<AssetWithStatus>> {
         return accountRepository.selectedMetaAccountFlow()

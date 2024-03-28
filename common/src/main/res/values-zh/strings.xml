@@ -738,7 +738,6 @@
   <string name="send_to">发送至</string>
   <string name="sending">发送</string>
   <string name="set_max_amount">设置最大金额</string>
-  <string name="settings_hide_zero_balances">隐藏零余额</string>
   <string name="share_referral_code">分享推荐码</string>
   <string name="social_media">社交媒体</string>
   <string name="sora_bridge_amount_less_fee">您尝试转账的金额不足以支付%s网络上的交易费用。尽管交易无法完成，您仍将在Sora网络上被收取费用。</string>

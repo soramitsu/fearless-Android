@@ -742,7 +742,6 @@
   <string name="send_to">Kirim ke</string>
   <string name="sending">Mengirim…</string>
   <string name="set_max_amount">Atur jumlah maximal</string>
-  <string name="settings_hide_zero_balances">Sembunyikan saldo Nol</string>
   <string name="share_referral_code">Bagikan kode rujukan</string>
   <string name="social_media">Sosial media</string>
   <string name="sora_bridge_amount_less_fee">Jumlah yang Anda coba transfer tidak cukup untuk menutupi biaya transaksi di %s jaringan. Meskipun transaksi tidak dapat diproses, Anda tetap akan dikenakan biaya di jaringan Sora.</string>

@@ -199,15 +199,13 @@ class BalanceListViewModel @Inject constructor(
         selectedChainId,
         interactor.selectedMetaAccountFlow(),
         networkIssuesFlow,
-        interactor.observeSelectedAccountChainSelectFilter(),
-        interactor.observeHideZeroBalanceEnabledForCurrentWallet()
+        interactor.observeSelectedAccountChainSelectFilter()
     ) { (walletId: Long, assets: List<AssetWithStatus>),
             chains: List<Chain>,
             selectedChainId: ChainId?,
             currentMetaAccountFlow: MetaAccount,
             networkIssues: Set<NetworkIssueItemState>,
-            appliedFilterAsString: String,
-            hideZeroBalancesEnabled: Boolean ->
+            appliedFilterAsString: String ->
 
         val filter = ChainSelectorViewStateWithFilters.Filter.entries.find {
             it.name == appliedFilterAsString
@@ -251,8 +249,7 @@ class BalanceListViewModel @Inject constructor(
             assets = filteredAssets,
             filteredChains = filteredChains,
             selectedChainId = selectedChainId,
-            networkIssues = networkIssues,
-            hideZeroBalancesEnabled = hideZeroBalancesEnabled
+            networkIssues = networkIssues
         )
 
         val assetStates: List<AssetListItemViewState> = balanceListItems

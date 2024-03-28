@@ -747,7 +747,6 @@
   <string name="send_to">Send to</string>
   <string name="sending">Sending</string>
   <string name="set_max_amount">Set max amount</string>
-  <string name="settings_hide_zero_balances">Hide zero balances</string>
   <string name="share_referral_code">Share referral code</string>
   <string name="social_media">Social Media</string>
   <string name="sora_bridge_amount_less_fee">The amount you\'re trying to transfer is insufficient to cover the transaction fees on the %s network. Although the transaction won\'t process, you\'ll still be charged the fees on the Sora network.</string>

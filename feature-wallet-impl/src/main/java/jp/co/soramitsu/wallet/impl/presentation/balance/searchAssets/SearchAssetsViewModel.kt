@@ -54,15 +54,13 @@ class SearchAssetsViewModel @Inject constructor(
     private val assetStates = combine(
         interactor.assetsFlow(),
         chainInteractor.getChainsFlow(),
-        networkIssuesFlow,
-        interactor.observeHideZeroBalanceEnabledForCurrentWallet()
-    ) { assets: List<AssetWithStatus>, chains: List<Chain>, networkIssues: Set<NetworkIssueItemState>, hideZeroBalancesEnabled ->
+        networkIssuesFlow
+    ) { assets: List<AssetWithStatus>, chains: List<Chain>, networkIssues: Set<NetworkIssueItemState> ->
 
         val balanceListItems = AssetListHelper.processAssets(
             assets = assets,
             filteredChains = chains,
-            networkIssues = networkIssues,
-            hideZeroBalancesEnabled = hideZeroBalancesEnabled
+            networkIssues = networkIssues
         )
 
         val assetStates: List<AssetListItemViewState> = balanceListItems

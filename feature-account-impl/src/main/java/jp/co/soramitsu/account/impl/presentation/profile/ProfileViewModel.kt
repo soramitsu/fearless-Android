@@ -86,8 +86,6 @@ class ProfileViewModel @Inject constructor(
 //    }
     private val soraCardState = flowOf(SoraCardItemViewState())
 
-    val hideZeroBalancesState: Flow<Boolean> = walletInteractor.observeHideZeroBalanceEnabledForCurrentWallet()
-
     fun aboutClicked() {
         router.openAboutScreen()
     }
@@ -153,12 +151,6 @@ class ProfileViewModel @Inject constructor(
     }
 
     private fun onSoraCardStatusClicked() {
-    }
-
-    fun onHideZeroBalancesClick() {
-        viewModelScope.launch {
-            walletInteractor.toggleHideZeroBalancesForCurrentWallet()
-        }
     }
 
     fun onWalletConnectClick() {
