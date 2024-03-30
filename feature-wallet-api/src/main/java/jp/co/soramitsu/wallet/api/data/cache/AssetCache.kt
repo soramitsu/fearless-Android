@@ -75,7 +75,8 @@ class AssetCache(
                         cachedAsset.redeemableInPlanks == updatedAsset.redeemableInPlanks &&
                         cachedAsset.reservedInPlanks == updatedAsset.reservedInPlanks &&
                         cachedAsset.unbondingInPlanks == updatedAsset.unbondingInPlanks &&
-                        cachedAsset.tokenPriceId == updatedAsset.tokenPriceId
+                        cachedAsset.tokenPriceId == updatedAsset.tokenPriceId &&
+                        cachedAsset.status == updatedAsset.status
                     ) {
                         return@withLock
                     }

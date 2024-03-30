@@ -34,6 +34,7 @@ import jp.co.soramitsu.core.updater.UpdateSystem
 import jp.co.soramitsu.coredb.dao.AddressBookDao
 import jp.co.soramitsu.coredb.dao.AssetDao
 import jp.co.soramitsu.coredb.dao.ChainDao
+import jp.co.soramitsu.coredb.dao.MetaAccountDao
 import jp.co.soramitsu.coredb.dao.OperationDao
 import jp.co.soramitsu.coredb.dao.PhishingDao
 import jp.co.soramitsu.coredb.dao.TokenPriceDao
@@ -355,6 +356,7 @@ class WalletFeatureModule {
     fun provideFeatureUpdaters(
         chainRegistry: ChainRegistry,
         accountRepository: AccountRepository,
+        metaAccountDao: MetaAccountDao,
         bulkRetriever: BulkRetriever,
         assetCache: AssetCache,
         substrateSource: SubstrateRemoteSource,
@@ -364,6 +366,7 @@ class WalletFeatureModule {
     ): UpdateSystem = BalancesUpdateSystem(
         chainRegistry,
         accountRepository,
+        metaAccountDao,
         bulkRetriever,
         assetCache,
         substrateSource,

@@ -174,9 +174,10 @@ class RootViewModel @Inject constructor(
     }
 
     fun onNetworkAvailable() {
-        viewModelScope.launch {
-            checkAppVersion()
-        }
+        // todo this code triggers redundant requests and balance updates. Needs research
+//        viewModelScope.launch {
+//            checkAppVersion()
+//        }
     }
 
     private fun observeWalletConnectEvents() {

@@ -241,9 +241,8 @@ class SendSetupViewModel @Inject constructor(
         if (asset == null) {
             defaultAmountInputState
         } else {
-            val tokenBalance = asset.transferable.formatCrypto(asset.token.configuration.symbol)
-            val fiatAmount =
-                amount.applyFiatRate(asset.token.fiatRate)?.formatFiat(asset.token.fiatSymbol)
+            val tokenBalance = asset.sendAvailable.formatCrypto(asset.token.configuration.symbol)
+            val fiatAmount = amount.applyFiatRate(asset.token.fiatRate)?.formatFiat(asset.token.fiatSymbol)
 
             AmountInputViewState(
                 tokenName = asset.token.configuration.symbol,
