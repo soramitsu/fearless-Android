@@ -52,7 +52,7 @@ class RootInteractor(
 
     fun chainRegistrySyncUp() = walletRepository.chainRegistrySyncUp()
 
-    suspend fun fetchFeatureToggle() = withContext(Dispatchers.Default){ pendulumPreInstalledAccountsScenario.fetchFeatureToggle() }
+    suspend fun fetchFeatureToggle() = withContext(Dispatchers.Default) { pendulumPreInstalledAccountsScenario.fetchFeatureToggle() }
 
     suspend fun getPendingListOfSessionRequests(topic: String) = withContext(Dispatchers.Default){ Web3Wallet.getPendingListOfSessionRequests(topic) }
 }

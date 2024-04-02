@@ -51,6 +51,7 @@ private const val RETRIEVE_ACCOUNT_ASSETS_QUERY = """
 interface AssetReadOnlyCache {
 
     fun observeAssets(metaId: Long): Flow<List<AssetWithToken>>
+    fun observeAllEnabledAssets(): Flow<List<AssetLocal>>
     suspend fun getAssets(metaId: Long): List<AssetWithToken>
 
     fun observeAsset(metaId: Long, accountId: AccountId, chainId: String, assetId: String): Flow<AssetWithToken>
@@ -64,6 +65,9 @@ abstract class AssetDao : AssetReadOnlyCache {
 
     @Query(RETRIEVE_ACCOUNT_ASSETS_QUERY)
     abstract override fun observeAssets(metaId: Long): Flow<List<AssetWithToken>>
+
+    @Query("SELECT * FROM assets WHERE enabled = 1")
+    abstract override fun observeAllEnabledAssets(): Flow<List<AssetLocal>>
 
     @Query(RETRIEVE_ACCOUNT_ASSETS_QUERY)
     abstract override suspend fun getAssets(metaId: Long): List<AssetWithToken>
@@ -109,6 +113,9 @@ abstract class AssetDao : AssetReadOnlyCache {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     abstract suspend fun insertAsset(asset: AssetLocal)
+
+    @Insert(onConflict = OnConflictStrategy.ABORT)
+    abstract suspend fun insertAssets(assets: List<AssetLocal>)
 
     @Update(entity = AssetLocal::class)
     abstract suspend fun updateAssets(item: List<AssetUpdateItem>): Int

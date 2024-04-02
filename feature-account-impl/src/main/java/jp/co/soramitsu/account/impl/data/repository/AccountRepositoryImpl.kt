@@ -30,13 +30,17 @@ import jp.co.soramitsu.core.crypto.mapEncryptionToCryptoType
 import jp.co.soramitsu.core.model.Language
 import jp.co.soramitsu.core.model.SecuritySource
 import jp.co.soramitsu.core.models.CryptoType
+import jp.co.soramitsu.core.models.accountIdOf
 import jp.co.soramitsu.coredb.dao.AccountDao
+import jp.co.soramitsu.coredb.dao.AssetDao
 import jp.co.soramitsu.coredb.dao.MetaAccountDao
 import jp.co.soramitsu.coredb.model.AccountLocal
+import jp.co.soramitsu.coredb.model.AssetLocal
 import jp.co.soramitsu.coredb.model.chain.ChainAccountLocal
 import jp.co.soramitsu.coredb.model.chain.FavoriteChainLocal
 import jp.co.soramitsu.coredb.model.chain.MetaAccountLocal
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
@@ -57,8 +61,12 @@ import jp.co.soramitsu.shared_utils.runtime.AccountId
 import jp.co.soramitsu.shared_utils.scale.EncodableStruct
 import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.addressByte
 import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.toAccountId
+import jp.co.soramitsu.wallet.api.data.cache.AssetCache
+import jp.co.soramitsu.wallet.impl.domain.model.Asset
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -66,6 +74,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.bouncycastle.util.encoders.Hex
 
@@ -77,11 +86,14 @@ class AccountRepositoryImpl(
     private val jsonSeedDecoder: JsonSeedDecoder,
     private val jsonSeedEncoder: JsonSeedEncoder,
     private val languagesHolder: LanguagesHolder,
-    private val chainRegistry: ChainRegistry
+    private val chainRegistry: ChainRegistry,
+    private val chainsRepository: ChainsRepository,
+    private val assetDao: AssetDao,
+    private val dispatcher: CoroutineDispatcher = Dispatchers.Default
 ) : AccountRepository {
 
     override fun getEncryptionTypes(): List<CryptoType> {
-        return CryptoType.values().toList()
+        return CryptoType.entries
     }
 
     override suspend fun selectAccount(metaAccountId: Long) {
@@ -138,7 +150,7 @@ class AccountRepositoryImpl(
 
     override fun allMetaAccountsFlow(): StateFlow<List<MetaAccount>> {
         return accountDataSource.observeAllMetaAccounts()
-            .flowOn(Dispatchers.IO)
+            .flowOn(dispatcher)
             .stateIn(GlobalScope, SharingStarted.Eagerly, emptyList())
     }
 
@@ -232,7 +244,7 @@ class AccountRepositoryImpl(
     }
 
     override suspend fun getMyAccounts(query: String, chainId: String): Set<Account> {
-//        return withContext(Dispatchers.Default) {
+//        return withContext(dispatcher) {
 //            accountDao.getAccounts(query, networkType)
 //                .map { mapAccountLocalToAccount(it) }
 //                .toSet()
@@ -294,7 +306,7 @@ class AccountRepositoryImpl(
         ethSeed: String?,
         googleBackupAddress: String?
     ) {
-        return withContext(Dispatchers.Default) {
+        return withContext(dispatcher) {
             val substrateSeedBytes = Hex.decode(seed.removePrefix("0x"))
             val ethSeedBytes = ethSeed?.let { Hex.decode(it.removePrefix("0x")) }
 
@@ -336,8 +348,12 @@ class AccountRepositoryImpl(
             )
 
             val metaAccountId = insertAccount(metaAccount)
-            storeV2.putMetaAccountSecrets(metaAccountId, secretsV2)
-            selectAccount(metaAccountId)
+
+            coroutineScope {
+                launch { fillAccountAssets(metaAccountId, metaAccount) }
+                launch { storeV2.putMetaAccountSecrets(metaAccountId, secretsV2) }
+                launch { selectAccount(metaAccountId) }
+            }.join()
         }
     }
 
@@ -349,7 +365,7 @@ class AccountRepositoryImpl(
         substrateDerivationPath: String,
         selectedEncryptionType: CryptoType
     ) {
-        return withContext(Dispatchers.Default) {
+        return withContext(dispatcher) {
             val seedBytes = Hex.decode(seed.removePrefix("0x"))
 
             val ethereumBased = chainRegistry.getChain(chainId).isEthereumBased
@@ -417,7 +433,7 @@ class AccountRepositoryImpl(
         ethJson: String?,
         googleBackupAddress: String?
     ) {
-        return withContext(Dispatchers.Default) {
+        return withContext(dispatcher) {
             val substrateImportData = jsonSeedDecoder.decode(json, password)
             val ethImportData = ethJson?.let { jsonSeedDecoder.decode(ethJson, password) }
 
@@ -449,9 +465,12 @@ class AccountRepositoryImpl(
             )
 
             val metaAccountId = insertAccount(metaAccount)
-            storeV2.putMetaAccountSecrets(metaAccountId, secretsV2)
 
-            selectAccount(metaAccountId)
+            coroutineScope {
+                launch { fillAccountAssets(metaAccountId, metaAccount) }
+                launch { storeV2.putMetaAccountSecrets(metaAccountId, secretsV2) }
+                launch { selectAccount(metaAccountId) }
+            }.join()
         }
     }
 
@@ -462,7 +481,7 @@ class AccountRepositoryImpl(
         json: String,
         password: String
     ) {
-        return withContext(Dispatchers.Default) {
+        return withContext(dispatcher) {
             val importData = jsonSeedDecoder.decode(json, password)
 
             val ethereumBased = chainRegistry.getChain(chainId).isEthereumBased
@@ -515,7 +534,7 @@ class AccountRepositoryImpl(
     }
 
     override suspend fun generateMnemonic(): List<String> {
-        return withContext(Dispatchers.Default) {
+        return withContext(dispatcher) {
             val generationResult = MnemonicCreator.randomMnemonic(Mnemonic.Length.TWELVE)
 
             generationResult.wordList
@@ -539,7 +558,7 @@ class AccountRepositoryImpl(
     }
 
     override suspend fun processAccountJson(json: String): ImportJsonData {
-        return withContext(Dispatchers.Default) {
+        return withContext(dispatcher) {
             val importAccountMeta = jsonSeedDecoder.extractImportMetaData(json)
 
             with(importAccountMeta) {
@@ -575,7 +594,7 @@ class AccountRepositoryImpl(
     }
 
     override suspend fun generateRestoreJson(metaId: Long, chainId: ChainId, password: String) =
-        withContext(Dispatchers.Default) {
+        withContext(dispatcher) {
             val chain = chainRegistry.getChain(chainId)
             val metaAccount = getMetaAccount(metaId)
 
@@ -674,7 +693,7 @@ class AccountRepositoryImpl(
         isBackedUp: Boolean,
         googleBackupAddress: String?
     ): Long {
-        return withContext(Dispatchers.Default) {
+        return withContext(dispatcher) {
             val substrateDerivationPathOrNull = substrateDerivationPath.nullIfEmpty()
             val decodedDerivationPath = substrateDerivationPathOrNull?.let {
                 SubstrateJunctionDecoder.decode(it)
@@ -733,7 +752,10 @@ class AccountRepositoryImpl(
             )
 
             val metaAccountId = insertAccount(metaAccount)
-            storeV2.putMetaAccountSecrets(metaAccountId, secretsV2)
+            coroutineScope {
+                launch { fillAccountAssets(metaAccountId, metaAccount) }
+                launch { storeV2.putMetaAccountSecrets(metaAccountId, secretsV2) }
+            }.join()
 
             metaAccountId
         }
@@ -840,6 +862,31 @@ class AccountRepositoryImpl(
         metaAccountDao.insertMetaAccount(metaAccount)
     } catch (e: SQLiteConstraintException) {
         throw AccountAlreadyExistsException()
+    }
+
+    private suspend fun fillAccountAssets(metaAccountId: Long, metaAccount: MetaAccountLocal) {
+        val chains = chainsRepository.getChains()
+        val assets = chains.map { chain ->
+            chain.assets.map {
+                AssetLocal(
+                    id = it.id,
+                    chainId = chain.id,
+                    accountId = metaAccount.substrateAccountId,
+                    metaId = metaAccountId,
+                    tokenPriceId = it.priceId,
+                    freeInPlanks = null,
+                    reservedInPlanks = null,
+                    miscFrozenInPlanks = null,
+                    feeFrozenInPlanks = null,
+                    bondedInPlanks = null,
+                    redeemableInPlanks = null,
+                    unbondingInPlanks = null,
+                    enabled = chain.rank != null && it.isUtility
+                )
+
+            }
+        }.flatten()
+        assetDao.insertAssets(assets)
     }
 
     private suspend fun insertChainAccount(

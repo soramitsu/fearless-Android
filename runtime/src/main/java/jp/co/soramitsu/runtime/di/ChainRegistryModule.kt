@@ -14,7 +14,10 @@ import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.core.network.JsonFactory
 import jp.co.soramitsu.core.runtime.ChainConnection
 import jp.co.soramitsu.core.runtime.RuntimeFactory
+import jp.co.soramitsu.coredb.dao.AssetDao
+import jp.co.soramitsu.coredb.dao.AssetReadOnlyCache
 import jp.co.soramitsu.coredb.dao.ChainDao
+import jp.co.soramitsu.coredb.dao.MetaAccountDao
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainSyncService
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
@@ -44,8 +47,10 @@ class ChainRegistryModule {
     @Singleton
     fun provideChainSyncService(
         dao: ChainDao,
-        chainFetcher: ChainFetcher
-    ) = ChainSyncService(dao, chainFetcher)
+        chainFetcher: ChainFetcher,
+        metaAccountDao: MetaAccountDao,
+        assetDao: AssetDao,
+    ) = ChainSyncService(dao, chainFetcher, metaAccountDao, assetDao)
 
     @Provides
     @Singleton
@@ -140,6 +145,7 @@ class ChainRegistryModule {
     ) =
         EthereumConnectionPool(networkStateMixin)
 
+
     @Provides
     @Singleton
     fun provideChainRegistry(
@@ -151,7 +157,8 @@ class ChainRegistryModule {
         runtimeSyncService: RuntimeSyncService,
         updatesMixin: UpdatesMixin,
         networkStateMixin: NetworkStateMixin,
-        ethereumConnectionPool: EthereumConnectionPool
+        ethereumConnectionPool: EthereumConnectionPool,
+        assetReadOnlyCache: AssetDao
     ): ChainRegistry = ChainRegistry(
         runtimeProviderPool,
         chainConnectionPool,
@@ -161,7 +168,8 @@ class ChainRegistryModule {
         runtimeSyncService,
         updatesMixin,
         networkStateMixin,
-        ethereumConnectionPool
+        ethereumConnectionPool,
+        assetReadOnlyCache
     )
 
     @Provides
