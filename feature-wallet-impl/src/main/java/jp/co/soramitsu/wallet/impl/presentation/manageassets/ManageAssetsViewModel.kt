@@ -4,6 +4,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.compose.component.ChainSelectorViewStateWithFilters
 import jp.co.soramitsu.common.model.AssetBooleanState
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.formatCrypto
@@ -12,6 +13,7 @@ import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.core.models.ChainId
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.wallet.impl.data.mappers.mapAssetToAssetModel
+import jp.co.soramitsu.wallet.impl.domain.ChainInteractor
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.presentation.model.AssetModel
@@ -30,6 +32,7 @@ class ManageAssetsViewModel @Inject constructor(
     private val walletRouter: WalletRouter,
     private val walletInteractor: WalletInteractor,
     private val accountInteractor: AccountInteractor,
+    private val chainInteractor: ChainInteractor,
     private val resourceManager: ResourceManager
 ) : BaseViewModel(), ManageAssetsContentInterface {
 
@@ -45,10 +48,40 @@ class ManageAssetsViewModel @Inject constructor(
     private val assetModelsFlow: Flow<List<AssetModel>> =
         combine(
             walletInteractor.assetsFlow(),
+            chainInteractor.getChainsFlow(),
+            walletInteractor.selectedMetaAccountFlow(),
+            walletInteractor.observeSelectedAccountChainSelectFilter(),
             selectedChainIdFlow
-        ) { assets, chainId ->
+        ) { assets, chains, currentMetaAccount, appliedFilterAsString, selectedChainId ->
+            val filter = ChainSelectorViewStateWithFilters.Filter.entries.find {
+                it.name == appliedFilterAsString
+            } ?: ChainSelectorViewStateWithFilters.Filter.All
+
+            val selectedAccountFavoriteChains = currentMetaAccount.favoriteChains
+            val chainsWithFavoriteInfo = chains.map { chain ->
+                chain to (selectedAccountFavoriteChains[chain.id]?.isFavorite == true)
+            }
+            val filteredChains = when {
+                selectedChainId != null -> chains.filter { it.id == selectedChainId }
+                filter == ChainSelectorViewStateWithFilters.Filter.All -> chainsWithFavoriteInfo.map { it.first }
+
+                filter == ChainSelectorViewStateWithFilters.Filter.Favorite ->
+                    chainsWithFavoriteInfo.filter { (_, isFavorite) -> isFavorite }.map { it.first }
+
+                filter == ChainSelectorViewStateWithFilters.Filter.Popular ->
+                    chainsWithFavoriteInfo.filter { (chain, _) ->
+                        chain.rank != null
+                    }.sortedBy { (chain, _) ->
+                        chain.rank
+                    }.map { it.first }
+
+                else -> emptyList()
+            }
+
             assets.filter {
-                chainId == null || it.asset.token.configuration.chainId == chainId
+                selectedChainId == null ||
+                        it.asset.token.configuration.chainId == selectedChainId ||
+                        it.asset.token.configuration.chainId in filteredChains.map { it.id }
             }
         }
             .mapList {
@@ -66,8 +99,25 @@ class ManageAssetsViewModel @Inject constructor(
     val state = MutableStateFlow(ManageAssetsScreenViewState.default)
 
     private fun subscribeScreenState() {
-        savedChainFlow.onEach {
-            state.value = state.value.copy(selectedChainName = it?.name ?: resourceManager.getString(R.string.chain_selection_all_networks))
+        combine(
+            savedChainFlow,
+            walletInteractor.observeSelectedAccountChainSelectFilter()
+        ) { chain, filterAsText ->
+            val filterApplied = ChainSelectorViewStateWithFilters.Filter.entries.find {
+                it.name == filterAsText
+            } ?: ChainSelectorViewStateWithFilters.Filter.All
+
+            val selectedChainTitle = chain?.name ?: when(filterApplied) {
+                ChainSelectorViewStateWithFilters.Filter.All ->
+                    resourceManager.getString(R.string.chain_selection_all_networks)
+
+                ChainSelectorViewStateWithFilters.Filter.Popular ->
+                    resourceManager.getString(R.string.network_management_popular)
+
+                ChainSelectorViewStateWithFilters.Filter.Favorite ->
+                    resourceManager.getString(R.string.network_managment_favourite)
+            }
+            state.value = state.value.copy(selectedChainTitle = selectedChainTitle)
         }.launchIn(this)
 
         combine(assetModelsFlow, enteredTokenQueryFlow, currentAssetStates) { assetModels, searchQuery, currentStates ->

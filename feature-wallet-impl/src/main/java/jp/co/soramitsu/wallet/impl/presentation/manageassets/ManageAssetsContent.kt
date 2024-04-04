@@ -71,7 +71,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 
 data class ManageAssetsScreenViewState(
     val assets: Map<String, List<ManageAssetItemState>>? = null,
-    val selectedChainName: String = "",
+    val selectedChainTitle: String = "",
     val selectedAssetId: String? = null,
     val searchQuery: String? = null,
     val showAllChains: Boolean = true
@@ -113,7 +113,7 @@ fun ManageAssetsContent(
                 color = colorAccentDark
             )
             B0(
-                text = state.selectedChainName,
+                text = state.selectedChainTitle,
                 modifier = Modifier
                     .align(CenterVertically)
                     .clickableSingle(onClick = callback::onSelectedChainClicked)
@@ -398,7 +398,7 @@ private fun ManageAssetsScreenPreview() {
         )
     )
     val state = ManageAssetsScreenViewState(
-        selectedChainName = "All chains",
+        selectedChainTitle = "All chains",
         assets = mapOf("DOT" to items, "MOVR" to items.filter { it.symbol == "MOVR" }),
         searchQuery = null
     )
