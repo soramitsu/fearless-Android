@@ -73,9 +73,6 @@ class ManageAssetsViewModel @Inject constructor(
         combine(assetModelsFlow, enteredTokenQueryFlow, currentAssetStates) { assetModels, searchQuery, currentStates ->
             val sortedAssets = assetModels
                 .filter {
-                    it.token.configuration.isUtility
-                }
-                .filter {
                     searchQuery.isEmpty() ||
                             it.token.configuration.symbol.contains(searchQuery, true) ||
                             it.token.configuration.name.orEmpty().contains(searchQuery, true)
@@ -180,6 +177,7 @@ class ManageAssetsViewModel @Inject constructor(
     }
 
     fun onDialogClose() {
+        walletRouter.setChainSelectorPayload(selectedChainIdFlow.value)
         val initial = initialAssetStates.value
         val changes = currentAssetStates.value.filter {
             it !in initial

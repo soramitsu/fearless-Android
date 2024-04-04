@@ -177,11 +177,6 @@ class BalanceListViewModel @Inject constructor(
         }
 
     private val currentMetaAccountFlow = interactor.selectedLightMetaAccountFlow()
-        .onEach {
-            if (pendulumPreInstalledAccountsScenario.isPendulumMode(it.id)) {
-                selectedChainId.value = pendulumChainId
-            }
-        }
 
     private val assetTypeSelectorState = MutableStateFlow(
         MultiToggleButtonState(
