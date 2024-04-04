@@ -10,6 +10,7 @@ import co.jp.soramitsu.walletconnect.domain.WalletConnectInteractor
 import com.walletconnect.android.internal.common.exception.MalformedWalletConnectUri
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.math.BigDecimal
+import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.PendulumPreInstalledAccountsScenario
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
@@ -31,6 +32,7 @@ import jp.co.soramitsu.common.compose.component.SwipeState
 import jp.co.soramitsu.common.compose.component.ToolbarHomeIconState
 import jp.co.soramitsu.common.compose.models.LoadableListPage
 import jp.co.soramitsu.common.compose.models.ScreenLayout
+import jp.co.soramitsu.common.compose.utils.PageScrollingCallback
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState
 import jp.co.soramitsu.common.data.network.coingecko.FiatChooserEvent
 import jp.co.soramitsu.common.data.network.coingecko.FiatCurrency
@@ -56,10 +58,7 @@ import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.nft.data.pagination.PaginationRequest
 import jp.co.soramitsu.nft.domain.NFTInteractor
-import jp.co.soramitsu.common.compose.utils.PageScrollingCallback
 import jp.co.soramitsu.nft.domain.models.NFTCollection
-import jp.co.soramitsu.wallet.impl.presentation.balance.nft.list.models.NFTCollectionsScreenModel
-import jp.co.soramitsu.wallet.impl.presentation.balance.nft.list.models.NFTCollectionsScreenView
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.defaultChainSort
@@ -82,6 +81,8 @@ import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.toChainIte
 import jp.co.soramitsu.wallet.impl.presentation.balance.list.model.AssetType
 import jp.co.soramitsu.wallet.impl.presentation.balance.list.model.BalanceListItemModel
 import jp.co.soramitsu.wallet.impl.presentation.balance.list.model.toAssetState
+import jp.co.soramitsu.wallet.impl.presentation.balance.nft.list.models.NFTCollectionsScreenModel
+import jp.co.soramitsu.wallet.impl.presentation.balance.nft.list.models.NFTCollectionsScreenView
 import jp.co.soramitsu.wallet.impl.presentation.balance.nft.list.models.ScreenModel
 import jp.co.soramitsu.wallet.impl.presentation.model.ControllerDeprecationWarningModel
 import jp.co.soramitsu.wallet.impl.presentation.model.toModel
@@ -99,7 +100,6 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
@@ -112,7 +112,6 @@ import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.util.concurrent.atomic.AtomicBoolean
 
 private const val CURRENT_ICON_SIZE = 40
 
@@ -240,9 +239,10 @@ class BalanceListViewModel @Inject constructor(
 
         val filteredAssets = assets
             .filter {
-                selectedChainId == it.asset.token.configuration.chainId ||
-                        selectedChainId == null ||
-                        it.asset.token.configuration.chainId in filteredChains.map { it.id }
+                it.asset.enabled != false &&
+                        (selectedChainId == it.asset.token.configuration.chainId ||
+                                selectedChainId == null ||
+                                it.asset.token.configuration.chainId in filteredChains.map { it.id })
             }
 
         val balanceListItems = AssetListHelper.processAssets(
@@ -560,7 +560,7 @@ class BalanceListViewModel @Inject constructor(
     }
 
     override fun onManageAssetClick() {
-        println("!!! CLICKED!!!")
+        router.openManageAssets()
     }
 
     private fun refresh() {

@@ -1526,6 +1526,10 @@ class Navigator :
         navController?.navigate(R.id.nftFiltersFragment)
     }
 
+    override fun openManageAssets() {
+        navController?.navigate(R.id.manageAssetsFragment)
+    }
+
     override fun openServiceScreen() {
         navController?.navigate(R.id.serviceFragment)
     }

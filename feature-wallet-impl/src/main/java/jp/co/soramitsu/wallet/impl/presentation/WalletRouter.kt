@@ -195,5 +195,7 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
 
     fun openNFTFilter()
 
+    fun openManageAssets()
+
     fun openServiceScreen()
 }

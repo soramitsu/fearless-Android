@@ -20,6 +20,7 @@ import jp.co.soramitsu.common.domain.SelectedFiat
 import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
+import jp.co.soramitsu.common.model.AssetBooleanState
 import jp.co.soramitsu.common.utils.Modules
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.common.utils.orZero
@@ -27,6 +28,7 @@ import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.core.models.Asset.StakingType
 import jp.co.soramitsu.core.models.ChainId
 import jp.co.soramitsu.core.utils.isValidAddress
+import jp.co.soramitsu.coredb.model.AssetUpdateItem
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
@@ -420,6 +422,27 @@ class WalletInteractorImpl(
 
     override suspend fun markAssetAsHidden(chainId: ChainId, chainAssetId: String) {
         manageAssetHidden(chainId, chainAssetId, true)
+    }
+
+    override suspend fun updateAssetsHiddenState(state: List<AssetBooleanState>) {
+        val wallet = getSelectedMetaAccount()
+        val updateItems = state.mapNotNull {
+            val chain = getChain(it.chainId)
+            val asset = chain.assetsById[it.assetId]
+            val tokenPriceId = asset?.priceProvider?.id?.takeIf { selectedFiat.isUsd() } ?: asset?.priceId
+            wallet.accountId(chain)?.let { accountId ->
+                AssetUpdateItem(
+                    metaId = wallet.id,
+                    chainId = it.chainId,
+                    accountId = accountId,
+                    id = it.assetId,
+                    sortIndex = Int.MAX_VALUE, // Int.MAX_VALUE on sorting because we don't use it anymore - just random value
+                    enabled = it.value,
+                    tokenPriceId = tokenPriceId
+                )
+            }
+        }
+        walletRepository.updateAssetsHidden(updateItems)
     }
 
     override suspend fun markAssetAsShown(chainId: ChainId, chainAssetId: String) {

@@ -7,7 +7,6 @@ import jp.co.soramitsu.common.data.network.config.AppConfigRemote
 import jp.co.soramitsu.common.data.network.runtime.binding.EqAccountInfo
 import jp.co.soramitsu.common.data.network.runtime.binding.EqOraclePricePoint
 import jp.co.soramitsu.core.models.IChain
-import jp.co.soramitsu.coredb.model.AssetLocal
 import jp.co.soramitsu.coredb.model.AssetUpdateItem
 import jp.co.soramitsu.coredb.model.PhishingLocal
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
@@ -115,4 +114,5 @@ interface WalletRepository {
     suspend fun getVestingLockedAmount(chainId: ChainId): BigInteger?
     suspend fun estimateClaimRewardsFee(chainId: ChainId): BigInteger
     suspend fun claimRewards(chain: IChain, accountId: AccountId): Result<String>
+    suspend fun updateAssetsHidden(state: List<AssetUpdateItem>)
 }

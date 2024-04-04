@@ -10,6 +10,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextLayoutResult
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.viewinterop.AndroidView
@@ -26,12 +27,13 @@ fun B1(
     color: Color = Color.Unspecified,
     overflow: TextOverflow = TextOverflow.Clip,
     maxLines: Int = Int.MAX_VALUE,
-    onTextLayout: (TextLayoutResult) -> Unit = {}
+    onTextLayout: (TextLayoutResult) -> Unit = {},
+    fontWeight: FontWeight = FontWeight.Normal
 ) {
     Text(
         textAlign = textAlign,
         text = text,
-        style = MaterialTheme.customTypography.body1,
+        style = MaterialTheme.customTypography.body1.copy(fontWeight = fontWeight),
         modifier = modifier,
         color = color,
         overflow = overflow,

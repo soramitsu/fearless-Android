@@ -350,6 +350,10 @@ class WalletRepositoryImpl(
         assetCache.updateAsset(updateItems)
     }
 
+    override suspend fun updateAssetsHidden(state: List<AssetUpdateItem>) {
+        assetCache.updateAsset(state)
+    }
+
     override suspend fun observeTransferFee(
         chain: Chain,
         transfer: Transfer,
