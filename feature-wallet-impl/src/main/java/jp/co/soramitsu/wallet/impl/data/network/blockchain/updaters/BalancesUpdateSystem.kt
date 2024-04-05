@@ -398,10 +398,6 @@ class BalancesUpdateSystem(
         }
     }
 
-    override fun start(): Flow<Updater.SideEffect> {
-        return combine(subscribeFlow(), singleUpdateFlow()) { sideEffect, _ -> sideEffect }
-    }
-
     private fun logError(chain: Chain, error: Throwable) {
         Log.e(
             "BalancesUpdateSystem",
@@ -462,6 +458,10 @@ class BalancesUpdateSystem(
             status = mapOperationStatusToOperationLocalStatus(status),
             source = OperationLocal.Source.BLOCKCHAIN
         )
+    }
+
+    override fun start(): Flow<Updater.SideEffect> {
+        return combine(subscribeFlow(), singleUpdateFlow()) { sideEffect, _ -> sideEffect }
     }
 }
 

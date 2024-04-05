@@ -23,9 +23,11 @@ import jp.co.soramitsu.shared_utils.wsrpc.request.runtime.chain.SubscribeStateRu
 import jp.co.soramitsu.shared_utils.wsrpc.request.runtime.chain.runtimeVersionChange
 import jp.co.soramitsu.shared_utils.wsrpc.state.SocketStateMachine
 import jp.co.soramitsu.shared_utils.wsrpc.subscriptionFlow
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.first
@@ -39,15 +41,17 @@ class RuntimeVersionSubscription(
     connection: ChainConnection,
     private val chainDao: ChainDao,
     private val runtimeSyncService: RuntimeSyncService,
-    runtimeProvider: RuntimeProvider
-) : CoroutineScope by CoroutineScope(Dispatchers.IO + SupervisorJob()) {
-
+    runtimeProvider: RuntimeProvider,
+    dispatcher: CoroutineDispatcher = Dispatchers.Default
+) {
+    private val scope = CoroutineScope(dispatcher + SupervisorJob())
     init {
         runCatching {
             ChainsStateTracker.updateState(chainId) { it.copy(runtimeVersion = ChainState.Status.Started) }
-            launch {
+
+            scope.launch {
                 // await connection
-                connection.state.first { it is SocketStateMachine.State.Connected }
+                connection.isConnected.first()
                 connection.socketService.subscriptionFlow(SubscribeRuntimeVersionRequest)
                     .map { it.runtimeVersionChange().specVersion }
                     .catch {
@@ -74,6 +78,7 @@ class RuntimeVersionSubscription(
                         )
 
                         runtimeSyncService.applyRuntimeVersion(chainId)
+
                         ChainsStateTracker.updateState(chainId) { it.copy(runtimeVersion = ChainState.Status.Completed) }
                     }
                     .catch { error ->
@@ -115,4 +120,8 @@ class RuntimeVersionSubscription(
             mapper = pojo<RuntimeVersion>().nonNull()
         ).specVersion
     }.getOrNull()
+
+    fun cancel() {
+        scope.coroutineContext.cancel()
+    }
 }

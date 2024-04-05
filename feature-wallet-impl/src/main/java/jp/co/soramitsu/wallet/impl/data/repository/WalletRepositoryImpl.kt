@@ -123,6 +123,27 @@ class WalletRepositoryImpl(
         return combine(
             chainsRepository.chainsByIdFlow(),
             assetCache.observeAssets(meta.id)
+        ){ chainsById, assetsLocal ->
+            val chainAccounts = meta.chainAccounts.values.toList()
+            val updatedAssets = assetsLocal.mapNotNull { asset ->
+                mapAssetLocalToAsset(chainsById, asset)?.let {
+                    val hasChainAccount =
+                        asset.asset.chainId in chainAccounts.mapNotNull { it.chain?.id }
+                    AssetWithStatus(
+                        asset = it,
+                        hasAccount = !it.accountId.contentEquals(emptyAccountIdValue),
+                        hasChainAccount = hasChainAccount
+                    )
+                }
+            }
+            updatedAssets
+        }
+    }
+
+    fun assetsFlow1(meta: MetaAccount): Flow<List<AssetWithStatus>> {
+        return combine(
+            chainsRepository.chainsByIdFlow(),
+            assetCache.observeAssets(meta.id)
         ) { chainsById, assetsLocal ->
             val chainAccounts = meta.chainAccounts.values.toList()
             val updatedAssets = assetsLocal.mapNotNull { asset ->

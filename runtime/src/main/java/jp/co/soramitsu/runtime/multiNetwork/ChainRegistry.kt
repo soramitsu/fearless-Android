@@ -41,6 +41,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -52,6 +53,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.shareIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -76,7 +78,7 @@ class ChainRegistry @Inject constructor(
 
     val scope = CoroutineScope(dispatcher + SupervisorJob())
 
-    val syncedChains = MutableSharedFlow<List<Chain>>()
+    val syncedChains = MutableStateFlow<List<Chain>>(emptyList())
 
     val currentChains = syncedChains
         .filter { it.isNotEmpty() }
@@ -121,9 +123,9 @@ class ChainRegistry @Inject constructor(
             chainsToSync
                 .onEach { (removed, addedOrModified, all) ->
                     coroutineScope {
-                        val removedDeferred = removed.map {
-                            async { removeChain(it) }
-                        }
+//                        val removedDeferred = removed.map {
+//                            async { removeChain(it) }
+//                        }
 
                         updatesMixin.startChainsSyncUp(addedOrModified.filter { it.nodes.isNotEmpty() }
                             .map { it.id })
@@ -146,7 +148,11 @@ class ChainRegistry @Inject constructor(
                             }
                         }
 
-                        (removedDeferred + syncDeferred).awaitAll()
+                        syncDeferred.awaitAll()
+                    }
+                    if(this@ChainRegistry.syncedChains.value.isEmpty()) {
+                        // initial sync is done
+
                     }
                     this@ChainRegistry.syncedChains.emit(all)
 
