@@ -11,6 +11,7 @@ import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.impl.presentation.AccountRouter
 import jp.co.soramitsu.account.impl.presentation.mnemonic.confirm.ConfirmMnemonicFragment.Companion.KEY_PAYLOAD
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.compose.component.ChainSelectorViewStateWithFilters
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.combine
@@ -19,12 +20,14 @@ import jp.co.soramitsu.common.utils.requireException
 import jp.co.soramitsu.common.utils.sendEvent
 import jp.co.soramitsu.common.vibration.DeviceVibrator
 import jp.co.soramitsu.feature_account_impl.R
+import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import kotlinx.coroutines.launch
 
 @HiltViewModel
 class ConfirmMnemonicViewModel @Inject constructor(
     private val resourceManager: ResourceManager,
     private val interactor: AccountInteractor,
+    private val walletInteractor: WalletInteractor,
     private val router: AccountRouter,
     private val deviceVibrator: DeviceVibrator,
     private val savedStateHandle: SavedStateHandle
@@ -133,6 +136,11 @@ class ConfirmMnemonicViewModel @Inject constructor(
                 val result = interactor.createAccount(accountName, mnemonicString, cryptoType, substrateDerivationPath, ethereumDerivationPath, isBackedUp)
 
                 if (result.isSuccess) {
+                    walletInteractor.saveChainSelectFilter(
+                        walletInteractor.getSelectedMetaAccount().id,
+                        ChainSelectorViewStateWithFilters.Filter.Popular.toString()
+                    )
+
                     continueBasedOnCodeStatus()
                 } else {
                     showError(result.requireException())
