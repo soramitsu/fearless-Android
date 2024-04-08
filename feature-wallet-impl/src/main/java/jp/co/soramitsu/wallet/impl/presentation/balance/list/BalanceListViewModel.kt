@@ -1,5 +1,6 @@
 package jp.co.soramitsu.wallet.impl.presentation.balance.list
 
+import android.util.Log
 import android.widget.LinearLayout
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.SwipeableState
@@ -88,6 +89,7 @@ import jp.co.soramitsu.wallet.impl.presentation.model.ControllerDeprecationWarni
 import jp.co.soramitsu.wallet.impl.presentation.model.toModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -97,6 +99,7 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
@@ -136,6 +139,7 @@ class BalanceListViewModel @Inject constructor(
 ) : BaseViewModel(), UpdatesProviderUi by updatesMixin, NetworkStateUi by networkStateMixin,
     WalletScreenInterface {
 
+    private var awaitAssetsJob: Job? = null
     private val accountAddressToChainIdMap = mutableMapOf<String, ChainId?>()
 
     private val _showFiatChooser = MutableLiveData<FiatChooserEvent>()
@@ -477,6 +481,28 @@ class BalanceListViewModel @Inject constructor(
             state.value = state.value.copy(hasNetworkIssues = it)
         }.launchIn(this)
         subscribeTotalBalance()
+        if (interactor.getAssetManagementIntroPassed().not()) {
+            startManageAssetsIntroAnimation()
+        }
+    }
+
+    @OptIn(FlowPreview::class)
+    private fun startManageAssetsIntroAnimation() {
+        awaitAssetsJob?.cancel()
+        awaitAssetsJob = assetStates.filter { it.isNotEmpty() }
+            .map { it.size }
+            .distinctUntilChanged()
+            .debounce(200L)
+            .onEach {
+                state.value = state.value.copy(scrollToBottomEvent = Event(Unit))
+                interactor.saveAssetManagementIntroPassed()
+                awaitAssetsJob?.cancel()
+            }
+            .catch {
+                Log.d("BalanceListViewModel", it.message, it)
+            }
+            .launchIn(this)
+        awaitAssetsJob?.start()
     }
 
     private fun subscribeTotalBalance() {

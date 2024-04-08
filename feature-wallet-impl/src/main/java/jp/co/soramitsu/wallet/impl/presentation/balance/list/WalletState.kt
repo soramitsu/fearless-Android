@@ -17,7 +17,8 @@ data class WalletState(
     val hasNetworkIssues: Boolean,
     val soraCardState: SoraCardItemViewState?,
     val isBackedUp: Boolean,
-    val scrollToTopEvent: Event<Unit>?
+    val scrollToTopEvent: Event<Unit>?,
+    val scrollToBottomEvent: Event<Unit>?,
 ) {
     companion object {
         val default = WalletState(
@@ -27,7 +28,8 @@ data class WalletState(
             hasNetworkIssues = false,
             soraCardState = null,
             isBackedUp = true,
-            scrollToTopEvent = null
+            scrollToTopEvent = null,
+            scrollToBottomEvent = null
         )
     }
 }

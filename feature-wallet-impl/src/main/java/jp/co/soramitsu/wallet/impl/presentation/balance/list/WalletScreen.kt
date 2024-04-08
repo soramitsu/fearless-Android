@@ -1,5 +1,9 @@
 package jp.co.soramitsu.wallet.impl.presentation.balance.list
 
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -19,8 +23,10 @@ import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.SwipeableState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -70,11 +76,33 @@ fun WalletScreen(
 ) {
     val listState = rememberForeverLazyListState("wallet_screen")
 
+    val scale = remember { Animatable(initialValue = 1f) }
+
     LaunchedEffect(data.scrollToTopEvent) {
         data.scrollToTopEvent?.getContentIfNotHandled()?.let {
             listState.animateScrollToItem(0)
         }
     }
+
+    LaunchedEffect(data.scrollToBottomEvent) {
+        data.scrollToBottomEvent?.getContentIfNotHandled()?.let {
+            if (data.assetsState is WalletAssetsState.Assets) {
+                val items = data.assetsState.assets.size + listOf("header", "footer").size
+                val lastItemIndex = items - 1
+                listState.animateScrollToItem(lastItemIndex)
+
+                scale.animateTo(
+                    targetValue = 1.2f,
+                    animationSpec = tween(durationMillis = 600)
+                )
+                scale.animateTo(
+                    targetValue = 1f,
+                    animationSpec = tween(durationMillis = 600)
+                )
+            }
+        }
+    }
+
 
     Column(modifier = Modifier.padding(horizontal = 16.dp)) {
         MarginVertical(margin = 16.dp)
@@ -98,7 +126,7 @@ fun WalletScreen(
             }
             is WalletAssetsState.Assets -> {
                 val header: @Composable () -> Unit = { Banners(data, callback) }
-                val footer: @Composable () -> Unit = { WalletScreenFooter(callback::onManageAssetClick) }
+                val footer: @Composable () -> Unit = { WalletScreenFooter(scale.value, callback::onManageAssetClick) }
                 AssetsList(
                     data = data.assetsState,
                     callback = callback,
@@ -213,12 +241,20 @@ fun WalletScreenWithRefresh(
 
 @Composable
 fun WalletScreenFooter(
+    scale: Float,
     onManageAssetsClick: () -> Unit
 ) {
     GrayButton(
         text = stringResource(id = R.string.wallet_manage_assets),
         modifier = Modifier
+            .scale(scale)
             .fillMaxWidth()
+            .animateContentSize(
+                animationSpec = tween(
+                    durationMillis = 300,
+                    easing = LinearOutSlowInEasing
+                )
+            )
             .height(48.dp),
         onClick = onManageAssetsClick
     )
@@ -292,7 +328,8 @@ private fun PreviewWalletScreen() {
                     hasNetworkIssues = true,
                     soraCardState = SoraCardItemViewState(null, null, null, true),
                     isBackedUp = false,
-                    scrollToTopEvent = null
+                    scrollToTopEvent = null,
+                    scrollToBottomEvent = null
                 ),
                 callback = emptyCallback
             )

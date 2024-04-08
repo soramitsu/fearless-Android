@@ -66,7 +66,6 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flatMapMerge
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.withIndex
@@ -78,11 +77,11 @@ const val QR_PREFIX_WALLET_CONNECT = "wc"
 private const val PREFS_WALLET_SELECTED_CHAIN_ID = "wallet_selected_chain_id"
 private const val PREFS_SORA_CARD_HIDDEN_SESSIONS_COUNT = "prefs_sora_card_hidden_sessions_count"
 private const val SORA_CARD_HIDDEN_SESSIONS_LIMIT = 5
-private const val HIDE_ZERO_BALANCES_PREFS_KEY = "hideZeroBalances"
 private const val CHAIN_SELECT_FILTER_APPLIED = "chain_select_filter_applied"
 private const val ACCOUNT_ID_MIN_TAG = 26
 private const val ACCOUNT_ID_MAX_TAG = 51
 private const val ASSET_SORTING_KEY = "ASSET_SORTING_KEY"
+private const val ASSET_MANAGEMENT_INTRO_PASSED_KEY = "ASSET_MANAGEMENT_INTRO_PASSED_KEY"
 
 class WalletInteractorImpl(
     private val walletRepository: WalletRepository,
@@ -634,6 +633,14 @@ class WalletInteractorImpl(
     override suspend fun saveChainSelectFilter(walletId: Long, filter: String) {
         val key = getChainSelectFilterAppliedKey(walletId)
         preferences.putString(key, filter)
+    }
+
+    override suspend fun saveAssetManagementIntroPassed() {
+        preferences.putBoolean(ASSET_MANAGEMENT_INTRO_PASSED_KEY, true)
+    }
+
+    override fun getAssetManagementIntroPassed(): Boolean {
+        return preferences.getBoolean(ASSET_MANAGEMENT_INTRO_PASSED_KEY, defaultValue = false)
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)

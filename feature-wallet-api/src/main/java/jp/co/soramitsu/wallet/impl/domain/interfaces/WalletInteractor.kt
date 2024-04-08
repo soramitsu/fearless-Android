@@ -154,4 +154,7 @@ interface WalletInteractor {
     suspend fun estimateClaimRewardsFee(chainId: ChainId): BigInteger
     suspend fun getVestingLockedAmount(chainId: ChainId): BigInteger?
     suspend fun claimRewards(chainId: ChainId): Result<String>
+
+    fun getAssetManagementIntroPassed(): Boolean
+    suspend fun saveAssetManagementIntroPassed()
 }
