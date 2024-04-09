@@ -214,7 +214,7 @@ data class ManageAssetItemState(
     val assetName: String?,
     val symbol: String,
     val amount: String,
-    val fiatAmount: String,
+    val fiatAmount: String?,
     val chainId: ChainId,
     val isChecked: Boolean,
     val showEdit: Boolean,
@@ -294,15 +294,19 @@ fun ManageAssetItem(
                 B2(text = state.chainName, color = black2)
             }
             Spacer(modifier = Modifier.weight(1f))
-            Column(
-                horizontalAlignment = Alignment.End
-            ) {
-                B1(
-                    text = state.amount,
-                    fontWeight = FontWeight.W600,
-                    color = if (state.isChecked) Color.Unspecified else black2
-                )
-                B2(text = state.fiatAmount, color = black2)
+            if (state.isChecked) {
+                Column(
+                    horizontalAlignment = Alignment.End,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    B1(
+                        text = state.amount,
+                        fontWeight = FontWeight.W600
+                    )
+                    state.fiatAmount?.let {
+                        B2(text = it, color = black2)
+                    }
+                }
             }
             MarginHorizontal(margin = 8.dp)
             val trackColor = when {
@@ -342,20 +346,24 @@ private fun GroupItem(
             getImageRequest(LocalContext.current, it)
         }
         val assetName = groupAssets.firstOrNull { it.assetName != null }?.assetName.orEmpty()
+        val allAssetsAreHidden = groupAssets.all { it.isChecked.not() }
 
         AsyncImage(
             model = image,
             contentDescription = null,
             modifier = Modifier
                 .testTag("ManageGroupItem_image_${groupAssets.getOrNull(0)?.symbol}")
-                .size(32.dp)
+                .size(32.dp),
+            colorFilter = ColorFilter.tint(white64, BlendMode.DstOut).takeIf { allAssetsAreHidden }
         )
         MarginHorizontal(margin = 10.dp)
         Row(
             verticalAlignment = CenterVertically
         ) {
+            val groupNameColor = if (allAssetsAreHidden) black2 else Color.Unspecified
+
             Column {
-                B1(text = assetName, fontWeight = FontWeight.W600)
+                B1(text = assetName, fontWeight = FontWeight.W600, color = groupNameColor)
                 B2(text = pluralStringResource(id = R.plurals.common_networks_format, groupAssets.size, groupAssets.size), color = black2)
             }
             Spacer(modifier = Modifier.weight(1f))
@@ -384,7 +392,7 @@ private fun ManageAssetsScreenPreview() {
             fiatAmount = "0$",
             chainId = "",
             isChecked = true,
-            isZeroAmount = false,
+            isZeroAmount = true,
             showEdit = false
         ),
         ManageAssetItemState(
@@ -399,11 +407,43 @@ private fun ManageAssetsScreenPreview() {
             isChecked = false,
             isZeroAmount = true,
             showEdit = true
+        ),
+        ManageAssetItemState(
+            id = "3",
+            imageUrl = "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Kusama.svg",
+            chainName = "Westend",
+            assetName = "WND from the Westend",
+            symbol = "WND",
+            amount = "42",
+            fiatAmount = null,
+            chainId = "",
+            isChecked = true,
+            isZeroAmount = true,
+            showEdit = true
+        ),
+        ManageAssetItemState(
+            id = "4",
+            imageUrl = "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Kusama.svg",
+            chainName = "TWO-TEE",
+            assetName = "TWO TEE TO TWO-TWO",
+            symbol = "TWO",
+            amount = "333",
+            fiatAmount = null,
+            chainId = "",
+            isChecked = false,
+            isZeroAmount = true,
+            showEdit = true
         )
     )
     val state = ManageAssetsScreenViewState(
         selectedChainTitle = "All chains",
-        assets = mapOf("DOT" to items, "MOVR" to items.filter { it.symbol == "MOVR" }),
+        assets = mapOf(
+            "DOT" to items,
+            "disabled assets" to items.filter { it.isChecked.not() },
+            "MOVR" to items.filter { it.symbol == "MOVR" },
+            "KSM" to items.filter { it.symbol == "KSM" },
+            "WND" to items.filter { it.symbol == "WND" },
+            ),
         searchQuery = null
     )
     ManageAssetItem(items[0], {}, {}, { _, _ -> })

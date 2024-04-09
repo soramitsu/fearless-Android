@@ -128,13 +128,8 @@ class ManageAssetsViewModel @Inject constructor(
                             it.token.configuration.symbol.contains(searchQuery, true) ||
                             it.token.configuration.name.orEmpty().contains(searchQuery, true)
                 }
-                .map { model ->
-                    model.copy(isHidden = currentStates.firstOrNull {
-                        it.assetId == model.token.configuration.id && it.chainId == model.token.configuration.chainId
-                    }?.value == false)
-                }
                 .sortedWith(compareBy<AssetModel> {
-                    "skip" // it.isHidden == true
+                    it.isHidden == true
                 }.thenByDescending {
                     it.fiatAmount.orZero()
                 }.thenByDescending {
@@ -142,6 +137,11 @@ class ManageAssetsViewModel @Inject constructor(
                 }.thenBy {
                     it.token.configuration.chainName
                 })
+                .map { model ->
+                    model.copy(isHidden = currentStates.firstOrNull {
+                        it.assetId == model.token.configuration.id && it.chainId == model.token.configuration.chainId
+                    }?.value == false)
+                }
 
             val assets = sortedAssets.map {
                 it.toManageAssetItemState()
@@ -190,7 +190,7 @@ class ManageAssetsViewModel @Inject constructor(
         assetName = token.configuration.name,
         symbol = token.configuration.symbol.uppercase(),
         amount = available.orZero().formatCrypto(),
-        fiatAmount = getAsFiatWithCurrency(available) ?: "${token.fiatSymbol.orEmpty()}0",
+        fiatAmount = getAsFiatWithCurrency(available) ?: "${token.fiatSymbol.orEmpty()}0".takeIf { token.configuration.priceId != null || token.configuration.priceProvider != null },
         chainId = token.configuration.chainId,
         isChecked = isHidden != true,
         isZeroAmount = available.orZero().isZero(),
