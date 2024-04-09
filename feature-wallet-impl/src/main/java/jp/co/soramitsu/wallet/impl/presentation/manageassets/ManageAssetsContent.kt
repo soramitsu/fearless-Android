@@ -218,6 +218,7 @@ data class ManageAssetItemState(
     val chainId: ChainId,
     val isChecked: Boolean,
     val showEdit: Boolean,
+    val isZeroAmount: Boolean,
     val isGrouped: Boolean = false
 )
 
@@ -271,10 +272,11 @@ fun ManageAssetItem(
                 Row(
                     verticalAlignment = CenterVertically
                 ) {
+                    val symbolColor = if (!state.isChecked || state.isZeroAmount) black2 else Color.Unspecified
                     B1(
                         text = state.symbol,
                         fontWeight = FontWeight.W600,
-                        color = if (state.isChecked) Color.Unspecified else black2
+                        color = symbolColor
                     )
                     if (state.showEdit) {
                         MarginHorizontal(margin = 6.dp)
@@ -382,6 +384,7 @@ private fun ManageAssetsScreenPreview() {
             fiatAmount = "0$",
             chainId = "",
             isChecked = true,
+            isZeroAmount = false,
             showEdit = false
         ),
         ManageAssetItemState(
@@ -394,6 +397,7 @@ private fun ManageAssetsScreenPreview() {
             fiatAmount = "23240$",
             chainId = "",
             isChecked = false,
+            isZeroAmount = true,
             showEdit = true
         )
     )

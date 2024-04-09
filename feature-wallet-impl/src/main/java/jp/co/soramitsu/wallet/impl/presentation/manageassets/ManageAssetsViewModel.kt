@@ -8,6 +8,7 @@ import jp.co.soramitsu.common.compose.component.ChainSelectorViewStateWithFilter
 import jp.co.soramitsu.common.model.AssetBooleanState
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.formatCrypto
+import jp.co.soramitsu.common.utils.isZero
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.core.models.ChainId
@@ -192,6 +193,7 @@ class ManageAssetsViewModel @Inject constructor(
         fiatAmount = getAsFiatWithCurrency(available) ?: "${token.fiatSymbol.orEmpty()}0",
         chainId = token.configuration.chainId,
         isChecked = isHidden != true,
+        isZeroAmount = available.orZero().isZero(),
         showEdit = false
     )
 

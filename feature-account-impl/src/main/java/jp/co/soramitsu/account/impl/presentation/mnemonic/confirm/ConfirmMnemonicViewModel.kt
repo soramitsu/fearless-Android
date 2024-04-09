@@ -12,6 +12,7 @@ import jp.co.soramitsu.account.impl.presentation.AccountRouter
 import jp.co.soramitsu.account.impl.presentation.mnemonic.confirm.ConfirmMnemonicFragment.Companion.KEY_PAYLOAD
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.ChainSelectorViewStateWithFilters
+import jp.co.soramitsu.common.model.AssetBooleanState
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.combine
@@ -21,6 +22,8 @@ import jp.co.soramitsu.common.utils.sendEvent
 import jp.co.soramitsu.common.vibration.DeviceVibrator
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 
 @HiltViewModel
@@ -136,16 +139,35 @@ class ConfirmMnemonicViewModel @Inject constructor(
                 val result = interactor.createAccount(accountName, mnemonicString, cryptoType, substrateDerivationPath, ethereumDerivationPath, isBackedUp)
 
                 if (result.isSuccess) {
-                    walletInteractor.saveChainSelectFilter(
-                        walletInteractor.getSelectedMetaAccount().id,
-                        ChainSelectorViewStateWithFilters.Filter.Popular.toString()
-                    )
+                    setupNewAccountAssetsVisibility()
 
                     continueBasedOnCodeStatus()
                 } else {
                     showError(result.requireException())
                 }
             }
+        }
+    }
+
+    private suspend fun setupNewAccountAssetsVisibility() {
+        walletInteractor.saveChainSelectFilter(
+            walletInteractor.getSelectedMetaAccount().id,
+            ChainSelectorViewStateWithFilters.Filter.Popular.toString()
+        )
+
+        walletInteractor.getChains().filter { it.isNotEmpty() }.firstOrNull()?.let { chains ->
+            val defaultAssetStatesForNewAccount = chains.map { chain ->
+                val isPopular = chain.rank != null
+                chain.assets.map {
+                    AssetBooleanState(
+                        chainId = it.chainId,
+                        assetId = it.id,
+                        value = it.isUtility && isPopular
+                    )
+                }
+            }.flatten()
+
+            walletInteractor.updateAssetsHiddenState(defaultAssetStatesForNewAccount)
         }
     }
 
