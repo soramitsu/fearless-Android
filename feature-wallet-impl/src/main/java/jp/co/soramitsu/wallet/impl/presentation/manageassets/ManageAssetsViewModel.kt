@@ -80,7 +80,7 @@ class ManageAssetsViewModel @Inject constructor(
             }
 
             assets.filter {
-                selectedChainId == null ||
+                (selectedChainId == null && filter == ChainSelectorViewStateWithFilters.Filter.All) ||
                         it.asset.token.configuration.chainId == selectedChainId ||
                         it.asset.token.configuration.chainId in filteredChains.map { it.id }
             }
