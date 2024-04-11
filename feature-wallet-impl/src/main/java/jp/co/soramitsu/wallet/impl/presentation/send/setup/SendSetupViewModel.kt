@@ -150,9 +150,10 @@ class SendSetupViewModel @Inject constructor(
     }
 
     private val defaultAddressInputState = AddressInputState(
-        title = resourceManager.getString(R.string.send_fund),
-        "",
-        R.drawable.ic_address_placeholder
+        title = resourceManager.getString(R.string.send_to),
+        input = "",
+        image = R.drawable.ic_address_placeholder,
+        editable = false
     )
 
     private val defaultAmountInputState = AmountInputViewState(
@@ -389,66 +390,7 @@ class SendSetupViewModel @Inject constructor(
     private val sendAllToggleState: MutableStateFlow<ToggleState> = MutableStateFlow(ToggleState.INITIAL)
     private var existentialDepositCheckJob: Job? = null
 
-    val state = combine(
-        selectedChain,
-        addressInputTrimmedFlow,
-        chainSelectorStateFlow,
-        amountInputViewState,
-        feeInfoViewStateFlow,
-        warningInfoStateFlow,
-        buttonStateFlow,
-        isSoftKeyboardOpenFlow,
-        lockInputFlow,
-        assetFlow,
-        sendAllToggleState
-    ) { chain, address, chainSelectorState, amountInputState, feeInfoState, warningInfoState, buttonState, isSoftKeyboardOpen, isInputLocked, asset, sendAllState ->
-        val isAddressValid = when (chain) {
-            null -> false
-            else -> walletInteractor.validateSendAddress(chain.id, address)
-        }
-
-        confirmedValidations.clear()
-
-        val quickAmountInputValues = if (asset?.token?.configuration?.currencyId == bokoloCashTokenId) {
-            emptyList()
-        } else {
-            QuickAmountInput.values().toList()
-        }
-
-        val isHistorySupportedByChain = chain?.externalApi?.history != null
-
-        val existentialDeposit = asset?.token?.configuration?.let { existentialDepositUseCase(it) }.orZero()
-        val sendAllAllowed = existentialDeposit > BigInteger.ZERO
-
-        SendSetupViewState(
-            toolbarState = toolbarViewState,
-            addressInputState = AddressInputState(
-                title = resourceManager.getString(R.string.send_to),
-                input = address,
-                image = when {
-                    isAddressValid.not() -> R.drawable.ic_address_placeholder
-                    else -> addressIconGenerator.createAddressIcon(
-                        chain?.isEthereumBased == true,
-                        address,
-                        AddressIconGenerator.SIZE_BIG
-                    )
-                },
-                editable = false,
-                showClear = isInputLocked.not()
-            ),
-            chainSelectorState = chainSelectorState,
-            amountInputState = amountInputState,
-            feeInfoState = feeInfoState,
-            warningInfoState = warningInfoState,
-            buttonState = buttonState,
-            isSoftKeyboardOpen = isSoftKeyboardOpen,
-            isInputLocked = isInputLocked,
-            quickAmountInputValues = quickAmountInputValues,
-            isHistoryAvailable = isHistorySupportedByChain,
-            sendAllChecked = sendAllState in listOf(ToggleState.CHECKED, ToggleState.CONFIRMED),
-            sendAllAllowed = sendAllAllowed
-        )
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, defaultState)
+    val state = MutableStateFlow<SendSetupViewState>(defaultState)
 
     init {
         sharedState.clear()
@@ -460,8 +402,96 @@ class SendSetupViewModel @Inject constructor(
             sharedState.update(payload.chainId, payload.chainAssetId)
         }
         initSendToAddress?.let { sharedState.updateAddress(it) }
+
+        state.onEach {
+            confirmedValidations.clear()
+        }.launchIn(this)
+
         sharedState.addressFlow.onEach {
             it?.let { addressInputFlow.value = it }
+        }.launchIn(this)
+
+        subscribeScreenState()
+    }
+
+    private fun subscribeScreenState() {
+        chainSelectorStateFlow.onEach {
+            state.value = state.value.copy(chainSelectorState = it)
+        }.launchIn(this)
+
+        amountInputViewState.onEach {
+            state.value = state.value.copy(amountInputState = it)
+        }.launchIn(this)
+
+        feeInfoViewStateFlow.onEach {
+            state.value = state.value.copy(feeInfoState = it)
+        }.launchIn(this)
+
+        warningInfoStateFlow.onEach {
+            state.value = state.value.copy(warningInfoState = it)
+        }.launchIn(this)
+
+        buttonStateFlow.onEach {
+            state.value = state.value.copy(buttonState = it)
+        }.launchIn(this)
+
+        isSoftKeyboardOpenFlow.onEach {
+            state.value = state.value.copy(isSoftKeyboardOpen = it)
+        }.launchIn(this)
+
+        sendAllToggleState.onEach {
+            state.value = state.value.copy(sendAllChecked = it in listOf(ToggleState.CHECKED, ToggleState.CONFIRMED))
+        }.launchIn(this)
+
+        lockInputFlow.onEach { isInputLocked ->
+            state.value = state.value.copy(
+                isInputLocked = isInputLocked,
+                addressInputState = state.value.addressInputState.copy(showClear = isInputLocked.not())
+            )
+        }.launchIn(this)
+
+        assetFlow.onEach { asset ->
+            val quickAmountInputValues = if (asset?.token?.configuration?.currencyId == bokoloCashTokenId) {
+                emptyList()
+            } else {
+                QuickAmountInput.entries
+            }
+
+            val existentialDeposit = asset?.token?.configuration?.let { existentialDepositUseCase(it) }.orZero()
+            val sendAllAllowed = existentialDeposit > BigInteger.ZERO
+
+            state.value = state.value.copy(
+                quickAmountInputValues = quickAmountInputValues,
+                sendAllAllowed = sendAllAllowed
+            )
+        }.launchIn(this)
+
+        combine(
+            selectedChain,
+            addressInputTrimmedFlow
+        ) { chain, address ->
+            val isAddressValid = when (chain) {
+                null -> false
+                else -> walletInteractor.validateSendAddress(chain.id, address)
+            }
+
+            val image: Any = if (isAddressValid.not()) {
+                R.drawable.ic_address_placeholder
+            } else {
+                addressIconGenerator.createAddressIcon(
+                    chain?.isEthereumBased == true,
+                    address,
+                    AddressIconGenerator.SIZE_BIG
+                )
+            }
+
+            state.value = state.value.copy(
+                addressInputState = state.value.addressInputState.copy(
+                    input = address,
+                    image = image
+                ),
+                isHistoryAvailable = chain?.externalApi?.history != null
+            )
         }.launchIn(this)
     }
 
