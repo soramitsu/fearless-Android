@@ -327,29 +327,6 @@ class WalletRepositoryImpl(
         return assetLocal?.let { mapAssetLocalToAsset(it, chainAsset, minSupportedVersion) }
     }
 
-    override suspend fun updateAssetHidden(
-        metaId: Long,
-        accountId: AccountId,
-        isHidden: Boolean,
-        chainAsset: CoreAsset
-    ) {
-        val tokenPriceId =
-            chainAsset.priceProvider?.id?.takeIf { selectedFiat.isUsd() } ?: chainAsset.priceId
-        val updateItems = listOf(
-            AssetUpdateItem(
-                metaId = metaId,
-                chainId = chainAsset.chainId,
-                accountId = accountId,
-                id = chainAsset.id,
-                sortIndex = Int.MAX_VALUE, // Int.MAX_VALUE on sorting because we don't use it anymore - just random value
-                enabled = !isHidden,
-                tokenPriceId = tokenPriceId
-            )
-        )
-
-        assetCache.updateAsset(updateItems)
-    }
-
     override suspend fun updateAssetsHidden(state: List<AssetUpdateItem>) {
         assetCache.updateAsset(state)
     }

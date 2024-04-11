@@ -27,6 +27,7 @@ import jp.co.soramitsu.common.compose.theme.white50
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.wallet.impl.presentation.balance.list.WalletAssetsState
 
 interface AssetsListInterface {
     @OptIn(ExperimentalMaterialApi::class)
@@ -68,6 +69,7 @@ fun AssetsList(
             items(data.assets, key = { it.key }) { assetState ->
                 SwipeableAssetListItem(
                     assetState = assetState,
+                    isHideVisible = (data as? WalletAssetsState.Assets)?.isHideVisible == true,
                     assetClicked = callback::assetClicked,
                     actionItemClicked = callback::actionItemClicked
                 )

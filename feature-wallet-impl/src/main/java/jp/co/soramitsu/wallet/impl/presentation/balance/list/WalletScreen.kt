@@ -318,7 +318,7 @@ private fun PreviewWalletScreen() {
                         AssetType.Currencies,
                         listOf(AssetType.Currencies, AssetType.NFTs)
                     ),
-                    assetsState = WalletAssetsState.Assets(assets),
+                    assetsState = WalletAssetsState.Assets(assets, isHideVisible = true),
                     balance = AssetBalanceViewState(
                         "TRANSFERABLE BALANCE",
                         "ADDRESS",

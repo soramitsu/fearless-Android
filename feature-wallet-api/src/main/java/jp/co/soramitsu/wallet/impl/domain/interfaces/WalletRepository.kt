@@ -43,13 +43,6 @@ interface WalletRepository {
         minSupportedVersion: String?
     ): Asset?
 
-    suspend fun updateAssetHidden(
-        metaId: Long,
-        accountId: AccountId,
-        isHidden: Boolean,
-        chainAsset: CoreAsset
-    )
-
     suspend fun getTransferFee(
         chain: Chain,
         transfer: Transfer,

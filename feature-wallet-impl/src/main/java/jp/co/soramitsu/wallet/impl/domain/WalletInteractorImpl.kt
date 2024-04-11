@@ -419,10 +419,6 @@ class WalletInteractorImpl(
     override suspend fun getChainAddressForSelectedMetaAccount(chainId: ChainId) =
         getSelectedMetaAccount().address(getChain(chainId))
 
-    override suspend fun markAssetAsHidden(chainId: ChainId, chainAssetId: String) {
-        manageAssetHidden(chainId, chainAssetId, true)
-    }
-
     override suspend fun updateAssetsHiddenState(state: List<AssetBooleanState>) {
         val wallet = getSelectedMetaAccount()
         val updateItems = state.mapNotNull {
@@ -444,38 +440,12 @@ class WalletInteractorImpl(
         walletRepository.updateAssetsHidden(updateItems)
     }
 
-    override suspend fun markAssetAsShown(chainId: ChainId, chainAssetId: String) {
-        manageAssetHidden(chainId, chainAssetId, false)
+    override suspend fun markAssetAsHidden(chainId: ChainId, chainAssetId: String) {
+        updateAssetsHiddenState(listOf(AssetBooleanState(chainId, chainAssetId, false)))
     }
 
-    private suspend fun manageAssetHidden(
-        chainId: ChainId,
-        chainAssetId: String,
-        isHidden: Boolean
-    ) {
-        val metaAccount = accountRepository.getSelectedMetaAccount()
-        val chain = chainsRepository.getChain(chainId)
-        val accountId = metaAccount.accountId(chain)
-        val chainAsset = chain.assetsById[chainAssetId] ?: return
-
-        val chainsWithAsset = chainsRepository.getChains().filter { chainItem ->
-            chainItem.assets.any { it.symbol == chainAsset.symbol }
-        }
-
-        val assetsToManage = chainsWithAsset.map {
-            it.assets.filter { it.symbol == chainAsset.symbol }
-        }.flatten()
-
-        accountId?.let {
-            assetsToManage.forEach {
-                walletRepository.updateAssetHidden(
-                    chainAsset = it,
-                    metaId = metaAccount.id,
-                    accountId = accountId,
-                    isHidden = isHidden
-                )
-            }
-        }
+    override suspend fun markAssetAsShown(chainId: ChainId, chainAssetId: String) {
+        updateAssetsHiddenState(listOf(AssetBooleanState(chainId, chainAssetId, true)))
     }
 
     override fun selectedMetaAccountFlow(): Flow<MetaAccount> {

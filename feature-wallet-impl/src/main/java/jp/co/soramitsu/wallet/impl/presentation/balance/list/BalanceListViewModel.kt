@@ -359,14 +359,18 @@ class BalanceListViewModel @Inject constructor(
     }
 
     private val assetTypeState = combine(
+        selectedChainId,
         assetTypeSelectorState,
         assetStates,
         nftInteractor.nftFiltersFlow(),
-        createNFTCollectionScreenViewsFlow()
-    ) { selectorState, assetStates, filters, (pageViews, screenLayout) ->
+        createNFTCollectionScreenViewsFlow(),
+    ) { selectedChainId, selectorState, assetStates, filters, (pageViews, screenLayout) ->
         when (selectorState.currentSelection) {
             AssetType.Currencies -> {
-                WalletAssetsState.Assets(assetStates)
+                WalletAssetsState.Assets(
+                    assets = assetStates,
+                    isHideVisible = selectedChainId != null
+                )
             }
 
             AssetType.NFTs -> {
