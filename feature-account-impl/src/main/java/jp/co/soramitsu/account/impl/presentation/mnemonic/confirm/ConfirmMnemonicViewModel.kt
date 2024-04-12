@@ -139,9 +139,10 @@ class ConfirmMnemonicViewModel @Inject constructor(
                 val result = interactor.createAccount(accountName, mnemonicString, cryptoType, substrateDerivationPath, ethereumDerivationPath, isBackedUp)
 
                 if (result.isSuccess) {
-                    setupNewAccountAssetsVisibility()
-
                     continueBasedOnCodeStatus()
+                    kotlinx.coroutines.MainScope().launch {
+                        setupNewAccountAssetsVisibility()
+                    }
                 } else {
                     showError(result.requireException())
                 }
