@@ -66,10 +66,11 @@ fun AssetsList(
             if (header != null) {
                 item { header() }
             }
-            items(data.assets, key = { it.key }) { assetState ->
+            val isHideVisible = (data as? WalletAssetsState.Assets)?.isHideVisible == true
+            items(data.assets, key = { "${it.key}$isHideVisible" }) { assetState ->
                 SwipeableAssetListItem(
                     assetState = assetState,
-                    isHideVisible = (data as? WalletAssetsState.Assets)?.isHideVisible == true,
+                    isHideVisible = isHideVisible,
                     assetClicked = callback::assetClicked,
                     actionItemClicked = callback::actionItemClicked
                 )
