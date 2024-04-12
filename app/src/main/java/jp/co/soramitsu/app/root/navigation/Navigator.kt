@@ -1042,8 +1042,8 @@ class Navigator :
         navController?.popBackStack()
     }
 
-    override fun openTransferDetail(transaction: OperationParcelizeModel.Transfer, assetPayload: AssetPayload, chainHistoryType: Chain.ExternalApi.Section.Type?) {
-        val bundle = TransferDetailFragment.getBundle(transaction, assetPayload, chainHistoryType)
+    override fun openTransferDetail(transaction: OperationParcelizeModel.Transfer, assetPayload: AssetPayload, chainExplorerType: Chain.Explorer.Type?) {
+        val bundle = TransferDetailFragment.getBundle(transaction, assetPayload, chainExplorerType)
 
         navController?.navigate(R.id.open_transfer_detail, bundle)
     }

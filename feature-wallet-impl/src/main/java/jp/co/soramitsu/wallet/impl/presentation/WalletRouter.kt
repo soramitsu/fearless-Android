@@ -89,7 +89,7 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
 
     fun finishSendFlow()
 
-    fun openTransferDetail(transaction: OperationParcelizeModel.Transfer, assetPayload: AssetPayload, chainHistoryType: Chain.ExternalApi.Section.Type?)
+    fun openTransferDetail(transaction: OperationParcelizeModel.Transfer, assetPayload: AssetPayload, chainExplorerType: Chain.Explorer.Type?)
 
     fun openSwapDetail(operation: OperationParcelizeModel.Swap)
 

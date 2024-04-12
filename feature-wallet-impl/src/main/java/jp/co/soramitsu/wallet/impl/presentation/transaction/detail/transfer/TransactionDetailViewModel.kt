@@ -45,7 +45,7 @@ class TransactionDetailViewModel @Inject constructor(
 
     val operation = savedStateHandle.get<OperationParcelizeModel.Transfer>(KEY_TRANSACTION)!!
     val assetPayload = savedStateHandle.get<AssetPayload>(KEY_ASSET_PAYLOAD)!!
-    val historyType = savedStateHandle.get<Chain.ExternalApi.Section.Type?>(KEY_HISTORY_TYPE)!!
+    val explorerType = savedStateHandle.get<Chain.Explorer.Type?>(KEY_EXPLORER_TYPE)
 
     private val _showExternalViewEvent = MutableLiveData<Event<ExternalActionsSource>>()
     val showExternalTransactionActionsEvent: LiveData<Event<ExternalActionsSource>> = _showExternalViewEvent
@@ -62,10 +62,10 @@ class TransactionDetailViewModel @Inject constructor(
 
     private val chainExplorers = flow { emit(chainRegistry.getChain(assetPayload.chainId).explorers) }.share()
 
-    fun getSupportedExplorers(historyType: Chain.ExternalApi.Section.Type, value: String): Map<Chain.Explorer.Type, String> {
-        val explorerUrlType: BlockExplorerUrlBuilder.Type = when (historyType) {
-            Chain.ExternalApi.Section.Type.ETHERSCAN -> BlockExplorerUrlBuilder.Type.TX
-            Chain.ExternalApi.Section.Type.REEF -> BlockExplorerUrlBuilder.Type.TRANSFER
+    fun getSupportedExplorers(explorerType: Chain.Explorer.Type, value: String): Map<Chain.Explorer.Type, String> {
+        val explorerUrlType: BlockExplorerUrlBuilder.Type = when (explorerType) {
+            Chain.Explorer.Type.ETHERSCAN -> BlockExplorerUrlBuilder.Type.TX
+            Chain.Explorer.Type.REEF -> BlockExplorerUrlBuilder.Type.TRANSFER
             else -> BlockExplorerUrlBuilder.Type.EXTRINSIC
         }
         return chainExplorers.replayCache.firstOrNull()?.getSupportedExplorers(explorerUrlType, value).orEmpty()

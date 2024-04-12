@@ -34,7 +34,6 @@ import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.feature_wallet_impl.R
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraTestChainId
@@ -487,19 +486,10 @@ class BalanceDetailViewModel @Inject constructor(
     }
 
     override fun transactionClicked(transactionModel: OperationModel) {
-        launch {
-            val chain = interactor.getChain(assetPayload.value.chainId)
-            val chainHistoryType: Chain.ExternalApi.Section.Type? = chain.externalApi?.history?.type
-
-            transactionHistoryProvider.transactionClicked(
-                transactionModel = transactionModel,
-                assetPayload = AssetPayload(
-                    chainId = assetPayload.value.chainId,
-                    chainAssetId = assetPayload.value.chainAssetId
-                ),
-                chainHistoryType = chainHistoryType
-            )
-        }
+        transactionHistoryProvider.transactionClicked(
+            transactionModel = transactionModel,
+            assetPayload = assetPayload.value
+        )
     }
 
     override fun tableItemClicked(itemId: Int) {
