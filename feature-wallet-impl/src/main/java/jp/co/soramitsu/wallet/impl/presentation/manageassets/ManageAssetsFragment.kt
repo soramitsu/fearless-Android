@@ -34,7 +34,7 @@ class ManageAssetsFragment : BaseComposeBottomSheetDialogFragment<ManageAssetsVi
     }
     override fun setupBehavior(behavior: BottomSheetBehavior<FrameLayout>) {
         behavior.state = BottomSheetBehavior.STATE_EXPANDED
-        behavior.isHideable = false
+        behavior.isHideable = true
         behavior.skipCollapsed = true
     }
 }
