@@ -45,13 +45,15 @@ data class AssetLocal(
             assetId: String,
             chainId: String,
             metaId: Long,
-            priceId: String?
+            priceId: String?,
+            enabled: Boolean? = null
         ) = AssetLocal(
             id = assetId,
             chainId = chainId,
             accountId = accountId,
             metaId = metaId,
-            tokenPriceId = priceId
+            tokenPriceId = priceId,
+            enabled = enabled
         )
     }
 

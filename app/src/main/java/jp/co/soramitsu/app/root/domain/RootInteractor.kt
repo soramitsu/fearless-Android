@@ -2,6 +2,7 @@ package jp.co.soramitsu.app.root.domain
 
 import com.walletconnect.web3.wallet.client.Web3Wallet
 import jp.co.soramitsu.account.api.domain.PendulumPreInstalledAccountsScenario
+import jp.co.soramitsu.account.impl.domain.WalletSyncService
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.appConfig
 import jp.co.soramitsu.common.domain.model.AppConfig
@@ -21,7 +22,8 @@ class RootInteractor(
     private val updateSystem: UpdateSystem,
     private val walletRepository: WalletRepository,
     private val pendulumPreInstalledAccountsScenario: PendulumPreInstalledAccountsScenario,
-    private val preferences: Preferences
+    private val preferences: Preferences,
+    private val walletSyncService: WalletSyncService
 ) {
 
     fun runBalancesUpdate(): Flow<Updater.SideEffect> = updateSystem.start().inBackground()

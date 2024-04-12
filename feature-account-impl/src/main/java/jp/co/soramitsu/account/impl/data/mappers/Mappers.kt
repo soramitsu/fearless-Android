@@ -67,7 +67,8 @@ fun mapMetaAccountLocalToLightMetaAccount(
         ethereumPublicKey = ethereumPublicKey,
         isSelected = isSelected,
         name = name,
-        isBackedUp = isBackedUp
+        isBackedUp = isBackedUp,
+        initialized = initialized,
     )
 }
 
@@ -112,7 +113,8 @@ fun mapMetaAccountLocalToMetaAccount(
             isSelected = isSelected,
             name = name,
             isBackedUp = isBackedUp,
-            googleBackupAddress = googleBackupAddress
+            googleBackupAddress = googleBackupAddress,
+            initialized = initialized,
         )
     }
     return metaAccount

@@ -12,6 +12,7 @@ import javax.inject.Named
 import javax.inject.Singleton
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.account.impl.domain.WalletSyncService
 import jp.co.soramitsu.account.impl.presentation.account.mixin.api.AccountListingMixin
 import jp.co.soramitsu.account.impl.presentation.account.mixin.impl.AccountListingProvider
 import jp.co.soramitsu.common.address.AddressIconGenerator
@@ -45,6 +46,7 @@ import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.runtime.multiNetwork.connection.EthereumConnectionPool
 import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeFilesCache
+import jp.co.soramitsu.runtime.storage.source.RemoteStorageSource
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 import jp.co.soramitsu.wallet.api.data.cache.AssetCache
 import jp.co.soramitsu.wallet.api.domain.ExistentialDepositUseCase
@@ -205,6 +207,24 @@ class WalletFeatureModule {
 
     @Provides
     @Singleton
+    fun provideWalletSyncService(
+        metaAccountDao: MetaAccountDao,
+        chainsRepository: ChainsRepository,
+        chainRegistry: ChainRegistry,
+        remoteStorageSource: RemoteStorageSource,
+        assetDao: AssetDao,
+    ): WalletSyncService {
+        return WalletSyncService(
+            metaAccountDao,
+            chainsRepository,
+            chainRegistry,
+            remoteStorageSource,
+            assetDao
+        )
+    }
+
+    @Provides
+    @Singleton
     fun provideHistoryRepository(
         historySourceProvider: HistorySourceProvider,
         operationsDao: OperationDao,
@@ -355,9 +375,7 @@ class WalletFeatureModule {
     @Named("BalancesUpdateSystem")
     fun provideFeatureUpdaters(
         chainRegistry: ChainRegistry,
-        accountRepository: AccountRepository,
         metaAccountDao: MetaAccountDao,
-        bulkRetriever: BulkRetriever,
         assetCache: AssetCache,
         substrateSource: SubstrateRemoteSource,
         operationDao: OperationDao,
@@ -365,9 +383,7 @@ class WalletFeatureModule {
         ethereumRemoteSource: EthereumRemoteSource
     ): UpdateSystem = BalancesUpdateSystem(
         chainRegistry,
-        accountRepository,
         metaAccountDao,
-        bulkRetriever,
         assetCache,
         substrateSource,
         operationDao,

@@ -158,7 +158,8 @@ class ChainRegistryModule {
         updatesMixin: UpdatesMixin,
         networkStateMixin: NetworkStateMixin,
         ethereumConnectionPool: EthereumConnectionPool,
-        assetReadOnlyCache: AssetDao
+        assetReadOnlyCache: AssetDao,
+        chainsRepository: ChainsRepository
     ): ChainRegistry = ChainRegistry(
         runtimeProviderPool,
         chainConnectionPool,
@@ -169,7 +170,8 @@ class ChainRegistryModule {
         updatesMixin,
         networkStateMixin,
         ethereumConnectionPool,
-        assetReadOnlyCache
+        assetReadOnlyCache,
+        chainsRepository
     )
 
     @Provides

@@ -15,6 +15,50 @@ import jp.co.soramitsu.shared_utils.runtime.metadata.storage
 
 interface AssetBalanceData
 
+data class AssetBalance(
+    val freeInPlanks: BigInteger? = null,
+    val reservedInPlanks: BigInteger? = null,
+    val miscFrozenInPlanks: BigInteger? = null,
+    val feeFrozenInPlanks: BigInteger? = null,
+    val bondedInPlanks: BigInteger? = null,
+    val redeemableInPlanks: BigInteger? = null,
+    val unbondingInPlanks: BigInteger? = null,
+    val status: String? = null
+)
+
+fun AssetBalanceData?.toAssetBalance(): AssetBalance? {
+    return when (this) {
+        null, is EmptyBalance -> AssetBalance(freeInPlanks = BigInteger.ZERO)
+        is AccountInfo -> {
+            AssetBalance(
+                freeInPlanks = data.free,
+                reservedInPlanks = data.reserved,
+                miscFrozenInPlanks = data.miscFrozen,
+                feeFrozenInPlanks = data.feeFrozen
+            )
+        }
+        is AssetsAccountInfo -> {
+            AssetBalance(
+                freeInPlanks = balance
+            )
+        }
+        is OrmlTokensAccountData -> {
+            AssetBalance(
+                freeInPlanks = free,
+                reservedInPlanks = reserved,
+                miscFrozenInPlanks = frozen
+            )
+        }
+        is SimpleBalanceData -> {
+            AssetBalance(
+                freeInPlanks = balance
+            )
+        }
+
+        else -> null
+    }
+}
+
 object EmptyBalance : AssetBalanceData
 class AccountData(
     val free: BigInteger,
@@ -96,7 +140,8 @@ class DataPoint(
 fun bindAccountData(dynamicInstance: Struct.Instance?) = AccountData(
     free = (dynamicInstance?.get("free") as? BigInteger).orZero(),
     reserved = (dynamicInstance?.get("reserved") as? BigInteger).orZero(),
-    miscFrozen = (dynamicInstance?.get("miscFrozen") as? BigInteger) ?: (dynamicInstance?.get("frozen") as? BigInteger).orZero(),
+    miscFrozen = (dynamicInstance?.get("miscFrozen") as? BigInteger)
+        ?: (dynamicInstance?.get("frozen") as? BigInteger).orZero(),
     feeFrozen = (dynamicInstance?.get("feeFrozen") as? BigInteger).orZero()
 )
 
@@ -134,14 +179,15 @@ fun bindEquilibriumAssetRates(scale: String?, runtime: RuntimeSnapshot): EqOracl
     val type = runtime.metadata.module(Modules.ORACLE).storage("PricePoints").returnType()
     val dynamicInstance = type.fromHexOrNull(runtime, scale).cast<Struct.Instance>()
 
-    val dataPoints = dynamicInstance.getList("dataPoints").filterIsInstance<Struct.Instance>().map { dataPointStruct ->
-        DataPoint(
-            price = bindNumber(dataPointStruct["price"]),
-            accountId = bindAccountId(dataPointStruct["accountId"]),
-            blockNumber = bindNumber(dataPointStruct["blockNumber"]),
-            timestamp = bindNumber(dataPointStruct["timestamp"])
-        )
-    }
+    val dataPoints = dynamicInstance.getList("dataPoints").filterIsInstance<Struct.Instance>()
+        .map { dataPointStruct ->
+            DataPoint(
+                price = bindNumber(dataPointStruct["price"]),
+                accountId = bindAccountId(dataPointStruct["accountId"]),
+                blockNumber = bindNumber(dataPointStruct["blockNumber"]),
+                timestamp = bindNumber(dataPointStruct["timestamp"])
+            )
+        }
     return EqOraclePricePoint(
         blockNumber = bindNumber(dynamicInstance["blockNumber"]),
         timestamp = bindNumber(dynamicInstance["timestamp"]),
@@ -156,7 +202,8 @@ fun bindEquilibriumAccountData(dynamicInstance: Struct.Instance?): EqAccountData
     val balances = balanceList?.mapNotNull {
         (it.getOrNull(0) as? BigInteger)?.let { eqAssetId ->
             val balanceEnum: DictEnum.Entry<BigInteger>? = it.getOrNull(1).cast()
-            val balanceValue = if (balanceEnum?.name == "Positive") balanceEnum.value else BigInteger.ZERO
+            val balanceValue =
+                if (balanceEnum?.name == "Positive") balanceEnum.value else BigInteger.ZERO
             eqAssetId to balanceValue
         }
     }?.toMap().orEmpty()

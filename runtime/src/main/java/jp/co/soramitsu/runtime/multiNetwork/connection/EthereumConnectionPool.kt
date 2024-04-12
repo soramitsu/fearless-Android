@@ -4,6 +4,7 @@ import android.util.Log
 import java.net.URI
 import java.util.concurrent.ConcurrentHashMap
 import jp.co.soramitsu.common.BuildConfig
+import jp.co.soramitsu.common.data.network.runtime.binding.cast
 import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
 import jp.co.soramitsu.common.utils.cycle
 import jp.co.soramitsu.core.models.ChainNode
@@ -16,13 +17,16 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.goerliChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polygonChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polygonTestnetChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.sepoliaChainId
+import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeProvider
 import jp.co.soramitsu.runtime.multiNetwork.toSyncIssue
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -38,31 +42,38 @@ private const val EVM_CONNECTION_TAG = "EVM Connection"
 class EthereumConnectionPool(
     private val networkStateMixin: NetworkStateMixin,
 ) {
-    private val pool = ConcurrentHashMap<ChainId, EthereumChainConnection>()
+    private val poolStateFlow =
+        MutableStateFlow<MutableMap<String, EthereumChainConnection>>(mutableMapOf())
 
-
-    fun setupConnection(
-        chain: Chain,
-        onSelectedNodeChange: (chainId: ChainId, newNodeUrl: String) -> Unit
-    ) {
-        pool[chain.id] = EthereumChainConnection(
-            chain,
-            onSelectedNodeChange = onSelectedNodeChange
-        ) { networkStateMixin.notifyChainSyncProblem(chain.toSyncIssue()) }
+    suspend fun await(chainId: String): EthereumChainConnection {
+        return poolStateFlow.map { it.getOrDefault(chainId, null) }.first { it != null }.cast()
     }
 
-    fun get(chainId: String): EthereumChainConnection? {
-        val connection = pool.getOrDefault(chainId, null)
-        if (connection != null && connection.statusFlow.value !is EvmConnectionStatus.Connected) {
-            connection.statusFlow.update { null }
+    fun getOrNull(chainId: String): EthereumChainConnection? {
+        return poolStateFlow.value.getOrDefault(chainId, null)
+    }
+
+    fun setupConnection(chain: Chain, onSelectedNodeChange: (chainId: ChainId, newNodeUrl: String) -> Unit): EthereumChainConnection {
+        if (poolStateFlow.value.containsKey(chain.id)) {
+            return poolStateFlow.value.getValue(chain.id)
+        } else {
+            poolStateFlow.update { prev ->
+                prev.also {
+                    it[chain.id] = EthereumChainConnection(
+                        chain,
+                        onSelectedNodeChange = onSelectedNodeChange
+                    ) { networkStateMixin.notifyChainSyncProblem(chain.toSyncIssue()) }
+                }
+            }
+            return poolStateFlow.value.getValue(chain.id)
         }
-        return connection
     }
 
     fun stop(chainId: String) {
-        pool.getOrDefault(chainId, null)?.let {
-            it.web3j?.shutdown()
-            pool.remove(chainId)
+        poolStateFlow.update { prev ->
+            prev.also {
+                it.remove(chainId)?.apply { web3j?.shutdown() }
+            }
         }
     }
 }

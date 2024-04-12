@@ -21,18 +21,21 @@ import jp.co.soramitsu.coredb.dao.AssetReadOnlyCache
 import jp.co.soramitsu.coredb.dao.ChainDao
 import jp.co.soramitsu.coredb.model.chain.ChainNodeLocal
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainSyncService
+import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.runtime.multiNetwork.chain.mapChainLocalToChain
 import jp.co.soramitsu.runtime.multiNetwork.chain.mapNodeLocalToNode
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.NodeId
 import jp.co.soramitsu.runtime.multiNetwork.connection.ConnectionPool
+import jp.co.soramitsu.runtime.multiNetwork.connection.EthereumChainConnection
 import jp.co.soramitsu.runtime.multiNetwork.connection.EthereumConnectionPool
 import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeProvider
 import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeProviderPool
 import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeSubscriptionPool
 import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeSyncService
 import jp.co.soramitsu.shared_utils.runtime.RuntimeSnapshot
+import jp.co.soramitsu.shared_utils.wsrpc.state.SocketStateMachine
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -40,7 +43,6 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -53,7 +55,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.shareIn
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -73,6 +74,7 @@ class ChainRegistry @Inject constructor(
     private val networkStateMixin: NetworkStateMixin,
     private val ethereumConnectionPool: EthereumConnectionPool,
     private val assetsCache: AssetReadOnlyCache,
+    private val chainsRepository: ChainsRepository,
     private val dispatcher: CoroutineDispatcher = Dispatchers.Default
 ) : IChainRegistry, UpdatesProviderUi by updatesMixin {
 
@@ -109,23 +111,25 @@ class ChainRegistry @Inject constructor(
         .filter { it.addedOrModified.isNotEmpty() || it.removed.isNotEmpty() }
         .flowOn(dispatcher)
 
+    val configsSyncDeferred = scope.async {
+        launch { chainSyncService.syncUp() }
+        launch { runtimeSyncService.syncTypes() }
+    }
+
     init {
         syncUp()
     }
 
     fun syncUp() {
         scope.launch {
-            coroutineScope {
-                launch { chainSyncService.syncUp() }
-                launch { runtimeSyncService.syncTypes() }
-            }.join()
+            configsSyncDeferred.join()
 
             chainsToSync
                 .onEach { (removed, addedOrModified, all) ->
                     coroutineScope {
-//                        val removedDeferred = removed.map {
-//                            async { removeChain(it) }
-//                        }
+                        val removedDeferred = removed.map {
+                            async { connectionPool.getConnectionOrNull(it.id)?.socketService?.pause() }
+                        }
 
                         updatesMixin.startChainsSyncUp(addedOrModified.filter { it.nodes.isNotEmpty() }
                             .map { it.id })
@@ -148,11 +152,7 @@ class ChainRegistry @Inject constructor(
                             }
                         }
 
-                        syncDeferred.awaitAll()
-                    }
-                    if(this@ChainRegistry.syncedChains.value.isEmpty()) {
-                        // initial sync is done
-
+                        (removedDeferred + syncDeferred).awaitAll()
                     }
                     this@ChainRegistry.syncedChains.emit(all)
 
@@ -161,7 +161,7 @@ class ChainRegistry @Inject constructor(
         }
     }
 
-    private fun removeChain(chain: Chain) {
+    fun stopChain(chain: Chain) {
         val chainId = chain.id
         if (chain.isEthereumChain) {
             ethereumConnectionPool.stop(chainId)
@@ -173,17 +173,37 @@ class ChainRegistry @Inject constructor(
         connectionPool.removeConnection(chainId)
     }
 
-    private fun setupChain(chain: Chain) {
+    suspend fun setupChain(chain: Chain) {
         if (chain.isEthereumChain) {
             ethereumConnectionPool.setupConnection(chain, ::notifyNodeSwitched)
             return
         }
 
-        val connection = connectionPool.setupConnection(chain, ::notifyNodeSwitched)
+        val connection = connectionPool.getConnectionOrNull(chain.id)?.let {
+            if (it.state.value is SocketStateMachine.State.Paused) {
+                it.socketService.resume()
+            }
+            it
+        } ?: connectionPool.setupConnection(chain, ::notifyNodeSwitched)
+
+        if (runtimeProviderPool.getRuntimeProviderOrNull(chain.id)?.getOrNull() != null) return
+
+        if (connection.state.value is SocketStateMachine.State.Disconnected) {
+            connection.socketService.start(chain.nodes.first().url)
+        }
 
         runtimeSubscriptionPool.setupRuntimeSubscription(chain, connection)
         runtimeSyncService.registerChain(chain)
         runtimeProviderPool.setupRuntimeProvider(chain)
+    }
+
+    suspend fun checkChainSyncedUp(chain: Chain): Boolean {
+        if (chain.isEthereumChain) {
+            return ethereumConnectionPool.getOrNull(chain.id) != null
+        }
+        val runtime = runtimeProviderPool.getRuntimeProviderOrNull(chain.id)?.getOrNull()
+
+        return connectionPool.getConnectionOrNull(chain.id) != null && runtime != null
     }
 
     override fun getConnection(chainId: String) = connectionPool.getConnection(chainId)
@@ -193,35 +213,36 @@ class ChainRegistry @Inject constructor(
         ReplaceWith("getRuntimeOrNull(chainId)")
     )
     override suspend fun getRuntime(chainId: ChainId): RuntimeSnapshot {
-        return getRuntimeProvider(chainId).get()
+        return awaitRuntimeProvider(chainId).get()
     }
 
     suspend fun getRuntimeOrNull(chainId: ChainId): RuntimeSnapshot? {
-        return kotlin.runCatching { getRuntimeProvider(chainId).getOrNullWithTimeout() }
-            .getOrNull()
+        return getRuntimeProviderOrNull(chainId)?.getOrNull()
     }
 
     fun getConnectionOrNull(chainId: String) = connectionPool.getConnectionOrNull(chainId)
 
-    suspend fun getRuntimeProvider(chainId: String): RuntimeProvider {
-        return runtimeProviderPool.getRuntimeProvider(chainId)
+    suspend fun awaitRuntimeProvider(chainId: String): RuntimeProvider {
+        return runtimeProviderPool.awaitRuntimeProvider(chainId)
     }
 
     suspend fun getRuntimeProviderOrNull(chainId: String): RuntimeProvider? {
         return runtimeProviderPool.getRuntimeProviderOrNull(chainId)
     }
 
-    fun getAsset(chainId: ChainId, chainAssetId: String) =
-        chainsById.replayCache.lastOrNull()?.get(chainId)?.assets?.firstOrNull {
-            it.id == chainAssetId
-        }
+    fun getEthereumConnection(chainId: String) = ethereumConnectionPool.getOrNull(chainId)
+    suspend fun awaitEthereumConnection(chainId: String) = ethereumConnectionPool.await(chainId)
+
+    suspend fun getAsset(chainId: ChainId, chainAssetId: String): Asset? {
+        return getChain(chainId).assetsById[chainAssetId]
+    }
 
     override suspend fun getChain(chainId: ChainId): Chain {
-        return chainsById.first().getValue(chainId)
+        return chainsRepository.getChain(chainId)
     }
 
     override suspend fun getChains(): List<IChain> {
-        return chainsById.first().values.toList()
+        return chainsRepository.getChains()
     }
 
     fun nodesFlow(chainId: String) = chainDao.nodesFlow(chainId)
@@ -267,21 +288,17 @@ class ChainRegistry @Inject constructor(
     }
 }
 
-suspend fun ChainRegistry.getChain(chainId: ChainId): Chain {
-    return getChain(chainId)
-}
-
 suspend fun ChainRegistry.chainWithAsset(
     chainId: ChainId,
     assetId: String
 ): Pair<Chain, Asset> {
-    val chain = chainsById.first().getValue(chainId)
+    val chain = getChain(chainId)
 
     return chain to chain.assetsById.getValue(assetId)
 }
 
 suspend fun ChainRegistry.getRuntime(chainId: ChainId): RuntimeSnapshot {
-    return getRuntimeProvider(chainId).get()
+    return awaitRuntimeProvider(chainId).get()
 }
 
 suspend fun ChainRegistry.getRuntimeOrNull(chainId: ChainId): RuntimeSnapshot? {
@@ -289,7 +306,7 @@ suspend fun ChainRegistry.getRuntimeOrNull(chainId: ChainId): RuntimeSnapshot? {
 }
 
 suspend fun ChainRegistry.getRuntimeCatching(chainId: ChainId): Result<RuntimeSnapshot> {
-    val providerResult = kotlin.runCatching { getRuntimeProvider(chainId) }
+    val providerResult = kotlin.runCatching { awaitRuntimeProvider(chainId) }
 
     return if (providerResult.isFailure) {
         Result.failure(providerResult.requireException())
@@ -304,7 +321,7 @@ fun ChainRegistry.getSocketOrNull(chainId: ChainId) =
 
 suspend fun ChainRegistry.getService(chainId: ChainId): ChainService {
     return ChainService(
-        runtimeProvider = getRuntimeProvider(chainId),
+        runtimeProvider = awaitRuntimeProvider(chainId),
         connection = getConnection(chainId)
     )
 }

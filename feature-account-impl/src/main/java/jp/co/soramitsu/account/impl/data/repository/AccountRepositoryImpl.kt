@@ -12,6 +12,7 @@ import jp.co.soramitsu.account.api.domain.model.MetaAccountOrdering
 import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.account.api.domain.model.cryptoType
 import jp.co.soramitsu.account.api.domain.model.hasChainAccount
+import jp.co.soramitsu.account.impl.data.mappers.mapMetaAccountLocalToMetaAccount
 import jp.co.soramitsu.account.impl.data.repository.datasource.AccountDataSource
 import jp.co.soramitsu.backup.domain.models.BackupAccountType
 import jp.co.soramitsu.common.data.Keypair
@@ -344,13 +345,13 @@ class AccountRepositoryImpl(
                 ethereumPublicKey = ethereumKeypair?.publicKey,
                 ethereumAddress = ethereumKeypair?.publicKey?.ethereumAddressFromPublicKey(),
                 isBackedUp = true,
-                googleBackupAddress = googleBackupAddress
+                googleBackupAddress = googleBackupAddress,
+                initialized = false
             )
 
             val metaAccountId = insertAccount(metaAccount)
 
             coroutineScope {
-                launch { fillAccountAssets(metaAccountId, metaAccount) }
                 launch { storeV2.putMetaAccountSecrets(metaAccountId, secretsV2) }
                 launch { selectAccount(metaAccountId) }
             }.join()
@@ -368,7 +369,7 @@ class AccountRepositoryImpl(
         return withContext(dispatcher) {
             val seedBytes = Hex.decode(seed.removePrefix("0x"))
 
-            val ethereumBased = chainRegistry.getChain(chainId).isEthereumBased
+            val ethereumBased = chainsRepository.getChain(chainId).isEthereumBased
             val keyPair = when {
                 ethereumBased -> EthereumKeypairFactory.createWithPrivateKey(seedBytes)
                 else -> {
@@ -461,13 +462,13 @@ class AccountRepositoryImpl(
                 ethereumAddress = ethereumKeypair?.publicKey?.ethereumAddressFromPublicKey(),
                 ethereumPublicKey = ethereumKeypair?.publicKey,
                 isBackedUp = true,
-                googleBackupAddress = googleBackupAddress
+                googleBackupAddress = googleBackupAddress,
+                initialized = false
             )
 
             val metaAccountId = insertAccount(metaAccount)
 
             coroutineScope {
-                launch { fillAccountAssets(metaAccountId, metaAccount) }
                 launch { storeV2.putMetaAccountSecrets(metaAccountId, secretsV2) }
                 launch { selectAccount(metaAccountId) }
             }.join()
@@ -484,7 +485,7 @@ class AccountRepositoryImpl(
         return withContext(dispatcher) {
             val importData = jsonSeedDecoder.decode(json, password)
 
-            val ethereumBased = chainRegistry.getChain(chainId).isEthereumBased
+            val ethereumBased = chainsRepository.getChain(chainId).isEthereumBased
             val keyPair = when {
                 ethereumBased -> EthereumKeypairFactory.createWithPrivateKey(importData.keypair.privateKey)
                 else -> importData.keypair
@@ -595,7 +596,7 @@ class AccountRepositoryImpl(
 
     override suspend fun generateRestoreJson(metaId: Long, chainId: ChainId, password: String) =
         withContext(dispatcher) {
-            val chain = chainRegistry.getChain(chainId)
+            val chain = chainsRepository.getChain(chainId)
             val metaAccount = getMetaAccount(metaId)
 
             val hasChainAccount = metaAccount.hasChainAccount(chainId)
@@ -748,15 +749,12 @@ class AccountRepositoryImpl(
                 isSelected = true,
                 position = position,
                 isBackedUp = isBackedUp,
-                googleBackupAddress = googleBackupAddress
+                googleBackupAddress = googleBackupAddress,
+                initialized = false,
             )
 
             val metaAccountId = insertAccount(metaAccount)
-            coroutineScope {
-                launch { fillAccountAssets(metaAccountId, metaAccount) }
-                launch { storeV2.putMetaAccountSecrets(metaAccountId, secretsV2) }
-            }.join()
-
+            storeV2.putMetaAccountSecrets(metaAccountId, secretsV2)
             metaAccountId
         }
     }
@@ -796,7 +794,7 @@ class AccountRepositoryImpl(
             junctions = decodedEthereumDerivationPath.junctions
         )
 
-        val ethereumBased = chainRegistry.getChain(chainId).isEthereumBased
+        val ethereumBased = chainsRepository.getChain(chainId).isEthereumBased
         val keyPair = when {
             ethereumBased -> ethereumKeypair
             else -> keys
@@ -864,31 +862,6 @@ class AccountRepositoryImpl(
         throw AccountAlreadyExistsException()
     }
 
-    private suspend fun fillAccountAssets(metaAccountId: Long, metaAccount: MetaAccountLocal) {
-        val chains = chainsRepository.getChains()
-        val assets = chains.map { chain ->
-            chain.assets.map {
-                AssetLocal(
-                    id = it.id,
-                    chainId = chain.id,
-                    accountId = metaAccount.substrateAccountId,
-                    metaId = metaAccountId,
-                    tokenPriceId = it.priceId,
-                    freeInPlanks = null,
-                    reservedInPlanks = null,
-                    miscFrozenInPlanks = null,
-                    feeFrozenInPlanks = null,
-                    bondedInPlanks = null,
-                    redeemableInPlanks = null,
-                    unbondingInPlanks = null,
-                    enabled = chain.rank != null && it.isUtility
-                )
-
-            }
-        }.flatten()
-        assetDao.insertAssets(assets)
-    }
-
     private suspend fun insertChainAccount(
         chainAccount: ChainAccountLocal
     ) = try {
@@ -899,7 +872,7 @@ class AccountRepositoryImpl(
 
     override fun polkadotAddressForSelectedAccountFlow(): Flow<String> {
         return selectedMetaAccountFlow().map {
-            val chain = chainRegistry.getChain(polkadotChainId)
+            val chain = chainsRepository.getChain(polkadotChainId)
             it.address(chain) ?: ""
         }
     }
@@ -927,13 +900,13 @@ class AccountRepositoryImpl(
 
     override suspend fun googleBackupAddressForWallet(walletId: Long): String {
         val wallet = getMetaAccount(walletId)
-        val chain = chainRegistry.getChain(westendChainId)
+        val chain = chainsRepository.getChain(westendChainId)
         return wallet.googleBackupAddress ?: wallet.address(chain) ?: ""
     }
 
     override fun googleAddressAllWalletsFlow(): Flow<List<String>> {
         return allMetaAccountsFlow().map { allMetaAccounts ->
-            val westendChain = chainRegistry.getChain(westendChainId)
+            val westendChain = chainsRepository.getChain(westendChainId)
             allMetaAccounts.mapNotNull {
                 it.googleBackupAddress ?: it.address(westendChain)
             }
@@ -941,7 +914,7 @@ class AccountRepositoryImpl(
     }
 
     override suspend fun getChain(chainId: ChainId): Chain {
-        return chainRegistry.getChain(chainId)
+        return chainsRepository.getChain(chainId)
     }
 
     override suspend fun updateFavoriteChain(metaAccountId: Long, chainId: ChainId, isFavorite: Boolean) {

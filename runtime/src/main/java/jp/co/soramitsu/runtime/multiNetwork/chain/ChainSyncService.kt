@@ -60,9 +60,15 @@ class ChainSyncService(
                             .flatten()
 
                     val newLocalAssets = metaAccounts.map { metaAccount ->
-                        newAssets.map {
+                        newAssets.mapNotNull {
+                            val chain = remoteMapping[it.chainId]
+                            val accountId = if(chain?.isEthereumBased == true) {
+                                metaAccount.ethereumAddress
+                            } else {
+                                metaAccount.substrateAccountId
+                            } ?: return@mapNotNull null
                             AssetLocal(
-                                accountId = metaAccount.substrateAccountId,
+                                accountId = accountId,
                                 id = it.id,
                                 chainId = it.chainId,
                                 metaId = metaAccount.id,

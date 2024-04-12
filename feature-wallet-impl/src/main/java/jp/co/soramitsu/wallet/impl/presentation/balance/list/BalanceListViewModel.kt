@@ -263,7 +263,8 @@ class BalanceListViewModel @Inject constructor(
             }
 
         assetStates
-    }.onStart { emit(buildInitialAssetsList().toMutableList()) }.inBackground().share()
+    }//.onStart { emit(buildInitialAssetsList().toMutableList()) }
+        .inBackground().share()
 
     @OptIn(FlowPreview::class)
     private fun createNFTCollectionScreenViewsFlow(): Flow<Pair<LoadableListPage<NFTCollectionsScreenView>, ScreenLayout>> {

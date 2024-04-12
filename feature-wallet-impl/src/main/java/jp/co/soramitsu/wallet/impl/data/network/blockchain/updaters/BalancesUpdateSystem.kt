@@ -9,6 +9,8 @@ import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.accountId
 import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.account.impl.data.mappers.mapMetaAccountLocalToMetaAccount
+import jp.co.soramitsu.account.impl.domain.buildStorageKeys
+import jp.co.soramitsu.account.impl.domain.handleBalanceResponse
 import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
 import jp.co.soramitsu.common.data.network.runtime.binding.ExtrinsicStatusEvent
 import jp.co.soramitsu.common.data.network.runtime.binding.SimpleBalanceData
@@ -17,7 +19,6 @@ import jp.co.soramitsu.common.utils.failure
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.requireException
 import jp.co.soramitsu.common.utils.requireValue
-import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.core.models.ChainAssetType
 import jp.co.soramitsu.core.updater.UpdateSystem
 import jp.co.soramitsu.core.updater.Updater
@@ -33,7 +34,6 @@ import jp.co.soramitsu.runtime.multiNetwork.getSocketOrNull
 import jp.co.soramitsu.runtime.multiNetwork.toSyncIssue
 import jp.co.soramitsu.runtime.network.subscriptionFlowCatching
 import jp.co.soramitsu.shared_utils.runtime.AccountId
-import jp.co.soramitsu.shared_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.shared_utils.wsrpc.request.runtime.RuntimeRequest
 import jp.co.soramitsu.shared_utils.wsrpc.request.runtime.storage.storageChange
 import jp.co.soramitsu.wallet.api.data.cache.AssetCache
@@ -43,8 +43,6 @@ import jp.co.soramitsu.wallet.impl.data.mappers.mapOperationStatusToOperationLoc
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.EthereumRemoteSource
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.SubstrateRemoteSource
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.bindings.TransferExtrinsic
-import jp.co.soramitsu.wallet.impl.data.network.model.constructBalanceKey
-import jp.co.soramitsu.wallet.impl.data.network.model.handleBalanceResponse
 import jp.co.soramitsu.wallet.impl.domain.model.Operation
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
@@ -55,6 +53,7 @@ import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
@@ -72,9 +71,7 @@ private const val RUNTIME_AWAITING_TIMEOUT = 10_000L
 @SuppressLint("LogNotTimber")
 class BalancesUpdateSystem(
     private val chainRegistry: ChainRegistry,
-    private val accountRepository: AccountRepository,
     private val metaAccountDao: MetaAccountDao,
-    private val bulkRetriever: BulkRetriever,
     private val assetCache: AssetCache,
     private val substrateSource: SubstrateRemoteSource,
     private val operationDao: OperationDao,
@@ -166,7 +163,7 @@ class BalancesUpdateSystem(
                         .getOrNull()
                         ?: return@flatMapLatest flowOf(Result.failure<Any>(RuntimeException("Error getting socket for chain ${chain.name}")))
 
-                    val request = SubscribeBalanceRequest(storageKeys.map { it.key })
+                    val request = SubscribeBalanceRequest(storageKeys.mapNotNull { it.key })
 
                     combine(socketService.subscriptionFlowCatching(request)) { subscriptionsChangeResults ->
                         subscriptionsChangeResults.forEach { subscriptionChangeResult ->
@@ -231,143 +228,6 @@ class BalancesUpdateSystem(
                     }
                 } ?: flowOf(Result.failure("Can't find RuntimeProvider for chain: ${chain.name}"))
         return chainUpdateFlow
-    }
-
-    private val ethBalancesFlow = combine(chainRegistry.syncedChains,
-        accountRepository.allMetaAccountsFlow().filterNot { it.isEmpty() }) { chains, accounts ->
-        val filtered = chains.filter { it.isEthereumChain }
-        coroutineScope {
-            filtered.forEach { chain ->
-                launch {
-                    fetchEthereumBalances(chain, accounts)
-                }
-            }
-        }
-    }
-
-    private val substrateBalancesFlow = combine(chainRegistry.syncedChains,
-        accountRepository.allMetaAccountsFlow().filterNot { it.isEmpty() }) { chains, accounts ->
-        coroutineScope {
-            val filtered = chains.filterNot { it.isEthereumChain }
-            filtered.forEach { chain ->
-                launch {
-                    runCatching {
-                        val runtime =
-                            runCatching { chainRegistry.getRuntimeOrNull(chain.id) }.getOrNull()
-                                ?: return@launch
-                        val socketService =
-                            runCatching { chainRegistry.getSocket(chain.id) }.getOrNull()
-                                ?: return@launch
-                        val storageKeys =
-                            accounts.mapNotNull { metaAccount ->
-                                buildStorageKeys(chain, metaAccount, runtime)
-                                    .onFailure { }
-                                    .getOrNull()?.toList()
-                            }.flatten()
-                        val queryResults = withContext(Dispatchers.IO) {
-                            bulkRetriever.queryKeys(
-                                socketService,
-                                storageKeys.map { it.key }
-                            )
-                        }
-
-                        storageKeys.map { keyWithMetadata ->
-                            val hexRaw =
-                                queryResults[keyWithMetadata.key]
-
-                            val balanceData = handleBalanceResponse(
-                                runtime,
-                                keyWithMetadata.asset,
-                                hexRaw
-                            ).onFailure { logError(chain, it) }
-
-                            assetCache.updateAsset(
-                                keyWithMetadata.metaAccountId,
-                                keyWithMetadata.accountId,
-                                keyWithMetadata.asset,
-                                balanceData.getOrNull()
-                            )
-                        }
-                    }
-                        .onFailure {
-                            logError(chain, it)
-                            return@launch
-                        }
-                }
-            }
-        }
-    }
-
-    private fun singleUpdateFlow(): Flow<Unit> {
-        return combine(
-            ethBalancesFlow,
-            substrateBalancesFlow
-        ) { _, _ ->
-        }.onStart { emit(Unit) }.flowOn(Dispatchers.Default)
-    }
-
-    private fun buildStorageKeys(
-        chain: Chain,
-        metaAccount: MetaAccount,
-        runtime: RuntimeSnapshot
-    ): Result<List<StorageKeyWithMetadata>> {
-        val accountId = metaAccount.accountId(chain)
-            ?: return Result.failure(RuntimeException("Can't get account id for meta account ${metaAccount.name}, chain: ${chain.name}"))
-
-        if (chain.utilityAsset != null && chain.utilityAsset?.typeExtra == ChainAssetType.Equilibrium) {
-            val equilibriumStorageKeys = listOf(
-                constructBalanceKey(
-                    runtime,
-                    requireNotNull(chain.utilityAsset),
-                    accountId
-                )?.let {
-                    StorageKeyWithMetadata(
-                        requireNotNull(chain.utilityAsset),
-                        metaAccount.id,
-                        accountId,
-                        it
-                    )
-                })
-            return Result.success(equilibriumStorageKeys.filterNotNull())
-        }
-
-        val storageKeys = chain.assets.map { asset ->
-            constructBalanceKey(runtime, asset, accountId)?.let {
-                StorageKeyWithMetadata(asset, metaAccount.id, accountId, it)
-            }
-        }
-        return Result.success(storageKeys.filterNotNull())
-    }
-
-    data class StorageKeyWithMetadata(
-        val asset: Asset,
-        val metaAccountId: Long,
-        val accountId: AccountId,
-        val key: String
-    ) {
-        override fun equals(other: Any?): Boolean {
-            if (this === other) return true
-            if (javaClass != other?.javaClass) return false
-
-            other as StorageKeyWithMetadata
-
-            if (asset != other.asset) return false
-            if (metaAccountId != other.metaAccountId) return false
-            if (!accountId.contentEquals(other.accountId)) return false
-
-            return true
-        }
-
-        override fun hashCode(): Int {
-            var result = asset.hashCode()
-            result = 31 * result + metaAccountId.hashCode()
-            result = 31 * result + accountId.contentHashCode()
-            return result
-        }
-
-        override fun toString(): String {
-            return "StorageKeyWithMetadata(asset=${asset.name}, metaAccountId=$metaAccountId, key='$key')"
-        }
     }
 
     private suspend fun fetchEthereumBalances(
@@ -461,7 +321,7 @@ class BalancesUpdateSystem(
     }
 
     override fun start(): Flow<Updater.SideEffect> {
-        return combine(subscribeFlow(), singleUpdateFlow()) { sideEffect, _ -> sideEffect }
+        return emptyFlow()//subscribeFlow()
     }
 }
 

@@ -1,5 +1,6 @@
 package jp.co.soramitsu.common.compose.component
 
+import android.util.Log
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -69,6 +70,7 @@ fun FeeInfo(state: FeeInfoViewState, modifier: Modifier = Modifier, tooltipClick
             }
         }
         Column(modifier = Modifier.weight(1f)) {
+            Log.d("&&&", "state.feeAmount = ${state.feeAmount}")
             state.feeAmount?.let {
                 CapsTitle(text = it, textAlign = TextAlign.End, modifier = Modifier.align(Alignment.End))
             } ?: Shimmer(

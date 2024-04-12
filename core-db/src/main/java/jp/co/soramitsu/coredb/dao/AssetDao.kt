@@ -114,7 +114,7 @@ abstract class AssetDao : AssetReadOnlyCache {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     abstract suspend fun insertAsset(asset: AssetLocal)
 
-    @Insert(onConflict = OnConflictStrategy.ABORT)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     abstract suspend fun insertAssets(assets: List<AssetLocal>)
 
     @Update(entity = AssetLocal::class)
