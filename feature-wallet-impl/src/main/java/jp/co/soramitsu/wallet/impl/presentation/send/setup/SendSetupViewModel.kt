@@ -64,6 +64,7 @@ import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.ChainSelectScreenContract
 import jp.co.soramitsu.wallet.impl.presentation.send.SendSharedState
 import jp.co.soramitsu.wallet.impl.presentation.send.TransferDraft
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -263,6 +264,7 @@ class SendSetupViewModel @Inject constructor(
         }
     }.stateIn(this, SharingStarted.Eagerly, defaultAmountInputState)
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     private val feeAmountFlow = combine(
         addressInputTrimmedFlow,
         isInputAddressValidFlow,
@@ -353,7 +355,7 @@ class SendSetupViewModel @Inject constructor(
                 message = getPhishingMessage(phishing.type),
                 extras = listOf(
                     phishing.name?.let { resourceManager.getString(R.string.username_setup_choose_title) to it },
-                    phishing.type?.let { resourceManager.getString(R.string.reason) to it.capitalizedName },
+                    phishing.type.let { resourceManager.getString(R.string.reason) to it.capitalizedName },
                     phishing.subtype?.let { resourceManager.getString(R.string.scam_additional_stub) to it }
                 ).mapNotNull { it },
                 isExpanded = isExpanded,
