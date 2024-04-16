@@ -93,6 +93,7 @@ import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.validation.EnoughToPayFeesValidation
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -128,6 +129,7 @@ class StakingRelayChainScenarioInteractor(
     private val walletConstants: WalletConstants
 ) : StakingScenarioInteractor {
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     override suspend fun observeNetworkInfoState(): Flow<NetworkInfo> {
         return stakingSharedState.assetWithChain.filter { it.asset.staking == StakingType.RELAYCHAIN }
             .flatMapLatest { (chain, _) ->
