@@ -69,7 +69,7 @@ class AccountDetailsViewModel @Inject constructor(
     private val walletId = savedStateHandle.get<Long>(ACCOUNT_ID_KEY)!!
     private val wallet = flowOf {
         interactor.getMetaAccount(walletId)
-    }
+    }.share()
     private val walletItem = wallet
         .map { wallet ->
 
@@ -123,18 +123,7 @@ class AccountDetailsViewModel @Inject constructor(
         .inBackground()
         .share()
 
-    val state = combine(
-        walletItem,
-        chainAccountProjections,
-        enteredQueryFlow
-    ) { walletItem, chainProjections, query ->
-        AccountDetailsState(
-            walletItem = walletItem,
-            chainProjections = chainProjections,
-            searchQuery = query
-        )
-    }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, AccountDetailsState.Empty)
+    val state = MutableStateFlow(AccountDetailsState.Empty)
 
     init {
         launch {
@@ -142,6 +131,21 @@ class AccountDetailsViewModel @Inject constructor(
         }
 
         syncNameChangesWithDb()
+        subscribeScreenState()
+    }
+
+    private fun subscribeScreenState() {
+        walletItem.onEach {
+            state.value = state.value.copy(walletItem = it)
+        }.launchIn(this)
+
+        chainAccountProjections.onEach {
+            state.value = state.value.copy(chainProjections = it)
+        }.launchIn(this)
+
+        enteredQueryFlow.onEach {
+            state.value = state.value.copy(searchQuery = it)
+        }.launchIn(this)
     }
 
     override fun onBackClick() {
