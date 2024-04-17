@@ -10,7 +10,6 @@ import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.data.network.AppLinksProvider
-import jp.co.soramitsu.common.data.network.BlockExplorerUrlBuilder
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.flowOf
@@ -20,7 +19,7 @@ import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.sumByBigInteger
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedAddressExplorers
 import jp.co.soramitsu.staking.impl.domain.StakingInteractor
 import jp.co.soramitsu.staking.impl.domain.getSelectedChain
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
@@ -142,7 +141,7 @@ class ValidatorDetailsViewModel @Inject constructor(
         val address = validatorDetails.value?.address ?: return@launch
         val chainId = assetFlow.first().token.configuration.chainId
         val chain = chainRegistry.getChain(chainId)
-        val supportedExplorers = chain.explorers.getSupportedExplorers(BlockExplorerUrlBuilder.Type.ACCOUNT, address)
+        val supportedExplorers = chain.explorers.getSupportedAddressExplorers(address)
         val externalActionsPayload = ExternalAccountActions.Payload(
             value = address,
             chainId = chainId,

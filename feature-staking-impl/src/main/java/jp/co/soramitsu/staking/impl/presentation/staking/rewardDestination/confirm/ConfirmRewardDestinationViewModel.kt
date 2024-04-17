@@ -8,7 +8,6 @@ import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
-import jp.co.soramitsu.common.data.network.BlockExplorerUrlBuilder
 import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.inBackground
@@ -35,13 +34,13 @@ import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenar
 import jp.co.soramitsu.wallet.api.data.mappers.mapFeeToFeeModel
 import jp.co.soramitsu.wallet.api.presentation.mixin.fee.FeeStatus
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedAddressExplorers
 
 @HiltViewModel
 class ConfirmRewardDestinationViewModel @Inject constructor(
@@ -111,7 +110,7 @@ class ConfirmRewardDestinationViewModel @Inject constructor(
     private fun showAddressExternalActions(address: String) = launch {
         val chainId = controllerAssetFlow.first().token.configuration.chainId
         val chain = chainRegistry.getChain(chainId)
-        val supportedExplorers = chain.explorers.getSupportedExplorers(BlockExplorerUrlBuilder.Type.ACCOUNT, address)
+        val supportedExplorers = chain.explorers.getSupportedAddressExplorers(address)
         val externalActionsPayload = ExternalAccountActions.Payload(
             value = address,
             chainId = chainId,
