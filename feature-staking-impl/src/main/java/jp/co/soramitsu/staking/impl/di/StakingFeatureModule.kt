@@ -1,5 +1,6 @@
 package jp.co.soramitsu.staking.impl.di
 
+import com.google.gson.GsonBuilder
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -11,9 +12,10 @@ import jp.co.soramitsu.account.api.presentation.account.AddressDisplayUseCase
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.data.memory.ComputationalCache
 import jp.co.soramitsu.common.data.network.AppLinksProvider
-import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
+import jp.co.soramitsu.common.data.network.subquery.SoraEraInfoValidatorResponse
 import jp.co.soramitsu.common.data.storage.Preferences
+import jp.co.soramitsu.common.domain.SelectedFiat
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.core.extrinsic.ExtrinsicService
 import jp.co.soramitsu.core.extrinsic.mortality.IChainStateRepository
@@ -29,6 +31,10 @@ import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 import jp.co.soramitsu.staking.api.data.StakingSharedState
 import jp.co.soramitsu.staking.api.domain.api.IdentityRepository
 import jp.co.soramitsu.staking.api.domain.api.StakingRepository
+import jp.co.soramitsu.staking.impl.data.mappers.SoraEraInfoValidatorResponseDeserializer
+import jp.co.soramitsu.staking.impl.data.mappers.SoraEraInfoValidatorResponseNominationDeserializer
+import jp.co.soramitsu.staking.impl.data.mappers.SoraEraInfoValidatorResponseNominatorDeserializer
+import jp.co.soramitsu.staking.impl.data.mappers.SoraEraInfoValidatorResponseValidatorDeserializer
 import jp.co.soramitsu.staking.impl.data.network.subquery.StakingApi
 import jp.co.soramitsu.staking.impl.data.network.subquery.SubQueryDelegationHistoryFetcher
 import jp.co.soramitsu.staking.impl.data.network.subquery.SubQueryValidatorSetFetcher
@@ -82,6 +88,10 @@ import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import okhttp3.OkHttpClient
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
+import retrofit2.converter.scalars.ScalarsConverterFactory
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -158,13 +168,15 @@ class StakingFeatureModule {
         @Named(LOCAL_STORAGE_SOURCE) localStorageSource: StorageDataSource,
         chainRegistry: ChainRegistry,
         walletConstants: WalletConstants,
-        accountStakingDao: AccountStakingDao
+        accountStakingDao: AccountStakingDao,
+        storageCache: StorageCache
     ) = StakingRelayChainScenarioRepository(
         remoteStorageSource,
         localStorageSource,
         chainRegistry,
         walletConstants,
-        accountStakingDao
+        accountStakingDao,
+        storageCache
     )
 
     @Provides
@@ -401,12 +413,6 @@ class StakingFeatureModule {
 
     @Provides
     @Singleton
-    fun provideStakingRewardsApi(networkApiCreator: NetworkApiCreator): StakingApi {
-        return networkApiCreator.create(StakingApi::class.java)
-    }
-
-    @Provides
-    @Singleton
     fun provideStakingRewardsRepository(
         rewardDataSource: StakingRewardsDataSource
     ): StakingRewardsRepository {
@@ -582,6 +588,34 @@ class StakingFeatureModule {
     fun provideIdentitiesUseCase(identityRepository: IdentityRepository) = GetIdentitiesUseCase(identityRepository)
 
     @Provides
-    fun soraTokensRateUseCase(rpcCalls: RpcCalls, chainRegistry: ChainRegistry, tokenPriceDao: TokenPriceDao) =
-        SoraStakingRewardsScenario(rpcCalls, chainRegistry, tokenPriceDao)
+    fun soraTokensRateUseCase(rpcCalls: RpcCalls, chainRegistry: ChainRegistry, tokenPriceDao: TokenPriceDao, selectedFiat: SelectedFiat) =
+        SoraStakingRewardsScenario(rpcCalls, chainRegistry, tokenPriceDao, selectedFiat)
+
+    @Provides
+    @Singleton
+    fun provideStakingApi(okHttpClient: OkHttpClient): StakingApi {
+        val gson = GsonBuilder()
+            .registerTypeAdapter(
+                SoraEraInfoValidatorResponse.Nominator.Nomination.Validator::class.java,
+                SoraEraInfoValidatorResponseValidatorDeserializer()
+            ).registerTypeAdapter(
+                SoraEraInfoValidatorResponse.Nominator.Nomination::class.java,
+                SoraEraInfoValidatorResponseNominationDeserializer()
+            ).registerTypeAdapter(
+                SoraEraInfoValidatorResponse.Nominator::class.java,
+                SoraEraInfoValidatorResponseNominatorDeserializer()
+            ).registerTypeAdapter(
+                SoraEraInfoValidatorResponse::class.java,
+                SoraEraInfoValidatorResponseDeserializer()
+            ).create()
+
+        val retrofit = Retrofit.Builder()
+            .client(okHttpClient)
+            .baseUrl("https://placeholder.com")
+            .addConverterFactory(ScalarsConverterFactory.create())
+            .addConverterFactory(GsonConverterFactory.create(gson))
+            .build()
+
+        return retrofit.create(StakingApi::class.java)
+    }
 }

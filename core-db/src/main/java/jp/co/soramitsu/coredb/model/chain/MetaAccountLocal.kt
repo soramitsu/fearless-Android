@@ -87,6 +87,8 @@ interface JoinedMetaAccountInfo {
     val metaAccount: MetaAccountLocal
 
     val chainAccounts: List<ChainAccountLocal>
+
+    val favoriteChains: List<FavoriteChainLocal>
 }
 
 class RelationJoinedMetaAccountInfo(
@@ -94,7 +96,10 @@ class RelationJoinedMetaAccountInfo(
     override val metaAccount: MetaAccountLocal,
 
     @Relation(parentColumn = "id", entityColumn = "metaId", entity = ChainAccountLocal::class)
-    override val chainAccounts: List<ChainAccountLocal>
+    override val chainAccounts: List<ChainAccountLocal>,
+
+    @Relation(parentColumn = "id", entityColumn = "metaId", entity = FavoriteChainLocal::class)
+    override val favoriteChains: List<FavoriteChainLocal>
 ) : JoinedMetaAccountInfo
 
 class MetaAccountPositionUpdate(

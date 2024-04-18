@@ -8,6 +8,7 @@ import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.NodeId
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 
 class NodesSettingsScenarioImpl(private val chainRegistry: ChainRegistry) : NodesSettingsScenario {
 

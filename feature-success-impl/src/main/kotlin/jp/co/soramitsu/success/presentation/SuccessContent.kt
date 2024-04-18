@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -43,18 +44,18 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 data class SuccessViewState(
     val message: String,
     val tableItems: List<TitleValueViewState>,
-    val isShowSubscanButtons: Boolean
+    val explorer: Pair<Chain.Explorer.Type, String>?
 ) {
     companion object {
         const val CODE_HASH_CLICK = 2
-        val default = SuccessViewState("", emptyList(), false)
+        val default = SuccessViewState("", emptyList(), null)
     }
 }
 
 interface SuccessScreenInterface {
     fun onClose()
     fun onItemClick(code: Int)
-    fun onSubscanClick()
+    fun onExplorerClick()
     fun onShareClick()
 }
 
@@ -105,25 +106,41 @@ fun SuccessContent(
                     textAlign = TextAlign.Center
                 )
                 MarginVertical(margin = 24.dp)
-                InfoTable(
-                    items = state.tableItems,
-                    onItemClick = callback::onItemClick
-                )
-                if (state.isShowSubscanButtons) {
+                if (state.tableItems.isNotEmpty()) {
+                    InfoTable(
+                        items = state.tableItems,
+                        onItemClick = callback::onItemClick
+                    )
+                }
+                val knownExplorer = state.explorer?.takeIf { it.first != Chain.Explorer.Type.UNKNOWN }
+                if (knownExplorer != null) {
                     MarginVertical(margin = 16.dp)
                     Row {
                         GrayButton(
-                            text = Chain.Explorer.Type.SUBSCAN.capitalizedName,
-                            modifier = Modifier.weight(1f),
-                            onClick = callback::onSubscanClick
+                            text = knownExplorer.first.capitalizedName,
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(48.dp),
+                            onClick = callback::onExplorerClick
                         )
                         MarginHorizontal(margin = 12.dp)
                         AccentButton(
                             text = stringResource(R.string.common_share),
-                            modifier = Modifier.weight(1f),
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(48.dp),
                             onClick = callback::onShareClick
                         )
                     }
+                } else {
+                    MarginVertical(margin = 16.dp)
+                    AccentButton(
+                        text = stringResource(id = R.string.common_close),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp),
+                        onClick = callback::onClose
+                    )
                 }
                 MarginVertical(margin = 16.dp)
             }
@@ -135,8 +152,8 @@ fun SuccessContent(
 @Composable
 private fun SuccessPreview() {
     val state = SuccessViewState(
-        "You can now back to your app and do that you're usually do",
-        listOf(
+        message = "You can now back to your app and do that you're usually do",
+        tableItems = listOf(
             TitleValueViewState(
                 title = "Hash",
                 value = "EBN4KURhvkEBN4KURhvkEBN4KURhvkEBN4KURhvk",
@@ -148,13 +165,14 @@ private fun SuccessPreview() {
                 valueColor = greenText
             )
         ),
-        true
+//        explorer = Chain.Explorer.Type.SUBSCAN to "url"
+        explorer = Chain.Explorer.Type.UNKNOWN to "url"
     )
 
     val emptyCallback = object : SuccessScreenInterface {
         override fun onClose() {}
         override fun onItemClick(code: Int) {}
-        override fun onSubscanClick() {}
+        override fun onExplorerClick() {}
         override fun onShareClick() {}
     }
 

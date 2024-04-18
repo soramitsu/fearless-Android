@@ -1,5 +1,7 @@
 package jp.co.soramitsu.app.root.presentation.main
 
+import android.os.Bundle
+import android.view.View
 import androidx.activity.OnBackPressedCallback
 import androidx.fragment.app.viewModels
 import androidx.navigation.NavController
@@ -25,7 +27,7 @@ class MainFragment : BaseFragment<MainViewModel>(R.layout.fragment_main) {
         }
     }
 
-    private val binding by viewBinding(FragmentMainBinding::bind)
+    private lateinit var binding: FragmentMainBinding
 
     override val viewModel: MainViewModel by viewModels()
 
@@ -33,6 +35,11 @@ class MainFragment : BaseFragment<MainViewModel>(R.layout.fragment_main) {
         super.onDestroyView()
 
         backCallback.isEnabled = false
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        binding = FragmentMainBinding.bind(view)
+        super.onViewCreated(view, savedInstanceState)
     }
 
     override fun initViews() {
@@ -60,7 +67,7 @@ class MainFragment : BaseFragment<MainViewModel>(R.layout.fragment_main) {
 
         binding.bottomNavigationView.setupWithNavController(navController!!)
 
-        binding.bottomNavigationView.setOnNavigationItemSelectedListener { item ->
+        binding.bottomNavigationView.setOnItemSelectedListener { item ->
             onNavDestinationSelected(item, navController!!)
         }
 
@@ -68,6 +75,10 @@ class MainFragment : BaseFragment<MainViewModel>(R.layout.fragment_main) {
 
         navController!!.addOnDestinationChangedListener { _, destination, _ ->
             backCallback.isEnabled = !isAtHomeTab(destination)
+        }
+
+        binding.fabMain.setOnClickListener {
+            viewModel.navigateToSwapScreen()
         }
     }
 

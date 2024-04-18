@@ -25,13 +25,18 @@ import jp.co.soramitsu.wallet.impl.presentation.model.OperationStatusAppearance
 
 const val KEY_TRANSACTION = "KEY_DRAFT"
 const val KEY_ASSET_PAYLOAD = "KEY_ASSET_PAYLOAD"
+const val KEY_EXPLORER_TYPE = "KEY_EXPLORER_TYPE"
 
 @AndroidEntryPoint
 class TransferDetailFragment : BaseFragment<TransactionDetailViewModel>(R.layout.fragment_transfer_details) {
 
     companion object {
-        fun getBundle(operation: OperationParcelizeModel.Transfer, assetPayload: AssetPayload) =
-            bundleOf(KEY_TRANSACTION to operation, KEY_ASSET_PAYLOAD to assetPayload)
+        fun getBundle(operation: OperationParcelizeModel.Transfer, assetPayload: AssetPayload, chainExplorerType: Chain.Explorer.Type?) =
+            bundleOf(
+                KEY_TRANSACTION to operation,
+                KEY_ASSET_PAYLOAD to assetPayload,
+                KEY_EXPLORER_TYPE to chainExplorerType
+            )
     }
 
     private val binding by viewBinding(FragmentTransferDetailsBinding::bind)
@@ -76,7 +81,6 @@ class TransferDetailFragment : BaseFragment<TransactionDetailViewModel>(R.layout
             } else {
                 showOutgoungViews()
                 binding.transactionDetailFee.text = fee
-                binding.transactionDetailTotal.text = total
             }
 
             binding.transactionDetailAmount.text = amount
@@ -120,21 +124,15 @@ class TransferDetailFragment : BaseFragment<TransactionDetailViewModel>(R.layout
 
     private fun hideOutgoingViews() {
         binding.transactionDetailFee.makeGone()
-        binding.transactionDetailTotalLabel.makeGone()
         binding.transactionDetailFeeLabel.makeGone()
-        binding.transactionDetailTotal.makeGone()
         binding.transactionDetailDivider4.makeInvisible()
-        binding.transactionDetailDivider5.makeInvisible()
     }
 
     private fun showOutgoungViews() {
         with(binding) {
             transactionDetailFee.makeVisible()
-            transactionDetailTotalLabel.makeVisible()
             transactionDetailFeeLabel.makeVisible()
-            transactionDetailTotal.makeVisible()
             transactionDetailDivider4.makeVisible()
-            transactionDetailDivider5.makeVisible()
         }
     }
 
@@ -151,7 +149,7 @@ class TransferDetailFragment : BaseFragment<TransactionDetailViewModel>(R.layout
     private fun showExternalAddressActions(address: String) = showExternalActionsSheet(
         copyLabelRes = R.string.common_copy_address,
         value = address,
-        explorers = viewModel.getSupportedExplorers(BlockExplorerUrlBuilder.Type.ACCOUNT, address),
+        explorers = viewModel.getSupportedAddressExplorers(address),
         externalViewCallback = viewModel::openUrl
     )
 
@@ -159,7 +157,7 @@ class TransferDetailFragment : BaseFragment<TransactionDetailViewModel>(R.layout
         showExternalActionsSheet(
             copyLabelRes = R.string.transaction_details_copy_hash,
             value = hash,
-            explorers = viewModel.getSupportedExplorers(BlockExplorerUrlBuilder.Type.EXTRINSIC, hash),
+            explorers = viewModel.explorerType?.let { viewModel.getSupportedExplorers(it, hash) }.orEmpty(),
             externalViewCallback = viewModel::openUrl
         )
     }

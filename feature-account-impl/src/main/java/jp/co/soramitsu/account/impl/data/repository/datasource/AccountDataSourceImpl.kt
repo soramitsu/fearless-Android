@@ -22,7 +22,7 @@ import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.coredb.dao.MetaAccountDao
 import jp.co.soramitsu.coredb.model.chain.ChainAccountLocal
 import jp.co.soramitsu.coredb.model.chain.MetaAccountPositionUpdate
-import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.shared_utils.runtime.AccountId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -31,7 +31,8 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
@@ -49,10 +50,10 @@ class AccountDataSourceImpl(
     private val encryptedPreferences: EncryptedPreferences,
     private val jsonMapper: Gson,
     private val metaAccountDao: MetaAccountDao,
-    private val chainRegistry: ChainRegistry,
     private val secretStoreV2: SecretStoreV2,
     secretStoreV1: SecretStoreV1,
-    accountDataMigration: AccountDataMigration
+    accountDataMigration: AccountDataMigration,
+    private val chainsRepository: ChainsRepository
 ) : AccountDataSource, SecretStoreV1 by secretStoreV1 {
 
     init {
@@ -68,25 +69,24 @@ class AccountDataSourceImpl(
     private val selectedAccountFlow = createAccountFlow()
 
     private val selectedMetaAccountLocal = metaAccountDao.selectedMetaAccountInfoFlow()
-        .shareIn(GlobalScope, started = SharingStarted.Eagerly, replay = 1)
 
     private val selectedMetaAccountFlow = combine(
-        chainRegistry.chainsById,
+        chainsRepository.chainsByIdFlow(),
         selectedMetaAccountLocal.filterNotNull(),
         ::mapMetaAccountLocalToMetaAccount
     )
         .inBackground()
-        .shareIn(GlobalScope, started = SharingStarted.Eagerly, replay = 1)
 
     /**
      * Fast lookup table for accessing account based on accountId
      */
     override val selectedAccountMapping = selectedMetaAccountFlow.map { metaAccount ->
-        val mapping = metaAccount.chainAccounts.mapValuesTo(mutableMapOf<String, Account?>()) { (_, chainAccount) ->
-            mapChainAccountToAccount(metaAccount, chainAccount)
-        }
+        val mapping =
+            metaAccount.chainAccounts.mapValuesTo(mutableMapOf<String, Account?>()) { (_, chainAccount) ->
+                mapChainAccountToAccount(metaAccount, chainAccount)
+            }
 
-        val chains = chainRegistry.chainsById.first()
+        val chains = chainsRepository.getChainsById()
 
         chains.forEach { (chainId, chain) ->
             if (chainId !in mapping) {
@@ -123,7 +123,7 @@ class AccountDataSourceImpl(
         }
     }
 
-    override suspend fun anyAccountSelected(): Boolean = selectedMetaAccountLocal.first() != null
+    override suspend fun anyAccountSelected(): Boolean = selectedMetaAccountLocal.firstOrNull() != null
 
     override suspend fun saveSelectedAccount(account: Account) = withContext(Dispatchers.Default) {
         val raw = jsonMapper.toJson(account)
@@ -138,7 +138,7 @@ class AccountDataSourceImpl(
 
     private suspend fun getSelectedAccountSubstrateCryptoType(): CryptoType {
         return if (anyAccountSelected()) {
-            getSelectedMetaAccount().substrateCryptoType // todo add etherium support
+            getSelectedLightMetaAccount().substrateCryptoType // todo add etherium support
         } else {
             DEFAULT_CRYPTO_TYPE
         }
@@ -156,19 +156,32 @@ class AccountDataSourceImpl(
     }
 
     override suspend fun getSelectedMetaAccount(): MetaAccount {
-        return selectedMetaAccountFlow.first()
+        val chainsById = chainsRepository.getChainsById()
+        val selectedMetaAccount = metaAccountDao.selectedMetaAccountInfo()
+        return mapMetaAccountLocalToMetaAccount(chainsById,selectedMetaAccount)
     }
 
     override fun selectedMetaAccountFlow(): Flow<MetaAccount> = selectedMetaAccountFlow
 
+    override fun selectedLightMetaAccount(): Flow<LightMetaAccount> {
+        return metaAccountDao.selectedLightMetaAccountFlow().map { accountLocal ->
+            accountLocal?.let { mapMetaAccountLocalToLightMetaAccount(it) }
+        }.filterNotNull().flowOn(Dispatchers.Default)
+    }
+
+    override suspend fun getSelectedLightMetaAccount(): LightMetaAccount {
+        val local = withContext(Dispatchers.IO) { metaAccountDao.getSelectedLightMetaAccount() }
+        return mapMetaAccountLocalToLightMetaAccount(local)
+    }
+
     override suspend fun findMetaAccount(accountId: ByteArray): MetaAccount? {
         return metaAccountDao.getMetaAccountInfo(accountId)?.let {
-            mapMetaAccountLocalToMetaAccount(chainRegistry.chainsById.first(), it)
+            mapMetaAccountLocalToMetaAccount(chainsRepository.getChainsById(), it)
         }
     }
 
     override suspend fun allMetaAccounts(): List<MetaAccount> {
-        val chainsById = chainRegistry.chainsById.first()
+        val chainsById = chainsRepository.getChainsById()
 
         return metaAccountDao.getJoinedMetaAccountsInfo().map {
             mapMetaAccountLocalToMetaAccount(chainsById, it)
@@ -176,7 +189,10 @@ class AccountDataSourceImpl(
     }
 
     override fun observeAllMetaAccounts(): Flow<List<MetaAccount>> {
-        return combine(chainRegistry.chainsById, metaAccountDao.observeJoinedMetaAccountsInfo()) { chainsById, metaAccounts ->
+        return combine(
+            chainsRepository.chainsByIdFlow(),
+            metaAccountDao.observeJoinedMetaAccountsInfo()
+        ) { chainsById, metaAccounts ->
             metaAccounts.map {
                 mapMetaAccountLocalToMetaAccount(chainsById, it)
             }
@@ -193,13 +209,14 @@ class AccountDataSourceImpl(
         metaAccountDao.selectMetaAccount(metaId)
     }
 
-    override suspend fun updateAccountPositions(accountOrdering: List<MetaAccountOrdering>) = withContext(Dispatchers.Default) {
-        val positionUpdates = accountOrdering.map {
-            MetaAccountPositionUpdate(id = it.id, position = it.position)
-        }
+    override suspend fun updateAccountPositions(accountOrdering: List<MetaAccountOrdering>) =
+        withContext(Dispatchers.Default) {
+            val positionUpdates = accountOrdering.map {
+                MetaAccountPositionUpdate(id = it.id, position = it.position)
+            }
 
-        metaAccountDao.updatePositions(positionUpdates)
-    }
+            metaAccountDao.updatePositions(positionUpdates)
+        }
 
     override suspend fun getSelectedLanguage(): Language = withContext(Dispatchers.IO) {
         preferences.getCurrentLanguage() ?: throw IllegalArgumentException("No language selected")
@@ -216,7 +233,15 @@ class AccountDataSourceImpl(
     override suspend fun getMetaAccount(metaId: Long): MetaAccount {
         val joinedMetaAccountInfo = metaAccountDao.getJoinedMetaAccountInfo(metaId)
 
-        return mapMetaAccountLocalToMetaAccount(chainRegistry.chainsById.first(), joinedMetaAccountInfo)
+        return mapMetaAccountLocalToMetaAccount(
+            chainsRepository.getChainsById(),
+            joinedMetaAccountInfo
+        )
+    }
+
+    override suspend fun getLightMetaAccount(metaId: Long): LightMetaAccount {
+        val local = withContext(Dispatchers.IO) { metaAccountDao.getLightMetaAccount(metaId) }
+        return mapMetaAccountLocalToLightMetaAccount(local)
     }
 
     override suspend fun updateMetaAccountName(metaId: Long, newName: String) {
@@ -264,4 +289,6 @@ class AccountDataSourceImpl(
             action()
         }
     }
+
+    override fun observeFavoriteChains(metaId: Long) = metaAccountDao.observeFavoriteChains(metaId)
 }

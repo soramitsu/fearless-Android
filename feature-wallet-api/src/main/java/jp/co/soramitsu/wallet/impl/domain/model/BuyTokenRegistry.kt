@@ -15,7 +15,7 @@ class BuyTokenRegistry(val availableProviders: List<Provider<*>>) {
         @get:DrawableRes
         val icon: Int
 
-        fun isTokenSupported(chainAsset: CoreAsset) = name.lowercase() in chainAsset.priceProviders.orEmpty()
+        fun isTokenSupported(chainAsset: CoreAsset) = name.lowercase() in chainAsset.purchaseProviders.orEmpty()
 
         fun createIntegrator(chainAsset: CoreAsset, address: String): I
     }

@@ -252,7 +252,7 @@ exceptions:
   ThrowingNewInstanceOfSameException:
     active: true
   TooGenericExceptionCaught:
-    active: true
+    active: false
     excludes: ['**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/jsTest/**', '**/iosTest/**']
     exceptionNames:
       - 'ArrayIndexOutOfBoundsException'
@@ -337,7 +337,7 @@ naming:
     packagePattern: '^([a-z]{1}[a-z\d_]*\.)+[a-z][a-z\d_]*$'
   TopLevelPropertyNaming:
     active: true
-    constantPattern: '[A-Z][a-zA-Z0-9]*'
+    constantPattern: '_?[A-Za-z][_A-Za-z0-9]*'
     propertyPattern: '[a-zA-Z][a-zA-Z0-9]*'
     privatePropertyPattern: '_?[A-Za-z][_A-Za-z0-9]*'
   VariableMaxLength:
@@ -546,7 +546,7 @@ style:
     maxChainedCalls: 5
   MaxLineLength:
     active: true
-    maxLineLength: 120
+    maxLineLength: 200
     excludePackageStatements: true
     excludeImportStatements: true
     excludeCommentStatements: false
@@ -772,7 +772,7 @@ formatting:
   MaximumLineLength:
     active: true
     autoCorrect: true
-    maxLineLength: 120
+    maxLineLength: 200
     ignoreBackTickedIdentifier: false
     excludes: ['**/test/**']
   ModifierListSpacing:

@@ -18,33 +18,33 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility 1.8
-        targetCompatibility 1.8
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
     kotlinOptions {
         freeCompilerArgs = ["-Xallow-result-return-type"]
 
-        jvmTarget = '1.8'
+        jvmTarget = '17'
     }
     namespace 'jp.co.soramitsu.feature_account_api'
 }
 
 dependencies {
-    implementation coroutinesDep
     implementation project(':runtime')
     implementation project(":common")
 
-    implementation fragmentKtxDep
-    implementation liveDataKtxDep
-    implementation androidDep
-    implementation materialDep
+    implementation libs.coroutines.core
+    implementation libs.fragmentKtx
+    implementation libs.lifecycle.livedata.ktx
+    implementation libs.appcompat
+    implementation libs.material
 
-    implementation compose
-    debugImplementation composeDebug
+    implementation libs.bundles.compose
+    debugImplementation libs.bundles.composeDebug
 
     api project(':core-api')
 
-    api sharedFeaturesCoreDep
-    api sharedFeaturesBackupDep
+    api libs.sharedFeaturesCoreDep
+    api libs.sharedFeaturesBackupDep
 }

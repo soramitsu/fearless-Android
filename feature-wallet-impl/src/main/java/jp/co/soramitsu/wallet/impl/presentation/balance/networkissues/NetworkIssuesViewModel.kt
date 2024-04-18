@@ -5,7 +5,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.AssetNotNeedAccountUseCase
-import jp.co.soramitsu.account.api.presentation.actions.AddAccountBottomSheet
+import jp.co.soramitsu.account.api.presentation.actions.AddAccountPayload
 import jp.co.soramitsu.common.AlertViewState
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.NetworkIssueItemState
@@ -103,12 +103,11 @@ class NetworkIssuesViewModel @Inject constructor(
 
             NetworkIssueType.Account -> launch {
                 val meta = accountInteractor.selectedMetaAccountFlow().first()
-                val payload = AddAccountBottomSheet.Payload(
+                val payload = AddAccountPayload(
                     metaId = meta.id,
                     chainId = issue.chainId,
                     chainName = issue.chainName,
                     assetId = issue.assetId,
-                    priceId = issue.priceId,
                     markedAsNotNeed = false
                 )
                 walletRouter.openOptionsAddAccount(payload)

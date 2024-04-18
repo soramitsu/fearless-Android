@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
@@ -77,19 +78,21 @@ abstract class BaseComposeBottomSheetDialogFragment<T : BaseViewModel> : BottomS
                 positiveButtonText = errorDialogState.positiveButtonText,
                 negativeButtonText = errorDialogState.negativeButtonText,
                 positiveClick = errorDialogState.positiveClick,
+                negativeClick = errorDialogState.negativeClick,
                 onBackClick = errorDialogState.onBackClick,
                 isHideable = errorDialogState.isHideable
             )
         }
     }
 
-    private fun showErrorDialog(
-        title: String,
+    protected fun showErrorDialog(
+        title: String? = null,
         message: String,
         positiveButtonText: String? = requireContext().resources.getString(R.string.common_ok),
         negativeButtonText: String? = null,
         buttonsOrientation: Int = LinearLayout.VERTICAL,
         positiveClick: () -> Unit = emptyClick,
+        negativeClick: () -> Unit = emptyClick,
         onBackClick: () -> Unit = emptyClick,
         isHideable: Boolean = true
     ) {
@@ -100,6 +103,7 @@ abstract class BaseComposeBottomSheetDialogFragment<T : BaseViewModel> : BottomS
             positiveButtonText = positiveButtonText,
             negativeButtonText = negativeButtonText,
             positiveClick = positiveClick,
+            negativeClick = negativeClick,
             onBackClick = onBackClick,
             isHideable = isHideable
         ).show(childFragmentManager)
@@ -140,5 +144,15 @@ abstract class BaseComposeBottomSheetDialogFragment<T : BaseViewModel> : BottomS
         behavior.state = BottomSheetBehavior.STATE_EXPANDED
         behavior.isDraggable = false
         behavior.isHideable = false
+    }
+
+    protected inline fun onBackPressed(crossinline action: () -> Unit) {
+        val callback = object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                action()
+            }
+        }
+
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, callback)
     }
 }

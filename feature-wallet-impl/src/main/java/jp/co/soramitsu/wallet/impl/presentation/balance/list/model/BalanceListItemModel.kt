@@ -19,13 +19,10 @@ data class BalanceListItemModel(
     val fiatAmount: BigDecimal?,
     val transferable: BigDecimal,
     val chainUrls: Map<ChainId, String>,
-    val isHidden: Boolean,
-    val hasChainWithoutAccount: Boolean,
-    val hasNetworkIssue: Boolean,
-    val ecosystem: ChainEcosystem
+    val isHidden: Boolean
 )
-
-fun BalanceListItemModel.toAssetState() = AssetListItemViewState(
+fun BalanceListItemModel.toAssetState(index: Int? = null) = AssetListItemViewState(
+    index = index,
     assetIconUrl = asset.iconUrl,
     assetName = asset.name.orEmpty(),
     assetChainName = chain?.name.orEmpty(),
@@ -39,9 +36,5 @@ fun BalanceListItemModel.toAssetState() = AssetListItemViewState(
     chainAssetId = asset.id,
     isSupported = chain?.isSupported != false,
     isHidden = isHidden,
-    hasAccount = !hasChainWithoutAccount,
-    priceId = asset.priceId,
-    hasNetworkIssue = hasNetworkIssue,
-    ecosystem = ecosystem.name,
     isTestnet = chain?.isTestNet == true
 )

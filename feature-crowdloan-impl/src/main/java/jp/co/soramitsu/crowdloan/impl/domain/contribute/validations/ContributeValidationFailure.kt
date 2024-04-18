@@ -1,7 +1,7 @@
 package jp.co.soramitsu.crowdloan.impl.domain.contribute.validations
 
-import jp.co.soramitsu.core.models.Asset
 import java.math.BigDecimal
+import jp.co.soramitsu.core.models.Asset
 
 sealed class ContributeValidationFailure {
 
@@ -24,7 +24,9 @@ sealed class ContributeValidationFailure {
 
     object CannotPayFees : ContributeValidationFailure()
 
-    object ExistentialDepositCrossed : ContributeValidationFailure()
+    class ExistentialDepositCrossed(
+        val edAmount: String
+    ) : ContributeValidationFailure()
 
     object PrivateCrowdloanNotSupported : ContributeValidationFailure()
 }

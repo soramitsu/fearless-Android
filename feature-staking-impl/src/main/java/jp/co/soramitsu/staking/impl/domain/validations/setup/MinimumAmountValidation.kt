@@ -1,8 +1,11 @@
 package jp.co.soramitsu.staking.impl.domain.validations.setup
 
+import java.math.BigDecimal
 import jp.co.soramitsu.common.validation.DefaultFailureLevel
 import jp.co.soramitsu.common.validation.Validation
 import jp.co.soramitsu.common.validation.ValidationStatus
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
+import jp.co.soramitsu.staking.impl.presentation.staking.main.scenarios.StakingRelaychainScenarioViewModel
 import jp.co.soramitsu.staking.impl.scenarios.StakingScenarioInteractor
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 
@@ -14,7 +17,13 @@ class MinimumAmountValidation(
         val assetConfiguration = value.asset.token.configuration
 
         val minimumBondInPlanks = stakingScenarioInteractor.getMinimumStake(assetConfiguration)
-        val minimumBond = assetConfiguration.amountFromPlanks(minimumBondInPlanks)
+        val minStakeMultiplier: Double = if (assetConfiguration.chainId == polkadotChainId) {
+            StakingRelaychainScenarioViewModel.POLKADOT_STAKE_EXTRA_MULTIPLIER // 15% increase
+        } else {
+            1.0
+        }
+
+        val minimumBond = assetConfiguration.amountFromPlanks(minimumBondInPlanks) * BigDecimal(minStakeMultiplier)
 
         // either first time bond or already existing bonded balance
         val amountToCheckAgainstMinimum = value.bondAmount ?: value.asset.bonded

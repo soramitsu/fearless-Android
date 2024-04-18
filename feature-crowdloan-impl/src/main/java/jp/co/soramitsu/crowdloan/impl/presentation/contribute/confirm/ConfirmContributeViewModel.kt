@@ -4,15 +4,16 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
+import javax.inject.Named
 import jp.co.soramitsu.account.api.domain.interfaces.SelectedAccountUseCase
+import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
-import jp.co.soramitsu.common.data.network.BlockExplorerUrlBuilder
 import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.formatCryptoDetail
 import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.inBackground
@@ -36,7 +37,7 @@ import jp.co.soramitsu.crowdloan.impl.presentation.contribute.select.parcel.getS
 import jp.co.soramitsu.crowdloan.impl.presentation.contribute.select.parcel.mapParachainMetadataFromParcel
 import jp.co.soramitsu.feature_crowdloan_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedAddressExplorers
 import jp.co.soramitsu.wallet.api.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.wallet.api.data.mappers.mapFeeToFeeModel
 import jp.co.soramitsu.wallet.api.domain.AssetUseCase
@@ -50,8 +51,6 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import javax.inject.Inject
-import javax.inject.Named
 
 @HiltViewModel
 class ConfirmContributeViewModel @Inject constructor(
@@ -60,7 +59,7 @@ class ConfirmContributeViewModel @Inject constructor(
     private val resourceManager: ResourceManager,
     private val chainRegistry: ChainRegistry,
     @Named("CrowdloanAssetUseCase") assetUseCase: AssetUseCase,
-    accountUseCase: SelectedAccountUseCase,
+    private val accountUseCase: SelectedAccountUseCase,
     addressModelGenerator: AddressIconGenerator,
     private val validationExecutor: ValidationExecutor,
     private val validationSystem: ContributeValidationSystem,
@@ -74,8 +73,6 @@ class ConfirmContributeViewModel @Inject constructor(
     TransferValidityChecks by transferValidityChecks {
 
     private val payload = savedStateHandle.get<ConfirmContributePayload>(KEY_PAYLOAD)!!
-
-    override val openBrowserEvent = MutableLiveData<Event<String>>()
 
     private val _showNextProgress = MutableLiveData(false)
     val showNextProgress: LiveData<Boolean> = _showNextProgress
@@ -159,7 +156,7 @@ class ConfirmContributeViewModel @Inject constructor(
             val accountAddress = selectedAddressModelFlow.first().address
             val chainId = assetFlow.first().token.configuration.chainId
             val chain = chainRegistry.getChain(chainId)
-            val supportedExplorers = chain.explorers.getSupportedExplorers(BlockExplorerUrlBuilder.Type.ACCOUNT, accountAddress)
+            val supportedExplorers = chain.explorers.getSupportedAddressExplorers(accountAddress)
             val payload = ExternalAccountActions.Payload(accountAddress, chainId, chain.name, supportedExplorers)
             externalAccountActions.showExternalActions(payload)
         }
@@ -207,15 +204,19 @@ class ConfirmContributeViewModel @Inject constructor(
                         payload.metadata.isAstar && (it as? AstarBonusPayload)?.referralCode.isNullOrEmpty().not() -> {
                             additionalOnChainSubmission(it, flowName, payload.amount, customContributeManager)
                         }
+
                         payload.metadata.isInterlay && (it as? InterlayBonusPayload)?.referralCode.isNullOrEmpty().not() -> {
                             additionalOnChainSubmission(it, flowName, payload.amount, customContributeManager)
                         }
+
                         payload.metadata.isMoonbeam && ethAddress?.second == true -> {
                             additionalOnChainSubmission(it, flowName, payload.amount, customContributeManager)
                         }
+
                         payload.metadata.isAcala && payload.contributionType == LcDOT -> {
                             additionalOnChainSubmission(it, flowName, payload.amount, customContributeManager)
                         }
+
                         else -> {
                             null
                         }
@@ -228,9 +229,14 @@ class ConfirmContributeViewModel @Inject constructor(
                     val recipient = contributionInteractor.getAcalaStatement(apiUrl).proxyAddress
                     val maxAllowedStatusLevel = if (suppressWarnings) TransferValidityLevel.Warning else TransferValidityLevel.Ok
                     val fee = feeFlow.firstOrNull()?.feeModel?.fee ?: return@launch
+
+                    val chainId = assetFlow.first().token.configuration.chainId
+                    val chain = chainRegistry.getChain(chainId)
+                    val currentAddress = requireNotNull(contributionInteractor.getSelectedMetaAccount().address(chain))
                     contributionInteractor.performTransfer(
                         transfer = Transfer(
                             recipient = recipient,
+                            sender = currentAddress,
                             amount = payload.amount,
                             chainAsset = assetFlow.first().token.configuration
                         ),
@@ -278,8 +284,9 @@ class ConfirmContributeViewModel @Inject constructor(
     fun bonusClicked() = when (payload.metadata?.isAcala) {
         true -> {
             val bonusUrl = payload.metadata.flow?.data?.getString(FLOW_BONUS_URL) ?: payload.metadata.website
-            openBrowserEvent.postValue(Event(bonusUrl))
+            externalAccountActions.showBrowser(bonusUrl)
         }
+
         else -> Unit
     }
 }

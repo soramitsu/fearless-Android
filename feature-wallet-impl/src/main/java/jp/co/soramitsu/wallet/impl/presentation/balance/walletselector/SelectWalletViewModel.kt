@@ -6,6 +6,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import jp.co.soramitsu.account.api.domain.PendulumPreInstalledAccountsScenario
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.TotalBalanceUseCase
 import jp.co.soramitsu.account.api.domain.model.ImportMode
@@ -32,6 +33,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 private const val SUBSTRATE_BLOCKCHAIN_TYPE = 0
@@ -44,31 +46,50 @@ class SelectWalletViewModel @Inject constructor(
     private val updatesMixin: UpdatesMixin,
     private val getTotalBalance: TotalBalanceUseCase,
     private val backupService: BackupService,
-    private val resourceManager: ResourceManager
+    private val resourceManager: ResourceManager,
+    private val pendulumPreInstalledAccountsScenario: PendulumPreInstalledAccountsScenario
 ) : BaseViewModel(), UpdatesProviderUi by updatesMixin {
 
-    private val accountsFlow = accountListingMixin.accountsFlow(AddressIconGenerator.SIZE_BIG)
+    private val walletItemsFlow = MutableStateFlow<List<WalletItemViewState>>(emptyList())
 
-    private val walletItemsFlow = accountsFlow.mapList {
-        val balanceModel = getTotalBalance(it.id)
-
-        WalletItemViewState(
-            id = it.id,
-            title = it.name,
-            isSelected = it.isSelected,
-            walletIcon = it.picture.value,
-            balance = balanceModel.balance.formatFiat(balanceModel.fiatSymbol),
-            changeBalanceViewState = ChangeBalanceViewState(
-                percentChange = balanceModel.rateChange?.formatAsChange().orEmpty(),
-                fiatChange = balanceModel.balanceChange.abs().formatFiat(balanceModel.fiatSymbol)
-            )
-
-        )
+    init {
+        accountListingMixin.accountsFlow(AddressIconGenerator.SIZE_BIG)
+            .inBackground()
+            .onEach { newList ->
+                walletItemsFlow.update {
+                    newList.map {
+                        WalletItemViewState(
+                            id = it.id,
+                            title = it.name,
+                            isSelected = it.isSelected,
+                            walletIcon = it.picture.value,
+                            balance = null,
+                            changeBalanceViewState = null
+                        )
+                    }
+                }
+            }
+            .onEach {
+                walletItemsFlow.update { prevList ->
+                    prevList.map { prevState ->
+                        val balanceModel = getTotalBalance(prevState.id)
+                        prevState.copy(
+                            balance = balanceModel.balance.formatFiat(balanceModel.fiatSymbol),
+                            changeBalanceViewState = ChangeBalanceViewState(
+                                percentChange = balanceModel.rateChange?.formatAsChange().orEmpty(),
+                                fiatChange = balanceModel.balanceChange.abs()
+                                    .formatFiat(balanceModel.fiatSymbol)
+                            )
+                        )
+                    }
+                }
+            }
+            .launchIn(viewModelScope)
     }
-        .inBackground()
-        .share()
+
     private val selectedWalletItem = MutableStateFlow<WalletItemViewState?>(null)
     val googleAuthorizeLiveData = MutableLiveData<Event<Unit>>()
+    val importPreInstalledWalletLiveData = MutableLiveData<Event<Unit>>()
 
     val state = combine(
         walletItemsFlow,
@@ -76,7 +97,7 @@ class SelectWalletViewModel @Inject constructor(
     ) { walletItems, selectedWallet ->
         WalletSelectorViewState(
             wallets = walletItems,
-            selectedWallet = selectedWallet ?: walletItems.first { it.isSelected }
+            selectedWallet = selectedWallet ?: walletItems.firstOrNull { it.isSelected }
         )
     }.stateIn(
         viewModelScope,
@@ -114,13 +135,19 @@ class SelectWalletViewModel @Inject constructor(
     }
 
     private fun handleSelectedImportMode(importMode: ImportMode) {
-        if (importMode == ImportMode.Google) {
-            googleAuthorizeLiveData.value = Event(Unit)
-        } else {
-            router.openImportAccountScreen(
-                blockChainType = SUBSTRATE_BLOCKCHAIN_TYPE,
-                importMode = importMode
-            )
+        when (importMode) {
+            ImportMode.Google -> {
+                googleAuthorizeLiveData.value = Event(Unit)
+            }
+            ImportMode.Preinstalled -> {
+                importPreInstalledWalletLiveData.value = Event(Unit)
+            }
+            else -> {
+                router.openImportAccountScreen(
+                    blockChainType = SUBSTRATE_BLOCKCHAIN_TYPE,
+                    importMode = importMode
+                )
+            }
         }
     }
 
@@ -151,5 +178,22 @@ class SelectWalletViewModel @Inject constructor(
 
     fun onGoogleLoginError(message: String?) {
         showError("GoogleLoginError: ${message.orEmpty()}")
+    }
+
+    fun onQrScanResult(result: String?) {
+        if (result == null) {
+            showError("Can't scan qr code")
+            return
+        }
+
+        viewModelScope.launch {
+            pendulumPreInstalledAccountsScenario.import(result)
+                .onFailure {
+                    showError(it)
+                }
+                .onSuccess {
+                    router.back()
+                }
+        }
     }
 }

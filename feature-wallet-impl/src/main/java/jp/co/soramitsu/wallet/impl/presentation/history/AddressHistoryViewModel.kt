@@ -35,7 +35,7 @@ class AddressHistoryViewModel @Inject constructor(
     val chainId: ChainId = savedStateHandle[AddressHistoryFragment.KEY_PAYLOAD] ?: error("ChainId not specified")
 
     val state: StateFlow<LoadingState<AddressHistoryViewState>> = combine(
-        walletInteractor.getOperationAddressWithChainIdFlow(RECENT_SIZE, chainId),
+        walletInteractor.getOperationAddressWithChainIdFlow(chainId, RECENT_SIZE),
         walletInteractor.observeAddressBook(chainId)
     ) { recentAddressesInfo, addressBook ->
         val recentAddresses: Set<Address> = recentAddressesInfo.map { address ->
@@ -47,7 +47,7 @@ class AddressHistoryViewModel @Inject constructor(
 
             Address(
                 name = addressBook.firstOrNull { it.address == address }?.name.orEmpty(),
-                address = address,
+                address = address.trim(),
                 image = accountImage ?: placeholder,
                 chainId = chainId,
                 isSavedToContacts = address in addressBook.map { it.address }
@@ -62,7 +62,7 @@ class AddressHistoryViewModel @Inject constructor(
             }
             Address(
                 name = contact.name.orEmpty(),
-                address = contact.address,
+                address = contact.address.trim(),
                 image = accountImage ?: placeholder,
                 chainId = contact.chainId,
                 isSavedToContacts = true

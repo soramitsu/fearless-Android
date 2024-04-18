@@ -18,11 +18,24 @@ const val soraTestChainId = "3266816be9fa51b32cfea58d3e33ca77246bc9618595a4300e4
 const val soraKusamaChainId = "6d8d9f145c2177fa83512492cdd80a71e29f22473f4a8943a6292149ac319fb9"
 const val soraMainChainId = "7e4e32d0feafd4f9c9414b0be86373f9a1efa904809b683453a9af6856d38ad5"
 const val ternoaChainId = "6859c81ca95ef624c9dfe4dc6e3381c33e5d6509e35e147092bfbc780f777c4e"
+const val pendulumChainId = "5d3c298622d5634ed019bf61ea4b71655030015bde9beb0d6a24743714462c86"
+const val reefChainId = "7834781d38e4798d548e34ec947d19deea29df148a7bf32484b7b24dacf8d4b7"
 
-const val genshiroChainId = "9b8cefc0eb5c568b527998bdd76c184e2b76ae561be76e4667072230217ea243"
+const val ethereumChainId = "1"
+const val BSCChainId = "56"
+const val BSCTestnetChainId = "97"
+const val optimismChainId = "10"
+const val sepoliaChainId = "11155111"
+const val goerliChainId = "5"
+const val polygonChainId = "137"
+const val polygonTestnetChainId = "80001"
+
+const val bokoloCashTokenId = "0x00eacaea6599a04358fda986388ef0bb0c17a553ec819d5de2900c0af0862502"
 
 data class Chain(
     override val id: ChainId,
+    override val paraId: String?,
+    val rank: Int?,
     val name: String,
     val minSupportedVersion: String?,
     override val assets: List<CoreAsset>,
@@ -35,7 +48,10 @@ data class Chain(
     val isTestNet: Boolean,
     val hasCrowdloans: Boolean,
     override val parentId: String?,
-    val supportStakingPool: Boolean
+    val supportStakingPool: Boolean,
+    val isEthereumChain: Boolean,
+    val chainlinkProvider: Boolean,
+    val supportNft: Boolean
 ) : IChain {
     val assetsById = assets.associateBy(CoreAsset::id)
 
@@ -49,16 +65,16 @@ data class Chain(
     ) {
         data class Section(val type: Type, val url: String) {
             enum class Type {
-                SUBQUERY, SORA, SUBSQUID, GIANTSQUID, GITHUB, UNKNOWN;
+                SUBQUERY, SORA, SUBSQUID, GIANTSQUID, ETHERSCAN, OKLINK, ZETA, REEF, UNKNOWN, GITHUB;
 
-                fun isHistory() = this in listOf(SUBQUERY, SORA, SUBSQUID, GIANTSQUID)
+                fun isHistory() = this in listOf(SUBQUERY, SORA, SUBSQUID, GIANTSQUID, ETHERSCAN, OKLINK, ZETA, REEF)
             }
         }
     }
 
     data class Explorer(val type: Type, val types: List<String>, val url: String) {
         enum class Type {
-            POLKASCAN, SUBSCAN, UNKNOWN;
+            POLKASCAN, SUBSCAN, ETHERSCAN, OKLINK, ZETA, REEF, UNKNOWN;
 
             val capitalizedName: String = name.lowercase().replaceFirstChar { it.titlecase() }
         }
@@ -71,6 +87,8 @@ data class Chain(
         other as Chain
 
         if (id != other.id) return false
+        if (paraId != other.paraId) return false
+        if (rank != other.rank) return false
         if (name != other.name) return false
         if (minSupportedVersion != other.minSupportedVersion) return false
         if (assets != other.assets) return false
@@ -82,6 +100,10 @@ data class Chain(
         if (isTestNet != other.isTestNet) return false
         if (hasCrowdloans != other.hasCrowdloans) return false
         if (parentId != other.parentId) return false
+        if (supportStakingPool != other.supportStakingPool) return false
+        if (isEthereumChain != other.isEthereumChain) return false
+        if (chainlinkProvider != other.chainlinkProvider) return false
+        if (supportNft != other.supportNft) return false
 
         // custom comparison logic
         val defaultNodes = nodes.filter { it.isDefault }
@@ -96,6 +118,8 @@ data class Chain(
 
     override fun hashCode(): Int {
         var result = id.hashCode()
+        result = 31 * result + (paraId?.hashCode() ?: 0)
+        result = 31 * result + (rank?.hashCode() ?: 0)
         result = 31 * result + name.hashCode()
         result = 31 * result + (minSupportedVersion?.hashCode() ?: 0)
         result = 31 * result + assets.hashCode()
@@ -108,6 +132,10 @@ data class Chain(
         result = 31 * result + isTestNet.hashCode()
         result = 31 * result + hasCrowdloans.hashCode()
         result = 31 * result + (parentId?.hashCode() ?: 0)
+        result = 31 * result + supportStakingPool.hashCode()
+        result = 31 * result + isEthereumChain.hashCode()
+        result = 31 * result + chainlinkProvider.hashCode()
+        result = 31 * result + supportNft.hashCode()
         return result
     }
 }
@@ -119,6 +147,22 @@ fun Chain.updateNodesActive(localVersion: Chain): Chain = when (val activeNode =
 
 fun List<Chain.Explorer>.getSupportedExplorers(type: BlockExplorerUrlBuilder.Type, value: String) = mapNotNull {
     BlockExplorerUrlBuilder(it.url, it.types).build(type, value)?.let { url ->
+        it.type to url
+    }
+}.toMap()
+
+fun List<Chain.Explorer>.getSupportedAddressExplorers(address: String) = mapNotNull {
+    val type = when (it.type) {
+        Chain.Explorer.Type.ETHERSCAN,
+        Chain.Explorer.Type.OKLINK -> {
+            BlockExplorerUrlBuilder.Type.ADDRESS
+        }
+        else -> {
+            BlockExplorerUrlBuilder.Type.ACCOUNT
+        }
+    }
+
+    BlockExplorerUrlBuilder(it.url, it.types).build(type, address)?.let { url ->
         it.type to url
     }
 }.toMap()
@@ -141,3 +185,15 @@ fun List<Chain>.getWithToken(symbol: String, filter: Map<ChainId, List<String>>?
         asset.symbol == symbol && allowAsset
     }
 }
+
+val Chain.alchemyNftId: String?
+    get() =
+        when(id){
+            ethereumChainId -> "eth-mainnet"
+            sepoliaChainId -> "eth-sepolia"
+            goerliChainId -> "eth-goerli"
+            BSCChainId -> null
+            BSCTestnetChainId -> null
+            polygonChainId -> "polygon-mainnet"
+            else -> null
+        }

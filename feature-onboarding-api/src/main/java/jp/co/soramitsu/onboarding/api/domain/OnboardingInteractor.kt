@@ -1,3 +1,9 @@
 package jp.co.soramitsu.onboarding.api.domain
 
-interface OnboardingInteractor
+import jp.co.soramitsu.onboarding.api.data.OnboardingConfig
+
+interface OnboardingInteractor {
+
+    suspend fun getConfig(): Result<OnboardingConfig>
+
+}

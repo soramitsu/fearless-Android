@@ -15,7 +15,17 @@ class StakingConstantsRepository(
     private val chainRegistry: ChainRegistry
 ) {
 
-    suspend fun maxRewardedNominatorPerValidator(chainId: ChainId): Int = getNumberConstant(chainId, "MaxNominatorRewardedPerValidator").toInt()
+    suspend fun maxRewardedNominatorPerValidator(chainId: ChainId): Int {
+        return try {
+            getNumberConstant(chainId, "MaxNominatorRewardedPerValidator").toInt()
+        } catch (e: NoSuchElementException) {
+            when (chainId) {
+                westendChainId -> 64
+                polkadotChainId, kusamaChainId -> 512
+                else -> throw e
+            }
+        }
+    }
 
     suspend fun lockupPeriodInEras(chainId: ChainId): BigInteger = getNumberConstant(chainId, "BondingDuration")
 

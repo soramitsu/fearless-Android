@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -16,7 +15,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.account.impl.presentation.importing.remote_backup.ImportRemoteWalletState
 import jp.co.soramitsu.account.impl.presentation.importing.remote_backup.model.WrappedBackupAccountMeta
-import jp.co.soramitsu.account.impl.presentation.importing.remote_backup.views.CompactWalletItemViewState
+import jp.co.soramitsu.account.impl.presentation.importing.remote_backup.views.CompactWalletNameItemViewState
 import jp.co.soramitsu.backup.domain.models.BackupAccountMeta
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.compose.component.AccentButton
@@ -25,7 +24,7 @@ import jp.co.soramitsu.common.compose.component.GrayButton
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.component.Toolbar
 import jp.co.soramitsu.common.compose.component.ToolbarViewState
-import jp.co.soramitsu.common.compose.component.WalletItem
+import jp.co.soramitsu.common.compose.component.WalletNameItem
 import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
 import jp.co.soramitsu.common.compose.theme.gray2
 
@@ -63,11 +62,10 @@ internal fun WalletImportedScreen(
             modifier = Modifier
                 .padding(horizontal = 16.dp)
                 .verticalScroll(rememberScrollState())
-                .imePadding()
         ) {
             MarginVertical(margin = 16.dp)
-            WalletItem(
-                state = CompactWalletItemViewState(title = state.wallet?.backupMeta?.name.orEmpty()),
+            WalletNameItem(
+                state = CompactWalletNameItemViewState(title = state.wallet?.backupMeta?.name.orEmpty()),
                 onSelected = {}
             )
             MarginVertical(margin = 16.dp)

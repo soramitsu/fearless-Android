@@ -15,10 +15,11 @@ android {
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
-        buildConfigField "String", "APP_VERSION_NAME", "\"${rootProject.versionName}\""
+        buildConfigField "long", "VERSION_CODE", "${rootProject.versionCode}"
+        buildConfigField "String", "VERSION_NAME", "\"${rootProject.versionName}\""
 
-        buildConfigField "String", "APP_CONFIG_URL", "\"https://raw.githubusercontent.com/soramitsu/fearless-utils/android/2.0.8/android_app_configuration.json\""
         buildConfigField "String", "POLKASWAP_CONFIG_URL", "\"https://raw.githubusercontent.com/soramitsu/fearless-utils/ios/v3-jsonupd/polkaswapSettings.json\""
+        buildConfigField "String", "FEATURE_TOGGLE_URL", "\"https://raw.githubusercontent.com/soramitsu/shared-features-utils/master/appConfigs/feature_toggle\""
 
         buildConfigField "String", "WEBSITE_URL", "\"https://fearlesswallet.io\""
         buildConfigField "String", "TWITTER_URL", "\"https://twitter.com/fearlesswallet\""
@@ -45,6 +46,19 @@ android {
         buildConfigField "String", "POLKADOT_JS_PLUS_EXTENSION", "\"http://polkadotjs.plus/\""
 
         buildConfigField "String", "SORA_CARD_BLACKLIST",  "\"https://soracard.com/blacklist/\""
+
+        buildConfigField "String", "BLAST_API_ETHEREUM_KEY", readSecretInQuotes("FL_BLAST_API_ETHEREUM_KEY")
+        buildConfigField "String", "BLAST_API_BSC_KEY", readSecretInQuotes("FL_BLAST_API_BSC_KEY")
+        buildConfigField "String", "BLAST_API_SEPOLIA_KEY", readSecretInQuotes("FL_BLAST_API_SEPOLIA_KEY")
+        buildConfigField "String", "BLAST_API_GOERLI_KEY", readSecretInQuotes("FL_BLAST_API_GOERLI_KEY")
+        buildConfigField "String", "BLAST_API_POLYGON_KEY", readSecretInQuotes("FL_BLAST_API_POLYGON_KEY")
+        buildConfigField "String", "ETHERSCAN_API_KEY", readSecretInQuotes("FL_ANDROID_ETHERSCAN_API_KEY")
+        buildConfigField "String", "BSCSCAN_API_KEY", readSecretInQuotes("FL_ANDROID_BSCSCAN_API_KEY")
+        buildConfigField "String", "POLYGONSCAN_API_KEY", readSecretInQuotes("FL_ANDROID_POLYGONSCAN_API_KEY")
+        buildConfigField "String", "OKLINK_API_KEY", readSecretInQuotes("FL_ANDROID_OKLINK_API_KEY")
+        buildConfigField "String", "OPMAINNET_API_KEY", readSecretInQuotes("FL_ANDROID_OPMAINNET_API_KEY")
+        buildConfigField "String", "WALLET_CONNECT_PROJECT_ID", readSecretInQuotes("FL_WALLET_CONNECT_PROJECT_ID")
+        buildConfigField "String", "FL_DWELLIR_API_KEY", readSecretInQuotes("FL_DWELLIR_API_KEY")
     }
 
     buildTypes {
@@ -53,47 +67,36 @@ android {
 
             buildConfigField "String", "X1_ENDPOINT_URL", readSecretInQuotes("X1_ENDPOINT_URL_DEBUG")
             buildConfigField "String", "X1_WIDGET_ID", readSecretInQuotes("X1_WIDGET_ID_DEBUG")
-            buildConfigField "String", "SORACARD_BACKEND_URL", readSecretInQuotes("SORA_BACKEND_DEBUG")
-
-            buildConfigField "String", "SORA_CARD_API_KEY", readSecretInQuotes("SORA_CARD_API_KEY_TEST")
-            buildConfigField "String", "SORA_CARD_DOMAIN", readSecretInQuotes("SORA_CARD_DOMAIN_TEST")
-            buildConfigField "String", "SORA_CARD_KYC_ENDPOINT_URL", readSecretInQuotes("SORA_CARD_KYC_ENDPOINT_URL_TEST")
-            buildConfigField "String", "SORA_CARD_KYC_USERNAME", readSecretInQuotes("SORA_CARD_KYC_USERNAME_TEST")
-            buildConfigField "String", "SORA_CARD_KYC_PASSWORD", readSecretInQuotes("SORA_CARD_KYC_PASSWORD_TEST")
 
             buildConfigField "String", "WEB_CLIENT_ID", readSecretInQuotes("WEB_CLIENT_ID_DEBUG")
+            buildConfigField "String", "APP_CONFIG_URL", "\"https://raw.githubusercontent.com/soramitsu/shared-features-utils/develop-free/appVersionSupport/android_app_support_dev.json\""
         }
         release {
             buildConfigField "String", "FIAT_CONFIG_URL", "\"https://raw.githubusercontent.com/soramitsu/shared-features-utils/master/fiat/fiats.json\""
 
             buildConfigField "String", "X1_ENDPOINT_URL", readSecretInQuotes("X1_ENDPOINT_URL_RELEASE")
             buildConfigField "String", "X1_WIDGET_ID", readSecretInQuotes("X1_WIDGET_ID_RELEASE")
-            buildConfigField "String", "SORACARD_BACKEND_URL", readSecretInQuotes("SORA_BACKEND_RELEASE")
-
-            buildConfigField "String", "SORA_CARD_API_KEY", readSecretInQuotes("SORA_CARD_API_KEY_PROD")
-            buildConfigField "String", "SORA_CARD_DOMAIN", readSecretInQuotes("SORA_CARD_DOMAIN_PROD")
-            buildConfigField "String", "SORA_CARD_KYC_ENDPOINT_URL", readSecretInQuotes("SORA_CARD_KYC_ENDPOINT_URL_PROD")
-            buildConfigField "String", "SORA_CARD_KYC_USERNAME", readSecretInQuotes("SORA_CARD_KYC_USERNAME_PROD")
-            buildConfigField "String", "SORA_CARD_KYC_PASSWORD", readSecretInQuotes("SORA_CARD_KYC_PASSWORD_PROD")
 
             buildConfigField "String", "WEB_CLIENT_ID", readSecretInQuotes("WEB_CLIENT_ID_RELEASE")
+            buildConfigField "String", "APP_CONFIG_URL", "\"https://raw.githubusercontent.com/soramitsu/shared-features-utils/develop-free/appVersionSupport/android_app_support.json\""
         }
     }
 
     buildFeatures {
         viewBinding = true
         compose = true
+        buildConfig = true
     }
 
     compileOptions {
-        sourceCompatibility 1.8
-        targetCompatibility 1.8
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
     kotlinOptions {
         freeCompilerArgs = ["-Xallow-result-return-type"]
 
-        jvmTarget = '1.8'
+        jvmTarget = '17'
     }
     composeOptions {
         kotlinCompilerExtensionVersion composeCompilerVersion
@@ -105,54 +108,58 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
     api project(":core-api")
+    implementation project(':runtime-permission')
 
-    implementation kotlinDep
+    implementation libs.kotlin.stdlib.jdk7
 
-    implementation androidxCoreDep
-    implementation androidDep
-    implementation cardViewDep
-    implementation recyclerViewDep
-    implementation materialDep
-    implementation constraintDep
+    implementation libs.core.ktx
+    implementation libs.appcompat
+    implementation libs.cardview
+    implementation libs.recyclerview
+    implementation libs.material
+    implementation libs.constraintlayout
 
-    implementation bouncyCastleDep
+    implementation libs.bouncycastle
 
-    implementation coroutinesDep
-    implementation liveDataKtxDep
-    implementation lifeCycleKtxDep
+    implementation libs.coroutines.core
+    implementation libs.lifecycle.livedata.ktx
+    implementation libs.lifecycle.runtime.ktx
 
-    implementation viewModelKtxDep
+    implementation libs.lifecycle.viewmodel.ktx
 
-    implementation daggerDep
-    implementation 'androidx.navigation:navigation-fragment-ktx:2.5.3'
-    kapt daggerKapt
+    implementation libs.hilt.android
+    implementation libs.navigation.fragment.ktx
+    kapt libs.hilt.compiler
 
-    kapt lifecycleKapt
-    implementation lifecycleProcessDep
+    implementation libs.lifecycle.process
+    kapt libs.lifecycle.compiler
 
-    implementation retrofitDep
-    implementation gsonConvertedDep
-    implementation scalarsConverterDep
-    implementation interceptorVersion
+    implementation libs.converter.gson
+    implementation libs.converter.scalars
+    implementation libs.logging.interceptor
 
-    implementation zXingCoreDep
-    implementation zXingEmbeddedDep
+    implementation libs.zxing.core
+    implementation libs.zxing.embedded
 
-    implementation progressButtonDep
+    implementation libs.progressbutton
 
-    implementation wsDep
+    implementation libs.nv.websocket.client
+    implementation libs.xnetworking.basic
+    implementation libs.xnetworking.fearless, withoutBasic
+    implementation libs.xnetworking.sorawallet, withoutBasic
 
-    implementation compose
-    debugImplementation composeDebug
+    implementation libs.bundles.compose
+    debugImplementation libs.bundles.composeDebug
 
-    implementation soraUiCoreDep
+    implementation libs.sora.ui
 
-    api coilDep
-    api coilSvg
+    api libs.coil
+    api libs.coil.gif
+    api libs.coil.svg
 
-    testImplementation jUnitDep
-    testImplementation mockitoDep
+    testImplementation libs.junit
+    testImplementation libs.mockito.inline
     testImplementation project(':test-shared')
 
-    api sharedFeaturesCoreDep
+    api libs.sharedFeaturesCoreDep
 }

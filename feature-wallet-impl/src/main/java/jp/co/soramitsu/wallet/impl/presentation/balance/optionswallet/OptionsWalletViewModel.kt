@@ -9,6 +9,7 @@ import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.utils.Event
+import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.wallet.api.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.presentation.balance.optionswallet.OptionsWalletFragment.Companion.KEY_WALLET_ID
@@ -24,6 +25,7 @@ class OptionsWalletViewModel @Inject constructor(
     private val accountInteractor: AccountInteractor,
     private val router: WalletRouter
 ) : BaseViewModel(), OptionsWalletCallback {
+    private val walletId: Long = savedStateHandle[KEY_WALLET_ID] ?: error("No walletId provided")
 
     private val _deleteWalletConfirmation = MutableLiveData<Event<Long>>()
     val deleteWalletConfirmation: LiveData<Event<Long>> = _deleteWalletConfirmation
@@ -32,8 +34,12 @@ class OptionsWalletViewModel @Inject constructor(
         .inBackground()
         .share()
 
+    private val nameFlow = flowOf {
+        accountInteractor.getMetaAccount(walletId).name
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
     val state: StateFlow<OptionsWalletScreenViewState> = selectedWallet.map {
-        OptionsWalletScreenViewState(it.id == savedStateHandle[KEY_WALLET_ID]!!)
+        OptionsWalletScreenViewState(it.id == walletId)
     }.stateIn(
         viewModelScope,
         SharingStarted.Eagerly,
@@ -42,15 +48,18 @@ class OptionsWalletViewModel @Inject constructor(
 
     override fun onChangeWalletNameClick() {
         router.back()
-        router.openRenameWallet(savedStateHandle[KEY_WALLET_ID]!!)
+        router.openRenameWallet(
+            metaAccountId = walletId,
+            name = nameFlow.value
+        )
     }
 
     override fun onWalletDetailsClick() {
-        router.openAccountDetails(savedStateHandle[KEY_WALLET_ID]!!)
+        router.openAccountDetails(walletId)
     }
 
     override fun onDeleteWalletClick() {
-        _deleteWalletConfirmation.value = Event(savedStateHandle[KEY_WALLET_ID]!!)
+        _deleteWalletConfirmation.value = Event(walletId)
     }
 
     override fun onCloseClick() {
@@ -59,12 +68,12 @@ class OptionsWalletViewModel @Inject constructor(
 
     fun deleteWalletConfirmed() {
         launch {
-            accountInteractor.deleteAccount(savedStateHandle[KEY_WALLET_ID]!!)
+            accountInteractor.deleteAccount(walletId)
             router.back()
         }
     }
 
     override fun onBackupWalletClick() {
-        router.openBackupWalletScreen(savedStateHandle[KEY_WALLET_ID]!!)
+        router.openBackupWalletScreen(walletId)
     }
 }

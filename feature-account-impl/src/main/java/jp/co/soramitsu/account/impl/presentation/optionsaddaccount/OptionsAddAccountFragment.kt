@@ -9,7 +9,7 @@ import androidx.core.os.bundleOf
 import androidx.fragment.app.viewModels
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import dagger.hilt.android.AndroidEntryPoint
-import jp.co.soramitsu.account.api.presentation.actions.AddAccountBottomSheet
+import jp.co.soramitsu.account.api.presentation.actions.AddAccountPayload
 import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
 
 @AndroidEntryPoint
@@ -18,7 +18,7 @@ class OptionsAddAccountFragment : BaseComposeBottomSheetDialogFragment<OptionsAd
     companion object {
         const val KEY_PAYLOAD = "payload"
 
-        fun getBundle(payload: AddAccountBottomSheet.Payload) = bundleOf(KEY_PAYLOAD to payload)
+        fun getBundle(payload: AddAccountPayload) = bundleOf(KEY_PAYLOAD to payload)
     }
 
     override val viewModel: OptionsAddAccountViewModel by viewModels()

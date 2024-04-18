@@ -34,16 +34,21 @@ android {
             keyPassword "00000000"
         }
     }
+
+    // Minify is needed for QAs to see app performance as end-users do; devs mostly don't need
+    // so, R8D8 shrinker is enabled only for remote builds
+    def shouldEnableR8D8 = System.getenv("BRANCH_NAME") != null
+
     buildTypes {
         debug {
-            minifyEnabled minifyRelease
+            minifyEnabled shouldEnableR8D8
             proguardFiles 'proguard-rules.pro'
             applicationIdSuffix '.debug'
             versionNameSuffix '-debug'
             signingConfig signingConfigs.debug
         }
         release {
-            minifyEnabled minifyRelease
+            minifyEnabled true
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.ci
@@ -103,14 +108,14 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility 1.8
-        targetCompatibility 1.8
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
     kotlinOptions {
         freeCompilerArgs = ["-Xallow-result-return-type"]
 
-        jvmTarget = '1.8'
+        jvmTarget = '17'
     }
     composeOptions {
         kotlinCompilerExtensionVersion composeCompilerVersion
@@ -125,9 +130,8 @@ android {
         resources.excludes.add("META-INF/*")
     }
 
-    configurations{
-
-        all*.exclude module: 'bcprov-jdk15on'
+    configurations.configureEach {
+        exclude group: "org.bouncycastle", module: "bcprov-jdk15on"
     }
 }
 
@@ -169,53 +173,64 @@ dependencies {
     implementation project(':feature-soracard-api')
     implementation project(':feature-soracard-impl')
 
-    implementation kotlinDep
+    implementation project(':feature-walletconnect-api')
+    implementation project(':feature-walletconnect-impl')
 
-    implementation androidDep
-    implementation constraintDep
+    implementation project(':feature-nft-api')
+    implementation project(':feature-nft-impl')
 
-    implementation zXingEmbeddedDep
+    implementation libs.kotlin.stdlib.jdk7
 
-    implementation navigationFragmentDep
-    implementation navigationUiDep
+    implementation libs.appcompat
+    implementation libs.constraintlayout
 
-    implementation roomDep
+    implementation libs.zxing.embedded
 
-    implementation daggerDep
-    kapt daggerKapt
+    implementation libs.navigation.fragment.ktx
+    implementation libs.navigation.ui.ktx
 
-    implementation lifecycleProcessDep
-    kapt lifecycleKapt
+    implementation libs.room.runtime
 
-    implementation lifeCycleKtxDep
+    implementation libs.hilt.android
+    kapt libs.hilt.compiler
 
-    implementation retrofitDep
-    implementation gsonConvertedDep
+    implementation libs.lifecycle.process
+    kapt libs.lifecycle.compiler
 
-    implementation gifDep
+    implementation libs.lifecycle.runtime.ktx
 
-    compileOnly wsDep
+    implementation libs.converter.gson
 
-    implementation coroutinesDep
+//    implementation "pl.droidsonroids.gif:android-gif-drawable:1.2.25"
+
+    compileOnly libs.nv.websocket.client
+
+    implementation libs.coroutines.core
 
     testImplementation project(':test-shared')
 
-    implementation insetterDep
+    implementation libs.insetter.widgets
 
-    implementation liveDataKtxDep
+    implementation libs.lifecycle.livedata.ktx
 
-    implementation jnaDep
-    implementation beaconDep, withoutJna
+    implementation libs.jna
+    implementation libs.beacon.android.sdk, withoutJna
 
-    kaptAndroidTest daggerKapt
-    implementation storiesDep
+    kaptAndroidTest libs.hilt.compiler
+    implementation libs.storiesProgressView
 
-    implementation compose
-    debugImplementation composeDebug
+    implementation libs.bundles.compose
+    debugImplementation libs.bundles.composeDebug
 
-    androidTestImplementation androidTestRunnerDep
-    androidTestImplementation androidTestRulesDep
-    androidTestImplementation androidJunitDep
+    implementation libs.sora.ui
+
+    implementation platform(libs.walletconnectBomDep)
+    implementation libs.walletconnectCoreDep
+    implementation libs.walletconnectWeb3WalletDep
+
+    androidTestImplementation libs.runner
+    androidTestImplementation libs.rules
+    androidTestImplementation libs.ext.junit
 }
 
 task printVersion {

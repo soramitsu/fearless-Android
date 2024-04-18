@@ -4,14 +4,15 @@ import android.content.Context
 import android.util.AttributeSet
 import androidx.core.view.isVisible
 import androidx.lifecycle.LifecycleOwner
+import jp.co.soramitsu.account.api.presentation.importing.ImportAccountType
+import jp.co.soramitsu.account.impl.presentation.importing.source.model.ImportSource
+import jp.co.soramitsu.account.impl.presentation.importing.source.model.MnemonicImportSource
 import jp.co.soramitsu.common.utils.bindTo
 import jp.co.soramitsu.common.utils.nameInputFilters
 import jp.co.soramitsu.common.view.InputField
 import jp.co.soramitsu.common.view.shape.getIdleDrawable
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.databinding.ImportSourceMnemonicBinding
-import jp.co.soramitsu.account.impl.presentation.importing.source.model.ImportSource
-import jp.co.soramitsu.account.impl.presentation.importing.source.model.MnemonicImportSource
 
 class MnemonicImportView @JvmOverloads constructor(
     context: Context,
@@ -34,7 +35,7 @@ class MnemonicImportView @JvmOverloads constructor(
         binding.usernameHintTv.isVisible = !isChainAccount
     }
 
-    override fun observeSource(source: ImportSource, lifecycleOwner: LifecycleOwner) {
+    override fun observeSource(source: ImportSource, blockchainType: ImportAccountType, lifecycleOwner: LifecycleOwner) {
         require(source is MnemonicImportSource)
 
         binding.importMnemonicContent.bindTo(source.mnemonicContentLiveData, lifecycleOwner)

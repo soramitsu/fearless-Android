@@ -8,11 +8,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.ime
-import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -29,11 +26,13 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import java.math.BigDecimal
 import jp.co.soramitsu.common.compose.component.AccentButton
 import jp.co.soramitsu.common.compose.component.AmountInput
 import jp.co.soramitsu.common.compose.component.AmountInputViewState
@@ -46,6 +45,7 @@ import jp.co.soramitsu.common.compose.component.Notification
 import jp.co.soramitsu.common.compose.component.NotificationState
 import jp.co.soramitsu.common.compose.component.QuickAmountInput
 import jp.co.soramitsu.common.compose.component.QuickInput
+import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
 import jp.co.soramitsu.common.compose.theme.black05
 import jp.co.soramitsu.common.compose.theme.colorAccentDark
 import jp.co.soramitsu.common.compose.theme.customColors
@@ -59,7 +59,6 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_polkaswap_impl.R
 import jp.co.soramitsu.polkaswap.api.models.Market
 import jp.co.soramitsu.polkaswap.api.presentation.models.SwapDetailsViewState
-import java.math.BigDecimal
 
 data class SwapTokensContentViewState(
     val fromAmountInputViewState: AmountInputViewState,
@@ -68,7 +67,8 @@ data class SwapTokensContentViewState(
     val swapDetailsViewState: SwapDetailsViewState?,
     val isLoading: Boolean,
     val networkFeeViewState: LoadingState<out SwapDetailsViewState.NetworkFee?>,
-    val hasReadDisclaimer: Boolean
+    val hasReadDisclaimer: Boolean,
+    val isSoftKeyboardOpen: Boolean
 ) {
     companion object {
 
@@ -80,7 +80,8 @@ data class SwapTokensContentViewState(
                 swapDetailsViewState = null,
                 isLoading = false,
                 networkFeeViewState = LoadingState.Loaded(null),
-                hasReadDisclaimer = false
+                hasReadDisclaimer = false,
+                isSoftKeyboardOpen = false
             )
         }
     }
@@ -94,9 +95,9 @@ interface SwapTokensCallbacks {
 
     fun onPreviewClick()
 
-    fun onFromAmountChange(amount: BigDecimal?)
+    fun onFromAmountChange(amount: BigDecimal)
 
-    fun onToAmountChange(amount: BigDecimal?)
+    fun onToAmountChange(amount: BigDecimal)
 
     fun onMarketSettingsClick()
 
@@ -109,8 +110,6 @@ interface SwapTokensCallbacks {
     fun onToAmountFocusChange(isFocused: Boolean)
 
     fun minMaxToolTopClick()
-
-    fun liquidityProviderTooltipClick()
 
     fun networkFeeTooltipClick()
 
@@ -148,15 +147,11 @@ fun SwapTokensContent(
         callbacks.onChangeTokensClick()
     }
 
-    val isSoftKeyboardOpen = WindowInsets.ime.getBottom(LocalDensity.current) > 0
-
     val isFromFocused = state.fromAmountInputViewState.isFocused && !state.fromAmountInputViewState.tokenName.isNullOrEmpty()
-    val showQuickInput = isFromFocused && isSoftKeyboardOpen
+    val showQuickInput = isFromFocused && state.isSoftKeyboardOpen
 
     Column(
         modifier = modifier
-            .navigationBarsPadding()
-            .imePadding()
     ) {
         Row(
             modifier = Modifier.padding(bottom = 12.dp),
@@ -257,15 +252,17 @@ fun SwapTokensContent(
                     }
                     MarginVertical(margin = 16.dp)
                 }
+
                 AccentButton(
                     modifier = Modifier
+                        .height(48.dp)
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
-                        .padding(bottom = 8.dp, top = 16.dp),
+                        .padding(horizontal = 16.dp),
                     text = stringResource(R.string.common_preview),
                     enabled = state.swapDetailsViewState != null,
                     onClick = { runCallback(callbacks::onPreviewClick) }
                 )
+                MarginVertical(margin = 8.dp)
 
                 if (showQuickInput) {
                     QuickInput(
@@ -305,7 +302,7 @@ private fun TransactionDescription(
         FeeInfo(
             state = FeeInfoViewState(
                 caption = stringResource(R.string.common_route),
-                feeAmount = "${swapDetailsViewState.fromTokenName}  ➝  ${swapDetailsViewState.toTokenName}",
+                feeAmount = swapDetailsViewState.route,
                 feeAmountFiat = null
             )
         )
@@ -324,16 +321,6 @@ private fun TransactionDescription(
                 feeAmount = swapDetailsViewState.toTokenOnFromToken,
                 feeAmountFiat = null
             )
-        )
-
-        FeeInfo(
-            state = FeeInfoViewState(
-                caption = stringResource(R.string.common_liquidity_provider_fee),
-                feeAmount = swapDetailsViewState.liquidityProviderFee.tokenAmount,
-                feeAmountFiat = swapDetailsViewState.liquidityProviderFee.fiatAmount,
-                tooltip = true
-            ),
-            tooltipClick = callbacks::liquidityProviderTooltipClick
         )
 
         when {
@@ -398,6 +385,51 @@ private fun MarketLabel(
             painter = painterResource(R.drawable.ic_settings),
             contentDescription = null,
             tint = MaterialTheme.customColors.white
+        )
+    }
+}
+
+@Preview
+@Composable
+fun SwapTokensContentPreview() {
+    FearlessAppTheme {
+        val amountInputViewState = AmountInputViewState(
+            tokenAmount = BigDecimal.ZERO,
+            title = "title",
+            tokenName = "tokenName",
+            fiatAmount = "fialtAmount",
+            totalBalance = "totalBalance"
+        )
+        val state = SwapTokensContentViewState(
+            fromAmountInputViewState = amountInputViewState.copy(title = "From title"),
+            toAmountInputViewState = amountInputViewState.copy(title = "To title"),
+            selectedMarket = Market.SMART,
+            swapDetailsViewState = null,
+            isLoading = false,
+            networkFeeViewState = LoadingState.Loading(),
+            hasReadDisclaimer = false,
+            isSoftKeyboardOpen = false
+        )
+        val callbacks = object : SwapTokensCallbacks {
+            override fun onChangeTokensClick() {}
+            override fun onBackClick() {}
+            override fun onPreviewClick() {}
+            override fun onFromAmountChange(amount: BigDecimal) {}
+            override fun onToAmountChange(amount: BigDecimal) {}
+            override fun onMarketSettingsClick() {}
+            override fun onFromTokenSelect() {}
+            override fun onToTokenSelect() {}
+            override fun onFromAmountFocusChange(isFocused: Boolean) {}
+            override fun onToAmountFocusChange(isFocused: Boolean) {}
+            override fun minMaxToolTopClick() {}
+            override fun networkFeeTooltipClick() {}
+            override fun onQuickAmountInput(value: Double) {}
+            override fun onDisclaimerClick() {}
+        }
+
+        SwapTokensContent(
+            state = state,
+            callbacks = callbacks,
         )
     }
 }

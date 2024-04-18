@@ -21,10 +21,20 @@ class ConfirmSendFragment : BaseComposeBottomSheetDialogFragment<ConfirmSendView
     companion object {
         const val KEY_DRAFT = "KEY_DRAFT"
         const val KEY_PHISHING_TYPE = "KEY_PHISHING_TYPE"
+        const val KEY_TRANSFER_COMMENT = "KEY_TRANSFER_COMMENT"
+        const val KEY_SKIP_ED_VALIDATION = "KEY_SKIP_ED_VALIDATION"
 
-        fun getBundle(transferDraft: TransferDraft, phishingType: PhishingType?) = bundleOf(
+        const val KEY_OVERRIDES = "KEY_OVERRIDES"
+        const val KEY_OVERRIDE_TO_VALUE = "key_toValue"
+        const val KEY_OVERRIDE_ICON_RES_ID = "key_iconResId"
+
+
+        fun getBundle(transferDraft: TransferDraft, phishingType: PhishingType?, overrides: Map<String, Any?>, transferComment: String?, skipEdValidation: Boolean = false) = bundleOf(
             KEY_DRAFT to transferDraft,
-            KEY_PHISHING_TYPE to phishingType
+            KEY_PHISHING_TYPE to phishingType,
+            KEY_OVERRIDES to overrides,
+            KEY_TRANSFER_COMMENT to transferComment,
+            KEY_SKIP_ED_VALIDATION to skipEdValidation
         )
     }
 

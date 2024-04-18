@@ -7,13 +7,17 @@ import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import androidx.activity.result.ActivityResultLauncher
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.ModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import coil.ImageLoader
@@ -25,17 +29,19 @@ import jp.co.soramitsu.common.PLAY_MARKET_BROWSER_URI
 import jp.co.soramitsu.common.base.BaseComposeFragment
 import jp.co.soramitsu.common.compose.component.MainToolbar
 import jp.co.soramitsu.common.compose.component.MainToolbarShimmer
-import jp.co.soramitsu.common.compose.component.MainToolbarViewState
+import jp.co.soramitsu.common.compose.component.MainToolbarViewStateWithFilters
 import jp.co.soramitsu.common.compose.component.MenuIconItem
 import jp.co.soramitsu.common.compose.component.ToolbarHomeIconState
 import jp.co.soramitsu.common.data.network.coingecko.FiatCurrency
 import jp.co.soramitsu.common.presentation.FiatCurrenciesChooserBottomSheetDialog
 import jp.co.soramitsu.common.presentation.LoadingState
+import jp.co.soramitsu.common.presentation.askPermissionsSafely
 import jp.co.soramitsu.common.scan.ScanTextContract
 import jp.co.soramitsu.common.scan.ScannerActivity
 import jp.co.soramitsu.common.utils.hideKeyboard
 import jp.co.soramitsu.common.view.bottomSheet.AlertBottomSheet
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
+import jp.co.soramitsu.feature_wallet_impl.BuildConfig
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.oauth.base.sdk.contract.SoraCardContract
 import jp.co.soramitsu.wallet.impl.presentation.common.askPermissionsSafely
@@ -49,11 +55,12 @@ class BalanceListFragment : BaseComposeFragment<BalanceListViewModel>() {
 
     override val viewModel: BalanceListViewModel by viewModels()
 
-    private val barcodeLauncher: ActivityResultLauncher<ScanOptions> = registerForActivityResult(ScanTextContract()) { result ->
-        result?.let {
-            viewModel.qrCodeScanned(it)
+    private val barcodeLauncher: ActivityResultLauncher<ScanOptions> =
+        registerForActivityResult(ScanTextContract()) { result ->
+            result?.let {
+                viewModel.qrCodeScanned(it)
+            }
         }
-    }
 
     private val soraCardSignIn = registerForActivityResult(
         SoraCardContract()
@@ -68,37 +75,55 @@ class BalanceListFragment : BaseComposeFragment<BalanceListViewModel>() {
 
     @OptIn(ExperimentalMaterialApi::class)
     @Composable
-    override fun Content(padding: PaddingValues, scrollState: ScrollState, modalBottomSheetState: ModalBottomSheetState) {
+    override fun Content(
+        padding: PaddingValues,
+        scrollState: ScrollState,
+        modalBottomSheetState: ModalBottomSheetState
+    ) {
         val state by viewModel.state.collectAsState()
 
         WalletScreenWithRefresh(state, viewModel)
     }
 
+    @OptIn(ExperimentalFoundationApi::class)
     @ExperimentalMaterialApi
     @Composable
     override fun Toolbar(modalBottomSheetState: ModalBottomSheetState) {
         val toolbarState by viewModel.toolbarState.collectAsState()
-
-        when (toolbarState) {
-            is LoadingState.Loading<MainToolbarViewState> -> {
-                MainToolbarShimmer(
-                    homeIconState = ToolbarHomeIconState(navigationIcon = R.drawable.ic_wallet),
-                    menuItems = listOf(
-                        MenuIconItem(icon = R.drawable.ic_scan) {},
-                        MenuIconItem(icon = R.drawable.ic_search) {}
+        val toolbarModifier = if (BuildConfig.DEBUG) {
+            Modifier.combinedClickable(onLongClick = viewModel::onServiceButtonClick, onClick = {})
+        } else {
+            Modifier
+        }
+        Column(modifier = toolbarModifier) {
+            when (toolbarState) {
+                is LoadingState.Loading<MainToolbarViewStateWithFilters> -> {
+                    MainToolbarShimmer(
+                        homeIconState = ToolbarHomeIconState(navigationIcon = R.drawable.ic_wallet),
+                        menuItems = listOf(
+                            MenuIconItem(icon = R.drawable.ic_scan) {},
+                            MenuIconItem(icon = R.drawable.ic_search) {}
+                        )
                     )
-                )
-            }
-            is LoadingState.Loaded<MainToolbarViewState> -> {
-                MainToolbar(
-                    state = (toolbarState as LoadingState.Loaded<MainToolbarViewState>).data,
-                    menuItems = listOf(
-                        MenuIconItem(icon = R.drawable.ic_scan, onClick = ::requestCameraPermission),
-                        MenuIconItem(icon = R.drawable.ic_search, onClick = viewModel::openSearchAssets)
-                    ),
-                    onChangeChainClick = viewModel::openSelectChain,
-                    onNavigationClick = viewModel::openWalletSelector
-                )
+                }
+
+                is LoadingState.Loaded<MainToolbarViewStateWithFilters> -> {
+                    MainToolbar(
+                        state = (toolbarState as LoadingState.Loaded<MainToolbarViewStateWithFilters>).data,
+                        menuItems = listOf(
+                            MenuIconItem(
+                                icon = R.drawable.ic_scan,
+                                onClick = ::requestCameraPermission
+                            ),
+                            MenuIconItem(
+                                icon = R.drawable.ic_search,
+                                onClick = viewModel::openSearchAssets
+                            )
+                        ),
+                        onChangeChainClick = viewModel::openSelectChain,
+                        onNavigationClick = viewModel::openWalletSelector
+                    )
+                }
             }
         }
     }
@@ -117,7 +142,12 @@ class BalanceListFragment : BaseComposeFragment<BalanceListViewModel>() {
     }
 
     private fun showFiatChooser(payload: DynamicListBottomSheet.Payload<FiatCurrency>) {
-        FiatCurrenciesChooserBottomSheetDialog(requireContext(), imageLoader, payload, viewModel::onFiatSelected).show()
+        FiatCurrenciesChooserBottomSheetDialog(
+            requireContext(),
+            imageLoader,
+            payload,
+            viewModel::onFiatSelected
+        ).show()
     }
 
     private fun showUnsupportedChainAlert() {

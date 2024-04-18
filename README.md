@@ -16,14 +16,15 @@ Track features development: [board link](https://soramitsucoltd.aha.io/shared/34
 
 ## How to build
 
-To build Fearless Wallet Android project, you need to provide several keys either in enviroment variables or in `local.properties` file:
+To build Fearless Wallet Android project, you need to provide several keys either in environment variables or in `local.properties` file:
 
 ### Moonpay properties
 ``` 
 MOONPAY_TEST_SECRET=stub
 MOONPAY_PRODUCTION_SECRET=stub
 ```
-Note, that with stub keys buy via moonpay will not work correctly. However, other parts of application will not be affected.
+
+Note, that with stub keys buy via moonpay will not work correctly. However, other parts of the application will not be affected.
 
 ### Sora CARD SDK
 
@@ -64,6 +65,24 @@ X1_WIDGET_ID_RELEASE
 
 X1_ENDPOINT_URL_DEBUG
 X1_WIDGET_ID_DEBUG
+````
+
+### Ethereum properties
+
+Set of params required to deliver Ethereum connection
+
+````
+// Ethereum blast api nodes keys
+FL_BLAST_API_ETHEREUM_KEY
+FL_BLAST_API_BSC_KEY
+FL_BLAST_API_SEPOLIA_KEY
+FL_BLAST_API_GOERLI_KEY
+FL_BLAST_API_POLYGON_KEY
+
+// Ethereum history providers api keys
+FL_ANDROID_ETHERSCAN_API_KEY
+FL_ANDROID_BSCSCAN_API_KEY
+FL_ANDROID_POLYGONSCAN_API_KEY
 ````
 
 ## License

@@ -54,6 +54,7 @@ import jp.co.soramitsu.ui_core.resources.Dimens
 import jp.co.soramitsu.ui_core.theme.borderRadius
 import jp.co.soramitsu.ui_core.theme.customColors
 import jp.co.soramitsu.ui_core.theme.customTypography
+import jp.co.soramitsu.ui_core.theme.elevation
 import jp.co.soramitsu.oauth.R as SoraCardR
 
 data class GetSoraCardState(

@@ -22,6 +22,9 @@ abstract class TokenPriceDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     abstract suspend fun insertTokenPrice(token: TokenPriceLocal)
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    abstract suspend fun insertTokensPrice(tokens: List<TokenPriceLocal>)
+
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     abstract suspend fun insertTokenPriceOrIgnore(token: TokenPriceLocal)
 

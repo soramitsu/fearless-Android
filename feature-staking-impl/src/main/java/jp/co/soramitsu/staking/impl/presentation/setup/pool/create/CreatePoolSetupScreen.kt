@@ -3,7 +3,6 @@ package jp.co.soramitsu.staking.impl.presentation.setup.pool.create
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -15,6 +14,7 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import java.math.BigDecimal
 import jp.co.soramitsu.common.compose.component.AccentButton
 import jp.co.soramitsu.common.compose.component.AmountInput
 import jp.co.soramitsu.common.compose.component.AmountInputViewState
@@ -33,7 +33,6 @@ import jp.co.soramitsu.common.compose.component.Toolbar
 import jp.co.soramitsu.common.compose.component.ToolbarViewState
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.feature_staking_impl.R
-import java.math.BigDecimal
 
 data class CreatePoolSetupViewState(
     val poolNameInputViewState: TextInputViewState,
@@ -72,7 +71,6 @@ fun CreatePoolSetupScreen(
     BottomSheetScreen {
         Column(
             modifier = Modifier
-                .imePadding()
                 .verticalScroll(rememberScrollState())
         ) {
             Toolbar(
@@ -142,8 +140,7 @@ private fun CreatePoolSetupScreenPreview() {
             tokenImage = "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Karura.svg",
             totalBalance = "Balance: 20.0",
             fiatAmount = "$120.0",
-            tokenAmount = BigDecimal.ONE,
-            initial = null
+            tokenAmount = BigDecimal.ONE
         ),
         "7",
         "⚡️Everlight☀️",

@@ -10,6 +10,7 @@ import jp.co.soramitsu.common.mixin.api.RetryPayload
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.formatCrypto
+import jp.co.soramitsu.common.utils.formatCryptoDetail
 import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.requireException
@@ -17,9 +18,12 @@ import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.common.utils.singleReplaySharedFlow
 import jp.co.soramitsu.common.utils.withLoading
 import jp.co.soramitsu.feature_staking_impl.R
+import jp.co.soramitsu.staking.api.data.SyntheticStakingType
+import jp.co.soramitsu.staking.api.data.syntheticStakingType
 import jp.co.soramitsu.staking.impl.domain.StakingInteractor
 import jp.co.soramitsu.staking.impl.domain.model.PendingPayout
 import jp.co.soramitsu.staking.impl.domain.model.PendingPayoutsStatistics
+import jp.co.soramitsu.staking.impl.domain.rewards.SoraStakingRewardsScenario
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
 import jp.co.soramitsu.staking.impl.presentation.payouts.confirm.model.ConfirmPayoutPayload
 import jp.co.soramitsu.staking.impl.presentation.payouts.list.model.PendingPayoutModel
@@ -38,7 +42,8 @@ class PayoutsListViewModel @Inject constructor(
     private val router: StakingRouter,
     private val resourceManager: ResourceManager,
     private val interactor: StakingInteractor,
-    private val relayChainScenarioInteractor: StakingRelayChainScenarioInteractor
+    private val relayChainScenarioInteractor: StakingRelayChainScenarioInteractor,
+    private val soraRewardScenario: SoraStakingRewardsScenario
 ) : BaseViewModel(), Retriable {
 
     override val retryEvent: MutableLiveData<Event<RetryPayload>> = MutableLiveData()
@@ -112,8 +117,15 @@ class PayoutsListViewModel @Inject constructor(
     private suspend fun convertToUiModel(
         statistics: PendingPayoutsStatistics
     ): PendingPayoutsStatisticsModel {
-        val token = interactor.currentAssetFlow().first().token
-        val totalAmount = token.amountFromPlanks(statistics.totalAmountInPlanks).formatCrypto(token.configuration.symbol)
+        val currentAsset = interactor.currentAssetFlow().first()
+        val syntheticStakingType = currentAsset.token.configuration.syntheticStakingType()
+
+        val token = if(syntheticStakingType == SyntheticStakingType.SORA) {
+            soraRewardScenario.getRewardAsset()
+        } else {
+            currentAsset.token
+        }
+        val totalAmount = token.amountFromPlanks(statistics.totalAmountInPlanks).formatCryptoDetail(token.configuration.symbol)
 
         val payouts = statistics.payouts.map { mapPayoutToPayoutModel(token, it) }
 
@@ -133,7 +145,7 @@ class PayoutsListViewModel @Inject constructor(
                 timeLeft = timeLeft,
                 createdAt = createdAt,
                 daysLeftColor = if (closeToExpire) R.color.error_red else R.color.white_64,
-                amount = amount.formatCrypto(token.configuration.symbol).formatSigned(true),
+                amount = amount.formatCryptoDetail(token.configuration.symbol).formatSigned(true),
                 amountFiat = token.fiatAmount(amount)?.formatFiat(token.fiatSymbol)
             )
         }

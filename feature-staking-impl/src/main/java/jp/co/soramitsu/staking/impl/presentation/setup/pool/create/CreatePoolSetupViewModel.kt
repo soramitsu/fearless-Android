@@ -80,8 +80,7 @@ class CreatePoolSetupViewModel @Inject constructor(
         tokenImage = "",
         totalBalance = resourceManager.getString(R.string.common_balance_format, "..."),
         fiatAmount = "",
-        tokenAmount = initialAmount,
-        initial = initialAmount.takeIf { it.isNotZero() }
+        tokenAmount = initialAmount
     )
 
     private val defaultScreenState = CreatePoolSetupViewState(
@@ -108,8 +107,7 @@ class CreatePoolSetupViewModel @Inject constructor(
             totalBalance = resourceManager.getString(R.string.common_balance_format, tokenBalance),
             fiatAmount = fiatAmount,
             tokenAmount = amount,
-            precision = asset.token.configuration.precision,
-            initial = initialAmount.takeIf { it.isNotZero() }
+            precision = asset.token.configuration.precision
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, defaultAmountInputState)
 
@@ -220,10 +218,15 @@ class CreatePoolSetupViewModel @Inject constructor(
             val fee = feeInPlanksFlow.value
             val transferableInPlanks = asset.token.planksFromAmount(asset.transferable)
 
-            val minToCreate = poolInteractor.getMinToCreate(chain.id)
-            if (amountInPlanks < minToCreate) {
-                val minToCreateFormatted = minToCreate.formatCryptoDetailFromPlanks(asset.token.configuration)
-                showError(MinPoolCreationThresholdException(resourceManager, minToCreateFormatted))
+            try {
+                val minToCreate = poolInteractor.getMinToCreate(chain.id)
+                if (amountInPlanks < minToCreate) {
+                    val minToCreateFormatted = minToCreate.formatCryptoDetailFromPlanks(asset.token.configuration)
+                    showError(MinPoolCreationThresholdException(resourceManager, minToCreateFormatted))
+                    return@launch
+                }
+            } catch (e: NullPointerException) {
+                showError(e.message.orEmpty())
                 return@launch
             }
 

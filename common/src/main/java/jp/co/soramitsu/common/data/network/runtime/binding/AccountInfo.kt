@@ -53,8 +53,11 @@ class EqAccountInfo(
 ) : AssetBalanceData
 
 class AssetsAccountInfo(
-    val balance: BigInteger
+    val balance: BigInteger,
+    val status: String?
 ) : AssetBalanceData
+
+class SimpleBalanceData(val balance: BigInteger) : AssetBalanceData
 
 class AccountInfo(
     val nonce: BigInteger,
@@ -93,7 +96,7 @@ class DataPoint(
 fun bindAccountData(dynamicInstance: Struct.Instance?) = AccountData(
     free = (dynamicInstance?.get("free") as? BigInteger).orZero(),
     reserved = (dynamicInstance?.get("reserved") as? BigInteger).orZero(),
-    miscFrozen = (dynamicInstance?.get("miscFrozen") as? BigInteger).orZero(),
+    miscFrozen = (dynamicInstance?.get("miscFrozen") as? BigInteger) ?: (dynamicInstance?.get("frozen") as? BigInteger).orZero(),
     feeFrozen = (dynamicInstance?.get("feeFrozen") as? BigInteger).orZero()
 )
 
@@ -118,7 +121,8 @@ fun bindAssetsAccountInfo(scale: String, runtime: RuntimeSnapshot): AssetsAccoun
 
     return dynamicInstance?.let {
         AssetsAccountInfo(
-            balance = bindNumber(dynamicInstance["balance"])
+            balance = bindNumber(dynamicInstance["balance"]),
+            status = dynamicInstance.get<DictEnum.Entry<*>>("status")?.name
         )
     }
 }

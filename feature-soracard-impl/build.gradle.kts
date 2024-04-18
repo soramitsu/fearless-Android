@@ -17,19 +17,13 @@ android {
         targetSdk = rootProject.ext["targetSdkVersion"] as Int
     }
 
-    buildTypes {
-        release {
-
-        }
-    }
-
     buildFeatures {
         compose = true
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
     composeOptions {
@@ -37,7 +31,7 @@ android {
     }
 
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "17"
     }
     namespace = "jp.co.soramitsu.feature_soracard_impl"
 }
@@ -49,12 +43,16 @@ dependencies {
     implementation(libs.fragmentKtx)
     implementation(libs.material)
     implementation(libs.kotlinx.serialization.json)
-    implementation(libs.xnetworking.android)
     implementation(libs.retrofit)
     implementation(libs.gson)
+    implementation(libs.xnetworking.basic)
+    val withoutBasic: (ExternalModuleDependency).() -> Unit = {
+        exclude(group = "jp.co.soramitsu.xnetworking", module = "basic")
+    }
+    implementation(libs.xnetworking.fearless, withoutBasic)
+    implementation(libs.xnetworking.sorawallet, withoutBasic)
 
     implementation(libs.sora.ui)
-    implementation(libs.sora.card)
 
     implementation(projects.common)
     implementation(projects.runtime)

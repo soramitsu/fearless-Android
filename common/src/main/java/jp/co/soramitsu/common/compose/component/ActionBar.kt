@@ -14,13 +14,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.R
-import jp.co.soramitsu.common.compose.theme.FearlessTheme
+import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
 
 enum class ActionItemType(
     @DrawableRes val iconId: Int,
@@ -49,7 +48,7 @@ fun ActionBar(
     fillMaxWidth: Boolean = false,
     onItemClick: (ActionItemType, String, String) -> Unit = { _, _, _ -> }
 ) {
-    Row(Modifier.padding(vertical = 4.dp)) {
+    Row {
         state.actionItems.forEachIndexed { index, actionItem ->
             val itemClickHandler = remember(actionItem, state.chainId, state.chainAssetId) {
                 { onItemClick(actionItem, state.chainId, state.chainAssetId) }
@@ -92,14 +91,12 @@ private fun ActionBarPreview() {
     val state = ActionBarViewState(
         chainId = "",
         chainAssetId = "",
-        actionItems = ActionItemType.values().asList().take(3)
+        actionItems = ActionItemType.entries.take(3)
     )
 
-    FearlessTheme {
+    FearlessAppTheme {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color.Black)
+            modifier = Modifier.fillMaxSize()
         ) {
             ActionBar(state = state)
             ActionBar(state = state, fillMaxWidth = true)

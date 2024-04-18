@@ -4,15 +4,15 @@ import android.content.Context
 import android.util.AttributeSet
 import androidx.core.view.isVisible
 import androidx.lifecycle.LifecycleOwner
+import jp.co.soramitsu.account.api.presentation.importing.ImportAccountType
+import jp.co.soramitsu.account.impl.presentation.importing.source.model.ImportSource
+import jp.co.soramitsu.account.impl.presentation.importing.source.model.RawSeedImportSource
 import jp.co.soramitsu.common.utils.bindTo
 import jp.co.soramitsu.common.utils.nameInputFilters
 import jp.co.soramitsu.common.view.InputField
 import jp.co.soramitsu.common.view.shape.getIdleDrawable
-import jp.co.soramitsu.account.api.presentation.importing.ImportAccountType
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.databinding.ImportSourceSeedBinding
-import jp.co.soramitsu.account.impl.presentation.importing.source.model.ImportSource
-import jp.co.soramitsu.account.impl.presentation.importing.source.model.RawSeedImportSource
 
 class SeedImportView @JvmOverloads constructor(
     context: Context,
@@ -52,7 +52,7 @@ class SeedImportView @JvmOverloads constructor(
         }
     }
 
-    override fun observeSource(source: ImportSource, lifecycleOwner: LifecycleOwner) {
+    override fun observeSource(source: ImportSource, blockchainType: ImportAccountType, lifecycleOwner: LifecycleOwner) {
         require(source is RawSeedImportSource)
 
         binding.importSeedContent.bindTo(source.rawSeedLiveData, lifecycleOwner)

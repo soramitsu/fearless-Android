@@ -5,6 +5,8 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.math.BigInteger
+import javax.inject.Inject
 import jp.co.soramitsu.common.AlertViewState
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.theme.black1
@@ -37,6 +39,7 @@ import jp.co.soramitsu.staking.impl.presentation.common.SelectValidatorFlowState
 import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSharedStateProvider
 import jp.co.soramitsu.staking.impl.presentation.mappers.mapValidatorToValidatorDetailsParcelModel
 import jp.co.soramitsu.staking.impl.presentation.pools.compose.SelectableListItemState
+import jp.co.soramitsu.staking.impl.presentation.validators.buildSegmentedValidatorsListState
 import jp.co.soramitsu.wallet.api.presentation.formatters.formatCryptoFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import kotlinx.coroutines.Deferred
@@ -45,14 +48,15 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import java.math.BigInteger
-import javax.inject.Inject
 
-private val filtersSet = setOf(Filters.HavingOnChainIdentity, Filters.NotSlashedFilter, Filters.NotOverSubscribed)
-private val sortingSet = setOf(Sorting.EstimatedRewards, Sorting.TotalStake, Sorting.ValidatorsOwnStake)
+private val filtersSet =
+    setOf(Filters.HavingOnChainIdentity, Filters.NotSlashedFilter, Filters.NotOverSubscribed)
+private val sortingSet =
+    setOf(Sorting.EstimatedRewards, Sorting.TotalStake, Sorting.ValidatorsOwnStake)
 
 @HiltViewModel
 class SelectValidatorsViewModel @Inject constructor(
@@ -74,7 +78,8 @@ class SelectValidatorsViewModel @Inject constructor(
     private val selectedItems: MutableStateFlow<List<String>>
     private val selectValidatorsState = stakingPoolSharedStateProvider.requireSelectValidatorsState
     private val selectMode = selectValidatorsState.requireSelectMode
-    private val recommendedSettings: MutableStateFlow<RecommendationSettings<Validator>?> = MutableStateFlow(null)
+    private val recommendedSettings: MutableStateFlow<RecommendationSettings<Validator>?> =
+        MutableStateFlow(null)
     private val validatorRecommendator by lazyAsync { validatorRecommendatorFactory.create(router.currentStackEntryLifecycle) }
     private val searchQueryFlow = MutableStateFlow("")
 
@@ -83,7 +88,8 @@ class SelectValidatorsViewModel @Inject constructor(
         val mainState = stakingPoolSharedStateProvider.requireMainState
         asset = mainState.requireAsset
         chain = mainState.requireChain
-        selectedItems = MutableStateFlow(selectValidatorsState.selectedValidators.map { it.toHexString(false) })
+        selectedItems =
+            MutableStateFlow(selectValidatorsState.selectedValidators.map { it.toHexString(false) })
 
         subscribeOnSettings()
     }
@@ -120,46 +126,42 @@ class SelectValidatorsViewModel @Inject constructor(
             SelectValidatorFlowState.ValidatorSelectMode.RECOMMENDED -> resourceManager.getString(R.string.staking_select_suggested)
         }
 
-    val state =
-        combine(recommendedValidators, selectedItems, recommendedSettings, searchQueryFlow) { validatorsState, selectedValidators, settings, searchQuery ->
-            val listState = validatorsState.map { validators ->
-                val filtered = validators.filter {
-                    val searchQueryLowerCase = searchQuery.lowercase()
-                    val identityNameLowerCase = it.identity?.display?.lowercase().orEmpty()
-                    val addressLowerCase = it.address.lowercase()
-                    identityNameLowerCase.contains(searchQueryLowerCase) || addressLowerCase.contains(searchQueryLowerCase)
-                }
-                if (selectMode == SelectValidatorFlowState.ValidatorSelectMode.RECOMMENDED) {
-                    selectedItems.value = filtered.map { it.accountIdHex }
-                }
-                val items = filtered.map {
-                    val isSelected = when (selectMode) {
-                        SelectValidatorFlowState.ValidatorSelectMode.CUSTOM -> it.accountIdHex in selectedValidators
-                        SelectValidatorFlowState.ValidatorSelectMode.RECOMMENDED -> true
-                    }
-                    it.toModel(isSelected, settings?.sorting, asset, resourceManager)
-                }
-
-                val selectedItems = items.filter { it.isSelected }
-
-                MultiSelectListViewState(items, selectedItems)
-            }
-            SelectValidatorsScreenViewState(
-                toolbarTitle = toolbarTitle,
-                isCustom = selectMode == SelectValidatorFlowState.ValidatorSelectMode.CUSTOM,
-                searchQuery = searchQuery,
-                listState = listState
+    private val listState = combine(
+        recommendedValidators,
+        selectedItems,
+        recommendedSettings,
+        searchQueryFlow
+    ) { validatorsLoading, selectedValidators, settings, searchQuery ->
+        validatorsLoading.map { validators ->
+            buildSegmentedValidatorsListState(
+                resourceManager,
+                validators,
+                settings,
+                searchQuery,
+                selectMode,
+                selectedValidators,
+                asset
             )
-        }.stateIn(
-            viewModelScope,
-            SharingStarted.Eagerly,
-            SelectValidatorsScreenViewState(
-                toolbarTitle = toolbarTitle,
-                isCustom = selectMode == SelectValidatorFlowState.ValidatorSelectMode.CUSTOM,
-                searchQuery = searchQueryFlow.value,
-                listState = LoadingState.Loading()
-            )
+        }
+    }
+
+    val state = listState.map {
+        SelectValidatorsScreenViewState(
+            toolbarTitle = toolbarTitle,
+            isCustom = selectMode == SelectValidatorFlowState.ValidatorSelectMode.CUSTOM,
+            searchQuery = searchQueryFlow.value,
+            listState = it
         )
+    }.stateIn(
+        viewModelScope,
+        SharingStarted.Eagerly,
+        SelectValidatorsScreenViewState(
+            toolbarTitle = toolbarTitle,
+            isCustom = selectMode == SelectValidatorFlowState.ValidatorSelectMode.CUSTOM,
+            searchQuery = searchQueryFlow.value,
+            listState = LoadingState.Loading()
+        )
+    )
 
     override fun onNavigationClick() = router.back()
 
@@ -168,7 +170,8 @@ class SelectValidatorsViewModel @Inject constructor(
             return
         }
         val selectedIds = selectedItems.value
-        val isOverSubscribed = item.additionalStatuses.contains(SelectableListItemState.SelectableListItemAdditionalStatus.OVERSUBSCRIBED)
+        val isOverSubscribed =
+            item.additionalStatuses.contains(SelectableListItemState.SelectableListItemAdditionalStatus.OVERSUBSCRIBED)
         if (isOverSubscribed && selectedIds.contains(item.id).not()) {
             openOversubscribedAlert()
         }
@@ -194,8 +197,15 @@ class SelectValidatorsViewModel @Inject constructor(
     }
 
     override fun onInfoClick(item: SelectableListItemState<String>) {
-        val validator = recommendedValidators.value.dataOrNull()?.find { it.accountIdHex == item.id }
-        router.openValidatorDetails(mapValidatorToValidatorDetailsParcelModel(requireNotNull(validator)))
+        val validator =
+            recommendedValidators.value.dataOrNull()?.find { it.accountIdHex == item.id }
+        router.openValidatorDetails(
+            mapValidatorToValidatorDetailsParcelModel(
+                requireNotNull(
+                    validator
+                )
+            )
+        )
     }
 
     override fun onChooseClick() {
@@ -214,44 +224,3 @@ class SelectValidatorsViewModel @Inject constructor(
     }
 }
 
-fun Validator.toModel(
-    isSelected: Boolean,
-    sortingCaption: BlockProducersSorting<Validator>?,
-    asset: Asset,
-    resourceManager: ResourceManager
-): SelectableListItemState<String> {
-    val totalStake = electedInfo?.totalStake.orZero().formatCryptoFromPlanks(asset.token.configuration)
-    val ownStake = electedInfo?.ownStake.orZero().formatCryptoFromPlanks(asset.token.configuration)
-
-    val captionHeader = when (sortingCaption) {
-        BlockProducersSorting.ValidatorSorting.ValidatorOwnStakeSorting -> resourceManager.getString(R.string.staking_filter_title_own_stake)
-        else -> resourceManager.getString(R.string.staking_rewards_apy)
-    }
-    val captionValue = when (sortingCaption) {
-        BlockProducersSorting.ValidatorSorting.ValidatorOwnStakeSorting -> ownStake
-        else -> electedInfo?.apy.orZero().fractionToPercentage().formatAsPercentage()
-    }
-    val captionText = buildAnnotatedString {
-        withStyle(style = SpanStyle(color = black1)) {
-            append("$captionHeader ")
-        }
-        withStyle(style = SpanStyle(color = greenText)) {
-            append(captionValue)
-        }
-    }
-
-    val additionalStatuses = if (this.slashed) {
-        listOf(SelectableListItemState.SelectableListItemAdditionalStatus.WARNING)
-    } else {
-        emptyList()
-    }
-
-    return SelectableListItemState(
-        id = accountIdHex,
-        title = identity?.display ?: address,
-        subtitle = resourceManager.getString(R.string.staking_validator_total_stake_token, totalStake),
-        caption = captionText,
-        isSelected = isSelected,
-        additionalStatuses = additionalStatuses
-    )
-}

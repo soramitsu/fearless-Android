@@ -12,7 +12,6 @@ import jp.co.soramitsu.shared_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.shared_utils.runtime.metadata.module
 import jp.co.soramitsu.shared_utils.runtime.metadata.storage
 import jp.co.soramitsu.shared_utils.runtime.metadata.storageKey
-import jp.co.soramitsu.wallet.api.data.cache.bind9420AccountInfo
 import jp.co.soramitsu.wallet.api.data.cache.bindAccountInfoOrDefault
 import jp.co.soramitsu.wallet.api.data.cache.bindAssetsAccountData
 import jp.co.soramitsu.wallet.api.data.cache.bindEquilibriumAccountData
@@ -44,6 +43,7 @@ fun constructBalanceKey(
             ChainAssetType.SoraAsset,
             ChainAssetType.AssetId,
             ChainAssetType.Token2,
+            ChainAssetType.Xcm,
             ChainAssetType.LiquidCrowdloan -> runtime.metadata.tokens().storage("Accounts")
                 .storageKey(runtime, accountId, currency)
 
@@ -56,7 +56,7 @@ fun constructBalanceKey(
     return keyConstructionResult
         .onFailure {
             Log.d(
-                "PaymentUpdater",
+                "BalancesUpdateSystem",
                 "Failed to construct storage key for asset ${asset.symbol} (${asset.id}) $it "
             )
         }
@@ -65,20 +65,15 @@ fun constructBalanceKey(
 
 fun handleBalanceResponse(
     runtime: RuntimeSnapshot,
-    assetType: ChainAssetType?,
-    scale: String?,
-    runtimeVersion: Int
+    asset: Asset,
+    scale: String?
 ): Result<AssetBalanceData> {
     return runCatching {
-        when (assetType) {
+        when (asset.typeExtra) {
             null,
             ChainAssetType.Normal,
             ChainAssetType.SoraUtilityAsset -> {
-                if (runtimeVersion >= 9420) {
-                    bind9420AccountInfo(scale, runtime)
-                } else {
-                    bindAccountInfoOrDefault(scale, runtime)
-                }
+                bindAccountInfoOrDefault(scale, runtime)
             }
 
             ChainAssetType.OrmlChain,
@@ -91,6 +86,7 @@ fun handleBalanceResponse(
             ChainAssetType.VSToken,
             ChainAssetType.AssetId,
             ChainAssetType.Token2,
+            ChainAssetType.Xcm,
             ChainAssetType.Stable -> {
                 bindOrmlTokensAccountDataOrDefault(scale, runtime)
             }

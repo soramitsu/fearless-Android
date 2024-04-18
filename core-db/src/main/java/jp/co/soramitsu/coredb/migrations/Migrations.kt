@@ -3,24 +3,103 @@ package jp.co.soramitsu.coredb.migrations
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
+val Migration_63_64 = object : Migration(63, 64) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("DROP TABLE IF EXISTS sora_card")
+    }
+}
+
+val Migration_62_63 = object : Migration(62, 63) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE assets ADD COLUMN `status` TEXT NULL")
+        db.execSQL("UPDATE assets SET `status` = 'Frozen' where id == '8f79aa5a-9f31-442c-ac96-01ff80b105e0'")
+    }
+}
+
+val Migration_61_62 = object : Migration(61, 62) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE chains ADD COLUMN `supportNft` INTEGER NOT NULL DEFAULT 0")
+    }
+}
+
+val Migration_60_61 = object : Migration(60, 61) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE chains ADD COLUMN `isChainlinkProvider` INTEGER NOT NULL DEFAULT 0")
+
+        db.execSQL("DROP TABLE IF EXISTS chain_assets")
+
+        db.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `chain_assets` (
+            `id` TEXT NOT NULL, 
+            `name` TEXT, 
+            `symbol` TEXT NOT NULL, 
+            `chainId` TEXT NOT NULL, 
+            `icon` TEXT NOT NULL, 
+            `priceId` TEXT, 
+            `staking` TEXT NOT NULL, 
+            `precision` INTEGER NOT NULL, 
+            `purchaseProviders` TEXT, 
+            `isUtility` INTEGER, 
+            `type` TEXT, 
+            `currencyId` TEXT, 
+            `existentialDeposit` TEXT, 
+            `color` TEXT, 
+            `isNative` INTEGER, 
+            `ethereumType` TEXT DEFAULT NULL,
+            `priceProvider` TEXT, 
+            PRIMARY KEY(`chainId`, `id`), 
+            FOREIGN KEY(`chainId`) REFERENCES `chains`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )
+            """.trimIndent()
+        )
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_chain_assets_chainId` ON `chain_assets` (`chainId`)")
+    }
+}
+
+val Migration_59_60 = object : Migration(59, 60) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE chains ADD COLUMN `paraId` TEXT NULL")
+    }
+}
+
+val Migration_58_59 = object : Migration(58, 59) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE chains ADD COLUMN `rank` INTEGER NULL")
+
+        db.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `favorite_chains` (
+            `metaId` INTEGER NOT NULL,
+            `chainId` TEXT NOT NULL,
+            `isFavorite` INTEGER NOT NULL DEFAULT 0,
+            PRIMARY KEY(`metaId`, `chainId`),
+            FOREIGN KEY(`chainId`) REFERENCES `chains`(`id`) ON UPDATE NO ACTION ON DELETE NO ACTION  DEFERRABLE INITIALLY DEFERRED,
+            FOREIGN KEY(`metaId`) REFERENCES `meta_accounts`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE 
+            )
+            """.trimIndent()
+        )
+    }
+}
+
 val Migration_57_58 = object : Migration(57, 58) {
-    override fun migrate(database: SupportSQLiteDatabase) {
-        database.execSQL("DROP TABLE IF EXISTS sora_card")
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE chains ADD COLUMN `isEthereumChain` INTEGER NOT NULL DEFAULT 0")
+        db.execSQL("ALTER TABLE chain_assets ADD COLUMN `ethereumType` TEXT DEFAULT NULL")
     }
 }
 
 val Migration_56_57 = object : Migration(56, 57) {
-    override fun migrate(database: SupportSQLiteDatabase) {
-        database.execSQL("ALTER TABLE meta_accounts ADD COLUMN `isBackedUp` INTEGER NOT NULL DEFAULT 0")
-        database.execSQL("ALTER TABLE meta_accounts ADD COLUMN `googleBackupAddress` TEXT DEFAULT NULL")
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE meta_accounts ADD COLUMN `isBackedUp` INTEGER NOT NULL DEFAULT 0")
+        db.execSQL("ALTER TABLE meta_accounts ADD COLUMN `googleBackupAddress` TEXT DEFAULT NULL")
     }
 }
 
 val Migration_55_56 = object : Migration(55, 56) {
-    override fun migrate(database: SupportSQLiteDatabase) {
-        database.execSQL("DROP TABLE IF EXISTS chain_assets")
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("DROP TABLE IF EXISTS chain_assets")
 
-        database.execSQL(
+        db.execSQL(
             """
             CREATE TABLE IF NOT EXISTS `chain_assets` (
             `id` TEXT NOT NULL, 
@@ -42,18 +121,18 @@ val Migration_55_56 = object : Migration(55, 56) {
             FOREIGN KEY(`chainId`) REFERENCES `chains`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )
             """.trimIndent()
         )
-        database.execSQL("CREATE INDEX IF NOT EXISTS `index_chain_assets_chainId` ON `chain_assets` (`chainId`)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_chain_assets_chainId` ON `chain_assets` (`chainId`)")
     }
 }
 
 val Migration_54_55 = object : Migration(54, 55) {
-    override fun migrate(database: SupportSQLiteDatabase) {
-        database.execSQL("DROP TABLE IF EXISTS `_address_book`")
-        database.execSQL("CREATE TABLE `_address_book` AS SELECT * FROM `address_book`")
-        database.execSQL("DELETE FROM `address_book` where `id` NOT IN (SELECT `id` FROM `_address_book` GROUP BY `address`, `chainId`)")
-        database.execSQL("DROP TABLE IF EXISTS `_address_book`")
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("DROP TABLE IF EXISTS `_address_book`")
+        db.execSQL("CREATE TABLE `_address_book` AS SELECT * FROM `address_book`")
+        db.execSQL("DELETE FROM `address_book` where `id` NOT IN (SELECT `id` FROM `_address_book` GROUP BY `address`, `chainId`)")
+        db.execSQL("DROP TABLE IF EXISTS `_address_book`")
 
-        database.execSQL(
+        db.execSQL(
             """
             CREATE UNIQUE INDEX IF NOT EXISTS `index_address_book_address_chainId` ON `address_book` (`address`, `chainId`)
             """.trimIndent()
@@ -62,9 +141,9 @@ val Migration_54_55 = object : Migration(54, 55) {
 }
 
 val Migration_53_54 = object : Migration(53, 54) {
-    override fun migrate(database: SupportSQLiteDatabase) {
-        database.execSQL("DROP TABLE IF EXISTS _chains")
-        database.execSQL(
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("DROP TABLE IF EXISTS _chains")
+        db.execSQL(
             """
             CREATE TABLE IF NOT EXISTS `_chains` (
             `id` TEXT NOT NULL,
@@ -87,7 +166,7 @@ val Migration_53_54 = object : Migration(53, 54) {
             PRIMARY KEY(`id`))
             """.trimIndent()
         )
-        database.execSQL(
+        db.execSQL(
             """
             INSERT INTO _chains SELECT 
             c.id,
@@ -110,8 +189,8 @@ val Migration_53_54 = object : Migration(53, 54) {
             """.trimIndent()
         )
 
-        database.execSQL("DROP TABLE IF EXISTS chains")
-        database.execSQL(
+        db.execSQL("DROP TABLE IF EXISTS chains")
+        db.execSQL(
             """
             CREATE TABLE IF NOT EXISTS `chains` (
             `id` TEXT NOT NULL,
@@ -135,7 +214,7 @@ val Migration_53_54 = object : Migration(53, 54) {
             """.trimIndent()
         )
 
-        database.execSQL(
+        db.execSQL(
             """
             INSERT INTO chains SELECT 
             c.id,
@@ -157,13 +236,13 @@ val Migration_53_54 = object : Migration(53, 54) {
             FROM _chains c
             """.trimIndent()
         )
-        database.execSQL("DROP TABLE IF EXISTS _chains")
+        db.execSQL("DROP TABLE IF EXISTS _chains")
 
         // to be sure that foreign keys to Chain table is correct we recreate them
 
         // chain_nodes
-        database.execSQL("DROP TABLE IF EXISTS _chain_nodes")
-        database.execSQL(
+        db.execSQL("DROP TABLE IF EXISTS _chain_nodes")
+        db.execSQL(
             """
              CREATE TABLE IF NOT EXISTS `_chain_nodes` (
              `chainId` TEXT NOT NULL, 
@@ -176,7 +255,7 @@ val Migration_53_54 = object : Migration(53, 54) {
             """.trimIndent()
         )
 
-        database.execSQL(
+        db.execSQL(
             """
             INSERT INTO _chain_nodes SELECT 
             cn.chainId,
@@ -188,8 +267,8 @@ val Migration_53_54 = object : Migration(53, 54) {
             """.trimIndent()
         )
 
-        database.execSQL("DROP TABLE IF EXISTS chain_nodes")
-        database.execSQL(
+        db.execSQL("DROP TABLE IF EXISTS chain_nodes")
+        db.execSQL(
             """
              CREATE TABLE IF NOT EXISTS `chain_nodes` (
              `chainId` TEXT NOT NULL, 
@@ -202,7 +281,7 @@ val Migration_53_54 = object : Migration(53, 54) {
              )
             """.trimIndent()
         )
-        database.execSQL(
+        db.execSQL(
             """
             INSERT INTO chain_nodes SELECT 
             cn.chainId,
@@ -213,13 +292,13 @@ val Migration_53_54 = object : Migration(53, 54) {
             FROM _chain_nodes cn
             """.trimIndent()
         )
-        database.execSQL("DROP TABLE IF EXISTS _chain_nodes")
+        db.execSQL("DROP TABLE IF EXISTS _chain_nodes")
 
-        database.execSQL("CREATE INDEX IF NOT EXISTS `index_chain_nodes_chainId` ON `chain_nodes` (`chainId`)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_chain_nodes_chainId` ON `chain_nodes` (`chainId`)")
 
         // assets
-        database.execSQL("DROP TABLE IF EXISTS _assets")
-        database.execSQL(
+        db.execSQL("DROP TABLE IF EXISTS _assets")
+        db.execSQL(
             """
             CREATE TABLE IF NOT EXISTS `_assets` (
             `id` TEXT NOT NULL, 
@@ -242,7 +321,7 @@ val Migration_53_54 = object : Migration(53, 54) {
             )
             """.trimIndent()
         )
-        database.execSQL(
+        db.execSQL(
             """
             INSERT INTO _assets SELECT 
             a.id,
@@ -265,8 +344,8 @@ val Migration_53_54 = object : Migration(53, 54) {
             """.trimIndent()
         )
 
-        database.execSQL("DROP TABLE IF EXISTS assets")
-        database.execSQL(
+        db.execSQL("DROP TABLE IF EXISTS assets")
+        db.execSQL(
             """
             CREATE TABLE IF NOT EXISTS `assets` (
             `id` TEXT NOT NULL, 
@@ -291,7 +370,7 @@ val Migration_53_54 = object : Migration(53, 54) {
             """.trimIndent()
         )
 
-        database.execSQL(
+        db.execSQL(
             """
             INSERT INTO assets SELECT 
             a.id,
@@ -313,14 +392,14 @@ val Migration_53_54 = object : Migration(53, 54) {
             FROM _assets a
             """.trimIndent()
         )
-        database.execSQL("DROP TABLE IF EXISTS _assets")
+        db.execSQL("DROP TABLE IF EXISTS _assets")
 
-        database.execSQL("CREATE INDEX IF NOT EXISTS `index_assets_metaId` ON `assets` (`metaId`)")
-        database.execSQL("CREATE INDEX IF NOT EXISTS `index_assets_chainId` ON `assets` (`chainId`)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_assets_metaId` ON `assets` (`metaId`)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_assets_chainId` ON `assets` (`chainId`)")
 
         // chain_explorers
-        database.execSQL("DROP TABLE IF EXISTS _chain_explorers")
-        database.execSQL(
+        db.execSQL("DROP TABLE IF EXISTS _chain_explorers")
+        db.execSQL(
             """
             CREATE TABLE IF NOT EXISTS `_chain_explorers` (
             `chainId` TEXT NOT NULL,
@@ -331,7 +410,7 @@ val Migration_53_54 = object : Migration(53, 54) {
             )
             """.trimIndent()
         )
-        database.execSQL(
+        db.execSQL(
             """
             INSERT INTO _chain_explorers SELECT 
             ce.chainId,
@@ -342,8 +421,8 @@ val Migration_53_54 = object : Migration(53, 54) {
             """.trimIndent()
         )
 
-        database.execSQL("DROP TABLE IF EXISTS chain_explorers")
-        database.execSQL(
+        db.execSQL("DROP TABLE IF EXISTS chain_explorers")
+        db.execSQL(
             """
             CREATE TABLE IF NOT EXISTS `chain_explorers` (
             `chainId` TEXT NOT NULL,
@@ -354,7 +433,7 @@ val Migration_53_54 = object : Migration(53, 54) {
             FOREIGN KEY(`chainId`) REFERENCES `chains`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )
             """.trimIndent()
         )
-        database.execSQL(
+        db.execSQL(
             """
             INSERT INTO chain_explorers SELECT 
             ce.chainId,
@@ -364,12 +443,12 @@ val Migration_53_54 = object : Migration(53, 54) {
             FROM _chain_explorers ce
             """.trimIndent()
         )
-        database.execSQL("DROP TABLE IF EXISTS _chain_explorers")
-        database.execSQL("CREATE INDEX IF NOT EXISTS `index_chain_explorers_chainId` ON `chain_explorers` (`chainId`)")
+        db.execSQL("DROP TABLE IF EXISTS _chain_explorers")
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_chain_explorers_chainId` ON `chain_explorers` (`chainId`)")
 
         // chain_accounts
-        database.execSQL("DROP TABLE IF EXISTS _chain_accounts")
-        database.execSQL(
+        db.execSQL("DROP TABLE IF EXISTS _chain_accounts")
+        db.execSQL(
             """
             CREATE TABLE IF NOT EXISTS `_chain_accounts` (
             `metaId` INTEGER NOT NULL,
@@ -382,7 +461,7 @@ val Migration_53_54 = object : Migration(53, 54) {
             )
             """.trimIndent()
         )
-        database.execSQL(
+        db.execSQL(
             """
             INSERT INTO _chain_accounts SELECT 
             ca.metaId,
@@ -395,8 +474,8 @@ val Migration_53_54 = object : Migration(53, 54) {
             """.trimIndent()
         )
 
-        database.execSQL("DROP TABLE IF EXISTS chain_accounts")
-        database.execSQL(
+        db.execSQL("DROP TABLE IF EXISTS chain_accounts")
+        db.execSQL(
             """
             CREATE TABLE IF NOT EXISTS `chain_accounts` (
             `metaId` INTEGER NOT NULL,
@@ -412,7 +491,7 @@ val Migration_53_54 = object : Migration(53, 54) {
             """.trimIndent()
         )
 
-        database.execSQL(
+        db.execSQL(
             """
             INSERT INTO chain_accounts SELECT 
             ca.metaId,
@@ -424,15 +503,15 @@ val Migration_53_54 = object : Migration(53, 54) {
             FROM _chain_accounts ca
             """.trimIndent()
         )
-        database.execSQL("DROP TABLE IF EXISTS _chain_accounts")
+        db.execSQL("DROP TABLE IF EXISTS _chain_accounts")
 
-        database.execSQL("CREATE INDEX IF NOT EXISTS `index_chain_accounts_chainId` ON `chain_accounts` (`chainId`)")
-        database.execSQL("CREATE INDEX IF NOT EXISTS `index_chain_accounts_metaId` ON `chain_accounts` (`metaId`)")
-        database.execSQL("CREATE INDEX IF NOT EXISTS `index_chain_accounts_accountId` ON `chain_accounts` (`accountId`)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_chain_accounts_chainId` ON `chain_accounts` (`chainId`)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_chain_accounts_metaId` ON `chain_accounts` (`metaId`)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_chain_accounts_accountId` ON `chain_accounts` (`accountId`)")
 
         // chain_assets
-        database.execSQL("DROP TABLE IF EXISTS _chain_assets")
-        database.execSQL(
+        db.execSQL("DROP TABLE IF EXISTS _chain_assets")
+        db.execSQL(
             """
             CREATE TABLE IF NOT EXISTS `_chain_assets` (
             `id` TEXT NOT NULL,
@@ -455,7 +534,7 @@ val Migration_53_54 = object : Migration(53, 54) {
             )
             """.trimIndent()
         )
-        database.execSQL(
+        db.execSQL(
             """
             INSERT INTO _chain_assets SELECT 
             ca.id,
@@ -478,8 +557,8 @@ val Migration_53_54 = object : Migration(53, 54) {
             """.trimIndent()
         )
 
-        database.execSQL("DROP TABLE IF EXISTS chain_assets")
-        database.execSQL(
+        db.execSQL("DROP TABLE IF EXISTS chain_assets")
+        db.execSQL(
             """
             CREATE TABLE IF NOT EXISTS `chain_assets` (
             `id` TEXT NOT NULL,
@@ -502,7 +581,7 @@ val Migration_53_54 = object : Migration(53, 54) {
             FOREIGN KEY(`chainId`) REFERENCES `chains`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )
             """.trimIndent()
         )
-        database.execSQL(
+        db.execSQL(
             """
             INSERT INTO chain_assets SELECT 
             ca.id,
@@ -524,14 +603,14 @@ val Migration_53_54 = object : Migration(53, 54) {
             FROM _chain_assets ca
             """.trimIndent()
         )
-        database.execSQL("DROP TABLE IF EXISTS _chain_assets")
-        database.execSQL("CREATE INDEX IF NOT EXISTS `index_chain_assets_chainId` ON `chain_assets` (`chainId`)")
+        db.execSQL("DROP TABLE IF EXISTS _chain_assets")
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_chain_assets_chainId` ON `chain_assets` (`chainId`)")
     }
 }
 
 val Migration_52_53 = object : Migration(52, 53) {
-    override fun migrate(database: SupportSQLiteDatabase) {
-        database.execSQL(
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
             """
              CREATE TABLE IF NOT EXISTS `chain_types` (
              `chainId` TEXT NOT NULL, 
@@ -544,11 +623,11 @@ val Migration_52_53 = object : Migration(52, 53) {
 }
 
 val Migration_51_52 = object : Migration(51, 52) {
-    override fun migrate(database: SupportSQLiteDatabase) {
-        database.execSQL("ALTER TABLE assets RENAME TO _assets")
-        database.execSQL("DROP TABLE IF EXISTS assets")
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE assets RENAME TO _assets")
+        db.execSQL("DROP TABLE IF EXISTS assets")
         // new table with nullable enabled field
-        database.execSQL(
+        db.execSQL(
             """
             CREATE TABLE IF NOT EXISTS `assets` (
             `id` TEXT NOT NULL, 
@@ -573,7 +652,7 @@ val Migration_51_52 = object : Migration(51, 52) {
             """.trimIndent()
         )
 
-        database.execSQL(
+        db.execSQL(
             """
             INSERT INTO assets SELECT 
             a.id,
@@ -595,21 +674,21 @@ val Migration_51_52 = object : Migration(51, 52) {
             FROM _assets a
             """.trimIndent()
         )
-        database.execSQL(
+        db.execSQL(
             """
             UPDATE assets SET enabled = NULL WHERE enabled = 1
             """.trimIndent()
         )
-        database.execSQL("DROP TABLE IF EXISTS _assets")
+        db.execSQL("DROP TABLE IF EXISTS _assets")
 
-        database.execSQL("CREATE INDEX IF NOT EXISTS `index_assets_metaId` ON `assets` (`metaId`)")
-        database.execSQL("CREATE INDEX IF NOT EXISTS `index_assets_chainId` ON `assets` (`chainId`)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_assets_metaId` ON `assets` (`metaId`)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_assets_chainId` ON `assets` (`chainId`)")
     }
 }
 
 val Migration_50_51 = object : Migration(50, 51) {
-    override fun migrate(database: SupportSQLiteDatabase) {
-        database.execSQL(
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
             """
              CREATE TABLE IF NOT EXISTS `sora_card` (
              `id` TEXT NOT NULL, 
@@ -625,36 +704,36 @@ val Migration_50_51 = object : Migration(50, 51) {
 }
 
 val Migration_49_50 = object : Migration(49, 50) {
-    override fun migrate(database: SupportSQLiteDatabase) {
-        database.execSQL("ALTER TABLE chain_assets ADD COLUMN `name` TEXT DEFAULT NULL")
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE chain_assets ADD COLUMN `name` TEXT DEFAULT NULL")
     }
 }
 
 val Migration_48_49 = object : Migration(48, 49) {
-    override fun migrate(database: SupportSQLiteDatabase) {
-        database.execSQL("ALTER TABLE chain_assets ADD COLUMN `isNative` INTEGER DEFAULT NULL")
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE chain_assets ADD COLUMN `isNative` INTEGER DEFAULT NULL")
     }
 }
 
 val Migration_47_48 = object : Migration(47, 48) {
-    override fun migrate(database: SupportSQLiteDatabase) {
-        database.execSQL("ALTER TABLE chain_assets ADD COLUMN `color` TEXT DEFAULT NULL")
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE chain_assets ADD COLUMN `color` TEXT DEFAULT NULL")
     }
 }
 
 val Migration_46_47 = object : Migration(46, 47) {
-    override fun migrate(database: SupportSQLiteDatabase) {
-        database.execSQL("ALTER TABLE operations ADD COLUMN `liquidityFee` TEXT DEFAULT NULL")
-        database.execSQL("ALTER TABLE operations ADD COLUMN `market` TEXT DEFAULT NULL")
-        database.execSQL("ALTER TABLE operations ADD COLUMN `targetAssetId` TEXT DEFAULT NULL")
-        database.execSQL("ALTER TABLE operations ADD COLUMN `targetAmount` TEXT DEFAULT NULL")
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE operations ADD COLUMN `liquidityFee` TEXT DEFAULT NULL")
+        db.execSQL("ALTER TABLE operations ADD COLUMN `market` TEXT DEFAULT NULL")
+        db.execSQL("ALTER TABLE operations ADD COLUMN `targetAssetId` TEXT DEFAULT NULL")
+        db.execSQL("ALTER TABLE operations ADD COLUMN `targetAmount` TEXT DEFAULT NULL")
 
-        database.execSQL("DELETE FROM operations")
+        db.execSQL("DELETE FROM operations")
     }
 }
 
 val Migration_45_46 = object : Migration(45, 46) {
-    override fun migrate(database: SupportSQLiteDatabase) {
+    override fun migrate(db: SupportSQLiteDatabase) {
         // on some devices FOREIGN KEY(`chainId`) REFERENCES to `_chains` table.
         // So we need to recreate all the tables with new FK which were created after the renaming chains to _chains (Migration_41_42)
         // assets - done in Migration_42_43
@@ -664,12 +743,12 @@ val Migration_45_46 = object : Migration(45, 46) {
         // chain_accounts - done here
 
         // delete all data related to chains and assets - emulating cold start with existing accounts
-        database.execSQL("DELETE FROM chains")
-        database.execSQL("DELETE FROM chain_assets")
-        database.execSQL("DELETE FROM assets")
+        db.execSQL("DELETE FROM chains")
+        db.execSQL("DELETE FROM chain_assets")
+        db.execSQL("DELETE FROM assets")
 
-        database.execSQL("DROP TABLE IF EXISTS chain_nodes")
-        database.execSQL(
+        db.execSQL("DROP TABLE IF EXISTS chain_nodes")
+        db.execSQL(
             """
              CREATE TABLE IF NOT EXISTS `chain_nodes` (
              `chainId` TEXT NOT NULL, 
@@ -682,10 +761,10 @@ val Migration_45_46 = object : Migration(45, 46) {
              )
             """.trimIndent()
         )
-        database.execSQL("CREATE INDEX IF NOT EXISTS `index_chain_nodes_chainId` ON `chain_nodes` (`chainId`)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_chain_nodes_chainId` ON `chain_nodes` (`chainId`)")
 
-        database.execSQL("DROP TABLE IF EXISTS chain_explorers")
-        database.execSQL(
+        db.execSQL("DROP TABLE IF EXISTS chain_explorers")
+        db.execSQL(
             """
             CREATE TABLE IF NOT EXISTS `chain_explorers` (
             `chainId` TEXT NOT NULL,
@@ -696,10 +775,10 @@ val Migration_45_46 = object : Migration(45, 46) {
             FOREIGN KEY(`chainId`) REFERENCES `chains`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )
             """.trimIndent()
         )
-        database.execSQL("CREATE INDEX IF NOT EXISTS `index_chain_explorers_chainId` ON `chain_explorers` (`chainId`)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_chain_explorers_chainId` ON `chain_explorers` (`chainId`)")
 
-        database.execSQL("DROP TABLE chain_accounts")
-        database.execSQL(
+        db.execSQL("DROP TABLE chain_accounts")
+        db.execSQL(
             """
             CREATE TABLE IF NOT EXISTS `chain_accounts` (
             `metaId` INTEGER NOT NULL,
@@ -714,15 +793,15 @@ val Migration_45_46 = object : Migration(45, 46) {
             )
             """.trimIndent()
         )
-        database.execSQL("CREATE INDEX IF NOT EXISTS `index_chain_accounts_chainId` ON `chain_accounts` (`chainId`)")
-        database.execSQL("CREATE INDEX IF NOT EXISTS `index_chain_accounts_metaId` ON `chain_accounts` (`metaId`)")
-        database.execSQL("CREATE INDEX IF NOT EXISTS `index_chain_accounts_accountId` ON `chain_accounts` (`accountId`)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_chain_accounts_chainId` ON `chain_accounts` (`chainId`)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_chain_accounts_metaId` ON `chain_accounts` (`metaId`)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_chain_accounts_accountId` ON `chain_accounts` (`accountId`)")
     }
 }
 
 val Migration_44_45 = object : Migration(44, 45) {
-    override fun migrate(database: SupportSQLiteDatabase) {
-        database.execSQL(
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
             """
              CREATE TABLE IF NOT EXISTS `address_book` (
              `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
@@ -737,9 +816,9 @@ val Migration_44_45 = object : Migration(44, 45) {
 }
 
 val Migration_43_44 = object : Migration(43, 44) {
-    override fun migrate(database: SupportSQLiteDatabase) {
-        database.execSQL("DROP TABLE IF EXISTS phishing_addresses")
-        database.execSQL(
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("DROP TABLE IF EXISTS phishing_addresses")
+        db.execSQL(
             """
              CREATE TABLE IF NOT EXISTS `phishing` (
              `address` TEXT NOT NULL, 
@@ -754,10 +833,10 @@ val Migration_43_44 = object : Migration(43, 44) {
 }
 
 val Migration_42_43 = object : Migration(42, 43) {
-    override fun migrate(database: SupportSQLiteDatabase) {
-        database.execSQL("DROP TABLE IF EXISTS chain_assets")
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("DROP TABLE IF EXISTS chain_assets")
 
-        database.execSQL(
+        db.execSQL(
             """
             CREATE TABLE IF NOT EXISTS `chain_assets` (
             `id` TEXT NOT NULL,
@@ -777,10 +856,10 @@ val Migration_42_43 = object : Migration(42, 43) {
             FOREIGN KEY(`chainId`) REFERENCES `chains`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )
             """.trimIndent()
         )
-        database.execSQL("CREATE INDEX IF NOT EXISTS `index_chain_assets_chainId` ON `chain_assets` (`chainId`)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_chain_assets_chainId` ON `chain_assets` (`chainId`)")
 
-        database.execSQL("DROP TABLE IF EXISTS assets")
-        database.execSQL(
+        db.execSQL("DROP TABLE IF EXISTS assets")
+        db.execSQL(
             """
             CREATE TABLE IF NOT EXISTS `assets` (
             `id` TEXT NOT NULL, 
@@ -805,11 +884,11 @@ val Migration_42_43 = object : Migration(42, 43) {
             """.trimIndent()
         )
 
-        database.execSQL("CREATE INDEX IF NOT EXISTS `index_assets_metaId` ON `assets` (`metaId`)")
-        database.execSQL("CREATE INDEX IF NOT EXISTS `index_assets_chainId` ON `assets` (`chainId`)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_assets_metaId` ON `assets` (`metaId`)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_assets_chainId` ON `assets` (`chainId`)")
 
-        database.execSQL("DROP TABLE IF EXISTS tokens")
-        database.execSQL(
+        db.execSQL("DROP TABLE IF EXISTS tokens")
+        db.execSQL(
             """
             CREATE TABLE IF NOT EXISTS `token_price` (
             `priceId` TEXT NOT NULL, 
@@ -824,10 +903,10 @@ val Migration_42_43 = object : Migration(42, 43) {
 }
 
 val Migration_41_42 = object : Migration(41, 42) {
-    override fun migrate(database: SupportSQLiteDatabase) {
-        database.execSQL("ALTER TABLE chains RENAME TO _chains")
-        database.execSQL("DROP TABLE IF EXISTS chains")
-        database.execSQL(
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE chains RENAME TO _chains")
+        db.execSQL("DROP TABLE IF EXISTS chains")
+        db.execSQL(
             """
             CREATE TABLE IF NOT EXISTS `chains` (
             `id` TEXT NOT NULL,
@@ -852,7 +931,7 @@ val Migration_41_42 = object : Migration(41, 42) {
             PRIMARY KEY(`id`))
             """.trimIndent()
         )
-        database.execSQL(
+        db.execSQL(
             """
             INSERT INTO chains SELECT 
             c.id,
@@ -876,14 +955,14 @@ val Migration_41_42 = object : Migration(41, 42) {
             FROM _chains c
             """.trimIndent()
         )
-        database.execSQL("DROP TABLE IF EXISTS _chains")
+        db.execSQL("DROP TABLE IF EXISTS _chains")
     }
 }
 
 val AssetsMigration_40_41 = object : Migration(40, 41) {
-    override fun migrate(database: SupportSQLiteDatabase) {
-        database.execSQL("ALTER TABLE assets RENAME TO _assets")
-        database.execSQL(
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE assets RENAME TO _assets")
+        db.execSQL(
             """
             CREATE TABLE IF NOT EXISTS `assets` (
             `tokenSymbol` TEXT NOT NULL, 
@@ -907,7 +986,7 @@ val AssetsMigration_40_41 = object : Migration(40, 41) {
             """.trimIndent()
         )
 
-        database.execSQL(
+        db.execSQL(
             """
             INSERT INTO assets SELECT 
                 a.tokenSymbol,
@@ -928,20 +1007,20 @@ val AssetsMigration_40_41 = object : Migration(40, 41) {
             FROM _assets a
             """.trimIndent()
         )
-        database.execSQL("DROP TABLE _assets")
+        db.execSQL("DROP TABLE _assets")
 
-        database.execSQL("CREATE INDEX IF NOT EXISTS `index_assets_metaId` ON `assets` (`metaId`)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_assets_metaId` ON `assets` (`metaId`)")
     }
 }
 
 val ChainAssetsMigration_39_40 = object : Migration(39, 40) {
-    override fun migrate(database: SupportSQLiteDatabase) {
-        database.execSQL("DELETE FROM chain_explorers")
-        database.execSQL("DELETE FROM chain_assets")
-        database.execSQL("DELETE FROM chain_nodes")
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("DELETE FROM chain_explorers")
+        db.execSQL("DELETE FROM chain_assets")
+        db.execSQL("DELETE FROM chain_nodes")
 
-        database.execSQL("DROP TABLE IF EXISTS chains")
-        database.execSQL(
+        db.execSQL("DROP TABLE IF EXISTS chains")
+        db.execSQL(
             """
             CREATE TABLE IF NOT EXISTS `chains` (
             `id` TEXT NOT NULL,
@@ -968,11 +1047,11 @@ val ChainAssetsMigration_39_40 = object : Migration(39, 40) {
 }
 
 val AssetsMigration_38_39 = object : Migration(38, 39) {
-    override fun migrate(database: SupportSQLiteDatabase) {
-        database.beginTransaction()
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.beginTransaction()
 
-        database.execSQL("ALTER TABLE assets RENAME TO _assets")
-        database.execSQL(
+        db.execSQL("ALTER TABLE assets RENAME TO _assets")
+        db.execSQL(
             """
             CREATE TABLE IF NOT EXISTS `assets` (
             `tokenSymbol` TEXT NOT NULL, 
@@ -995,7 +1074,7 @@ val AssetsMigration_38_39 = object : Migration(38, 39) {
             """.trimIndent()
         )
 
-        database.execSQL(
+        db.execSQL(
             """
             INSERT INTO assets SELECT 
                 a.tokenSymbol,
@@ -1015,21 +1094,21 @@ val AssetsMigration_38_39 = object : Migration(38, 39) {
             FROM _assets a
             """.trimIndent()
         )
-        database.execSQL("DROP TABLE _assets")
+        db.execSQL("DROP TABLE _assets")
 
-        database.execSQL("CREATE INDEX IF NOT EXISTS `index_assets_metaId` ON `assets` (`metaId`)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_assets_metaId` ON `assets` (`metaId`)")
 
-        database.setTransactionSuccessful()
-        database.endTransaction()
+        db.setTransactionSuccessful()
+        db.endTransaction()
     }
 }
 
 val DifferentCurrenciesMigrations_37_38 = object : Migration(37, 38) {
-    override fun migrate(database: SupportSQLiteDatabase) {
-        database.beginTransaction()
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.beginTransaction()
 
-        database.execSQL("DROP TABLE tokens")
-        database.execSQL(
+        db.execSQL("DROP TABLE tokens")
+        db.execSQL(
             """
                 CREATE TABLE IF NOT EXISTS `tokens` (
                 `symbol` TEXT NOT NULL,
@@ -1040,17 +1119,17 @@ val DifferentCurrenciesMigrations_37_38 = object : Migration(37, 38) {
                 )
             """.trimIndent()
         )
-        database.setTransactionSuccessful()
-        database.endTransaction()
+        db.setTransactionSuccessful()
+        db.endTransaction()
     }
 }
 
 val FixAssetsMigration_36_37 = object : Migration(36, 37) {
-    override fun migrate(database: SupportSQLiteDatabase) {
-        database.beginTransaction()
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.beginTransaction()
 
-        database.execSQL("ALTER TABLE assets RENAME TO _assets")
-        database.execSQL(
+        db.execSQL("ALTER TABLE assets RENAME TO _assets")
+        db.execSQL(
             """
             CREATE TABLE IF NOT EXISTS `assets` (
             `tokenSymbol` TEXT NOT NULL, 
@@ -1073,7 +1152,7 @@ val FixAssetsMigration_36_37 = object : Migration(36, 37) {
             """.trimIndent()
         )
 
-        database.execSQL(
+        db.execSQL(
             """
             INSERT INTO assets SELECT 
                 a.tokenSymbol,
@@ -1093,20 +1172,20 @@ val FixAssetsMigration_36_37 = object : Migration(36, 37) {
             FROM _assets a
             """.trimIndent()
         )
-        database.execSQL("DROP TABLE _assets")
+        db.execSQL("DROP TABLE _assets")
 
-        database.execSQL("CREATE INDEX IF NOT EXISTS `index_assets_metaId` ON `assets` (`metaId`)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_assets_metaId` ON `assets` (`metaId`)")
 
-        database.setTransactionSuccessful()
-        database.endTransaction()
+        db.setTransactionSuccessful()
+        db.endTransaction()
     }
 }
 
 val RemoveLegacyData_35_36 = object : Migration(35, 36) {
-    override fun migrate(database: SupportSQLiteDatabase) {
-        database.execSQL("DROP TABLE chain_accounts")
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("DROP TABLE chain_accounts")
 
-        database.execSQL(
+        db.execSQL(
             """
             CREATE TABLE IF NOT EXISTS `chain_accounts` (
             `metaId` INTEGER NOT NULL,
@@ -1122,13 +1201,13 @@ val RemoveLegacyData_35_36 = object : Migration(35, 36) {
             """.trimIndent()
         )
 
-        database.execSQL("CREATE INDEX IF NOT EXISTS `index_chain_accounts_chainId` ON `chain_accounts` (`chainId`)")
-        database.execSQL("CREATE INDEX IF NOT EXISTS `index_chain_accounts_metaId` ON `chain_accounts` (`metaId`)")
-        database.execSQL("CREATE INDEX IF NOT EXISTS `index_chain_accounts_accountId` ON `chain_accounts` (`accountId`)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_chain_accounts_chainId` ON `chain_accounts` (`chainId`)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_chain_accounts_metaId` ON `chain_accounts` (`metaId`)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_chain_accounts_accountId` ON `chain_accounts` (`accountId`)")
 
         // remove `networkType` INTEGER NOT NULL
-        database.execSQL("ALTER TABLE users RENAME TO _users")
-        database.execSQL(
+        db.execSQL("ALTER TABLE users RENAME TO _users")
+        db.execSQL(
             """
             CREATE TABLE IF NOT EXISTS `users` (
                 `address` TEXT NOT NULL, 
@@ -1140,14 +1219,14 @@ val RemoveLegacyData_35_36 = object : Migration(35, 36) {
             )
             """.trimIndent()
         )
-        database.execSQL("INSERT INTO users SELECT address, username, publicKey, cryptoType, position FROM _users")
-        database.execSQL("DROP TABLE _users")
+        db.execSQL("INSERT INTO users SELECT address, username, publicKey, cryptoType, position FROM _users")
+        db.execSQL("DROP TABLE _users")
     }
 }
 
 val AddChainExplorersTable_33_34 = object : Migration(33, 34) {
-    override fun migrate(database: SupportSQLiteDatabase) {
-        database.execSQL(
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
             """
             CREATE TABLE IF NOT EXISTS `chain_explorers` (
             `chainId` TEXT NOT NULL,
@@ -1158,15 +1237,15 @@ val AddChainExplorersTable_33_34 = object : Migration(33, 34) {
             FOREIGN KEY(`chainId`) REFERENCES `chains`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )
             """.trimIndent()
         )
-        database.execSQL("CREATE INDEX IF NOT EXISTS `index_chain_explorers_chainId` ON `chain_explorers` (`chainId`)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_chain_explorers_chainId` ON `chain_explorers` (`chainId`)")
     }
 }
 
 val MigrateTablesToV2_32_33 = object : Migration(32, 33) {
-    override fun migrate(database: SupportSQLiteDatabase) {
+    override fun migrate(db: SupportSQLiteDatabase) {
         // assets
-        database.execSQL("DROP TABLE assets")
-        database.execSQL(
+        db.execSQL("DROP TABLE assets")
+        db.execSQL(
             """
             CREATE TABLE IF NOT EXISTS `assets` (
             `tokenSymbol` TEXT NOT NULL,
@@ -1185,24 +1264,24 @@ val MigrateTablesToV2_32_33 = object : Migration(32, 33) {
             )
             """.trimIndent()
         )
-        database.execSQL("CREATE INDEX IF NOT EXISTS `index_assets_metaId` ON `assets` (`metaId`)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_assets_metaId` ON `assets` (`metaId`)")
     }
 }
 
 val MigrateTablesToV2_30_31 = object : Migration(30, 31) {
-    override fun migrate(database: SupportSQLiteDatabase) {
-        database.execSQL("ALTER TABLE chain_nodes ADD COLUMN `isActive` INTEGER NOT NULL DEFAULT 0")
-        database.execSQL("ALTER TABLE chain_nodes ADD COLUMN `isDefault` INTEGER NOT NULL DEFAULT 1")
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE chain_nodes ADD COLUMN `isActive` INTEGER NOT NULL DEFAULT 0")
+        db.execSQL("ALTER TABLE chain_nodes ADD COLUMN `isDefault` INTEGER NOT NULL DEFAULT 1")
 
-        database.execSQL("DROP TABLE nodes")
+        db.execSQL("DROP TABLE nodes")
     }
 }
 
 val MigrateTablesToV2_29_30 = object : Migration(29, 30) {
-    override fun migrate(database: SupportSQLiteDatabase) {
+    override fun migrate(db: SupportSQLiteDatabase) {
         // assets
-        database.execSQL("DROP TABLE assets")
-        database.execSQL(
+        db.execSQL("DROP TABLE assets")
+        db.execSQL(
             """
             CREATE TABLE IF NOT EXISTS `assets` (
             `tokenSymbol` TEXT NOT NULL,
@@ -1220,11 +1299,11 @@ val MigrateTablesToV2_29_30 = object : Migration(29, 30) {
             )
             """.trimIndent()
         )
-        database.execSQL("CREATE INDEX IF NOT EXISTS `index_assets_metaId` ON `assets` (`metaId`)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_assets_metaId` ON `assets` (`metaId`)")
 
         // storage
-        database.execSQL("DROP TABLE storage")
-        database.execSQL(
+        db.execSQL("DROP TABLE storage")
+        db.execSQL(
             """
                 CREATE TABLE IF NOT EXISTS `storage` (
                 `storageKey` TEXT NOT NULL,
@@ -1236,8 +1315,8 @@ val MigrateTablesToV2_29_30 = object : Migration(29, 30) {
         )
 
         // tokens
-        database.execSQL("DROP TABLE tokens")
-        database.execSQL(
+        db.execSQL("DROP TABLE tokens")
+        db.execSQL(
             """
                 CREATE TABLE IF NOT EXISTS `tokens` (
                 `symbol` TEXT NOT NULL,
@@ -1249,8 +1328,8 @@ val MigrateTablesToV2_29_30 = object : Migration(29, 30) {
         )
 
         // staking state
-        database.execSQL("DROP TABLE account_staking_accesses")
-        database.execSQL(
+        db.execSQL("DROP TABLE account_staking_accesses")
+        db.execSQL(
             """
                 CREATE TABLE IF NOT EXISTS `account_staking_accesses` (
                 `chainId` TEXT NOT NULL,
@@ -1264,8 +1343,8 @@ val MigrateTablesToV2_29_30 = object : Migration(29, 30) {
         )
 
         // operationsMi
-        database.execSQL("DROP TABLE operations")
-        database.execSQL(
+        db.execSQL("DROP TABLE operations")
+        db.execSQL(
             """
             CREATE TABLE IF NOT EXISTS `operations` (`id` TEXT NOT NULL,
             `address` TEXT NOT NULL,
@@ -1290,9 +1369,9 @@ val MigrateTablesToV2_29_30 = object : Migration(29, 30) {
             """.trimIndent()
         )
 
-        database.execSQL("DROP TABLE IF EXISTS chain_assets")
+        db.execSQL("DROP TABLE IF EXISTS chain_assets")
 
-        database.execSQL(
+        db.execSQL(
             """
             CREATE TABLE IF NOT EXISTS `chain_assets` (
             `id` TEXT NOT NULL,
@@ -1308,14 +1387,14 @@ val MigrateTablesToV2_29_30 = object : Migration(29, 30) {
             FOREIGN KEY(`chainId`) REFERENCES `chains`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )
             """.trimIndent()
         )
-        database.execSQL("CREATE INDEX IF NOT EXISTS `index_chain_assets_chainId` ON `chain_assets` (`chainId`)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_chain_assets_chainId` ON `chain_assets` (`chainId`)")
     }
 }
 
 val AddChainRegistryTables_27_28 = object : Migration(27, 28) {
-    override fun migrate(database: SupportSQLiteDatabase) {
-        database.execSQL("DROP TABLE IF EXISTS chains")
-        database.execSQL(
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("DROP TABLE IF EXISTS chains")
+        db.execSQL(
             """
             CREATE TABLE IF NOT EXISTS `chains` (
             `id` TEXT NOT NULL,
@@ -1338,7 +1417,7 @@ val AddChainRegistryTables_27_28 = object : Migration(27, 28) {
             """.trimIndent()
         )
 
-        database.execSQL(
+        db.execSQL(
             """
             CREATE TABLE IF NOT EXISTS `chain_nodes` (
             `chainId` TEXT NOT NULL,
@@ -1349,9 +1428,9 @@ val AddChainRegistryTables_27_28 = object : Migration(27, 28) {
             )
             """.trimIndent()
         )
-        database.execSQL("""CREATE INDEX IF NOT EXISTS `index_chain_nodes_chainId` ON `chain_nodes` (`chainId`)""")
+        db.execSQL("""CREATE INDEX IF NOT EXISTS `index_chain_nodes_chainId` ON `chain_nodes` (`chainId`)""")
 
-        database.execSQL(
+        db.execSQL(
             """
             CREATE TABLE IF NOT EXISTS `chain_assets` (
             `id` INTEGER NOT NULL,
@@ -1365,9 +1444,9 @@ val AddChainRegistryTables_27_28 = object : Migration(27, 28) {
             FOREIGN KEY(`chainId`) REFERENCES `chains`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )
             """.trimIndent()
         )
-        database.execSQL("CREATE INDEX IF NOT EXISTS `index_chain_assets_chainId` ON `chain_assets` (`chainId`)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_chain_assets_chainId` ON `chain_assets` (`chainId`)")
 
-        database.execSQL(
+        db.execSQL(
             """
             CREATE TABLE IF NOT EXISTS `chain_runtimes` (
             `chainId` TEXT NOT NULL,
@@ -1377,11 +1456,11 @@ val AddChainRegistryTables_27_28 = object : Migration(27, 28) {
             )
             """.trimIndent()
         )
-        database.execSQL("CREATE INDEX IF NOT EXISTS `index_chain_runtimes_chainId` ON `chain_runtimes` (`chainId`)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_chain_runtimes_chainId` ON `chain_runtimes` (`chainId`)")
 
-        database.execSQL("DROP TABLE IF EXISTS `runtimeCache`")
+        db.execSQL("DROP TABLE IF EXISTS `runtimeCache`")
 
-        database.execSQL(
+        db.execSQL(
             """
             CREATE TABLE IF NOT EXISTS `meta_accounts` (
             `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
@@ -1396,10 +1475,10 @@ val AddChainRegistryTables_27_28 = object : Migration(27, 28) {
             )
             """.trimIndent()
         )
-        database.execSQL("CREATE INDEX IF NOT EXISTS `index_meta_accounts_substrateAccountId` ON `meta_accounts` (`substrateAccountId`)")
-        database.execSQL("CREATE INDEX IF NOT EXISTS `index_meta_accounts_ethereumAddress` ON `meta_accounts` (`ethereumAddress`)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_meta_accounts_substrateAccountId` ON `meta_accounts` (`substrateAccountId`)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_meta_accounts_ethereumAddress` ON `meta_accounts` (`ethereumAddress`)")
 
-        database.execSQL(
+        db.execSQL(
             """
             CREATE TABLE IF NOT EXISTS `chain_accounts` (
             `metaId` INTEGER NOT NULL,
@@ -1414,21 +1493,21 @@ val AddChainRegistryTables_27_28 = object : Migration(27, 28) {
             """.trimIndent()
         )
 
-        database.execSQL("CREATE INDEX IF NOT EXISTS `index_chain_accounts_chainId` ON `chain_accounts` (`chainId`)")
-        database.execSQL("CREATE INDEX IF NOT EXISTS `index_chain_accounts_metaId` ON `chain_accounts` (`metaId`)")
-        database.execSQL("CREATE INDEX IF NOT EXISTS `index_chain_accounts_accountId` ON `chain_accounts` (`accountId`)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_chain_accounts_chainId` ON `chain_accounts` (`chainId`)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_chain_accounts_metaId` ON `chain_accounts` (`metaId`)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_chain_accounts_accountId` ON `chain_accounts` (`accountId`)")
     }
 }
 
 val AddOperationsTablesToDb_23_24 = object : Migration(23, 24) {
-    override fun migrate(database: SupportSQLiteDatabase) {
-        database.execSQL(
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
             """
                 DROP TABLE IF EXISTS `transactions`
             """.trimIndent()
         )
 
-        database.execSQL(
+        db.execSQL(
             """
                 CREATE TABLE IF NOT EXISTS `operations` (
                 `id` TEXT NOT NULL,
@@ -1456,12 +1535,12 @@ val AddOperationsTablesToDb_23_24 = object : Migration(23, 24) {
 }
 
 val RemoveStakingRewardsTable_22_23 = object : Migration(22, 23) {
-    override fun migrate(database: SupportSQLiteDatabase) {
-        database.execSQL("DROP TABLE IF EXISTS `staking_rewards`")
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("DROP TABLE IF EXISTS `staking_rewards`")
 
         // totalReward nullable -> not null
-        database.execSQL("DROP TABLE IF EXISTS `total_reward`")
-        database.execSQL(
+        db.execSQL("DROP TABLE IF EXISTS `total_reward`")
+        db.execSQL(
             """
             CREATE TABLE IF NOT EXISTS `total_reward` (
                 `accountAddress` TEXT NOT NULL, 
@@ -1473,8 +1552,8 @@ val RemoveStakingRewardsTable_22_23 = object : Migration(22, 23) {
 }
 
 val AddTotalRewardsTableToDb_21_22 = object : Migration(21, 22) {
-    override fun migrate(database: SupportSQLiteDatabase) {
-        database.execSQL(
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
             """
             CREATE TABLE IF NOT EXISTS `total_reward` (
                 `accountAddress` TEXT NOT NULL, 
@@ -1487,12 +1566,12 @@ val AddTotalRewardsTableToDb_21_22 = object : Migration(21, 22) {
 
 val RemoveAccountForeignKeyFromAsset_17_18 = object : Migration(17, 18) {
 
-    override fun migrate(database: SupportSQLiteDatabase) {
-        database.beginTransaction()
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.beginTransaction()
 
-        database.execSQL("DROP INDEX IF EXISTS index_assets_accountAddress")
-        database.execSQL("ALTER TABLE assets RENAME TO _assets")
-        database.execSQL(
+        db.execSQL("DROP INDEX IF EXISTS index_assets_accountAddress")
+        db.execSQL("ALTER TABLE assets RENAME TO _assets")
+        db.execSQL(
             """
             CREATE TABLE IF NOT EXISTS `assets` (
                 `token` INTEGER NOT NULL,
@@ -1510,20 +1589,20 @@ val RemoveAccountForeignKeyFromAsset_17_18 = object : Migration(17, 18) {
             )
             """.trimIndent()
         )
-        database.execSQL("CREATE INDEX `index_assets_accountAddress` ON `assets` (`accountAddress`)")
-        database.execSQL("INSERT INTO assets SELECT * FROM _assets")
-        database.execSQL("DROP TABLE _assets")
+        db.execSQL("CREATE INDEX `index_assets_accountAddress` ON `assets` (`accountAddress`)")
+        db.execSQL("INSERT INTO assets SELECT * FROM _assets")
+        db.execSQL("DROP TABLE _assets")
 
-        database.setTransactionSuccessful()
-        database.endTransaction()
+        db.setTransactionSuccessful()
+        db.endTransaction()
     }
 }
 
 val ChangePrimaryKeyForRewards_16_17 = object : Migration(16, 17) {
-    override fun migrate(database: SupportSQLiteDatabase) {
-        database.execSQL("DROP TABLE staking_rewards")
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("DROP TABLE staking_rewards")
 
-        database.execSQL(
+        db.execSQL(
             """
             CREATE TABLE IF NOT EXISTS `staking_rewards` (
             `accountAddress` TEXT NOT NULL,
@@ -1542,7 +1621,7 @@ val ChangePrimaryKeyForRewards_16_17 = object : Migration(16, 17) {
             """.trimIndent()
         )
 
-        database.execSQL(
+        db.execSQL(
             """
             CREATE INDEX IF NOT EXISTS `index_staking_rewards_accountAddress` ON `staking_rewards` (`accountAddress`)
             """.trimIndent()
@@ -1552,8 +1631,8 @@ val ChangePrimaryKeyForRewards_16_17 = object : Migration(16, 17) {
 
 val AddStakingRewardsTable_15_16 = object : Migration(15, 16) {
 
-    override fun migrate(database: SupportSQLiteDatabase) {
-        database.execSQL(
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
             """
             CREATE TABLE IF NOT EXISTS `staking_rewards` (
                 `accountAddress` TEXT NOT NULL,
@@ -1572,7 +1651,7 @@ val AddStakingRewardsTable_15_16 = object : Migration(15, 16) {
             """.trimIndent()
         )
 
-        database.execSQL(
+        db.execSQL(
             """
             CREATE INDEX IF NOT EXISTS `index_staking_rewards_accountAddress` ON `staking_rewards` (`accountAddress`)
             """.trimIndent()
@@ -1581,8 +1660,8 @@ val AddStakingRewardsTable_15_16 = object : Migration(15, 16) {
 }
 
 val AddAccountStakingTable_14_15 = object : Migration(14, 15) {
-    override fun migrate(database: SupportSQLiteDatabase) {
-        database.execSQL(
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
             """
             CREATE TABLE IF NOT EXISTS `account_staking_accesses` (
                 `address` TEXT NOT NULL,
@@ -1597,10 +1676,10 @@ val AddAccountStakingTable_14_15 = object : Migration(14, 15) {
 }
 
 val AddNetworkTypeToStorageCache_13_14 = object : Migration(13, 14) {
-    override fun migrate(database: SupportSQLiteDatabase) {
-        database.execSQL("DROP TABLE storage")
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("DROP TABLE storage")
 
-        database.execSQL(
+        db.execSQL(
             """
             CREATE TABLE `storage` (
                 `storageKey` TEXT NOT NULL,
@@ -1615,8 +1694,8 @@ val AddNetworkTypeToStorageCache_13_14 = object : Migration(13, 14) {
 }
 
 val AddStorageCacheTable_12_13 = object : Migration(12, 13) {
-    override fun migrate(database: SupportSQLiteDatabase) {
-        database.execSQL(
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
             """
             CREATE TABLE `storage` (
                 `storageKey` TEXT NOT NULL,
@@ -1630,8 +1709,8 @@ val AddStorageCacheTable_12_13 = object : Migration(12, 13) {
 }
 
 val AddRuntimeCacheTable_11_12 = object : Migration(11, 12) {
-    override fun migrate(database: SupportSQLiteDatabase) {
-        database.execSQL(
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
             """
             CREATE TABLE `runtimeCache` (
                 `networkName` TEXT NOT NULL PRIMARY KEY,
@@ -1646,8 +1725,8 @@ val AddRuntimeCacheTable_11_12 = object : Migration(11, 12) {
 
 val AddPhishingAddressesTable_10_11 = object : Migration(10, 11) {
 
-    override fun migrate(database: SupportSQLiteDatabase) {
-        database.execSQL(
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
             """
             CREATE TABLE `phishing_addresses` (
             `publicKey` TEXT NOT NULL,
@@ -1658,8 +1737,8 @@ val AddPhishingAddressesTable_10_11 = object : Migration(10, 11) {
 }
 
 val AddTokenTable_9_10 = object : Migration(9, 10) {
-    override fun migrate(database: SupportSQLiteDatabase) {
-        database.execSQL(
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
             """
             CREATE TABLE `tokens` (
             `type` INTEGER NOT NULL,
@@ -1669,9 +1748,9 @@ val AddTokenTable_9_10 = object : Migration(9, 10) {
             """.trimIndent()
         )
 
-        database.execSQL("DROP TABLE assets")
+        db.execSQL("DROP TABLE assets")
 
-        database.execSQL(
+        db.execSQL(
             """
             CREATE TABLE `assets` (
             `token` INTEGER NOT NULL,
@@ -1689,6 +1768,6 @@ val AddTokenTable_9_10 = object : Migration(9, 10) {
                 .trimIndent()
         )
 
-        database.execSQL("CREATE INDEX index_assets_accountAddress ON assets(accountAddress);")
+        db.execSQL("CREATE INDEX index_assets_accountAddress ON assets(accountAddress);")
     }
 }

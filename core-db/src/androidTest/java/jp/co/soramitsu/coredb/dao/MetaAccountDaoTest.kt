@@ -79,7 +79,9 @@ class MetaAccountDaoTest : DaoTest<MetaAccountDao>(AppDatabase::metaAccountDao) 
         isSelected = false,
         substrateAccountId = byteArrayOf(),
         ethereumAddress = null,
-        position = 0
+        position = 0,
+        googleBackupAddress = null,
+        isBackedUp = false
     )
 
     private fun chainAccount(metaId: Long) = ChainAccountLocal(

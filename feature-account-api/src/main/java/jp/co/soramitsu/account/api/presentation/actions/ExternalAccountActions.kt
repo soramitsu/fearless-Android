@@ -12,7 +12,8 @@ interface ExternalAccountActions : Browserable {
         val value: String,
         val chainId: ChainId? = null,
         val chainName: String? = null,
-        val explorers: Map<Chain.Explorer.Type, String>
+        val explorers: Map<Chain.Explorer.Type, String>,
+        val canSwitchNode: Boolean = true
     )
 
     val showExternalActionsEvent: LiveData<Event<Payload>>

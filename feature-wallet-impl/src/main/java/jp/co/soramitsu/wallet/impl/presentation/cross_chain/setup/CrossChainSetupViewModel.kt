@@ -1,7 +1,5 @@
 package jp.co.soramitsu.wallet.impl.presentation.cross_chain.setup
 
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
@@ -41,6 +39,7 @@ import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.core.models.ChainId
 import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.feature_wallet_impl.R
+import jp.co.soramitsu.wallet.api.domain.ExistentialDepositUseCase
 import jp.co.soramitsu.wallet.api.domain.TransferValidationResult
 import jp.co.soramitsu.wallet.api.domain.ValidateTransferUseCase
 import jp.co.soramitsu.wallet.api.domain.fromValidationResult
@@ -60,7 +59,6 @@ import jp.co.soramitsu.wallet.impl.presentation.model.AssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.model.CrossChainTransferDraft
 import jp.co.soramitsu.wallet.impl.presentation.model.WalletSelectionMode
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -83,6 +81,7 @@ import kotlinx.coroutines.launch
 
 private const val SLIPPAGE_TOLERANCE = 1.35
 private const val CURRENT_ICON_SIZE = 16
+private const val CROSS_CHAIN_ED_SAFE_TRANSFER_MULTIPLIER = 1.1
 
 @HiltViewModel
 class CrossChainSetupViewModel @Inject constructor(
@@ -97,11 +96,11 @@ class CrossChainSetupViewModel @Inject constructor(
     private val currentAccountAddress: CurrentAccountAddressUseCase,
     private val validateTransferUseCase: ValidateTransferUseCase,
     private val chainAssetsManager: ChainAssetsManager,
-    private val xcmInteractor: XcmInteractor
+    private val xcmInteractor: XcmInteractor,
+    private val existentialDepositUseCase: ExistentialDepositUseCase
 ) : BaseViewModel(), CrossChainSetupScreenInterface {
 
     private val isSoftKeyboardOpenFlow = MutableStateFlow(false)
-    private val heightDiffDpFlow = MutableStateFlow(0.dp)
 
     private val _openScannerEvent = MutableSharedFlow<Unit>()
     val openScannerEvent = _openScannerEvent.asSharedFlow()
@@ -123,7 +122,7 @@ class CrossChainSetupViewModel @Inject constructor(
     private val originChainIdFlow: StateFlow<ChainId?> = chainAssetsManager.originChainIdFlow
         .stateIn(viewModelScope, SharingStarted.Eagerly, initialValue = null)
 
-    @OptIn(FlowPreview::class)
+    @OptIn(ExperimentalCoroutinesApi::class)
     private val walletIconFlow = originChainIdFlow.flatMapConcat { chainId ->
         if (chainId == null) return@flatMapConcat flowOf(null)
 
@@ -149,8 +148,7 @@ class CrossChainSetupViewModel @Inject constructor(
         totalBalance = resourceManager.getString(R.string.common_transferable_format, "..."),
         fiatAmount = "",
         tokenAmount = initialAmount,
-        allowAssetChoose = false,
-        initial = initialAmount.takeIf { it.isNotZero() }
+        allowAssetChoose = false
     )
 
     private val defaultButtonState = ButtonViewState(
@@ -174,36 +172,29 @@ class CrossChainSetupViewModel @Inject constructor(
         warningInfoState = null,
         defaultButtonState,
         walletIcon = null,
-        isSoftKeyboardOpen = false,
-        heightDiffDp = 0.dp
+        isSoftKeyboardOpen = false
     )
 
     private val amountInputFocusFlow = MutableStateFlow(false)
     private val addressInputFlow = MutableStateFlow("")
-    private val isInputAddressValidFlow = combine(
-        addressInputFlow,
-        chainAssetsManager.originChainIdFlow
-    ) { addressInput, chainId ->
-        when (chainId) {
-            null -> false
-            else -> walletInteractor.validateSendAddress(chainId, addressInput)
-        }
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     private val enteredAmountBigDecimalFlow = MutableStateFlow(initialAmount)
     private val visibleAmountFlow = MutableStateFlow(initialAmount)
-    private val initialAmountFlow = MutableStateFlow(initialAmount.takeIf { it.isNotZero() })
 
     private val amountInputViewState: Flow<AmountInputViewState> = combine(
         visibleAmountFlow,
-        initialAmountFlow,
         assetFlow,
         amountInputFocusFlow
-    ) { amount, initialAmount, asset, isAmountInputFocused ->
+    ) { amount, asset, isAmountInputFocused ->
         if (asset == null) {
             defaultAmountInputState
         } else {
-            val tokenBalance = asset.transferable.formatCrypto(asset.token.configuration.symbol)
+            val existentialDepositInPlanks = existentialDepositUseCase(asset.token.configuration)
+            val existentialDepositDecimal = asset.token.configuration.amountFromPlanks(existentialDepositInPlanks)
+            val existentialDepositWithExtra = existentialDepositDecimal * CROSS_CHAIN_ED_SAFE_TRANSFER_MULTIPLIER.toBigDecimal()
+            val transferable = maxOf(BigDecimal.ZERO, asset.transferable - existentialDepositWithExtra)
+            val tokenBalance = transferable.formatCrypto(asset.token.configuration.symbol)
+
             val fiatAmount = amount.applyFiatRate(asset.token.fiatRate)?.formatFiat(asset.token.fiatSymbol)
 
             AmountInputViewState(
@@ -218,8 +209,7 @@ class CrossChainSetupViewModel @Inject constructor(
                 isActive = true,
                 isFocused = isAmountInputFocused,
                 allowAssetChoose = true,
-                precision = asset.token.configuration.precision,
-                initial = initialAmount
+                precision = asset.token.configuration.precision
             )
         }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, defaultAmountInputState)
@@ -385,13 +375,12 @@ class CrossChainSetupViewModel @Inject constructor(
         warningInfoStateFlow,
         buttonStateFlow,
         walletIconFlow,
-        isSoftKeyboardOpenFlow,
-        heightDiffDpFlow
+        isSoftKeyboardOpenFlow
     ) { originSelectedChain, destinationSelectedChain, address, originChainSelectorState,
         destinationChainSelectorState, amountInputState,
         originFeeInfoState, destinationFeeInfoState,
         warningInfoState, buttonState, walletIcon,
-        isSoftKeyboardOpen, heightDiffDp ->
+        isSoftKeyboardOpen ->
         val isAddressValid = if (destinationSelectedChain == null) {
             false
         } else {
@@ -414,7 +403,8 @@ class CrossChainSetupViewModel @Inject constructor(
                 } else {
                     R.drawable.ic_address_placeholder
                 },
-                editable = false
+                editable = false,
+                showClear = false
             ),
             originChainSelectorState = originChainSelectorState,
             destinationChainSelectorState = destinationChainSelectorState,
@@ -424,8 +414,7 @@ class CrossChainSetupViewModel @Inject constructor(
             warningInfoState = warningInfoState,
             buttonState = buttonState,
             walletIcon = walletIcon,
-            isSoftKeyboardOpen = isSoftKeyboardOpen,
-            heightDiffDp = heightDiffDp
+            isSoftKeyboardOpen = isSoftKeyboardOpen
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, defaultState)
 
@@ -501,16 +490,19 @@ class CrossChainSetupViewModel @Inject constructor(
             val recipientAddress = addressInputFlow.value
             val selfAddress = currentAccountAddress(asset.token.configuration.chainId) ?: return@launch
             val fee = originFeeInPlanksFlow.value
+            val destinationFeeAmount = destinationFeeAmountFlow.value ?: BigDecimal.ZERO
+
             val destinationChainId = chainAssetsManager.destinationChainId ?: return@launch
             val validationProcessResult = validateTransferUseCase(
                 amountInPlanks = inPlanks,
-                asset = asset,
+                originAsset = asset,
                 destinationChainId = destinationChainId,
-                recipientAddress = recipientAddress,
-                ownAddress = selfAddress,
-                fee = fee,
+                destinationAddress = recipientAddress,
+                originAddress = selfAddress,
+                originFee = fee,
                 confirmedValidations = confirmedValidations,
-                transferMyselfAvailable = true
+                transferMyselfAvailable = true,
+                destinationFee = destinationFeeAmount
             )
 
             // error occurred inside validation
@@ -661,12 +653,17 @@ class CrossChainSetupViewModel @Inject constructor(
                 else -> BigDecimal.ZERO
             }
 
-            val allAmount = asset.transferable
-            val amountToTransfer = (allAmount * input.toBigDecimal()) - utilityTipReserve
+            val existentialDepositInPlanks = existentialDepositUseCase(asset.token.configuration)
+            val existentialDepositDecimal = asset.token.amountFromPlanks(existentialDepositInPlanks)
+            val existentialDepositWithExtra = existentialDepositDecimal * CROSS_CHAIN_ED_SAFE_TRANSFER_MULTIPLIER.toBigDecimal()
+            val transferable = maxOf(BigDecimal.ZERO, asset.transferable - existentialDepositWithExtra)
+
+            val amountToTransfer = (transferable * input.toBigDecimal()) - utilityTipReserve
 
             val selfAddress = originChainId?.let { currentAccountAddress(it) } ?: return@launch
             val transfer = Transfer(
                 recipient = selfAddress,
+                sender = selfAddress,
                 amount = amountToTransfer,
                 chainAsset = asset.token.configuration
             )
@@ -686,7 +683,6 @@ class CrossChainSetupViewModel @Inject constructor(
                 RoundingMode.HALF_DOWN
             )
             visibleAmountFlow.value = scaled
-            initialAmountFlow.value = scaled
             enteredAmountBigDecimalFlow.value = quickAmountWithoutExtraPays
         }
     }
@@ -722,9 +718,5 @@ class CrossChainSetupViewModel @Inject constructor(
 
     fun setSoftKeyboardOpen(isOpen: Boolean) {
         isSoftKeyboardOpenFlow.value = isOpen
-    }
-
-    fun setHeightDiffDp(value: Dp) {
-        heightDiffDpFlow.value = value
     }
 }

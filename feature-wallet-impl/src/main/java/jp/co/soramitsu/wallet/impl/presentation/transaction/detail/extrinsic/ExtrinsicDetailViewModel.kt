@@ -18,10 +18,14 @@ import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
-import jp.co.soramitsu.wallet.api.presentation.WalletRouter
+//import jp.co.soramitsu.wallet.api.presentation.WalletRouter
+import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.presentation.model.ExtrinsicDetailsPayload
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.extrinsic.ExtrinsicDetailFragment.Companion.PAYLOAD_KEY
 import kotlinx.coroutines.flow.flow
+import javax.inject.Inject
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedAddressExplorers
 
 private const val ICON_SIZE_DP = 32
 
@@ -55,6 +59,9 @@ class ExtrinsicDetailViewModel @Inject constructor(
 
     fun getSupportedExplorers(type: BlockExplorerUrlBuilder.Type, value: String) =
         chainExplorers.replayCache.firstOrNull()?.getSupportedExplorers(type, value).orEmpty()
+
+   fun getSupportedAddressExplorers(address: String): Map<Chain.Explorer.Type, String> =
+       chainExplorers.replayCache.firstOrNull()?.getSupportedAddressExplorers(address).orEmpty()
 
     private suspend fun getIcon(address: String) = addressIconGenerator.createAddressModel(
         address,

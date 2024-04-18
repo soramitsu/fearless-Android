@@ -47,6 +47,12 @@ data class MainToolbarViewState(
     val selectorViewState: ChainSelectorViewState
 )
 
+data class MainToolbarViewStateWithFilters(
+    val title: String,
+    val homeIconState: ToolbarHomeIconState = ToolbarHomeIconState(),
+    val selectorViewState: ChainSelectorViewStateWithFilters
+)
+
 data class ToolbarHomeIconState(
     val walletIcon: Drawable? = null,
     @DrawableRes val navigationIcon: Int? = null,
@@ -64,9 +70,87 @@ data class ToolbarViewState(
     val menuItems: List<MenuIconItem>? = null
 )
 
+fun ToolbarViewState(
+    title: String,
+    @DrawableRes navigationIcon: Int? = null,
+    vararg menuItems: MenuIconItem
+): ToolbarViewState{
+    return ToolbarViewState(title, navigationIcon, menuItems.asList())
+}
+
 @Composable
 fun MainToolbar(
     state: MainToolbarViewState,
+    onChangeChainClick: (() -> Unit)?,
+    onNavigationClick: () -> Unit = {},
+    menuItems: List<MenuIconItem>? = null,
+    modifier: Modifier = Modifier
+) {
+    val paddingTitleEnd = menuItems.orEmpty().size * (32 /* icon size */ + 8 /* padding */)
+    val paddingTitleStart = 40 /* icon size */ + 8 /* padding */
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(62.dp)
+            .padding(horizontal = 16.dp)
+    ) {
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier.align(CenterStart)
+        ) {
+            ToolbarHomeIcon(
+                state = state.homeIconState,
+                onClick = onNavigationClick
+            )
+        }
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = paddingTitleStart.dp, end = paddingTitleEnd.dp)
+                .align(Alignment.Center),
+            horizontalAlignment = CenterHorizontally
+        ) {
+            Text(
+                text = state.title,
+                style = MaterialTheme.customTypography.header4,
+                overflow = TextOverflow.Ellipsis,
+                maxLines = 1
+            )
+
+            MarginVertical(margin = 4.dp)
+
+            ChainSelector(
+                selectorViewState = state.selectorViewState,
+                onChangeChainClick = onChangeChainClick
+            )
+        }
+        Row(
+            verticalAlignment = CenterVertically,
+            horizontalArrangement = spacedBy(8.dp, End),
+            modifier = Modifier.align(Alignment.CenterEnd)
+        ) {
+            menuItems?.forEach { menuItem ->
+                IconButton(
+                    onClick = menuItem.onClick,
+                    modifier = Modifier
+                        .clip(CircleShape)
+                        .background(backgroundBlurColor)
+                        .size(32.dp)
+                ) {
+                    Icon(
+                        painter = painterResource(id = menuItem.icon),
+                        tint = white,
+                        contentDescription = null
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun MainToolbar(
+    state: MainToolbarViewStateWithFilters,
     onChangeChainClick: () -> Unit,
     onNavigationClick: () -> Unit = {},
     menuItems: List<MenuIconItem>? = null,
@@ -199,7 +283,7 @@ fun MainToolbarShimmer(
 }
 
 @Composable
-private fun ToolbarHomeIcon(state: ToolbarHomeIconState, onClick: () -> Unit) {
+fun ToolbarHomeIcon(state: ToolbarHomeIconState, onClick: () -> Unit) {
     when {
         state.navigationIcon != null -> painterResource(id = state.navigationIcon)
         state.walletIcon != null -> rememberAsyncImagePainter(model = state.walletIcon)
@@ -236,7 +320,7 @@ fun IconButton(
 }
 
 @Composable
-fun Toolbar(state: ToolbarViewState, modifier: Modifier = Modifier, onNavigationClick: () -> Unit) {
+fun Toolbar(state: ToolbarViewState, modifier: Modifier = Modifier, onNavigationClick: () -> Unit = {}) {
     Row(
         modifier = modifier
             .fillMaxWidth()

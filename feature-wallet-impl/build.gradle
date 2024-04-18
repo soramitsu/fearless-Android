@@ -44,17 +44,18 @@ android {
     buildFeatures {
         viewBinding = true
         compose = true
+        buildConfig = true
     }
 
     compileOptions {
-        sourceCompatibility 1.8
-        targetCompatibility 1.8
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
     kotlinOptions {
         freeCompilerArgs = ["-Xallow-result-return-type"]
 
-        jvmTarget = '1.8'
+        jvmTarget = '17'
     }
     composeOptions {
         kotlinCompilerExtensionVersion composeCompilerVersion
@@ -63,6 +64,7 @@ android {
 }
 
 dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation project(':core-db')
     implementation project(':common')
     implementation project(':feature-wallet-api')
@@ -73,62 +75,73 @@ dependencies {
     implementation project(':feature-soracard-api')
     implementation project(':feature-soracard-impl')
     implementation project(':runtime-permission')
+    implementation project(':feature-nft-api')
+    implementation project(':feature-walletconnect-api')
 
-    implementation kotlinDep
+    implementation platform(libs.walletconnectBomDep)
+    implementation libs.walletconnectCoreDep
+    implementation libs.walletconnectWeb3WalletDep
 
-    implementation androidDep
-    implementation materialDep
-    implementation cardViewDep
-    implementation constraintDep
+    implementation libs.kotlin.stdlib.jdk7
 
-    implementation coroutinesDep
-    implementation coroutinesAndroidDep
-    implementation viewModelKtxDep
-    implementation liveDataKtxDep
-    implementation lifeCycleKtxDep
+    implementation libs.appcompat
+    implementation libs.material
+    implementation libs.cardview
+    implementation libs.constraintlayout
 
-    implementation fragmentKtxDep
+    implementation libs.coroutines.core
+    implementation libs.coroutines.android
+    implementation libs.kotlinx.coroutines.rx2
+    implementation libs.lifecycle.viewmodel.ktx
+    implementation libs.lifecycle.livedata.ktx
+    implementation libs.lifecycle.runtime.ktx
 
-    implementation daggerDep
-    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
-    kapt daggerKapt
+    implementation libs.fragmentKtx
 
-    implementation roomDep
-    kapt roomKapt
+    implementation libs.hilt.android
+    implementation libs.legacy.support.v4
+    kapt libs.hilt.compiler
 
-    kapt lifecycleKapt
+    implementation libs.room.runtime
+    kapt libs.room.compiler
 
-    implementation bouncyCastleDep
+    kapt libs.lifecycle.compiler
 
-    testImplementation jUnitDep
-    testImplementation mockitoDep
+    implementation libs.bouncycastle
 
-    implementation gsonDep
-    implementation retrofitDep
+    testImplementation libs.junit
+    testImplementation libs.mockito.inline
 
-    implementation wsDep
-    implementation xNetworkingDep
+    implementation libs.gson
+    implementation libs.retrofit
 
-    implementation zXingCoreDep
-    implementation zXingEmbeddedDep
+    implementation libs.nv.websocket.client
+    implementation libs.xnetworking.basic
+    implementation libs.xnetworking.fearless, withoutBasic
+    implementation libs.xnetworking.sorawallet, withoutBasic
 
-    implementation insetterDep
-//
-    implementation jnaDep
-    implementation beaconDep, withoutJna
+    implementation libs.zxing.core
+    implementation libs.zxing.embedded
+
+    implementation libs.insetter.widgets
+
+    implementation libs.jna
+    implementation libs.beacon.android.sdk, withoutJna
 
     implementation soraCardDep
 
-    implementation shimmerDep
+    implementation libs.shimmer
 
-    implementation compose
-    debugImplementation composeDebug
+    implementation libs.bundles.compose
+    debugImplementation libs.bundles.composeDebug
 
-    implementation opencsvDep
+    implementation libs.opencsv
 
-    implementation navigationFragmentDep
-    implementation navigationUiDep
+    implementation libs.navigation.fragment.ktx
+    implementation libs.navigation.ui.ktx
 
-    implementation sharedFeaturesXcmDep
-    implementation sharedFeaturesBackupDep
+    implementation libs.sharedFeaturesXcmDep
+    implementation libs.sharedFeaturesBackupDep
+
+    implementation libs.web3jDep
 }

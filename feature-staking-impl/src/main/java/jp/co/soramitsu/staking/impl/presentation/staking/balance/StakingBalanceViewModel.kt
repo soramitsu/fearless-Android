@@ -3,7 +3,11 @@ package jp.co.soramitsu.staking.impl.presentation.staking.balance
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.math.BigDecimal
+import java.math.BigInteger
+import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -32,18 +36,19 @@ import jp.co.soramitsu.staking.impl.scenarios.StakingScenarioInteractor
 import jp.co.soramitsu.wallet.api.presentation.model.mapAmountToAmountModel
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
-import java.math.BigDecimal
-import java.math.BigInteger
-import javax.inject.Inject
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class StakingBalanceViewModel @Inject constructor(
     private val router: StakingRouter,
@@ -62,8 +67,9 @@ class StakingBalanceViewModel @Inject constructor(
     private val assetFlow = interactor.currentAssetFlow()
         .share()
 
-    val stakingBalanceModelLiveData: Flow<StakingBalanceModel> = refresh.flatMapLatest {
+    val stakingBalanceModelFlow: Flow<StakingBalanceModel> = refresh.flatMapLatest {
         stakingScenarioInteractor.getStakingBalanceFlow(collatorAddress?.fromHex())
+            .catch { }
     }.share()
 
     private val unbondingsFlow: Flow<List<Unbonding>> = refresh.flatMapLatest {
@@ -72,22 +78,23 @@ class StakingBalanceViewModel @Inject constructor(
 
     val redeemTitle = stakingScenarioInteractor.overrideRedeemActionTitle()
 
-    val redeemEnabledLiveData = stakingBalanceModelLiveData.map {
+    val redeemEnabledLiveData = stakingBalanceModelFlow.map {
         it.redeemable.amount > BigDecimal.ZERO
     }.asLiveData()
 
     val pendingAction = MutableLiveData(false)
 
-    val shouldBlockStakeMore = stakingBalanceModelLiveData.map {
+    val shouldBlockStakeMore = stakingBalanceModelFlow.map {
         val isParachain = assetFlow.first().token.configuration.staking == Asset.StakingType.PARACHAIN
         val isUnstakingFullAmount = (it.staked.amount - it.unstaking.amount).isZero()
+        val isReadyForUnlockFullAmount = (it.staked.amount - it.redeemable.amount).isZero()
         val stakeIsZero = it.staked.amount.isZero()
-        val isFullUnstake = isUnstakingFullAmount || stakeIsZero
+        val isFullUnstake = isUnstakingFullAmount || stakeIsZero || isReadyForUnlockFullAmount
 
         isFullUnstake.and(isParachain)
     }.onStart { emit(true) }.asLiveData()
 
-    val shouldBlockUnstake = stakingBalanceModelLiveData.map {
+    val shouldBlockUnstake = stakingBalanceModelFlow.map {
         val asset = assetFlow.first()
         val isParachain = asset.token.configuration.staking == Asset.StakingType.PARACHAIN
         val stakedAmountIsZero = asset.token.planksFromAmount(it.staked.amount) == BigInteger.ZERO

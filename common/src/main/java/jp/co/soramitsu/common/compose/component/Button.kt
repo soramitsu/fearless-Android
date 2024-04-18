@@ -1,5 +1,6 @@
 package jp.co.soramitsu.common.compose.component
 
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -18,6 +19,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material.ButtonColors
 import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.CircularProgressIndicator
+import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.material.TextButton
@@ -26,6 +28,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
@@ -48,8 +51,6 @@ import jp.co.soramitsu.common.compose.theme.white64
 import jp.co.soramitsu.common.utils.onSingleClick
 import jp.co.soramitsu.common.utils.rememberLastClickTime
 
-private const val DISABLE_CLICK_TIME = 1000L
-
 data class ButtonViewState(
     val text: String,
     val enabled: Boolean = true
@@ -57,17 +58,30 @@ data class ButtonViewState(
 
 @Composable
 fun AccentButton(state: ButtonViewState, modifier: Modifier = Modifier, onClick: () -> Unit) {
-    TextButton(text = state.text, enabled = state.enabled, colors = accentButtonColors, modifier = modifier, onClick = onClick)
+    TextButton(
+        text = state.text,
+        enabled = state.enabled,
+        colors = accentDarkButtonColors,
+        modifier = modifier,
+        onClick = onClick
+    )
 }
 
 @Composable
-fun AccentButton(modifier: Modifier = Modifier, text: String, enabled: Boolean = true, onClick: () -> Unit) {
+fun AccentButton(
+    modifier: Modifier = Modifier,
+    text: String,
+    enabled: Boolean = true,
+    @DrawableRes iconRes: Int? = null,
+    onClick: () -> Unit
+) {
     TextButton(
         text = text,
         enabled = enabled,
         colors = accentDarkButtonColors,
         modifier = modifier,
         textStyle = MaterialTheme.customTypography.header4,
+        iconRes = iconRes,
         onClick = onClick
     )
 }
@@ -78,6 +92,7 @@ fun AccentButton(
     text: String,
     enabled: Boolean = true,
     loading: Boolean = false,
+    @DrawableRes iconRes: Int? = null,
     onClick: () -> Unit
 ) {
     if (loading) {
@@ -105,18 +120,34 @@ fun AccentButton(
             colors = accentDarkButtonColors,
             modifier = modifier,
             textStyle = MaterialTheme.customTypography.header4,
+            iconRes = iconRes,
             onClick = onClick
         )
     }
 }
 
 @Composable
-fun AccentDarkDisabledButton(state: ButtonViewState, modifier: Modifier = Modifier, onClick: () -> Unit) {
-    TextButton(text = state.text, enabled = state.enabled, colors = accentDarkDisabledButtonColors, modifier = modifier, onClick = onClick)
+fun AccentDarkDisabledButton(
+    state: ButtonViewState,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
+    TextButton(
+        text = state.text,
+        enabled = state.enabled,
+        colors = accentDarkDisabledButtonColors,
+        modifier = modifier,
+        onClick = onClick
+    )
 }
 
 @Composable
-fun GrayButton(text: String, enabled: Boolean = true, modifier: Modifier = Modifier, onClick: () -> Unit) {
+fun GrayButton(
+    text: String,
+    enabled: Boolean = true,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
     TextButton(
         text = text,
         enabled = enabled,
@@ -128,9 +159,66 @@ fun GrayButton(text: String, enabled: Boolean = true, modifier: Modifier = Modif
 }
 
 @Composable
+fun GrayButton(
+    modifier: Modifier = Modifier,
+    text: String,
+    enabled: Boolean = true,
+    loading: Boolean = false,
+    onClick: () -> Unit
+) {
+    if (loading) {
+        ShapeButton(
+            modifier = modifier,
+            backgroundColor = white08,
+            onClick = {}
+        ) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(16.dp),
+                strokeWidth = 1.dp,
+                color = white
+            )
+            MarginHorizontal(margin = 4.dp)
+            Text(
+                text = text,
+                style = MaterialTheme.customTypography.header4,
+                textAlign = TextAlign.Center
+            )
+        }
+    } else {
+        TextButton(
+            text = text,
+            enabled = enabled,
+            colors = customButtonColors(white08),
+            modifier = modifier,
+            textStyle = MaterialTheme.customTypography.header4,
+            onClick = onClick
+        )
+    }
+}
+
+@Composable
 fun GoogleButton(
     modifier: Modifier = Modifier,
     text: String = stringResource(id = R.string.onboarding_connect_with_google),
+    backgroundColor: Color = Color.Unspecified,
+    borderColor: Color = white64,
+    onClick: () -> Unit
+) {
+    TransparentBorderedButton(
+        iconRes = R.drawable.ic_google_30,
+        text = text,
+        modifier = modifier,
+        backgroundColor = backgroundColor,
+        borderColor = borderColor,
+        onClick = onClick
+    )
+}
+
+@Composable
+fun TransparentBorderedButton(
+    modifier: Modifier = Modifier,
+    iconRes: Int,
+    text: String,
     backgroundColor: Color = Color.Unspecified,
     borderColor: Color = white64,
     onClick: () -> Unit
@@ -154,7 +242,7 @@ fun GoogleButton(
             ) {
                 Image(
                     modifier = Modifier.padding(end = 8.dp),
-                    res = R.drawable.ic_google_30
+                    res = iconRes
                 )
                 Text(
                     text = text,
@@ -165,9 +253,21 @@ fun GoogleButton(
     }
 }
 
+
 @Composable
-fun TransparentButton(text: String, enabled: Boolean = true, modifier: Modifier = Modifier, onClick: () -> Unit) {
-    TextButton(text = text, enabled = enabled, colors = customButtonColors(Color.Unspecified, colorAccentDark), modifier = modifier, onClick = onClick)
+fun TransparentButton(
+    text: String,
+    enabled: Boolean = true,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
+    TextButton(
+        text = text,
+        enabled = enabled,
+        colors = customButtonColors(Color.Unspecified, colorAccentDark),
+        modifier = modifier,
+        onClick = onClick
+    )
 }
 
 @Composable
@@ -177,9 +277,18 @@ fun TextButton(
     textStyle: TextStyle = MaterialTheme.customTypography.header3,
     colors: ButtonColors,
     modifier: Modifier = Modifier,
+    @DrawableRes iconRes: Int? = null,
     onClick: () -> Unit
 ) {
-    FearlessButton(text = text, enabled = enabled, textStyle = textStyle, colors = colors, modifier = modifier, onClick = onClick)
+    FearlessButton(
+        text = text,
+        enabled = enabled,
+        textStyle = textStyle,
+        colors = colors,
+        iconRes = iconRes,
+        modifier = modifier,
+        onClick = onClick
+    )
 }
 
 @Composable
@@ -215,6 +324,7 @@ fun FearlessButton(
     textStyle: TextStyle = MaterialTheme.customTypography.header3,
     colors: ButtonColors,
     modifier: Modifier = Modifier,
+    @DrawableRes iconRes: Int? = null,
     onClick: () -> Unit
 ) {
     val lastClickTimeState = rememberLastClickTime()
@@ -229,8 +339,17 @@ fun FearlessButton(
         shape = FearlessCorneredShape(),
         colors = colors,
         enabled = enabled,
-        contentPadding = PaddingValues(vertical = 0.dp, horizontal = ButtonDefaults.TextButtonContentPadding.calculateLeftPadding(LayoutDirection.Ltr))
+        contentPadding = PaddingValues(
+            vertical = 0.dp,
+            horizontal = ButtonDefaults.TextButtonContentPadding.calculateLeftPadding(
+                LayoutDirection.Ltr
+            )
+        )
     ) {
+        iconRes?.let {
+            Icon(painter = painterResource(it), contentDescription = null,modifier = Modifier.size(16.dp))
+            MarginHorizontal(margin = 4.dp)
+        }
         Text(
             text = text,
             style = textStyle,
@@ -382,6 +501,12 @@ fun ButtonPreview() {
             MarginVertical(margin = 16.dp)
             AccentDarkDisabledButton(
                 state = ButtonViewState("Dark Button text"),
+                onClick = {}
+            )
+            MarginVertical(margin = 16.dp)
+            TransparentBorderedButton(
+                iconRes = R.drawable.ic_scan,
+                text = "Get a pre-installed wallet",
                 onClick = {}
             )
         }

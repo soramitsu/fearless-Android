@@ -4,6 +4,8 @@ import java.math.BigDecimal
 import java.math.BigInteger
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.common.model.AssetKey
+import jp.co.soramitsu.common.utils.applyFiatRate
+import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.equalTo
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.core.utils.utilityAsset
@@ -25,27 +27,20 @@ data class Asset(
     val enabled: Boolean?,
     val minSupportedVersion: String?,
     val chainAccountName: String?,
-    val markedNotNeed: Boolean
+    val markedNotNeed: Boolean,
+    val status: String?
 ) {
     companion object {
+        private const val STATUS_FROZEN = "Frozen"
+
         fun createEmpty(chainAccount: MetaAccount.ChainAccount) = chainAccount.chain?.let {
             it.utilityAsset?.let { utilityAsset ->
-                Asset(
+                createEmpty(
+                    chainAsset = utilityAsset,
                     metaId = chainAccount.metaId,
-                    token = Token(configuration = utilityAsset, fiatRate = null, fiatSymbol = null, recentRateChange = null),
                     accountId = chainAccount.accountId,
-                    freeInPlanks = null,
-                    reservedInPlanks = null,
-                    miscFrozenInPlanks = null,
-                    feeFrozenInPlanks = null,
-                    bondedInPlanks = null,
-                    redeemableInPlanks = null,
-                    unbondingInPlanks = null,
-                    sortIndex = Int.MAX_VALUE,
-                    enabled = null,
-                    minSupportedVersion = it.minSupportedVersion,
                     chainAccountName = chainAccount.accountName,
-                    markedNotNeed = false
+                    minSupportedVersion = it.minSupportedVersion
                 )
             }
         }
@@ -55,8 +50,7 @@ data class Asset(
             metaId: Long,
             accountId: AccountId,
             chainAccountName: String? = null,
-            minSupportedVersion: String?,
-            enabled: Boolean = true
+            minSupportedVersion: String?
         ) = Asset(
             metaId = metaId,
             Token(configuration = chainAsset, fiatRate = null, fiatSymbol = null, recentRateChange = null),
@@ -69,10 +63,11 @@ data class Asset(
             redeemableInPlanks = null,
             unbondingInPlanks = null,
             sortIndex = Int.MAX_VALUE,
-            enabled = enabled,
+            enabled = null,
             minSupportedVersion = minSupportedVersion,
             chainAccountName = chainAccountName,
-            markedNotNeed = false
+            markedNotNeed = false,
+            status = null
         )
     }
 
@@ -85,10 +80,14 @@ data class Asset(
     val frozen = locked + reserved
 
     val total = calculateTotalBalance(freeInPlanks, reservedInPlanks)?.let { token.amountFromPlanks(it) }
-    val availableForStaking = free - frozen
+    val availableForStaking: BigDecimal = maxOf(free - frozen, BigDecimal.ZERO)
 
     val transferable = free - locked
     val transferableInPlanks = freeInPlanks?.let { it - miscFrozenInPlanks.orZero().max(feeFrozenInPlanks.orZero()) }.orZero()
+
+    val isAssetFrozen = status == STATUS_FROZEN
+    val sendAvailable: BigDecimal = if (isAssetFrozen) BigDecimal.ZERO else transferable
+    val sendAvailableInPlanks: BigInteger = if (isAssetFrozen) BigInteger.ZERO else transferableInPlanks
 
     val bonded = token.amountFromPlanks(bondedInPlanks.orZero())
     val redeemable = token.amountFromPlanks(redeemableInPlanks.orZero())
@@ -97,6 +96,9 @@ data class Asset(
     val fiatAmount = total?.let { token.fiatRate?.multiply(total) }
 
     val uniqueKey = AssetKey(metaId, token.configuration.chainId, accountId, token.configuration.id)
+
+    fun getAsFiatWithCurrency(value: BigDecimal?) =
+        token.fiatRate?.let { value?.applyFiatRate(it).orZero().formatFiat(token.fiatSymbol) }
 }
 
 fun calculateTotalBalance(

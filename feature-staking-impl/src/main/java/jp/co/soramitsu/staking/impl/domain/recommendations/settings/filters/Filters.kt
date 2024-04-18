@@ -1,6 +1,8 @@
 package jp.co.soramitsu.staking.impl.domain.recommendations.settings.filters
 
+import java.math.BigDecimal
 import java.math.BigInteger
+import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.staking.api.domain.model.CandidateCapacity
 import jp.co.soramitsu.staking.api.domain.model.Collator
 import jp.co.soramitsu.staking.api.domain.model.Validator
@@ -33,6 +35,17 @@ abstract class BlockProducerFilters<T> {
                 } else {
                     throw IllegalStateException("Filtering validator ${model.accountIdHex} with no prefs")
                 }
+            }
+        }
+        data object HundredPercentCommissionFilter : ValidatorFilter() {
+            override fun shouldInclude(model: Validator): Boolean {
+                return model.prefs?.commission.orZero() < BigDecimal.ONE
+            }
+        }
+
+        data object ElectedFilter : ValidatorFilter() {
+            override fun shouldInclude(model: Validator): Boolean {
+                return model.electedInfo != null
             }
         }
 
@@ -74,7 +87,7 @@ interface RecommendationPostProcessor<T> {
 }
 
 enum class Filters {
-    HavingOnChainIdentity, NotOverSubscribed, NotSlashedFilter, WithRelevantBond // LimitOf2ValidatorsPerIdentity
+    HavingOnChainIdentity, NotOverSubscribed, NotSlashedFilter, WithRelevantBond, HundredPercentCommission // LimitOf2ValidatorsPerIdentity
 }
 
 enum class Sorting {
@@ -89,6 +102,7 @@ fun Filters.toModel(selectedFilters: Set<Filters>): SettingsSchema.Filter {
         Filters.NotOverSubscribed -> R.string.staking_recommended_feature_2
         Filters.NotSlashedFilter -> R.string.staking_recommended_feature_4
         Filters.WithRelevantBond -> R.string.select_collator_having_relevant_minimum_bond
+        Filters.HundredPercentCommission -> R.string.common_commission
     }
 
     return SettingsSchema.Filter(title, this in selectedFilters, this)

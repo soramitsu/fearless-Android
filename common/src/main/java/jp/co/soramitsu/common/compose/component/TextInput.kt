@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
@@ -15,6 +14,8 @@ import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -22,9 +23,11 @@ import androidx.compose.ui.focus.FocusState
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -70,6 +73,15 @@ fun TextInput(
     } else {
         black2
     }
+    val textState = remember { mutableStateOf(TextFieldValue(state.text)) }
+
+    // Set cursor position to the end
+    LaunchedEffect(Unit) {
+        textState.value = textState.value.copy(
+            selection = TextRange(state.text.length)
+        )
+    }
+
     BackgroundCorneredWithBorder(
         modifier = modifier
             .fillMaxWidth(),
@@ -88,9 +100,12 @@ fun TextInput(
                 VisualTransformation.None
             }
             BasicTextField(
-                value = state.text,
+                value = textState.value,
                 enabled = state.isActive,
-                onValueChange = onInput,
+                onValueChange = {
+                    textState.value = it
+                    onInput(it.text)
+                },
                 textStyle = MaterialTheme.customTypography.body1.copy(color = textColorState),
                 singleLine = true,
                 maxLines = 1,
@@ -136,7 +151,6 @@ fun TextInput(
                     .clickableWithNoIndication(onEndIconClick)
                     .align(Alignment.CenterEnd)
                     .padding(12.dp)
-                    .imePadding()
             ) {
                 Image(res = it)
             }

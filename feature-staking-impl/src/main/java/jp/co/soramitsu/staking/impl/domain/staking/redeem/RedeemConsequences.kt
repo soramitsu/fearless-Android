@@ -1,5 +1,6 @@
 package jp.co.soramitsu.staking.impl.domain.staking.redeem
 
 class RedeemConsequences(
-    val willKillStash: Boolean
+    val willKillStash: Boolean,
+    val hash: String
 )

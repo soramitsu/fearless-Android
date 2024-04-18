@@ -8,6 +8,7 @@ import jp.co.soramitsu.coredb.model.OperationLocal
 import jp.co.soramitsu.runtime.ext.addressOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId
 import jp.co.soramitsu.shared_utils.runtime.AccountId
 import jp.co.soramitsu.wallet.impl.data.historySource.HistorySourceProvider
 import jp.co.soramitsu.wallet.impl.data.mappers.mapOperationLocalToOperation
@@ -18,9 +19,13 @@ import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
 import jp.co.soramitsu.wallet.impl.domain.interfaces.TransactionFilter
 import jp.co.soramitsu.wallet.impl.domain.model.Operation
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flatMapMerge
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.withContext
 
 class HistoryRepository(
@@ -29,6 +34,10 @@ class HistoryRepository(
     private val cursorStorage: TransferCursorStorage,
     private val currentAccountAddress: CurrentAccountAddressUseCase
 ) {
+    companion object {
+        private const val NO_LIMIT = -1
+    }
+
     suspend fun getOperations(
         pageSize: Int,
         cursor: String?,
@@ -44,14 +53,26 @@ class HistoryRepository(
             if (historyUrl == null || historyType?.isHistory() != true) {
                 throw HistoryNotSupportedException()
             }
-            if (historyType in listOf(Chain.ExternalApi.Section.Type.GIANTSQUID, Chain.ExternalApi.Section.Type.SUBSQUID) && chainAsset.isUtility.not()) {
+            if (historyType in listOf(
+                    Chain.ExternalApi.Section.Type.GIANTSQUID,
+                    Chain.ExternalApi.Section.Type.SUBSQUID
+                ) && chainAsset.isUtility.not() && chain.id != soraMainChainId
+            ) {
                 throw HistoryNotSupportedException()
             }
 
             val accountAddress = chain.addressOf(accountId)
 
             val historySource = historySourceProvider(historyUrl, historyType)
-            val operations = historySource?.getOperations(pageSize, cursor, filters, accountId, chain, chainAsset, accountAddress)
+            val operations = historySource?.getOperations(
+                pageSize,
+                cursor,
+                filters,
+                accountId,
+                chain,
+                chainAsset,
+                accountAddress
+            )
             return@withContext operations ?: CursorPage(
                 null,
                 emptyList()
@@ -65,16 +86,31 @@ class HistoryRepository(
         accountId: AccountId,
         chain: Chain,
         chainAsset: Asset
-    ) {
+    ): CursorPage<Operation> {
         val accountAddress = chain.addressOf(accountId)
-        val page = kotlin.runCatching {
-            getOperations(pageSize, cursor = null, filters, accountId, chain, chainAsset)
-        }.getOrDefault(CursorPage(null, emptyList()))
+        val elements: MutableList<OperationLocal> = mutableListOf()
 
-        val elements = page.map { mapOperationToOperationLocalDb(it, OperationLocal.Source.SUBQUERY) }
+        var page: CursorPage<Operation> = CursorPage(null, emptyList())
+        var nextCursor: String? = null
+        var hasNextPage = true
 
+        while (elements.size <= pageSize.div(2) && hasNextPage) {
+            page = kotlin.runCatching {
+                getOperations(pageSize, cursor = nextCursor, filters, accountId, chain, chainAsset)
+            }.getOrDefault(CursorPage(null, emptyList()))
+            nextCursor = page.nextCursor
+            hasNextPage = nextCursor != null
+            elements.addAll(page.map {
+                mapOperationToOperationLocalDb(
+                    it,
+                    OperationLocal.Source.SUBQUERY
+                )
+            })
+        }
         operationDao.insertFromSubquery(accountAddress, chain.id, chainAsset.id, elements)
+
         cursorStorage.saveCursor(chain.id, chainAsset.id, accountId, page.nextCursor)
+        return page
     }
 
     fun operationsFirstPageFlow(
@@ -83,7 +119,6 @@ class HistoryRepository(
         chainAsset: Asset
     ): Flow<CursorPage<Operation>> {
         val accountAddress = chain.addressOf(accountId)
-
         return operationDao.observe(accountAddress, chain.id, chainAsset.id)
             .mapList {
                 mapOperationLocalToOperation(it, chainAsset, chain)
@@ -95,29 +130,14 @@ class HistoryRepository(
             }
     }
 
-    fun getOperationAddressWithChainIdFlow(limit: Int?, chainId: ChainId): Flow<Set<String>> {
-        return operationDao.observeOperations(chainId).mapList { operation ->
-            val accountAddress = currentAccountAddress.invoke(chainId)
-            if (operation.address == accountAddress) {
-                val receiver = when (operation.receiver) {
-                    null, accountAddress -> null
-                    else -> operation.receiver
-                }
-                val sender = when (operation.sender) {
-                    null, accountAddress -> null
-                    else -> operation.sender
-                }
-                receiver ?: sender
-            } else {
-                null
-            }
-        }
-            .map {
-                val nonNullList = it.filterNotNull()
-                when {
-                    limit == null || limit < 0 -> nonNullList
-                    else -> nonNullList.subList(0, Integer.min(limit, nonNullList.size))
-                }.toSet()
+    @OptIn(ExperimentalCoroutinesApi::class)
+    fun getOperationAddressWithChainIdFlow(chainId: ChainId, limit: Int?): Flow<Set<String>> {
+        return flow { emit(currentAccountAddress.invoke(chainId)) }
+            .mapNotNull { it }
+            .flatMapMerge { accountAddress ->
+                operationDao.observeOperationAddresses(chainId, accountAddress, limit ?: NO_LIMIT)
+            }.map { addresses ->
+                addresses.toSet()
             }
     }
 }

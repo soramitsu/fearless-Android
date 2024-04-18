@@ -1,29 +1,22 @@
 package jp.co.soramitsu.wallet.api.data.cache
 
 import java.math.BigInteger
-import jp.co.soramitsu.common.data.network.runtime.binding.AccountData
 import jp.co.soramitsu.common.data.network.runtime.binding.AccountInfo
 import jp.co.soramitsu.common.data.network.runtime.binding.AssetBalanceData
 import jp.co.soramitsu.common.data.network.runtime.binding.AssetsAccountInfo
 import jp.co.soramitsu.common.data.network.runtime.binding.EmptyBalance
 import jp.co.soramitsu.common.data.network.runtime.binding.EqAccountInfo
 import jp.co.soramitsu.common.data.network.runtime.binding.OrmlTokensAccountData
+import jp.co.soramitsu.common.data.network.runtime.binding.SimpleBalanceData
 import jp.co.soramitsu.common.data.network.runtime.binding.bindAccountInfo
 import jp.co.soramitsu.common.data.network.runtime.binding.bindAssetsAccountInfo
 import jp.co.soramitsu.common.data.network.runtime.binding.bindEquilibriumAccountInfo
-import jp.co.soramitsu.common.data.network.runtime.binding.bindNonce
 import jp.co.soramitsu.common.data.network.runtime.binding.bindOrmlTokensAccountData
-import jp.co.soramitsu.common.data.network.runtime.binding.cast
 import jp.co.soramitsu.common.utils.orZero
-import jp.co.soramitsu.common.utils.system
 import jp.co.soramitsu.core.models.Asset
-import jp.co.soramitsu.core.runtime.storage.returnType
 import jp.co.soramitsu.coredb.model.AssetLocal
 import jp.co.soramitsu.shared_utils.runtime.AccountId
 import jp.co.soramitsu.shared_utils.runtime.RuntimeSnapshot
-import jp.co.soramitsu.shared_utils.runtime.definitions.types.composite.Struct
-import jp.co.soramitsu.shared_utils.runtime.definitions.types.fromHexOrNull
-import jp.co.soramitsu.shared_utils.runtime.metadata.storage
 
 suspend fun AssetCache.updateAsset(
     metaId: Long,
@@ -66,6 +59,16 @@ suspend fun AssetCache.updateAsset(
             updateAsset(metaId, accountId, asset) {
                 it.copy(
                     accountId = accountId,
+                    freeInPlanks = balanceData.balance,
+                    status = balanceData.status
+                )
+            }
+        }
+
+        is SimpleBalanceData -> {
+            updateAsset(metaId, accountId, asset) {
+                it.copy(
+                    accountId = accountId,
                     freeInPlanks = balanceData.balance
                 )
             }
@@ -96,24 +99,6 @@ private fun accountInfoUpdater(accountInfo: AccountInfo) = { asset: AssetLocal -
         reservedInPlanks = data.reserved,
         miscFrozenInPlanks = data.miscFrozen,
         feeFrozenInPlanks = data.feeFrozen
-    )
-}
-
-fun bind9420AccountInfo(hex: String?, runtime: RuntimeSnapshot): AccountInfo {
-    hex ?: return AccountInfo.empty()
-    val type = runtime.metadata.system().storage("Account").returnType()
-
-    val dynamicInstance = type.fromHexOrNull(runtime, hex).cast<Struct.Instance>()
-    val dataInstance: Struct.Instance? = dynamicInstance["data"]
-    val data = AccountData(
-        free = (dataInstance?.get("free") as? BigInteger).orZero(),
-        reserved = (dataInstance?.get("reserved") as? BigInteger).orZero(),
-        miscFrozen = (dataInstance?.get("frozen") as? BigInteger).orZero(),
-        feeFrozen = (dataInstance?.get("feeFrozen") as? BigInteger).orZero()
-    )
-    return AccountInfo(
-        nonce = bindNonce(dynamicInstance["nonce"]),
-        data = data
     )
 }
 

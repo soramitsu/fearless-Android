@@ -9,7 +9,7 @@ import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AssetNotNeedAccountUseCase
 import jp.co.soramitsu.account.api.domain.interfaces.TotalBalanceUseCase
 import jp.co.soramitsu.account.api.domain.model.hasChainAccount
-import jp.co.soramitsu.account.api.presentation.actions.AddAccountBottomSheet
+import jp.co.soramitsu.account.api.presentation.actions.AddAccountPayload
 import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.account.api.presentation.exporting.ExportSource
 import jp.co.soramitsu.account.api.presentation.exporting.ExportSourceChooserPayload
@@ -22,7 +22,6 @@ import jp.co.soramitsu.common.address.createAddressIcon
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.ChangeBalanceViewState
 import jp.co.soramitsu.common.compose.component.WalletItemViewState
-import jp.co.soramitsu.common.data.network.BlockExplorerUrlBuilder
 import jp.co.soramitsu.common.list.headers.TextHeader
 import jp.co.soramitsu.common.list.toListWithHeaders
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -35,19 +34,17 @@ import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedAddressExplorers
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 private const val UPDATE_NAME_INTERVAL_SECONDS = 1L
@@ -68,7 +65,7 @@ class AccountDetailsViewModel @Inject constructor(
     private val walletId = savedStateHandle.get<Long>(ACCOUNT_ID_KEY)!!
     private val wallet = flowOf {
         interactor.getMetaAccount(walletId)
-    }
+    }.share()
     private val walletItem = wallet
         .map { wallet ->
 
@@ -104,27 +101,25 @@ class AccountDetailsViewModel @Inject constructor(
     private val _openPlayMarket = MutableLiveData<Event<Unit>>()
     val openPlayMarket: LiveData<Event<Unit>> = _openPlayMarket
 
-    val accountNameFlow: MutableStateFlow<String> = MutableStateFlow("")
+    private val enteredQueryFlow = MutableStateFlow("")
+    private val accountNameFlow = MutableStateFlow("")
 
-    val chainAccountProjections = interactor.getChainProjectionsFlow(walletId)
-        .map { groupedList ->
-            groupedList.mapKeys { (from, _) -> mapFromToTextHeader(from) }
-                .mapValues { (_, accounts) -> accounts.map { mapChainAccountProjectionToUi(it) } }
-                .toListWithHeaders()
-        }
+    private val chainAccountProjections = combine(
+        interactor.getChainProjectionsFlow(walletId),
+        enteredQueryFlow
+    ) { groupedList, query ->
+        groupedList.mapKeys { (from, _) -> mapFromToTextHeader(from) }
+            .mapValues { (_, accounts) ->
+                accounts.filter { it.chain.name.lowercase().contains(query.lowercase()) }
+                    .map { mapChainAccountProjectionToUi(it) }
+            }
+            .filter { it.value.isNotEmpty() }
+            .toListWithHeaders()
+    }
         .inBackground()
         .share()
 
-    val state = combine(
-        walletItem,
-        chainAccountProjections
-    ) { walletItem, chainProjections ->
-        AccountDetailsState(
-            walletItem = walletItem,
-            chainProjections = chainProjections
-        )
-    }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, AccountDetailsState.Empty)
+    val state = MutableStateFlow(AccountDetailsState.Empty)
 
     init {
         launch {
@@ -132,10 +127,29 @@ class AccountDetailsViewModel @Inject constructor(
         }
 
         syncNameChangesWithDb()
+        subscribeScreenState()
+    }
+
+    private fun subscribeScreenState() {
+        walletItem.onEach {
+            state.value = state.value.copy(walletItem = it)
+        }.launchIn(this)
+
+        chainAccountProjections.onEach {
+            state.value = state.value.copy(chainProjections = it)
+        }.launchIn(this)
+
+        enteredQueryFlow.onEach {
+            state.value = state.value.copy(searchQuery = it)
+        }.launchIn(this)
     }
 
     override fun onBackClick() {
         accountRouter.back()
+    }
+
+    override fun onSearchInput(input: String) {
+        enteredQueryFlow.value = input
     }
 
     @OptIn(FlowPreview::class)
@@ -171,6 +185,8 @@ class AccountDetailsViewModel @Inject constructor(
             else -> resourceManager.getDrawable(R.drawable.ic_warning_filled)
         }
 
+        val hasAddress = projection?.address != null
+
         AccountInChainUi(
             chainId = chain.id,
             chainName = chain.name,
@@ -181,7 +197,8 @@ class AccountDetailsViewModel @Inject constructor(
             accountFrom = accountInChain.from,
             isSupported = accountInChain.chain.isSupported,
             hasAccount = accountInChain.hasAccount,
-            markedAsNotNeed = accountInChain.markedAsNotNeed
+            markedAsNotNeed = accountInChain.markedAsNotNeed,
+            enabled = hasAddress
         )
     }
 
@@ -230,17 +247,20 @@ class AccountDetailsViewModel @Inject constructor(
     override fun chainAccountOptionsClicked(item: AccountInChainUi) {
         launch {
             if (item.hasAccount) {
+                val chain = chainRegistry.getChain(item.chainId)
                 val supportedExplorers =
-                    chainRegistry.getChain(item.chainId).explorers.getSupportedExplorers(BlockExplorerUrlBuilder.Type.ACCOUNT, item.address)
-                externalAccountActions.showExternalActions(ExternalAccountActions.Payload(item.address, item.chainId, item.chainName, supportedExplorers))
+                    chain.explorers.getSupportedAddressExplorers(item.address)
+
+                externalAccountActions.showExternalActions(ExternalAccountActions.Payload(item.address, item.chainId, item.chainName, supportedExplorers,
+                    !chain.isEthereumChain
+                ))
             } else {
                 val utilityAsset = chainRegistry.getChain(item.chainId).utilityAsset
-                val payload = AddAccountBottomSheet.Payload(
+                val payload = AddAccountPayload(
                     metaId = walletId,
                     chainId = item.chainId,
                     chainName = item.chainName,
                     assetId = utilityAsset?.id.orEmpty(),
-                    priceId = utilityAsset?.priceId,
                     markedAsNotNeed = item.markedAsNotNeed
                 )
                 accountRouter.openOptionsAddAccount(payload)
@@ -260,19 +280,5 @@ class AccountDetailsViewModel @Inject constructor(
 
     fun updateAppClicked() {
         _openPlayMarket.value = Event(Unit)
-    }
-
-    fun createAccount(chainId: ChainId, metaId: Long) {
-        accountRouter.openOnboardingNavGraph(chainId = chainId, metaId = metaId, isImport = false)
-    }
-
-    fun importAccount(chainId: ChainId, metaId: Long) {
-        accountRouter.openOnboardingNavGraph(chainId = chainId, metaId = metaId, isImport = true)
-    }
-
-    fun noNeedAccount(chainId: ChainId, metaId: Long, assetId: String, priceId: String?) {
-        launch {
-            assetNotNeedAccount.markNotNeed(chainId = chainId, metaId = metaId, assetId = assetId, priceId = priceId)
-        }
     }
 }

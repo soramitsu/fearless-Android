@@ -12,7 +12,7 @@ fun BigInteger.formatCryptoDetailFromPlanks(chainAsset: CoreAsset, withSymbol: B
 }
 
 fun BigInteger.formatCryptoFromPlanks(chainAsset: CoreAsset): String {
-    return chainAsset.amountFromPlanks(this).formatCrypto(chainAsset.symbol)
+    return chainAsset.amountFromPlanks(this).formatCryptoDetail(chainAsset.symbol)
 }
 
 fun String.formatSigned(positive: Boolean): String {

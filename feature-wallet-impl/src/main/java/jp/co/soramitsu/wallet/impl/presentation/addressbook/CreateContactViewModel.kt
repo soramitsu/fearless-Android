@@ -9,9 +9,10 @@ import jp.co.soramitsu.common.compose.component.SelectorState
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.validation.AddressNotValidException
 import jp.co.soramitsu.feature_wallet_impl.R
-import jp.co.soramitsu.wallet.api.presentation.WalletRouter
+//import jp.co.soramitsu.wallet.api.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
-import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.ChainItemState
+import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
+import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.ChainSelectScreenContract
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -38,10 +39,10 @@ class CreateContactViewModel @Inject constructor(
 
     private val chainIdFlow = MutableStateFlow(chainId)
 
-    private val selectedChainItem: Flow<ChainItemState?> = chainIdFlow.mapNotNull { chainId ->
+    private val selectedChainItem: Flow<ChainSelectScreenContract.State.ItemState?> = chainIdFlow.mapNotNull { chainId ->
         chainId?.let {
             val chain = walletInteractor.getChain(it)
-            ChainItemState(
+            ChainSelectScreenContract.State.ItemState.Impl(
                 id = chain.id,
                 imageUrl = chain.icon,
                 title = chain.name,
@@ -85,7 +86,7 @@ class CreateContactViewModel @Inject constructor(
     override fun onCreateContactClick() {
         val selectedChainId = chainIdFlow.value ?: return
         val name = state.value.contactNameInput
-        val address = state.value.contactAddressInput
+        val address = state.value.contactAddressInput.trim()
         launch {
             val isValid = walletInteractor.validateSendAddress(selectedChainId, address)
             if (isValid) {

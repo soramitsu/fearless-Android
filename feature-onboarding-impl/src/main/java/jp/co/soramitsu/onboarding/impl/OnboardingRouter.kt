@@ -33,4 +33,6 @@ interface OnboardingRouter {
     fun backWithResult(vararg results: Pair<String, Any?>)
 
     fun openSelectImportModeForResult(): Flow<ImportMode>
+
+    fun openCreatePincode()
 }

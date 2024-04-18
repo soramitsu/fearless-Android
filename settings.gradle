@@ -24,3 +24,7 @@ include ':runtime-permission'
 
 include ':android-foundation'
 project(':android-foundation').projectDir = new File('android-foundation')
+include ':feature-walletconnect-api'
+include ':feature-walletconnect-impl'
+include ':feature-nft-api'
+include ':feature-nft-impl'

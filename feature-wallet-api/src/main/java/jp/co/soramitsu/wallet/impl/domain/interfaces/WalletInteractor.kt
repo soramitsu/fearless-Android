@@ -3,16 +3,18 @@ package jp.co.soramitsu.wallet.impl.domain.interfaces
 import java.io.File
 import java.math.BigDecimal
 import java.math.BigInteger
+import jp.co.soramitsu.account.api.domain.model.LightMetaAccount
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.common.data.model.CursorPage
 import jp.co.soramitsu.common.data.network.runtime.binding.EqAccountInfo
 import jp.co.soramitsu.common.data.network.runtime.binding.EqOraclePricePoint
 import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
+import jp.co.soramitsu.common.model.AssetBooleanState
 import jp.co.soramitsu.core.models.ChainId
 import jp.co.soramitsu.coredb.model.AddressBookContact
-import jp.co.soramitsu.coredb.model.AssetUpdateItem
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.shared_utils.runtime.AccountId
+import jp.co.soramitsu.shared_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.shared_utils.scale.EncodableStruct
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.AssetWithStatus
@@ -21,6 +23,8 @@ import jp.co.soramitsu.wallet.impl.domain.model.Fee
 import jp.co.soramitsu.wallet.impl.domain.model.Operation
 import jp.co.soramitsu.wallet.impl.domain.model.OperationsPageChange
 import jp.co.soramitsu.wallet.impl.domain.model.PhishingModel
+import jp.co.soramitsu.wallet.impl.domain.model.QrContentCBDC
+import jp.co.soramitsu.wallet.impl.domain.model.QrContentSora
 import jp.co.soramitsu.wallet.impl.domain.model.Transfer
 import jp.co.soramitsu.wallet.impl.domain.model.TransferValidityStatus
 import jp.co.soramitsu.wallet.impl.domain.model.WalletAccount
@@ -29,9 +33,14 @@ import jp.co.soramitsu.core.models.Asset as CoreAsset
 
 class NotValidTransferStatus(val status: TransferValidityStatus) : Exception()
 
+enum class AssetSorting {
+    FiatBalance, Popularity, Name
+}
+
 interface WalletInteractor {
 
     fun assetsFlow(): Flow<List<AssetWithStatus>>
+    fun assetsFlowAndAccount(): Flow<Pair<Long, List<AssetWithStatus>>>
 
     suspend fun syncAssetsRates(): Result<Unit>
 
@@ -48,7 +57,7 @@ interface WalletInteractor {
         chainAssetId: String,
         pageSize: Int,
         filters: Set<TransactionFilter>
-    ): Result<*>
+    ): Result<CursorPage<Operation>>
 
     suspend fun getOperations(
         chainId: ChainId,
@@ -66,21 +75,26 @@ interface WalletInteractor {
 
     suspend fun getPhishingInfo(address: String): PhishingModel?
 
-    suspend fun getTransferFee(transfer: Transfer): Fee
+    suspend fun getTransferFee(transfer: Transfer, additional: (suspend ExtrinsicBuilder.() -> Unit)? = null): Fee
+
+    suspend fun observeTransferFee(transfer: Transfer, additional: (suspend ExtrinsicBuilder.() -> Unit)? = null): Flow<Fee>
 
     suspend fun performTransfer(
         transfer: Transfer,
         fee: BigDecimal,
-        tipInPlanks: BigInteger?
+        tipInPlanks: BigInteger?,
+        additional: (suspend ExtrinsicBuilder.() -> Unit)? = null
     ): Result<String>
 
-    suspend fun getQrCodeSharingSoraString(chainId: ChainId, assetId: String): String
+    suspend fun getQrCodeSharingSoraString(chainId: ChainId, assetId: String, amount: BigDecimal?): String
 
     suspend fun createFileInTempStorageAndRetrieveAsset(fileName: String): Result<File>
 
     fun tryReadAddressFromSoraFormat(content: String): String?
 
-    fun tryReadTokenIdFromSoraFormat(content: String): String?
+    fun tryReadSoraFormat(content: String): QrContentSora?
+
+    suspend fun tryReadCBDCAddressFormat(content: String): QrContentCBDC?
 
     suspend fun getChain(chainId: ChainId): Chain
 
@@ -90,9 +104,9 @@ interface WalletInteractor {
 
     suspend fun getChainAddressForSelectedMetaAccount(chainId: ChainId): String?
 
-    suspend fun updateAssets(newItems: List<AssetUpdateItem>)
-
     suspend fun markAssetAsHidden(chainId: ChainId, chainAssetId: String)
+
+    suspend fun updateAssetsHiddenState(state: List<AssetBooleanState>)
 
     suspend fun markAssetAsShown(chainId: ChainId, chainAssetId: String)
 
@@ -102,13 +116,12 @@ interface WalletInteractor {
 
     fun getChains(): Flow<List<Chain>>
 
-    fun getOperationAddressWithChainIdFlow(limit: Int?, chainId: ChainId): Flow<Set<String>>
+    fun getOperationAddressWithChainIdFlow(chainId: ChainId, limit: Int?): Flow<Set<String>>
 
     suspend fun saveAddress(name: String, address: String, selectedChainId: String)
 
     fun observeAddressBook(chainId: ChainId): Flow<List<AddressBookContact>>
 
-    fun observeAssets(): Flow<List<AssetWithStatus>>
 
     fun saveChainId(walletId: Long, chainId: ChainId?)
 
@@ -122,10 +135,26 @@ interface WalletInteractor {
     fun decreaseSoraCardHiddenSessions()
     fun hideSoraCard()
 
-    fun observeHideZeroBalanceEnabledForCurrentWallet(): Flow<Boolean>
-    suspend fun toggleHideZeroBalancesForCurrentWallet()
-    suspend fun getHideZeroBalancesForCurrentWallet(): Boolean
-
     suspend fun checkControllerDeprecations(): List<ControllerDeprecationWarning>
     suspend fun canUseAsset(chainId: String, chainAssetId: String): Boolean
+
+    suspend fun saveChainSelectFilter(walletId: Long, filter: String)
+
+    fun observeSelectedAccountChainSelectFilter(): Flow<String>
+
+
+    fun selectedLightMetaAccountFlow(): Flow<LightMetaAccount>
+
+    fun observeChainsPerAsset(accountMetaId: Long, assetId: String): Flow<Map<Chain, Asset?>>
+
+    fun applyAssetSorting(sorting: AssetSorting)
+
+    fun observeAssetSorting(): Flow<AssetSorting>
+    suspend fun checkClaimSupport(chainId: ChainId): Boolean
+    suspend fun estimateClaimRewardsFee(chainId: ChainId): BigInteger
+    suspend fun getVestingLockedAmount(chainId: ChainId): BigInteger?
+    suspend fun claimRewards(chainId: ChainId): Result<String>
+
+    fun getAssetManagementIntroPassed(): Boolean
+    suspend fun saveAssetManagementIntroPassed()
 }

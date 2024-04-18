@@ -20,21 +20,15 @@ android {
         }
     }
 
-    buildTypes {
-        release {
-
-        }
-    }
-
     compileOptions {
-        sourceCompatibility 1.8
-        targetCompatibility 1.8
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
     kotlinOptions {
         freeCompilerArgs = ["-Xallow-result-return-type"]
 
-        jvmTarget = '1.8'
+        jvmTarget = '17'
     }
 
     sourceSets {
@@ -47,23 +41,23 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
     implementation project(":common")
-    implementation gsonDep
+    implementation libs.gson
 
-    implementation kotlinDep
+    implementation libs.kotlin.stdlib.jdk7
 
-    implementation coroutinesDep
+    implementation libs.coroutines.core
 
-    implementation daggerDep
-    kapt daggerKapt
+    implementation libs.hilt.android
+    kapt libs.hilt.compiler
 
-    implementation roomDep
-    implementation roomKtxDep
-    kapt roomKapt
+    implementation libs.room.runtime
+    implementation libs.room.ktx
+    kapt libs.room.compiler
 
-    androidTestImplementation androidTestRunnerDep
-    androidTestImplementation androidTestRulesDep
-    androidTestImplementation androidJunitDep
+    androidTestImplementation libs.runner
+    androidTestImplementation libs.rules
+    androidTestImplementation libs.ext.junit
 
-    androidTestImplementation roomTestsDep
+    androidTestImplementation libs.room.testing
     androidTestImplementation project(':test-shared')
 }

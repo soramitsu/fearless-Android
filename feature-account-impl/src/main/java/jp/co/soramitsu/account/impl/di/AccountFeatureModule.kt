@@ -5,6 +5,7 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import javax.inject.Singleton
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.interfaces.AssetNotNeedAccountUseCase
@@ -47,9 +48,9 @@ import jp.co.soramitsu.coredb.dao.AssetDao
 import jp.co.soramitsu.coredb.dao.MetaAccountDao
 import jp.co.soramitsu.coredb.dao.TokenPriceDao
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.shared_utils.encrypt.json.JsonSeedDecoder
 import jp.co.soramitsu.shared_utils.encrypt.json.JsonSeedEncoder
-import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -116,18 +117,18 @@ class AccountFeatureModule {
         secretStoreV1: SecretStoreV1,
         accountDataMigration: AccountDataMigration,
         metaAccountDao: MetaAccountDao,
-        chainRegistry: ChainRegistry,
-        secretStoreV2: SecretStoreV2
+        secretStoreV2: SecretStoreV2,
+        chainsRepository: ChainsRepository
     ): AccountDataSource {
         return AccountDataSourceImpl(
             preferences,
             encryptedPreferences,
             jsonMapper,
             metaAccountDao,
-            chainRegistry,
             secretStoreV2,
             secretStoreV1,
-            accountDataMigration
+            accountDataMigration,
+            chainsRepository
         )
     }
 
@@ -150,7 +151,12 @@ class AccountFeatureModule {
         resourceManager: ResourceManager,
         chainRegistry: ChainRegistry
     ): ExternalAccountActions.Presentation {
-        return ExternalAccountActionsProvider(clipboardManager, appLinksProvider, resourceManager, chainRegistry)
+        return ExternalAccountActionsProvider(
+            clipboardManager,
+            appLinksProvider,
+            resourceManager,
+            chainRegistry
+        )
     }
 
     @Provides
@@ -186,7 +192,8 @@ class AccountFeatureModule {
 
     @Provides
     @Singleton
-    fun provideAvailableFiatCurrenciesUseCase(coingeckoApi: CoingeckoApi) = GetAvailableFiatCurrencies(coingeckoApi)
+    fun provideAvailableFiatCurrenciesUseCase(coingeckoApi: CoingeckoApi) =
+        GetAvailableFiatCurrencies(coingeckoApi)
 
     @Provides
     @Singleton
@@ -196,9 +203,10 @@ class AccountFeatureModule {
     fun provideAssetNotNeedAccountUseCase(
         chainRegistry: ChainRegistry,
         assetDao: AssetDao,
-        tokenPriceDao: TokenPriceDao
+        tokenPriceDao: TokenPriceDao,
+        selectedFiat: SelectedFiat
     ): AssetNotNeedAccountUseCase {
-        return AssetNotNeedAccountUseCaseImpl(chainRegistry, assetDao, tokenPriceDao)
+        return AssetNotNeedAccountUseCaseImpl(chainRegistry, assetDao, tokenPriceDao, selectedFiat)
     }
 
     @Provides

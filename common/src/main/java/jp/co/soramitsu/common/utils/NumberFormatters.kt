@@ -14,7 +14,9 @@ import java.math.RoundingMode
 import java.text.DecimalFormat
 import java.text.SimpleDateFormat
 import java.util.Date
+import java.util.Locale
 import java.util.concurrent.TimeUnit
+import jp.co.soramitsu.common.utils.formatting.FiatSmallFormatter
 
 const val DOLLAR_SIGN = "$"
 private const val DECIMAL_PATTERN_BASE = "#,##0"
@@ -24,6 +26,7 @@ private const val MAX_DECIMALS_3 = 3
 const val MAX_DECIMALS_8 = 8
 
 private val fiatAmountFormatter = FiatFormatter()
+private val fiatSmallAmountFormatter = FiatSmallFormatter()
 private val percentAmountFormatter = FixedPrecisionFormatter(MAX_DECIMALS_2)
 private val cryptoAmountShortFormatter = FixedPrecisionFormatter(MAX_DECIMALS_3)
 private val cryptoAmountDetailFormatter = FixedPrecisionFormatter(MAX_DECIMALS_8)
@@ -46,6 +49,7 @@ fun BigDecimal.formatFiat(fiatSymbol: String?) = (fiatSymbol ?: DOLLAR_SIGN) + f
 fun BigDecimal.formatPercent() = percentAmountFormatter.format(this)
 
 fun BigDecimal.formatCryptoFull() = fullPrecisionFormatter.format(this)
+fun BigDecimal.formatCryptoDetail() = cryptoAmountDetailFormatter.format(this)
 fun BigDecimal.formatCrypto(symbol: String? = null): String {
     return when (symbol) {
         null -> cryptoShortAbbreviatedFormatter.format(this)
@@ -97,7 +101,9 @@ fun Long.formatDateFromMillis(context: Context) = DateUtils.formatDateTime(conte
 
 fun Long.formatDateTime(context: Context) = DateUtils.getRelativeDateTimeString(context, this, DateUtils.SECOND_IN_MILLIS, 0, 0)
 
-fun Long.formatDateTime() = SimpleDateFormat.getDateInstance().format(Date(this))
+fun Long.formatDateTime(): String = SimpleDateFormat.getDateInstance().format(Date(this))
+
+fun Long.formatTime(): String = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(this))
 
 fun decimalFormatterFor(pattern: String) = DecimalFormat(pattern).apply {
     roundingMode = RoundingMode.FLOOR
@@ -105,7 +111,7 @@ fun decimalFormatterFor(pattern: String) = DecimalFormat(pattern).apply {
 
 fun fiatAbbreviatedFormatter() = CompoundNumberFormatter(
     abbreviations = listOf(
-        NumberAbbreviation(BigDecimal.ZERO, BigDecimal.ONE, "", fiatAmountFormatter),
+        NumberAbbreviation(BigDecimal.ZERO, BigDecimal.ONE, "", fiatSmallAmountFormatter),
         NumberAbbreviation(BigDecimal.ONE, BigDecimal.ONE, "", fiatAmountFormatter),
         NumberAbbreviation(BigDecimal("1E+3"), BigDecimal.ONE, "", fiatAmountFormatter),
         NumberAbbreviation(BigDecimal("1E+6"), BigDecimal("1E+6"), "M", fiatAmountFormatter),

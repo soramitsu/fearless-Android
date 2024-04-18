@@ -43,8 +43,7 @@ fun BuyCryptoScreen(
 ) {
     Box(
         modifier = Modifier
-            .fillMaxSize()
-            .imePadding(),
+            .fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
         AndroidView(

@@ -7,6 +7,8 @@ import androidx.lifecycle.SavedStateHandle
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.math.BigDecimal
 import javax.inject.Inject
+import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.GradientIconState
 import jp.co.soramitsu.common.compose.theme.greenText
@@ -16,6 +18,7 @@ import jp.co.soramitsu.common.mixin.api.Browserable
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
+import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.common.utils.formatCryptoDetail
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.feature_wallet_impl.R
@@ -30,6 +33,7 @@ import jp.co.soramitsu.wallet.impl.domain.model.Operation
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.presentation.model.OperationParcelizeModel
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
@@ -42,6 +46,7 @@ class SwapDetailViewModel @Inject constructor(
     private val chainRegistry: ChainRegistry,
     private val resourceManager: ResourceManager,
     private val clipboardManager: ClipboardManager,
+    private val accountRepository: AccountRepository,
     savedStateHandle: SavedStateHandle
 ) : BaseViewModel(), SwapDetailCallbacks, Browserable {
 
@@ -78,6 +83,7 @@ class SwapDetailViewModel @Inject constructor(
         toTokenName = swap.targetAsset?.symbol?.uppercase() ?: "???",
         statusAppearance = swap.status.mapToStatusAppearance(),
         address = swap.address,
+        addressName = null,
         hash = swap.hash,
         fromTokenOnToToken = swapRate.formatCryptoDetail(),
         liquidityProviderFee = swap.liquidityProviderFee.formatCryptoDetailFromPlanks(swap.chainAsset),
@@ -87,8 +93,22 @@ class SwapDetailViewModel @Inject constructor(
         isShowSubscanButtons = false
     )
 
-    val state = subscanUrlFlow.map { url ->
-        initialState.copy(isShowSubscanButtons = url.isNullOrEmpty().not())
+    // swaps are only for selected account
+    private val addressNameFlow = flowOf { swap.address }.map {
+        val selectedLightMetaAccount = accountRepository.getSelectedLightMetaAccount()
+        val chain = chainRegistry.getChain(swap.chainAsset.chainId)
+        if (selectedLightMetaAccount.address(chain) == swap.address) {
+            selectedLightMetaAccount.name
+        } else {
+            null
+        }
+    }
+
+    val state = combine(
+        subscanUrlFlow,
+        addressNameFlow
+    ) { url, name ->
+        initialState.copy(isShowSubscanButtons = url.isNullOrEmpty().not(), addressName = name)
     }.stateIn(this, SharingStarted.Eagerly, initialState)
 
     override fun onBackClick() {

@@ -31,13 +31,14 @@ import jp.co.soramitsu.common.utils.withNoFontPadding
 
 @Composable
 fun TextFieldHint(
+    modifier: Modifier = Modifier.height(32.dp),
     state: String?,
     cursorBrush: Brush = SolidColor(white),
     onInput: (String) -> Unit,
     Hint: @Composable () -> Unit
 ) {
     var focusedState by remember { mutableStateOf(false) }
-    Box(Modifier.height(32.dp)) {
+    Box(modifier) {
         if (!focusedState && state.isNullOrEmpty()) {
             Box(Modifier.align(Alignment.CenterStart)) {
                 Hint()

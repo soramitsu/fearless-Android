@@ -10,6 +10,7 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.core.models.ChainNode
 import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.coredb.model.chain.ChainAccountLocal
+import jp.co.soramitsu.coredb.model.chain.FavoriteChainLocal
 import jp.co.soramitsu.coredb.model.chain.JoinedMetaAccountInfo
 import jp.co.soramitsu.coredb.model.chain.MetaAccountLocal
 import jp.co.soramitsu.feature_account_impl.R
@@ -65,7 +66,8 @@ fun mapMetaAccountLocalToLightMetaAccount(
         ethereumAddress = ethereumAddress,
         ethereumPublicKey = ethereumPublicKey,
         isSelected = isSelected,
-        name = name
+        name = name,
+        isBackedUp = isBackedUp
     )
 }
 
@@ -87,10 +89,21 @@ fun mapMetaAccountLocalToMetaAccount(
         }
     )
 
+    val favoriteChains = joinedMetaAccountInfo.favoriteChains.associateBy(
+        keySelector = FavoriteChainLocal::chainId,
+        valueTransform = {
+            MetaAccount.FavoriteChain(
+                chain =  chainsById[it.chainId],
+                isFavorite = it.isFavorite
+            )
+        }
+    )
+
     val metaAccount = with(joinedMetaAccountInfo.metaAccount) {
         MetaAccount(
             id = id,
             chainAccounts = chainAccounts,
+            favoriteChains = favoriteChains,
             substratePublicKey = substratePublicKey,
             substrateCryptoType = substrateCryptoType,
             substrateAccountId = substrateAccountId,

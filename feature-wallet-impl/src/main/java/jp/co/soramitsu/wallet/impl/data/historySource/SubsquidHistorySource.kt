@@ -23,23 +23,23 @@ class SubsquidHistorySource(
         chainAsset: Asset,
         accountAddress: String
     ): CursorPage<Operation> {
-        val page = cursor?.toIntOrNull() ?: 0
+        val offset = cursor?.toIntOrNull().takeIf { it != 0 }?.let { "\"$it\"" }
         val response = walletOperationsApi.getSubsquidOperationsHistory(
             url = url,
             SubsquidHistoryRequest(
                 accountAddress = accountAddress,
                 pageSize,
-                pageSize * page
+                offset.toString()
             )
         )
 
-        val operations = response.data.historyElements.map {
+        val operations = response.data.historyElementsConnection.edges.map { it.node }.map {
             val transfer = TransactionFilter.TRANSFER.isAppliedOrNull(filters)?.let { transferApplied ->
                 it.transfer?.let { transfer ->
                     Operation(
-                        id = it.extrinsicIdx ?: it.id,
+                        id = it.id,
                         address = it.address,
-                        time = it.timestamp,
+                        time = it.timestampMillis,
                         chainAsset = chainAsset,
                         type = Operation.Type.Transfer(
                             hash = it.extrinsicHash,
@@ -47,7 +47,7 @@ class SubsquidHistorySource(
                             amount = transfer.amount.toBigIntegerOrNull().orZero(),
                             receiver = transfer.to,
                             sender = transfer.from,
-                            status = Operation.Status.fromSuccess(transfer.success),
+                            status = Operation.Status.fromSuccess(it.success),
                             fee = transfer.fee
                         )
                     )
@@ -58,37 +58,28 @@ class SubsquidHistorySource(
                     Operation(
                         id = it.id,
                         address = it.address,
-                        time = it.timestamp,
+                        time = it.timestampMillis,
                         chainAsset = chainAsset,
                         type = Operation.Type.Reward(
                             amount = reward.amount.toBigIntegerOrNull().orZero(),
-                            isReward = reward.isReward,
+                            isReward = true,
                             era = reward.era ?: 0,
                             validator = reward.validator
                         )
                     )
                 }
             }
-            val extrinsic = TransactionFilter.EXTRINSIC.isAppliedOrNull(filters)?.let { extrinsicApplied ->
-                it.extrinsic?.let { extrinsic ->
-                    Operation(
-                        id = it.id,
-                        address = it.address,
-                        time = it.timestamp,
-                        chainAsset = chainAsset,
-                        type = Operation.Type.Extrinsic(
-                            hash = extrinsic.hash,
-                            module = extrinsic.module,
-                            call = extrinsic.call,
-                            fee = extrinsic.fee.toBigIntegerOrNull().orZero(),
-                            status = Operation.Status.fromSuccess(extrinsic.success)
-                        )
-                    )
-                }
-            }
-            listOfNotNull(transfer, reward, extrinsic)
+            listOfNotNull(transfer, reward)
         }.flatten()
-        return CursorPage(page.inc().toString(), operations)
+        val pageInfo = response.data.historyElementsConnection.pageInfo
+        val nextCursor = if(pageInfo.hasNextPage && (pageInfo.endCursor.toIntOrNull()
+                ?: 0) >= pageSize
+        ) {
+            pageInfo.endCursor
+        } else {
+            null
+        }
+        return CursorPage(nextCursor, operations)
     }
 
     private fun TransactionFilter.isAppliedOrNull(filters: Collection<TransactionFilter>) = when {

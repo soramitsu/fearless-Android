@@ -13,6 +13,8 @@ import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
 
 class AccountInteractorImpl(
@@ -149,7 +151,14 @@ class AccountInteractorImpl(
         selectedEncryptionType: CryptoType
     ): Result<Unit> {
         return runCatching {
-            accountRepository.importChainFromSeed(metaId, chainId, accountName, seed, substrateDerivationPath, selectedEncryptionType)
+            accountRepository.importChainFromSeed(
+                metaId,
+                chainId,
+                accountName,
+                seed,
+                substrateDerivationPath,
+                selectedEncryptionType
+            )
         }
     }
 
@@ -217,6 +226,9 @@ class AccountInteractorImpl(
 
     override suspend fun selectedMetaAccount() = accountRepository.getSelectedMetaAccount()
 
+    override suspend fun selectedLightMetaAccount() =
+        accountRepository.getSelectedLightMetaAccount()
+
     override fun lightMetaAccountsFlow(): Flow<List<LightMetaAccount>> {
         return accountRepository.lightMetaAccountsFlow()
     }
@@ -229,13 +241,14 @@ class AccountInteractorImpl(
         accountRepository.deleteAccount(metaId)
     }
 
-    override suspend fun updateAccountPositionsInNetwork(idsInNewOrder: List<Long>) = with(Dispatchers.Default) {
-        val ordering = idsInNewOrder.mapIndexed { index, id ->
-            MetaAccountOrdering(id, index)
-        }
+    override suspend fun updateAccountPositionsInNetwork(idsInNewOrder: List<Long>) =
+        with(Dispatchers.Default) {
+            val ordering = idsInNewOrder.mapIndexed { index, id ->
+                MetaAccountOrdering(id, index)
+            }
 
-        accountRepository.updateAccountsOrdering(ordering)
-    }
+            accountRepository.updateAccountsOrdering(ordering)
+        }
 
     override suspend fun processAccountJson(json: String): Result<ImportJsonData> {
         return runCatching {
@@ -255,29 +268,40 @@ class AccountInteractorImpl(
         return accountRepository.changeLanguage(language)
     }
 
-    override suspend fun generateRestoreJson(metaId: Long, chainId: ChainId, password: String) = runCatching {
-        accountRepository.generateRestoreJson(metaId, chainId, password)
-    }
+    override suspend fun generateRestoreJson(metaId: Long, chainId: ChainId, password: String) =
+        runCatching {
+            accountRepository.generateRestoreJson(metaId, chainId, password)
+        }
 
     override suspend fun getMetaAccount(metaId: Long) = accountRepository.getMetaAccount(metaId)
 
-    override suspend fun getMetaAccountSecrets(metaId: Long) = accountRepository.getMetaAccountSecrets(metaId)
+    override suspend fun getMetaAccountSecrets(metaId: Long) =
+        accountRepository.getMetaAccountSecrets(metaId)
 
-    override suspend fun getChainAccountSecrets(metaId: Long, chainId: ChainId) = accountRepository.getChainAccountSecrets(metaId, chainId)
+    override suspend fun getChainAccountSecrets(metaId: Long, chainId: ChainId) =
+        accountRepository.getChainAccountSecrets(metaId, chainId)
 
-    override fun polkadotAddressForSelectedAccountFlow() = accountRepository.polkadotAddressForSelectedAccountFlow()
+    override fun polkadotAddressForSelectedAccountFlow() =
+        accountRepository.polkadotAddressForSelectedAccountFlow()
 
-    override fun getMetaAccountsGoogleAddresses(): Flow<List<String>> = accountRepository.googleAddressAllWalletsFlow()
+    override fun getMetaAccountsGoogleAddresses(): Flow<List<String>> =
+        accountRepository.googleAddressAllWalletsFlow()
 
-    override suspend fun googleBackupAddressForWallet(walletId: Long) = accountRepository.googleBackupAddressForWallet(walletId)
+    override suspend fun googleBackupAddressForWallet(walletId: Long) =
+        accountRepository.googleBackupAddressForWallet(walletId)
 
-    override suspend fun isGoogleBackupSupported(walletId: Long) = accountRepository.isGoogleBackupSupported(walletId)
-    override suspend fun getSupportedBackupTypes(walletId: Long) = accountRepository.getSupportedBackupTypes(walletId)
+    override suspend fun isGoogleBackupSupported(walletId: Long) =
+        accountRepository.isGoogleBackupSupported(walletId)
+
+    override suspend fun getSupportedBackupTypes(walletId: Long) =
+        accountRepository.getSupportedBackupTypes(walletId)
+
     override suspend fun getChain(chainId: ChainId) = accountRepository.getChain(chainId)
 
-    override suspend fun createFileInTempStorageAndRetrieveAsset(fileName: String): Result<File> = runCatching {
-        fileProvider.getFileInExternalCacheStorage(fileName)
-    }
+    override suspend fun createFileInTempStorageAndRetrieveAsset(fileName: String): Result<File> =
+        runCatching {
+            fileProvider.getFileInExternalCacheStorage(fileName)
+        }
 
     override suspend fun updateAccountName(metaId: Long, name: String) {
         accountRepository.updateMetaAccountName(metaId, name)
@@ -289,5 +313,16 @@ class AccountInteractorImpl(
 
     override suspend fun updateWalletOnGoogleBackupDelete(metaId: Long) {
         accountRepository.updateWalletOnGoogleBackupDelete(metaId)
+    }
+
+    override suspend fun updateFavoriteChain(chainId: ChainId, isFavorite: Boolean, metaId: Long) {
+        accountRepository.updateFavoriteChain(metaId, chainId, isFavorite)
+    }
+
+    override fun observeSelectedMetaAccountFavoriteChains(): Flow<Map<ChainId, Boolean>> {
+        return accountRepository.selectedMetaAccountFlow()
+            .flatMapLatest {
+                accountRepository.observeFavoriteChains(it.id)
+            }.flowOn(Dispatchers.IO)
     }
 }

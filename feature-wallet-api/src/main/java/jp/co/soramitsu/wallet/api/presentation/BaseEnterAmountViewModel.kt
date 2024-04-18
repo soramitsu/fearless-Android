@@ -51,8 +51,7 @@ open class BaseEnterAmountViewModel(
         tokenImage = "",
         totalBalance = resourceManager.getString(balanceHintRes, "..."),
         fiatAmount = "",
-        tokenAmount = initialAmount.orZero(),
-        initial = initialAmount
+        tokenAmount = initialAmount.orZero()
     )
 
     private val defaultButtonState = ButtonViewState(
@@ -76,17 +75,18 @@ open class BaseEnterAmountViewModel(
 
     private val amountInputViewState: Flow<AmountInputViewState> = enteredAmountFlow.map { amount ->
         val tokenBalance = availableAmountForOperation(asset).formatCrypto(asset.token.configuration.symbol)
+        val tokenBalanceFiat = availableAmountForOperation(asset).applyFiatRate(asset.token.fiatRate)?.formatFiat(asset.token.fiatSymbol)
+        val balanceWithFiat = tokenBalance + tokenBalanceFiat?.let { " ($it)" }
         val fiatAmount = amount.applyFiatRate(asset.token.fiatRate)?.formatFiat(asset.token.fiatSymbol)
 
         AmountInputViewState(
             tokenName = asset.token.configuration.symbol,
             tokenImage = asset.token.configuration.iconUrl,
-            totalBalance = resourceManager.getString(balanceHintRes, tokenBalance),
+            totalBalance = resourceManager.getString(balanceHintRes, balanceWithFiat),
             fiatAmount = fiatAmount,
             tokenAmount = amount,
             isActive = isInputActive,
-            precision = asset.token.configuration.precision,
-            initial = initialAmount
+            precision = asset.token.configuration.precision
         )
     }.stateIn(this, SharingStarted.Eagerly, defaultAmountInputState)
 

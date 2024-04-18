@@ -1,6 +1,7 @@
 package jp.co.soramitsu.common.data.storage
 
 import android.content.SharedPreferences
+import jp.co.soramitsu.common.data.network.config.AppConfigRemote
 import jp.co.soramitsu.core.model.Language
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -115,6 +116,35 @@ class PreferencesImpl(
         }
     }
 
+    override fun stringSetFlow(
+        field: String,
+        initialValueProducer: InitialValueProducer<Set<String>>?
+    ): Flow<Set<String>> = callbackFlow {
+        if (contains(field)) {
+            send(getStringSet(field, emptySet()))
+        } else {
+            val initialValue = initialValueProducer?.invoke() ?: emptySet()
+
+            putStringSet(field, initialValue)
+
+            send(initialValue)
+        }
+
+        val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+            if (key == field) {
+                trySend(getStringSet(field, emptySet()))
+            }
+        }
+
+        listeners.add(listener)
+        sharedPreferences.registerOnSharedPreferenceChangeListener(listener)
+
+        awaitClose {
+            listeners.remove(listener)
+            sharedPreferences.unregisterOnSharedPreferenceChangeListener(listener)
+        }
+    }
+
     override fun intFlow(
         field: String,
         initialValue: Int
@@ -168,3 +198,14 @@ class PreferencesImpl(
         }
     }
 }
+
+var Preferences.appConfig: AppConfigRemote
+    get() {
+        val minSupportedVersion = getString("MIN_SUPPORTED_VERSION", "3.0.2")
+        val excludedVersions = getStringSet("EXCLUDED_VERSIONS", emptySet()).toList()
+        return AppConfigRemote(minSupportedVersion, excludedVersions)
+    }
+    set(value) {
+        putString("MIN_SUPPORTED_VERSION", value.minSupportedVersion)
+        putStringSet("EXCLUDED_VERSIONS", value.excludedVersions.orEmpty().toSet())
+    }

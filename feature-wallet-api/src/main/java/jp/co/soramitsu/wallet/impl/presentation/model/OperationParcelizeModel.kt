@@ -37,7 +37,6 @@ sealed class OperationParcelizeModel : Parcelable {
         val hash: String?,
         val isIncome: Boolean,
         val amount: String,
-        val total: String,
         val receiver: String,
         val sender: String,
         val fee: String,

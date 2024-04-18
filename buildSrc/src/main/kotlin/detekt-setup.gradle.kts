@@ -1,6 +1,5 @@
 import io.gitlab.arturbosch.detekt.Detekt
 import io.gitlab.arturbosch.detekt.DetektCreateBaselineTask
-import io.gitlab.arturbosch.detekt.DetektPlugin
 
 plugins {
     id("io.gitlab.arturbosch.detekt")
@@ -53,8 +52,8 @@ fun Detekt.setup(autoCorrect: Boolean) {
 }
 
 tasks.withType<Detekt>().configureEach {
-    jvmTarget = "1.8"
+    jvmTarget = "17"
 }
 tasks.withType<DetektCreateBaselineTask>().configureEach {
-    jvmTarget = "1.8"
+    jvmTarget = "17"
 }

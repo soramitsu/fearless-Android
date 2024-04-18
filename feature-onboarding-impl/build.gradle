@@ -17,25 +17,30 @@ android {
     }
 
     buildTypes {
-        release {
+        debug {
+            buildConfigField "String", "ONBOARDING_CONFIG", "\"https://raw.githubusercontent.com/soramitsu/shared-features-utils/develop-free/appConfigs/onboarding/mobile.json\""
+        }
 
+        release {
+            buildConfigField "String", "ONBOARDING_CONFIG", "\"https://raw.githubusercontent.com/soramitsu/shared-features-utils/develop-free/appConfigs/onboarding/mobile.json\""
         }
     }
 
     buildFeatures {
+        buildConfig = true
         viewBinding = true
         compose true
     }
 
     compileOptions {
-        sourceCompatibility 1.8
-        targetCompatibility 1.8
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
     kotlinOptions {
         freeCompilerArgs = ["-Xallow-result-return-type"]
 
-        jvmTarget = '1.8'
+        jvmTarget = '17'
     }
     composeOptions {
         kotlinCompilerExtensionVersion composeCompilerVersion
@@ -51,28 +56,31 @@ dependencies {
     implementation project(':feature-account-api')
     implementation project(':feature-wallet-api')
 
-    implementation kotlinDep
+    implementation libs.kotlin.stdlib.jdk7
 
-    implementation androidxCoreDep
-    implementation androidDep
-    implementation materialDep
-    implementation constraintDep
+    implementation libs.core.ktx
+    implementation libs.appcompat
+    implementation libs.material
+    implementation libs.constraintlayout
 
-    implementation fragmentKtxDep
+    implementation libs.fragmentKtx
 
-    implementation coroutinesDep
+    implementation libs.coroutines.core
 
-    implementation daggerDep
-    kapt daggerKapt
+    implementation libs.hilt.android
+    kapt libs.hilt.compiler
 
-    kapt lifecycleKapt
-    implementation gsonConvertedDep
+    kapt libs.lifecycle.compiler
+    implementation libs.converter.gson
 
-    implementation compose
-    debugImplementation composeDebug
+    implementation libs.bundles.compose
+    debugImplementation libs.bundles.composeDebug
 
-    testImplementation jUnitDep
-    testImplementation mockitoDep
+    testImplementation libs.junit
+    testImplementation libs.mockito.inline
 
-    implementation sharedFeaturesBackupDep
+    implementation libs.zxing.core
+    implementation libs.zxing.embedded
+
+    implementation libs.sharedFeaturesBackupDep
 }

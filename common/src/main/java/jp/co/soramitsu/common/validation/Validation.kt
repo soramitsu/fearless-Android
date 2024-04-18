@@ -11,11 +11,12 @@ interface Validation<T, S> {
 
 fun <S> validOrWarning(
     condition: Boolean,
+    level: DefaultFailureLevel = DefaultFailureLevel.WARNING,
     lazyReason: () -> S
 ): ValidationStatus<S> = if (condition) {
     ValidationStatus.Valid()
 } else {
-    ValidationStatus.NotValid(DefaultFailureLevel.WARNING, lazyReason())
+    ValidationStatus.NotValid(level, lazyReason())
 }
 
 fun <S> validOrError(

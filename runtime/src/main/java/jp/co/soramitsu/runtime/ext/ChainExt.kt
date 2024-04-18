@@ -75,7 +75,9 @@ private fun fakeEthereumAddress() = ByteArray(20)
 fun Chain.multiAddressOf(address: String): MultiAddress = multiAddressOf(accountIdOf(address))
 
 fun Chain.ecosystem() = when {
+    isTestNet -> ChainEcosystem.STANDALONE
     polkadotChainId in listOf(id, parentId) -> ChainEcosystem.POLKADOT
     kusamaChainId in listOf(id, parentId) -> ChainEcosystem.KUSAMA
+    isEthereumBased || isEthereumChain -> ChainEcosystem.ETHEREUM
     else -> ChainEcosystem.STANDALONE
 }

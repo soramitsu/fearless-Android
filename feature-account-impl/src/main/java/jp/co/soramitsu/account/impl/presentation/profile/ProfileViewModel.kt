@@ -101,8 +101,6 @@ class ProfileViewModel @Inject constructor(
         SoraCardItemViewState(kycStatus, true)
     }
 
-    val hideZeroBalancesState: Flow<Boolean> = walletInteractor.observeHideZeroBalanceEnabledForCurrentWallet()
-
     private var currentSoraCardContractData: SoraCardContractData? = null
 
     init {
@@ -169,7 +167,7 @@ class ProfileViewModel @Inject constructor(
     }
 
     fun polkaswapDisclaimerClicked() {
-        router.openPolkaswapDisclaimer()
+        router.openPolkaswapDisclaimerFromProfile()
     }
 
     fun onSoraCardClicked() {
@@ -209,12 +207,6 @@ class ProfileViewModel @Inject constructor(
         }
     }
 
-    fun onHideZeroBalancesClick() {
-        viewModelScope.launch {
-            walletInteractor.toggleHideZeroBalancesForCurrentWallet()
-        }
-    }
-
     fun handleSoraCardResult(soraCardResult: SoraCardResult) {
         when (soraCardResult) {
             is SoraCardResult.Canceled -> {}
@@ -251,5 +243,9 @@ class ProfileViewModel @Inject constructor(
                 }
             }
         }
+    }
+
+    fun onWalletConnectClick() {
+        router.openConnectionsScreen()
     }
 }

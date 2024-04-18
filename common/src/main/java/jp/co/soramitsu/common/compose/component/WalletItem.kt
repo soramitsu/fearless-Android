@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
@@ -99,22 +100,23 @@ fun WalletItem(
             Column(
                 horizontalAlignment = Alignment.Start
             ) {
-                if (state.balance != null || state.changeBalanceViewState != null) {
-                    B2(
-                        text = state.title,
-                        color = gray2
-                    )
+                B2(
+                    text = state.title,
+                    color = gray2
+                )
+                if (state.balance != null) {
                     H4(
                         text = state.assetSymbol.orEmpty() + state.balance.orEmpty()
                     )
-                    state.changeBalanceViewState?.let {
-                        ChangeBalance(state = it)
-                    }
                 } else {
-                    B1(
-                        text = state.title,
-                        color = gray2
-                    )
+                    MarginVertical(margin = 2.dp)
+                    ShimmerB0(modifier = Modifier.width(60.dp))
+                }
+                if (state.changeBalanceViewState != null) {
+                    ChangeBalance(state = state.changeBalanceViewState)
+                } else {
+                    MarginVertical(margin = 2.dp)
+                    ShimmerB2(modifier = Modifier.width(100.dp))
                 }
             }
             Spacer(modifier = Modifier.weight(1f))

@@ -4,8 +4,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -41,6 +39,7 @@ data class SwapDetailState(
     val toTokenName: String,
     val statusAppearance: SwapStatusAppearance,
     val address: String,
+    val addressName: String?,
     val hash: String,
     val fromTokenOnToToken: String,
     val liquidityProviderFee: String,
@@ -66,9 +65,7 @@ fun SwapPreviewContent(
 ) {
     Column(
         modifier = modifier
-            .fillMaxSize()
-            .navigationBarsPadding()
-            .imePadding(),
+            .fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Toolbar(
@@ -114,7 +111,8 @@ fun SwapPreviewContent(
                     ),
                     TitleValueViewState(
                         title = stringResource(R.string.polkaswap_from),
-                        value = state.address
+                        value = state.addressName ?: state.address,
+                        additionalValue = state.address.takeIf { state.addressName != null }
                     ),
                     TitleValueViewState(
                         title = stringResource(R.string.common_date),
@@ -179,6 +177,7 @@ fun SwapDetailContentPreview() {
             fromTokenOnToToken = "0",
             networkFee = "0.0007",
             address = "asdfqwaefgqwef2fr",
+            addressName = "Contact addressbook name",
             hash = "asdfqwaefgqwef2fr",
             statusAppearance = SwapStatusAppearance.COMPLETED,
             time = 1675834923575L,

@@ -7,6 +7,10 @@
 
     <include app:graph="@navigation/onboarding_nav_graph" />
 
+    <deepLink
+        app:action="android.intent.action.VIEW"
+        app:uri="fearless-wallet-wc://request" />
+
     <action
         android:id="@+id/action_to_onboardingNavGraph"
         app:destination="@id/onboarding_nav_graph"
@@ -86,14 +90,6 @@
         app:destination="@id/exportJsonPasswordFragment" />
 
     <action
-        android:id="@+id/action_open_walletExportFragment"
-        app:destination="@id/walletExportFragment"
-        app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
-        app:exitAnim="?android:attr/fragmentOpenExitAnimation"
-        app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
-        app:popExitAnim="?android:attr/fragmentCloseExitAnimation" />
-
-    <action
         android:id="@+id/action_open_accountsForExportFragment"
         app:destination="@id/accountsForExportFragment"
         app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
@@ -104,6 +100,14 @@
     <action
         android:id="@+id/action_mainFragment_to_balanceDetailFragment"
         app:destination="@id/balanceDetailFragment"
+        app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
+        app:exitAnim="?android:attr/fragmentOpenExitAnimation"
+        app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
+        app:popExitAnim="?android:attr/fragmentCloseExitAnimation" />
+
+    <action
+        android:id="@+id/action_mainFragment_to_assetDetailFragment"
+        app:destination="@id/assetDetailFragment"
         app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
         app:exitAnim="?android:attr/fragmentOpenExitAnimation"
         app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
@@ -283,12 +287,6 @@
         tools:layout="@layout/fragment_languages" />
 
     <fragment
-        android:id="@+id/walletExportFragment"
-        android:name="jp.co.soramitsu.account.impl.presentation.account.export.WalletExportFragment"
-        android:label="WalletExportFragment"
-        tools:layout="@layout/fragment_wallet_export" />
-
-    <fragment
         android:id="@+id/accountsForExportFragment"
         android:name="jp.co.soramitsu.account.impl.presentation.account.exportaccounts.AccountsForExportFragment"
         android:label="AccountsForExportFragment"
@@ -306,6 +304,16 @@
         android:id="@+id/balanceDetailFragment"
         android:name="jp.co.soramitsu.wallet.impl.presentation.balance.detail.BalanceDetailFragment"
         android:label="BalanceDetailFragment" />
+
+    <fragment
+        android:id="@+id/assetDetailFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.balance.assetDetails.AssetDetailsFragment"
+        android:label="AssetDetailFragment" />
+
+    <dialog
+        android:id="@+id/assetDetailSortFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.balance.assetDetails.sort.AssetDetailsSortFragment"
+        android:label="AssetDetailSortFragment" />
 
     <fragment
         android:id="@+id/transferDetailFragment"
@@ -685,6 +693,11 @@
         android:label="sendSetupFragment" />
 
     <dialog
+        android:id="@+id/cbdcSendSetupFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.send.setupcbdc.CBDCSendSetupFragment"
+        android:label="cbdcSendSetupFragment" />
+
+    <dialog
         android:id="@+id/crossChainFragment"
         android:name="jp.co.soramitsu.wallet.impl.presentation.cross_chain.setup.CrossChainSetupFragment"
         android:label="crossChainFragment" />
@@ -703,6 +716,41 @@
         android:id="@+id/chainSelectFragment"
         android:name="jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.ChainSelectFragment"
         android:label="chainSelectFragment" />
+
+   <dialog
+        android:id="@+id/requestPreviewFragment"
+        android:name="jp.co.soramitsu.walletconnect.impl.presentation.requestpreview.RequestPreviewFragment"
+        android:label="requestPreviewFragment" />
+
+   <dialog
+        android:id="@+id/rawDataFragment"
+        android:name="jp.co.soramitsu.walletconnect.impl.presentation.transactionrawdata.RawDataFragment"
+        android:label="rawDataFragment" />
+
+   <dialog
+        android:id="@+id/connectionInfoFragment"
+        android:name="jp.co.soramitsu.walletconnect.impl.presentation.connectioninfo.ConnectionInfoFragment"
+        android:label="connectionInfoFragment" />
+
+   <dialog
+        android:id="@+id/chainChooseFragment"
+        android:name="jp.co.soramitsu.walletconnect.impl.presentation.chainschooser.ChainChooseFragment"
+        android:label="chainChooseFragment" />
+
+   <dialog
+        android:id="@+id/connectionsFragment"
+        android:name="jp.co.soramitsu.walletconnect.impl.presentation.connections.ConnectionsFragment"
+        android:label="connectionsFragment" />
+
+    <dialog
+        android:id="@+id/sessionProposalFragment"
+        android:name="jp.co.soramitsu.walletconnect.impl.presentation.sessionproposal.SessionProposalFragment"
+        android:label="sessionProposalFragment"/>
+
+    <dialog
+        android:id="@+id/sessionRequestFragment"
+        android:name="jp.co.soramitsu.walletconnect.impl.presentation.sessionrequest.SessionRequestFragment"
+        android:label="sessionRequestFragment"/>
 
     <dialog
         android:id="@+id/swapTokensFragment"
@@ -731,6 +779,11 @@
         android:label="swapDetailFragment" />
 
     <dialog
+        android:id="@+id/claimRewardsFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.balance.detail.claimreward.ClaimRewardsFragment"
+        android:label="claimRewardsFragment" />
+
+    <dialog
         android:id="@+id/selectMarketFragment"
         android:name="jp.co.soramitsu.polkaswap.impl.presentation.select_market.SelectMarketFragment"
         android:label="selectMarketFragment" />
@@ -739,6 +792,31 @@
         android:id="@+id/assetSelectFragment"
         android:name="jp.co.soramitsu.wallet.impl.presentation.balance.assetselector.AssetSelectFragment"
         android:label="assetSelectFragment" />
+
+    <dialog
+        android:id="@+id/contactsFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.contacts.ContactsFragment"
+        android:label="contactsFragment" />
+
+    <dialog
+        android:id="@+id/nftFiltersFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.balance.nft.filters.NftFiltersFragment"
+        android:label="nftFiltersFragment" />
+
+    <dialog
+        android:id="@+id/serviceFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.balance.list.ServiceFragment"
+        android:label="serviceFragment" />
+
+    <dialog
+        android:id="@+id/nftFlowFragment"
+        android:name="jp.co.soramitsu.nft.impl.presentation.NFTFlowFragment"
+        android:label="nftFlowFragment" />
+
+    <dialog
+        android:id="@+id/manageAssetsFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.manageassets.ManageAssetsFragment"
+        android:label="manageAssetsFragment" />
 
     <action
         android:id="@+id/openStartChangeValidatorsFragment"
@@ -764,7 +842,7 @@
 
         <action
             android:id="@+id/action_startChangeValidatorsFragment_to_recommendedValidatorsFragment"
-            app:destination="@id/recommendedValidatorsFragment"
+            app:destination="@id/selectCustomValidatorsFragment"
             app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
             app:exitAnim="?android:attr/fragmentOpenExitAnimation"
             app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
@@ -825,9 +903,9 @@
 
     </fragment>
 
-    <fragment
+    <dialog
         android:id="@+id/selectCustomValidatorsFragment"
-        android:name="jp.co.soramitsu.staking.impl.presentation.validators.change.custom.select.SelectCustomValidatorsFragment"
+        android:name="jp.co.soramitsu.staking.impl.presentation.validators.change.custom.select.compose.SelectCustomValidatorsFragment"
         android:label="selectCustomValidatorsFragment"
         tools:layout="@layout/fragment_select_custom_validators">
 
@@ -854,7 +932,7 @@
             app:exitAnim="?android:attr/fragmentOpenExitAnimation"
             app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
             app:popExitAnim="?android:attr/fragmentCloseExitAnimation" />
-    </fragment>
+    </dialog>
 
     <fragment
         android:id="@+id/settingsCustomValidatorsFragment"
@@ -909,7 +987,7 @@
         app:popEnterAnim="?android:attr/fragmentOpenEnterAnimation"
         app:popExitAnim="?android:attr/fragmentOpenExitAnimation"
         app:popUpTo="@id/swapTokensFragment"
-        app:popUpToInclusive="true" />
+        app:popUpToInclusive="false" />
 
     <fragment
         android:id="@+id/confirmStakingFragment"

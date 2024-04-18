@@ -15,23 +15,43 @@ class SpendInsufficientBalanceException(resourceManager: ResourceManager) : Vali
     resourceManager.getString(R.string.choose_amount_error_too_big)
 )
 
-class ExistentialDepositCrossedException(resourceManager: ResourceManager) : ValidationWarning(
-    resourceManager.getString(R.string.common_existential_warning_title),
-    resourceManager.getString(R.string.common_existential_warning_message),
+class SubstrateBridgeMinimumAmountRequired(resourceManager: ResourceManager, amount: String) : ValidationException(
+    resourceManager.getString(R.string.common_warning),
+    resourceManager.getString(R.string.sora_bridge_low_amount_format_alert, amount)
+)
+
+class SubstrateBridgeAmountLessThenFeeException(resourceManager: ResourceManager, chainName: String) : ValidationWarning(
+    resourceManager.getString(R.string.common_warning),
+    resourceManager.getString(R.string.sora_bridge_amount_less_fee, chainName),
     resourceManager.getString(R.string.common_proceed),
-    resourceManager.getString(R.string.common_cancel)
+    resourceManager.getString(R.string.common_cancel),
+    null
+)
+
+class ExistentialDepositCrossedWarning(resourceManager: ResourceManager, edAmount: String) : ValidationWarning(
+    resourceManager.getString(R.string.common_existential_warning_title),
+    resourceManager.getString(R.string.common_existential_warning_message, edAmount),
+    resourceManager.getString(R.string.common_proceed),
+    resourceManager.getString(R.string.common_cancel),
+    resourceManager.getString(R.string.set_max_amount),
+)
+
+class ExistentialDepositCrossedException(resourceManager: ResourceManager, edAmount: String) : ValidationException(
+    resourceManager.getString(R.string.common_existential_warning_title),
+    resourceManager.getString(R.string.common_existential_error_message, edAmount)
 )
 
 class TransferToTheSameAddressException(resourceManager: ResourceManager) : ValidationWarning(
     resourceManager.getString(R.string.common_warning),
     resourceManager.getString(R.string.same_address_transfer_warning_message),
     resourceManager.getString(R.string.common_proceed),
-    resourceManager.getString(R.string.common_cancel)
+    resourceManager.getString(R.string.common_cancel),
+    null
 )
 
-class DeadRecipientException(resourceManager: ResourceManager) : ValidationException(
+class DeadRecipientException(resourceManager: ResourceManager, resultAmount: String, edAmount: String, topUpAmount: String) : ValidationException(
     resourceManager.getString(R.string.common_amount_low),
-    resourceManager.getString(R.string.wallet_send_dead_recipient_message)
+    resourceManager.getString(R.string.wallet_send_dead_recipient_message_v2, resultAmount, edAmount, topUpAmount)
 )
 
 class InsufficientStakeBalanceException(resourceManager: ResourceManager) : ValidationException(
@@ -77,4 +97,9 @@ class UnableToPayFeeException(resourceManager: ResourceManager) : ValidationExce
 class NotEnoughResultedAmountToPayFeeException(resourceManager: ResourceManager) : ValidationException(
     message = resourceManager.getString(R.string.polkaswap_not_enough_result_to_pay_fee_title),
     explanation = resourceManager.getString(R.string.polkaswap_not_enough_result_to_pay_fee_message)
+)
+
+class DeadRecipientEthereumException(resourceManager: ResourceManager) : ValidationException(
+    resourceManager.getString(R.string.common_warning),
+    resourceManager.getString(R.string.wallet_send_eth_dead_recipient_message)
 )

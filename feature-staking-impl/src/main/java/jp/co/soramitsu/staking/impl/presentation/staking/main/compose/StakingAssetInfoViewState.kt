@@ -15,7 +15,6 @@ sealed class StakingAssetInfoViewState {
         val minToCreate: TitleValueViewState,
         val existingPools: TitleValueViewState,
         val possiblePools: TitleValueViewState,
-        val maxMembersInPool: TitleValueViewState,
         val maxPoolsMembers: TitleValueViewState
     ) : StakingAssetInfoViewState() {
         companion object
@@ -49,7 +48,6 @@ fun StakingAssetInfoViewState.StakingPool.Companion.default(resourceManager: Res
     minToCreate = TitleValueViewState(resourceManager.getString(R.string.pool_staking_main_min_create_title), null),
     existingPools = TitleValueViewState(resourceManager.getString(R.string.pool_staking_main_existing_pools_title), null),
     possiblePools = TitleValueViewState(resourceManager.getString(R.string.pool_staking_main_possible_pools_title), null),
-    maxMembersInPool = TitleValueViewState(resourceManager.getString(R.string.pool_staking_main_max_members_inpool_title), null),
     maxPoolsMembers = TitleValueViewState(resourceManager.getString(R.string.pool_staking_main_max_pool_members_title), null)
 )
 
@@ -75,7 +73,6 @@ fun StakingAssetInfoViewState.StakingPool.update(state: StakingNetworkInfoModel.
         minToJoin = minToJoin.copy(value = state.minToJoin, additionalValue = state.minToJoinFiat),
         existingPools = existingPools.copy(value = state.existingPools),
         possiblePools = possiblePools.copy(value = state.possiblePools),
-        maxMembersInPool = maxMembersInPool.copy(value = state.maxMembersInPool),
         maxPoolsMembers = maxPoolsMembers.copy(value = state.maxPoolsMembers)
     )
 }

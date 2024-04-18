@@ -7,7 +7,9 @@ import androidx.room.PrimaryKey
 @Entity(tableName = "chains")
 class ChainLocal(
     @PrimaryKey val id: String,
+    val paraId: String?,
     val parentId: String?,
+    val rank: Int?,
     val name: String,
     val minSupportedVersion: String?,
     val icon: String,
@@ -17,7 +19,10 @@ class ChainLocal(
     val isEthereumBased: Boolean,
     val isTestNet: Boolean,
     val hasCrowdloans: Boolean,
-    val supportStakingPool: Boolean
+    val supportStakingPool: Boolean,
+    val isEthereumChain: Boolean,
+    val isChainlinkProvider: Boolean,
+    val supportNft: Boolean
 ) {
 
     class ExternalApi(

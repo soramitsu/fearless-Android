@@ -28,6 +28,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import java.math.BigDecimal
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.theme.black05
@@ -40,7 +41,6 @@ import jp.co.soramitsu.common.utils.MAX_DECIMALS_8
 import jp.co.soramitsu.common.utils.isZero
 import jp.co.soramitsu.ui_core.component.input.number.BasicNumberInput
 import jp.co.soramitsu.ui_core.theme.customTypography
-import java.math.BigDecimal
 
 data class AmountInputViewState(
     val tokenName: String? = null,
@@ -53,17 +53,25 @@ data class AmountInputViewState(
     val isFocused: Boolean = false,
     val allowAssetChoose: Boolean = false,
     val precision: Int = MAX_DECIMALS_8,
-    val initial: BigDecimal?
+    val inputEnabled: Boolean = true
 ) {
     companion object {
+        val defaultObj = AmountInputViewState(
+            tokenName = null,
+            tokenImage = null,
+            totalBalance = "0",
+            fiatAmount = "$0",
+            tokenAmount = BigDecimal.ZERO
+        )
+
+        @Deprecated("use defaultObj with copy")
         fun default(resourceManager: ResourceManager, @StringRes totalBalanceFormat: Int = R.string.common_balance_format): AmountInputViewState {
             return AmountInputViewState(
                 tokenName = null,
                 tokenImage = null,
                 totalBalance = resourceManager.getString(totalBalanceFormat, "0"),
                 fiatAmount = "$0",
-                tokenAmount = BigDecimal.ZERO,
-                initial = null
+                tokenAmount = BigDecimal.ZERO
             )
         }
     }
@@ -77,9 +85,10 @@ fun AmountInput(
     borderColor: Color = white24,
     borderColorFocused: Color = Color.Unspecified,
     focusRequester: FocusRequester? = null,
-    onInput: (BigDecimal?) -> Unit = {},
+    onInput: (BigDecimal) -> Unit = {},
     onInputFocusChange: (Boolean) -> Unit = {},
-    onTokenClick: () -> Unit = {}
+    onTokenClick: () -> Unit = {},
+    onKeyboardDone: () -> Unit = {}
 ) {
     val textColorState = when {
         state.tokenAmount.isZero() -> {
@@ -154,6 +163,7 @@ fun AmountInput(
                         )
                     }
                 }
+                val usePrecision = maxOf(state.precision, state.tokenAmount.precision())
                 BasicNumberInput(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -161,9 +171,9 @@ fun AmountInput(
                         .wrapContentHeight(),
                     onFocusChanged = onInputFocusChange,
                     textStyle = MaterialTheme.customTypography.displayS.copy(textAlign = TextAlign.End, color = textColorState),
-                    enabled = true,
-                    precision = state.precision,
-                    initial = state.initial,
+                    enabled = state.inputEnabled,
+                    precision = usePrecision,
+                    initial = state.tokenAmount,
                     onValueChanged = onInput,
                     focusRequester = focusRequester,
                     cursorColor = colorAccentDark,
@@ -177,7 +187,8 @@ fun AmountInput(
                             textAlign = TextAlign.End,
                             color = black2
                         )
-                    }
+                    },
+                    onKeyboardDone = onKeyboardDone
                 )
             }
             MarginVertical(margin = 4.dp)
@@ -220,8 +231,7 @@ private fun AmountInputPreview() {
         totalBalance = "Balance: 20.0",
         fiatAmount = "$120.0",
         tokenAmount = BigDecimal.ONE,
-        allowAssetChoose = true,
-        initial = null
+        allowAssetChoose = true
     )
     FearlessTheme {
         AmountInput(state)

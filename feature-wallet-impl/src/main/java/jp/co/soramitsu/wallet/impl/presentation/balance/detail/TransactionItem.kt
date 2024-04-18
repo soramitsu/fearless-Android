@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
@@ -21,10 +22,11 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import coil.compose.AsyncImage
 import jp.co.soramitsu.common.compose.component.B1
+import jp.co.soramitsu.common.compose.component.B1EllipsizeMiddle
 import jp.co.soramitsu.common.compose.component.B2
 import jp.co.soramitsu.common.compose.component.Image
 import jp.co.soramitsu.common.compose.component.getImageRequest
-import jp.co.soramitsu.common.utils.formatDateTime
+import jp.co.soramitsu.common.utils.formatTime
 import jp.co.soramitsu.wallet.impl.presentation.model.OperationModel
 import jp.co.soramitsu.wallet.impl.presentation.model.OperationStatusAppearance
 
@@ -58,20 +60,6 @@ fun TransactionItem(
                 }
             }
 
-            val headerModifier = if (item.type == OperationModel.Type.Transfer) {
-                Modifier.constrainAs(header) {
-                    top.linkTo(parent.top)
-                    start.linkTo(imageSpacer.end)
-                    end.linkTo(amount.start)
-                    width = Dimension.fillToConstraints
-                }
-            } else {
-                Modifier.constrainAs(header) {
-                    top.linkTo(parent.top)
-                    start.linkTo(imageSpacer.end)
-                }
-            }
-
             AsyncImage(
                 model = when (item.assetIconUrl) {
                     null -> item.operationIcon
@@ -93,13 +81,36 @@ fun TransactionItem(
                         start.linkTo(image.end)
                     }
             )
-            B1(
-                text = item.header,
-                textAlign = TextAlign.Start,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = headerModifier
-            )
+
+            if (item.type == OperationModel.Type.Transfer) {
+                val headerModifier = Modifier
+                    .constrainAs(header) {
+                        top.linkTo(parent.top)
+                        start.linkTo(imageSpacer.end)
+                        end.linkTo(amount.start)
+                        width = Dimension.fillToConstraints
+                    }
+                    .padding(end = 8.dp)
+                B1EllipsizeMiddle(
+                    text = item.header,
+                    modifier = headerModifier
+                )
+            } else {
+                val headerModifier = Modifier
+                    .constrainAs(header) {
+                        top.linkTo(parent.top)
+                        start.linkTo(imageSpacer.end)
+                    }
+                    .padding(end = 8.dp)
+                B1(
+                    text = item.header,
+                    textAlign = TextAlign.Start,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = headerModifier
+                )
+            }
+
             B1(
                 text = item.amount,
                 color = item.amountColor,
@@ -144,7 +155,7 @@ fun TransactionItem(
             )
 
             B2(
-                text = item.time.formatDateTime(LocalContext.current).toString(),
+                text = item.time.formatTime(),
                 textAlign = TextAlign.End,
                 maxLines = 1,
                 color = Color.White.copy(alpha = 0.64f),

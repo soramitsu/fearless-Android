@@ -8,6 +8,7 @@ import jp.co.soramitsu.account.api.domain.model.MetaAccountOrdering
 import jp.co.soramitsu.common.data.secrets.v1.SecretStoreV1
 import jp.co.soramitsu.core.model.Language
 import jp.co.soramitsu.core.models.CryptoType
+import jp.co.soramitsu.coredb.model.chain.FavoriteChainLocal
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.shared_utils.runtime.AccountId
 import kotlinx.coroutines.flow.Flow
@@ -57,4 +58,8 @@ interface AccountDataSource : SecretStoreV1 {
     suspend fun deleteMetaAccount(metaId: Long)
 
     fun observeAllMetaAccounts(): Flow<List<MetaAccount>>
+    fun selectedLightMetaAccount(): Flow<LightMetaAccount>
+    suspend fun getSelectedLightMetaAccount(): LightMetaAccount
+    suspend fun getLightMetaAccount(metaId: Long): LightMetaAccount
+    fun observeFavoriteChains(metaId: Long): Flow<List<FavoriteChainLocal>>
 }

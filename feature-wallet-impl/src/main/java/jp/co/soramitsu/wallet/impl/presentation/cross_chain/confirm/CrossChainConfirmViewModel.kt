@@ -16,7 +16,6 @@ import jp.co.soramitsu.common.base.errors.ValidationException
 import jp.co.soramitsu.common.base.errors.ValidationWarning
 import jp.co.soramitsu.common.compose.component.ButtonViewState
 import jp.co.soramitsu.common.compose.component.TitleValueViewState
-import jp.co.soramitsu.common.data.network.BlockExplorerUrlBuilder
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.combine
@@ -28,7 +27,7 @@ import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.feature_wallet_impl.R
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedAddressExplorers
 import jp.co.soramitsu.wallet.api.domain.TransferValidationResult
 import jp.co.soramitsu.wallet.api.domain.ValidateTransferUseCase
 import jp.co.soramitsu.wallet.api.domain.fromValidationResult
@@ -233,7 +232,7 @@ class CrossChainConfirmViewModel @Inject constructor(
     override fun copyRecipientAddressClicked() {
         launch {
             val chain = destinationNetworkFlow.value ?: return@launch
-            val supportedExplorers = chain.explorers.getSupportedExplorers(BlockExplorerUrlBuilder.Type.ACCOUNT, transferDraft.recipientAddress)
+            val supportedExplorers = chain.explorers.getSupportedAddressExplorers(transferDraft.recipientAddress)
             val externalActionsPayload = ExternalAccountActions.Payload(
                 value = transferDraft.recipientAddress,
                 chainId = chain.id,
@@ -259,11 +258,11 @@ class CrossChainConfirmViewModel @Inject constructor(
 
             val validationProcessResult = validateTransferUseCase.validateExistentialDeposit(
                 amountInPlanks = rawAmountInPlanks + destinationFeeInPlanks,
-                asset = asset,
+                originAsset = asset,
                 destinationChainId = destinationChain.id,
-                recipientAddress = recipientAddress,
-                ownAddress = selfAddress,
-                fee = originFee,
+                destinationAddress = recipientAddress,
+                originAddress = selfAddress,
+                originFee = originFee,
                 confirmedValidations = confirmedValidations
             )
 

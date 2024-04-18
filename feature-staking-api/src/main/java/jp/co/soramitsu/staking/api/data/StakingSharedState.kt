@@ -7,6 +7,7 @@ import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.reefChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraTestChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ternoaChainId
@@ -17,6 +18,7 @@ import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.Token
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -34,7 +36,7 @@ enum class StakingType {
 }
 
 enum class SyntheticStakingType {
-    DEFAULT, SORA, TERNOA
+    DEFAULT, SORA, TERNOA, REEF
 }
 
 fun CoreAsset.syntheticStakingType(): SyntheticStakingType {
@@ -43,6 +45,9 @@ fun CoreAsset.syntheticStakingType(): SyntheticStakingType {
                 staking == CoreAsset.StakingType.RELAYCHAIN -> SyntheticStakingType.SORA
 
         chainId == ternoaChainId && staking == CoreAsset.StakingType.RELAYCHAIN -> SyntheticStakingType.TERNOA
+
+        chainId == reefChainId && staking == CoreAsset.StakingType.RELAYCHAIN -> SyntheticStakingType.REEF
+
         else -> SyntheticStakingType.DEFAULT
     }
 }
@@ -61,6 +66,7 @@ class StakingSharedState(
         private const val DELIMITER = ":"
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     val selectionItem: Flow<StakingAssetSelection> = accountRepository.selectedMetaAccountFlow()
         .flatMapLatest {
             preferences.stringFlow(
@@ -70,11 +76,12 @@ class StakingSharedState(
 
                     encode(defaultAsset)
                 }
-            ).distinctUntilChanged()
+            )
         }
         .map { encoded ->
             encoded?.let { decode(it) }
         }
+        .distinctUntilChanged()
         .filterNotNull()
         .shareIn(scope, SharingStarted.Eagerly, replay = 1)
 
@@ -91,6 +98,7 @@ class StakingSharedState(
         SingleAssetSharedState.AssetWithChain(chain, asset)
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     fun currentAssetFlow() = combine(
         assetWithChain,
         accountRepository.selectedMetaAccountFlow()

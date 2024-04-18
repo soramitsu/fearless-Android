@@ -4,7 +4,10 @@ import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
 import jp.co.soramitsu.core.runtime.ConstructedRuntime
 import jp.co.soramitsu.core.runtime.RuntimeFactory
 import jp.co.soramitsu.coredb.dao.ChainDao
+import jp.co.soramitsu.runtime.multiNetwork.ChainState
+import jp.co.soramitsu.runtime.multiNetwork.ChainsStateTracker
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.reefChainId
 import jp.co.soramitsu.runtime.multiNetwork.toSyncIssue
 import jp.co.soramitsu.shared_utils.runtime.RuntimeSnapshot
 import kotlinx.coroutines.CoroutineScope
@@ -12,6 +15,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.first
@@ -49,6 +53,19 @@ class RuntimeProvider(
     suspend fun getOrNull(): RuntimeSnapshot? {
         return if (runtimeFlow.replayCache.isEmpty()) {
             null
+        } else {
+            runtimeFlow.first().runtime
+        }
+    }
+
+    suspend fun getOrNullWithTimeout(shouldWait: Boolean = true): RuntimeSnapshot? {
+        return if (runtimeFlow.replayCache.isEmpty()) {
+            if (shouldWait) {
+                delay(3000L)
+                getOrNullWithTimeout(false)
+            } else {
+                null
+            }
         } else {
             runtimeFlow.first().runtime
         }
@@ -103,7 +120,7 @@ class RuntimeProvider(
 
         currentConstructionJob = launch {
             invalidateRuntime()
-
+            ChainsStateTracker.updateState(chainId) { it.copy(runtimeConstruction = ChainState.Status.Started) }
             runCatching {
                 val runtimeVersion = chainDao.runtimeInfo(chainId)?.syncedVersion ?: return@launch
                 val metadataRaw = runCatching { runtimeFilesCache.getChainMetadata(chainId) }
@@ -112,15 +129,25 @@ class RuntimeProvider(
                     runCatching { chainDao.getTypes(chainId) ?: throw ChainInfoNotInCacheException }
                         .getOrElse { throw ChainInfoNotInCacheException }
 
-                val runtime =
+                val runtime = if (chainId == reefChainId) {
+                    val defaultTypes =
+                        runCatching {
+                            chainDao.getTypes("default") ?: throw ChainInfoNotInCacheException
+                        }
+                            .getOrElse { throw ChainInfoNotInCacheException }
+                    runtimeFactory.constructRuntimeV13(metadataRaw, ownTypesRaw, defaultTypes, runtimeVersion)
+                } else {
                     runtimeFactory.constructRuntime(metadataRaw, ownTypesRaw, runtimeVersion)
+                }
                 runtimeFlow.emit(runtime)
+                ChainsStateTracker.updateState(chainId) { it.copy(runtimeConstruction = ChainState.Status.Completed) }
                 networkStateMixin.notifyChainSyncSuccess(chainId)
-            }.onFailure {
+            }.onFailure { error ->
+                ChainsStateTracker.updateState(chainId) { it.copy(runtimeConstruction = ChainState.Status.Failed(error)) }
                 networkStateMixin.notifyChainSyncProblem(chain.toSyncIssue())
-                when (it) {
+                when (error) {
                     ChainInfoNotInCacheException -> runtimeSyncService.cacheNotFound(chainId)
-                    else -> it.printStackTrace()
+                    else -> error.printStackTrace()
                 }
             }
 

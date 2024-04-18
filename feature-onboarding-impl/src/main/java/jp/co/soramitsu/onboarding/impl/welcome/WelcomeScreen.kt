@@ -11,6 +11,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.paint
@@ -20,19 +22,24 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavGraphBuilder
+import androidx.navigation.compose.composable
 import jp.co.soramitsu.common.compose.component.AccentButton
 import jp.co.soramitsu.common.compose.component.GoogleButton
 import jp.co.soramitsu.common.compose.component.GrayButton
 import jp.co.soramitsu.common.compose.component.IconButton
 import jp.co.soramitsu.common.compose.component.Image
 import jp.co.soramitsu.common.compose.component.MarginVertical
+import jp.co.soramitsu.common.compose.component.TransparentBorderedButton
 import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
 import jp.co.soramitsu.common.compose.theme.colorAccentDark
 import jp.co.soramitsu.common.compose.theme.customTypography
 import jp.co.soramitsu.feature_onboarding_impl.R
+import kotlinx.coroutines.flow.StateFlow
 
 data class WelcomeState(
-    val isBackVisible: Boolean = false
+    val isBackVisible: Boolean = false,
+    val preinstalledFeatureEnabled: Boolean = false
 )
 
 interface WelcomeScreenInterface {
@@ -41,12 +48,28 @@ interface WelcomeScreenInterface {
     fun importAccountClicked()
     fun createAccountClicked()
     fun googleSigninClicked()
+    fun getPreInstalledWalletClicked()
     fun privacyClicked()
     fun termsClicked()
 }
 
+@Suppress("FunctionName")
+fun NavGraphBuilder.WelcomeScreen(
+    welcomeStateFlow: StateFlow<WelcomeState>,
+    callbacks: WelcomeScreenInterface
+) {
+    composable(WelcomeEvent.Onboarding.WelcomeScreen.route) {
+        val state by welcomeStateFlow.collectAsState()
+
+        WelcomeScreenContent(
+            state = state,
+            callbacks = callbacks
+        )
+    }
+}
+
 @Composable
-fun WelcomeScreen(
+private fun WelcomeScreenContent(
     state: WelcomeState,
     callbacks: WelcomeScreenInterface
 ) {
@@ -100,6 +123,16 @@ fun WelcomeScreen(
                 .padding(horizontal = 16.dp),
             onClick = callbacks::googleSigninClicked
         )
+        if (state.preinstalledFeatureEnabled) {
+            MarginVertical(margin = 8.dp)
+            TransparentBorderedButton(
+                iconRes = R.drawable.ic_common_receive,
+                text = stringResource(R.string.onboarding_preinstalled_wallet_button_text),
+                modifier = Modifier
+                    .padding(horizontal = 16.dp),
+                onClick = callbacks::getPreInstalledWalletClicked
+            )
+        }
         MarginVertical(margin = 68.dp)
 
         Text(
@@ -135,13 +168,14 @@ fun WelcomeScreen(
 @Preview
 private fun WelcomeScreenPreview() {
     FearlessAppTheme {
-        WelcomeScreen(
+        WelcomeScreenContent(
             state = WelcomeState(isBackVisible = true),
             callbacks = object : WelcomeScreenInterface {
                 override fun backClicked() {}
                 override fun importAccountClicked() {}
                 override fun createAccountClicked() {}
                 override fun googleSigninClicked() {}
+                override fun getPreInstalledWalletClicked() {}
                 override fun privacyClicked() {}
                 override fun termsClicked() {}
             }

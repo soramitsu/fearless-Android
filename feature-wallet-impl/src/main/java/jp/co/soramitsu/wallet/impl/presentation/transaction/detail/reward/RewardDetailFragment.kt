@@ -93,7 +93,7 @@ class RewardDetailFragment : BaseFragment<RewardDetailViewModel>(R.layout.fragme
     private fun showExternalAddressActions(address: String) = showExternalActionsSheet(
         copyLabelRes = R.string.common_copy_address,
         value = address,
-        explorers = viewModel.getSupportedExplorers(BlockExplorerUrlBuilder.Type.ACCOUNT, address),
+        explorers = viewModel.getSupportedAddressExplorers(address),
         externalViewCallback = viewModel::openUrl
     )
 

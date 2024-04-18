@@ -20,33 +20,32 @@ android {
 
     kotlinOptions {
         freeCompilerArgs = ["-Xallow-result-return-type"]
-        jvmTarget = '1.8'
+        jvmTarget = '17'
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     namespace 'jp.co.soramitsu.feature_wallet_api'
 }
 
 dependencies {
-    implementation coroutinesDep
+    implementation libs.coroutines.core
     implementation project(':runtime')
     implementation project(':feature-account-api')
     implementation project(":common")
 
-    implementation androidDep
-    implementation materialDep
+    implementation libs.appcompat
+    implementation libs.material
 
-    implementation daggerDep
+    implementation libs.hilt.android
 
-    implementation androidDep
-    implementation constraintDep
+    implementation libs.constraintlayout
 
-    implementation viewModelKtxDep
+    implementation libs.lifecycle.viewmodel.ktx
 
-    implementation compose
-    debugImplementation composeDebug
+    implementation libs.bundles.compose
+    debugImplementation libs.bundles.composeDebug
 
     implementation jnaDep
     implementation beaconDep, withoutJna

@@ -5,7 +5,6 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import javax.inject.Singleton
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.soracard.api.domain.BuyCryptoDataSource
 import jp.co.soramitsu.soracard.api.domain.BuyCryptoRepository
@@ -16,8 +15,9 @@ import jp.co.soramitsu.soracard.impl.domain.BuyCryptoDataSourceImpl
 import jp.co.soramitsu.soracard.impl.domain.BuyCryptoRepositoryImpl
 import jp.co.soramitsu.soracard.impl.domain.SoraCardInteractorImpl
 import jp.co.soramitsu.soracard.impl.domain.SoraCardRepositoryImpl
-import jp.co.soramitsu.xnetworking.networkclient.SoramitsuHttpClientProvider
-import jp.co.soramitsu.xnetworking.networkclient.SoramitsuHttpClientProviderImpl
+import jp.co.soramitsu.xnetworking.basic.networkclient.SoramitsuHttpClientProvider
+import jp.co.soramitsu.xnetworking.basic.networkclient.SoramitsuHttpClientProviderImpl
+import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
 @Module

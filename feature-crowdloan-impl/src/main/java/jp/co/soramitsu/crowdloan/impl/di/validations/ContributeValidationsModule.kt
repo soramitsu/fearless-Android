@@ -7,6 +7,7 @@ import dagger.hilt.components.SingletonComponent
 import dagger.multibindings.IntoSet
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.validation.CompositeValidation
+import jp.co.soramitsu.common.validation.DefaultFailureLevel
 import jp.co.soramitsu.core.extrinsic.mortality.IChainStateRepository
 import jp.co.soramitsu.crowdloan.api.data.repository.CrowdloanRepository
 import jp.co.soramitsu.crowdloan.impl.domain.contribute.validations.CapExceededValidation
@@ -60,7 +61,8 @@ class ContributeValidationsModule {
         feeProducer = { it.fee },
         extraAmountProducer = { it.contributionAmount },
         tokenProducer = { it.asset.token },
-        errorProducer = { ContributeValidationFailure.ExistentialDepositCrossed }
+        errorProducer = { ContributeValidationFailure.ExistentialDepositCrossed(it) },
+        warningLevel = DefaultFailureLevel.ERROR
     )
 
     @Provides

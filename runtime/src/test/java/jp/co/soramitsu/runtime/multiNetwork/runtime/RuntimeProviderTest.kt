@@ -1,5 +1,6 @@
 package jp.co.soramitsu.runtime.multiNetwork.runtime
 
+import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
 import jp.co.soramitsu.core.runtime.ConstructedRuntime
 import jp.co.soramitsu.core.runtime.RuntimeFactory
 import jp.co.soramitsu.coredb.dao.ChainDao
@@ -47,6 +48,9 @@ class RuntimeProviderTest {
 
     @Mock
     lateinit var chainDao: ChainDao
+
+    @Mock
+    lateinit var networkStateMixin: NetworkStateMixin
 
     lateinit var runtimeProvider: RuntimeProvider
 
