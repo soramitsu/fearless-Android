@@ -8,6 +8,12 @@ import jp.co.soramitsu.coredb.model.chain.ChainLocal
 import jp.co.soramitsu.shared_utils.runtime.AccountId
 import java.math.BigInteger
 
+/*** This table is used for storing assets in database.
+ *  freeInPlanks - has three states:
+ *  null - loading is in progress
+ *  -1 - error
+ *  0 or positive number - free amount
+ */
 @Entity(
     tableName = "assets",
     primaryKeys = ["id", "chainId", "accountId", "metaId"],
@@ -42,17 +48,17 @@ data class AssetLocal(
     companion object {
         fun createEmpty(
             accountId: AccountId,
-            assetId: String,
+            id: String,
             chainId: String,
             metaId: Long,
-            priceId: String?,
+            tokenPriceId: String?,
             enabled: Boolean? = null
         ) = AssetLocal(
-            id = assetId,
+            id = id,
             chainId = chainId,
             accountId = accountId,
             metaId = metaId,
-            tokenPriceId = priceId,
+            tokenPriceId = tokenPriceId,
             enabled = enabled
         )
     }

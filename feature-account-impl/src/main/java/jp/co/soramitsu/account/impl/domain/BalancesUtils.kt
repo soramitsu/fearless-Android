@@ -23,6 +23,7 @@ import jp.co.soramitsu.wallet.api.data.cache.bindAssetsAccountData
 import jp.co.soramitsu.wallet.api.data.cache.bindEquilibriumAccountData
 import jp.co.soramitsu.wallet.api.data.cache.bindOrmlTokensAccountDataOrDefault
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 import org.web3j.abi.FunctionEncoder
 import org.web3j.abi.datatypes.Address
 import org.web3j.abi.datatypes.Function
@@ -44,33 +45,53 @@ fun buildStorageKeys(
 
 fun buildStorageKeys(
     chain: Chain,
-    runtime: RuntimeSnapshot,
+    runtime: RuntimeSnapshot?,
     metaAccountId: Long,
     accountId: ByteArray
 ): List<StorageKeyWithMetadata> {
     if (chain.utilityAsset != null && chain.utilityAsset?.typeExtra == ChainAssetType.Equilibrium) {
-        val equilibriumStorageKeys = listOf(
-            constructBalanceKey(
+        return listOf(buildEquilibriumStorageKeys(chain, runtime, metaAccountId, accountId))
+    }
+
+    return buildSubstrateStorageKeys(chain, runtime, metaAccountId, accountId)
+}
+
+fun buildSubstrateStorageKeys(chain: Chain,
+                              runtime: RuntimeSnapshot?,
+                              metaAccountId: Long,
+                              accountId: ByteArray): List<StorageKeyWithMetadata>{
+    return chain.assets.map { asset ->
+        StorageKeyWithMetadata(
+            asset, metaAccountId, accountId,
+            runtime?.let { constructBalanceKey(it, asset, accountId) }
+        )
+    }
+}
+
+fun buildEquilibriumStorageKeys(
+    chain: Chain,
+    runtime: RuntimeSnapshot?,
+    metaAccountId: Long,
+    accountId: ByteArray
+): StorageKeyWithMetadata {
+    val metadata = StorageKeyWithMetadata(
+        requireNotNull(chain.utilityAsset),
+        metaAccountId,
+        accountId,
+        null
+    )
+
+    return if (runtime == null) {
+        metadata
+    } else {
+        metadata.copy(
+            key = constructBalanceKey(
                 runtime,
                 requireNotNull(chain.utilityAsset),
                 accountId
-            ).let {
-                StorageKeyWithMetadata(
-                    requireNotNull(chain.utilityAsset),
-                    metaAccountId,
-                    accountId,
-                    it
-                )
-            })
-        return equilibriumStorageKeys
-    }
-
-    val storageKeys = chain.assets.map { asset ->
-        StorageKeyWithMetadata(asset, metaAccountId, accountId,
-            constructBalanceKey(runtime, asset, accountId)
+            )
         )
     }
-    return storageKeys
 }
 
 data class StorageKeyWithMetadata(
@@ -192,32 +213,33 @@ fun handleBalanceResponse(
 }
 
 suspend fun Ethereum.fetchEthBalance(asset: Asset, address: String): BigInteger {
-    return if (asset.isUtility) {
-        withContext(kotlinx.coroutines.Dispatchers.IO) {
-            ethGetBalance(
-                address,
-                DefaultBlockParameterName.LATEST
-            ).send().balance
-        }
-    } else {
-        val erc20GetBalanceFunction = Function(
-            "balanceOf",
-            listOf(Address(address)),
-            emptyList()
-        )
+    return withTimeout(3000L) {
+        if (asset.isUtility) {
+            withContext(kotlinx.coroutines.Dispatchers.IO) {
+                ethGetBalance(
+                    address,
+                    DefaultBlockParameterName.LATEST
+                ).send().balance
+            }
+        } else {
+            val erc20GetBalanceFunction = Function(
+                "balanceOf",
+                listOf(Address(address)),
+                emptyList()
+            )
 
-        val erc20BalanceWei = withContext(kotlinx.coroutines.Dispatchers.IO) {
-            ethCall(
-                Transaction.createEthCallTransaction(
-                    null,
-                    asset.id,
-                    FunctionEncoder.encode(erc20GetBalanceFunction)
-                ),
-                DefaultBlockParameterName.LATEST
-            ).send().value
-        }
+            val erc20BalanceWei = withContext(kotlinx.coroutines.Dispatchers.IO) {
+                ethCall(
+                    Transaction.createEthCallTransaction(
+                        null,
+                        asset.id,
+                        FunctionEncoder.encode(erc20GetBalanceFunction)
+                    ),
+                    DefaultBlockParameterName.LATEST
+                ).send().value
+            }
 
-        Numeric.decodeQuantity(erc20BalanceWei)
+            Numeric.decodeQuantity(erc20BalanceWei)
+        }
     }
 }
-

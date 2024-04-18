@@ -57,9 +57,6 @@ interface MetaAccountDao {
     @Query("UPDATE meta_accounts SET isSelected = (id = :metaId)")
     suspend fun selectMetaAccount(metaId: Long)
 
-    @Query("UPDATE meta_accounts SET initialized = 1 WHERE id in (:ids)")
-    suspend fun markAccountsInitialized(ids: List<Long>)
-
     @Update(entity = MetaAccountLocal::class)
     suspend fun updatePositions(updates: List<MetaAccountPositionUpdate>)
 
@@ -121,6 +118,9 @@ interface MetaAccountDao {
 
     @Query("SELECT * FROM favorite_chains WHERE metaId = :metaId")
     fun observeFavoriteChains(metaId: Long): Flow<List<FavoriteChainLocal>>
+
+    @Query("UPDATE meta_accounts SET initialized = 1 WHERE id in (:ids)")
+    suspend fun markAccountsInitialized(ids: List<Long>) :Int
 
     @Query("SELECT * FROM meta_accounts WHERE initialized = 0")
     @Transaction
