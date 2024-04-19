@@ -47,8 +47,8 @@ dependencies {
     implementation libs.bundles.compose
     debugImplementation libs.bundles.composeDebug
 
-    implementation jnaDep
-    implementation beaconDep, withoutJna
+    implementation libs.jna
+    implementation libs.beacon.android.sdk, withoutJna
 
     api project(':core-api')
     api project(':core-db')

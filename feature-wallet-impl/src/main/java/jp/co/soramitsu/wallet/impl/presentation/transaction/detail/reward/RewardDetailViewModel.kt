@@ -17,7 +17,7 @@ import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
-import jp.co.soramitsu.wallet.api.presentation.WalletRouter
+import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.presentation.model.RewardDetailsPayload
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.reward.RewardDetailFragment.Companion.KEY_PAYLOAD
 import kotlinx.coroutines.flow.flow

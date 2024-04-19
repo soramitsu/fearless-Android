@@ -329,7 +329,7 @@ private fun PreviewWalletScreen() {
                         ChangeBalanceViewState("+100%", "+50$")
                     ),
                     hasNetworkIssues = true,
-                    soraCardState = SoraCardItemViewState(null, null, null, true),
+                    soraCardState = SoraCardItemViewState(null, true),
                     isBackedUp = false,
                     scrollToTopEvent = null,
                     scrollToBottomEvent = null

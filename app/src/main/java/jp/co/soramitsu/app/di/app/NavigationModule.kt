@@ -16,7 +16,8 @@ import jp.co.soramitsu.soracard.api.presentation.SoraCardRouter
 import jp.co.soramitsu.splash.SplashRouter
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
 import jp.co.soramitsu.success.presentation.SuccessRouter
-import jp.co.soramitsu.wallet.api.presentation.WalletRouter
+import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
+import jp.co.soramitsu.wallet.api.presentation.WalletRouter as WalletRouterApi
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -40,7 +41,11 @@ class NavigationModule {
 
     @Singleton
     @Provides
-    fun provideWalletRouter(navigator: Navigator): WalletRouter = navigator
+    fun provideWalletRouterApi(navigator: Navigator): WalletRouterApi = navigator
+
+    @Singleton
+    @Provides
+    fun provideWalletRouterImpl(navigator: Navigator): WalletRouter = navigator
 
     @Singleton
     @Provides

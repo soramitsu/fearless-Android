@@ -15,7 +15,9 @@ fun createSoraCardBasicContract() = SoraCardBasicContractData(
     environment = when {
         BuildConfig.DEBUG -> SoraCardEnvironmentType.TEST
         else -> SoraCardEnvironmentType.PRODUCTION
-    }
+    },
+    platform = BuildConfig.SORA_CARD_PLATFORM,
+    recaptcha = BuildConfig.SORA_CARD_RECAPTCHA
 )
 
 fun createSoraCardContract(

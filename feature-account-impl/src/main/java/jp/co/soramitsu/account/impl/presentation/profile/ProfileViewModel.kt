@@ -37,7 +37,6 @@ import jp.co.soramitsu.soracard.impl.presentation.createSoraCardContract
 import jp.co.soramitsu.wallet.api.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.presentation.model.AssetPayload
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.firstOrNull
@@ -201,7 +200,7 @@ class ProfileViewModel @Inject constructor(
                 resourceManager.getString(SoraCardR.string.verification_failed_title)
             }
 
-            SoraCardCommonVerification.NotFound -> {
+            else -> {
                 null
             }
         }

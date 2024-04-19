@@ -37,6 +37,8 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
 import jp.co.soramitsu.common.config.BuildConfigWrapper
+import jp.co.soramitsu.oauth.base.sdk.contract.IbanInfo
+import jp.co.soramitsu.oauth.base.sdk.contract.SoraCardCommonVerification
 import jp.co.soramitsu.oauth.clients.ClientsFacade
 import jp.co.soramitsu.soracard.impl.presentation.createSoraCardBasicContract
 
@@ -45,17 +47,30 @@ internal class SoraCardClientProxy @Inject constructor(
     @ApplicationContext private val context: Context,
     private val clientsFacade: ClientsFacade,
 ) {
-    init {
-        clientsFacade.init(
-            createSoraCardBasicContract(),
-            context,
-            BuildConfigWrapper.soraCardBackEndUrl,
-        )
+
+    suspend fun init() = clientsFacade.init(
+        createSoraCardBasicContract(),
+        context,
+        BuildConfigWrapper.soraCardBackEndUrl,
+    )
+
+    suspend fun getKycStatus(): Result<SoraCardCommonVerification> {
+        return clientsFacade.getKycStatus()
     }
 
-    suspend fun getKycStatus() = clientsFacade.getKycStatus()
+    suspend fun getApplicationFee(): String {
+        return clientsFacade.getApplicationFee()
+    }
 
-    suspend fun getIBAN() = clientsFacade.getIBAN()
+    suspend fun getVersion(): Result<String> {
+        return clientsFacade.getSoraSupportVersion()
+    }
 
-    suspend fun logout() = clientsFacade.logout()
+    suspend fun getIBAN(): Result<IbanInfo?> {
+        return clientsFacade.getIBAN()
+    }
+
+    suspend fun logout() {
+        clientsFacade.logout()
+    }
 }

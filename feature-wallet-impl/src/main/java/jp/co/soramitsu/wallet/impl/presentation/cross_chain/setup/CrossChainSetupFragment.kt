@@ -24,7 +24,7 @@ import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
 import jp.co.soramitsu.common.presentation.ErrorDialog
 import jp.co.soramitsu.common.scan.ScanTextContract
 import jp.co.soramitsu.common.scan.ScannerActivity
-import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
+import jp.co.soramitsu.wallet.impl.presentation.model.AssetPayload
 import jp.co.soramitsu.common.presentation.askPermissionsSafely
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach

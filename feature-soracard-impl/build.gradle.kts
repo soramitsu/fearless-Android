@@ -53,10 +53,11 @@ dependencies {
     implementation(libs.xnetworking.sorawallet, withoutBasic)
 
     implementation(libs.sora.ui)
+    implementation(libs.sora.card)
 
     implementation(projects.common)
     implementation(projects.runtime)
     implementation(projects.featureWalletApi)
-    implementation(projects.featureAccountApi) //todo check neediness
+    implementation(projects.featureAccountApi)
     implementation(projects.featureSoracardApi)
 }

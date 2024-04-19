@@ -128,7 +128,7 @@ dependencies {
     implementation libs.jna
     implementation libs.beacon.android.sdk, withoutJna
 
-    implementation soraCardDep
+    api libs.sora.card
 
     implementation libs.shimmer
 

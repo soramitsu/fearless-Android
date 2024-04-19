@@ -16,7 +16,7 @@ import jp.co.soramitsu.common.utils.formatCryptoDetail
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import jp.co.soramitsu.wallet.api.data.mappers.mapFeeToFeeModel
-import jp.co.soramitsu.wallet.api.presentation.WalletRouter
+import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import jp.co.soramitsu.wallet.api.presentation.mixin.fee.FeeStatus
 import jp.co.soramitsu.wallet.api.presentation.model.AmountModel
 import jp.co.soramitsu.wallet.api.presentation.model.mapAmountToAmountModel

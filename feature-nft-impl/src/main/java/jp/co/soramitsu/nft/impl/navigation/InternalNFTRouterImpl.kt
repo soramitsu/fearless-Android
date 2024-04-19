@@ -1,15 +1,16 @@
 package jp.co.soramitsu.nft.impl.navigation
 
+import android.os.Build.VERSION
 import jp.co.soramitsu.nft.domain.models.NFT
 import jp.co.soramitsu.nft.navigation.NFTNavGraphRoute
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
-import jp.co.soramitsu.wallet.impl.presentation.balance.walletselector.light.WalletSelectionMode
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.onEach
 import java.util.Stack
+import jp.co.soramitsu.wallet.impl.presentation.model.WalletSelectionMode
 
 class InternalNFTRouterImpl(
     private val walletRouter: WalletRouter

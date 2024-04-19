@@ -38,15 +38,13 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraTestChainId
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.updaters.BalanceUpdateTrigger
-import jp.co.soramitsu.wallet.api.presentation.WalletRouter
-import jp.co.soramitsu.wallet.impl.data.mappers.mapAssetToAssetModel
+import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.domain.ChainInteractor
 import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.presentation.balance.assetActions.buy.BuyMixin
 import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.toChainItemState
-import jp.co.soramitsu.wallet.impl.presentation.model.AssetModel
 import jp.co.soramitsu.wallet.impl.presentation.model.AssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.model.FrozenAssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.model.OperationModel
@@ -276,8 +274,6 @@ class BalanceDetailViewModel @Inject constructor(
                         it.message
                             ?: resourceManager.getString(R.string.common_undefined_error_message)
                     )
-
-                    else -> {}
                 }
             }
         }

@@ -44,7 +44,6 @@ import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomShe
 import jp.co.soramitsu.feature_wallet_impl.BuildConfig
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.oauth.base.sdk.contract.SoraCardContract
-import jp.co.soramitsu.wallet.impl.presentation.common.askPermissionsSafely
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
