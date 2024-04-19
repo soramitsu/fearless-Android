@@ -1,6 +1,6 @@
 package jp.co.soramitsu.common.compose.component
 
-import android.os.Build.VERSION.SDK_INT
+import android.os.Build
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
@@ -21,7 +21,7 @@ fun GifImage(
     val context = LocalContext.current
     val imageLoader = ImageLoader.Builder(context)
         .components {
-            if (SDK_INT >= 28) {
+            if (Build.VERSION.SDK_INT >= 28) {
                 add(ImageDecoderDecoder.Factory())
             } else {
                 add(GifDecoder.Factory())

@@ -56,14 +56,5 @@ fun SubsquidRewardResponse.Reward.toUnbonding(): Unbonding {
 }
 
 private fun parseTimeToMillis(timestamp: String): Long {
-    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-        Instant.parse(timestamp).toEpochMilli()
-    } else {
-        try {
-            val subsquidDateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSSSSX", Locale.getDefault())
-            subsquidDateFormat.parse(timestamp)?.time ?: 0
-        } catch (e: Exception) {
-            0
-        }
-    }
+    return Instant.parse(timestamp).toEpochMilli()
 }
