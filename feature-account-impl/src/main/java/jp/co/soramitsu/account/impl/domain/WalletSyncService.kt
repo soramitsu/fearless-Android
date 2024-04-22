@@ -81,7 +81,6 @@ class WalletSyncService(
                         }
 
                     supervisorScope {
-
                         launch {
                             ethereumChains.forEach { chain ->
                                 launch {
@@ -154,6 +153,9 @@ class WalletSyncService(
                                         if (isEquilibriumTypeChain) {
                                             buildEquilibriumAssets(metaAccounts, chain, runtime)
                                         } else {
+                                            if(chain.id == "afdc188f45c71dacbaa0b62e16a91f726c7b8699a9748cdf715459de6b7f366d"){
+                                                Log.d("&&&", "hydra dx chain assets: ${chain.assets}")
+                                            }
                                             val allAccountsStorageKeys =
                                                 metaAccounts.mapNotNull { metaAccount ->
                                                     val accountId =
@@ -165,12 +167,14 @@ class WalletSyncService(
                                                         metaAccount.id,
                                                         accountId
                                                     )
-                                                }.flatten().associateBy { it.key }
-
+                                                }.flatten()
+                                            if(chain.id == "afdc188f45c71dacbaa0b62e16a91f726c7b8699a9748cdf715459de6b7f366d"){
+                                                Log.d("&&&", "hydra dx storage keys: ${allAccountsStorageKeys}")
+                                            }
                                             val keysToQuery =
-                                                allAccountsStorageKeys.mapNotNull { (storageKey, metadata) ->
+                                                allAccountsStorageKeys.mapNotNull { metadata ->
                                                     // if storage key build is failed - we put the empty assets
-                                                    if (storageKey == null) {
+                                                    if (metadata.key == null) {
                                                         emptyAssets.add(
                                                             AssetLocal(
                                                                 accountId = metadata.accountId,
@@ -183,19 +187,24 @@ class WalletSyncService(
                                                             )
                                                         )
                                                     }
-                                                    storageKey
+                                                    metadata.key
                                                 }.toList()
+                                            if(chain.id == "afdc188f45c71dacbaa0b62e16a91f726c7b8699a9748cdf715459de6b7f366d"){
+                                                Log.d("&&&", "hydra dx keysToQuery: ${keysToQuery}")
+                                            }
 
                                             val storageKeyToResult = remoteStorageSource.queryKeys(
                                                 keysToQuery,
                                                 chain.id,
                                                 null
                                             )
-
-                                            allAccountsStorageKeys.map { (storageKey, metadata) ->
+                                            if(chain.id == "afdc188f45c71dacbaa0b62e16a91f726c7b8699a9748cdf715459de6b7f366d"){
+                                                Log.d("&&&", "hydra dx storageKeyToResult: ${keysToQuery}")
+                                            }
+                                            allAccountsStorageKeys.map { metadata ->
                                                 val hexRaw =
                                                     storageKeyToResult.getOrDefault(
-                                                        storageKey,
+                                                        metadata.key,
                                                         null
                                                     )
 

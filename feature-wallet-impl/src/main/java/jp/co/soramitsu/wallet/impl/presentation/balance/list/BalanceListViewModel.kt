@@ -211,7 +211,7 @@ class BalanceListViewModel @Inject constructor(
 
         val shouldShowNetworkIssues =
             selectedChainId == null && (networkIssues.isNotEmpty() || assets.any { it.hasAccount.not() })
-        showNetworkIssues.value = shouldShowNetworkIssues
+        showNetworkIssues.value = false
 
         val selectedAccountFavoriteChains = currentMetaAccountFlow.favoriteChains
 
@@ -263,7 +263,7 @@ class BalanceListViewModel @Inject constructor(
             }
 
         assetStates
-    }//.onStart { emit(buildInitialAssetsList().toMutableList()) }
+    }.onStart { emit(buildInitialAssetsList().toMutableList()) }
         .inBackground().share()
 
     @OptIn(FlowPreview::class)
@@ -368,6 +368,9 @@ class BalanceListViewModel @Inject constructor(
     ) { selectedChainId, selectorState, assetStates, filters, (pageViews, screenLayout) ->
         when (selectorState.currentSelection) {
             AssetType.Currencies -> {
+                if(selectedChainId != null && assetStates.isEmpty()){
+
+                }
                 WalletAssetsState.Assets(
                     assets = assetStates,
                     isHideVisible = selectedChainId != null

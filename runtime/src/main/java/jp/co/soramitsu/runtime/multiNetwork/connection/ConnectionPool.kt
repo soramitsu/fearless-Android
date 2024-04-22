@@ -152,7 +152,7 @@ class ConnectionPool @Inject constructor(
                         is SocketStateMachine.State.Paused -> ChainState.ConnectionStatus.Paused(connectionState.url)
                         is SocketStateMachine.State.WaitingForReconnect -> ChainState.ConnectionStatus.Connecting(connectionState.url)
                     }
-                    ChainsStateTracker.updateState(chain){ it.copy(connectionStatus = newState) }
+                    ChainsStateTracker.updateState(chain) { it.copy(connectionStatus = newState) }
 
                 }.launchIn(this)
             }
