@@ -5,6 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.liveData
 import dagger.hilt.android.lifecycle.HiltViewModel
+import jp.co.soramitsu.account.api.presentation.account.AddressDisplayUseCase
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -14,13 +15,15 @@ import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.feature_wallet_impl.R
-import jp.co.soramitsu.account.api.presentation.account.AddressDisplayUseCase
-import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
-import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.reward.RewardDetailFragment.Companion.KEY_PAYLOAD
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
+import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
+import jp.co.soramitsu.wallet.impl.presentation.model.RewardDetailsPayload
+import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.reward.RewardDetailFragment.Companion.KEY_PAYLOAD
 import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedAddressExplorers
 
 private const val ICON_SIZE_DP = 32
 
@@ -60,6 +63,9 @@ class RewardDetailViewModel @Inject constructor(
 
     fun getSupportedExplorers(type: BlockExplorerUrlBuilder.Type, value: String) =
         chainExplorers.replayCache.firstOrNull()?.getSupportedExplorers(type, value).orEmpty()
+
+    fun getSupportedAddressExplorers(address: String): Map<Chain.Explorer.Type, String> =
+        chainExplorers.replayCache.firstOrNull()?.getSupportedAddressExplorers(address).orEmpty()
 
     private suspend fun getIcon(address: String) = addressIconGenerator.createAddressModel(address, ICON_SIZE_DP, addressDisplayUseCase(address))
 

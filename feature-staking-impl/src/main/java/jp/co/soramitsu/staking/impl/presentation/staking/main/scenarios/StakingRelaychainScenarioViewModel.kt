@@ -56,6 +56,10 @@ class StakingRelaychainScenarioViewModel(
     stakingSharedState: StakingSharedState
 ) : StakingScenarioViewModel {
 
+    companion object {
+        const val POLKADOT_STAKE_EXTRA_MULTIPLIER = 1.15 // allow to be not at the bottom of reward list and not be excluded soon
+    }
+
     override val enteredAmountFlow: MutableStateFlow<BigDecimal?> = MutableStateFlow(BigDecimal.ZERO)
 
     private val welcomeStakingValidationSystem = ValidationSystem(
@@ -160,8 +164,9 @@ class StakingRelaychainScenarioViewModel(
             scenarioInteractor.observeNetworkInfoState().map { it as NetworkInfo.RelayChain },
             stakingInteractor.currentAssetFlow()
         ) { networkInfo, asset ->
+
             val minStakeMultiplier: Double = if (asset.token.configuration.chainId == polkadotChainId) {
-                1.15 // 15% increase
+                POLKADOT_STAKE_EXTRA_MULTIPLIER // 15% increase
             } else {
                 1.0
             }

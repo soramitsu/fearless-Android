@@ -223,8 +223,7 @@ public class RuntimePermission {
         //retrieve permissions we want
         final List<String> permissions = findNeededPermissions(activity);
 
-        // No need to ask for permissions on API levels below Android Marshmallow
-        if (permissions.isEmpty() || Build.VERSION.SDK_INT < Build.VERSION_CODES.M || arePermissionsAlreadyAccepted(activity, permissions)) {
+        if (permissions.isEmpty() || arePermissionsAlreadyAccepted(activity, permissions)) {
             onAllAccepted(permissions);
         } else {
             final PermissionFragment oldFragment = (PermissionFragment) activity

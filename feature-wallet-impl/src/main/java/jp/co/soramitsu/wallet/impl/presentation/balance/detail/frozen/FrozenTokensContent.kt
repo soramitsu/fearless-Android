@@ -17,6 +17,7 @@ import jp.co.soramitsu.common.compose.component.H5
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.feature_wallet_impl.R
+import jp.co.soramitsu.wallet.impl.presentation.model.FrozenAssetPayload
 
 data class FrozenTokensContentViewState(
     val frozenAssetPayload: FrozenAssetPayload

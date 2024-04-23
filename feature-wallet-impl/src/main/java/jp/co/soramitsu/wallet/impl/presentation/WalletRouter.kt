@@ -14,17 +14,18 @@ import jp.co.soramitsu.common.presentation.StoryGroupModel
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.wallet.api.domain.model.XcmChainType
-import jp.co.soramitsu.wallet.impl.domain.beacon.SignStatus
 import jp.co.soramitsu.wallet.impl.domain.model.PhishingType
 import jp.co.soramitsu.wallet.impl.domain.model.QrContentCBDC
-import jp.co.soramitsu.wallet.impl.presentation.balance.detail.frozen.FrozenAssetPayload
-import jp.co.soramitsu.wallet.impl.presentation.balance.walletselector.light.WalletSelectionMode
-import jp.co.soramitsu.wallet.impl.presentation.beacon.main.DAppMetadataModel
-import jp.co.soramitsu.wallet.impl.presentation.cross_chain.CrossChainTransferDraft
+import jp.co.soramitsu.wallet.impl.presentation.model.AssetPayload
+import jp.co.soramitsu.wallet.impl.presentation.model.CrossChainTransferDraft
+import jp.co.soramitsu.wallet.impl.presentation.model.DAppMetadataModel
+import jp.co.soramitsu.wallet.impl.presentation.model.ExtrinsicDetailsPayload
+import jp.co.soramitsu.wallet.impl.presentation.model.FrozenAssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.model.OperationParcelizeModel
-import jp.co.soramitsu.wallet.impl.presentation.send.TransferDraft
-import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.extrinsic.ExtrinsicDetailsPayload
-import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.reward.RewardDetailsPayload
+import jp.co.soramitsu.wallet.impl.presentation.model.RewardDetailsPayload
+import jp.co.soramitsu.wallet.impl.presentation.model.SignStatus
+import jp.co.soramitsu.wallet.impl.presentation.model.TransferDraft
+import jp.co.soramitsu.wallet.impl.presentation.model.WalletSelectionMode
 import kotlinx.coroutines.flow.Flow
 import jp.co.soramitsu.wallet.api.presentation.WalletRouter as WalletRouterApi
 
@@ -89,7 +90,7 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
 
     fun finishSendFlow()
 
-    fun openTransferDetail(transaction: OperationParcelizeModel.Transfer, assetPayload: AssetPayload, chainHistoryType: Chain.ExternalApi.Section.Type?)
+    fun openTransferDetail(transaction: OperationParcelizeModel.Transfer, assetPayload: AssetPayload, chainExplorerType: Chain.Explorer.Type?)
 
     fun openSwapDetail(operation: OperationParcelizeModel.Swap)
 
@@ -110,8 +111,6 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
     fun openImportAccountScreenFromWallet(blockChainType: Int)
 
     fun openManageControllerAccount(chainId: ChainId)
-
-    fun openReceive(assetPayload: AssetPayload)
 
     fun openSignBeaconTransaction(payload: SubstrateSignerPayload, dAppMetadata: DAppMetadataModel)
 
@@ -194,6 +193,8 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
     fun openNftCollection(selectedAssetId: ChainId, contractAddress: String, collectionName: String)
 
     fun openNFTFilter()
+
+    fun openManageAssets()
 
     fun openServiceScreen()
 }

@@ -17,6 +17,7 @@ import jp.co.soramitsu.common.mixin.impl.observeBrowserEvents
 import jp.co.soramitsu.common.presentation.FiatCurrenciesChooserBottomSheetDialog
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
 import jp.co.soramitsu.feature_account_impl.databinding.FragmentProfileBinding
+import jp.co.soramitsu.oauth.base.sdk.contract.SoraCardContract
 
 @AndroidEntryPoint
 class ProfileFragment : BaseFragment<ProfileViewModel>() {
@@ -27,6 +28,10 @@ class ProfileFragment : BaseFragment<ProfileViewModel>() {
     private lateinit var binding: FragmentProfileBinding
 
     override val viewModel: ProfileViewModel by viewModels()
+
+    private val soraCardSignIn = registerForActivityResult(SoraCardContract()) {
+        viewModel.handleSoraCardResult(it)
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -50,7 +55,6 @@ class ProfileFragment : BaseFragment<ProfileViewModel>() {
             profileExperimentalFeatures.setOnClickListener { viewModel.onExperimentalClicked() }
             polkaswapDisclaimerTv.setOnClickListener { viewModel.polkaswapDisclaimerClicked() }
             profileSoraCard.setOnClickListener { viewModel.onSoraCardClicked() }
-            hideZeroBalancesContainer.setOnClickListener { viewModel.onHideZeroBalancesClick() }
             profileWalletConnect.setOnClickListener { viewModel.onWalletConnectClick() }
 
             viewModel.hasMissingAccountsFlow.observe {
@@ -84,8 +88,8 @@ class ProfileFragment : BaseFragment<ProfileViewModel>() {
 
         viewModel.selectedFiatLiveData.observe(binding.selectedCurrencyTv::setText)
 
-        viewModel.hideZeroBalancesState.observe {
-            binding.hideZeroBalancesSwitch.isChecked = it
+        viewModel.launchSoraCardSignIn.observeEvent { contractData ->
+            soraCardSignIn.launch(contractData)
         }
     }
 

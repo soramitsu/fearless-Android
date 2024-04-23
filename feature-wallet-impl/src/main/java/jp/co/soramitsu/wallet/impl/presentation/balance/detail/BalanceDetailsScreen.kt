@@ -26,6 +26,9 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Divider
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
@@ -286,6 +289,7 @@ private fun ActionBar(
     }
 }
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 private fun TransactionHistory(
     nestedScrollConnection: ExpandableLazyListNestedScrollConnection,
@@ -354,7 +358,6 @@ private fun TransactionHistory(
 
         else -> Unit
     }
-
 }
 
 @Composable

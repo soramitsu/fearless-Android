@@ -6,7 +6,6 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
-import jp.co.soramitsu.coredb.dao.SoraCardDao
 import jp.co.soramitsu.soracard.api.domain.BuyCryptoDataSource
 import jp.co.soramitsu.soracard.api.domain.BuyCryptoRepository
 import jp.co.soramitsu.soracard.api.domain.SoraCardInteractor
@@ -22,12 +21,13 @@ import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
 @Module
-interface SoraCardFeatureBindModule {
+internal interface SoraCardFeatureBindModule {
     @Binds
     @Singleton
     fun bindsSoraCardInteractor(soraCardInteractor: SoraCardInteractorImpl): SoraCardInteractor
 
     @Binds
+    @Singleton
     fun bindsSoraCardRepository(soraCardRepository: SoraCardRepositoryImpl): SoraCardRepository
 }
 
@@ -38,14 +38,6 @@ class SoraCardFeatureModule {
     @Provides
     fun providesSoraCardApi(networkApiCreator: NetworkApiCreator): SoraCardApi {
         return networkApiCreator.create(SoraCardApi::class.java)
-    }
-
-    @Provides
-    fun provideSoraCardRepositoryImpl(
-        soraCardDao: SoraCardDao,
-        soraCardApi: SoraCardApi
-    ): SoraCardRepositoryImpl {
-        return SoraCardRepositoryImpl(soraCardDao, soraCardApi)
     }
 
     @Provides

@@ -9,6 +9,7 @@ import jp.co.soramitsu.common.data.model.CursorPage
 import jp.co.soramitsu.common.data.network.runtime.binding.EqAccountInfo
 import jp.co.soramitsu.common.data.network.runtime.binding.EqOraclePricePoint
 import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
+import jp.co.soramitsu.common.model.AssetBooleanState
 import jp.co.soramitsu.core.models.ChainId
 import jp.co.soramitsu.coredb.model.AddressBookContact
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
@@ -105,6 +106,8 @@ interface WalletInteractor {
 
     suspend fun markAssetAsHidden(chainId: ChainId, chainAssetId: String)
 
+    suspend fun updateAssetsHiddenState(state: List<AssetBooleanState>)
+
     suspend fun markAssetAsShown(chainId: ChainId, chainAssetId: String)
 
     fun selectedMetaAccountFlow(): Flow<MetaAccount>
@@ -132,10 +135,6 @@ interface WalletInteractor {
     fun decreaseSoraCardHiddenSessions()
     fun hideSoraCard()
 
-    fun observeHideZeroBalanceEnabledForCurrentWallet(): Flow<Boolean>
-    suspend fun toggleHideZeroBalancesForCurrentWallet()
-    suspend fun getHideZeroBalancesForCurrentWallet(): Boolean
-
     suspend fun checkControllerDeprecations(): List<ControllerDeprecationWarning>
     suspend fun canUseAsset(chainId: String, chainAssetId: String): Boolean
 
@@ -155,4 +154,7 @@ interface WalletInteractor {
     suspend fun estimateClaimRewardsFee(chainId: ChainId): BigInteger
     suspend fun getVestingLockedAmount(chainId: ChainId): BigInteger?
     suspend fun claimRewards(chainId: ChainId): Result<String>
+
+    fun getAssetManagementIntroPassed(): Boolean
+    suspend fun saveAssetManagementIntroPassed()
 }

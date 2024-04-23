@@ -93,5 +93,7 @@ dependencies {
 
     api libs.sharedFeaturesCoreDep
 
+    implementation libs.sora.card
+
     implementation libs.sharedFeaturesBackupDep
 }

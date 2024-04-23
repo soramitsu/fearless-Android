@@ -98,27 +98,17 @@ class EncryptionUtil @Inject constructor(
 
         val spec: AlgorithmParameterSpec
 
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
-            spec = KeyPairGeneratorSpec.Builder(context)
-                .setAlias(KEY_ALIAS)
-                .setSubject(X500Principal("CN=Sora"))
-                .setSerialNumber(BigInteger.ONE)
-                .setStartDate(startDate.time)
-                .setEndDate(endDate.time)
-                .build()
-        } else {
-            spec = KeyGenParameterSpec.Builder(
-                KEY_ALIAS,
-                KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
-            )
-                .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
-                .setCertificateSubject(X500Principal("CN=Sora"))
-                .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_RSA_PKCS1)
-                .setCertificateSerialNumber(BigInteger.ONE)
-                .setCertificateNotBefore(startDate.time)
-                .setCertificateNotAfter(endDate.time)
-                .build()
-        }
+        spec = KeyGenParameterSpec.Builder(
+            KEY_ALIAS,
+            KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
+        )
+            .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
+            .setCertificateSubject(X500Principal("CN=Sora"))
+            .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_RSA_PKCS1)
+            .setCertificateSerialNumber(BigInteger.ONE)
+            .setCertificateNotBefore(startDate.time)
+            .setCertificateNotAfter(endDate.time)
+            .build()
         val keyPairGenerator = KeyPairGenerator.getInstance(RSA, KEY_STORE_PROVIDER)
         keyPairGenerator.initialize(spec)
         keyPairGenerator.generateKeyPair()

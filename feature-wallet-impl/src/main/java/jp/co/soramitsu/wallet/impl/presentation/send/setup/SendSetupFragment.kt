@@ -22,7 +22,7 @@ import jp.co.soramitsu.common.presentation.ErrorDialog
 import jp.co.soramitsu.common.presentation.askPermissionsSafely
 import jp.co.soramitsu.common.scan.ScanTextContract
 import jp.co.soramitsu.common.scan.ScannerActivity
-import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
+import jp.co.soramitsu.wallet.impl.presentation.model.AssetPayload
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint

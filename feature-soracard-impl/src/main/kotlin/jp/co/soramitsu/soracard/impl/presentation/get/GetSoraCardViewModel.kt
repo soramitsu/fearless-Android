@@ -1,18 +1,25 @@
 package jp.co.soramitsu.soracard.impl.presentation.get
 
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.math.BigDecimal
-import java.math.RoundingMode
 import javax.inject.Inject
+import jp.co.soramitsu.common.BuildConfig
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.common.utils.greaterThen
+import jp.co.soramitsu.common.utils.Event
+import jp.co.soramitsu.oauth.base.sdk.contract.OutwardsScreen
+import jp.co.soramitsu.oauth.base.sdk.contract.SoraCardContractData
+import jp.co.soramitsu.oauth.base.sdk.contract.SoraCardResult
 import jp.co.soramitsu.soracard.api.domain.SoraCardInteractor
 import jp.co.soramitsu.soracard.api.presentation.SoraCardRouter
+import jp.co.soramitsu.soracard.impl.presentation.createSoraCardContract
+import jp.co.soramitsu.wallet.api.presentation.WalletRouter
+import jp.co.soramitsu.wallet.impl.presentation.model.AssetPayload
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -21,114 +28,93 @@ import kotlinx.coroutines.launch
 class GetSoraCardViewModel @Inject constructor(
     private val interactor: SoraCardInteractor,
     private val router: SoraCardRouter,
+    private val walletRouter: WalletRouter,
     private val resourceManager: ResourceManager
 ) : BaseViewModel(), GetSoraCardScreenInterface {
-    private companion object {
-        val KYC_REAL_REQUIRED_BALANCE = BigDecimal(95)
-        val KYC_REQUIRED_BALANCE_WITH_BACKLASH = BigDecimal(100)
-    }
 
+    private val _launchSoraCardRegistration = MutableLiveData<Event<SoraCardContractData>>()
+    val launchSoraCardRegistration: LiveData<Event<SoraCardContractData>> = _launchSoraCardRegistration
+
+    private var currentSoraCardContractData: SoraCardContractData? = null
     val state = MutableStateFlow(GetSoraCardState())
 
     init {
-        subscribeXorBalance()
-        subscribeSoraCardInfo()
+        interactor.subscribeToSoraCardAvailabilityFlow()
+            .onEach {
+                currentSoraCardContractData = createSoraCardContract(
+                    userAvailableXorAmount = it.xorBalance.toDouble(),
+                    isEnoughXorAvailable = it.enoughXor
+                )
+                state.value = state.value.copy(
+                    xorRatioAvailable = it.xorRatioAvailable
+                )
+            }.launchIn(viewModelScope)
     }
 
-    private fun subscribeXorBalance() {
-        launch {
-            interactor.xorAssetFlow()
-                .distinctUntilChanged { old, new ->
-                    old.transferable == new.transferable &&
-                        old.token.configuration.priceId == new.token.configuration.priceId &&
-                        old.token.configuration.precision == new.token.configuration.precision
-                }
-                .onEach {
-                    val transferable = it.transferable
-                    try {
-                        val xorEurPrice = interactor.getXorEuroPrice(it.token.configuration.priceId) ?: error("XOR price not found")
-
-                        val defaultScale = it.token.configuration.precision
-                        val xorRequiredBalanceWithBacklash = KYC_REQUIRED_BALANCE_WITH_BACKLASH.divide(xorEurPrice, defaultScale, RoundingMode.HALF_EVEN)
-                        val xorRealRequiredBalance = KYC_REAL_REQUIRED_BALANCE.divide(xorEurPrice, defaultScale, RoundingMode.HALF_EVEN)
-                        val xorBalanceInEur = transferable.multiply(xorEurPrice)
-
-                        val needInXor = if (transferable.greaterThen(xorRealRequiredBalance)) {
-                            BigDecimal.ZERO
-                        } else {
-                            xorRequiredBalanceWithBacklash.minus(transferable)
-                        }
-
-                        val needInEur = if (xorBalanceInEur.greaterThen(KYC_REAL_REQUIRED_BALANCE)) {
-                            BigDecimal.ZERO
-                        } else {
-                            KYC_REQUIRED_BALANCE_WITH_BACKLASH.minus(xorBalanceInEur)
-                        }
-
-                        state.value = state.value.copy(
-                            xorBalance = transferable,
-                            enoughXor = transferable.greaterThen(xorRealRequiredBalance),
-                            percent = transferable.divide(xorRealRequiredBalance, defaultScale, RoundingMode.HALF_EVEN),
-                            needInXor = needInXor,
-                            needInEur = needInEur,
-                            xorRatioUnavailable = false
-                        )
-                    } catch (e: Exception) {
-                        state.value = state.value.copy(
-                            xorBalance = transferable,
-                            enoughXor = false,
-                            xorRatioUnavailable = true
-                        )
-                    }
-                }
-                .launchIn(this)
+    override fun onSignUp() {
+        currentSoraCardContractData?.let {
+            _launchSoraCardRegistration.value = Event(it.copy(logIn = false))
         }
     }
 
-    private fun subscribeSoraCardInfo() {
-        launch {
-            interactor.subscribeSoraCardInfo()
-                .distinctUntilChanged()
-                .collectLatest {
-                    state.value = state.value.copy(soraCardInfo = it)
-                }
+    override fun onLogIn() {
+        currentSoraCardContractData?.let {
+            _launchSoraCardRegistration.value = Event(it.copy(logIn = true))
         }
-    }
-
-    override fun onEnableCard() {
-    }
-
-    override fun onAlreadyHaveCard() {
     }
 
     override fun onNavigationClick() {
         router.back()
     }
 
-    fun updateSoraCardInfo(
-        accessToken: String,
-        refreshToken: String,
-        accessTokenExpirationTime: Long,
-        kycStatus: String
-    ) {
-        launch {
-            interactor.updateSoraCardInfo(
-                accessToken,
-                refreshToken,
-                accessTokenExpirationTime,
-                kycStatus
-            )
-        }
-    }
-
     override fun onGetMoreXor() {
         router.openGetMoreXor()
     }
 
-    override fun onSeeBlacklist(url: String) {
+    override fun onSeeBlacklist() {
         router.openWebViewer(
             title = resourceManager.getString(R.string.sora_card_blacklisted_countires_title),
-            url = url
+            url = BuildConfig.SORA_CARD_BLACKLIST
         )
+    }
+
+    fun handleSoraCardResult(soraCardResult: SoraCardResult) {
+        when (soraCardResult) {
+            is SoraCardResult.Canceled -> {}
+            is SoraCardResult.Failure -> {
+                interactor.setStatus(soraCardResult.status)
+            }
+
+            is SoraCardResult.Success -> {
+                interactor.setStatus(soraCardResult.status)
+            }
+
+            is SoraCardResult.Logout -> {
+                interactor.setLogout()
+            }
+
+            is SoraCardResult.NavigateTo -> {
+                when (soraCardResult.screen) {
+                    OutwardsScreen.DEPOSIT -> {
+                        launch {
+                            interactor.xorAssetFlow().firstOrNull()?.token?.configuration?.let {
+                                val assetPayload = AssetPayload(it.chainId, it.id)
+                                walletRouter.openReceive(assetPayload)
+                            }
+                        }
+                    }
+
+                    OutwardsScreen.SWAP -> {
+                        launch {
+                            interactor.xorAssetFlow().firstOrNull()?.let { xorAsset ->
+                                router.openSwapTokensScreen(interactor.soraCardChainId, null, xorAsset.token.configuration.id)
+                            }
+                        }
+                    }
+
+                    OutwardsScreen.BUY -> router.showBuyCrypto()
+                }
+            }
+        }
     }
 }

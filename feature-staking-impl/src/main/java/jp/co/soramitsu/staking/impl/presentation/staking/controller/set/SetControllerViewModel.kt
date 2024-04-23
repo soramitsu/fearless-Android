@@ -13,7 +13,6 @@ import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.data.network.AppLinksProvider
-import jp.co.soramitsu.common.data.network.BlockExplorerUrlBuilder
 import jp.co.soramitsu.common.mixin.api.RetryPayload
 import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -25,7 +24,7 @@ import jp.co.soramitsu.common.utils.updateFrom
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet.Payload
 import jp.co.soramitsu.feature_wallet_api.R
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedAddressExplorers
 import jp.co.soramitsu.staking.api.domain.model.StakingAccount
 import jp.co.soramitsu.staking.api.domain.model.StakingState
 import jp.co.soramitsu.staking.impl.domain.StakingInteractor
@@ -122,7 +121,7 @@ class SetControllerViewModel @Inject constructor(
             } else {
                 stakingInteractor.getChain(chainId)
             }
-            val supportedExplorers = chain.explorers.getSupportedExplorers(BlockExplorerUrlBuilder.Type.ACCOUNT, stashAddress)
+            val supportedExplorers = chain.explorers.getSupportedAddressExplorers(stashAddress)
             val externalActionsPayload = ExternalAccountActions.Payload(
                 value = stashAddress,
                 chainId = chainId,

@@ -1,5 +1,6 @@
 package jp.co.soramitsu.wallet.impl.presentation.balance.list
 
+import android.util.Log
 import android.widget.LinearLayout
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.SwipeableState
@@ -10,6 +11,7 @@ import co.jp.soramitsu.walletconnect.domain.WalletConnectInteractor
 import com.walletconnect.android.internal.common.exception.MalformedWalletConnectUri
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.math.BigDecimal
+import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.PendulumPreInstalledAccountsScenario
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
@@ -31,6 +33,7 @@ import jp.co.soramitsu.common.compose.component.SwipeState
 import jp.co.soramitsu.common.compose.component.ToolbarHomeIconState
 import jp.co.soramitsu.common.compose.models.LoadableListPage
 import jp.co.soramitsu.common.compose.models.ScreenLayout
+import jp.co.soramitsu.common.compose.utils.PageScrollingCallback
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState
 import jp.co.soramitsu.common.data.network.coingecko.FiatChooserEvent
 import jp.co.soramitsu.common.data.network.coingecko.FiatCurrency
@@ -54,20 +57,24 @@ import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.feature_wallet_impl.R
+import jp.co.soramitsu.oauth.base.sdk.contract.OutwardsScreen
+import jp.co.soramitsu.oauth.base.sdk.contract.SoraCardCommonVerification
+import jp.co.soramitsu.oauth.base.sdk.contract.SoraCardContractData
+import jp.co.soramitsu.oauth.base.sdk.contract.SoraCardResult
 import jp.co.soramitsu.nft.data.pagination.PaginationRequest
 import jp.co.soramitsu.nft.domain.NFTInteractor
-import jp.co.soramitsu.common.compose.utils.PageScrollingCallback
 import jp.co.soramitsu.nft.domain.models.NFTCollection
-import jp.co.soramitsu.wallet.impl.presentation.balance.nft.list.models.NFTCollectionsScreenModel
-import jp.co.soramitsu.wallet.impl.presentation.balance.nft.list.models.NFTCollectionsScreenView
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.defaultChainSort
+import jp.co.soramitsu.soracard.api.domain.SoraCardInteractor
+import jp.co.soramitsu.soracard.api.presentation.SoraCardRouter
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.pendulumChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraTestChainId
 import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.toAddress
 import jp.co.soramitsu.soracard.impl.presentation.SoraCardItemViewState
+import jp.co.soramitsu.soracard.impl.presentation.createSoraCardContract
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.updaters.BalanceUpdateTrigger
 import jp.co.soramitsu.wallet.impl.domain.ChainInteractor
 import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
@@ -76,17 +83,20 @@ import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.domain.model.AssetWithStatus
 import jp.co.soramitsu.wallet.impl.domain.model.WalletAccount
 import jp.co.soramitsu.wallet.impl.presentation.AssetListHelper
-import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.toChainItemState
 import jp.co.soramitsu.wallet.impl.presentation.balance.list.model.AssetType
 import jp.co.soramitsu.wallet.impl.presentation.balance.list.model.BalanceListItemModel
 import jp.co.soramitsu.wallet.impl.presentation.balance.list.model.toAssetState
+import jp.co.soramitsu.wallet.impl.presentation.model.AssetPayload
+import jp.co.soramitsu.wallet.impl.presentation.balance.nft.list.models.NFTCollectionsScreenModel
+import jp.co.soramitsu.wallet.impl.presentation.balance.nft.list.models.NFTCollectionsScreenView
 import jp.co.soramitsu.wallet.impl.presentation.balance.nft.list.models.ScreenModel
 import jp.co.soramitsu.wallet.impl.presentation.model.ControllerDeprecationWarningModel
 import jp.co.soramitsu.wallet.impl.presentation.model.toModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -96,12 +106,12 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
@@ -112,13 +122,15 @@ import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.util.concurrent.atomic.AtomicBoolean
+import jp.co.soramitsu.oauth.R as SoraCardR
 
 private const val CURRENT_ICON_SIZE = 40
 
 @HiltViewModel
 class BalanceListViewModel @Inject constructor(
     private val interactor: WalletInteractor,
+    private val soraCardInteractor: SoraCardInteractor,
+    private val soraCardRouter: SoraCardRouter,
     private val chainInteractor: ChainInteractor,
     private val addressIconGenerator: AddressIconGenerator,
     private val router: WalletRouter,
@@ -137,6 +149,7 @@ class BalanceListViewModel @Inject constructor(
 ) : BaseViewModel(), UpdatesProviderUi by updatesMixin, NetworkStateUi by networkStateMixin,
     WalletScreenInterface {
 
+    private var awaitAssetsJob: Job? = null
     private val accountAddressToChainIdMap = mutableMapOf<String, ChainId?>()
 
     private val _showFiatChooser = MutableLiveData<FiatChooserEvent>()
@@ -147,6 +160,9 @@ class BalanceListViewModel @Inject constructor(
 
     private val _openPlayMarket = MutableLiveData<Event<Unit>>()
     val openPlayMarket: LiveData<Event<Unit>> = _openPlayMarket
+
+    private val _launchSoraCardSignIn = MutableLiveData<Event<SoraCardContractData>>()
+    val launchSoraCardSignIn: LiveData<Event<SoraCardContractData>> = _launchSoraCardSignIn
 
     private val mutableScreenLayoutFlow = MutableStateFlow(ScreenLayout.Grid)
 
@@ -178,11 +194,6 @@ class BalanceListViewModel @Inject constructor(
         }
 
     private val currentMetaAccountFlow = interactor.selectedLightMetaAccountFlow()
-        .onEach {
-            if (pendulumPreInstalledAccountsScenario.isPendulumMode(it.id)) {
-                selectedChainId.value = pendulumChainId
-            }
-        }
 
     private val assetTypeSelectorState = MutableStateFlow(
         MultiToggleButtonState(
@@ -199,15 +210,13 @@ class BalanceListViewModel @Inject constructor(
         selectedChainId,
         interactor.selectedMetaAccountFlow(),
         networkIssuesFlow,
-        interactor.observeSelectedAccountChainSelectFilter(),
-        interactor.observeHideZeroBalanceEnabledForCurrentWallet()
+        interactor.observeSelectedAccountChainSelectFilter()
     ) { (walletId: Long, assets: List<AssetWithStatus>),
             chains: List<Chain>,
             selectedChainId: ChainId?,
             currentMetaAccountFlow: MetaAccount,
             networkIssues: Set<NetworkIssueItemState>,
-            appliedFilterAsString: String,
-            hideZeroBalancesEnabled: Boolean ->
+            appliedFilterAsString: String ->
 
         val filter = ChainSelectorViewStateWithFilters.Filter.entries.find {
             it.name == appliedFilterAsString
@@ -242,17 +251,17 @@ class BalanceListViewModel @Inject constructor(
 
         val filteredAssets = assets
             .filter {
-                selectedChainId == it.asset.token.configuration.chainId ||
-                        selectedChainId == null ||
-                        it.asset.token.configuration.chainId in filteredChains.map { it.id }
+                it.asset.enabled != false &&
+                        ((selectedChainId == null && filter == ChainSelectorViewStateWithFilters.Filter.All) ||
+                                it.asset.token.configuration.chainId == selectedChainId ||
+                                it.asset.token.configuration.chainId in filteredChains.map { it.id })
             }
 
         val balanceListItems = AssetListHelper.processAssets(
             assets = filteredAssets,
             filteredChains = filteredChains,
             selectedChainId = selectedChainId,
-            networkIssues = networkIssues,
-            hideZeroBalancesEnabled = hideZeroBalancesEnabled
+            networkIssues = networkIssues
         )
 
         val assetStates: List<AssetListItemViewState> = balanceListItems
@@ -363,14 +372,18 @@ class BalanceListViewModel @Inject constructor(
     }
 
     private val assetTypeState = combine(
+        selectedChainId,
         assetTypeSelectorState,
         assetStates,
         nftInteractor.nftFiltersFlow(),
-        createNFTCollectionScreenViewsFlow()
-    ) { selectorState, assetStates, filters, (pageViews, screenLayout) ->
+        createNFTCollectionScreenViewsFlow(),
+    ) { selectedChainId, selectorState, assetStates, filters, (pageViews, screenLayout) ->
         when (selectorState.currentSelection) {
             AssetType.Currencies -> {
-                WalletAssetsState.Assets(assetStates)
+                WalletAssetsState.Assets(
+                    assets = assetStates,
+                    isHideVisible = selectedChainId != null
+                )
             }
 
             AssetType.NFTs -> {
@@ -450,14 +463,14 @@ class BalanceListViewModel @Inject constructor(
         .thenBy { it.chainId.defaultChainSort() }
         .thenBy { it.chainName }
 
-    //    private val soraCardState = combine(
-//        interactor.observeIsShowSoraCard(),
-//        soraCardInteractor.subscribeSoraCardInfo()
-//    ) { isShow, soraCardInfo ->
-//        val kycStatus = soraCardInfo?.kycStatus?.let(::mapKycStatus)
-//        SoraCardItemViewState(kycStatus, soraCardInfo, null, isShow)
-//    }
-    private val soraCardState = flowOf(SoraCardItemViewState())
+    private val soraCardState = combine(
+        soraCardInteractor.subscribeSoraCardStatus(),
+        interactor.observeIsShowSoraCard()
+    ) { soraCardStatus, isShow ->
+        println("!!! soraCardStatus = ${soraCardStatus.name}, isShow = $isShow")
+        val kycStatus = mapKycStatus(soraCardStatus)
+        SoraCardItemViewState(kycStatus = kycStatus, visible = isShow)
+    }
 
     val state = MutableStateFlow(WalletState.default)
 
@@ -485,6 +498,28 @@ class BalanceListViewModel @Inject constructor(
             state.value = state.value.copy(hasNetworkIssues = it)
         }.launchIn(this)
         subscribeTotalBalance()
+        if (interactor.getAssetManagementIntroPassed().not()) {
+            startManageAssetsIntroAnimation()
+        }
+    }
+
+    @OptIn(FlowPreview::class)
+    private fun startManageAssetsIntroAnimation() {
+        awaitAssetsJob?.cancel()
+        awaitAssetsJob = assetStates.filter { it.isNotEmpty() }
+            .map { it.size }
+            .distinctUntilChanged()
+            .debounce(200L)
+            .onEach {
+                state.value = state.value.copy(scrollToBottomEvent = Event(Unit))
+                interactor.saveAssetManagementIntroPassed()
+                awaitAssetsJob?.cancel()
+            }
+            .catch {
+                Log.d("BalanceListViewModel", it.message, it)
+            }
+            .launchIn(this)
+        awaitAssetsJob?.start()
     }
 
     private fun subscribeTotalBalance() {
@@ -531,10 +566,19 @@ class BalanceListViewModel @Inject constructor(
         initialValue = LoadingState.Loading()
     )
 
+    private var currentSoraCardContractData: SoraCardContractData? = null
+
     init {
         subscribeScreenState()
         observeNetworkState()
         observeFiatSymbolChange()
+        observeSoraCardAvailability()
+
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                soraCardInteractor.checkSoraCardPending()
+            }
+        }
 
         router.chainSelectorPayloadFlow.map { chainId ->
             val walletId = interactor.getSelectedMetaAccount().id
@@ -555,11 +599,24 @@ class BalanceListViewModel @Inject constructor(
         }
     }
 
+    private fun observeSoraCardAvailability() {
+        soraCardInteractor.subscribeToSoraCardAvailabilityFlow().onEach {
+            currentSoraCardContractData = createSoraCardContract(
+                userAvailableXorAmount = it.xorBalance.toDouble(),
+                isEnoughXorAvailable = it.enoughXor
+            )
+        }.launchIn(viewModelScope)
+    }
+
     override fun onRefresh() {
         refresh()
         viewModelScope.launch {
             BalanceUpdateTrigger.invoke()
         }
+    }
+
+    override fun onManageAssetClick() {
+        router.openManageAssets()
     }
 
     private fun refresh() {
@@ -722,6 +779,10 @@ class BalanceListViewModel @Inject constructor(
         }
     }
 
+    override fun onBannerBuyXorClicked() {
+        soraCardRouter.showBuyCrypto()
+    }
+
     override fun onBackupCloseClick() {
         showError(
             title = resourceManager.getString(jp.co.soramitsu.feature_account_impl.R.string.backup_not_backed_up_title),
@@ -754,7 +815,9 @@ class BalanceListViewModel @Inject constructor(
         if (state.value.soraCardState?.kycStatus == null) {
             router.openGetSoraCard()
         } else {
-            onSoraCardStatusClicked()
+            currentSoraCardContractData?.let { contractData ->
+                _launchSoraCardSignIn.value = Event(contractData)
+            }
         }
     }
 
@@ -865,7 +928,66 @@ class BalanceListViewModel @Inject constructor(
         showMessage(message)
     }
 
-    private fun onSoraCardStatusClicked() {
+    private fun mapKycStatus(kycStatus: SoraCardCommonVerification): String? {
+        return when (kycStatus) {
+            SoraCardCommonVerification.Pending -> {
+                resourceManager.getString(SoraCardR.string.kyc_result_verification_in_progress)
+            }
+
+            SoraCardCommonVerification.Successful -> {
+                resourceManager.getString(R.string.sora_card_verification_successful)
+            }
+
+            SoraCardCommonVerification.Rejected -> {
+                resourceManager.getString(SoraCardR.string.verification_rejected_title)
+            }
+
+            SoraCardCommonVerification.Failed -> {
+                resourceManager.getString(SoraCardR.string.verification_failed_title)
+            }
+
+            else -> {
+                null
+            }
+        }
+    }
+
+    fun handleSoraCardResult(soraCardResult: SoraCardResult) {
+        when (soraCardResult) {
+            is SoraCardResult.Canceled -> {}
+            is SoraCardResult.Failure -> {
+                soraCardInteractor.setStatus(soraCardResult.status)
+            }
+
+            is SoraCardResult.Success -> {
+                soraCardInteractor.setStatus(soraCardResult.status)
+            }
+
+            is SoraCardResult.Logout -> {
+                soraCardInteractor.setLogout()
+            }
+
+            is SoraCardResult.NavigateTo -> {
+                when (soraCardResult.screen) {
+                    OutwardsScreen.DEPOSIT -> {
+                        launch {
+                            soraCardInteractor.xorAssetFlow().firstOrNull()?.token?.configuration?.let {
+                                val assetPayload = AssetPayload(it.chainId, it.id)
+                                router.openReceive(assetPayload)
+                            }
+                        }
+                    }
+                    OutwardsScreen.SWAP -> {
+                        launch {
+                            soraCardInteractor.xorAssetFlow().firstOrNull()?.token?.configuration?.let {
+                                router.openSwapTokensScreen(it.chainId, null, it.id)
+                            }
+                        }
+                    }
+                    OutwardsScreen.BUY -> soraCardRouter.showBuyCrypto()
+                }
+            }
+        }
     }
 
     fun onServiceButtonClick() {

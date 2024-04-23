@@ -1,4 +1,4 @@
-package jp.co.soramitsu.wallet.impl.presentation.transaction.detail.extrinsic
+package jp.co.soramitsu.wallet.impl.presentation.model
 
 import android.os.Parcelable
 import jp.co.soramitsu.wallet.impl.presentation.model.OperationParcelizeModel

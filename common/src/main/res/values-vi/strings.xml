@@ -742,7 +742,6 @@
   <string name="send_to">Gửi đến</string>
   <string name="sending">Đang gửi</string>
   <string name="set_max_amount">Số tiền tối đa</string>
-  <string name="settings_hide_zero_balances">Ẩn số dư bằng không</string>
   <string name="share_referral_code">Chia sẻ mã giới thiệu</string>
   <string name="social_media">Truyền thông xã hội</string>
   <string name="sora_bridge_amount_less_fee">Số tiền bạn đang cố chuyển không đủ để trả phí giao dịch trên mạng %s . Mặc dù giao dịch không được xử lý nhưng bạn vẫn sẽ bị tính phí trên mạng Sora.</string>

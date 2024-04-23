@@ -151,6 +151,22 @@ fun List<Chain.Explorer>.getSupportedExplorers(type: BlockExplorerUrlBuilder.Typ
     }
 }.toMap()
 
+fun List<Chain.Explorer>.getSupportedAddressExplorers(address: String) = mapNotNull {
+    val type = when (it.type) {
+        Chain.Explorer.Type.ETHERSCAN,
+        Chain.Explorer.Type.OKLINK -> {
+            BlockExplorerUrlBuilder.Type.ADDRESS
+        }
+        else -> {
+            BlockExplorerUrlBuilder.Type.ACCOUNT
+        }
+    }
+
+    BlockExplorerUrlBuilder(it.url, it.types).build(type, address)?.let { url ->
+        it.type to url
+    }
+}.toMap()
+
 @Deprecated("Use defaultChainSort() to get Polkadot at first place", ReplaceWith("defaultChainSort()"))
 fun ChainId.isPolkadotOrKusama() = this in listOf(polkadotChainId, kusamaChainId)
 

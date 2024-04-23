@@ -2,6 +2,7 @@ package jp.co.soramitsu.wallet.api.presentation
 
 import androidx.navigation.NavBackStackEntry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.wallet.impl.presentation.model.AssetPayload
 import kotlinx.coroutines.flow.Flow
 
 interface WalletRouter {
@@ -19,6 +20,8 @@ interface WalletRouter {
     fun <T> observeResult(key: String): Flow<T>
 
     fun getCurrentBackStackEntryFlow(): Flow<NavBackStackEntry>
+
+    fun openReceive(assetPayload: AssetPayload)
 
     companion object {
         const val KEY_CHAIN_ID = "chain_id"

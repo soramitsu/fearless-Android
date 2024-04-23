@@ -13,12 +13,12 @@ import jp.co.soramitsu.wallet.impl.data.mappers.mapOperationToParcel
 import jp.co.soramitsu.wallet.impl.data.network.subquery.HistoryNotSupportedException
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.domain.model.Operation
-import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
+import jp.co.soramitsu.wallet.impl.presentation.model.AssetPayload
+import jp.co.soramitsu.wallet.impl.presentation.model.ExtrinsicDetailsPayload
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.presentation.model.OperationModel
 import jp.co.soramitsu.wallet.impl.presentation.model.OperationParcelizeModel
-import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.extrinsic.ExtrinsicDetailsPayload
-import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.reward.RewardDetailsPayload
+import jp.co.soramitsu.wallet.impl.presentation.model.RewardDetailsPayload
 import jp.co.soramitsu.wallet.impl.presentation.transaction.filter.HistoryFiltersProvider
 import jp.co.soramitsu.wallet.impl.presentation.transaction.history.model.DayHeader
 import kotlinx.coroutines.CoroutineScope
@@ -32,6 +32,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChangedBy
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -207,8 +208,7 @@ class TransactionHistoryProvider(
 
     override fun transactionClicked(
         transactionModel: OperationModel,
-        assetPayload: AssetPayload,
-        chainHistoryType: Chain.ExternalApi.Section.Type?
+        assetPayload: AssetPayload
     ) {
         launch {
             val operations = currentData
@@ -217,11 +217,12 @@ class TransactionHistoryProvider(
 
             val chain = walletInteractor.getChain(assetPayload.chainId)
             val utilityAsset = chain.assets.firstOrNull { it.isUtility }
+            val chainExplorerType: Chain.Explorer.Type? = chain.explorers.firstOrNull()?.type
 
             withContext(Dispatchers.Main) {
                 when (val operation = mapOperationToParcel(clickedOperation, resourceManager, utilityAsset)) {
                     is OperationParcelizeModel.Transfer -> {
-                        router.openTransferDetail(operation, assetPayload, chainHistoryType)
+                        router.openTransferDetail(operation, assetPayload, chainExplorerType)
                     }
 
                     is OperationParcelizeModel.Extrinsic -> {

@@ -6,6 +6,7 @@ import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.common.model.AssetKey
 import jp.co.soramitsu.common.utils.applyFiatRate
 import jp.co.soramitsu.common.utils.formatFiat
+import jp.co.soramitsu.common.utils.equalTo
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.shared_utils.runtime.AccountId
@@ -104,3 +105,11 @@ fun calculateTotalBalance(
     freeInPlanks: BigInteger?,
     reservedInPlanks: BigInteger?
 ) = freeInPlanks?.let { freeInPlanks + reservedInPlanks.orZero() }
+
+fun compareByTotal(old: Asset?, new: Asset?): Boolean = if (old == null && new == null) {
+    true
+} else if (old == null || new == null) {
+    false
+} else {
+    old.token.configuration.id == new.token.configuration.id && old.total.orZero().equalTo(new.total.orZero())
+}

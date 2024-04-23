@@ -125,10 +125,8 @@ import jp.co.soramitsu.staking.impl.presentation.validators.parcel.ValidatorDeta
 import jp.co.soramitsu.success.presentation.SuccessFragment
 import jp.co.soramitsu.success.presentation.SuccessRouter
 import jp.co.soramitsu.wallet.api.domain.model.XcmChainType
-import jp.co.soramitsu.wallet.impl.domain.beacon.SignStatus
 import jp.co.soramitsu.wallet.impl.domain.model.PhishingType
 import jp.co.soramitsu.wallet.impl.domain.model.QrContentCBDC
-import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.presentation.addressbook.CreateContactFragment
 import jp.co.soramitsu.wallet.impl.presentation.balance.assetDetails.AssetDetailsFragment
@@ -136,30 +134,32 @@ import jp.co.soramitsu.wallet.impl.presentation.balance.assetselector.AssetSelec
 import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.ChainSelectFragment
 import jp.co.soramitsu.wallet.impl.presentation.balance.detail.BalanceDetailFragment
 import jp.co.soramitsu.wallet.impl.presentation.balance.detail.claimreward.ClaimRewardsFragment
-import jp.co.soramitsu.wallet.impl.presentation.balance.detail.frozen.FrozenAssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.balance.detail.frozen.FrozenTokensFragment
 import jp.co.soramitsu.wallet.impl.presentation.balance.optionswallet.OptionsWalletFragment
-import jp.co.soramitsu.wallet.impl.presentation.balance.walletselector.light.WalletSelectionMode
 import jp.co.soramitsu.wallet.impl.presentation.balance.walletselector.light.WalletSelectorFragment
 import jp.co.soramitsu.wallet.impl.presentation.beacon.main.BeaconFragment
-import jp.co.soramitsu.wallet.impl.presentation.beacon.main.DAppMetadataModel
 import jp.co.soramitsu.wallet.impl.presentation.beacon.sign.SignBeaconTransactionFragment
 import jp.co.soramitsu.wallet.impl.presentation.beacon.sign.TransactionRawDataFragment
 import jp.co.soramitsu.wallet.impl.presentation.contacts.ContactsFragment
-import jp.co.soramitsu.wallet.impl.presentation.cross_chain.CrossChainTransferDraft
 import jp.co.soramitsu.wallet.impl.presentation.cross_chain.confirm.CrossChainConfirmFragment
 import jp.co.soramitsu.wallet.impl.presentation.cross_chain.setup.CrossChainSetupFragment
 import jp.co.soramitsu.wallet.impl.presentation.history.AddressHistoryFragment
+import jp.co.soramitsu.wallet.impl.presentation.model.AssetPayload
+import jp.co.soramitsu.wallet.impl.presentation.model.CrossChainTransferDraft
+import jp.co.soramitsu.wallet.impl.presentation.model.DAppMetadataModel
+import jp.co.soramitsu.wallet.impl.presentation.model.ExtrinsicDetailsPayload
+import jp.co.soramitsu.wallet.impl.presentation.model.FrozenAssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.model.OperationParcelizeModel
+import jp.co.soramitsu.wallet.impl.presentation.model.RewardDetailsPayload
+import jp.co.soramitsu.wallet.impl.presentation.model.SignStatus
+import jp.co.soramitsu.wallet.impl.presentation.model.TransferDraft
+import jp.co.soramitsu.wallet.impl.presentation.model.WalletSelectionMode
 import jp.co.soramitsu.wallet.impl.presentation.receive.ReceiveFragment
-import jp.co.soramitsu.wallet.impl.presentation.send.TransferDraft
 import jp.co.soramitsu.wallet.impl.presentation.send.confirm.ConfirmSendFragment
 import jp.co.soramitsu.wallet.impl.presentation.send.setup.SendSetupFragment
 import jp.co.soramitsu.wallet.impl.presentation.send.setupcbdc.CBDCSendSetupFragment
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.extrinsic.ExtrinsicDetailFragment
-import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.extrinsic.ExtrinsicDetailsPayload
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.reward.RewardDetailFragment
-import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.reward.RewardDetailsPayload
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.swap.SwapDetailFragment
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.transfer.TransferDetailFragment
 import jp.co.soramitsu.walletconnect.impl.presentation.sessionproposal.SessionProposalFragment
@@ -1042,8 +1042,8 @@ class Navigator :
         navController?.popBackStack()
     }
 
-    override fun openTransferDetail(transaction: OperationParcelizeModel.Transfer, assetPayload: AssetPayload, chainHistoryType: Chain.ExternalApi.Section.Type?) {
-        val bundle = TransferDetailFragment.getBundle(transaction, assetPayload, chainHistoryType)
+    override fun openTransferDetail(transaction: OperationParcelizeModel.Transfer, assetPayload: AssetPayload, chainExplorerType: Chain.Explorer.Type?) {
+        val bundle = TransferDetailFragment.getBundle(transaction, assetPayload, chainExplorerType)
 
         navController?.navigate(R.id.open_transfer_detail, bundle)
     }
@@ -1524,6 +1524,10 @@ class Navigator :
 
     override fun openNFTFilter() {
         navController?.navigate(R.id.nftFiltersFragment)
+    }
+
+    override fun openManageAssets() {
+        navController?.navigate(R.id.manageAssetsFragment)
     }
 
     override fun openServiceScreen() {

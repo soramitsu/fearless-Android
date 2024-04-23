@@ -31,7 +31,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
@@ -123,7 +123,7 @@ class AccountDataSourceImpl(
         }
     }
 
-    override suspend fun anyAccountSelected(): Boolean = selectedMetaAccountLocal.first() != null
+    override suspend fun anyAccountSelected(): Boolean = selectedMetaAccountLocal.firstOrNull() != null
 
     override suspend fun saveSelectedAccount(account: Account) = withContext(Dispatchers.Default) {
         val raw = jsonMapper.toJson(account)

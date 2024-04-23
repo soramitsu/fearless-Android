@@ -23,11 +23,8 @@ class StakingAssetSelector(
 
     val showAssetChooser = MutableLiveData<Event<DynamicListBottomSheet.Payload<StakingAssetSelectorModel>>>()
 
-    val selectedItem = stakingSharedState.selectionItem
-        .shareIn(this, SharingStarted.Eagerly, replay = 1)
-
     val selectedAssetModelFlow: SharedFlow<StakingAssetSelectorModel> = combine(
-        selectedItem,
+        stakingSharedState.selectionItem,
         stakingSharedState.currentAssetFlow()
     ) { selectedItem, asset ->
         val assetBalance = if (selectedItem.type == StakingType.POOL) {

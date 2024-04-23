@@ -1,6 +1,7 @@
 package jp.co.soramitsu.soracard.impl.presentation.buycrypto
 
 import android.util.Base64
+import android.webkit.WebResourceResponse
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -36,6 +37,18 @@ class BuyCryptoViewModel @Inject constructor(
 
     fun onPageFinished() {
         state = state.copy(loading = false)
+    }
+
+    fun onReceivedError(errorResponse: WebResourceResponse?) {
+        showWidgetUnavailableAlert()
+    }
+
+    fun onAlertCloseClick() {
+        soraCardRouter.back()
+    }
+
+    private fun showWidgetUnavailableAlert() {
+        state = state.copy(showAlert = true)
     }
 
     private fun setUpScript() {

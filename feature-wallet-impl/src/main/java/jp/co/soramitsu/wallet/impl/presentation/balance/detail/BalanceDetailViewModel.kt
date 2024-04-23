@@ -34,20 +34,19 @@ import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.feature_wallet_impl.R
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraTestChainId
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.updaters.BalanceUpdateTrigger
+import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.domain.ChainInteractor
 import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
-import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
-import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.presentation.balance.assetActions.buy.BuyMixin
 import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.toChainItemState
-import jp.co.soramitsu.wallet.impl.presentation.balance.detail.frozen.FrozenAssetPayload
+import jp.co.soramitsu.wallet.impl.presentation.model.AssetPayload
+import jp.co.soramitsu.wallet.impl.presentation.model.FrozenAssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.model.OperationModel
 import jp.co.soramitsu.wallet.impl.presentation.transaction.filter.HistoryFiltersProvider
 import jp.co.soramitsu.wallet.impl.presentation.transaction.history.mixin.TransactionHistoryProvider
@@ -275,8 +274,6 @@ class BalanceDetailViewModel @Inject constructor(
                         it.message
                             ?: resourceManager.getString(R.string.common_undefined_error_message)
                     )
-
-                    else -> {}
                 }
             }
         }
@@ -487,19 +484,10 @@ class BalanceDetailViewModel @Inject constructor(
     }
 
     override fun transactionClicked(transactionModel: OperationModel) {
-        launch {
-            val chain = interactor.getChain(assetPayload.value.chainId)
-            val chainHistoryType: Chain.ExternalApi.Section.Type? = chain.externalApi?.history?.type
-
-            transactionHistoryProvider.transactionClicked(
-                transactionModel = transactionModel,
-                assetPayload = AssetPayload(
-                    chainId = assetPayload.value.chainId,
-                    chainAssetId = assetPayload.value.chainAssetId
-                ),
-                chainHistoryType = chainHistoryType
-            )
-        }
+        transactionHistoryProvider.transactionClicked(
+            transactionModel = transactionModel,
+            assetPayload = assetPayload.value
+        )
     }
 
     override fun tableItemClicked(itemId: Int) {

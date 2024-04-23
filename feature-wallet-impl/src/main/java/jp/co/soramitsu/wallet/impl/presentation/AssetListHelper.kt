@@ -1,10 +1,7 @@
 package jp.co.soramitsu.wallet.impl.presentation
 
-import android.util.Log
 import java.math.BigDecimal
 import jp.co.soramitsu.common.compose.component.NetworkIssueItemState
-import jp.co.soramitsu.common.utils.formatCrypto
-import jp.co.soramitsu.common.utils.isZero
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.sumByBigDecimal
 import jp.co.soramitsu.core.models.ChainId
@@ -19,8 +16,7 @@ object AssetListHelper {
         assets: List<AssetWithStatus>,
         filteredChains: List<Chain>,
         selectedChainId: ChainId? = null,
-        networkIssues: Set<NetworkIssueItemState>,
-        hideZeroBalancesEnabled: Boolean
+        networkIssues: Set<NetworkIssueItemState>
     ): List<BalanceListItemModel> {
         val result = mutableListOf<BalanceListItemModel>()
         assets.groupBy { it.asset.token.configuration.symbol }
@@ -63,19 +59,7 @@ object AssetListHelper {
                 val assetTotal = symbolAssets.sumByBigDecimal { it.asset.total.orZero() }
                 val assetTotalFiat = symbolAssets.sumByBigDecimal { it.asset.fiatAmount.orZero() }
 
-                val assetVisibleTotal = try {
-                    assetTotal.formatCrypto().replace(',', '.').toBigDecimal()
-                } catch (e: NumberFormatException) {
-                    Log.e("AssetListHelper", "assetVisibleTotal calculation failure", e)
-                    assetTotal
-                }
-                val isZeroBalance = assetVisibleTotal.isZero()
-
                 val assetDisabledByUser = symbolAssets.any { it.asset.enabled == false }
-                val assetManagedByUser = symbolAssets.any { it.asset.enabled != null }
-
-                val isHidden =
-                    assetDisabledByUser || (!assetManagedByUser && isZeroBalance && hideZeroBalancesEnabled)
 
                 val token = symbolAssets.first().asset.token
 
@@ -87,7 +71,7 @@ object AssetListHelper {
                     fiatAmount = assetTotalFiat,
                     transferable = assetTransferable,
                     chainUrls = assetChainUrls,
-                    isHidden = isHidden
+                    isHidden = assetDisabledByUser
                 )
                 result.add(model)
             }

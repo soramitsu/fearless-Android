@@ -725,7 +725,6 @@
   <string name="send_fund">資金を送る</string>
   <string name="send_to">送信先</string>
   <string name="sending">送信中</string>
-  <string name="settings_hide_zero_balances">残高ゼロを隠す</string>
   <string name="share_referral_code">紹介コードを共有</string>
   <string name="social_media">ソーシャル・メディア</string>
   <string name="sora_bridge_low_amount_format_alert">現在、SORAネットワークの安定性と安全性を確保するため、ブリッジングには最低%sが設定されています。ご理解のほどよろしくお願いいたします。</string>

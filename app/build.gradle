@@ -130,8 +130,8 @@ android {
         resources.excludes.add("META-INF/*")
     }
 
-    configurations{
-        all*.exclude module: 'bcprov-jdk15on'
+    configurations.configureEach {
+        exclude group: "org.bouncycastle", module: "bcprov-jdk15on"
     }
 }
 

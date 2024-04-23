@@ -120,7 +120,7 @@ class ScannerActivity : AppCompatActivity() {
         capture?.onSaveInstanceState(outState)
     }
 
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String?>, grantResults: IntArray) {
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         capture?.onRequestPermissionsResult(requestCode, permissions, grantResults)
     }

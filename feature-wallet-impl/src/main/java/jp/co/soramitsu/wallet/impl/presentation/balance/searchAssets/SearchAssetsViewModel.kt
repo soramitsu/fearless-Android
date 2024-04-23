@@ -20,17 +20,21 @@ import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.defaultChainSort
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.getWithToken
+//import jp.co.soramitsu.wallet.api.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.domain.ChainInteractor
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.domain.model.AssetWithStatus
 import jp.co.soramitsu.wallet.impl.presentation.AssetListHelper
-import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
+//import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.presentation.balance.list.model.BalanceListItemModel
 import jp.co.soramitsu.wallet.impl.presentation.balance.list.model.toAssetState
+import jp.co.soramitsu.wallet.impl.presentation.model.AssetPayload
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -54,15 +58,13 @@ class SearchAssetsViewModel @Inject constructor(
     private val assetStates = combine(
         interactor.assetsFlow(),
         chainInteractor.getChainsFlow(),
-        networkIssuesFlow,
-        interactor.observeHideZeroBalanceEnabledForCurrentWallet()
-    ) { assets: List<AssetWithStatus>, chains: List<Chain>, networkIssues: Set<NetworkIssueItemState>, hideZeroBalancesEnabled ->
+        networkIssuesFlow
+    ) { assets: List<AssetWithStatus>, chains: List<Chain>, networkIssues: Set<NetworkIssueItemState> ->
 
         val balanceListItems = AssetListHelper.processAssets(
             assets = assets,
             filteredChains = chains,
-            networkIssues = networkIssues,
-            hideZeroBalancesEnabled = hideZeroBalancesEnabled
+            networkIssues = networkIssues
         )
 
         val assetStates: List<AssetListItemViewState> = balanceListItems

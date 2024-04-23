@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
@@ -82,21 +83,25 @@ fun TransactionItem(
             )
 
             if (item.type == OperationModel.Type.Transfer) {
-                val headerModifier = Modifier.constrainAs(header) {
-                    top.linkTo(parent.top)
-                    start.linkTo(imageSpacer.end)
-                    end.linkTo(amount.start)
-                    width = Dimension.fillToConstraints
-                }
+                val headerModifier = Modifier
+                    .constrainAs(header) {
+                        top.linkTo(parent.top)
+                        start.linkTo(imageSpacer.end)
+                        end.linkTo(amount.start)
+                        width = Dimension.fillToConstraints
+                    }
+                    .padding(end = 8.dp)
                 B1EllipsizeMiddle(
                     text = item.header,
                     modifier = headerModifier
                 )
             } else {
-                val headerModifier = Modifier.constrainAs(header) {
-                    top.linkTo(parent.top)
-                    start.linkTo(imageSpacer.end)
-                }
+                val headerModifier = Modifier
+                    .constrainAs(header) {
+                        top.linkTo(parent.top)
+                        start.linkTo(imageSpacer.end)
+                    }
+                    .padding(end = 8.dp)
                 B1(
                     text = item.header,
                     textAlign = TextAlign.Start,
