@@ -469,7 +469,7 @@ class BalanceListViewModel @Inject constructor(
     ) { soraCardStatus, isShow ->
         println("!!! soraCardStatus = ${soraCardStatus.name}, isShow = $isShow")
         val kycStatus = mapKycStatus(soraCardStatus)
-        SoraCardItemViewState(kycStatus, isShow)
+        SoraCardItemViewState(kycStatus = kycStatus, visible = isShow)
     }
 
     val state = MutableStateFlow(WalletState.default)

@@ -47,27 +47,22 @@ import jp.co.soramitsu.common.compose.component.ToolbarViewState
 import jp.co.soramitsu.common.compose.component.TransparentButton
 import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
 import jp.co.soramitsu.common.compose.theme.backgroundBlack
-import jp.co.soramitsu.common.compose.theme.errorRed
 import jp.co.soramitsu.feature_soracard_impl.R
 import jp.co.soramitsu.oauth.base.extension.testTagAsId
+import jp.co.soramitsu.soracard.impl.presentation.SoraCardItem
 import jp.co.soramitsu.ui_core.resources.Dimens
 import jp.co.soramitsu.ui_core.theme.borderRadius
 import jp.co.soramitsu.ui_core.theme.customColors
 import jp.co.soramitsu.ui_core.theme.customTypography
-import jp.co.soramitsu.ui_core.theme.elevation
 import jp.co.soramitsu.oauth.R as SoraCardR
 
 data class GetSoraCardState(
-    val xorBalance: BigDecimal = BigDecimal.ZERO,
-    val enoughXor: Boolean = false,
-    val percent: BigDecimal = BigDecimal.ZERO,
-    val needInXor: String = "",
-    val needInEur: String = "",
     val xorRatioAvailable: Boolean? = null
 )
 
 interface GetSoraCardScreenInterface {
-    fun onEnableCard()
+    fun onSignUp()
+    fun onLogIn()
     fun onGetMoreXor()
     fun onSeeBlacklist()
     fun onNavigationClick()
@@ -126,13 +121,10 @@ fun GetSoraCardScreen(
                     .background(color = Color(0xFF1D1D1F))
                     .padding(16.dp)
             ) {
-                Image(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .wrapContentHeight(),
-                    painter = painterResource(R.drawable.sora_card),
-                    contentDescription = null,
-                    contentScale = ContentScale.FillWidth
+                SoraCardItem(
+                    state = null,
+                    onClose = null,
+                    onClick = {}
                 )
 
                 MarginVertical(margin = 16.dp)
@@ -159,7 +151,7 @@ fun GetSoraCardScreen(
                 AnnualFee()
 
                 MarginVertical(margin = 16.dp)
-                FreeCardIssuance(state)
+                FreeCardIssuance()
 
                 MarginVertical(margin = 16.dp)
                 Text(
@@ -191,27 +183,15 @@ fun GetSoraCardScreen(
 
                 val buttonsEnabled = state.xorRatioAvailable == true
                 MarginVertical(margin = 16.dp)
-                if (state.enoughXor || state.xorRatioAvailable == null) {
-                    AccentButton(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 8.dp)
-                            .height(48.dp),
-                        onClick = callbacks::onEnableCard,
-                        enabled = buttonsEnabled,
-                        text = stringResource(R.string.common_continue)
-                    )
-                } else {
-                    AccentButton(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .testTag("GetMoreXor")
-                            .padding(horizontal = 8.dp)
-                            .height(48.dp),
-                        onClick = callbacks::onGetMoreXor,
-                        text = stringResource(SoraCardR.string.details_get_more_xor)
-                    )
-                }
+                AccentButton(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp)
+                        .height(48.dp),
+                    onClick = callbacks::onSignUp,
+                    enabled = buttonsEnabled,
+                    text = "Sign up for SORA Card"
+                )
 
                 MarginVertical(margin = 8.dp)
                 TransparentButton(
@@ -222,7 +202,7 @@ fun GetSoraCardScreen(
                         .height(48.dp),
                     text = stringResource(SoraCardR.string.details_already_have_card),
                     enabled = buttonsEnabled,
-                    onClick = callbacks::onEnableCard
+                    onClick = callbacks::onLogIn
                 )
 
                 MarginVertical(margin = 8.dp)
@@ -240,35 +220,28 @@ private fun AnnualFee() {
         cornerRadius = 12.dp,
         backgroundColor = backgroundBlack
     ) {
-        Row(
+        Text(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(vertical = Dimens.x2, horizontal = Dimens.x3),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.ic_check_small),
-                contentDescription = null
-            )
-            MarginHorizontal(margin = 4.dp)
-            Text(
-                text = AnnotatedString(
-                    text = stringResource(R.string.sora_card_annual_service_fee),
-                    spanStyles = listOf(
-                        AnnotatedString.Range(SpanStyle(fontWeight = FontWeight.Bold, fontSize = 24.sp), 0, 3)
-                    )
+                .fillMaxWidth()
+                .wrapContentHeight()
+                .padding(
+                    top = Dimens.x2, bottom = Dimens.x2, start = Dimens.x3, end = Dimens.x3,
                 ),
-                style = MaterialTheme.customTypography.textL,
-                color = Color.White
-            )
-        }
+            text = AnnotatedString(
+                text = stringResource(R.string.sora_card_annual_service_fee),
+                spanStyles = listOf(
+                    AnnotatedString.Range(SpanStyle(fontWeight = FontWeight.Bold, fontSize = 24.sp), 0, 3)
+                )
+            ),
+            style = MaterialTheme.customTypography.textL,
+            color = Color.White
+        )
     }
 }
 
 @Composable
-private fun FreeCardIssuance(
-    state: GetSoraCardState
-) {
+private fun FreeCardIssuance() {
+    val cardIssuancePriceText = stringResource(SoraCardR.string.card_issuance_screen_free_card_title)
     ContentCard(
         modifier = Modifier
             .fillMaxWidth()
@@ -281,70 +254,19 @@ private fun FreeCardIssuance(
                 .fillMaxWidth()
                 .padding(vertical = Dimens.x2, horizontal = Dimens.x3)
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(bottom = Dimens.x2),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    painter = painterResource(id = if (state.enoughXor) R.drawable.ic_check_rounded else R.drawable.ic_cross_24),
-                    contentDescription = null,
-                    tint = if (state.enoughXor) {
-                        Color.Unspecified
-                    } else {
-                        errorRed
-                    }
-                )
-                MarginHorizontal(margin = 4.dp)
-                val cardIssuancePriceText = stringResource(SoraCardR.string.card_issuance_screen_free_card_title)
-                Text(
-                    text = AnnotatedString(
-                        text = cardIssuancePriceText,
-                        spanStyles = listOf(
-                            AnnotatedString.Range(
-                                item = SpanStyle(fontWeight = FontWeight.Bold, fontSize = 24.sp),
-                                start = 0,
-                                end = max(4, cardIssuancePriceText.split(" ").getOrNull(0)?.length ?: 0)
-                            )
-                        )
-                    ),
-                    style = MaterialTheme.customTypography.textL,
-                    color = Color.White
-                )
-            }
             Text(
-                modifier = Modifier
-                    .fillMaxSize(),
-                text = stringResource(SoraCardR.string.card_issuance_screen_free_card_description, "100"),
-                style = MaterialTheme.customTypography.paragraphM,
-                color = Color.White
-            )
-
-            BalanceIndicator(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = Dimens.x3, bottom = Dimens.x1),
-                percent = state.percent.toFloat(),
-                loading = state.xorRatioAvailable == null,
-                label = when {
-                    state.xorRatioAvailable == null -> {
-                        ""
-                    }
-                    !state.xorRatioAvailable -> {
-                        stringResource(R.string.common_error_general_title)
-                    }
-                    state.enoughXor -> {
-                        stringResource(SoraCardR.string.details_enough_xor_desription)
-                    }
-                    else -> {
-                        stringResource(
-                            SoraCardR.string.details_need_xor_desription,
-                            state.needInXor,
-                            state.needInEur
+                text = AnnotatedString(
+                    text = cardIssuancePriceText,
+                    spanStyles = listOf(
+                        AnnotatedString.Range(
+                            item = SpanStyle(fontWeight = FontWeight.Bold, fontSize = 24.sp),
+                            start = 0,
+                            end = max(4, cardIssuancePriceText.split(" ").getOrNull(0)?.length ?: 0)
                         )
-                    }
-                }
+                    )
+                ),
+                style = MaterialTheme.customTypography.textL,
+                color = Color.White
             )
         }
     }
@@ -377,7 +299,8 @@ fun ContentCard(
 @Composable
 private fun PreviewGetSoraCardScreen() {
     val empty = object : GetSoraCardScreenInterface {
-        override fun onEnableCard() {}
+        override fun onSignUp() {}
+        override fun onLogIn() {}
         override fun onGetMoreXor() {}
         override fun onSeeBlacklist() {}
         override fun onNavigationClick() {}

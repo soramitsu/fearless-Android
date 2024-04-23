@@ -46,19 +46,20 @@ class GetSoraCardViewModel @Inject constructor(
                     isEnoughXorAvailable = it.enoughXor
                 )
                 state.value = state.value.copy(
-                    xorBalance = it.xorBalance,
-                    enoughXor = it.enoughXor,
-                    percent = it.percent,
-                    needInXor = it.needInXor,
-                    needInEur = it.needInEur,
                     xorRatioAvailable = it.xorRatioAvailable
                 )
             }.launchIn(viewModelScope)
     }
 
-    override fun onEnableCard() {
-        currentSoraCardContractData?.let { soraCardContractData ->
-            _launchSoraCardRegistration.value = Event(soraCardContractData)
+    override fun onSignUp() {
+        currentSoraCardContractData?.let {
+            _launchSoraCardRegistration.value = Event(it.copy(logIn = false))
+        }
+    }
+
+    override fun onLogIn() {
+        currentSoraCardContractData?.let {
+            _launchSoraCardRegistration.value = Event(it.copy(logIn = true))
         }
     }
 

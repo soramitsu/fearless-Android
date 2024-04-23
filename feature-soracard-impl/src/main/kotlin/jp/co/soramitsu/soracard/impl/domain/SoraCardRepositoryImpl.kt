@@ -49,10 +49,12 @@ class SoraCardRepositoryImpl @Inject constructor(
         return if (xorEurPrice != null && cacheExpired.not()) {
             xorEurPrice
         } else {
-            val soraPrice = soraCardApi.getXorEuroPrice(BuildConfigWrapper.soraCardEuroRateUrl)
-            val newValue = soraPrice?.price?.toBigDecimalOrNull()
-            cachedXorEuroPrice = newValue to System.currentTimeMillis()
+            val newValue = runCatching {
+                val soraPrice = soraCardApi.getXorEuroPrice(BuildConfigWrapper.soraCardEuroRateUrl)
+                soraPrice?.price?.toBigDecimalOrNull()
+            }.getOrNull()
 
+            cachedXorEuroPrice = newValue to System.currentTimeMillis()
             newValue
         }
     }
