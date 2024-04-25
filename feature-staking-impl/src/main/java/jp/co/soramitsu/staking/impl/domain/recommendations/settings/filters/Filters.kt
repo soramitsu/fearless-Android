@@ -24,14 +24,14 @@ abstract class BlockProducerFilters<T> {
         }
 
         class NotOverSubscribedFilter(
-            private val maxSubscribers: Int
+            private val maxSubscribers: Int?
         ) : ValidatorFilter() {
 
             override fun shouldInclude(model: Validator): Boolean {
                 val electedInfo = model.electedInfo
 
                 return if (electedInfo != null) {
-                    electedInfo.nominatorStakes.size < maxSubscribers
+                    maxSubscribers == null || electedInfo.nominatorStakes.size < maxSubscribers
                 } else {
                     throw IllegalStateException("Filtering validator ${model.accountIdHex} with no prefs")
                 }

@@ -4,7 +4,6 @@ import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.shared_utils.runtime.AccountId
 import jp.co.soramitsu.staking.api.data.StakingSharedState
-import jp.co.soramitsu.staking.api.domain.model.Exposure
 import jp.co.soramitsu.staking.api.domain.model.StakingState
 import jp.co.soramitsu.staking.impl.data.repository.StakingConstantsRepository
 import jp.co.soramitsu.staking.impl.domain.common.isWaiting
@@ -21,6 +20,7 @@ import kotlinx.coroutines.flow.flowOf
 import java.math.BigDecimal
 import java.math.BigInteger
 import jp.co.soramitsu.shared_utils.extensions.toHexString
+import jp.co.soramitsu.staking.api.domain.model.LegacyExposure
 import jp.co.soramitsu.core.models.Asset as CoreAsset
 
 private const val NOMINATIONS_ACTIVE_MEMO = "NOMINATIONS_ACTIVE_MEMO"
@@ -34,13 +34,13 @@ class AlertsInteractor(
 ) {
 
     class AlertContext(
-        val exposures: Map<String, Exposure>,
+        val exposures: Map<String, LegacyExposure>?,
         val stakingState: StakingState,
-        val maxRewardedNominatorsPerValidator: Int,
+        val maxRewardedNominatorsPerValidator: Int?,
         val minimumNominatorBond: BigInteger,
         val activeEra: BigInteger,
         val asset: Asset,
-        val maxNominators: Int
+        val maxNominators: Int?
     ) {
 
         val memo = mutableMapOf<Any, Any?>()
@@ -54,6 +54,9 @@ class AlertsInteractor(
     }
 
     private fun AlertContext.isStakingActive(stashId: AccountId) = useMemo(NOMINATIONS_ACTIVE_MEMO) {
+        if(exposures == null) {
+            return true
+        }
         isNominationActive(stashId, exposures.values, maxRewardedNominatorsPerValidator)
     }
 
@@ -65,7 +68,12 @@ class AlertsInteractor(
 
     private fun produceChangeValidatorsAlert(context: AlertContext): Alert? {
         return requireState(context.stakingState) { nominatorState: StakingState.Stash.Nominator ->
-            val allValidatorsAreOversubscribed = nominatorState.nominations.targets.mapNotNull { context.exposures[it.toHexString()] }.all { it.others.size > context.maxNominators }
+            val allValidatorsAreOversubscribed = if (context.exposures == null || context.maxNominators == null) {
+                false
+            } else {
+                nominatorState.nominations.targets.mapNotNull { context.exposures[it.toHexString()] }
+                    .all { it.others.size > context.maxNominators }
+            }
             val stakingIsNotActive = context.isStakingActive(nominatorState.stashId).not()
 
             if (stakingIsNotActive.not()) return null
@@ -86,9 +94,9 @@ class AlertsInteractor(
         }
     }
 
-    private fun produceMinStakeAlert(context: AlertContext) = requireState(context.stakingState) { state: StakingState.Stash ->
+    private suspend fun produceMinStakeAlert(context: AlertContext) = requireState(context.stakingState) { state: StakingState.Stash ->
         with(context) {
-            val minimalStakeInPlanks = minimumStake(exposures.values, minimumNominatorBond)
+            val minimalStakeInPlanks = (if(exposures != null) minimumStake(exposures.values, minimumNominatorBond) else stakingRepository.minimumActiveStake(stakingState.chain.id)).orZero()
 
             if (
                 // do not show alert for validators
@@ -118,10 +126,11 @@ class AlertsInteractor(
     private val alertProducers = listOf(
         ::produceChangeValidatorsAlert,
         ::produceRedeemableAlert,
-        ::produceMinStakeAlert,
         ::produceWaitingNextEraAlert,
         ::produceSetValidatorsAlert
     )
+
+    private val suspendableAlertProducers = listOf(::produceMinStakeAlert)
 
     fun getAlertsFlow(stakingState: StakingState): Flow<List<Alert>> = sharedState.assetWithChain.flatMapLatest { (chain, chainAsset) ->
         if (chainAsset.staking != CoreAsset.StakingType.RELAYCHAIN) {
@@ -135,7 +144,7 @@ class AlertsInteractor(
         val maxNominators = stakingConstantsRepository.maxRewardedNominatorPerValidator(chain.id)
 
         val alertsFlow = combine(
-            stakingRepository.electedExposuresInActiveEra(chain.id),
+            stakingRepository.legacyElectedExposuresInActiveEra(chain.id),
             walletRepository.assetFlow(meta.id, stakingState.accountId, chainAsset, chain.minSupportedVersion),
             stakingRepository.observeActiveEraIndex(chain.id)
         ) { exposures, asset, activeEra ->
@@ -149,8 +158,7 @@ class AlertsInteractor(
                 activeEra = activeEra,
                 maxNominators = maxNominators
             )
-
-            alertProducers.mapNotNull { it.invoke(context) }
+            alertProducers.mapNotNull { it.invoke(context) } + suspendableAlertProducers.mapNotNull { it.invoke(context) }
         }
 
         alertsFlow

@@ -46,12 +46,12 @@ abstract class RecommendationSettingsProvider<T> {
     abstract fun settingsChanged(schema: SettingsSchema, amount: BigInteger)
 
     class RelayChain(
-        private val maximumRewardedNominators: Int,
+        private val maximumRewardedNominators: Int?,
         private val maximumValidatorsPerNominator: Int
     ) : RecommendationSettingsProvider<Validator>() {
 
         override val alwaysEnabledFilters = listOf<BlockProducerFilters.ValidatorFilter>(
-            BlockProducerFilters.ValidatorFilter.HasBlocked
+//            BlockProducerFilters.ValidatorFilter.HasBlocked
         )
 
         override val customizableFilters: List<BlockProducerFilters<Validator>> = listOf(
@@ -70,7 +70,7 @@ abstract class RecommendationSettingsProvider<T> {
 
         override fun defaultSettings(): RecommendationSettings<Validator> {
             return RecommendationSettings(
-                alwaysEnabledFilters = alwaysEnabledFilters,
+                alwaysEnabledFilters = listOf(BlockProducerFilters.ValidatorFilter.HasBlocked),
                 customEnabledFilters = listOf(BlockProducerFilters.ValidatorFilter.HundredPercentCommissionFilter, BlockProducerFilters.ValidatorFilter.NotOverSubscribedFilter(maximumRewardedNominators), BlockProducerFilters.ValidatorFilter.ElectedFilter),
                 sorting = BlockProducersSorting.ValidatorSorting.APYSorting,
                 postProcessors = allPostProcessors,
@@ -79,7 +79,7 @@ abstract class RecommendationSettingsProvider<T> {
         }
 
         override fun defaultSelectCustomSettings() = RecommendationSettings(
-            alwaysEnabledFilters = alwaysEnabledFilters,
+            alwaysEnabledFilters = emptyList(),
             customEnabledFilters = emptyList(),
             sorting = BlockProducersSorting.ValidatorSorting.APYSorting,
             postProcessors = allPostProcessors,
