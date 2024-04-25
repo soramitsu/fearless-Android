@@ -606,7 +606,8 @@ class StakingRelayChainScenarioRepository(
     }
 
     suspend fun getLegacyActiveElectedValidatorsExposures(chainId: ChainId): Map<String, LegacyExposure> {
-        return legacyElectedExposuresInActiveEra(chainId).firstOrNull() ?: emptyMap()
+        val era = getActiveEraIndex(chainId)
+        return getLegacyElectedValidatorsExposure(chainId, era)
     }
 
     private suspend fun isLegacyErasStakersSchema(chainId: ChainId): Boolean {

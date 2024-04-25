@@ -6,6 +6,7 @@ import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.formatCryptoDetail
 import jp.co.soramitsu.common.utils.formatFiat
+import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.common.utils.withLoading
 import jp.co.soramitsu.common.validation.CompositeValidation
@@ -198,7 +199,7 @@ class StakingRelaychainScenarioViewModel(
     override suspend fun alerts(): Flow<LoadingState<List<AlertModel>>> {
         return stakingStateFlow.flatMapLatest {
             alertsInteractor.getAlertsFlow(it)
-        }.mapList(::mapAlertToAlertModel).withLoading()
+        }.mapList(::mapAlertToAlertModel).withLoading().inBackground()
     }
 
     private fun mapAlertToAlertModel(alert: Alert): AlertModel {

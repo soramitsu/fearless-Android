@@ -9,9 +9,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.reefChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ternoaChainId
 import jp.co.soramitsu.shared_utils.extensions.fromHex
-import jp.co.soramitsu.staking.api.domain.api.AccountIdMap
 import jp.co.soramitsu.staking.api.domain.api.IdentityRepository
-import jp.co.soramitsu.staking.api.domain.model.LegacyExposure
 import jp.co.soramitsu.staking.api.domain.model.Validator
 import jp.co.soramitsu.staking.impl.data.repository.StakingConstantsRepository
 import jp.co.soramitsu.staking.impl.domain.rewards.RewardCalculationTarget
@@ -36,12 +34,9 @@ class ValidatorProvider(
 
     suspend fun getValidators(
         chain: Chain,
-        source: ValidatorSource,
-        cachedExposures: AccountIdMap<LegacyExposure>? = null
+        source: ValidatorSource
     ): List<Validator> = coroutineScope {
         val chainId = chain.id
-
-        val electedValidatorExposuresDeferred = async { cachedExposures ?: stakingRepository.getLegacyActiveElectedValidatorsExposures(chainId) }
 
         val allValidatorPrefsDeferred = async { stakingRepository.getAllValidatorPrefs(chainId) }
         val maxNominatorsDeferred = async {
@@ -53,12 +48,10 @@ class ValidatorProvider(
             ValidatorSource.Elected -> allValidatorPrefs.keys.toList()
             is ValidatorSource.Custom -> source.validatorIds
         }
-
         val identitiesDeferred = async { identityRepository.getIdentitiesFromIds(chain, requestedValidatorIds) }
         val slashesDeferred = async { stakingRepository.getSlashes(chainId, requestedValidatorIds) }
 
-        val electedValidatorExposures = electedValidatorExposuresDeferred.await()
-
+        val electedValidatorExposures = stakingRepository.getLegacyActiveElectedValidatorsExposures(chainId)
         val rewardCalculatorDeferred = async {
             val calculationTargets = electedValidatorExposures.keys.mapNotNull { accountIdHex ->
                 val exposure = electedValidatorExposures[accountIdHex] ?: return@mapNotNull null

@@ -58,8 +58,7 @@ class CurrentValidatorsInteractor(
 
             val groupedByStatusClass = validatorProvider.getValidators(
                 chain = chain,
-                source = ValidatorSource.Custom(nominatedValidatorIds.toList()),
-                cachedExposures = exposures
+                source = ValidatorSource.Custom(nominatedValidatorIds.toList())
             )
                 .map { validator ->
                     val userIndividualExposure = activeNominations[validator.accountIdHex]

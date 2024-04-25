@@ -198,14 +198,6 @@ class StakingRelayChainScenarioInteractor(
                 accountId
             )
         }
-//        return stakingSharedState.assetWithChain.distinctUntilChanged()
-//            .flatMapLatest { (chain, asset) ->
-//                accountRepository.selectedMetaAccountFlow().mapNotNull {
-//                    it.accountId(chain)
-//                }.flatMapLatest { accountId ->
-//                    stakingRelayChainScenarioRepository.stakingStateFlow(chain, asset, accountId)
-//                }
-//            }
     }
 
     fun stakingStateFlow(chainId: ChainId): Flow<StakingState> {
