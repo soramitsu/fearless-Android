@@ -6,6 +6,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.math.BigDecimal
+import java.math.BigInteger
 import javax.inject.Inject
 import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.common.AlertViewState
@@ -36,6 +37,7 @@ import jp.co.soramitsu.polkaswap.api.domain.PolkaswapInteractor
 import jp.co.soramitsu.polkaswap.api.models.Market
 import jp.co.soramitsu.polkaswap.api.models.WithDesired
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.availChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.bokoloCashTokenId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
 import jp.co.soramitsu.wallet.api.domain.TransferValidationResult
@@ -138,6 +140,7 @@ class ConfirmSendViewModel @Inject constructor(
             interactor.assetFlow(transferDraft.assetPayload.chainId, assetId)
         }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     private val feeFlow = assetFlow.map { createTransfer(it.token.configuration) }
         .flatMapLatest { interactor.observeTransferFee(it) }
         .map { it.feeAmount }
@@ -352,9 +355,10 @@ class ConfirmSendViewModel @Inject constructor(
             transferSubmittingFlow.value = true
 
             val tipInPlanks = transferDraft.tip?.let { token.planksFromAmount(it) }
-            val result = withContext(Dispatchers.Default) {
+            val appId = if (token.chainId == availChainId) BigInteger.ZERO else null
 
-                interactor.performTransfer(createTransfer(token, fee), fee, tipInPlanks)
+            val result = withContext(Dispatchers.Default) {
+                interactor.performTransfer(createTransfer(token, fee), fee, tipInPlanks, appId)
             }
             if (result.isSuccess) {
                 val operationHash = result.getOrNull()
