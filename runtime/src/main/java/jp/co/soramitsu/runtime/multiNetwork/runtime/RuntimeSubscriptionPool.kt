@@ -15,9 +15,9 @@ class RuntimeSubscriptionPool(
 
     fun getRuntimeSubscription(chainId: String) = pool.getValue(chainId)
 
-    fun setupRuntimeSubscription(chain: Chain, connection: ChainConnection): RuntimeVersionSubscription {
+    fun setupRuntimeSubscription(chain: Chain, connection: ChainConnection, runtimeProvider: RuntimeProvider): RuntimeVersionSubscription {
         return pool.getOrPut(chain.id) {
-            RuntimeVersionSubscription(chain.id, connection, chainDao, runtimeSyncService)
+            RuntimeVersionSubscription(chain.id, connection, chainDao, runtimeSyncService, runtimeProvider)
         }
     }
 

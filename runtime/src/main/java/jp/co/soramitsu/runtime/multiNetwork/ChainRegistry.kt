@@ -25,7 +25,6 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.mapNodeLocalToNode
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.NodeId
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import jp.co.soramitsu.runtime.multiNetwork.connection.ConnectionPool
 import jp.co.soramitsu.runtime.multiNetwork.connection.EthereumConnectionPool
 import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeProvider
@@ -128,12 +127,13 @@ class ChainRegistry @Inject constructor(
                                                     notifyNodeSwitched(NodeId(chainId to newNodeUrl))
                                                 }
                                             )
+                                            val runtimeProvider = runtimeProviderPool.setupRuntimeProvider(chain)
                                             runtimeSubscriptionPool.setupRuntimeSubscription(
                                                 chain,
-                                                connection
+                                                connection,
+                                                runtimeProvider
                                             )
                                             runtimeSyncService.registerChain(chain)
-                                            runtimeProviderPool.setupRuntimeProvider(chain)
                                         }.onFailure { networkStateMixin.notifyChainSyncProblem(chain.toSyncIssue()) }
                                             .onSuccess {
                                                 networkStateMixin.notifyChainSyncSuccess(
