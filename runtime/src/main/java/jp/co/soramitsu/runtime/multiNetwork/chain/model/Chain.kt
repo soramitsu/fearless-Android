@@ -51,7 +51,8 @@ data class Chain(
     val supportStakingPool: Boolean,
     val isEthereumChain: Boolean,
     val chainlinkProvider: Boolean,
-    val supportNft: Boolean
+    val supportNft: Boolean,
+    val isUsesAppId: Boolean
 ) : IChain {
     val assetsById = assets.associateBy(CoreAsset::id)
 
@@ -104,6 +105,7 @@ data class Chain(
         if (isEthereumChain != other.isEthereumChain) return false
         if (chainlinkProvider != other.chainlinkProvider) return false
         if (supportNft != other.supportNft) return false
+        if (isUsesAppId != other.isUsesAppId) return false
 
         // custom comparison logic
         val defaultNodes = nodes.filter { it.isDefault }
@@ -136,6 +138,7 @@ data class Chain(
         result = 31 * result + isEthereumChain.hashCode()
         result = 31 * result + chainlinkProvider.hashCode()
         result = 31 * result + supportNft.hashCode()
+        result = 31 * result + isUsesAppId.hashCode()
         return result
     }
 }

@@ -27,7 +27,20 @@ class RootIdentity(
     override val pgpFingerprint: String?,
     override val image: String?,
     override val twitter: String?
-) : Identity
+) : Identity {
+    companion object {
+        fun empty() = RootIdentity(
+            display = null,
+            legal = null,
+            web = null,
+            riot = null,
+            email = null,
+            pgpFingerprint = null,
+            image = null,
+            twitter = null
+        )
+    }
+}
 
 class ChildIdentity(
     childName: String?,
@@ -37,7 +50,7 @@ class ChildIdentity(
     override val display: String = "${parentIdentity.display} / ${childName.orEmpty()}"
 }
 
-class SuperOf(
+data class SuperOf(
     val parentIdHex: String,
     val childName: String?
 )

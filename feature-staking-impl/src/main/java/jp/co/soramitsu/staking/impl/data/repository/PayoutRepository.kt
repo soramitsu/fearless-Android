@@ -21,7 +21,7 @@ import jp.co.soramitsu.shared_utils.runtime.metadata.storage
 import jp.co.soramitsu.shared_utils.runtime.metadata.storageKey
 import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.shared_utils.wsrpc.SocketService
-import jp.co.soramitsu.staking.api.domain.model.Exposure
+import jp.co.soramitsu.staking.api.domain.model.LegacyExposure
 import jp.co.soramitsu.staking.api.domain.model.StakingLedger
 import jp.co.soramitsu.staking.api.domain.model.StakingState
 import jp.co.soramitsu.staking.api.domain.model.ValidatorPrefs
@@ -29,6 +29,7 @@ import jp.co.soramitsu.staking.impl.data.model.Payout
 import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.EraRewardPoints
 import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindEraRewardPoints
 import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindExposure
+import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindLegacyExposure
 import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindStakingLedger
 import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindTotalValidatorEraReward
 import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindValidatorPrefs
@@ -46,7 +47,7 @@ class ValidatorHistoricalStats(
 
     class ValidatorEraStats(
         val prefs: ValidatorPrefs,
-        val exposure: Exposure
+        val exposure: LegacyExposure
     )
 }
 
@@ -254,7 +255,7 @@ class PayoutRepository(
                 val prefsKey = prefsKeyMapping[validatorAddress]!![era]!!
 
                 val exposure = allResults[exposureKey]?.let {
-                    bindExposure(
+                    bindLegacyExposure(
                         it,
                         runtime,
                         exposureClippedStorage.returnType()

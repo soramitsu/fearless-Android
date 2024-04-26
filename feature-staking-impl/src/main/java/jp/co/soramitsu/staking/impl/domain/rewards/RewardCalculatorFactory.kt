@@ -10,11 +10,11 @@ import jp.co.soramitsu.shared_utils.runtime.AccountId
 import jp.co.soramitsu.staking.api.data.SyntheticStakingType
 import jp.co.soramitsu.staking.api.data.syntheticStakingType
 import jp.co.soramitsu.staking.api.domain.api.StakingRepository
+import jp.co.soramitsu.staking.api.domain.model.LegacyExposure
 import jp.co.soramitsu.staking.impl.data.network.subquery.StakingApi
 import jp.co.soramitsu.staking.impl.domain.error.accountIdNotFound
 import jp.co.soramitsu.staking.impl.scenarios.parachain.StakingParachainScenarioInteractor
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenarioRepository
-import jp.co.soramitsu.staking.impl.scenarios.relaychain.getActiveElectedValidatorsExposures
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -132,6 +132,7 @@ class RewardCalculatorFactory(
             syntheticType == SyntheticStakingType.TERNOA -> createTernoa(asset, calculationTargets)
             syntheticType == SyntheticStakingType.REEF -> createReef(asset, calculationTargets)
             stakingType == Asset.StakingType.RELAYCHAIN -> createManual(chainId, calculationTargets)
+            stakingType == Asset.StakingType.PARACHAIN -> createSubquery()
 
             stakingType == Asset.StakingType.UNSUPPORTED -> error("wrong staking type")
             else -> error("wrong staking type")
@@ -178,7 +179,7 @@ class RewardCalculatorFactory(
         validators: List<String>? = null
     ): List<RewardCalculationTarget> {
         val chainId = asset.chainId
-        val electedExposures = relayChainRepository.getActiveElectedValidatorsExposures(chainId)
+        val electedExposures = relayChainRepository.getLegacyActiveElectedValidatorsExposures(chainId)
 
         val exposures = validators?.let { electedExposures.filter { validators.contains(it.key) } }
             ?: electedExposures

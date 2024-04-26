@@ -1,26 +1,18 @@
 package jp.co.soramitsu.staking.impl.presentation.validators.compose
 
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.withStyle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.math.BigInteger
 import javax.inject.Inject
 import jp.co.soramitsu.common.AlertViewState
 import jp.co.soramitsu.common.base.BaseViewModel
-import jp.co.soramitsu.common.compose.theme.black1
-import jp.co.soramitsu.common.compose.theme.greenText
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.presentation.dataOrNull
 import jp.co.soramitsu.common.presentation.map
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.common.utils.formatAsPercentage
-import jp.co.soramitsu.common.utils.fractionToPercentage
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.invoke
 import jp.co.soramitsu.common.utils.lazyAsync
-import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.shared_utils.extensions.fromHex
@@ -33,14 +25,12 @@ import jp.co.soramitsu.staking.impl.domain.recommendations.settings.Recommendati
 import jp.co.soramitsu.staking.impl.domain.recommendations.settings.SettingsStorage
 import jp.co.soramitsu.staking.impl.domain.recommendations.settings.filters.Filters
 import jp.co.soramitsu.staking.impl.domain.recommendations.settings.filters.Sorting
-import jp.co.soramitsu.staking.impl.domain.recommendations.settings.sortings.BlockProducersSorting
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
 import jp.co.soramitsu.staking.impl.presentation.common.SelectValidatorFlowState
 import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSharedStateProvider
 import jp.co.soramitsu.staking.impl.presentation.mappers.mapValidatorToValidatorDetailsParcelModel
 import jp.co.soramitsu.staking.impl.presentation.pools.compose.SelectableListItemState
 import jp.co.soramitsu.staking.impl.presentation.validators.buildSegmentedValidatorsListState
-import jp.co.soramitsu.wallet.api.presentation.formatters.formatCryptoFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -51,6 +41,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 private val filtersSet =
@@ -117,6 +108,11 @@ class SelectValidatorsViewModel @Inject constructor(
     private val recommendedValidators = recommendedSettings.mapNotNull {
         val settings = it ?: recommendationSettingsProvider().defaultSelectCustomSettings()
         val recommendations = validatorRecommendator().recommendations(settings)
+        if (selectMode == SelectValidatorFlowState.ValidatorSelectMode.RECOMMENDED) {
+            selectedItems.update {
+                recommendations.map { it.accountIdHex }
+            }
+        }
         LoadingState.Loaded(recommendations)
     }.inBackground().stateIn(viewModelScope, SharingStarted.Eagerly, LoadingState.Loading())
 

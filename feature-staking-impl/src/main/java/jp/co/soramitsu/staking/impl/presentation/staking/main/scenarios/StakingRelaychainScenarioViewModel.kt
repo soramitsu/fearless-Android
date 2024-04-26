@@ -6,10 +6,12 @@ import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.formatCryptoDetail
 import jp.co.soramitsu.common.utils.formatFiat
+import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.common.utils.withLoading
 import jp.co.soramitsu.common.validation.CompositeValidation
 import jp.co.soramitsu.common.validation.ValidationSystem
+import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import jp.co.soramitsu.shared_utils.extensions.toHexString
@@ -160,7 +162,8 @@ class StakingRelaychainScenarioViewModel(
             scenarioInteractor.observeNetworkInfoState().map { it as NetworkInfo.RelayChain },
             stakingInteractor.currentAssetFlow()
         ) { networkInfo, asset ->
-            val minStakeMultiplier: Double = if (asset.token.configuration.chainId == polkadotChainId) {
+
+            val minStakeMultiplier: Double = if (networkInfo.shouldUseMinimumStakeMultiplier) {
                 1.15 // 15% increase
             } else {
                 1.0
@@ -196,7 +199,7 @@ class StakingRelaychainScenarioViewModel(
     override suspend fun alerts(): Flow<LoadingState<List<AlertModel>>> {
         return stakingStateFlow.flatMapLatest {
             alertsInteractor.getAlertsFlow(it)
-        }.mapList(::mapAlertToAlertModel).withLoading()
+        }.mapList(::mapAlertToAlertModel).withLoading().inBackground()
     }
 
     private fun mapAlertToAlertModel(alert: Alert): AlertModel {
