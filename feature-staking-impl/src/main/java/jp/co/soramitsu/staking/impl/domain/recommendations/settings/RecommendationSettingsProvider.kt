@@ -50,10 +50,7 @@ abstract class RecommendationSettingsProvider<T> {
         private val maximumValidatorsPerNominator: Int
     ) : RecommendationSettingsProvider<Validator>() {
 
-        override val alwaysEnabledFilters = listOf<BlockProducerFilters.ValidatorFilter>(
-//            BlockProducerFilters.ValidatorFilter.HasBlocked
-        )
-
+        override val alwaysEnabledFilters: List<BlockProducerFilters.ValidatorFilter> = emptyList()
         override val customizableFilters: List<BlockProducerFilters<Validator>> = listOf(
             BlockProducerFilters.ValidatorFilter.NotSlashedFilter,
             BlockProducerFilters.ValidatorFilter.HasIdentity,
