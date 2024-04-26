@@ -155,7 +155,7 @@ class StakingRelayChainScenarioRepository(
         return runtime.metadata.babe().numberConstant("ExpectedBlockTime", runtime)
     }
 
-    suspend fun getActiveEraIndex(chainId: ChainId): EraIndex = localStorage.queryNonNull(
+    suspend fun getActiveEraIndex(chainId: ChainId): EraIndex = localStorage.query(
         keyBuilder = { it.metadata.activeEraStorageKeyOrNull() },
         binding = ::bindActiveEra,
         chainId = chainId

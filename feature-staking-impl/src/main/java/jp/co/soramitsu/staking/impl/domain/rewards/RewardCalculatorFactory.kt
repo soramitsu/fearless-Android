@@ -132,6 +132,7 @@ class RewardCalculatorFactory(
             syntheticType == SyntheticStakingType.TERNOA -> createTernoa(asset, calculationTargets)
             syntheticType == SyntheticStakingType.REEF -> createReef(asset, calculationTargets)
             stakingType == Asset.StakingType.RELAYCHAIN -> createManual(chainId, calculationTargets)
+            stakingType == Asset.StakingType.PARACHAIN -> createSubquery()
 
             stakingType == Asset.StakingType.UNSUPPORTED -> error("wrong staking type")
             else -> error("wrong staking type")
