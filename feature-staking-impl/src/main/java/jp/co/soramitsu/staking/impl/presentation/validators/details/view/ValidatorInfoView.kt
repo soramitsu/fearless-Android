@@ -15,6 +15,7 @@ sealed class Error(@StringRes val errorDescription: Int, @DrawableRes val errorI
     object OversubscribedUnpaid : Error(R.string.staking_validator_my_oversubscribed_message, R.drawable.ic_warning_filled)
     object OversubscribedPaid : Error(R.string.staking_validator_other_oversubscribed_message, R.drawable.ic_warning_filled)
     object Slashed : Error(R.string.staking_validator_slashed_desc, R.drawable.ic_status_error_16)
+    object Blocked : Error(R.string.staking_custom_blocked_warning, R.drawable.ic_status_error_16)
 }
 
 class ValidatorInfoView @JvmOverloads constructor(
@@ -34,7 +35,6 @@ class ValidatorInfoView @JvmOverloads constructor(
 
     private val totalStakeFields = listOf(
         binding.validatorTotalStakeView,
-        binding.validatorNominatorsView,
         binding.validatorNominatorsView,
         binding.validatorEstimatedReward
     )
@@ -90,6 +90,7 @@ class ValidatorInfoView @JvmOverloads constructor(
                 is Error.OversubscribedUnpaid -> binding.validatorStatusView.setDescription(context.getString(err.errorDescription), err.errorIcon)
                 is Error.OversubscribedPaid -> binding.validatorStatusView.setDescription(context.getString(err.errorDescription), err.errorIcon)
                 is Error.Slashed -> binding.validatorNominatorsView.setDescription(context.getString(err.errorDescription), err.errorIcon)
+                is Error.Blocked -> binding.validatorStatusView.setDescription(context.getString(err.errorDescription), err.errorIcon)
             }
         }
     }

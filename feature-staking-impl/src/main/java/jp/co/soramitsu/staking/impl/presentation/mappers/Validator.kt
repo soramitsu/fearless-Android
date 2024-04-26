@@ -123,12 +123,16 @@ private fun mapValidatorToValidatorDetailsParcelModel(
 fun mapValidatorDetailsToErrors(
     validator: ValidatorDetailsParcelModel
 ): List<Error>? {
+    val errors = mutableListOf<Error>()
+    if (validator.prefs?.isBlocked == true) {
+        errors.add(Error.Blocked)
+    }
     return when (val stake = validator.stake) {
         ValidatorStakeParcelModel.Inactive -> null
         is ValidatorStakeParcelModel.Active -> {
             val nominatorInfo = stake.nominatorInfo
 
-            return mutableListOf<Error>().apply {
+            return errors.apply {
                 if (stake.isOversubscribed) {
                     if (nominatorInfo?.willBeRewarded == true) {
                         add(Error.OversubscribedPaid)
@@ -146,7 +150,7 @@ suspend fun mapValidatorDetailsParcelToValidatorDetailsModel(
     chain: Chain,
     validator: ValidatorDetailsParcelModel,
     asset: Asset,
-    maxNominators: Int,
+    maxNominators: Int?,
     iconGenerator: AddressIconGenerator,
     resourceManager: ResourceManager
 ): ValidatorDetailsModel {

@@ -1,14 +1,14 @@
 package jp.co.soramitsu.staking.impl.domain
 
-import jp.co.soramitsu.staking.api.domain.model.Exposure
 import jp.co.soramitsu.staking.api.domain.model.IndividualExposure
+import jp.co.soramitsu.staking.api.domain.model.LegacyExposure
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class StakingInteractorExtKtTest {
 
     private val exposures = listOf(
-        Exposure(
+        LegacyExposure(
             total = 6.toBigInteger(),
             own = 0.toBigInteger(),
             others = listOf(
@@ -17,7 +17,7 @@ class StakingInteractorExtKtTest {
                 IndividualExposure(byteArrayOf(2), 2.toBigInteger()),
             )
         ),
-        Exposure(
+        LegacyExposure(
             total = 3.toBigInteger(),
             own = 0.toBigInteger(),
             others = listOf(
