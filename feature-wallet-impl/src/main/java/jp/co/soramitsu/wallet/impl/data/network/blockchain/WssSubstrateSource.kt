@@ -202,6 +202,7 @@ class WssSubstrateSource(
         chain: Chain,
         transfer: Transfer,
         tip: BigInteger?,
+        appId: BigInteger?,
         additional: (suspend ExtrinsicBuilder.() -> Unit)?,
         batchAll: Boolean
     ): String {
@@ -210,6 +211,7 @@ class WssSubstrateSource(
             accountId = accountId,
             useBatchAll = batchAll,
             tip = tip,
+            appId = appId,
             formExtrinsic = {
                 transfer(chain, transfer, this.runtime.typeRegistry)
                 additional?.invoke(this)

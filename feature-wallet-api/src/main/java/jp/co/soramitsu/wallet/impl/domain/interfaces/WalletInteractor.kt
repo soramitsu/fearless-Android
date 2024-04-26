@@ -82,6 +82,7 @@ interface WalletInteractor {
         transfer: Transfer,
         fee: BigDecimal,
         tipInPlanks: BigInteger?,
+        appId: BigInteger?,
         additional: (suspend ExtrinsicBuilder.() -> Unit)? = null
     ): Result<String>
 
