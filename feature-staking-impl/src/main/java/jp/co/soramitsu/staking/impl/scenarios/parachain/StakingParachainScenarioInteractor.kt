@@ -180,8 +180,8 @@ class StakingParachainScenarioInteractor(
         return runCatching { stakingParachainScenarioRepository.getAtStakeOfCollator(chainId, collatorId, getCurrentRound(chainId).getOrThrow().current) }
     }
 
-    suspend fun getStaked(chainId: ChainId): Result<BigInteger> {
-        return runCatching { stakingParachainScenarioRepository.getStaked(chainId, getCurrentRound(chainId).getOrThrow().current) }
+    suspend fun total(chainId: ChainId): Result<BigInteger> {
+        return runCatching { stakingParachainScenarioRepository.total(chainId) }
     }
 
     fun selectedAccountStakingStateFlow(

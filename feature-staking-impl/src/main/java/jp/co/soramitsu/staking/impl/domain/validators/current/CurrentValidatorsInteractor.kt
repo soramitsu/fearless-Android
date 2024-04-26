@@ -15,7 +15,6 @@ import jp.co.soramitsu.staking.impl.domain.common.isWaiting
 import jp.co.soramitsu.staking.impl.domain.validators.ValidatorProvider
 import jp.co.soramitsu.staking.impl.domain.validators.ValidatorSource
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenarioRepository
-import jp.co.soramitsu.staking.impl.scenarios.relaychain.getActiveElectedValidatorsExposures
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
@@ -45,7 +44,7 @@ class CurrentValidatorsInteractor(
 
         return stakingRepository.observeActiveEraIndex(chainId).map { activeEra ->
 
-            val exposures = stakingRepository.getActiveElectedValidatorsExposures(chainId)
+            val exposures = stakingRepository.getLegacyActiveElectedValidatorsExposures(chainId)
 
             val activeNominations = exposures.mapValues { (_, exposure) ->
                 exposure.others.firstOrNull { it.who.contentEquals(stashId) }
@@ -59,8 +58,7 @@ class CurrentValidatorsInteractor(
 
             val groupedByStatusClass = validatorProvider.getValidators(
                 chain = chain,
-                source = ValidatorSource.Custom(nominatedValidatorIds.toList()),
-                cachedExposures = exposures
+                source = ValidatorSource.Custom(nominatedValidatorIds.toList())
             )
                 .map { validator ->
                     val userIndividualExposure = activeNominations[validator.accountIdHex]
@@ -74,7 +72,7 @@ class CurrentValidatorsInteractor(
 
                             val userNominationRank = userNominationIndex + 1
 
-                            val willBeRewarded = userNominationRank < maxRewardedNominators
+                            val willBeRewarded = maxRewardedNominators == null || userNominationRank < maxRewardedNominators
 
                             Status.Active(nomination = userIndividualExposure.value, willUserBeRewarded = willBeRewarded)
                         }

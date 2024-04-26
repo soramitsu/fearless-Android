@@ -79,7 +79,7 @@ class SubqueryRewardCalculator(
 
     override suspend fun calculateReturns(amount: BigDecimal, days: Int, isCompound: Boolean, chainId: ChainId): PeriodReturns {
         val totalIssuance = stakingRepository.getTotalIssuance(chainId)
-        val staked = stakingParachainScenarioInteractor?.getStaked(chainId)?.getOrNull()
+        val staked = stakingParachainScenarioInteractor?.total(chainId)?.getOrNull()
         val rewardsAmountPart = BigDecimal(0.025)
         val currentApy = if (staked != null && staked > BigInteger.ZERO) {
             totalIssuance.toBigDecimal() * rewardsAmountPart / staked.toBigDecimal()

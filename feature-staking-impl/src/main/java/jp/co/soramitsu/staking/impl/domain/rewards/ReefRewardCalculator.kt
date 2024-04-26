@@ -69,7 +69,7 @@ class ReefRewardCalculator(
 
             val rewardForAmountInCurrentEra =
                 userPortion * validatorReward - (validator.commission.toDouble() * userPortion * validatorReward)
-            hashCode()
+
             (rewardForAmountInCurrentEra / amount.toDouble())  * DAYS_IN_YEAR
         }.getOrNull() ?: 0.0
     }

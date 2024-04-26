@@ -1,27 +1,36 @@
 package jp.co.soramitsu.staking.impl.data.repository
 
 import java.math.BigInteger
+import jp.co.soramitsu.common.utils.constantOrNull
 import jp.co.soramitsu.common.utils.numberConstant
 import jp.co.soramitsu.common.utils.parachainStaking
 import jp.co.soramitsu.common.utils.staking
+import jp.co.soramitsu.common.utils.stakingOrNull
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.kusamaChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.westendChainId
-import jp.co.soramitsu.runtime.multiNetwork.getRuntime
 
 class StakingConstantsRepository(
     private val chainRegistry: ChainRegistry
 ) {
 
-    suspend fun maxRewardedNominatorPerValidator(chainId: ChainId): Int {
+    // returns null if there are infinity nominators per validator
+    suspend fun maxRewardedNominatorPerValidator(chainId: ChainId): Int? {
         return try {
-            getNumberConstant(chainId, "MaxNominatorRewardedPerValidator").toInt()
+            val runtime = chainRegistry.getRuntime(chainId)
+
+            if(runtime.metadata.stakingOrNull()?.constantOrNull("MaxNominatorRewardedPerValidator") != null){
+                return getNumberConstant(chainId, "MaxNominatorRewardedPerValidator").toInt()
+            } else {
+                // todo need research
+                //getNumberConstant(chainId, "MaxExposurePageSize").toInt()
+                return null
+            }
         } catch (e: NoSuchElementException) {
             when (chainId) {
-                westendChainId -> 64
-                polkadotChainId, kusamaChainId -> 512
+                westendChainId, polkadotChainId, kusamaChainId -> null
                 else -> throw e
             }
         }

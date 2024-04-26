@@ -31,7 +31,7 @@ import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindDelegati
 import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindDelegatorState
 import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindRound
 import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindSelectedCandidates
-import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindStaked
+import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindTotal
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.map
@@ -89,15 +89,15 @@ class StakingParachainScenarioRepository(
         )
     }
 
-    suspend fun getStaked(chainId: ChainId, currentRound: BigInteger): BigInteger {
+    suspend fun total(chainId: ChainId): BigInteger {
         return remoteStorage.query(
             chainId = chainId,
             keyBuilder = { runtime ->
-                val storage = runtime.metadata.parachainStakingOrNull()?.storage("Staked")
-                storage?.storageKey(runtime, currentRound)
+                val storage = runtime.metadata.parachainStakingOrNull()?.storage("Total")
+                storage?.storageKey(runtime)
             },
             binding = { scale, runtime ->
-                scale?.let { bindStaked(it, runtime) } ?: incompatible()
+                scale?.let { bindTotal(it, runtime) } ?: incompatible()
             }
         )
     }

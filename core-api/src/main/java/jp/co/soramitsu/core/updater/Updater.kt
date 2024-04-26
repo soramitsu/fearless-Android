@@ -18,7 +18,7 @@ interface UpdateScope {
     fun invalidationFlow(): Flow<Any>
 }
 
-object GlobalScope : UpdateScope {
+object GlobalUpdaterScope : UpdateScope {
 
     override fun invalidationFlow() = flowOf(Unit)
 }
@@ -26,7 +26,7 @@ object GlobalScope : UpdateScope {
 interface GlobalScopeUpdater : Updater {
 
     override val scope
-        get() = GlobalScope
+        get() = GlobalUpdaterScope
 }
 
 interface Updater : SideEffectScope {
