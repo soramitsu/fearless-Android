@@ -34,6 +34,7 @@ kotlin = "1.9.23"
 kotlinxSerializationjson = "1.6.3"
 legacySupportV4 = "1.0.0"
 material = "1.11.0"
+middleEllipsisTextVersion = "1.1.0"
 mockitoKotlin = "5.2.1"
 mockitoVersion = "5.10.0"
 mockitoInlineVersion = "5.2.0"
@@ -88,6 +89,7 @@ lifecycle-process = { module = "androidx.lifecycle:lifecycle-process", version.r
 lifecycle-runtime-ktx = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "architectureComponentVersion" }
 lifecycle-viewmodel-ktx = { module = "androidx.lifecycle:lifecycle-viewmodel-ktx", version.ref = "architectureComponentVersion" }
 logging-interceptor = { module = "com.squareup.okhttp3:logging-interceptor", version.ref = "okhttpVersion" }
+middle-ellipsis-text = { module = "io.github.mataku:middle-ellipsis-text", version.ref = "middleEllipsisTextVersion" }
 mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockitoVersion" }
 mockito-inline = { module = "org.mockito:mockito-inline", version.ref = "mockitoInlineVersion" }
 mockito-kotlin = { module = "org.mockito.kotlin:mockito-kotlin", version.ref = "mockitoKotlin" }
