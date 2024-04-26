@@ -316,6 +316,7 @@ class WalletInteractorImpl(
         transfer: Transfer,
         fee: BigDecimal,
         tipInPlanks: BigInteger?,
+        appId: BigInteger?,
         additional: (suspend ExtrinsicBuilder.() -> Unit)?
     ): Result<String> {
         val metaAccount = accountRepository.getSelectedMetaAccount()
@@ -329,6 +330,7 @@ class WalletInteractorImpl(
                 transfer,
                 fee,
                 tipInPlanks,
+                appId,
                 additional
             )
         }

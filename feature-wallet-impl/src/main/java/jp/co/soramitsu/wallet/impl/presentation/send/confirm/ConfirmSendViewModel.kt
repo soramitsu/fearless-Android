@@ -6,6 +6,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.math.BigDecimal
+import java.math.BigInteger
 import javax.inject.Inject
 import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.common.AlertViewState
@@ -128,16 +129,18 @@ class ConfirmSendViewModel @Inject constructor(
 
     private val assetFlow = interactor.assetFlow(transferDraft.assetPayload.chainId, transferDraft.assetPayload.chainAssetId).share()
 
+    private val chainFlow = flowOf {
+        interactor.getChain(transferDraft.assetPayload.chainId)
+    }.share()
+
     @OptIn(ExperimentalCoroutinesApi::class)
-    val utilityAssetFlow = flowOf {
-        val assetChain = interactor.getChain(transferDraft.assetPayload.chainId)
-        assetChain.utilityAsset?.id
-    }
-        .mapNotNull { it }
+    val utilityAssetFlow = chainFlow
+        .mapNotNull { it.utilityAsset?.id }
         .flatMapLatest { assetId ->
             interactor.assetFlow(transferDraft.assetPayload.chainId, assetId)
         }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     private val feeFlow = assetFlow.map { createTransfer(it.token.configuration) }
         .flatMapLatest { interactor.observeTransferFee(it) }
         .map { it.feeAmount }
@@ -352,9 +355,12 @@ class ConfirmSendViewModel @Inject constructor(
             transferSubmittingFlow.value = true
 
             val tipInPlanks = transferDraft.tip?.let { token.planksFromAmount(it) }
-            val result = withContext(Dispatchers.Default) {
 
-                interactor.performTransfer(createTransfer(token, fee), fee, tipInPlanks)
+            val usesAppId = chainFlow.firstOrNull()?.isUsesAppId == true
+            val appId = if (usesAppId) BigInteger.ZERO else null
+
+            val result = withContext(Dispatchers.Default) {
+                interactor.performTransfer(createTransfer(token, fee), fee, tipInPlanks, appId)
             }
             if (result.isSuccess) {
                 val operationHash = result.getOrNull()

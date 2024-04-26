@@ -3,6 +3,12 @@ package jp.co.soramitsu.coredb.migrations
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
+val Migration_63_64 = object : Migration(63, 64) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE chains ADD COLUMN `isUsesAppId` INTEGER NOT NULL DEFAULT 0")
+    }
+}
+
 val Migration_62_63 = object : Migration(62, 63) {
     override fun migrate(db: SupportSQLiteDatabase) {
         db.execSQL("ALTER TABLE assets ADD COLUMN `status` TEXT NULL")
