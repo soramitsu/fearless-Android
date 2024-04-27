@@ -19,7 +19,7 @@ import jp.co.soramitsu.runtime.network.updaters.SingleChainUpdateSystem
 import jp.co.soramitsu.staking.api.data.StakingSharedState
 import jp.co.soramitsu.staking.impl.data.network.blockhain.updaters.AccountNominationsUpdater
 import jp.co.soramitsu.staking.impl.data.network.blockhain.updaters.AccountRewardDestinationUpdater
-import jp.co.soramitsu.staking.impl.data.network.blockhain.updaters.AccountValidatorPrefsUpdater
+import jp.co.soramitsu.staking.impl.data.network.blockhain.updaters.ValidatorPrefsUpdater
 import jp.co.soramitsu.staking.impl.data.network.blockhain.updaters.ActiveEraUpdater
 import jp.co.soramitsu.staking.impl.data.network.blockhain.updaters.CounterForNominatorsUpdater
 import jp.co.soramitsu.staking.impl.data.network.blockhain.updaters.CurrentEraUpdater
@@ -27,6 +27,7 @@ import jp.co.soramitsu.staking.impl.data.network.blockhain.updaters.DelegatorSta
 import jp.co.soramitsu.staking.impl.data.network.blockhain.updaters.HistoryDepthUpdater
 import jp.co.soramitsu.staking.impl.data.network.blockhain.updaters.MaxNominatorsUpdater
 import jp.co.soramitsu.staking.impl.data.network.blockhain.updaters.MinBondUpdater
+import jp.co.soramitsu.staking.impl.data.network.blockhain.updaters.NominatorsUpdater
 import jp.co.soramitsu.staking.impl.data.network.blockhain.updaters.StakingLedgerUpdater
 import jp.co.soramitsu.staking.impl.data.network.blockhain.updaters.TotalIssuanceUpdater
 import jp.co.soramitsu.staking.impl.data.network.blockhain.updaters.ValidatorExposureUpdater
@@ -78,12 +79,26 @@ class StakingUpdatersModule {
 
     @Provides
     @Singleton
-    fun provideElectedNominatorsUpdater(
+    fun provideElectedValidatorsUpdater(
         sharedState: StakingSharedState,
         chainRegistry: ChainRegistry,
         bulkRetriever: BulkRetriever,
         storageCache: StorageCache
     ) = ValidatorExposureUpdater(
+        bulkRetriever,
+        sharedState,
+        chainRegistry,
+        storageCache
+    )
+
+    @Provides
+    @Singleton
+    fun provideElectedNominatorsUpdater(
+        sharedState: StakingSharedState,
+        chainRegistry: ChainRegistry,
+        bulkRetriever: BulkRetriever,
+        storageCache: StorageCache
+    ): NominatorsUpdater = NominatorsUpdater(
         bulkRetriever,
         sharedState,
         chainRegistry,
@@ -141,15 +156,15 @@ class StakingUpdatersModule {
     @Provides
     @Singleton
     fun provideAccountValidatorPrefsUpdater(
-        storageCache: StorageCache,
-        scope: AccountStakingScope,
-        sharedState: StakingSharedState,
-        chainRegistry: ChainRegistry
-    ) = AccountValidatorPrefsUpdater(
-        scope,
-        storageCache,
-        sharedState,
-        chainRegistry
+        bulkRetriever: BulkRetriever,
+        stakingSharedState: StakingSharedState,
+        chainRegistry: ChainRegistry,
+        storageCache: StorageCache
+    ) = ValidatorPrefsUpdater(
+        bulkRetriever,
+        stakingSharedState,
+        chainRegistry,
+        storageCache
     )
 
     @Provides
@@ -287,7 +302,7 @@ class StakingUpdatersModule {
         totalIssuanceUpdater: TotalIssuanceUpdater,
         currentEraUpdater: CurrentEraUpdater,
         stakingLedgerUpdater: StakingLedgerUpdater,
-        accountValidatorPrefsUpdater: AccountValidatorPrefsUpdater,
+        validatorPrefsUpdater: ValidatorPrefsUpdater,
         accountNominationsUpdater: AccountNominationsUpdater,
         rewardDestinationUpdater: AccountRewardDestinationUpdater,
         historyDepthUpdater: HistoryDepthUpdater,
@@ -297,6 +312,7 @@ class StakingUpdatersModule {
         maxNominatorsUpdater: MaxNominatorsUpdater,
         counterForNominatorsUpdater: CounterForNominatorsUpdater,
         delegatorStateUpdater: DelegatorStateUpdater,
+        nominatorsUpdater: NominatorsUpdater,
         @Named("StakingBlockNumberUpdater") blockNumberUpdater: BlockNumberUpdater,
 
         chainRegistry: ChainRegistry,
@@ -305,10 +321,11 @@ class StakingUpdatersModule {
         updaters = listOf(
             activeEraUpdater,
             validatorExposureUpdater,
+            nominatorsUpdater,
             totalIssuanceUpdater,
             currentEraUpdater,
             stakingLedgerUpdater,
-            accountValidatorPrefsUpdater,
+            validatorPrefsUpdater,
             accountNominationsUpdater,
             rewardDestinationUpdater,
 //            historyDepthUpdater,

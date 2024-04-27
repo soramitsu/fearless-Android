@@ -22,7 +22,8 @@ class ChainLocal(
     val supportStakingPool: Boolean,
     val isEthereumChain: Boolean,
     val isChainlinkProvider: Boolean,
-    val supportNft: Boolean
+    val supportNft: Boolean,
+    val isUsesAppId: Boolean
 ) {
 
     class ExternalApi(

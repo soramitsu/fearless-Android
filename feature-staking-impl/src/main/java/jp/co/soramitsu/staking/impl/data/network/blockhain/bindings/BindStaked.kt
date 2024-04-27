@@ -8,11 +8,11 @@ import jp.co.soramitsu.shared_utils.runtime.RuntimeSnapshot
 import java.math.BigInteger
 
 @UseCaseBinding
-fun bindStaked(
+fun bindTotal(
     scale: String,
     runtime: RuntimeSnapshot
 ): BigInteger {
-    val returnType = runtime.metadata.storageReturnType("ParachainStaking", "Staked")
+    val returnType = runtime.metadata.storageReturnType("ParachainStaking", "Total")
 
     return bindNumber(returnType.fromHexOrIncompatible(scale, runtime))
 }

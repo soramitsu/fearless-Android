@@ -379,6 +379,7 @@ class WalletRepositoryImpl(
         transfer: Transfer,
         fee: BigDecimal,
         tip: BigInteger?,
+        appId: BigInteger?,
         additional: (suspend ExtrinsicBuilder.() -> Unit)?,
         batchAll: Boolean
     ): String {
@@ -392,7 +393,7 @@ class WalletRepositoryImpl(
             ethereumSource.performTransfer(chain, transfer, privateKey.toHexString(true))
                 .requireValue() // handle error
         } else {
-            substrateSource.performTransfer(accountId, chain, transfer, tip, additional, batchAll)
+            substrateSource.performTransfer(accountId, chain, transfer, tip, appId, additional, batchAll)
         }
 
         val accountAddress = chain.addressOf(accountId)

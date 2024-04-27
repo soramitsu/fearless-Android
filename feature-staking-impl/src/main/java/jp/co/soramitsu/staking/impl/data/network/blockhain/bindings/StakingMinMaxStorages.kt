@@ -99,10 +99,10 @@ fun bindDelegationScheduledRequests(
     }
 }
 
-private fun bindNumber(scale: String, runtimeSnapshot: RuntimeSnapshot, type: Type<*>): BigInteger {
+fun bindNumber(scale: String, runtimeSnapshot: RuntimeSnapshot, type: Type<*>): BigInteger {
     return bindNumber(type.fromHexOrNull(runtimeSnapshot, scale) ?: return scale.fromHex().fromUnsignedBytes())
 }
 
-private fun bindNumberOrNull(scale: String, runtimeSnapshot: RuntimeSnapshot, type: Type<*>): BigInteger? {
+fun bindNumberOrNull(scale: String, runtimeSnapshot: RuntimeSnapshot, type: Type<*>): BigInteger? {
     return bindNumber(type.fromHexOrNull(runtimeSnapshot, scale) ?: return null)
 }

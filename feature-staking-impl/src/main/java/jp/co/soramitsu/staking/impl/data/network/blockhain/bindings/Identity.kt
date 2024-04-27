@@ -40,9 +40,14 @@ fun bindIdentity(
     runtime: RuntimeSnapshot,
     type: Type<*>
 ): Identity {
-    val decoded = type.fromHexOrNull(runtime, scale) as? Struct.Instance ?: incompatible()
+    val decoded = type.fromHexOrNull(runtime, scale)// as? Struct.Instance ?: incompatible()
+    val struct = when (decoded) {
+        is Struct.Instance -> decoded.cast<Struct.Instance>()
+        is ArrayList<*> -> decoded.cast<ArrayList<*>>().first() as Struct.Instance
+        else -> return RootIdentity.empty()
+    }
 
-    val identityInfo = decoded.get<Struct.Instance>("info") ?: incompatible()
+    val identityInfo = struct.get<Struct.Instance>("info") ?: incompatible()
 
     val pgpFingerprint = identityInfo.get<ByteArray?>("pgpFingerprint")
 

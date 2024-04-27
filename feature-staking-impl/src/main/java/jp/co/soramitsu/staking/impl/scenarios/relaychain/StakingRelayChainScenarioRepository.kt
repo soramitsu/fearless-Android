@@ -8,6 +8,7 @@ import jp.co.soramitsu.common.utils.Modules
 import jp.co.soramitsu.common.utils.accountIdFromMapKey
 import jp.co.soramitsu.common.utils.babe
 import jp.co.soramitsu.common.utils.constant
+import jp.co.soramitsu.common.utils.isNotZero
 import jp.co.soramitsu.common.utils.mapValuesNotNull
 import jp.co.soramitsu.common.utils.nominationPools
 import jp.co.soramitsu.common.utils.numberConstant
@@ -43,6 +44,8 @@ import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.staking.api.domain.api.AccountIdMap
 import jp.co.soramitsu.staking.api.domain.model.EraIndex
 import jp.co.soramitsu.staking.api.domain.model.Exposure
+import jp.co.soramitsu.staking.api.domain.model.IndividualExposure
+import jp.co.soramitsu.staking.api.domain.model.LegacyExposure
 import jp.co.soramitsu.staking.api.domain.model.Nominations
 import jp.co.soramitsu.staking.api.domain.model.SlashingSpans
 import jp.co.soramitsu.staking.api.domain.model.StakingLedger
@@ -56,11 +59,14 @@ import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindCurrentS
 import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindEraRewardPoints
 import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindErasStartSessionIndex
 import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindExposure
+import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindExposurePage
 import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindHistoryDepth
+import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindLegacyExposure
 import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindMaxNominators
 import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindMinBond
 import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindNominations
 import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindNominatorsCount
+import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindNumberOrNull
 import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindRewardDestination
 import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindSlashDeferDuration
 import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindSlashingSpans
@@ -74,15 +80,21 @@ import kotlin.math.max
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withContext
+
+typealias ValidatorExposureWithNominators = Pair<Exposure, List<IndividualExposure>>
 
 class StakingRelayChainScenarioRepository(
     private val remoteStorage: StorageDataSource,
@@ -143,7 +155,7 @@ class StakingRelayChainScenarioRepository(
         return runtime.metadata.babe().numberConstant("ExpectedBlockTime", runtime)
     }
 
-    suspend fun getActiveEraIndex(chainId: ChainId): EraIndex = localStorage.queryNonNull(
+    suspend fun getActiveEraIndex(chainId: ChainId): EraIndex = localStorage.query(
         keyBuilder = { it.metadata.activeEraStorageKeyOrNull() },
         binding = ::bindActiveEra,
         chainId = chainId
@@ -192,30 +204,106 @@ class StakingRelayChainScenarioRepository(
         )
     }
 
-    fun electedExposuresInActiveEra(chainId: ChainId) = observeActiveEraIndex(chainId).mapLatest {
-        getElectedValidatorsExposure(chainId, it)
-    }.runCatching { this }.getOrDefault(emptyFlow())
+    fun legacyElectedExposuresInActiveEra(chainId: ChainId): Flow<Map<String, LegacyExposure>> =
+        observeActiveEraIndex(chainId)
+            .filter { it.isNotZero() }
+            .distinctUntilChanged()
+            .mapLatest {
+                getLegacyElectedValidatorsExposure(chainId, it)
+            }
+
+    private suspend fun getLegacyElectedValidatorsExposure(
+        chainId: ChainId,
+        eraIndex: EraIndex
+    ): Map<String, LegacyExposure> {
+        return if (isLegacyErasStakersSchema(chainId)) {
+            localStorage.queryByPrefix(
+                chainId = chainId,
+                prefixKeyBuilder = {
+                    it.metadata.moduleOrNull(Modules.STAKING)?.storage("ErasStakers")
+                        ?.storageKey(it, eraIndex)
+                },
+                keyExtractor = { it.accountIdFromMapKey() }
+            ) { scale, runtime, _ ->
+                val storageType = runtime.metadata.staking().storage("ErasStakers").returnType()
+                bindLegacyExposure(scale!!, runtime, storageType)
+            }.mapValuesNotNull { it.value }
+        } else {
+            val exposuresInNewVariant =
+                getElectedValidatorExposureWithNominators(chainId, eraIndex)
+
+            exposuresInNewVariant.mapValues { (_, exposure) ->
+                val (validatorExposure, individualExposures) = exposure
+
+                LegacyExposure(
+                    validatorExposure.total,
+                    validatorExposure.own,
+                    individualExposures
+                )
+            }
+        }
+    }
+
+    private suspend fun getElectedValidatorExposureWithNominators(
+        chainId: ChainId,
+        eraIndex: EraIndex
+    ): Map<String, ValidatorExposureWithNominators> = supervisorScope {
+        val runtime = chainRegistry.getRuntime(chainId)
+        val exposures = runCatching { getElectedValidatorsExposure(chainId, eraIndex) }.getOrNull()
+            ?: emptyMap()
+
+        val resultMap = mutableMapOf<String, ValidatorExposureWithNominators>()
+
+        val rawIndividualPages = localStorage.queryByPrefix(
+            chainId = chainId,
+            prefixKeyBuilder = {
+                it.metadata.moduleOrNull(Modules.STAKING)?.storage("ErasStakersPaged")
+                    ?.storageKey(it, eraIndex)
+            },
+            keyExtractor = { it }
+        ) { scale, _, _ ->
+            scale
+        }.filterValues { it != null }
+
+        exposures.entries.map { (validatorId, exposure) ->
+            async {
+                val entries = rawIndividualPages.entries.asSequence()
+                val validatorPages = entries.filter { it.key.contains(validatorId.removePrefix("0x")) }
+                val individualExposures = validatorPages.mapNotNull { entry ->
+                        entry.value?.let {
+                            bindExposurePage(
+                                it,
+                                runtime
+                            )?.others
+                        }
+                    }.toList().flatten()
+                resultMap[validatorId] =
+                    ValidatorExposureWithNominators(exposure, individualExposures)
+            }
+        }.awaitAll()
+
+        resultMap
+    }
 
     private suspend fun getElectedValidatorsExposure(
         chainId: ChainId,
         eraIndex: EraIndex
-    ): Map<String, Exposure> = remoteStorage.queryByPrefix(
+    ): Map<String, Exposure> = localStorage.queryByPrefix(
         chainId = chainId,
         prefixKeyBuilder = {
-            it.metadata.moduleOrNull(Modules.STAKING)?.storage("ErasStakers")
+            it.metadata.moduleOrNull(Modules.STAKING)?.storage("ErasStakersOverview")
                 ?.storageKey(it, eraIndex)
         },
         keyExtractor = { it.accountIdFromMapKey() }
     ) { scale, runtime, _ ->
-        val storageType = runtime.metadata.staking().storage("ErasStakers").returnType()
-        bindExposure(scale!!, runtime, storageType)
+        scale?.let { bindExposure(it, runtime) }
     }.mapValuesNotNull { it.value }
 
     suspend fun getValidatorPrefs(
         chainId: ChainId,
         accountIdsHex: List<String>
     ): AccountIdMap<ValidatorPrefs?> {
-        return remoteStorage.queryKeys(
+        return localStorage.queryKeys(
             keysBuilder = { runtime ->
                 val storage = runtime.metadata.stakingOrNull()?.storage("Validators")
                     ?: return@queryKeys emptyMap()
@@ -238,7 +326,7 @@ class StakingRelayChainScenarioRepository(
     suspend fun getAllValidatorPrefs(
         chainId: ChainId
     ): AccountIdMap<ValidatorPrefs?> {
-        return remoteStorage.queryByPrefix(
+        return localStorage.queryByPrefix(
             chainId = chainId,
             prefixKeyBuilder = { runtime ->
                 runtime.metadata.stakingOrNull()?.storage("Validators")?.storageKey()
@@ -333,6 +421,14 @@ class StakingRelayChainScenarioRepository(
         chainId = chainId
     )
 
+    suspend fun minimumActiveStake(chainId: ChainId): BigInteger? = queryStorageIfExists(
+        storageName = "MinimumActiveStake",
+        binder = { scale, runtimeSnapshot, type ->
+            bindNumberOrNull(scale, runtimeSnapshot, type)
+        },
+        chainId = chainId
+    )
+
     suspend fun nominatorsCount(chainId: ChainId): BigInteger? = queryStorageIfExists(
         storageName = "CounterForNominators",
         binder = ::bindNominatorsCount,
@@ -414,7 +510,7 @@ class StakingRelayChainScenarioRepository(
         chainId: ChainId,
         stashId: AccountId
     ): Flow<ValidatorPrefs?> {
-        return localStorage.observe(
+        return remoteStorage.observe(
             chainId = chainId,
             keyBuilder = { it.metadata.staking().storage("Validators").storageKey(it, stashId) },
             binder = { scale, runtime ->
@@ -508,6 +604,16 @@ class StakingRelayChainScenarioRepository(
                 )
             }
     }
+
+    suspend fun getLegacyActiveElectedValidatorsExposures(chainId: ChainId): Map<String, LegacyExposure> {
+        val era = getActiveEraIndex(chainId)
+        return getLegacyElectedValidatorsExposure(chainId, era)
+    }
+
+    private suspend fun isLegacyErasStakersSchema(chainId: ChainId): Boolean {
+        val runtime = chainRegistry.getRuntime(chainId)
+        return runtime.metadata.stakingOrNull()?.storageOrNull("ErasStakersPaged") == null
+    }
 }
 
 suspend fun StakingRelayChainScenarioRepository.historicalEras(chainId: ChainId): List<BigInteger> {
@@ -536,6 +642,3 @@ suspend fun StakingRelayChainScenarioRepository.hoursInEra(chainId: ChainId): In
     val erasPerDay = erasPerDay(chainId)
     return floor(HOURS_IN_DAY.toDouble() / erasPerDay.toDouble()).toInt()
 }
-
-suspend fun StakingRelayChainScenarioRepository.getActiveElectedValidatorsExposures(chainId: ChainId): Map<String, Exposure> =
-    electedExposuresInActiveEra(chainId).firstOrNull() ?: emptyMap()

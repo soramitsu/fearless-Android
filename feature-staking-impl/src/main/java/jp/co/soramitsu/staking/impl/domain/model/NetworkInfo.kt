@@ -10,7 +10,8 @@ sealed class NetworkInfo(
         override val lockupPeriodInHours: Int,
         override val minimumStake: BigInteger,
         val totalStake: BigInteger,
-        val nominatorsCount: Int
+        val nominatorsCount: Int,
+        val shouldUseMinimumStakeMultiplier: Boolean
     ) : NetworkInfo(lockupPeriodInHours, minimumStake)
 
     data class Parachain(

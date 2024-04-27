@@ -85,7 +85,9 @@ class StakingSharedState(
     val assetWithChain: Flow<SingleAssetSharedState.AssetWithChain> = selectionItem.map {
         val (chain, asset) = chainRegistry.chainWithAsset(it.chainId, it.chainAssetId)
         SingleAssetSharedState.AssetWithChain(chain, asset)
-    }.shareIn(scope, SharingStarted.Eagerly, replay = 1)
+    }
+        .distinctUntilChanged()
+        .shareIn(scope, SharingStarted.Eagerly, replay = 1)
 
     suspend fun assetWithChain(selectionItem: StakingAssetSelection) {
         val (chain, asset) = chainRegistry.chainWithAsset(
@@ -112,7 +114,7 @@ class StakingSharedState(
                 chainAsset = chainAsset,
                 minSupportedVersion = chain.minSupportedVersion
             )
-        }.shareIn(scope, SharingStarted.Eagerly, replay = 1)
+        }.distinctUntilChanged().shareIn(scope, SharingStarted.Eagerly, replay = 1)
 
     suspend fun availableAssetsToSelect(): List<Asset> {
         val metaAccount = accountRepository.getSelectedMetaAccount()

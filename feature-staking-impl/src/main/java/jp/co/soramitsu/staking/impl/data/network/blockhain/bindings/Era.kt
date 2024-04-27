@@ -29,9 +29,10 @@ import java.math.BigInteger
  */
 @UseCaseBinding
 fun bindActiveEra(
-    scale: String,
+    scale: String?,
     runtime: RuntimeSnapshot
 ): BigInteger {
+    scale ?: return BigInteger.ZERO
     val returnType = runtime.metadata.storageReturnType("Staking", "ActiveEra")
     val decoded = returnType.fromHexOrNull(runtime, scale) as? Struct.Instance ?: incompatible()
 

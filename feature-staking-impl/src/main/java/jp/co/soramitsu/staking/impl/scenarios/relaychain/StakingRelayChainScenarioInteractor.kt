@@ -1,5 +1,6 @@
 package jp.co.soramitsu.staking.impl.scenarios.relaychain
 
+import android.util.Log
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.util.Optional
@@ -7,6 +8,7 @@ import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.accountId
 import jp.co.soramitsu.common.address.AddressModel
+import jp.co.soramitsu.common.utils.castOrNull
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.sumByBigInteger
 import jp.co.soramitsu.common.validation.CompositeValidation
@@ -24,11 +26,12 @@ import jp.co.soramitsu.staking.api.data.StakingSharedState
 import jp.co.soramitsu.staking.api.domain.api.AccountIdMap
 import jp.co.soramitsu.staking.api.domain.api.IdentityRepository
 import jp.co.soramitsu.staking.api.domain.model.DelegationAction
-import jp.co.soramitsu.staking.api.domain.model.Exposure
 import jp.co.soramitsu.staking.api.domain.model.IndividualExposure
+import jp.co.soramitsu.staking.api.domain.model.LegacyExposure
 import jp.co.soramitsu.staking.api.domain.model.RewardDestination
 import jp.co.soramitsu.staking.api.domain.model.StakingLedger
 import jp.co.soramitsu.staking.api.domain.model.StakingState
+import jp.co.soramitsu.staking.api.domain.model.ValidatorExposure
 import jp.co.soramitsu.staking.api.domain.model.isUnbondingIn
 import jp.co.soramitsu.staking.impl.data.model.Payout
 import jp.co.soramitsu.staking.impl.data.network.blockhain.calls.bondMore
@@ -94,19 +97,21 @@ import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.validation.EnoughToPayFeesValidation
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.withContext
 import jp.co.soramitsu.core.models.Asset as CoreAsset
@@ -130,9 +135,11 @@ class StakingRelayChainScenarioInteractor(
 
     override suspend fun observeNetworkInfoState(): Flow<NetworkInfo> {
         return stakingSharedState.assetWithChain.filter { it.asset.staking == StakingType.RELAYCHAIN }
+            .distinctUntilChanged()
             .flatMapLatest { (chain, _) ->
                 val lockupPeriod = runCatching { getLockupPeriodInHours(chain.id) }.getOrDefault(0)
-                stakingRelayChainScenarioRepository.electedExposuresInActiveEra(chain.id)
+
+                stakingRelayChainScenarioRepository.legacyElectedExposuresInActiveEra(chain.id)
                     .map { exposuresMap ->
                         val exposures = exposuresMap.values
 
@@ -142,25 +149,29 @@ class StakingRelayChainScenarioInteractor(
 
                         NetworkInfo.RelayChain(
                             lockupPeriodInHours = lockupPeriod,
-                            minimumStake = minimumStake(exposures, minimumNominatorBond),
+                            minimumStake = minimumNominatorBond,
                             totalStake = totalStake(exposures),
-                            nominatorsCount = activeNominators(chain.id, exposures)
+                            nominatorsCount = activeNominators(chain.id, exposures),
+                            shouldUseMinimumStakeMultiplier = stakingConstantsRepository.maxRewardedNominatorPerValidator(chain.id) != null
                         )
                     }
             }
     }
 
-    private fun totalStake(exposures: Collection<Exposure>): BigInteger {
-        return exposures.sumOf(Exposure::total)
+    private fun totalStake(exposures: Collection<ValidatorExposure>): BigInteger {
+        return exposures.sumOf(ValidatorExposure::total)
     }
-
-    private suspend fun activeNominators(chainId: ChainId, exposures: Collection<Exposure>): Int {
+    private suspend fun activeNominators(chainId: ChainId, exposures: Collection<LegacyExposure>): Int {
         val activeNominatorsPerValidator =
             stakingConstantsRepository.maxRewardedNominatorPerValidator(chainId)
 
         return exposures.fold(mutableSetOf<String>()) { acc, exposure ->
             acc += exposure.others.sortedByDescending(IndividualExposure::value)
-                .take(activeNominatorsPerValidator)
+                .let {
+                    if (activeNominatorsPerValidator != null)
+                        it.take(activeNominatorsPerValidator)
+                     else it
+                }
                 .map { it.who.toHexString() }
 
             acc
@@ -173,14 +184,20 @@ class StakingRelayChainScenarioInteractor(
     }
 
     override fun stakingStateFlow(): Flow<StakingState> {
-        return stakingSharedState.assetWithChain.distinctUntilChanged()
-            .flatMapLatest { (chain, asset) ->
-                accountRepository.selectedMetaAccountFlow().mapNotNull {
-                    it.accountId(chain)
-                }.flatMapLatest { accountId ->
-                    stakingRelayChainScenarioRepository.stakingStateFlow(chain, asset, accountId)
-                }
-            }
+        return combine(
+            stakingSharedState.assetWithChain.distinctUntilChanged(),
+            accountRepository.selectedMetaAccountFlow()
+        ) { chainWithAsset, metaAccount ->
+            chainWithAsset to metaAccount
+        }.flatMapLatest { (chainWithAsset, metaAccount) ->
+            val accountId =
+                metaAccount.accountId(chainWithAsset.chain) ?: return@flatMapLatest emptyFlow()
+            stakingRelayChainScenarioRepository.stakingStateFlow(
+                chainWithAsset.chain,
+                chainWithAsset.asset,
+                accountId
+            )
+        }
     }
 
     fun stakingStateFlow(chainId: ChainId): Flow<StakingState> {
@@ -262,8 +279,7 @@ class StakingRelayChainScenarioInteractor(
         ) { activeEraIndex, asset, totalReward ->
             val totalStaked = asset.bonded
 
-            val eraStakers =
-                stakingRelayChainScenarioRepository.getActiveElectedValidatorsExposures(state.chain.id)
+            val eraStakers = stakingRelayChainScenarioRepository.getLegacyActiveElectedValidatorsExposures(state.chain.id)
             val rewardedNominatorsPerValidator =
                 stakingConstantsRepository.maxRewardedNominatorPerValidator(state.chain.id)
 
@@ -284,7 +300,10 @@ class StakingRelayChainScenarioInteractor(
         }.flowOn(Dispatchers.Default)
     }
 
-    private fun isValidatorActive(stashId: ByteArray, exposures: AccountIdMap<Exposure>): Boolean {
+    private fun isValidatorActive(
+        stashId: ByteArray,
+        exposures: AccountIdMap<ValidatorExposure>
+    ): Boolean {
         val stashIdHex = stashId.toHexString()
 
         return stashIdHex in exposures.keys
@@ -526,12 +545,7 @@ class StakingRelayChainScenarioInteractor(
     }
 
     override suspend fun getMinimumStake(chainAsset: CoreAsset): BigInteger {
-        val exposures =
-            stakingRelayChainScenarioRepository.electedExposuresInActiveEra(chainAsset.chainId)
-                .firstOrNull()?.values ?: emptyList()
-        val minimumNominatorBond =
-            stakingRelayChainScenarioRepository.minimumNominatorBond(chainAsset)
-        return minimumStake(exposures, minimumNominatorBond)
+        return stakingRelayChainScenarioRepository.minimumNominatorBond(chainAsset)
     }
 
     suspend fun getLockupPeriodInHours() = withContext(Dispatchers.Default) {
@@ -575,15 +589,15 @@ class StakingRelayChainScenarioInteractor(
         }
     }
 
-    suspend fun maxRewardedNominators(): Int = withContext(Dispatchers.Default) {
+    suspend fun maxRewardedNominators(): Int? = withContext(Dispatchers.Default) {
         stakingConstantsRepository.maxRewardedNominatorPerValidator(stakingSharedState.chainId())
     }
 
     private class StatusResolutionContext(
-        val eraStakers: AccountIdMap<Exposure>,
+        val eraStakers: AccountIdMap<LegacyExposure>,
         val activeEraIndex: BigInteger,
         val asset: Asset,
-        val rewardedNominatorsPerValidator: Int
+        val rewardedNominatorsPerValidator: Int?
     )
 
     override suspend fun maxNumberOfStakesIsReached(chainId: ChainId): Boolean {
@@ -819,3 +833,15 @@ class EraRelativeInfo(
     val erasLeft: BigInteger,
     val erasPast: BigInteger
 )
+
+fun Collection<ValidatorExposure>.legacyOrNull(): Collection<LegacyExposure>? {
+    return if (this.all { it is LegacyExposure }) {
+        castOrNull()
+    } else null
+}
+
+fun AccountIdMap<ValidatorExposure>.legacyOrNull(): AccountIdMap<LegacyExposure>? {
+    return if (values.all { it is LegacyExposure }) {
+        castOrNull()
+    } else null
+}
