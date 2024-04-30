@@ -189,20 +189,20 @@ class StakingSharedState(
     }
 }
 
-sealed class StakingAssetSelection(val chainId: ChainId, val chainAssetId: String) {
+sealed class StakingAssetSelection(open val chainId: ChainId, open val chainAssetId: String) {
     abstract val type: StakingType
 
-    class RelayChainStaking(chainId: ChainId, chainAssetId: String) :
+    data class RelayChainStaking(override val chainId: ChainId, override val chainAssetId: String) :
         StakingAssetSelection(chainId, chainAssetId) {
         override val type = StakingType.RELAYCHAIN
     }
 
-    class ParachainStaking(chainId: ChainId, chainAssetId: String) :
+    data class ParachainStaking(override val chainId: ChainId, override val chainAssetId: String) :
         StakingAssetSelection(chainId, chainAssetId) {
         override val type = StakingType.PARACHAIN
     }
 
-    class Pool(chainId: ChainId, chainAssetId: String) :
+    data class Pool(override val chainId: ChainId, override val chainAssetId: String) :
         StakingAssetSelection(chainId, chainAssetId) {
         override val type = StakingType.POOL
     }
