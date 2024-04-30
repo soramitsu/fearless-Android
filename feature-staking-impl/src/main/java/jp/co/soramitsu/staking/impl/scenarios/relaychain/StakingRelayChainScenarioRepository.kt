@@ -1,5 +1,6 @@
 package jp.co.soramitsu.staking.impl.scenarios.relaychain
 
+import android.util.Log
 import java.math.BigInteger
 import jp.co.soramitsu.common.data.network.runtime.binding.BinderWithType
 import jp.co.soramitsu.common.data.network.runtime.binding.NonNullBinderWithType
@@ -91,6 +92,7 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withContext
 
