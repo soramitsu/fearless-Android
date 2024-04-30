@@ -14,7 +14,7 @@ import jp.co.soramitsu.account.impl.domain.handleBalanceResponse
 import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
 import jp.co.soramitsu.common.data.network.runtime.binding.ExtrinsicStatusEvent
 import jp.co.soramitsu.common.data.network.runtime.binding.SimpleBalanceData
-import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
+import jp.co.soramitsu.common.mixin.api.networkStateService
 import jp.co.soramitsu.common.utils.failure
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.requireException
@@ -75,7 +75,7 @@ class BalancesUpdateSystem(
     private val assetCache: AssetCache,
     private val substrateSource: SubstrateRemoteSource,
     private val operationDao: OperationDao,
-    private val networkStateMixin: NetworkStateMixin,
+    private val networkStateService: networkStateService,
     private val ethereumRemoteSource: EthereumRemoteSource
 ) : UpdateSystem {
 
@@ -143,11 +143,11 @@ class BalancesUpdateSystem(
                 ?.observeWithTimeout(RUNTIME_AWAITING_TIMEOUT)
                 ?.flatMapLatest { runtimeResult ->
                     if (runtimeResult.isFailure) {
-                        networkStateMixin.notifyChainSyncProblem(chain.toSyncIssue())
+                        networkStateService.notifyChainSyncProblem(chain.toSyncIssue())
                         return@flatMapLatest flowOf(runtimeResult)
                     }
                     val runtime = runtimeResult.requireValue()
-                    networkStateMixin.notifyChainSyncSuccess(chain.id)
+                    networkStateService.notifyChainSyncSuccess(chain.id)
 
                     val storageKeys =
                         buildStorageKeys(

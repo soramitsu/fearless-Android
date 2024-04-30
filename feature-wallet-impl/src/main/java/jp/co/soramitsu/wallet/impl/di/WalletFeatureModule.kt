@@ -25,7 +25,7 @@ import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
 import jp.co.soramitsu.common.domain.SelectedFiat
 import jp.co.soramitsu.common.interfaces.FileProvider
-import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
+import jp.co.soramitsu.common.mixin.api.networkStateService
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.QrBitmapDecoder
@@ -379,7 +379,7 @@ class WalletFeatureModule {
         assetCache: AssetCache,
         substrateSource: SubstrateRemoteSource,
         operationDao: OperationDao,
-        networkStateMixin: NetworkStateMixin,
+        networkStateService: networkStateService,
         ethereumRemoteSource: EthereumRemoteSource
     ): UpdateSystem = BalancesUpdateSystem(
         chainRegistry,
@@ -387,7 +387,7 @@ class WalletFeatureModule {
         assetCache,
         substrateSource,
         operationDao,
-        networkStateMixin,
+        networkStateService,
         ethereumRemoteSource
     )
 

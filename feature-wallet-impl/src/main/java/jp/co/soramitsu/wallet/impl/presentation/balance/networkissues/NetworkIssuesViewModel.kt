@@ -10,7 +10,7 @@ import jp.co.soramitsu.common.AlertViewState
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.NetworkIssueItemState
 import jp.co.soramitsu.common.compose.component.NetworkIssueType
-import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
+import jp.co.soramitsu.common.mixin.api.networkStateService
 import jp.co.soramitsu.common.mixin.api.NetworkStateUi
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
@@ -33,10 +33,10 @@ class NetworkIssuesViewModel @Inject constructor(
     private val walletInteractor: WalletInteractor,
     private val accountInteractor: AccountInteractor,
     private val updatesMixin: UpdatesMixin,
-    private val networkStateMixin: NetworkStateMixin,
+    private val networkStateService: networkStateService,
     private val resourceManager: ResourceManager,
     private val assetNotNeedAccount: AssetNotNeedAccountUseCase
-) : BaseViewModel(), UpdatesProviderUi by updatesMixin, NetworkStateUi by networkStateMixin {
+) : BaseViewModel(), UpdatesProviderUi by updatesMixin, NetworkStateUi by networkStateService {
 
     companion object {
         private const val KEY_ALERT_RESULT = "result"
@@ -45,7 +45,7 @@ class NetworkIssuesViewModel @Inject constructor(
     private var lastSelectedNetworkIssueState: NetworkIssueItemState? = null
 
     val state = combine(
-        networkStateMixin.networkIssuesFlow.stateIn(viewModelScope, SharingStarted.Eagerly, emptySet()),
+        networkStateService.networkIssuesFlow.stateIn(viewModelScope, SharingStarted.Eagerly, emptySet()),
         walletInteractor.assetsFlow().map {
             it.filter { !it.hasAccount && !it.asset.markedNotNeed }.map {
                 NetworkIssueItemState(

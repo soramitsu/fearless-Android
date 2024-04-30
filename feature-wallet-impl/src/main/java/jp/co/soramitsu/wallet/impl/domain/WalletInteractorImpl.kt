@@ -20,6 +20,7 @@ import jp.co.soramitsu.common.domain.SelectedFiat
 import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
+import jp.co.soramitsu.common.domain.NetworkStateService
 import jp.co.soramitsu.common.model.AssetBooleanState
 import jp.co.soramitsu.common.utils.Modules
 import jp.co.soramitsu.common.utils.mapList
@@ -653,5 +654,13 @@ class WalletInteractorImpl(
                 AssetSorting.values().find { sorting -> sorting.name == it }
             } ?: AssetSorting.FiatBalance
         }
+    }
+
+    override fun getChainInitializationStatus(chainId: ChainId): NetworkStateService {
+
+    }
+
+    override fun networkIssuesFlow(): Flow<> {
+
     }
 }

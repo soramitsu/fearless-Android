@@ -6,8 +6,7 @@ import javax.inject.Provider
 import jp.co.soramitsu.common.BuildConfig
 import jp.co.soramitsu.common.compose.component.NetworkIssueItemState
 import jp.co.soramitsu.common.compose.component.NetworkIssueType
-import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
-import jp.co.soramitsu.common.mixin.api.NetworkStateUi
+import jp.co.soramitsu.common.domain.NetworkStateService
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.core.models.ChainNode
 import jp.co.soramitsu.core.runtime.ChainConnection
@@ -26,6 +25,8 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
@@ -37,92 +38,82 @@ class ConnectionPool @Inject constructor(
     private val socketServiceProvider: Provider<SocketService>,
     private val externalRequirementFlow: MutableStateFlow<ChainConnection.ExternalRequirement>,
     private val nodesSettingsStorage: NodesSettingsStorage,
-    private val networkStateMixin: NetworkStateMixin
-) : NetworkStateUi by networkStateMixin, CoroutineScope by CoroutineScope(Dispatchers.Default) {
+    private val networkStateService: NetworkStateService
+) :  CoroutineScope by CoroutineScope(Dispatchers.Default) {
 
-    private val pool = ConcurrentHashMap<String, ChainConnection>()
+//    private val pool = ConcurrentHashMap<String, ChainConnection>()
+    private val poolFlow = MutableStateFlow<Map<String, ChainConnection>>(emptyMap())
     private val connectionWatcher = MutableStateFlow(Event(Unit))
 
-    private val connections = connectionWatcher.flatMapLatest {
-        val connListFlow = pool.map {
-            it.value.isConnecting.map { isConnecting ->
-                it.value.chain.id to isConnecting
-            }
-        }
-        val connChainsListFlow = combine(connListFlow) { chains ->
-            chains.toMap()
-        }
-        connChainsListFlow
-    }
+//    private val connectionIssues = connectionWatcher.flatMapLatest {
+//        val connListFlow = pool.map {
+//
+//            it.value.isConnecting.map { isConnecting ->
+//                it.value.chain to isConnecting
+//            }
+//        }
+//        val connectionIssues = combine(connListFlow) { chains ->
+//            val issues =
+//                chains.filter { (_, isConnecting) -> isConnecting }.mapNotNull { (iChain, _) ->
+//                    val chain = iChain as? Chain ?: return@mapNotNull null
+//                    NetworkIssueItemState(
+//                        iconUrl = chain.icon,
+//                        title = chain.name,
+//                        type = when {
+//                            chain.nodes.size > 1 -> NetworkIssueType.Node
+//                            else -> NetworkIssueType.Network
+//                        },
+//                        chainId = chain.id,
+//                        chainName = chain.name,
+//                        assetId = chain.utilityAsset?.id.orEmpty()
+//                    )
+//                }
+//            issues
+//        }
+//
+//        connectionIssues
+//    }
 
-    private val connectionIssues = connectionWatcher.flatMapLatest {
-        val connListFlow = pool.map {
-
-            it.value.isConnecting.map { isConnecting ->
-                it.value.chain to isConnecting
-            }
-        }
-        val connectionIssues = combine(connListFlow) { chains ->
-            val issues =
-                chains.filter { (_, isConnecting) -> isConnecting }.mapNotNull { (iChain, _) ->
-                    val chain = iChain as? Chain ?: return@mapNotNull null
-                    NetworkIssueItemState(
-                        iconUrl = chain.icon,
-                        title = chain.name,
-                        type = when {
-                            chain.nodes.size > 1 -> NetworkIssueType.Node
-                            else -> NetworkIssueType.Network
-                        },
-                        chainId = chain.id,
-                        chainName = chain.name,
-                        assetId = chain.utilityAsset?.id.orEmpty()
-                    )
-                }
-            issues
-        }
-
-        connectionIssues
-    }
-
-    private val showConnecting = connectionWatcher.flatMapLatest {
-        val isConnectedListFlow = pool.map { it.value.isConnected }
-        val hasConnectionsFlow = combine(isConnectedListFlow) { it.any { it } }
-
-        val isPausedListFlow = pool.map { it.value.isPaused }
-        val hasPausesFlow = combine(isPausedListFlow) { it.any { it } }
-
-        val isConnectingListFlow = pool.map { it.value.isConnecting }
-        val hasConnectingFlow = combine(isConnectingListFlow) { it.any { it } }
-            .filter { connecting -> connecting }
-        val showConnecting = combine(
-            hasConnectionsFlow,
-            hasConnectingFlow,
-            hasPausesFlow
-        ) { connected, connecting, paused ->
-            !(connected || paused) && connecting
-        }
-        showConnecting
-    }
-        .distinctUntilChanged()
-        .debounce(ConnectingStatusDebounce)
+//    private val showConnecting = connectionWatcher.flatMapLatest {
+//        val isConnectedListFlow = pool.map { it.value.isConnected }
+//        val hasConnectionsFlow = combine(isConnectedListFlow) { it.any { it } }
+//
+//        val isPausedListFlow = pool.map { it.value.isPaused }
+//        val hasPausesFlow = combine(isPausedListFlow) { it.any { it } }
+//
+//        val isConnectingListFlow = pool.map { it.value.isConnecting }
+//        val hasConnectingFlow = combine(isConnectingListFlow) { it.any { it } }
+//            .filter { connecting -> connecting }
+//        val showConnecting = combine(
+//            hasConnectionsFlow,
+//            hasConnectingFlow,
+//            hasPausesFlow
+//        ) { connected, connecting, paused ->
+//            !(connected || paused) && connecting
+//        }
+//        showConnecting
+//    }
+//        .distinctUntilChanged()
+//        .debounce(ConnectingStatusDebounce)
 
     init {
-        connections.onEach {
-            networkStateMixin.updateChainConnection(it)
-        }.launchIn(scope = this)
-
-        connectionIssues.onEach {
-            networkStateMixin.updateNetworkIssues(it)
-        }.launchIn(this)
-
-        showConnecting.onEach {
-            networkStateMixin.updateShowConnecting(it)
-        }.launchIn(this)
+        observeChainsStatus()
     }
 
-    fun getConnection(chainId: ChainId): ChainConnection = pool.getValue(chainId)
+    private fun observeChainsStatus() {
 
-    fun getConnectionOrNull(chainId: ChainId): ChainConnection? = pool.getOrDefault(chainId, null)
+    }
+
+    fun getConnection(chainId: ChainId): ChainConnection {
+        return poolFlow.value[chainId]
+        return pool.getValue(chainId)
+    }
+
+    suspend fun awaitConnection(chainId: ChainId): ChainConnection {
+        return poolFlow.map { it[chainId] }.filterNotNull().first()
+    }
+
+    fun getConnectionOrNull(chainId: ChainId): ChainConnection? = poolFlow.value.getOrDefault(chainId, null)
 
     fun setupConnection(
         chain: Chain,

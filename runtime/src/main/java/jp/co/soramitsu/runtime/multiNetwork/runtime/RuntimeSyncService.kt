@@ -110,7 +110,7 @@ class RuntimeSyncService(
 
         val metadataHash = if (force || shouldSyncMetadata) {
             val runtimeMetadata =
-                connectionPool.getConnection(chainId).socketService.executeAsyncCatching(
+                connectionPool.awaitConnection(chainId).socketService.executeAsyncCatching(
                     GetMetadataRequest,
                     mapper = pojo<String>().nonNull()
                 ).getOrNull()

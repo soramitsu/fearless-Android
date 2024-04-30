@@ -4,7 +4,7 @@ import android.util.Log
 import javax.inject.Inject
 import jp.co.soramitsu.common.compose.component.NetworkIssueItemState
 import jp.co.soramitsu.common.compose.component.NetworkIssueType
-import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
+import jp.co.soramitsu.common.domain.NetworkStateService
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
 import jp.co.soramitsu.common.utils.diffed
@@ -28,7 +28,6 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.NodeId
 import jp.co.soramitsu.runtime.multiNetwork.connection.ConnectionPool
-import jp.co.soramitsu.runtime.multiNetwork.connection.EthereumChainConnection
 import jp.co.soramitsu.runtime.multiNetwork.connection.EthereumConnectionPool
 import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeProvider
 import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeProviderPool
@@ -48,7 +47,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
@@ -71,7 +69,7 @@ class ChainRegistry @Inject constructor(
     private val chainSyncService: ChainSyncService,
     private val runtimeSyncService: RuntimeSyncService,
     private val updatesMixin: UpdatesMixin,
-    private val networkStateMixin: NetworkStateMixin,
+    private val networkStateService: NetworkStateService,
     private val ethereumConnectionPool: EthereumConnectionPool,
     private val assetsCache: AssetReadOnlyCache,
     private val chainsRepository: ChainsRepository,
@@ -139,13 +137,13 @@ class ChainRegistry @Inject constructor(
                                 runCatching {
                                     setupChain(chain)
                                 }.onFailure {
-                                    networkStateMixin.notifyChainSyncProblem(chain.toSyncIssue())
+                                    networkStateService.notifyChainSyncProblem(chain.toSyncIssue())
                                     Log.e(
                                         "ChainRegistry",
                                         "error while sync in chain registry $it"
                                     )
                                 }.onSuccess {
-                                    networkStateMixin.notifyChainSyncSuccess(
+                                    networkStateService.notifyChainSyncSuccess(
                                         chain.id
                                     )
                                 }
@@ -252,8 +250,9 @@ class ChainRegistry @Inject constructor(
         withContext(dispatcher) {
             val chain = getChain(id.chainId)
             if (!chain.isEthereumChain) {
-                connectionPool.getConnection(id.chainId).socketService.switchUrl(id.nodeUrl)
-                notifyNodeSwitched(id.chainId, id.nodeUrl)
+                connectionPool.getConnectionOrNull(id.chainId)?.socketService?.switchUrl(id.nodeUrl)?.let {
+                    notifyNodeSwitched(id.chainId, id.nodeUrl)
+                }
             }
         }
     }

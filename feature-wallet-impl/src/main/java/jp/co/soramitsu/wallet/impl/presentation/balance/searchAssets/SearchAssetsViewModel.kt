@@ -13,7 +13,7 @@ import jp.co.soramitsu.common.compose.component.ActionItemType
 import jp.co.soramitsu.common.compose.component.NetworkIssueItemState
 import jp.co.soramitsu.common.compose.component.SwipeState
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState
-import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
+import jp.co.soramitsu.common.mixin.api.networkStateService
 import jp.co.soramitsu.common.mixin.api.NetworkStateUi
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.orZero
@@ -40,8 +40,8 @@ class SearchAssetsViewModel @Inject constructor(
     private val interactor: WalletInteractor,
     private val chainInteractor: ChainInteractor,
     private val router: WalletRouter,
-    private val networkStateMixin: NetworkStateMixin
-) : BaseViewModel(), NetworkStateUi by networkStateMixin, SearchAssetsScreenInterface {
+    private val networkStateService: networkStateService
+) : BaseViewModel(), NetworkStateUi by networkStateService, SearchAssetsScreenInterface {
 
     private val _showUnsupportedChainAlert = MutableLiveData<Event<Unit>>()
     val showUnsupportedChainAlert: LiveData<Event<Unit>> = _showUnsupportedChainAlert

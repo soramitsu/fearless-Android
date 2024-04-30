@@ -1,7 +1,7 @@
 package jp.co.soramitsu.runtime.multiNetwork.runtime
 
 import jp.co.soramitsu.common.data.network.runtime.binding.cast
-import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
+import jp.co.soramitsu.common.domain.NetworkStateService
 import jp.co.soramitsu.core.runtime.RuntimeFactory
 import jp.co.soramitsu.coredb.dao.ChainDao
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
@@ -15,7 +15,7 @@ class RuntimeProviderPool(
     private val runtimeSyncService: RuntimeSyncService,
     private val runtimeFilesCache: RuntimeFilesCache,
     private val chainDao: ChainDao,
-    private val networkStateMixin: NetworkStateMixin
+    private val networkStateService: NetworkStateService
 ) {
 
     private val poolStateFlow =
@@ -40,7 +40,7 @@ class RuntimeProviderPool(
                         runtimeSyncService,
                         runtimeFilesCache,
                         chainDao,
-                        networkStateMixin,
+                        networkStateService,
                         chain
                     )
                 }
@@ -55,6 +55,5 @@ class RuntimeProviderPool(
                 it.remove(chainId)?.apply { finish() }
             }
         }
-
     }
 }

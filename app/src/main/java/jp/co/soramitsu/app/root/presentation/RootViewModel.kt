@@ -12,7 +12,7 @@ import javax.inject.Inject
 import jp.co.soramitsu.app.R
 import jp.co.soramitsu.app.root.domain.RootInteractor
 import jp.co.soramitsu.common.base.BaseViewModel
-import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
+import jp.co.soramitsu.common.mixin.api.networkStateService
 import jp.co.soramitsu.common.mixin.api.NetworkStateUi
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
@@ -36,8 +36,8 @@ class RootViewModel @Inject constructor(
     private val rootRouter: RootRouter,
     private val externalConnectionRequirementFlow: MutableStateFlow<ChainConnection.ExternalRequirement>,
     private val resourceManager: ResourceManager,
-    private val networkStateMixin: NetworkStateMixin
-) : BaseViewModel(), NetworkStateUi by networkStateMixin {
+    private val networkStateService: networkStateService
+) : BaseViewModel(), NetworkStateUi by networkStateService {
     companion object {
         private const val IDLE_MINUTES: Long = 20
     }

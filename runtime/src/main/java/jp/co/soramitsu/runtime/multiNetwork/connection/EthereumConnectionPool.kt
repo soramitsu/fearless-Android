@@ -5,7 +5,7 @@ import java.net.URI
 import java.util.concurrent.ConcurrentHashMap
 import jp.co.soramitsu.common.BuildConfig
 import jp.co.soramitsu.common.data.network.runtime.binding.cast
-import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
+import jp.co.soramitsu.common.domain.NetworkStateService
 import jp.co.soramitsu.common.utils.cycle
 import jp.co.soramitsu.core.models.ChainNode
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.BSCChainId
@@ -17,7 +17,6 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.goerliChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polygonChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polygonTestnetChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.sepoliaChainId
-import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeProvider
 import jp.co.soramitsu.runtime.multiNetwork.toSyncIssue
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
@@ -40,7 +39,7 @@ import org.web3j.protocol.websocket.WebSocketService
 private const val EVM_CONNECTION_TAG = "EVM Connection"
 
 class EthereumConnectionPool(
-    private val networkStateMixin: NetworkStateMixin,
+    private val networkStateService: NetworkStateService,
 ) {
     private val poolStateFlow =
         MutableStateFlow<MutableMap<String, EthereumChainConnection>>(mutableMapOf())
@@ -62,7 +61,7 @@ class EthereumConnectionPool(
                     it[chain.id] = EthereumChainConnection(
                         chain,
                         onSelectedNodeChange = onSelectedNodeChange
-                    ) { networkStateMixin.notifyChainSyncProblem(chain.toSyncIssue()) }
+                    ) { networkStateService.notifyChainSyncProblem(chain.toSyncIssue()) }
                 }
             }
             return poolStateFlow.value.getValue(chain.id)
