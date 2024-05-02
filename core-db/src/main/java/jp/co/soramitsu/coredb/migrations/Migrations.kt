@@ -3,9 +3,16 @@ package jp.co.soramitsu.coredb.migrations
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
+val Migration_64_65 = object : Migration(64, 65) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("DELETE FROM storage")
+    }
+}
+
 val Migration_63_64 = object : Migration(63, 64) {
     override fun migrate(db: SupportSQLiteDatabase) {
         db.execSQL("ALTER TABLE chains ADD COLUMN `isUsesAppId` INTEGER NOT NULL DEFAULT 0")
+        db.execSQL("DELETE FROM storage")
     }
 }
 
