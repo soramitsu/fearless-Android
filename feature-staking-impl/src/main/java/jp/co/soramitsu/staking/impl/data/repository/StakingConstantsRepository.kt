@@ -21,7 +21,7 @@ class StakingConstantsRepository(
         return try {
             val runtime = chainRegistry.getRuntime(chainId)
 
-            if(runtime.metadata.stakingOrNull()?.constantOrNull("MaxNominatorRewardedPerValidator") != null){
+            if (runtime.metadata.stakingOrNull()?.constantOrNull("MaxNominatorRewardedPerValidator") != null) {
                 return getNumberConstant(chainId, "MaxNominatorRewardedPerValidator").toInt()
             } else {
                 // todo need research
