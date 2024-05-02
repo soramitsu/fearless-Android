@@ -18,7 +18,7 @@ class MinimumAmountValidation(
 
         val minimumBondInPlanks = stakingScenarioInteractor.getMinimumStake(assetConfiguration)
         val minStakeMultiplier: Double = if (assetConfiguration.chainId == polkadotChainId) {
-            StakingRelaychainScenarioViewModel.POLKADOT_STAKE_EXTRA_MULTIPLIER // 15% increase
+            StakingRelaychainScenarioViewModel.STAKE_EXTRA_MULTIPLIER // 15% increase
         } else {
             1.0
         }

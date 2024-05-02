@@ -19,11 +19,14 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material.ButtonColors
 import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.CircularProgressIndicator
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Icon
+import androidx.compose.material.LocalMinimumInteractiveComponentEnforcement
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.material.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -37,7 +40,6 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
-import jp.co.soramitsu.common.compose.theme.accentButtonColors
 import jp.co.soramitsu.common.compose.theme.accentDarkButtonColors
 import jp.co.soramitsu.common.compose.theme.accentDarkDisabledButtonColors
 import jp.co.soramitsu.common.compose.theme.colorAccent
@@ -379,6 +381,7 @@ fun ColoredTextButton(
     }
 }
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun ColoredButton(
     modifier: Modifier = Modifier,
@@ -389,16 +392,20 @@ fun ColoredButton(
     onClick: () -> Unit,
     content: @Composable RowScope.() -> Unit
 ) {
-    TextButton(
-        modifier = modifier,
-        onClick = onClick,
-        shape = FearlessCorneredShape(cornerRadius = 4.dp, cornerCutLength = 6.dp),
-        colors = customButtonColors(backgroundColor),
-        border = border,
-        enabled = enabled,
-        contentPadding = contentPadding,
-        content = content
-    )
+    CompositionLocalProvider(
+        LocalMinimumInteractiveComponentEnforcement provides false,
+    ) {
+        TextButton(
+            modifier = modifier,
+            onClick = onClick,
+            shape = FearlessCorneredShape(cornerRadius = 4.dp, cornerCutLength = 6.dp),
+            colors = customButtonColors(backgroundColor),
+            border = border,
+            enabled = enabled,
+            contentPadding = contentPadding,
+            content = content
+        )
+    }
 }
 
 @Composable
