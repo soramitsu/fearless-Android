@@ -374,12 +374,12 @@ class BalanceListViewModel @Inject constructor(
         assetStates,
         nftInteractor.nftFiltersFlow(),
         createNFTCollectionScreenViewsFlow(),
-        networkIssueStateFlow.onEach { networkIssueState -> Log.d("&&&", "network issues onEach: $networkIssueState")}
+        networkIssueStateFlow
     ) { selectedChainId, selectorState, assetStates, filters, (pageViews, screenLayout), networkIssueState ->
         when (selectorState.currentSelection) {
             AssetType.Currencies -> {
                 val isSelectedChainHasIssues = networkIssueState != null
-                Log.d("&&&", "isSelectedChainHasIssues ${isSelectedChainHasIssues}")
+
                 if (isSelectedChainHasIssues) {
                     requireNotNull(networkIssueState)
                 } else {
@@ -674,7 +674,6 @@ class BalanceListViewModel @Inject constructor(
     private fun sync() {
         viewModelScope.launch {
             withContext(Dispatchers.Default) {
-                Log.d("&&&", "sync assets rates")
                 getAvailableFiatCurrencies.sync()
                 interactor.syncAssetsRates().onFailure {
                     withContext(Dispatchers.Main) {

@@ -43,7 +43,6 @@ class RuntimeVersionSubscription(
     private val chainDao: ChainDao,
     private val runtimeSyncService: RuntimeSyncService,
     private val networkStateService: NetworkStateService,
-    runtimeProvider: RuntimeProvider,
     dispatcher: CoroutineDispatcher = Dispatchers.Default
 ) {
     private val scope = CoroutineScope(dispatcher + SupervisorJob())
@@ -61,18 +60,15 @@ class RuntimeVersionSubscription(
                             connection.socketService.subscriptionFlow(SubscribeStateRuntimeVersionRequest)
                                 .map { it.runtimeVersionChange().specVersion }
                                 .catch {
-                                    val runtime = runtimeProvider.getOrNullWithTimeout()
-
-                                    val version = runtime?.getVersionConstant()
-                                        ?: connection.getVersionChainRpc()
+                                    Log.d("&&&", "catch SubscribeStateRuntimeVersionRequest")
+                                    val version = connection.getVersionChainRpc()
                                         ?: connection.getVersionStateRpc()
                                         ?: error("Runtime version not obtained")
-
+                                    Log.d("&&&", "got version single $version")
                                     emit(version)
                                 }
                         )
                     }
-
                     .onEach { runtimeVersionResult ->
                         chainDao.updateRemoteRuntimeVersion(
                             chainId,
@@ -102,13 +98,6 @@ class RuntimeVersionSubscription(
             }
         }
     }
-
-    private fun RuntimeSnapshot.getVersionConstant(): Int? = runCatching {
-        val versionConstant = metadata.system().constant("Version")
-        val decodedVersion = versionConstant.type?.fromByteArrayOrNull(this, versionConstant.value)
-        requireType<Struct.Instance>(decodedVersion)
-        bindNumber(decodedVersion["specVersion"]).toInt()
-    }.getOrNull()
 
     private suspend fun ChainConnection.getVersionChainRpc(): Int? = runCatching {
         socketService.executeAsync(
