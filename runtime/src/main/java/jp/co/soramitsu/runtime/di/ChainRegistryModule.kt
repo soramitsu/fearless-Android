@@ -129,8 +129,9 @@ class ChainRegistryModule {
     @Singleton
     fun provideRuntimeVersionSubscriptionPool(
         chainDao: ChainDao,
-        runtimeSyncService: RuntimeSyncService
-    ) = RuntimeSubscriptionPool(chainDao, runtimeSyncService)
+        runtimeSyncService: RuntimeSyncService,
+        networkStateService: NetworkStateService
+    ) = RuntimeSubscriptionPool(chainDao, runtimeSyncService, networkStateService)
 
     @Provides
     @Singleton

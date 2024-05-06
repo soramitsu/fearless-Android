@@ -8,7 +8,6 @@ import jp.co.soramitsu.runtime.multiNetwork.ChainState
 import jp.co.soramitsu.runtime.multiNetwork.ChainsStateTracker
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.reefChainId
-import jp.co.soramitsu.runtime.multiNetwork.toSyncIssue
 import jp.co.soramitsu.shared_utils.runtime.RuntimeSnapshot
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -144,7 +143,7 @@ class RuntimeProvider(
                 networkStateService.notifyChainSyncSuccess(chainId)
             }.onFailure { error ->
                 ChainsStateTracker.updateState(chainId) { it.copy(runtimeConstruction = ChainState.Status.Failed(error)) }
-                networkStateService.notifyChainSyncProblem(chain.toSyncIssue())
+                networkStateService.notifyChainSyncProblem(chain.id)
                 when (error) {
                     ChainInfoNotInCacheException -> runtimeSyncService.cacheNotFound(chainId)
                     else -> error.printStackTrace()

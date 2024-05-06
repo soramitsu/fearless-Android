@@ -133,12 +133,12 @@ class RootActivity : BaseActivity<RootViewModel>(), LifecycleObserver {
     }
 
     override fun subscribe(viewModel: RootViewModel) {
-        viewModel.showConnectingBarFlow.observe(lifecycleScope) { show ->
-            when {
-                show -> showBadConnectionView()
-                else -> hideBadConnectionView()
-            }
-        }
+//        viewModel.showConnectingBarFlow.observe(lifecycleScope) { show ->
+//            when {
+//                show -> showBadConnectionView()
+//                else -> hideBadConnectionView()
+//            }
+//        }
 
         viewModel.messageLiveData.observe(
             this,

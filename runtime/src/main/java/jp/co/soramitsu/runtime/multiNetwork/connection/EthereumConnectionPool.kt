@@ -17,7 +17,6 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.goerliChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polygonChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polygonTestnetChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.sepoliaChainId
-import jp.co.soramitsu.runtime.multiNetwork.toSyncIssue
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -61,7 +60,7 @@ class EthereumConnectionPool(
                     it[chain.id] = EthereumChainConnection(
                         chain,
                         onSelectedNodeChange = onSelectedNodeChange
-                    ) { networkStateService.notifyChainSyncProblem(chain.toSyncIssue()) }
+                    ) { networkStateService.notifyChainSyncProblem(chain.id) }
                 }
             }
             return poolStateFlow.value.getValue(chain.id)

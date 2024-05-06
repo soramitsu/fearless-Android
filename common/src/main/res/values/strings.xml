@@ -513,6 +513,7 @@
   <string name="network_issue_action_add_account">Add Account</string>
   <string name="network_issue_action_switch_node">Switch Node</string>
   <string name="network_issue_add_an_account">Add an account</string>
+  <string name="network_issue_main">Connection Error: Unable to connect to the network. Please try again.</string>
   <string name="network_issue_network_unavailable">Network is unavailable</string>
   <string name="network_issue_node_unavailable">Node is unavailable</string>
   <string name="network_issue_stub">Network Issues</string>

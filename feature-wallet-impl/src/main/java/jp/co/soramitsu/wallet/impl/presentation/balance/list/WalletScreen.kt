@@ -22,7 +22,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.SwipeableState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.remember
@@ -141,7 +140,7 @@ fun WalletScreen(
                 )
             }
             is WalletAssetsState.NetworkIssue -> {
-                NetworkIssue(callback::onRetry)
+                NetworkIssue(data.assetsState.retryButtonLoading, callback::onRetry)
             }
         }
     }

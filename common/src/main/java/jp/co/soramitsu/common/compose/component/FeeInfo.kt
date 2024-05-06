@@ -70,7 +70,6 @@ fun FeeInfo(state: FeeInfoViewState, modifier: Modifier = Modifier, tooltipClick
             }
         }
         Column(modifier = Modifier.weight(1f)) {
-            Log.d("&&&", "state.feeAmount = ${state.feeAmount}")
             state.feeAmount?.let {
                 CapsTitle(text = it, textAlign = TextAlign.End, modifier = Modifier.align(Alignment.End))
             } ?: Shimmer(

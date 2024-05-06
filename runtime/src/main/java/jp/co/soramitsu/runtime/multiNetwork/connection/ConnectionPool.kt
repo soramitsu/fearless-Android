@@ -1,16 +1,12 @@
 package jp.co.soramitsu.runtime.multiNetwork.connection
 
-import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import javax.inject.Provider
 import jp.co.soramitsu.common.BuildConfig
-import jp.co.soramitsu.common.compose.component.NetworkIssueItemState
-import jp.co.soramitsu.common.compose.component.NetworkIssueType
 import jp.co.soramitsu.common.domain.NetworkStateService
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.core.models.ChainNode
 import jp.co.soramitsu.core.runtime.ChainConnection
-import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.runtime.multiNetwork.ChainState
 import jp.co.soramitsu.runtime.multiNetwork.ChainsStateTracker
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
@@ -21,16 +17,12 @@ import jp.co.soramitsu.shared_utils.wsrpc.state.SocketStateMachine
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.update
 
 private const val ConnectingStatusDebounce = 750L
 
@@ -96,31 +88,21 @@ class ConnectionPool @Inject constructor(
 //        .distinctUntilChanged()
 //        .debounce(ConnectingStatusDebounce)
 
-    init {
-        observeChainsStatus()
-    }
-
-    private fun observeChainsStatus() {
-
-    }
-
-    fun getConnection(chainId: ChainId): ChainConnection {
-        return poolFlow.value[chainId]
-        return pool.getValue(chainId)
-    }
 
     suspend fun awaitConnection(chainId: ChainId): ChainConnection {
         return poolFlow.map { it[chainId] }.filterNotNull().first()
     }
 
     fun getConnectionOrNull(chainId: ChainId): ChainConnection? = poolFlow.value.getOrDefault(chainId, null)
+    fun getConnectionOrThrow(chainId: ChainId): ChainConnection = poolFlow.value.getValue(chainId)
 
     fun setupConnection(
         chain: Chain,
         onSelectedNodeChange: (chainId: ChainId, newNodeUrl: String) -> Unit
     ): ChainConnection {
         var isNew = false
-        val connection = pool.getOrPut(chain.id) {
+
+        val connection = poolFlow.value[chain.id] ?: run {
             isNew = true
 
             val nodes = chain.nodes.map {
@@ -135,6 +117,9 @@ class ConnectionPool @Inject constructor(
                 onSelectedNodeChange = { onSelectedNodeChange(chain.id, clearDwellirApiKey(it)) },
                 isAutoBalanceEnabled = { nodesSettingsStorage.getIsAutoSelectNodes(chain.id) }
             ).also {  connection ->
+                poolFlow.update { pool ->
+                    pool + (chain.id to connection)
+                }
                 connection.state.onEach {connectionState ->
                     val newState = when(connectionState) {
                         is SocketStateMachine.State.Connected -> ChainState.ConnectionStatus.Connected(connectionState.url)
@@ -143,8 +128,14 @@ class ConnectionPool @Inject constructor(
                         is SocketStateMachine.State.Paused -> ChainState.ConnectionStatus.Paused(connectionState.url)
                         is SocketStateMachine.State.WaitingForReconnect -> ChainState.ConnectionStatus.Connecting(connectionState.url)
                     }
+
                     ChainsStateTracker.updateState(chain) { it.copy(connectionStatus = newState) }
 
+                    when(connectionState) {
+                        is SocketStateMachine.State.Connected -> networkStateService.notifyConnectionSuccess(chain.id)
+                        is SocketStateMachine.State.WaitingForReconnect -> networkStateService.notifyConnectionProblem(chain.id)
+                        else -> Unit
+                    }
                 }.launchIn(this)
             }
         }
@@ -159,8 +150,14 @@ class ConnectionPool @Inject constructor(
     }
 
     fun removeConnection(chainId: ChainId) {
-        pool.remove(chainId)?.apply { finish() }
+        val connection = getConnectionOrNull(chainId)
+        poolFlow.update {
+
+            it.minus(chainId)
+        }
+        connection?.finish()
         connectionWatcher.tryEmit(Event(Unit))
+        networkStateService.notifyConnectionSuccess(chainId)
     }
 }
 

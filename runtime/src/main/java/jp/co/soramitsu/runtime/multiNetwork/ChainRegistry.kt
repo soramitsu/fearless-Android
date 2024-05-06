@@ -2,21 +2,16 @@ package jp.co.soramitsu.runtime.multiNetwork
 
 import android.util.Log
 import javax.inject.Inject
-import jp.co.soramitsu.common.compose.component.NetworkIssueItemState
-import jp.co.soramitsu.common.compose.component.NetworkIssueType
 import jp.co.soramitsu.common.domain.NetworkStateService
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
 import jp.co.soramitsu.common.utils.diffed
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.mapList
-import jp.co.soramitsu.common.utils.requireException
-import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.core.models.IChain
 import jp.co.soramitsu.core.runtime.ChainConnection
 import jp.co.soramitsu.core.runtime.IChainRegistry
-import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.coredb.dao.AssetReadOnlyCache
 import jp.co.soramitsu.coredb.dao.ChainDao
 import jp.co.soramitsu.coredb.model.chain.ChainNodeLocal
@@ -85,9 +80,9 @@ class ChainRegistry @Inject constructor(
         .distinctUntilChanged()
         .shareIn(scope, SharingStarted.Eagerly, replay = 1)
 
-    val chainsById = currentChains.map { chains -> chains.associateBy { it.id } }
-        .inBackground()
-        .shareIn(scope, SharingStarted.Eagerly, replay = 1)
+//    val chainsById = currentChains.map { chains -> chains.associateBy { it.id } }
+//        .inBackground()
+//        .shareIn(scope, SharingStarted.Eagerly, replay = 1)
 
     private val enabledAssetsFlow = assetsCache.observeAllEnabledAssets()
         .onStart { emit(emptyList()) }
@@ -137,7 +132,7 @@ class ChainRegistry @Inject constructor(
                                 runCatching {
                                     setupChain(chain)
                                 }.onFailure {
-                                    networkStateService.notifyChainSyncProblem(chain.toSyncIssue())
+                                    networkStateService.notifyChainSyncProblem(chain.id)
                                     Log.e(
                                         "ChainRegistry",
                                         "error while sync in chain registry $it"
@@ -186,7 +181,7 @@ class ChainRegistry @Inject constructor(
 
         if (runtimeProviderPool.getRuntimeProviderOrNull(chain.id)?.getOrNull() != null) return
 
-        if (connection.state.value is SocketStateMachine.State.Disconnected) {
+        if (connection.state.value !is SocketStateMachine.State.Connected) {
             connection.socketService.start(chain.nodes.first().url)
         }
 
@@ -203,33 +198,6 @@ class ChainRegistry @Inject constructor(
 
         return connectionPool.getConnectionOrNull(chain.id) != null && runtime != null
     }
-
-    override fun getConnection(chainId: String) = connectionPool.getConnection(chainId)
-
-    @Deprecated(
-        "Since we have ethereum chains, which don't have runtime, we must use the function with nullable return value",
-        ReplaceWith("getRuntimeOrNull(chainId)")
-    )
-    override suspend fun getRuntime(chainId: ChainId): RuntimeSnapshot {
-        return awaitRuntimeProvider(chainId).get()
-    }
-
-    suspend fun getRuntimeOrNull(chainId: ChainId): RuntimeSnapshot? {
-        return getRuntimeProviderOrNull(chainId)?.getOrNull()
-    }
-
-    fun getConnectionOrNull(chainId: String) = connectionPool.getConnectionOrNull(chainId)
-
-    suspend fun awaitRuntimeProvider(chainId: String): RuntimeProvider {
-        return runtimeProviderPool.awaitRuntimeProvider(chainId)
-    }
-
-    suspend fun getRuntimeProviderOrNull(chainId: String): RuntimeProvider? {
-        return runtimeProviderPool.getRuntimeProviderOrNull(chainId)
-    }
-
-    fun getEthereumConnection(chainId: String) = ethereumConnectionPool.getOrNull(chainId)
-    suspend fun awaitEthereumConnection(chainId: String) = ethereumConnectionPool.await(chainId)
 
     suspend fun getAsset(chainId: ChainId, chainAssetId: String): Asset? {
         return getChain(chainId).assetsById[chainAssetId]
@@ -285,56 +253,47 @@ class ChainRegistry @Inject constructor(
     suspend fun getRemoteRuntimeVersion(chainId: ChainId): Int? {
         return chainDao.runtimeInfo(chainId)?.remoteVersion
     }
-}
 
-suspend fun ChainRegistry.chainWithAsset(
-    chainId: ChainId,
-    assetId: String
-): Pair<Chain, Asset> {
-    val chain = getChain(chainId)
+    suspend fun chainWithAsset(
+        chainId: ChainId,
+        assetId: String
+    ): Pair<Chain, Asset> {
+        val chain = getChain(chainId)
 
-    return chain to chain.assetsById.getValue(assetId)
-}
+        return chain to chain.assetsById.getValue(assetId)
+    }
 
-suspend fun ChainRegistry.getRuntime(chainId: ChainId): RuntimeSnapshot {
-    return awaitRuntimeProvider(chainId).get()
-}
+    override fun getConnection(chainId: String) = connectionPool.getConnectionOrThrow(chainId)
 
-suspend fun ChainRegistry.getRuntimeOrNull(chainId: ChainId): RuntimeSnapshot? {
-    return getRuntimeProviderOrNull(chainId)?.getOrNull()
-}
+    suspend fun awaitConnection(chainId: ChainId) = connectionPool.awaitConnection(chainId)
+    @Deprecated(
+        "Since we have ethereum chains, which don't have runtime, we must use the function with nullable return value",
+        ReplaceWith("getRuntimeOrNull(chainId)")
+    )
+    override suspend fun getRuntime(chainId: ChainId): RuntimeSnapshot {
+        return awaitRuntimeProvider(chainId).get()
+    }
 
-suspend fun ChainRegistry.getRuntimeCatching(chainId: ChainId): Result<RuntimeSnapshot> {
-    val providerResult = kotlin.runCatching { awaitRuntimeProvider(chainId) }
+    suspend fun getRuntimeOrNull(chainId: ChainId): RuntimeSnapshot? {
+        return getRuntimeProviderOrNull(chainId)?.getOrNull()
+    }
 
-    return if (providerResult.isFailure) {
-        Result.failure(providerResult.requireException())
-    } else {
-        kotlin.runCatching { providerResult.requireValue().get() }
+    suspend fun awaitRuntimeProvider(chainId: String): RuntimeProvider {
+        return runtimeProviderPool.awaitRuntimeProvider(chainId)
+    }
+
+    fun getRuntimeProviderOrNull(chainId: String): RuntimeProvider? {
+        return runtimeProviderPool.getRuntimeProviderOrNull(chainId)
+    }
+
+    fun getEthereumConnectionOrNull(chainId: String) = ethereumConnectionPool.getOrNull(chainId)
+    suspend fun awaitEthereumConnection(chainId: String) = ethereumConnectionPool.await(chainId)
+
+    suspend fun getService(chainId: ChainId): ChainService {
+        return ChainService(
+            runtimeProvider = awaitRuntimeProvider(chainId),
+            connection = getConnection(chainId)
+        )
     }
 }
 
-fun ChainRegistry.getSocket(chainId: ChainId) = getConnection(chainId).socketService
-fun ChainRegistry.getSocketOrNull(chainId: ChainId) =
-    getConnectionOrNull(chainId)?.socketService
-
-suspend fun ChainRegistry.getService(chainId: ChainId): ChainService {
-    return ChainService(
-        runtimeProvider = awaitRuntimeProvider(chainId),
-        connection = getConnection(chainId)
-    )
-}
-
-fun Chain.toSyncIssue(): NetworkIssueItemState {
-    return NetworkIssueItemState(
-        iconUrl = this.icon,
-        title = this.name,
-        type = when {
-            this.nodes.size > 1 -> NetworkIssueType.Node
-            else -> NetworkIssueType.Network
-        },
-        chainId = this.id,
-        chainName = this.name,
-        assetId = this.utilityAsset?.id.orEmpty()
-    )
-}

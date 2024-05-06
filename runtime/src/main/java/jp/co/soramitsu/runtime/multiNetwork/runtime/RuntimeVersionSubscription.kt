@@ -1,6 +1,7 @@
 package jp.co.soramitsu.runtime.multiNetwork.runtime
 
 import android.util.Log
+import jp.co.soramitsu.common.domain.NetworkStateService
 import jp.co.soramitsu.common.data.network.runtime.binding.bindNumber
 import jp.co.soramitsu.common.data.network.runtime.binding.requireType
 import jp.co.soramitsu.common.utils.constant
@@ -41,6 +42,7 @@ class RuntimeVersionSubscription(
     connection: ChainConnection,
     private val chainDao: ChainDao,
     private val runtimeSyncService: RuntimeSyncService,
+    private val networkStateService: NetworkStateService,
     runtimeProvider: RuntimeProvider,
     dispatcher: CoroutineDispatcher = Dispatchers.Default
 ) {
@@ -82,6 +84,7 @@ class RuntimeVersionSubscription(
                         ChainsStateTracker.updateState(chainId) { it.copy(runtimeVersion = ChainState.Status.Completed) }
                     }
                     .catch { error ->
+                        networkStateService.notifyChainSyncProblem(chainId)
                         ChainsStateTracker.updateState(chainId) {
                             it.copy(
                                 runtimeVersion = ChainState.Status.Failed(

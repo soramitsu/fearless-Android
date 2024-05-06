@@ -5,10 +5,12 @@ import jp.co.soramitsu.coredb.dao.ChainDao
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import kotlinx.coroutines.cancel
 import java.util.concurrent.ConcurrentHashMap
+import jp.co.soramitsu.common.domain.NetworkStateService
 
 class RuntimeSubscriptionPool(
     private val chainDao: ChainDao,
-    private val runtimeSyncService: RuntimeSyncService
+    private val runtimeSyncService: RuntimeSyncService,
+    private val networkStateService: NetworkStateService,
 ) {
 
     private val pool = ConcurrentHashMap<String, RuntimeVersionSubscription>()
@@ -17,7 +19,7 @@ class RuntimeSubscriptionPool(
 
     fun setupRuntimeSubscription(chain: Chain, connection: ChainConnection, runtimeProvider: RuntimeProvider): RuntimeVersionSubscription {
         return pool.getOrPut(chain.id) {
-            RuntimeVersionSubscription(chain.id, connection, chainDao, runtimeSyncService, runtimeProvider)
+            RuntimeVersionSubscription(chain.id, connection, chainDao, runtimeSyncService, networkStateService, runtimeProvider)
         }
     }
 

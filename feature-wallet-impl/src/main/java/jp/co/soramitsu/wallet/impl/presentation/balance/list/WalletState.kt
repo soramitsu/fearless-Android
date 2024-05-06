@@ -5,6 +5,7 @@ import androidx.compose.runtime.Stable
 import jp.co.soramitsu.common.compose.component.AssetBalanceViewState
 import jp.co.soramitsu.common.compose.component.ChangeBalanceViewState
 import jp.co.soramitsu.common.compose.component.MultiToggleButtonState
+import jp.co.soramitsu.common.compose.component.NetworkIssueType
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.wallet.impl.presentation.balance.nft.list.models.NFTCollectionsScreenModel
@@ -45,7 +46,11 @@ sealed interface WalletAssetsState {
     ): WalletAssetsState, AssetListState(assets)
 
     @Immutable
-    data object NetworkIssue: WalletAssetsState
+    data class NetworkIssue(
+        val chainId: String,
+        val issueType: NetworkIssueType,
+        val retryButtonLoading: Boolean
+    ): WalletAssetsState
 
     @JvmInline
     value class NftAssets(

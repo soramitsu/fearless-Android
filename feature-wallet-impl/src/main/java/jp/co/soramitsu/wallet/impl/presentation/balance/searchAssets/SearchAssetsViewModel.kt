@@ -10,11 +10,8 @@ import java.math.BigDecimal
 import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.ActionItemType
-import jp.co.soramitsu.common.compose.component.NetworkIssueItemState
 import jp.co.soramitsu.common.compose.component.SwipeState
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState
-import jp.co.soramitsu.common.mixin.api.networkStateService
-import jp.co.soramitsu.common.mixin.api.NetworkStateUi
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
@@ -39,9 +36,8 @@ class SearchAssetsViewModel @Inject constructor(
     val savedStateHandle: SavedStateHandle,
     private val interactor: WalletInteractor,
     private val chainInteractor: ChainInteractor,
-    private val router: WalletRouter,
-    private val networkStateService: networkStateService
-) : BaseViewModel(), NetworkStateUi by networkStateService, SearchAssetsScreenInterface {
+    private val router: WalletRouter
+) : BaseViewModel(), SearchAssetsScreenInterface {
 
     private val _showUnsupportedChainAlert = MutableLiveData<Event<Unit>>()
     val showUnsupportedChainAlert: LiveData<Event<Unit>> = _showUnsupportedChainAlert
@@ -54,13 +50,12 @@ class SearchAssetsViewModel @Inject constructor(
     private val assetStates = combine(
         interactor.assetsFlow(),
         chainInteractor.getChainsFlow(),
-        networkIssuesFlow
-    ) { assets: List<AssetWithStatus>, chains: List<Chain>, networkIssues: Set<NetworkIssueItemState> ->
+    ) { assets: List<AssetWithStatus>, chains: List<Chain> ->
 
         val balanceListItems = AssetListHelper.processAssets(
             assets = assets,
             filteredChains = chains,
-            networkIssues = networkIssues
+            networkIssues = emptySet()
         )
 
         val assetStates: List<AssetListItemViewState> = balanceListItems

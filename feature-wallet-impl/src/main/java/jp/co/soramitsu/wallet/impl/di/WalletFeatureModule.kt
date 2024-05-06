@@ -20,12 +20,11 @@ import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.network.coingecko.CoingeckoApi
 import jp.co.soramitsu.common.data.network.config.RemoteConfigFetcher
-import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
+import jp.co.soramitsu.common.domain.NetworkStateService
 import jp.co.soramitsu.common.domain.SelectedFiat
 import jp.co.soramitsu.common.interfaces.FileProvider
-import jp.co.soramitsu.common.mixin.api.networkStateService
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.QrBitmapDecoder
@@ -267,7 +266,8 @@ class WalletFeatureModule {
         selectedFiat: SelectedFiat,
         updatesMixin: UpdatesMixin,
         xcmEntitiesFetcher: XcmEntitiesFetcher,
-        chainsRepository: ChainsRepository
+        chainsRepository: ChainsRepository,
+        networkStateService: NetworkStateService
     ): WalletInteractor = WalletInteractorImpl(
         walletRepository,
         addressBookRepository,
@@ -279,7 +279,8 @@ class WalletFeatureModule {
         selectedFiat,
         updatesMixin,
         xcmEntitiesFetcher,
-        chainsRepository
+        chainsRepository,
+        networkStateService
     )
 
     @Provides
@@ -379,7 +380,6 @@ class WalletFeatureModule {
         assetCache: AssetCache,
         substrateSource: SubstrateRemoteSource,
         operationDao: OperationDao,
-        networkStateService: networkStateService,
         ethereumRemoteSource: EthereumRemoteSource
     ): UpdateSystem = BalancesUpdateSystem(
         chainRegistry,
@@ -387,7 +387,6 @@ class WalletFeatureModule {
         assetCache,
         substrateSource,
         operationDao,
-        networkStateService,
         ethereumRemoteSource
     )
 
