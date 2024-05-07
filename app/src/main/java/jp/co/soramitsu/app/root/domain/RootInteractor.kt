@@ -1,10 +1,13 @@
 package jp.co.soramitsu.app.root.domain
 
+import android.util.Log
 import com.walletconnect.web3.wallet.client.Web3Wallet
 import jp.co.soramitsu.account.api.domain.PendulumPreInstalledAccountsScenario
+import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.impl.domain.WalletSyncService
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.appConfig
+import jp.co.soramitsu.common.domain.NetworkStateService
 import jp.co.soramitsu.common.domain.model.AppConfig
 import jp.co.soramitsu.common.domain.model.toDomain
 import jp.co.soramitsu.common.utils.inBackground
@@ -15,6 +18,9 @@ import jp.co.soramitsu.wallet.impl.data.buyToken.ExternalProvider
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.withContext
 
@@ -23,10 +29,21 @@ class RootInteractor(
     private val walletRepository: WalletRepository,
     private val pendulumPreInstalledAccountsScenario: PendulumPreInstalledAccountsScenario,
     private val preferences: Preferences,
-    private val walletSyncService: WalletSyncService
+    private val accountRepository: AccountRepository,
+    private val walletSyncService: WalletSyncService,
 ) {
 
-    fun runBalancesUpdate(): Flow<Updater.SideEffect> = updateSystem.start().inBackground()
+    fun runWalletsSync() {
+        walletSyncService.start()
+    }
+
+    suspend fun runBalancesUpdate(): Flow<Updater.SideEffect> = withContext(Dispatchers.Default) {
+        Log.d("&&&", "run balances update, awaiting accounts")
+        // await all accounts initialized
+        val s = accountRepository.allMetaAccountsFlow().filter { accounts -> accounts.all { it.initialized } }.filter { it.isNotEmpty() }.first()
+        Log.d("&&&", "run balances update, initialized accounts: ${s.map { it.name }}")
+        return@withContext updateSystem.start().inBackground()
+    }
 
     fun isBuyProviderRedirectLink(link: String) = ExternalProvider.REDIRECT_URL_BASE in link
 

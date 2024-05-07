@@ -53,16 +53,17 @@ class WalletSyncService(
     private val scope =
         CoroutineScope(dispatcher + SupervisorJob() + CoroutineExceptionHandler { _, throwable ->
             Log.d(
-                "&&&",
+                "WalletSyncService",
                 "WalletSyncService scope error: $throwable"
             )
         })
 
     private var syncJob: Job? = null
 
-    init {
+    fun start(){
         metaAccountDao.observeNotInitializedMetaAccounts().filter { it.isNotEmpty() }
             .onEach { localMetaAccounts ->
+                Log.d("&&&", "syncing accounts: ${localMetaAccounts.map { it.metaAccount.name }}" )
                 syncJob?.cancel()
                 syncJob = scope.launch {
                     chainRegistry.configsSyncDeferred.join()
@@ -131,6 +132,8 @@ class WalletSyncService(
                                     assetDao.insertAssets(localAssets)
                                 }
                             }
+                        }.invokeOnCompletion {
+                            Log.d("&&&", "completed sync ethereum chains" )
                         }
                         launch {
                             substrateChains.onEach { chain ->
@@ -228,12 +231,17 @@ class WalletSyncService(
                                     assetDao.insertAssets(localAssets)
                                 }
                             }
+                        }.invokeOnCompletion {
+                            Log.d("&&&", "completed sync substrate chains" )
                         }
+
                         this
                     }.coroutineContext.job.join()
+                    Log.d("&&&", "mark accounts initialized: ${metaAccounts.map { it.name }} " )
                     metaAccountDao.markAccountsInitialized(metaAccounts.map { it.id })
                 }
             }.launchIn(scope)
+
     }
 
     private suspend fun buildEquilibriumAssets(

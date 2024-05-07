@@ -24,9 +24,11 @@ import kotlin.time.toDuration
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 @HiltViewModel
@@ -84,10 +86,12 @@ class RootViewModel @Inject constructor(
             shouldHandleResumeInternetConnection = false
             interactor.chainRegistrySyncUp()
         }
-        interactor.runBalancesUpdate()
-            .onEach { handleUpdatesSideEffect(it) }
-            .launchIn(this)
-
+        viewModelScope.launch {
+            interactor.runWalletsSync()
+            interactor.runBalancesUpdate()
+                .onEach { handleUpdatesSideEffect(it) }
+                .launchIn(this)
+        }
         updatePhishingAddresses()
     }
 
@@ -171,11 +175,19 @@ class RootViewModel @Inject constructor(
         checkAppVersion()
     }
 
+
+    private val _showConnectingBar = MutableStateFlow<Boolean>(false)
+    val showConnectingBar: StateFlow<Boolean> = _showConnectingBar
     fun onNetworkAvailable() {
+        _showConnectingBar.update { false }
         // todo this code triggers redundant requests and balance updates. Needs research
 //        viewModelScope.launch {
 //            checkAppVersion()
 //        }
+    }
+
+    fun onConnectionLost(){
+        _showConnectingBar.update { true }
     }
 
     private fun observeWalletConnectEvents() {

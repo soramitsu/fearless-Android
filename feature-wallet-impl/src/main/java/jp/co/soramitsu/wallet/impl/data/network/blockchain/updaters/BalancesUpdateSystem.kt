@@ -2,7 +2,6 @@ package jp.co.soramitsu.wallet.impl.data.network.blockchain.updaters
 
 import android.annotation.SuppressLint
 import android.util.Log
-import it.airgap.beaconsdk.core.internal.utils.success
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.accountId
 import jp.co.soramitsu.account.api.domain.model.address
@@ -46,7 +45,6 @@ import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
@@ -170,13 +168,13 @@ class BalancesUpdateSystem(
                                 val eqHexRaw = storageKeyToHexRaw.second
                                 val balanceData = bindEquilibriumAccountData(eqHexRaw, runtime)
                                 val balances = balanceData?.data?.balances.orEmpty()
-                                chain.assets.forEach { asset ->
+                                chain.assets.forEach asset@{ asset ->
                                     val balance = balances.getOrDefault(
                                         asset.currencyId?.toBigInteger().orZero(), null
                                     ).orZero()
                                     val metadata =
                                         storageKeys.firstOrNull { it.key == storageKeyToHexRaw.first }
-                                            ?: return@forEach
+                                            ?: return@asset
                                     assetCache.updateAsset(
                                         metadata.metaAccountId,
                                         metadata.accountId,
@@ -223,7 +221,7 @@ class BalancesUpdateSystem(
         accounts.forEach { account ->
             val address = account.address(chain) ?: return@forEach
             val accountId = account.accountId(chain) ?: return@forEach
-            chain.assets.forEach { asset ->
+            chain.assets.forEach asset@{ asset ->
                 val balance =
                     kotlin.runCatching { ethereumRemoteSource.fetchEthBalance(asset, address) }
                         .onFailure {
@@ -232,7 +230,7 @@ class BalancesUpdateSystem(
                                 "fetchEthBalance error ${it.message} ${it.localizedMessage} $it"
                             )
                         }
-                        .getOrNull() ?: return@forEach
+                        .getOrNull() ?: return@asset
                 val balanceData = SimpleBalanceData(balance)
                 assetCache.updateAsset(
                     metaId = account.id,
@@ -307,7 +305,8 @@ class BalancesUpdateSystem(
     }
 
     override fun start(): Flow<Updater.SideEffect> {
-        return emptyFlow()//subscribeFlow()
+        Log.d("&&&", "balance update system has started")
+        return subscribeFlow()
     }
 }
 

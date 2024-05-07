@@ -12,9 +12,6 @@ class NetworkStateService {
     private val connectionPoolProblems = MutableStateFlow<Set<ChainId>>(emptySet())
     private val chainsSyncProblems = MutableStateFlow<Set<ChainId>>(emptySet())
 
-//    private val _showConnectingBarFlow = MutableStateFlow(false)
-//    val showConnectingBarFlow = _showConnectingBarFlow
-
     val networkIssuesFlow: Flow<Map<ChainId, NetworkIssueType>> = combine(
         connectionPoolProblems,
         chainsSyncProblems
@@ -23,10 +20,6 @@ class NetworkStateService {
         val runtimeIssues = chainsSyncProblems.map { it to NetworkIssueType.Network }
         (nodesIssues + runtimeIssues).toMap()
     }
-
-//    fun updateShowConnecting(isShow: Boolean) {
-//        _showConnectingBarFlow.value = isShow
-//    }
 
     fun notifyConnectionProblem(chainId: ChainId) {
         connectionPoolProblems.update { it + chainId }

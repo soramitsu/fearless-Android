@@ -6,7 +6,6 @@ import jp.co.soramitsu.common.domain.NetworkStateService
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
 import jp.co.soramitsu.common.utils.diffed
-import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.core.models.IChain

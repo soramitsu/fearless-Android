@@ -1,6 +1,5 @@
 package jp.co.soramitsu.common.compose.component
 
-import android.util.Log
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth

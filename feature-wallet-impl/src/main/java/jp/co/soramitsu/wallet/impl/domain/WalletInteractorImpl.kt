@@ -41,6 +41,7 @@ import jp.co.soramitsu.shared_utils.runtime.AccountId
 import jp.co.soramitsu.shared_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.shared_utils.runtime.metadata.moduleOrNull
 import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.toAddress
+import jp.co.soramitsu.wallet.impl.data.network.blockchain.updaters.BalanceUpdateTrigger
 import jp.co.soramitsu.wallet.impl.data.repository.HistoryRepository
 import jp.co.soramitsu.wallet.impl.domain.interfaces.AddressBookRepository
 import jp.co.soramitsu.wallet.impl.domain.interfaces.AssetSorting
@@ -671,6 +672,7 @@ class WalletInteractorImpl(
             val runtime = withTimeoutOrNull(15_000L) {
                 chainRegistry.awaitRuntimeProvider(chainId).get()
             }
+            BalanceUpdateTrigger.invoke(chainId)
             if(runtime == null) {
                 return@withContext Result.failure(Exception("Failed to sync chain"))
             } else {

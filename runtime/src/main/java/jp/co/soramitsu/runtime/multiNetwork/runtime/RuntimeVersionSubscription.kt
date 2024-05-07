@@ -2,17 +2,10 @@ package jp.co.soramitsu.runtime.multiNetwork.runtime
 
 import android.util.Log
 import jp.co.soramitsu.common.domain.NetworkStateService
-import jp.co.soramitsu.common.data.network.runtime.binding.bindNumber
-import jp.co.soramitsu.common.data.network.runtime.binding.requireType
-import jp.co.soramitsu.common.utils.constant
-import jp.co.soramitsu.common.utils.system
 import jp.co.soramitsu.core.runtime.ChainConnection
 import jp.co.soramitsu.coredb.dao.ChainDao
 import jp.co.soramitsu.runtime.multiNetwork.ChainState
 import jp.co.soramitsu.runtime.multiNetwork.ChainsStateTracker
-import jp.co.soramitsu.shared_utils.runtime.RuntimeSnapshot
-import jp.co.soramitsu.shared_utils.runtime.definitions.types.composite.Struct
-import jp.co.soramitsu.shared_utils.runtime.definitions.types.fromByteArrayOrNull
 import jp.co.soramitsu.shared_utils.wsrpc.executeAsync
 import jp.co.soramitsu.shared_utils.wsrpc.mappers.nonNull
 import jp.co.soramitsu.shared_utils.wsrpc.mappers.pojo
@@ -22,7 +15,6 @@ import jp.co.soramitsu.shared_utils.wsrpc.request.runtime.chain.StateRuntimeVers
 import jp.co.soramitsu.shared_utils.wsrpc.request.runtime.chain.SubscribeRuntimeVersionRequest
 import jp.co.soramitsu.shared_utils.wsrpc.request.runtime.chain.SubscribeStateRuntimeVersionRequest
 import jp.co.soramitsu.shared_utils.wsrpc.request.runtime.chain.runtimeVersionChange
-import jp.co.soramitsu.shared_utils.wsrpc.state.SocketStateMachine
 import jp.co.soramitsu.shared_utils.wsrpc.subscriptionFlow
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -46,6 +38,7 @@ class RuntimeVersionSubscription(
     dispatcher: CoroutineDispatcher = Dispatchers.Default
 ) {
     private val scope = CoroutineScope(dispatcher + SupervisorJob())
+
     init {
         runCatching {
             ChainsStateTracker.updateState(chainId) { it.copy(runtimeVersion = ChainState.Status.Started) }
@@ -57,14 +50,16 @@ class RuntimeVersionSubscription(
                     .map { it.runtimeVersionChange().specVersion }
                     .catch {
                         emitAll(
-                            connection.socketService.subscriptionFlow(SubscribeStateRuntimeVersionRequest)
+                            connection.socketService.subscriptionFlow(
+                                SubscribeStateRuntimeVersionRequest
+                            )
                                 .map { it.runtimeVersionChange().specVersion }
                                 .catch {
-                                    Log.d("&&&", "catch SubscribeStateRuntimeVersionRequest")
+
                                     val version = connection.getVersionChainRpc()
                                         ?: connection.getVersionStateRpc()
                                         ?: error("Runtime version not obtained")
-                                    Log.d("&&&", "got version single $version")
+
                                     emit(version)
                                 }
                         )

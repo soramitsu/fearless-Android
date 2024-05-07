@@ -250,11 +250,14 @@ class BalanceListViewModel @Inject constructor(
                                 it.asset.token.configuration.chainId == selectedChainId ||
                                 it.asset.token.configuration.chainId in filteredChains.map { it.id })
             }
-            .filter { it.asset.freeInPlanks.greaterThanOrEquals(BigInteger.ZERO) }
             .toList()
+
         currentAssetsFlow.update { filteredAssets }
+
+        val filteredAssetsWithoutBrokenAssets = filteredAssets.filter { it.asset.freeInPlanks.greaterThanOrEquals(BigInteger.ZERO) }
+
         val balanceListItems = AssetListHelper.processAssets(
-            assets = filteredAssets,
+            assets = filteredAssetsWithoutBrokenAssets,
             filteredChains = filteredChains,
             selectedChainId = selectedChainId,
             networkIssues = emptySet()
@@ -379,7 +382,6 @@ class BalanceListViewModel @Inject constructor(
         when (selectorState.currentSelection) {
             AssetType.Currencies -> {
                 val isSelectedChainHasIssues = networkIssueState != null
-
                 if (isSelectedChainHasIssues) {
                     requireNotNull(networkIssueState)
                 } else {
@@ -430,7 +432,6 @@ class BalanceListViewModel @Inject constructor(
             val isAllAssetsWithProblems =
                 currentAssets.isNotEmpty() && currentAssets.filter { it.asset.token.configuration.chainId == selectedChainId }
                     .all { it.asset.freeInPlanks == null || it.asset.freeInPlanks.lessThan(BigInteger.ZERO) }
-            hashCode()
             if (isAllAssetsWithProblems.not()) return@combine null
 
             val selectedChainIssue = networkIssues[selectedChainId] ?: NetworkIssueType.Network

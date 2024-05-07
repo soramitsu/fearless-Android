@@ -6,6 +6,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Named
 import jp.co.soramitsu.account.api.domain.PendulumPreInstalledAccountsScenario
+import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.impl.domain.WalletSyncService
 import jp.co.soramitsu.app.root.domain.RootInteractor
 import jp.co.soramitsu.common.data.storage.Preferences
@@ -22,6 +23,7 @@ class RootFeatureModule {
         @Named("BalancesUpdateSystem") walletUpdateSystem: UpdateSystem,
         pendulumPreInstalledAccountsScenario: PendulumPreInstalledAccountsScenario,
         preferences: Preferences,
+        accountRepository: AccountRepository,
         walletSyncService: WalletSyncService
     ): RootInteractor {
         return RootInteractor(
@@ -29,6 +31,7 @@ class RootFeatureModule {
             walletRepository,
             pendulumPreInstalledAccountsScenario,
             preferences,
+            accountRepository,
             walletSyncService
         )
     }
