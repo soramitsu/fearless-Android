@@ -23,6 +23,7 @@ import jp.co.soramitsu.nft.domain.NFTTransferInteractor
 import jp.co.soramitsu.nft.domain.models.NFT
 import jp.co.soramitsu.nft.impl.domain.usecase.transfer.ValidateNFTTransferUseCase
 import jp.co.soramitsu.nft.impl.navigation.InternalNFTRouter
+import jp.co.soramitsu.nft.impl.navigation.NavAction
 import jp.co.soramitsu.nft.impl.presentation.CoroutinesStore
 import jp.co.soramitsu.nft.impl.presentation.chooserecipient.contract.ChooseNFTRecipientCallback
 import jp.co.soramitsu.nft.impl.presentation.chooserecipient.contract.ChooseNFTRecipientScreenState
@@ -55,7 +56,6 @@ import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import java.math.BigInteger
 import javax.inject.Inject
-import jp.co.soramitsu.nft.impl.navigation.NavAction
 
 class ChooseNFTRecipientPresenter @Inject constructor(
     private val addressIconGenerator: AddressIconGenerator,
