@@ -94,7 +94,7 @@ import jp.co.soramitsu.coredb.model.chain.FavoriteChainLocal
 import jp.co.soramitsu.coredb.model.chain.MetaAccountLocal
 
 @Database(
-    version = 65,
+    version = 66,
     entities = [
         AccountLocal::class,
         AddressBookContact::class,
