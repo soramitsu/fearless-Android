@@ -18,6 +18,7 @@ import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedAddressExplorers
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
@@ -70,8 +71,9 @@ class TransactionDetailViewModel @Inject constructor(
         }
         return chainExplorers.replayCache.firstOrNull()?.getSupportedExplorers(explorerUrlType, value).orEmpty()
     }
-    fun getSupportedExplorers(type: BlockExplorerUrlBuilder.Type, value: String) =
-        chainExplorers.replayCache.firstOrNull()?.getSupportedExplorers(type, value).orEmpty()
+
+    fun getSupportedAddressExplorers(address: String): Map<Chain.Explorer.Type, String> =
+        chainExplorers.replayCache.firstOrNull()?.getSupportedAddressExplorers(address).orEmpty()
 
     val retryAddressModelLiveData = if (operation.isIncome) senderAddressModelLiveData else recipientAddressModelLiveData
 

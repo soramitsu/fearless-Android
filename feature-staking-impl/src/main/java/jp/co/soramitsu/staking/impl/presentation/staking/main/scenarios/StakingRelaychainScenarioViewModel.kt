@@ -58,6 +58,10 @@ class StakingRelaychainScenarioViewModel(
     stakingSharedState: StakingSharedState
 ) : StakingScenarioViewModel {
 
+    companion object {
+        const val STAKE_EXTRA_MULTIPLIER = 1.15 // allow to be not at the bottom of reward list and not be excluded soon
+    }
+
     override val enteredAmountFlow: MutableStateFlow<BigDecimal?> = MutableStateFlow(BigDecimal.ZERO)
 
     private val welcomeStakingValidationSystem = ValidationSystem(
@@ -164,7 +168,7 @@ class StakingRelaychainScenarioViewModel(
         ) { networkInfo, asset ->
 
             val minStakeMultiplier: Double = if (networkInfo.shouldUseMinimumStakeMultiplier) {
-                1.15 // 15% increase
+                STAKE_EXTRA_MULTIPLIER // 15% increase
             } else {
                 1.0
             }

@@ -76,7 +76,11 @@ open class BaseEnterAmountViewModel(
     private val amountInputViewState: Flow<AmountInputViewState> = enteredAmountFlow.map { amount ->
         val tokenBalance = availableAmountForOperation(asset).formatCrypto(asset.token.configuration.symbol)
         val tokenBalanceFiat = availableAmountForOperation(asset).applyFiatRate(asset.token.fiatRate)?.formatFiat(asset.token.fiatSymbol)
-        val balanceWithFiat = tokenBalance + tokenBalanceFiat?.let { " ($it)" }
+        val balanceWithFiat = if (tokenBalanceFiat == null) {
+            tokenBalance
+        } else {
+            "$tokenBalance ($tokenBalanceFiat)"
+        }
         val fiatAmount = amount.applyFiatRate(asset.token.fiatRate)?.formatFiat(asset.token.fiatSymbol)
 
         AmountInputViewState(

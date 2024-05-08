@@ -20,7 +20,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import jp.co.soramitsu.common.R
-import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.theme.black1
 import jp.co.soramitsu.common.compose.theme.black2
 import jp.co.soramitsu.common.compose.theme.colorAccentDark
@@ -88,10 +87,7 @@ fun AddressInput(
                     editable = state.editable,
                     onInput = onInput,
                     Hint = {
-                        Row {
-                            MarginHorizontal(margin = 6.dp)
-                            B1(text = "Public address", color = black1)
-                        }
+                        B1(text = "Public address", color = black1)
                     }
                 )
             }
@@ -127,7 +123,15 @@ private fun AccountInputPreview() {
         input = "0xsjkdflsdgueroirgfosdifsd;fgoksd;fg;sd845tg849",
         image = R.drawable.ic_address_placeholder
     )
-    FearlessTheme {
+    Column {
         AddressInput(state)
+        MarginVertical(margin = 6.dp)
+        AddressInput(state.copy(input = ""), onPaste = {})
+        MarginVertical(margin = 6.dp)
+        Badge(
+            iconResId = R.drawable.ic_copy_16,
+            labelResId = R.string.chip_paste,
+            onClick = {}
+        )
     }
 }

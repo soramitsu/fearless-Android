@@ -17,7 +17,6 @@ import androidx.compose.ui.platform.rememberNestedScrollInteropConnection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import jp.co.soramitsu.account.impl.presentation.importing.remote_backup.views.CompactWalletItemViewState
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.compose.component.B0
 import jp.co.soramitsu.common.compose.component.CapsTitle2
@@ -81,9 +80,7 @@ internal fun AccountDetailsContent(
             WalletItem(
                 modifier = Modifier
                     .padding(horizontal = 16.dp),
-                state = CompactWalletItemViewState(
-                    title = state.walletItem.title
-                ),
+                state = state.walletItem,
                 onSelected = {}
             )
         }
