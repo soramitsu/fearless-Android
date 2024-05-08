@@ -12,6 +12,7 @@ import jp.co.soramitsu.common.utils.isNotZero
 import jp.co.soramitsu.common.utils.isZero
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.percentageToFraction
+import jp.co.soramitsu.common.utils.positiveOrNull
 import jp.co.soramitsu.coredb.dao.AssetDao
 import jp.co.soramitsu.coredb.model.AssetWithToken
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
@@ -74,7 +75,7 @@ class TotalBalanceUseCaseImpl(
                 ?: return@fold TotalBalance.Empty
 
             val total =
-                current.asset.freeInPlanks.orZero() + current.asset.reservedInPlanks.orZero()
+                current.asset.freeInPlanks.positiveOrNull().orZero() + current.asset.reservedInPlanks.orZero()
             val totalDecimal = total.toBigDecimal(scale = chainAsset.precision)
             val fiatAmount = totalDecimal.applyFiatRate(current.token?.fiatRate)
 

@@ -565,7 +565,8 @@ class WalletRepositoryImpl(
             val chains = it.keys.map { mapChainLocalToChain(it) }
             val chainsById = chains.associateBy { it.id }
             val assets = it.values.map { mapAssetLocalToAsset(chainsById, it) }
-            chains.zip(assets).toMap()
+            val chainToAssetMap = chains.zip(assets).toMap()
+            chainToAssetMap.filter { pair -> pair.value != null && pair.value?.enabled == true }
         }
     }
 

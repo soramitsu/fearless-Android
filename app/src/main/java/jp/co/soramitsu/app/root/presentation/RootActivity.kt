@@ -84,22 +84,10 @@ class RootActivity : BaseActivity<RootViewModel>(), LifecycleObserver {
                 viewModel.onNetworkAvailable()
             }
 
-            override fun onLosing(network: Network, maxMsToLive: Int) {
-                super.onLosing(network, maxMsToLive)
+            override fun onLost(network: Network) {
+                super.onLost(network)
                 viewModel.onConnectionLost()
             }
-
-//            override fun onLost(network: Network) {
-//                super.onLost(network)
-//                viewModel.onConnectionLost()
-//            }
-
-//            override fun onUnavailable() {
-//                super.onUnavailable()
-//                viewModel.onConnectionLost()
-//            }
-
-
         }
 
         val networkRequest = NetworkRequest.Builder()

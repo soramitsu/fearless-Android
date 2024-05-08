@@ -7,6 +7,7 @@ import jp.co.soramitsu.account.api.domain.model.accountId
 import jp.co.soramitsu.common.utils.formatCryptoDetail
 import jp.co.soramitsu.common.utils.isZero
 import jp.co.soramitsu.common.utils.orZero
+import jp.co.soramitsu.common.utils.positiveOrNull
 import jp.co.soramitsu.common.utils.sumByBigDecimal
 import jp.co.soramitsu.core.models.ChainAssetType
 import jp.co.soramitsu.core.models.ChainId
@@ -184,7 +185,7 @@ class ValidateTransferUseCaseImpl(
                 val utilityAssetBalance = utilityAsset?.transferableInPlanks.orZero()
                 val destinationChainUtilityAsset = destinationChain.utilityAsset
                 val totalDestinationUtilityAssetBalanceInPlanks = kotlin.runCatching { destinationChainUtilityAsset?.let { walletRepository.getTotalBalance(it, destinationChain, destinationAccountId) } }.getOrNull().orZero()
-                val resultedBalance = (originAsset.freeInPlanks ?: originTransferable) - (amountInPlanks + originFee + tip)
+                val resultedBalance = (originAsset.freeInPlanks.positiveOrNull() ?: originTransferable) - (amountInPlanks + originFee + tip)
 
                 mapOf(
                     TransferValidationResult.InsufficientBalance to (amountInPlanks + originFee + tip > originAvailable),
@@ -195,7 +196,7 @@ class ValidateTransferUseCaseImpl(
             }
 
             originAssetConfig.isUtility -> {
-                val resultedBalance = (originAsset.freeInPlanks ?: originTransferable) - (amountInPlanks + originFee + tip)
+                val resultedBalance = (originAsset.freeInPlanks.positiveOrNull() ?: originTransferable) - (amountInPlanks + originFee + tip)
 
                 mapOf(
                     TransferValidationResult.InsufficientBalance to (amountInPlanks + originFee + tip > originAvailable),
@@ -343,7 +344,7 @@ class ValidateTransferUseCaseImpl(
             }
 
             originAssetConfig.isUtility -> {
-                val resultedBalance = (originAsset.freeInPlanks ?: transferable) - (amountInPlanks + originFee + tip)
+                val resultedBalance = (originAsset.freeInPlanks.positiveOrNull() ?: transferable) - (amountInPlanks + originFee + tip)
                 val assetEdFormatted = originExistentialDeposit.formatCryptoDetailFromPlanks(originAsset.token.configuration)
                 mapOf(
                     getTransferValidationResultExistentialDeposit(isCrossChainTransfer, assetEdFormatted) to (resultedBalance < originExistentialDeposit),

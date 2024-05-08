@@ -7,6 +7,7 @@ import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.coredb.model.chain.ChainLocal
 import jp.co.soramitsu.shared_utils.runtime.AccountId
 import java.math.BigInteger
+import jp.co.soramitsu.common.utils.positiveOrNull
 
 /*** This table is used for storing assets in database.
  *  freeInPlanks - has three states:
@@ -64,13 +65,13 @@ data class AssetLocal(
     }
 
     val totalInPlanks: BigInteger
-        get() = freeInPlanks.orZero() + reservedInPlanks.orZero()
+        get() = freeInPlanks.positiveOrNull().orZero() + reservedInPlanks.orZero()
 
     private val locked: BigInteger
         get() = maxOf(miscFrozenInPlanks.orZero(), feeFrozenInPlanks.orZero())
 
     val transferableInPlanks: BigInteger
-        get() = maxOf(freeInPlanks.orZero() - locked, BigInteger.ZERO)
+        get() = maxOf(freeInPlanks.positiveOrNull().orZero() - locked, BigInteger.ZERO)
 }
 
 data class AssetUpdateItem(
