@@ -305,7 +305,6 @@ class BalancesUpdateSystem(
     }
 
     override fun start(): Flow<Updater.SideEffect> {
-        Log.d("&&&", "balance update system has started")
         return subscribeFlow()
     }
 }

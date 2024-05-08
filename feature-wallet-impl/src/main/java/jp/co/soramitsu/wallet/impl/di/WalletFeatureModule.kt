@@ -173,11 +173,8 @@ class WalletFeatureModule {
         availableFiatCurrencies: GetAvailableFiatCurrencies,
         updatesMixin: UpdatesMixin,
         remoteConfigFetcher: RemoteConfigFetcher,
-        preferences: Preferences,
         accountRepository: AccountRepository,
         chainsRepository: ChainsRepository,
-        selectedFiat: SelectedFiat,
-        tokenPriceDao: TokenPriceDao,
         extrinsicService: ExtrinsicService,
         @Named(REMOTE_STORAGE_SOURCE)
         remoteStorageSource: StorageDataSource
@@ -195,11 +192,8 @@ class WalletFeatureModule {
         availableFiatCurrencies,
         updatesMixin,
         remoteConfigFetcher,
-        preferences,
         accountRepository,
         chainsRepository,
-        selectedFiat,
-        tokenPriceDao,
         extrinsicService,
         remoteStorageSource
     )

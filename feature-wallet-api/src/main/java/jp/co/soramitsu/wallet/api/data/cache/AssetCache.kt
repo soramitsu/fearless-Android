@@ -1,6 +1,5 @@
 package jp.co.soramitsu.wallet.api.data.cache
 
-import android.util.Log
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.common.domain.SelectedFiat
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
@@ -54,20 +53,17 @@ class AssetCache(
             val cachedAsset = assetDao.getAsset(metaId, accountId, chainId, assetId)?.asset
             when {
                 cachedAsset == null -> {
-//                    Log.d("&&&", "cached asset is null: ${chainAsset.name}")
                     val emptyAsset = AssetLocal.createEmpty(accountId, assetId, chainId, metaId, priceId)
                     val newAsset =  builder.invoke(emptyAsset)
                     assetDao.insertAsset(newAsset.copy(enabled = newAsset.freeInPlanks == null || newAsset.freeInPlanks.isZero()))
                 }
 
                 cachedAsset.accountId.contentEquals(emptyAccountIdValue) -> {
-//                    Log.d("&&&", "cached asset has no account: ${chainAsset.name}")
                     assetDao.deleteAsset(metaId, emptyAccountIdValue, chainId, assetId)
                     assetDao.insertAsset(builder.invoke(cachedAsset.copy(accountId = accountId, tokenPriceId = priceId, enabled = cachedAsset.freeInPlanks == null || cachedAsset.freeInPlanks.isZero())))
                 }
 
                 else -> {
-//                    Log.d("&&&", "cached asset is OK, updating balances: ${chainAsset.name}")
                     val updatedAsset = builder.invoke(cachedAsset.copy(tokenPriceId = priceId))
                     if (cachedAsset.bondedInPlanks == updatedAsset.bondedInPlanks &&
                         cachedAsset.feeFrozenInPlanks == updatedAsset.feeFrozenInPlanks &&

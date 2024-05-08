@@ -132,7 +132,6 @@ class BalanceListViewModel @Inject constructor(
     private val selectedFiat: SelectedFiat,
     private val accountInteractor: AccountInteractor,
     private val updatesMixin: UpdatesMixin,
-    private val networkStateService: NetworkStateService,
     private val resourceManager: ResourceManager,
     private val clipboardManager: ClipboardManager,
     private val currentAccountAddress: CurrentAccountAddressUseCase,
@@ -216,8 +215,6 @@ class BalanceListViewModel @Inject constructor(
             it.name == appliedFilterAsString
         } ?: ChainSelectorViewStateWithFilters.Filter.All
 
-//        val shouldShowNetworkIssues =
-//            selectedChainId == null && (networkIssues.isNotEmpty() || assets.any { it.hasAccount.not() })
         showNetworkIssues.value = false
 
         val selectedAccountFavoriteChains = currentMetaAccountFlow.favoriteChains

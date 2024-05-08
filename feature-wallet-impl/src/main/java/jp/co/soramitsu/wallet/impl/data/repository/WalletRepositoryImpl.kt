@@ -6,8 +6,6 @@ import java.math.BigInteger
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.accountId
-import jp.co.soramitsu.common.compose.component.NetworkIssueItemState
-import jp.co.soramitsu.common.compose.component.NetworkIssueType
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.coingecko.CoingeckoApi
 import jp.co.soramitsu.common.data.network.config.AppConfigRemote
@@ -69,7 +67,6 @@ import jp.co.soramitsu.wallet.impl.data.network.phishing.PhishingApi
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletConstants
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
-import jp.co.soramitsu.wallet.impl.domain.model.Asset.Companion.createEmpty
 import jp.co.soramitsu.wallet.impl.domain.model.AssetWithStatus
 import jp.co.soramitsu.wallet.impl.domain.model.Fee
 import jp.co.soramitsu.wallet.impl.domain.model.Transfer
@@ -104,11 +101,8 @@ class WalletRepositoryImpl(
     private val availableFiatCurrencies: GetAvailableFiatCurrencies,
     private val updatesMixin: UpdatesMixin,
     private val remoteConfigFetcher: RemoteConfigFetcher,
-    private val preferences: Preferences,
     private val accountRepository: AccountRepository,
     private val chainsRepository: ChainsRepository,
-    private val selectedFiat: SelectedFiat,
-    private val tokenPriceDao: TokenPriceDao,
     private val extrinsicService: ExtrinsicService,
     private val remoteStorageSource: StorageDataSource
 ) : WalletRepository, UpdatesProviderUi by updatesMixin {
@@ -123,7 +117,7 @@ class WalletRepositoryImpl(
         return combine(
             chainsRepository.chainsByIdFlow(),
             assetCache.observeAssets(meta.id)
-        ){ chainsById, assetsLocal ->
+        ) { chainsById, assetsLocal ->
             val chainAccounts = meta.chainAccounts.values.toList()
             val updatedAssets = assetsLocal.mapNotNull { asset ->
                 mapAssetLocalToAsset(chainsById, asset)?.let {
@@ -169,7 +163,7 @@ class WalletRepositoryImpl(
         syncAllRates(chains, currencyId)
     }
 
-    private suspend fun syncAllRates(chains: List<Chain>, currencyId: String)  {
+    private suspend fun syncAllRates(chains: List<Chain>, currencyId: String) {
         val priceIdsWithChainlinkId = chains.map {
             it.assets.mapNotNull { asset ->
                 asset.priceId?.let { priceId ->
@@ -189,7 +183,7 @@ class WalletRepositoryImpl(
         updatesMixin.startUpdateTokens(allPriceIds)
 
         var coingeckoPriceStats: Map<String, Map<String, BigDecimal>> = emptyMap()
-        var chainlinkPrices: Map<String, BigDecimal> =  emptyMap()
+        var chainlinkPrices: Map<String, BigDecimal> = emptyMap()
 
         coroutineScope {
             launch {
@@ -215,7 +209,12 @@ class WalletRepositoryImpl(
             listOf(
                 TokenPriceLocal(priceId, stat[currencyId], fiatCurrency?.symbol, change),
                 chainlinkId?.let {
-                    TokenPriceLocal(chainlinkId, chainlinkPrices[chainlinkId], fiatCurrency?.symbol, change)
+                    TokenPriceLocal(
+                        chainlinkId,
+                        chainlinkPrices[chainlinkId],
+                        fiatCurrency?.symbol,
+                        change
+                    )
                 }
             )
         }.flatten().filterNotNull()
@@ -342,7 +341,15 @@ class WalletRepositoryImpl(
             ethereumSource.performTransfer(chain, transfer, privateKey.toHexString(true))
                 .requireValue() // handle error
         } else {
-            substrateSource.performTransfer(accountId, chain, transfer, tip, appId, additional, batchAll)
+            substrateSource.performTransfer(
+                accountId,
+                chain,
+                transfer,
+                tip,
+                appId,
+                additional,
+                batchAll
+            )
         }
 
         val accountAddress = chain.addressOf(accountId)

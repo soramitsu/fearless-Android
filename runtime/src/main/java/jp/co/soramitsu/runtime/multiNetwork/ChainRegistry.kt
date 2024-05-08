@@ -79,10 +79,6 @@ class ChainRegistry @Inject constructor(
         .distinctUntilChanged()
         .shareIn(scope, SharingStarted.Eagerly, replay = 1)
 
-//    val chainsById = currentChains.map { chains -> chains.associateBy { it.id } }
-//        .inBackground()
-//        .shareIn(scope, SharingStarted.Eagerly, replay = 1)
-
     private val enabledAssetsFlow = assetsCache.observeAllEnabledAssets()
         .onStart { emit(emptyList()) }
 

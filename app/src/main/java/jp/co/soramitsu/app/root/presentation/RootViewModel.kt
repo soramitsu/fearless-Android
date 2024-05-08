@@ -12,7 +12,6 @@ import javax.inject.Inject
 import jp.co.soramitsu.app.R
 import jp.co.soramitsu.app.root.domain.RootInteractor
 import jp.co.soramitsu.common.base.BaseViewModel
-import jp.co.soramitsu.common.domain.NetworkStateService
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.core.runtime.ChainConnection
@@ -186,7 +185,7 @@ class RootViewModel @Inject constructor(
 //        }
     }
 
-    fun onConnectionLost(){
+    fun onConnectionLost() {
         _showConnectingBar.update { true }
     }
 
