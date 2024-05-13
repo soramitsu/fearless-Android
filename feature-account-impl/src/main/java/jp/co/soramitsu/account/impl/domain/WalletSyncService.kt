@@ -34,6 +34,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.job
+import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withTimeoutOrNull
@@ -65,7 +66,7 @@ class WalletSyncService(
             .onEach { localMetaAccounts ->
                 syncJob?.cancel()
                 syncJob = scope.launch {
-                    chainRegistry.configsSyncDeferred.join()
+                    chainRegistry.configsSyncDeferred.joinAll()
 
                     val chains = chainsRepository.getChains()
                     val ethereumChains = chains.filter { it.isEthereumChain }

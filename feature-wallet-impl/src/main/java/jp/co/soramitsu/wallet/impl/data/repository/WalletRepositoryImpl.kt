@@ -552,10 +552,6 @@ class WalletRepositoryImpl(
         return kotlin.runCatching { remoteConfigFetcher.getAppConfig() }
     }
 
-    override fun chainRegistrySyncUp() {
-        chainRegistry.syncUp()
-    }
-
     override suspend fun getControllerAccount(chainId: ChainId, accountId: AccountId): AccountId? {
         return substrateSource.getControllerAccount(chainId, accountId)
     }

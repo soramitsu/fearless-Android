@@ -12,6 +12,7 @@ import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.core.updater.UpdateSystem
 import jp.co.soramitsu.core.updater.Updater
+import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.wallet.impl.data.buyToken.ExternalProvider
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
 import kotlinx.coroutines.Dispatchers
@@ -27,8 +28,14 @@ class RootInteractor(
     private val pendulumPreInstalledAccountsScenario: PendulumPreInstalledAccountsScenario,
     private val preferences: Preferences,
     private val accountRepository: AccountRepository,
-    private val walletSyncService: WalletSyncService
+    private val walletSyncService: WalletSyncService,
+    private val chainRegistry: ChainRegistry,
 ) {
+    suspend fun syncChainsConfigs(): Result<Unit> {
+        return withContext(Dispatchers.Default) {
+            return@withContext chainRegistry.syncConfigs()
+        }
+    }
 
     fun runWalletsSync() {
         walletSyncService.start()
@@ -36,7 +43,7 @@ class RootInteractor(
 
     suspend fun runBalancesUpdate(): Flow<Updater.SideEffect> = withContext(Dispatchers.Default) {
         // await all accounts initialized
-        val s = accountRepository.allMetaAccountsFlow().filter { accounts -> accounts.all { it.initialized } }.filter { it.isNotEmpty() }.first()
+        accountRepository.allMetaAccountsFlow().filter { accounts -> accounts.all { it.initialized } }.filter { it.isNotEmpty() }.first()
         return@withContext updateSystem.start().inBackground()
     }
 
@@ -64,7 +71,7 @@ class RootInteractor(
         }
     }
 
-    fun chainRegistrySyncUp() = walletRepository.chainRegistrySyncUp()
+    fun chainRegistrySyncUp() = chainRegistry.syncUp()
 
     suspend fun fetchFeatureToggle() = withContext(Dispatchers.Default) { pendulumPreInstalledAccountsScenario.fetchFeatureToggle() }
 

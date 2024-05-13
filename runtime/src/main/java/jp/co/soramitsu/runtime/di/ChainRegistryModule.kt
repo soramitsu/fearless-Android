@@ -159,7 +159,7 @@ class ChainRegistryModule {
         networkStateService: NetworkStateService,
         ethereumConnectionPool: EthereumConnectionPool,
         assetReadOnlyCache: AssetDao,
-        chainsRepository: ChainsRepository
+        chainsRepository: ChainsRepository,
     ): ChainRegistry = ChainRegistry(
         runtimeProviderPool,
         chainConnectionPool,

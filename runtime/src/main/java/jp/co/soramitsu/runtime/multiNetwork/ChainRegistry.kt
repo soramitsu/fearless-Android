@@ -6,6 +6,7 @@ import jp.co.soramitsu.common.domain.NetworkStateService
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
 import jp.co.soramitsu.common.utils.diffed
+import jp.co.soramitsu.common.utils.failure
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.core.models.IChain
@@ -31,6 +32,7 @@ import jp.co.soramitsu.shared_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.shared_utils.wsrpc.state.SocketStateMachine
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
@@ -43,10 +45,10 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.shareIn
+import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -65,7 +67,7 @@ class ChainRegistry @Inject constructor(
     private val updatesMixin: UpdatesMixin,
     private val networkStateService: NetworkStateService,
     private val ethereumConnectionPool: EthereumConnectionPool,
-    private val assetsCache: AssetReadOnlyCache,
+    assetsCache: AssetReadOnlyCache,
     private val chainsRepository: ChainsRepository,
     private val dispatcher: CoroutineDispatcher = Dispatchers.Default
 ) : IChainRegistry, UpdatesProviderUi by updatesMixin {
@@ -99,18 +101,32 @@ class ChainRegistry @Inject constructor(
         .filter { it.addedOrModified.isNotEmpty() || it.removed.isNotEmpty() }
         .flowOn(dispatcher)
 
-    val configsSyncDeferred = scope.async {
-        launch { chainSyncService.syncUp() }
-        launch { runtimeSyncService.syncTypes() }
-    }
+    var configsSyncDeferred: MutableList<Deferred<Any>> = mutableListOf()
 
     init {
         syncUp()
     }
 
+    suspend fun syncConfigs() = withContext(dispatcher) {
+        val chainSyncDeferred = async { chainSyncService.syncUp() }
+        val typesResultDeferred = async { runtimeSyncService.syncTypes() }
+
+        configsSyncDeferred.add(chainSyncDeferred)
+        configsSyncDeferred.add(typesResultDeferred)
+
+        val chainsSyncResult = chainSyncDeferred.await()
+        val typesResult = typesResultDeferred.await()
+
+        return@withContext if(chainsSyncResult.isSuccess && typesResult.isSuccess) {
+            Result.success(Unit)
+        } else {
+            Result.failure("failed to load chains configs")
+        }
+    }
+
     fun syncUp() {
         scope.launch {
-            configsSyncDeferred.join()
+            configsSyncDeferred.joinAll()
 
             chainsToSync
                 .onEach { (removed, addedOrModified, all) ->

@@ -11,6 +11,7 @@ import jp.co.soramitsu.account.impl.domain.WalletSyncService
 import jp.co.soramitsu.app.root.domain.RootInteractor
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.core.updater.UpdateSystem
+import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
 
 @InstallIn(SingletonComponent::class)
@@ -24,7 +25,8 @@ class RootFeatureModule {
         pendulumPreInstalledAccountsScenario: PendulumPreInstalledAccountsScenario,
         preferences: Preferences,
         accountRepository: AccountRepository,
-        walletSyncService: WalletSyncService
+        walletSyncService: WalletSyncService,
+        chainRegistry: ChainRegistry
     ): RootInteractor {
         return RootInteractor(
             walletUpdateSystem,
@@ -32,7 +34,8 @@ class RootFeatureModule {
             pendulumPreInstalledAccountsScenario,
             preferences,
             accountRepository,
-            walletSyncService
+            walletSyncService,
+            chainRegistry
         )
     }
 }

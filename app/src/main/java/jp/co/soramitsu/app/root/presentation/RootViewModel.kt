@@ -21,6 +21,7 @@ import kotlin.concurrent.timerTask
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -63,21 +64,28 @@ class RootViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            interactor.fetchFeatureToggle()
+            syncConfigs()
         }
-        checkAppVersion()
         observeWalletConnectEvents()
     }
 
-    private fun checkAppVersion() {
-        viewModelScope.launch {
+    private suspend fun syncConfigs() {
+        coroutineScope {
+            checkAppVersion()
+            interactor.fetchFeatureToggle()
+            interactor.syncChainsConfigs().onFailure {
+                _showNoInternetConnectionAlert.value = Event(Unit)
+            }
+        }
+    }
+
+    private suspend  fun checkAppVersion() {
             val appConfigResult = interactor.getRemoteConfig()
             if (appConfigResult.getOrNull()?.isCurrentVersionSupported == false) {
                 _showUnsupportedAppVersionAlert.value = Event(Unit)
             } else {
                 runBalancesUpdate()
             }
-        }
     }
 
     private fun runBalancesUpdate() {
@@ -171,9 +179,10 @@ class RootViewModel @Inject constructor(
     }
 
     fun retryLoadConfigClicked() {
-        checkAppVersion()
+        viewModelScope.launch {
+            syncConfigs()
+        }
     }
-
 
     private val _showConnectingBar = MutableStateFlow<Boolean>(false)
     val showConnectingBar: StateFlow<Boolean> = _showConnectingBar
