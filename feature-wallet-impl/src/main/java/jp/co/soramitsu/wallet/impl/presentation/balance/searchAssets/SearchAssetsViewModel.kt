@@ -7,12 +7,14 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.math.BigDecimal
+import java.math.BigInteger
 import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.ActionItemType
 import jp.co.soramitsu.common.compose.component.SwipeState
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState
 import jp.co.soramitsu.common.utils.Event
+import jp.co.soramitsu.common.utils.greaterThanOrEquals
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
@@ -51,9 +53,14 @@ class SearchAssetsViewModel @Inject constructor(
         interactor.assetsFlow(),
         chainInteractor.getChainsFlow(),
     ) { assets: List<AssetWithStatus>, chains: List<Chain> ->
+        val readyToUseAssets = assets
+            .asSequence()
+            .filter { it.asset.freeInPlanks.greaterThanOrEquals(BigInteger.ZERO) }
+            .filter { it.asset.enabled == true }
+            .toList()
 
         val balanceListItems = AssetListHelper.processAssets(
-            assets = assets,
+            assets = readyToUseAssets,
             filteredChains = chains,
             networkIssues = emptySet()
         )

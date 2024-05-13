@@ -61,7 +61,8 @@ class TotalBalanceUseCaseImpl(
 
         val filtered = assets
             .asSequence()
-            .filter { it.asset.freeInPlanks != null && it.asset.freeInPlanks.isNotZero() && it.token?.fiatSymbol != null }
+            .filter { it.asset.enabled == true }
+            .filter { it.asset.freeInPlanks != null && it.asset.freeInPlanks.positiveOrNull().isNotZero() && it.token?.fiatSymbol != null }
             .toList()
 
         // todo I did this workaround because sometimes there is a wrong symbol in asset list. Need research
