@@ -63,7 +63,7 @@ class WalletSyncService(
 
     private var syncJob: Job? = null
 
-    fun start(){
+    fun start() {
         metaAccountDao.observeNotInitializedMetaAccounts().filter { it.isNotEmpty() }
             .onEach { localMetaAccounts ->
                 syncJob?.cancel()
@@ -71,8 +71,10 @@ class WalletSyncService(
                     chainRegistry.configsSyncDeferred.joinAll()
 
                     val chains = chainsRepository.getChains()
-                    val ethereumChains = chains.filter { it.isEthereumChain }.sortedByDescending { it.rank }
-                    val substrateChains = chains.filter { !it.isEthereumChain }.sortedByDescending { it.rank }
+                    val ethereumChains =
+                        chains.filter { it.isEthereumChain }.sortedByDescending { it.rank }
+                    val substrateChains =
+                        chains.filter { !it.isEthereumChain }.sortedByDescending { it.rank }
 
                     val metaAccounts =
                         localMetaAccounts.map { accountInfo ->
@@ -113,12 +115,15 @@ class WalletSyncService(
                                                     )
                                                 }.getOrNull()
 
-                                                if(balance.positiveOrNull() != null) {
-                                                    accountHasAssetWithPositiveBalanceMap[metaAccount.id] = true
+                                                if (balance.positiveOrNull() != null) {
+                                                    accountHasAssetWithPositiveBalanceMap[metaAccount.id] =
+                                                        true
                                                 }
 
-                                                val isPopularUtilityAsset = chain.rank != null && chainAsset.isUtility
-                                                val accountHasAssetWithPositiveBalance = accountHasAssetWithPositiveBalanceMap[metaAccount.id] == true
+                                                val isPopularUtilityAsset =
+                                                    chain.rank != null && chainAsset.isUtility
+                                                val accountHasAssetWithPositiveBalance =
+                                                    accountHasAssetWithPositiveBalanceMap[metaAccount.id] == true
 
                                                 AssetLocal(
                                                     id = chainAsset.id,
@@ -218,12 +223,15 @@ class WalletSyncService(
                                                         ).getOrNull().toAssetBalance()
                                                     } ?: AssetBalance()
 
-                                                if(assetBalance.freeInPlanks.positiveOrNull() != null) {
-                                                    accountHasAssetWithPositiveBalanceMap[metadata.metaAccountId] = true
+                                                if (assetBalance.freeInPlanks.positiveOrNull() != null) {
+                                                    accountHasAssetWithPositiveBalanceMap[metadata.metaAccountId] =
+                                                        true
                                                 }
 
-                                                val isPopularUtilityAsset = chain.rank != null && metadata.asset.isUtility
-                                                val accountHasAssetWithPositiveBalance = accountHasAssetWithPositiveBalanceMap[metadata.metaAccountId] == true
+                                                val isPopularUtilityAsset =
+                                                    chain.rank != null && metadata.asset.isUtility
+                                                val accountHasAssetWithPositiveBalance =
+                                                    accountHasAssetWithPositiveBalanceMap[metadata.metaAccountId] == true
 
                                                 AssetLocal(
                                                     id = metadata.asset.id,
