@@ -144,6 +144,9 @@ abstract class AssetDao : AssetReadOnlyCache {
         }
     }
 
+    @Query("UPDATE assets SET enabled = CASE WHEN EXISTS (SELECT 1 FROM assets WHERE metaId = :metaId AND freeInPlanks > 0) THEN 0 ELSE enabled END WHERE metaId = :metaId AND (freeInPlanks IS NULL OR freeInPlanks = 0)")
+    abstract fun hideEmptyAssetsIfThereAreAtLeastOnePositiveBalance(metaId: Long)
+
     @Query(
         """
             SELECT symbol FROM chain_assets WHERE chain_assets.id = :assetId

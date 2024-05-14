@@ -7,8 +7,8 @@ import jp.co.soramitsu.account.api.domain.model.accountId
 import jp.co.soramitsu.account.impl.data.mappers.mapMetaAccountLocalToMetaAccount
 import jp.co.soramitsu.common.data.network.runtime.binding.AssetBalance
 import jp.co.soramitsu.common.data.network.runtime.binding.toAssetBalance
-import jp.co.soramitsu.common.utils.isNotZero
 import jp.co.soramitsu.common.utils.orZero
+import jp.co.soramitsu.common.utils.positiveOrNull
 import jp.co.soramitsu.core.models.ChainAssetType
 import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.coredb.dao.AssetDao
@@ -29,6 +29,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
@@ -37,6 +38,7 @@ import kotlinx.coroutines.job
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 
 class WalletSyncService(
@@ -69,8 +71,8 @@ class WalletSyncService(
                     chainRegistry.configsSyncDeferred.joinAll()
 
                     val chains = chainsRepository.getChains()
-                    val ethereumChains = chains.filter { it.isEthereumChain }
-                    val substrateChains = chains.filter { !it.isEthereumChain }
+                    val ethereumChains = chains.filter { it.isEthereumChain }.sortedByDescending { it.rank }
+                    val substrateChains = chains.filter { !it.isEthereumChain }.sortedByDescending { it.rank }
 
                     val metaAccounts =
                         localMetaAccounts.map { accountInfo ->
@@ -79,6 +81,7 @@ class WalletSyncService(
                                 accountInfo
                             )
                         }
+                    val accountHasAssetWithPositiveBalanceMap = mutableMapOf<Long, Boolean>()
 
                     supervisorScope {
                         launch {
@@ -110,6 +113,13 @@ class WalletSyncService(
                                                     )
                                                 }.getOrNull()
 
+                                                if(balance.positiveOrNull() != null) {
+                                                    accountHasAssetWithPositiveBalanceMap[metaAccount.id] = true
+                                                }
+
+                                                val isPopularUtilityAsset = chain.rank != null && chainAsset.isUtility
+                                                val accountHasAssetWithPositiveBalance = accountHasAssetWithPositiveBalanceMap[metaAccount.id] == true
+
                                                 AssetLocal(
                                                     id = chainAsset.id,
                                                     chainId = chain.id,
@@ -123,13 +133,14 @@ class WalletSyncService(
                                                     bondedInPlanks = BigInteger.ZERO,
                                                     redeemableInPlanks = BigInteger.ZERO,
                                                     unbondingInPlanks = BigInteger.ZERO,
-                                                    enabled = balance.isNotZero() || chain.rank != null && chainAsset.isUtility
+                                                    enabled = balance.positiveOrNull() != null || (!accountHasAssetWithPositiveBalance && isPopularUtilityAsset)
                                                 )
                                             }
                                         }.flatten()
                                     }
                                     val localAssets = assetsDeferred.await()
                                     assetDao.insertAssets(localAssets)
+                                    hideEmptyAssetsIfThereAreAtLeastOnePositiveBalance(metaAccounts)
                                 }
                             }
                         }
@@ -207,6 +218,13 @@ class WalletSyncService(
                                                         ).getOrNull().toAssetBalance()
                                                     } ?: AssetBalance()
 
+                                                if(assetBalance.freeInPlanks.positiveOrNull() != null) {
+                                                    accountHasAssetWithPositiveBalanceMap[metadata.metaAccountId] = true
+                                                }
+
+                                                val isPopularUtilityAsset = chain.rank != null && metadata.asset.isUtility
+                                                val accountHasAssetWithPositiveBalance = accountHasAssetWithPositiveBalanceMap[metadata.metaAccountId] == true
+
                                                 AssetLocal(
                                                     id = metadata.asset.id,
                                                     chainId = chain.id,
@@ -220,23 +238,39 @@ class WalletSyncService(
                                                     bondedInPlanks = assetBalance.bondedInPlanks,
                                                     redeemableInPlanks = assetBalance.redeemableInPlanks,
                                                     unbondingInPlanks = assetBalance.unbondingInPlanks,
-                                                    enabled = assetBalance.freeInPlanks.isNotZero() || chain.rank != null && metadata.asset.isUtility
+                                                    enabled = assetBalance.freeInPlanks.positiveOrNull() != null || (!accountHasAssetWithPositiveBalance && isPopularUtilityAsset)
                                                 )
                                             } + emptyAssets
                                         }
                                     }
                                     val localAssets = assetsDeferred.await()
                                     assetDao.insertAssets(localAssets)
+                                    hideEmptyAssetsIfThereAreAtLeastOnePositiveBalance(metaAccounts)
                                 }
                             }
                         }
 
                         this
                     }.coroutineContext.job.join()
-                    metaAccountDao.markAccountsInitialized(metaAccounts.map { it.id })
+
+                    coroutineScope {
+                        metaAccountDao.markAccountsInitialized(metaAccounts.map { it.id })
+                        hideEmptyAssetsIfThereAreAtLeastOnePositiveBalance(metaAccounts)
+                    }
                 }
             }.launchIn(scope)
+    }
 
+    private suspend fun hideEmptyAssetsIfThereAreAtLeastOnePositiveBalance(metaAccounts: List<MetaAccount>) {
+        coroutineScope {
+            metaAccounts.forEach {
+                withContext(Dispatchers.IO) {
+                    assetDao.hideEmptyAssetsIfThereAreAtLeastOnePositiveBalance(
+                        it.id
+                    )
+                }
+            }
+        }
     }
 
     private suspend fun buildEquilibriumAssets(
@@ -286,13 +320,14 @@ class WalletSyncService(
                         equilibriumAssetsBalanceMap.getOrDefault(it, null)
                             .orZero()
                     }.orZero()
+
                 AssetLocal(
                     accountId = metadata.accountId,
                     id = asset.id,
                     chainId = asset.chainId,
                     metaId = metadata.metaAccountId,
                     tokenPriceId = asset.priceId,
-                    enabled = false,
+                    enabled = balance.positiveOrNull() != null,
                     freeInPlanks = balance
                 )
             }
