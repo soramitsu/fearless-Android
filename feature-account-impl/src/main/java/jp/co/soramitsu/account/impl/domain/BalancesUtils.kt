@@ -61,9 +61,6 @@ fun buildSubstrateStorageKeys(chain: Chain,
                               metaAccountId: Long,
                               accountId: ByteArray): List<StorageKeyWithMetadata>{
     return chain.assets.map { asset ->
-        if(chain.id == "afdc188f45c71dacbaa0b62e16a91f726c7b8699a9748cdf715459de6b7f366d"){
-            chain.hashCode()
-        }
         StorageKeyWithMetadata(
             asset, metaAccountId, accountId,
             runtime?.let { constructBalanceKey(it, asset, accountId) }
