@@ -20,6 +20,8 @@ import jp.co.soramitsu.common.domain.SelectedFiat
 import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
+import jp.co.soramitsu.common.domain.NetworkStateService
+import jp.co.soramitsu.common.domain.model.NetworkIssueType
 import jp.co.soramitsu.common.model.AssetBooleanState
 import jp.co.soramitsu.common.utils.Modules
 import jp.co.soramitsu.common.utils.mapList
@@ -34,12 +36,12 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.isPolkadotOrKusama
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
-import jp.co.soramitsu.runtime.multiNetwork.chainWithAsset
 import jp.co.soramitsu.shared_utils.extensions.toHexString
 import jp.co.soramitsu.shared_utils.runtime.AccountId
 import jp.co.soramitsu.shared_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.shared_utils.runtime.metadata.moduleOrNull
 import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.toAddress
+import jp.co.soramitsu.wallet.impl.data.network.blockchain.updaters.BalanceUpdateTrigger
 import jp.co.soramitsu.wallet.impl.data.repository.HistoryRepository
 import jp.co.soramitsu.wallet.impl.domain.interfaces.AddressBookRepository
 import jp.co.soramitsu.wallet.impl.domain.interfaces.AssetSorting
@@ -59,6 +61,7 @@ import jp.co.soramitsu.wallet.impl.domain.model.Transfer
 import jp.co.soramitsu.wallet.impl.domain.model.WalletAccount
 import jp.co.soramitsu.wallet.impl.domain.model.toPhishingModel
 import jp.co.soramitsu.xcm.domain.XcmEntitiesFetcher
+import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -70,6 +73,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.withIndex
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import jp.co.soramitsu.core.models.Asset as CoreAsset
 
 private const val QR_PREFIX_SUBSTRATE = "substrate"
@@ -94,7 +98,9 @@ class WalletInteractorImpl(
     private val selectedFiat: SelectedFiat,
     private val updatesMixin: UpdatesMixin,
     private val xcmEntitiesFetcher: XcmEntitiesFetcher,
-    private val chainsRepository: ChainsRepository
+    private val chainsRepository: ChainsRepository,
+    private val networkStateService: NetworkStateService,
+    private val coroutineContext: CoroutineContext = Dispatchers.Default,
 ) : WalletInteractor, UpdatesProviderUi by updatesMixin {
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -650,8 +656,28 @@ class WalletInteractorImpl(
             AssetSorting.FiatBalance.toString()
         }.map { sortingAsString ->
             sortingAsString?.let {
-                AssetSorting.values().find { sorting -> sorting.name == it }
+                AssetSorting.entries.find { sorting -> sorting.name == it }
             } ?: AssetSorting.FiatBalance
+        }
+    }
+
+    override fun networkIssuesFlow(): Flow<Map<ChainId, NetworkIssueType>> {
+        return networkStateService.networkIssuesFlow
+    }
+
+    override suspend fun retryChainSync(chainId: ChainId): Result<Unit> {
+        return withContext(coroutineContext) {
+            val chain = chainsRepository.getChain(chainId)
+            chainRegistry.setupChain(chain)
+            val runtime = withTimeoutOrNull(15_000L) {
+                chainRegistry.awaitRuntimeProvider(chainId).get()
+            }
+            BalanceUpdateTrigger.invoke(chainId)
+            if(runtime == null) {
+                return@withContext Result.failure(Exception("Failed to sync chain"))
+            } else {
+                return@withContext Result.success(Unit)
+            }
         }
     }
 }

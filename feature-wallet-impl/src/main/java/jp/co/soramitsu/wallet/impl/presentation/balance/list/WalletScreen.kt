@@ -23,6 +23,7 @@ import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.SwipeableState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.Stable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -55,7 +56,9 @@ import jp.co.soramitsu.wallet.impl.presentation.balance.list.model.AssetType
 import jp.co.soramitsu.wallet.impl.presentation.balance.nft.list.NFTScreen
 import jp.co.soramitsu.wallet.impl.presentation.common.AssetsList
 import jp.co.soramitsu.wallet.impl.presentation.common.AssetsListInterface
+import jp.co.soramitsu.wallet.impl.presentation.common.NetworkIssue
 
+@Stable
 interface WalletScreenInterface : AssetsListInterface {
     fun onAddressClick()
     fun onBalanceClicked()
@@ -67,6 +70,7 @@ interface WalletScreenInterface : AssetsListInterface {
     fun assetTypeChanged(type: AssetType)
     fun onRefresh()
     fun onManageAssetClick()
+    fun onRetry()
 }
 
 @Composable
@@ -134,6 +138,9 @@ fun WalletScreen(
                     listState = listState,
                     footer = footer
                 )
+            }
+            is WalletAssetsState.NetworkIssue -> {
+                NetworkIssue(data.assetsState.retryButtonLoading, callback::onRetry)
             }
         }
     }
@@ -285,6 +292,7 @@ private fun PreviewWalletScreen() {
 
         override fun onRefresh() {}
         override fun onManageAssetClick() {}
+        override fun onRetry() = Unit
     }
 
     val element = AssetListItemViewState(

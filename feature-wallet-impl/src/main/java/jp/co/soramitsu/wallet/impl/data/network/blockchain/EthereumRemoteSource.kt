@@ -1,5 +1,6 @@
 package jp.co.soramitsu.wallet.impl.data.network.blockchain
 
+import android.util.Log
 import java.math.BigInteger
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.address
@@ -19,8 +20,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.withContext
@@ -56,10 +59,10 @@ class EthereumRemoteSource(private val ethereumConnectionPool: EthereumConnectio
         chain: Chain,
         accountId: AccountId
     ): Result<BigInteger> {
-        val connection = ethereumConnectionPool.get(chain.id)
+        val connection = ethereumConnectionPool.await(chain.id)
 
         return kotlin.runCatching {
-            connection?.web3j!!.fetchEthBalance(
+            connection.web3j!!.fetchEthBalance(
                 chainAsset,
                 accountId.toHexString(true)
             )
@@ -72,7 +75,7 @@ class EthereumRemoteSource(private val ethereumConnectionPool: EthereumConnectio
         privateKey: String
     ): Result<String> =
         withContext(Dispatchers.IO) {
-            val connection = ethereumConnectionPool.get(chain.id)
+            val connection = ethereumConnectionPool.await(chain.id)
                 ?: return@withContext Result.failure("There is no connection created for chain ${chain.name}, ${chain.id}")
 
             val web3 = connection.web3j ?: return@withContext Result.failure("There is no connection established for chain ${chain.name}, ${chain.id}")
@@ -99,7 +102,7 @@ class EthereumRemoteSource(private val ethereumConnectionPool: EthereumConnectio
         chain: Chain,
         account: MetaAccount
     ): Result<Flow<Result<Pair<Asset, SimpleBalanceData>>>> {
-        val connection = ethereumConnectionPool.get(chain.id)
+        val connection = ethereumConnectionPool.await(chain.id)
         val web3 = connection?.web3j
             ?: return Result.failure("There is no connection created for chain ${chain.name}, ${chain.id}")
 
@@ -134,7 +137,7 @@ class EthereumRemoteSource(private val ethereumConnectionPool: EthereumConnectio
         asset: Asset,
         address: String
     ): BigInteger {
-        val connection = ethereumConnectionPool.get(asset.chainId)
+        val connection = ethereumConnectionPool.await(asset.chainId)
         val web3 = connection?.web3j
             ?: throw RuntimeException("There is no connection created for chain ${asset.chainId}")
 
@@ -145,7 +148,7 @@ class EthereumRemoteSource(private val ethereumConnectionPool: EthereumConnectio
         chainId: ChainId,
         receiverAddress: String
     ): BigInteger? {
-        val connection = ethereumConnectionPool.get(chainId)
+        val connection = ethereumConnectionPool.await(chainId)
 
         val web3 = connection?.web3j
             ?: throw RuntimeException("There is no connection created for chain ${chainId}")
@@ -222,7 +225,7 @@ class EthereumRemoteSource(private val ethereumConnectionPool: EthereumConnectio
     }
 
     fun listenGas(transfer: Transfer, chain: Chain): Flow<BigInteger> {
-        val connection = requireNotNull(ethereumConnectionPool.get(chain.id))
+        val connection = requireNotNull(ethereumConnectionPool.getOrNull(chain.id))
         val web3j = requireNotNull(connection.web3j)
         val wsService = requireNotNull(connection.service)
         val transactionBuilder = EthereumTransactionBuilder(connection)
@@ -268,7 +271,7 @@ class EthereumRemoteSource(private val ethereumConnectionPool: EthereumConnectio
         raw: RawTransaction,
         privateKey: String
     ): Result<String> = withContext(Dispatchers.IO) {
-        val connection = ethereumConnectionPool.get(chainId)
+        val connection = ethereumConnectionPool.await(chainId)
             ?: return@withContext Result.failure("There is no connection created for chain with id = $chainId")
         val web3 = connection.web3j
             ?: return@withContext Result.failure("There is no connection established for chain with id = $chainId")
@@ -287,7 +290,7 @@ class EthereumRemoteSource(private val ethereumConnectionPool: EthereumConnectio
         raw: RawTransaction,
         privateKey: String
     ): Result<String> = withContext(Dispatchers.IO) {
-        val connection = ethereumConnectionPool.get(chainId)
+        val connection = ethereumConnectionPool.await(chainId)
             ?: return@withContext Result.failure("There is no connection created for chain with id = $chainId")
 
         val web3 = connection.web3j

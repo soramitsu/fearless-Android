@@ -18,6 +18,7 @@ import androidx.compose.material.Icon
 import androidx.compose.material.Switch
 import androidx.compose.material.SwitchColors
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
@@ -156,9 +157,16 @@ fun ManageAssetsContent(
                         ManageAssetItem(assets[0], callback::onEditClicked, callback::onItemClicked, callback::onChecked)
                     } else {
                         val isCollapsed = remember { mutableStateOf(true) }
+
+                        LaunchedEffect(key1 = state.searchQuery) {
+                            if (state.searchQuery.isNullOrBlank().not()) {
+                                isCollapsed.value = false
+                            }
+                        }
+
                         GroupItem(assets, isCollapsed)
 
-                        if (isCollapsed.value.not() || state.searchQuery.isNullOrBlank().not()) {
+                        if (isCollapsed.value.not()) {
                             Column {
                                 assets.map {
                                     ManageAssetItem(it.copy(isGrouped = true), callback::onEditClicked, callback::onItemClicked, callback::onChecked)

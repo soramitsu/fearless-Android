@@ -4,6 +4,7 @@ import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.common.domain.SelectedFiat
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
+import jp.co.soramitsu.common.utils.isZero
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.coredb.dao.AssetDao
 import jp.co.soramitsu.coredb.dao.AssetReadOnlyCache
@@ -13,6 +14,7 @@ import jp.co.soramitsu.coredb.model.AssetLocal
 import jp.co.soramitsu.coredb.model.AssetUpdateItem
 import jp.co.soramitsu.coredb.model.TokenPriceLocal
 import jp.co.soramitsu.shared_utils.runtime.AccountId
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -23,7 +25,8 @@ class AssetCache(
     private val accountRepository: AccountRepository,
     private val assetDao: AssetDao,
     private val updatesMixin: UpdatesMixin,
-    private val selectedFiat: SelectedFiat
+    private val selectedFiat: SelectedFiat,
+    private val dispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : AssetReadOnlyCache by assetDao,
     UpdatesProviderUi by updatesMixin {
 
@@ -34,7 +37,7 @@ class AssetCache(
         accountId: AccountId,
         chainAsset: Asset,
         builder: (local: AssetLocal) -> AssetLocal
-    ) = withContext(Dispatchers.IO) {
+    ) = withContext(dispatcher) {
         val chainId = chainAsset.chainId
         val assetId = chainAsset.id
         val shouldUseChainlinkForRates = selectedFiat.isUsd() && chainAsset.priceProvider?.id != null
@@ -49,21 +52,15 @@ class AssetCache(
 
             val cachedAsset = assetDao.getAsset(metaId, accountId, chainId, assetId)?.asset
             when {
-                cachedAsset == null -> assetDao.insertAsset(
-                    builder.invoke(
-                        AssetLocal.createEmpty(
-                            accountId,
-                            assetId,
-                            chainId,
-                            metaId,
-                            priceId
-                        )
-                    )
-                )
+                cachedAsset == null -> {
+                    val emptyAsset = AssetLocal.createEmpty(accountId, assetId, chainId, metaId, priceId)
+                    val newAsset =  builder.invoke(emptyAsset)
+                    assetDao.insertAsset(newAsset.copy(enabled = newAsset.freeInPlanks == null || newAsset.freeInPlanks.isZero()))
+                }
 
                 cachedAsset.accountId.contentEquals(emptyAccountIdValue) -> {
                     assetDao.deleteAsset(metaId, emptyAccountIdValue, chainId, assetId)
-                    assetDao.insertAsset(builder.invoke(cachedAsset.copy(accountId = accountId, tokenPriceId = priceId)))
+                    assetDao.insertAsset(builder.invoke(cachedAsset.copy(accountId = accountId, tokenPriceId = priceId, enabled = cachedAsset.freeInPlanks == null || cachedAsset.freeInPlanks.isZero())))
                 }
 
                 else -> {
@@ -91,7 +88,7 @@ class AssetCache(
         accountId: AccountId,
         chainAsset: Asset,
         builder: (local: AssetLocal) -> AssetLocal
-    ) = withContext(Dispatchers.IO) {
+    ) = withContext(dispatcher) {
         val applicableMetaAccount = accountRepository.findMetaAccount(accountId)
 
         applicableMetaAccount?.let {
@@ -101,14 +98,14 @@ class AssetCache(
 
     suspend fun updateTokensPrice(
         update: List<TokenPriceLocal>
-    ) = withContext(Dispatchers.IO) {
+    ) = withContext(dispatcher) {
         tokenPriceDao.insertTokensPrice(update)
     }
 
     suspend fun updateTokenPrice(
         priceId: String,
         builder: (local: TokenPriceLocal) -> TokenPriceLocal
-    ) = withContext(Dispatchers.IO) {
+    ) = withContext(dispatcher) {
         val tokenPriceLocal = tokenPriceDao.getTokenPrice(priceId) ?: TokenPriceLocal.createEmpty(priceId)
 
         val newToken = builder.invoke(tokenPriceLocal)

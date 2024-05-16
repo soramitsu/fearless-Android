@@ -9,6 +9,7 @@ import jp.co.soramitsu.common.data.model.CursorPage
 import jp.co.soramitsu.common.data.network.runtime.binding.EqAccountInfo
 import jp.co.soramitsu.common.data.network.runtime.binding.EqOraclePricePoint
 import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
+import jp.co.soramitsu.common.domain.model.NetworkIssueType
 import jp.co.soramitsu.common.model.AssetBooleanState
 import jp.co.soramitsu.core.models.ChainId
 import jp.co.soramitsu.coredb.model.AddressBookContact
@@ -158,4 +159,6 @@ interface WalletInteractor {
 
     fun getAssetManagementIntroPassed(): Boolean
     suspend fun saveAssetManagementIntroPassed()
+    fun networkIssuesFlow(): Flow<Map<ChainId, NetworkIssueType>>
+    suspend fun retryChainSync(chainId: ChainId): Result<Unit>
 }

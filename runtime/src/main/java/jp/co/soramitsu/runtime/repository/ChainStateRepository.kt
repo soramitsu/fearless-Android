@@ -10,7 +10,6 @@ import jp.co.soramitsu.core.extrinsic.mortality.IChainStateRepository
 import jp.co.soramitsu.runtime.di.LOCAL_STORAGE_SOURCE
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
-import jp.co.soramitsu.runtime.multiNetwork.getRuntime
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 import jp.co.soramitsu.runtime.storage.source.observeNonNull
 import jp.co.soramitsu.runtime.storage.source.queryNonNull
@@ -28,7 +27,7 @@ class ChainStateRepository @Inject constructor(
 ) : IChainStateRepository {
 
     override suspend fun expectedBlockTimeInMillis(chainId: ChainId, defaultTime: BigInteger): BigInteger {
-        val runtime = chainRegistry.getRuntime(chainId)
+        val runtime = chainRegistry.awaitRuntimeProvider(chainId).get()
 
         return runCatching {
             runtime.metadata.babe().numberConstant("ExpectedBlockTime", runtime)

@@ -6,6 +6,7 @@ import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
 import androidx.room.Relation
+import jp.co.soramitsu.core.models.Chain
 import jp.co.soramitsu.core.models.CryptoType
 
 @Entity(
@@ -25,7 +26,8 @@ class MetaAccountLocal(
     val isSelected: Boolean,
     val position: Int,
     val isBackedUp: Boolean,
-    val googleBackupAddress: String?
+    val googleBackupAddress: String?,
+    val initialized: Boolean
 ) {
 
     companion object Table {
@@ -79,7 +81,8 @@ class ChainAccountLocal(
     val publicKey: ByteArray,
     val accountId: ByteArray,
     val cryptoType: CryptoType,
-    val name: String
+    val name: String,
+    val initialized: Boolean
 )
 
 interface JoinedMetaAccountInfo {

@@ -11,6 +11,7 @@ import co.jp.soramitsu.walletconnect.domain.WalletConnectInteractor
 import com.walletconnect.android.internal.common.exception.MalformedWalletConnectUri
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.math.BigDecimal
+import java.math.BigInteger
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.PendulumPreInstalledAccountsScenario
@@ -28,7 +29,6 @@ import jp.co.soramitsu.common.compose.component.ChainSelectorViewStateWithFilter
 import jp.co.soramitsu.common.compose.component.ChangeBalanceViewState
 import jp.co.soramitsu.common.compose.component.MainToolbarViewStateWithFilters
 import jp.co.soramitsu.common.compose.component.MultiToggleButtonState
-import jp.co.soramitsu.common.compose.component.NetworkIssueItemState
 import jp.co.soramitsu.common.compose.component.SwipeState
 import jp.co.soramitsu.common.compose.component.ToolbarHomeIconState
 import jp.co.soramitsu.common.compose.models.LoadableListPage
@@ -39,9 +39,9 @@ import jp.co.soramitsu.common.data.network.coingecko.FiatChooserEvent
 import jp.co.soramitsu.common.data.network.coingecko.FiatCurrency
 import jp.co.soramitsu.common.domain.FiatCurrencies
 import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
+import jp.co.soramitsu.common.domain.NetworkStateService
 import jp.co.soramitsu.common.domain.SelectedFiat
-import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
-import jp.co.soramitsu.common.mixin.api.NetworkStateUi
+import jp.co.soramitsu.common.domain.model.NetworkIssueType
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
 import jp.co.soramitsu.common.presentation.LoadingState
@@ -51,7 +51,9 @@ import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.combine
 import jp.co.soramitsu.common.utils.formatAsChange
 import jp.co.soramitsu.common.utils.formatFiat
+import jp.co.soramitsu.common.utils.greaterThanOrEquals
 import jp.co.soramitsu.common.utils.inBackground
+import jp.co.soramitsu.common.utils.lessThan
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
@@ -82,6 +84,7 @@ import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.toChainIte
 import jp.co.soramitsu.wallet.impl.presentation.balance.list.model.AssetType
 import jp.co.soramitsu.wallet.impl.presentation.balance.list.model.BalanceListItemModel
 import jp.co.soramitsu.wallet.impl.presentation.balance.list.model.toAssetState
+import jp.co.soramitsu.wallet.impl.presentation.balance.list.model.toUiModel
 import jp.co.soramitsu.wallet.impl.presentation.balance.nft.list.models.NFTCollectionsScreenModel
 import jp.co.soramitsu.wallet.impl.presentation.balance.nft.list.models.NFTCollectionsScreenView
 import jp.co.soramitsu.wallet.impl.presentation.balance.nft.list.models.ScreenModel
@@ -113,6 +116,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -128,7 +132,6 @@ class BalanceListViewModel @Inject constructor(
     private val selectedFiat: SelectedFiat,
     private val accountInteractor: AccountInteractor,
     private val updatesMixin: UpdatesMixin,
-    private val networkStateMixin: NetworkStateMixin,
     private val resourceManager: ResourceManager,
     private val clipboardManager: ClipboardManager,
     private val currentAccountAddress: CurrentAccountAddressUseCase,
@@ -136,7 +139,7 @@ class BalanceListViewModel @Inject constructor(
     private val pendulumPreInstalledAccountsScenario: PendulumPreInstalledAccountsScenario,
     private val nftInteractor: NFTInteractor,
     private val walletConnectInteractor: WalletConnectInteractor
-) : BaseViewModel(), UpdatesProviderUi by updatesMixin, NetworkStateUi by networkStateMixin,
+) : BaseViewModel(), UpdatesProviderUi by updatesMixin,
     WalletScreenInterface {
 
     private var awaitAssetsJob: Job? = null
@@ -173,12 +176,15 @@ class BalanceListViewModel @Inject constructor(
     }.inBackground()
 
     private val selectedChainId = MutableStateFlow<ChainId?>(null)
+
     private val selectedChainItemFlow =
         combine(selectedChainId, chainsFlow) { selectedChainId, chains ->
             selectedChainId?.let {
                 chains.firstOrNull { it.id == selectedChainId }
             }
         }
+
+    private val networkIssueStateFlow = MutableStateFlow<WalletAssetsState.NetworkIssue?>(null)
 
     private val currentMetaAccountFlow = interactor.selectedLightMetaAccountFlow()
 
@@ -191,27 +197,25 @@ class BalanceListViewModel @Inject constructor(
 
     private val showNetworkIssues = MutableStateFlow(false)
 
+    private val currentAssetsFlow = MutableStateFlow<List<AssetWithStatus>>(emptyList())
+
     private val assetStates = combine(
         interactor.assetsFlowAndAccount(),
         chainInteractor.getChainsFlow(),
         selectedChainId,
         interactor.selectedMetaAccountFlow(),
-        networkIssuesFlow,
         interactor.observeSelectedAccountChainSelectFilter()
     ) { (walletId: Long, assets: List<AssetWithStatus>),
             chains: List<Chain>,
             selectedChainId: ChainId?,
             currentMetaAccountFlow: MetaAccount,
-            networkIssues: Set<NetworkIssueItemState>,
             appliedFilterAsString: String ->
 
         val filter = ChainSelectorViewStateWithFilters.Filter.entries.find {
             it.name == appliedFilterAsString
         } ?: ChainSelectorViewStateWithFilters.Filter.All
 
-        val shouldShowNetworkIssues =
-            selectedChainId == null && (networkIssues.isNotEmpty() || assets.any { it.hasAccount.not() })
-        showNetworkIssues.value = shouldShowNetworkIssues
+        showNetworkIssues.value = false
 
         val selectedAccountFavoriteChains = currentMetaAccountFlow.favoriteChains
 
@@ -236,19 +240,24 @@ class BalanceListViewModel @Inject constructor(
             else -> emptyList()
         }
 
-        val filteredAssets = assets
+        val filteredAssets = assets.asSequence()
             .filter {
                 it.asset.enabled != false &&
                         ((selectedChainId == null && filter == ChainSelectorViewStateWithFilters.Filter.All) ||
                                 it.asset.token.configuration.chainId == selectedChainId ||
                                 it.asset.token.configuration.chainId in filteredChains.map { it.id })
             }
+            .toList()
+
+        currentAssetsFlow.update { filteredAssets }
+
+        val filteredAssetsWithoutBrokenAssets = filteredAssets.filter { it.asset.freeInPlanks.greaterThanOrEquals(BigInteger.ZERO) }
 
         val balanceListItems = AssetListHelper.processAssets(
-            assets = filteredAssets,
+            assets = filteredAssetsWithoutBrokenAssets,
             filteredChains = filteredChains,
             selectedChainId = selectedChainId,
-            networkIssues = networkIssues
+            networkIssues = emptySet()
         )
 
         val assetStates: List<AssetListItemViewState> = balanceListItems
@@ -263,7 +272,8 @@ class BalanceListViewModel @Inject constructor(
             }
 
         assetStates
-    }.onStart { emit(buildInitialAssetsList().toMutableList()) }.inBackground().share()
+    }.onStart { emit(buildInitialAssetsList().toMutableList()) }
+        .inBackground().share()
 
     @OptIn(FlowPreview::class)
     private fun createNFTCollectionScreenViewsFlow(): Flow<Pair<LoadableListPage<NFTCollectionsScreenView>, ScreenLayout>> {
@@ -358,19 +368,25 @@ class BalanceListViewModel @Inject constructor(
         )
     }
 
-    private val assetTypeState = combine(
+    private val assetTypeState: Flow<WalletAssetsState> = combine(
         selectedChainId,
         assetTypeSelectorState,
         assetStates,
         nftInteractor.nftFiltersFlow(),
         createNFTCollectionScreenViewsFlow(),
-    ) { selectedChainId, selectorState, assetStates, filters, (pageViews, screenLayout) ->
+        networkIssueStateFlow
+    ) { selectedChainId, selectorState, assetStates, filters, (pageViews, screenLayout), networkIssueState ->
         when (selectorState.currentSelection) {
             AssetType.Currencies -> {
-                WalletAssetsState.Assets(
-                    assets = assetStates,
-                    isHideVisible = selectedChainId != null
-                )
+                val isSelectedChainHasIssues = networkIssueState != null
+                if (isSelectedChainHasIssues) {
+                    requireNotNull(networkIssueState)
+                } else {
+                    WalletAssetsState.Assets(
+                        assets = assetStates,
+                        isHideVisible = selectedChainId != null
+                    )
+                }
             }
 
             AssetType.NFTs -> {
@@ -402,14 +418,29 @@ class BalanceListViewModel @Inject constructor(
             .stateIn(viewModelScope, SharingStarted.Eagerly, initialValue = null)
     }
 
-    private fun observeNetworkState() {
-        networkStateMixin.showConnectingBarFlow
-            .onEach { hasConnectionProblems ->
-                if (!hasConnectionProblems) {
-                    refresh()
-                }
-            }
-            .launchIn(viewModelScope)
+    private fun observeNetworkIssues() {
+        combine(
+            currentAssetsFlow,
+            interactor.networkIssuesFlow(),
+            selectedChainId
+        ) { currentAssets, networkIssues, selectedChainId ->
+            if (selectedChainId == null) return@combine null
+
+            val isAllAssetsWithProblems =
+                currentAssets.isNotEmpty() && currentAssets.filter { it.asset.token.configuration.chainId == selectedChainId }
+                    .all { it.asset.freeInPlanks == null || it.asset.freeInPlanks.lessThan(BigInteger.ZERO) }
+            if (isAllAssetsWithProblems.not()) return@combine null
+
+            val selectedChainIssue = networkIssues[selectedChainId] ?: NetworkIssueType.Network
+
+            WalletAssetsState.NetworkIssue(
+                selectedChainId,
+                selectedChainIssue.toUiModel(),
+                false
+            )
+        }.onEach { newState ->
+            networkIssueStateFlow.update { newState }
+        }.launchIn(viewModelScope)
     }
 
     // we open screen - no assets in the list
@@ -555,8 +586,9 @@ class BalanceListViewModel @Inject constructor(
 
     init {
         subscribeScreenState()
-        observeNetworkState()
+        observeNetworkIssues()
         observeFiatSymbolChange()
+        sync()
 
         router.chainSelectorPayloadFlow.map { chainId ->
             val walletId = interactor.getSelectedMetaAccount().id
@@ -586,6 +618,18 @@ class BalanceListViewModel @Inject constructor(
 
     override fun onManageAssetClick() {
         router.openManageAssets()
+    }
+
+    override fun onRetry() {
+        val (chainId, issueType, _) = networkIssueStateFlow.value ?: return
+
+        if (issueType != jp.co.soramitsu.common.compose.component.NetworkIssueType.Account) {
+            viewModelScope.launch {
+                networkIssueStateFlow.update { it?.copy(retryButtonLoading = true) }
+                interactor.retryChainSync(chainId)
+                networkIssueStateFlow.update { it?.copy(retryButtonLoading = false) }
+            }
+        }
     }
 
     private fun refresh() {

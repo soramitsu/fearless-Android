@@ -1,17 +1,11 @@
 package jp.co.soramitsu.runtime.multiNetwork.runtime
 
 import android.util.Log
-import jp.co.soramitsu.common.data.network.runtime.binding.bindNumber
-import jp.co.soramitsu.common.data.network.runtime.binding.requireType
-import jp.co.soramitsu.common.utils.constant
-import jp.co.soramitsu.common.utils.system
+import jp.co.soramitsu.common.domain.NetworkStateService
 import jp.co.soramitsu.core.runtime.ChainConnection
 import jp.co.soramitsu.coredb.dao.ChainDao
 import jp.co.soramitsu.runtime.multiNetwork.ChainState
 import jp.co.soramitsu.runtime.multiNetwork.ChainsStateTracker
-import jp.co.soramitsu.shared_utils.runtime.RuntimeSnapshot
-import jp.co.soramitsu.shared_utils.runtime.definitions.types.composite.Struct
-import jp.co.soramitsu.shared_utils.runtime.definitions.types.fromByteArrayOrNull
 import jp.co.soramitsu.shared_utils.wsrpc.executeAsync
 import jp.co.soramitsu.shared_utils.wsrpc.mappers.nonNull
 import jp.co.soramitsu.shared_utils.wsrpc.mappers.pojo
@@ -21,11 +15,12 @@ import jp.co.soramitsu.shared_utils.wsrpc.request.runtime.chain.StateRuntimeVers
 import jp.co.soramitsu.shared_utils.wsrpc.request.runtime.chain.SubscribeRuntimeVersionRequest
 import jp.co.soramitsu.shared_utils.wsrpc.request.runtime.chain.SubscribeStateRuntimeVersionRequest
 import jp.co.soramitsu.shared_utils.wsrpc.request.runtime.chain.runtimeVersionChange
-import jp.co.soramitsu.shared_utils.wsrpc.state.SocketStateMachine
 import jp.co.soramitsu.shared_utils.wsrpc.subscriptionFlow
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.first
@@ -39,26 +34,29 @@ class RuntimeVersionSubscription(
     connection: ChainConnection,
     private val chainDao: ChainDao,
     private val runtimeSyncService: RuntimeSyncService,
-    runtimeProvider: RuntimeProvider
-) : CoroutineScope by CoroutineScope(Dispatchers.IO + SupervisorJob()) {
+    private val networkStateService: NetworkStateService,
+    dispatcher: CoroutineDispatcher = Dispatchers.Default
+) {
+    private val scope = CoroutineScope(dispatcher + SupervisorJob())
 
     init {
         runCatching {
             ChainsStateTracker.updateState(chainId) { it.copy(runtimeVersion = ChainState.Status.Started) }
-            launch {
+
+            scope.launch {
                 // await connection
-                connection.state.first { it is SocketStateMachine.State.Connected }
+                connection.isConnected.first()
                 connection.socketService.subscriptionFlow(SubscribeRuntimeVersionRequest)
                     .map { it.runtimeVersionChange().specVersion }
                     .catch {
                         emitAll(
-                            connection.socketService.subscriptionFlow(SubscribeStateRuntimeVersionRequest)
+                            connection.socketService.subscriptionFlow(
+                                SubscribeStateRuntimeVersionRequest
+                            )
                                 .map { it.runtimeVersionChange().specVersion }
                                 .catch {
-                                    val runtime = runtimeProvider.getOrNullWithTimeout()
 
-                                    val version = runtime?.getVersionConstant()
-                                        ?: connection.getVersionChainRpc()
+                                    val version = connection.getVersionChainRpc()
                                         ?: connection.getVersionStateRpc()
                                         ?: error("Runtime version not obtained")
 
@@ -66,7 +64,6 @@ class RuntimeVersionSubscription(
                                 }
                         )
                     }
-
                     .onEach { runtimeVersionResult ->
                         chainDao.updateRemoteRuntimeVersion(
                             chainId,
@@ -74,9 +71,11 @@ class RuntimeVersionSubscription(
                         )
 
                         runtimeSyncService.applyRuntimeVersion(chainId)
+
                         ChainsStateTracker.updateState(chainId) { it.copy(runtimeVersion = ChainState.Status.Completed) }
                     }
                     .catch { error ->
+                        networkStateService.notifyChainSyncProblem(chainId)
                         ChainsStateTracker.updateState(chainId) {
                             it.copy(
                                 runtimeVersion = ChainState.Status.Failed(
@@ -95,13 +94,6 @@ class RuntimeVersionSubscription(
         }
     }
 
-    private fun RuntimeSnapshot.getVersionConstant(): Int? = runCatching {
-        val versionConstant = metadata.system().constant("Version")
-        val decodedVersion = versionConstant.type?.fromByteArrayOrNull(this, versionConstant.value)
-        requireType<Struct.Instance>(decodedVersion)
-        bindNumber(decodedVersion["specVersion"]).toInt()
-    }.getOrNull()
-
     private suspend fun ChainConnection.getVersionChainRpc(): Int? = runCatching {
         socketService.executeAsync(
             request = RuntimeVersionRequest(),
@@ -115,4 +107,8 @@ class RuntimeVersionSubscription(
             mapper = pojo<RuntimeVersion>().nonNull()
         ).specVersion
     }.getOrNull()
+
+    fun cancel() {
+        scope.coroutineContext.cancel()
+    }
 }

@@ -150,7 +150,7 @@ class BalanceDetailViewModel @Inject constructor(
         }
     }
 
-    private fun isBuyEnabled(): Boolean {
+    private suspend fun isBuyEnabled(): Boolean {
         return buyMixin.isBuyEnabled(
             assetPayload.value.chainId,
             assetPayload.value.chainAssetId
@@ -379,7 +379,7 @@ class BalanceDetailViewModel @Inject constructor(
         return actionItems
     }
 
-    private fun getDisabledItems(): List<ActionItemType> {
+    private suspend fun getDisabledItems(): List<ActionItemType> {
         return if (!isBuyEnabled()) {
             listOf(ActionItemType.BUY)
         } else {

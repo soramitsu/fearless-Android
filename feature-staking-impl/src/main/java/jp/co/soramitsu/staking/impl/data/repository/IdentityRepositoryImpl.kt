@@ -7,7 +7,6 @@ import jp.co.soramitsu.runtime.ext.accountFromMapKey
 import jp.co.soramitsu.runtime.ext.hexAccountIdOf
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
-import jp.co.soramitsu.runtime.multiNetwork.getSocket
 import jp.co.soramitsu.shared_utils.extensions.toHexString
 import jp.co.soramitsu.shared_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.shared_utils.runtime.definitions.types.Type
@@ -34,7 +33,7 @@ class IdentityRepositoryImpl(
         chain: Chain,
         accountIdsHex: List<String>
     ): AccountIdMap<Identity?> = withContext(Dispatchers.Default) {
-        val socketService = chainRegistry.getSocket(chain.id)
+        val socketService = chainRegistry.awaitConnection(chain.id).socketService
         val runtime = chainRegistry.getRuntime(chain.id)
 
         val identityModule = runtime.metadata.module("Identity")

@@ -91,8 +91,6 @@ interface WalletRepository {
 
     suspend fun getRemoteConfig(): Result<AppConfigRemote>
 
-    fun chainRegistrySyncUp()
-
     suspend fun getSingleAssetPriceCoingecko(priceId: String, currency: String): BigDecimal?
     suspend fun getControllerAccount(chainId: ChainId, accountId: AccountId): AccountId?
     suspend fun getStashAccount(chainId: ChainId, accountId: AccountId): AccountId?

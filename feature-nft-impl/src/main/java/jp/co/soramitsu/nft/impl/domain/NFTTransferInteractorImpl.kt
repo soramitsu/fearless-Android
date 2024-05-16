@@ -33,7 +33,7 @@ class NFTTransferInteractorImpl(
 ) : NFTTransferInteractor {
 
     private fun getWeb3Connection(chainId: ChainId): EthereumChainConnection {
-        return ethereumConnectionPool.get(chainId) ?: error(
+        return ethereumConnectionPool.getOrNull(chainId) ?: error(
             """
                 EthereumConnection to chain with id - $chainId - could not have been established.
             """.trimIndent()

@@ -51,6 +51,7 @@ import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.shared_utils.encrypt.json.JsonSeedDecoder
 import jp.co.soramitsu.shared_utils.encrypt.json.JsonSeedEncoder
+import jp.co.soramitsu.wallet.api.data.cache.AssetCache
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -79,7 +80,9 @@ class AccountFeatureModule {
         jsonSeedDecoder: JsonSeedDecoder,
         jsonSeedEncoder: JsonSeedEncoder,
         languagesHolder: LanguagesHolder,
-        chainRegistry: ChainRegistry
+        chainRegistry: ChainRegistry,
+        chainsRepository: ChainsRepository,
+        assetDao: AssetDao
     ): AccountRepository {
         return AccountRepositoryImpl(
             accountDataSource,
@@ -89,7 +92,9 @@ class AccountFeatureModule {
             jsonSeedDecoder,
             jsonSeedEncoder,
             languagesHolder,
-            chainRegistry
+            chainRegistry,
+            chainsRepository,
+            assetDao
         )
     }
 

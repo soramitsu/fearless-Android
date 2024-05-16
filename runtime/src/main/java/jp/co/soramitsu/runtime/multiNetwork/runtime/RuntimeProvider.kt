@@ -1,6 +1,6 @@
 package jp.co.soramitsu.runtime.multiNetwork.runtime
 
-import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
+import jp.co.soramitsu.common.domain.NetworkStateService
 import jp.co.soramitsu.core.runtime.ConstructedRuntime
 import jp.co.soramitsu.core.runtime.RuntimeFactory
 import jp.co.soramitsu.coredb.dao.ChainDao
@@ -8,7 +8,6 @@ import jp.co.soramitsu.runtime.multiNetwork.ChainState
 import jp.co.soramitsu.runtime.multiNetwork.ChainsStateTracker
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.reefChainId
-import jp.co.soramitsu.runtime.multiNetwork.toSyncIssue
 import jp.co.soramitsu.shared_utils.runtime.RuntimeSnapshot
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -31,7 +30,7 @@ class RuntimeProvider(
     private val runtimeSyncService: RuntimeSyncService,
     private val runtimeFilesCache: RuntimeFilesCache,
     private val chainDao: ChainDao,
-    private val networkStateMixin: NetworkStateMixin,
+    private val networkStateService: NetworkStateService,
     private val chain: Chain
 ) : CoroutineScope by CoroutineScope(Dispatchers.Default) {
 
@@ -141,10 +140,10 @@ class RuntimeProvider(
                 }
                 runtimeFlow.emit(runtime)
                 ChainsStateTracker.updateState(chainId) { it.copy(runtimeConstruction = ChainState.Status.Completed) }
-                networkStateMixin.notifyChainSyncSuccess(chainId)
+                networkStateService.notifyChainSyncSuccess(chainId)
             }.onFailure { error ->
                 ChainsStateTracker.updateState(chainId) { it.copy(runtimeConstruction = ChainState.Status.Failed(error)) }
-                networkStateMixin.notifyChainSyncProblem(chain.toSyncIssue())
+                networkStateService.notifyChainSyncProblem(chain.id)
                 when (error) {
                     ChainInfoNotInCacheException -> runtimeSyncService.cacheNotFound(chainId)
                     else -> error.printStackTrace()

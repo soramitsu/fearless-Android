@@ -88,7 +88,8 @@ class V2Migration(
                 isSelected = isSelected,
                 position = index,
                 isBackedUp = false,
-                googleBackupAddress = null
+                googleBackupAddress = null,
+                initialized = false
             )
 
             val metaId = insertMetaAccount(metaAccount, database)

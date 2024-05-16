@@ -40,6 +40,12 @@ interface MetaAccountDao {
     @Insert
     suspend fun insertChainAccount(chainAccount: ChainAccountLocal)
 
+    @Query("SELECT * FROM chain_accounts WHERE initialized = 0")
+    fun observeNotInitializedChainAccounts(): Flow<List<ChainAccountLocal>>
+
+    @Query("UPDATE chain_accounts SET initialized = 1 WHERE metaId = :metaId AND chainId = :chainId")
+    suspend fun markChainAccountInitialized(metaId: Long, chainId: String) :Int
+
     @Query("SELECT * FROM meta_accounts")
     fun getMetaAccounts(): List<MetaAccountLocal>
 
@@ -118,4 +124,11 @@ interface MetaAccountDao {
 
     @Query("SELECT * FROM favorite_chains WHERE metaId = :metaId")
     fun observeFavoriteChains(metaId: Long): Flow<List<FavoriteChainLocal>>
+
+    @Query("UPDATE meta_accounts SET initialized = 1 WHERE id in (:ids)")
+    suspend fun markAccountsInitialized(ids: List<Long>) :Int
+
+    @Query("SELECT * FROM meta_accounts WHERE initialized = 0")
+    @Transaction
+    fun observeNotInitializedMetaAccounts(): Flow<List<RelationJoinedMetaAccountInfo>>
 }

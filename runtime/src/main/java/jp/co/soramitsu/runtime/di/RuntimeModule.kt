@@ -54,12 +54,18 @@ class RuntimeModule {
     ): StorageDataSource = LocalStorageSource(chainRegistry, storageCache)
 
     @Provides
-    @Named(REMOTE_STORAGE_SOURCE)
     @Singleton
     fun provideRemoteStorageSource(
         chainRegistry: ChainRegistry,
         bulkRetriever: BulkRetriever
-    ): StorageDataSource = RemoteStorageSource(chainRegistry, bulkRetriever)
+    ): RemoteStorageSource = RemoteStorageSource(chainRegistry, bulkRetriever)
+
+    @Provides
+    @Named(REMOTE_STORAGE_SOURCE)
+    @Singleton
+    fun provideRemoteStorageDataSource(
+        remoteStorageSource: RemoteStorageSource
+    ): StorageDataSource = remoteStorageSource
 
     @Provides
     @Singleton

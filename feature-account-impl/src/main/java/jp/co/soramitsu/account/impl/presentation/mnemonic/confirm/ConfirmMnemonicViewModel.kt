@@ -30,7 +30,6 @@ import kotlinx.coroutines.launch
 class ConfirmMnemonicViewModel @Inject constructor(
     private val resourceManager: ResourceManager,
     private val interactor: AccountInteractor,
-    private val walletInteractor: WalletInteractor,
     private val router: AccountRouter,
     private val deviceVibrator: DeviceVibrator,
     private val savedStateHandle: SavedStateHandle
@@ -140,35 +139,10 @@ class ConfirmMnemonicViewModel @Inject constructor(
 
                 if (result.isSuccess) {
                     continueBasedOnCodeStatus()
-                    kotlinx.coroutines.MainScope().launch {
-                        setupNewAccountAssetsVisibility()
-                    }
                 } else {
                     showError(result.requireException())
                 }
             }
-        }
-    }
-
-    private suspend fun setupNewAccountAssetsVisibility() {
-        walletInteractor.saveChainSelectFilter(
-            walletInteractor.getSelectedMetaAccount().id,
-            ChainSelectorViewStateWithFilters.Filter.Popular.toString()
-        )
-
-        walletInteractor.getChains().filter { it.isNotEmpty() }.firstOrNull()?.let { chains ->
-            val defaultAssetStatesForNewAccount = chains.map { chain ->
-                val isPopular = chain.rank != null
-                chain.assets.map {
-                    AssetBooleanState(
-                        chainId = it.chainId,
-                        assetId = it.id,
-                        value = it.isUtility && isPopular
-                    )
-                }
-            }.flatten()
-
-            walletInteractor.updateAssetsHiddenState(defaultAssetStatesForNewAccount)
         }
     }
 
