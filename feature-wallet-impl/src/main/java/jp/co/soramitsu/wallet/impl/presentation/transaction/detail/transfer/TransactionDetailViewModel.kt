@@ -65,6 +65,7 @@ class TransactionDetailViewModel @Inject constructor(
 
     fun getSupportedExplorers(explorerType: Chain.Explorer.Type, value: String): Map<Chain.Explorer.Type, String> {
         val explorerUrlType: BlockExplorerUrlBuilder.Type = when (explorerType) {
+            Chain.Explorer.Type.OKLINK,
             Chain.Explorer.Type.ETHERSCAN -> BlockExplorerUrlBuilder.Type.TX
             Chain.Explorer.Type.REEF -> BlockExplorerUrlBuilder.Type.TRANSFER
             else -> BlockExplorerUrlBuilder.Type.EXTRINSIC
