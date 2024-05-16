@@ -415,7 +415,8 @@ class AccountRepositoryImpl(
                 publicKey = publicKey,
                 accountId = accountId,
                 cryptoType = crypto,
-                name = accountName
+                name = accountName,
+                initialized = false
             )
 
             insertChainAccount(chainAccount)
@@ -514,7 +515,8 @@ class AccountRepositoryImpl(
                 publicKey = publicKey,
                 accountId = accountId,
                 cryptoType = crypto,
-                name = accountName
+                name = accountName,
+                initialized = false
             )
 
             insertChainAccount(chainAccount)
@@ -835,7 +837,8 @@ class AccountRepositoryImpl(
             publicKey = publicKey,
             accountId = accountId,
             cryptoType = crypto,
-            name = accountName
+            name = accountName,
+            initialized = false
         )
 
         insertChainAccount(chainAccount)

@@ -16,9 +16,7 @@ import jp.co.soramitsu.common.data.network.runtime.binding.bindString
 import jp.co.soramitsu.common.data.network.runtime.binding.cast
 import jp.co.soramitsu.common.data.secrets.v2.KeyPairSchema
 import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
-import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
-import jp.co.soramitsu.common.domain.SelectedFiat
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
 import jp.co.soramitsu.common.utils.Modules
@@ -34,7 +32,6 @@ import jp.co.soramitsu.core.runtime.storage.returnType
 import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.coredb.dao.OperationDao
 import jp.co.soramitsu.coredb.dao.PhishingDao
-import jp.co.soramitsu.coredb.dao.TokenPriceDao
 import jp.co.soramitsu.coredb.dao.emptyAccountIdValue
 import jp.co.soramitsu.coredb.model.AssetUpdateItem
 import jp.co.soramitsu.coredb.model.AssetWithToken
@@ -564,12 +561,12 @@ class WalletRepositoryImpl(
         accountMetaId: Long,
         assetId: String
     ): Flow<Map<Chain, Asset?>> {
-        return chainsRepository.observeChainsPerAssetFlow(accountMetaId, assetId).map {
-            val chains = it.keys.map { mapChainLocalToChain(it) }
+        return chainsRepository.observeChainsPerAssetFlow(accountMetaId, assetId).map { chainsPerAsset ->
+            val chains = chainsPerAsset.keys.map { mapChainLocalToChain(it) }
             val chainsById = chains.associateBy { it.id }
-            val assets = it.values.map { mapAssetLocalToAsset(chainsById, it) }
+            val assets = chainsPerAsset.values.map { mapAssetLocalToAsset(chainsById, it) }
             val chainToAssetMap = chains.zip(assets).toMap()
-            chainToAssetMap.filter { pair -> pair.value != null && pair.value?.enabled == true }
+            chainToAssetMap.filter { pair -> pair.value != null}
         }
     }
 

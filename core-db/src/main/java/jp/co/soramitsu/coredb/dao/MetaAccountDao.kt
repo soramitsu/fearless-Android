@@ -40,6 +40,12 @@ interface MetaAccountDao {
     @Insert
     suspend fun insertChainAccount(chainAccount: ChainAccountLocal)
 
+    @Query("SELECT * FROM chain_accounts WHERE initialized = 0")
+    fun observeNotInitializedChainAccounts(): Flow<List<ChainAccountLocal>>
+
+    @Query("UPDATE chain_accounts SET initialized = 1 WHERE metaId = :metaId AND chainId = :chainId")
+    suspend fun markChainAccountInitialized(metaId: Long, chainId: String) :Int
+
     @Query("SELECT * FROM meta_accounts")
     fun getMetaAccounts(): List<MetaAccountLocal>
 
