@@ -855,6 +855,9 @@ class SendSetupViewModel @Inject constructor(
 
         if (checked) {
             onQuickAmountInput(1.0)
+        } else {
+            visibleAmountFlow.value = BigDecimal.ZERO
+            initialAmountFlow.value = BigDecimal.ZERO
         }
     }
 }
