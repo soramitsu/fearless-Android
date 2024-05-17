@@ -74,8 +74,6 @@ class WelcomeFragment : BaseComposeFragment<WelcomeViewModel>() {
         super.onViewCreated(view, savedInstanceState)
 
         observeBrowserEvents(viewModel)
-
-
     }
 
     private fun handleAuthorizeGoogleEvent() {
@@ -122,6 +120,7 @@ class WelcomeFragment : BaseComposeFragment<WelcomeViewModel>() {
                 )
 
                 OnboardingScreen(
+                    backgroundImageFlow = viewModel.onboardingBackground,
                     onboardingStateFlow = viewModel.onboardingFlowState,
                     callback = viewModel
                 )

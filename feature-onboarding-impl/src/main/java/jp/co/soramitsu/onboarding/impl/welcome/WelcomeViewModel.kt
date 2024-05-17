@@ -13,8 +13,10 @@ import jp.co.soramitsu.account.api.domain.model.ImportMode
 import jp.co.soramitsu.backup.BackupService
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.data.network.AppLinksProvider
+import jp.co.soramitsu.common.domain.AppVersion
 import jp.co.soramitsu.common.mixin.api.Browserable
 import jp.co.soramitsu.common.utils.Event
+import jp.co.soramitsu.onboarding.api.data.OnboardingConfig
 import jp.co.soramitsu.onboarding.api.domain.OnboardingInteractor
 import jp.co.soramitsu.onboarding.impl.OnboardingRouter
 import jp.co.soramitsu.onboarding.impl.welcome.WelcomeFragment.Companion.KEY_PAYLOAD
@@ -44,6 +46,10 @@ class WelcomeViewModel @Inject constructor(
 
     private val payload = savedStateHandle.get<WelcomeFragmentPayload>(KEY_PAYLOAD)!!
 
+    private val _onboardingBackgroundState = MutableStateFlow<String?>(null)
+    val onboardingBackground = _onboardingBackgroundState
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
     private val _onboardingFlowState = MutableStateFlow<Result<OnboardingFlow>?>(null)
     val onboardingFlowState = _onboardingFlowState.map { it?.getOrNull() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
@@ -72,14 +78,30 @@ class WelcomeViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
-            onboardingInteractor.getConfig()
+            val remoteOnboardingConfig: OnboardingConfig? = onboardingInteractor.getConfig()
                 .onFailure {
                     Log.e("OnboardingScreen", "onboardingInteractor.getConfig() failed: $it")
                     showError(it)
-                }
-                .map { OnboardingFlow(it.en_EN.new) }.let {
-                    _onboardingFlowState.value = it
-                }
+                }.getOrNull()
+
+            val useConfig = getAppVersionSupportedConfig(remoteOnboardingConfig)
+
+            if (useConfig == null) {
+                _onboardingFlowState.value = Result.failure(IllegalStateException("Onboarding config is empty"))
+            } else {
+                _onboardingFlowState.value = Result.success(OnboardingFlow(useConfig.enEn.new))
+                _onboardingBackgroundState.value = useConfig.background
+            }
+        }
+    }
+
+    private fun getAppVersionSupportedConfig(config: OnboardingConfig?): OnboardingConfig.OnboardingConfigItem? {
+        val current = AppVersion.current()
+        return config?.configs?.filter {
+            val configAppVersion = AppVersion.fromString(it.minVersion)
+            configAppVersion.major == current.major && configAppVersion.minor == current.minor
+        }?.maxByOrNull {
+            AppVersion.fromString(it.minVersion)
         }
     }
 
