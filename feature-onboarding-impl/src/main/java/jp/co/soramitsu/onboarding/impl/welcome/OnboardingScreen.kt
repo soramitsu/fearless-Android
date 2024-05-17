@@ -66,10 +66,7 @@ interface OnboardingScreenCallback {
 
     fun onClose()
 
-    fun onNext()
-
     fun onSkip()
-
 }
 
 @Suppress("FunctionName")
@@ -216,7 +213,7 @@ private fun OnboardingScreenContent(
                         val page = currentPageAsState.value
 
                         if (page == onboardingFlow.lastIndex)
-                            callback.onNext()
+                            callback.onClose()
                         else coroutineScope.launch {
                             pagerState.animateScrollToPage(page + 1)
                         }
@@ -265,7 +262,6 @@ private fun OnboardingScreenPreview() {
             ),
             callback = object : OnboardingScreenCallback {
                 override fun onClose() = Unit
-                override fun onNext() = Unit
                 override fun onSkip() = Unit
             }
         )

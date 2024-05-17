@@ -9,6 +9,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.PendulumPreInstalledAccountsScenario
+import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.ImportMode
 import jp.co.soramitsu.backup.BackupService
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -40,7 +41,8 @@ class WelcomeViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val backupService: BackupService,
     private val pendulumPreInstalledAccountsScenario: PendulumPreInstalledAccountsScenario,
-    private val onboardingInteractor: OnboardingInteractor
+    private val onboardingInteractor: OnboardingInteractor,
+    private val accountRepository: AccountRepository
 ) : BaseViewModel(), Browserable, WelcomeScreenInterface, OnboardingScreenCallback,
     OnboardingSplashScreenClickListener {
 
@@ -68,6 +70,7 @@ class WelcomeViewModel @Inject constructor(
     val events = _events.receiveAsFlow()
 
     override val openBrowserEvent = MutableLiveData<Event<String>>()
+    private var currentOnboardingConfigVersion: String? = null
 
     init {
         payload.createChainAccount?.run {
@@ -85,12 +88,28 @@ class WelcomeViewModel @Inject constructor(
                 }.getOrNull()
 
             val useConfig = getAppVersionSupportedConfig(remoteOnboardingConfig)
+            val isAccountSelected = accountRepository.isAccountSelected()
+            val shouldShowSlides = useConfig != null
+                    && (onboardingInteractor.shouldShowWelcomeSlides(useConfig.minVersion) || isAccountSelected.not())
 
-            if (useConfig == null) {
-                _onboardingFlowState.value = Result.failure(IllegalStateException("Onboarding config is empty"))
-            } else {
-                _onboardingFlowState.value = Result.success(OnboardingFlow(useConfig.enEn.new))
-                _onboardingBackgroundState.value = useConfig.background
+            currentOnboardingConfigVersion = useConfig?.minVersion
+
+            when {
+                isAccountSelected && shouldShowSlides -> {
+                    _onboardingFlowState.value = Result.success(OnboardingFlow(useConfig!!.enEn.regular))
+                    _onboardingBackgroundState.value = useConfig.background
+                    _events.trySend(WelcomeEvent.Onboarding.PagerScreen)
+                }
+                isAccountSelected -> {
+                    moveNextToPincode()
+                }
+                shouldShowSlides -> {
+                    _onboardingFlowState.value = Result.success(OnboardingFlow(useConfig!!.enEn.new))
+                    _onboardingBackgroundState.value = useConfig.background
+                }
+                else -> {
+                    _onboardingFlowState.value = Result.failure(IllegalStateException("Onboarding config is empty"))
+                }
             }
         }
     }
@@ -194,14 +213,28 @@ class WelcomeViewModel @Inject constructor(
     }
 
     override fun onClose() {
-        _events.trySend(WelcomeEvent.Onboarding.WelcomeScreen)
-    }
-
-    override fun onNext() {
-        _events.trySend(WelcomeEvent.Onboarding.WelcomeScreen)
+        viewModelScope.launch {
+            if (accountRepository.isAccountSelected()) {
+                moveNextToPincode()
+            } else {
+                _events.trySend(WelcomeEvent.Onboarding.WelcomeScreen)
+            }
+        }
+        currentOnboardingConfigVersion?.let {
+            onboardingInteractor.saveWelcomeSlidesShownVersion(it)
+            currentOnboardingConfigVersion = null
+        }
     }
 
     override fun onSkip() {
-        _events.trySend(WelcomeEvent.Onboarding.WelcomeScreen)
+        onClose()
+    }
+
+    private suspend fun moveNextToPincode() {
+        if (accountRepository.isCodeSet()) {
+            router.openInitialCheckPincode()
+        } else {
+            router.openCreatePincode()
+        }
     }
 }

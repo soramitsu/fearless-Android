@@ -47,10 +47,12 @@ class OnboardingFeatureModule {
 
     @Provides
     fun provideOnboardingInteractor(
-        onboardingRepository: OnboardingRepository
+        onboardingRepository: OnboardingRepository,
+        preferences: Preferences
     ): OnboardingInteractor {
         return OnboardingInteractorImpl(
-            onboardingRepository
+            onboardingRepository,
+            preferences
         )
     }
 

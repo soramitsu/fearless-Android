@@ -35,4 +35,6 @@ interface OnboardingRouter {
     fun openSelectImportModeForResult(): Flow<ImportMode>
 
     fun openCreatePincode()
+
+    fun openInitialCheckPincode()
 }
