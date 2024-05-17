@@ -100,7 +100,7 @@ class WalletInteractorImpl(
     private val xcmEntitiesFetcher: XcmEntitiesFetcher,
     private val chainsRepository: ChainsRepository,
     private val networkStateService: NetworkStateService,
-    private val coroutineContext: CoroutineContext = Dispatchers.Default,
+    private val coroutineContext: CoroutineContext = Dispatchers.Default
 ) : WalletInteractor, UpdatesProviderUi by updatesMixin {
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -272,10 +272,10 @@ class WalletInteractorImpl(
     override suspend fun getTransferFee(
         transfer: Transfer,
         additional: (suspend ExtrinsicBuilder.() -> Unit)?
-    ): Fee {
+    ): Fee = withContext(Dispatchers.Default) {
         val chain = chainsRepository.getChain(transfer.chainAsset.chainId)
 
-        return walletRepository.getTransferFee(
+        return@withContext walletRepository.getTransferFee(
             chain = chain,
             transfer = transfer,
             additional = additional
@@ -645,6 +645,14 @@ class WalletInteractorImpl(
         assetId: String
     ): Flow<Map<Chain, Asset?>> {
         return walletRepository.observeChainsPerAsset(accountMetaId, assetId)
+    }
+
+    override fun observeCurrentAccountChainsPerAsset(
+        assetId: String
+    ): Flow<Map<Chain, Asset?>> {
+        return accountRepository.selectedMetaAccountFlow().flatMapLatest {
+            walletRepository.observeChainsPerAsset(it.id, assetId)
+        }
     }
 
     override fun applyAssetSorting(sorting: AssetSorting) {

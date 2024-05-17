@@ -161,4 +161,6 @@ interface WalletInteractor {
     suspend fun saveAssetManagementIntroPassed()
     fun networkIssuesFlow(): Flow<Map<ChainId, NetworkIssueType>>
     suspend fun retryChainSync(chainId: ChainId): Result<Unit>
+
+    fun observeCurrentAccountChainsPerAsset(assetId: String): Flow<Map<Chain, Asset?>>
 }
