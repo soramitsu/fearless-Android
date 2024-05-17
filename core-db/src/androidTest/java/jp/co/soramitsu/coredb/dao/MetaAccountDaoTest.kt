@@ -81,7 +81,8 @@ class MetaAccountDaoTest : DaoTest<MetaAccountDao>(AppDatabase::metaAccountDao) 
         ethereumAddress = null,
         position = 0,
         googleBackupAddress = null,
-        isBackedUp = false
+        isBackedUp = false,
+        initialized = false
     )
 
     private fun chainAccount(metaId: Long) = ChainAccountLocal(
@@ -90,6 +91,7 @@ class MetaAccountDaoTest : DaoTest<MetaAccountDao>(AppDatabase::metaAccountDao) 
         publicKey = byteArrayOf(),
         cryptoType = CryptoType.SR25519,
         accountId = byteArrayOf(),
-        name = ""
+        name = "",
+        initialized = true
     )
 }

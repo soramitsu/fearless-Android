@@ -10,7 +10,6 @@ import jp.co.soramitsu.common.navigation.DelayedNavigation
 import jp.co.soramitsu.common.navigation.PinRequired
 import jp.co.soramitsu.common.navigation.SecureRouter
 import jp.co.soramitsu.common.navigation.payload.WalletSelectorPayload
-import jp.co.soramitsu.common.presentation.StoryGroupModel
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.wallet.api.domain.model.XcmChainType
@@ -132,8 +131,6 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
     fun openExportJsonPassword(metaId: Long, chainId: ChainId): DelayedNavigation
 
     fun openOnboardingNavGraph(chainId: ChainId, metaId: Long, isImport: Boolean)
-
-    fun openEducationalStories(stories: StoryGroupModel)
 
     fun openSuccessFragment(avatar: Drawable)
 
