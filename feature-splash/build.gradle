@@ -35,6 +35,7 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation projects.common
     implementation projects.featureAccountApi
+    implementation projects.featureOnboardingApi
 
     implementation libs.kotlin.stdlib.jdk7
 

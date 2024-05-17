@@ -162,10 +162,10 @@ import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.reward.Reward
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.reward.RewardDetailsPayload
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.swap.SwapDetailFragment
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.transfer.TransferDetailFragment
-import jp.co.soramitsu.walletconnect.impl.presentation.sessionproposal.SessionProposalFragment
 import jp.co.soramitsu.walletconnect.impl.presentation.chainschooser.ChainChooseFragment
 import jp.co.soramitsu.walletconnect.impl.presentation.connectioninfo.ConnectionInfoFragment
 import jp.co.soramitsu.walletconnect.impl.presentation.requestpreview.RequestPreviewFragment
+import jp.co.soramitsu.walletconnect.impl.presentation.sessionproposal.SessionProposalFragment
 import jp.co.soramitsu.walletconnect.impl.presentation.sessionrequest.SessionRequestFragment
 import jp.co.soramitsu.walletconnect.impl.presentation.transactionrawdata.RawDataFragment
 import kotlin.coroutines.coroutineContext
@@ -216,14 +216,21 @@ class Navigator :
         activity = null
     }
 
-    override fun openAddFirstAccount() {
+    override fun openOnboarding() {
         navController?.navigate(R.id.action_to_onboarding, WelcomeFragment.getBundle(false))
     }
+
+    override fun openCreatePincode() {
+        val action = PinCodeAction.Create(NavComponentDelayedNavigation(R.id.action_open_main))
+        val bundle =  PincodeFragment.getPinCodeBundle(action)
+        navController?.navigate(R.id.pincodeFragment, bundle)
+    }
+
 
     override fun openInitialCheckPincode() {
         val action = PinCodeAction.Check(NavComponentDelayedNavigation(R.id.action_open_main), ToolbarConfiguration())
         val bundle = PincodeFragment.getPinCodeBundle(action)
-        navController?.navigateSafe(R.id.action_splash_to_pin, bundle)
+        navController?.navigateSafe(R.id.pincodeFragment, bundle)
     }
 
     private fun NavController.navigateSafe(@IdRes resId: Int, args: Bundle?) {
@@ -333,12 +340,6 @@ class Navigator :
             .build()
 
         navController?.navigate(delayedNavigation.globalActionId, delayedNavigation.extras, navOptions)
-    }
-
-    override fun openCreatePincode() {
-        val bundle = buildCreatePinBundle()
-
-        navController?.navigate(R.id.pincodeFragment, bundle)
     }
 
     override fun openConfirmMnemonicOnCreate(confirmMnemonicPayload: ConfirmMnemonicPayload) {
@@ -1272,12 +1273,6 @@ class Navigator :
         val action = PinCodeAction.Check(null, ToolbarConfiguration())
         val bundle = PincodeFragment.getPinCodeBundle(action)
         navController?.navigate(R.id.root_nav_graph, bundle)
-    }
-
-    private fun buildCreatePinBundle(): Bundle {
-        val delayedNavigation = NavComponentDelayedNavigation(R.id.action_open_main)
-        val action = PinCodeAction.Create(delayedNavigation)
-        return PincodeFragment.getPinCodeBundle(action)
     }
 
     override fun openSelectWallet() {
