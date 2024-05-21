@@ -167,11 +167,11 @@ class WalletInteractorImpl(
         return kotlin.runCatching { getCurrentAssetOrNull(chainId, chainAssetId)!! }.requireValue()
     }
 
-    override suspend fun getCurrentAssetOrNull(chainId: ChainId, chainAssetId: String): Asset? {
+    override suspend fun getCurrentAssetOrNull(chainId: ChainId, chainAssetId: String): Asset? = withContext(coroutineContext) {
         val metaAccount = accountRepository.getSelectedMetaAccount()
         val (chain, chainAsset) = chainsRepository.chainWithAsset(chainId, chainAssetId)
 
-        return walletRepository.getAsset(
+        return@withContext walletRepository.getAsset(
             metaAccount.id,
             metaAccount.accountId(chain)!!,
             chainAsset,
