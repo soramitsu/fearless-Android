@@ -162,10 +162,10 @@ import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.reward.Reward
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.reward.RewardDetailsPayload
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.swap.SwapDetailFragment
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.transfer.TransferDetailFragment
-import jp.co.soramitsu.walletconnect.impl.presentation.sessionproposal.SessionProposalFragment
 import jp.co.soramitsu.walletconnect.impl.presentation.chainschooser.ChainChooseFragment
 import jp.co.soramitsu.walletconnect.impl.presentation.connectioninfo.ConnectionInfoFragment
 import jp.co.soramitsu.walletconnect.impl.presentation.requestpreview.RequestPreviewFragment
+import jp.co.soramitsu.walletconnect.impl.presentation.sessionproposal.SessionProposalFragment
 import jp.co.soramitsu.walletconnect.impl.presentation.sessionrequest.SessionRequestFragment
 import jp.co.soramitsu.walletconnect.impl.presentation.transactionrawdata.RawDataFragment
 import kotlin.coroutines.coroutineContext
@@ -177,7 +177,6 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onCompletion
@@ -185,7 +184,6 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.job
 import kotlinx.parcelize.Parcelize
-import jp.co.soramitsu.common.utils.combine as combineLiveData
 
 @Parcelize
 class NavComponentDelayedNavigation(val globalActionId: Int, val extras: Bundle? = null) : DelayedNavigation
@@ -218,14 +216,21 @@ class Navigator :
         activity = null
     }
 
-    override fun openAddFirstAccount() {
+    override fun openOnboarding() {
         navController?.navigate(R.id.action_to_onboarding, WelcomeFragment.getBundle(false))
     }
+
+    override fun openCreatePincode() {
+        val action = PinCodeAction.Create(NavComponentDelayedNavigation(R.id.action_open_main))
+        val bundle =  PincodeFragment.getPinCodeBundle(action)
+        navController?.navigate(R.id.pincodeFragment, bundle)
+    }
+
 
     override fun openInitialCheckPincode() {
         val action = PinCodeAction.Check(NavComponentDelayedNavigation(R.id.action_open_main), ToolbarConfiguration())
         val bundle = PincodeFragment.getPinCodeBundle(action)
-        navController?.navigateSafe(R.id.action_splash_to_pin, bundle)
+        navController?.navigateSafe(R.id.pincodeFragment, bundle)
     }
 
     private fun NavController.navigateSafe(@IdRes resId: Int, args: Bundle?) {
@@ -335,12 +340,6 @@ class Navigator :
             .build()
 
         navController?.navigate(delayedNavigation.globalActionId, delayedNavigation.extras, navOptions)
-    }
-
-    override fun openCreatePincode() {
-        val bundle = buildCreatePinBundle()
-
-        navController?.navigate(R.id.pincodeFragment, bundle)
     }
 
     override fun openConfirmMnemonicOnCreate(confirmMnemonicPayload: ConfirmMnemonicPayload) {
@@ -1276,16 +1275,6 @@ class Navigator :
         navController?.navigate(R.id.root_nav_graph, bundle)
     }
 
-    private fun buildCreatePinBundle(): Bundle {
-        val delayedNavigation = NavComponentDelayedNavigation(R.id.action_open_main)
-        val action = PinCodeAction.Create(delayedNavigation)
-        return PincodeFragment.getPinCodeBundle(action)
-    }
-
-    override fun openEducationalStories(stories: StoryGroupModel) {
-        navController?.navigate(R.id.action_splash_to_stories, StoryFragment.getBundle(stories))
-    }
-
     override fun openSelectWallet() {
         navController?.navigate(R.id.selectWalletFragment)
     }
@@ -1340,17 +1329,6 @@ class Navigator :
         navController?.previousBackStackEntry?.savedStateHandle?.set(StoryFragment.KEY_STORY, true)
         navController?.navigateUp()
     }
-
-    override val educationalStoriesCompleted: Flow<Boolean>
-        get() {
-            return combineLiveData(
-                navController?.currentBackStackEntry?.lifecycle?.onResumeObserver() ?: return flowOf(false),
-                navController?.currentBackStackEntry?.savedStateHandle?.getLiveData<Boolean>(StoryFragment.KEY_STORY) ?: return flowOf(false),
-                combiner = { (isResumed: Boolean, storiesCompleted: Boolean) ->
-                    isResumed && storiesCompleted
-                }
-            ).asFlow()
-        }
 
     override fun openExperimentalFeatures() {
         navController?.navigate(R.id.experimentalFragment)

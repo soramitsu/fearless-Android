@@ -240,7 +240,8 @@ class V2MigrationTest {
                 isSelected = getInt(getColumnIndex(Column.IS_SELECTED)) == 1,
                 position = getInt(getColumnIndex(Column.POSITION)),
                 isBackedUp = false,
-                googleBackupAddress = null
+                googleBackupAddress = null,
+                initialized = true
             )
 
             metaAccount.id = getLong(getColumnIndex(Column.ID))

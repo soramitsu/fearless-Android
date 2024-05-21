@@ -45,7 +45,8 @@ fun chainOf(
     paraId = null,
     rank = null,
     isChainlinkProvider = false,
-    supportNft = false
+    supportNft = false,
+    isUsesAppId = false
 )
 
 fun ChainLocal.nodeOf(

@@ -45,7 +45,7 @@ inline fun <T, K> Response<T>.map(crossinline transform: (T) -> K): K {
 }
 
 suspend fun Web3j.getNonce(address: String): BigInteger {
-    val response =  ethGetTransactionCount(address, DefaultBlockParameterName.PENDING).sendAsync().await()
+    val response = ethGetTransactionCount(address, DefaultBlockParameterName.PENDING).sendAsync().await()
 
     return response.map { Numeric.decodeQuantity(it) }
 }

@@ -26,7 +26,6 @@ import jp.co.soramitsu.account.impl.domain.NodeHostValidator
 import jp.co.soramitsu.account.impl.domain.account.details.AccountDetailsInteractor
 import jp.co.soramitsu.account.impl.presentation.common.mixin.api.CryptoTypeChooserMixin
 import jp.co.soramitsu.account.impl.presentation.common.mixin.impl.CryptoTypeChooser
-import jp.co.soramitsu.common.data.OnboardingStoriesDataSource
 import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.network.coingecko.CoingeckoApi
@@ -35,9 +34,7 @@ import jp.co.soramitsu.common.data.secrets.v2.SecretStoreV2
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
-import jp.co.soramitsu.common.domain.GetEducationalStoriesUseCase
 import jp.co.soramitsu.common.domain.SelectedFiat
-import jp.co.soramitsu.common.domain.ShouldShowEducationalStoriesUseCase
 import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.LanguagesHolder
@@ -51,7 +48,6 @@ import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.shared_utils.encrypt.json.JsonSeedDecoder
 import jp.co.soramitsu.shared_utils.encrypt.json.JsonSeedEncoder
-import jp.co.soramitsu.wallet.api.data.cache.AssetCache
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -212,23 +208,6 @@ class AccountFeatureModule {
         selectedFiat: SelectedFiat
     ): AssetNotNeedAccountUseCase {
         return AssetNotNeedAccountUseCaseImpl(chainRegistry, assetDao, tokenPriceDao, selectedFiat)
-    }
-
-    @Provides
-    fun provideStoriesDataSource() = OnboardingStoriesDataSource()
-
-    @Provides
-    fun provideShouldShowEducationalStories(
-        preferences: Preferences
-    ): ShouldShowEducationalStoriesUseCase {
-        return ShouldShowEducationalStoriesUseCase(preferences)
-    }
-
-    @Provides
-    fun provideGetEducationalStories(
-        onboardingStoriesDataSource: OnboardingStoriesDataSource
-    ): GetEducationalStoriesUseCase {
-        return GetEducationalStoriesUseCase(onboardingStoriesDataSource)
     }
 
     @Provides

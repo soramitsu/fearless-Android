@@ -9,6 +9,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.PendulumPreInstalledAccountsScenario
+import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.ImportMode
 import jp.co.soramitsu.backup.BackupService
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -22,6 +23,7 @@ import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -38,11 +40,18 @@ class WelcomeViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val backupService: BackupService,
     private val pendulumPreInstalledAccountsScenario: PendulumPreInstalledAccountsScenario,
-    private val onboardingInteractor: OnboardingInteractor
+    private val onboardingInteractor: OnboardingInteractor,
+    private val accountRepository: AccountRepository
 ) : BaseViewModel(), Browserable, WelcomeScreenInterface, OnboardingScreenCallback,
     OnboardingSplashScreenClickListener {
 
     private val payload = savedStateHandle.get<WelcomeFragmentPayload>(KEY_PAYLOAD)!!
+
+    private val _isAccountSelectedFlow = MutableStateFlow(true)
+    val isAccountSelectedFlow: StateFlow<Boolean> = _isAccountSelectedFlow
+    private val _onboardingBackgroundState = MutableStateFlow<String?>(null)
+    val onboardingBackground = _onboardingBackgroundState
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val _onboardingFlowState = MutableStateFlow<Result<OnboardingFlow>?>(null)
     val onboardingFlowState = _onboardingFlowState.map { it?.getOrNull() }
@@ -62,6 +71,7 @@ class WelcomeViewModel @Inject constructor(
     val events = _events.receiveAsFlow()
 
     override val openBrowserEvent = MutableLiveData<Event<String>>()
+    private var currentOnboardingConfigVersion: String? = null
 
     init {
         payload.createChainAccount?.run {
@@ -72,14 +82,37 @@ class WelcomeViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
-            onboardingInteractor.getConfig()
+            val isAccountSelected = accountRepository.isAccountSelected()
+            _isAccountSelectedFlow.value = isAccountSelected
+
+            val useConfig = onboardingInteractor.getAppVersionSupportedConfig()
                 .onFailure {
                     Log.e("OnboardingScreen", "onboardingInteractor.getConfig() failed: $it")
                     showError(it)
+                }.getOrNull()
+
+            val shouldShowSlides = useConfig != null
+                    && (onboardingInteractor.shouldShowWelcomeSlides(useConfig.minVersion) || isAccountSelected.not())
+
+            currentOnboardingConfigVersion = useConfig?.minVersion
+
+            when {
+                isAccountSelected && shouldShowSlides -> {
+                    _onboardingFlowState.value = Result.success(OnboardingFlow(useConfig!!.enEn.regular))
+                    _onboardingBackgroundState.value = useConfig.background
+                    _events.trySend(WelcomeEvent.Onboarding.PagerScreen)
                 }
-                .map { OnboardingFlow(it.en_EN.new) }.let {
-                    _onboardingFlowState.value = it
+                isAccountSelected -> {
+                    moveNextToPincode()
                 }
+                shouldShowSlides -> {
+                    _onboardingFlowState.value = Result.success(OnboardingFlow(useConfig!!.enEn.new))
+                    _onboardingBackgroundState.value = useConfig.background
+                }
+                else -> {
+                    _onboardingFlowState.value = Result.failure(IllegalStateException("Onboarding config is empty"))
+                }
+            }
         }
     }
 
@@ -172,14 +205,28 @@ class WelcomeViewModel @Inject constructor(
     }
 
     override fun onClose() {
-        _events.trySend(WelcomeEvent.Onboarding.WelcomeScreen)
-    }
-
-    override fun onNext() {
-        _events.trySend(WelcomeEvent.Onboarding.WelcomeScreen)
+        viewModelScope.launch {
+            if (accountRepository.isAccountSelected()) {
+                moveNextToPincode()
+            } else {
+                _events.trySend(WelcomeEvent.Onboarding.WelcomeScreen)
+            }
+        }
+        currentOnboardingConfigVersion?.let {
+            onboardingInteractor.saveWelcomeSlidesShownVersion(it)
+            currentOnboardingConfigVersion = null
+        }
     }
 
     override fun onSkip() {
-        _events.trySend(WelcomeEvent.Onboarding.WelcomeScreen)
+        onClose()
+    }
+
+    private suspend fun moveNextToPincode() {
+        if (accountRepository.isCodeSet()) {
+            router.openInitialCheckPincode()
+        } else {
+            router.openCreatePincode()
+        }
     }
 }
