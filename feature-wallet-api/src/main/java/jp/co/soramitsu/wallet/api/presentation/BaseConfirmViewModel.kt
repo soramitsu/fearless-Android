@@ -23,6 +23,7 @@ import jp.co.soramitsu.common.validation.WaitForFeeCalculationException
 import jp.co.soramitsu.feature_wallet_api.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.wallet.api.domain.ExistentialDepositUseCase
+import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
@@ -37,6 +38,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 abstract class BaseConfirmViewModel(
+    walletInteractor: WalletInteractor,
     private val existentialDepositUseCase: ExistentialDepositUseCase,
     private val resourceManager: ResourceManager,
     protected val asset: Asset,
@@ -56,6 +58,7 @@ abstract class BaseConfirmViewModel(
     private val amount = amountInPlanks?.let { asset.token.amountFromPlanks(it) }
     private val amountFormatted = amount?.formatCryptoDetail(asset.token.configuration.symbol)
     private val amountFiat = amount?.applyFiatRate(asset.token.fiatRate)?.formatFiat(asset.token.fiatSymbol)
+    private val assetFlow = walletInteractor.assetFlow(chain.id, asset.token.configuration.id).stateIn(viewModelScope, SharingStarted.Eagerly, asset)
 
     private val toolbarViewState = ToolbarViewState(
         resourceManager.getString(R.string.common_confirm),
@@ -148,7 +151,7 @@ abstract class BaseConfirmViewModel(
         val chargesAmount = amountInPlanks.orZero() + fee
         val existentialDeposit = existentialDepositUseCase(asset.token.configuration)
 
-        val resultBalance = asset.transferableInPlanks - chargesAmount
+        val resultBalance = assetFlow.value.transferableInPlanks - chargesAmount
         if (resultBalance < existentialDeposit || resultBalance <= BigInteger.ZERO) {
             return Result.failure(FeeInsufficientBalanceException(resourceManager))
         }
