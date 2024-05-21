@@ -135,7 +135,8 @@ class ConnectionInfoViewModel @Inject constructor(
                     walletConnectRouter.openOperationSuccessAndPopUpToNearestRelatedScreen(
                         null,
                         null,
-                        resourceManager.getString(R.string.connection_disconnect_success_message, dappName)
+                        resourceManager.getString(R.string.connection_disconnect_success_message, dappName),
+                        resourceManager.getString(R.string.all_done)
                     )
                 }
             },

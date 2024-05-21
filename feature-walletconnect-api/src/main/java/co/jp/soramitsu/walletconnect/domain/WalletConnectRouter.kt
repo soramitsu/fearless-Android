@@ -18,7 +18,8 @@ interface WalletConnectRouter {
     fun openOperationSuccessAndPopUpToNearestRelatedScreen(
         operationHash: String?,
         chainId: ChainId?,
-        customMessage: String?
+        customMessage: String?,
+        customTitle: String? = null
     )
 
     fun openSelectMultipleChains(
