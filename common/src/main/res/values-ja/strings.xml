@@ -725,6 +725,7 @@
   <string name="send_fund">資金を送る</string>
   <string name="send_to">送信先</string>
   <string name="sending">送信中</string>
+  <string name="settings_hide_zero_balances">残高ゼロを隠す</string>
   <string name="share_referral_code">紹介コードを共有</string>
   <string name="social_media">ソーシャル・メディア</string>
   <string name="sora_bridge_low_amount_format_alert">現在、SORAネットワークの安定性と安全性を確保するため、ブリッジングには最低%sが設定されています。ご理解のほどよろしくお願いいたします。</string>
@@ -1049,6 +1050,7 @@
   <string name="validators_list_empty_message">バリデーターが見つかりません</string>
   <string name="view_in">%sで見る</string>
   <string name="view_wallet">ウォレットを見る</string>
+  <string name="wallet_all_assets_hidden">全アセットを非表示にしました</string>
   <string name="wallet_asset_buy_with">で購入</string>
   <string name="wallet_asset_receive">受け取る</string>
   <string name="wallet_asset_receive_template">受信 %s</string>

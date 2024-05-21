@@ -155,6 +155,7 @@
   <string name="common_amount">数量</string>
   <string name="common_amount_low">金额太低</string>
   <string name="common_and">和</string>
+  <string name="common_and_others_placeholder">%s和其他</string>
   <string name="common_applied">已应用</string>
   <string name="common_apply">应用</string>
   <string name="common_assets_filters_fiat">法币余额</string>
@@ -176,6 +177,7 @@
   <string name="common_claim">领取</string>
   <string name="common_claimable">可领取</string>
   <string name="common_close">关闭</string>
+  <string name="common_commission">佣金</string>
   <string name="common_completed">已完成</string>
   <string name="common_completed_with_count">已完成（ %s ）</string>
   <string name="common_confirm">确认</string>
@@ -184,6 +186,7 @@
   <string name="common_confirmed">已确认</string>
   <string name="common_connect">连接</string>
   <string name="common_connection_problems">连接问题</string>
+  <string name="common_contacts">联系人</string>
   <string name="common_continue">继续</string>
   <string name="common_copied">复制到剪贴板</string>
   <string name="common_copy">复制</string>
@@ -342,6 +345,7 @@
   <string name="connections_search_hint">按连接搜索</string>
   <string name="contact_address">联系地址</string>
   <string name="contact_name">联系人姓名</string>
+  <string name="contacts_empty_message">未找到联系人</string>
   <string name="contribution_type">贡献类型</string>
   <string name="contribution_type_direct_dot">直接DOT</string>
   <string name="contribution_type_lcdot">lcDOT</string>
@@ -738,6 +742,7 @@
   <string name="send_to">发送至</string>
   <string name="sending">发送</string>
   <string name="set_max_amount">设置最大金额</string>
+  <string name="settings_hide_zero_balances">隐藏零余额</string>
   <string name="share_referral_code">分享推荐码</string>
   <string name="social_media">社交媒体</string>
   <string name="sora_bridge_amount_less_fee">您尝试转账的金额不足以支付%s网络上的交易费用。尽管交易无法完成，您仍将在Sora网络上被收取费用。</string>
@@ -1068,6 +1073,7 @@
   <string name="vesting_locked_title">归属锁定</string>
   <string name="view_in">在%s中查看</string>
   <string name="view_wallet">查看钱包</string>
+  <string name="wallet_all_assets_hidden">你已经隐藏所有资产</string>
   <string name="wallet_asset_buy_with">购买%s用</string>
   <string name="wallet_asset_receive">接收</string>
   <string name="wallet_asset_receive_template">接收%s</string>

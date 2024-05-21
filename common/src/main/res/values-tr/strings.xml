@@ -743,6 +743,7 @@
   <string name="send_to">Gönderildi</string>
   <string name="sending">Gönderiliyor…</string>
   <string name="set_max_amount">Maksimum tutarı ayarla</string>
+  <string name="settings_hide_zero_balances">Sıfır bakiyeleri gizleyin</string>
   <string name="share_referral_code">Referans kodunuzu paylaşın</string>
   <string name="social_media">Sosyal medya</string>
   <string name="sora_bridge_amount_less_fee">Aktarmaya çalıştığınız tutar, işlem ücretlerini karşılamaya yetmiyor. %sAğ İşlem gerçekleşmese de Sora ağındaki ücretler sizden yine de tahsil edilecektir.</string>
@@ -1074,6 +1075,7 @@
   <string name="vesting_locked_title">Vesting Kilitli</string>
   <string name="view_in">%s\'da görüntüle</string>
   <string name="view_wallet">Cüzdanı görün</string>
+  <string name="wallet_all_assets_hidden">Değiştirilebilir jetonlar</string>
   <string name="wallet_asset_buy_with">%s ile al</string>
   <string name="wallet_asset_receive">Al</string>
   <string name="wallet_asset_receive_template">Alın%s</string>
