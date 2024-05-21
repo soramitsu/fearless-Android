@@ -14,10 +14,8 @@ import jp.co.soramitsu.account.api.domain.model.ImportMode
 import jp.co.soramitsu.backup.BackupService
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.data.network.AppLinksProvider
-import jp.co.soramitsu.common.domain.AppVersion
 import jp.co.soramitsu.common.mixin.api.Browserable
 import jp.co.soramitsu.common.utils.Event
-import jp.co.soramitsu.onboarding.api.data.OnboardingConfig
 import jp.co.soramitsu.onboarding.api.domain.OnboardingInteractor
 import jp.co.soramitsu.onboarding.impl.OnboardingRouter
 import jp.co.soramitsu.onboarding.impl.welcome.WelcomeFragment.Companion.KEY_PAYLOAD
@@ -25,6 +23,7 @@ import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -48,6 +47,8 @@ class WelcomeViewModel @Inject constructor(
 
     private val payload = savedStateHandle.get<WelcomeFragmentPayload>(KEY_PAYLOAD)!!
 
+    private val _isAccountSelectedFlow = MutableStateFlow(true)
+    val isAccountSelectedFlow: StateFlow<Boolean> = _isAccountSelectedFlow
     private val _onboardingBackgroundState = MutableStateFlow<String?>(null)
     val onboardingBackground = _onboardingBackgroundState
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
@@ -81,14 +82,15 @@ class WelcomeViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
-            val remoteOnboardingConfig: OnboardingConfig? = onboardingInteractor.getConfig()
+            val isAccountSelected = accountRepository.isAccountSelected()
+            _isAccountSelectedFlow.value = isAccountSelected
+
+            val useConfig = onboardingInteractor.getAppVersionSupportedConfig()
                 .onFailure {
                     Log.e("OnboardingScreen", "onboardingInteractor.getConfig() failed: $it")
                     showError(it)
                 }.getOrNull()
 
-            val useConfig = getAppVersionSupportedConfig(remoteOnboardingConfig)
-            val isAccountSelected = accountRepository.isAccountSelected()
             val shouldShowSlides = useConfig != null
                     && (onboardingInteractor.shouldShowWelcomeSlides(useConfig.minVersion) || isAccountSelected.not())
 
@@ -111,16 +113,6 @@ class WelcomeViewModel @Inject constructor(
                     _onboardingFlowState.value = Result.failure(IllegalStateException("Onboarding config is empty"))
                 }
             }
-        }
-    }
-
-    private fun getAppVersionSupportedConfig(config: OnboardingConfig?): OnboardingConfig.OnboardingConfigItem? {
-        val current = AppVersion.current()
-        return config?.configs?.filter {
-            val configAppVersion = AppVersion.fromString(it.minVersion)
-            configAppVersion.major == current.major && configAppVersion.minor == current.minor
-        }?.maxByOrNull {
-            AppVersion.fromString(it.minVersion)
         }
     }
 

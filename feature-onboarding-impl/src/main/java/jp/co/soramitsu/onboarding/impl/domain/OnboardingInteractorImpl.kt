@@ -1,6 +1,7 @@
 package jp.co.soramitsu.onboarding.impl.domain
 
 import jp.co.soramitsu.common.data.storage.Preferences
+import jp.co.soramitsu.common.domain.AppVersion
 import jp.co.soramitsu.onboarding.api.data.OnboardingConfig
 import jp.co.soramitsu.onboarding.api.data.OnboardingRepository
 import jp.co.soramitsu.onboarding.api.domain.OnboardingInteractor
@@ -16,6 +17,19 @@ class OnboardingInteractorImpl(
 
     override suspend fun getConfig(): Result<OnboardingConfig> {
         return onboardingRepository.getConfig()
+    }
+
+    override suspend fun getAppVersionSupportedConfig(): Result<OnboardingConfig.OnboardingConfigItem?> {
+        val appVersion = AppVersion.current()
+
+        return onboardingRepository.getConfig().map {
+            it.configs.filter {
+                val configVersion = AppVersion.fromString(it.minVersion)
+                configVersion.major == appVersion.major && configVersion.minor == appVersion.minor
+            }.maxByOrNull {
+                AppVersion.fromString(it.minVersion)
+            }
+        }
     }
 
     override fun getWelcomeSlidesShownVersion(): String? {

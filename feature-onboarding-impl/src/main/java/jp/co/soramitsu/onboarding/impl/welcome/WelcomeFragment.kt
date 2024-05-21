@@ -116,6 +116,7 @@ class WelcomeFragment : BaseComposeFragment<WelcomeViewModel>() {
             ) {
 
                 OnboardingSplashScreen(
+                    isAccountSelectedFlow = viewModel.isAccountSelectedFlow,
                     listener = viewModel
                 )
 
