@@ -8,9 +8,9 @@ import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
 import jp.co.soramitsu.nft.domain.NFTTransferInteractor
 import jp.co.soramitsu.nft.domain.models.NFT
 import jp.co.soramitsu.nft.impl.domain.usecase.eth.CreateRawEthTransaction
-import jp.co.soramitsu.nft.impl.domain.usecase.eth.estimateEthTransactionNetworkFee
 import jp.co.soramitsu.nft.impl.domain.usecase.eth.ExecuteEthFunction
 import jp.co.soramitsu.nft.impl.domain.usecase.eth.SendRawEthTransaction
+import jp.co.soramitsu.nft.impl.domain.usecase.eth.estimateEthTransactionNetworkFee
 import jp.co.soramitsu.nft.impl.domain.usecase.transfer.NFTAccountBalanceAdapter
 import jp.co.soramitsu.nft.impl.domain.usecase.transfer.NFTTransferAdapter
 import jp.co.soramitsu.nft.impl.domain.utils.nonNullWeb3j
@@ -18,18 +18,18 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.connection.EthereumChainConnection
 import jp.co.soramitsu.runtime.multiNetwork.connection.EthereumConnectionPool
+import jp.co.soramitsu.wallet.impl.data.network.blockchain.subscribeBaseFeePerGas
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.transform
+import kotlinx.coroutines.withContext
 import org.web3j.utils.Numeric
 import java.math.BigDecimal
 import java.math.BigInteger
-import jp.co.soramitsu.wallet.impl.data.network.blockchain.subscribeBaseFeePerGas
 import kotlin.coroutines.CoroutineContext
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.withContext
 
 class NFTTransferInteractorImpl(
     private val accountRepository: AccountRepository,

@@ -20,7 +20,7 @@ suspend fun EthereumChainConnection.estimateEthTransactionNetworkFee(
             ethConnection = this,
             call = call,
             baseFeePerGas = baseFeePerGas,
-            estimateGas =  estimateGas
+            estimateGas = estimateGas
         )
     } else {
         error(
