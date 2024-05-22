@@ -52,7 +52,7 @@ class ProfileFragment : BaseFragment<ProfileViewModel>() {
             profileSoraCard.setOnClickListener { viewModel.onSoraCardClicked() }
             profileWalletConnect.setOnClickListener { viewModel.onWalletConnectClick() }
 
-            viewModel.hasMissingAccountsFlow.observe {
+            viewModel.hasChainsWithNoAccountFlow.observe {
                 missingAccountsIcon.isVisible = it
             }
         }

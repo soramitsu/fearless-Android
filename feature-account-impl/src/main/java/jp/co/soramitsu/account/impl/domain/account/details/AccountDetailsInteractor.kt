@@ -18,8 +18,10 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.defaultChainSort
 import jp.co.soramitsu.shared_utils.scale.EncodableStruct
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 
 class AccountDetailsInteractor(
@@ -55,6 +57,25 @@ class AccountDetailsInteractor(
                 .toSortedMap(compareBy { it.name })
         }
     }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    fun hasChainsWithNoAccount() = accountRepository.selectedMetaAccountFlow()
+        .flatMapLatest { metaAccount ->
+            combine(
+                chainRegistry.currentChains.map { it.sortedWith(chainSort()) },
+                assetNotNeedAccountUseCase.getAssetsMarkedNotNeedFlow(metaAccount.id)
+            ) { chains, assetsMarkedNotNeed ->
+                chains.any { chain ->
+                    chain.assets.any { chainAsset ->
+                        val markedNotNeed = assetsMarkedNotNeed.contains(
+                            AssetKey(metaAccount.id, chain.id, emptyAccountIdValue, chainAsset.id)
+                        )
+                        val hasAccount = !chain.isEthereumBased || metaAccount.ethereumPublicKey != null || metaAccount.hasChainAccount(chain.id)
+                        hasAccount.not() && markedNotNeed.not()
+                    }
+                }
+            }
+        }
 
     private fun createAccountInChain(metaAccount: MetaAccount, chain: Chain, markedNotNeed: Boolean): AccountInChain {
         val address = metaAccount.address(chain)
