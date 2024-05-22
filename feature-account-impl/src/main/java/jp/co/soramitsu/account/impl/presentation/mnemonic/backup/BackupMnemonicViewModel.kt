@@ -94,9 +94,6 @@ class BackupMnemonicViewModel @Inject constructor(
     private val _showInfoEvent = MutableLiveData<Event<Unit>>()
     val showInfoEvent: LiveData<Event<Unit>> = _showInfoEvent
 
-    private val _showInvalidSubstrateDerivationPathError = MutableLiveData<Event<Unit>>()
-    val showInvalidSubstrateDerivationPathError: LiveData<Event<Unit>> = _showInvalidSubstrateDerivationPathError
-
     fun homeButtonClicked() {
         router.backToCreateAccountScreen()
     }
@@ -164,7 +161,6 @@ class BackupMnemonicViewModel @Inject constructor(
 
         val isSubstrateDerivationPathValid = substrateDerivationPath.matches(substrateDerivationPathRegex)
         if (isSubstrateDerivationPathValid.not()) {
-            _showInvalidSubstrateDerivationPathError.value = Event(Unit)
             showError(NotValidDerivationPath(resourceManager))
             return
         }
@@ -212,7 +208,6 @@ class BackupMnemonicViewModel @Inject constructor(
     ) {
         val isSubstrateDerivationPathValid = substrateDerivationPath.matches(substrateDerivationPathRegex)
         if (isSubstrateDerivationPathValid.not()) {
-            _showInvalidSubstrateDerivationPathError.value = Event(Unit)
             showError(NotValidDerivationPath(resourceManager))
             return
         }
