@@ -188,6 +188,7 @@ class RootViewModel @Inject constructor(
     val showConnectingBar: StateFlow<Boolean> = _showConnectingBar
     fun onNetworkAvailable() {
         _showConnectingBar.update { false }
+        externalConnectionRequirementFlow.value = ChainConnection.ExternalRequirement.ALLOWED
         // todo this code triggers redundant requests and balance updates. Needs research
 //        viewModelScope.launch {
 //            checkAppVersion()

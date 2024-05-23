@@ -2,9 +2,9 @@ package jp.co.soramitsu.runtime.multiNetwork.connection
 
 import android.util.Log
 import java.net.URI
-import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicInteger
 import jp.co.soramitsu.common.BuildConfig
-import jp.co.soramitsu.common.data.network.runtime.binding.cast
 import jp.co.soramitsu.common.domain.NetworkStateService
 import jp.co.soramitsu.common.utils.cycle
 import jp.co.soramitsu.core.models.ChainNode
@@ -21,14 +21,18 @@ import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.updateAndGet
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
+import okhttp3.OkHttpClient
 import org.web3j.protocol.Web3j
 import org.web3j.protocol.Web3jService
 import org.web3j.protocol.http.HttpService
@@ -40,37 +44,46 @@ private const val EVM_CONNECTION_TAG = "EVM Connection"
 class EthereumConnectionPool(
     private val networkStateService: NetworkStateService,
 ) {
-    private val poolStateFlow =
-        MutableStateFlow<MutableMap<String, EthereumChainConnection>>(mutableMapOf())
+    private val poolStateFlow = MutableStateFlow<MutableMap<String, EthereumChainConnection>>(mutableMapOf())
+    private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
     suspend fun await(chainId: String): EthereumChainConnection {
-        return poolStateFlow.map { it.getOrDefault(chainId, null) }.first { it != null }.cast()
+        return poolStateFlow.map { it[chainId] }.filterNotNull().first()
     }
 
     fun getOrNull(chainId: String): EthereumChainConnection? {
-        return poolStateFlow.value.getOrDefault(chainId, null)
+        return poolStateFlow.value[chainId]
     }
 
     fun setupConnection(chain: Chain, onSelectedNodeChange: (chainId: ChainId, newNodeUrl: String) -> Unit): EthereumChainConnection {
-        if (poolStateFlow.value.containsKey(chain.id)) {
-            return poolStateFlow.value.getValue(chain.id)
-        } else {
-            poolStateFlow.update { prev ->
-                prev.also {
-                    it[chain.id] = EthereumChainConnection(
-                        chain,
-                        onSelectedNodeChange = onSelectedNodeChange
-                    ) { networkStateService.notifyChainSyncProblem(chain.id) }
-                }
+        val connection = poolStateFlow.updateAndGet { currentPool ->
+            if (currentPool.containsKey(chain.id)) {
+                currentPool
+            } else {
+                val newConnection = EthereumChainConnection(
+                    chain,
+                    onSelectedNodeChange = onSelectedNodeChange
+                ) { networkStateService.notifyConnectionProblem(chain.id) }
+
+                newConnection.statusFlow.onEach { status ->
+                    if (status is EvmConnectionStatus.Connected) {
+                        networkStateService.notifyConnectionSuccess(chain.id)
+                    } else {
+                        networkStateService.notifyConnectionProblem(chain.id)
+                    }
+                }.launchIn(scope)
+
+                currentPool.toMutableMap().apply { put(chain.id, newConnection) }
             }
-            return poolStateFlow.value.getValue(chain.id)
-        }
+        }[chain.id]!!
+
+        return connection
     }
 
     fun stop(chainId: String) {
-        poolStateFlow.update { prev ->
-            prev.also {
-                it.remove(chainId)?.apply { web3j?.shutdown() }
+        poolStateFlow.update { currentPool ->
+            currentPool.toMutableMap().apply {
+                remove(chainId)?.apply { web3j?.shutdown() }
             }
         }
     }
@@ -94,7 +107,6 @@ class EthereumChainConnection(
         private const val WSS_NODE_PREFIX = "wss"
     }
 
-
     private val nodes: List<ChainNode> = formatWithApiKeys(chain)
     private var nodesCycle = nodes.cycle().iterator()
 
@@ -104,11 +116,7 @@ class EthereumChainConnection(
 
     val statusFlow = MutableStateFlow<EvmConnectionStatus?>(null)
 
-    private val nodesAttempts = ConcurrentHashMap<String, Int>().also {
-        nodes.forEach { node ->
-            it[node.url] = 0
-        }
-    }
+    private val nodesAttempts = nodes.associate { it.url to AtomicInteger(0) }
 
     init {
         require(chain.isEthereumChain)
@@ -124,13 +132,11 @@ class EthereumChainConnection(
                     }
                     onSelectedNodeChange(chain.id, url)
                 }
-
                 is EvmConnectionStatus.Error,
                 is EvmConnectionStatus.Closed,
                 null -> {
                     connectNextNode()
                 }
-
                 else -> Unit
             }
         }.launchIn(scope)
@@ -139,20 +145,20 @@ class EthereumChainConnection(
     private fun connectNextNode() {
         scope.launch {
             supervisorScope {
-                if (nodesAttempts.all { it.value >= 5 }) {
+                if (nodesAttempts.all { it.value.get() >= 5 }) {
                     allNodesHaveFailed()
                     return@supervisorScope
                 }
+                delay(1000) // delay between reconnects
+
                 val nextNode = nodesCycle.next()
 
-                if (nodesAttempts.getOrDefault(nextNode.url, 0) >= 5) {
+                if ((nodesAttempts[nextNode.url]?.get() ?: 0) >= 5) {
                     statusFlow.update { null }
                     return@supervisorScope
                 }
 
-                if (connection != null && connection is EVMConnection.WSS && (connection as EVMConnection.WSS).socket.isOpen) {
-                    connection?.web3j?.shutdown()
-                }
+                connection?.web3j?.shutdown() // shutdown previous connection
 
                 when {
                     nextNode.url.startsWith("wss") -> {
@@ -180,7 +186,7 @@ class EthereumChainConnection(
                     }
                 }
 
-                nodesAttempts[nextNode.url] = (nodesAttempts[nextNode.url] ?: 0) + 1
+                nodesAttempts[nextNode.url]?.incrementAndGet()
             }
         }
     }
@@ -218,7 +224,15 @@ sealed class EVMConnection(
         }
 
     class HTTP(url: String, onStatusChanged: (EvmConnectionStatus) -> Unit) :
-        EVMConnection(url, HttpService(url, false), onStatusChanged) {
+        EVMConnection(
+            url, HttpService(
+                url, OkHttpClient.Builder()
+                    .connectTimeout(60L, TimeUnit.SECONDS)
+                    .writeTimeout(60L, TimeUnit.SECONDS)
+                    .readTimeout(60L, TimeUnit.SECONDS)
+                    .retryOnConnectionFailure(true).build()
+            ), onStatusChanged
+        ) {
         init {
             onStatusChanged(EvmConnectionStatus.Connecting(url))
             runCatching { web3j.ethBlockNumber().send() }
