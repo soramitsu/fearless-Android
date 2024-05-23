@@ -723,6 +723,7 @@
   <string name="send_fund">Enviar fundos</string>
   <string name="send_to">Enviar para</string>
   <string name="sending">Enviando...</string>
+  <string name="settings_hide_zero_balances">Ocultar saldos nulos</string>
   <string name="share_referral_code">Partilhar código de referência</string>
   <string name="social_media">Mídia social</string>
   <string name="sora_card_annual_service_fee">€0 de taxa de serviço anual</string>
@@ -1047,6 +1048,7 @@
   <string name="validators_list_empty_message">Não foram encontrados validadores</string>
   <string name="view_in">Ver em %s</string>
   <string name="view_wallet">Ver carteira</string>
+  <string name="wallet_all_assets_hidden">Você escondeu todos os ativos</string>
   <string name="wallet_asset_buy_with">Comprar %s com</string>
   <string name="wallet_asset_receive">Receber</string>
   <string name="wallet_asset_receive_template">Receber %s</string>

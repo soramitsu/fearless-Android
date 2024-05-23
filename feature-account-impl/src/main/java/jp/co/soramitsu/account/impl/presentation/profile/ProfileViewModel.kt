@@ -11,6 +11,7 @@ import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.TotalBalanceUseCase
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
+import jp.co.soramitsu.account.impl.domain.account.details.AccountDetailsInteractor
 import jp.co.soramitsu.account.impl.presentation.AccountRouter
 import jp.co.soramitsu.account.impl.presentation.language.mapper.mapLanguageToLanguageModel
 import jp.co.soramitsu.common.address.AddressIconGenerator
@@ -22,14 +23,11 @@ import jp.co.soramitsu.common.data.network.coingecko.FiatCurrency
 import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
 import jp.co.soramitsu.common.domain.SelectedFiat
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
-import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.soracard.api.domain.SoraCardInteractor
 import jp.co.soramitsu.soracard.impl.presentation.SoraCardItemViewState
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.firstOrNull
@@ -43,7 +41,7 @@ private const val AVATAR_SIZE_DP = 32
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
     private val interactor: AccountInteractor,
-    private val walletInteractor: WalletInteractor,
+    private val accountDetailsInteractor: AccountDetailsInteractor,
     private val soraCardInteractor: SoraCardInteractor,
     private val router: AccountRouter,
     private val addressIconGenerator: AddressIconGenerator,
@@ -76,9 +74,8 @@ class ProfileViewModel @Inject constructor(
 
     val selectedFiatLiveData: LiveData<String> = selectedFiat.flow().asLiveData().map { it.uppercase() }
 
-    val hasMissingAccountsFlow = walletInteractor.assetsFlow().map {
-        it.any { it.hasAccount.not() }
-    }.stateIn(this, SharingStarted.Eagerly, false)
+    val hasChainsWithNoAccountFlow = accountDetailsInteractor.hasChainsWithNoAccount()
+        .stateIn(this, SharingStarted.Eagerly, false)
 
 //    private val soraCardState = soraCardInteractor.subscribeSoraCardInfo().map {
 //        val kycStatus = it?.kycStatus?.let(::mapKycStatus)

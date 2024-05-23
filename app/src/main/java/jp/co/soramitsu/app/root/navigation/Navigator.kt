@@ -1020,8 +1020,8 @@ class Navigator :
     }
 
     @SuppressLint("RestrictedApi")
-    override fun openOperationSuccessAndPopUpToNearestRelatedScreen(operationHash: String?, chainId: ChainId?, customMessage: String?) {
-        val bundle = SuccessFragment.getBundle(operationHash, chainId, customMessage)
+    override fun openOperationSuccessAndPopUpToNearestRelatedScreen(operationHash: String?, chainId: ChainId?, customMessage: String?, customTitle: String?) {
+        val bundle = SuccessFragment.getBundle(operationHash, chainId, customMessage, customTitle)
 
         val latestAvailableWalletConnectRelatedDestinationId =
             navController?.currentBackStack?.replayCache?.firstOrNull()?.last {

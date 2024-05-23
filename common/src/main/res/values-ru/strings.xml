@@ -205,6 +205,12 @@
   <string name="common_module">Модуль</string>
   <string name="common_network">Сеть</string>
   <string name="common_network_fee">Комиссия сети</string>
+  <plurals name="common_networks_format">
+    <item quantity="one">%d сеть</item>
+    <item quantity="few">%d сети</item>
+    <item quantity="many">%d сетей</item>
+    <item quantity="other">%d сеть</item>
+  </plurals>
   <string name="common_next">Далее</string>
   <string name="common_no">Нет</string>
   <string name="common_no_screenshot_message">Не делайте скриншоты, которые могут быть собраны сторонними вредоносными программами</string>
@@ -608,6 +614,7 @@
   <string name="select_validators_disclaimer">DISCLAIMER: Предложения алгоритмических валидаторов не являются финансовыми консультациями или советами. Стейкинг - это деятельность с высоким риском, и предложения алгоритмических валидаторов не обязательно снижают этот риск. Валидатор, предложенный алгоритмом, все равно может быть слэширован. Валидатор, предложенный алгоритмом, также может изменить свои параметры (например, размер комиссии и т.д.) в любое время после того, как он был предложен и/или выбран. Вы можете потерять токены или вознаграждения по этим или другим причинам. Ставьте токены и используйте предложения валидаторов только по своему усмотрению, после проведения должной проверки и тщательного рассмотрения сопутствующих рисков.</string>
   <string name="send_fund">Отправить Средства</string>
   <string name="sending">Отправка</string>
+  <string name="settings_hide_zero_balances">Скрыть нулевые балансы</string>
   <string name="share_referral_code">Поделиться реферальным кодом</string>
   <string name="social_media">Социальные сети/медиа</string>
   <string name="sora_card_annual_service_fee">0 € годовой сервисный сбор</string>

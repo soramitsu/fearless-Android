@@ -108,10 +108,6 @@ class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>(R.layout.fr
             showMnemonicInfoDialog()
         }
 
-        viewModel.showInvalidSubstrateDerivationPathError.observeEvent {
-            showError(resources.getString(R.string.common_invalid_hard_soft_numeric_password_message))
-        }
-
         viewModel.chainAccountImportType.observe(binding.advancedBlockView::configureForMnemonic)
     }
 
