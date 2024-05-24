@@ -276,7 +276,7 @@ class ChainRegistry @Inject constructor(
 
     override fun getConnection(chainId: String) = connectionPool.getConnectionOrThrow(chainId)
 
-    override suspend fun awaitConnection(chainId: ChainId) = connectionPool.awaitConnection(chainId)
+    suspend fun awaitConnection(chainId: ChainId) = connectionPool.awaitConnection(chainId)
     @Deprecated(
         "Since we have ethereum chains, which don't have runtime, we must use the function with nullable return value",
         ReplaceWith("getRuntimeOrNull(chainId)")
