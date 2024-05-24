@@ -86,9 +86,7 @@ class NetworkModule {
 
     @Provides
     @Singleton
-    fun provideSocketFactory() = WebSocketFactory().also {
-        it.connectionTimeout = 10000
-    }
+    fun provideSocketFactory() = WebSocketFactory()
 
     @Provides
     @Singleton
