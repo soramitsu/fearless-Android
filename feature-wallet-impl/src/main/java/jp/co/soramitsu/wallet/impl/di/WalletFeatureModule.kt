@@ -93,8 +93,6 @@ import jp.co.soramitsu.xcm.XcmService
 import jp.co.soramitsu.xcm.domain.XcmEntitiesFetcher
 import jp.co.soramitsu.xnetworking.basic.networkclient.SoramitsuNetworkClient
 import jp.co.soramitsu.xnetworking.fearlesswallet.txhistory.client.TxHistoryClientForFearlessWalletFactory
-import jp.co.soramitsu.xnetworking.sorawallet.mainconfig.SoraRemoteConfigBuilder
-import jp.co.soramitsu.xnetworking.sorawallet.mainconfig.SoraRemoteConfigProvider
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -235,16 +233,12 @@ class WalletFeatureModule {
         walletOperationsHistoryApi: OperationsHistoryApi,
         chainRegistry: ChainRegistry,
         soramitsuNetworkClient: SoramitsuNetworkClient,
-        txHistoryClientForFearlessWalletFactory: TxHistoryClientForFearlessWalletFactory,
-        @Named("prod") soraProdRemoteConfigBuilder: SoraRemoteConfigBuilder,
-        @Named("stage") soraStageRemoteConfigBuilder: SoraRemoteConfigBuilder
+        txHistoryClientForFearlessWalletFactory: TxHistoryClientForFearlessWalletFactory
     ) = HistorySourceProvider(
         walletOperationsHistoryApi,
         chainRegistry,
         soramitsuNetworkClient,
-        txHistoryClientForFearlessWalletFactory,
-        soraProdRemoteConfigBuilder,
-        soraStageRemoteConfigBuilder
+        txHistoryClientForFearlessWalletFactory
     )
 
     @Provides
@@ -464,36 +458,6 @@ class WalletFeatureModule {
     fun provideTxHistoryClientForFearlessWalletFactory(
         @ApplicationContext context: Context
     ): TxHistoryClientForFearlessWalletFactory = TxHistoryClientForFearlessWalletFactory(context)
-
-    @Singleton
-    @Provides
-    @Named("prod")
-    fun provideProdSoraRemoteConfigBuilder(
-        client: SoramitsuNetworkClient,
-        @ApplicationContext context: Context
-    ): SoraRemoteConfigBuilder {
-        return SoraRemoteConfigProvider(
-            context = context,
-            client = client,
-            commonUrl = BuildConfig.SORA_CONFIG_COMMON_PROD,
-            mobileUrl = BuildConfig.SORA_CONFIG_MOBILE_PROD
-        ).provide()
-    }
-
-    @Singleton
-    @Provides
-    @Named("stage")
-    fun provideStageSoraRemoteConfigBuilder(
-        client: SoramitsuNetworkClient,
-        @ApplicationContext context: Context
-    ): SoraRemoteConfigBuilder {
-        return SoraRemoteConfigProvider(
-            context = context,
-            client = client,
-            commonUrl = BuildConfig.SORA_CONFIG_COMMON_STAGE,
-            mobileUrl = BuildConfig.SORA_CONFIG_MOBILE_STAGE
-        ).provide()
-    }
 
     @Provides
     fun provideAccountListingMixin(

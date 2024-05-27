@@ -10,13 +10,10 @@ import jp.co.soramitsu.wallet.impl.domain.model.Operation
 import jp.co.soramitsu.xnetworking.basic.networkclient.SoramitsuNetworkClient
 import jp.co.soramitsu.xnetworking.basic.txhistory.TxHistoryItem
 import jp.co.soramitsu.xnetworking.fearlesswallet.txhistory.client.TxHistoryClientForFearlessWalletFactory
-import jp.co.soramitsu.xnetworking.sorawallet.mainconfig.SoraRemoteConfigBuilder
 
 class SoraHistorySource(
     soramitsuNetworkClient: SoramitsuNetworkClient,
-    soraTxHistoryFactory: TxHistoryClientForFearlessWalletFactory,
-    private val soraProdRemoteConfigBuilder: SoraRemoteConfigBuilder,
-    private val soraStageRemoteConfigBuilder: SoraRemoteConfigBuilder
+    soraTxHistoryFactory: TxHistoryClientForFearlessWalletFactory
 ) : HistorySource {
 
     private val client = soraTxHistoryFactory.createSubSquid(soramitsuNetworkClient, 100)
