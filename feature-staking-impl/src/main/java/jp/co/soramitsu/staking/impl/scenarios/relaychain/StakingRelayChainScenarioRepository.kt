@@ -1,6 +1,5 @@
 package jp.co.soramitsu.staking.impl.scenarios.relaychain
 
-import android.util.Log
 import java.math.BigInteger
 import jp.co.soramitsu.common.data.network.runtime.binding.BinderWithType
 import jp.co.soramitsu.common.data.network.runtime.binding.NonNullBinderWithType
@@ -81,6 +80,7 @@ import kotlin.math.max
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.Flow
@@ -88,11 +88,9 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.mapLatest
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withContext
 
@@ -206,6 +204,7 @@ class StakingRelayChainScenarioRepository(
         )
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     fun legacyElectedExposuresInActiveEra(chainId: ChainId): Flow<Map<String, LegacyExposure>> =
         observeActiveEraIndex(chainId)
             .filter { it.isNotZero() }
@@ -461,6 +460,7 @@ class StakingRelayChainScenarioRepository(
         }
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     fun stakingStateFlow(
         chain: Chain,
         chainAsset: Asset,
@@ -612,7 +612,7 @@ class StakingRelayChainScenarioRepository(
         return getLegacyElectedValidatorsExposure(chainId, era)
     }
 
-    private suspend fun isLegacyErasStakersSchema(chainId: ChainId): Boolean {
+    suspend fun isLegacyErasStakersSchema(chainId: ChainId): Boolean {
         val runtime = chainRegistry.getRuntime(chainId)
         return runtime.metadata.stakingOrNull()?.storageOrNull("ErasStakersPaged") == null
     }
