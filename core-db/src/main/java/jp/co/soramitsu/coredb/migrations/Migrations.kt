@@ -8,6 +8,7 @@ val Migration_65_66 = object : Migration(65, 66) {
         db.execSQL("ALTER TABLE meta_accounts ADD COLUMN `initialized` INTEGER NOT NULL DEFAULT 0")
         db.execSQL("ALTER TABLE chain_accounts ADD COLUMN `initialized` INTEGER NOT NULL DEFAULT 0")
         db.execSQL("DELETE FROM assets")
+        db.execSQL("ALTER TABLE chains ADD COLUMN `identityChain` TEXT NULL DEFAULT NULL")
     }
 }
 

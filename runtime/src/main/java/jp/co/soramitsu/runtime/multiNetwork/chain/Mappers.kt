@@ -155,7 +155,8 @@ fun ChainRemote.toChain(): Chain {
         chainlinkProvider = CHAINLINK_PROVIDER_OPTION in optionsOrEmpty,
         supportNft = NFT_OPTION in optionsOrEmpty,
         paraId = this.paraId,
-        isUsesAppId = USES_APP_ID_OPTION in optionsOrEmpty
+        isUsesAppId = USES_APP_ID_OPTION in optionsOrEmpty,
+        identityChain = identityChain
     )
 }
 
@@ -264,7 +265,8 @@ fun mapChainLocalToChain(chainLocal: JoinedChainInfo): Chain {
             paraId = paraId,
             chainlinkProvider = isChainlinkProvider,
             supportNft = supportNft,
-            isUsesAppId = isUsesAppId
+            isUsesAppId = isUsesAppId,
+            identityChain = identityChain
         )
     }
 }
@@ -337,7 +339,8 @@ fun mapChainToChainLocal(chain: Chain): JoinedChainInfo {
             paraId = paraId,
             isChainlinkProvider = chainlinkProvider,
             supportNft = supportNft,
-            isUsesAppId = isUsesAppId
+            isUsesAppId = isUsesAppId,
+            identityChain = identityChain
         )
     }
 

@@ -52,7 +52,8 @@ data class Chain(
     val isEthereumChain: Boolean,
     val chainlinkProvider: Boolean,
     val supportNft: Boolean,
-    val isUsesAppId: Boolean
+    val isUsesAppId: Boolean,
+    val identityChain: String?
 ) : IChain {
     val assetsById = assets.associateBy(CoreAsset::id)
 

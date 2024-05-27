@@ -94,7 +94,11 @@ class ChainRegistry @Inject constructor(
             val chainsWithStaking = chains.filter {
                 it.assets.any { asset -> asset.staking == Asset.StakingType.PARACHAIN || asset.staking == Asset.StakingType.RELAYCHAIN || asset.supportStakingPool }
             }
-            (popularChains + enabledChains + chainsWithCrowdloans + chainsWithStaking).toSet()
+            val identityHolders =
+                chains.filter { chain -> chain.identityChain != null }.map { it.identityChain }
+                    .mapNotNull { identityChain -> chains.find { it.id == identityChain } }
+
+            (popularChains + enabledChains + chainsWithCrowdloans + chainsWithStaking + identityHolders).toSet()
                 .filter { /*it.disabled*/ it.nodes.isNotEmpty() }
         }
         .diffed()

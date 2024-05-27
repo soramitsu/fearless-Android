@@ -33,8 +33,13 @@ class IdentityRepositoryImpl(
         chain: Chain,
         accountIdsHex: List<String>
     ): AccountIdMap<Identity?> = withContext(Dispatchers.Default) {
-        val socketService = chainRegistry.awaitConnection(chain.id).socketService
-        val runtime = chainRegistry.getRuntime(chain.id)
+        val (socketService, runtime) = if( chain.identityChain != null ) {
+            chainRegistry.awaitConnection(chain.identityChain!!).socketService to
+            chainRegistry.getRuntime(chain.identityChain!!)
+        } else {
+            chainRegistry.awaitConnection(chain.id).socketService to
+            chainRegistry.getRuntime(chain.id)
+        }
 
         val identityModule = runtime.metadata.module("Identity")
 
