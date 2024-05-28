@@ -41,16 +41,17 @@ class SoraHistorySource(
         }.getOrNull()
 
         val soraHistoryItems: List<TxHistoryItem> = soraHistory?.items.orEmpty()
-        val soraOperations = runCatching {
-            soraHistoryItems.mapNotNull {
-                it.toOperation(
-                    chain,
-                    chainAsset,
-                    accountAddress,
-                    filters
-                )
+        val soraOperations =
+            soraHistoryItems.mapNotNull { item ->
+                runCatching {
+                    item.toOperation(
+                        chain,
+                        chainAsset,
+                        accountAddress,
+                        filters
+                    )
+                }.getOrNull()
             }
-        }.getOrNull() ?: emptyList()
 
         val nextCursor = if (soraHistory?.endReached == true) null else page.inc().toString()
         return CursorPage(nextCursor, soraOperations)
