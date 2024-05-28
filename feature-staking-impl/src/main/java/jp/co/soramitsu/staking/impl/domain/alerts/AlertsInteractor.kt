@@ -132,9 +132,12 @@ class AlertsInteractor(
 
     private fun produceWaitingNextEraAlert(context: AlertContext) = requireState(context.stakingState) { nominatorState: StakingState.Stash.Nominator ->
         Alert.WaitingForNextEra.takeIf {
-            val isStakingActive = if(context.isLegacyErasStakersSchema) context.isStakingActive(nominatorState.stashId) else true
-            // staking is inactive and there is pending change
-            isStakingActive.not() && nominatorState.nominations.isWaiting(context.activeEra)
+            return@takeIf if(context.isLegacyErasStakersSchema) {
+                // staking is inactive and there is pending change
+                context.isStakingActive(nominatorState.stashId).not() && nominatorState.nominations.isWaiting(context.activeEra)
+            } else {
+                nominatorState.nominations.isWaiting(context.activeEra)
+            }
         }
     }
 
