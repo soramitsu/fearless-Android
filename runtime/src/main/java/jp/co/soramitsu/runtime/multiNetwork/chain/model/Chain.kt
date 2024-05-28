@@ -107,6 +107,7 @@ data class Chain(
         if (chainlinkProvider != other.chainlinkProvider) return false
         if (supportNft != other.supportNft) return false
         if (isUsesAppId != other.isUsesAppId) return false
+        if (identityChain != other.identityChain) return false
 
         // custom comparison logic
         val defaultNodes = nodes.filter { it.isDefault }
@@ -140,6 +141,7 @@ data class Chain(
         result = 31 * result + chainlinkProvider.hashCode()
         result = 31 * result + supportNft.hashCode()
         result = 31 * result + isUsesAppId.hashCode()
+        result = 31 * result + (identityChain?.hashCode() ?: 0)
         return result
     }
 }
