@@ -444,7 +444,7 @@ class StakingRelayChainScenarioRepository(
         val runtime = runtimeFor(chainId)
 
         return runtime.metadata.staking().storageOrNull(storageName)?.let { storageEntry ->
-            localStorage.query(
+            remoteStorage.query(
                 keyBuilder = { storageEntry.storageKey() },
                 binding = { scale, _ ->
                     scale?.let {
