@@ -78,7 +78,11 @@ data class Chain(
         enum class Type {
             POLKASCAN, SUBSCAN, ETHERSCAN, OKLINK, ZETA, REEF, UNKNOWN;
 
-            val capitalizedName: String = name.lowercase().replaceFirstChar { it.titlecase() }
+            val capitalizedName: String
+                get() = when (this) {
+                    OKLINK -> "okx explorer"
+                    else -> name
+                }.lowercase().replaceFirstChar { it.titlecase() }
         }
     }
 

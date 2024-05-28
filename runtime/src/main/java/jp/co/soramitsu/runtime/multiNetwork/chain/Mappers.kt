@@ -42,6 +42,7 @@ private fun mapExplorerTypeRemoteToExplorerType(explorer: String) = when (explor
     "subscan" -> Chain.Explorer.Type.SUBSCAN
     "etherscan" -> Chain.Explorer.Type.ETHERSCAN
     "oklink" -> Chain.Explorer.Type.OKLINK
+    "okx explorer" -> Chain.Explorer.Type.OKLINK
     "zeta" -> Chain.Explorer.Type.ZETA
     "reef" -> Chain.Explorer.Type.REEF
     else -> Chain.Explorer.Type.UNKNOWN
