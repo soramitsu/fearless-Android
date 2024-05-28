@@ -79,10 +79,11 @@ data class Chain(
             POLKASCAN, SUBSCAN, ETHERSCAN, OKLINK, ZETA, REEF, UNKNOWN;
 
             val capitalizedName: String
-                get() = when (this) {
-                    OKLINK -> "okx explorer"
-                    else -> name
-                }.lowercase().replaceFirstChar { it.titlecase() }
+                get() = if (this == OKLINK) {
+                    "OKX explorer"
+                } else {
+                    name.lowercase().replaceFirstChar { it.titlecase() }
+                }
         }
     }
 
