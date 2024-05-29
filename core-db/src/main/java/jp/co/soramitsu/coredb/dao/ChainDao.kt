@@ -172,9 +172,8 @@ abstract class ChainDao {
         """
             SELECT c.*, a.*, tp.* FROM chains c
             JOIN chain_assets ca ON ca.chainId = c.id AND ca.symbol in (:assetSymbol, '$xcPrefix'||:assetSymbol)
-            LEFT JOIN assets a ON a.chainId = c.id AND a.id = ca.id
+            LEFT JOIN assets a ON a.chainId = c.id AND a.id = ca.id AND a.metaId = :accountMetaId AND a.enabled = 1
             LEFT JOIN token_price tp ON tp.priceId = a.tokenPriceId
-            AND a.metaId = :accountMetaId
         """
     )
     protected abstract fun observeChainsWithBalanceByName(

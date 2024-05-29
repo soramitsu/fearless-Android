@@ -2,15 +2,15 @@ package jp.co.soramitsu.common.domain
 
 import jp.co.soramitsu.common.BuildConfig
 
-data class AppVersion(val major: Int, val minor: Int, val buildNum: Int) {
+data class AppVersion(val major: Int, val minor: Int, val buildNum: Int) : Comparable<AppVersion> {
 
     companion object {
         fun fromString(appVersionName: String): AppVersion {
             return appVersionName.split(".").let {
                 AppVersion(
-                    major = it[0].toIntOrNull() ?: 0,
-                    minor = it[1].toIntOrNull() ?: 0,
-                    buildNum = it[2].toIntOrNull() ?: 0
+                    major = it.getOrNull(0)?.toIntOrNull() ?: 0,
+                    minor = it.getOrNull(1)?.toIntOrNull() ?: 0,
+                    buildNum = it.getOrNull(2)?.toIntOrNull() ?: 0
                 )
             }
         }
@@ -29,6 +29,13 @@ data class AppVersion(val major: Int, val minor: Int, val buildNum: Int) {
                 }
             }
         }
+    }
+
+    override fun compareTo(other: AppVersion): Int = when {
+        major != other.major -> major - other.major
+        minor != other.minor -> minor - other.minor
+        buildNum != other.buildNum -> buildNum - other.buildNum
+        else -> 0
     }
 }
 

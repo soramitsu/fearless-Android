@@ -7,7 +7,6 @@ import jp.co.soramitsu.common.data.network.config.AppConfigRemote
 import jp.co.soramitsu.common.data.network.runtime.binding.EqAccountInfo
 import jp.co.soramitsu.common.data.network.runtime.binding.EqOraclePricePoint
 import jp.co.soramitsu.core.models.IChain
-import jp.co.soramitsu.coredb.model.AssetLocal
 import jp.co.soramitsu.coredb.model.AssetUpdateItem
 import jp.co.soramitsu.coredb.model.PhishingLocal
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
@@ -43,13 +42,6 @@ interface WalletRepository {
         chainAsset: CoreAsset,
         minSupportedVersion: String?
     ): Asset?
-
-    suspend fun updateAssetHidden(
-        metaId: Long,
-        accountId: AccountId,
-        isHidden: Boolean,
-        chainAsset: CoreAsset
-    )
 
     suspend fun getTransferFee(
         chain: Chain,
@@ -99,8 +91,6 @@ interface WalletRepository {
 
     suspend fun getRemoteConfig(): Result<AppConfigRemote>
 
-    fun chainRegistrySyncUp()
-
     suspend fun getSingleAssetPriceCoingecko(priceId: String, currency: String): BigDecimal?
     suspend fun getControllerAccount(chainId: ChainId, accountId: AccountId): AccountId?
     suspend fun getStashAccount(chainId: ChainId, accountId: AccountId): AccountId?
@@ -116,4 +106,5 @@ interface WalletRepository {
     suspend fun getVestingLockedAmount(chainId: ChainId): BigInteger?
     suspend fun estimateClaimRewardsFee(chainId: ChainId): BigInteger
     suspend fun claimRewards(chain: IChain, accountId: AccountId): Result<String>
+    suspend fun updateAssetsHidden(state: List<AssetUpdateItem>)
 }

@@ -10,13 +10,10 @@ import jp.co.soramitsu.wallet.impl.domain.model.Operation
 import jp.co.soramitsu.xnetworking.basic.networkclient.SoramitsuNetworkClient
 import jp.co.soramitsu.xnetworking.basic.txhistory.TxHistoryItem
 import jp.co.soramitsu.xnetworking.fearlesswallet.txhistory.client.TxHistoryClientForFearlessWalletFactory
-import jp.co.soramitsu.xnetworking.sorawallet.mainconfig.SoraRemoteConfigBuilder
 
 class SoraHistorySource(
     soramitsuNetworkClient: SoramitsuNetworkClient,
-    soraTxHistoryFactory: TxHistoryClientForFearlessWalletFactory,
-    private val soraProdRemoteConfigBuilder: SoraRemoteConfigBuilder,
-    private val soraStageRemoteConfigBuilder: SoraRemoteConfigBuilder
+    soraTxHistoryFactory: TxHistoryClientForFearlessWalletFactory
 ) : HistorySource {
 
     private val client = soraTxHistoryFactory.createSubSquid(soramitsuNetworkClient, 100)
@@ -44,16 +41,17 @@ class SoraHistorySource(
         }.getOrNull()
 
         val soraHistoryItems: List<TxHistoryItem> = soraHistory?.items.orEmpty()
-        val soraOperations = runCatching {
-            soraHistoryItems.mapNotNull {
-                it.toOperation(
-                    chain,
-                    chainAsset,
-                    accountAddress,
-                    filters
-                )
+        val soraOperations =
+            soraHistoryItems.mapNotNull { item ->
+                runCatching {
+                    item.toOperation(
+                        chain,
+                        chainAsset,
+                        accountAddress,
+                        filters
+                    )
+                }.getOrNull()
             }
-        }.getOrNull() ?: emptyList()
 
         val nextCursor = if (soraHistory?.endReached == true) null else page.inc().toString()
         return CursorPage(nextCursor, soraOperations)

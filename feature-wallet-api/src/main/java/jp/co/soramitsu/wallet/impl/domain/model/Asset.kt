@@ -6,7 +6,9 @@ import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.common.model.AssetKey
 import jp.co.soramitsu.common.utils.applyFiatRate
 import jp.co.soramitsu.common.utils.formatFiat
+import jp.co.soramitsu.common.utils.lessThan
 import jp.co.soramitsu.common.utils.orZero
+import jp.co.soramitsu.common.utils.positiveOrNull
 import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.shared_utils.runtime.AccountId
 import jp.co.soramitsu.core.models.Asset as CoreAsset
@@ -70,7 +72,7 @@ data class Asset(
         )
     }
 
-    private val free = token.amountFromPlanks(freeInPlanks.orZero())
+    private val free = token.amountFromPlanks(freeInPlanks.positiveOrNull().orZero())
     val reserved = token.amountFromPlanks(reservedInPlanks.orZero())
     private val miscFrozen = token.amountFromPlanks(miscFrozenInPlanks.orZero())
     private val feeFrozen = token.amountFromPlanks(feeFrozenInPlanks.orZero())
@@ -82,7 +84,7 @@ data class Asset(
     val availableForStaking: BigDecimal = maxOf(free - frozen, BigDecimal.ZERO)
 
     val transferable = free - locked
-    val transferableInPlanks = freeInPlanks?.let { it - miscFrozenInPlanks.orZero().max(feeFrozenInPlanks.orZero()) }.orZero()
+    val transferableInPlanks = freeInPlanks.positiveOrNull()?.let { it - miscFrozenInPlanks.orZero().max(feeFrozenInPlanks.orZero()) }.orZero()
 
     val isAssetFrozen = status == STATUS_FROZEN
     val sendAvailable: BigDecimal = if (isAssetFrozen) BigDecimal.ZERO else transferable
@@ -103,4 +105,10 @@ data class Asset(
 fun calculateTotalBalance(
     freeInPlanks: BigInteger?,
     reservedInPlanks: BigInteger?
-) = freeInPlanks?.let { freeInPlanks + reservedInPlanks.orZero() }
+): BigInteger? {
+    return if(freeInPlanks != null && freeInPlanks.lessThan(BigInteger.ZERO)) {
+        BigInteger.ZERO
+    } else {
+        freeInPlanks?.let { freeInPlanks + reservedInPlanks.orZero() }
+    }
+}

@@ -11,6 +11,7 @@ import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.core.model.Language
 import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
@@ -19,7 +20,8 @@ import kotlinx.coroutines.withContext
 
 class AccountInteractorImpl(
     private val accountRepository: AccountRepository,
-    private val fileProvider: FileProvider
+    private val fileProvider: FileProvider,
+    private val context: CoroutineContext = Dispatchers.Default
 ) : AccountInteractor {
 
     override suspend fun generateMnemonic(): List<String> {
@@ -224,7 +226,7 @@ class AccountInteractorImpl(
 
     override fun selectedMetaAccountFlow() = accountRepository.selectedMetaAccountFlow()
 
-    override suspend fun selectedMetaAccount() = accountRepository.getSelectedMetaAccount()
+    override suspend fun selectedMetaAccount() = withContext(context) { accountRepository.getSelectedMetaAccount() }
 
     override suspend fun selectedLightMetaAccount() =
         accountRepository.getSelectedLightMetaAccount()

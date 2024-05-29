@@ -2,6 +2,8 @@ package jp.co.soramitsu.app.root.domain
 
 import com.walletconnect.web3.wallet.client.Web3Wallet
 import jp.co.soramitsu.account.api.domain.PendulumPreInstalledAccountsScenario
+import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.account.impl.domain.WalletSyncService
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.appConfig
 import jp.co.soramitsu.common.domain.model.AppConfig
@@ -10,10 +12,13 @@ import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.core.updater.UpdateSystem
 import jp.co.soramitsu.core.updater.Updater
+import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.wallet.impl.data.buyToken.ExternalProvider
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.withContext
 
@@ -21,10 +26,26 @@ class RootInteractor(
     private val updateSystem: UpdateSystem,
     private val walletRepository: WalletRepository,
     private val pendulumPreInstalledAccountsScenario: PendulumPreInstalledAccountsScenario,
-    private val preferences: Preferences
+    private val preferences: Preferences,
+    private val accountRepository: AccountRepository,
+    private val walletSyncService: WalletSyncService,
+    private val chainRegistry: ChainRegistry,
 ) {
+    suspend fun syncChainsConfigs(): Result<Unit> {
+        return withContext(Dispatchers.Default) {
+            return@withContext chainRegistry.syncConfigs()
+        }
+    }
 
-    fun runBalancesUpdate(): Flow<Updater.SideEffect> = updateSystem.start().inBackground()
+    fun runWalletsSync() {
+        walletSyncService.start()
+    }
+
+    suspend fun runBalancesUpdate(): Flow<Updater.SideEffect> = withContext(Dispatchers.Default) {
+        // await all accounts initialized
+        accountRepository.allMetaAccountsFlow().filter { accounts -> accounts.all { it.initialized } }.filter { it.isNotEmpty() }.first()
+        return@withContext updateSystem.start().inBackground()
+    }
 
     fun isBuyProviderRedirectLink(link: String) = ExternalProvider.REDIRECT_URL_BASE in link
 
@@ -50,9 +71,9 @@ class RootInteractor(
         }
     }
 
-    fun chainRegistrySyncUp() = walletRepository.chainRegistrySyncUp()
+    fun chainRegistrySyncUp() = chainRegistry.syncUp()
 
-    suspend fun fetchFeatureToggle() = withContext(Dispatchers.Default){ pendulumPreInstalledAccountsScenario.fetchFeatureToggle() }
+    suspend fun fetchFeatureToggle() = withContext(Dispatchers.Default) { pendulumPreInstalledAccountsScenario.fetchFeatureToggle() }
 
     suspend fun getPendingListOfSessionRequests(topic: String) = withContext(Dispatchers.Default){ Web3Wallet.getPendingListOfSessionRequests(topic) }
 }

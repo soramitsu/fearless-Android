@@ -15,6 +15,7 @@ import jp.co.soramitsu.staking.impl.presentation.common.SelectValidatorFlowState
 import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSharedStateProvider
 import jp.co.soramitsu.staking.impl.scenarios.StakingPoolInteractor
 import jp.co.soramitsu.wallet.api.domain.ExistentialDepositUseCase
+import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -22,6 +23,7 @@ import kotlinx.coroutines.flow.stateIn
 
 @HiltViewModel
 class ConfirmCreatePoolViewModel @Inject constructor(
+    walletInteractor: WalletInteractor,
     existentialDepositUseCase: ExistentialDepositUseCase,
     poolSharedStateProvider: StakingPoolSharedStateProvider,
     private val stakingPoolInteractor: StakingPoolInteractor,
@@ -29,6 +31,7 @@ class ConfirmCreatePoolViewModel @Inject constructor(
     private val router: StakingRouter,
     private val poolInteractor: StakingPoolInteractor
 ) : StakingConfirmViewModel(
+    walletInteractor = walletInteractor,
     existentialDepositUseCase = existentialDepositUseCase,
     chain = poolSharedStateProvider.requireMainState.requireChain,
     router = router,

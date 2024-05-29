@@ -44,7 +44,7 @@ class SuccessViewModel @Inject constructor(
     val operationHash = savedStateHandle.get<String>(SuccessFragment.KEY_OPERATION_HASH)
     val chainId = savedStateHandle.get<ChainId>(SuccessFragment.KEY_CHAIN_ID)
     private val customMessage: String? = savedStateHandle[SuccessFragment.KEY_CUSTOM_MESSAGE]
-    private val hasSuccessResult: Boolean = savedStateHandle[SuccessFragment.KEY_HAS_SUCCESS_RESULT] ?: true
+    private val customTitle: String? = savedStateHandle[SuccessFragment.KEY_CUSTOM_TITLE]
 
     private val _showHashActions = MutableLiveData<Event<Unit>>()
     val showHashActions: LiveData<Event<Unit>> = _showHashActions
@@ -82,7 +82,8 @@ class SuccessViewModel @Inject constructor(
 
     val state: StateFlow<SuccessViewState> = explorerPairFlow.map { explorer ->
         SuccessViewState(
-            message = customMessage ?: resourceManager.getString(R.string.return_to_app_message),
+            title = customTitle ?: resourceManager.getString(R.string.common_transaction_sent),
+            message = customMessage ?: resourceManager.getString(R.string.success_message_transaction_sent),
             tableItems = getInfoTableItems(),
             explorer = explorer
         )

@@ -42,13 +42,14 @@ import jp.co.soramitsu.common.compose.theme.white
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 
 data class SuccessViewState(
+    val title: String,
     val message: String,
     val tableItems: List<TitleValueViewState>,
     val explorer: Pair<Chain.Explorer.Type, String>?
 ) {
     companion object {
         const val CODE_HASH_CLICK = 2
-        val default = SuccessViewState("", emptyList(), null)
+        val default = SuccessViewState("", "", emptyList(), null)
     }
 }
 
@@ -95,7 +96,7 @@ fun SuccessContent(
                 )
                 MarginVertical(margin = 16.dp)
                 H2(
-                    text = stringResource(id = R.string.all_done),
+                    text = state.title,
                     modifier = Modifier.align(Alignment.CenterHorizontally)
                 )
                 MarginVertical(margin = 8.dp)
@@ -152,7 +153,8 @@ fun SuccessContent(
 @Composable
 private fun SuccessPreview() {
     val state = SuccessViewState(
-        message = "You can now back to your app and do that you're usually do",
+        title = "Title HERE",
+        message = "Your transaction has been successfully sent to blockchain",
         tableItems = listOf(
             TitleValueViewState(
                 title = "Hash",

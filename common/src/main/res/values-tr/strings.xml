@@ -1075,6 +1075,7 @@
   <string name="vesting_locked_title">Vesting Kilitli</string>
   <string name="view_in">%s\'da görüntüle</string>
   <string name="view_wallet">Cüzdanı görün</string>
+  <string name="wallet_all_assets_hidden">Değiştirilebilir jetonlar</string>
   <string name="wallet_asset_buy_with">%s ile al</string>
   <string name="wallet_asset_receive">Al</string>
   <string name="wallet_asset_receive_template">Alın%s</string>

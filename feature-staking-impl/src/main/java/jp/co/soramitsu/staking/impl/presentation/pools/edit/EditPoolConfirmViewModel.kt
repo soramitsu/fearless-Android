@@ -17,15 +17,18 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
+import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 
 @HiltViewModel
 class EditPoolConfirmViewModel @Inject constructor(
+    walletInteractor: WalletInteractor,
     existentialDepositUseCase: ExistentialDepositUseCase,
     private val resourceManager: ResourceManager,
     private val poolSharedStateProvider: StakingPoolSharedStateProvider,
     private val stakingPoolInteractor: StakingPoolInteractor,
     private val router: StakingRouter
 ) : StakingConfirmViewModel(
+    walletInteractor = walletInteractor,
     existentialDepositUseCase = existentialDepositUseCase,
     chain = poolSharedStateProvider.requireMainState.requireChain,
     router = router,

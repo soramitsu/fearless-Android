@@ -73,8 +73,6 @@ class ReceiveViewModel @Inject constructor(
 
     private val assetPayload = savedStateHandle.get<AssetPayload>(ReceiveFragment.KEY_ASSET_PAYLOAD)!!
 
-    private val assetSymbolToShow = chainRegistry.getAsset(assetPayload.chainId, assetPayload.chainAssetId)?.symbol
-
     private val accountFlow = interactor.selectedAccountFlow(assetPayload.chainId)
     private val assetFlow = chainAssetsManager.assetFlow.onStart {
         emit(interactor.getCurrentAsset(assetPayload.chainId, assetPayload.chainAssetId))
@@ -165,11 +163,13 @@ class ReceiveViewModel @Inject constructor(
             soraMainChainId, soraTestChainId
         )
 
+        val assetSymbol = chainRegistry.getAsset(assetPayload.chainId, assetPayload.chainAssetId)?.symbol
+
         LoadingState.Loaded(
             ReceiveScreenViewState(
                 account = account,
                 qrCode = qrCode,
-                assetSymbol = assetSymbolToShow.orEmpty().uppercase(),
+                assetSymbol = assetSymbol.orEmpty().uppercase(),
                 multiToggleButtonState = receiveTypeState,
                 amountInputViewState = amountInputViewState,
                 requestAllowed = allowRequest

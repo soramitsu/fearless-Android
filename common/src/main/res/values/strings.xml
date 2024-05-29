@@ -91,6 +91,7 @@
   <string name="backup_wallet_show_mnemonic_phrase">Show mnemonic phrase</string>
   <string name="backup_wallet_show_raw_seed">Show Raw Seed</string>
   <string name="backup_wallet_warning_about_lose_phrase">If you loose access to this device, your funds will be lost, unless you back up!</string>
+  <string name="balance_locks_blocked_row_title">Blocked</string>
   <string name="balance_locks_governance_row_title">Governance</string>
   <string name="balance_locks_liquidity_pools_row_title">Liquidity Pools</string>
   <string name="balance_locks_nomination_pools_row_title">Nomination Pools</string>
@@ -246,6 +247,10 @@
   <string name="common_network">Network</string>
   <string name="common_network_fee">Network fee</string>
   <string name="common_network_management">Network management</string>
+  <plurals name="common_networks_format">
+    <item quantity="one">%d network</item>
+    <item quantity="other">%d networks</item>
+  </plurals>
   <string name="common_next">Next</string>
   <string name="common_no">No</string>
   <string name="common_no_screenshot_message">Do not take screenshots, they may be collected by third-party malware</string>
@@ -300,6 +305,7 @@
   <string name="common_total">Total</string>
   <string name="common_transaction">Transaction</string>
   <string name="common_transaction_raw_data">Transaction raw data</string>
+  <string name="common_transaction_sent">Transaction sent</string>
   <string name="common_transaction_submitted">Transaction submitted</string>
   <string name="common_transferable_format">Transferable: %s</string>
   <string name="common_try_again">Try again</string>
@@ -509,6 +515,7 @@
   <string name="network_issue_action_add_account">Add Account</string>
   <string name="network_issue_action_switch_node">Switch Node</string>
   <string name="network_issue_add_an_account">Add an account</string>
+  <string name="network_issue_main">Connection Error: Unable to connect to the network. Please try again.</string>
   <string name="network_issue_network_unavailable">Network is unavailable</string>
   <string name="network_issue_node_unavailable">Node is unavailable</string>
   <string name="network_issue_stub">Network Issues</string>
@@ -752,7 +759,7 @@
   <string name="social_media">Social Media</string>
   <string name="sora_bridge_amount_less_fee">The amount you\'re trying to transfer is insufficient to cover the transaction fees on the %s network. Although the transaction won\'t process, you\'ll still be charged the fees on the Sora network.</string>
   <string name="sora_bridge_low_amount_format_alert">Currently, there\'s a min. amount %s for bridging to ensure the stability and security of the SORA Network. We appreciate your understanding.</string>
-  <string name="sora_card_annual_service_fee">0 € annual service fee</string>
+  <string name="sora_card_annual_service_fee">€0 annual service fee</string>
   <string name="sora_card_blacklisted_countires_title">Excluded of application</string>
   <string name="sora_card_blacklisted_countires_warning"><![CDATA[Residents from <b>certain countries<br>can not apply</b> for SORA Card at this moment<br><a href=\"https://soracard.com/blacklist/\">See the list</a>]]></string>
   <string name="sora_card_enable_card_title">Enable card</string>
@@ -1034,6 +1041,7 @@
   <string name="substrate_crypto_type">Substrate keypair crypto type</string>
   <string name="substrate_secret_derivation_path">Substrate secret derivation path\n</string>
   <string name="success_message">You can return to your browser now</string>
+  <string name="success_message_transaction_sent">Your transaction has been successfully sent to blockchain</string>
   <string name="support_and_feedback">Support &amp; Feedback</string>
   <string name="switch_node">Switch node</string>
   <string name="switch_node_autoselect_title">Auto select nodes</string>
@@ -1072,6 +1080,8 @@
   <string name="username_setup_hint">This name will be displayed only to you and stored locally on your mobile device.</string>
   <string name="username_setup_title_2_0">Create a new wallet</string>
   <string name="validator_info_comission_title">Comission</string>
+  <string name="validator_info_min_stake_alert_text">Minimum stake among active nominators is %s. To get rewards you have to stake more.</string>
+  <string name="validator_info_min_stake_among_active_nominators_text">Minimum stake among active nominators</string>
   <string name="validator_not_elected_description">This account has not been elected by the network to participate in the current era</string>
   <string name="validators_list_empty_message">No validators found</string>
   <string name="vesting_claim_disclaimer_text">Due to the unique vesting schedules of each parachain, our app is unable to display the quantity of locked tokens eligible for claiming. Please be advised that initiating a claim may be impractical if the prospective amount is marginal and comparable to the transaction fee involved. For comprehensive insights into your locked balances, consult the Subscan blockexplorer. We urge you to assess the information carefully and proceed at your own discretion.</string>
@@ -1079,6 +1089,7 @@
   <string name="vesting_locked_title">Vesting Locked</string>
   <string name="view_in">View in %s</string>
   <string name="view_wallet">View wallet</string>
+  <string name="wallet_all_assets_hidden">You have hidden all assets</string>
   <string name="wallet_asset_buy_with">Buy %s with</string>
   <string name="wallet_asset_receive">Receive</string>
   <string name="wallet_asset_receive_template">Receive %s</string>

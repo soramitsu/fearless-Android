@@ -238,7 +238,10 @@ class V2MigrationTest {
                 ethereumAddress = getBlob(getColumnIndex(Column.ETHEREUM_ADDRESS)),
                 name = getString(getColumnIndex(Column.NAME)),
                 isSelected = getInt(getColumnIndex(Column.IS_SELECTED)) == 1,
-                position = getInt(getColumnIndex(Column.POSITION))
+                position = getInt(getColumnIndex(Column.POSITION)),
+                isBackedUp = false,
+                googleBackupAddress = null,
+                initialized = true
             )
 
             metaAccount.id = getLong(getColumnIndex(Column.ID))

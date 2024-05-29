@@ -129,10 +129,6 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
                 setupAdvancedBlock(blockchainType, sourceType, isChainAccount)
             }
         }.observe { }
-
-        viewModel.showInvalidSubstrateDerivationPathError.observeEvent {
-            showError(resources.getString(R.string.common_invalid_hard_soft_numeric_password_message))
-        }
     }
 
     private fun buildSourceTypesViews(blockchainType: ImportAccountType) = viewModel.sourceTypes.map {

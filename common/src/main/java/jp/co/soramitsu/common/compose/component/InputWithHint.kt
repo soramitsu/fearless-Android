@@ -80,7 +80,6 @@ private fun PreviewInputWithHint() {
             onInput = { },
             Hint = {
                 Row {
-                    MarginHorizontal(margin = 6.dp)
                     B1(text = "Public address".withNoFontPadding())
                 }
             }

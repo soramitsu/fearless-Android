@@ -45,6 +45,7 @@ import jp.co.soramitsu.common.compose.component.MenuIconItem
 import jp.co.soramitsu.common.compose.component.Toolbar
 import jp.co.soramitsu.common.compose.component.ToolbarViewState
 import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
+import jp.co.soramitsu.common.compose.theme.colorFromHex
 import jp.co.soramitsu.common.compose.theme.white
 import jp.co.soramitsu.common.compose.theme.white20
 import jp.co.soramitsu.common.compose.theme.white60
@@ -57,29 +58,29 @@ import kotlinx.coroutines.launch
 @Immutable
 @JvmInline
 value class OnboardingFlow(
-    private val flow: List<OnboardingConfig.Variants.ScreenInfo>
-): List<OnboardingConfig.Variants.ScreenInfo> by flow
+    private val flow: List<OnboardingConfig.OnboardingConfigItem.Variants.ScreenInfo>
+): List<OnboardingConfig.OnboardingConfigItem.Variants.ScreenInfo> by flow
 
 @Stable
 interface OnboardingScreenCallback {
 
     fun onClose()
 
-    fun onNext()
-
     fun onSkip()
-
 }
 
 @Suppress("FunctionName")
 fun NavGraphBuilder.OnboardingScreen(
+    backgroundImageFlow: StateFlow<String?>,
     onboardingStateFlow: StateFlow<OnboardingFlow?>,
     callback: OnboardingScreenCallback
 ) {
     composable(WelcomeEvent.Onboarding.PagerScreen.route) {
         val onboardingFlow by onboardingStateFlow.collectAsState()
+        val backgroundImageUrl by backgroundImageFlow.collectAsState()
 
         OnboardingScreenContent(
+            background = backgroundImageUrl,
             onboardingFlow = onboardingFlow,
             callback = callback
         )
@@ -89,6 +90,7 @@ fun NavGraphBuilder.OnboardingScreen(
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun OnboardingScreenContent(
+    background: String?,
     onboardingFlow: OnboardingFlow?,
     callback: OnboardingScreenCallback
 ) {
@@ -118,11 +120,17 @@ private fun OnboardingScreenContent(
 
         val coroutineScope = rememberCoroutineScope()
 
+        val backgroundPainter = if (background.isNullOrBlank()) {
+            painterResource(R.drawable.drawable_background_image)
+        } else {
+            rememberAsyncImagePainter(model = background)
+        }
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .paint(
-                    painter = painterResource(R.drawable.drawable_background_image),
+                    painter = backgroundPainter,
                     contentScale = ContentScale.FillWidth
                 ),
             verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -155,8 +163,8 @@ private fun OnboardingScreenContent(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     H1(
-                        text = onboardingFlow[it].title,
-                        color = white,
+                        text = onboardingFlow[it].title.text,
+                        color = runCatching { onboardingFlow[it].title.color.colorFromHex() }.getOrNull() ?: white,
                         textAlign = TextAlign.Center
                     )
 
@@ -205,7 +213,7 @@ private fun OnboardingScreenContent(
                         val page = currentPageAsState.value
 
                         if (page == onboardingFlow.lastIndex)
-                            callback.onNext()
+                            callback.onClose()
                         else coroutineScope.launch {
                             pagerState.animateScrollToPage(page + 1)
                         }
@@ -232,30 +240,28 @@ private fun OnboardingScreenContent(
 private fun OnboardingScreenPreview() {
     FearlessAppTheme {
         OnboardingScreenContent(
-            OnboardingFlow(
+            background = "",
+            onboardingFlow = OnboardingFlow(
                 listOf(
-                    OnboardingConfig.Variants.ScreenInfo(
-                        title = "Brand new network management",
+                    OnboardingConfig.OnboardingConfigItem.Variants.ScreenInfo(
+                        title = OnboardingConfig.OnboardingConfigItem.Variants.ScreenInfo.TitleInfo("Brand new network management", "#ee0077"),
                         description = "Navigate between All, Popular and your Favourite networks modes",
                         image = "${R.drawable.drawable_background_image}"
                     ),
-                    OnboardingConfig.Variants.ScreenInfo(
-                        title = "Title1",
+                    OnboardingConfig.OnboardingConfigItem.Variants.ScreenInfo(
+                        title = OnboardingConfig.OnboardingConfigItem.Variants.ScreenInfo.TitleInfo("Title1", ""),
                         description = "Description1",
                         image = "image1"
                     ),
-                    OnboardingConfig.Variants.ScreenInfo(
-                        title = "Title2",
+                    OnboardingConfig.OnboardingConfigItem.Variants.ScreenInfo(
+                        title = OnboardingConfig.OnboardingConfigItem.Variants.ScreenInfo.TitleInfo("Title2", ""),
                         description = "Description2",
                         image = "image2"
                     )
                 )
             ),
-            object : OnboardingScreenCallback {
+            callback = object : OnboardingScreenCallback {
                 override fun onClose() = Unit
-
-                override fun onNext() = Unit
-
                 override fun onSkip() = Unit
             }
         )

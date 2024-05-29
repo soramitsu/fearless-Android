@@ -29,8 +29,10 @@ class OnboardingFeatureModule {
             OnboardingConfigApi::class.java,
             typeAdapters = mapOf(
                 OnboardingConfig::class.java to OnboardingConfig.deserializer,
-                OnboardingConfig.Variants::class.java to OnboardingConfig.Variants.deserializer,
-                OnboardingConfig.Variants.ScreenInfo::class.java to OnboardingConfig.Variants.ScreenInfo.deserializer,
+                OnboardingConfig.OnboardingConfigItem::class.java to OnboardingConfig.OnboardingConfigItem.deserializer,
+                OnboardingConfig.OnboardingConfigItem.Variants::class.java to OnboardingConfig.OnboardingConfigItem.Variants.deserializer,
+                OnboardingConfig.OnboardingConfigItem.Variants.ScreenInfo::class.java to OnboardingConfig.OnboardingConfigItem.Variants.ScreenInfo.deserializer,
+                OnboardingConfig.OnboardingConfigItem.Variants.ScreenInfo.TitleInfo::class.java to OnboardingConfig.OnboardingConfigItem.Variants.ScreenInfo.TitleInfo.deserializer,
             )
         )
 
@@ -45,10 +47,12 @@ class OnboardingFeatureModule {
 
     @Provides
     fun provideOnboardingInteractor(
-        onboardingRepository: OnboardingRepository
+        onboardingRepository: OnboardingRepository,
+        preferences: Preferences
     ): OnboardingInteractor {
         return OnboardingInteractorImpl(
-            onboardingRepository
+            onboardingRepository,
+            preferences
         )
     }
 

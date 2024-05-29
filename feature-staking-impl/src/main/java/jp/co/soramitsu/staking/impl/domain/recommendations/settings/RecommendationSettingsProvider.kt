@@ -68,7 +68,7 @@ abstract class RecommendationSettingsProvider<T> {
         override fun defaultSettings(): RecommendationSettings<Validator> {
             return RecommendationSettings(
                 alwaysEnabledFilters = listOf(BlockProducerFilters.ValidatorFilter.HasBlocked),
-                customEnabledFilters = listOf(BlockProducerFilters.ValidatorFilter.HundredPercentCommissionFilter, BlockProducerFilters.ValidatorFilter.NotOverSubscribedFilter(maximumRewardedNominators), BlockProducerFilters.ValidatorFilter.ElectedFilter),
+                customEnabledFilters = listOf(BlockProducerFilters.ValidatorFilter.HundredPercentCommissionFilter, BlockProducerFilters.ValidatorFilter.NotOverSubscribedFilter(maximumRewardedNominators), BlockProducerFilters.ValidatorFilter.ElectedFilter, BlockProducerFilters.ValidatorFilter.HasIdentity),
                 sorting = BlockProducersSorting.ValidatorSorting.APYSorting,
                 postProcessors = allPostProcessors,
                 limit = maximumValidatorsPerNominator

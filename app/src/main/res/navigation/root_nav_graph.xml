@@ -30,23 +30,7 @@
     <fragment
         android:id="@+id/splashFragment"
         android:name="jp.co.soramitsu.splash.presentation.SplashFragment"
-        tools:layout="@layout/fragment_splash">
-
-        <action
-            android:id="@+id/action_splash_to_pin"
-            app:destination="@id/pincodeFragment"
-            app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
-            app:popExitAnim="?android:attr/fragmentCloseExitAnimation"
-            app:popUpTo="@id/splashFragment"
-            app:popUpToInclusive="true" />
-
-        <action
-            android:id="@+id/action_splash_to_stories"
-            app:destination="@id/onboardingStoriesFragment"
-            app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
-            app:popExitAnim="?android:attr/fragmentCloseExitAnimation" />
-
-    </fragment>
+        tools:layout="@layout/fragment_splash"/>
 
     <fragment
         android:id="@+id/pincodeFragment"

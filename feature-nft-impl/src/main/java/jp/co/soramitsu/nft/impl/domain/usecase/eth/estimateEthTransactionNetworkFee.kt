@@ -9,26 +9,24 @@ import jp.co.soramitsu.runtime.multiNetwork.connection.EthereumChainConnection
 import java.math.BigDecimal
 import java.math.BigInteger
 
-@Suppress("FunctionName", "UseIfInsteadOfWhen")
-suspend fun EthereumChainConnection.EstimateEthTransactionNetworkFee(
+suspend fun EthereumChainConnection.estimateEthTransactionNetworkFee(
     call: EthCall,
     baseFeePerGas: BigInteger
 ): BigDecimal {
-    val eip1559Transfer = when (call) {
-        is EthCall.SmartContractCall ->
-            EIP1559CallImpl.createAsync(
-                ethConnection = this,
-                call = call,
-                baseFeePerGas = baseFeePerGas,
-                estimateGas = EstimateEthTransactionGas(
-                    call = call
-                )
-            )
+    val eip1559Transfer = if (call is EthCall.SmartContractCall) {
+        val estimateGas = estimateEthTransactionGas(call = call)
 
-        else -> error(
+        EIP1559CallImpl.createAsync(
+            ethConnection = this,
+            call = call,
+            baseFeePerGas = baseFeePerGas,
+            estimateGas = estimateGas
+        )
+    } else {
+        error(
             """
-                Unknown transfer type.
-            """.trimIndent()
+                    Unknown transfer type.
+                """.trimIndent()
         )
     }
 

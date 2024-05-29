@@ -18,11 +18,11 @@ android {
 
     buildTypes {
         debug {
-            buildConfigField "String", "ONBOARDING_CONFIG", "\"https://raw.githubusercontent.com/soramitsu/shared-features-utils/develop-free/appConfigs/onboarding/mobile.json\""
+            buildConfigField "String", "ONBOARDING_CONFIG", "\"https://raw.githubusercontent.com/soramitsu/shared-features-utils/develop-free/appConfigs/onboarding/mobile%20v2.json\""
         }
 
         release {
-            buildConfigField "String", "ONBOARDING_CONFIG", "\"https://raw.githubusercontent.com/soramitsu/shared-features-utils/develop-free/appConfigs/onboarding/mobile.json\""
+            buildConfigField "String", "ONBOARDING_CONFIG", "\"https://raw.githubusercontent.com/soramitsu/shared-features-utils/develop-free/appConfigs/onboarding/mobile%20v2.json\""
         }
     }
 

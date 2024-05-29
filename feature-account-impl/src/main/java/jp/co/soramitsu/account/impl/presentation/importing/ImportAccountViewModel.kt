@@ -28,6 +28,7 @@ import jp.co.soramitsu.account.impl.presentation.importing.source.model.ImportSo
 import jp.co.soramitsu.account.impl.presentation.importing.source.model.JsonImportSource
 import jp.co.soramitsu.account.impl.presentation.importing.source.model.MnemonicImportSource
 import jp.co.soramitsu.account.impl.presentation.importing.source.model.RawSeedImportSource
+import jp.co.soramitsu.account.impl.presentation.mnemonic.backup.exceptions.NotValidDerivationPath
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -79,9 +80,6 @@ class ImportAccountViewModel @Inject constructor(
     val substrateDerivationPathLiveData = MutableLiveData<String>()
     val ethereumDerivationPathLiveData = MutableLiveData<String>()
 
-    private val _showInvalidSubstrateDerivationPathError = MutableLiveData<Event<Unit>>()
-    val showInvalidSubstrateDerivationPathError: LiveData<Event<Unit>> = _showInvalidSubstrateDerivationPathError
-
     private val substrateDerivationPathRegex = Regex("(//?[^/]+)*(///[^/]+)?")
 
     val sourceTypes = provideSourceType()
@@ -126,7 +124,7 @@ class ImportAccountViewModel @Inject constructor(
                 _blockchainTypeLiveData.value = importAccountType
             }
             initialBlockchainType.value != null -> _blockchainTypeLiveData.value = initialBlockchainType.value?.let { int ->
-                ImportAccountType.values().getOrNull(int)
+                ImportAccountType.entries.getOrNull(int)
             }!!
         }
     }
@@ -148,7 +146,7 @@ class ImportAccountViewModel @Inject constructor(
     fun nextClicked() {
         val isSubstrateDerivationPathValid = substrateDerivationPathLiveData.value?.matches(substrateDerivationPathRegex)
         if (isSubstrateDerivationPathValid == false) {
-            _showInvalidSubstrateDerivationPathError.value = Event(Unit)
+            showError(NotValidDerivationPath(resourceManager))
             return
         }
         val source = _selectedSourceTypeLiveData.value

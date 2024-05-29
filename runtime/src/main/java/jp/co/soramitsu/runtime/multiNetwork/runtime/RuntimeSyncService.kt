@@ -28,6 +28,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.jsonObject
@@ -109,7 +110,7 @@ class RuntimeSyncService(
 
         val metadataHash = if (force || shouldSyncMetadata) {
             val runtimeMetadata =
-                connectionPool.getConnection(chainId).socketService.executeAsyncCatching(
+                connectionPool.awaitConnection(chainId).socketService.executeAsyncCatching(
                     GetMetadataRequest,
                     mapper = pojo<String>().nonNull()
                 ).getOrNull()
@@ -139,17 +140,20 @@ class RuntimeSyncService(
         )
     }
 
-    suspend fun syncTypes() {
-        val types = typesFetcher.getTypes(BuildConfig.TYPES_URL)
-        val defaultTypes = typesFetcher.getTypes(BuildConfig.DEFAULT_V13_TYPES_URL)
-        val array = Json.decodeFromString<JsonArray>(types)
-        val chainIdToTypes =
-            array.mapNotNull { element ->
-                val chainId =
-                    element.jsonObject["chainId"]?.jsonPrimitive?.content ?: return@mapNotNull null
-                ChainTypesLocal(chainId, element.toString())
-            }.toMutableList().apply { add(ChainTypesLocal("default", defaultTypes)) }
-        chainDao.insertTypes(chainIdToTypes)
+    suspend fun syncTypes(): Result<Unit> = withContext(Dispatchers.Default) {
+        runCatching {
+            val types = typesFetcher.getTypes(BuildConfig.TYPES_URL)
+            val defaultTypes = typesFetcher.getTypes(BuildConfig.DEFAULT_V13_TYPES_URL)
+            val array = Json.decodeFromString<JsonArray>(types)
+            val chainIdToTypes =
+                array.mapNotNull { element ->
+                    val chainId =
+                        element.jsonObject["chainId"]?.jsonPrimitive?.content
+                            ?: return@mapNotNull null
+                    ChainTypesLocal(chainId, element.toString())
+                }.toMutableList().apply { add(ChainTypesLocal("default", defaultTypes)) }
+            chainDao.insertTypes(chainIdToTypes)
+        }
     }
 
     private fun cancelExistingSync(chainId: String) {

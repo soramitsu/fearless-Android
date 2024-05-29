@@ -1,8 +1,7 @@
 package jp.co.soramitsu.account.impl.presentation.importing.remote_backup
 
+import android.content.Intent
 import android.widget.LinearLayout
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -14,6 +13,7 @@ import jp.co.soramitsu.account.impl.presentation.importing.remote_backup.screens
 import jp.co.soramitsu.account.impl.presentation.importing.remote_backup.screens.RemoteWalletListState
 import jp.co.soramitsu.account.impl.presentation.importing.remote_backup.screens.WalletImportedState
 import jp.co.soramitsu.backup.BackupService
+import jp.co.soramitsu.backup.domain.exceptions.AuthConsentException
 import jp.co.soramitsu.backup.domain.models.BackupAccountMeta
 import jp.co.soramitsu.backup.domain.models.BackupAccountType
 import jp.co.soramitsu.backup.domain.models.DecryptedBackupAccount
@@ -21,7 +21,9 @@ import jp.co.soramitsu.common.BuildConfig
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.TextInputViewState
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.feature_account_impl.R
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -51,6 +53,8 @@ class ImportRemoteWalletViewModel @Inject constructor(
     private val walletImportedState = selectedWallet.map { selectedWallet ->
         WalletImportedState(selectedWallet)
     }
+
+    val requestGoogleAuth = MutableSharedFlow<Event<Intent>>()
 
     private val defaultTextInputViewState = TextInputViewState(
         text = "",
@@ -156,7 +160,13 @@ class ImportRemoteWalletViewModel @Inject constructor(
 
     override fun loadRemoteWallets() {
         viewModelScope.launch {
-            val backupAccounts = backupService.getBackupAccounts().map(::getWrapped)
+            val backupAccounts = try {
+                backupService.getBackupAccounts().map(::getWrapped)
+            } catch (e: AuthConsentException) {
+                requestGoogleAuth.emit(Event(e.intent))
+                return@launch
+            }
+
             val webBackupAccounts = backupService.getWebBackupAccounts()
                 .distinctBy { it.address }
                 .map { getWrapped(it, origin = BackupOrigin.WEB) }
@@ -166,6 +176,10 @@ class ImportRemoteWalletViewModel @Inject constructor(
             }
             remoteWallets.value = webBackupNotInCommonBackup + backupAccounts
         }
+    }
+
+    fun onGoogleLoginError(message: String) {
+        showError("GoogleLoginError\n$message")
     }
 
     private fun getWrapped(backupMeta: BackupAccountMeta, origin: BackupOrigin = BackupOrigin.APP): WrappedBackupAccountMeta {

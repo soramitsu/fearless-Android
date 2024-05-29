@@ -11,13 +11,13 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.reefChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraTestChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ternoaChainId
-import jp.co.soramitsu.runtime.multiNetwork.chainWithAsset
 import jp.co.soramitsu.runtime.state.SingleAssetSharedState
 import jp.co.soramitsu.wallet.impl.domain.TokenUseCase
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.Token
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -65,6 +65,7 @@ class StakingSharedState(
         private const val DELIMITER = ":"
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     val selectionItem: Flow<StakingAssetSelection> = accountRepository.selectedMetaAccountFlow()
         .flatMapLatest {
             preferences.stringFlow(
@@ -74,11 +75,12 @@ class StakingSharedState(
 
                     encode(defaultAsset)
                 }
-            ).distinctUntilChanged()
+            )
         }
         .map { encoded ->
             encoded?.let { decode(it) }
         }
+        .distinctUntilChanged()
         .filterNotNull()
         .shareIn(scope, SharingStarted.Eagerly, replay = 1)
 
@@ -97,6 +99,7 @@ class StakingSharedState(
         SingleAssetSharedState.AssetWithChain(chain, asset)
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     fun currentAssetFlow() = combine(
         assetWithChain,
         accountRepository.selectedMetaAccountFlow()

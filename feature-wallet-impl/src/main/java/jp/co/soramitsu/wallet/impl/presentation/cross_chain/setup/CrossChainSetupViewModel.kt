@@ -403,8 +403,7 @@ class CrossChainSetupViewModel @Inject constructor(
                 } else {
                     R.drawable.ic_address_placeholder
                 },
-                editable = false,
-                showClear = false
+                editable = false
             ),
             originChainSelectorState = originChainSelectorState,
             destinationChainSelectorState = destinationChainSelectorState,

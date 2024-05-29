@@ -1,6 +1,5 @@
 package jp.co.soramitsu.staking.impl.domain
 
-import jp.co.soramitsu.shared_utils.extensions.toHexString
 import jp.co.soramitsu.shared_utils.runtime.AccountId
 import jp.co.soramitsu.staking.api.domain.model.IndividualExposure
 import kotlinx.coroutines.flow.first
@@ -29,7 +28,11 @@ fun LegacyExposure.willAccountBeRewarded(
     accountId: AccountId,
     rewardedNominatorsPerValidator: Int?
 ): Boolean {
-    if(rewardedNominatorsPerValidator == null) return true
+    if(rewardedNominatorsPerValidator == null) {
+        return others.any {
+            it.who.contentEquals(accountId)
+        }
+    }
     val indexInRewardedList = others.sortedByDescending(IndividualExposure::value).indexOfFirst {
         it.who.contentEquals(accountId)
     }
@@ -43,22 +46,4 @@ fun LegacyExposure.willAccountBeRewarded(
     return numberInRewardedList <= rewardedNominatorsPerValidator
 }
 
-fun minimumStake(
-    exposures: Collection<LegacyExposure>,
-    minimumNominatorBond: BigInteger
-): BigInteger {
-    val stakeByNominator = exposures
-        .map(LegacyExposure::others)
-        .flatten()
-        .fold(mutableMapOf<String, BigInteger>()) { acc, individualExposure ->
-            val currentExposure = acc.getOrDefault(individualExposure.who.toHexString(), BigInteger.ZERO)
-
-            acc[individualExposure.who.toHexString()] = currentExposure + individualExposure.value
-
-            acc
-        }
-
-    return stakeByNominator.values.minOrZero().coerceAtLeast(minimumNominatorBond)
-}
-
-private fun Iterable<BigInteger>.minOrZero(): BigInteger = this.minOrNull() ?: BigInteger.ZERO
+fun Iterable<BigInteger>.minOrZero(): BigInteger = this.minOrNull() ?: BigInteger.ZERO

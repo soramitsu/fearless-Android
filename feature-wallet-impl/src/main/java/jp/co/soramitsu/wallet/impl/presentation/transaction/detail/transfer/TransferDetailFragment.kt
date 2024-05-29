@@ -25,17 +25,17 @@ import jp.co.soramitsu.wallet.impl.presentation.model.OperationStatusAppearance
 
 const val KEY_TRANSACTION = "KEY_DRAFT"
 const val KEY_ASSET_PAYLOAD = "KEY_ASSET_PAYLOAD"
-const val KEY_HISTORY_TYPE = "KEY_HISTORY_TYPE"
+const val KEY_EXPLORER_TYPE = "KEY_EXPLORER_TYPE"
 
 @AndroidEntryPoint
 class TransferDetailFragment : BaseFragment<TransactionDetailViewModel>(R.layout.fragment_transfer_details) {
 
     companion object {
-        fun getBundle(operation: OperationParcelizeModel.Transfer, assetPayload: AssetPayload, chainHistoryType: Chain.ExternalApi.Section.Type?) =
+        fun getBundle(operation: OperationParcelizeModel.Transfer, assetPayload: AssetPayload, chainExplorerType: Chain.Explorer.Type?) =
             bundleOf(
                 KEY_TRANSACTION to operation,
                 KEY_ASSET_PAYLOAD to assetPayload,
-                KEY_HISTORY_TYPE to chainHistoryType
+                KEY_EXPLORER_TYPE to chainExplorerType
             )
     }
 
@@ -148,7 +148,7 @@ class TransferDetailFragment : BaseFragment<TransactionDetailViewModel>(R.layout
     private fun showExternalAddressActions(address: String) = showExternalActionsSheet(
         copyLabelRes = R.string.common_copy_address,
         value = address,
-        explorers = viewModel.getSupportedExplorers(BlockExplorerUrlBuilder.Type.ACCOUNT, address),
+        explorers = viewModel.getSupportedAddressExplorers(address),
         externalViewCallback = viewModel::openUrl
     )
 
@@ -156,7 +156,7 @@ class TransferDetailFragment : BaseFragment<TransactionDetailViewModel>(R.layout
         showExternalActionsSheet(
             copyLabelRes = R.string.transaction_details_copy_hash,
             value = hash,
-            explorers = viewModel.getSupportedExplorers(viewModel.historyType, hash),
+            explorers = viewModel.explorerType?.let { viewModel.getSupportedExplorers(it, hash) }.orEmpty(),
             externalViewCallback = viewModel::openUrl
         )
     }

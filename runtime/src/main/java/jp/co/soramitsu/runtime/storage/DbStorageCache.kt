@@ -16,6 +16,8 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 
+private const val SQLITE_MAX_VARIABLE_NUMBER = 900
+
 class DbStorageCache(
     private val storageDao: StorageDao
 ) : StorageCache {
@@ -66,10 +68,12 @@ class DbStorageCache(
     }
 
     override suspend fun getEntries(fullKeys: List<String>, chainId: String): List<StorageEntry> {
-        return storageDao.observeEntries(chainId, fullKeys)
-            .filter { it.size == fullKeys.size }
-            .mapList { mapStorageEntryFromLocal(it) }
-            .first()
+        return fullKeys.chunked(SQLITE_MAX_VARIABLE_NUMBER).map { chunkKeys ->
+            storageDao.observeEntries(chainId, chunkKeys)
+                .filter { it.size == chunkKeys.size }
+                .mapList { mapStorageEntryFromLocal(it) }
+                .first()
+        }.flatten()
     }
 }
 

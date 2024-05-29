@@ -12,6 +12,7 @@ import jp.co.soramitsu.common.utils.isNotZero
 import jp.co.soramitsu.common.utils.isZero
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.percentageToFraction
+import jp.co.soramitsu.common.utils.positiveOrNull
 import jp.co.soramitsu.coredb.dao.AssetDao
 import jp.co.soramitsu.coredb.model.AssetWithToken
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
@@ -60,7 +61,8 @@ class TotalBalanceUseCaseImpl(
 
         val filtered = assets
             .asSequence()
-            .filter { it.asset.freeInPlanks != null && it.asset.freeInPlanks.isNotZero() && it.token?.fiatSymbol != null }
+            .filter { it.asset.enabled == true }
+            .filter { it.asset.freeInPlanks != null && it.asset.freeInPlanks.positiveOrNull().isNotZero() && it.token?.fiatSymbol != null }
             .toList()
 
         // todo I did this workaround because sometimes there is a wrong symbol in asset list. Need research
@@ -74,7 +76,7 @@ class TotalBalanceUseCaseImpl(
                 ?: return@fold TotalBalance.Empty
 
             val total =
-                current.asset.freeInPlanks.orZero() + current.asset.reservedInPlanks.orZero()
+                current.asset.freeInPlanks.positiveOrNull().orZero() + current.asset.reservedInPlanks.orZero()
             val totalDecimal = total.toBigDecimal(scale = chainAsset.precision)
             val fiatAmount = totalDecimal.applyFiatRate(current.token?.fiatRate)
 
