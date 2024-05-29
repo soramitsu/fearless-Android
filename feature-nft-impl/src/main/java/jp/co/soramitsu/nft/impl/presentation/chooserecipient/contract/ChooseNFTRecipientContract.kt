@@ -23,7 +23,7 @@ data class ChooseNFTRecipientScreenState(
                 "",
                 R.drawable.ic_address_placeholder,
                 editable = false,
-                showClear = false
+                showClear = true
             ),
             buttonState = ButtonViewState("", false),
             feeInfoState = FeeInfoViewState.default,

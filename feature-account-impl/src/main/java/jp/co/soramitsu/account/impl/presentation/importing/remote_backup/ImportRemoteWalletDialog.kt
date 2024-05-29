@@ -1,22 +1,42 @@
 package jp.co.soramitsu.account.impl.presentation.importing.remote_backup
 
+import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.widget.FrameLayout
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.core.os.bundleOf
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 
 @AndroidEntryPoint
 class ImportRemoteWalletDialog : BaseComposeBottomSheetDialogFragment<ImportRemoteWalletViewModel>() {
 
     override val viewModel: ImportRemoteWalletViewModel by viewModels()
+
+    private val launcher: ActivityResultLauncher<Intent> = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        when (result.resultCode) {
+            Activity.RESULT_OK -> viewModel.loadRemoteWallets()
+            Activity.RESULT_CANCELED -> { /* no action */ }
+            else -> {
+                val googleSignInStatus = result.data?.extras?.get("googleSignInStatus")
+                viewModel.onGoogleLoginError(googleSignInStatus.toString())
+            }
+        }
+    }
 
     @Composable
     override fun Content(padding: PaddingValues) {
@@ -40,5 +60,9 @@ class ImportRemoteWalletDialog : BaseComposeBottomSheetDialogFragment<ImportRemo
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         onBackPressed { viewModel.backClicked() }
+
+        viewModel.requestGoogleAuth.onEach {
+            it.getContentIfNotHandled()?.let { launcher.launch(it) }
+        }.launchIn(viewLifecycleOwner.lifecycleScope)
     }
 }

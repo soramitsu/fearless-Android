@@ -29,8 +29,7 @@ interface TransactionHistoryUi {
 
     fun transactionClicked(
         transactionModel: OperationModel,
-        assetPayload: AssetPayload,
-        chainHistoryType: Chain.ExternalApi.Section.Type?
+        assetPayload: AssetPayload
     )
 }
 

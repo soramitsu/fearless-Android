@@ -813,6 +813,11 @@
         android:name="jp.co.soramitsu.nft.impl.presentation.NFTFlowFragment"
         android:label="nftFlowFragment" />
 
+    <dialog
+        android:id="@+id/manageAssetsFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.manageassets.ManageAssetsFragment"
+        android:label="manageAssetsFragment" />
+
     <action
         android:id="@+id/openStartChangeValidatorsFragment"
         app:destination="@id/startChangeValidatorsFragment"

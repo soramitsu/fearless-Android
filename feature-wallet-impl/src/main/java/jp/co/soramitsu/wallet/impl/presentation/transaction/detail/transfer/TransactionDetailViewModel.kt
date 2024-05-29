@@ -18,6 +18,7 @@ import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedAddressExplorers
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
@@ -45,7 +46,7 @@ class TransactionDetailViewModel @Inject constructor(
 
     val operation = savedStateHandle.get<OperationParcelizeModel.Transfer>(KEY_TRANSACTION)!!
     val assetPayload = savedStateHandle.get<AssetPayload>(KEY_ASSET_PAYLOAD)!!
-    val historyType = savedStateHandle.get<Chain.ExternalApi.Section.Type?>(KEY_HISTORY_TYPE)!!
+    val explorerType = savedStateHandle.get<Chain.Explorer.Type?>(KEY_EXPLORER_TYPE)
 
     private val _showExternalViewEvent = MutableLiveData<Event<ExternalActionsSource>>()
     val showExternalTransactionActionsEvent: LiveData<Event<ExternalActionsSource>> = _showExternalViewEvent
@@ -62,16 +63,18 @@ class TransactionDetailViewModel @Inject constructor(
 
     private val chainExplorers = flow { emit(chainRegistry.getChain(assetPayload.chainId).explorers) }.share()
 
-    fun getSupportedExplorers(historyType: Chain.ExternalApi.Section.Type, value: String): Map<Chain.Explorer.Type, String> {
-        val explorerUrlType: BlockExplorerUrlBuilder.Type = when (historyType) {
-            Chain.ExternalApi.Section.Type.ETHERSCAN -> BlockExplorerUrlBuilder.Type.TX
-            Chain.ExternalApi.Section.Type.REEF -> BlockExplorerUrlBuilder.Type.TRANSFER
+    fun getSupportedExplorers(explorerType: Chain.Explorer.Type, value: String): Map<Chain.Explorer.Type, String> {
+        val explorerUrlType: BlockExplorerUrlBuilder.Type = when (explorerType) {
+            Chain.Explorer.Type.OKLINK,
+            Chain.Explorer.Type.ETHERSCAN -> BlockExplorerUrlBuilder.Type.TX
+            Chain.Explorer.Type.REEF -> BlockExplorerUrlBuilder.Type.TRANSFER
             else -> BlockExplorerUrlBuilder.Type.EXTRINSIC
         }
         return chainExplorers.replayCache.firstOrNull()?.getSupportedExplorers(explorerUrlType, value).orEmpty()
     }
-    fun getSupportedExplorers(type: BlockExplorerUrlBuilder.Type, value: String) =
-        chainExplorers.replayCache.firstOrNull()?.getSupportedExplorers(type, value).orEmpty()
+
+    fun getSupportedAddressExplorers(address: String): Map<Chain.Explorer.Type, String> =
+        chainExplorers.replayCache.firstOrNull()?.getSupportedAddressExplorers(address).orEmpty()
 
     val retryAddressModelLiveData = if (operation.isIncome) senderAddressModelLiveData else recipientAddressModelLiveData
 

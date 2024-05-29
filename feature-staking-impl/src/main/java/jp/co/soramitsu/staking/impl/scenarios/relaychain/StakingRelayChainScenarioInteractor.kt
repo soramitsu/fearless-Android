@@ -1,6 +1,5 @@
 package jp.co.soramitsu.staking.impl.scenarios.relaychain
 
-import android.util.Log
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.util.Optional
@@ -47,7 +46,6 @@ import jp.co.soramitsu.staking.impl.domain.EraTimeCalculatorFactory
 import jp.co.soramitsu.staking.impl.domain.StakingInteractor
 import jp.co.soramitsu.staking.impl.domain.common.isWaiting
 import jp.co.soramitsu.staking.impl.domain.isNominationActive
-import jp.co.soramitsu.staking.impl.domain.minimumStake
 import jp.co.soramitsu.staking.impl.domain.model.NetworkInfo
 import jp.co.soramitsu.staking.impl.domain.model.NominatorStatus
 import jp.co.soramitsu.staking.impl.domain.model.PendingPayout
@@ -96,8 +94,8 @@ import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.validation.EnoughToPayFeesValidation
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emitAll
@@ -111,7 +109,6 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.withContext
 import jp.co.soramitsu.core.models.Asset as CoreAsset
@@ -133,6 +130,7 @@ class StakingRelayChainScenarioInteractor(
     private val walletConstants: WalletConstants
 ) : StakingScenarioInteractor {
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     override suspend fun observeNetworkInfoState(): Flow<NetworkInfo> {
         return stakingSharedState.assetWithChain.filter { it.asset.staking == StakingType.RELAYCHAIN }
             .distinctUntilChanged()
@@ -200,6 +198,7 @@ class StakingRelayChainScenarioInteractor(
         }
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     fun stakingStateFlow(chainId: ChainId): Flow<StakingState> {
         return jp.co.soramitsu.common.utils.flowOf {
             val chain = stakingInteractor.getChain(chainId)
@@ -235,7 +234,7 @@ class StakingRelayChainScenarioInteractor(
         return observeStakeSummary(nominatorState) {
             val eraStakers = it.eraStakers.values
             val chainId = nominatorState.chain.id
-
+            val utilityAsset = nominatorState.chain.utilityAsset
             when {
                 isNominationActive(
                     nominatorState.stashId,
@@ -243,28 +242,32 @@ class StakingRelayChainScenarioInteractor(
                     it.rewardedNominatorsPerValidator
                 ) -> NominatorStatus.Active
 
+                utilityAsset != null && it.asset.bondedInPlanks.orZero() < minimumStake(
+                    nominatorState.chain.id,
+                    eraStakers,
+                    stakingRelayChainScenarioRepository.minimumNominatorBond(utilityAsset)
+                ) -> {
+                    NominatorStatus.Inactive(NominatorStatus.Inactive.Reason.MIN_STAKE)
+                }
+
                 nominatorState.nominations.isWaiting(it.activeEraIndex) -> NominatorStatus.Waiting(
                     timeLeft = getCalculator(chainId).calculate(nominatorState.nominations.submittedInEra + ERA_OFFSET)
                         .toLong()
                 )
 
-                else -> {
-                    val utilityAsset = nominatorState.chain.utilityAsset
-                    val inactiveReason = when {
-                        utilityAsset != null && it.asset.bondedInPlanks.orZero() < minimumStake(
-                            eraStakers,
-                            stakingRelayChainScenarioRepository.minimumNominatorBond(utilityAsset)
-                        ) -> {
-                            NominatorStatus.Inactive.Reason.MIN_STAKE
-                        }
-
-                        else -> NominatorStatus.Inactive.Reason.NO_ACTIVE_VALIDATOR
-                    }
-
-                    NominatorStatus.Inactive(inactiveReason)
-                }
+                else -> NominatorStatus.Inactive(NominatorStatus.Inactive.Reason.NO_ACTIVE_VALIDATOR)
             }
         }
+    }
+
+    suspend fun minimumStake(
+        chainId: ChainId,
+        exposures: Collection<LegacyExposure>,
+        minimumNominatorBond: BigInteger
+    ): BigInteger {
+        val minActiveStake = stakingRelayChainScenarioRepository.minimumActiveStake(chainId)
+            ?: kotlin.runCatching { exposures.minOf { exposure -> exposure.others.minOf { it.value } } }.getOrNull() ?: BigInteger.ZERO
+        return minActiveStake.coerceAtLeast(minimumNominatorBond)
     }
 
     private fun <S> observeStakeSummary(
@@ -289,7 +292,6 @@ class StakingRelayChainScenarioInteractor(
                 asset,
                 rewardedNominatorsPerValidator
             )
-
             val status = statusResolver(statusResolutionContext)
             StakeSummary(
                 status = status,

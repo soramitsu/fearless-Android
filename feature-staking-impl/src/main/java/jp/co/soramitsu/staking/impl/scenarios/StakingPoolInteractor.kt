@@ -61,7 +61,7 @@ class StakingPoolInteractor(
     private val currentValidatorsInteractor: CurrentValidatorsInteractor
 ) {
 
-    @OptIn(FlowPreview::class)
+    @OptIn(ExperimentalCoroutinesApi::class)
     fun stakingStateFlow(): Flow<StakingState> {
         val currentChainFlow = stakingInteractor.selectedChainFlow().filter { it.supportStakingPool }
         val selectedAccountFlow = accountRepository.selectedMetaAccountFlow()

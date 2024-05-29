@@ -10,14 +10,14 @@ import jp.co.soramitsu.common.AlertViewState
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.NetworkIssueItemState
 import jp.co.soramitsu.common.compose.component.NetworkIssueType
-import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
-import jp.co.soramitsu.common.mixin.api.NetworkStateUi
+import jp.co.soramitsu.common.domain.NetworkStateService
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
+import jp.co.soramitsu.wallet.impl.presentation.balance.list.model.toUiModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
@@ -28,15 +28,16 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 @HiltViewModel
+@Deprecated("Seems like we don't need this anymore")
 class NetworkIssuesViewModel @Inject constructor(
     private val walletRouter: WalletRouter,
     private val walletInteractor: WalletInteractor,
     private val accountInteractor: AccountInteractor,
     private val updatesMixin: UpdatesMixin,
-    private val networkStateMixin: NetworkStateMixin,
+    private val networkStateService: NetworkStateService,
     private val resourceManager: ResourceManager,
     private val assetNotNeedAccount: AssetNotNeedAccountUseCase
-) : BaseViewModel(), UpdatesProviderUi by updatesMixin, NetworkStateUi by networkStateMixin {
+) : BaseViewModel(), UpdatesProviderUi by updatesMixin {
 
     companion object {
         private const val KEY_ALERT_RESULT = "result"
@@ -44,8 +45,22 @@ class NetworkIssuesViewModel @Inject constructor(
 
     private var lastSelectedNetworkIssueState: NetworkIssueItemState? = null
 
+    // todo do we need this screen?
+    private val networkIssuesState = networkStateService.networkIssuesFlow.map { issuesMap ->
+        issuesMap.entries.map {
+            NetworkIssueItemState(
+                iconUrl = "stub",//it.asset.token.configuration.chainIcon ?: it.asset.token.configuration.iconUrl,
+                title = "stub",
+                type = it.value.toUiModel(),
+                chainId = it.key,
+                chainName = "stub",//it.asset.token.configuration.chainName,
+                assetId = "stub"//it.asset.token.configuration.id
+            )
+        }
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
     val state = combine(
-        networkStateMixin.networkIssuesFlow.stateIn(viewModelScope, SharingStarted.Eagerly, emptySet()),
+        networkIssuesState,
         walletInteractor.assetsFlow().map {
             it.filter { !it.hasAccount && !it.asset.markedNotNeed }.map {
                 NetworkIssueItemState(

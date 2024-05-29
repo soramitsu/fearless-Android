@@ -58,6 +58,10 @@ class StakingRelaychainScenarioViewModel(
     stakingSharedState: StakingSharedState
 ) : StakingScenarioViewModel {
 
+    companion object {
+        const val STAKE_EXTRA_MULTIPLIER = 1.15 // allow to be not at the bottom of reward list and not be excluded soon
+    }
+
     override val enteredAmountFlow: MutableStateFlow<BigDecimal?> = MutableStateFlow(BigDecimal.ZERO)
 
     private val welcomeStakingValidationSystem = ValidationSystem(
@@ -73,46 +77,41 @@ class StakingRelaychainScenarioViewModel(
         )
     )
 
-    private val viewStatesCash: MutableMap<String, StakingViewStateOld> = mutableMapOf()
-
     override val stakingStateFlow: Flow<StakingState> =
         scenarioInteractor.stakingStateFlow().shareIn(baseViewModel.stakingStateScope, SharingStarted.Eagerly, 1)
 
     override val stakingViewStateFlowOld: Flow<StakingViewStateOld> =
         stakingStateFlow.distinctUntilChanged().map { stakingState ->
-            val key = "${stakingState.accountId.toHexString()}:${stakingState.chain.id}"
-            viewStatesCash.getOrPut(key) {
-                when (stakingState) {
-                    is StakingState.Stash.Nominator -> stakingViewStateFactory.createNominatorViewState(
-                        stakingState,
-                        stakingInteractor.currentAssetFlow(),
-                        baseViewModel.stakingStateScope,
-                        baseViewModel::showError
-                    )
+            when (stakingState) {
+                is StakingState.Stash.Nominator -> stakingViewStateFactory.createNominatorViewState(
+                    stakingState,
+                    stakingInteractor.currentAssetFlow(),
+                    baseViewModel.stakingStateScope,
+                    baseViewModel::showError
+                )
 
-                    is StakingState.Stash.None -> stakingViewStateFactory.createStashNoneState(
-                        stakingInteractor.currentAssetFlow(),
-                        stakingState,
-                        baseViewModel.stakingStateScope,
-                        baseViewModel::showError
-                    )
+                is StakingState.Stash.None -> stakingViewStateFactory.createStashNoneState(
+                    stakingInteractor.currentAssetFlow(),
+                    stakingState,
+                    baseViewModel.stakingStateScope,
+                    baseViewModel::showError
+                )
 
-                    is StakingState.NonStash -> stakingViewStateFactory.createRelayChainWelcomeViewState(
-                        stakingInteractor.currentAssetFlow(),
-                        baseViewModel.stakingStateScope,
-                        welcomeStakingValidationSystem = welcomeStakingValidationSystem,
-                        baseViewModel::showError
-                    )
+                is StakingState.NonStash -> stakingViewStateFactory.createRelayChainWelcomeViewState(
+                    stakingInteractor.currentAssetFlow(),
+                    baseViewModel.stakingStateScope,
+                    welcomeStakingValidationSystem = welcomeStakingValidationSystem,
+                    baseViewModel::showError
+                )
 
-                    is StakingState.Stash.Validator -> stakingViewStateFactory.createValidatorViewState(
-                        stakingState,
-                        stakingInteractor.currentAssetFlow(),
-                        baseViewModel.stakingStateScope,
-                        baseViewModel::showError
-                    )
+                is StakingState.Stash.Validator -> stakingViewStateFactory.createValidatorViewState(
+                    stakingState,
+                    stakingInteractor.currentAssetFlow(),
+                    baseViewModel.stakingStateScope,
+                    baseViewModel::showError
+                )
 
-                    else -> error("Wrong state")
-                }
+                else -> error("Wrong state")
             }
         }.shareIn(baseViewModel.stakingStateScope, SharingStarted.Eagerly, 1)
 
@@ -164,7 +163,7 @@ class StakingRelaychainScenarioViewModel(
         ) { networkInfo, asset ->
 
             val minStakeMultiplier: Double = if (networkInfo.shouldUseMinimumStakeMultiplier) {
-                1.15 // 15% increase
+                STAKE_EXTRA_MULTIPLIER // 15% increase
             } else {
                 1.0
             }

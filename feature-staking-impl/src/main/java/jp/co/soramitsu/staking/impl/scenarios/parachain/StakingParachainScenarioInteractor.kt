@@ -93,6 +93,7 @@ import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
 import jp.co.soramitsu.wallet.impl.domain.validation.EnoughToPayFeesValidation
 import jp.co.soramitsu.wallet.impl.domain.validation.assetBalanceProducer
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.combine
@@ -144,8 +145,12 @@ class StakingParachainScenarioInteractor(
         "91bc6e169807aaa54802737e1c504b2577d4fafedd5a02c10293b1cd60e39527" to 2 // moonbase
     )
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     override fun stakingStateFlow(): Flow<StakingState> {
-        return stakingInteractor.selectedChainFlow().flatMapLatest { chain ->
+        return combine(
+            stakingInteractor.selectedChainFlow(),
+            accountRepository.selectedMetaAccountFlow()
+        ) { chain, metaAccount ->
             val availableStakingSelection = stakingSharedState.availableToSelect()
             val isSelectedChainAvailable = availableStakingSelection.any { it.chainId == chain.id }
 
@@ -155,14 +160,17 @@ class StakingParachainScenarioInteractor(
                 val chainId = with(availableStakingSelection) {
                     firstOrNull { it.chainId == polkadotChainId } ?: first()
                 }.chainId
-                availableStakingSelection.firstOrNull { it.chainId == chainId }?.let { newSelection ->
-                    stakingSharedState.update(newSelection)
-                }
+                availableStakingSelection.firstOrNull { it.chainId == chainId }
+                    ?.let { newSelection ->
+                        stakingSharedState.update(newSelection)
+                    }
                 val availableChain = stakingInteractor.getChain(chainId)
                 availableChain
             }
-            val accountId = accountRepository.getSelectedMetaAccount().accountId(useChain) ?: error("cannot find accountId")
-            stakingParachainScenarioRepository.stakingStateFlow(useChain, accountId)
+            val accountId = metaAccount.accountId(useChain) ?: error("cannot find accountId")
+            useChain to accountId
+        }.flatMapLatest { (chain, accountId) ->
+            stakingParachainScenarioRepository.stakingStateFlow(chain, accountId)
         }
     }
 

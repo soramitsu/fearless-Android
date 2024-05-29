@@ -111,7 +111,7 @@ fun bindOrmlTokensAccountDataOrDefault(hex: String?, runtime: RuntimeSnapshot): 
 }
 
 fun bindEquilibriumAccountData(hex: String?, runtime: RuntimeSnapshot): EqAccountInfo? {
-    return hex?.let { bindEquilibriumAccountInfo(it, runtime) }
+    return hex?.let { runCatching { bindEquilibriumAccountInfo(it, runtime) }.getOrNull() }
 }
 
 fun bindAssetsAccountData(hex: String?, runtime: RuntimeSnapshot): AssetsAccountInfo? {

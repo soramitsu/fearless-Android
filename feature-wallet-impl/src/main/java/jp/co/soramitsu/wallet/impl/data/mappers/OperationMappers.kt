@@ -1,5 +1,6 @@
 package jp.co.soramitsu.wallet.impl.data.mappers
 
+import java.math.BigDecimal
 import java.math.BigInteger
 import jp.co.soramitsu.account.api.presentation.account.AddressDisplayUseCase
 import jp.co.soramitsu.common.address.AddressIconGenerator
@@ -212,7 +213,7 @@ fun TxHistoryItem.toOperation(
                     hash = id,
                     myAddress = data?.firstOrNull { it.paramName == "from" }?.paramValue.orEmpty(),
                     amount = chainAsset.planksFromAmount(
-                        data?.firstOrNull { it.paramName == "amount" }?.paramValue?.toBigDecimal()
+                        data?.firstOrNull { it.paramName == "amount" }?.paramValue?.toBigDecimalOrNull()
                             .orZero()
                     ),
                     receiver = data?.firstOrNull { it.paramName == "to" }?.paramValue.orEmpty(),
@@ -231,16 +232,16 @@ fun TxHistoryItem.toOperation(
             val baseAsset =
                 chain.assets.firstOrNull { it.currencyId == baseCurrencyId } ?: return null
             val baseAssetAmount =
-                data?.firstOrNull { it.paramName == "baseAssetAmount" }?.paramValue?.toBigDecimal()
+                data?.firstOrNull { it.paramName == "baseAssetAmount" }?.paramValue?.toBigDecimalOrNull()
                     .orZero()
 
             val targetAsset = chain.assets.firstOrNull { it.currencyId == targetCurrencyId }
             val targetAssetAmount =
-                data?.firstOrNull { it.paramName == "targetAssetAmount" }?.paramValue?.toBigDecimal()
+                data?.firstOrNull { it.paramName == "targetAssetAmount" }?.paramValue?.toBigDecimalOrNull()
                     .orZero()
 
             val liquidityProviderFee =
-                data?.firstOrNull { it.paramName == "liquidityProviderFee" }?.paramValue?.toBigDecimal()
+                data?.firstOrNull { it.paramName == "liquidityProviderFee" }?.paramValue?.toBigDecimalOrNull()
                     .orZero()
 
             Operation(
@@ -271,7 +272,7 @@ fun TxHistoryItem.toOperation(
                 chainAsset = chainAsset,
                 type = Operation.Type.Reward(
                     amount = chainAsset.planksFromAmount(
-                        data?.firstOrNull { it.paramName == "amount" }?.paramValue?.toBigDecimal()
+                        data?.firstOrNull { it.paramName == "amount" }?.paramValue?.toBigDecimalOrNull()
                             .orZero()
                     ),
                     isReward = true,
@@ -579,4 +580,8 @@ fun mapOperationToParcel(
             }
         }
     }
+}
+
+fun String.toBigDecimalOrNull(): BigDecimal?  {
+    return runCatching { toBigDecimal() }.getOrNull()
 }

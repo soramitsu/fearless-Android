@@ -229,7 +229,8 @@ class SessionProposalViewModel @Inject constructor(
             walletConnectRouter.openOperationSuccessAndPopUpToNearestRelatedScreen(
                 null,
                 null,
-                resourceManager.getString(R.string.connection_approve_success_message, proposal.name)
+                resourceManager.getString(R.string.connection_approve_success_message, proposal.name),
+                resourceManager.getString(R.string.all_done)
             )
         }
         isApproving.value = false
@@ -273,7 +274,8 @@ class SessionProposalViewModel @Inject constructor(
             walletConnectRouter.openOperationSuccessAndPopUpToNearestRelatedScreen(
                 null,
                 null,
-                resourceManager.getString(R.string.common_rejected)
+                resourceManager.getString(R.string.common_rejected),
+                resourceManager.getString(R.string.all_done)
             )
         }
     }

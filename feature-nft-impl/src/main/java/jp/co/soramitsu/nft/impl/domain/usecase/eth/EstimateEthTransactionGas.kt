@@ -9,11 +9,8 @@ import org.web3j.protocol.core.methods.request.Transaction
 import org.web3j.utils.Numeric
 import java.math.BigInteger
 
-@Suppress("FunctionName")
-suspend fun EthereumChainConnection.EstimateEthTransactionGas(call: EthCall): BigInteger {
-    val response = nonNullWeb3j.ethEstimateGas(
-        call.convertToWeb3Transaction()
-    ).sendAsync().await()
+suspend fun EthereumChainConnection.estimateEthTransactionGas(call: EthCall): BigInteger {
+    val response = nonNullWeb3j.ethEstimateGas(call.convertToWeb3Transaction()).sendAsync().await()
 
     return response.map { Numeric.decodeQuantity(it) }
 }

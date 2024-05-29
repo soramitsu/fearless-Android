@@ -207,8 +207,7 @@ class TransactionHistoryProvider(
 
     override fun transactionClicked(
         transactionModel: OperationModel,
-        assetPayload: AssetPayload,
-        chainHistoryType: Chain.ExternalApi.Section.Type?
+        assetPayload: AssetPayload
     ) {
         launch {
             val operations = currentData
@@ -217,11 +216,12 @@ class TransactionHistoryProvider(
 
             val chain = walletInteractor.getChain(assetPayload.chainId)
             val utilityAsset = chain.assets.firstOrNull { it.isUtility }
+            val chainExplorerType: Chain.Explorer.Type? = chain.explorers.firstOrNull()?.type
 
             withContext(Dispatchers.Main) {
                 when (val operation = mapOperationToParcel(clickedOperation, resourceManager, utilityAsset)) {
                     is OperationParcelizeModel.Transfer -> {
-                        router.openTransferDetail(operation, assetPayload, chainHistoryType)
+                        router.openTransferDetail(operation, assetPayload, chainExplorerType)
                     }
 
                     is OperationParcelizeModel.Extrinsic -> {

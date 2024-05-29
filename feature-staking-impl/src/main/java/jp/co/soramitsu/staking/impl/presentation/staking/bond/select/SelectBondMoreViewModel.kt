@@ -41,8 +41,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 private const val DEFAULT_AMOUNT = 1
@@ -92,8 +92,7 @@ class SelectBondMoreViewModel @Inject constructor(
         .asLiveData()
 
     val enteredAmountFlow = MutableStateFlow(DEFAULT_AMOUNT.toString())
-
-    private val parsedAmountFlow = enteredAmountFlow.mapNotNull { it.toBigDecimalOrNull() }
+    private val decimalAmountFlow = MutableStateFlow(DEFAULT_AMOUNT.toBigDecimal())
 
     val accountLiveData = stakingScenarioInteractor.getSelectedAccountAddress()
         .inBackground()
@@ -103,7 +102,7 @@ class SelectBondMoreViewModel @Inject constructor(
         .inBackground()
         .asLiveData()
 
-    val enteredFiatAmountFlow = assetFlow.combine(parsedAmountFlow) { asset, amount ->
+    val enteredFiatAmountFlow = assetFlow.combine(decimalAmountFlow) { asset, amount ->
         asset.token.fiatAmount(amount)?.formatFiat(asset.token.fiatSymbol)
     }
         .inBackground()
@@ -111,6 +110,12 @@ class SelectBondMoreViewModel @Inject constructor(
 
     init {
         listenFee()
+        enteredAmountFlow.onEach { stringValue ->
+            decimalAmountFlow.update {
+                // todo don't do like this, we must create a reversed formatter from String to BigDecimal
+                stringValue.replace(",", "").toBigDecimalOrNull() ?: it
+            }
+        }.launchIn(viewModelScope)
     }
 
     fun nextClicked() {
@@ -127,7 +132,7 @@ class SelectBondMoreViewModel @Inject constructor(
 
     @OptIn(FlowPreview::class)
     private fun listenFee() {
-        parsedAmountFlow
+        decimalAmountFlow
             .debounce(DEBOUNCE_DURATION_MILLIS.toDuration(DurationUnit.MILLISECONDS))
             .onEach { loadFee(it) }
             .launchIn(viewModelScope)
@@ -157,7 +162,7 @@ class SelectBondMoreViewModel @Inject constructor(
             val payload = BondMoreValidationPayload(
                 stashAddress = stashAddress(),
                 fee = fee,
-                amount = parsedAmountFlow.first(),
+                amount = decimalAmountFlow.value,
                 chainAsset = assetFlow.first().token.configuration
             )
 
@@ -244,6 +249,7 @@ class SelectBondMoreViewModel @Inject constructor(
             }
 
             enteredAmountFlow.emit(value.formatCrypto())
+            decimalAmountFlow.update { value }
         }
     }
 }

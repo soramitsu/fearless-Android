@@ -31,17 +31,18 @@ class SuccessFragment : BaseComposeBottomSheetDialogFragment<SuccessViewModel>()
         const val KEY_OPERATION_HASH = "KEY_OPERATION_HASH"
         const val KEY_CHAIN_ID = "KEY_CHAIN_ID"
         const val KEY_CUSTOM_MESSAGE = "KEY_CUSTOM_MESSAGE"
-        const val KEY_HAS_SUCCESS_RESULT = "KEY_HAS_SUCCESS_RESULT"
+        const val KEY_CUSTOM_TITLE = "KEY_CUSTOM_TITLE"
 
         fun getBundle(
             operationHash: String?,
             chainId: ChainId?,
             customMessage: String?,
-            hasSuccessResult: Boolean = true
+            customTitle: String? = null
         ) = bundleOf(
             KEY_OPERATION_HASH to operationHash,
             KEY_CHAIN_ID to chainId,
-            KEY_CUSTOM_MESSAGE to customMessage
+            KEY_CUSTOM_MESSAGE to customMessage,
+            KEY_CUSTOM_TITLE to customTitle
         )
     }
 

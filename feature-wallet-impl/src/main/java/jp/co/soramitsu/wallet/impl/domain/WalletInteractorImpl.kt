@@ -20,6 +20,9 @@ import jp.co.soramitsu.common.domain.SelectedFiat
 import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
+import jp.co.soramitsu.common.domain.NetworkStateService
+import jp.co.soramitsu.common.domain.model.NetworkIssueType
+import jp.co.soramitsu.common.model.AssetBooleanState
 import jp.co.soramitsu.common.utils.Modules
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.common.utils.orZero
@@ -27,17 +30,18 @@ import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.core.models.Asset.StakingType
 import jp.co.soramitsu.core.models.ChainId
 import jp.co.soramitsu.core.utils.isValidAddress
+import jp.co.soramitsu.coredb.model.AssetUpdateItem
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.isPolkadotOrKusama
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
-import jp.co.soramitsu.runtime.multiNetwork.chainWithAsset
 import jp.co.soramitsu.shared_utils.extensions.toHexString
 import jp.co.soramitsu.shared_utils.runtime.AccountId
 import jp.co.soramitsu.shared_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.shared_utils.runtime.metadata.moduleOrNull
 import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.toAddress
+import jp.co.soramitsu.wallet.impl.data.network.blockchain.updaters.BalanceUpdateTrigger
 import jp.co.soramitsu.wallet.impl.data.repository.HistoryRepository
 import jp.co.soramitsu.wallet.impl.domain.interfaces.AddressBookRepository
 import jp.co.soramitsu.wallet.impl.domain.interfaces.AssetSorting
@@ -57,6 +61,7 @@ import jp.co.soramitsu.wallet.impl.domain.model.Transfer
 import jp.co.soramitsu.wallet.impl.domain.model.WalletAccount
 import jp.co.soramitsu.wallet.impl.domain.model.toPhishingModel
 import jp.co.soramitsu.xcm.domain.XcmEntitiesFetcher
+import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -64,11 +69,11 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flatMapMerge
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.withIndex
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import jp.co.soramitsu.core.models.Asset as CoreAsset
 
 private const val QR_PREFIX_SUBSTRATE = "substrate"
@@ -76,11 +81,11 @@ const val QR_PREFIX_WALLET_CONNECT = "wc"
 private const val PREFS_WALLET_SELECTED_CHAIN_ID = "wallet_selected_chain_id"
 private const val PREFS_SORA_CARD_HIDDEN_SESSIONS_COUNT = "prefs_sora_card_hidden_sessions_count"
 private const val SORA_CARD_HIDDEN_SESSIONS_LIMIT = 5
-private const val HIDE_ZERO_BALANCES_PREFS_KEY = "hideZeroBalances"
 private const val CHAIN_SELECT_FILTER_APPLIED = "chain_select_filter_applied"
 private const val ACCOUNT_ID_MIN_TAG = 26
 private const val ACCOUNT_ID_MAX_TAG = 51
 private const val ASSET_SORTING_KEY = "ASSET_SORTING_KEY"
+private const val ASSET_MANAGEMENT_INTRO_PASSED_KEY = "ASSET_MANAGEMENT_INTRO_PASSED_KEY"
 
 class WalletInteractorImpl(
     private val walletRepository: WalletRepository,
@@ -93,32 +98,10 @@ class WalletInteractorImpl(
     private val selectedFiat: SelectedFiat,
     private val updatesMixin: UpdatesMixin,
     private val xcmEntitiesFetcher: XcmEntitiesFetcher,
-    private val chainsRepository: ChainsRepository
+    private val chainsRepository: ChainsRepository,
+    private val networkStateService: NetworkStateService,
+    private val coroutineContext: CoroutineContext = Dispatchers.Default
 ) : WalletInteractor, UpdatesProviderUi by updatesMixin {
-
-    override suspend fun getHideZeroBalancesForCurrentWallet(): Boolean {
-        val walletId = accountRepository.getSelectedMetaAccount().id
-        val key = getHideZeroBalancesKey(walletId)
-        return preferences.getBoolean(key, false)
-    }
-
-    override suspend fun toggleHideZeroBalancesForCurrentWallet() {
-        val walletId = accountRepository.getSelectedMetaAccount().id
-        val key = getHideZeroBalancesKey(walletId)
-        val value = preferences.getBoolean(key, false)
-        val newValue = value.not()
-        preferences.putBoolean(key, newValue)
-    }
-
-    override fun observeHideZeroBalanceEnabledForCurrentWallet(): Flow<Boolean> {
-        return accountRepository.selectedLightMetaAccountFlow().flatMapMerge { wallet ->
-            preferences.booleanFlow(getHideZeroBalancesKey(wallet.id), false)
-        }.distinctUntilChanged()
-    }
-
-    private fun getHideZeroBalancesKey(walletId: Long): String {
-        return "${HIDE_ZERO_BALANCES_PREFS_KEY}_$walletId"
-    }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     override fun assetsFlow(): Flow<List<AssetWithStatus>> {
@@ -184,11 +167,11 @@ class WalletInteractorImpl(
         return kotlin.runCatching { getCurrentAssetOrNull(chainId, chainAssetId)!! }.requireValue()
     }
 
-    override suspend fun getCurrentAssetOrNull(chainId: ChainId, chainAssetId: String): Asset? {
+    override suspend fun getCurrentAssetOrNull(chainId: ChainId, chainAssetId: String): Asset? = withContext(coroutineContext) {
         val metaAccount = accountRepository.getSelectedMetaAccount()
         val (chain, chainAsset) = chainsRepository.chainWithAsset(chainId, chainAssetId)
 
-        return walletRepository.getAsset(
+        return@withContext walletRepository.getAsset(
             metaAccount.id,
             metaAccount.accountId(chain)!!,
             chainAsset,
@@ -289,10 +272,10 @@ class WalletInteractorImpl(
     override suspend fun getTransferFee(
         transfer: Transfer,
         additional: (suspend ExtrinsicBuilder.() -> Unit)?
-    ): Fee {
+    ): Fee = withContext(Dispatchers.Default) {
         val chain = chainsRepository.getChain(transfer.chainAsset.chainId)
 
-        return walletRepository.getTransferFee(
+        return@withContext walletRepository.getTransferFee(
             chain = chain,
             transfer = transfer,
             additional = additional
@@ -444,42 +427,33 @@ class WalletInteractorImpl(
     override suspend fun getChainAddressForSelectedMetaAccount(chainId: ChainId) =
         getSelectedMetaAccount().address(getChain(chainId))
 
-    override suspend fun markAssetAsHidden(chainId: ChainId, chainAssetId: String) {
-        manageAssetHidden(chainId, chainAssetId, true)
-    }
-
-    override suspend fun markAssetAsShown(chainId: ChainId, chainAssetId: String) {
-        manageAssetHidden(chainId, chainAssetId, false)
-    }
-
-    private suspend fun manageAssetHidden(
-        chainId: ChainId,
-        chainAssetId: String,
-        isHidden: Boolean
-    ) {
-        val metaAccount = accountRepository.getSelectedMetaAccount()
-        val chain = chainsRepository.getChain(chainId)
-        val accountId = metaAccount.accountId(chain)
-        val chainAsset = chain.assetsById[chainAssetId] ?: return
-
-        val chainsWithAsset = chainsRepository.getChains().filter { chainItem ->
-            chainItem.assets.any { it.symbol == chainAsset.symbol }
-        }
-
-        val assetsToManage = chainsWithAsset.map {
-            it.assets.filter { it.symbol == chainAsset.symbol }
-        }.flatten()
-
-        accountId?.let {
-            assetsToManage.forEach {
-                walletRepository.updateAssetHidden(
-                    chainAsset = it,
-                    metaId = metaAccount.id,
+    override suspend fun updateAssetsHiddenState(state: List<AssetBooleanState>) {
+        val wallet = getSelectedMetaAccount()
+        val updateItems = state.mapNotNull {
+            val chain = getChain(it.chainId)
+            val asset = chain.assetsById[it.assetId]
+            val tokenPriceId = asset?.priceProvider?.id?.takeIf { selectedFiat.isUsd() } ?: asset?.priceId
+            wallet.accountId(chain)?.let { accountId ->
+                AssetUpdateItem(
+                    metaId = wallet.id,
+                    chainId = it.chainId,
                     accountId = accountId,
-                    isHidden = isHidden
+                    id = it.assetId,
+                    sortIndex = Int.MAX_VALUE, // Int.MAX_VALUE on sorting because we don't use it anymore - just random value
+                    enabled = it.value,
+                    tokenPriceId = tokenPriceId
                 )
             }
         }
+        walletRepository.updateAssetsHidden(updateItems)
+    }
+
+    override suspend fun markAssetAsHidden(chainId: ChainId, chainAssetId: String) {
+        updateAssetsHiddenState(listOf(AssetBooleanState(chainId, chainAssetId, false)))
+    }
+
+    override suspend fun markAssetAsShown(chainId: ChainId, chainAssetId: String) {
+        updateAssetsHiddenState(listOf(AssetBooleanState(chainId, chainAssetId, true)))
     }
 
     override fun selectedMetaAccountFlow(): Flow<MetaAccount> {
@@ -639,6 +613,14 @@ class WalletInteractorImpl(
         preferences.putString(key, filter)
     }
 
+    override suspend fun saveAssetManagementIntroPassed() {
+        preferences.putBoolean(ASSET_MANAGEMENT_INTRO_PASSED_KEY, true)
+    }
+
+    override fun getAssetManagementIntroPassed(): Boolean {
+        return preferences.getBoolean(ASSET_MANAGEMENT_INTRO_PASSED_KEY, defaultValue = false)
+    }
+
     @OptIn(ExperimentalCoroutinesApi::class)
     override fun observeSelectedAccountChainSelectFilter(): Flow<String> {
         return accountRepository.selectedMetaAccountFlow().map {
@@ -665,6 +647,14 @@ class WalletInteractorImpl(
         return walletRepository.observeChainsPerAsset(accountMetaId, assetId)
     }
 
+    override fun observeCurrentAccountChainsPerAsset(
+        assetId: String
+    ): Flow<Map<Chain, Asset?>> {
+        return accountRepository.selectedMetaAccountFlow().flatMapLatest {
+            walletRepository.observeChainsPerAsset(it.id, assetId)
+        }
+    }
+
     override fun applyAssetSorting(sorting: AssetSorting) {
         preferences.putString(ASSET_SORTING_KEY, sorting.name)
     }
@@ -674,8 +664,28 @@ class WalletInteractorImpl(
             AssetSorting.FiatBalance.toString()
         }.map { sortingAsString ->
             sortingAsString?.let {
-                AssetSorting.values().find { sorting -> sorting.name == it }
+                AssetSorting.entries.find { sorting -> sorting.name == it }
             } ?: AssetSorting.FiatBalance
+        }
+    }
+
+    override fun networkIssuesFlow(): Flow<Map<ChainId, NetworkIssueType>> {
+        return networkStateService.networkIssuesFlow
+    }
+
+    override suspend fun retryChainSync(chainId: ChainId): Result<Unit> {
+        return withContext(coroutineContext) {
+            val chain = chainsRepository.getChain(chainId)
+            chainRegistry.setupChain(chain)
+            val runtime = withTimeoutOrNull(15_000L) {
+                chainRegistry.awaitRuntimeProvider(chainId).get()
+            }
+            BalanceUpdateTrigger.invoke(chainId)
+            if(runtime == null) {
+                return@withContext Result.failure(Exception("Failed to sync chain"))
+            } else {
+                return@withContext Result.success(Unit)
+            }
         }
     }
 }

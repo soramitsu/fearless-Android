@@ -14,7 +14,7 @@ suspend fun EthereumChainConnection.CreateRawEthTransaction(call: EthCall): RawT
             EIP1559CallImpl.createAsync(
                 ethConnection = this,
                 call = call,
-                estimateGas = EstimateEthTransactionGas(
+                estimateGas = estimateEthTransactionGas(
                     call = call
                 )
             )

@@ -1,5 +1,6 @@
 package jp.co.soramitsu.wallet.impl.data.repository
 
+import android.util.Log
 import jp.co.soramitsu.common.data.model.CursorPage
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.core.models.Asset

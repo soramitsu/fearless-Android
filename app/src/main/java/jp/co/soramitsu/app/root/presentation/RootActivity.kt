@@ -9,7 +9,6 @@ import android.net.NetworkCapabilities
 import android.net.NetworkRequest
 import android.net.Uri
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.view.animation.Animation
 import android.view.animation.TranslateAnimation
@@ -25,6 +24,9 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import dagger.hilt.android.AndroidEntryPoint
+import java.io.IOException
+import java.net.HttpURLConnection
+import java.net.URL
 import javax.inject.Inject
 import jp.co.soramitsu.app.R
 import jp.co.soramitsu.app.root.navigation.Navigator
@@ -36,6 +38,12 @@ import jp.co.soramitsu.common.utils.observe
 import jp.co.soramitsu.common.utils.showToast
 import jp.co.soramitsu.common.utils.updatePadding
 import jp.co.soramitsu.common.view.bottomSheet.AlertBottomSheet
+import jp.co.soramitsu.runtime.BuildConfig
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @AndroidEntryPoint
 class RootActivity : BaseActivity<RootViewModel>(), LifecycleObserver {
@@ -66,7 +74,10 @@ class RootActivity : BaseActivity<RootViewModel>(), LifecycleObserver {
         navigator.attach(navController, this)
 
         rootNetworkBar.setOnApplyWindowInsetsListener { view, insets ->
-            view.updatePadding(top = WindowInsetsCompat.toWindowInsetsCompat(insets, view).getInsets(WindowInsetsCompat.Type.systemBars()).top)
+            view.updatePadding(
+                top = WindowInsetsCompat.toWindowInsetsCompat(insets, view)
+                    .getInsets(WindowInsetsCompat.Type.systemBars()).top
+            )
 
             insets
         }
@@ -83,6 +94,25 @@ class RootActivity : BaseActivity<RootViewModel>(), LifecycleObserver {
                 super.onAvailable(network)
                 viewModel.onNetworkAvailable()
             }
+
+            override fun onLost(network: Network) {
+                super.onLost(network)
+                viewModel.onConnectionLost()
+            }
+
+            override fun onCapabilitiesChanged(
+                network: Network,
+                networkCapabilities: NetworkCapabilities
+            ) {
+                super.onCapabilitiesChanged(network, networkCapabilities)
+                val hasInternetCapability =
+                    networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+                if (hasInternetCapability) {
+                    viewModel.onNetworkAvailable()
+                } else {
+                    viewModel.onConnectionLost()
+                }
+            }
         }
 
         val networkRequest = NetworkRequest.Builder()
@@ -91,8 +121,44 @@ class RootActivity : BaseActivity<RootViewModel>(), LifecycleObserver {
             .addTransportType(NetworkCapabilities.TRANSPORT_CELLULAR)
             .build()
 
-        val connectivityManager = getSystemService(ConnectivityManager::class.java) as ConnectivityManager
+        val connectivityManager =
+            getSystemService(ConnectivityManager::class.java) as ConnectivityManager
         connectivityManager.registerNetworkCallback(networkRequest, networkCallback)
+
+        lifecycleScope.launch {
+            while (isActive) {
+                delay(5_000)
+                val isConnected = checkNetworkStatus(connectivityManager)
+                val hasInternetAccess = hasInternetAccess()
+                withContext(Dispatchers.Main){
+                    if(isConnected || hasInternetAccess){
+                        viewModel.onNetworkAvailable()
+                    } else {
+                        viewModel.onConnectionLost()
+                    }
+                }
+            }
+        }
+    }
+
+    private suspend fun hasInternetAccess(): Boolean {
+        return withContext(Dispatchers.IO) {
+            try {
+                val url = URL(BuildConfig.CHAINS_URL)
+                val urlConnection = url.openConnection() as HttpURLConnection
+                urlConnection.connectTimeout = 1000
+                urlConnection.connect()
+                urlConnection.responseCode == 200
+            } catch (e: IOException) {
+                false
+            }
+        }
+    }
+
+    private fun checkNetworkStatus(connectivityManager: ConnectivityManager): Boolean {
+        val activeNetwork = connectivityManager.activeNetwork
+        val networkCapabilities = connectivityManager.getNetworkCapabilities(activeNetwork)
+        return networkCapabilities?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) == true
     }
 
     override fun onDestroy() {
@@ -133,7 +199,7 @@ class RootActivity : BaseActivity<RootViewModel>(), LifecycleObserver {
     }
 
     override fun subscribe(viewModel: RootViewModel) {
-        viewModel.showConnectingBarFlow.observe(lifecycleScope) { show ->
+        viewModel.showConnectingBar.observe(lifecycleScope) { show ->
             when {
                 show -> showBadConnectionView()
                 else -> hideBadConnectionView()

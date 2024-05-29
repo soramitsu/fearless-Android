@@ -21,6 +21,8 @@ import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
 import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedAddressExplorers
 
 private const val ICON_SIZE_DP = 32
 
@@ -60,6 +62,9 @@ class RewardDetailViewModel @Inject constructor(
 
     fun getSupportedExplorers(type: BlockExplorerUrlBuilder.Type, value: String) =
         chainExplorers.replayCache.firstOrNull()?.getSupportedExplorers(type, value).orEmpty()
+
+    fun getSupportedAddressExplorers(address: String): Map<Chain.Explorer.Type, String> =
+        chainExplorers.replayCache.firstOrNull()?.getSupportedAddressExplorers(address).orEmpty()
 
     private suspend fun getIcon(address: String) = addressIconGenerator.createAddressModel(address, ICON_SIZE_DP, addressDisplayUseCase(address))
 

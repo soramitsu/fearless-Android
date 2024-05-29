@@ -81,7 +81,7 @@ fun bindSuperOf(
 
 @HelperBinding
 fun bindIdentityData(identityInfo: Struct.Instance, field: String): String? {
-    val value = identityInfo.get<Any?>(field) ?: incompatible()
+    val value = identityInfo.get<Any?>(field) ?: return null
 
     return bindData(value).asString()
 }
