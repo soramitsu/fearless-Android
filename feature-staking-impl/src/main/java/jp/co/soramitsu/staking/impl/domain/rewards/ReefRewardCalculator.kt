@@ -9,11 +9,9 @@ import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.shared_utils.extensions.fromHex
 import jp.co.soramitsu.shared_utils.extensions.toHexString
-import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.EraRewardPoints
 import jp.co.soramitsu.staking.impl.data.repository.HistoricalMapping
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
-import kotlin.math.pow
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -35,7 +33,7 @@ class ReefRewardCalculator(
         calculationTargets.associateWith { apyByValidator[it] }.filterValues { it != null }
             .cast<Map<String, Double>>()
 
-    private val maxAPY = apyByCalculationTargets.values.maxOrNull() ?: 0.0
+    private val maxAPY = apyByCalculationTargets.values.filter { it.isNaN().not() }.maxOrNull() ?: 0.0
     private val expectedAPY = calculateExpectedAPY()
 
     private fun calculateExpectedAPY(): Double {
@@ -51,11 +49,16 @@ class ReefRewardCalculator(
 
     private fun calculateValidatorAPY(validator: RewardCalculationTarget): Double {
         return runCatching {
-            val averageValidatorRewardPoints =
-                historicalRewardDistribution.values.asSequence().map { it.individual }
-                    .flatten()
-                    .filter { it.accountId.contentEquals(validator.accountIdHex.fromHex()) }
-                    .map { it.rewardPoints.toDouble() }.average()
+            val validatorHistoricalRewardDistribution = historicalRewardDistribution.values.asSequence().map { it.individual }
+                .flatten()
+                .filter { it.accountId.contentEquals(validator.accountIdHex.fromHex()) }
+                .toList()
+
+            val averageValidatorRewardPoints = if(validatorHistoricalRewardDistribution.isEmpty()){
+                0.0
+            } else {
+                validatorHistoricalRewardDistribution.map { it.rewardPoints.toDouble() }.average()
+            }
 
             val rewardDistributionForLastEra = historicalRewardDistribution.maxBy { it.key }.value
 

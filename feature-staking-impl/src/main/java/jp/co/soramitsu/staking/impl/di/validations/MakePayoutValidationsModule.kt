@@ -34,7 +34,7 @@ class MakePayoutValidationsModule {
                 accountRepository,
                 walletRepository,
                 originAddressExtractor = { it.originAddress },
-                chainAssetExtractor = { it.chainAsset },
+                chainAssetExtractor = { it.token.configuration },
                 chainProducer = { stakingSharedState.chain() }
             ),
             errorProducer = { PayoutValidationFailure.CannotPayFee }

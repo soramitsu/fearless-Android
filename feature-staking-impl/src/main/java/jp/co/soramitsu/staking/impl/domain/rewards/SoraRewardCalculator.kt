@@ -6,6 +6,7 @@ import jp.co.soramitsu.common.utils.fractionToPercentage
 import jp.co.soramitsu.common.utils.median
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.shared_utils.extensions.fromHex
 import jp.co.soramitsu.shared_utils.extensions.toHexString
 import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.EraRewardPoints
 import jp.co.soramitsu.staking.impl.data.repository.HistoricalMapping
@@ -52,10 +53,16 @@ class SoraRewardCalculator(
     }
 
     private fun calculateValidatorAPY(validator: RewardCalculationTarget): Double {
-        val averageValidatorRewardPoints =
-            historicalRewardDistribution.values.asSequence().map { it.individual }.flatten()
-                .filter { it.accountId.toHexString(false) == validator.accountIdHex }
-                .map { it.rewardPoints.toDouble() }.average()
+        val validatorHistoricalRewardDistribution = historicalRewardDistribution.values.asSequence().map { it.individual }
+            .flatten()
+            .filter { it.accountId.contentEquals(validator.accountIdHex.fromHex()) }
+            .toList()
+
+        val averageValidatorRewardPoints = if(validatorHistoricalRewardDistribution.isEmpty()){
+            0.0
+        } else {
+            validatorHistoricalRewardDistribution.map { it.rewardPoints.toDouble() }.average()
+        }
 
         val validatorOwnStake = asset.amountFromPlanks(validator.totalStake).toDouble()
 
