@@ -40,10 +40,16 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
+import java.math.BigInteger
 import javax.inject.Inject
 import javax.inject.Named
+import jp.co.soramitsu.common.compose.component.QuickAmountInput
+import jp.co.soramitsu.common.data.network.runtime.binding.cast
+import jp.co.soramitsu.common.utils.formatCryptoDetail
+import jp.co.soramitsu.wallet.impl.domain.interfaces.QuickInputsUseCase
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
+import kotlinx.coroutines.flow.update
 
 private const val DEFAULT_AMOUNT = 1
 private const val DEBOUNCE_DURATION_MILLIS = 500
@@ -57,6 +63,7 @@ class SelectUnbondViewModel @Inject constructor(
     private val resourceManager: ResourceManager,
     private val validationExecutor: ValidationExecutor,
     @Named("StakingFeeLoader") private val feeLoaderMixin: FeeLoaderMixin.Presentation,
+    private val quickInputsUseCase: QuickInputsUseCase,
     private val savedStateHandle: SavedStateHandle
 ) : BaseViewModel(),
     Validatable by validationExecutor,
@@ -128,8 +135,23 @@ class SelectUnbondViewModel @Inject constructor(
         .inBackground()
         .asLiveData()
 
+    private val quickInputsStateFlow = MutableStateFlow<Map<Double, BigDecimal>?>(null)
+
     init {
         listenFee()
+
+        assetFlow.map { asset ->
+            val quickInputs = quickInputsUseCase.calculateStakingQuickInputs(
+                asset.token.configuration.chainId,
+                asset.token.configuration.id,
+                calculateAvailableAmount = {
+                    stakingScenarioInteractor.getUnstakeAvailableAmount(asset, payload.collatorAddress?.fromHex())
+                },
+                calculateFee = { BigInteger.ZERO }
+            )
+            quickInputsStateFlow.update { quickInputs }
+        }.launchIn(this)
+
     }
 
     fun nextClicked() {
@@ -241,11 +263,10 @@ class SelectUnbondViewModel @Inject constructor(
 
     fun onQuickAmountInput(input: Double) {
         launch {
-            val asset = assetFlow.first()
-            val retrieveAmount = stakingScenarioInteractor.getUnstakeAvailableAmount(asset, payload.collatorAddress?.fromHex())
-
-            val value = (retrieveAmount * input.toBigDecimal()).formatCrypto()
-            enteredAmountFlow.emit(value)
+            val valuesMap =
+                quickInputsStateFlow.first { !it.isNullOrEmpty() }.cast<Map<Double, BigDecimal>>()
+            val amount = valuesMap[input] ?: return@launch
+            enteredAmountFlow.value = amount.formatCryptoDetail()
         }
     }
 }

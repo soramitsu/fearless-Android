@@ -22,6 +22,7 @@ import jp.co.soramitsu.common.compose.component.QuickAmountInput
 import jp.co.soramitsu.common.compose.component.SelectorState
 import jp.co.soramitsu.common.compose.component.ToolbarViewState
 import jp.co.soramitsu.common.compose.component.WarningInfoState
+import jp.co.soramitsu.common.data.network.runtime.binding.cast
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
@@ -51,6 +52,7 @@ import jp.co.soramitsu.wallet.api.domain.TransferValidationResult
 import jp.co.soramitsu.wallet.api.domain.ValidateTransferUseCase
 import jp.co.soramitsu.wallet.api.domain.fromValidationResult
 import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
+import jp.co.soramitsu.wallet.impl.domain.interfaces.QuickInputsUseCase
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletConstants
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
@@ -73,6 +75,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
@@ -83,6 +86,7 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.retry
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 @HiltViewModel
@@ -98,7 +102,8 @@ class SendSetupViewModel @Inject constructor(
     private val clipboardManager: ClipboardManager,
     private val addressIconGenerator: AddressIconGenerator,
     private val currentAccountAddress: CurrentAccountAddressUseCase,
-    private val validateTransferUseCase: ValidateTransferUseCase
+    private val validateTransferUseCase: ValidateTransferUseCase,
+    private val quickInputsUseCase: QuickInputsUseCase
 ) : BaseViewModel(), SendSetupScreenInterface {
     companion object {
         const val SLIPPAGE_TOLERANCE = 1.35
@@ -203,7 +208,9 @@ class SendSetupViewModel @Inject constructor(
     private val addressInputFlow = MutableStateFlow(initSendToAddress.orEmpty())
     private val addressInputTrimmedFlow = addressInputFlow.map { it.trim() }
 
-    val isSoftKeyboardOpenFlow = MutableStateFlow(lockSendToAmount && initialAmount.isZero())
+    override val isSoftKeyboardOpenFlow = MutableStateFlow(lockSendToAmount && initialAmount.isZero())
+
+    private val quickInputsStateFlow = MutableStateFlow<Map<Double, BigDecimal>?>(null)
 
 //    private val maxAmountFlow = MutableStateFlow(BigDecimal.ZERO)
     private val enteredAmountBigDecimalFlow = MutableStateFlow(initialAmount)
@@ -495,6 +502,14 @@ class SendSetupViewModel @Inject constructor(
                 isHistoryAvailable = chain?.externalApi?.history != null
             )
         }.launchIn(this)
+
+        chainIdFlow.combine(assetFlow) { chainId, asset ->
+            if(chainId == null || asset == null) {
+                return@combine
+            }
+            val quickInputs = quickInputsUseCase.calculateTransfersQuickInputs(chainId, asset.token.configuration.id)
+            quickInputsStateFlow.update { quickInputs }
+        }.launchIn(this)
     }
 
     private fun observeExistentialDeposit(showMaxInput: Boolean) {
@@ -774,50 +789,16 @@ class SendSetupViewModel @Inject constructor(
 
     override fun onQuickAmountInput(input: Double) {
         launch {
-            val utilityAsset = utilityAssetFlow.firstOrNull() ?: return@launch
-            val asset = assetFlow.firstOrNull() ?: return@launch
-            val tip = tipFlow.firstOrNull()
-            val tipAmount = utilityAsset.token.amountFromPlanks(tip.orZero())
+            val valuesMap = quickInputsStateFlow.first { !it.isNullOrEmpty() }.cast<Map<Double, BigDecimal>>()
+            val amount = valuesMap[input] ?: return@launch
 
-            val utilityTipReserve = when {
-                asset.token.configuration.isUtility -> tipAmount
-                else -> BigDecimal.ZERO
-            }
-
-            val allAmount = asset.transferable
-            val amountToTransfer = (allAmount * input.toBigDecimal()) - utilityTipReserve
-
-            val selfAddress =
-                sharedState.chainId?.let { currentAccountAddress(it) } ?: return@launch
-            val transfer = Transfer(
-                recipient = selfAddress,
-                sender = selfAddress,
-                amount = amountToTransfer,
-                chainAsset = asset.token.configuration
-            )
-
-            val utilityFeeReserve = when {
-                asset.token.configuration.isUtility.not() -> BigDecimal.ZERO
-                else -> walletInteractor.getTransferFee(transfer).feeAmount
-            }
-
-            val quickAmountWithoutExtraPays =
-                amountToTransfer - utilityFeeReserve * SLIPPAGE_TOLERANCE.toBigDecimal()
-
-            if (quickAmountWithoutExtraPays < BigDecimal.ZERO) {
-                if (sendAllToggleState.value == ToggleState.CHECKED) {
-                    sendAllToggleState.value = ToggleState.CONFIRMED
-                }
-                return@launch
-            }
-            val scaledAmount = quickAmountWithoutExtraPays.setScale(5, RoundingMode.HALF_DOWN)
-            if (initialAmountFlow.value == scaledAmount) {
+            if (initialAmountFlow.value == amount) {
                 initialAmountFlow.value = null
                 delay(70)
             }
-            visibleAmountFlow.value = scaledAmount
-            initialAmountFlow.value = scaledAmount
-            enteredAmountBigDecimalFlow.value = quickAmountWithoutExtraPays
+            visibleAmountFlow.value = amount.setScale(5, RoundingMode.HALF_DOWN)
+            initialAmountFlow.value = amount.setScale(5, RoundingMode.HALF_DOWN)
+            enteredAmountBigDecimalFlow.value = amount
             observeExistentialDeposit(input < QuickAmountInput.MAX.value)
         }
     }
