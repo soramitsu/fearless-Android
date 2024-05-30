@@ -23,6 +23,7 @@ import jp.co.soramitsu.nft.domain.NFTTransferInteractor
 import jp.co.soramitsu.nft.domain.models.NFT
 import jp.co.soramitsu.nft.impl.domain.usecase.transfer.ValidateNFTTransferUseCase
 import jp.co.soramitsu.nft.impl.navigation.InternalNFTRouter
+import jp.co.soramitsu.nft.impl.navigation.NavAction
 import jp.co.soramitsu.nft.impl.presentation.CoroutinesStore
 import jp.co.soramitsu.nft.impl.presentation.chooserecipient.contract.ChooseNFTRecipientCallback
 import jp.co.soramitsu.nft.impl.presentation.chooserecipient.contract.ChooseNFTRecipientScreenState
@@ -40,7 +41,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.filterIsInstance
@@ -70,8 +70,9 @@ class ChooseNFTRecipientPresenter @Inject constructor(
     private val currentAccountAddressUseCase: CurrentAccountAddressUseCase,
     private val internalNFTRouter: InternalNFTRouter
 ) : ChooseNFTRecipientCallback {
+    private val navGraphRoutesFlow = internalNFTRouter.createNavGraphRoutesFlow().shareIn(coroutinesStore.ioScope, SharingStarted.Eagerly, 1)
 
-    private val tokenFlow = internalNFTRouter.createNavGraphRoutesFlow()
+    private val tokenFlow = navGraphRoutesFlow
         .filterIsInstance<NFTNavGraphRoute.ChooseNFTRecipientScreen>()
         .map { destinationArgs -> destinationArgs.token }
         .shareIn(coroutinesStore.uiScope, SharingStarted.Eagerly, 1)
@@ -84,6 +85,21 @@ class ChooseNFTRecipientPresenter @Inject constructor(
 
     private val currentToken: NFT?
         get() = tokenFlow.replayCache.lastOrNull()
+
+    init {
+        subscribeClearInputOnBackClick()
+    }
+
+    private fun subscribeClearInputOnBackClick() {
+        internalNFTRouter.createNavGraphActionsFlow()
+            .onEach {
+                val currentRoute = navGraphRoutesFlow.replayCache.lastOrNull()
+                if (it is NavAction.BackPressed && currentRoute is NFTNavGraphRoute.ChooseNFTRecipientScreen) {
+                    clearInputAddress()
+                }
+            }
+            .launchIn(coroutinesStore.uiScope)
+    }
 
     fun handleQRCodeResult(qrCodeContent: String) {
         val result = walletInteractor.tryReadAddressFromSoraFormat(qrCodeContent) ?: qrCodeContent
@@ -145,7 +161,7 @@ class ChooseNFTRecipientPresenter @Inject constructor(
                         input = addressInput,
                         image = addressIcon,
                         editable = false,
-                        showClear = false
+                        showClear = true
                     ),
                     buttonState = ButtonViewState(
                         text = resourceManager.getString(R.string.common_preview),
@@ -237,8 +253,12 @@ class ChooseNFTRecipientPresenter @Inject constructor(
     }
 
     override fun onAddressInputClear() {
-        selectedWalletIdFlow.value = null
+        clearInputAddress()
+    }
+
+    private fun clearInputAddress() {
         addressInputFlow.value = ""
+        selectedWalletIdFlow.value = null
     }
 
     override fun onNextClick() {

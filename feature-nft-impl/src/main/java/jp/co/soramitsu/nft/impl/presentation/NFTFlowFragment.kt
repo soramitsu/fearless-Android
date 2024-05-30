@@ -190,7 +190,9 @@ class NFTFlowFragment : BaseComposeBottomSheetDialogFragment<NFTFlowViewModel>()
                         title = loadingState.data.first.retrieveString(),
                         navigationIconResId = loadingState.data.second,
                         onNavigationClick = remember {
-                            { viewModel.onNavigationClick() }
+                            {
+                                viewModel.onNavigationClick()
+                            }
                         }
                     )
 

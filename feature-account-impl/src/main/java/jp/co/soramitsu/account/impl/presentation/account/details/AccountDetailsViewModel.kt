@@ -22,8 +22,6 @@ import jp.co.soramitsu.common.address.createAddressIcon
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.ChangeBalanceViewState
 import jp.co.soramitsu.common.compose.component.WalletItemViewState
-import jp.co.soramitsu.common.data.network.BlockExplorerUrlBuilder
-import jp.co.soramitsu.common.domain.SelectedFiat
 import jp.co.soramitsu.common.list.headers.TextHeader
 import jp.co.soramitsu.common.list.toListWithHeaders
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -36,19 +34,17 @@ import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedAddressExplorers
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 private const val UPDATE_NAME_INTERVAL_SECONDS = 1L
@@ -69,7 +65,7 @@ class AccountDetailsViewModel @Inject constructor(
     private val walletId = savedStateHandle.get<Long>(ACCOUNT_ID_KEY)!!
     private val wallet = flowOf {
         interactor.getMetaAccount(walletId)
-    }
+    }.share()
     private val walletItem = wallet
         .map { wallet ->
 
@@ -106,9 +102,9 @@ class AccountDetailsViewModel @Inject constructor(
     val openPlayMarket: LiveData<Event<Unit>> = _openPlayMarket
 
     private val enteredQueryFlow = MutableStateFlow("")
-    val accountNameFlow = MutableStateFlow("")
+    private val accountNameFlow = MutableStateFlow("")
 
-    val chainAccountProjections = combine(
+    private val chainAccountProjections = combine(
         interactor.getChainProjectionsFlow(walletId),
         enteredQueryFlow
     ) { groupedList, query ->
@@ -123,18 +119,7 @@ class AccountDetailsViewModel @Inject constructor(
         .inBackground()
         .share()
 
-    val state = combine(
-        walletItem,
-        chainAccountProjections,
-        enteredQueryFlow
-    ) { walletItem, chainProjections, query ->
-        AccountDetailsState(
-            walletItem = walletItem,
-            chainProjections = chainProjections,
-            searchQuery = query
-        )
-    }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, AccountDetailsState.Empty)
+    val state = MutableStateFlow(AccountDetailsState.Empty)
 
     init {
         launch {
@@ -142,6 +127,21 @@ class AccountDetailsViewModel @Inject constructor(
         }
 
         syncNameChangesWithDb()
+        subscribeScreenState()
+    }
+
+    private fun subscribeScreenState() {
+        walletItem.onEach {
+            state.value = state.value.copy(walletItem = it)
+        }.launchIn(this)
+
+        chainAccountProjections.onEach {
+            state.value = state.value.copy(chainProjections = it)
+        }.launchIn(this)
+
+        enteredQueryFlow.onEach {
+            state.value = state.value.copy(searchQuery = it)
+        }.launchIn(this)
     }
 
     override fun onBackClick() {
@@ -249,7 +249,7 @@ class AccountDetailsViewModel @Inject constructor(
             if (item.hasAccount) {
                 val chain = chainRegistry.getChain(item.chainId)
                 val supportedExplorers =
-                    chain.explorers.getSupportedExplorers(BlockExplorerUrlBuilder.Type.ACCOUNT, item.address)
+                    chain.explorers.getSupportedAddressExplorers(item.address)
 
                 externalAccountActions.showExternalActions(ExternalAccountActions.Payload(item.address, item.chainId, item.chainName, supportedExplorers,
                     !chain.isEthereumChain

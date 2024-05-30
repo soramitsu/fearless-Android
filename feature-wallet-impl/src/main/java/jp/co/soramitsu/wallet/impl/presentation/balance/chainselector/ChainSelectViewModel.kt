@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
@@ -33,10 +34,10 @@ import jp.co.soramitsu.wallet.api.presentation.WalletRouter as WalletRouterApi
 class ChainSelectViewModel @Inject constructor(
     private val walletRouter: WalletRouter,
     private val walletInteractor: WalletInteractor,
-    chainInteractor: ChainInteractor,
+    private val chainInteractor: ChainInteractor,
     savedStateHandle: SavedStateHandle,
     private val sharedSendState: SendSharedState,
-    private val accountInteractor: AccountInteractor
+    private val accountInteractor: AccountInteractor,
 ) : BaseViewModel(), ChainSelectScreenContract {
 
     private val initialSelectedChainId: ChainId? = savedStateHandle[ChainSelectFragment.KEY_SELECTED_CHAIN_ID]
@@ -83,17 +84,7 @@ class ChainSelectViewModel @Inject constructor(
     private val chainsFlow = allChainsFlow.map { chains ->
         when {
             initialSelectedAssetId != null -> {
-                chains.firstOrNull {
-                    it.assets.any { asset -> asset.id == initialSelectedAssetId }
-                }?.let { chainOfTheAsset ->
-                    val symbol = chainOfTheAsset.assets
-                        .firstOrNull { it.id == initialSelectedAssetId }
-                        ?.symbol
-                    val chainsWithAsset = chains.filter {
-                        it.assets.any { it.symbol == symbol }
-                    }
-                    chainsWithAsset
-                }
+                walletInteractor.observeCurrentAccountChainsPerAsset(initialSelectedAssetId).first().keys.toList()
             }
             filterChainIds.isNullOrEmpty() -> {
                 chains

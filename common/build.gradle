@@ -148,6 +148,8 @@ dependencies {
     implementation libs.xnetworking.fearless, withoutBasic
     implementation libs.xnetworking.sorawallet, withoutBasic
 
+    implementation libs.middle.ellipsis.text
+
     implementation libs.bundles.compose
     debugImplementation libs.bundles.composeDebug
 

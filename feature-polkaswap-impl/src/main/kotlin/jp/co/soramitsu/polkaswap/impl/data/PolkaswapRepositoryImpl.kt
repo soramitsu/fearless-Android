@@ -11,9 +11,6 @@ import jp.co.soramitsu.common.utils.poolXYK
 import jp.co.soramitsu.common.utils.u32ArgumentFromStorageKey
 import jp.co.soramitsu.core.extrinsic.ExtrinsicService
 import jp.co.soramitsu.core.rpc.RpcCalls
-import jp.co.soramitsu.core.rpc.calls.liquidityProxyIsPathAvailable
-import jp.co.soramitsu.core.rpc.calls.liquidityProxyListEnabledSourcesForPath
-import jp.co.soramitsu.core.rpc.calls.liquidityProxyQuote
 import jp.co.soramitsu.core.runtime.models.responses.QuoteResponse
 import jp.co.soramitsu.polkaswap.api.data.PolkaswapRepository
 import jp.co.soramitsu.polkaswap.api.models.Market
@@ -32,6 +29,11 @@ import jp.co.soramitsu.shared_utils.runtime.definitions.types.composite.Struct
 import jp.co.soramitsu.shared_utils.runtime.metadata.storage
 import jp.co.soramitsu.shared_utils.runtime.metadata.storageKey
 import jp.co.soramitsu.shared_utils.wsrpc.exception.RpcException
+import jp.co.soramitsu.shared_utils.wsrpc.executeAsync
+import jp.co.soramitsu.shared_utils.wsrpc.mappers.nonNull
+import jp.co.soramitsu.shared_utils.wsrpc.mappers.pojo
+import jp.co.soramitsu.shared_utils.wsrpc.mappers.pojoList
+import jp.co.soramitsu.shared_utils.wsrpc.request.runtime.RuntimeRequest
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
@@ -109,7 +111,16 @@ class PolkaswapRepositoryImpl @Inject constructor(
         tokenToId: String,
         dexId: Int
     ): Boolean {
-        return rpcCalls.liquidityProxyIsPathAvailable(chainId, tokenFromId, tokenToId, dexId)
+        val request = RuntimeRequest(
+            method = "liquidityProxy_isPathAvailable",
+            params = listOf(
+                dexId,
+                tokenFromId,
+                tokenToId
+            )
+        )
+
+        return chainRegistry.awaitConnection(chainId).socketService.executeAsync(request, mapper = pojo<Boolean>().nonNull())
     }
 
     override suspend fun getSwapQuote(
@@ -122,16 +133,20 @@ class PolkaswapRepositoryImpl @Inject constructor(
         dexId: Int
     ): QuoteResponse? {
         return try {
-            rpcCalls.liquidityProxyQuote(
-                chainId,
-                tokenFromId,
-                tokenToId,
-                amount,
-                desired.backString,
-                curMarkets.backStrings(),
-                curMarkets.toFilters(),
-                dexId
+            val request = RuntimeRequest(
+                method = "liquidityProxy_quote",
+                params = listOf(
+                    dexId,
+                    tokenFromId,
+                    tokenToId,
+                    amount.toString(),
+                    desired.backString,
+                    curMarkets.backStrings(),
+                    curMarkets.toFilters()
+                )
             )
+
+            chainRegistry.awaitConnection(chainId).socketService.executeAsync(request, mapper = pojo<QuoteResponse>()).result
         } catch (e: Exception) {
             null
         }
@@ -180,7 +195,11 @@ class PolkaswapRepositoryImpl @Inject constructor(
 
     private suspend fun getEnabledMarkets(chainId: ChainId, dexId: Int, tokenId1: String, tokenId2: String): List<Market> {
         return try {
-            rpcCalls.liquidityProxyListEnabledSourcesForPath(chainId, dexId, tokenId1, tokenId2).toMarkets()
+            val request = RuntimeRequest(
+                "liquidityProxy_listEnabledSourcesForPath",
+                listOf(dexId, tokenId1, tokenId2)
+            )
+            return chainRegistry.awaitConnection(chainId).socketService.executeAsync(request, mapper = pojoList<String>().nonNull()).toMarkets()
         } catch (e: RpcException) {
             listOf()
         }

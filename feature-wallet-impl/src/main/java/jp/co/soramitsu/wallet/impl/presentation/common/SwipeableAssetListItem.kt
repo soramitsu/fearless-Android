@@ -21,6 +21,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 @Composable
 fun SwipeableAssetListItem(
     assetState: AssetListItemViewState,
+    isHideVisible: Boolean,
     assetClicked: (AssetListItemViewState) -> Unit,
     actionItemClicked: (actionType: ActionItemType, chainId: ChainId, chainAssetId: String, swipeableState: SwipeableState<SwipeState>) -> Unit
 ) {
@@ -33,7 +34,7 @@ fun SwipeableAssetListItem(
     val swipeBoxViewState = remember {
         SwipeBoxViewState(
             leftStateWidth = 170.dp,
-            rightStateWidth = 90.dp
+            rightStateWidth = if (isHideVisible) 90.dp else 0.dp
         )
     }
 
@@ -57,11 +58,13 @@ fun SwipeableAssetListItem(
             }
         },
         rightContent = {
-            BackgroundCornered {
-                ActionBar(
-                    state = rightBarActionViewState,
-                    onItemClick = ::onItemClick
-                )
+            if (isHideVisible) {
+                BackgroundCornered {
+                    ActionBar(
+                        state = rightBarActionViewState,
+                        onItemClick = ::onItemClick
+                    )
+                }
             }
         }
     )

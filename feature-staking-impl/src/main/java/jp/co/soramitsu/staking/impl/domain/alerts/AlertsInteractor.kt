@@ -8,7 +8,6 @@ import jp.co.soramitsu.staking.api.domain.model.StakingState
 import jp.co.soramitsu.staking.impl.data.repository.StakingConstantsRepository
 import jp.co.soramitsu.staking.impl.domain.common.isWaiting
 import jp.co.soramitsu.staking.impl.domain.isNominationActive
-import jp.co.soramitsu.staking.impl.domain.minimumStake
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenarioRepository
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
@@ -19,8 +18,10 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import java.math.BigDecimal
 import java.math.BigInteger
+import jp.co.soramitsu.shared_utils.extensions.fromHex
 import jp.co.soramitsu.shared_utils.extensions.toHexString
 import jp.co.soramitsu.staking.api.domain.model.LegacyExposure
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import jp.co.soramitsu.core.models.Asset as CoreAsset
 
 private const val NOMINATIONS_ACTIVE_MEMO = "NOMINATIONS_ACTIVE_MEMO"
@@ -34,13 +35,14 @@ class AlertsInteractor(
 ) {
 
     class AlertContext(
-        val exposures: Map<String, LegacyExposure>?,
+        val exposures: Map<String, LegacyExposure>,
         val stakingState: StakingState,
         val maxRewardedNominatorsPerValidator: Int?,
         val minimumNominatorBond: BigInteger,
         val activeEra: BigInteger,
         val asset: Asset,
-        val maxNominators: Int?
+        val maxNominators: Int?,
+        val isLegacyErasStakersSchema: Boolean
     ) {
 
         val memo = mutableMapOf<Any, Any?>()
@@ -54,9 +56,6 @@ class AlertsInteractor(
     }
 
     private fun AlertContext.isStakingActive(stashId: AccountId) = useMemo(NOMINATIONS_ACTIVE_MEMO) {
-        if(exposures == null) {
-            return true
-        }
         isNominationActive(stashId, exposures.values, maxRewardedNominatorsPerValidator)
     }
 
@@ -66,9 +65,18 @@ class AlertsInteractor(
         }
     }
 
-    private fun produceChangeValidatorsAlert(context: AlertContext): Alert? {
+    private suspend fun produceChangeValidatorsAlert(context: AlertContext): Alert? {
         return requireState(context.stakingState) { nominatorState: StakingState.Stash.Nominator ->
-            val allValidatorsAreOversubscribed = if (context.exposures == null || context.maxNominators == null) {
+            if (context.isLegacyErasStakersSchema.not()) {
+                val myValidators = stakingRepository.getRemoteAccountNominations(
+                    context.stakingState.chain.id,
+                    nominatorState.accountId
+                )?.targets.orEmpty()
+
+                return@requireState if (context.exposures.any { it.key.fromHex() in myValidators }) Alert.ChangeValidators else null
+            }
+
+            val allValidatorsAreOversubscribed = if (context.maxNominators == null) {
                 false
             } else {
                 nominatorState.nominations.targets.mapNotNull { context.exposures[it.toHexString()] }
@@ -94,44 +102,52 @@ class AlertsInteractor(
         }
     }
 
-    private suspend fun produceMinStakeAlert(context: AlertContext) = requireState(context.stakingState) { state: StakingState.Stash ->
-        with(context) {
-            val minimalStakeInPlanks = (if(exposures != null) minimumStake(exposures.values, minimumNominatorBond) else stakingRepository.minimumActiveStake(stakingState.chain.id)).orZero()
+    private suspend fun produceMinStakeAlert(context: AlertContext) =
+        requireState(context.stakingState) { state: StakingState.Stash ->
+            with(context) {
+                val minActiveStake = stakingRepository.minimumActiveStake(stakingState.chain.id)
+                    ?: context.exposures.values.minOf { exposure -> exposure.others.minOf { it.value } }
 
-            if (
+                val minimalStakeInPlanks =
+                    minActiveStake.coerceAtLeast(stakingRepository.minimumNominatorBond(context.asset.token.configuration))
+
+                if (
                 // do not show alert for validators
-                state !is StakingState.Stash.Validator &&
-                asset.bondedInPlanks.orZero() < minimalStakeInPlanks &&
-                // prevent alert for situation where all tokens are being unbounded
-                asset.bondedInPlanks.orZero() > BigInteger.ZERO
-            ) {
-                val minimalStake = asset.token.amountFromPlanks(minimalStakeInPlanks)
+                    state !is StakingState.Stash.Validator &&
+                    asset.bondedInPlanks.orZero() < minimalStakeInPlanks &&
+                    // prevent alert for situation where all tokens are being unbounded
+                    asset.bondedInPlanks.orZero() > BigInteger.ZERO
+                ) {
+                    val minimalStake = asset.token.amountFromPlanks(minimalStakeInPlanks)
 
-                Alert.BondMoreTokens(minimalStake, asset.token)
+                    Alert.BondMoreTokens(minimalStake, asset.token)
+                } else {
+                    null
+                }
+            }
+        }
+
+    private fun produceWaitingNextEraAlert(context: AlertContext) = requireState(context.stakingState) { nominatorState: StakingState.Stash.Nominator ->
+        Alert.WaitingForNextEra.takeIf {
+            return@takeIf if(context.isLegacyErasStakersSchema) {
+                // staking is inactive and there is pending change
+                context.isStakingActive(nominatorState.stashId).not() && nominatorState.nominations.isWaiting(context.activeEra)
             } else {
-                null
+
+                nominatorState.nominations.isWaiting(context.activeEra)
             }
         }
     }
 
-    private fun produceWaitingNextEraAlert(context: AlertContext) = requireState(context.stakingState) { nominatorState: StakingState.Stash.Nominator ->
-        Alert.WaitingForNextEra.takeIf {
-            val isStakingActive = context.isStakingActive(nominatorState.stashId)
-
-            // staking is inactive and there is pending change
-            isStakingActive.not() && nominatorState.nominations.isWaiting(context.activeEra)
-        }
-    }
-
     private val alertProducers = listOf(
-        ::produceChangeValidatorsAlert,
         ::produceRedeemableAlert,
         ::produceWaitingNextEraAlert,
         ::produceSetValidatorsAlert
     )
 
-    private val suspendableAlertProducers = listOf(::produceMinStakeAlert)
+    private val suspendableAlertProducers = listOf(::produceChangeValidatorsAlert,::produceMinStakeAlert)
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     fun getAlertsFlow(stakingState: StakingState): Flow<List<Alert>> = sharedState.assetWithChain.flatMapLatest { (chain, chainAsset) ->
         if (chainAsset.staking != CoreAsset.StakingType.RELAYCHAIN) {
             return@flatMapLatest flowOf(emptyList())
@@ -148,7 +164,7 @@ class AlertsInteractor(
             walletRepository.assetFlow(meta.id, stakingState.accountId, chainAsset, chain.minSupportedVersion),
             stakingRepository.observeActiveEraIndex(chain.id)
         ) { exposures, asset, activeEra ->
-
+            val isLegacyErasStakersSchema = stakingRepository.isLegacyErasStakersSchema(chain.id)
             val context = AlertContext(
                 exposures = exposures,
                 stakingState = stakingState,
@@ -156,9 +172,16 @@ class AlertsInteractor(
                 minimumNominatorBond = minimumNominatorBond,
                 asset = asset,
                 activeEra = activeEra,
-                maxNominators = maxNominators
+                maxNominators = maxNominators,
+                isLegacyErasStakersSchema = isLegacyErasStakersSchema
             )
-            alertProducers.mapNotNull { it.invoke(context) } + suspendableAlertProducers.mapNotNull { it.invoke(context) }
+            val alerts = (alertProducers.mapNotNull { it.invoke(context) } + suspendableAlertProducers.mapNotNull { it.invoke(context) }).toMutableList()
+
+            if(alerts.contains(Alert.WaitingForNextEra) && alerts.any { it is Alert.BondMoreTokens }) {
+                alerts.remove(Alert.WaitingForNextEra)
+            }
+
+            alerts
         }
 
         alertsFlow

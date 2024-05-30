@@ -64,7 +64,7 @@ class CurrentValidatorsInteractor(
                     val userIndividualExposure = activeNominations[validator.accountIdHex]
 
                     val status = when {
-                        userIndividualExposure != null -> {
+                        userIndividualExposure != null && validator.electedInfo != null -> {
                             // safe to !! here since non null nomination means that validator is elected
                             val userNominationIndex = validator.electedInfo!!.nominatorStakes
                                 .sortedByDescending(IndividualExposure::value)

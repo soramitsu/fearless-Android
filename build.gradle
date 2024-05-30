@@ -5,15 +5,15 @@ apply plugin: "org.sonarqube"
 buildscript {
     ext {
         // App version
-        versionName = '3.4.5'
-        versionCode = 174
+        versionName = '3.5.2'
+        versionCode = 183
 
         // SDK and tools
         compileSdkVersion = 34
         minSdkVersion = 24
         targetSdkVersion = 33
 
-        composeCompilerVersion = '1.5.9'
+        composeCompilerVersion = '1.5.11'
 
         withoutBasic = { exclude group: 'jp.co.soramitsu.xnetworking', module: 'basic' }
         withoutJna = { exclude group: 'net.java.dev.jna' }

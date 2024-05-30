@@ -1048,6 +1048,7 @@
   <string name="validators_list_empty_message">Não foram encontrados validadores</string>
   <string name="view_in">Ver em %s</string>
   <string name="view_wallet">Ver carteira</string>
+  <string name="wallet_all_assets_hidden">Você escondeu todos os ativos</string>
   <string name="wallet_asset_buy_with">Comprar %s com</string>
   <string name="wallet_asset_receive">Receber</string>
   <string name="wallet_asset_receive_template">Receber %s</string>

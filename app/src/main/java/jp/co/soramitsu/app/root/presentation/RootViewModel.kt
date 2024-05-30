@@ -12,8 +12,6 @@ import javax.inject.Inject
 import jp.co.soramitsu.app.R
 import jp.co.soramitsu.app.root.domain.RootInteractor
 import jp.co.soramitsu.common.base.BaseViewModel
-import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
-import jp.co.soramitsu.common.mixin.api.NetworkStateUi
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.core.runtime.ChainConnection
@@ -23,11 +21,14 @@ import kotlin.concurrent.timerTask
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 @HiltViewModel
@@ -35,9 +36,8 @@ class RootViewModel @Inject constructor(
     private val interactor: RootInteractor,
     private val rootRouter: RootRouter,
     private val externalConnectionRequirementFlow: MutableStateFlow<ChainConnection.ExternalRequirement>,
-    private val resourceManager: ResourceManager,
-    private val networkStateMixin: NetworkStateMixin
-) : BaseViewModel(), NetworkStateUi by networkStateMixin {
+    private val resourceManager: ResourceManager
+) : BaseViewModel() {
     companion object {
         private const val IDLE_MINUTES: Long = 20
     }
@@ -64,21 +64,28 @@ class RootViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            interactor.fetchFeatureToggle()
+            syncConfigs()
         }
-        checkAppVersion()
         observeWalletConnectEvents()
     }
 
-    private fun checkAppVersion() {
-        viewModelScope.launch {
+    private suspend fun syncConfigs() {
+        coroutineScope {
+            checkAppVersion()
+            interactor.fetchFeatureToggle()
+            interactor.syncChainsConfigs().onFailure {
+                _showNoInternetConnectionAlert.value = Event(Unit)
+            }
+        }
+    }
+
+    private suspend  fun checkAppVersion() {
             val appConfigResult = interactor.getRemoteConfig()
             if (appConfigResult.getOrNull()?.isCurrentVersionSupported == false) {
                 _showUnsupportedAppVersionAlert.value = Event(Unit)
             } else {
                 runBalancesUpdate()
             }
-        }
     }
 
     private fun runBalancesUpdate() {
@@ -86,10 +93,12 @@ class RootViewModel @Inject constructor(
             shouldHandleResumeInternetConnection = false
             interactor.chainRegistrySyncUp()
         }
-        interactor.runBalancesUpdate()
-            .onEach { handleUpdatesSideEffect(it) }
-            .launchIn(this)
-
+        viewModelScope.launch {
+            interactor.runWalletsSync()
+            interactor.runBalancesUpdate()
+                .onEach { handleUpdatesSideEffect(it) }
+                .launchIn(this)
+        }
         updatePhishingAddresses()
     }
 
@@ -170,14 +179,23 @@ class RootViewModel @Inject constructor(
     }
 
     fun retryLoadConfigClicked() {
-        checkAppVersion()
+        viewModelScope.launch {
+            syncConfigs()
+        }
     }
 
+    private val _showConnectingBar = MutableStateFlow<Boolean>(false)
+    val showConnectingBar: StateFlow<Boolean> = _showConnectingBar
     fun onNetworkAvailable() {
+        _showConnectingBar.update { false }
         // todo this code triggers redundant requests and balance updates. Needs research
 //        viewModelScope.launch {
 //            checkAppVersion()
 //        }
+    }
+
+    fun onConnectionLost() {
+        _showConnectingBar.update { true }
     }
 
     private fun observeWalletConnectEvents() {

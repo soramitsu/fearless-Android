@@ -13,7 +13,6 @@ import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.base.TitleAndMessage
-import jp.co.soramitsu.common.data.network.BlockExplorerUrlBuilder
 import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.formatCryptoDetail
@@ -25,7 +24,7 @@ import jp.co.soramitsu.common.validation.ValidationSystem
 import jp.co.soramitsu.common.validation.progressConsumer
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedAddressExplorers
 import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.addressByte
 import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.toAddress
 import jp.co.soramitsu.staking.api.data.SyntheticStakingType
@@ -38,6 +37,7 @@ import jp.co.soramitsu.staking.impl.domain.payout.PayoutInteractor
 import jp.co.soramitsu.staking.impl.domain.rewards.SoraStakingRewardsScenario
 import jp.co.soramitsu.staking.impl.domain.validations.payout.MakePayoutPayload
 import jp.co.soramitsu.staking.impl.domain.validations.payout.PayoutValidationFailure
+import jp.co.soramitsu.staking.impl.domain.validations.payout.SoraPayoutsPayload
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
 import jp.co.soramitsu.staking.impl.presentation.payouts.confirm.model.ConfirmPayoutPayload
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenarioInteractor
@@ -72,7 +72,7 @@ class ConfirmPayoutViewModel @Inject constructor(
     private val payload = savedStateHandle.get<ConfirmPayoutPayload>(ConfirmPayoutFragment.KEY_PAYOUTS)!!
 
     private val tokenFlow = interactor.currentAssetFlow().map {
-        if(it.token.configuration.syntheticStakingType() == SyntheticStakingType.SORA){
+        if(it.token.configuration.syntheticStakingType() == SyntheticStakingType.SORA) {
             soraRewardScenario.getRewardAsset()
         } else {
             it.token
@@ -146,13 +146,20 @@ class ConfirmPayoutViewModel @Inject constructor(
 
     private fun sendTransactionIfValid() = feeLoaderMixin.requireFee(this) { fee ->
         launch {
-            val tokenType = interactor.currentAssetFlow().first().token.configuration
+            val asset = interactor.currentAssetFlow().first()
+            val tokenType = asset.token.configuration
             val accountAddress = stakingStateFlow.first().accountAddress
             val amount = tokenType.amountFromPlanks(payload.totalRewardInPlanks)
 
             val payoutStakersPayloads = payouts.map { MakePayoutPayload.PayoutStakersPayload(it.era, it.validatorAddress) }
 
-            val makePayoutPayload = MakePayoutPayload(accountAddress, fee, amount, tokenType, payoutStakersPayloads)
+            val makePayoutPayload = if(tokenType.syntheticStakingType() == SyntheticStakingType.SORA )  {
+                val rewardToken = soraRewardScenario.getRewardAsset()
+                SoraPayoutsPayload(accountAddress, fee, amount, asset.token, rewardToken, payoutStakersPayloads)
+            } else {
+                MakePayoutPayload(accountAddress, fee, amount, asset.token, payoutStakersPayloads)
+            }
+
 
             validationExecutor.requireValid(
                 validationSystem = validationSystem,
@@ -204,7 +211,7 @@ class ConfirmPayoutViewModel @Inject constructor(
         val address = addressProducer() ?: return@launch
         val chainId = tokenFlow.first().configuration.chainId
         val chain = chainRegistry.getChain(chainId)
-        val supportedExplorers = chain.explorers.getSupportedExplorers(BlockExplorerUrlBuilder.Type.ACCOUNT, address)
+        val supportedExplorers = chain.explorers.getSupportedAddressExplorers(address)
         val externalActionsPayload = ExternalAccountActions.Payload(
             value = address,
             chainId = chainId,

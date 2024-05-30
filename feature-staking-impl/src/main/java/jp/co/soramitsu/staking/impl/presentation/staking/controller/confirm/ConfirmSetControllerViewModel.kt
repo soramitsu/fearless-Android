@@ -9,7 +9,6 @@ import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
-import jp.co.soramitsu.common.data.network.BlockExplorerUrlBuilder
 import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.flowOf
@@ -17,7 +16,7 @@ import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedAddressExplorers
 import jp.co.soramitsu.staking.impl.domain.StakingInteractor
 import jp.co.soramitsu.staking.impl.domain.staking.controller.ControllerInteractor
 import jp.co.soramitsu.staking.impl.domain.validations.controller.SetControllerValidationPayload
@@ -77,7 +76,7 @@ class ConfirmSetControllerViewModel @Inject constructor(
         viewModelScope.launch {
             val chainId = assetFlow.first().token.configuration.chainId
             val chain = chainRegistry.getChain(chainId)
-            val supportedExplorers = chain.explorers.getSupportedExplorers(BlockExplorerUrlBuilder.Type.ACCOUNT, payload.stashAddress)
+            val supportedExplorers = chain.explorers.getSupportedAddressExplorers(payload.stashAddress)
             val externalActionsPayload = ExternalAccountActions.Payload(
                 value = payload.stashAddress,
                 chainId = chainId,
@@ -93,7 +92,7 @@ class ConfirmSetControllerViewModel @Inject constructor(
         viewModelScope.launch {
             val chainId = assetFlow.first().token.configuration.chainId
             val chain = chainRegistry.getChain(chainId)
-            val supportedExplorers = chain.explorers.getSupportedExplorers(BlockExplorerUrlBuilder.Type.ACCOUNT, payload.controllerAddress)
+            val supportedExplorers = chain.explorers.getSupportedAddressExplorers(payload.controllerAddress)
             val externalActionsPayload = ExternalAccountActions.Payload(
                 value = payload.controllerAddress,
                 chainId = chainId,

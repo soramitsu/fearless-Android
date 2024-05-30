@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.paint
@@ -25,6 +26,7 @@ import jp.co.soramitsu.common.compose.component.AccentButton
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
 import jp.co.soramitsu.feature_onboarding_impl.R
+import kotlinx.coroutines.flow.StateFlow
 
 @Stable
 fun interface OnboardingSplashScreenClickListener {
@@ -33,15 +35,17 @@ fun interface OnboardingSplashScreenClickListener {
 
 @Suppress("FunctionName")
 fun NavGraphBuilder.OnboardingSplashScreen(
+    isAccountSelectedFlow: StateFlow<Boolean>,
     listener: OnboardingSplashScreenClickListener
 ) {
     composable(WelcomeEvent.Onboarding.SplashScreen.route) {
-        OnboardingSplashScreenContent(listener)
+        OnboardingSplashScreenContent(isAccountSelectedFlow.collectAsState().value, listener)
     }
 }
 
 @Composable
 private fun OnboardingSplashScreenContent(
+    isAccountSelected: Boolean,
     listener: OnboardingSplashScreenClickListener
 ) {
     Column(
@@ -56,7 +60,9 @@ private fun OnboardingSplashScreenContent(
     ) {
 
         Column(
-            modifier = Modifier.weight(1f).width(IntrinsicSize.Max),
+            modifier = Modifier
+                .weight(1f)
+                .width(IntrinsicSize.Max),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -75,14 +81,16 @@ private fun OnboardingSplashScreenContent(
         }
 
 
-        AccentButton(
-            text = stringResource(id = R.string.common_start),
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(48.dp)
-                .padding(horizontal = 16.dp),
-            onClick = listener::onStart
-        )
+        if (isAccountSelected.not()) {
+            AccentButton(
+                text = stringResource(id = R.string.common_start),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp)
+                    .padding(horizontal = 16.dp),
+                onClick = listener::onStart
+            )
+        }
 
         MarginVertical(margin = 16.dp)
     }
@@ -92,6 +100,9 @@ private fun OnboardingSplashScreenContent(
 @Preview
 private fun OnboardingSplashScreenPreview() {
     FearlessAppTheme {
-        OnboardingSplashScreenContent { Unit }
+        OnboardingSplashScreenContent(
+            isAccountSelected = true,
+            listener = {}
+        )
     }
 }

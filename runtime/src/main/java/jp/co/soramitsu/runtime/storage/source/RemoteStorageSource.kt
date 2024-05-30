@@ -63,6 +63,6 @@ class RemoteStorageSource(
         return response?.result as? String?
     }
 
-    private fun getSocketService(chainId: String) =
-        chainRegistry.getConnection(chainId).socketService
+    private suspend fun getSocketService(chainId: String) =
+        chainRegistry.awaitConnection(chainId).socketService
 }

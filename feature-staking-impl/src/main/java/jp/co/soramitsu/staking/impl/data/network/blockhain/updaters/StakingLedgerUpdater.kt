@@ -13,7 +13,6 @@ import jp.co.soramitsu.core.updater.Updater
 import jp.co.soramitsu.coredb.dao.AccountStakingDao
 import jp.co.soramitsu.coredb.model.AccountStakingLocal
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
-import jp.co.soramitsu.runtime.multiNetwork.getRuntime
 import jp.co.soramitsu.runtime.network.updaters.insert
 import jp.co.soramitsu.shared_utils.extensions.fromHex
 import jp.co.soramitsu.shared_utils.runtime.AccountId
@@ -64,7 +63,7 @@ class StakingLedgerUpdater(
         val currentAccountId = scope.getAccount().accountId(chain)!! // TODO ethereum
 
         val key = runtime.metadata.staking().storage("Bonded").storageKey(runtime, currentAccountId)
-        runtime.metadata.staking().calls?.get("setController")?.arguments
+
         updatesMixin.startUpdateAsset(scope.getAccount().id, chain.id, currentAccountId, chainAsset.id)
 
         return storageSubscriptionBuilder.subscribe(key)

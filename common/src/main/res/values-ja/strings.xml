@@ -1050,6 +1050,7 @@
   <string name="validators_list_empty_message">バリデーターが見つかりません</string>
   <string name="view_in">%sで見る</string>
   <string name="view_wallet">ウォレットを見る</string>
+  <string name="wallet_all_assets_hidden">全アセットを非表示にしました</string>
   <string name="wallet_asset_buy_with">で購入</string>
   <string name="wallet_asset_receive">受け取る</string>
   <string name="wallet_asset_receive_template">受信 %s</string>

@@ -52,7 +52,8 @@ data class Chain(
     val isEthereumChain: Boolean,
     val chainlinkProvider: Boolean,
     val supportNft: Boolean,
-    val isUsesAppId: Boolean
+    val isUsesAppId: Boolean,
+    val identityChain: String?
 ) : IChain {
     val assetsById = assets.associateBy(CoreAsset::id)
 
@@ -77,7 +78,12 @@ data class Chain(
         enum class Type {
             POLKASCAN, SUBSCAN, ETHERSCAN, OKLINK, ZETA, REEF, UNKNOWN;
 
-            val capitalizedName: String = name.lowercase().replaceFirstChar { it.titlecase() }
+            val capitalizedName: String
+                get() = if (this == OKLINK) {
+                    "OKX explorer"
+                } else {
+                    name.lowercase().replaceFirstChar { it.titlecase() }
+                }
         }
     }
 
@@ -106,6 +112,7 @@ data class Chain(
         if (chainlinkProvider != other.chainlinkProvider) return false
         if (supportNft != other.supportNft) return false
         if (isUsesAppId != other.isUsesAppId) return false
+        if (identityChain != other.identityChain) return false
 
         // custom comparison logic
         val defaultNodes = nodes.filter { it.isDefault }
@@ -139,6 +146,7 @@ data class Chain(
         result = 31 * result + chainlinkProvider.hashCode()
         result = 31 * result + supportNft.hashCode()
         result = 31 * result + isUsesAppId.hashCode()
+        result = 31 * result + (identityChain?.hashCode() ?: 0)
         return result
     }
 }
@@ -150,6 +158,22 @@ fun Chain.updateNodesActive(localVersion: Chain): Chain = when (val activeNode =
 
 fun List<Chain.Explorer>.getSupportedExplorers(type: BlockExplorerUrlBuilder.Type, value: String) = mapNotNull {
     BlockExplorerUrlBuilder(it.url, it.types).build(type, value)?.let { url ->
+        it.type to url
+    }
+}.toMap()
+
+fun List<Chain.Explorer>.getSupportedAddressExplorers(address: String) = mapNotNull {
+    val type = when (it.type) {
+        Chain.Explorer.Type.ETHERSCAN,
+        Chain.Explorer.Type.OKLINK -> {
+            BlockExplorerUrlBuilder.Type.ADDRESS
+        }
+        else -> {
+            BlockExplorerUrlBuilder.Type.ACCOUNT
+        }
+    }
+
+    BlockExplorerUrlBuilder(it.url, it.types).build(type, address)?.let { url ->
         it.type to url
     }
 }.toMap()

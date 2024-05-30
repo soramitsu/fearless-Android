@@ -12,7 +12,6 @@ import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
-import jp.co.soramitsu.common.data.network.BlockExplorerUrlBuilder
 import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.formatCryptoDetail
@@ -38,7 +37,7 @@ import jp.co.soramitsu.crowdloan.impl.presentation.contribute.select.parcel.getS
 import jp.co.soramitsu.crowdloan.impl.presentation.contribute.select.parcel.mapParachainMetadataFromParcel
 import jp.co.soramitsu.feature_crowdloan_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedAddressExplorers
 import jp.co.soramitsu.wallet.api.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.wallet.api.data.mappers.mapFeeToFeeModel
 import jp.co.soramitsu.wallet.api.domain.AssetUseCase
@@ -157,7 +156,7 @@ class ConfirmContributeViewModel @Inject constructor(
             val accountAddress = selectedAddressModelFlow.first().address
             val chainId = assetFlow.first().token.configuration.chainId
             val chain = chainRegistry.getChain(chainId)
-            val supportedExplorers = chain.explorers.getSupportedExplorers(BlockExplorerUrlBuilder.Type.ACCOUNT, accountAddress)
+            val supportedExplorers = chain.explorers.getSupportedAddressExplorers(accountAddress)
             val payload = ExternalAccountActions.Payload(accountAddress, chainId, chain.name, supportedExplorers)
             externalAccountActions.showExternalActions(payload)
         }

@@ -19,7 +19,7 @@ abstract class BaseStorageSource(
 
     protected abstract suspend fun query(key: String, chainId: String, at: BlockHash?): String?
 
-    protected abstract suspend fun queryKeys(keys: List<String>, chainId: String, at: BlockHash?): Map<String, String?>
+    abstract suspend fun queryKeys(keys: List<String>, chainId: String, at: BlockHash?): Map<String, String?>
 
     protected abstract suspend fun observe(key: String, chainId: String): Flow<String?>
 

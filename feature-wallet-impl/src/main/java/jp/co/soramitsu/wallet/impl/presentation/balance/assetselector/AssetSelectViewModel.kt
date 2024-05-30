@@ -52,7 +52,7 @@ class AssetSelectViewModel @Inject constructor(
                     else -> null
                 }
             }
-            .map { it.filterNotNull() }
+            .map { it.filterNotNull().filter { asset -> asset.enabled == true } }
             .mapList { mapAssetToAssetModel(it) }
 
     private val enteredTokenQueryFlow = MutableStateFlow("")

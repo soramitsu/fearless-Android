@@ -7,10 +7,12 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.wallet.api.domain.ExistentialDepositUseCase
 import jp.co.soramitsu.wallet.api.presentation.BaseConfirmViewModel
+import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 
 abstract class StakingConfirmViewModel(
-    private val existentialDepositUseCase: ExistentialDepositUseCase,
+    walletInteractor: WalletInteractor,
+    existentialDepositUseCase: ExistentialDepositUseCase,
     private val router: StakingRouter,
     resourceManager: ResourceManager,
     asset: Asset,
@@ -26,6 +28,7 @@ abstract class StakingConfirmViewModel(
     private val onOperationSuccess: () -> Unit,
     private val customSuccessMessage: String? = null
 ) : BaseConfirmViewModel(
+    walletInteractor,
     existentialDepositUseCase,
     resourceManager,
     asset,

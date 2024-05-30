@@ -11,12 +11,12 @@ sealed class Alert {
 
     class BondMoreTokens(val minimalStake: BigDecimal, val token: Token) : Alert()
 
-    object ChangeValidators : Alert()
-    object AllValidatorsAreOversubscribed : Alert()
+    data object ChangeValidators : Alert()
+    data object AllValidatorsAreOversubscribed : Alert()
 
-    object WaitingForNextEra : Alert()
+    data object WaitingForNextEra : Alert()
 
-    object SetValidators : Alert()
+    data object SetValidators : Alert()
 
     class ChangeCollators(val collatorIdHex: String, val amountToStakeMore: String) : Alert()
     class CollatorLeaving(val delegation: CollatorDelegation, val collatorName: String) : Alert()

@@ -8,13 +8,15 @@ import javax.inject.Provider
 import javax.inject.Singleton
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.storage.Preferences
+import jp.co.soramitsu.common.domain.NetworkStateService
 import jp.co.soramitsu.common.interfaces.FileProvider
-import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.core.network.JsonFactory
 import jp.co.soramitsu.core.runtime.ChainConnection
 import jp.co.soramitsu.core.runtime.RuntimeFactory
+import jp.co.soramitsu.coredb.dao.AssetDao
 import jp.co.soramitsu.coredb.dao.ChainDao
+import jp.co.soramitsu.coredb.dao.MetaAccountDao
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainSyncService
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
@@ -44,8 +46,10 @@ class ChainRegistryModule {
     @Singleton
     fun provideChainSyncService(
         dao: ChainDao,
-        chainFetcher: ChainFetcher
-    ) = ChainSyncService(dao, chainFetcher)
+        chainFetcher: ChainFetcher,
+        metaAccountDao: MetaAccountDao,
+        assetDao: AssetDao,
+    ) = ChainSyncService(dao, chainFetcher, metaAccountDao, assetDao)
 
     @Provides
     @Singleton
@@ -94,13 +98,13 @@ class ChainRegistryModule {
         runtimeSyncService: RuntimeSyncService,
         runtimeFilesCache: RuntimeFilesCache,
         chainDao: ChainDao,
-        networkStateMixin: NetworkStateMixin
+        networkStateService: NetworkStateService
     ) = RuntimeProviderPool(
         runtimeFactory,
         runtimeSyncService,
         runtimeFilesCache,
         chainDao,
-        networkStateMixin
+        networkStateService
     )
 
     @Provides
@@ -113,20 +117,21 @@ class ChainRegistryModule {
         socketProvider: Provider<SocketService>,
         externalRequirementsFlow: MutableStateFlow<ChainConnection.ExternalRequirement>,
         nodesSettingsStorage: NodesSettingsStorage,
-        networkStateMixin: NetworkStateMixin
+        networkStateService: NetworkStateService
     ) = ConnectionPool(
         socketProvider,
         externalRequirementsFlow,
         nodesSettingsStorage,
-        networkStateMixin
+        networkStateService
     )
 
     @Provides
     @Singleton
     fun provideRuntimeVersionSubscriptionPool(
         chainDao: ChainDao,
-        runtimeSyncService: RuntimeSyncService
-    ) = RuntimeSubscriptionPool(chainDao, runtimeSyncService)
+        runtimeSyncService: RuntimeSyncService,
+        networkStateService: NetworkStateService
+    ) = RuntimeSubscriptionPool(chainDao, runtimeSyncService, networkStateService)
 
     @Provides
     @Singleton
@@ -136,9 +141,10 @@ class ChainRegistryModule {
     @Provides
     @Singleton
     fun provideEthereumPool(
-        networkStateMixin: NetworkStateMixin
+        networkStateService: NetworkStateService
     ) =
-        EthereumConnectionPool(networkStateMixin)
+        EthereumConnectionPool(networkStateService)
+
 
     @Provides
     @Singleton
@@ -150,8 +156,10 @@ class ChainRegistryModule {
         chainSyncService: ChainSyncService,
         runtimeSyncService: RuntimeSyncService,
         updatesMixin: UpdatesMixin,
-        networkStateMixin: NetworkStateMixin,
-        ethereumConnectionPool: EthereumConnectionPool
+        networkStateService: NetworkStateService,
+        ethereumConnectionPool: EthereumConnectionPool,
+        assetReadOnlyCache: AssetDao,
+        chainsRepository: ChainsRepository,
     ): ChainRegistry = ChainRegistry(
         runtimeProviderPool,
         chainConnectionPool,
@@ -160,8 +168,10 @@ class ChainRegistryModule {
         chainSyncService,
         runtimeSyncService,
         updatesMixin,
-        networkStateMixin,
-        ethereumConnectionPool
+        networkStateService,
+        ethereumConnectionPool,
+        assetReadOnlyCache,
+        chainsRepository
     )
 
     @Provides
