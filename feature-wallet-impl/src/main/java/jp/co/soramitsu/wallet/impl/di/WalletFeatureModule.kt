@@ -71,6 +71,7 @@ import jp.co.soramitsu.wallet.impl.data.repository.WalletRepositoryImpl
 import jp.co.soramitsu.wallet.impl.data.storage.TransferCursorStorage
 import jp.co.soramitsu.wallet.impl.domain.ChainInteractor
 import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
+import jp.co.soramitsu.wallet.impl.domain.QuickInputsUseCaseImpl
 import jp.co.soramitsu.wallet.impl.domain.TokenUseCase
 import jp.co.soramitsu.wallet.impl.domain.ValidateTransferUseCaseImpl
 import jp.co.soramitsu.wallet.impl.domain.WalletInteractorImpl
@@ -80,6 +81,7 @@ import jp.co.soramitsu.wallet.impl.domain.beacon.BeaconSharedState
 import jp.co.soramitsu.wallet.impl.domain.implementations.ExistentialDepositUseCaseImpl
 import jp.co.soramitsu.wallet.impl.domain.implementations.TokenUseCaseImpl
 import jp.co.soramitsu.wallet.impl.domain.interfaces.AddressBookRepository
+import jp.co.soramitsu.wallet.impl.domain.interfaces.QuickInputsUseCase
 import jp.co.soramitsu.wallet.impl.domain.interfaces.TokenRepository
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletConstants
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
@@ -93,6 +95,8 @@ import jp.co.soramitsu.xcm.XcmService
 import jp.co.soramitsu.xcm.domain.XcmEntitiesFetcher
 import jp.co.soramitsu.xnetworking.basic.networkclient.SoramitsuNetworkClient
 import jp.co.soramitsu.xnetworking.fearlesswallet.txhistory.client.TxHistoryClientForFearlessWalletFactory
+import kotlin.coroutines.CoroutineContext
+import kotlinx.coroutines.Dispatchers
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -270,6 +274,23 @@ class WalletFeatureModule {
         chainsRepository,
         networkStateService
     )
+
+    @Provides
+    fun provideQuickInputsUseCase(
+        walletRepository: WalletRepository,
+        accountRepository: AccountRepository,
+        chainRegistry: ChainRegistry,
+        chainsRepository: ChainsRepository,
+        walletConstants: WalletConstants
+    ): QuickInputsUseCase {
+        return QuickInputsUseCaseImpl(
+            walletRepository,
+            accountRepository,
+            chainRegistry,
+            chainsRepository,
+            walletConstants
+        )
+    }
 
     @Provides
     fun provideXcmInteractor(

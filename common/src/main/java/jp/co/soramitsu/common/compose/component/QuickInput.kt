@@ -42,47 +42,46 @@ fun QuickInput(
     onQuickAmountInput: (amount: Double) -> Unit = {},
     onDoneClick: () -> Unit = {}
 ) {
-    // todo temporary disable it till the business logic will be refactored
-//    val keyboardController = LocalSoftwareKeyboardController.current
-//    Row(
-//        modifier = modifier
-//            .background(color = backgroundBlack.copy(alpha = 0.75f))
-//            .height(44.dp)
-//            .padding(horizontal = 10.dp)
-//    ) {
-//        values.map {
-//            Box(
-//                modifier = Modifier
-//                    .fillMaxHeight()
-//                    .clickable {
-//                        onQuickAmountInput(it.value)
-//                    }
-//            ) {
-//                B1(
-//                    text = it.label,
-//                    modifier = Modifier
-//                        .align(Alignment.Center)
-//                        .padding(horizontal = 6.dp)
-//                )
-//            }
-//        }
-//        Spacer(modifier = Modifier.weight(1f))
-//        Box(
-//            modifier = Modifier
-//                .fillMaxHeight()
-//                .clickable {
-//                    keyboardController?.hide()
-//                    onDoneClick()
-//                }
-//        ) {
-//            H5(
-//                text = stringResource(id = R.string.common_done),
-//                modifier = Modifier
-//                    .align(Alignment.Center)
-//                    .padding(horizontal = 6.dp)
-//            )
-//        }
-//    }
+    val keyboardController = LocalSoftwareKeyboardController.current
+    Row(
+        modifier = modifier
+            .background(color = backgroundBlack.copy(alpha = 0.75f))
+            .height(44.dp)
+            .padding(horizontal = 10.dp)
+    ) {
+        values.map {
+            Box(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .clickable {
+                        onQuickAmountInput(it.value)
+                    }
+            ) {
+                B1(
+                    text = it.label,
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .padding(horizontal = 6.dp)
+                )
+            }
+        }
+        Spacer(modifier = Modifier.weight(1f))
+        Box(
+            modifier = Modifier
+                .fillMaxHeight()
+                .clickable {
+                    keyboardController?.hide()
+                    onDoneClick()
+                }
+        ) {
+            H5(
+                text = stringResource(id = R.string.common_done),
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .padding(horizontal = 6.dp)
+            )
+        }
+    }
 }
 
 private enum class TestQuickInput(
