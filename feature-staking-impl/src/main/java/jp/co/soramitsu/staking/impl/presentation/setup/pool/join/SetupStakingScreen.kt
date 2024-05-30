@@ -30,6 +30,8 @@ import jp.co.soramitsu.common.compose.component.ToolbarViewState
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.feature_staking_impl.R
 import java.math.BigDecimal
+import jp.co.soramitsu.common.compose.component.QuickAmountInput
+import jp.co.soramitsu.common.compose.component.QuickInput
 
 data class SetupStakingScreenViewState(
     val toolbarViewState: ToolbarViewState,
@@ -43,8 +45,10 @@ data class SetupStakingScreenViewState(
 @Composable
 fun SetupStakingScreen(
     state: SetupStakingScreenViewState,
+    isSoftKeyboardOpen: Boolean = false,
     onNavigationClick: () -> Unit,
     onAmountInput: (BigDecimal?) -> Unit,
+    onQuickAmountInput: (Double) -> Unit,
     onNextClick: () -> Unit
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -77,6 +81,16 @@ fun SetupStakingScreen(
                     .height(48.dp)
             )
             MarginVertical(margin = 16.dp)
+
+            if (isSoftKeyboardOpen) {
+                QuickInput(
+                    values = QuickAmountInput.entries.toTypedArray(),
+                    onQuickAmountInput = {
+                        keyboardController?.hide()
+                        onQuickAmountInput(it)
+                    }
+                )
+            }
         }
     }
 }
@@ -106,6 +120,6 @@ private fun SetupStakingScreenPreview() {
         ButtonViewState("Join", true)
     )
     FearlessTheme {
-        SetupStakingScreen(state, {}, {}, {})
+        SetupStakingScreen(state, false, {}, {}, {}, {})
     }
 }
