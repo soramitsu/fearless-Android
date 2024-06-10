@@ -22,9 +22,11 @@ import jp.co.soramitsu.common.compose.component.AddressInputState
 import jp.co.soramitsu.common.compose.component.AmountInputViewState
 import jp.co.soramitsu.common.compose.component.ButtonViewState
 import jp.co.soramitsu.common.compose.component.FeeInfoViewState
+import jp.co.soramitsu.common.compose.component.QuickAmountInput
 import jp.co.soramitsu.common.compose.component.SelectorState
 import jp.co.soramitsu.common.compose.component.ToolbarViewState
 import jp.co.soramitsu.common.compose.component.WarningInfoState
+import jp.co.soramitsu.common.data.network.runtime.binding.cast
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
@@ -46,6 +48,7 @@ import jp.co.soramitsu.wallet.api.domain.fromValidationResult
 import jp.co.soramitsu.wallet.api.domain.model.XcmChainType
 import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
 import jp.co.soramitsu.wallet.impl.domain.XcmInteractor
+import jp.co.soramitsu.wallet.impl.domain.interfaces.QuickInputsUseCase
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletConstants
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
@@ -59,6 +62,7 @@ import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.presentation.balance.walletselector.light.WalletSelectionMode
 import jp.co.soramitsu.wallet.impl.presentation.cross_chain.CrossChainTransferDraft
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -68,6 +72,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.flatMapLatest
@@ -77,6 +82,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 private const val SLIPPAGE_TOLERANCE = 1.35
@@ -97,7 +103,8 @@ class CrossChainSetupViewModel @Inject constructor(
     private val validateTransferUseCase: ValidateTransferUseCase,
     private val chainAssetsManager: ChainAssetsManager,
     private val xcmInteractor: XcmInteractor,
-    private val existentialDepositUseCase: ExistentialDepositUseCase
+    private val existentialDepositUseCase: ExistentialDepositUseCase,
+    private val quickInputsUseCase: QuickInputsUseCase
 ) : BaseViewModel(), CrossChainSetupScreenInterface {
 
     private val isSoftKeyboardOpenFlow = MutableStateFlow(false)
@@ -132,6 +139,7 @@ class CrossChainSetupViewModel @Inject constructor(
         .map { it?.image }
         .stateIn(viewModelScope, SharingStarted.Eagerly, initialValue = null)
 
+    private val quickInputsStateFlow = MutableStateFlow<Map<Double, BigDecimal>?>(null)
     private val assetId: String? get() = assetIdFlow.value
     private val originChainId: String? get() = originChainIdFlow.value
     private val destinationChainId: String? get() = chainAssetsManager.destinationChainIdFlow.value
@@ -426,6 +434,23 @@ class CrossChainSetupViewModel @Inject constructor(
                 xcmInteractor.prepareDataForChains(payload!!.chainId, it)
             }
             .launchIn(viewModelScope)
+
+        combine(
+            chainAssetsManager.originChainIdFlow,
+            chainAssetsManager.destinationChainIdFlow,
+            assetIdFlow
+        ) { originChainId, destinationChainId, assetId ->
+            if (originChainId == null || destinationChainId == null || assetId == null) {
+                return@combine
+            }
+            val quickInputs = quickInputsUseCase.calculateXcmTransfersQuickInputs(
+                originChainId,
+                destinationChainId,
+                assetId
+            )
+            quickInputsStateFlow.update { quickInputs }
+
+        }.launchIn(this)
     }
 
     private fun setInitialChainsAndAssetIds() {
@@ -641,48 +666,12 @@ class CrossChainSetupViewModel @Inject constructor(
     }
 
     override fun onQuickAmountInput(input: Double) {
-        viewModelScope.launch {
-            val utilityAsset = utilityAssetFlow.firstOrNull() ?: return@launch
-            val asset = assetFlow.firstOrNull() ?: return@launch
-            val tip = tipFlow.firstOrNull()
-            val tipAmount = utilityAsset.token.amountFromPlanks(tip.orZero())
+        launch {
+            val valuesMap = quickInputsStateFlow.first { !it.isNullOrEmpty() }.cast<Map<Double, BigDecimal>>()
+            val amount = valuesMap[input] ?: return@launch
 
-            val utilityTipReserve = when {
-                asset.token.configuration.isUtility -> tipAmount
-                else -> BigDecimal.ZERO
-            }
-
-            val existentialDepositInPlanks = existentialDepositUseCase(asset.token.configuration)
-            val existentialDepositDecimal = asset.token.amountFromPlanks(existentialDepositInPlanks)
-            val existentialDepositWithExtra = existentialDepositDecimal * CROSS_CHAIN_ED_SAFE_TRANSFER_MULTIPLIER.toBigDecimal()
-            val transferable = maxOf(BigDecimal.ZERO, asset.transferable - existentialDepositWithExtra)
-
-            val amountToTransfer = (transferable * input.toBigDecimal()) - utilityTipReserve
-
-            val selfAddress = originChainId?.let { currentAccountAddress(it) } ?: return@launch
-            val transfer = Transfer(
-                recipient = selfAddress,
-                sender = selfAddress,
-                amount = amountToTransfer,
-                chainAsset = asset.token.configuration
-            )
-
-            val utilityFeeReserve = when {
-                asset.token.configuration.isUtility.not() -> BigDecimal.ZERO
-                else -> walletInteractor.getTransferFee(transfer).feeAmount
-            }
-
-            val quickAmountWithoutExtraPays = amountToTransfer - utilityFeeReserve * SLIPPAGE_TOLERANCE.toBigDecimal()
-
-            if (quickAmountWithoutExtraPays < BigDecimal.ZERO) {
-                return@launch
-            }
-            val scaled = quickAmountWithoutExtraPays.setScale(
-                5,
-                RoundingMode.HALF_DOWN
-            )
-            visibleAmountFlow.value = scaled
-            enteredAmountBigDecimalFlow.value = quickAmountWithoutExtraPays
+            visibleAmountFlow.value = amount.setScale(5, RoundingMode.HALF_DOWN)
+            enteredAmountBigDecimalFlow.value = amount
         }
     }
 

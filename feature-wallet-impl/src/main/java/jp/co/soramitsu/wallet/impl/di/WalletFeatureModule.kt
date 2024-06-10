@@ -28,7 +28,9 @@ import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.QrBitmapDecoder
+import jp.co.soramitsu.core.extrinsic.ExtrinsicBuilderFactory
 import jp.co.soramitsu.core.extrinsic.ExtrinsicService
+import jp.co.soramitsu.core.extrinsic.mortality.MortalityConstructor
 import jp.co.soramitsu.core.rpc.RpcCalls
 import jp.co.soramitsu.core.updater.UpdateSystem
 import jp.co.soramitsu.coredb.dao.AddressBookDao
@@ -95,8 +97,6 @@ import jp.co.soramitsu.xcm.XcmService
 import jp.co.soramitsu.xcm.domain.XcmEntitiesFetcher
 import jp.co.soramitsu.xnetworking.basic.networkclient.SoramitsuNetworkClient
 import jp.co.soramitsu.xnetworking.fearlesswallet.txhistory.client.TxHistoryClientForFearlessWalletFactory
-import kotlin.coroutines.CoroutineContext
-import kotlinx.coroutines.Dispatchers
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -136,11 +136,17 @@ class WalletFeatureModule {
     fun provideSubstrateSource(
         rpcCalls: RpcCalls,
         @Named(REMOTE_STORAGE_SOURCE) remoteStorageSource: StorageDataSource,
-        extrinsicService: ExtrinsicService
+        extrinsicService: ExtrinsicService,
+        extrinsicBuilderFactory: ExtrinsicBuilderFactory,
+        mortalityConstructor: MortalityConstructor,
+        chainRegistry: ChainRegistry
     ): SubstrateRemoteSource = WssSubstrateSource(
         rpcCalls,
         remoteStorageSource,
-        extrinsicService
+        extrinsicService,
+        extrinsicBuilderFactory,
+        mortalityConstructor,
+        chainRegistry
     )
 
     @Provides
@@ -281,14 +287,20 @@ class WalletFeatureModule {
         accountRepository: AccountRepository,
         chainRegistry: ChainRegistry,
         chainsRepository: ChainsRepository,
-        walletConstants: WalletConstants
+        walletConstants: WalletConstants,
+        existentialDepositUseCase: ExistentialDepositUseCase,
+        xcmInteractor: XcmInteractor,
+        polkaswapInteractor: PolkaswapInteractor
     ): QuickInputsUseCase {
         return QuickInputsUseCaseImpl(
             walletRepository,
             accountRepository,
             chainRegistry,
             chainsRepository,
-            walletConstants
+            walletConstants,
+            existentialDepositUseCase,
+            xcmInteractor,
+            polkaswapInteractor
         )
     }
 

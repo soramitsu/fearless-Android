@@ -9,11 +9,23 @@ interface QuickInputsUseCase {
     suspend fun calculateStakingQuickInputs(
         chainId: ChainId,
         assetId: String,
-        calculateFee: suspend () -> BigInteger
+        calculateAvailableAmount: suspend () -> BigDecimal,
+        calculateFee: suspend (amount: BigInteger) -> BigInteger
     ): Map<Double, BigDecimal>
 
     suspend fun calculateTransfersQuickInputs(
         chainId: ChainId,
         assetId: String
+    ): Map<Double, BigDecimal>
+
+    suspend fun calculateXcmTransfersQuickInputs(
+        originChainId: ChainId,
+        destinationChainId: ChainId,
+        assetId: String
+    ): Map<Double, BigDecimal>
+
+    suspend fun calculatePolkaswapQuickInputs(
+        assetIdFrom: String,
+        assetIdTo: String
     ): Map<Double, BigDecimal>
 }

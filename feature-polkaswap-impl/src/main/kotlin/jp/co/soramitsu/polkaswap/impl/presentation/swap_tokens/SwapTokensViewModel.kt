@@ -14,6 +14,7 @@ import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.base.errors.ValidationException
 import jp.co.soramitsu.common.compose.component.AmountInputViewState
+import jp.co.soramitsu.common.data.network.runtime.binding.cast
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.presentation.dataOrNull
 import jp.co.soramitsu.common.presentation.map
@@ -46,6 +47,7 @@ import jp.co.soramitsu.polkaswap.api.presentation.models.TransactionSettingsMode
 import jp.co.soramitsu.polkaswap.api.presentation.models.detailsToViewState
 import jp.co.soramitsu.polkaswap.impl.presentation.transaction_settings.TransactionSettingsFragment
 import jp.co.soramitsu.wallet.api.presentation.WalletRouter
+import jp.co.soramitsu.wallet.impl.domain.interfaces.QuickInputsUseCase
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
@@ -55,7 +57,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
@@ -63,6 +67,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.transform
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 typealias TooltipEvent = Event<Pair<String, String>>
@@ -72,6 +77,7 @@ class SwapTokensViewModel @Inject constructor(
     private val resourceManager: ResourceManager,
     private val polkaswapInteractor: PolkaswapInteractor,
     private val polkaswapRouter: PolkaswapRouter,
+    private val quickInputsUseCase: QuickInputsUseCase,
     savedStateHandle: SavedStateHandle
 ) : BaseViewModel(), SwapTokensCallbacks {
 
@@ -267,6 +273,8 @@ class SwapTokensViewModel @Inject constructor(
 
     private var transactionSettingsJob: Job? = null
 
+    private val quickInputsStateFlow = MutableStateFlow<Map<Double, BigDecimal>?>(null)
+
     val state = combine(
         fromAmountInputViewState,
         toAmountInputViewState,
@@ -312,6 +320,17 @@ class SwapTokensViewModel @Inject constructor(
             observeAvailableSources()
             initialFee = polkaswapInteractor.calcFakeFee()
         }
+
+        combine(
+            fromAssetFlow.filterNotNull(),
+            toAssetFlow.filterNotNull()
+        ) { fromAsset, toAsset ->
+            val quickInputs = quickInputsUseCase.calculatePolkaswapQuickInputs(
+                fromAsset.token.configuration.id,
+                toAsset.token.configuration.id
+            )
+            quickInputsStateFlow.update { quickInputs }
+        }.launchIn(this)
     }
 
     private fun subscribeFromAmountInputViewState() {
@@ -380,14 +399,6 @@ class SwapTokensViewModel @Inject constructor(
             }
         }.launchIn(viewModelScope)
     }
-
-    data class SwapDetailsCalculationParams(
-        val amount: BigDecimal,
-        val selectedMarket: Market,
-        val slippageTolerance: Double,
-        val availableDexPaths: List<Int>?,
-        val reserves: Any
-    )
 
     @Suppress("UNUSED_PARAMETER")
     private suspend fun getSwapDetails(
@@ -576,7 +587,7 @@ class SwapTokensViewModel @Inject constructor(
             fromAssetFlow.value?.token?.configuration?.id == feeAsset.token.configuration.id
         val isToFeeAsset =
             toAssetFlow.value?.token?.configuration?.id == feeAsset.token.configuration.id
-
+hashCode()
         return when {
             amountToSwap > available -> {
                 SpendInsufficientBalanceException(resourceManager)
@@ -705,34 +716,34 @@ class SwapTokensViewModel @Inject constructor(
         viewModelScope.launch {
             desired ?: return@launch
 
-            val transferable = fromAssetFlow.value?.transferable.orZero()
-            val details = swapDetails.value.getOrNull()
+//            val transferable = fromAssetFlow.value?.transferable.orZero()
+//
+//            val isFeeAsset =
+//                fromAssetFlow.value?.token?.configuration?.id == polkaswapInteractor.getFeeAsset()?.token?.configuration?.id
+//            val amount = transferable.multiply(value.toBigDecimal())
+//            val networkFee = networkFeeFlow.value.dataOrNull() ?: initialFee
+//            val result = if (isFeeAsset) amount.minus(networkFee) else amount
+//            val amountFrom = result.takeIf { it >= BigDecimal.ZERO }.orZero()
+            val valuesMap = quickInputsStateFlow.first { !it.isNullOrEmpty() }.cast<Map<Double, BigDecimal>>()
+            val amount = valuesMap[value] ?: return@launch
 
-            val isFeeAsset =
-                fromAssetFlow.value?.token?.configuration?.id == polkaswapInteractor.getFeeAsset()?.token?.configuration?.id
-            val amount = transferable.multiply(value.toBigDecimal())
-            val networkFee = networkFeeFlow.value.dataOrNull() ?: initialFee
-            val result = if (isFeeAsset) amount.minus(networkFee) else amount
-            val amountFrom = result.takeIf { it >= BigDecimal.ZERO }.orZero()
+            enteredFromAmountFlow.value = amount.setScale(MAX_DECIMALS_8, RoundingMode.HALF_DOWN)
 
-            enteredFromAmountFlow.value =
-                amountFrom.setScale(MAX_DECIMALS_8, RoundingMode.HALF_DOWN)
-
-            if (isFeeAsset.not()) return@launch
-
-            awaitNewFeeJob?.cancel()
-            awaitNewFeeJob = viewModelScope.launch {
-                networkFeeFlow.map { networkFeeLoadingState ->
-                    val newNetworkFee = networkFeeLoadingState.dataOrNull() ?: return@map
-
-                    val newResult =
-                        amount.minus(newNetworkFee).takeIf { it >= BigDecimal.ZERO }.orZero()
-                    enteredFromAmountFlow.value =
-                        newResult.setScale(MAX_DECIMALS_8, RoundingMode.HALF_DOWN)
-                    awaitNewFeeJob?.cancel()
-                }
-            }
-            awaitNewFeeJob?.start()
+//            if (isFeeAsset.not()) return@launch
+//
+//            awaitNewFeeJob?.cancel()
+//            awaitNewFeeJob = viewModelScope.launch {
+//                networkFeeFlow.map { networkFeeLoadingState ->
+//                    val newNetworkFee = networkFeeLoadingState.dataOrNull() ?: return@map
+//
+//                    val newResult =
+//                        amount.minus(newNetworkFee).takeIf { it >= BigDecimal.ZERO }.orZero()
+//                    enteredFromAmountFlow.value =
+//                        newResult.setScale(MAX_DECIMALS_8, RoundingMode.HALF_DOWN)
+//                    awaitNewFeeJob?.cancel()
+//                }
+//            }
+//            awaitNewFeeJob?.start()
         }
     }
 

@@ -792,13 +792,12 @@ class SendSetupViewModel @Inject constructor(
             val valuesMap = quickInputsStateFlow.first { !it.isNullOrEmpty() }.cast<Map<Double, BigDecimal>>()
             val amount = valuesMap[input] ?: return@launch
 
-            val scaledAmount = amount.setScale(5, RoundingMode.HALF_DOWN)
-            if (initialAmountFlow.value == scaledAmount) {
+            if (initialAmountFlow.value == amount) {
                 initialAmountFlow.value = null
                 delay(70)
             }
-            visibleAmountFlow.value = scaledAmount
-            initialAmountFlow.value = scaledAmount
+            visibleAmountFlow.value = amount.setScale(5, RoundingMode.HALF_DOWN)
+            initialAmountFlow.value = amount.setScale(5, RoundingMode.HALF_DOWN)
             enteredAmountBigDecimalFlow.value = amount
             observeExistentialDeposit(input < QuickAmountInput.MAX.value)
         }

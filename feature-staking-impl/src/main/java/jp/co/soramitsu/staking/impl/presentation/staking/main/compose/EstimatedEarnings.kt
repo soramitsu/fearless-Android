@@ -1,12 +1,26 @@
 package jp.co.soramitsu.staking.impl.presentation.staking.main.compose
 
+import android.view.View
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -25,6 +39,7 @@ import jp.co.soramitsu.common.compose.theme.blurColorLight
 import jp.co.soramitsu.common.utils.clickableWithNoIndication
 import jp.co.soramitsu.feature_staking_impl.R
 import java.math.BigDecimal
+import jp.co.soramitsu.common.compose.component.QuickInput
 
 data class EstimatedEarningsViewState(
     val monthlyChange: TitleValueViewState?,
@@ -38,6 +53,8 @@ fun EstimatedEarnings(
     onInfoClick: () -> Unit,
     onAmountInput: (BigDecimal?) -> Unit
 ) {
+    val keyboardController = LocalSoftwareKeyboardController.current
+
     BackgroundCornered(
         backgroundColor = blurColorLight,
         modifier = Modifier
@@ -76,6 +93,12 @@ fun EstimatedEarnings(
                 onInput = onAmountInput
             )
             MarginVertical(margin = 24.dp)
+            QuickInput(
+                onQuickAmountInput = {
+                    keyboardController?.hide()
+//                        callback.onQuickAmountInput(it)
+                }
+            )
         }
     }
 }
