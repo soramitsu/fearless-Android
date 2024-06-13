@@ -38,7 +38,9 @@ class ExistentialDepositUseCaseImpl(
         val chainId = chainAsset.chainId
 
         val existentialDepositResult = kotlin.runCatching {
-            val runtime = chainRegistry.getRuntime(chainId)
+            val runtime = chainRegistry.getRuntimeOrNull(chainId)
+                ?: return@runCatching BigInteger.ZERO
+
             when (chainAsset.typeExtra) {
                 null,
                 ChainAssetType.Normal,

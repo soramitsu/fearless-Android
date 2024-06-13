@@ -317,7 +317,7 @@ class WssSubstrateSource(
             ChainAssetType.Token2,
             ChainAssetType.AssetId,
             ChainAssetType.Xcm,
-            ChainAssetType.Stable -> ormlAssetTransfer(accountId, transfer)
+            ChainAssetType.Stable -> ormlAssetTransfer(accountId, transfer, typeRegistry)
 
             ChainAssetType.Equilibrium -> equilibriumAssetTransfer(accountId, transfer)
 
@@ -356,16 +356,28 @@ class WssSubstrateSource(
 
     private fun ExtrinsicBuilder.ormlAssetTransfer(
         accountId: AccountId,
-        transfer: Transfer
-    ) = call(
-        moduleName = Modules.CURRENCIES,
-        callName = "transfer",
-        arguments = mapOf(
-            "dest" to DictEnum.Entry("Id", accountId),
-            "currency_id" to transfer.chainAsset.currency,
-            "amount" to transfer.amountInPlanks
+        transfer: Transfer,
+        typeRegistry: TypeRegistry
+    ): ExtrinsicBuilder {
+        @Suppress("IMPLICIT_CAST_TO_ANY")
+        val dest = when (typeRegistry["Address"]) {
+            is FixedByteArray -> accountId // asset type 'assetId'
+            else -> DictEnum.Entry(
+                name = "Id",
+                value = accountId
+            )
+        }
+
+        return call(
+            moduleName = Modules.CURRENCIES,
+            callName = "transfer",
+            arguments = mapOf(
+                "dest" to dest,
+                "currency_id" to transfer.chainAsset.currency,
+                "amount" to transfer.amountInPlanks
+            )
         )
-    )
+    }
 
     private fun ExtrinsicBuilder.soraAssetTransfer(
         accountId: AccountId,

@@ -174,7 +174,8 @@
                 android:layout_height="1dp"
                 android:layout_marginStart="@dimen/x2"
                 android:layout_marginEnd="@dimen/x2"
-                android:background="@color/dividerGray" />
+                android:background="@color/dividerGray"
+                android:visibility="gone" />
 
             <LinearLayout
                 android:id="@+id/profileCurrency"
