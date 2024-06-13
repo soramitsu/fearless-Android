@@ -304,7 +304,7 @@ class StakingRelayChainScenarioRepository(
         chainId: ChainId,
         accountIdsHex: List<String>
     ): AccountIdMap<ValidatorPrefs?> {
-        return localStorage.queryKeys(
+        return remoteStorage.queryKeys(
             keysBuilder = { runtime ->
                 val storage = runtime.metadata.stakingOrNull()?.storage("Validators")
                     ?: return@queryKeys emptyMap()
