@@ -1,7 +1,7 @@
 [versions]
 accompanistVersion = "0.34.0"
 activityCompose = "1.8.2"
-android_plugin = "8.6.0-rc01"
+android_plugin = "8.5.0"
 appcompat = "1.6.1"
 architectureComponentVersion = "2.7.0"
 beaconVersion = "3.2.4"
@@ -60,6 +60,7 @@ wsVersion = "2.14"
 xNetworking = "0.2.5-temp7"
 zxingEmbeddedVersion = "4.3.0"
 zxingVersion = "3.5.3"
+junitJunit = "4.12"
 
 [libraries]
 appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
@@ -176,6 +177,7 @@ web3jDep = { module = "org.web3j:core", version.ref = "web3j" }
 walletconnectBomDep = { module = "com.walletconnect:android-bom", version.ref = "walletconnectBom" }
 walletconnectCoreDep = { module = "com.walletconnect:android-core" }
 walletconnectWeb3WalletDep = { module = "com.walletconnect:web3wallet" }
+junit-junit = { group = "junit", name = "junit", version.ref = "junitJunit" }
 
 [bundles]
 compose = [
