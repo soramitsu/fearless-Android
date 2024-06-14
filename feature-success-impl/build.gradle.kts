@@ -30,6 +30,9 @@ android {
     kotlinOptions {
         jvmTarget = "17"
     }
+
+    packaging { resources.excludes.add("META-INF/*") }
+
     namespace = "jp.co.soramitsu.feature_success_impl"
 }
 
