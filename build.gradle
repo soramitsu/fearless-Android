@@ -61,10 +61,19 @@ allprojects {
             }
         }
     }
+
+    configurations.configureEach {
+        resolutionStrategy {
+            // add dependency substitution rules
+            dependencySubstitution {
+                substitute module('org.bouncycastle:bcprov-jdk15on') using module('org.bouncycastle:bcprov-jdk18on:1.78')
+            }
+        }
+    }
 }
 
 tasks.register('clean', Delete) {
-    delete rootProject.buildDir
+    delete rootProject.layout.buildDirectory
 }
 
 tasks.register('runTest', GradleBuild) {

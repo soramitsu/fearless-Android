@@ -129,10 +129,6 @@ android {
         resources.excludes.add("META-INF/**/*")
         resources.excludes.add("META-INF/*")
     }
-
-    configurations.configureEach {
-        exclude group: "org.bouncycastle", module: "bcprov-jdk15on"
-    }
 }
 
 play {
