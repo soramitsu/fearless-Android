@@ -59,5 +59,7 @@ dependencies {
     androidTestImplementation libs.ext.junit
 
     androidTestImplementation libs.room.testing
-    androidTestImplementation project(':test-shared')
+    androidTestImplementation projects.testShared
+    testImplementation libs.junit.junit
+    testImplementation projects.testShared
 }
