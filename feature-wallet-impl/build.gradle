@@ -55,6 +55,9 @@ android {
     composeOptions {
         kotlinCompilerExtensionVersion composeCompilerVersion
     }
+
+    packaging { resources.excludes.add("META-INF/*") }
+
     namespace 'jp.co.soramitsu.feature_wallet_impl'
 }
 
