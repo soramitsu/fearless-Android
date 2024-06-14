@@ -1,6 +1,8 @@
 package jp.co.soramitsu.runtime.multiNetwork.chain
 
+import jp.co.soramitsu.coredb.dao.AssetDao
 import jp.co.soramitsu.coredb.dao.ChainDao
+import jp.co.soramitsu.coredb.dao.MetaAccountDao
 import jp.co.soramitsu.coredb.model.chain.ChainLocal
 import jp.co.soramitsu.coredb.model.chain.JoinedChainInfo
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.ChainFetcher
@@ -66,13 +68,19 @@ class ChainSyncServiceTest {
     lateinit var dao: ChainDao
 
     @Mock
+    lateinit var metaAccountDao: MetaAccountDao
+
+    @Mock
+    lateinit var assetsDao: AssetDao
+
+    @Mock
     lateinit var chainFetcher: ChainFetcher
 
     lateinit var chainSyncService: ChainSyncService
 
     @Before
     fun setup() {
-        chainSyncService = ChainSyncService(dao, chainFetcher)
+        chainSyncService = ChainSyncService(dao, chainFetcher, metaAccountDao, assetsDao)
     }
 
     @Test
