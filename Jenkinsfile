@@ -1,4 +1,4 @@
-@Library('jenkins-library')
+@Library('jenkins-library@feature/SUP-8993-fearless-autotests')
 
 // Job properties
 def jobParams = [
@@ -19,6 +19,8 @@ def pipeline = new org.android.AppPipeline(
     jobParams:        jobParams,
     appPushNoti:      true,
     dojoProductType:  'android',
-    uploadToNexusFor: ['master','develop','staging']
+    uploadToNexusFor: ['master','develop','staging'],
+    statusNotif: true,
+    triggerAutoTests: true
 )
 pipeline.runPipeline('fearless')
