@@ -85,5 +85,5 @@ dependencies {
     implementation libs.zxing.core
     implementation libs.zxing.embedded
 
-    implementation libs.sharedFeaturesBackupDep
+    implementation libs.sharedFeaturesBackupDep, withoutAndroidFoundation
 }

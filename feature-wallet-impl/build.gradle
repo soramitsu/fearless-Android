@@ -136,8 +136,8 @@ dependencies {
     implementation libs.navigation.fragment.ktx
     implementation libs.navigation.ui.ktx
 
-    implementation libs.sharedFeaturesXcmDep
-    implementation libs.sharedFeaturesBackupDep
+    implementation libs.sharedFeaturesXcmDep, withoutAndroidFoundation
+    implementation libs.sharedFeaturesBackupDep, withoutAndroidFoundation
 
     implementation libs.web3jDep
 }

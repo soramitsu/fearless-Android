@@ -163,5 +163,5 @@ dependencies {
     testImplementation libs.mockito.inline
     testImplementation project(':test-shared')
 
-    api libs.sharedFeaturesCoreDep
+    api libs.sharedFeaturesCoreDep, withoutAndroidFoundation
 }

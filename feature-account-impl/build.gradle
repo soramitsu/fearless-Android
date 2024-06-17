@@ -94,8 +94,8 @@ dependencies {
 
     implementation libs.gson
 
-    api libs.sharedFeaturesCoreDep
+    api libs.sharedFeaturesCoreDep, withoutAndroidFoundation
 
-    implementation libs.sharedFeaturesBackupDep
+    implementation libs.sharedFeaturesBackupDep, withoutAndroidFoundation
     implementation libs.web3jDep
 }
