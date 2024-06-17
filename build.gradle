@@ -18,6 +18,7 @@ buildscript {
         withoutBasic = { exclude group: 'jp.co.soramitsu.xnetworking', module: 'basic' }
         withoutJna = { exclude group: 'net.java.dev.jna' }
         withoutJavaWS = { exclude module: 'java-websocket-lib' }
+        withoutAndroidFoundation = { exclude module: 'android-foundation' }
     }
 
     repositories {
