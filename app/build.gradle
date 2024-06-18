@@ -1,3 +1,4 @@
+//file:noinspection GroovyImplicitNullArgumentCall
 import com.github.triplet.gradle.androidpublisher.ReleaseStatus
 
 apply plugin: 'com.android.application'
@@ -229,8 +230,8 @@ dependencies {
     androidTestImplementation libs.ext.junit
 }
 
-task printVersion {
-  doLast {
-    println "versionName:${computeVersionName()}"
-  }
+tasks.register('printVersion') {
+    doLast {
+        println "versionName:${computeVersionName()}"
+    }
 }
