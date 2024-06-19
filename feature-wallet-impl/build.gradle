@@ -56,8 +56,6 @@ android {
         kotlinCompilerExtensionVersion composeCompilerVersion
     }
 
-    packaging { resources.excludes.add("META-INF/*") }
-
     namespace 'jp.co.soramitsu.feature_wallet_impl'
 }
 
@@ -136,6 +134,7 @@ dependencies {
     implementation libs.navigation.fragment.ktx
     implementation libs.navigation.ui.ktx
 
+//    implementation libs.sharedFeaturesCoreDep, withoutAndroidFoundation
     implementation libs.sharedFeaturesXcmDep, withoutAndroidFoundation
     implementation libs.sharedFeaturesBackupDep, withoutAndroidFoundation
 

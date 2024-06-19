@@ -24,8 +24,6 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    packaging { resources.excludes.add("META-INF/*") }
-
     namespace 'jp.co.soramitsu.feature_staking_api'
 }
 
