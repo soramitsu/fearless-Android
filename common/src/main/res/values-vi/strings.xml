@@ -1116,7 +1116,7 @@
   <string name="wallet_send_balance_minimal">Số dư tối thiểu</string>
   <string name="wallet_send_confirm_transfer">Xác nhận chuyển khoản</string>
   <string name="wallet_send_dead_recipient_message">Giao dịch chuyển tiền của bạn sẽ không thành công vì số tiền cuối cùng trên tài khoản đích sẽ ít hơn số dư tối thiểu. Hãy cố gắng tăng số lượng.</string>
-  <string name="wallet_send_dead_recipient_message_v2">Chuyển khoản của bạn sẽ không thành công vì số tiền cuối cùng (%s) trên tài khoản đích sẽ nhỏ hơn số dư tối thiểu (%s). Vui lòng tăng thêm %s</string>
+  <string name="wallet_send_dead_recipient_message_v2">Chuyển khoản của bạn sẽ không thành công vì số tiền cuối cùng (%1$s) trên tài khoản đích sẽ nhỏ hơn số dư tối thiểu (%2$s). Vui lòng tăng thêm %3$s</string>
   <string name="wallet_send_eth_dead_recipient_message">Số dư Ethereum không đủ trong tài khoản của người nhận sẽ ngăn cản việc hoàn tất chuyển mã thông báo ERC20. Vui lòng đảm bảo người nhận có đủ Ethereum để tiến hành chuyển khoản.</string>
   <string name="wallet_send_existential_warning_message">Chuyển khoản của bạn sẽ xóa tài khoản khỏi blockstore vì nó sẽ làm cho tổng số dư còn lại thấp hơn số dư tối thiểu.</string>
   <string name="wallet_send_existential_warning_title">Chuyển khoản sẽ xóa tài khoản</string>

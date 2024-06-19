@@ -174,7 +174,7 @@ private fun CollectionNFTsScreen(
 
     LaunchedEffect(firstVisibleItemOffsetAsState) {
         snapshotFlow { firstVisibleItemOffsetAsState.value }
-            .onEach { offset -> savableOffset.value = offset }
+            .onEach { offset -> savableOffset.intValue = offset }
             .flowOn(Dispatchers.Default)
             .launchIn(this)
     }
@@ -222,7 +222,7 @@ private fun CollectionNFTsScreen(
             return@LaunchedEffect
         }
 
-        lazyGridState.scrollToItem(index, savableOffset.value)
+        lazyGridState.scrollToItem(index, savableOffset.intValue)
     }
 }
 
