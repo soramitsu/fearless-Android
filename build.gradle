@@ -63,6 +63,11 @@ allprojects {
         }
     }
 
+    configurations {
+        cleanedAnnotations
+        implementation.exclude group: 'com.intellij' , module:'annotations'
+    }
+
     configurations.configureEach {
         resolutionStrategy {
             // add dependency substitution rules

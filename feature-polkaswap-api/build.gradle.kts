@@ -21,8 +21,6 @@ android {
         jvmTarget = "17"
     }
 
-    packaging { resources.excludes.add("META-INF/*") }
-
     namespace = "jp.co.soramitsu.feature_polkaswap_api"
 }
 

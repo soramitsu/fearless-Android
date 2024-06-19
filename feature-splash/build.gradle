@@ -29,8 +29,6 @@ android {
         jvmTarget = '17'
     }
 
-    packaging { resources.excludes.add("META-INF/*") }
-
     namespace 'jp.co.soramitsu.splash'
 }
 
