@@ -104,13 +104,13 @@ class V2Migration(
         val cursor = database.query("SELECT * FROM users")
 
         return cursor.map {
-            val address = getString(getColumnIndex("address"))
-            val cryptoTypeOrdinal = getInt(getColumnIndex("cryptoType"))
-            val name = getString(getColumnIndex("username"))
+            val address = getString(getColumnIndexOrThrow("address"))
+            val cryptoTypeOrdinal = getInt(getColumnIndexOrThrow("cryptoType"))
+            val name = getString(getColumnIndexOrThrow("username"))
 
             MigratingAccount(
                 address = address,
-                cryptoType = CryptoType.values()[cryptoTypeOrdinal],
+                cryptoType = CryptoType.entries[cryptoTypeOrdinal],
                 name = name
             )
         }

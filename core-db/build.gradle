@@ -60,6 +60,6 @@ dependencies {
 
     androidTestImplementation libs.room.testing
     androidTestImplementation projects.testShared
-    testImplementation libs.junit.junit
+    testImplementation libs.junit
     testImplementation projects.testShared
 }
