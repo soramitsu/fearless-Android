@@ -38,4 +38,6 @@ interface PolkaswapRouter {
     fun openPolkaswapDisclaimerFromMainScreen()
 
     fun openWebViewer(title: String, url: String)
+
+    fun openPools(chainId: ChainId)
 }

@@ -78,6 +78,7 @@ import jp.co.soramitsu.nft.navigation.NFTRouter
 import jp.co.soramitsu.onboarding.impl.OnboardingRouter
 import jp.co.soramitsu.onboarding.impl.welcome.WelcomeFragment
 import jp.co.soramitsu.onboarding.impl.welcome.select_import_mode.SelectImportModeDialog
+import jp.co.soramitsu.polkaswap.PoolsRoutes
 import jp.co.soramitsu.polkaswap.api.presentation.PolkaswapRouter
 import jp.co.soramitsu.polkaswap.api.presentation.models.SwapDetailsParcelModel
 import jp.co.soramitsu.polkaswap.api.presentation.models.SwapDetailsViewState
@@ -1515,5 +1516,11 @@ class Navigator :
 
     override fun openScoreDetailsScreen(metaId: Long) {
         navController?.navigate(R.id.scoreDetailsFragment, ScoreDetailsFragment.getBundle(metaId))
+    }
+
+    override fun openPools(chainId: ChainId) {
+        navController?.navigate(
+            "${PoolsRoutes.POOLS_EXPLORE_SCREEN}/$chainId"
+        )
     }
 }

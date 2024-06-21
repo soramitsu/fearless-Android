@@ -33,6 +33,7 @@ import jp.co.soramitsu.common.validation.NotEnoughResultedAmountToPayFeeExceptio
 import jp.co.soramitsu.common.validation.SpendInsufficientBalanceException
 import jp.co.soramitsu.common.validation.UnableToPayFeeException
 import jp.co.soramitsu.common.validation.WaitForFeeCalculationException
+import jp.co.soramitsu.core.models.ChainId
 import jp.co.soramitsu.feature_polkaswap_impl.R
 import jp.co.soramitsu.polkaswap.api.domain.InsufficientLiquidityException
 import jp.co.soramitsu.polkaswap.api.domain.PathUnavailableException
@@ -724,5 +725,9 @@ class SwapTokensViewModel @Inject constructor(
 
     fun setSoftKeyboardOpen(isOpen: Boolean) {
         isSoftKeyboardOpenFlow.value = isOpen
+    }
+
+    override fun onPoolsClick(chainId: ChainId) {
+        polkaswapRouter.openPools(chainId)
     }
 }
