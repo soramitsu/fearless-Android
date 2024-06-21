@@ -22,7 +22,6 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
@@ -30,7 +29,6 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import java.math.BigDecimal
 import jp.co.soramitsu.common.compose.component.AccentButton
@@ -59,6 +57,8 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_polkaswap_impl.R
 import jp.co.soramitsu.polkaswap.api.models.Market
 import jp.co.soramitsu.polkaswap.api.presentation.models.SwapDetailsViewState
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId
 
 data class SwapTokensContentViewState(
     val fromAmountInputViewState: AmountInputViewState,
@@ -116,9 +116,10 @@ interface SwapTokensCallbacks {
     fun onQuickAmountInput(value: Double)
 
     fun onDisclaimerClick()
+
+    fun onPoolsClick(chainId: ChainId)
 }
 
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun SwapTokensContent(
     state: SwapTokensContentViewState,
@@ -252,6 +253,16 @@ fun SwapTokensContent(
                     }
                     MarginVertical(margin = 16.dp)
                 }
+
+                AccentButton(
+                    modifier = Modifier
+                        .height(48.dp)
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    text = "POOLS",
+                    onClick = { runCallback { callbacks.onPoolsClick(soraMainChainId) } }
+                )
+                MarginVertical(margin = 8.dp)
 
                 AccentButton(
                     modifier = Modifier
@@ -425,6 +436,7 @@ fun SwapTokensContentPreview() {
             override fun networkFeeTooltipClick() {}
             override fun onQuickAmountInput(value: Double) {}
             override fun onDisclaimerClick() {}
+            override fun onPoolsClick(chainId: ChainId) {}
         }
 
         SwapTokensContent(
