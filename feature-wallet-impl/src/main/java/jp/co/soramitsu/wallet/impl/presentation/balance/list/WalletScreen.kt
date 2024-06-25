@@ -36,6 +36,7 @@ import jp.co.soramitsu.common.compose.component.AssetBalance
 import jp.co.soramitsu.common.compose.component.AssetBalanceViewState
 import jp.co.soramitsu.common.compose.component.BannerBackup
 import jp.co.soramitsu.common.compose.component.BannerBuyXor
+import jp.co.soramitsu.common.compose.component.BannerPageIndicator
 import jp.co.soramitsu.common.compose.component.ChangeBalanceViewState
 import jp.co.soramitsu.common.compose.component.GrayButton
 import jp.co.soramitsu.common.compose.component.MarginVertical
@@ -44,8 +45,6 @@ import jp.co.soramitsu.common.compose.component.MultiToggleButtonState
 import jp.co.soramitsu.common.compose.component.NetworkIssuesBadge
 import jp.co.soramitsu.common.compose.component.SwipeState
 import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
-import jp.co.soramitsu.common.compose.theme.white16
-import jp.co.soramitsu.common.compose.theme.white50
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState
 import jp.co.soramitsu.common.utils.rememberForeverLazyListState
 import jp.co.soramitsu.feature_wallet_impl.R
@@ -205,31 +204,6 @@ private fun Banners(data: WalletState, callback: WalletScreenInterface) {
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             soraCardBanner?.invoke()
             bannersCarousel?.invoke()
-        }
-    }
-}
-
-@OptIn(ExperimentalFoundationApi::class)
-@Composable
-private fun BannerPageIndicator(
-    bannersCount: Int,
-    pagerState: PagerState
-) {
-    Row(
-        modifier = Modifier
-            .wrapContentHeight()
-            .fillMaxWidth(),
-        horizontalArrangement = Arrangement.Center
-    ) {
-        repeat(bannersCount) { iteration ->
-            val color = if (pagerState.currentPage == iteration) white16 else white50
-            Box(
-                modifier = Modifier
-                    .padding(horizontal = 3.dp)
-                    .clip(CircleShape)
-                    .background(color)
-                    .size(8.dp)
-            )
         }
     }
 }
