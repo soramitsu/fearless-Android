@@ -137,8 +137,6 @@ class SwapTokensViewModel @Inject constructor(
     private var initialFee = BigDecimal.ZERO
     private val availableDexPathsFlow: MutableStateFlow<List<Int>?> = MutableStateFlow(null)
 
-    private val isSoftKeyboardOpenFlow = MutableStateFlow(false)
-
     private val poolReservesFlow =
         combine(fromAssetFlow, toAssetFlow, selectedMarket) { fromAsset, toAsset, selectedMarket ->
             if (fromAsset == null || toAsset == null) return@combine null

@@ -107,8 +107,6 @@ class CrossChainSetupViewModel @Inject constructor(
     private val quickInputsUseCase: QuickInputsUseCase
 ) : BaseViewModel(), CrossChainSetupScreenInterface {
 
-    private val isSoftKeyboardOpenFlow = MutableStateFlow(false)
-
     private val _openScannerEvent = MutableSharedFlow<Unit>()
     val openScannerEvent = _openScannerEvent.asSharedFlow()
 

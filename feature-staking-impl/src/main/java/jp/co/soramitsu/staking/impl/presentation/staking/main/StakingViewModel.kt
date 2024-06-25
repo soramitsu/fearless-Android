@@ -70,6 +70,7 @@ import jp.co.soramitsu.wallet.impl.presentation.model.toModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -141,8 +142,8 @@ class StakingViewModel @Inject constructor(
     private val _showRewardEstimationEvent = MutableLiveData<Event<StakingRewardEstimationBottomSheet.Payload>>()
     val showRewardEstimationEvent: LiveData<Event<StakingRewardEstimationBottomSheet.Payload>> = _showRewardEstimationEvent
 
-    private val _enteredAmountEvent = MutableLiveData<Event<String>>()
-    val enteredAmountEvent: LiveData<Event<String>> = _enteredAmountEvent
+    private val _enteredAmountEvent = MutableSharedFlow<Event<BigDecimal>>()
+    override val enteredAmountEvent: Flow<Event<BigDecimal>> = _enteredAmountEvent
 
     private val scenarioViewModelFlow = stakingSharedState.selectionItem
         .onEach {
@@ -260,12 +261,15 @@ class StakingViewModel @Inject constructor(
                     asset.availableForStaking
                 },
                 calculateFee = {
-                    if (selectionItem.type == StakingType.PARACHAIN) {
-                        setupStakingInteractor.estimateParachainFee()
-                    } else {
-                        interactor.getSelectedAccountProjection()?.address?.let { address ->
-                            setupStakingInteractor.estimateMaxSetupStakingFee(address)
-                        }.orZero()
+                    when (selectionItem.type) {
+                        StakingType.PARACHAIN -> {
+                            setupStakingInteractor.estimateParachainFee()
+                        }
+                        else -> {
+                            interactor.getSelectedAccountProjection()?.address?.let { address ->
+                                setupStakingInteractor.estimateMaxSetupStakingFee(address)
+                            }.orZero()
+                        }
                     }
                 })
             quickInputsStateFlow.update { quickInputs }
@@ -435,7 +439,7 @@ class StakingViewModel @Inject constructor(
         launch {
             val valuesMap = quickInputsStateFlow.first { !it.isNullOrEmpty() }.cast<Map<Double, BigDecimal>>()
             val amount = valuesMap[input] ?: return@launch
-            _enteredAmountEvent.value = Event(amount.formatCrypto())
+            _enteredAmountEvent.emit(Event(amount))
         }
     }
 }

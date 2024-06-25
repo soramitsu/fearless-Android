@@ -136,17 +136,11 @@ class WalletFeatureModule {
     fun provideSubstrateSource(
         rpcCalls: RpcCalls,
         @Named(REMOTE_STORAGE_SOURCE) remoteStorageSource: StorageDataSource,
-        extrinsicService: ExtrinsicService,
-        extrinsicBuilderFactory: ExtrinsicBuilderFactory,
-        mortalityConstructor: MortalityConstructor,
-        chainRegistry: ChainRegistry
+        extrinsicService: ExtrinsicService
     ): SubstrateRemoteSource = WssSubstrateSource(
         rpcCalls,
         remoteStorageSource,
-        extrinsicService,
-        extrinsicBuilderFactory,
-        mortalityConstructor,
-        chainRegistry
+        extrinsicService
     )
 
     @Provides
