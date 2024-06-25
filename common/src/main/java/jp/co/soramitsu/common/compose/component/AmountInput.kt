@@ -1,6 +1,5 @@
 package jp.co.soramitsu.common.compose.component
 
-import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -36,7 +35,6 @@ import jp.co.soramitsu.common.compose.theme.black2
 import jp.co.soramitsu.common.compose.theme.colorAccentDark
 import jp.co.soramitsu.common.compose.theme.white
 import jp.co.soramitsu.common.compose.theme.white24
-import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.MAX_DECIMALS_8
 import jp.co.soramitsu.common.utils.isZero
 import jp.co.soramitsu.ui_core.component.input.number.BasicNumberInput
@@ -63,17 +61,6 @@ data class AmountInputViewState(
             fiatAmount = "$0",
             tokenAmount = BigDecimal.ZERO
         )
-
-        @Deprecated("use defaultObj with copy")
-        fun default(resourceManager: ResourceManager, @StringRes totalBalanceFormat: Int = R.string.common_balance_format): AmountInputViewState {
-            return AmountInputViewState(
-                tokenName = null,
-                tokenImage = null,
-                totalBalance = resourceManager.getString(totalBalanceFormat, "0"),
-                fiatAmount = "$0",
-                tokenAmount = BigDecimal.ZERO
-            )
-        }
     }
 }
 

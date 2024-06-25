@@ -101,13 +101,14 @@ class SwapTokensViewModel @Inject constructor(
         savedStateHandle.get<String>(SwapTokensFragment.KEY_SELECTED_CHAIN_ID)
 
     private val fromAmountInputViewState = MutableStateFlow(
-        AmountInputViewState.default(
-            resourceManager,
-            R.string.common_available_format
+        AmountInputViewState.defaultObj.copy(
+            totalBalance = resourceManager.getString(R.string.common_available_format, "0")
         )
     )
-    private val toAmountInputViewState =
-        MutableStateFlow(AmountInputViewState.default(resourceManager))
+    private val toAmountInputViewState = MutableStateFlow(
+        AmountInputViewState.defaultObj.copy(
+            totalBalance = resourceManager.getString(R.string.common_balance_format, "0"))
+        )
 
     private var selectedMarket = MutableStateFlow(Market.SMART)
     private var slippageTolerance = MutableStateFlow(0.5)
@@ -727,7 +728,7 @@ class SwapTokensViewModel @Inject constructor(
         isSoftKeyboardOpenFlow.value = isOpen
     }
 
-    override fun onPoolsClick(chainId: ChainId) {
-        polkaswapRouter.openPools(chainId)
+    override fun onPoolsClick() {
+        polkaswapRouter.openPools(polkaswapInteractor.polkaswapChainId)
     }
 }

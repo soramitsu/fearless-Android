@@ -1,5 +1,8 @@
 package jp.co.soramitsu.polkaswap.impl.presentation.swap_tokens
 
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -12,6 +15,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -20,6 +25,7 @@ import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,6 +40,9 @@ import java.math.BigDecimal
 import jp.co.soramitsu.common.compose.component.AccentButton
 import jp.co.soramitsu.common.compose.component.AmountInput
 import jp.co.soramitsu.common.compose.component.AmountInputViewState
+import jp.co.soramitsu.common.compose.component.BannerDemeter
+import jp.co.soramitsu.common.compose.component.BannerLiquidityPools
+import jp.co.soramitsu.common.compose.component.BannerPageIndicator
 import jp.co.soramitsu.common.compose.component.FeeInfo
 import jp.co.soramitsu.common.compose.component.FeeInfoViewState
 import jp.co.soramitsu.common.compose.component.FullScreenLoading
@@ -57,8 +66,7 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_polkaswap_impl.R
 import jp.co.soramitsu.polkaswap.api.models.Market
 import jp.co.soramitsu.polkaswap.api.presentation.models.SwapDetailsViewState
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId
+import kotlinx.coroutines.delay
 
 data class SwapTokensContentViewState(
     val fromAmountInputViewState: AmountInputViewState,
@@ -74,8 +82,8 @@ data class SwapTokensContentViewState(
 
         fun default(resourceManager: ResourceManager): SwapTokensContentViewState {
             return SwapTokensContentViewState(
-                fromAmountInputViewState = AmountInputViewState.default(resourceManager, R.string.common_available_format),
-                toAmountInputViewState = AmountInputViewState.default(resourceManager),
+                fromAmountInputViewState = AmountInputViewState.defaultObj.copy(totalBalance = resourceManager.getString(R.string.common_available_format, "0")),
+                toAmountInputViewState = AmountInputViewState.defaultObj.copy(totalBalance = resourceManager.getString(R.string.common_balance_format, "0")),
                 selectedMarket = Market.SMART,
                 swapDetailsViewState = null,
                 isLoading = false,
@@ -117,7 +125,7 @@ interface SwapTokensCallbacks {
 
     fun onDisclaimerClick()
 
-    fun onPoolsClick(chainId: ChainId)
+    fun onPoolsClick()
 }
 
 @Composable
@@ -254,15 +262,9 @@ fun SwapTokensContent(
                     MarginVertical(margin = 16.dp)
                 }
 
-                AccentButton(
-                    modifier = Modifier
-                        .height(48.dp)
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
-                    text = "POOLS",
-                    onClick = { runCallback { callbacks.onPoolsClick(soraMainChainId) } }
-                )
-                MarginVertical(margin = 8.dp)
+                if (state.fromAmountInputViewState.tokenName == null && state.toAmountInputViewState.tokenName == null) {
+                    Banners(callbacks)
+                }
 
                 AccentButton(
                     modifier = Modifier
@@ -277,7 +279,7 @@ fun SwapTokensContent(
 
                 if (showQuickInput) {
                     QuickInput(
-                        values = QuickAmountInput.values(),
+                        values = QuickAmountInput.entries.toTypedArray(),
                         onQuickAmountInput = {
                             keyboardController?.hide()
                             callbacks.onQuickAmountInput(it)
@@ -400,6 +402,71 @@ private fun MarketLabel(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun Banners(
+    callback: SwapTokensCallbacks,
+    autoPlay: Boolean = true
+) {
+    val bannerLiquidityPools: @Composable (() -> Unit) =
+        {
+            BannerLiquidityPools(
+                onShowMoreClick = callback::onPoolsClick,
+                onCloseClick = {}
+            )
+        }
+
+    val bannerDemeter: @Composable (() -> Unit)? = if (true) {
+        {
+            BannerDemeter(
+                onShowMoreClick = {},
+                onCloseClick = {}
+            )
+        }
+    } else null
+
+    val banners = listOfNotNull(bannerLiquidityPools, bannerDemeter)
+    val bannersCount = banners.size
+    val pagerState = rememberPagerState { bannersCount }
+
+    if (bannersCount > 1) {
+        // Auto play
+        LaunchedEffect(key1 = autoPlay) {
+            if (autoPlay) {
+                while (true) {
+                    delay(5000L)
+                    with(pagerState) {
+                        animateScrollToPage(
+                            page = (currentPage + 1) % bannersCount,
+                            animationSpec = tween(
+                                durationMillis = 500,
+                                easing = FastOutSlowInEasing
+                            )
+                        )
+                    }
+                }
+            }
+        }
+    }
+    HorizontalPager(
+        modifier = Modifier.fillMaxWidth(),
+        state = pagerState,
+        pageSpacing = 8.dp,
+        pageContent = { page ->
+            Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+                banners[page].invoke()
+            }
+        }
+    )
+    MarginVertical(margin = 8.dp)
+
+    if (bannersCount > 1) {
+        BannerPageIndicator(bannersCount, pagerState)
+        MarginVertical(margin = 8.dp)
+    }
+    MarginVertical(margin = 8.dp)
+}
+
 @Preview
 @Composable
 fun SwapTokensContentPreview() {
@@ -436,7 +503,7 @@ fun SwapTokensContentPreview() {
             override fun networkFeeTooltipClick() {}
             override fun onQuickAmountInput(value: Double) {}
             override fun onDisclaimerClick() {}
-            override fun onPoolsClick(chainId: ChainId) {}
+            override fun onPoolsClick() {}
         }
 
         SwapTokensContent(

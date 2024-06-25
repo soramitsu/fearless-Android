@@ -110,9 +110,13 @@
   <string name="balance_locks_nomination_pools_row_title">Nomination Pools</string>
   <string name="balance_locks_screen_title">Locked details</string>
   <string name="banners_backup_description">Protect yourself from losing access to your funds</string>
+  <string name="banners_demeter_description">Stake and farm to earn yield\non Demeter Protocol</string>
+  <string name="banners_demeter_title">Demeter Protocol</string>
   <string name="banners_buy_xor">Buy XOR</string>
   <string name="banners_buy_xor_description">Buy or sell XOR token with\nEuro cash</string>
   <string name="banners_buy_xor_title">Buy XOR token</string>
+  <string name="banners_liquidity_pools_description">Invest your funds in Liquidity\npools and receive rewards</string>
+  <string name="banners_liquidity_pools_title">Liquidity pools</string>
   <string name="beacon_connect_warning">Warning: By clicking connect, you allow this dapp to view your public address. This is an important security step to protect your data from potential phishing risks.</string>
   <string name="beacon_connected">Connected to %s</string>
   <string name="beacon_connected_to">Connected to</string>
@@ -308,6 +312,8 @@
   <string name="common_select_network">Select Network</string>
   <string name="common_selected">Selected</string>
   <string name="common_share">Share</string>
+  <string name="common_show_details">Show details</string>
+  <string name="common_show_more">Show more</string>
   <string name="common_sign">Sign</string>
   <string name="common_skip">Skip</string>
   <string name="common_skip_process">Skip process</string>
