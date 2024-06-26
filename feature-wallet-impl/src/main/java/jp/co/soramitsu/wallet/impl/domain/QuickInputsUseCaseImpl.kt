@@ -32,7 +32,6 @@ private const val CROSS_CHAIN_ED_SAFE_TRANSFER_MULTIPLIER = 1.1
 class QuickInputsUseCaseImpl(
     private val walletRepository: WalletRepository,
     private val accountRepository: AccountRepository,
-    private val chainRegistry: ChainRegistry,
     private val chainsRepository: ChainsRepository,
     private val walletConstants: WalletConstants,
     private val existentialDepositUseCase: ExistentialDepositUseCase,
@@ -208,7 +207,6 @@ class QuickInputsUseCaseImpl(
             val utilityTipReserve =
                 if (asset.token.configuration.isUtility) tipAmount else BigDecimal.ZERO
             val allAmount = asset.transferable
-//            val slippageTolerance = BigDecimal("1.35")
 
             val quickAmounts = inputValues.map { input ->
                 async {
@@ -235,22 +233,12 @@ class QuickInputsUseCaseImpl(
                         BigDecimal.ZERO
                     }
 
-                    val quickAmountWithoutExtraPays =
-                        amountToTransfer - utilityFeeReserve//* slippageTolerance)
+                    val quickAmountWithoutExtraPays = amountToTransfer - utilityFeeReserve
 
                     quickAmountWithoutExtraPays.coerceAtLeast(BigDecimal.ZERO)
-//                    if (quickAmountWithoutExtraPays < BigDecimal.ZERO) {
-//                        BigDecimal.ZERO
-//                    } else {
-//                        quickAmountWithoutExtraPays.setScale(5, RoundingMode.HALF_DOWN)
-//                    }
                 }
             }.awaitAll()
 
             inputValues.zip(quickAmounts).toMap()
         }
-
-    private suspend fun calculateQuickInputs() {
-
-    }
 }

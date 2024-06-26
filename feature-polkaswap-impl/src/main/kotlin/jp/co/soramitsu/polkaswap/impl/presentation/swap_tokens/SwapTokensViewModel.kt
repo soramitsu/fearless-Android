@@ -57,7 +57,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapConcat
@@ -585,7 +584,7 @@ class SwapTokensViewModel @Inject constructor(
             fromAssetFlow.value?.token?.configuration?.id == feeAsset.token.configuration.id
         val isToFeeAsset =
             toAssetFlow.value?.token?.configuration?.id == feeAsset.token.configuration.id
-hashCode()
+
         return when {
             amountToSwap > available -> {
                 SpendInsufficientBalanceException(resourceManager)
@@ -708,40 +707,14 @@ hashCode()
         }
     }
 
-    var awaitNewFeeJob: Job? = null
-
     override fun onQuickAmountInput(value: Double) {
         viewModelScope.launch {
             desired ?: return@launch
 
-//            val transferable = fromAssetFlow.value?.transferable.orZero()
-//
-//            val isFeeAsset =
-//                fromAssetFlow.value?.token?.configuration?.id == polkaswapInteractor.getFeeAsset()?.token?.configuration?.id
-//            val amount = transferable.multiply(value.toBigDecimal())
-//            val networkFee = networkFeeFlow.value.dataOrNull() ?: initialFee
-//            val result = if (isFeeAsset) amount.minus(networkFee) else amount
-//            val amountFrom = result.takeIf { it >= BigDecimal.ZERO }.orZero()
             val valuesMap = quickInputsStateFlow.first { !it.isNullOrEmpty() }.cast<Map<Double, BigDecimal>>()
             val amount = valuesMap[value] ?: return@launch
 
             enteredFromAmountFlow.value = amount.setScale(MAX_DECIMALS_8, RoundingMode.HALF_DOWN)
-
-//            if (isFeeAsset.not()) return@launch
-//
-//            awaitNewFeeJob?.cancel()
-//            awaitNewFeeJob = viewModelScope.launch {
-//                networkFeeFlow.map { networkFeeLoadingState ->
-//                    val newNetworkFee = networkFeeLoadingState.dataOrNull() ?: return@map
-//
-//                    val newResult =
-//                        amount.minus(newNetworkFee).takeIf { it >= BigDecimal.ZERO }.orZero()
-//                    enteredFromAmountFlow.value =
-//                        newResult.setScale(MAX_DECIMALS_8, RoundingMode.HALF_DOWN)
-//                    awaitNewFeeJob?.cancel()
-//                }
-//            }
-//            awaitNewFeeJob?.start()
         }
     }
 

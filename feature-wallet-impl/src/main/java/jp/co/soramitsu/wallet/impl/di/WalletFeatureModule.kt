@@ -28,9 +28,7 @@ import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.QrBitmapDecoder
-import jp.co.soramitsu.core.extrinsic.ExtrinsicBuilderFactory
 import jp.co.soramitsu.core.extrinsic.ExtrinsicService
-import jp.co.soramitsu.core.extrinsic.mortality.MortalityConstructor
 import jp.co.soramitsu.core.rpc.RpcCalls
 import jp.co.soramitsu.core.updater.UpdateSystem
 import jp.co.soramitsu.coredb.dao.AddressBookDao
@@ -279,7 +277,6 @@ class WalletFeatureModule {
     fun provideQuickInputsUseCase(
         walletRepository: WalletRepository,
         accountRepository: AccountRepository,
-        chainRegistry: ChainRegistry,
         chainsRepository: ChainsRepository,
         walletConstants: WalletConstants,
         existentialDepositUseCase: ExistentialDepositUseCase,
@@ -289,7 +286,6 @@ class WalletFeatureModule {
         return QuickInputsUseCaseImpl(
             walletRepository,
             accountRepository,
-            chainRegistry,
             chainsRepository,
             walletConstants,
             existentialDepositUseCase,
