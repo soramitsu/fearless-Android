@@ -140,8 +140,6 @@ class SelectUnbondFragment : BaseFragment<SelectUnbondViewModel>(R.layout.fragme
                 FearlessAppTheme {
                     if (isShowQuickInput) {
                         QuickInput(
-                            modifier = Modifier
-                                .imePadding(),
                             values = QuickAmountInput.values(),
                             onQuickAmountInput = {
                                 hideSoftKeyboard()

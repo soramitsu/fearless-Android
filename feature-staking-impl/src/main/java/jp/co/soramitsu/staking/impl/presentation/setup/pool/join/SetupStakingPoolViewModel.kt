@@ -4,6 +4,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.math.BigDecimal
 import java.math.BigInteger
+import java.math.RoundingMode
 import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.common.AlertViewState
@@ -35,6 +36,7 @@ import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSharedStatePr
 import jp.co.soramitsu.staking.impl.scenarios.StakingPoolInteractor
 import jp.co.soramitsu.wallet.api.domain.ExistentialDepositUseCase
 import jp.co.soramitsu.wallet.api.presentation.formatters.formatCryptoDetailFromPlanks
+import jp.co.soramitsu.wallet.impl.domain.interfaces.QuickInputsUseCase
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
@@ -56,12 +58,14 @@ class SetupStakingPoolViewModel @Inject constructor(
     private val stakingPoolInteractor: StakingPoolInteractor,
     private val router: StakingRouter,
     private val stakingPoolSharedStateProvider: StakingPoolSharedStateProvider,
-    private val existentialDepositUseCase: ExistentialDepositUseCase
+    private val existentialDepositUseCase: ExistentialDepositUseCase,
+    private val quickInputsUseCase: QuickInputsUseCase
 ) : BaseViewModel() {
 
     private val chain: Chain
     private val asset: Asset
     private val initialAmount: BigDecimal
+    private var quickInputs: Map<Double, BigDecimal> = emptyMap()
 
     init {
         val mainState = stakingPoolSharedStateProvider.requireMainState
@@ -69,6 +73,14 @@ class SetupStakingPoolViewModel @Inject constructor(
         chain = requireNotNull(mainState.chain)
         asset = requireNotNull(mainState.asset)
         initialAmount = mainState.requireAmount
+
+        viewModelScope.launch {
+            quickInputs = quickInputsUseCase.calculateStakingQuickInputs(
+                chain.id,
+                asset.token.configuration.id,
+                calculateAvailableAmount = { asset.transferable },
+                calculateFee = { stakingPoolInteractor.estimateJoinFee(it) })
+        }
     }
 
     private val toolbarViewState = ToolbarViewState(resourceManager.getString(R.string.pool_staking_join_title), R.drawable.ic_arrow_back_24dp)
@@ -101,7 +113,8 @@ class SetupStakingPoolViewModel @Inject constructor(
             tokenImage = asset.token.configuration.iconUrl,
             totalBalance = resourceManager.getString(R.string.common_balance_format, tokenBalance),
             fiatAmount = fiatAmount,
-            tokenAmount = amount
+            tokenAmount = amount,
+            precision = asset.token.configuration.precision
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, defaultAmountInputState)
 
@@ -191,12 +204,17 @@ class SetupStakingPoolViewModel @Inject constructor(
 
             when {
                 feeInPlanks == null -> throw WaitForFeeCalculationException(resourceManager)
-                amountInPlanks + feeInPlanks >= transferableInPlanks -> throw StakeInsufficientBalanceException(resourceManager)
+                amountInPlanks + feeInPlanks > transferableInPlanks -> throw StakeInsufficientBalanceException(resourceManager)
                 transferableInPlanks - amountInPlanks - feeInPlanks <= existentialDeposit -> throw ExistentialDepositCrossedWarning(resourceManager, existentialDeposit.formatCryptoDetailFromPlanks(asset.token.configuration))
                 amountInPlanks < minToJoinInPlanks -> throw AmountTooLowToStakeException(resourceManager, minToJoinFormatted)
                 else -> Unit
             }
         }
+    }
+
+    fun onQuickAmountInput(value: Double) {
+        val amount = quickInputs[value] ?: return
+        enteredAmountFlow.value  = amount.setScale(asset.token.configuration.precision, RoundingMode.HALF_DOWN)
     }
 
     private val defaultState

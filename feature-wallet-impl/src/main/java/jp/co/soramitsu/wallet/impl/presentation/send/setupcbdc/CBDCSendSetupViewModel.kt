@@ -148,8 +148,6 @@ class CBDCSendSetupViewModel @Inject constructor(
 
     private val amountInputFocusFlow = MutableStateFlow(false)
 
-    private val isSoftKeyboardOpenFlow = MutableStateFlow(initialAmount.isZero())
-
     private val enteredAmountBigDecimalFlow = MutableStateFlow(initialAmount)
     private val visibleAmountFlow = MutableStateFlow(initialAmount)
     private val initialAmountFlow = MutableStateFlow(initialAmount.takeIf { it.isNotZero() })

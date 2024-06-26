@@ -2,6 +2,7 @@ package jp.co.soramitsu.staking.impl.presentation.staking.unbond
 
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.math.BigInteger
 import jp.co.soramitsu.common.BuildConfig
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.validation.InsufficientStakeBalanceException
@@ -16,19 +17,22 @@ import jp.co.soramitsu.wallet.api.presentation.formatters.formatCryptoDetailFrom
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import jp.co.soramitsu.wallet.impl.domain.interfaces.QuickInputsUseCase
 
 @HiltViewModel
 class PoolUnstakeViewModel @Inject constructor(
     resourceManager: ResourceManager,
-    stakingPoolSharedStateProvider: StakingPoolSharedStateProvider,
+    private val stakingPoolSharedStateProvider: StakingPoolSharedStateProvider,
     private val stakingPoolInteractor: StakingPoolInteractor,
-    private val router: StakingRouter
+    private val router: StakingRouter,
+    private val quickInputsUseCase: QuickInputsUseCase,
 ) : BaseEnterAmountViewModel(
     nextButtonTextRes = R.string.common_continue,
     toolbarTextRes = R.string.staking_unbond_v1_9_0,
     balanceHintRes = R.string.common_available_format,
     asset = requireNotNull(stakingPoolSharedStateProvider.mainState.get()?.asset),
     resourceManager = resourceManager,
+    quickInputsUseCase  = quickInputsUseCase,
     feeEstimator = {
         stakingPoolInteractor.estimateUnstakeFee(
             requireNotNull(stakingPoolSharedStateProvider.mainState.get()?.address),
@@ -62,6 +66,18 @@ class PoolUnstakeViewModel @Inject constructor(
     availableAmountForOperation = { it.token.amountFromPlanks(stakingPoolSharedStateProvider.requireManageState.stakedInPlanks) },
     errorAlertPresenter = {
         router.openAlert(it)
+    },
+    quickInputsCalculator = {
+        val asset = stakingPoolSharedStateProvider.requireMainState.requireAsset
+        quickInputsUseCase.calculateStakingQuickInputs(
+            asset.token.configuration.chainId,
+            asset.token.configuration.id,
+            calculateAvailableAmount = {
+                asset.token.amountFromPlanks(
+                    stakingPoolSharedStateProvider.requireManageState.stakedInPlanks
+                )
+            },
+            calculateFee = { BigInteger.ZERO })
     }
 ) {
     init {

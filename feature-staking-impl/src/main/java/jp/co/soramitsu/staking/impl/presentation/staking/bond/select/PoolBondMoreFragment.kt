@@ -17,11 +17,14 @@ class PoolBondMoreFragment : BaseComposeBottomSheetDialogFragment<PoolBondMoreVi
     @Composable
     override fun Content(padding: PaddingValues) {
         val state by viewModel.state.collectAsState()
+        val isSoftKeyboardOpen by viewModel.isSoftKeyboardOpenFlow.collectAsState()
         BottomSheetScreen {
             EnterAmountScreen(
                 state = state,
+                isSoftKeyboardOpen = isSoftKeyboardOpen,
                 onNavigationClick = viewModel::onBackClick,
                 onAmountInput = viewModel::onAmountInput,
+                onQuickAmountInput = viewModel::onQuickAmountInput,
                 onNextClick = viewModel::onNextClick
             )
         }

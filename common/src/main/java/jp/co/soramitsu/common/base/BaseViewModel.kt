@@ -17,6 +17,7 @@ import jp.co.soramitsu.common.validation.ValidationSystem
 import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.shareIn
 
@@ -35,6 +36,8 @@ open class BaseViewModel : ViewModel(), CoroutineScope {
 
     private val _messageLiveData = MutableLiveData<Event<String>>()
     val messageLiveData: LiveData<Event<String>> = _messageLiveData
+
+    open val isSoftKeyboardOpenFlow: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
     fun showMessage(text: String) {
         _messageLiveData.value = Event(text)

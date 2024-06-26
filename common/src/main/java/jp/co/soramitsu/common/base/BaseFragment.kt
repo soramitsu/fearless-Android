@@ -12,11 +12,13 @@ import androidx.lifecycle.lifecycleScope
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.presentation.ErrorDialog
 import jp.co.soramitsu.common.utils.Event
+import jp.co.soramitsu.common.utils.EventCollector
 import jp.co.soramitsu.common.utils.EventObserver
 import jp.co.soramitsu.common.utils.bindTo
 import jp.co.soramitsu.common.utils.dp
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
+import kotlinx.coroutines.launch
 
 abstract class BaseFragment<T : BaseViewModel> : Fragment {
 
@@ -88,6 +90,16 @@ abstract class BaseFragment<T : BaseViewModel> : Fragment {
                 observer.invoke(it)
             }
         )
+    }
+
+    inline fun <V> Flow<Event<V>>.collectEvent(crossinline observer: (V) -> Unit) {
+        lifecycleScope.launch {
+            collect(
+                EventCollector {
+                    observer.invoke(it)
+                }
+            )
+        }
     }
 
     inline fun <V> Flow<V>.observe(noinline collector: suspend (V) -> Unit) {
