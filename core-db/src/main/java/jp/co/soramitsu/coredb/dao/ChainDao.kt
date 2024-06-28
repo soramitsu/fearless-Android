@@ -6,6 +6,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
+import androidx.room.Update
 import jp.co.soramitsu.core.utils.removedXcPrefix
 import jp.co.soramitsu.coredb.dao.AssetDao.Companion.xcPrefix
 import jp.co.soramitsu.coredb.model.AssetWithToken
@@ -35,8 +36,6 @@ abstract class ChainDao {
 
         deleteChains(removed)
 
-        deleteChains(newOrUpdated.map(JoinedChainInfo::chain)) // delete all nodes and assets associated with changed chains
-
         insertChains(newOrUpdated.map(JoinedChainInfo::chain))
         insertChainNodes(newOrUpdated.flatMap(JoinedChainInfo::nodes))
         insertChainNodes(customNodes)
@@ -44,11 +43,47 @@ abstract class ChainDao {
         insertChainExplorers(newOrUpdated.flatMap(JoinedChainInfo::explorers))
     }
 
-    @Delete()
+    @Transaction
+    open suspend fun updateChains(chainsToAdd: List<ChainLocal>, chainsToUpdate: List<ChainLocal>, chainsToRemove: List<ChainLocal>) {
+        insertChains(chainsToAdd)
+        updateChains(chainsToUpdate)
+        deleteChains(chainsToRemove)
+    }
+
+    @Transaction
+    open suspend fun updateAssets(assetsToAdd: List<ChainAssetLocal>, assetsToUpdate: List<ChainAssetLocal>, assetsToRemove: List<ChainAssetLocal>) {
+        insertChainAssets(assetsToAdd)
+        updateChainAssets(assetsToUpdate)
+        deleteChainAssets(assetsToRemove)
+    }
+
+    @Transaction
+    open suspend fun updateNodes(nodesToAdd: List<ChainNodeLocal>, nodesToUpdate: List<ChainNodeLocal>, nodesToRemove: List<ChainNodeLocal>) {
+        insertChainNodes(nodesToAdd)
+        updateChainNodes(nodesToUpdate)
+        deleteChainNodes(nodesToRemove)
+    }
+
+    @Transaction
+    open suspend fun updateExplorers(
+        explorersToAdd: MutableList<ChainExplorerLocal>,
+        explorersToUpdate: MutableList<ChainExplorerLocal>,
+        explorersToRemove: List<ChainExplorerLocal>
+    ) {
+        insertChainExplorers(explorersToAdd)
+        updateChainExplorers(explorersToAdd)
+        deleteChainExplorers(explorersToAdd)
+    }
+
+
+    @Delete
     protected abstract suspend fun deleteChains(chains: List<ChainLocal>)
 
-    @Insert(onConflict = OnConflictStrategy.ABORT)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     protected abstract suspend fun insertChains(chains: List<ChainLocal>)
+
+    @Update
+    abstract suspend fun updateChains(chains: List<ChainLocal>)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     protected abstract suspend fun insertChainNodes(nodes: List<ChainNodeLocal>)
@@ -88,11 +123,27 @@ abstract class ChainDao {
         nodeUrl: String
     )
 
-    @Insert(onConflict = OnConflictStrategy.ABORT)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     protected abstract suspend fun insertChainAssets(assets: List<ChainAssetLocal>)
 
-    @Insert(onConflict = OnConflictStrategy.ABORT)
+    @Update
+    protected abstract suspend fun updateChainAssets(assets: List<ChainAssetLocal>)
+    @Delete
+    protected abstract suspend fun deleteChainAssets(assets: List<ChainAssetLocal>)
+
+    @Update
+    protected abstract suspend fun updateChainNodes(nodes: List<ChainNodeLocal>)
+    @Delete
+    protected abstract suspend fun deleteChainNodes(nodes: List<ChainNodeLocal>)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     protected abstract suspend fun insertChainExplorers(explorers: List<ChainExplorerLocal>)
+
+    @Update
+    protected abstract suspend fun updateChainExplorers(explorers: List<ChainExplorerLocal>)
+
+    @Delete
+    protected abstract suspend fun deleteChainExplorers(explorers: List<ChainExplorerLocal>)
 
     @Query("SELECT * FROM chains")
     @Transaction
