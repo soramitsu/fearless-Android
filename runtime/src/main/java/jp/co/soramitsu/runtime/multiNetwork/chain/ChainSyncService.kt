@@ -35,11 +35,10 @@ class ChainSyncService(
                 .map {
                     it.toChain()
                 }
-
             val remoteMapping = remoteChains.associateBy(Chain::id)
 
             val mappedRemoteChains = remoteChains.map { mapChainToChainLocal(it) }
-            async {
+            val chainsSyncDeferred = async {
                 val chainsToUpdate: MutableList<ChainLocal> = mutableListOf()
                 val chainsToAdd: MutableList<ChainLocal> = mutableListOf()
                 val chainsToRemove =
@@ -56,26 +55,32 @@ class ChainSyncService(
                     }
                 }
                 dao.updateChains(chainsToAdd, chainsToUpdate, chainsToRemove)
-            }.await()
+            }
 
+            chainsSyncDeferred.await()
             coroutineScope {
+                chainsSyncDeferred.join()
                 launch {
                     val localAssets =
-                        localChainsJoinedInfo.map { it.assets }.flatten().associateBy { it.id }
+                        localChainsJoinedInfo.map { it.assets }.flatten()
                     val remoteAssets =
-                        mappedRemoteChains.map { it.assets }.flatten().associateBy { it.id }
+                        mappedRemoteChains.map { it.assets }.flatten()
 
                     val assetsToAdd: MutableList<ChainAssetLocal> = mutableListOf()
                     val assetsToUpdate: MutableList<ChainAssetLocal> = mutableListOf()
                     val assetsToRemove =
-                        localAssets.filter { it.key !in remoteAssets.keys }.values.toList()
+                        localAssets.filter { local -> local.id !in remoteAssets.map { it.id } }.toList()
 
-                    remoteAssets.forEach { (_, remoteAsset) ->
-                        val localAsset = localAssets[remoteAsset.id]
+                    remoteAssets.forEach { remoteAsset ->
+                        val localAsset = localAssets.find { it.id == remoteAsset.id && it.chainId == remoteAsset.chainId}
 
                         when {
-                            localAsset == null -> assetsToAdd.add(remoteAsset) // new
-                            localAsset != remoteAsset -> assetsToUpdate.add(remoteAsset) // updated
+                            localAsset == null -> {
+                                assetsToAdd.add(remoteAsset)
+                            } // new
+                            localAsset != remoteAsset -> {
+                                assetsToUpdate.add(remoteAsset)
+                            } // updated
                         }
                     }
                     dao.updateAssets(assetsToAdd, assetsToUpdate, assetsToRemove)
