@@ -16,6 +16,9 @@ fun BigDecimal.percentageToFraction() = this / PERCENTAGE_MULTIPLIER
 val BigDecimal.isNonNegative: Boolean
     get() = signum() >= 0
 
+val BigDecimal.isNegative: Boolean
+    get() = signum() < 0
+
 fun Long.daysFromMillis() = TimeUnit.MILLISECONDS.toDays(this)
 
 inline fun <T> List<T>.sumByBigInteger(extractor: (T) -> BigInteger): BigInteger = fold(BigInteger.ZERO) { acc, element ->

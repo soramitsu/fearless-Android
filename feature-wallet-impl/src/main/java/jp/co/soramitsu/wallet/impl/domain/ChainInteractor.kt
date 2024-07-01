@@ -25,7 +25,7 @@ class ChainInteractor(
         it.sortedWith(chainDefaultSort())
     }
 
-    suspend fun getRawChainAssets(): List<Asset> {
+    suspend fun getChainAssets(): List<Asset> {
         val localAssets = withContext(Dispatchers.IO) { chainDao.getAssetsConfigs() }
         val mapped = withContext(Dispatchers.Default) {
             localAssets.map {

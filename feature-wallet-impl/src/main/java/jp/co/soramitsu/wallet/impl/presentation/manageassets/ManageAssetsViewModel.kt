@@ -1,27 +1,29 @@
 package jp.co.soramitsu.wallet.impl.presentation.manageassets
 
+import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.math.BigDecimal
 import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
+import jp.co.soramitsu.account.api.domain.model.accountId
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.ChainSelectorViewStateWithFilters
 import jp.co.soramitsu.common.model.AssetBooleanState
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.utils.applyFiatRate
 import jp.co.soramitsu.common.utils.formatCrypto
+import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.isZero
-import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.core.models.ChainId
+import jp.co.soramitsu.coredb.dao.emptyAccountIdValue
 import jp.co.soramitsu.feature_wallet_impl.R
-import jp.co.soramitsu.wallet.impl.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.wallet.impl.domain.ChainInteractor
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
+import jp.co.soramitsu.wallet.impl.domain.model.AssetWithStatus
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
-import jp.co.soramitsu.wallet.impl.presentation.model.AssetModel
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
@@ -46,14 +48,41 @@ class ManageAssetsViewModel @Inject constructor(
         chainId?.let { walletInteractor.getChain(it) }
     }
 
-    private val assetModelsFlow: Flow<List<AssetModel>> =
+    private val enteredTokenQueryFlow = MutableStateFlow("")
+
+    val state = MutableStateFlow(ManageAssetsScreenViewState.default)
+
+    private fun subscribeScreenState() {
         combine(
+            savedChainFlow,
+            walletInteractor.observeSelectedAccountChainSelectFilter()
+        ) { chain, filterAsText ->
+            val filterApplied = ChainSelectorViewStateWithFilters.Filter.entries.find {
+                it.name == filterAsText
+            } ?: ChainSelectorViewStateWithFilters.Filter.All
+
+            val selectedChainTitle = chain?.name ?: when (filterApplied) {
+                ChainSelectorViewStateWithFilters.Filter.All ->
+                    resourceManager.getString(R.string.chain_selection_all_networks)
+
+                ChainSelectorViewStateWithFilters.Filter.Popular ->
+                    resourceManager.getString(R.string.network_management_popular)
+
+                ChainSelectorViewStateWithFilters.Filter.Favorite ->
+                    resourceManager.getString(R.string.network_managment_favourite)
+            }
+            state.value = state.value.copy(selectedChainTitle = selectedChainTitle)
+        }.launchIn(this)
+
+        jp.co.soramitsu.common.utils.combine(
             walletInteractor.assetsFlow(),
             chainInteractor.getChainsFlow(),
             walletInteractor.selectedMetaAccountFlow(),
             walletInteractor.observeSelectedAccountChainSelectFilter(),
-            selectedChainIdFlow
-        ) { assets, chains, currentMetaAccount, appliedFilterAsString, selectedChainId ->
+            selectedChainIdFlow,
+            enteredTokenQueryFlow,
+            currentAssetStates
+        ) { assets, chains, currentMetaAccount, appliedFilterAsString, selectedChainId, searchQuery, currentStates ->
             val filter = ChainSelectorViewStateWithFilters.Filter.entries.find {
                 it.name == appliedFilterAsString
             } ?: ChainSelectorViewStateWithFilters.Filter.All
@@ -77,104 +106,86 @@ class ManageAssetsViewModel @Inject constructor(
                     }.map { it.first }
 
                 else -> emptyList()
+            }.filter {
+                val accountId = currentMetaAccount.accountId(it)
+                accountId != null && accountId.contentEquals(emptyAccountIdValue).not() // has account
             }
 
-            assets.filter {
+            val allChainAssets = filteredChains.map { it.assets }.flatten()
+
+            val filteredChainAssets = allChainAssets.asSequence().filter { chainAsset ->
                 (selectedChainId == null && filter == ChainSelectorViewStateWithFilters.Filter.All) ||
-                        it.asset.token.configuration.chainId == selectedChainId ||
-                        it.asset.token.configuration.chainId in filteredChains.map { it.id }
-            }
-        }
-            .mapList {
-                when {
-                    it.hasAccount -> it.asset
-                    else -> null
-                }
-            }
-            .map { it.filterNotNull() }
-            .mapList { mapAssetToAssetModel(it) }
+                        chainAsset.chainId == selectedChainId ||
+                        chainAsset.chainId in filteredChains.map { it.id }
+            }.filter {
+                searchQuery.isEmpty() ||
+                        it.symbol.contains(searchQuery, true) ||
+                        it.name.orEmpty().contains(searchQuery, true)
+            }.toList()
 
+            filteredChainAssets.map { chainAsset ->
+                val asset = assets.find { chainAsset.id == it.asset.token.configuration.id }
+                chainAsset to asset
+            }.sortedWith(compareBy<Pair<jp.co.soramitsu.core.models.Asset, AssetWithStatus?>> {
+                it.second == null
+            }.thenBy {
+                it.second?.asset?.enabled == false
+            }.thenByDescending {
+                it.second?.asset?.fiatAmount.orZero()
+            }.thenByDescending {
+                it.second?.asset?.transferable.orZero()
+            }.thenBy {
+                it.second?.asset?.token?.configuration?.chainName
+            }).map {
+                val (chainAsset, assetWithStatus) = it
+                val available = assetWithStatus?.asset?.transferable ?: BigDecimal.ZERO
+                val fiatAmount = assetWithStatus?.asset?.token?.fiatRate?.let { rate -> available.applyFiatRate(rate).orZero().formatFiat(assetWithStatus.asset.token.fiatSymbol) }
+                val isHidden = currentStates.find { assetBooleanState -> assetBooleanState.assetId == chainAsset.id && assetBooleanState.chainId == chainAsset.chainId}?.value == false
 
-    private val enteredTokenQueryFlow = MutableStateFlow("")
-
-    val state = MutableStateFlow(ManageAssetsScreenViewState.default)
-
-    private fun subscribeScreenState() {
-        combine(
-            savedChainFlow,
-            walletInteractor.observeSelectedAccountChainSelectFilter()
-        ) { chain, filterAsText ->
-            val filterApplied = ChainSelectorViewStateWithFilters.Filter.entries.find {
-                it.name == filterAsText
-            } ?: ChainSelectorViewStateWithFilters.Filter.All
-
-            val selectedChainTitle = chain?.name ?: when(filterApplied) {
-                ChainSelectorViewStateWithFilters.Filter.All ->
-                    resourceManager.getString(R.string.chain_selection_all_networks)
-
-                ChainSelectorViewStateWithFilters.Filter.Popular ->
-                    resourceManager.getString(R.string.network_management_popular)
-
-                ChainSelectorViewStateWithFilters.Filter.Favorite ->
-                    resourceManager.getString(R.string.network_managment_favourite)
-            }
-            state.value = state.value.copy(selectedChainTitle = selectedChainTitle)
-        }.launchIn(this)
-
-        combine(assetModelsFlow, enteredTokenQueryFlow, currentAssetStates) { assetModels, searchQuery, currentStates ->
-            val sortedAssets = assetModels
-                .filter {
-                    searchQuery.isEmpty() ||
-                            it.token.configuration.symbol.contains(searchQuery, true) ||
-                            it.token.configuration.name.orEmpty().contains(searchQuery, true)
-                }
-                .sortedWith(compareBy<AssetModel> {
-                    it.isHidden == true
-                }.thenByDescending {
-                    it.fiatAmount.orZero()
-                }.thenByDescending {
-                    it.available.orZero()
-                }.thenBy {
-                    it.token.configuration.chainName
-                })
-                .map { model ->
-                    model.copy(isHidden = currentStates.firstOrNull {
-                        it.assetId == model.token.configuration.id && it.chainId == model.token.configuration.chainId
-                    }?.value == false)
-                }
-
-            val assets = sortedAssets.map {
-                it.toManageAssetItemState()
-            }
-
-            val groupedAssets: Map<String, List<ManageAssetItemState>> = assets.groupBy {
+                ManageAssetItemState(
+                    id = chainAsset.id,
+                    imageUrl = chainAsset.iconUrl,
+                    chainName = chainAsset.chainName,
+                    assetName = chainAsset.name,
+                    symbol = chainAsset.symbol.uppercase(),
+                    amount = available.formatCrypto(),
+                    fiatAmount = fiatAmount
+                        ?: "${assetWithStatus?.asset?.token?.fiatSymbol.orEmpty()}0".takeIf { chainAsset.priceId != null || chainAsset.priceProvider != null },
+                    chainId = chainAsset.chainId,
+                    isChecked = !isHidden,
+                    isZeroAmount = available.orZero().isZero(),
+                    showEdit = false
+                )
+            }.groupBy {
                 it.symbol
-            }
-
-            groupedAssets to searchQuery
-        }.onEach { (assets, searchQuery) ->
-            state.value = state.value.copy(assets = assets, searchQuery = searchQuery)
+            } to searchQuery
+        }.onEach { (groupedStates, searchQuery)  ->
+            state.value = state.value.copy(assets = groupedStates, searchQuery = searchQuery)
         }.launchIn(this)
     }
 
     init {
         subscribeScreenState()
 
-        accountInteractor.selectedMetaAccountFlow().map { it.id }.distinctUntilChanged().map {
-            selectedChainIdFlow.value = walletInteractor.getSavedChainId(it)
-
-            walletInteractor.assetsFlow().firstOrNull()?.let { assets ->
-                val assetStates = assets.map {
-                    AssetBooleanState(
-                        chainId = it.asset.token.configuration.chainId,
-                        assetId = it.asset.token.configuration.id,
-                        value = it.asset.enabled != false
-                    )
-                }
-                initialAssetStates.value = assetStates
-                currentAssetStates.value = assetStates
+        viewModelScope.launch {
+            val metaId = accountInteractor.selectedLightMetaAccount().id
+            selectedChainIdFlow.value = walletInteractor.getSavedChainId(metaId)
+        }
+        viewModelScope.launch  {
+            val assets = walletInteractor.assetsFlow().firstOrNull()
+            val chainAssets = chainInteractor.getChainAssets()
+            val assetsStates = chainAssets.map { chainAsset ->
+                val asset = assets?.find {  it.asset.token.configuration.id == chainAsset.id}
+                val value = asset?.asset?.enabled ?: false
+                AssetBooleanState(
+                    chainId = chainAsset.chainId,
+                    assetId = chainAsset.id,
+                    value = value
+                )
             }
-        }.launchIn(this)
+            initialAssetStates.value = assetsStates
+            currentAssetStates.value = assetsStates
+        }
 
         walletRouter.chainSelectorPayloadFlow.map { chainId ->
             val walletId = accountInteractor.selectedLightMetaAccount().id
@@ -182,20 +193,6 @@ class ManageAssetsViewModel @Inject constructor(
             selectedChainIdFlow.value = chainId
         }.launchIn(this)
     }
-
-    private fun AssetModel.toManageAssetItemState() = ManageAssetItemState(
-        id = token.configuration.id,
-        imageUrl = token.configuration.iconUrl,
-        chainName = token.configuration.chainName,
-        assetName = token.configuration.name,
-        symbol = token.configuration.symbol.uppercase(),
-        amount = available.orZero().formatCrypto(),
-        fiatAmount = getAsFiatWithCurrency(available) ?: "${token.fiatSymbol.orEmpty()}0".takeIf { token.configuration.priceId != null || token.configuration.priceProvider != null },
-        chainId = token.configuration.chainId,
-        isChecked = isHidden != true,
-        isZeroAmount = available.orZero().isZero(),
-        showEdit = false
-    )
 
     override fun onSearchInput(input: String) {
         enteredTokenQueryFlow.value = input
@@ -239,4 +236,3 @@ class ManageAssetsViewModel @Inject constructor(
         }
     }
 }
-

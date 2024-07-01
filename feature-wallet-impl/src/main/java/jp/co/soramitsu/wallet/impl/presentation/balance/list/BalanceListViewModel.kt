@@ -39,7 +39,6 @@ import jp.co.soramitsu.common.data.network.coingecko.FiatChooserEvent
 import jp.co.soramitsu.common.data.network.coingecko.FiatCurrency
 import jp.co.soramitsu.common.domain.FiatCurrencies
 import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
-import jp.co.soramitsu.common.domain.NetworkStateService
 import jp.co.soramitsu.common.domain.SelectedFiat
 import jp.co.soramitsu.common.domain.model.NetworkIssueType
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
@@ -446,7 +445,7 @@ class BalanceListViewModel @Inject constructor(
     // we open screen - no assets in the list
     private suspend fun buildInitialAssetsList(): List<AssetListItemViewState> {
         return withContext(Dispatchers.Default) {
-            val assets = chainInteractor.getRawChainAssets()
+            val assets = chainInteractor.getChainAssets()
 
             assets.sortedWith(defaultChainAssetListSort()).mapIndexed { index, chainAsset ->
                 AssetListItemViewState(
