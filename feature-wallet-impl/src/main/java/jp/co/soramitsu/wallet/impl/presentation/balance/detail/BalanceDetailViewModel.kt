@@ -65,9 +65,11 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 @HiltViewModel
@@ -196,90 +198,94 @@ class BalanceDetailViewModel @Inject constructor(
         false
     )
 
-    val state = combine(
-        transactionHistory,
-        assetModelFlow
-    ) { transactionHistory: TransactionHistoryUi.State,
-        balanceModel: Asset ->
-
-        val balanceState = AssetBalanceViewState(
-            transferableBalance = balanceModel.transferable.orZero()
-                .formatCryptoDetail(balanceModel.token.configuration.symbol),
-            address = currentAccountAddress(chainId = balanceModel.token.configuration.chainId).orEmpty(),
-            isInfoEnabled = false,
-            changeViewState = ChangeBalanceViewState(
-                percentChange = balanceModel.token.recentRateChange?.formatAsChange().orEmpty(),
-                fiatChange = balanceModel.token.fiatRate?.multiply(balanceModel.transferable.orZero())
-                    ?.formatFiat(balanceModel.token.fiatSymbol).orEmpty()
-            )
-        )
-
-        val selectedChainId = balanceModel.token.configuration.chainId
-
-        val actionBarState = LoadingState.Loaded(
-            ActionBarViewState(
-                chainId = selectedChainId,
-                chainAssetId = balanceModel.token.configuration.id,
-                actionItems = getActionItems(selectedChainId, balanceModel),
-                disabledItems = getDisabledItems()
-            )
-        )
-
-        val transferableFormatted =
-            balanceModel.sendAvailable.formatCryptoDetail(balanceModel.token.configuration.symbol)
-        val transferableFiat = balanceModel.token.fiatAmount(balanceModel.sendAvailable)
-            ?.formatFiat(balanceModel.token.fiatSymbol)
-        val newTransferableState = defaultState.transferableViewState.copy(
-            value = transferableFormatted,
-            additionalValue = transferableFiat
-        )
-
-        val showLocked = if (balanceModel.isAssetFrozen) {
-            balanceModel.transferable
-        } else {
-            balanceModel.locked
-        }
-        val lockedFormatted = showLocked.formatCryptoDetail(balanceModel.token.configuration.symbol)
-        val lockedFiat = balanceModel.token.fiatAmount(showLocked)?.formatFiat(balanceModel.token.fiatSymbol)
-
-        val newLockedState = defaultState.lockedViewState.copy(
-            value = lockedFormatted,
-            additionalValue = lockedFiat,
-            clickState = if (balanceModel.locked > BigDecimal.ZERO) {
-                TitleValueViewState.ClickState.Title(R.drawable.ic_info_14, LOCKED_BALANCE_INFO_ID)
-            } else {
-                null
-            }
-        )
-
-        val filtersEnabled = balanceModel.token.configuration.ethereumType == null
-
-        BalanceDetailsState(
-            actionBarViewState = actionBarState,
-            balance = LoadingState.Loaded(balanceState),
-            transferableViewState = newTransferableState,
-            lockedViewState = newLockedState,
-            transactionHistory = transactionHistory,
-            filtersEnabled = filtersEnabled
-        )
-    }.stateIn(scope = this, started = SharingStarted.Eagerly, initialValue = defaultState)
+    val state: MutableStateFlow<BalanceDetailsState>  = MutableStateFlow(defaultState)
 
     init {
-        viewModelScope.launch {
-            router.chainSelectorPayloadFlow.collect { chainId ->
-                chainId?.let { selectedChainId.value = chainId }
-            }
-            transactionHistoryProvider.sideEffects().collect {
-                when (it) {
-                    is TransactionHistoryUi.SideEffect.Error -> showError(
-                        it.message
-                            ?: resourceManager.getString(R.string.common_undefined_error_message)
-                    )
+        router.chainSelectorPayloadFlow.onEach { chainId ->
+            chainId?.let { selectedChainId.value = chainId }
+        }.launchIn(viewModelScope)
 
-                    else -> {}
-                }
+        transactionHistoryProvider.sideEffects().onEach {
+            when (it) {
+                is TransactionHistoryUi.SideEffect.Error -> showError(
+                    it.message
+                        ?: resourceManager.getString(R.string.common_undefined_error_message)
+                )
             }
-        }
+        }.launchIn(viewModelScope)
+
+        subscribeScreenState()
+    }
+
+    private fun subscribeScreenState() {
+        transactionHistory.onEach {  historyState ->
+            state.update { prevState ->
+                prevState.copy(transactionHistory = historyState)
+            }
+        }.launchIn(viewModelScope)
+
+        assetModelFlow.onEach { balanceModel ->
+            val balanceState = AssetBalanceViewState(
+                transferableBalance = balanceModel.transferable.orZero()
+                    .formatCryptoDetail(balanceModel.token.configuration.symbol),
+                address = currentAccountAddress(chainId = balanceModel.token.configuration.chainId).orEmpty(),
+                isInfoEnabled = false,
+                changeViewState = ChangeBalanceViewState(
+                    percentChange = balanceModel.token.recentRateChange?.formatAsChange().orEmpty(),
+                    fiatChange = balanceModel.token.fiatRate?.multiply(balanceModel.transferable.orZero())
+                        ?.formatFiat(balanceModel.token.fiatSymbol).orEmpty()
+                )
+            )
+
+            val selectedChainId = balanceModel.token.configuration.chainId
+
+            val actionBarState = LoadingState.Loaded(
+                ActionBarViewState(
+                    chainId = selectedChainId,
+                    chainAssetId = balanceModel.token.configuration.id,
+                    actionItems = getActionItems(selectedChainId, balanceModel),
+                    disabledItems = getDisabledItems()
+                )
+            )
+
+            val transferableFormatted =
+                balanceModel.sendAvailable.formatCryptoDetail(balanceModel.token.configuration.symbol)
+            val transferableFiat = balanceModel.token.fiatAmount(balanceModel.sendAvailable)
+                ?.formatFiat(balanceModel.token.fiatSymbol)
+            val newTransferableState = defaultState.transferableViewState.copy(
+                value = transferableFormatted,
+                additionalValue = transferableFiat
+            )
+
+            val showLocked = if (balanceModel.isAssetFrozen) {
+                balanceModel.transferable
+            } else {
+                balanceModel.locked
+            }
+            val lockedFormatted = showLocked.formatCryptoDetail(balanceModel.token.configuration.symbol)
+            val lockedFiat = balanceModel.token.fiatAmount(showLocked)?.formatFiat(balanceModel.token.fiatSymbol)
+
+            val newLockedState = defaultState.lockedViewState.copy(
+                value = lockedFormatted,
+                additionalValue = lockedFiat,
+                clickState = if (balanceModel.locked > BigDecimal.ZERO) {
+                    TitleValueViewState.ClickState.Title(R.drawable.ic_info_14, LOCKED_BALANCE_INFO_ID)
+                } else {
+                    null
+                }
+            )
+
+            val filtersEnabled = balanceModel.token.configuration.ethereumType == null
+            state.update { prevState ->
+                prevState.copy(
+                    actionBarViewState = actionBarState,
+                    balance = LoadingState.Loaded(balanceState),
+                    transferableViewState = newTransferableState,
+                    lockedViewState = newLockedState,
+                    filtersEnabled = filtersEnabled
+                )
+            }
+        }.launchIn(viewModelScope)
     }
 
     override fun onCleared() {

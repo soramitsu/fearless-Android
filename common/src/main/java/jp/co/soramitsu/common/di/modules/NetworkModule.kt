@@ -60,7 +60,7 @@ class NetworkModule {
             .retryOnConnectionFailure(true)
 
         if (BuildConfig.DEBUG) {
-//            builder.addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
+            builder.addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
         }
 
         return builder.build()
