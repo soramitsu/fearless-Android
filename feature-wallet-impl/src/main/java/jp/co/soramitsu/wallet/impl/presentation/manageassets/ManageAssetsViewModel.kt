@@ -125,7 +125,7 @@ class ManageAssetsViewModel @Inject constructor(
             }.toList()
 
             filteredChainAssets.map { chainAsset ->
-                val asset = assets.find { chainAsset.id == it.asset.token.configuration.id }
+                val asset = assets.find { chainAsset.id == it.asset.token.configuration.id && chainAsset.chainId == it.asset.token.configuration.chainId }
                 chainAsset to asset
             }.sortedWith(compareBy<Pair<jp.co.soramitsu.core.models.Asset, AssetWithStatus?>> {
                 it.second == null
