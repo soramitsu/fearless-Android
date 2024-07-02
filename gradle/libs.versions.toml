@@ -170,7 +170,7 @@ detekt-cli = { module = "io.gitlab.arturbosch.detekt:detekt-cli", version.ref = 
 sharedFeaturesCoreDep = { module = "jp.co.soramitsu.shared_features:core", version.ref = "sharedFeaturesVersion" }
 sharedFeaturesXcmDep = { module = "jp.co.soramitsu.shared_features:xcm", version.ref = "sharedFeaturesVersion" }
 sharedFeaturesBackupDep = { module = "jp.co.soramitsu.shared_features:backup", version.ref = "sharedFeaturesVersion" }
-sharedFeaturesPoolsDep = { module = "jp.co.soramitsu.shared_features:polkaswap", version.ref = "sharedFeaturesVersion" }
+#sharedFeaturesPoolsDep = { module = "jp.co.soramitsu.shared_features:polkaswap", version.ref = "sharedFeaturesVersion" }
 beacon-android-sdk = { module = "com.github.airgap-it:beacon-android-sdk", version.ref = "beaconVersion" }
 
 web3jDep = { module = "org.web3j:core", version.ref = "web3j" }

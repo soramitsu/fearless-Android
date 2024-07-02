@@ -416,7 +416,7 @@ private fun Banners(
             )
         }
 
-    val bannerDemeter: @Composable (() -> Unit)? = if (true) {
+    val bannerDemeter: @Composable (() -> Unit)? = if (false) {
         {
             BannerDemeter(
                 onShowMoreClick = {},

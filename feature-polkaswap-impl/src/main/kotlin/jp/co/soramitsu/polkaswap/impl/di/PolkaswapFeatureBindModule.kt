@@ -43,9 +43,18 @@ class PolkaswapFeatureModule {
         extrinsicService: ExtrinsicService,
         chainRegistry: ChainRegistry,
         rpcCalls: RpcCalls,
-        accountRepository: AccountRepository
+        accountRepository: AccountRepository,
+        walletRepository: WalletRepository
     ): PolkaswapRepository {
-        return PolkaswapRepositoryImpl(remoteConfigFetcher, remoteSource, extrinsicService, chainRegistry, rpcCalls, accountRepository)
+        return PolkaswapRepositoryImpl(
+            remoteConfigFetcher,
+            remoteSource,
+            extrinsicService,
+            chainRegistry,
+            rpcCalls,
+            accountRepository,
+            walletRepository
+        )
     }
 
     @Provides

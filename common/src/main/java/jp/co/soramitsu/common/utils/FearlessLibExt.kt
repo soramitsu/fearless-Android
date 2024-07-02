@@ -184,6 +184,8 @@ object Modules {
     const val ORACLE = "Oracle"
     const val VESTING = "Vesting"
     const val VESTED_REWARDS = "VestedRewards"
+
+
 }
 
 object Calls {
