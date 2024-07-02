@@ -427,7 +427,7 @@ class WalletInteractorImpl(
     override suspend fun getChainAddressForSelectedMetaAccount(chainId: ChainId) =
         getSelectedMetaAccount().address(getChain(chainId))
 
-    override suspend fun updateAssetsHiddenState(state: List<AssetBooleanState>) {
+    override suspend fun updateAssetsHiddenState(state: List<AssetBooleanState>) = withContext(coroutineContext) {
         val wallet = getSelectedMetaAccount()
         val updateItems = state.mapNotNull {
             val chain = getChain(it.chainId)

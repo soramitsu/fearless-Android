@@ -28,6 +28,7 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 @HiltViewModel
@@ -140,7 +141,7 @@ class ManageAssetsViewModel @Inject constructor(
                 val (chainAsset, assetWithStatus) = it
                 val available = assetWithStatus?.asset?.transferable ?: BigDecimal.ZERO
                 val fiatAmount = assetWithStatus?.asset?.token?.fiatRate?.let { rate -> available.applyFiatRate(rate).orZero().formatFiat(assetWithStatus.asset.token.fiatSymbol) }
-                val isHidden = currentStates.find { assetBooleanState -> assetBooleanState.assetId == chainAsset.id && assetBooleanState.chainId == chainAsset.chainId}?.value == false
+                val isHidden = currentStates.find { assetBooleanState -> assetBooleanState.assetId == chainAsset.id && assetBooleanState.chainId == chainAsset.chainId }?.value == false
 
                 ManageAssetItemState(
                     id = chainAsset.id,
@@ -175,7 +176,7 @@ class ManageAssetsViewModel @Inject constructor(
             val assets = walletInteractor.assetsFlow().firstOrNull()
             val chainAssets = chainInteractor.getChainAssets()
             val assetsStates = chainAssets.map { chainAsset ->
-                val asset = assets?.find {  it.asset.token.configuration.id == chainAsset.id}
+                val asset = assets?.find {  it.asset.token.configuration.id == chainAsset.id && it.asset.token.configuration.chainId == chainAsset.chainId }
                 val value = asset?.asset?.enabled ?: false
                 AssetBooleanState(
                     chainId = chainAsset.chainId,
@@ -199,11 +200,13 @@ class ManageAssetsViewModel @Inject constructor(
     }
 
     override fun onChecked(assetItemState: ManageAssetItemState, checked: Boolean) {
-        currentAssetStates.value = currentAssetStates.value.map {
-            if (it.assetId == assetItemState.id && it.chainId == assetItemState.chainId) {
-                it.copy(value = checked)
-            } else {
-                it
+        currentAssetStates.update {  prevState ->
+            prevState.map {
+                if (it.assetId == assetItemState.id && it.chainId == assetItemState.chainId) {
+                    it.copy(value = checked)
+                } else {
+                    it
+                }
             }
         }
     }
