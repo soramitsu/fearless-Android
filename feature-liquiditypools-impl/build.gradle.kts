@@ -39,6 +39,7 @@ dependencies {
     implementation(projects.androidFoundation)
     implementation(projects.common)
     implementation(projects.runtime)
+    implementation(projects.featurePolkaswapApi)
 
 //    implementation(project(":feature-wallet-api"))
 //

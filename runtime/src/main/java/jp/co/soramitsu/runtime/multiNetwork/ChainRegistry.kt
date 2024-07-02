@@ -9,7 +9,6 @@ import jp.co.soramitsu.common.utils.diffed
 import jp.co.soramitsu.common.utils.failure
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.core.models.Asset
-import jp.co.soramitsu.core.models.ChainsMetaAccount
 import jp.co.soramitsu.core.models.IChain
 import jp.co.soramitsu.core.runtime.ChainConnection
 import jp.co.soramitsu.core.runtime.IChainRegistry
@@ -39,7 +38,6 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -220,10 +218,6 @@ class ChainRegistry @Inject constructor(
         return getChain(chainId).assetsById[chainAssetId]
     }
 
-    override fun chainsAccountFlow(metaAccountId: Long): Flow<ChainsMetaAccount> {
-        TODO("Not yet implemented")
-    }
-
     override suspend fun getChain(chainId: ChainId): Chain {
         return chainsRepository.getChain(chainId)
     }
@@ -286,7 +280,7 @@ class ChainRegistry @Inject constructor(
 
     override fun getConnection(chainId: String) = connectionPool.getConnectionOrThrow(chainId)
 
-    suspend fun awaitConnection(chainId: ChainId) = connectionPool.awaitConnection(chainId)
+    override suspend fun awaitConnection(chainId: ChainId) = connectionPool.awaitConnection(chainId)
     @Deprecated(
         "Since we have ethereum chains, which don't have runtime, we must use the function with nullable return value",
         ReplaceWith("getRuntimeOrNull(chainId)")

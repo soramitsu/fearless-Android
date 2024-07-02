@@ -176,6 +176,9 @@ dependencies {
     implementation project(':feature-nft-api')
     implementation project(':feature-nft-impl')
 
+    implementation project(':feature-liquiditypools-api')
+    implementation project(':feature-liquiditypools-impl')
+
     implementation libs.kotlin.stdlib.jdk7
 
     implementation libs.appcompat

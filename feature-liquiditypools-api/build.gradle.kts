@@ -26,7 +26,9 @@ android {
 dependencies {
     implementation(projects.androidFoundation)
     implementation(projects.featureAccountApi)
+    implementation(projects.featureWalletApi)
     implementation(projects.featureWalletImpl)
+    implementation(projects.featurePolkaswapApi)
     implementation(projects.common)
     implementation(projects.runtime)
     implementation("javax.inject:javax.inject:1")
