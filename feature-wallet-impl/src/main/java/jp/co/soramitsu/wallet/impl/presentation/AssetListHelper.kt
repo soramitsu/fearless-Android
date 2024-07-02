@@ -24,22 +24,28 @@ object AssetListHelper {
                 val chainsWithIssuesIds = symbolAssets.filter { it.hasAccount.not() }.map { it.asset.token.configuration.chainId }
                     .plus(networkIssues.map { it.chainId })
 
-                val tokenChains = filteredChains.getWithToken(symbol).filter { chain ->
-                    chain.id !in chainsWithIssuesIds
-                }
+                val tokenChains = filteredChains.asSequence()
+                    .filter { chain ->
+                        symbolAssets.any { it.asset.token.configuration.chainId == chain.id }
+                    }
+                    .filter { chain ->
+                        chain.assets.any { it.symbol == symbol }
+                    }.filter { chain ->
+                        chain.id !in chainsWithIssuesIds
+                    }.toList()
+
 
                 if (tokenChains.isEmpty()) return@forEach
 
                 val mainChain = tokenChains.sortedWith(
-                    compareByDescending<Chain> {
-                        it.assets.firstOrNull { it.symbol == symbol }?.isUtility ?: false
+                    compareByDescending<Chain> { chain ->
+                        chain.assets.firstOrNull { it.symbol == symbol }?.isUtility ?: false
                     }.thenByDescending { it.parentId == null }
                 ).firstOrNull()
 
                 val showChain = tokenChains.firstOrNull { it.id == selectedChainId } ?: mainChain
                 val showChainAsset =
                     showChain?.assets?.firstOrNull { it.symbol == symbol } ?: return@forEach
-
                 val assetIdsWithBalance = symbolAssets.filter {
                     it.asset.total.orZero() > BigDecimal.ZERO
                 }.groupBy(

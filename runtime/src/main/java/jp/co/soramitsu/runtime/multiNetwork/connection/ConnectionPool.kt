@@ -95,7 +95,9 @@ class ConnectionPool @Inject constructor(
         }
 
         if (connection.chain.nodes != chain.nodes) {
-            connection.considerUpdateNodes(chain.nodes)
+            connection.considerUpdateNodes(chain.nodes.map {
+                it.fillDwellirApiKey()
+            })
         }
 
         return connection
