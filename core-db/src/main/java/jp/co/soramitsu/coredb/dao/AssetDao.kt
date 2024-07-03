@@ -114,7 +114,7 @@ abstract class AssetDao : AssetReadOnlyCache {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     abstract suspend fun insertAsset(asset: AssetLocal)
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
     abstract suspend fun insertAssets(assets: List<AssetLocal>)
 
     @Update(entity = AssetLocal::class)
@@ -125,6 +125,9 @@ abstract class AssetDao : AssetReadOnlyCache {
 
     @Query("DELETE FROM assets WHERE metaId = :metaId AND accountId = :accountId AND chainId = :chainId AND id = :assetId")
     abstract fun deleteAsset(metaId: Long, accountId: AccountId, chainId: String, assetId: String)
+
+    @Query("DELETE FROM assets WHERE id in (:assetIdsToDelete)")
+    abstract fun deleteAssets(assetIdsToDelete: List<String>)
 
     open suspend fun getAssets(accountMetaId: Long, id: String): List<AssetWithToken> {
         return observeAssetSymbolById(id).flatMapLatest { symbol ->
