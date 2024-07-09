@@ -48,6 +48,8 @@ import jp.co.soramitsu.common.compose.component.ActionBar
 import jp.co.soramitsu.common.compose.component.ActionBarShimmer
 import jp.co.soramitsu.common.compose.component.ActionBarViewState
 import jp.co.soramitsu.common.compose.component.ActionItemType
+import jp.co.soramitsu.common.compose.component.AddressInput
+import jp.co.soramitsu.common.compose.component.AddressInputState
 import jp.co.soramitsu.common.compose.component.AssetBalance
 import jp.co.soramitsu.common.compose.component.AssetBalanceShimmer
 import jp.co.soramitsu.common.compose.component.AssetBalanceViewState
@@ -82,8 +84,10 @@ data class BalanceDetailsState(
     val transferableViewState: TitleValueViewState,
     val lockedViewState: TitleValueViewState,
     val transactionHistory: TransactionHistoryUi.State,
-    val filtersEnabled: Boolean
-)
+    val filtersEnabled: Boolean,
+    val customAddress: String
+) {
+}
 
 interface BalanceDetailsScreenInterface {
     fun onAddressClick()
@@ -94,6 +98,7 @@ interface BalanceDetailsScreenInterface {
     fun transactionsScrolled(index: Int)
     fun tableItemClicked(itemId: Int)
     fun onRefresh()
+    fun onAddressInput(s: String)
 }
 
 @Composable
@@ -174,6 +179,17 @@ fun BalanceDetailsScreen(
                         )
                     }
                 }}
+                MarginVertical(margin = 16.dp)
+                AddressInput(
+                    state = AddressInputState(
+                        title = "Custom address",
+                        input = state.customAddress,
+                        image = 1,
+                        editable = true,
+                        showClear = false
+                    ),
+                    onInput = callback::onAddressInput
+                )
                 MarginVertical(margin = 16.dp)
                 BoxWithConstraints(
                     modifier = Modifier
@@ -453,7 +469,8 @@ private fun PreviewBalanceDetailScreenContent() {
             clickState = TitleValueViewState.ClickState.Title(R.drawable.ic_info_14, 1)
         ),
         transactionHistory = TransactionHistoryUi.State.Empty(),
-        filtersEnabled = true
+        filtersEnabled = true,
+        ""
     )
 
     val empty = object : BalanceDetailsScreenInterface {
@@ -472,6 +489,7 @@ private fun PreviewBalanceDetailScreenContent() {
         override fun transactionsScrolled(index: Int) {}
         override fun tableItemClicked(itemId: Int) = Unit
         override fun onRefresh() = Unit
+        override fun onAddressInput(s: String) {}
     }
 
     return FearlessTheme {

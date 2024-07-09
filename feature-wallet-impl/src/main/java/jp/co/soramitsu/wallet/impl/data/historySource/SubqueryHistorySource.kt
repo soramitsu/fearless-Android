@@ -1,6 +1,8 @@
 package jp.co.soramitsu.wallet.impl.data.historySource
 
+import android.util.Log
 import jp.co.soramitsu.common.data.model.CursorPage
+import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
@@ -30,7 +32,7 @@ class SubqueryHistorySource(
         accountAddress: String
     ): CursorPage<Operation> {
         val requestRewards = chainAsset.staking != Asset.StakingType.UNSUPPORTED
-        val response = walletOperationsApi.getOperationsHistory(
+        val response = kotlin.runCatching { walletOperationsApi.getOperationsHistory(
             url = url,
             SubqueryHistoryRequest(
                 accountAddress = accountAddress,
@@ -39,8 +41,8 @@ class SubqueryHistorySource(
                 filters,
                 requestRewards
             )
-        ).data.query
-
+        ).data.query }.onFailure { Log.d("&&&", "subquery error") }.requireValue()
+        Log.d("&&&", "subquery response: ${response.historyElements.nodes.size}")
         val encodedCurrencyId = if (!chainAsset.isUtility) {
             val runtime = chainRegistry.getRuntime(chain.id)
             val currencyIdKey = runtime.typeRegistry.types.keys.find { it.contains("CurrencyId") }

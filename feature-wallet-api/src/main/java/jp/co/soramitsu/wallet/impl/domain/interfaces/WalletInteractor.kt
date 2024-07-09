@@ -51,13 +51,15 @@ interface WalletInteractor {
 
     suspend fun getCurrentAssetOrNull(chainId: ChainId, chainAssetId: String): Asset?
 
-    fun operationsFirstPageFlow(chainId: ChainId, chainAssetId: String): Flow<OperationsPageChange>
+    fun operationsFirstPageFlow(chainId: ChainId, chainAssetId: String,
+                                customAddress: String? = null): Flow<OperationsPageChange>
 
     suspend fun syncOperationsFirstPage(
         chainId: ChainId,
         chainAssetId: String,
         pageSize: Int,
-        filters: Set<TransactionFilter>
+        filters: Set<TransactionFilter>,
+        customAddress: String? = null,
     ): Result<CursorPage<Operation>>
 
     suspend fun getOperations(

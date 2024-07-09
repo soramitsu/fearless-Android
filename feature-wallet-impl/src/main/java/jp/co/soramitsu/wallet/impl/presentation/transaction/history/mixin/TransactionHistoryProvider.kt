@@ -57,6 +57,8 @@ class TransactionHistoryProvider(
 
     private val currentData = ConcurrentSet<Operation>()
 
+    val customAddress = MutableStateFlow<String?>(null)
+
     private val _state =
         MutableStateFlow<TransactionHistoryUi.State>(TransactionHistoryUi.State.Refreshing)
 
@@ -113,7 +115,8 @@ class TransactionHistoryProvider(
     private fun observeOperationsFirstPage(assetPayload: AssetPayload): Flow<CursorPage<Operation>> {
         return walletInteractor.operationsFirstPageFlow(
             assetPayload.chainId,
-            assetPayload.chainAssetId
+            assetPayload.chainAssetId,
+            customAddress.value
         )
             .distinctUntilChangedBy { it.cursorPage }
             .map { it.cursorPage }
@@ -133,7 +136,8 @@ class TransactionHistoryProvider(
                     chainId = assetPayload.chainId,
                     chainAssetId = assetPayload.chainAssetId,
                     pageSize = PAGE_SIZE,
-                    filters = historyFiltersProvider.currentFilters()
+                    filters = historyFiltersProvider.currentFilters(),
+                    customAddress.value
                 ).onFailure { throwable ->
                     val message = when (throwable) {
                         is HistoryNotSupportedException -> resourceManager.getString(R.string.wallet_transaction_history_unsupported_message)

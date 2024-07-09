@@ -195,7 +195,8 @@ class BalanceDetailViewModel @Inject constructor(
         TitleValueViewState(title = resourceManager.getString(R.string.assetdetails_balance_transferable)),
         TitleValueViewState(title = resourceManager.getString(R.string.assetdetails_balance_locked)),
         TransactionHistoryUi.State.EmptyProgress,
-        false
+        false,
+        ""
     )
 
     val state: MutableStateFlow<BalanceDetailsState>  = MutableStateFlow(defaultState)
@@ -222,6 +223,10 @@ class BalanceDetailViewModel @Inject constructor(
             state.update { prevState ->
                 prevState.copy(transactionHistory = historyState)
             }
+        }.launchIn(viewModelScope)
+
+        transactionHistoryProvider.customAddress.onEach { a ->
+            state.update { it.copy(customAddress = a.orEmpty()) }
         }.launchIn(viewModelScope)
 
         assetModelFlow.onEach { balanceModel ->
@@ -323,6 +328,10 @@ class BalanceDetailViewModel @Inject constructor(
             sync()
             transactionHistoryProvider.tryReloadHistory()
         }
+    }
+
+    override fun onAddressInput(s: String) {
+        transactionHistoryProvider.customAddress.value = s
     }
 
     fun backClicked() {

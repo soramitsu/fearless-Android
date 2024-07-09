@@ -191,7 +191,8 @@ class WalletInteractorImpl(
 
     override fun operationsFirstPageFlow(
         chainId: ChainId,
-        chainAssetId: String
+        chainAssetId: String,
+        customAddress: String?
     ): Flow<OperationsPageChange> {
         return flow {
             val account = accountRepository.getSelectedMetaAccount()
@@ -200,7 +201,7 @@ class WalletInteractorImpl(
             val (chain, chainAsset) = chainRegistry.chainWithAsset(chainId, chainAssetId)
             val accountId = metaAccount.accountId(chain)!!
 
-            historyRepository.operationsFirstPageFlow(accountId, chain, chainAsset).withIndex()
+            historyRepository.operationsFirstPageFlow(accountId, chain, chainAsset, customAddress).withIndex()
                 .map { (index, cursorPage) ->
                     OperationsPageChange(cursorPage, accountChanged = index == 0)
                 }
@@ -211,7 +212,8 @@ class WalletInteractorImpl(
         chainId: ChainId,
         chainAssetId: String,
         pageSize: Int,
-        filters: Set<TransactionFilter>
+        filters: Set<TransactionFilter>,
+        customAddress: String?
     ) = withContext(Dispatchers.Default) {
         runCatching {
             val metaAccount = accountRepository.getSelectedMetaAccount()
@@ -223,7 +225,8 @@ class WalletInteractorImpl(
                 filters,
                 accountId,
                 chain,
-                chainAsset
+                chainAsset,
+                customAddress
             )
         }
     }

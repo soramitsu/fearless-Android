@@ -45,7 +45,8 @@ class HistoryRepository(
         filters: Set<TransactionFilter>,
         accountId: AccountId,
         chain: Chain,
-        chainAsset: Asset
+        chainAsset: Asset,
+        customAddress: String? = null
     ): CursorPage<Operation> {
         return withContext(Dispatchers.Default) {
             val historyUrl = chain.externalApi?.history?.url
@@ -62,7 +63,7 @@ class HistoryRepository(
                 throw HistoryNotSupportedException()
             }
 
-            val accountAddress = chain.addressOf(accountId)
+            val accountAddress = customAddress ?: chain.addressOf(accountId)
 
             val historySource = historySourceProvider(historyUrl, historyType)
             val operations = historySource?.getOperations(
@@ -86,9 +87,10 @@ class HistoryRepository(
         filters: Set<TransactionFilter>,
         accountId: AccountId,
         chain: Chain,
-        chainAsset: Asset
+        chainAsset: Asset,
+        customAddress: String? = null,
     ): CursorPage<Operation> {
-        val accountAddress = chain.addressOf(accountId)
+        val accountAddress = customAddress ?: chain.addressOf(accountId)
         val elements: MutableList<OperationLocal> = mutableListOf()
 
         var page: CursorPage<Operation> = CursorPage(null, emptyList())
@@ -97,7 +99,7 @@ class HistoryRepository(
 
         while (elements.size <= pageSize.div(2) && hasNextPage) {
             page = kotlin.runCatching {
-                getOperations(pageSize, cursor = nextCursor, filters, accountId, chain, chainAsset)
+                getOperations(pageSize, cursor = nextCursor, filters, accountId, chain, chainAsset, customAddress)
             }.getOrDefault(CursorPage(null, emptyList()))
             nextCursor = page.nextCursor
             hasNextPage = nextCursor != null
@@ -117,9 +119,10 @@ class HistoryRepository(
     fun operationsFirstPageFlow(
         accountId: AccountId,
         chain: Chain,
-        chainAsset: Asset
+        chainAsset: Asset,
+        customAddress: String?  = null,
     ): Flow<CursorPage<Operation>> {
-        val accountAddress = chain.addressOf(accountId)
+        val accountAddress = customAddress ?: chain.addressOf(accountId)
         return operationDao.observe(accountAddress, chain.id, chainAsset.id)
             .mapList {
                 mapOperationLocalToOperation(it, chainAsset, chain)
