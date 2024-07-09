@@ -2,13 +2,13 @@ package jp.co.soramitsu.polkaswap.api.domain.models
 
 import android.os.Parcelable
 import java.math.BigDecimal
-import jp.co.soramitsu.core.models.Asset
+import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import kotlinx.parcelize.Parcelize
 
 data class BasicPoolData(
 //    val baseToken: Token,
 //    val targetToken: Token,
-    val baseToken: jp.co.soramitsu.wallet.impl.domain.model.Asset,
+    val baseToken: Asset,
     val targetToken: Asset?,
     val baseReserves: BigDecimal,
     val targetReserves: BigDecimal,

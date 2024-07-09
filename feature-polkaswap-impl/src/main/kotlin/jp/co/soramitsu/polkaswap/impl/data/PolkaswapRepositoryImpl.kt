@@ -19,7 +19,10 @@ import jp.co.soramitsu.core.extrinsic.ExtrinsicService
 import jp.co.soramitsu.core.rpc.RpcCalls
 import jp.co.soramitsu.core.runtime.models.responses.QuoteResponse
 import jp.co.soramitsu.polkaswap.api.data.PolkaswapRepository
+import jp.co.soramitsu.polkaswap.api.data.PoolDataDto
 import jp.co.soramitsu.polkaswap.api.domain.models.BasicPoolData
+import jp.co.soramitsu.polkaswap.api.domain.models.CommonUserPoolData
+import jp.co.soramitsu.polkaswap.api.domain.models.UserPoolData
 import jp.co.soramitsu.polkaswap.api.models.Market
 import jp.co.soramitsu.polkaswap.api.models.WithDesired
 import jp.co.soramitsu.polkaswap.api.models.backStrings
@@ -27,13 +30,16 @@ import jp.co.soramitsu.polkaswap.api.models.toFilters
 import jp.co.soramitsu.polkaswap.api.models.toMarkets
 import jp.co.soramitsu.polkaswap.impl.data.network.blockchain.bindings.bindDexInfos
 import jp.co.soramitsu.polkaswap.impl.data.network.blockchain.swap
+import jp.co.soramitsu.polkaswap.impl.util.PolkaswapFormulas
 import jp.co.soramitsu.runtime.ext.addressOf
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId
+import jp.co.soramitsu.runtime.network.subscriptionFlowCatching
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 import jp.co.soramitsu.shared_utils.extensions.fromHex
+import jp.co.soramitsu.shared_utils.extensions.toHexString
 import jp.co.soramitsu.shared_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.shared_utils.runtime.definitions.types.composite.Struct
 import jp.co.soramitsu.shared_utils.runtime.definitions.types.fromHex
@@ -43,6 +49,7 @@ import jp.co.soramitsu.shared_utils.runtime.metadata.storageKey
 import jp.co.soramitsu.shared_utils.scale.Schema
 import jp.co.soramitsu.shared_utils.scale.sizedByteArray
 import jp.co.soramitsu.shared_utils.scale.uint128
+import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.shared_utils.wsrpc.exception.RpcException
 import jp.co.soramitsu.shared_utils.wsrpc.executeAsync
 import jp.co.soramitsu.shared_utils.wsrpc.mappers.nonNull
@@ -51,10 +58,17 @@ import jp.co.soramitsu.shared_utils.wsrpc.mappers.pojoList
 import jp.co.soramitsu.shared_utils.wsrpc.mappers.scale
 import jp.co.soramitsu.shared_utils.wsrpc.request.runtime.RuntimeRequest
 import jp.co.soramitsu.shared_utils.wsrpc.request.runtime.storage.GetStorageRequest
+import jp.co.soramitsu.shared_utils.wsrpc.request.runtime.storage.SubscribeStorageRequest
+import jp.co.soramitsu.shared_utils.wsrpc.subscription.response.SubscriptionChange
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
+import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 
 class PolkaswapRepositoryImpl @Inject constructor(
     private val remoteConfigFetcher: RemoteConfigFetcher,
@@ -89,35 +103,39 @@ class PolkaswapRepositoryImpl @Inject constructor(
     }
 
     override fun observePoolXYKReserves(chainId: ChainId, fromTokenId: String, toTokenId: String): Flow<String> {
-        return flow { emit(waitForChain(chainId)) }.flatMapLatest {  remoteStorage.observe(
-            chainId = chainId,
-            keyBuilder = {
-                val from = Struct.Instance(
-                    mapOf("code" to fromTokenId.fromHex().toList().map { it.toInt().toBigInteger() })
-                )
-                val to = Struct.Instance(
-                    mapOf("code" to toTokenId.fromHex().toList().map { it.toInt().toBigInteger() })
-                )
-                it.metadata.poolXYK()?.storage("Reserves")?.storageKey(it, from, to)
+        return flow { emit(waitForChain(chainId)) }.flatMapLatest {
+            remoteStorage.observe(
+                chainId = chainId,
+                keyBuilder = {
+                    val from = Struct.Instance(
+                        mapOf("code" to fromTokenId.fromHex().toList().map { it.toInt().toBigInteger() })
+                    )
+                    val to = Struct.Instance(
+                        mapOf("code" to toTokenId.fromHex().toList().map { it.toInt().toBigInteger() })
+                    )
+                    it.metadata.poolXYK()?.storage("Reserves")?.storageKey(it, from, to)
+                }
+            ) { scale, _ ->
+                scale.orEmpty()
             }
-        ) { scale, _ ->
-            scale.orEmpty()
-        }}
+        }
     }
 
     override fun observePoolTBCReserves(chainId: ChainId, tokenId: String): Flow<String> {
-        return flow { emit(waitForChain(chainId)) }.flatMapLatest { remoteStorage.observe(
-            chainId = chainId,
-            keyBuilder = {
-                val token = Struct.Instance(
-                    mapOf("code" to tokenId.fromHex().toList().map { it.toInt().toBigInteger() })
-                )
-                it.metadata.poolTBC()?.storage("CollateralReserves")?.storageKey(it, token)
+        return flow { emit(waitForChain(chainId)) }.flatMapLatest {
+            remoteStorage.observe(
+                chainId = chainId,
+                keyBuilder = {
+                    val token = Struct.Instance(
+                        mapOf("code" to tokenId.fromHex().toList().map { it.toInt().toBigInteger() })
+                    )
+                    it.metadata.poolTBC()?.storage("CollateralReserves")?.storageKey(it, token)
+                }
+            ) { scale, _ ->
+                scale.orEmpty()
             }
-        ) { scale, _ ->
-            scale.orEmpty()
         }
-    }}
+    }
 
     // Because if we get chain from the ChainRegistry, it will emit a chain
     // only after runtime for this chain will be ready
@@ -287,17 +305,18 @@ class PolkaswapRepositoryImpl @Inject constructor(
     }
 
     fun String.assetIdFromKey() = this.takeLast(64).addHexPrefix()
+
     object TotalIssuance : Schema<TotalIssuance>() {
         val totalIssuance by uint128()
     }
 
-     suspend fun getPoolTotalIssuances(
+    suspend fun getPoolTotalIssuances(
         reservesAccountId: ByteArray,
     ): BigInteger? {
         val runtimeOrNull = chainRegistry.getRuntimeOrNull(soraMainChainId)
         val storageKey = runtimeOrNull?.metadata?.module(Modules.POOL_XYK)
-                ?.storage("TotalIssuances")
-                ?.storageKey(runtimeOrNull, reservesAccountId)
+            ?.storage("TotalIssuances")
+            ?.storageKey(runtimeOrNull, reservesAccountId)
             ?: return null
         return chainRegistry.awaitConnection(soraMainChainId).socketService.executeAsync(
             request = GetStorageRequest(listOf(storageKey)),
@@ -324,7 +343,6 @@ class PolkaswapRepositoryImpl @Inject constructor(
         val list = mutableListOf<BasicPoolData>()
 
         val soraChain = chainRegistry.getChain(soraMainChainId)
-        val assets = soraChain.assets
 
         val wallet = accountRepository.getSelectedMetaAccount()
 
@@ -364,7 +382,7 @@ class PolkaswapRepositoryImpl @Inject constructor(
                                 }?.let {
                                     mapBalance(it, asset.token.configuration.precision)
                                 }
-                                val targetAsset = assets.firstOrNull { it.currencyId == targetToken }
+                                val targetAsset = soraAssets.firstOrNull { it.token.configuration.currencyId == targetToken }
                                 val reserveAccountAddress = reserveAccount?.let { soraChain.addressOf(it) } ?: ""
 
                                 val element = BasicPoolData(
@@ -382,7 +400,7 @@ class PolkaswapRepositoryImpl @Inject constructor(
                                     element
                                 )
                                 // todo remove
-                                if (list.size > 10) return list
+                                if (list.size > 5) return list
                             }
                     }
                 }
@@ -393,4 +411,371 @@ class PolkaswapRepositoryImpl @Inject constructor(
 
         return list
     }
+
+    private fun subscribeAccountPoolProviders(
+        address: String,
+        reservesAccount: ByteArray,
+    ): Flow<String> = flow {
+        val poolProvidersKey =
+            chainRegistry.getRuntimeOrNull(soraMainChainId)?.let {
+                it.metadata.module(Modules.POOL_XYK)
+                    .storage("TotalIssuances")
+                    .storageKey(
+                        it,
+                        reservesAccount,
+                        address.toAccountId()
+                    )
+            } ?: error("!!! subscribeAccountPoolProviders poolProvidersKey is null")
+        val poolProvidersFlow = chainRegistry.getConnection(soraMainChainId).socketService.subscriptionFlowCatching(
+            SubscribeStorageRequest(poolProvidersKey),
+            "state_unsubscribeStorage",
+        ).map {
+            it.map { it.storageChange().getSingleChange().orEmpty() }
+        }.map {
+            it.getOrNull().orEmpty()
+        }
+        emitAll(poolProvidersFlow)
+    }
+
+    override suspend fun getUserPoolData(
+        address: String,
+        baseTokenId: String,
+        tokenId: ByteArray
+    ): PoolDataDto? {
+        println("!!! getUserPoolData")
+        val reserves = getPairWithXorReserves(baseTokenId, tokenId)
+        val totalIssuanceAndProperties =
+            getPoolTotalIssuanceAndProperties(baseTokenId, tokenId, address)
+
+        if (reserves == null || totalIssuanceAndProperties == null) {
+            return null
+        }
+        val reservesAccount = chainRegistry.getChain(soraMainChainId).addressOf(totalIssuanceAndProperties.third)
+
+        return PoolDataDto(
+            baseTokenId,
+            tokenId.toHexString(true),
+            reserves.first,
+            reserves.second,
+            totalIssuanceAndProperties.first,
+            totalIssuanceAndProperties.second,
+            reservesAccount,
+        )
+    }
+
+    private suspend fun getPoolTotalIssuanceAndProperties(
+        baseTokenId: String,
+        tokenId: ByteArray,
+        address: String
+    ): Triple<BigInteger, BigInteger, ByteArray>? {
+        return getPoolReserveAccount(baseTokenId, tokenId)?.let { account ->
+            getPoolTotalIssuances(
+                account
+            )?.let {
+                val provider = getPoolProviders(
+                    account,
+                    address
+                )
+                Triple(it, provider, account)
+            }
+        }
+    }
+
+    object PoolProviders : Schema<PoolProviders>() {
+        val poolProviders by uint128()
+    }
+
+    private suspend fun getPoolProviders(
+        reservesAccountId: ByteArray,
+        currentAddress: String
+    ): BigInteger {
+        val storageKey =
+            chainRegistry.getRuntimeOrNull(soraMainChainId)?.let {
+                it.metadata.module(Modules.POOL_XYK)
+                    .storage("PoolProviders").storageKey(
+                        it,
+                        reservesAccountId,
+                        currentAddress.toAccountId()
+                    )
+            } ?: return BigInteger.ZERO
+        return runCatching {
+            chainRegistry.awaitConnection(soraMainChainId).socketService.executeAsync(
+                request = GetStorageRequest(listOf(storageKey)),
+                mapper = scale(PoolProviders),
+            )
+                .let { storage ->
+                    storage.result?.let {
+                        it[it.schema.poolProviders]
+                    } ?: BigInteger.ZERO
+                }
+        }.getOrElse {
+            it.printStackTrace()
+            throw it
+        }
+    }
+
+    object ReservesResponse : Schema<ReservesResponse>() {
+        val first by uint128()
+        val second by uint128()
+    }
+
+    private suspend fun getPairWithXorReserves(
+        baseTokenId: String,
+        tokenId: ByteArray
+    ): Pair<BigInteger, BigInteger>? {
+        println("!!! getPairWithXorReserves")
+        val storageKey =
+            chainRegistry.getRuntimeOrNull(soraMainChainId)?.reservesKey(baseTokenId, tokenId)
+                ?: return null
+        println("!!! getPairWithXorReserves storageKey = $storageKey")
+        return try {
+             chainRegistry.awaitConnection(soraMainChainId).socketService.executeAsync(
+                request = GetStorageRequest(listOf(storageKey)),
+                mapper = scale(ReservesResponse),
+            )
+                .result
+                ?.let { storage ->
+                    storage[storage.schema.first] to storage[storage.schema.second]
+                }
+        } catch (e: Exception) {
+            println("!!! getPairWithXorReserves error = ${e.message}")
+
+            e.printStackTrace()
+            throw e
+        }
+    }
+
+    override suspend fun getPoolOfAccount(address: String?, tokenFromId: String, tokenToId: String, chainId: String): CommonUserPoolData? {
+        return getPoolsOfAccount(address, tokenFromId, tokenToId, chainId).firstOrNull {
+            it.user.address == address
+        }
+    }
+
+    suspend fun getPoolsOfAccount(address: String?, tokenFromId: String, tokenToId: String, chainId: String): List<CommonUserPoolData> {
+//        val runtimeOrNull = chainRegistry.getRuntimeOrNull(soraMainChainId)
+//        val socketService = chainRegistry.getConnection(chainId).socketService
+//        socketService.executeAsyncCatching()
+        val tokensPair: List<Pair<String, List<ByteArray>>>? = address?.let {
+            getUserPoolsTokenIds(it)
+        }
+
+        val pools = mutableListOf<CommonUserPoolData>()
+
+        tokensPair?.forEach { (baseTokenId, tokensId) ->
+            tokensId.mapNotNull { tokenId ->
+                getUserPoolData(address, baseTokenId, tokenId)
+            }.forEach pool@{ poolDataDto ->
+                val metaId = accountRepository.getSelectedLightMetaAccount().id
+                val assets = walletRepository.getAssets(metaId)
+                val token = assets.firstOrNull {
+                    it.token.configuration.currencyId == poolDataDto.assetId
+                } ?: return@pool
+                val baseToken = assets.firstOrNull {
+                    it.token.configuration.currencyId == baseTokenId
+                } ?: return@pool
+                val xorPrecision = baseToken?.token?.configuration?.precision ?: 0
+                val tokenPrecision = token?.token?.configuration?.precision ?: 0
+
+                val apy = getPoolStrategicBonusAPY(poolDataDto.reservesAccount)
+
+                val basePooled = PolkaswapFormulas.calculatePooledValue(
+                    mapBalance(
+                        poolDataDto.reservesFirst,
+                        xorPrecision
+                    ),
+                    mapBalance(
+                        poolDataDto.poolProvidersBalance,
+                        xorPrecision
+                    ),
+                    mapBalance(
+                        poolDataDto.totalIssuance,
+                        xorPrecision
+                    ),
+                    baseToken?.token?.configuration?.precision,
+                )
+                val secondPooled = PolkaswapFormulas.calculatePooledValue(
+                    mapBalance(
+                        poolDataDto.reservesSecond,
+                        tokenPrecision
+                    ),
+                    mapBalance(
+                        poolDataDto.poolProvidersBalance,
+                        xorPrecision
+                    ),
+                    mapBalance(
+                        poolDataDto.totalIssuance,
+                        xorPrecision
+                    ),
+                    token?.token?.configuration?.precision,
+                )
+                val share = PolkaswapFormulas.calculateShareOfPoolFromAmount(
+                    mapBalance(
+                        poolDataDto.poolProvidersBalance,
+                        xorPrecision
+                    ),
+                    mapBalance(
+                        poolDataDto.totalIssuance,
+                        xorPrecision
+                    ),
+                )
+                val userPoolData = CommonUserPoolData(
+                    basic = BasicPoolData(
+                        baseToken = baseToken,
+                        targetToken = token,
+                        baseReserves = mapBalance(
+                            poolDataDto.reservesFirst,
+                            xorPrecision
+                        ),
+                        targetReserves = mapBalance(
+                            poolDataDto.reservesSecond,
+                            tokenPrecision
+                        ),
+                        totalIssuance = mapBalance(
+                            poolDataDto.totalIssuance,
+                            xorPrecision
+                        ),
+                        reserveAccount = poolDataDto.reservesAccount,
+                        sbapy = apy,
+                    ),
+                    user = UserPoolData(
+                        address = address,
+                        basePooled = basePooled,
+                        targetPooled = secondPooled,
+                        share,
+                        mapBalance(
+                            poolDataDto.poolProvidersBalance,
+                            xorPrecision
+                        ),
+                    ),
+                )
+                pools.add(userPoolData)
+            }
+        }
+        return pools
+    }
+
+    fun RuntimeSnapshot.reservesKey(baseTokenId: String, tokenId: ByteArray): String =
+        this.metadata.module(Modules.POOL_XYK)
+            .storage("Reserves")
+            .storageKey(
+                this,
+                baseTokenId.mapCodeToken(),
+                tokenId.mapCodeToken(),
+            )
+
+    @Suppress("UNCHECKED_CAST")
+    fun SubscriptionChange.storageChange(): SubscribeStorageResult {
+        val result = params.result as? Map<*, *> ?: throw IllegalArgumentException("${params.result} is not a valid storage result")
+
+        val block = result["block"] as? String ?: throw IllegalArgumentException("$result is not a valid storage result")
+        val changes = result["changes"] as? List<List<String>> ?: throw IllegalArgumentException("$result is not a valid storage result")
+
+        return SubscribeStorageResult(block, changes)
+    }
+
+    private fun subscribeToPoolData(
+        baseTokenId: String,
+        tokenId: ByteArray,
+        reservesAccount: ByteArray,
+    ): Flow<String> = flow {
+        val reservesKey =
+            chainRegistry.getRuntimeOrNull(soraMainChainId)?.reservesKey(baseTokenId, tokenId)
+
+        val reservesFlow = reservesKey?.let {
+            chainRegistry.getConnection(soraMainChainId).socketService.subscriptionFlowCatching(
+                SubscribeStorageRequest(reservesKey),
+                "state_unsubscribeStorage",
+            ).map {
+                it.map { it.storageChange().getSingleChange().orEmpty() }
+            }.map {
+                it.getOrNull().orEmpty()
+            }
+        } ?: emptyFlow()
+
+        val totalIssuanceKey =
+            chainRegistry.getRuntimeOrNull(soraMainChainId)?.let {
+                it.metadata.module(Modules.POOL_XYK)
+                    .storage("TotalIssuances")
+                    .storageKey(it, reservesAccount)
+            }
+        val totalIssuanceFlow = totalIssuanceKey?.let {
+            chainRegistry.getConnection(soraMainChainId).socketService.subscriptionFlowCatching(
+                SubscribeStorageRequest(totalIssuanceKey),
+                "state_unsubscribeStorage",
+            ).map {
+                it.getOrNull()?.storageChange()?.getSingleChange().orEmpty()
+            }
+        } ?: emptyFlow()
+
+        val resultFlow = reservesFlow
+            .combine(totalIssuanceFlow) { reservesString, totalIssuanceString ->
+                (reservesString + totalIssuanceString).take(5)
+            }
+
+        emitAll(resultFlow)
+    }
+
+    // changes are in format [[storage key, value], [..], ..]
+    class SubscribeStorageResult(val block: String, val changes: List<List<String?>>) {
+        fun getSingleChange() = changes.first()[1]
+    }
+
+    fun Struct.Instance.getTokenId() = get<List<*>>("code")
+        ?.map { (it as BigInteger).toByte() }
+        ?.toByteArray()
+
+
+    suspend fun getUserPoolsTokenIdsKeys(address: String): List<String> {
+        val accountPoolsKey = chainRegistry.getRuntimeOrNull(soraMainChainId)?.accountPoolsKey(address)
+        chainRegistry.awaitConnection(soraMainChainId).socketService
+        return runCatching {
+            chainRegistry.awaitConnection(soraMainChainId).socketService.executeAsync(
+                request = StateKeys(listOfNotNull(accountPoolsKey)),
+                mapper = pojoList<String>().nonNull()
+            )
+        }.onFailure {
+            println("!!! getUserPoolsTokenIdsKeys error: ${it.message}")
+            it.printStackTrace()
+        }
+            .getOrThrow()
+    }
+
+    suspend fun getUserPoolsTokenIds(
+        address: String
+    ): List<Pair<String, List<ByteArray>>> {
+        return runCatching {
+            val storageKeys = getUserPoolsTokenIdsKeys(address)
+            storageKeys.map { storageKey ->
+                chainRegistry.awaitConnection(soraMainChainId).socketService.executeAsync(
+                    request = GetStorageRequest(listOf(storageKey)),
+                    mapper = pojo<String>().nonNull(),
+                )
+                    .let { storage ->
+                        val storageType =
+                            chainRegistry.getRuntimeOrNull(soraMainChainId)?.metadata?.module(Modules.POOL_XYK)
+                                ?.storage("AccountPools")?.type?.value!!
+                        val storageRawData =
+                            storageType.fromHex(chainRegistry.getRuntimeOrNull(soraMainChainId)!!, storage)
+                        val tokens: List<ByteArray> = if (storageRawData is List<*>) {
+                            storageRawData.filterIsInstance<Struct.Instance>()
+                                .mapNotNull { struct ->
+                                    struct.getTokenId()
+                                }
+                        } else {
+                            emptyList()
+                        }
+                        storageKey.assetIdFromKey() to tokens
+                    }
+            }
+        }.onFailure {
+            println("!!! getUserPoolsTokenIds onFailure")
+//            it.printStackTrace()
+        }.getOrThrow()
+    }
+
+    fun RuntimeSnapshot.accountPoolsKey(address: String): String =
+        this.metadata.module(Modules.POOL_XYK)
+            .storage("AccountPools")
+            .storageKey(this, address.toAccountId())
+
 }

@@ -7,6 +7,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.coroutines.flow.Flow
 import java.math.BigInteger
 import jp.co.soramitsu.polkaswap.api.domain.models.BasicPoolData
+import jp.co.soramitsu.polkaswap.api.domain.models.CommonUserPoolData
 
 interface PolkaswapRepository {
     suspend fun getAvailableDexes(chainId: ChainId): List<BigInteger>
@@ -56,4 +57,17 @@ interface PolkaswapRepository {
     ): Result<String>
 
     suspend fun getBasicPools(): List<BasicPoolData>
+
+    suspend fun getPoolOfAccount(
+        address: String?,
+        tokenFromId: String,
+        tokenToId: String,
+        chainId: String
+    ): CommonUserPoolData?
+
+    suspend fun getUserPoolData(
+        address: String,
+        baseTokenId: String,
+        tokenId: ByteArray
+    ): PoolDataDto?
 }
