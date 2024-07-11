@@ -56,7 +56,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 private const val RUNTIME_AWAITING_TIMEOUT = 10_000L
-
+private const val TAG = "BalancesUpdateSystem"
 @SuppressLint("LogNotTimber")
 class BalancesUpdateSystem(
     private val chainRegistry: ChainRegistry,
@@ -69,7 +69,7 @@ class BalancesUpdateSystem(
 
     private val scope =
         CoroutineScope(Dispatchers.Default + SupervisorJob() + CoroutineExceptionHandler { _, throwable ->
-            Log.e("BalancesUpdateSystem", "BalancesUpdateSystem got error: $throwable")
+            Log.e(TAG, "BalancesUpdateSystem got error: $throwable")
         })
 
     private val trigger = BalanceUpdateTrigger.observe()
@@ -226,7 +226,7 @@ class BalancesUpdateSystem(
                     kotlin.runCatching { ethereumRemoteSource.fetchEthBalance(asset, address) }
                         .onFailure {
                             Log.d(
-                                "BalanceUpdateSystem",
+                                TAG,
                                 "fetchEthBalance error ${it.message} ${it.localizedMessage} $it"
                             )
                         }
@@ -244,7 +244,7 @@ class BalancesUpdateSystem(
 
     private fun logError(chain: Chain, error: Throwable) {
         Log.e(
-            "BalancesUpdateSystem",
+            TAG,
             "Failed to subscribe to balances in ${chain.name}: ${error.message}",
             error
         )
@@ -271,7 +271,7 @@ class BalancesUpdateSystem(
             withContext(Dispatchers.IO) { operationDao.insertAll(local) }
         }.onFailure {
             Log.d(
-                "BalancesUpdateSystem",
+                TAG,
                 "Failed to fetch transfers for chain ${chain.name} (${chain.id}) $it "
             )
         }
