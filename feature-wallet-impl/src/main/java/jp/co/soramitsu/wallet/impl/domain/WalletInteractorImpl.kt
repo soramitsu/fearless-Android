@@ -46,6 +46,7 @@ import jp.co.soramitsu.shared_utils.runtime.metadata.moduleOrNull
 import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.toAddress
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.updaters.BalanceUpdateTrigger
 import jp.co.soramitsu.wallet.impl.data.repository.HistoryRepository
+import jp.co.soramitsu.wallet.impl.data.repository.isSupported
 import jp.co.soramitsu.wallet.impl.domain.interfaces.AddressBookRepository
 import jp.co.soramitsu.wallet.impl.domain.interfaces.AssetSorting
 import jp.co.soramitsu.wallet.impl.domain.interfaces.TransactionFilter
@@ -442,7 +443,7 @@ class WalletInteractorImpl(
         val updateItems = state.mapNotNull {
             val chain = getChain(it.chainId)
             val asset = chain.assetsById[it.assetId]
-            val tokenPriceId = asset?.priceProvider?.id?.takeIf { selectedFiat.isUsd() } ?: asset?.priceId
+            val tokenPriceId = asset?.priceProvider?.takeIf { provider -> selectedFiat.isUsd() && provider.isSupported }?.id ?: asset?.priceId
             wallet.accountId(chain)?.let { accountId ->
                 AssetUpdateItem(
                     metaId = wallet.id,
