@@ -549,6 +549,10 @@ class WalletRepositoryImpl(
         return kotlin.runCatching { remoteConfigFetcher.getAppConfig() }
     }
 
+    override suspend fun testNomisVitalikScore(): Result<String> {
+        return kotlin.runCatching {remoteConfigFetcher.getNomisVitalikScore()}
+    }
+
     override suspend fun getControllerAccount(chainId: ChainId, accountId: AccountId): AccountId? {
         return substrateSource.getControllerAccount(chainId, accountId)
     }
