@@ -40,7 +40,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
-
+private const val TAG = "WalletSyncService"
 class WalletSyncService(
     private val metaAccountDao: MetaAccountDao,
     private val chainsRepository: ChainsRepository,
@@ -56,7 +56,7 @@ class WalletSyncService(
     private val scope =
         CoroutineScope(dispatcher + SupervisorJob() + CoroutineExceptionHandler { _, throwable ->
             Log.d(
-                "WalletSyncService",
+                TAG,
                 "WalletSyncService scope error: $throwable"
             )
         })
