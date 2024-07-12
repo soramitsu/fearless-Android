@@ -33,6 +33,7 @@ import jp.co.soramitsu.common.mixin.impl.observeValidations
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.presentation.StoryGroupModel
 import jp.co.soramitsu.common.utils.bindTo
+import jp.co.soramitsu.common.utils.formatCrypto
 import jp.co.soramitsu.common.utils.hideSoftKeyboard
 import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeVisible
@@ -270,7 +271,8 @@ class StakingFragment : BaseFragment<StakingViewModel>(R.layout.fragment_staking
                                         EstimatedEarnings(
                                             stakingViewState.estimatedEarnings,
                                             viewModel::onEstimatedEarningsInfoClick,
-                                            viewModel::onPoolsAmountInput
+                                            viewModel::onPoolsAmountInput,
+                                            viewModel::onAmountInputFocusChanged
                                         )
                                         MarginVertical(margin = Dp(16f))
                                         Spacer(modifier = Modifier.weight(1f, fill = true))
@@ -325,9 +327,9 @@ class StakingFragment : BaseFragment<StakingViewModel>(R.layout.fragment_staking
             }
         }
 
-        viewModel.enteredAmountEvent.observeEvent {
+        viewModel.enteredAmountEvent.collectEvent {
             viewModel.launch {
-                currentEnteredAmountFlow.emit(it)
+                currentEnteredAmountFlow.emit(it.formatCrypto())
             }
         }
     }

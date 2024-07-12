@@ -164,7 +164,7 @@ class WalletRepositoryImpl(
         val priceIdsWithChainlinkId = chains.map {
             it.assets.mapNotNull { asset ->
                 asset.priceId?.let { priceId ->
-                    priceId to if (asset.priceProvider?.type == Chainlink) {
+                    priceId to if (asset.priceProvider?.isSupported == true) {
                         asset.priceProvider?.id
                     } else {
                         null
@@ -223,7 +223,7 @@ class WalletRepositoryImpl(
         val chainlinkProvider = chains.firstOrNull { it.chainlinkProvider } ?: return emptyMap()
 
         val allAssets =
-            chains.map { it.assets }.flatten().asSequence().filter { it.priceProvider != null }
+            chains.map { it.assets }.flatten().asSequence().filter { it.priceProvider?.isSupported == true }
                 .toList()
 
         return allAssets.mapNotNull {

@@ -27,6 +27,8 @@ import jp.co.soramitsu.common.compose.component.FeeInfo
 import jp.co.soramitsu.common.compose.component.FeeInfoViewState
 import jp.co.soramitsu.common.compose.component.InactiveDropDown
 import jp.co.soramitsu.common.compose.component.MarginVertical
+import jp.co.soramitsu.common.compose.component.QuickAmountInput
+import jp.co.soramitsu.common.compose.component.QuickInput
 import jp.co.soramitsu.common.compose.component.TextInput
 import jp.co.soramitsu.common.compose.component.TextInputViewState
 import jp.co.soramitsu.common.compose.component.Toolbar
@@ -53,12 +55,15 @@ interface CreatePoolSetupScreenInterface {
     fun onNominatorClick()
     fun onStateTogglerClick()
     fun onCreateClick()
+
+    fun onQuickAmountInput(value: Double)
 }
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun CreatePoolSetupScreen(
     state: CreatePoolSetupViewState,
+    isSoftKeyboardOpen: Boolean = false,
     screenInterface: CreatePoolSetupScreenInterface
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -125,6 +130,16 @@ fun CreatePoolSetupScreen(
                     onClick = onCreateClickHandler
                 )
                 MarginVertical(margin = 16.dp)
+
+                if (isSoftKeyboardOpen) {
+                    QuickInput(
+                        values = QuickAmountInput.entries.toTypedArray(),
+                        onQuickAmountInput = {
+                            keyboardController?.hide()
+                            screenInterface.onQuickAmountInput(it)
+                        }
+                    )
+                }
             }
         }
     }
@@ -160,9 +175,10 @@ private fun CreatePoolSetupScreenPreview() {
         override fun onNominatorClick() = Unit
         override fun onStateTogglerClick() = Unit
         override fun onCreateClick() = Unit
+        override fun onQuickAmountInput(value: Double)  = Unit
     }
 
     FearlessTheme {
-        CreatePoolSetupScreen(state = viewState, emptyInterface)
+        CreatePoolSetupScreen(state = viewState, false, emptyInterface)
     }
 }

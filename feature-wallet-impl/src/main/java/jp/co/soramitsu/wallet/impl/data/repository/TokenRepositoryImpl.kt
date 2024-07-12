@@ -14,13 +14,17 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 
+val supportedPriceProviders = listOf(Asset.PriceProviderType.Chainlink)
+val Asset.PriceProvider.isSupported
+    get() = this.type in supportedPriceProviders
+
 class TokenRepositoryImpl(
     private val tokenPriceDao: TokenPriceDao,
     private val selectedFiat: SelectedFiat
 ) : TokenRepository {
 
     override suspend fun getToken(chainAsset: Asset): Token = withContext(Dispatchers.Default) {
-        val priceId = if (selectedFiat.isUsd() && chainAsset.priceProvider?.id != null) {
+        val priceId = if (selectedFiat.isUsd() && chainAsset.priceProvider?.isSupported == true) {
             chainAsset.priceProvider?.id
         } else {
             chainAsset.priceId
@@ -32,7 +36,7 @@ class TokenRepositoryImpl(
 
     override fun observeToken(chainAsset: Asset): Flow<Token> {
         return selectedFiat.flow().map {
-            if (it == "usd" && chainAsset.priceProvider?.id != null) {
+            if (it == "usd" && chainAsset.priceProvider?.isSupported == true) {
                 chainAsset.priceProvider?.id
             } else {
                 chainAsset.priceId

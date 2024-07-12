@@ -17,8 +17,6 @@ import jp.co.soramitsu.wallet.impl.data.buyToken.ExternalProvider
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.withContext
 
@@ -42,8 +40,6 @@ class RootInteractor(
     }
 
     suspend fun runBalancesUpdate(): Flow<Updater.SideEffect> = withContext(Dispatchers.Default) {
-        // await all accounts initialized
-        accountRepository.allMetaAccountsFlow().filter { accounts -> accounts.all { it.initialized } }.filter { it.isNotEmpty() }.first()
         return@withContext updateSystem.start().inBackground()
     }
 

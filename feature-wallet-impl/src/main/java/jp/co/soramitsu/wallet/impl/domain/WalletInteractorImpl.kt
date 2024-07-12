@@ -6,12 +6,14 @@ import com.mastercard.mpqr.pushpayment.model.PushPaymentData
 import com.mastercard.mpqr.pushpayment.parser.Parser
 import java.math.BigDecimal
 import java.math.BigInteger
+import java.math.RoundingMode
 import java.net.URLDecoder
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.LightMetaAccount
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.accountId
 import jp.co.soramitsu.account.api.domain.model.address
+import jp.co.soramitsu.common.compose.component.QuickAmountInput
 import jp.co.soramitsu.common.data.model.CursorPage
 import jp.co.soramitsu.common.data.network.runtime.binding.EqAccountInfo
 import jp.co.soramitsu.common.data.network.runtime.binding.EqOraclePricePoint
@@ -30,6 +32,7 @@ import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.core.models.Asset.StakingType
 import jp.co.soramitsu.core.models.ChainId
 import jp.co.soramitsu.core.utils.isValidAddress
+import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.coredb.model.AssetUpdateItem
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
@@ -43,6 +46,7 @@ import jp.co.soramitsu.shared_utils.runtime.metadata.moduleOrNull
 import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.toAddress
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.updaters.BalanceUpdateTrigger
 import jp.co.soramitsu.wallet.impl.data.repository.HistoryRepository
+import jp.co.soramitsu.wallet.impl.data.repository.isSupported
 import jp.co.soramitsu.wallet.impl.domain.interfaces.AddressBookRepository
 import jp.co.soramitsu.wallet.impl.domain.interfaces.AssetSorting
 import jp.co.soramitsu.wallet.impl.domain.interfaces.TransactionFilter
@@ -59,15 +63,22 @@ import jp.co.soramitsu.wallet.impl.domain.model.QrContentCBDC
 import jp.co.soramitsu.wallet.impl.domain.model.QrContentSora
 import jp.co.soramitsu.wallet.impl.domain.model.Transfer
 import jp.co.soramitsu.wallet.impl.domain.model.WalletAccount
+import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.toPhishingModel
+import jp.co.soramitsu.wallet.impl.presentation.send.setup.SendSetupViewModel
 import jp.co.soramitsu.xcm.domain.XcmEntitiesFetcher
 import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
@@ -432,7 +443,7 @@ class WalletInteractorImpl(
         val updateItems = state.mapNotNull {
             val chain = getChain(it.chainId)
             val asset = chain.assetsById[it.assetId]
-            val tokenPriceId = asset?.priceProvider?.id?.takeIf { selectedFiat.isUsd() } ?: asset?.priceId
+            val tokenPriceId = asset?.priceProvider?.takeIf { provider -> selectedFiat.isUsd() && provider.isSupported }?.id ?: asset?.priceId
             wallet.accountId(chain)?.let { accountId ->
                 AssetUpdateItem(
                     metaId = wallet.id,
