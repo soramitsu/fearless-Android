@@ -69,10 +69,7 @@ class ChainSyncService(
                     val assetsToAdd: MutableList<ChainAssetLocal> = mutableListOf()
                     val assetsToUpdate: MutableList<ChainAssetLocal> = mutableListOf()
                     val assetsToRemove =
-                        localAssets.filter { local ->
-                            val remoteAssetsIds = remoteAssets.map { it.id to it.chainId }
-                            local.id to local.chainId !in remoteAssetsIds
-                        }.toList()
+                        localAssets.filter { local -> local.id !in remoteAssets.map { it.id } }.toList()
 
                     remoteAssets.forEach { remoteAsset ->
                         val localAsset = localAssets.find { it.id == remoteAsset.id && it.chainId == remoteAsset.chainId}

@@ -12,7 +12,6 @@ import javax.inject.Named
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createEthereumAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
-import jp.co.soramitsu.common.data.network.runtime.binding.cast
 import jp.co.soramitsu.common.mixin.api.Retriable
 import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -26,7 +25,6 @@ import jp.co.soramitsu.common.validation.progressConsumer
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.core.utils.amountFromPlanks
 import jp.co.soramitsu.staking.api.data.StakingSharedState
-import jp.co.soramitsu.staking.api.data.StakingType
 import jp.co.soramitsu.staking.api.domain.model.RewardDestination
 import jp.co.soramitsu.staking.impl.data.mappers.mapRewardDestinationModelToRewardDestination
 import jp.co.soramitsu.staking.impl.domain.StakingInteractor
@@ -42,8 +40,6 @@ import jp.co.soramitsu.staking.impl.scenarios.StakingScenarioInteractor
 import jp.co.soramitsu.wallet.api.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.wallet.api.presentation.mixin.fee.FeeLoaderMixin
 import jp.co.soramitsu.wallet.api.presentation.mixin.fee.FeeStatus
-import jp.co.soramitsu.wallet.impl.domain.interfaces.QuickInputsUseCase
-import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -56,7 +52,6 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 @HiltViewModel
@@ -72,8 +67,7 @@ class SetupStakingViewModel @Inject constructor(
     @Named("StakingFeeLoader") private val feeLoaderMixin: FeeLoaderMixin.Presentation,
     private val rewardDestinationMixin: RewardDestinationMixin.Presentation,
     private val addressIconGenerator: AddressIconGenerator,
-    private val stakingSharedState: StakingSharedState,
-    private val quickInputsUseCase: QuickInputsUseCase
+    private val stakingSharedState: StakingSharedState
 ) : BaseViewModel(),
     Retriable,
     Validatable by validationExecutor,
@@ -124,8 +118,6 @@ class SetupStakingViewModel @Inject constructor(
         }
     }
 
-    private val quickInputsStateFlow = MutableStateFlow<Map<Double, BigDecimal>?>(null)
-
     init {
         loadFee()
 
@@ -136,29 +128,10 @@ class SetupStakingViewModel @Inject constructor(
             minimumStake = stakingScenarioInteractor.getMinimumStake(chainAsset)
 
             setupStakingSharedState.setupStakingProcess.filterIsInstance<SetupStakingProcess.SetupStep>()
-                .onEach {
+                .collect {
                     enteredAmountFlow.value = it.amount.toString()
-                }.launchIn(viewModelScope)
-        }
-
-        stakingSharedState.selectionItem.map { asset ->
-            val quickInputs = quickInputsUseCase.calculateStakingQuickInputs(
-                asset.chainId,
-                asset.chainAssetId,
-                calculateAvailableAmount = {
-                    assetFlow.first().availableForStaking
-                }, calculateFee = {
-                    if (asset.type == StakingType.PARACHAIN) {
-                        setupStakingInteractor.estimateParachainFee()
-                    } else {
-                        interactor.getSelectedAccountProjection()?.address?.let { address ->
-                            setupStakingInteractor.estimateMaxSetupStakingFee(address)
-                        }.orZero()
-                    }
                 }
-            )
-            quickInputsStateFlow.update { quickInputs }
-        }.launchIn(this)
+        }
     }
 
     fun nextClicked() {
@@ -281,10 +254,26 @@ class SetupStakingViewModel @Inject constructor(
 
     fun onQuickAmountInput(input: Double) {
         launch {
-            val valuesMap =
-                quickInputsStateFlow.first { !it.isNullOrEmpty() }.cast<Map<Double, BigDecimal>>()
-            val amount = valuesMap[input] ?: return@launch
-            enteredAmountFlow.value = amount.formatCrypto()
+            val asset = assetFlow.firstOrNull() ?: return@launch
+            val availableAmount = asset.availableForStaking
+
+            val fee = (feeLiveData.value as? FeeStatus.Loaded)?.feeModel?.fee.orZero()
+
+            val value = when {
+                availableAmount < fee -> {
+                    BigDecimal.ZERO
+                }
+
+                availableAmount * input.toBigDecimal() < availableAmount - fee -> {
+                    availableAmount * input.toBigDecimal()
+                }
+
+                else -> {
+                    availableAmount - fee
+                }
+            }
+
+            enteredAmountFlow.emit(value.formatCrypto())
         }
     }
 }

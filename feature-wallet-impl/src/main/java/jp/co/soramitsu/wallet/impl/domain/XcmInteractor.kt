@@ -84,6 +84,9 @@ class XcmInteractor(
             }
     }
 
+    suspend fun getAmountMinLimit(originChainId: ChainId, destinationChainId: ChainId, asset: Asset) =
+        xcmService.getAmountMinLimit(originChainId, destinationChainId, asset)
+
     private fun getAvailableAssetSymbolsFlow(originChainId: ChainId?): Flow<List<String>> {
         return flow {
             val availableXcmAssetSymbols = xcmEntitiesFetcher.getAvailableAssets(

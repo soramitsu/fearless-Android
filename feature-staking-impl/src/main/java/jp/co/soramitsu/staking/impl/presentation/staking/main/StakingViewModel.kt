@@ -11,7 +11,6 @@ import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.AssetSelectorState
-import jp.co.soramitsu.common.data.network.runtime.binding.cast
 import jp.co.soramitsu.common.domain.model.StoryGroup
 import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.presentation.LoadingState
@@ -63,14 +62,11 @@ import jp.co.soramitsu.staking.impl.presentation.staking.redeem.RedeemPayload
 import jp.co.soramitsu.staking.impl.scenarios.StakingPoolInteractor
 import jp.co.soramitsu.staking.impl.scenarios.parachain.StakingParachainScenarioInteractor
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenarioInteractor
-import jp.co.soramitsu.wallet.impl.domain.interfaces.QuickInputsUseCase
-import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
 import jp.co.soramitsu.wallet.impl.presentation.model.ControllerDeprecationWarningModel
 import jp.co.soramitsu.wallet.impl.presentation.model.toModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -86,7 +82,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 private const val CURRENT_ICON_SIZE = 40
@@ -109,8 +104,7 @@ class StakingViewModel @Inject constructor(
     private val stakingPoolSharedStateProvider: StakingPoolSharedStateProvider,
     private val stakingParachainStoriesDataSourceImpl: ParachainStakingStoriesDataSourceImpl,
     private val stakingStoriesDataSourceImpl: StakingStoriesDataSourceImpl,
-    private val setupStakingInteractor: SetupStakingInteractor,
-    private val quickInputsUseCase: QuickInputsUseCase
+    private val setupStakingInteractor: SetupStakingInteractor
 ) : BaseViewModel(),
     BaseStakingViewModel,
     Validatable by validationExecutor {
@@ -142,8 +136,8 @@ class StakingViewModel @Inject constructor(
     private val _showRewardEstimationEvent = MutableLiveData<Event<StakingRewardEstimationBottomSheet.Payload>>()
     val showRewardEstimationEvent: LiveData<Event<StakingRewardEstimationBottomSheet.Payload>> = _showRewardEstimationEvent
 
-    private val _enteredAmountEvent = MutableSharedFlow<Event<BigDecimal>>()
-    override val enteredAmountEvent: Flow<Event<BigDecimal>> = _enteredAmountEvent
+    private val _enteredAmountEvent = MutableLiveData<Event<String>>()
+    val enteredAmountEvent: LiveData<Event<String>> = _enteredAmountEvent
 
     private val scenarioViewModelFlow = stakingSharedState.selectionItem
         .onEach {
@@ -217,7 +211,6 @@ class StakingViewModel @Inject constructor(
         )
     }.debounce(50).stateIn(scope = this, started = SharingStarted.Eagerly, initialValue = null)
 
-    private val quickInputsStateFlow = MutableStateFlow<Map<Double, BigDecimal>?>(null)
     init {
         stakingUpdateSystem.start()
             .launchIn(this)
@@ -248,31 +241,6 @@ class StakingViewModel @Inject constructor(
                     }
                 )
             }
-        }.launchIn(viewModelScope)
-
-        combine(
-            stakingSharedState.selectionItem,
-            stakingSharedState.currentAssetFlow()
-        ) { selectionItem, asset ->
-            val quickInputs = quickInputsUseCase.calculateStakingQuickInputs(
-                selectionItem.chainId,
-                selectionItem.chainAssetId,
-                calculateAvailableAmount = {
-                    asset.availableForStaking
-                },
-                calculateFee = {
-                    when (selectionItem.type) {
-                        StakingType.PARACHAIN -> {
-                            setupStakingInteractor.estimateParachainFee()
-                        }
-                        else -> {
-                            interactor.getSelectedAccountProjection()?.address?.let { address ->
-                                setupStakingInteractor.estimateMaxSetupStakingFee(address)
-                            }.orZero()
-                        }
-                    }
-                })
-            quickInputsStateFlow.update { quickInputs }
         }.launchIn(viewModelScope)
     }
 
@@ -437,9 +405,35 @@ class StakingViewModel @Inject constructor(
 
     fun onQuickAmountInput(input: Double) {
         launch {
-            val valuesMap = quickInputsStateFlow.first { !it.isNullOrEmpty() }.cast<Map<Double, BigDecimal>>()
-            val amount = valuesMap[input] ?: return@launch
-            _enteredAmountEvent.emit(Event(amount))
+            val stakingType = stakingSharedState.selectionItem.first().type
+
+            val fee = if (stakingType == StakingType.PARACHAIN) {
+                setupStakingInteractor.estimateParachainFee()
+            } else {
+                interactor.getSelectedAccountProjection()?.address?.let { address ->
+                    setupStakingInteractor.estimateMaxSetupStakingFee(address)
+                }.orZero()
+            }
+
+            val asset = stakingSharedState.currentAssetFlow().first()
+            val utilityFeeReserve = asset.token.configuration.amountFromPlanks(fee)
+            val availableAmount = asset.availableForStaking
+
+            val value = when {
+                availableAmount < utilityFeeReserve -> {
+                    BigDecimal.ZERO
+                }
+
+                availableAmount * input.toBigDecimal() < availableAmount - utilityFeeReserve -> {
+                    availableAmount * input.toBigDecimal()
+                }
+
+                else -> {
+                    availableAmount - utilityFeeReserve
+                }
+            }
+
+            _enteredAmountEvent.value = Event(value.formatCrypto())
         }
     }
 }

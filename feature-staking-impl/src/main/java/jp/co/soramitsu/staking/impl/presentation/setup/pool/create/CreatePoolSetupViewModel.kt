@@ -4,7 +4,6 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.math.BigDecimal
 import java.math.BigInteger
-import java.math.RoundingMode
 import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -14,7 +13,6 @@ import jp.co.soramitsu.common.compose.component.FeeInfoViewState
 import jp.co.soramitsu.common.compose.component.TextInputViewState
 import jp.co.soramitsu.common.navigation.payload.WalletSelectorPayload
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.common.utils.MAX_DECIMALS_8
 import jp.co.soramitsu.common.utils.applyFiatRate
 import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.common.utils.formatCrypto
@@ -33,7 +31,6 @@ import jp.co.soramitsu.staking.impl.presentation.StakingRouter
 import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSharedStateProvider
 import jp.co.soramitsu.staking.impl.scenarios.StakingPoolInteractor
 import jp.co.soramitsu.wallet.api.presentation.formatters.formatCryptoDetailFromPlanks
-import jp.co.soramitsu.wallet.impl.domain.interfaces.QuickInputsUseCase
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
@@ -52,8 +49,7 @@ class CreatePoolSetupViewModel @Inject constructor(
     private val stakingPoolSharedStateProvider: StakingPoolSharedStateProvider,
     private val poolInteractor: StakingPoolInteractor,
     private val stakingInteractor: StakingInteractor,
-    private val router: StakingRouter,
-    private val quickInputsUseCase: QuickInputsUseCase
+    private val router: StakingRouter
 ) : BaseViewModel(), CreatePoolSetupScreenInterface {
 
     companion object {
@@ -66,7 +62,6 @@ class CreatePoolSetupViewModel @Inject constructor(
     private val accountId: AccountId
     private val chain: Chain
     private val initialAmount: BigDecimal
-    private var quickInputs: Map<Double, BigDecimal> = mapOf()
 
     init {
         val mainState = stakingPoolSharedStateProvider.requireMainState
@@ -76,23 +71,6 @@ class CreatePoolSetupViewModel @Inject constructor(
         accountId = mainState.accountId
         chain = mainState.requireChain
         initialAmount = mainState.requireAmount
-
-        viewModelScope.launch {
-            quickInputs = quickInputsUseCase.calculateStakingQuickInputs(
-                chain.id,
-                asset.token.configuration.id,
-                calculateAvailableAmount = { asset.transferable },
-                calculateFee = {
-                    poolInteractor.estimateCreateFee(
-                        512.toBigInteger(),
-                        this@CreatePoolSetupViewModel.javaClass.name,
-                        it,
-                        address,
-                        address,
-                        address
-                    )
-                })
-        }
     }
 
     private val defaultPoolNameInputState = TextInputViewState("", resourceManager.getString(R.string.pool_staking_pool_name))
@@ -128,7 +106,8 @@ class CreatePoolSetupViewModel @Inject constructor(
             tokenImage = asset.token.configuration.iconUrl,
             totalBalance = resourceManager.getString(R.string.common_balance_format, tokenBalance),
             fiatAmount = fiatAmount,
-            tokenAmount = amount
+            tokenAmount = amount,
+            precision = asset.token.configuration.precision
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, defaultAmountInputState)
 
@@ -273,13 +252,6 @@ class CreatePoolSetupViewModel @Inject constructor(
                 )
             }
             router.openCreatePoolConfirm()
-        }
-    }
-
-    override fun onQuickAmountInput(value: Double) {
-        viewModelScope.launch {
-            val amount = quickInputs[value] ?: return@launch
-            enteredAmountFlow.value  = amount.setScale(MAX_DECIMALS_8, RoundingMode.HALF_DOWN)
         }
     }
 

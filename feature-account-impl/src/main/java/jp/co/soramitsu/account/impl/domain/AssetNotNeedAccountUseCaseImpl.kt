@@ -3,7 +3,6 @@ package jp.co.soramitsu.account.impl.domain
 import jp.co.soramitsu.account.api.domain.interfaces.AssetNotNeedAccountUseCase
 import jp.co.soramitsu.common.domain.SelectedFiat
 import jp.co.soramitsu.common.model.AssetKey
-import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.coredb.dao.AssetDao
 import jp.co.soramitsu.coredb.dao.TokenPriceDao
 import jp.co.soramitsu.coredb.dao.emptyAccountIdValue
@@ -23,8 +22,7 @@ class AssetNotNeedAccountUseCaseImpl(
     override suspend fun markChainAssetsNotNeed(chainId: ChainId, metaId: Long) {
         val chainAssets = chainRegistry.getChain(chainId).assets
         chainAssets.forEach {
-            // todo make better way to check that we support price provider
-            val priceId = it.priceProvider?.takeIf { selectedFiat.isUsd() && it.type == Asset.PriceProviderType.Chainlink}?.id ?: it.priceId
+            val priceId = it.priceProvider?.id?.takeIf { selectedFiat.isUsd() } ?: it.priceId
             updateAssetNotNeed(metaId, chainId, it.id, priceId)
         }
     }

@@ -9,22 +9,18 @@ import java.math.BigDecimal
 import javax.inject.Inject
 import javax.inject.Named
 import jp.co.soramitsu.common.base.BaseViewModel
-import jp.co.soramitsu.common.data.network.runtime.binding.cast
 import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.applyFiatRate
 import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.common.utils.formatCrypto
-import jp.co.soramitsu.common.utils.formatCryptoDetail
 import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.inBackground
-import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.requireException
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.common.validation.progressConsumer
 import jp.co.soramitsu.core.utils.amountFromPlanks
 import jp.co.soramitsu.feature_staking_impl.R
-import jp.co.soramitsu.staking.api.data.StakingType
 import jp.co.soramitsu.staking.impl.domain.StakingInteractor
 import jp.co.soramitsu.staking.impl.domain.staking.bond.BondMoreInteractor
 import jp.co.soramitsu.staking.impl.domain.validations.bond.BondMoreValidationPayload
@@ -34,7 +30,6 @@ import jp.co.soramitsu.staking.impl.presentation.staking.bond.confirm.ConfirmBon
 import jp.co.soramitsu.staking.impl.scenarios.StakingScenarioInteractor
 import jp.co.soramitsu.wallet.api.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.wallet.api.presentation.mixin.fee.FeeLoaderMixin
-import jp.co.soramitsu.wallet.impl.domain.interfaces.QuickInputsUseCase
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
@@ -62,7 +57,6 @@ class SelectBondMoreViewModel @Inject constructor(
     private val resourceManager: ResourceManager,
     private val validationExecutor: ValidationExecutor,
     @Named("StakingFeeLoader") private val feeLoaderMixin: FeeLoaderMixin.Presentation,
-    private val quickInputsUseCase: QuickInputsUseCase,
     private val savedStateHandle: SavedStateHandle
 ) : BaseViewModel(),
     Validatable by validationExecutor,
@@ -114,8 +108,6 @@ class SelectBondMoreViewModel @Inject constructor(
         .inBackground()
         .asLiveData()
 
-    private val quickInputsStateFlow = MutableStateFlow<Map<Double, BigDecimal>?>(null)
-
     init {
         listenFee()
         enteredAmountFlow.onEach { stringValue ->
@@ -124,26 +116,6 @@ class SelectBondMoreViewModel @Inject constructor(
                 stringValue.replace(",", "").toBigDecimalOrNull() ?: it
             }
         }.launchIn(viewModelScope)
-
-        assetFlow.map {
-            val quickInputs = quickInputsUseCase.calculateStakingQuickInputs(
-                it.token.configuration.chainId,
-                it.token.configuration.id,
-                calculateAvailableAmount = {
-                    stakingScenarioInteractor.getAvailableForBondMoreBalance()
-                },
-                calculateFee = { amountInPlanks ->
-                    bondMoreInteractor.estimateFee {
-                        stakingScenarioInteractor.stakeMore(
-                            this,
-                            amountInPlanks,
-                            payload.collatorAddress
-                        )
-                    }
-                }
-            )
-            quickInputsStateFlow.update { quickInputs }
-        }.launchIn(this)
     }
 
     fun nextClicked() {
@@ -253,11 +225,31 @@ class SelectBondMoreViewModel @Inject constructor(
 
     fun onQuickAmountInput(input: Double) {
         launch {
-            val valuesMap =
-                quickInputsStateFlow.first { !it.isNullOrEmpty() }.cast<Map<Double, BigDecimal>>()
-            val amount = valuesMap[input] ?: return@launch
-            enteredAmountFlow.value = amount.formatCryptoDetail()
-            decimalAmountFlow.update { amount }
+            val availableAmount = stakingScenarioInteractor.getAvailableForBondMoreBalance()
+            val asset = assetFlow.firstOrNull() ?: return@launch
+
+            val amountInPlanks = asset.token.planksFromAmount(availableAmount)
+            val fee = bondMoreInteractor.estimateFee {
+                stakingScenarioInteractor.stakeMore(this, amountInPlanks, payload.collatorAddress)
+            }
+            val utilityFeeReserve = asset.token.configuration.amountFromPlanks(fee)
+
+            val value = when {
+                availableAmount < utilityFeeReserve -> {
+                    BigDecimal.ZERO
+                }
+
+                availableAmount * input.toBigDecimal() < availableAmount - utilityFeeReserve -> {
+                    availableAmount * input.toBigDecimal()
+                }
+
+                else -> {
+                    availableAmount - utilityFeeReserve
+                }
+            }
+
+            enteredAmountFlow.emit(value.formatCrypto())
+            decimalAmountFlow.update { value }
         }
     }
 }

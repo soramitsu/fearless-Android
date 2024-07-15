@@ -4,7 +4,6 @@ import androidx.annotation.StringRes
 import androidx.lifecycle.viewModelScope
 import java.math.BigDecimal
 import java.math.BigInteger
-import java.math.RoundingMode
 import jp.co.soramitsu.common.AlertViewState
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -15,13 +14,11 @@ import jp.co.soramitsu.common.compose.component.EnterAmountViewState
 import jp.co.soramitsu.common.compose.component.FeeInfoViewState
 import jp.co.soramitsu.common.compose.component.ToolbarViewState
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.common.utils.MAX_DECIMALS_8
 import jp.co.soramitsu.common.utils.applyFiatRate
 import jp.co.soramitsu.common.utils.formatCrypto
 import jp.co.soramitsu.common.utils.formatCryptoDetail
 import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.orZero
-import jp.co.soramitsu.wallet.impl.domain.interfaces.QuickInputsUseCase
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
@@ -41,21 +38,12 @@ open class BaseEnterAmountViewModel(
     isInputActive: Boolean = true,
     protected val asset: Asset,
     private val resourceManager: ResourceManager,
-    private val quickInputsUseCase: QuickInputsUseCase? = null,
     private val feeEstimator: suspend (BigInteger) -> BigInteger,
     private val onNextStep: suspend (BigInteger) -> Unit,
     private vararg val validations: Validation,
     private val buttonValidation: (BigInteger) -> Boolean = { it != BigInteger.ZERO },
     private val availableAmountForOperation: suspend (Asset) -> BigDecimal = { it.transferable },
-    private val errorAlertPresenter: (AlertViewState) -> Unit,
-    private val quickInputsCalculator: suspend () -> Map<Double, BigDecimal> = {
-        quickInputsUseCase?.calculateStakingQuickInputs(
-            asset.token.configuration.chainId,
-            asset.token.configuration.id,
-            calculateAvailableAmount = { availableAmountForOperation(asset) },
-            calculateFee = { feeEstimator(it) })
-            ?: emptyMap()
-    }
+    private val errorAlertPresenter: (AlertViewState) -> Unit
 ) : BaseViewModel() {
 
     private val defaultAmountInputState = AmountInputViewState(
@@ -137,13 +125,6 @@ open class BaseEnterAmountViewModel(
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, defaultState)
 
-    protected var quickInputs: Map<Double, BigDecimal> = mapOf<Double, BigDecimal>()
-    init {
-        viewModelScope.launch  {
-            quickInputs = quickInputsCalculator()
-        }
-    }
-
     fun onAmountInput(amount: BigDecimal?) {
         enteredAmountFlow.value = amount.orZero()
     }
@@ -180,13 +161,6 @@ open class BaseEnterAmountViewModel(
             if (it.condition(amountInPlanks)) null else it.error
         }
         return firstError?.let { Result.failure(it) } ?: Result.success(Unit)
-    }
-
-    fun onQuickAmountInput(value: Double) {
-        viewModelScope.launch {
-            val amount = quickInputs[value] ?: return@launch
-            enteredAmountFlow.value  = amount.setScale(MAX_DECIMALS_8, RoundingMode.HALF_DOWN)
-        }
     }
 }
 

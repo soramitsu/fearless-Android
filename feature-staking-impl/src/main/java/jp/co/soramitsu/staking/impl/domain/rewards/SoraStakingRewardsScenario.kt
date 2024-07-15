@@ -3,7 +3,6 @@ package jp.co.soramitsu.staking.impl.domain.rewards
 import java.math.BigInteger
 import jp.co.soramitsu.common.domain.SelectedFiat
 import jp.co.soramitsu.common.utils.orZero
-import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.core.rpc.RpcCalls
 import jp.co.soramitsu.core.rpc.calls.liquidityProxyQuote
 import jp.co.soramitsu.coredb.dao.TokenPriceDao
@@ -41,8 +40,7 @@ class SoraStakingRewardsScenario(
     suspend fun getRewardAsset(): Token {
         val chain = chainRegistry.getChain(SORA_MAIN_NET_CHAIN_ID)
         val rewardAsset = requireNotNull(chain.assetsById[REWARD_ASSET_ID])
-        // todo make better way to check that we support price provider
-        val priceId = rewardAsset.priceProvider?.takeIf { selectedFiat.isUsd() && it.type == Asset.PriceProviderType.Chainlink }?.id ?: rewardAsset.priceId
+        val priceId = rewardAsset.priceProvider?.id?.takeIf { selectedFiat.isUsd() } ?: rewardAsset.priceId
         val requirePriceId = requireNotNull(priceId)
         val token = tokenDao.getTokenPrice(requirePriceId)
 

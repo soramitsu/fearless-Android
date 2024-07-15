@@ -29,8 +29,8 @@ class ManageAssetsFragment : BaseComposeBottomSheetDialogFragment<ManageAssetsVi
     }
 
     override fun onDismiss(dialog: DialogInterface) {
-        viewModel.onDialogClose()
         super.onDismiss(dialog)
+        viewModel.onDialogClose()
     }
     override fun setupBehavior(behavior: BottomSheetBehavior<FrameLayout>) {
         behavior.state = BottomSheetBehavior.STATE_EXPANDED

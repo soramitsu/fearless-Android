@@ -240,10 +240,11 @@ class BalanceListViewModel @Inject constructor(
         }
 
         val filteredAssets = assets.asSequence()
-            .filter { (asset, _, _) ->
-                asset.enabled != false &&
+            .filter {
+                it.asset.enabled != false &&
                         ((selectedChainId == null && filter == ChainSelectorViewStateWithFilters.Filter.All) ||
-                                asset.token.configuration.chainId == selectedChainId || filteredChains.any { it.id == asset.token.configuration.chainId })
+                                it.asset.token.configuration.chainId == selectedChainId ||
+                                it.asset.token.configuration.chainId in filteredChains.map { it.id })
             }
             .toList()
 

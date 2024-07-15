@@ -134,7 +134,9 @@ class SelectBondMoreFragment : BaseFragment<SelectBondMoreViewModel>(R.layout.fr
                 FearlessAppTheme {
                     if (isShowQuickInput) {
                         QuickInput(
-                            values = QuickAmountInput.entries.toTypedArray(),
+                            modifier = Modifier
+                                .imePadding(),
+                            values = QuickAmountInput.values(),
                             onQuickAmountInput = {
                                 hideSoftKeyboard()
                                 viewModel.onQuickAmountInput(it)

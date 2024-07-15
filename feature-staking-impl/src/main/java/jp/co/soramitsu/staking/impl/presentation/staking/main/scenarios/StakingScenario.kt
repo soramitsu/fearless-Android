@@ -1,9 +1,6 @@
 package jp.co.soramitsu.staking.impl.presentation.staking.main.scenarios
 
-import androidx.lifecycle.LiveData
-import java.math.BigDecimal
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.staking.api.data.StakingSharedState
 import jp.co.soramitsu.staking.api.data.StakingType
 import jp.co.soramitsu.staking.impl.data.repository.datasource.ParachainStakingStoriesDataSourceImpl
@@ -16,7 +13,6 @@ import jp.co.soramitsu.staking.impl.scenarios.StakingPoolInteractor
 import jp.co.soramitsu.staking.impl.scenarios.parachain.StakingParachainScenarioInteractor
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenarioInteractor
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
 class StakingScenario(
@@ -89,6 +85,4 @@ interface BaseStakingViewModel {
     fun showError(throwable: Throwable)
     fun showError(text: String)
     fun openStakingBalance(collatorAddress: String)
-
-    val enteredAmountEvent: Flow<Event<BigDecimal>>
 }

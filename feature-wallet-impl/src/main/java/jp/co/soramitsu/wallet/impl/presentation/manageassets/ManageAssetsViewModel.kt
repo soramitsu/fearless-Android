@@ -18,7 +18,6 @@ import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.core.models.ChainId
 import jp.co.soramitsu.coredb.dao.emptyAccountIdValue
 import jp.co.soramitsu.feature_wallet_impl.R
-import jp.co.soramitsu.wallet.impl.data.repository.isSupported
 import jp.co.soramitsu.wallet.impl.domain.ChainInteractor
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.domain.model.AssetWithStatus
@@ -29,7 +28,6 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 @HiltViewModel
@@ -126,7 +124,7 @@ class ManageAssetsViewModel @Inject constructor(
             }.toList()
 
             filteredChainAssets.map { chainAsset ->
-                val asset = assets.find { chainAsset.id == it.asset.token.configuration.id && chainAsset.chainId == it.asset.token.configuration.chainId }
+                val asset = assets.find { chainAsset.id == it.asset.token.configuration.id }
                 chainAsset to asset
             }.sortedWith(compareBy<Pair<jp.co.soramitsu.core.models.Asset, AssetWithStatus?>> {
                 it.second == null
@@ -142,7 +140,7 @@ class ManageAssetsViewModel @Inject constructor(
                 val (chainAsset, assetWithStatus) = it
                 val available = assetWithStatus?.asset?.transferable ?: BigDecimal.ZERO
                 val fiatAmount = assetWithStatus?.asset?.token?.fiatRate?.let { rate -> available.applyFiatRate(rate).orZero().formatFiat(assetWithStatus.asset.token.fiatSymbol) }
-                val isHidden = currentStates.find { assetBooleanState -> assetBooleanState.assetId == chainAsset.id && assetBooleanState.chainId == chainAsset.chainId }?.value == false
+                val isHidden = currentStates.find { assetBooleanState -> assetBooleanState.assetId == chainAsset.id && assetBooleanState.chainId == chainAsset.chainId}?.value == false
 
                 ManageAssetItemState(
                     id = chainAsset.id,
@@ -152,7 +150,7 @@ class ManageAssetsViewModel @Inject constructor(
                     symbol = chainAsset.symbol.uppercase(),
                     amount = available.formatCrypto(),
                     fiatAmount = fiatAmount
-                        ?: "${assetWithStatus?.asset?.token?.fiatSymbol.orEmpty()}0".takeIf { chainAsset.priceId != null || chainAsset.priceProvider?.isSupported == true},
+                        ?: "${assetWithStatus?.asset?.token?.fiatSymbol.orEmpty()}0".takeIf { chainAsset.priceId != null || chainAsset.priceProvider != null },
                     chainId = chainAsset.chainId,
                     isChecked = !isHidden,
                     isZeroAmount = available.orZero().isZero(),
@@ -177,7 +175,7 @@ class ManageAssetsViewModel @Inject constructor(
             val assets = walletInteractor.assetsFlow().firstOrNull()
             val chainAssets = chainInteractor.getChainAssets()
             val assetsStates = chainAssets.map { chainAsset ->
-                val asset = assets?.find {  it.asset.token.configuration.id == chainAsset.id && it.asset.token.configuration.chainId == chainAsset.chainId }
+                val asset = assets?.find {  it.asset.token.configuration.id == chainAsset.id}
                 val value = asset?.asset?.enabled ?: false
                 AssetBooleanState(
                     chainId = chainAsset.chainId,
@@ -201,13 +199,11 @@ class ManageAssetsViewModel @Inject constructor(
     }
 
     override fun onChecked(assetItemState: ManageAssetItemState, checked: Boolean) {
-        currentAssetStates.update {  prevState ->
-            prevState.map {
-                if (it.assetId == assetItemState.id && it.chainId == assetItemState.chainId) {
-                    it.copy(value = checked)
-                } else {
-                    it
-                }
+        currentAssetStates.value = currentAssetStates.value.map {
+            if (it.assetId == assetItemState.id && it.chainId == assetItemState.chainId) {
+                it.copy(value = checked)
+            } else {
+                it
             }
         }
     }

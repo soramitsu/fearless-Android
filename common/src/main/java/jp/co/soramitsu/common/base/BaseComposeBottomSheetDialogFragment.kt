@@ -1,7 +1,6 @@
 package jp.co.soramitsu.common.base
 
 import android.annotation.SuppressLint
-import android.graphics.Rect
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -83,15 +82,6 @@ abstract class BaseComposeBottomSheetDialogFragment<T : BaseViewModel> : BottomS
                 onBackClick = errorDialogState.onBackClick,
                 isHideable = errorDialogState.isHideable
             )
-        }
-        view.viewTreeObserver.addOnGlobalLayoutListener {
-            val r = Rect()
-            // r will be populated with the coordinates of your view that area still visible.
-            view.getWindowVisibleDisplayFrame(r)
-            val heightDiff: Int = view.rootView.height - (r.bottom - r.top)
-
-            // if more than 100 pixels, its probably a keyboard...
-            viewModel.isSoftKeyboardOpenFlow.value = heightDiff > 500
         }
     }
 

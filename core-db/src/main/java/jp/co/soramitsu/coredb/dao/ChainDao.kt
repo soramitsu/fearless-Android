@@ -71,9 +71,10 @@ abstract class ChainDao {
         explorersToRemove: List<ChainExplorerLocal>
     ) {
         insertChainExplorers(explorersToAdd)
-        updateChainExplorers(explorersToUpdate)
-        deleteChainExplorers(explorersToRemove)
+        updateChainExplorers(explorersToAdd)
+        deleteChainExplorers(explorersToAdd)
     }
+
 
     @Delete
     protected abstract suspend fun deleteChains(chains: List<ChainLocal>)
