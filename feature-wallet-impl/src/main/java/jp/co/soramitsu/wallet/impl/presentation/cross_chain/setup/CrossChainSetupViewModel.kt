@@ -514,6 +514,21 @@ class CrossChainSetupViewModel @Inject constructor(
             val fee = originFeeInPlanksFlow.value
             val destinationFeeAmount = destinationFeeAmountFlow.value ?: BigDecimal.ZERO
 
+            val minLimit = xcmInteractor.getAmountMinLimit(
+                requireNotNull(originChainId),
+                requireNotNull(destinationChainId),
+                asset.token.configuration
+            )
+
+            if(amount < minLimit && minLimit != BigDecimal.ZERO) {
+                showError(
+                    title = resourceManager.getString(R.string.common_attention),
+                    message = resourceManager.getString(R.string.sora_bridge_low_amount_format_alert_2, minLimit.formatCrypto(asset.token.configuration.symbol) ),
+                    negativeButtonText = resourceManager.getString(R.string.common_cancel)
+                )
+                return@launch
+            }
+
             val destinationChainId = chainAssetsManager.destinationChainId ?: return@launch
             val validationProcessResult = validateTransferUseCase(
                 amountInPlanks = inPlanks,
