@@ -151,6 +151,9 @@ class XcmInteractor(
         }.getOrNull()
     }
 
+    suspend fun getAmountMinLimit(originChainId: ChainId, destinationChainId: ChainId, asset: Asset) =
+        xcmService.getAmountMinLimit(originChainId, destinationChainId, asset)
+
     private fun Asset.getPlanksFromAmountForOriginFee(amount: BigDecimal): BigInteger {
         val rawAmountInPlanks = planksFromAmount(amount)
         if (rawAmountInPlanks == BigInteger.ZERO) {
