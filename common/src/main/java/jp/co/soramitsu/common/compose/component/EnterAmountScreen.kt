@@ -23,12 +23,13 @@ data class EnterAmountViewState(
     val buttonState: ButtonViewState
 )
 
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun EnterAmountScreen(
     state: EnterAmountViewState,
+    isSoftKeyboardOpen: Boolean = false,
     onNavigationClick: () -> Unit,
     onAmountInput: (BigDecimal?) -> Unit,
+    onQuickAmountInput: ((Double) -> Unit)? = null,
     onNextClick: () -> Unit
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -56,6 +57,15 @@ fun EnterAmountScreen(
                     .height(48.dp)
             )
             MarginVertical(margin = 16.dp)
+            if (onQuickAmountInput != null && isSoftKeyboardOpen) {
+                QuickInput(
+                    values = QuickAmountInput.entries.toTypedArray(),
+                    onQuickAmountInput = {
+                        keyboardController?.hide()
+                        onQuickAmountInput(it)
+                    }
+                )
+            }
         }
     }
 }
@@ -82,7 +92,7 @@ private fun EnterAmountScreenPreview() {
     )
     FearlessTheme {
         BottomSheetScreen {
-            EnterAmountScreen(state, {}, {}, {})
+            EnterAmountScreen(state, false, {}, {}, {}, {})
         }
     }
 }

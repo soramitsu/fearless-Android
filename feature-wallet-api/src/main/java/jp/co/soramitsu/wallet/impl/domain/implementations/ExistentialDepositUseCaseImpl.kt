@@ -23,16 +23,18 @@ import jp.co.soramitsu.shared_utils.runtime.metadata.module
 import jp.co.soramitsu.shared_utils.runtime.metadata.storage
 import jp.co.soramitsu.shared_utils.runtime.metadata.storageKey
 import jp.co.soramitsu.wallet.api.domain.ExistentialDepositUseCase
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 class ExistentialDepositUseCaseImpl(
     private val chainRegistry: ChainRegistry,
     private val rpcCalls: RpcCalls,
     private val remoteStorage: StorageDataSource
 ) : ExistentialDepositUseCase {
-    override suspend fun invoke(chainAsset: Asset): BigInteger {
+    override suspend fun invoke(chainAsset: Asset): BigInteger = withContext(Dispatchers.Default) {
         val chainAssetExistentialDeposit = chainAsset.existentialDeposit?.toBigInteger()
         if (chainAssetExistentialDeposit != null && chainAsset.type != ChainAssetType.Equilibrium) {
-            return chainAssetExistentialDeposit
+            return@withContext chainAssetExistentialDeposit
         }
 
         val chainId = chainAsset.chainId
@@ -66,7 +68,7 @@ class ExistentialDepositUseCaseImpl(
                 ChainAssetType.VSToken,
                 ChainAssetType.Token2,
                 ChainAssetType.Stable -> {
-                    val assetIdentifier = getExistentialDepositRpcArgument(chainAsset) ?: return BigInteger.ZERO
+                    val assetIdentifier = getExistentialDepositRpcArgument(chainAsset) ?: return@withContext BigInteger.ZERO
                     rpcCalls.getExistentialDeposit(chainId, assetIdentifier)
                 }
 
@@ -74,7 +76,7 @@ class ExistentialDepositUseCaseImpl(
             }
         }
 
-        return existentialDepositResult.fold({
+        return@withContext existentialDepositResult.fold({
             it
         }, {
             Log.e("ExistentialDepositUseCaseImpl", "ExistentialDepositUseCaseImpl error: ${it.localizedMessage ?: it.message ?: it.toString()}")
