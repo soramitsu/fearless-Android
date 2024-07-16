@@ -11,7 +11,6 @@ import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.polkaswap.api.domain.PolkaswapInteractor
 import jp.co.soramitsu.polkaswap.api.models.Market
 import jp.co.soramitsu.polkaswap.api.models.WithDesired
-import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.wallet.api.domain.ExistentialDepositUseCase
@@ -164,7 +163,7 @@ class QuickInputsUseCaseImpl(
                     destinationNetworkId = destinationChainId,
                     asset = asset.token.configuration,
                     amount = transferable * input.toBigDecimal() + destinationFee
-                ) ?: BigDecimal.ZERO
+                ).takeIf { chainAsset.isUtility } ?: BigDecimal.ZERO
 
                 val quickAmountWithoutExtraPays =
                     (transferable * input.toBigDecimal()).setScale(
