@@ -11,7 +11,7 @@ buildscript {
         // SDK and tools
         compileSdkVersion = 34
         minSdkVersion = 24
-        targetSdkVersion = 33
+        targetSdkVersion = 34
 
         composeCompilerVersion = '1.5.11'
 
