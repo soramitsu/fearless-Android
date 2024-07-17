@@ -21,7 +21,7 @@ import jp.co.soramitsu.polkaswap.api.domain.PolkaswapInteractor
 import jp.co.soramitsu.polkaswap.api.models.Market
 import jp.co.soramitsu.polkaswap.api.models.WithDesired
 import jp.co.soramitsu.runtime.ext.accountIdOf
-import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.bokoloCashTokenId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.kusamaChainId
@@ -40,7 +40,7 @@ import jp.co.soramitsu.wallet.impl.presentation.send.confirm.FEE_RESERVE_TOLERAN
 class ValidateTransferUseCaseImpl(
     private val existentialDepositUseCase: ExistentialDepositUseCase,
     private val walletConstants: WalletConstants,
-    private val chainRegistry: ChainRegistry,
+    private val chainsRepository: ChainsRepository,
     private val accountRepository: AccountRepository,
     private val walletRepository: WalletRepository,
     private val polkaswapInteractor: PolkaswapInteractor
@@ -61,7 +61,7 @@ class ValidateTransferUseCaseImpl(
 
         originFee ?: return Result.success(TransferValidationResult.WaitForFee)
         val originChainId = originAsset.token.configuration.chainId
-        val originChain = chainRegistry.getChain(originChainId)
+        val originChain = chainsRepository.getChain(originChainId)
         val originAssetConfig = originAsset.token.configuration
         val originTransferable = originAsset.transferableInPlanks
         val originAvailable = originAsset.sendAvailableInPlanks
@@ -75,7 +75,7 @@ class ValidateTransferUseCaseImpl(
 
         val isCrossChainTransfer = originChainId != destinationChainId
 
-        val destinationChain = if (isCrossChainTransfer) chainRegistry.getChain(destinationChainId) else originChain
+        val destinationChain = if (isCrossChainTransfer) chainsRepository.getChain(destinationChainId) else originChain
         val destinationAssetConfig = if (isCrossChainTransfer) destinationChain.assets.firstOrNull { it.symbol.removedXcPrefix() == originAssetConfig.symbol.removedXcPrefix() } else originAssetConfig
 
         val validateAddressResult = kotlin.runCatching { destinationChain.isValidAddress(destinationAddress) }
@@ -315,7 +315,7 @@ class ValidateTransferUseCaseImpl(
         confirmedValidations: List<TransferValidationResult>
     ): Result<TransferValidationResult> = kotlin.runCatching {
         val originChainId = originAsset.token.configuration.chainId
-        val originChain = chainRegistry.getChain(originChainId)
+        val originChain = chainsRepository.getChain(originChainId)
         val originAssetConfig = originAsset.token.configuration
         val transferable = originAsset.transferableInPlanks
         val originExistentialDeposit = existentialDepositUseCase(originAssetConfig)
@@ -323,7 +323,7 @@ class ValidateTransferUseCaseImpl(
         val tip = if (originAssetConfig.isUtility) walletConstants.tip(originChainId).orZero() else BigInteger.ZERO
         val amountDecimal = originAssetConfig.amountFromPlanks(amountInPlanks).orZero()
 
-        val destinationChain = chainRegistry.getChain(destinationChainId)
+        val destinationChain = chainsRepository.getChain(destinationChainId)
         val destinationAsset = destinationChain.assets.firstOrNull { it.symbol == originAsset.token.configuration.symbol }
         val destinationExistentialDeposit = existentialDepositUseCase(destinationAsset ?: originAssetConfig)
         val destinationExistentialDepositDecimal = destinationAsset?.amountFromPlanks(destinationExistentialDeposit).orZero()
