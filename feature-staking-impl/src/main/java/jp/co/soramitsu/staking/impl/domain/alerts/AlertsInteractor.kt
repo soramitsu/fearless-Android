@@ -1,27 +1,28 @@
 package jp.co.soramitsu.staking.impl.domain.alerts
 
+import java.math.BigDecimal
+import java.math.BigInteger
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.common.utils.orZero
+import jp.co.soramitsu.shared_utils.extensions.fromHex
+import jp.co.soramitsu.shared_utils.extensions.toHexString
 import jp.co.soramitsu.shared_utils.runtime.AccountId
 import jp.co.soramitsu.staking.api.data.StakingSharedState
+import jp.co.soramitsu.staking.api.domain.model.LegacyExposure
 import jp.co.soramitsu.staking.api.domain.model.StakingState
 import jp.co.soramitsu.staking.impl.data.repository.StakingConstantsRepository
 import jp.co.soramitsu.staking.impl.domain.common.isWaiting
 import jp.co.soramitsu.staking.impl.domain.isNominationActive
+import jp.co.soramitsu.staking.impl.presentation.staking.main.scenarios.StakingRelaychainScenarioViewModel
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenarioRepository
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
-import java.math.BigDecimal
-import java.math.BigInteger
-import jp.co.soramitsu.shared_utils.extensions.fromHex
-import jp.co.soramitsu.shared_utils.extensions.toHexString
-import jp.co.soramitsu.staking.api.domain.model.LegacyExposure
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import jp.co.soramitsu.core.models.Asset as CoreAsset
 
 private const val NOMINATIONS_ACTIVE_MEMO = "NOMINATIONS_ACTIVE_MEMO"
@@ -118,7 +119,7 @@ class AlertsInteractor(
                     // prevent alert for situation where all tokens are being unbounded
                     asset.bondedInPlanks.orZero() > BigInteger.ZERO
                 ) {
-                    val minimalStake = asset.token.amountFromPlanks(minimalStakeInPlanks)
+                    val minimalStake = asset.token.amountFromPlanks(minimalStakeInPlanks) * BigDecimal(StakingRelaychainScenarioViewModel.STAKE_EXTRA_MULTIPLIER)
 
                     Alert.BondMoreTokens(minimalStake, asset.token)
                 } else {
