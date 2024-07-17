@@ -145,12 +145,18 @@ class StakingRelayChainScenarioInteractor(
                             stakingRelayChainScenarioRepository.minimumNominatorBond(it)
                         }.orZero()
 
+                        val minActiveStake = stakingRelayChainScenarioRepository.minimumActiveStake(chain.id)
+                            ?: exposures.minOf { exposure -> exposure.others.minOf { it.value } }
+
+                        val minimalStakeInPlanks =
+                            minActiveStake.coerceAtLeast(minimumNominatorBond)
+
                         NetworkInfo.RelayChain(
                             lockupPeriodInHours = lockupPeriod,
-                            minimumStake = minimumNominatorBond,
+                            minimumStake = minimalStakeInPlanks,
                             totalStake = totalStake(exposures),
                             nominatorsCount = activeNominators(chain.id, exposures),
-                            shouldUseMinimumStakeMultiplier = stakingConstantsRepository.maxRewardedNominatorPerValidator(chain.id) != null
+                            shouldUseMinimumStakeMultiplier = true
                         )
                     }
             }
