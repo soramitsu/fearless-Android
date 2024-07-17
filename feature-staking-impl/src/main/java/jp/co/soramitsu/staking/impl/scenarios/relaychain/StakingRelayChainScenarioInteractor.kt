@@ -184,7 +184,7 @@ class StakingRelayChainScenarioInteractor(
     override fun stakingStateFlow(): Flow<StakingState> {
         return combine(
             stakingSharedState.assetWithChain.distinctUntilChanged(),
-            accountRepository.selectedMetaAccountFlow()
+            accountRepository.selectedMetaAccountFlow().distinctUntilChanged{ old, new -> old.id == new.id}
         ) { chainWithAsset, metaAccount ->
             chainWithAsset to metaAccount
         }.flatMapLatest { (chainWithAsset, metaAccount) ->
