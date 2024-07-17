@@ -22,7 +22,6 @@ import jp.co.soramitsu.common.compose.component.AddressInputState
 import jp.co.soramitsu.common.compose.component.AmountInputViewState
 import jp.co.soramitsu.common.compose.component.ButtonViewState
 import jp.co.soramitsu.common.compose.component.FeeInfoViewState
-import jp.co.soramitsu.common.compose.component.QuickAmountInput
 import jp.co.soramitsu.common.compose.component.SelectorState
 import jp.co.soramitsu.common.compose.component.ToolbarViewState
 import jp.co.soramitsu.common.compose.component.WarningInfoState
@@ -53,7 +52,6 @@ import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletConstants
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.PhishingType
-import jp.co.soramitsu.wallet.impl.domain.model.Transfer
 import jp.co.soramitsu.wallet.impl.domain.model.WalletAccount
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
@@ -62,7 +60,6 @@ import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.presentation.balance.walletselector.light.WalletSelectionMode
 import jp.co.soramitsu.wallet.impl.presentation.cross_chain.CrossChainTransferDraft
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -514,13 +511,13 @@ class CrossChainSetupViewModel @Inject constructor(
             val fee = originFeeInPlanksFlow.value
             val destinationFeeAmount = destinationFeeAmountFlow.value ?: BigDecimal.ZERO
 
-            val minLimit = xcmInteractor.getAmountMinLimit(
+            val minLimitInPlanks = xcmInteractor.getAmountMinLimit(
                 requireNotNull(originChainId),
                 requireNotNull(destinationChainId),
                 asset.token.configuration
             )
-
-            if(amount < minLimit && minLimit != BigDecimal.ZERO) {
+            val minLimit = minLimitInPlanks?.let { asset.token.configuration.amountFromPlanks(it) }
+            if(minLimit != null && amount < minLimit && minLimit != BigDecimal.ZERO) {
                 showError(
                     title = resourceManager.getString(R.string.common_attention),
                     message = resourceManager.getString(R.string.sora_bridge_low_amount_format_alert_2, minLimit.formatCrypto(asset.token.configuration.symbol) ),
