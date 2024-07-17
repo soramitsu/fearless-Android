@@ -534,6 +534,7 @@
   <string name="nft_collection_title">Collection</string>
   <string name="nft_creator_title">Creator</string>
   <string name="nft_list_empty_message">There aren\'t any NFTs yet. Buy or mint NFTs to see them here.</string>
+  <string name="nft_load_error">Failed to load NFTs</string>
   <string name="nft_owner_title">Owned</string>
   <string name="nft_stub_text">NFTs are going to be here soon</string>
   <string name="nft_stub_title">Sumimasen!</string>
