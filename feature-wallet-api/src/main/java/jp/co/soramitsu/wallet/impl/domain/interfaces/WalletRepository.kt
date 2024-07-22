@@ -96,7 +96,7 @@ interface WalletRepository {
     suspend fun getStashAccount(chainId: ChainId, accountId: AccountId): AccountId?
 
     suspend fun getTotalBalance(
-        chainAsset: jp.co.soramitsu.core.models.Asset,
+        chainAsset: CoreAsset,
         chain: Chain,
         accountId: ByteArray
     ): BigInteger

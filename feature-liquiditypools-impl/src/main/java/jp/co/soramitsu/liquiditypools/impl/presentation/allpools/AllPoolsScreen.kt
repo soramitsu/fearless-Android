@@ -1,6 +1,5 @@
 package jp.co.soramitsu.liquiditypools.impl.presentation.allpools
 
-import android.graphics.Paint.Align
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -13,7 +12,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -28,18 +26,14 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import jp.co.soramitsu.androidfoundation.compose.sharedViewModel
 import jp.co.soramitsu.androidfoundation.format.StringPair
 import jp.co.soramitsu.common.R.drawable
 import jp.co.soramitsu.common.compose.component.BackgroundCorneredWithBorder
@@ -47,18 +41,16 @@ import jp.co.soramitsu.common.compose.component.BottomSheetScreen
 import jp.co.soramitsu.common.compose.component.Image
 import jp.co.soramitsu.common.compose.component.NavigationIconButton
 import jp.co.soramitsu.common.compose.theme.customTypography
-import jp.co.soramitsu.common.compose.theme.red
-import jp.co.soramitsu.common.compose.theme.transparent
 import jp.co.soramitsu.common.compose.theme.white
 import jp.co.soramitsu.common.compose.theme.white08
-import jp.co.soramitsu.common.utils.clickableWithNoIndication
 import jp.co.soramitsu.feature_liquiditypools_impl.R
+import jp.co.soramitsu.liquiditypools.impl.presentation.liquidityadd.LiquidityAddScreen
+import jp.co.soramitsu.liquiditypools.impl.presentation.liquidityaddconfirm.LiquidityAddConfirmScreen
 import jp.co.soramitsu.liquiditypools.impl.presentation.pooldetails.PoolDetailsScreen
 import jp.co.soramitsu.liquiditypools.impl.presentation.poollist.PoolListScreen
 import jp.co.soramitsu.liquiditypools.navigation.LiquidityPoolsNavGraphRoute
 import jp.co.soramitsu.liquiditypools.navigation.NavAction
 import jp.co.soramitsu.ui_core.resources.Dimens
-import jp.co.soramitsu.ui_core.theme.customColors
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
@@ -73,85 +65,6 @@ interface AllPoolsScreenInterface {
     fun onMoreClick()
 }
 
-
-
-@Composable
-fun AllPoolsNavRoot(
-    viewModel: AllPoolsViewModel,
-) {
-    val navController = rememberNavController()
-    LaunchedEffect(Unit) {
-        viewModel.navGraphRoutesFlow.onEach {
-            println("!!! LaunchedEffect(Unit) { viewModel.navGraphRoutesFlow.onEach = ${it.routeName}")
-            navController.navigate(it.routeName)
-        }.launchIn(this)
-
-        viewModel.navGraphActionsFlow.onEach {
-            println("!!! LaunchedEffect(Unit) { viewModel.navGraphActionsFlow.onEach = $it")
-
-            when (it) {
-                is NavAction.BackPressed -> {
-                    val isBackNavigationSuccess = navController.popBackStack()
-
-                    val currentRoute = navController.currentDestination?.route
-                    val loadingRoute = LiquidityPoolsNavGraphRoute.Loading.routeName
-
-                    if (currentRoute == loadingRoute || !isBackNavigationSuccess) {
-                        viewModel.exitFlow()
-                    }
-                }
-            }
-        }.launchIn(this)
-    }
-
-    NavHost(
-        startDestination = LiquidityPoolsNavGraphRoute.AllPoolsScreen.routeName,
-        contentAlignment = Alignment.TopCenter,
-        navController = navController,
-        modifier = Modifier
-//            .padding(padding)
-            .fillMaxSize(),
-    ) {
-
-        composable(LiquidityPoolsNavGraphRoute.AllPoolsScreen.routeName) {
-            val allPoolsScreenState by viewModel.state.collectAsState()
-            BottomSheetScreen {
-                AllPoolsScreen(
-                    state = allPoolsScreenState,
-                    callback = viewModel
-                )
-            }
-        }
-
-        composable(LiquidityPoolsNavGraphRoute.ListPoolsScreen.routeName) {
-            val poolListState by viewModel.poolListState.collectAsState()
-            BottomSheetScreen {
-                PoolListScreen(
-                    state = poolListState,
-                    callback = viewModel
-                )
-            }
-        }
-
-        composable(LiquidityPoolsNavGraphRoute.PoolDetailsScreen.routeName) {
-            val poolDetailState by viewModel.poolDetailState.collectAsState()
-            BottomSheetScreen {
-                PoolDetailsScreen      (
-                    state = poolDetailState,
-                    callbacks = viewModel
-                )
-            }
-        }
-
-        composable(LiquidityPoolsNavGraphRoute.Loading.routeName) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) { CircularProgressIndicator() }
-        }
-
-    }
-}
 
 @Composable
 fun AllPoolsScreen(
