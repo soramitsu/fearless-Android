@@ -3,6 +3,14 @@ package jp.co.soramitsu.coredb.migrations
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
+val Migration_67_68 = object : Migration(67, 68) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("UPDATE meta_accounts SET initialized = 0")
+        db.execSQL("UPDATE chain_accounts SET initialized = 0")
+        db.execSQL("DELETE FROM assets")
+    }
+}
+
 val Migration_66_67 = object : Migration(66, 67) {
     override fun migrate(db: SupportSQLiteDatabase) {
         db.execSQL("UPDATE meta_accounts SET initialized = 0")
