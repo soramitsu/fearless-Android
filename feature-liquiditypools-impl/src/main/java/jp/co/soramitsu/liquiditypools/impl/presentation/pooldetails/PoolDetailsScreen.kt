@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Icon
@@ -22,15 +21,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.compose.component.AccentButton
-import jp.co.soramitsu.common.compose.component.BottomSheetScreen
 import jp.co.soramitsu.common.compose.component.DoubleGradientIcon
 import jp.co.soramitsu.common.compose.component.GradientIconState
 import jp.co.soramitsu.common.compose.component.GrayButton
-import jp.co.soramitsu.common.compose.component.H4Bold
 import jp.co.soramitsu.common.compose.component.InfoTable
 import jp.co.soramitsu.common.compose.component.MarginHorizontal
 import jp.co.soramitsu.common.compose.component.MarginVertical
-import jp.co.soramitsu.common.compose.component.NavigationIconButton
 import jp.co.soramitsu.common.compose.component.TitleValueViewState
 import jp.co.soramitsu.common.compose.theme.customColors
 import jp.co.soramitsu.common.compose.theme.customTypography
@@ -173,20 +169,18 @@ private fun provideGradientIconState(gradientIconData: GradientIconData?): Gradi
 @Preview
 @Composable
 private fun PreviewPoolDetailsScreen() {
-    BottomSheetScreen {
-        PoolDetailsScreen(
-            state = PoolDetailsState(
-                originTokenIcon = GradientIconData(null, null),
-                destinationTokenIcon = GradientIconData(null, null),
-                fromTokenSymbol = "XOR",
-                toTokenSymbol = "ETH",
-                apy = "23.3%",
-                tvl = "$34.999 TVL",
-            ),
-            callbacks = object : PoolDetailsCallbacks {
-                override fun onSupplyLiquidityClick() {}
-                override fun onRemoveLiquidityClick() {}
-            },
-        )
-    }
+    PoolDetailsScreen(
+        state = PoolDetailsState(
+            originTokenIcon = GradientIconData(null, null),
+            destinationTokenIcon = GradientIconData(null, null),
+            fromTokenSymbol = "XOR",
+            toTokenSymbol = "ETH",
+            apy = "23.3%",
+            tvl = "$34.999 TVL",
+        ),
+        callbacks = object : PoolDetailsCallbacks {
+            override fun onSupplyLiquidityClick() {}
+            override fun onRemoveLiquidityClick() {}
+        },
+    )
 }

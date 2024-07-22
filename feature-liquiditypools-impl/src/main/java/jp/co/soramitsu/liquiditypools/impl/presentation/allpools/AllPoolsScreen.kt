@@ -26,8 +26,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.androidfoundation.format.StringPair
 import jp.co.soramitsu.common.compose.component.BackgroundCorneredWithBorder
-import jp.co.soramitsu.common.compose.component.BottomSheetScreen
 import jp.co.soramitsu.common.compose.component.Image
+import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.theme.customTypography
 import jp.co.soramitsu.common.compose.theme.white
 import jp.co.soramitsu.common.compose.theme.white08
@@ -53,6 +53,8 @@ fun AllPoolsScreen(
         modifier = Modifier.fillMaxSize(),
     ) {
         val listState = rememberLazyListState()
+
+        MarginVertical(margin = 16.dp)
 
         BackgroundCorneredWithBorder(
             modifier = Modifier
@@ -152,17 +154,13 @@ val itemState = BasicPoolListItemState(
         itemState.copy(text1 = "TEXT1", text2 = "TEXT2", text3 = "TEXT3", text4 = "TEXT4"),
         itemState.copy(text1 = "text1", text2 = "text2", text3 = "text3", text4 = "text4"),
     )
-    Column {
-        BottomSheetScreen {
-            AllPoolsScreen(
-                state = AllPoolsState(
-                    pools = items,
-                ),
-                callback = object : AllPoolsScreenInterface {
-                    override fun onPoolClicked(pair: StringPair) {}
-                    override fun onMoreClick() {}
-                },
-            )
-        }
-    }
+    AllPoolsScreen(
+        state = AllPoolsState(
+            pools = items,
+        ),
+        callback = object : AllPoolsScreenInterface {
+            override fun onPoolClicked(pair: StringPair) {}
+            override fun onMoreClick() {}
+        },
+    )
 }

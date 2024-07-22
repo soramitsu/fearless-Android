@@ -15,7 +15,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.androidfoundation.format.StringPair
-import jp.co.soramitsu.common.compose.component.BottomSheetScreen
 import jp.co.soramitsu.common.compose.component.CorneredInput
 import jp.co.soramitsu.common.compose.theme.white04
 import jp.co.soramitsu.feature_wallet_impl.R
@@ -90,17 +89,13 @@ private fun PreviewPoolListScreen() {
         itemState.copy(text1 = "TEXT1", text2 = "TEXT2", text3 = "TEXT3", text4 = "TEXT4"),
         itemState.copy(text1 = "text1", text2 = "text2", text3 = "text3", text4 = "text4"),
     )
-    Column {
-        BottomSheetScreen {
-            PoolListScreen(
-                state = PoolListState(
-                    pools = items,
-                ),
-                callback = object : PoolListScreenInterface {
-                    override fun onPoolClicked(pair: StringPair) {}
-                    override fun onAssetSearchEntered(value: String) {}
-                },
-            )
-        }
-    }
+    PoolListScreen(
+        state = PoolListState(
+            pools = items,
+        ),
+        callback = object : PoolListScreenInterface {
+            override fun onPoolClicked(pair: StringPair) {}
+            override fun onAssetSearchEntered(value: String) {}
+        },
+    )
 }
