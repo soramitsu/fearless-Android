@@ -53,7 +53,6 @@ import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletConstants
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.PhishingType
-import jp.co.soramitsu.wallet.impl.domain.model.Transfer
 import jp.co.soramitsu.wallet.impl.domain.model.WalletAccount
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
@@ -513,6 +512,21 @@ class CrossChainSetupViewModel @Inject constructor(
             val selfAddress = currentAccountAddress(asset.token.configuration.chainId) ?: return@launch
             val fee = originFeeInPlanksFlow.value
             val destinationFeeAmount = destinationFeeAmountFlow.value ?: BigDecimal.ZERO
+
+            val minLimitInPlanks = xcmInteractor.getAmountMinLimit(
+                requireNotNull(originChainId),
+                requireNotNull(destinationChainId),
+                asset.token.configuration
+            )
+            val minLimit = minLimitInPlanks?.let { asset.token.configuration.amountFromPlanks(it) }
+            if(minLimit != null && amount < minLimit && minLimit != BigDecimal.ZERO) {
+                showError(
+                    title = resourceManager.getString(R.string.common_attention),
+                    message = resourceManager.getString(R.string.sora_bridge_low_amount_format_alert_2, minLimit.formatCrypto(asset.token.configuration.symbol) ),
+                    negativeButtonText = resourceManager.getString(R.string.common_cancel)
+                )
+                return@launch
+            }
 
             val destinationChainId = chainAssetsManager.destinationChainId ?: return@launch
             val validationProcessResult = validateTransferUseCase(

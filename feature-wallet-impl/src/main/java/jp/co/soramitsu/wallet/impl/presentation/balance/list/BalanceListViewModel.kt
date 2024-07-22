@@ -331,7 +331,7 @@ class BalanceListViewModel @Inject constructor(
                 val screenModel =
                     if (successfulCollections.isEmpty() && chainsWithFailedRequests.isNotEmpty()) {
                         withContext(Dispatchers.Main.immediate) {
-                            showError("Failed to load NFTs")
+                            showError(resourceManager.getString(R.string.nft_load_error))
                         }
 
                         ScreenModel.ReadyToRender(
@@ -342,7 +342,7 @@ class BalanceListViewModel @Inject constructor(
                     } else {
                         if (successfulCollections.isNotEmpty() && chainsWithFailedRequests.isNotEmpty()) {
                             withContext(Dispatchers.Main.immediate) {
-                                showError("Failed to load NFTs for ${chainsWithFailedRequests.joinToString(", ")}")
+                                showError("${resourceManager.getString(R.string.nft_load_error)} (${chainsWithFailedRequests.joinToString(", ")})")
                             }
                         }
 

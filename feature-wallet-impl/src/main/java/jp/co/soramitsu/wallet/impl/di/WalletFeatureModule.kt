@@ -334,14 +334,14 @@ class WalletFeatureModule {
     fun provideValidateTransferUseCase(
         existentialDepositUseCase: ExistentialDepositUseCase,
         walletConstants: WalletConstants,
-        chainRegistry: ChainRegistry,
+        chainsRepository: ChainsRepository,
         accountRepository: AccountRepository,
         walletRepository: WalletRepository,
         polkaswapInteractor: PolkaswapInteractor
     ): ValidateTransferUseCase = ValidateTransferUseCaseImpl(
         existentialDepositUseCase,
         walletConstants,
-        chainRegistry,
+        chainsRepository,
         accountRepository,
         walletRepository,
         polkaswapInteractor
