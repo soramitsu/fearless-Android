@@ -6,6 +6,7 @@ import jp.co.soramitsu.androidfoundation.format.StringPair
 import jp.co.soramitsu.liquiditypools.navigation.InternalPoolsRouter
 import jp.co.soramitsu.liquiditypools.navigation.LiquidityPoolsNavGraphRoute
 import jp.co.soramitsu.liquiditypools.navigation.NavAction
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -29,8 +30,8 @@ class InternalPoolsRouterImpl: InternalPoolsRouter {
         mutableActionsFlow.tryEmit(NavAction.BackPressed)
     }
 
-    override fun openAllPoolsScreen() {
-        mutableRoutesFlow.tryEmit(LiquidityPoolsNavGraphRoute.AllPoolsScreen())
+    override fun openAllPoolsScreen(chainId: ChainId) {
+        mutableRoutesFlow.tryEmit(LiquidityPoolsNavGraphRoute.AllPoolsScreen(chainId))
     }
 
     override fun openDetailsPoolScreen(ids: StringPair) {

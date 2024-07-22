@@ -99,6 +99,6 @@ interface PolkaswapRepository {
         pairEnabled: Boolean,
         pairPresented: Boolean,
         slippageTolerance: Double
-    ): Pair<String, String>?
+    ): Result<String>?
 
 }

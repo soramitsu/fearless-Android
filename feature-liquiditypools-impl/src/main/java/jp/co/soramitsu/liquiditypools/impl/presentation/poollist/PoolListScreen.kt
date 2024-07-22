@@ -1,9 +1,7 @@
 package jp.co.soramitsu.liquiditypools.impl.presentation.poollist
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
@@ -14,14 +12,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.androidfoundation.format.StringPair
 import jp.co.soramitsu.common.compose.component.BottomSheetScreen
 import jp.co.soramitsu.common.compose.component.CorneredInput
-import jp.co.soramitsu.common.compose.component.H4Bold
-import jp.co.soramitsu.common.compose.component.NavigationIconButton
 import jp.co.soramitsu.common.compose.theme.white04
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.liquiditypools.impl.presentation.allpools.BasicPoolListItem
@@ -35,8 +30,6 @@ data class PoolListState(
 
 interface PoolListScreenInterface {
     fun onPoolClicked(pair: StringPair)
-    fun onNavigationClick()
-    fun onCloseClick()
     fun onAssetSearchEntered(value: String)
 
 }
@@ -49,8 +42,6 @@ fun PoolListScreen(
     Column(
         modifier = Modifier.fillMaxSize(),
     ) {
-        Toolbar(callback)
-
         Box(
             contentAlignment = Alignment.CenterStart,
             modifier = Modifier.padding(horizontal = 16.dp)
@@ -81,36 +72,6 @@ fun PoolListScreen(
     }
 }
 
-@Composable
-private fun Toolbar(callback: PoolListScreenInterface) {
-    Row(
-        modifier = Modifier
-            .wrapContentHeight()
-            .padding(bottom = 12.dp)
-    ) {
-        NavigationIconButton(
-            modifier = Modifier.padding(start = 16.dp),
-            onNavigationClick = callback::onNavigationClick
-        )
-
-        H4Bold(
-            modifier = Modifier
-                .weight(1f)
-                .align(Alignment.CenterVertically),
-            text = "Your pools",
-            textAlign = TextAlign.Center
-        )
-
-        NavigationIconButton(
-            modifier = Modifier
-                .align(Alignment.Top)
-                .padding(end = 16.dp),
-            navigationIconResId = jp.co.soramitsu.common.R.drawable.ic_cross_32,
-            onNavigationClick = callback::onCloseClick
-        )
-    }
-}
-
 @Preview
 @Composable
 private fun PreviewPoolListScreen() {
@@ -137,8 +98,6 @@ private fun PreviewPoolListScreen() {
                 ),
                 callback = object : PoolListScreenInterface {
                     override fun onPoolClicked(pair: StringPair) {}
-                    override fun onNavigationClick() {}
-                    override fun onCloseClick() {}
                     override fun onAssetSearchEntered(value: String) {}
                 },
             )

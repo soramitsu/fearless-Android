@@ -19,13 +19,13 @@ class ValidateAddLiquidityUseCase @Inject constructor() {
         feeAmount: BigDecimal
     ): Result<TransferValidationResult> {
         return runCatching {
-            val isEnoughAmountFrom = amountFrom < assetFrom.asset.total.orZero() + feeAmount.takeIf {
+            val isEnoughAmountFrom = amountFrom + feeAmount.takeIf {
                 assetFrom.asset.token.configuration.id == utilityAssetId
-            }.orZero()
+            }.orZero() < assetFrom.asset.total.orZero()
 
-            val isEnoughAmountTo = amountTo < assetTo.asset.total.orZero() + feeAmount.takeIf {
+            val isEnoughAmountTo = amountTo + feeAmount.takeIf {
                 assetTo.asset.token.configuration.id == utilityAssetId
-            }.orZero()
+            }.orZero() < assetTo.asset.total.orZero()
 
             val isEnoughAmountFee = if (utilityAssetId in listOf(assetFrom.asset.token.configuration.id, assetTo.asset.token.configuration.id)) {
                 true
