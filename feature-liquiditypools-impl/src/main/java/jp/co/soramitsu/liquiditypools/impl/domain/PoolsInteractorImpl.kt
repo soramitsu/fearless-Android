@@ -149,6 +149,6 @@ class PoolsInteractorImpl(
 //                )
 //            )
         }
-        return status?.first ?: ""
+        return status?.getOrNull() ?: ""
     }
 }

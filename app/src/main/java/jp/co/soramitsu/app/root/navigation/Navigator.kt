@@ -72,6 +72,7 @@ import jp.co.soramitsu.crowdloan.impl.presentation.contribute.custom.CustomContr
 import jp.co.soramitsu.crowdloan.impl.presentation.contribute.custom.model.CustomContributePayload
 import jp.co.soramitsu.crowdloan.impl.presentation.contribute.select.CrowdloanContributeFragment
 import jp.co.soramitsu.crowdloan.impl.presentation.contribute.select.parcel.ContributePayload
+import jp.co.soramitsu.liquiditypools.impl.presentation.allpools.PoolsFlowFragment
 import jp.co.soramitsu.liquiditypools.navigation.LiquidityPoolsRouter
 import jp.co.soramitsu.nft.impl.presentation.NFTFlowFragment
 import jp.co.soramitsu.nft.navigation.NFTRouter
@@ -177,7 +178,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
@@ -1516,6 +1516,7 @@ class Navigator :
     }
 
     override fun openPools(chainId: ChainId) {
-        navController?.navigate(R.id.allPoolsFragment)
+        val bundle = PoolsFlowFragment.getBundle(chainId)
+        navController?.navigate(R.id.poolsFlowFragment, bundle)
     }
 }

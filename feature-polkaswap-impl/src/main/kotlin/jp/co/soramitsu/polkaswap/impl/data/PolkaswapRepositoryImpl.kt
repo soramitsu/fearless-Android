@@ -871,17 +871,23 @@ class PolkaswapRepositoryImpl @Inject constructor(
         pairEnabled: Boolean,
         pairPresented: Boolean,
         slippageTolerance: Double
-    ): Pair<String, String>? {
+    ): Result<String>? {
+//    ): Pair<String, String>? {
         val amountFromMin = PolkaswapFormulas.calculateMinAmount(amountFrom, slippageTolerance)
         val amountToMin = PolkaswapFormulas.calculateMinAmount(amountTo, slippageTolerance)
         val dexId = getPoolBaseTokenDexId(tokenFrom.currencyId)
         val soraChain = accountRepository.getChain(soraMainChainId)
+        val accountId = accountRepository.getSelectedMetaAccount().substrateAccountId
 
         val baseTokenId = tokenFrom.currencyId
         val targetTokenId = tokenTo.currencyId
         if (baseTokenId == null || targetTokenId == null) return null
 
-        return extrinsicService.submitAndWatchExtrinsic(soraChain) {
+        return extrinsicService.submitExtrinsic(
+            chain = soraChain,
+            accountId = accountId,
+            useBatchAll = !pairPresented
+        ) {
             if (!pairPresented) {
                 if (!pairEnabled) {
                     register(

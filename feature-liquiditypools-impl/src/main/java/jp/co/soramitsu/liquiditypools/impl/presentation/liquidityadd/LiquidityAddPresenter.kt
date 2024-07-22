@@ -388,10 +388,6 @@ class LiquidityAddPresenter @Inject constructor(
         return result ?: BigDecimal.ZERO
     }
 
-    override fun onNavigationClick() {
-        internalPoolsRouter.back()
-    }
-
     private fun setButtonLoading(loading: Boolean) {
         stateFlow.value = stateFlow.value.copy(
             buttonLoading = loading

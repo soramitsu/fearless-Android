@@ -2,32 +2,22 @@ package jp.co.soramitsu.liquiditypools.impl.presentation.liquidityadd
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Icon
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import java.math.BigDecimal
@@ -36,23 +26,14 @@ import jp.co.soramitsu.common.compose.component.AmountInput
 import jp.co.soramitsu.common.compose.component.AmountInputViewState
 import jp.co.soramitsu.common.compose.component.BackgroundCorneredWithBorder
 import jp.co.soramitsu.common.compose.component.BottomSheetScreen
-import jp.co.soramitsu.common.compose.component.DoubleGradientIcon
 import jp.co.soramitsu.common.compose.component.FeeInfoViewState
-import jp.co.soramitsu.common.compose.component.GradientIconState
-import jp.co.soramitsu.common.compose.component.H4Bold
-import jp.co.soramitsu.common.compose.component.InfoTable
 import jp.co.soramitsu.common.compose.component.InfoTableItem
 import jp.co.soramitsu.common.compose.component.InfoTableItemAsset
-import jp.co.soramitsu.common.compose.component.MarginHorizontal
 import jp.co.soramitsu.common.compose.component.MarginVertical
-import jp.co.soramitsu.common.compose.component.NavigationIconButton
 import jp.co.soramitsu.common.compose.component.TitleIconValueState
 import jp.co.soramitsu.common.compose.component.TitleValueViewState
-import jp.co.soramitsu.common.compose.theme.alertYellow
 import jp.co.soramitsu.common.compose.theme.backgroundBlack
 import jp.co.soramitsu.common.compose.theme.colorAccentDark
-import jp.co.soramitsu.common.compose.theme.customColors
-import jp.co.soramitsu.common.compose.theme.customTypography
 import jp.co.soramitsu.common.compose.theme.grayButtonBackground
 import jp.co.soramitsu.common.compose.theme.white
 import jp.co.soramitsu.common.compose.theme.white08
@@ -69,8 +50,6 @@ data class LiquidityAddState(
 )
 
 interface LiquidityAddCallbacks {
-
-    fun onNavigationClick()
 
     fun onReviewClick()
 
@@ -100,8 +79,6 @@ fun LiquidityAddScreen(
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
     ) {
-        Toolbar(callbacks)
-
         Column(
             modifier = Modifier
                 .weight(1f)
@@ -199,36 +176,6 @@ fun LiquidityAddScreen(
     }
 }
 
-@Composable
-private fun Toolbar(callback: LiquidityAddCallbacks) {
-    Row(
-        modifier = Modifier
-            .wrapContentHeight()
-            .padding(bottom = 12.dp)
-    ) {
-        NavigationIconButton(
-            modifier = Modifier.padding(start = 16.dp),
-            onNavigationClick = callback::onNavigationClick
-        )
-
-        H4Bold(
-            modifier = Modifier
-                .weight(1f)
-                .align(Alignment.CenterVertically),
-            text = "Supply liquidity",
-            textAlign = TextAlign.Center
-        )
-
-        NavigationIconButton(
-            modifier = Modifier
-                .align(Alignment.Top)
-                .padding(end = 16.dp),
-            navigationIconResId = R.drawable.ic_cross_32,
-            onNavigationClick = callback::onNavigationClick
-        )
-    }
-}
-
 @Preview
 @Composable
 private fun PreviewLiquidityAddScreen() {
@@ -242,7 +189,6 @@ private fun PreviewLiquidityAddScreen() {
                 slippage = "0.5%"
             ),
             callbacks = object : LiquidityAddCallbacks {
-                override fun onNavigationClick() {}
                 override fun onReviewClick() {}
                 override fun onFromAmountChange(amount: BigDecimal) {}
                 override fun onFromAmountFocusChange(isFocused: Boolean) {}

@@ -198,13 +198,9 @@ class LiquidityAddConfirmPresenter @Inject constructor(
         return result ?: BigDecimal.ZERO
     }
 
-    override fun onNavigationClick() {
-        internalPoolsRouter.back()
-    }
-
     override fun onConfirmClick() {
         println("!!! LiquidityAddConfirm onConfirmClick")
-        coroutinesStore.uiScope.launch {
+        coroutinesStore.ioScope.launch {
             val tokenFrom = tokensInPoolFlow.firstOrNull()?.first?.configuration ?: return@launch
             val tokento = tokensInPoolFlow.firstOrNull()?.second?.configuration ?: return@launch
             val amountFrom = screenArgsFlow.firstOrNull()?.amountFrom.orZero()

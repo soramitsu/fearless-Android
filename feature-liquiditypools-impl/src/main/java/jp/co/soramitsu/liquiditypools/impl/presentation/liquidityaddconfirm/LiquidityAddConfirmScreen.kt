@@ -64,8 +64,6 @@ data class LiquidityAddConfirmState(
 
 interface LiquidityAddConfirmCallbacks {
 
-    fun onNavigationClick()
-
     fun onConfirmClick()
 }
 
@@ -80,8 +78,6 @@ fun LiquidityAddConfirmScreen(
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
     ) {
-        Toolbar(callbacks)
-
         Column(
             modifier = Modifier
                 .weight(1f)
@@ -218,36 +214,6 @@ fun LiquidityAddConfirmScreen(
     }
 }
 
-@Composable
-private fun Toolbar(callback: LiquidityAddConfirmCallbacks) {
-    Row(
-        modifier = Modifier
-            .wrapContentHeight()
-            .padding(bottom = 12.dp)
-    ) {
-        NavigationIconButton(
-            modifier = Modifier.padding(start = 16.dp),
-            onNavigationClick = callback::onNavigationClick
-        )
-
-        H4Bold(
-            modifier = Modifier
-                .weight(1f)
-                .align(Alignment.CenterVertically),
-            text = "Confirm liquidity",
-            textAlign = TextAlign.Center
-        )
-
-        NavigationIconButton(
-            modifier = Modifier
-                .align(Alignment.Top)
-                .padding(end = 16.dp),
-            navigationIconResId = R.drawable.ic_cross_32,
-            onNavigationClick = callback::onNavigationClick
-        )
-    }
-}
-
 @Preview
 @Composable
 private fun PreviewLiquidityAddConfirmScreen() {
@@ -259,7 +225,6 @@ private fun PreviewLiquidityAddConfirmScreen() {
                 feeInfo = FeeInfoViewState.default,
             ),
             callbacks = object : LiquidityAddConfirmCallbacks {
-                override fun onNavigationClick() {}
                 override fun onConfirmClick() {}
             },
         )

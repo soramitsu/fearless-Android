@@ -48,8 +48,6 @@ data class PoolDetailsState(
 
 interface PoolDetailsCallbacks {
 
-    fun onNavigationClick()
-
     fun onSupplyLiquidityClick()
     fun onRemoveLiquidityClick()
 }
@@ -64,8 +62,6 @@ fun PoolDetailsScreen(
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
     ) {
-        Toolbar(callbacks)
-
         Column(
             modifier = Modifier
                 .weight(1f)
@@ -159,36 +155,6 @@ fun PoolDetailsScreen(
     }
 }
 
-@Composable
-private fun Toolbar(callback: PoolDetailsCallbacks) {
-    Row(
-        modifier = Modifier
-            .wrapContentHeight()
-            .padding(bottom = 12.dp)
-    ) {
-        NavigationIconButton(
-            modifier = Modifier.padding(start = 16.dp),
-            onNavigationClick = callback::onNavigationClick
-        )
-
-        H4Bold(
-            modifier = Modifier
-                .weight(1f)
-                .align(Alignment.CenterVertically),
-            text = "Pools details",
-            textAlign = TextAlign.Center
-        )
-
-        NavigationIconButton(
-            modifier = Modifier
-                .align(Alignment.Top)
-                .padding(end = 16.dp),
-            navigationIconResId = jp.co.soramitsu.common.R.drawable.ic_cross_32,
-            onNavigationClick = callback::onNavigationClick
-        )
-    }
-}
-
 private fun provideGradientIconState(gradientIconData: GradientIconData?): GradientIconState {
     val url = gradientIconData?.url
     return if (url == null) {
@@ -204,7 +170,7 @@ private fun provideGradientIconState(gradientIconData: GradientIconData?): Gradi
 }
 
 
-@Preview()
+@Preview
 @Composable
 private fun PreviewPoolDetailsScreen() {
     BottomSheetScreen {
@@ -218,7 +184,6 @@ private fun PreviewPoolDetailsScreen() {
                 tvl = "$34.999 TVL",
             ),
             callbacks = object : PoolDetailsCallbacks {
-                override fun onNavigationClick() {}
                 override fun onSupplyLiquidityClick() {}
                 override fun onRemoveLiquidityClick() {}
             },

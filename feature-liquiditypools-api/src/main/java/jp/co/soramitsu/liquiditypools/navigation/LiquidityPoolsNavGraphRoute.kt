@@ -12,7 +12,9 @@ sealed interface LiquidityPoolsNavGraphRoute {
         override val routeName: String = "Loading"
     }
 
-    class AllPoolsScreen: LiquidityPoolsNavGraphRoute by Companion {
+    class AllPoolsScreen(
+        chainId: ChainId
+    ): LiquidityPoolsNavGraphRoute by Companion {
         companion object : LiquidityPoolsNavGraphRoute {
             override val routeName: String = "AllPoolsScreen"
         }
