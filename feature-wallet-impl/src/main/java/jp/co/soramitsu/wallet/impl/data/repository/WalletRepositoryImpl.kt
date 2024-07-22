@@ -10,6 +10,7 @@ import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.coingecko.CoingeckoApi
 import jp.co.soramitsu.common.data.network.config.AppConfigRemote
 import jp.co.soramitsu.common.data.network.config.RemoteConfigFetcher
+import jp.co.soramitsu.common.data.network.nomis.NomisApi
 import jp.co.soramitsu.common.data.network.runtime.binding.UseCaseBinding
 import jp.co.soramitsu.common.data.network.runtime.binding.bindNumber
 import jp.co.soramitsu.common.data.network.runtime.binding.bindString
@@ -101,7 +102,8 @@ class WalletRepositoryImpl(
     private val accountRepository: AccountRepository,
     private val chainsRepository: ChainsRepository,
     private val extrinsicService: ExtrinsicService,
-    private val remoteStorageSource: StorageDataSource
+    private val remoteStorageSource: StorageDataSource,
+    private val nomisApi: NomisApi
 ) : WalletRepository, UpdatesProviderUi by updatesMixin {
 
     companion object {
@@ -550,7 +552,7 @@ class WalletRepositoryImpl(
     }
 
     override suspend fun testNomisVitalikScore(): Result<String> {
-        return kotlin.runCatching {remoteConfigFetcher.getNomisVitalikScore()}
+        return kotlin.runCatching { nomisApi.getNomisScore("0xd8da6bf26964af9d7eed9e03e53415d37aa96045") }
     }
 
     override suspend fun getControllerAccount(chainId: ChainId, accountId: AccountId): AccountId? {

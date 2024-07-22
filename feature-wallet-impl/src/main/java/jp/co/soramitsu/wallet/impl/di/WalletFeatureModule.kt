@@ -20,6 +20,7 @@ import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.network.coingecko.CoingeckoApi
 import jp.co.soramitsu.common.data.network.config.RemoteConfigFetcher
+import jp.co.soramitsu.common.data.network.nomis.NomisApi
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
 import jp.co.soramitsu.common.domain.NetworkStateService
@@ -177,7 +178,8 @@ class WalletFeatureModule {
         chainsRepository: ChainsRepository,
         extrinsicService: ExtrinsicService,
         @Named(REMOTE_STORAGE_SOURCE)
-        remoteStorageSource: StorageDataSource
+        remoteStorageSource: StorageDataSource,
+        nomisApi: NomisApi
     ): WalletRepository = WalletRepositoryImpl(
         substrateSource,
         ethereumRemoteSource,
@@ -195,7 +197,8 @@ class WalletFeatureModule {
         accountRepository,
         chainsRepository,
         extrinsicService,
-        remoteStorageSource
+        remoteStorageSource,
+        nomisApi
     )
 
     @Provides

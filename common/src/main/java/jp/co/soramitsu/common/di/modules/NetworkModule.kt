@@ -15,6 +15,7 @@ import jp.co.soramitsu.common.data.network.AndroidLogger
 import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
+import jp.co.soramitsu.common.data.network.nomis.NomisApi
 import jp.co.soramitsu.common.data.network.rpc.SocketSingleRequestExecutor
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.shared_utils.wsrpc.SocketService
@@ -25,10 +26,14 @@ import jp.co.soramitsu.shared_utils.wsrpc.request.RequestExecutor
 import okhttp3.Cache
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
+import retrofit2.converter.scalars.ScalarsConverterFactory
 
 private const val HTTP_CACHE = "http_cache"
 private const val CACHE_SIZE = 50L * 1024L * 1024L // 50 MiB
 private const val TIMEOUT_SECONDS = 60L
+private const val NOMIS_TIMEOUT_MINUTES = 5L
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -64,6 +69,34 @@ class NetworkModule {
         }
 
         return builder.build()
+    }
+
+    @Provides
+    @Singleton
+    fun provideNomisHttpClient(): NomisApi {
+        val builder = OkHttpClient.Builder()
+            .connectTimeout(NOMIS_TIMEOUT_MINUTES, TimeUnit.MINUTES)
+            .writeTimeout(NOMIS_TIMEOUT_MINUTES, TimeUnit.MINUTES)
+            .readTimeout(NOMIS_TIMEOUT_MINUTES, TimeUnit.MINUTES)
+            .addInterceptor {
+                val r = it.request().newBuilder().apply {
+                    addHeader("X-API-Key", "j9Us1Kxoo9fs3nD")
+                    addHeader("X-ClientId", "FCEB90FC-E3F9-4CF5-980E-A8111A3FFF31")
+                }.build()
+                it.proceed(r)
+            }
+            .retryOnConnectionFailure(true)
+
+        val gson = Gson()
+
+        val retrofit = Retrofit.Builder()
+            .client(builder.build())
+            .baseUrl("https://api.nomis.cc/api/v1/multichain-score/")
+            .addConverterFactory(ScalarsConverterFactory.create())
+            .addConverterFactory(GsonConverterFactory.create(gson))
+            .build()
+
+        return retrofit.create(NomisApi::class.java)
     }
 
     @Provides
