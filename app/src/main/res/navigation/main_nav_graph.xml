@@ -936,7 +936,7 @@
 
     <dialog
         android:id="@+id/poolsFlowFragment"
-        android:name="jp.co.soramitsu.liquiditypools.impl.presentation.allpools.PoolsFlowFragment"
+        android:name="jp.co.soramitsu.liquiditypools.impl.presentation.PoolsFlowFragment"
         android:label="poolsFlowFragment" />
 
     <fragment

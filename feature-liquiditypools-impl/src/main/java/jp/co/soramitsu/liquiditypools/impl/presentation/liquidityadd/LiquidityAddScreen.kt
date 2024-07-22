@@ -25,7 +25,6 @@ import jp.co.soramitsu.common.compose.component.AccentButton
 import jp.co.soramitsu.common.compose.component.AmountInput
 import jp.co.soramitsu.common.compose.component.AmountInputViewState
 import jp.co.soramitsu.common.compose.component.BackgroundCorneredWithBorder
-import jp.co.soramitsu.common.compose.component.BottomSheetScreen
 import jp.co.soramitsu.common.compose.component.FeeInfoViewState
 import jp.co.soramitsu.common.compose.component.InfoTableItem
 import jp.co.soramitsu.common.compose.component.InfoTableItemAsset
@@ -179,22 +178,20 @@ fun LiquidityAddScreen(
 @Preview
 @Composable
 private fun PreviewLiquidityAddScreen() {
-    BottomSheetScreen {
-        LiquidityAddScreen(
-            state = LiquidityAddState(
-                fromAmountInputViewState = AmountInputViewState.defaultObj,
-                toAmountInputViewState = AmountInputViewState.defaultObj,
-                apy = "23.3%",
-                feeInfo = FeeInfoViewState.default,
-                slippage = "0.5%"
-            ),
-            callbacks = object : LiquidityAddCallbacks {
-                override fun onReviewClick() {}
-                override fun onFromAmountChange(amount: BigDecimal) {}
-                override fun onFromAmountFocusChange(isFocused: Boolean) {}
-                override fun onToAmountChange(amount: BigDecimal) {}
-                override fun onToAmountFocusChange(isFocused: Boolean) {}
-            },
-        )
-    }
+    LiquidityAddScreen(
+        state = LiquidityAddState(
+            fromAmountInputViewState = AmountInputViewState.defaultObj,
+            toAmountInputViewState = AmountInputViewState.defaultObj,
+            apy = "23.3%",
+            feeInfo = FeeInfoViewState.default,
+            slippage = "0.5%"
+        ),
+        callbacks = object : LiquidityAddCallbacks {
+            override fun onReviewClick() {}
+            override fun onFromAmountChange(amount: BigDecimal) {}
+            override fun onFromAmountFocusChange(isFocused: Boolean) {}
+            override fun onToAmountChange(amount: BigDecimal) {}
+            override fun onToAmountFocusChange(isFocused: Boolean) {}
+        },
+    )
 }

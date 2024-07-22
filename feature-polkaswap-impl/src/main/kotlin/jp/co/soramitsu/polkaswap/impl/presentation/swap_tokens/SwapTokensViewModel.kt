@@ -11,6 +11,7 @@ import java.math.BigDecimal
 import java.math.BigInteger
 import java.math.RoundingMode
 import javax.inject.Inject
+import jp.co.soramitsu.common.BuildConfig
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.base.errors.ValidationException
 import jp.co.soramitsu.common.compose.component.AmountInputViewState
@@ -47,6 +48,8 @@ import jp.co.soramitsu.polkaswap.api.presentation.models.SwapDetailsViewState
 import jp.co.soramitsu.polkaswap.api.presentation.models.TransactionSettingsModel
 import jp.co.soramitsu.polkaswap.api.presentation.models.detailsToViewState
 import jp.co.soramitsu.polkaswap.impl.presentation.transaction_settings.TransactionSettingsFragment
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraTestChainId
 import jp.co.soramitsu.wallet.api.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.domain.interfaces.QuickInputsUseCase
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
@@ -729,6 +732,7 @@ class SwapTokensViewModel @Inject constructor(
     }
 
     override fun onPoolsClick() {
-        polkaswapRouter.openPools(polkaswapInteractor.polkaswapChainId)
+        val polkaswapChainId = if (BuildConfig.DEBUG) soraTestChainId else soraMainChainId
+        polkaswapRouter.openPools(polkaswapChainId)
     }
 }

@@ -4,15 +4,10 @@ import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.androidfoundation.format.StringPair
-import jp.co.soramitsu.androidfoundation.format.compareNullDesc
-import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.liquiditypools.domain.interfaces.PoolsInteractor
 import jp.co.soramitsu.liquiditypools.impl.presentation.CoroutinesStore
-import jp.co.soramitsu.liquiditypools.impl.presentation.allpools.toListItemState
 import jp.co.soramitsu.liquiditypools.navigation.InternalPoolsRouter
 import jp.co.soramitsu.liquiditypools.navigation.LiquidityPoolsNavGraphRoute
-import jp.co.soramitsu.polkaswap.api.domain.models.BasicPoolData
-import jp.co.soramitsu.polkaswap.api.domain.models.isFilterMatch
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId
 import jp.co.soramitsu.shared_utils.extensions.fromHex
@@ -22,7 +17,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.launchIn

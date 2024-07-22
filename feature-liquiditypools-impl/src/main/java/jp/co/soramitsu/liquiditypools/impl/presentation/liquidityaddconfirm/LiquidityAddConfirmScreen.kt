@@ -10,8 +10,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Icon
@@ -32,14 +30,11 @@ import coil.compose.AsyncImage
 import jp.co.soramitsu.common.compose.component.AccentButton
 import jp.co.soramitsu.common.compose.component.B1
 import jp.co.soramitsu.common.compose.component.BackgroundCorneredWithBorder
-import jp.co.soramitsu.common.compose.component.BottomSheetScreen
 import jp.co.soramitsu.common.compose.component.FeeInfoViewState
-import jp.co.soramitsu.common.compose.component.H4Bold
 import jp.co.soramitsu.common.compose.component.InfoTableItem
 import jp.co.soramitsu.common.compose.component.InfoTableItemAsset
 import jp.co.soramitsu.common.compose.component.MarginHorizontal
 import jp.co.soramitsu.common.compose.component.MarginVertical
-import jp.co.soramitsu.common.compose.component.NavigationIconButton
 import jp.co.soramitsu.common.compose.component.TitleIconValueState
 import jp.co.soramitsu.common.compose.component.TitleValueViewState
 import jp.co.soramitsu.common.compose.component.getImageRequest
@@ -217,16 +212,14 @@ fun LiquidityAddConfirmScreen(
 @Preview
 @Composable
 private fun PreviewLiquidityAddConfirmScreen() {
-    BottomSheetScreen {
-        LiquidityAddConfirmScreen(
-            state = LiquidityAddConfirmState(
-                slippage = "0.5%",
-                apy = "23.3%",
-                feeInfo = FeeInfoViewState.default,
-            ),
-            callbacks = object : LiquidityAddConfirmCallbacks {
-                override fun onConfirmClick() {}
-            },
-        )
-    }
+    LiquidityAddConfirmScreen(
+        state = LiquidityAddConfirmState(
+            slippage = "0.5%",
+            apy = "23.3%",
+            feeInfo = FeeInfoViewState.default,
+        ),
+        callbacks = object : LiquidityAddConfirmCallbacks {
+            override fun onConfirmClick() {}
+        },
+    )
 }

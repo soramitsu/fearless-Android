@@ -1,46 +1,28 @@
 package jp.co.soramitsu.liquiditypools.impl.presentation.allpools
 
-import java.math.BigDecimal
 import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
-import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.androidfoundation.format.StringPair
 import jp.co.soramitsu.androidfoundation.format.compareNullDesc
-import jp.co.soramitsu.common.compose.component.FeeInfoViewState
-import jp.co.soramitsu.common.utils.applyFiatRate
 import jp.co.soramitsu.common.utils.flowOf
-import jp.co.soramitsu.common.utils.formatCrypto
-import jp.co.soramitsu.common.utils.formatCryptoDetail
-import jp.co.soramitsu.common.utils.formatFiat
-import jp.co.soramitsu.common.utils.orZero
-import jp.co.soramitsu.core.models.Asset
-import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.liquiditypools.domain.interfaces.PoolsInteractor
 import jp.co.soramitsu.liquiditypools.impl.presentation.CoroutinesStore
+import jp.co.soramitsu.liquiditypools.impl.presentation.toListItemState
 import jp.co.soramitsu.liquiditypools.navigation.InternalPoolsRouter
 import jp.co.soramitsu.liquiditypools.navigation.LiquidityPoolsNavGraphRoute
 import jp.co.soramitsu.polkaswap.api.domain.models.BasicPoolData
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterIsInstance
-import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
-import kotlinx.coroutines.launch
 
 class AllPoolsPresenter @Inject constructor(
     private val coroutinesStore: CoroutinesStore,

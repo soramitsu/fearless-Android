@@ -7,7 +7,7 @@ import jp.co.soramitsu.androidfoundation.format.compareNullDesc
 import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.liquiditypools.domain.interfaces.PoolsInteractor
 import jp.co.soramitsu.liquiditypools.impl.presentation.CoroutinesStore
-import jp.co.soramitsu.liquiditypools.impl.presentation.allpools.toListItemState
+import jp.co.soramitsu.liquiditypools.impl.presentation.toListItemState
 import jp.co.soramitsu.liquiditypools.navigation.InternalPoolsRouter
 import jp.co.soramitsu.liquiditypools.navigation.LiquidityPoolsNavGraphRoute
 import jp.co.soramitsu.polkaswap.api.domain.models.BasicPoolData

@@ -1,4 +1,4 @@
-package jp.co.soramitsu.liquiditypools.impl.presentation.allpools
+package jp.co.soramitsu.liquiditypools.impl.presentation
 
 import androidx.lifecycle.SavedStateHandle
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -12,7 +12,10 @@ import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.utils.formatCrypto
 import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.liquiditypools.domain.interfaces.PoolsInteractor
-import jp.co.soramitsu.liquiditypools.impl.presentation.CoroutinesStore
+import jp.co.soramitsu.liquiditypools.impl.presentation.allpools.AllPoolsPresenter
+import jp.co.soramitsu.liquiditypools.impl.presentation.allpools.AllPoolsScreenInterface
+import jp.co.soramitsu.liquiditypools.impl.presentation.allpools.AllPoolsState
+import jp.co.soramitsu.liquiditypools.impl.presentation.allpools.BasicPoolListItemState
 import jp.co.soramitsu.liquiditypools.impl.presentation.liquidityadd.LiquidityAddCallbacks
 import jp.co.soramitsu.liquiditypools.impl.presentation.liquidityadd.LiquidityAddPresenter
 import jp.co.soramitsu.liquiditypools.impl.presentation.liquidityadd.LiquidityAddState
@@ -94,7 +97,6 @@ class PoolsFlowViewModel @Inject constructor(
     init {
         internalPoolsRouter.openAllPoolsScreen(polkaswapChainId)
 
-        subscribeScreenState()
         launch {
             poolsInteractor.updateApy()
         }
@@ -147,43 +149,9 @@ class PoolsFlowViewModel @Inject constructor(
         internalPoolsRouter.back()
     }
 
-
-    private fun subscribeScreenState() {
-//        poolDetailsScreenArgsFlow.onEach {
-//            requestPoolDetails(it.ids)?.let {
-//                _poolDetailState.value = it
-//            }
-//        }.launchIn(this)
-    }
-//
-//    suspend fun requestPoolDetails(ids: StringPair): PoolDetailsState? {
-//        val soraChain = accountInteractor.getChain(soraMainChainId)
-//        val address = accountInteractor.selectedMetaAccount().address(soraChain).orEmpty()
-//        val baseAsset = soraChain.assets.firstOrNull { it.id == ids.first }
-//        val targetAsset = soraChain.assets.firstOrNull { it.id == ids.second }
-//        val baseTokenId = baseAsset?.currencyId ?: error("No currency for Asset ${baseAsset?.symbol}")
-//        val targetTokenId = targetAsset?.currencyId ?: error("No currency for Asset ${targetAsset?.symbol}")
-//
-//        val retur = poolsInteractor.getUserPoolData(address, baseTokenId, targetTokenId.fromHex())?.let {
-//            PoolDetailsState(
-//                originTokenIcon = GradientIconData(baseAsset.iconUrl, null),
-//                destinationTokenIcon = GradientIconData(targetAsset.iconUrl, null),
-//                fromTokenSymbol = baseAsset.symbol,
-//                toTokenSymbol = targetAsset.symbol,
-//                tvl = null,
-//                apy = null
-//            )
-//        }
-//        return retur
-//    }
-
     fun exitFlow() {
         poolsRouter.back()
     }
-//
-//    override fun onRemoveLiquidityClick() {
-//        println("!!! onRemoveLiquidityClick")
-//    }
 }
 
 fun BasicPoolData.toListItemState(): BasicPoolListItemState {

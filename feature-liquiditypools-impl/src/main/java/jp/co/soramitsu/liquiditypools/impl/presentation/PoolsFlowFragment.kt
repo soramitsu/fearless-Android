@@ -1,4 +1,4 @@
-package jp.co.soramitsu.liquiditypools.impl.presentation.allpools
+package jp.co.soramitsu.liquiditypools.impl.presentation
 
 import android.annotation.SuppressLint
 import android.app.Dialog
@@ -42,6 +42,7 @@ import jp.co.soramitsu.common.compose.component.ToolbarHomeIconState
 import jp.co.soramitsu.common.compose.models.TextModel
 import jp.co.soramitsu.common.compose.models.retrieveString
 import jp.co.soramitsu.common.presentation.LoadingState
+import jp.co.soramitsu.liquiditypools.impl.presentation.allpools.AllPoolsScreen
 import jp.co.soramitsu.liquiditypools.impl.presentation.liquidityadd.LiquidityAddScreen
 import jp.co.soramitsu.liquiditypools.impl.presentation.liquidityaddconfirm.LiquidityAddConfirmScreen
 import jp.co.soramitsu.liquiditypools.impl.presentation.pooldetails.PoolDetailsScreen
@@ -164,46 +165,36 @@ class PoolsFlowFragment : BaseComposeBottomSheetDialogFragment<PoolsFlowViewMode
 
                 composable(LiquidityPoolsNavGraphRoute.AllPoolsScreen.routeName) {
                     val allPoolsScreenState by viewModel.allPoolsScreenState.collectAsStateWithLifecycle()
-                    BottomSheetScreen {
-                        AllPoolsScreen(
-                            state = allPoolsScreenState,
-                            callback = viewModel
-                        )
-                    }
+                    AllPoolsScreen(
+                        state = allPoolsScreenState,
+                        callback = viewModel
+                    )
                 }
 
                 composable(LiquidityPoolsNavGraphRoute.ListPoolsScreen.routeName) {
                     val poolListState by viewModel.poolListScreenState.collectAsStateWithLifecycle()
-                    BottomSheetScreen {
-                        PoolListScreen(
-                            state = poolListState,
-                            callback = viewModel
-                        )
-                    }
+                    PoolListScreen(
+                        state = poolListState,
+                        callback = viewModel
+                    )
                 }
 
                 composable(LiquidityPoolsNavGraphRoute.PoolDetailsScreen.routeName) {
                     val poolDetailState by viewModel.poolDetailsScreenState.collectAsStateWithLifecycle()
-                    BottomSheetScreen {
-                        PoolDetailsScreen(
-                            state = poolDetailState,
-                            callbacks = viewModel
-                        )
-                    }
+                    PoolDetailsScreen(
+                        state = poolDetailState,
+                        callbacks = viewModel
+                    )
                 }
 
                 composable(LiquidityPoolsNavGraphRoute.LiquidityAddScreen.routeName) {
                     val liquidityAddState by viewModel.liquidityAddScreenState.collectAsStateWithLifecycle()
-                    BottomSheetScreen {
-                        LiquidityAddScreen(liquidityAddState, viewModel)
-                    }
+                    LiquidityAddScreen(liquidityAddState, viewModel)
                 }
 
                 composable(LiquidityPoolsNavGraphRoute.LiquidityAddConfirmScreen.routeName) {
                     val liquidityAddConfirmState by viewModel.liquidityAddConfirmState.collectAsStateWithLifecycle()
-                    BottomSheetScreen {
-                        LiquidityAddConfirmScreen(liquidityAddConfirmState, viewModel)
-                    }
+                    LiquidityAddConfirmScreen(liquidityAddConfirmState, viewModel)
                 }
 
                 composable(LiquidityPoolsNavGraphRoute.Loading.routeName) {
