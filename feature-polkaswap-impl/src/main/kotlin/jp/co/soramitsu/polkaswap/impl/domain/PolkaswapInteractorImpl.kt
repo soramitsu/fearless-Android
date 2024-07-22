@@ -269,6 +269,13 @@ class PolkaswapInteractorImpl @Inject constructor(
         }.filter { it.second }.map { it.first }
     }
 
+    override suspend fun updatePoolsSbApy() {
+        polkaswapRepository.updatePoolsSbApy()
+    }
+
+    override fun getPoolStrategicBonusAPY(reserveAccountOfPool: String) =
+        polkaswapRepository.getPoolStrategicBonusAPY(reserveAccountOfPool)
+
     override suspend fun swap(
         dexId: Int,
         inputAssetId: String,

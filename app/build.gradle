@@ -139,6 +139,7 @@ play {
 }
 
 dependencies {
+    implementation project(':android-foundation')
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation project(':core-db')
     implementation project(':common')

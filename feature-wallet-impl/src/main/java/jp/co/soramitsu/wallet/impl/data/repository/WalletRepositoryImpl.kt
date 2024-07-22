@@ -422,7 +422,7 @@ class WalletRepositoryImpl(
     }
 
     override suspend fun getTotalBalance(
-        chainAsset: jp.co.soramitsu.core.models.Asset,
+        chainAsset: CoreAsset,
         chain: Chain,
         accountId: ByteArray
     ): BigInteger {
@@ -481,7 +481,7 @@ class WalletRepositoryImpl(
         senderAddress: String,
         fee: BigDecimal,
         source: OperationLocal.Source,
-        utilityAsset: jp.co.soramitsu.core.models.Asset?
+        utilityAsset: CoreAsset?
     ) =
         OperationLocal.manualTransfer(
             hash = hash,

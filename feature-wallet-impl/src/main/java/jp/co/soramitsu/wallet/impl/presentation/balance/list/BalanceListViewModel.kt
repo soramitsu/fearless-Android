@@ -318,8 +318,8 @@ class BalanceListViewModel @Inject constructor(
                             }
 
                             if (it is NFTCollection.Loaded.WithFailure) {
-                                println("!!! NFTCollection.Loaded.WithFailure: ${it.chainName} : ${it.throwable.message} ")
-                                it.throwable.printStackTrace()
+//                                println("!!! NFTCollection.Loaded.WithFailure: ${it.chainName} : ${it.throwable.message} ")
+//                                it.throwable.printStackTrace()
 //                                chainsWithFailedRequests.add(it.chainName)
                             }
 

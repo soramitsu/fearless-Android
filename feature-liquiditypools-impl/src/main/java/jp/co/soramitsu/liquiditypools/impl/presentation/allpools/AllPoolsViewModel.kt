@@ -12,6 +12,13 @@ import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.common.utils.formatCrypto
 import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.liquiditypools.domain.interfaces.PoolsInteractor
+import jp.co.soramitsu.liquiditypools.impl.presentation.CoroutinesStore
+import jp.co.soramitsu.liquiditypools.impl.presentation.liquidityadd.LiquidityAddCallbacks
+import jp.co.soramitsu.liquiditypools.impl.presentation.liquidityadd.LiquidityAddPresenter
+import jp.co.soramitsu.liquiditypools.impl.presentation.liquidityadd.LiquidityAddState
+import jp.co.soramitsu.liquiditypools.impl.presentation.liquidityaddconfirm.LiquidityAddConfirmCallbacks
+import jp.co.soramitsu.liquiditypools.impl.presentation.liquidityaddconfirm.LiquidityAddConfirmPresenter
+import jp.co.soramitsu.liquiditypools.impl.presentation.liquidityaddconfirm.LiquidityAddConfirmState
 import jp.co.soramitsu.liquiditypools.impl.presentation.pooldetails.PoolDetailsCallbacks
 import jp.co.soramitsu.liquiditypools.impl.presentation.pooldetails.PoolDetailsState
 import jp.co.soramitsu.liquiditypools.impl.presentation.poollist.PoolListScreenInterface
@@ -33,8 +40,10 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.lastOrNull
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -45,16 +54,22 @@ import kotlinx.coroutines.launch
 @HiltViewModel
 class AllPoolsViewModel @Inject constructor(
     private val poolsInteractor: PoolsInteractor,
-//    private val coroutinesStore: CoroutinesStore,
+    private val coroutinesStore: CoroutinesStore,
     private val poolsRouter: LiquidityPoolsRouter,
     private val innerPoolsRouter: InternalPoolsRouter,
     private val accountInteractor: AccountInteractor,
-) : BaseViewModel(), AllPoolsScreenInterface, PoolListScreenInterface, PoolDetailsCallbacks {
+    private val liquidityAddPresenter: LiquidityAddPresenter,
+    liquidityAddConfirmPresenter: LiquidityAddConfirmPresenter,
+) : BaseViewModel(), AllPoolsScreenInterface, PoolListScreenInterface, PoolDetailsCallbacks,
+    LiquidityAddCallbacks by liquidityAddPresenter,
+    LiquidityAddConfirmCallbacks by liquidityAddConfirmPresenter
+{
+
     val navGraphRoutesFlow: StateFlow<LiquidityPoolsNavGraphRoute> =
         innerPoolsRouter.createNavGraphRoutesFlow().stateIn(
             scope = CoroutineScope(Dispatchers.Main.immediate),
             started = SharingStarted.Eagerly,
-            initialValue = LiquidityPoolsNavGraphRoute.AllPoolsScreen
+            initialValue = LiquidityPoolsNavGraphRoute.Loading
         )
     val navGraphActionsFlow: SharedFlow<NavAction> =
         innerPoolsRouter.createNavGraphActionsFlow().shareIn(
@@ -62,6 +77,11 @@ class AllPoolsViewModel @Inject constructor(
             started = SharingStarted.Eagerly,
             replay = 1
         )
+    val liquidityAddScreenState: StateFlow<LiquidityAddState> =
+        liquidityAddPresenter.createScreenStateFlow(coroutinesStore.uiScope)
+
+    val liquidityAddConfirmState: StateFlow<LiquidityAddConfirmState> =
+        liquidityAddConfirmPresenter.createScreenStateFlow(coroutinesStore.uiScope)
 
     private val enteredAssetQueryFlow = MutableStateFlow("")
 
@@ -91,6 +111,14 @@ class AllPoolsViewModel @Inject constructor(
 
     init {
         subscribeScreenState()
+        launch {
+            poolsInteractor.updateApy()
+        }
+        innerPoolsRouter.openAllPoolsScreen()
+
+        liquidityAddConfirmState.onEach {
+            println("!!! flow liquidityAddConfirmState: $it")
+        }
     }
 
     private fun Asset.isMatchFilter(filter: String): Boolean =
@@ -105,10 +133,7 @@ class AllPoolsViewModel @Inject constructor(
         }.launchIn(this)
 
         poolDetailsScreenArgsFlow.onEach {
-            println("!!! AllPoolsViewModel subscribeScreenState poolDetailsScreenArgsFlow it.ids = ${it.ids}")
             requestPoolDetails(it.ids)?.let {
-                println("!!! AllPoolsViewModel subscribeScreenState requestPoolDetails got state = $it")
-
                 _poolDetailState.value = it
             }
         }.launchIn(this)
@@ -121,7 +146,7 @@ class AllPoolsViewModel @Inject constructor(
         val targetAsset = soraChain.assets.firstOrNull { it.id == ids.second }
         val baseTokenId = baseAsset?.currencyId ?: error("No currency for Asset ${baseAsset?.symbol}")
         val targetTokenId = targetAsset?.currencyId ?: error("No currency for Asset ${targetAsset?.symbol}")
-        println("!!! ALVM requestPoolDetails for $ids")
+
         val retur = poolsInteractor.getUserPoolData(address, baseTokenId, targetTokenId.fromHex())?.let {
             PoolDetailsState(
                 originTokenIcon = GradientIconData(baseAsset.iconUrl, null),
@@ -132,37 +157,23 @@ class AllPoolsViewModel @Inject constructor(
                 apy = null
             )
         }
-//        val reter_old = poolsInteractor.getPoolCacheOfCurAccount(ids.first, ids.second)?.let {
-//            PoolDetailsState(
-//                originTokenIcon = GradientIconData(it.basic.baseToken.token.configuration.iconUrl, null),
-//                destinationTokenIcon = GradientIconData(it.basic.targetToken?.token?.configuration?.iconUrl, null),
-//                fromTokenSymbol = it.basic.baseToken.token.configuration.symbol,
-//                toTokenSymbol = it.basic.targetToken?.token?.configuration?.symbol,
-//                tvl = null,
-//                apy = null
-//            )
-//        }
         return retur
     }
 
     override fun onPoolClicked(pair: StringPair) {
-        println("!!! CLIKED ON PoolPair: $pair")
-        innerPoolsRouter.openDetailsPoolScreen(pair)
+        val xorPswap = Pair("b774c386-5cce-454a-a845-1ec0381538ec", "37a999a2-5e90-4448-8b0e-98d06ac8f9d4")
+        innerPoolsRouter.openDetailsPoolScreen(xorPswap)
     }
 
     override fun onNavigationClick() {
-        println("!!! CLIKED onNavigationClick")
         innerPoolsRouter.back()
-//        exitFlow()
     }
+
     override fun onCloseClick() {
-        println("!!! CLIKED onCloseClick")
         innerPoolsRouter.back()
-//        exitFlow()
     }
 
     override fun onMoreClick() {
-        println("!!! CLIKED onMoreClick")
         innerPoolsRouter.openPoolListScreen()
     }
 
@@ -179,7 +190,13 @@ class AllPoolsViewModel @Inject constructor(
     }
 
     override fun onSupplyLiquidityClick() {
-        println("!!! onSupplyLiquidityClick")
+        launch {
+            poolDetailsScreenArgsFlow.map {
+                it.ids
+            }.firstOrNull()?.let { ids ->
+                innerPoolsRouter.openAddLiquidityScreen(ids)
+            }
+        }
     }
 
     override fun onRemoveLiquidityClick() {

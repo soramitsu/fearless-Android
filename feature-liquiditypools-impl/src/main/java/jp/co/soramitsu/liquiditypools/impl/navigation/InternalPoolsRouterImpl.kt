@@ -1,5 +1,6 @@
 package jp.co.soramitsu.liquiditypools.impl.navigation
 
+import java.math.BigDecimal
 import java.util.Stack
 import jp.co.soramitsu.androidfoundation.format.StringPair
 import jp.co.soramitsu.liquiditypools.navigation.InternalPoolsRouter
@@ -28,11 +29,28 @@ class InternalPoolsRouterImpl: InternalPoolsRouter {
         mutableActionsFlow.tryEmit(NavAction.BackPressed)
     }
 
+    override fun openAllPoolsScreen() {
+        mutableRoutesFlow.tryEmit(LiquidityPoolsNavGraphRoute.AllPoolsScreen())
+    }
+
     override fun openDetailsPoolScreen(ids: StringPair) {
         mutableRoutesFlow.tryEmit(LiquidityPoolsNavGraphRoute.PoolDetailsScreen(ids))
+    }
+
+    override fun openAddLiquidityScreen(ids: StringPair) {
+        mutableRoutesFlow.tryEmit(LiquidityPoolsNavGraphRoute.LiquidityAddScreen(ids))
+    }
+
+    override fun openAddLiquidityConfirmScreen(ids: StringPair, amountFrom: BigDecimal, amountTo: BigDecimal, apy: String) {
+        mutableRoutesFlow.tryEmit(LiquidityPoolsNavGraphRoute.LiquidityAddConfirmScreen(ids, amountFrom, amountTo, apy))
     }
 
     override fun openPoolListScreen() {
         mutableRoutesFlow.tryEmit(LiquidityPoolsNavGraphRoute.ListPoolsScreen())
     }
+
+    override fun openErrorsScreen(title: String?, message: String) {
+        mutableActionsFlow.tryEmit(NavAction.ShowError(title, message))
+    }
+
 }

@@ -40,6 +40,7 @@ dependencies {
     implementation(projects.common)
     implementation(projects.runtime)
     implementation(projects.featurePolkaswapApi)
+    implementation(projects.featurePolkaswapImpl)
 
 //    implementation(project(":feature-wallet-api"))
 //

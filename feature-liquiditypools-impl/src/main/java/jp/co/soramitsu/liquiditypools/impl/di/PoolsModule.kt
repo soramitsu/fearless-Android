@@ -6,6 +6,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.core.extrinsic.keypair_provider.KeypairProvider
 import jp.co.soramitsu.liquiditypools.domain.interfaces.PoolsInteractor
 import jp.co.soramitsu.liquiditypools.impl.domain.PoolsInteractorImpl
 import jp.co.soramitsu.liquiditypools.impl.navigation.InternalPoolsRouterImpl
@@ -25,9 +26,10 @@ class PoolsModule {
         polkaswapRepository: PolkaswapRepository,
         accountRepository: AccountRepository,
         polkaswapInteractor: PolkaswapInteractor,
-        chainRegistry: ChainRegistry
+        chainRegistry: ChainRegistry,
+        keypairProvider: KeypairProvider
     ): PoolsInteractor =
-        PoolsInteractorImpl(polkaswapRepository, accountRepository, polkaswapInteractor, chainRegistry)
+        PoolsInteractorImpl(polkaswapRepository, accountRepository, polkaswapInteractor, chainRegistry, keypairProvider)
 
     @Provides
     @Singleton

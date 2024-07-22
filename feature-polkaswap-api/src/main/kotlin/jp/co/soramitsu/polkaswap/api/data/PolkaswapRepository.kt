@@ -1,13 +1,16 @@
 package jp.co.soramitsu.polkaswap.api.data
 
+import java.math.BigDecimal
 import jp.co.soramitsu.core.runtime.models.responses.QuoteResponse
 import jp.co.soramitsu.polkaswap.api.models.Market
 import jp.co.soramitsu.polkaswap.api.models.WithDesired
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.coroutines.flow.Flow
 import java.math.BigInteger
+import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.polkaswap.api.domain.models.BasicPoolData
 import jp.co.soramitsu.polkaswap.api.domain.models.CommonUserPoolData
+import jp.co.soramitsu.shared_utils.encrypt.keypair.Keypair
 
 interface PolkaswapRepository {
     suspend fun getAvailableDexes(chainId: ChainId): List<BigInteger>
@@ -70,4 +73,32 @@ interface PolkaswapRepository {
         baseTokenId: String,
         tokenId: ByteArray
     ): PoolDataDto?
+
+    suspend fun calcAddLiquidityNetworkFee(
+        address: String,
+        tokenFrom: Asset,
+        tokenTo: Asset,
+        tokenFromAmount: BigDecimal,
+        tokenToAmount: BigDecimal,
+        pairEnabled: Boolean,
+        pairPresented: Boolean,
+        slippageTolerance: Double
+    ): BigDecimal?
+
+    suspend fun getPoolBaseTokenDexId(tokenId: String?): Int
+    suspend fun updatePoolsSbApy()
+    fun getPoolStrategicBonusAPY(reserveAccountOfPool: String): Double?
+
+    suspend fun observeAddLiquidity(
+        address: String,
+        keypair: Keypair,
+        tokenFrom: Asset,
+        tokenTo: Asset,
+        amountFrom: BigDecimal,
+        amountTo: BigDecimal,
+        pairEnabled: Boolean,
+        pairPresented: Boolean,
+        slippageTolerance: Double
+    ): Pair<String, String>?
+
 }

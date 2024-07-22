@@ -939,6 +939,11 @@
         android:name="jp.co.soramitsu.liquiditypools.impl.presentation.allpools.AllPoolsFragment"
         android:label="allPoolsFragment" />
 
+   <dialog
+        android:id="@+id/liquidityAddFragment"
+        android:name="jp.co.soramitsu.liquiditypools.impl.presentation.liquidityadd.LiquidityAddFragment"
+        android:label="liquidityAddFragment" />
+
     <fragment
         android:id="@+id/settingsCustomValidatorsFragment"
         android:name="jp.co.soramitsu.staking.impl.presentation.validators.change.custom.settings.CustomValidatorsSettingsFragment"

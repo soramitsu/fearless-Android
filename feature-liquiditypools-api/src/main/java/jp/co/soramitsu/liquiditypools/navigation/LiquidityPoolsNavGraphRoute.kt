@@ -1,5 +1,6 @@
 package jp.co.soramitsu.liquiditypools.navigation
 
+import java.math.BigDecimal
 import jp.co.soramitsu.androidfoundation.format.StringPair
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 
@@ -11,10 +12,7 @@ sealed interface LiquidityPoolsNavGraphRoute {
         override val routeName: String = "Loading"
     }
 
-    class AllPoolsScreen(
-        val chainId: ChainId,
-        val contractAddress: String
-    ) : LiquidityPoolsNavGraphRoute by Companion {
+    class AllPoolsScreen: LiquidityPoolsNavGraphRoute by Companion {
         companion object : LiquidityPoolsNavGraphRoute {
             override val routeName: String = "AllPoolsScreen"
         }
@@ -36,13 +34,22 @@ sealed interface LiquidityPoolsNavGraphRoute {
         }
     }
 
-    class LiquidityAddScreens(
-//        val token: NFT,
-        val receiver: String,
-        val isReceiverKnown: Boolean
+    class LiquidityAddScreen(
+        val ids: StringPair
     ) : LiquidityPoolsNavGraphRoute by Companion {
         companion object : LiquidityPoolsNavGraphRoute {
             override val routeName: String = "LiquidityAddScreens"
+        }
+    }
+
+    class LiquidityAddConfirmScreen(
+        val ids: StringPair,
+        val amountFrom: BigDecimal,
+        val amountTo: BigDecimal,
+        val apy: String
+    ) : LiquidityPoolsNavGraphRoute by Companion {
+        companion object : LiquidityPoolsNavGraphRoute {
+            override val routeName: String = "LiquidityAddConfirmScreen"
         }
     }
 
