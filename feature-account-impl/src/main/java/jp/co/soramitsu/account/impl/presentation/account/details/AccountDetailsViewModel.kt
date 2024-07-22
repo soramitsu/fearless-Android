@@ -32,7 +32,7 @@ import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.feature_account_impl.R
-import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedAddressExplorers
 import kotlin.time.DurationUnit
@@ -56,7 +56,7 @@ class AccountDetailsViewModel @Inject constructor(
     private val iconGenerator: AddressIconGenerator,
     private val resourceManager: ResourceManager,
     private val totalBalanceUseCase: TotalBalanceUseCase,
-    private val chainRegistry: ChainRegistry,
+    private val chainsRepository: ChainsRepository,
     private val externalAccountActions: ExternalAccountActions.Presentation,
     private val assetNotNeedAccount: AssetNotNeedAccountUseCase,
     private val savedStateHandle: SavedStateHandle
@@ -204,7 +204,7 @@ class AccountDetailsViewModel @Inject constructor(
 
     fun exportClicked(chainId: ChainId) {
         viewModelScope.launch {
-            val isEthereumBased = chainRegistry.getChain(chainId).isEthereumBased
+            val isEthereumBased = chainsRepository.getChain(chainId).isEthereumBased
             val hasChainAccount = interactor.getMetaAccount(walletId).hasChainAccount(chainId)
             val sources = when {
                 hasChainAccount -> interactor.getChainAccountSecret(walletId, chainId).buildExportSourceTypes(isEthereumBased)
@@ -217,7 +217,7 @@ class AccountDetailsViewModel @Inject constructor(
 
     fun showImportChainAccountChooser(chainId: ChainId) {
         viewModelScope.launch {
-            val name = chainRegistry.getChain(chainId).name
+            val name = chainsRepository.getChain(chainId).name
             _showImportChainAccountChooser.postValue(Event(ImportChainAccountsPayload(chainId, walletId, name)))
         }
     }
@@ -247,7 +247,7 @@ class AccountDetailsViewModel @Inject constructor(
     override fun chainAccountOptionsClicked(item: AccountInChainUi) {
         launch {
             if (item.hasAccount) {
-                val chain = chainRegistry.getChain(item.chainId)
+                val chain = chainsRepository.getChain(item.chainId)
                 val supportedExplorers =
                     chain.explorers.getSupportedAddressExplorers(item.address)
 
@@ -255,7 +255,7 @@ class AccountDetailsViewModel @Inject constructor(
                     !chain.isEthereumChain
                 ))
             } else {
-                val utilityAsset = chainRegistry.getChain(item.chainId).utilityAsset
+                val utilityAsset = chainsRepository.getChain(item.chainId).utilityAsset
                 val payload = AddAccountPayload(
                     metaId = walletId,
                     chainId = item.chainId,

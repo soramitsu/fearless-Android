@@ -18,6 +18,7 @@ import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.core.models.ChainId
 import jp.co.soramitsu.coredb.dao.emptyAccountIdValue
 import jp.co.soramitsu.feature_wallet_impl.R
+import jp.co.soramitsu.wallet.impl.data.repository.isSupported
 import jp.co.soramitsu.wallet.impl.domain.ChainInteractor
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.domain.model.AssetWithStatus
@@ -151,7 +152,7 @@ class ManageAssetsViewModel @Inject constructor(
                     symbol = chainAsset.symbol.uppercase(),
                     amount = available.formatCrypto(),
                     fiatAmount = fiatAmount
-                        ?: "${assetWithStatus?.asset?.token?.fiatSymbol.orEmpty()}0".takeIf { chainAsset.priceId != null || chainAsset.priceProvider != null },
+                        ?: "${assetWithStatus?.asset?.token?.fiatSymbol.orEmpty()}0".takeIf { chainAsset.priceId != null || chainAsset.priceProvider?.isSupported == true},
                     chainId = chainAsset.chainId,
                     isChecked = !isHidden,
                     isZeroAmount = available.orZero().isZero(),

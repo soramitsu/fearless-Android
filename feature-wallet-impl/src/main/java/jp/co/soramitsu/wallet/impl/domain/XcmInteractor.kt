@@ -1,5 +1,9 @@
 package jp.co.soramitsu.wallet.impl.domain
 
+import java.math.BigDecimal
+import java.math.BigInteger
+import java.math.MathContext
+import java.math.RoundingMode
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.common.data.secrets.v1.Keypair
 import jp.co.soramitsu.common.data.secrets.v2.KeyPairSchema
@@ -13,6 +17,7 @@ import jp.co.soramitsu.core.utils.removedXcPrefix
 import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.ext.fakeAddress
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId
 import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeFilesCache
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.domain.model.AssetWithStatus
@@ -20,14 +25,11 @@ import jp.co.soramitsu.wallet.impl.domain.model.CrossChainTransfer
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
 import jp.co.soramitsu.xcm.XcmService
 import jp.co.soramitsu.xcm.domain.XcmEntitiesFetcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
-import java.math.BigDecimal
-import java.math.BigInteger
-import java.math.MathContext
-import java.math.RoundingMode
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId
+import kotlinx.coroutines.withContext
 import jp.co.soramitsu.core.models.Asset as CoreAsset
 
 class XcmInteractor(
@@ -40,7 +42,7 @@ class XcmInteractor(
     private val xcmService: XcmService
 ) {
 
-    suspend fun prepareDataForChains(originChainId: ChainId, destinationChainId: ChainId) {
+    suspend fun prepareDataForChains(originChainId: ChainId, destinationChainId: ChainId) = withContext(Dispatchers.Default) {
         val metaAccount = accountInteractor.selectedMetaAccount()
         val originChain = chainRegistry.getChain(originChainId)
         val keypairType = if (originChain.isEthereumBased) {
@@ -63,11 +65,11 @@ class XcmInteractor(
         )
         val fromChainMetadata = ChainIdWithMetadata(
             chainId = originChainId,
-            metadata = runtimeFilesCache.getChainMetadata(originChainId)
+            metadata = runCatching { runtimeFilesCache.getChainMetadata(originChainId) }.getOrNull()
         )
         val toChainMetadata = ChainIdWithMetadata(
             chainId = destinationChainId,
-            metadata = runtimeFilesCache.getChainMetadata(destinationChainId)
+            metadata = kotlin.runCatching { runtimeFilesCache.getChainMetadata(destinationChainId) }.getOrNull()
         )
         xcmService.addPreloadedMetadata(fromChainMetadata, toChainMetadata)
     }
@@ -150,6 +152,9 @@ class XcmInteractor(
             )
         }.getOrNull()
     }
+
+    suspend fun getAmountMinLimit(originChainId: ChainId, destinationChainId: ChainId, asset: Asset) =
+        xcmService.getAmountMinLimit(originChainId, destinationChainId, asset)
 
     private fun Asset.getPlanksFromAmountForOriginFee(amount: BigDecimal): BigInteger {
         val rawAmountInPlanks = planksFromAmount(amount)

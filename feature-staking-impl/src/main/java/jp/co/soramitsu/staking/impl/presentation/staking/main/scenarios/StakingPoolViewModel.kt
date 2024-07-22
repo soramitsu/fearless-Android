@@ -1,6 +1,7 @@
 package jp.co.soramitsu.staking.impl.presentation.staking.main.scenarios
 
 import java.math.BigDecimal
+import java.math.RoundingMode
 import jp.co.soramitsu.common.compose.component.AmountInputViewState
 import jp.co.soramitsu.common.compose.component.TitleValueViewState
 import jp.co.soramitsu.common.domain.model.StoryGroup
@@ -43,7 +44,9 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 
 class StakingPoolViewModel(
@@ -76,6 +79,13 @@ class StakingPoolViewModel(
 
     override suspend fun getStakingViewStateFlowOld(): Flow<StakingViewStateOld> {
         return kotlinx.coroutines.flow.flowOf(Pool)
+    }
+
+    init {
+        baseViewModel.enteredAmountEvent.onEach { event ->
+            enteredAmountFlow.value = event.peekContent().setScale(5, RoundingMode.HALF_DOWN)
+        }.launchIn(baseViewModel.stakingStateScope)
+
     }
 
     override val enteredAmountFlow = MutableStateFlow(initialValue)

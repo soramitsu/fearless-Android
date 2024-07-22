@@ -71,6 +71,7 @@ import jp.co.soramitsu.wallet.impl.data.repository.WalletRepositoryImpl
 import jp.co.soramitsu.wallet.impl.data.storage.TransferCursorStorage
 import jp.co.soramitsu.wallet.impl.domain.ChainInteractor
 import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
+import jp.co.soramitsu.wallet.impl.domain.QuickInputsUseCaseImpl
 import jp.co.soramitsu.wallet.impl.domain.TokenUseCase
 import jp.co.soramitsu.wallet.impl.domain.ValidateTransferUseCaseImpl
 import jp.co.soramitsu.wallet.impl.domain.WalletInteractorImpl
@@ -80,6 +81,7 @@ import jp.co.soramitsu.wallet.impl.domain.beacon.BeaconSharedState
 import jp.co.soramitsu.wallet.impl.domain.implementations.ExistentialDepositUseCaseImpl
 import jp.co.soramitsu.wallet.impl.domain.implementations.TokenUseCaseImpl
 import jp.co.soramitsu.wallet.impl.domain.interfaces.AddressBookRepository
+import jp.co.soramitsu.wallet.impl.domain.interfaces.QuickInputsUseCase
 import jp.co.soramitsu.wallet.impl.domain.interfaces.TokenRepository
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletConstants
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
@@ -272,6 +274,27 @@ class WalletFeatureModule {
     )
 
     @Provides
+    fun provideQuickInputsUseCase(
+        walletRepository: WalletRepository,
+        accountRepository: AccountRepository,
+        chainsRepository: ChainsRepository,
+        walletConstants: WalletConstants,
+        existentialDepositUseCase: ExistentialDepositUseCase,
+        xcmInteractor: XcmInteractor,
+        polkaswapInteractor: PolkaswapInteractor
+    ): QuickInputsUseCase {
+        return QuickInputsUseCaseImpl(
+            walletRepository,
+            accountRepository,
+            chainsRepository,
+            walletConstants,
+            existentialDepositUseCase,
+            xcmInteractor,
+            polkaswapInteractor
+        )
+    }
+
+    @Provides
     fun provideXcmInteractor(
         walletInteractor: WalletInteractor,
         chainRegistry: ChainRegistry,
@@ -311,14 +334,14 @@ class WalletFeatureModule {
     fun provideValidateTransferUseCase(
         existentialDepositUseCase: ExistentialDepositUseCase,
         walletConstants: WalletConstants,
-        chainRegistry: ChainRegistry,
+        chainsRepository: ChainsRepository,
         accountRepository: AccountRepository,
         walletRepository: WalletRepository,
         polkaswapInteractor: PolkaswapInteractor
     ): ValidateTransferUseCase = ValidateTransferUseCaseImpl(
         existentialDepositUseCase,
         walletConstants,
-        chainRegistry,
+        chainsRepository,
         accountRepository,
         walletRepository,
         polkaswapInteractor
