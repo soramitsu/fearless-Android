@@ -145,12 +145,18 @@ class StakingRelayChainScenarioInteractor(
                             stakingRelayChainScenarioRepository.minimumNominatorBond(it)
                         }.orZero()
 
+                        val minActiveStake = stakingRelayChainScenarioRepository.minimumActiveStake(chain.id)
+                            ?: exposures.minOf { exposure -> exposure.others.minOf { it.value } }
+
+                        val minimalStakeInPlanks =
+                            minActiveStake.coerceAtLeast(minimumNominatorBond)
+
                         NetworkInfo.RelayChain(
                             lockupPeriodInHours = lockupPeriod,
-                            minimumStake = minimumNominatorBond,
+                            minimumStake = minimalStakeInPlanks,
                             totalStake = totalStake(exposures),
                             nominatorsCount = activeNominators(chain.id, exposures),
-                            shouldUseMinimumStakeMultiplier = stakingConstantsRepository.maxRewardedNominatorPerValidator(chain.id) != null
+                            shouldUseMinimumStakeMultiplier = true
                         )
                     }
             }
@@ -184,7 +190,7 @@ class StakingRelayChainScenarioInteractor(
     override fun stakingStateFlow(): Flow<StakingState> {
         return combine(
             stakingSharedState.assetWithChain.distinctUntilChanged(),
-            accountRepository.selectedMetaAccountFlow()
+            accountRepository.selectedMetaAccountFlow().distinctUntilChanged{ old, new -> old.id == new.id}
         ) { chainWithAsset, metaAccount ->
             chainWithAsset to metaAccount
         }.flatMapLatest { (chainWithAsset, metaAccount) ->
