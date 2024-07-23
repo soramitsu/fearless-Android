@@ -17,7 +17,7 @@ data class CommonPoolData(
 }
 
 data class UserPoolData(
-    val address: String?,
+//    val address: String?,
     val basePooled: BigDecimal,
     val targetPooled: BigDecimal,
     val poolShare: Double,

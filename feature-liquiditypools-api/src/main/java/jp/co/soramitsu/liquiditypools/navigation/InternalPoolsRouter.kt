@@ -11,12 +11,12 @@ interface InternalPoolsRouter {
     fun back()
 
     fun openAllPoolsScreen(chainId: ChainId)
-    fun openDetailsPoolScreen(ids: StringPair)
+    fun openDetailsPoolScreen(chainId: ChainId, ids: StringPair)
 
-    fun openAddLiquidityScreen(ids: StringPair)
-    fun openAddLiquidityConfirmScreen(ids: StringPair, amountFrom: BigDecimal, amountTo: BigDecimal, apy: String)
+    fun openAddLiquidityScreen(chainId: ChainId, ids: StringPair)
+    fun openAddLiquidityConfirmScreen(chainId: ChainId, ids: StringPair, amountFrom: BigDecimal, amountTo: BigDecimal, apy: String)
 
-    fun openPoolListScreen()
+    fun openPoolListScreen(chainId: ChainId, isUserPools: Boolean)
 
     fun openErrorsScreen(title: String? = null, message: String)
 }

@@ -98,7 +98,8 @@ class PoolsFlowViewModel @Inject constructor(
         internalPoolsRouter.openAllPoolsScreen(polkaswapChainId)
 
         launch {
-            poolsInteractor.updateApy()
+//            poolsInteractor.updateApy()
+            poolsInteractor.updatePools(polkaswapChainId)
         }
     }
 
@@ -141,8 +142,8 @@ class PoolsFlowViewModel @Inject constructor(
     }
 
     override fun onPoolClicked(pair: StringPair) {
-        val xorPswap = Pair("b774c386-5cce-454a-a845-1ec0381538ec", "37a999a2-5e90-4448-8b0e-98d06ac8f9d4")
-        internalPoolsRouter.openDetailsPoolScreen(xorPswap)
+//        val xorPswap = Pair("b774c386-5cce-454a-a845-1ec0381538ec", "37a999a2-5e90-4448-8b0e-98d06ac8f9d4")
+        internalPoolsRouter.openDetailsPoolScreen(polkaswapChainId, pair)
     }
 
     fun onNavigationClick() {
@@ -154,18 +155,22 @@ class PoolsFlowViewModel @Inject constructor(
     }
 }
 
-fun BasicPoolData.toListItemState(): BasicPoolListItemState {
+fun BasicPoolData.toListItemState(): BasicPoolListItemState? {
     val tvl = this.baseToken.token.fiatRate?.times(BigDecimal(2))
         ?.multiply(this.baseReserves)
 
+    val baseTokenId = this.baseToken.token.configuration.currencyId ?: return null
+    val targetTokenId = this.targetToken?.token?.configuration?.currencyId ?: return null
+
     return BasicPoolListItemState(
-        ids = StringPair(this.baseToken.token.configuration.id, this.targetToken?.token?.configuration?.id.orEmpty()),  // todo
+        ids = StringPair(baseTokenId, targetTokenId),
         token1Icon = this.baseToken.token.configuration.iconUrl,
         token2Icon = this.targetToken?.token?.configuration?.iconUrl.orEmpty(),
-        text1 = "${this.baseToken.token.configuration.symbol}-${this.targetToken?.token?.configuration?.symbol}",
-        text2 = tvl?.formatFiat().orEmpty(),
+        text1 = "${this.baseToken.token.configuration.symbol}-${this.targetToken?.token?.configuration?.symbol}".uppercase(),
+        text2 = tvl?.formatFiat(this.baseToken.token.fiatSymbol).orEmpty(),
         text3 = this.sbapy?.let {
             "%s%%".format(it.toBigDecimal().formatCrypto())
         }.orEmpty(),
+        text4 = "Earn PSWAP"
     )
 }

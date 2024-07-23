@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.Flow
 import java.math.BigInteger
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.polkaswap.api.domain.models.BasicPoolData
-import jp.co.soramitsu.polkaswap.api.domain.models.CommonUserPoolData
+import jp.co.soramitsu.polkaswap.api.domain.models.CommonPoolData
 import jp.co.soramitsu.shared_utils.encrypt.keypair.Keypair
 
 interface PolkaswapRepository {
@@ -59,22 +59,24 @@ interface PolkaswapRepository {
         desired: WithDesired
     ): Result<String>
 
-    suspend fun getBasicPools(): List<BasicPoolData>
+    suspend fun getBasicPools(chainId: ChainId): List<BasicPoolData>
 
-    suspend fun getPoolOfAccount(
-        address: String?,
-        tokenFromId: String,
-        tokenToId: String,
-        chainId: String
-    ): CommonUserPoolData?
-
+//    suspend fun getPoolOfAccount(
+//        address: String?,
+//        tokenFromId: String,
+//        tokenToId: String,
+//        chainId: String
+//    ): CommonUserPoolData?
+//
     suspend fun getUserPoolData(
+        chainId: ChainId,
         address: String,
         baseTokenId: String,
         tokenId: ByteArray
     ): PoolDataDto?
 
     suspend fun calcAddLiquidityNetworkFee(
+        chainId: ChainId,
         address: String,
         tokenFrom: Asset,
         tokenTo: Asset,
@@ -85,11 +87,12 @@ interface PolkaswapRepository {
         slippageTolerance: Double
     ): BigDecimal?
 
-    suspend fun getPoolBaseTokenDexId(tokenId: String?): Int
-    suspend fun updatePoolsSbApy()
+    suspend fun getPoolBaseTokenDexId(chainId: ChainId, tokenId: String?): Int
+//    suspend fun updatePoolsSbApy()
     fun getPoolStrategicBonusAPY(reserveAccountOfPool: String): Double?
 
     suspend fun observeAddLiquidity(
+        chainId: ChainId,
         address: String,
         keypair: Keypair,
         tokenFrom: Asset,
@@ -100,5 +103,12 @@ interface PolkaswapRepository {
         pairPresented: Boolean,
         slippageTolerance: Double
     ): Result<String>?
+
+    suspend fun updateAccountPools(chainId: ChainId, address: String)
+    suspend fun updateBasicPools(chainId: ChainId)
+
+    fun subscribePools(address: String): Flow<List<CommonPoolData>>
+    fun subscribePool(address: String, baseTokenId: String, targetTokenId: String): Flow<CommonPoolData>
+
 
 }

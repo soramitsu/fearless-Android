@@ -63,6 +63,6 @@ interface PolkaswapInteractor {
 
     suspend fun getAvailableDexesForPair(tokenFromId: String, tokenToId: String, dexes: List<BigInteger>): List<Int>
     fun observeHasReadDisclaimer(): Flow<Boolean>
-    suspend fun updatePoolsSbApy()
+//    suspend fun updatePoolsSbApy()
     fun getPoolStrategicBonusAPY(reserveAccountOfPool: String): Double?
 }
