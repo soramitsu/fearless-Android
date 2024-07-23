@@ -18,6 +18,7 @@ import jp.co.soramitsu.coredb.dao.ChainDao
 import jp.co.soramitsu.coredb.dao.MetaAccountDao
 import jp.co.soramitsu.coredb.dao.OperationDao
 import jp.co.soramitsu.coredb.dao.PhishingDao
+import jp.co.soramitsu.coredb.dao.PoolDao
 import jp.co.soramitsu.coredb.dao.SoraCardDao
 import jp.co.soramitsu.coredb.dao.StakingTotalRewardDao
 import jp.co.soramitsu.coredb.dao.StorageDao
@@ -78,12 +79,14 @@ import jp.co.soramitsu.coredb.model.AccountLocal
 import jp.co.soramitsu.coredb.model.AccountStakingLocal
 import jp.co.soramitsu.coredb.model.AddressBookContact
 import jp.co.soramitsu.coredb.model.AssetLocal
+import jp.co.soramitsu.coredb.model.BasicPoolLocal
 import jp.co.soramitsu.coredb.model.OperationLocal
 import jp.co.soramitsu.coredb.model.PhishingLocal
 import jp.co.soramitsu.coredb.model.SoraCardInfoLocal
 import jp.co.soramitsu.coredb.model.StorageEntryLocal
 import jp.co.soramitsu.coredb.model.TokenPriceLocal
 import jp.co.soramitsu.coredb.model.TotalRewardLocal
+import jp.co.soramitsu.coredb.model.UserPoolLocal
 import jp.co.soramitsu.coredb.model.chain.ChainAccountLocal
 import jp.co.soramitsu.coredb.model.chain.ChainAssetLocal
 import jp.co.soramitsu.coredb.model.chain.ChainExplorerLocal
@@ -95,7 +98,7 @@ import jp.co.soramitsu.coredb.model.chain.FavoriteChainLocal
 import jp.co.soramitsu.coredb.model.chain.MetaAccountLocal
 
 @Database(
-    version = 67,
+    version = 68,
     entities = [
         AccountLocal::class,
         AddressBookContact::class,
@@ -116,7 +119,9 @@ import jp.co.soramitsu.coredb.model.chain.MetaAccountLocal
         ChainAccountLocal::class,
         ChainExplorerLocal::class,
         SoraCardInfoLocal::class,
-        ChainTypesLocal::class
+        ChainTypesLocal::class,
+        BasicPoolLocal::class,
+        UserPoolLocal::class
     ]
 )
 @TypeConverters(
@@ -212,4 +217,6 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun addressBookDao(): AddressBookDao
 
     abstract fun soraCardDao(): SoraCardDao
+
+    abstract fun poolDao(): PoolDao
 }

@@ -13,7 +13,7 @@ sealed interface LiquidityPoolsNavGraphRoute {
     }
 
     class AllPoolsScreen(
-        chainId: ChainId
+        val chainId: ChainId
     ): LiquidityPoolsNavGraphRoute by Companion {
         companion object : LiquidityPoolsNavGraphRoute {
             override val routeName: String = "AllPoolsScreen"
@@ -21,7 +21,8 @@ sealed interface LiquidityPoolsNavGraphRoute {
     }
 
     class ListPoolsScreen(
-//        val token: NFT
+        val chainId: ChainId,
+        val isUserPools: Boolean
     ) : LiquidityPoolsNavGraphRoute by Companion {
         companion object : LiquidityPoolsNavGraphRoute {
             override val routeName: String = "ListPoolsScreen"
@@ -29,6 +30,7 @@ sealed interface LiquidityPoolsNavGraphRoute {
     }
 
     class PoolDetailsScreen(
+        val chainId: ChainId,
         val ids: StringPair
     ) : LiquidityPoolsNavGraphRoute by Companion {
         companion object : LiquidityPoolsNavGraphRoute {
@@ -37,6 +39,7 @@ sealed interface LiquidityPoolsNavGraphRoute {
     }
 
     class LiquidityAddScreen(
+        val chainId: ChainId,
         val ids: StringPair
     ) : LiquidityPoolsNavGraphRoute by Companion {
         companion object : LiquidityPoolsNavGraphRoute {
@@ -45,6 +48,7 @@ sealed interface LiquidityPoolsNavGraphRoute {
     }
 
     class LiquidityAddConfirmScreen(
+        val chainId: ChainId,
         val ids: StringPair,
         val amountFrom: BigDecimal,
         val amountTo: BigDecimal,

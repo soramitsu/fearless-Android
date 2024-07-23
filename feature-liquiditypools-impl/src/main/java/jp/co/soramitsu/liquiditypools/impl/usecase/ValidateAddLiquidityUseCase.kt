@@ -3,7 +3,6 @@ package jp.co.soramitsu.liquiditypools.impl.usecase
 import java.math.BigDecimal
 import javax.inject.Inject
 import jp.co.soramitsu.common.utils.orZero
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId
 import jp.co.soramitsu.wallet.api.domain.TransferValidationResult
 import jp.co.soramitsu.wallet.impl.domain.model.AssetWithStatus
 

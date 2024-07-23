@@ -149,7 +149,7 @@ fun BasicPoolListItem(
 @Preview
 @Composable
 private fun PreviewBasicPoolListItem() {
-    FearlessAppTheme {
+    Column {
         BasicPoolListItem(
             modifier = Modifier.background(transparent),
             state = BasicPoolListItemState(
@@ -160,6 +160,18 @@ private fun PreviewBasicPoolListItem() {
                 text2 = "123.4M",
                 text3 = "1234.3%",
                 text4 = "Earn SWAP",
+            )
+        )
+        BasicPoolListItem(
+            modifier = Modifier.background(transparent),
+            state = BasicPoolListItemState(
+                ids = "0" to "1",
+                token1Icon = "DEFAULT_ICON_URI",
+                token2Icon = "DEFAULT_ICON_URI",
+                text1 = "text1",
+                text2 = "text2",
+                text3 = "text3",
+                text4 = "text4",
             )
         )
     }

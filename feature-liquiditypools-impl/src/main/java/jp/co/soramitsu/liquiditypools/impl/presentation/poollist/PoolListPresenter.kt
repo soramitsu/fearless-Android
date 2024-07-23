@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -40,19 +41,25 @@ class PoolListPresenter @Inject constructor(
         .filterIsInstance<LiquidityPoolsNavGraphRoute.ListPoolsScreen>()
         .shareIn(coroutinesStore.uiScope, SharingStarted.Lazily, 1)
 
-
-    val pools = combine(
-        flowOf { poolsInteractor.getBasicPools() },
-        enteredAssetQueryFlow
-    ) { pools, query ->
-        pools.filter {
-            it.isFilterMatch(query)
-        }.sortedWith { o1, o2 ->
-            compareNullDesc(o1.tvl, o2.tvl)
-        }
-    }.map {
-        it.map(BasicPoolData::toListItemState)
+    val chainFlow = screenArgsFlow.map { screenArgs ->
+        chainsRepository.getChain(screenArgs.chainId)
     }
+
+    val pools = screenArgsFlow.flatMapLatest { screenArgs ->
+        combine(
+            flowOf { poolsInteractor.getBasicPools(screenArgs.chainId) },
+            enteredAssetQueryFlow
+        ) { pools, query ->
+            pools.filter {
+                it.isFilterMatch(query)
+            }.sortedWith { o1, o2 ->
+                compareNullDesc(o1.tvl, o2.tvl)
+            }
+        }.map {
+            it.mapNotNull(BasicPoolData::toListItemState)
+        }
+    }
+
 
     init {
 
@@ -73,8 +80,9 @@ class PoolListPresenter @Inject constructor(
 
 
     override fun onPoolClicked(pair: StringPair) {
-        val xorPswap = Pair("b774c386-5cce-454a-a845-1ec0381538ec", "37a999a2-5e90-4448-8b0e-98d06ac8f9d4")
-        internalPoolsRouter.openDetailsPoolScreen(xorPswap)
+//        val xorPswap = Pair("b774c386-5cce-454a-a845-1ec0381538ec", "37a999a2-5e90-4448-8b0e-98d06ac8f9d4")
+        val chainId = screenArgsFlow.replayCache.firstOrNull()?.chainId ?: return
+        internalPoolsRouter.openDetailsPoolScreen(chainId, pair)
     }
 
 

@@ -596,6 +596,8 @@
     <item quantity="other">+ %d others</item>
   </plurals>
   <string name="pl_your_pooled_format">Your %s pooled</string>
+  <string name="pl_your_pools">Your pools</string>
+  <string name="pl_all_pools">All pools</string>
   <string name="polkaswap_btn_reset_to_default">Reset to default</string>
   <string name="polkaswap_confirmation_swap_stub">Swap</string>
   <string name="polkaswap_confirmation_swapped_stub">Swapped</string>

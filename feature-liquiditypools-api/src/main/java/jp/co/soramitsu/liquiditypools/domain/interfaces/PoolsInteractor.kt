@@ -1,23 +1,33 @@
 package jp.co.soramitsu.liquiditypools.domain.interfaces
 
 import java.math.BigDecimal
+import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.polkaswap.api.data.PoolDataDto
 import jp.co.soramitsu.polkaswap.api.domain.models.BasicPoolData
-import jp.co.soramitsu.polkaswap.api.domain.models.CommonUserPoolData
-import jp.co.soramitsu.wallet.impl.domain.model.Asset
+import jp.co.soramitsu.polkaswap.api.domain.models.CommonPoolData
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import kotlinx.coroutines.flow.Flow
 
 interface PoolsInteractor {
-    suspend fun getBasicPools(): List<BasicPoolData>
+    suspend fun getBasicPools(chainId: ChainId): List<BasicPoolData>
 
-    suspend fun getPoolCacheOfCurAccount(tokenFromId: String, tokenToId: String): CommonUserPoolData?
+    //    suspend fun getPoolCacheOfCurAccount(tokenFromId: String, tokenToId: String): CommonUserPoolData?
+    fun subscribePoolsCacheOfAccount(address: String): Flow<List<CommonPoolData>>
+    suspend fun getPoolData(
+        chainId: ChainId,
+        baseTokenId: String,
+        targetTokenId: String,
+    ): Flow<CommonPoolData>
 
     suspend fun getUserPoolData(
+        chainId: ChainId,
         address: String,
         baseTokenId: String,
         tokenId: ByteArray
     ): PoolDataDto?
 
     suspend fun calcAddLiquidityNetworkFee(
+        chainId: ChainId,
         address: String,
         tokenFrom: jp.co.soramitsu.core.models.Asset,
         tokenTo: jp.co.soramitsu.core.models.Asset,
@@ -29,16 +39,17 @@ interface PoolsInteractor {
     ): BigDecimal?
 
     suspend fun isPairEnabled(
+        chainId: ChainId,
         inputTokenId: String,
-        outputTokenId: String,
-        accountAddress: String
+        outputTokenId: String
     ): Boolean
 
-    suspend fun updateApy()
+//    suspend fun updateApy()
 
     fun getPoolStrategicBonusAPY(reserveAccountOfPool: String): Double?
 
     suspend fun observeAddLiquidity(
+        chainId: ChainId,
         tokenFrom: jp.co.soramitsu.core.models.Asset,
         tokenTo: jp.co.soramitsu.core.models.Asset,
         amountFrom: BigDecimal,
@@ -47,4 +58,6 @@ interface PoolsInteractor {
         presented: Boolean,
         slippageTolerance: Double
     ): String
+
+    suspend fun updatePools(chainId: ChainId)
 }
