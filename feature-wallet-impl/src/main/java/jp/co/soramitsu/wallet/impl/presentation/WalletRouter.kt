@@ -81,6 +81,7 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
     fun openFilter()
 
     fun openOperationSuccess(operationHash: String?, chainId: ChainId?)
+    fun openOperationSuccess(operationHash: String?, chainId: ChainId?, customMessage: String?)
 
     fun openSendConfirm(transferDraft: TransferDraft, phishingType: PhishingType?, overrides: Map<String, Any?> = emptyMap(), transferComment: String? = null, skipEdValidation: Boolean = false)
 

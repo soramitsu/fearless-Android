@@ -9,8 +9,12 @@ import android.widget.FrameLayout
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -35,16 +39,19 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
 import jp.co.soramitsu.common.compose.component.BottomSheetDialog
-import jp.co.soramitsu.common.compose.component.BottomSheetScreen
+import jp.co.soramitsu.common.compose.component.Image
 import jp.co.soramitsu.common.compose.component.MainToolbarShimmer
+import jp.co.soramitsu.common.compose.component.NavigationIconButton
 import jp.co.soramitsu.common.compose.component.ToolbarBottomSheet
 import jp.co.soramitsu.common.compose.component.ToolbarHomeIconState
 import jp.co.soramitsu.common.compose.models.TextModel
 import jp.co.soramitsu.common.compose.models.retrieveString
 import jp.co.soramitsu.common.presentation.LoadingState
+import jp.co.soramitsu.feature_liquiditypools_impl.R
 import jp.co.soramitsu.liquiditypools.impl.presentation.allpools.AllPoolsScreen
 import jp.co.soramitsu.liquiditypools.impl.presentation.liquidityadd.LiquidityAddScreen
 import jp.co.soramitsu.liquiditypools.impl.presentation.liquidityaddconfirm.LiquidityAddConfirmScreen
+import jp.co.soramitsu.liquiditypools.impl.presentation.liquidityremove.LiquidityRemoveScreen
 import jp.co.soramitsu.liquiditypools.impl.presentation.pooldetails.PoolDetailsScreen
 import jp.co.soramitsu.liquiditypools.impl.presentation.poollist.PoolListScreen
 import jp.co.soramitsu.liquiditypools.navigation.LiquidityPoolsNavGraphRoute
@@ -139,15 +146,19 @@ class PoolsFlowFragment : BaseComposeBottomSheetDialogFragment<PoolsFlowViewMode
         ) {
             when (val loadingState = toolbarState.value) {
                 is LoadingState.Loaded<TextModel> ->
-                    ToolbarBottomSheet(
-                        modifier = Modifier.padding(horizontal = 16.dp),
-                        title = loadingState.data.retrieveString(),
-                        onNavigationClick = remember {
-                            {
-                                viewModel.onNavigationClick()
+                    if (loadingState.data.retrieveString().isEmpty()) {
+                        PolkaswapImageToolbar()
+                    } else {
+                        ToolbarBottomSheet(
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                            title = loadingState.data.retrieveString(),
+                            onNavigationClick = remember {
+                                {
+                                    viewModel.onNavigationClick()
+                                }
                             }
-                        }
-                    )
+                        )
+                    }
 
                 is LoadingState.Loading<TextModel> ->
                     MainToolbarShimmer(
@@ -197,6 +208,11 @@ class PoolsFlowFragment : BaseComposeBottomSheetDialogFragment<PoolsFlowViewMode
                     LiquidityAddConfirmScreen(liquidityAddConfirmState, viewModel)
                 }
 
+                composable(LiquidityPoolsNavGraphRoute.LiquidityRemoveScreen.routeName) {
+                    val liquidityRemoveState by viewModel.liquidityRemoveScreenState.collectAsStateWithLifecycle()
+                    LiquidityRemoveScreen(liquidityRemoveState, viewModel)
+                }
+
                 composable(LiquidityPoolsNavGraphRoute.Loading.routeName) {
                     Box(
                         modifier = Modifier.fillMaxSize(),
@@ -237,6 +253,40 @@ class PoolsFlowFragment : BaseComposeBottomSheetDialogFragment<PoolsFlowViewMode
 
             lifecycleOwner.lifecycle.addObserver(lifecycleObserver)
             onDispose { lifecycleOwner.lifecycle.removeObserver(lifecycleObserver) }
+        }
+    }
+
+    @Composable
+    private fun PolkaswapImageToolbar() {
+        Row(
+            modifier = Modifier
+                .wrapContentHeight()
+                .padding(bottom = 12.dp)
+        ) {
+            NavigationIconButton(
+                modifier = Modifier.padding(start = 16.dp),
+                onNavigationClick = viewModel::onNavigationClick
+            )
+
+            Image(
+                modifier = Modifier
+                    .padding(start = 8.dp)
+                    .align(Alignment.Top)
+                    .size(
+                        width = 100.dp,
+                        height = 28.dp
+                    ),
+                res = R.drawable.logo_polkaswap_big,
+                contentDescription = null
+            )
+            Spacer(modifier = Modifier.weight(1f))
+            NavigationIconButton(
+                modifier = Modifier
+                    .align(Alignment.Top)
+                    .padding(end = 16.dp),
+                navigationIconResId = jp.co.soramitsu.common.R.drawable.ic_cross_32,
+                onNavigationClick = viewModel::onNavigationClick
+            )
         }
     }
 

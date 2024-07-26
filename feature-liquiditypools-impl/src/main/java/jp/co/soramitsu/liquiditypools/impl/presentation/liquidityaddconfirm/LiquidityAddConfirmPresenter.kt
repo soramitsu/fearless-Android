@@ -5,6 +5,7 @@ import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.common.compose.component.FeeInfoViewState
+import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.applyFiatRate
 import jp.co.soramitsu.common.utils.formatCrypto
 import jp.co.soramitsu.common.utils.formatCryptoDetail
@@ -12,6 +13,7 @@ import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.core.utils.utilityAsset
+import jp.co.soramitsu.feature_liquiditypools_impl.R
 import jp.co.soramitsu.liquiditypools.domain.interfaces.PoolsInteractor
 import jp.co.soramitsu.liquiditypools.impl.presentation.CoroutinesStore
 import jp.co.soramitsu.liquiditypools.navigation.InternalPoolsRouter
@@ -44,6 +46,7 @@ class LiquidityAddConfirmPresenter @Inject constructor(
     private val chainsRepository: ChainsRepository,
     private val poolsInteractor: PoolsInteractor,
     private val accountInteractor: AccountInteractor,
+    private val resourceManager: ResourceManager,
 ) : LiquidityAddConfirmCallbacks {
 
     private val _stateSlippage = MutableStateFlow(0.5)
@@ -121,7 +124,8 @@ class LiquidityAddConfirmPresenter @Inject constructor(
 
         feeInfoViewStateFlow.onEach {
             stateFlow.value = stateFlow.value.copy(
-                feeInfo = it
+                feeInfo = it,
+                buttonEnabled = it.feeAmount.isNullOrEmpty().not()
             )
         }.launchIn(coroutineScope)
 
@@ -195,7 +199,7 @@ class LiquidityAddConfirmPresenter @Inject constructor(
     }
 
     override fun onConfirmClick() {
-        println("!!! LiquidityAddConfirm onConfirmClick")
+        setButtonLoading(true)
         coroutinesStore.ioScope.launch {
             val chainId = screenArgsFlow.replayCache.firstOrNull()?.chainId ?: return@launch
             val tokenFrom = tokensInPoolFlow.firstOrNull()?.first?.configuration ?: return@launch
@@ -206,7 +210,6 @@ class LiquidityAddConfirmPresenter @Inject constructor(
             val pairPresented = true
             var result = ""
             try {
-                println("!!! LiquidityAddConfirm onConfirmClick run observeAddLiquidity")
                 result = poolsInteractor.observeAddLiquidity(
                     chainId,
                     tokenFrom,
@@ -218,14 +221,28 @@ class LiquidityAddConfirmPresenter @Inject constructor(
                     _stateSlippage.value,
                 )
             } catch (t: Throwable) {
-                internalPoolsRouter.openErrorsScreen(message = t.message.orEmpty())
+                coroutinesStore.uiScope.launch {
+                    internalPoolsRouter.openErrorsScreen(message = t.message.orEmpty())
+                }
             }
 
             if (result.isNotEmpty()) {
-                println("!!! LiquidityAddConfirm onConfirmClick result = $result")
-                // TODO ALL DONE SCREEN
+                coroutinesStore.uiScope.launch {
+//                    internalPoolsRouter.popupToScreen(LiquidityPoolsNavGraphRoute.PoolDetailsScreen)
+                    internalPoolsRouter.back()
+                    internalPoolsRouter.back()
+                    internalPoolsRouter.openSuccessScreen(result, chainId, resourceManager.getString(R.string.pl_liquidity_add_complete))
+                }
             }
+        }.invokeOnCompletion {
+            println("!!! add confirm invokeOnCompletion")
+            setButtonLoading(false)
         }
     }
 
+    private fun setButtonLoading(loading: Boolean) {
+        stateFlow.value = stateFlow.value.copy(
+            buttonLoading = loading
+        )
+    }
 }

@@ -405,7 +405,7 @@ class LiquidityAddPresenter @Inject constructor(
         )
     }
 
-    override fun onReviewClick() {
+    override fun onAddReviewClick() {
         setButtonLoading(true)
         println("!!! should setButtonLoading(true)")
 
@@ -450,28 +450,28 @@ class LiquidityAddPresenter @Inject constructor(
         }
     }
 
-    override fun onFromAmountChange(amount: BigDecimal) {
+    override fun onAddFromAmountChange(amount: BigDecimal) {
         enteredFromAmountFlow.value = amount
         amountFrom = amount
 
         updateButtonState()
     }
 
-    override fun onToAmountChange(amount: BigDecimal) {
+    override fun onAddToAmountChange(amount: BigDecimal) {
         enteredToAmountFlow.value = amount
         amountTo = amount
 
         updateButtonState()
     }
 
-    override fun onFromAmountFocusChange(isFocused: Boolean) {
+    override fun onAddFromAmountFocusChange(isFocused: Boolean) {
         isFromAmountFocused.value = isFocused
         if (desired != WithDesired.INPUT) {
             desired = WithDesired.INPUT
         }
     }
 
-    override fun onToAmountFocusChange(isFocused: Boolean) {
+    override fun onAddToAmountFocusChange(isFocused: Boolean) {
         isToAmountFocused.value = isFocused
         if (desired != WithDesired.OUTPUT) {
             desired = WithDesired.OUTPUT

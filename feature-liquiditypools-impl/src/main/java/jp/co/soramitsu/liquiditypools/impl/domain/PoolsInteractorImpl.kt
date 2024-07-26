@@ -85,6 +85,18 @@ class PoolsInteractorImpl(
         )
     }
 
+    override suspend fun calcRemoveLiquidityNetworkFee(
+        chainId: ChainId,
+        tokenFrom: Asset,
+        tokenTo: Asset,
+    ): BigDecimal? {
+        return polkaswapRepository.calcRemoveLiquidityNetworkFee(
+            chainId,
+            tokenFrom,
+            tokenTo
+        )
+    }
+
 //    override suspend fun updateApy() {
 //        polkaswapInteractor.updatePoolsSbApy()
 //    }

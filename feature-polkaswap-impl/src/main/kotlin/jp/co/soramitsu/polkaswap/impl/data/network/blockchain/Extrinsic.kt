@@ -101,6 +101,27 @@ fun ExtrinsicBuilder.depositLiquidity(
     )
 )
 
+fun ExtrinsicBuilder.removeLiquidity(
+    dexId: Int,
+    outputAssetIdA: String,
+    outputAssetIdB: String,
+    markerAssetDesired: BigInteger,
+    outputAMin: BigInteger,
+    outputBMin: BigInteger
+) =
+    this.call(
+        Modules.POOL_XYK,
+        "withdraw_liquidity",
+        mapOf(
+            "dex_id" to dexId.toBigInteger(),
+            "output_asset_a" to outputAssetIdA.mapCodeToken(),
+            "output_asset_b" to outputAssetIdB.mapCodeToken(),
+            "marker_asset_desired" to markerAssetDesired,
+            "output_a_min" to outputAMin,
+            "output_b_min" to outputBMin
+        )
+    )
+
 fun ExtrinsicBuilder.liquidityAdd(
     dexId: Int,
     tokenFrom: Asset,

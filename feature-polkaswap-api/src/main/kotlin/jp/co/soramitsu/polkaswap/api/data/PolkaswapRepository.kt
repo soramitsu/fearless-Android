@@ -61,6 +61,8 @@ interface PolkaswapRepository {
 
     suspend fun getBasicPools(chainId: ChainId): List<BasicPoolData>
 
+    suspend fun getBasicPool(chainId: ChainId, baseTokenId: String, targetTokenId: String): BasicPoolData?
+
 //    suspend fun getPoolOfAccount(
 //        address: String?,
 //        tokenFromId: String,
@@ -87,6 +89,12 @@ interface PolkaswapRepository {
         slippageTolerance: Double
     ): BigDecimal?
 
+    suspend fun calcRemoveLiquidityNetworkFee(
+        chainId: ChainId,
+        tokenFrom: Asset,
+        tokenTo: Asset,
+    ): BigDecimal?
+
     suspend fun getPoolBaseTokenDexId(chainId: ChainId, tokenId: String?): Int
 //    suspend fun updatePoolsSbApy()
     fun getPoolStrategicBonusAPY(reserveAccountOfPool: String): Double?
@@ -109,6 +117,5 @@ interface PolkaswapRepository {
 
     fun subscribePools(address: String): Flow<List<CommonPoolData>>
     fun subscribePool(address: String, baseTokenId: String, targetTokenId: String): Flow<CommonPoolData>
-
 
 }

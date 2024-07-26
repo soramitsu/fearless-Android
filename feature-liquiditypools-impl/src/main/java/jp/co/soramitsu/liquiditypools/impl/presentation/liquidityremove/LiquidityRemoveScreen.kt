@@ -1,4 +1,4 @@
-package jp.co.soramitsu.liquiditypools.impl.presentation.liquidityadd
+package jp.co.soramitsu.liquiditypools.impl.presentation.liquidityremove
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -38,33 +38,33 @@ import jp.co.soramitsu.common.compose.theme.white
 import jp.co.soramitsu.common.compose.theme.white08
 import jp.co.soramitsu.feature_wallet_impl.R
 
-data class LiquidityAddState(
+data class LiquidityRemoveState(
     val fromAmountInputViewState: AmountInputViewState = AmountInputViewState.defaultObj,
     val toAmountInputViewState: AmountInputViewState = AmountInputViewState.defaultObj,
-    val slippage: String = "0.5%",
-    val apy: String? = null,
+    val transferableAmount: String? = null,
+    val transferableFiat: String? = null,
     val feeInfo: FeeInfoViewState = FeeInfoViewState.default,
     val buttonEnabled: Boolean = false,
     val buttonLoading: Boolean = false
 )
 
-interface LiquidityAddCallbacks {
+interface LiquidityRemoveCallbacks {
 
-    fun onAddReviewClick()
+    fun onRemoveReviewClick()
 
-    fun onAddFromAmountChange(amount: BigDecimal)
+    fun onRemoveFromAmountChange(amount: BigDecimal)
 
-    fun onAddFromAmountFocusChange(isFocused: Boolean)
+    fun onRemoveFromAmountFocusChange(isFocused: Boolean)
 
-    fun onAddToAmountChange(amount: BigDecimal)
+    fun onRemoveToAmountChange(amount: BigDecimal)
 
-    fun onAddToAmountFocusChange(isFocused: Boolean)
+    fun onRemoveToAmountFocusChange(isFocused: Boolean)
 }
 
 @Composable
-fun LiquidityAddScreen(
-    state: LiquidityAddState,
-    callbacks: LiquidityAddCallbacks
+fun LiquidityRemoveScreen(
+    state: LiquidityRemoveState,
+    callbacks: LiquidityRemoveCallbacks
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
     val runCallback: (() -> Unit) -> Unit = { block ->
@@ -96,8 +96,8 @@ fun LiquidityAddScreen(
                     AmountInput(
                         state = state.fromAmountInputViewState,
                         borderColorFocused = colorAccentDark,
-                        onInput = callbacks::onAddFromAmountChange,
-                        onInputFocusChange = callbacks::onAddFromAmountFocusChange,
+                        onInput = callbacks::onRemoveFromAmountChange,
+                        onInputFocusChange = callbacks::onRemoveFromAmountFocusChange,
                         onKeyboardDone = { keyboardController?.hide() }
                     )
 
@@ -106,8 +106,8 @@ fun LiquidityAddScreen(
                     AmountInput(
                         state = state.toAmountInputViewState,
                         borderColorFocused = colorAccentDark,
-                        onInput = callbacks::onAddToAmountChange,
-                        onInputFocusChange = callbacks::onAddToAmountFocusChange,
+                        onInput = callbacks::onRemoveToAmountChange,
+                        onInputFocusChange = callbacks::onRemoveToAmountFocusChange,
                         onKeyboardDone = { keyboardController?.hide() }
                     )
                 }
@@ -131,19 +131,11 @@ fun LiquidityAddScreen(
                     .fillMaxWidth()
             ) {
                 Column {
-                    InfoTableItem(TitleValueViewState("Slippage", state.slippage))
                     InfoTableItem(
                         TitleValueViewState(
-                            title = "Strategic bonus APY",
-                            value = state.apy,
-                            clickState = TitleValueViewState.ClickState.Title(R.drawable.ic_info_14, 1)
-                        )
-                    )
-                    InfoTableItemAsset(
-                        TitleIconValueState(
-                            title = "Rewards payout in",
-                            iconUrl = "https://raw.githubusercontent.com/soramitsu/shared-features-utils/master/icons/tokens/coloured/PSWAP.svg",
-                            value = "PSWAP"
+                            title = "Transferable Balance",
+                            value = state.transferableAmount,
+                            additionalValue = state.transferableFiat
                         )
                     )
                     InfoTableItem(
@@ -168,7 +160,7 @@ fun LiquidityAddScreen(
             text = "Review",
             enabled = state.buttonEnabled,
             loading = state.buttonLoading,
-            onClick = { runCallback(callbacks::onAddReviewClick) }
+            onClick = { runCallback(callbacks::onRemoveReviewClick) }
         )
 
         MarginVertical(margin = 8.dp)
@@ -177,21 +169,19 @@ fun LiquidityAddScreen(
 
 @Preview
 @Composable
-private fun PreviewLiquidityAddScreen() {
-    LiquidityAddScreen(
-        state = LiquidityAddState(
+private fun PreviewLiquidityRemoveScreen() {
+    LiquidityRemoveScreen(
+        state = LiquidityRemoveState(
             fromAmountInputViewState = AmountInputViewState.defaultObj,
             toAmountInputViewState = AmountInputViewState.defaultObj,
-            apy = "23.3%",
             feeInfo = FeeInfoViewState.default,
-            slippage = "0.5%"
         ),
-        callbacks = object : LiquidityAddCallbacks {
-            override fun onAddReviewClick() {}
-            override fun onAddFromAmountChange(amount: BigDecimal) {}
-            override fun onAddFromAmountFocusChange(isFocused: Boolean) {}
-            override fun onAddToAmountChange(amount: BigDecimal) {}
-            override fun onAddToAmountFocusChange(isFocused: Boolean) {}
+        callbacks = object : LiquidityRemoveCallbacks {
+            override fun onRemoveReviewClick() {}
+            override fun onRemoveFromAmountChange(amount: BigDecimal) {}
+            override fun onRemoveFromAmountFocusChange(isFocused: Boolean) {}
+            override fun onRemoveToAmountChange(amount: BigDecimal) {}
+            override fun onRemoveToAmountFocusChange(isFocused: Boolean) {}
         },
     )
 }

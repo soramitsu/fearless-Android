@@ -42,6 +42,7 @@ import jp.co.soramitsu.polkaswap.impl.data.network.blockchain.depositLiquidity
 import jp.co.soramitsu.polkaswap.impl.data.network.blockchain.initializePool
 import jp.co.soramitsu.polkaswap.impl.data.network.blockchain.liquidityAdd
 import jp.co.soramitsu.polkaswap.impl.data.network.blockchain.register
+import jp.co.soramitsu.polkaswap.impl.data.network.blockchain.removeLiquidity
 import jp.co.soramitsu.polkaswap.impl.data.network.blockchain.swap
 import jp.co.soramitsu.polkaswap.impl.util.PolkaswapFormulas
 import jp.co.soramitsu.runtime.ext.addressOf
@@ -76,6 +77,7 @@ import jp.co.soramitsu.shared_utils.wsrpc.request.runtime.storage.SubscribeStora
 import jp.co.soramitsu.shared_utils.wsrpc.subscription.response.SubscriptionChange
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
+import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -351,7 +353,7 @@ class PolkaswapRepositoryImpl @Inject constructor(
 
     override fun getPoolStrategicBonusAPY(reserveAccountOfPool: String): Double? {
         val tempApy = blockExplorerManager.getTempApy(reserveAccountOfPool)
-        println("!!! blockExplorerManager getPoolStrategicBonusAPY for address $reserveAccountOfPool = $tempApy")
+//        println("!!! blockExplorerManager getPoolStrategicBonusAPY for address $reserveAccountOfPool = $tempApy")
         return tempApy
     }
 
@@ -359,6 +361,40 @@ class PolkaswapRepositoryImpl @Inject constructor(
 //        println("!!! call blockExplorerManager.updatePoolsSbApy()")
 //        blockExplorerManager.updatePoolsSbApy()
 //    }
+override suspend fun getBasicPool(chainId: ChainId, baseTokenId: String, targetTokenId: String): BasicPoolData? {
+    val poolLocal = poolDao.getBasicPool(baseTokenId, targetTokenId) ?: return null
+
+    val soraChain = chainRegistry.getChain(chainId)
+    val wallet = accountRepository.getSelectedMetaAccount()
+    val accountId = wallet.accountId(soraChain)
+    val soraAssets = soraChain.assets.mapNotNull { chainAsset ->
+        accountId?.let {
+            walletRepository.getAsset(
+                metaId = wallet.id,
+                accountId = accountId,
+                chainAsset = chainAsset,
+                minSupportedVersion = null
+            )
+        }
+    }
+
+    val baseAsset = soraAssets.firstOrNull {
+        it.token.configuration.currencyId == baseTokenId
+    } ?: return null
+    val targetAsset = soraAssets.firstOrNull {
+        it.token.configuration.currencyId == targetTokenId
+    }
+
+    return BasicPoolData(
+        baseToken = baseAsset,
+        targetToken = targetAsset,
+        baseReserves = poolLocal.reserveBase,
+        targetReserves = poolLocal.reserveTarget,
+        totalIssuance = poolLocal.totalIssuance,
+        reserveAccount = poolLocal.reservesAccount,
+        sbapy = getPoolStrategicBonusAPY(poolLocal.reservesAccount)
+    )
+}
 
     override suspend fun getBasicPools(chainId: ChainId): List<BasicPoolData> {
         println("!!!  getBasicPools() start")
@@ -517,6 +553,29 @@ class PolkaswapRepositoryImpl @Inject constructor(
             )
         }
 
+        val feeToken = chain.utilityAsset
+        return feeToken?.amountFromPlanks(fee)
+    }
+
+    override suspend fun calcRemoveLiquidityNetworkFee(
+        chainId: ChainId,
+        tokenFrom: Asset,
+        tokenTo: Asset,
+    ): BigDecimal? {
+        val chain = chainRegistry.getChain(chainId)
+        val baseTokenId = tokenFrom.currencyId ?: return null
+        val targetTokenId = tokenTo.currencyId ?: return null
+
+        val fee = extrinsicService.estimateFee(chain) {
+            removeLiquidity(
+                dexId = getPoolBaseTokenDexId(chainId, baseTokenId),
+                outputAssetIdA = baseTokenId,
+                outputAssetIdB = targetTokenId,
+                markerAssetDesired = tokenFrom.planksFromAmount(BigDecimal.ONE),
+                outputAMin = tokenFrom.planksFromAmount(BigDecimal.ONE),
+                outputBMin = tokenTo.planksFromAmount(BigDecimal.ONE),
+            )
+        }
         val feeToken = chain.utilityAsset
         return feeToken?.amountFromPlanks(fee)
     }
