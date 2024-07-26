@@ -75,14 +75,16 @@ class PoolDetailsPresenter @Inject constructor(
     }
 
     override fun onRemoveLiquidityClick() {
-        println("!!! onRemoveLiquidityClick")
+        coroutinesStore.ioScope.launch {
+            val ids = screenArgsFlow.replayCache.firstOrNull()?.ids ?: return@launch
+            val chainId = screenArgsFlow.replayCache.firstOrNull()?.chainId  ?: return@launch
+            internalPoolsRouter.openRemoveLiquidityScreen(chainId, ids)
+        }
+
     }
 
     suspend fun observePoolDetails(chainId: ChainId, ids: StringPair): Flow<CommonPoolData> {
         val (tokenFromId, tokenToId) = ids
-//        val address = accountInteractor.selectedMetaAccount().address(soraChain).orEmpty()
-//        val address = accountRepository.getSelectedAccount(payload.chainId).address
-
         return poolsInteractor.getPoolData(chainId, tokenFromId, tokenToId)
     }
 

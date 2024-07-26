@@ -55,6 +55,8 @@ data class LiquidityAddConfirmState(
     val slippage: String = "0.5%",
     val apy: String? = null,
     val feeInfo: FeeInfoViewState = FeeInfoViewState.default,
+    val buttonEnabled: Boolean = false,
+    val buttonLoading: Boolean = false
 )
 
 interface LiquidityAddConfirmCallbacks {
@@ -202,6 +204,8 @@ fun LiquidityAddConfirmScreen(
                 .padding(horizontal = 16.dp)
                 .fillMaxWidth(),
             text = "Confirm",
+            enabled = state.buttonEnabled,
+            loading = state.buttonLoading,
             onClick = callbacks::onConfirmClick
         )
 

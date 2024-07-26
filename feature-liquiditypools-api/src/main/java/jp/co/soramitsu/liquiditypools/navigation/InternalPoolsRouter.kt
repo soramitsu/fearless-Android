@@ -9,6 +9,7 @@ interface InternalPoolsRouter {
     fun createNavGraphRoutesFlow(): Flow<LiquidityPoolsNavGraphRoute>
     fun createNavGraphActionsFlow(): Flow<NavAction>
     fun back()
+    fun popupToScreen(route: LiquidityPoolsNavGraphRoute)
 
     fun openAllPoolsScreen(chainId: ChainId)
     fun openDetailsPoolScreen(chainId: ChainId, ids: StringPair)
@@ -16,7 +17,11 @@ interface InternalPoolsRouter {
     fun openAddLiquidityScreen(chainId: ChainId, ids: StringPair)
     fun openAddLiquidityConfirmScreen(chainId: ChainId, ids: StringPair, amountFrom: BigDecimal, amountTo: BigDecimal, apy: String)
 
+    fun openRemoveLiquidityScreen(chainId: ChainId, ids: StringPair)
+    fun openRemoveLiquidityConfirmScreen(chainId: ChainId, ids: StringPair, amountFrom: BigDecimal, amountTo: BigDecimal)
+
     fun openPoolListScreen(chainId: ChainId, isUserPools: Boolean)
 
     fun openErrorsScreen(title: String? = null, message: String)
+    fun openSuccessScreen(txHash: String, chainId: ChainId, customMessage: String)
 }

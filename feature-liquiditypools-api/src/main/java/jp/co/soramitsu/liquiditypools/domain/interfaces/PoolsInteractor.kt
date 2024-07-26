@@ -29,13 +29,19 @@ interface PoolsInteractor {
     suspend fun calcAddLiquidityNetworkFee(
         chainId: ChainId,
         address: String,
-        tokenFrom: jp.co.soramitsu.core.models.Asset,
-        tokenTo: jp.co.soramitsu.core.models.Asset,
+        tokenFrom: Asset,
+        tokenTo: Asset,
         tokenFromAmount: BigDecimal,
         tokenToAmount: BigDecimal,
         pairEnabled: Boolean,
         pairPresented: Boolean,
         slippageTolerance: Double
+    ): BigDecimal?
+
+    suspend fun calcRemoveLiquidityNetworkFee(
+        chainId: ChainId,
+        tokenFrom: Asset,
+        tokenTo: Asset,
     ): BigDecimal?
 
     suspend fun isPairEnabled(
@@ -50,8 +56,8 @@ interface PoolsInteractor {
 
     suspend fun observeAddLiquidity(
         chainId: ChainId,
-        tokenFrom: jp.co.soramitsu.core.models.Asset,
-        tokenTo: jp.co.soramitsu.core.models.Asset,
+        tokenFrom: Asset,
+        tokenTo: Asset,
         amountFrom: BigDecimal,
         amountTo: BigDecimal,
         enabled: Boolean,

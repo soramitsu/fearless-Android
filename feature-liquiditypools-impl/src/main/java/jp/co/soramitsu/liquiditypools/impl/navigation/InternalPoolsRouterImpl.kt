@@ -7,12 +7,15 @@ import jp.co.soramitsu.liquiditypools.navigation.InternalPoolsRouter
 import jp.co.soramitsu.liquiditypools.navigation.LiquidityPoolsNavGraphRoute
 import jp.co.soramitsu.liquiditypools.navigation.NavAction
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.onEach
 
-class InternalPoolsRouterImpl: InternalPoolsRouter {
+class InternalPoolsRouterImpl(
+    private val walletRouter: WalletRouter
+): InternalPoolsRouter {
     private val routesStack = Stack<LiquidityPoolsNavGraphRoute>()
 
     private val mutableActionsFlow =
@@ -28,6 +31,14 @@ class InternalPoolsRouterImpl: InternalPoolsRouter {
 
     override fun back() {
         mutableActionsFlow.tryEmit(NavAction.BackPressed)
+    }
+
+    override fun popupToScreen(route: LiquidityPoolsNavGraphRoute) {
+        if (routesStack.any { it.routeName == route.routeName }) {
+            do {
+                val pop = routesStack.pop()
+            } while (pop.routeName != route.routeName)
+        }
     }
 
     override fun openAllPoolsScreen(chainId: ChainId) {
@@ -46,12 +57,24 @@ class InternalPoolsRouterImpl: InternalPoolsRouter {
         mutableRoutesFlow.tryEmit(LiquidityPoolsNavGraphRoute.LiquidityAddConfirmScreen(chainId, ids, amountFrom, amountTo, apy))
     }
 
+    override fun openRemoveLiquidityScreen(chainId: ChainId, ids: StringPair) {
+        mutableRoutesFlow.tryEmit(LiquidityPoolsNavGraphRoute.LiquidityRemoveScreen(chainId, ids))
+    }
+
+    override fun openRemoveLiquidityConfirmScreen(chainId: ChainId, ids: StringPair, amountFrom: BigDecimal, amountTo: BigDecimal) {
+        mutableRoutesFlow.tryEmit(LiquidityPoolsNavGraphRoute.LiquidityRemoveConfirmScreen(chainId, ids, amountFrom, amountTo))
+    }
+
     override fun openPoolListScreen(chainId: ChainId, isUserPools: Boolean) {
         mutableRoutesFlow.tryEmit(LiquidityPoolsNavGraphRoute.ListPoolsScreen(chainId, isUserPools))
     }
 
     override fun openErrorsScreen(title: String?, message: String) {
         mutableActionsFlow.tryEmit(NavAction.ShowError(title, message))
+    }
+
+    override fun openSuccessScreen(txHash: String, chainId: ChainId, customMessage: String) {
+        walletRouter.openOperationSuccess(txHash, chainId, customMessage)
     }
 
 }

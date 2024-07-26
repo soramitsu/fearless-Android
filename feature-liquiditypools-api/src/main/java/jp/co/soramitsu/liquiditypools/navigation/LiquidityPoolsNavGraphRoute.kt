@@ -59,13 +59,23 @@ sealed interface LiquidityPoolsNavGraphRoute {
         }
     }
 
-    class LiquidityRemoveScreens(
-//        val token: NFT,
-        val receiver: String,
-        val isReceiverKnown: Boolean
+    class LiquidityRemoveScreen(
+        val chainId: ChainId,
+        val ids: StringPair
     ) : LiquidityPoolsNavGraphRoute by Companion {
         companion object : LiquidityPoolsNavGraphRoute {
-            override val routeName: String = "LiquidityAddScreens"
+            override val routeName: String = "LiquidityRemoveScreen"
+        }
+    }
+
+    class LiquidityRemoveConfirmScreen(
+        val chainId: ChainId,
+        val ids: StringPair,
+        val amountFrom: BigDecimal,
+        val amountTo: BigDecimal
+    ) : LiquidityPoolsNavGraphRoute by Companion {
+        companion object : LiquidityPoolsNavGraphRoute {
+            override val routeName: String = "LiquidityRemoveConfirmScreen"
         }
     }
 }
