@@ -458,17 +458,20 @@ class LiquidityRemovePresenter @Inject constructor(
         coroutinesStore.uiScope.launch {
             val chainId = screenArgsFlow.replayCache.firstOrNull()?.chainId ?: return@launch
 
-            val utilityAssetId = requireNotNull(chainsRepository.getChain(chainId).utilityAsset?.id)
-            val utilityAmount = walletInteractor.getCurrentAsset(chainId, utilityAssetId).total
+//            val utilityAssetId = requireNotNull(chainsRepository.getChain(chainId).utilityAsset?.id)
+//            val utilityAmount = walletInteractor.getCurrentAsset(chainId, utilityAssetId).total
+            val utilityAmount = utilityAssetFlow.firstOrNull()?.transferable ?: return@launch
             val feeAmount = networkFeeFlow.firstOrNull().orZero()
 
             val poolAssets = assetsInPoolFlow.firstOrNull() ?: return@launch
 
+            val userBasePooled = poolDataReal?.user?.basePooled ?: return@launch
+            val userTargetPooled = poolDataReal?.user?.targetPooled ?: return@launch
+
             val validationResult = validateRemoveLiquidityUseCase(
-                assetFrom = poolAssets.first,
-                assetTo = poolAssets.second,
-                utilityAssetId = utilityAssetId,
                 utilityAmount = utilityAmount.orZero(),
+                userBasePooled = userBasePooled,
+                userTargetPooled = userTargetPooled,
                 amountFrom = amountFrom,
                 amountTo = amountTo,
                 feeAmount = feeAmount,
@@ -485,8 +488,32 @@ class LiquidityRemovePresenter @Inject constructor(
                 return@launch
             }
 
+            val slippage = 0.5
+
+            val firstAmountMin =
+                PolkaswapFormulas.calculateMinAmount(
+                    amountFrom,
+                    slippage
+                )
+            val secondAmountMin =
+                PolkaswapFormulas.calculateMinAmount(
+                    amountTo,
+                    slippage
+                )
+            val desired =
+                if (percent == 100.0) {
+                    poolDataUsable?.user?.poolProvidersBalance.orZero()
+                } else {
+                    PolkaswapFormulas.calculateAmountByPercentage(
+                        poolDataUsable?.user?.poolProvidersBalance.orZero(),
+                        percent,
+                        poolAssets.first.asset.token.configuration.precision
+                    )
+                }
+
             val ids = screenArgsFlow.replayCache.lastOrNull()?.ids ?: return@launch
-            internalPoolsRouter.openRemoveLiquidityConfirmScreen(chainId, ids, amountFrom, amountTo)
+
+            internalPoolsRouter.openRemoveLiquidityConfirmScreen(chainId, ids, amountFrom, amountTo, firstAmountMin, secondAmountMin, desired)
         }.invokeOnCompletion {
             println("!!! setButtonLoading(false)")
             coroutinesStore.uiScope.launch {

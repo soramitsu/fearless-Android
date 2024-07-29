@@ -99,6 +99,15 @@ interface PolkaswapRepository {
 //    suspend fun updatePoolsSbApy()
     fun getPoolStrategicBonusAPY(reserveAccountOfPool: String): Double?
 
+    suspend fun observeRemoveLiquidity(
+        chainId: ChainId,
+        tokenFrom: Asset,
+        tokenTo: Asset,
+        markerAssetDesired: BigDecimal,
+        firstAmountMin: BigDecimal,
+        secondAmountMin: BigDecimal
+    ): Result<String>?
+
     suspend fun observeAddLiquidity(
         chainId: ChainId,
         address: String,

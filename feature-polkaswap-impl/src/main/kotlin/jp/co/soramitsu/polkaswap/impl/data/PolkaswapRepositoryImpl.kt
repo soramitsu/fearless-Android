@@ -936,6 +936,36 @@ override suspend fun getBasicPool(chainId: ChainId, baseTokenId: String, targetT
         }.getOrThrow()
     }
 
+
+
+    override suspend fun observeRemoveLiquidity(
+        chainId: ChainId,
+        tokenFrom: Asset,
+        tokenTo: Asset,
+        markerAssetDesired: BigDecimal,
+        firstAmountMin: BigDecimal,
+        secondAmountMin: BigDecimal
+    ): Result<String>? {
+        val soraChain = accountRepository.getChain(chainId)
+        val accountId = accountRepository.getSelectedMetaAccount().substrateAccountId
+        val baseTokenId = tokenFrom.currencyId ?: return null
+        val targetTokenId = tokenTo.currencyId ?: return null
+
+        return extrinsicService.submitExtrinsic(
+            chain = soraChain,
+            accountId = accountId
+        ) {
+            removeLiquidity(
+                dexId = getPoolBaseTokenDexId(chainId, baseTokenId),
+                outputAssetIdA = baseTokenId,
+                outputAssetIdB = targetTokenId,
+                markerAssetDesired = tokenFrom.planksFromAmount(markerAssetDesired),
+                outputAMin = tokenFrom.planksFromAmount(firstAmountMin),
+                outputBMin = tokenTo.planksFromAmount(secondAmountMin),
+            )
+        }
+    }
+
     override suspend fun observeAddLiquidity(
         chainId: ChainId,
         address: String,

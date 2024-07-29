@@ -25,6 +25,9 @@ import jp.co.soramitsu.liquiditypools.impl.presentation.liquidityaddconfirm.Liqu
 import jp.co.soramitsu.liquiditypools.impl.presentation.liquidityremove.LiquidityRemoveCallbacks
 import jp.co.soramitsu.liquiditypools.impl.presentation.liquidityremove.LiquidityRemovePresenter
 import jp.co.soramitsu.liquiditypools.impl.presentation.liquidityremove.LiquidityRemoveState
+import jp.co.soramitsu.liquiditypools.impl.presentation.liquidityremoveconfirm.LiquidityRemoveConfirmCallbacks
+import jp.co.soramitsu.liquiditypools.impl.presentation.liquidityremoveconfirm.LiquidityRemoveConfirmPresenter
+import jp.co.soramitsu.liquiditypools.impl.presentation.liquidityremoveconfirm.LiquidityRemoveConfirmState
 import jp.co.soramitsu.liquiditypools.impl.presentation.pooldetails.PoolDetailsCallbacks
 import jp.co.soramitsu.liquiditypools.impl.presentation.pooldetails.PoolDetailsPresenter
 import jp.co.soramitsu.liquiditypools.impl.presentation.pooldetails.PoolDetailsState
@@ -53,6 +56,7 @@ class PoolsFlowViewModel @Inject constructor(
     liquidityAddPresenter: LiquidityAddPresenter,
     liquidityAddConfirmPresenter: LiquidityAddConfirmPresenter,
     liquidityRemovePresenter: LiquidityRemovePresenter,
+    liquidityRemoveConfirmPresenter: LiquidityRemoveConfirmPresenter,
     private val coroutinesStore: CoroutinesStore,
     private val poolsInteractor: PoolsInteractor,
     private val accountInteractor: AccountInteractor,
@@ -64,7 +68,8 @@ class PoolsFlowViewModel @Inject constructor(
     AllPoolsScreenInterface by allPoolsPresenter,
     PoolListScreenInterface by poolListPresenter,
     PoolDetailsCallbacks by poolDetailsPresenter,
-    LiquidityRemoveCallbacks by liquidityRemovePresenter
+    LiquidityRemoveCallbacks by liquidityRemovePresenter,
+    LiquidityRemoveConfirmCallbacks by liquidityRemoveConfirmPresenter
 {
 
     val allPoolsScreenState: StateFlow<AllPoolsState> =
@@ -84,6 +89,9 @@ class PoolsFlowViewModel @Inject constructor(
 
     val liquidityAddConfirmState: StateFlow<LiquidityAddConfirmState> =
         liquidityAddConfirmPresenter.createScreenStateFlow(coroutinesStore.uiScope)
+
+    val liquidityRemoveConfirmState: StateFlow<LiquidityRemoveConfirmState> =
+        liquidityRemoveConfirmPresenter.createScreenStateFlow(coroutinesStore.uiScope)
 
 
     val navGraphRoutesFlow: StateFlow<LiquidityPoolsNavGraphRoute> =
@@ -152,7 +160,12 @@ class PoolsFlowViewModel @Inject constructor(
                 LoadingState.Loaded(
                     TextModel.SimpleString("Remove liquidity")
                 )
-            
+
+            LiquidityPoolsNavGraphRoute.LiquidityRemoveConfirmScreen.routeName ->
+                LoadingState.Loaded(
+                    TextModel.SimpleString("Remove liquidity")
+                )
+
             else -> LoadingState.Loading()
         }
 
