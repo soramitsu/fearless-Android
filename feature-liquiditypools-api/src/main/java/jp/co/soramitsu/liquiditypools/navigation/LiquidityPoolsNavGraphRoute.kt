@@ -72,7 +72,10 @@ sealed interface LiquidityPoolsNavGraphRoute {
         val chainId: ChainId,
         val ids: StringPair,
         val amountFrom: BigDecimal,
-        val amountTo: BigDecimal
+        val amountTo: BigDecimal,
+        val firstAmountMin: BigDecimal,
+        val secondAmountMin: BigDecimal,
+        val desired: BigDecimal,
     ) : LiquidityPoolsNavGraphRoute by Companion {
         companion object : LiquidityPoolsNavGraphRoute {
             override val routeName: String = "LiquidityRemoveConfirmScreen"

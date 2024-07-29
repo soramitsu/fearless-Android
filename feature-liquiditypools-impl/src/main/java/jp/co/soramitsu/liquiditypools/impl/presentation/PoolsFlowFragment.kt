@@ -52,6 +52,7 @@ import jp.co.soramitsu.liquiditypools.impl.presentation.allpools.AllPoolsScreen
 import jp.co.soramitsu.liquiditypools.impl.presentation.liquidityadd.LiquidityAddScreen
 import jp.co.soramitsu.liquiditypools.impl.presentation.liquidityaddconfirm.LiquidityAddConfirmScreen
 import jp.co.soramitsu.liquiditypools.impl.presentation.liquidityremove.LiquidityRemoveScreen
+import jp.co.soramitsu.liquiditypools.impl.presentation.liquidityremoveconfirm.LiquidityRemoveConfirmScreen
 import jp.co.soramitsu.liquiditypools.impl.presentation.pooldetails.PoolDetailsScreen
 import jp.co.soramitsu.liquiditypools.impl.presentation.poollist.PoolListScreen
 import jp.co.soramitsu.liquiditypools.navigation.LiquidityPoolsNavGraphRoute
@@ -211,6 +212,11 @@ class PoolsFlowFragment : BaseComposeBottomSheetDialogFragment<PoolsFlowViewMode
                 composable(LiquidityPoolsNavGraphRoute.LiquidityRemoveScreen.routeName) {
                     val liquidityRemoveState by viewModel.liquidityRemoveScreenState.collectAsStateWithLifecycle()
                     LiquidityRemoveScreen(liquidityRemoveState, viewModel)
+                }
+
+                composable(LiquidityPoolsNavGraphRoute.LiquidityRemoveConfirmScreen.routeName) {
+                    val liquidityRemoveState by viewModel.liquidityRemoveConfirmState.collectAsStateWithLifecycle()
+                    LiquidityRemoveConfirmScreen(liquidityRemoveState, viewModel)
                 }
 
                 composable(LiquidityPoolsNavGraphRoute.Loading.routeName) {

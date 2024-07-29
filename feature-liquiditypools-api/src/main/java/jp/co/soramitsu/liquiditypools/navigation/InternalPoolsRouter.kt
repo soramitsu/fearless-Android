@@ -18,7 +18,15 @@ interface InternalPoolsRouter {
     fun openAddLiquidityConfirmScreen(chainId: ChainId, ids: StringPair, amountFrom: BigDecimal, amountTo: BigDecimal, apy: String)
 
     fun openRemoveLiquidityScreen(chainId: ChainId, ids: StringPair)
-    fun openRemoveLiquidityConfirmScreen(chainId: ChainId, ids: StringPair, amountFrom: BigDecimal, amountTo: BigDecimal)
+    fun openRemoveLiquidityConfirmScreen(
+        chainId: ChainId,
+        ids: StringPair,
+        amountFrom: BigDecimal,
+        amountTo: BigDecimal,
+        firstAmountMin: BigDecimal,
+        secondAmountMin: BigDecimal,
+        desired: BigDecimal
+    )
 
     fun openPoolListScreen(chainId: ChainId, isUserPools: Boolean)
 

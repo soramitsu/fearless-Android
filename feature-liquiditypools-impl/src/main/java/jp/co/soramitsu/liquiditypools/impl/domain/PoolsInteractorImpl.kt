@@ -2,7 +2,6 @@ package jp.co.soramitsu.liquiditypools.impl.domain
 
 import java.math.BigDecimal
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
-import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.common.data.secrets.v1.Keypair
 import jp.co.soramitsu.common.data.secrets.v2.KeyPairSchema
 import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
@@ -114,6 +113,31 @@ class PoolsInteractorImpl(
         )
     }
 
+//    override suspend fun removeLiquidity(
+    override suspend fun observeRemoveLiquidity(
+        chainId: ChainId,
+        tokenFrom: Asset,
+        tokenTo: Asset,
+        markerAssetDesired: BigDecimal,
+        firstAmountMin: BigDecimal,
+        secondAmountMin: BigDecimal,
+        networkFee: BigDecimal
+    ): String {
+        val address = accountRepository.getSelectedAccount(chainId).address
+
+        val status = polkaswapRepository.observeRemoveLiquidity(
+           chainId,
+            tokenFrom,
+            tokenTo,
+            markerAssetDesired,
+            firstAmountMin,
+            secondAmountMin,
+        )
+
+
+    return status?.getOrNull() ?: ""
+    }
+
     override suspend fun observeAddLiquidity(
         chainId: ChainId,
         tokenFrom: Asset,
@@ -124,9 +148,8 @@ class PoolsInteractorImpl(
         presented: Boolean,
         slippageTolerance: Double
     ): String {
-        val soraChain = chainRegistry.getChain(chainId)
         val metaAccount = accountRepository.getSelectedMetaAccount()
-        val address = metaAccount.address(soraChain) ?: return ""
+        val address = accountRepository.getSelectedAccount(chainId).address
 
         val networkFee = calcAddLiquidityNetworkFee(
             chainId,

@@ -66,4 +66,14 @@ interface PoolsInteractor {
     ): String
 
     suspend fun updatePools(chainId: ChainId)
+
+    suspend fun observeRemoveLiquidity(
+        chainId: ChainId,
+        tokenFrom: Asset,
+        tokenTo: Asset,
+        markerAssetDesired: BigDecimal,
+        firstAmountMin: BigDecimal,
+        secondAmountMin: BigDecimal,
+        networkFee: BigDecimal
+    ): String
 }
