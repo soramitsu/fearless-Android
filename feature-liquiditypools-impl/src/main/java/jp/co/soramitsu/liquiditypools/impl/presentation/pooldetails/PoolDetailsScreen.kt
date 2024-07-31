@@ -40,12 +40,11 @@ import jp.co.soramitsu.common.compose.theme.customColors
 import jp.co.soramitsu.common.compose.theme.customTypography
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.feature_wallet_impl.R
-import jp.co.soramitsu.liquiditypools.impl.presentation.PoolsFlowViewModel
 import jp.co.soramitsu.liquiditypools.impl.presentation.PoolsFlowViewModel.Companion.ITEM_APY_ID
 
 data class PoolDetailsState(
-    val assetFrom: Asset? = null,
-    val assetTo: Asset? = null,
+    val assetBase: Asset? = null,
+    val assetTarget: Asset? = null,
     val pooledBaseAmount: String = "",
     val pooledBaseFiat: String = "",
     val pooledTargetAmount: String = "",
@@ -81,7 +80,7 @@ fun PoolDetailsScreen(
 
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
                 AsyncImage(
-                    model = getImageRequest(LocalContext.current, state.assetFrom?.iconUrl.orEmpty()),
+                    model = getImageRequest(LocalContext.current, state.assetBase?.iconUrl.orEmpty()),
                     contentDescription = null,
                     modifier = Modifier
                         .size(64.dp)
@@ -89,7 +88,7 @@ fun PoolDetailsScreen(
                         .zIndex(1f)
                 )
                 AsyncImage(
-                    model = getImageRequest(LocalContext.current, state.assetTo?.iconUrl.orEmpty()),
+                    model = getImageRequest(LocalContext.current, state.assetTarget?.iconUrl.orEmpty()),
                     contentDescription = null,
                     modifier = Modifier
                         .size(64.dp)
@@ -106,7 +105,7 @@ fun PoolDetailsScreen(
                 horizontalArrangement = Arrangement.Center
             ) {
                 Text(
-                    text = state.assetFrom?.symbol?.uppercase().orEmpty(),
+                    text = state.assetBase?.symbol?.uppercase().orEmpty(),
                     style = MaterialTheme.customTypography.header3,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -124,7 +123,7 @@ fun PoolDetailsScreen(
                 MarginHorizontal(margin = 8.dp)
 
                 Text(
-                    text = state.assetTo?.symbol?.uppercase().orEmpty(),
+                    text = state.assetTarget?.symbol?.uppercase().orEmpty(),
                     style = MaterialTheme.customTypography.header3,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -157,7 +156,7 @@ fun PoolDetailsScreen(
                     if (state.pooledBaseAmount.isNotEmpty()) {
                         InfoTableItem(
                             TitleValueViewState(
-                                title = stringResource(id = R.string.pl_your_pooled_format, state.assetFrom?.symbol?.uppercase().orEmpty()),
+                                title = stringResource(id = R.string.pl_your_pooled_format, state.assetBase?.symbol?.uppercase().orEmpty()),
                                 value = state.pooledBaseAmount,
                                 additionalValue = state.pooledBaseFiat
                             )
@@ -166,7 +165,7 @@ fun PoolDetailsScreen(
                     if (state.pooledTargetAmount.isNotEmpty()) {
                         InfoTableItem(
                             TitleValueViewState(
-                                title = stringResource(id = R.string.pl_your_pooled_format, state.assetTo?.symbol?.uppercase().orEmpty()),
+                                title = stringResource(id = R.string.pl_your_pooled_format, state.assetTarget?.symbol?.uppercase().orEmpty()),
                                 value = state.pooledTargetAmount,
                                 additionalValue = state.pooledTargetFiat
                             )

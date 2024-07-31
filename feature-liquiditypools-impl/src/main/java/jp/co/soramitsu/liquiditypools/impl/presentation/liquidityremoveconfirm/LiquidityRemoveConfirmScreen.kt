@@ -38,12 +38,11 @@ import jp.co.soramitsu.common.compose.theme.backgroundBlack
 import jp.co.soramitsu.common.compose.theme.customColors
 import jp.co.soramitsu.common.compose.theme.customTypography
 import jp.co.soramitsu.feature_wallet_impl.R
-import jp.co.soramitsu.liquiditypools.impl.presentation.PoolsFlowViewModel
 import jp.co.soramitsu.liquiditypools.impl.presentation.PoolsFlowViewModel.Companion.ITEM_FEE_ID
 
 data class LiquidityRemoveConfirmState(
-    val assetFromIconUrl: String? = null,
-    val assetToIconUrl: String? = null,
+    val assetBaseIconUrl: String? = null,
+    val assetTargetIconUrl: String? = null,
     val baseAmount: String = "",
     val baseFiat: String = "",
     val targetAmount: String = "",
@@ -87,7 +86,7 @@ fun LiquidityRemoveConfirmScreen(
                     MarginVertical(margin = 16.dp)
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
                         AsyncImage(
-                            model = getImageRequest(LocalContext.current, state.assetFromIconUrl.orEmpty()),
+                            model = getImageRequest(LocalContext.current, state.assetBaseIconUrl.orEmpty()),
                             contentDescription = null,
                             modifier = Modifier
                                 .size(64.dp)
@@ -95,7 +94,7 @@ fun LiquidityRemoveConfirmScreen(
                                 .zIndex(1f)
                         )
                         AsyncImage(
-                            model = getImageRequest(LocalContext.current, state.assetToIconUrl.orEmpty()),
+                            model = getImageRequest(LocalContext.current, state.assetTargetIconUrl.orEmpty()),
                             contentDescription = null,
                             modifier = Modifier
                                 .size(64.dp)

@@ -10,7 +10,6 @@ import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.formatPercent
 import jp.co.soramitsu.liquiditypools.domain.interfaces.PoolsInteractor
 import jp.co.soramitsu.liquiditypools.impl.presentation.CoroutinesStore
-import jp.co.soramitsu.liquiditypools.impl.presentation.PoolsFlowViewModel
 import jp.co.soramitsu.liquiditypools.navigation.InternalPoolsRouter
 import jp.co.soramitsu.liquiditypools.navigation.LiquidityPoolsNavGraphRoute
 import jp.co.soramitsu.polkaswap.api.domain.models.CommonPoolData
@@ -107,8 +106,8 @@ class PoolDetailsPresenter @Inject constructor(
 
         val result = poolsInteractor.getUserPoolData(chainId, address, baseTokenId, targetTokenId.fromHex())?.let {
             PoolDetailsState(
-                assetFrom = baseAsset,
-                assetTo = targetAsset,
+                assetBase = baseAsset,
+                assetTarget = targetAsset,
                 tvl = null,
                 apy = null
             )
@@ -119,8 +118,8 @@ class PoolDetailsPresenter @Inject constructor(
 
 private fun CommonPoolData.mapToState(): PoolDetailsState {
     return PoolDetailsState(
-        assetFrom = basic.baseToken.token.configuration,
-        assetTo = basic.targetToken?.token?.configuration,
+        assetBase = basic.baseToken.token.configuration,
+        assetTarget = basic.targetToken?.token?.configuration,
         pooledBaseAmount = user?.basePooled?.formatCrypto(basic.baseToken.token.configuration.symbol).orEmpty(),
         pooledBaseFiat = user?.basePooled?.applyFiatRate(basic.baseToken.token.fiatRate)?.formatFiat(basic.baseToken.token.fiatSymbol).orEmpty(),
         pooledTargetAmount = user?.targetPooled?.formatCrypto(basic.targetToken?.token?.configuration?.symbol).orEmpty(),

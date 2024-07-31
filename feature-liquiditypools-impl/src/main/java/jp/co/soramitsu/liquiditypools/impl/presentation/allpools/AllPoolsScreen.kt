@@ -82,7 +82,7 @@ fun AllPoolsScreen(
                         ) {
                             PoolGroupHeader(
                                 title = stringResource(id = R.string.pl_your_pools),
-                                onMoreClick = { callback.onMoreClick(true) } // todo restore .takeIf { state.hasExtraUserPools }
+                                onMoreClick = { callback.onMoreClick(true) }.takeIf { state.hasExtraUserPools }
                             )
                             state.userPools.forEach { pool ->
                                 BasicPoolListItem(
@@ -124,7 +124,7 @@ fun AllPoolsScreen(
 }
 
 @Composable
-fun ShimmerPoolList() {
+fun ShimmerPoolList(size: Int = 10) {
     BackgroundCorneredWithBorder(
         modifier = Modifier
             .padding(horizontal = 16.dp)
@@ -137,7 +137,7 @@ fun ShimmerPoolList() {
                 title = stringResource(id = R.string.pl_all_pools),
                 onMoreClick = null
             )
-            repeat(10) {
+            repeat(size) {
                 BasicPoolShimmerItem(modifier = Modifier.padding(vertical = Dimens.x1))
             }
         }

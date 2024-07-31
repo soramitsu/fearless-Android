@@ -27,9 +27,7 @@ import jp.co.soramitsu.common.compose.component.AmountInputViewState
 import jp.co.soramitsu.common.compose.component.BackgroundCorneredWithBorder
 import jp.co.soramitsu.common.compose.component.FeeInfoViewState
 import jp.co.soramitsu.common.compose.component.InfoTableItem
-import jp.co.soramitsu.common.compose.component.InfoTableItemAsset
 import jp.co.soramitsu.common.compose.component.MarginVertical
-import jp.co.soramitsu.common.compose.component.TitleIconValueState
 import jp.co.soramitsu.common.compose.component.TitleValueViewState
 import jp.co.soramitsu.common.compose.theme.backgroundBlack
 import jp.co.soramitsu.common.compose.theme.colorAccentDark
@@ -37,12 +35,11 @@ import jp.co.soramitsu.common.compose.theme.grayButtonBackground
 import jp.co.soramitsu.common.compose.theme.white
 import jp.co.soramitsu.common.compose.theme.white08
 import jp.co.soramitsu.feature_wallet_impl.R
-import jp.co.soramitsu.liquiditypools.impl.presentation.PoolsFlowViewModel
 import jp.co.soramitsu.liquiditypools.impl.presentation.PoolsFlowViewModel.Companion.ITEM_FEE_ID
 
 data class LiquidityRemoveState(
-    val fromAmountInputViewState: AmountInputViewState = AmountInputViewState.defaultObj,
-    val toAmountInputViewState: AmountInputViewState = AmountInputViewState.defaultObj,
+    val baseAmountInputViewState: AmountInputViewState = AmountInputViewState.defaultObj,
+    val targetAmountInputViewState: AmountInputViewState = AmountInputViewState.defaultObj,
     val transferableAmount: String? = null,
     val transferableFiat: String? = null,
     val feeInfo: FeeInfoViewState = FeeInfoViewState.default,
@@ -54,13 +51,13 @@ interface LiquidityRemoveCallbacks {
 
     fun onRemoveReviewClick()
 
-    fun onRemoveFromAmountChange(amount: BigDecimal)
+    fun onRemoveBaseAmountChange(amount: BigDecimal)
 
-    fun onRemoveFromAmountFocusChange(isFocused: Boolean)
+    fun onRemoveBaseAmountFocusChange(isFocused: Boolean)
 
-    fun onRemoveToAmountChange(amount: BigDecimal)
+    fun onRemoveTargetAmountChange(amount: BigDecimal)
 
-    fun onRemoveToAmountFocusChange(isFocused: Boolean)
+    fun onRemoveTargetAmountFocusChange(isFocused: Boolean)
 
     fun onRemoveItemClick(itemId: Int)
 }
@@ -98,20 +95,20 @@ fun LiquidityRemoveScreen(
             ) {
                 Column {
                     AmountInput(
-                        state = state.fromAmountInputViewState,
+                        state = state.baseAmountInputViewState,
                         borderColorFocused = colorAccentDark,
-                        onInput = callbacks::onRemoveFromAmountChange,
-                        onInputFocusChange = callbacks::onRemoveFromAmountFocusChange,
+                        onInput = callbacks::onRemoveBaseAmountChange,
+                        onInputFocusChange = callbacks::onRemoveBaseAmountFocusChange,
                         onKeyboardDone = { keyboardController?.hide() }
                     )
 
                     MarginVertical(margin = 8.dp)
 
                     AmountInput(
-                        state = state.toAmountInputViewState,
+                        state = state.targetAmountInputViewState,
                         borderColorFocused = colorAccentDark,
-                        onInput = callbacks::onRemoveToAmountChange,
-                        onInputFocusChange = callbacks::onRemoveToAmountFocusChange,
+                        onInput = callbacks::onRemoveTargetAmountChange,
+                        onInputFocusChange = callbacks::onRemoveTargetAmountFocusChange,
                         onKeyboardDone = { keyboardController?.hide() }
                     )
                 }
@@ -177,16 +174,16 @@ fun LiquidityRemoveScreen(
 private fun PreviewLiquidityRemoveScreen() {
     LiquidityRemoveScreen(
         state = LiquidityRemoveState(
-            fromAmountInputViewState = AmountInputViewState.defaultObj,
-            toAmountInputViewState = AmountInputViewState.defaultObj,
+            baseAmountInputViewState = AmountInputViewState.defaultObj,
+            targetAmountInputViewState = AmountInputViewState.defaultObj,
             feeInfo = FeeInfoViewState.default,
         ),
         callbacks = object : LiquidityRemoveCallbacks {
             override fun onRemoveReviewClick() {}
-            override fun onRemoveFromAmountChange(amount: BigDecimal) {}
-            override fun onRemoveFromAmountFocusChange(isFocused: Boolean) {}
-            override fun onRemoveToAmountChange(amount: BigDecimal) {}
-            override fun onRemoveToAmountFocusChange(isFocused: Boolean) {}
+            override fun onRemoveBaseAmountChange(amount: BigDecimal) {}
+            override fun onRemoveBaseAmountFocusChange(isFocused: Boolean) {}
+            override fun onRemoveTargetAmountChange(amount: BigDecimal) {}
+            override fun onRemoveTargetAmountFocusChange(isFocused: Boolean) {}
             override fun onRemoveItemClick(itemId: Int) {}
         },
     )
