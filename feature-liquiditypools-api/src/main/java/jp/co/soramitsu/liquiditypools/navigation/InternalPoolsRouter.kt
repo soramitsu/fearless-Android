@@ -31,5 +31,8 @@ interface InternalPoolsRouter {
     fun openPoolListScreen(chainId: ChainId, isUserPools: Boolean)
 
     fun openErrorsScreen(title: String? = null, message: String)
+    fun openInfoScreen(title: String, message: String)
+    fun openInfoScreen(itemId: Int)
     fun openSuccessScreen(txHash: String, chainId: ChainId, customMessage: String)
+    fun <T : LiquidityPoolsNavGraphRoute> destination(clazz: Class<T>): T?
 }

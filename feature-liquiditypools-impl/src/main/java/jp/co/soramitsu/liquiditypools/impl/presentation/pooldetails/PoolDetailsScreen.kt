@@ -40,6 +40,8 @@ import jp.co.soramitsu.common.compose.theme.customColors
 import jp.co.soramitsu.common.compose.theme.customTypography
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.feature_wallet_impl.R
+import jp.co.soramitsu.liquiditypools.impl.presentation.PoolsFlowViewModel
+import jp.co.soramitsu.liquiditypools.impl.presentation.PoolsFlowViewModel.Companion.ITEM_APY_ID
 
 data class PoolDetailsState(
     val assetFrom: Asset? = null,
@@ -55,6 +57,7 @@ data class PoolDetailsState(
 interface PoolDetailsCallbacks {
     fun onSupplyLiquidityClick()
     fun onRemoveLiquidityClick()
+    fun onDetailItemClick(itemId: Int)
 }
 
 @Composable
@@ -82,7 +85,7 @@ fun PoolDetailsScreen(
                     contentDescription = null,
                     modifier = Modifier
                         .size(64.dp)
-                        .offset(x = 7.dp)
+                        .offset(x = 14.dp)
                         .zIndex(1f)
                 )
                 AsyncImage(
@@ -90,7 +93,7 @@ fun PoolDetailsScreen(
                     contentDescription = null,
                     modifier = Modifier
                         .size(64.dp)
-                        .offset(x = (-7).dp)
+                        .offset(x = (-14).dp)
                         .zIndex(0f)
                 )
             }
@@ -140,8 +143,9 @@ fun PoolDetailsScreen(
                         TitleValueViewState(
                             title = "Strategic bonus APY",
                             value = state.apy,
-                            clickState = TitleValueViewState.ClickState.Title(R.drawable.ic_info_14, 1)
-                        )
+                            clickState = TitleValueViewState.ClickState.Title(R.drawable.ic_info_14, ITEM_APY_ID)
+                        ),
+                        onClick = { callbacks.onDetailItemClick(ITEM_APY_ID) }
                     )
                     InfoTableItemAsset(
                         TitleIconValueState(
@@ -210,6 +214,7 @@ private fun PreviewPoolDetailsScreen() {
         callbacks = object : PoolDetailsCallbacks {
             override fun onSupplyLiquidityClick() {}
             override fun onRemoveLiquidityClick() {}
+            override fun onDetailItemClick(itemId: Int) {}
         },
     )
 }

@@ -24,6 +24,7 @@ import jp.co.soramitsu.runtime.di.REMOTE_STORAGE_SOURCE
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.core.rpc.RpcCalls
 import jp.co.soramitsu.core.runtime.IChainRegistry
+import jp.co.soramitsu.coredb.AppDatabase
 import jp.co.soramitsu.coredb.dao.AssetDao
 import jp.co.soramitsu.coredb.dao.ChainDao
 import jp.co.soramitsu.coredb.dao.PoolDao
@@ -56,7 +57,8 @@ class PolkaswapFeatureModule {
         accountRepository: AccountRepository,
         walletRepository: WalletRepository,
         sorablockexplorer: BlockExplorerManager,
-        poolDao: PoolDao
+        poolDao: PoolDao,
+        appDataBase: AppDatabase
     ): PolkaswapRepository {
         return PolkaswapRepositoryImpl(
             remoteConfigFetcher,
@@ -67,7 +69,8 @@ class PolkaswapFeatureModule {
             accountRepository,
             walletRepository,
             sorablockexplorer,
-            poolDao
+            poolDao,
+            appDataBase
         )
     }
 

@@ -46,6 +46,7 @@ import jp.co.soramitsu.common.compose.component.ToolbarBottomSheet
 import jp.co.soramitsu.common.compose.component.ToolbarHomeIconState
 import jp.co.soramitsu.common.compose.models.TextModel
 import jp.co.soramitsu.common.compose.models.retrieveString
+import jp.co.soramitsu.common.presentation.InfoDialog
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.feature_liquiditypools_impl.R
 import jp.co.soramitsu.liquiditypools.impl.presentation.allpools.AllPoolsScreen
@@ -138,6 +139,12 @@ class PoolsFlowFragment : BaseComposeBottomSheetDialogFragment<PoolsFlowViewMode
                             title = it.errorTitle ?: resources.getString(jp.co.soramitsu.common.R.string.common_error_general_title),
                             message = it.errorText
                         )
+
+                    is NavAction.ShowInfo ->
+                        InfoDialog(
+                            title = it.title,
+                            message = it.message
+                        ).show(childFragmentManager)
                 }
             }.launchIn(this)
         }
@@ -168,7 +175,7 @@ class PoolsFlowFragment : BaseComposeBottomSheetDialogFragment<PoolsFlowViewMode
             }
 
             NavHost(
-                startDestination = LiquidityPoolsNavGraphRoute.AllPoolsScreen.routeName,
+                startDestination = LiquidityPoolsNavGraphRoute.Loading.routeName,
                 contentAlignment = Alignment.TopCenter,
                 navController = navController,
                 modifier = Modifier

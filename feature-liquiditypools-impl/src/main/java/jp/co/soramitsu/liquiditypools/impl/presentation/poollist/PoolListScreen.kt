@@ -16,6 +16,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.androidfoundation.format.StringPair
 import jp.co.soramitsu.common.compose.component.CorneredInput
+import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.theme.white04
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.liquiditypools.impl.presentation.allpools.BasicPoolListItem
@@ -41,6 +42,7 @@ fun PoolListScreen(
     Column(
         modifier = Modifier.fillMaxSize(),
     ) {
+        MarginVertical(margin = 16.dp)
         Box(
             contentAlignment = Alignment.CenterStart,
             modifier = Modifier.padding(horizontal = 16.dp)

@@ -23,8 +23,10 @@ class BlockExplorerManager @Inject constructor(
     private suspend fun updateSbApyInternal() {
         runCatching {
             val response = info.getSpApy()
+            println("!!! call blockExplorerManager.updatePoolsSbApy() result size = ${response.size}")
             tempApy.clear()
             tempApy.addAll(response)
+            println("!!! call blockExplorerManager.updatePoolsSbApy() result updated")
         }
     }
 

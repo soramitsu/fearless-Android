@@ -41,6 +41,7 @@ data class AllPoolsState(
     val allPools: List<BasicPoolListItemState> = listOf(),
     val hasExtraUserPools: Boolean = false,
     val hasExtraAllPools: Boolean = false,
+    val isLoading: Boolean = true
 )
 
 interface AllPoolsScreenInterface {
@@ -64,55 +65,80 @@ fun AllPoolsScreen(
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
         ) {
-            MarginVertical(margin = 16.dp)
+            MarginVertical(margin = 8.dp)
 
-            if (state.userPools.isNotEmpty()) {
-                BackgroundCorneredWithBorder(
-                    modifier = Modifier
-                        .padding(horizontal = 16.dp)
-                ) {
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(0.dp),
+            if (state.isLoading) {
+                ShimmerPoolList()
+            } else {
+                if (state.userPools.isNotEmpty()) {
+                    BackgroundCorneredWithBorder(
                         modifier = Modifier
-                            .wrapContentHeight()
+                            .padding(horizontal = 16.dp)
                     ) {
-                        PoolGroupHeader(
-                            title = stringResource(id = R.string.pl_your_pools),
-                            onMoreClick = { callback.onMoreClick(true) }.takeIf { state.hasExtraUserPools }
-                        )
-                        state.userPools.forEach { pool ->
-                            BasicPoolListItem(
-                                modifier = Modifier.padding(vertical = Dimens.x1),
-                                state = pool,
-                                onPoolClick = callback::onPoolClicked,
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(0.dp),
+                            modifier = Modifier
+                                .wrapContentHeight()
+                        ) {
+                            PoolGroupHeader(
+                                title = stringResource(id = R.string.pl_your_pools),
+                                onMoreClick = { callback.onMoreClick(true) } // todo restore .takeIf { state.hasExtraUserPools }
                             )
+                            state.userPools.forEach { pool ->
+                                BasicPoolListItem(
+                                    modifier = Modifier.padding(vertical = Dimens.x1),
+                                    state = pool,
+                                    onPoolClick = callback::onPoolClicked,
+                                )
+                            }
+                        }
+                    }
+                    MarginVertical(margin = 16.dp)
+                }
+                if (state.allPools.isNotEmpty()) {
+                    BackgroundCorneredWithBorder(
+                        modifier = Modifier
+                            .padding(horizontal = 16.dp)
+                    ) {
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(0.dp),
+                            modifier = Modifier.wrapContentHeight()
+                        ) {
+                            PoolGroupHeader(
+                                title = stringResource(id = R.string.pl_all_pools),
+                                onMoreClick = { callback.onMoreClick(false) }.takeIf { state.hasExtraAllPools }
+                            )
+                            state.allPools.forEach { pool ->
+                                BasicPoolListItem(
+                                    modifier = Modifier.padding(vertical = Dimens.x1),
+                                    state = pool,
+                                    onPoolClick = callback::onPoolClicked,
+                                )
+                            }
                         }
                     }
                 }
-                MarginVertical(margin = 16.dp)
             }
-            if (state.allPools.isNotEmpty()) {
-                BackgroundCorneredWithBorder(
-                    modifier = Modifier
-                        .padding(horizontal = 16.dp)
-                ) {
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(0.dp),
-                        modifier = Modifier.wrapContentHeight()
-                    ) {
-                        PoolGroupHeader(
-                            title = stringResource(id = R.string.pl_all_pools),
-                            onMoreClick = { callback.onMoreClick(false) }.takeIf { state.hasExtraAllPools }
-                        )
-                        state.allPools.forEach { pool ->
-                            BasicPoolListItem(
-                                modifier = Modifier.padding(vertical = Dimens.x1),
-                                state = pool,
-                                onPoolClick = callback::onPoolClicked,
-                            )
-                        }
-                    }
-                }
+        }
+    }
+}
+
+@Composable
+fun ShimmerPoolList() {
+    BackgroundCorneredWithBorder(
+        modifier = Modifier
+            .padding(horizontal = 16.dp)
+    ) {
+        Column(
+            verticalArrangement = Arrangement.spacedBy(0.dp),
+            modifier = Modifier.wrapContentHeight()
+        ) {
+            PoolGroupHeader(
+                title = stringResource(id = R.string.pl_all_pools),
+                onMoreClick = null
+            )
+            repeat(10) {
+                BasicPoolShimmerItem(modifier = Modifier.padding(vertical = Dimens.x1))
             }
         }
     }
@@ -197,6 +223,7 @@ private fun PreviewAllPoolsScreen() {
         state = AllPoolsState(
             userPools = items,
             allPools = items,
+            isLoading = false
         ),
         callback = object : AllPoolsScreenInterface {
             override fun onPoolClicked(pair: StringPair) {}

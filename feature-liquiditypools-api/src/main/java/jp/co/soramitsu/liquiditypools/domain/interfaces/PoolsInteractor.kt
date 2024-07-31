@@ -9,10 +9,14 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.coroutines.flow.Flow
 
 interface PoolsInteractor {
+    val poolsChainId: String
+
     suspend fun getBasicPools(chainId: ChainId): List<BasicPoolData>
+//    fun subscribePoolsCache(): Flow<List<BasicPoolData>>
 
     //    suspend fun getPoolCacheOfCurAccount(tokenFromId: String, tokenToId: String): CommonUserPoolData?
     fun subscribePoolsCacheOfAccount(address: String): Flow<List<CommonPoolData>>
+    fun subscribePoolsCacheCurrentAccount(): Flow<List<CommonPoolData>>
     suspend fun getPoolData(
         chainId: ChainId,
         baseTokenId: String,
@@ -29,10 +33,10 @@ interface PoolsInteractor {
     suspend fun calcAddLiquidityNetworkFee(
         chainId: ChainId,
         address: String,
-        tokenFrom: Asset,
-        tokenTo: Asset,
-        tokenFromAmount: BigDecimal,
-        tokenToAmount: BigDecimal,
+        tokenBase: Asset,
+        tokenTarget: Asset,
+        tokenBaseAmount: BigDecimal,
+        tokenTargetAmount: BigDecimal,
         pairEnabled: Boolean,
         pairPresented: Boolean,
         slippageTolerance: Double
@@ -40,14 +44,14 @@ interface PoolsInteractor {
 
     suspend fun calcRemoveLiquidityNetworkFee(
         chainId: ChainId,
-        tokenFrom: Asset,
-        tokenTo: Asset,
+        tokenBase: Asset,
+        tokenTarget: Asset,
     ): BigDecimal?
 
     suspend fun isPairEnabled(
         chainId: ChainId,
-        inputTokenId: String,
-        outputTokenId: String
+        baseTokenId: String,
+        targetTokenId: String
     ): Boolean
 
 //    suspend fun updateApy()
@@ -56,10 +60,10 @@ interface PoolsInteractor {
 
     suspend fun observeAddLiquidity(
         chainId: ChainId,
-        tokenFrom: Asset,
-        tokenTo: Asset,
-        amountFrom: BigDecimal,
-        amountTo: BigDecimal,
+        tokenBase: Asset,
+        tokenTarget: Asset,
+        amountBase: BigDecimal,
+        amountTarget: BigDecimal,
         enabled: Boolean,
         presented: Boolean,
         slippageTolerance: Double
@@ -69,8 +73,8 @@ interface PoolsInteractor {
 
     suspend fun observeRemoveLiquidity(
         chainId: ChainId,
-        tokenFrom: Asset,
-        tokenTo: Asset,
+        tokenBase: Asset,
+        tokenTarget: Asset,
         markerAssetDesired: BigDecimal,
         firstAmountMin: BigDecimal,
         secondAmountMin: BigDecimal,

@@ -4,7 +4,6 @@ import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.androidfoundation.format.StringPair
 import jp.co.soramitsu.androidfoundation.format.compareNullDesc
-import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.liquiditypools.domain.interfaces.PoolsInteractor
 import jp.co.soramitsu.liquiditypools.impl.presentation.CoroutinesStore
 import jp.co.soramitsu.liquiditypools.impl.presentation.toListItemState
@@ -41,22 +40,24 @@ class PoolListPresenter @Inject constructor(
         .filterIsInstance<LiquidityPoolsNavGraphRoute.ListPoolsScreen>()
         .shareIn(coroutinesStore.uiScope, SharingStarted.Lazily, 1)
 
-    val chainFlow = screenArgsFlow.map { screenArgs ->
-        chainsRepository.getChain(screenArgs.chainId)
-    }
-
     val pools = screenArgsFlow.flatMapLatest { screenArgs ->
         combine(
-            flowOf { poolsInteractor.getBasicPools(screenArgs.chainId) },
+            poolsInteractor.subscribePoolsCacheCurrentAccount(),
             enteredAssetQueryFlow
         ) { pools, query ->
             pools.filter {
-                it.isFilterMatch(query)
+                if (screenArgs.isUserPools) {
+                    it.user != null
+                } else {
+                    true
+                }
+            }.filter {
+                it.basic.isFilterMatch(query)
             }.sortedWith { o1, o2 ->
-                compareNullDesc(o1.tvl, o2.tvl)
+                compareNullDesc(o1.basic.tvl, o2.basic.tvl)
             }
         }.map {
-            it.mapNotNull(BasicPoolData::toListItemState)
+            it.mapNotNull{ it.basic.toListItemState() }
         }
     }
 
@@ -76,24 +77,18 @@ class PoolListPresenter @Inject constructor(
         pools.onEach {
             stateFlow.value = stateFlow.value.copy(pools = it)
         }.launchIn(coroutineScope)
+
+        enteredAssetQueryFlow.onEach {
+            stateFlow.value = stateFlow.value.copy(searchQuery = it)
+        }.launchIn(coroutineScope)
     }
 
-
     override fun onPoolClicked(pair: StringPair) {
-//        val xorPswap = Pair("b774c386-5cce-454a-a845-1ec0381538ec", "37a999a2-5e90-4448-8b0e-98d06ac8f9d4")
         val chainId = screenArgsFlow.replayCache.firstOrNull()?.chainId ?: return
         internalPoolsRouter.openDetailsPoolScreen(chainId, pair)
     }
 
-
     override fun onAssetSearchEntered(value: String) {
         enteredAssetQueryFlow.value = value
     }
-
-    private fun jp.co.soramitsu.wallet.impl.domain.model.Asset.isMatchFilter(filter: String): Boolean =
-        this.token.configuration.name?.lowercase()?.contains(filter.lowercase()) == true ||
-                this.token.configuration.symbol.lowercase().contains(filter.lowercase()) ||
-                this.token.configuration.id.lowercase().contains(filter.lowercase())
-
-
 }

@@ -10,6 +10,7 @@ import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.formatPercent
 import jp.co.soramitsu.liquiditypools.domain.interfaces.PoolsInteractor
 import jp.co.soramitsu.liquiditypools.impl.presentation.CoroutinesStore
+import jp.co.soramitsu.liquiditypools.impl.presentation.PoolsFlowViewModel
 import jp.co.soramitsu.liquiditypools.navigation.InternalPoolsRouter
 import jp.co.soramitsu.liquiditypools.navigation.LiquidityPoolsNavGraphRoute
 import jp.co.soramitsu.polkaswap.api.domain.models.CommonPoolData
@@ -18,6 +19,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.shared_utils.extensions.fromHex
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -54,6 +56,7 @@ class PoolDetailsPresenter @Inject constructor(
         return stateFlow
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     private fun subscribeState(coroutineScope: CoroutineScope) {
         screenArgsFlow.flatMapLatest {
             observePoolDetails(it.chainId, it.ids).onEach {
@@ -83,9 +86,13 @@ class PoolDetailsPresenter @Inject constructor(
 
     }
 
+    override fun onDetailItemClick(itemId: Int) {
+        internalPoolsRouter.openInfoScreen(itemId)
+    }
+
     suspend fun observePoolDetails(chainId: ChainId, ids: StringPair): Flow<CommonPoolData> {
-        val (tokenFromId, tokenToId) = ids
-        return poolsInteractor.getPoolData(chainId, tokenFromId, tokenToId)
+        val (baseTokenId, targetTokenId) = ids
+        return poolsInteractor.getPoolData(chainId, baseTokenId, targetTokenId)
     }
 
     suspend fun requestPoolDetails(ids: StringPair): PoolDetailsState? {
@@ -108,13 +115,6 @@ class PoolDetailsPresenter @Inject constructor(
         }
         return result
     }
-
-    private fun jp.co.soramitsu.wallet.impl.domain.model.Asset.isMatchFilter(filter: String): Boolean =
-        this.token.configuration.name?.lowercase()?.contains(filter.lowercase()) == true ||
-                this.token.configuration.symbol.lowercase().contains(filter.lowercase()) ||
-                this.token.configuration.id.lowercase().contains(filter.lowercase())
-
-
 }
 
 private fun CommonPoolData.mapToState(): PoolDetailsState {

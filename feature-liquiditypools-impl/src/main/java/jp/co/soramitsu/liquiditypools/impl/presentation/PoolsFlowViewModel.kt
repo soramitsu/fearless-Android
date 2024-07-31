@@ -72,6 +72,11 @@ class PoolsFlowViewModel @Inject constructor(
     LiquidityRemoveConfirmCallbacks by liquidityRemoveConfirmPresenter
 {
 
+    companion object {
+        const val ITEM_APY_ID = 1
+        const val ITEM_FEE_ID = 2
+    }
+
     val allPoolsScreenState: StateFlow<AllPoolsState> =
         allPoolsPresenter.createScreenStateFlow(coroutinesStore.uiScope)
 
@@ -133,11 +138,15 @@ class PoolsFlowViewModel @Inject constructor(
                 )
 
             LiquidityPoolsNavGraphRoute.ListPoolsScreen.routeName -> {
-//                val destinationArgs = innternalPoolsRouter.destination(LiquidityPoolsNavGraphRoute.ListPoolsScreen::class.java)
-//                val title = destinationArgs?.token?.title.orEmpty()
+                val destinationArgs = internalPoolsRouter.destination(LiquidityPoolsNavGraphRoute.ListPoolsScreen::class.java)
+                val title = if (destinationArgs?.isUserPools == true) {
+                    "Your pools"
+                } else {
+                    "All pools"
+                }
 
                 LoadingState.Loaded(
-                    TextModel.SimpleString("Your pools")
+                    TextModel.SimpleString(title)
                 )
             }
 

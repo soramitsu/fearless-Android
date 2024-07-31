@@ -37,6 +37,9 @@ import jp.co.soramitsu.common.compose.theme.grayButtonBackground
 import jp.co.soramitsu.common.compose.theme.white
 import jp.co.soramitsu.common.compose.theme.white08
 import jp.co.soramitsu.feature_wallet_impl.R
+import jp.co.soramitsu.liquiditypools.impl.presentation.PoolsFlowViewModel
+import jp.co.soramitsu.liquiditypools.impl.presentation.PoolsFlowViewModel.Companion.ITEM_APY_ID
+import jp.co.soramitsu.liquiditypools.impl.presentation.PoolsFlowViewModel.Companion.ITEM_FEE_ID
 
 data class LiquidityAddState(
     val fromAmountInputViewState: AmountInputViewState = AmountInputViewState.defaultObj,
@@ -59,6 +62,8 @@ interface LiquidityAddCallbacks {
     fun onAddToAmountChange(amount: BigDecimal)
 
     fun onAddToAmountFocusChange(isFocused: Boolean)
+
+    fun onAddTableItemClick(itemId: Int)
 }
 
 @Composable
@@ -136,8 +141,11 @@ fun LiquidityAddScreen(
                         TitleValueViewState(
                             title = "Strategic bonus APY",
                             value = state.apy,
-                            clickState = TitleValueViewState.ClickState.Title(R.drawable.ic_info_14, 1)
-                        )
+                            clickState = TitleValueViewState.ClickState.Title(R.drawable.ic_info_14, ITEM_APY_ID)
+                        ),
+                        onClick = {
+                            callbacks.onAddTableItemClick(ITEM_APY_ID)
+                        }
                     )
                     InfoTableItemAsset(
                         TitleIconValueState(
@@ -151,8 +159,11 @@ fun LiquidityAddScreen(
                             title = "Network fee",
                             value = state.feeInfo.feeAmount,
                             additionalValue = state.feeInfo.feeAmountFiat,
-                            clickState = TitleValueViewState.ClickState.Title(R.drawable.ic_info_14, 2)
-                        )
+                            clickState = TitleValueViewState.ClickState.Title(R.drawable.ic_info_14, ITEM_FEE_ID)
+                        ),
+                        onClick = {
+                            callbacks.onAddTableItemClick(ITEM_FEE_ID)
+                        }
                     )
                 }
             }
@@ -192,6 +203,7 @@ private fun PreviewLiquidityAddScreen() {
             override fun onAddFromAmountFocusChange(isFocused: Boolean) {}
             override fun onAddToAmountChange(amount: BigDecimal) {}
             override fun onAddToAmountFocusChange(isFocused: Boolean) {}
+            override fun onAddTableItemClick(itemId: Int) {}
         },
     )
 }
