@@ -14,7 +14,6 @@ import jp.co.soramitsu.liquiditypools.navigation.InternalPoolsRouter
 import jp.co.soramitsu.liquiditypools.navigation.LiquidityPoolsNavGraphRoute
 import jp.co.soramitsu.polkaswap.api.domain.models.CommonPoolData
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.shared_utils.extensions.fromHex
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import kotlinx.coroutines.CoroutineScope
@@ -58,7 +57,7 @@ class PoolDetailsPresenter @Inject constructor(
     @OptIn(ExperimentalCoroutinesApi::class)
     private fun subscribeState(coroutineScope: CoroutineScope) {
         screenArgsFlow.flatMapLatest {
-            observePoolDetails(it.chainId, it.ids).onEach {
+            observePoolDetails(it.ids).onEach {
                 stateFlow.value = it.mapToState()
             }
 //            requestPoolDetails(it.ids)?.let {
@@ -71,16 +70,14 @@ class PoolDetailsPresenter @Inject constructor(
     override fun onSupplyLiquidityClick() {
         coroutinesStore.ioScope.launch {
             val ids = screenArgsFlow.replayCache.firstOrNull()?.ids ?: return@launch
-            val chainId = screenArgsFlow.replayCache.firstOrNull()?.chainId  ?: return@launch
-            internalPoolsRouter.openAddLiquidityScreen(chainId, ids)
+            internalPoolsRouter.openAddLiquidityScreen(ids)
         }
     }
 
     override fun onRemoveLiquidityClick() {
         coroutinesStore.ioScope.launch {
             val ids = screenArgsFlow.replayCache.firstOrNull()?.ids ?: return@launch
-            val chainId = screenArgsFlow.replayCache.firstOrNull()?.chainId  ?: return@launch
-            internalPoolsRouter.openRemoveLiquidityScreen(chainId, ids)
+            internalPoolsRouter.openRemoveLiquidityScreen(ids)
         }
 
     }
@@ -89,13 +86,13 @@ class PoolDetailsPresenter @Inject constructor(
         internalPoolsRouter.openInfoScreen(itemId)
     }
 
-    suspend fun observePoolDetails(chainId: ChainId, ids: StringPair): Flow<CommonPoolData> {
+    suspend fun observePoolDetails(ids: StringPair): Flow<CommonPoolData> {
         val (baseTokenId, targetTokenId) = ids
-        return poolsInteractor.getPoolData(chainId, baseTokenId, targetTokenId)
+        return poolsInteractor.getPoolData(baseTokenId, targetTokenId)
     }
 
     suspend fun requestPoolDetails(ids: StringPair): PoolDetailsState? {
-        val chainId = screenArgsFlow.replayCache.firstOrNull()?.chainId ?: return null
+        val chainId = poolsInteractor.poolsChainId
 
         val soraChain = accountInteractor.getChain(chainId)
         val address = accountInteractor.selectedMetaAccount().address(soraChain).orEmpty()

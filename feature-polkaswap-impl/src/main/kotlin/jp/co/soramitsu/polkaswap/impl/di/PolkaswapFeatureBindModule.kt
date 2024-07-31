@@ -53,24 +53,14 @@ class PolkaswapFeatureModule {
         @Named(REMOTE_STORAGE_SOURCE) remoteSource: StorageDataSource,
         extrinsicService: ExtrinsicService,
         chainRegistry: ChainRegistry,
-        rpcCalls: RpcCalls,
         accountRepository: AccountRepository,
-        walletRepository: WalletRepository,
-        sorablockexplorer: BlockExplorerManager,
-        poolDao: PoolDao,
-        appDataBase: AppDatabase
     ): PolkaswapRepository {
         return PolkaswapRepositoryImpl(
             remoteConfigFetcher,
             remoteSource,
             extrinsicService,
             chainRegistry,
-            rpcCalls,
             accountRepository,
-            walletRepository,
-            sorablockexplorer,
-            poolDao,
-            appDataBase
         )
     }
 

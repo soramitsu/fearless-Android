@@ -11,15 +11,14 @@ interface InternalPoolsRouter {
     fun back()
     fun popupToScreen(route: LiquidityPoolsNavGraphRoute)
 
-    fun openAllPoolsScreen(chainId: ChainId)
-    fun openDetailsPoolScreen(chainId: ChainId, ids: StringPair)
+    fun openAllPoolsScreen()
+    fun openDetailsPoolScreen(ids: StringPair)
 
-    fun openAddLiquidityScreen(chainId: ChainId, ids: StringPair)
-    fun openAddLiquidityConfirmScreen(chainId: ChainId, ids: StringPair, amountBase: BigDecimal, amountTarget: BigDecimal, apy: String)
+    fun openAddLiquidityScreen(ids: StringPair)
+    fun openAddLiquidityConfirmScreen(ids: StringPair, amountBase: BigDecimal, amountTarget: BigDecimal, apy: String)
 
-    fun openRemoveLiquidityScreen(chainId: ChainId, ids: StringPair)
+    fun openRemoveLiquidityScreen(ids: StringPair)
     fun openRemoveLiquidityConfirmScreen(
-        chainId: ChainId,
         ids: StringPair,
         amountBase: BigDecimal,
         amountTarget: BigDecimal,
@@ -28,7 +27,7 @@ interface InternalPoolsRouter {
         desired: BigDecimal
     )
 
-    fun openPoolListScreen(chainId: ChainId, isUserPools: Boolean)
+    fun openPoolListScreen(isUserPools: Boolean)
 
     fun openErrorsScreen(title: String? = null, message: String)
     fun openInfoScreen(title: String, message: String)

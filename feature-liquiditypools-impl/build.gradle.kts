@@ -63,6 +63,7 @@ dependencies {
 //
     implementation(libs.navigation.compose)
     implementation(libs.sora.ui)
+    implementation(libs.room.ktx)
 //
 //    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-rx2:1.7.3")
 //

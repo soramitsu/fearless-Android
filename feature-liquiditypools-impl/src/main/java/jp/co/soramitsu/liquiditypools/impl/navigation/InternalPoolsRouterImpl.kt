@@ -42,28 +42,27 @@ class InternalPoolsRouterImpl(
         }
     }
 
-    override fun openAllPoolsScreen(chainId: ChainId) {
-        mutableRoutesFlow.tryEmit(LiquidityPoolsNavGraphRoute.AllPoolsScreen(chainId))
+    override fun openAllPoolsScreen() {
+        mutableRoutesFlow.tryEmit(LiquidityPoolsNavGraphRoute.AllPoolsScreen())
     }
 
-    override fun openDetailsPoolScreen(chainId: ChainId, ids: StringPair) {
-        mutableRoutesFlow.tryEmit(LiquidityPoolsNavGraphRoute.PoolDetailsScreen(chainId, ids))
+    override fun openDetailsPoolScreen(ids: StringPair) {
+        mutableRoutesFlow.tryEmit(LiquidityPoolsNavGraphRoute.PoolDetailsScreen(ids))
     }
 
-    override fun openAddLiquidityScreen(chainId: ChainId, ids: StringPair) {
-        mutableRoutesFlow.tryEmit(LiquidityPoolsNavGraphRoute.LiquidityAddScreen(chainId, ids))
+    override fun openAddLiquidityScreen(ids: StringPair) {
+        mutableRoutesFlow.tryEmit(LiquidityPoolsNavGraphRoute.LiquidityAddScreen(ids))
     }
 
-    override fun openAddLiquidityConfirmScreen(chainId: ChainId, ids: StringPair, amountBase: BigDecimal, amountTarget: BigDecimal, apy: String) {
-        mutableRoutesFlow.tryEmit(LiquidityPoolsNavGraphRoute.LiquidityAddConfirmScreen(chainId, ids, amountBase, amountTarget, apy))
+    override fun openAddLiquidityConfirmScreen(ids: StringPair, amountBase: BigDecimal, amountTarget: BigDecimal, apy: String) {
+        mutableRoutesFlow.tryEmit(LiquidityPoolsNavGraphRoute.LiquidityAddConfirmScreen(ids, amountBase, amountTarget, apy))
     }
 
-    override fun openRemoveLiquidityScreen(chainId: ChainId, ids: StringPair) {
-        mutableRoutesFlow.tryEmit(LiquidityPoolsNavGraphRoute.LiquidityRemoveScreen(chainId, ids))
+    override fun openRemoveLiquidityScreen(ids: StringPair) {
+        mutableRoutesFlow.tryEmit(LiquidityPoolsNavGraphRoute.LiquidityRemoveScreen(ids))
     }
 
     override fun openRemoveLiquidityConfirmScreen(
-        chainId: ChainId,
         ids: StringPair,
         amountBase: BigDecimal,
         amountTarget: BigDecimal,
@@ -71,11 +70,11 @@ class InternalPoolsRouterImpl(
         secondAmountMin: BigDecimal,
         desired: BigDecimal
     ) {
-        mutableRoutesFlow.tryEmit(LiquidityPoolsNavGraphRoute.LiquidityRemoveConfirmScreen(chainId, ids, amountBase, amountTarget, firstAmountMin, secondAmountMin, desired))
+        mutableRoutesFlow.tryEmit(LiquidityPoolsNavGraphRoute.LiquidityRemoveConfirmScreen(ids, amountBase, amountTarget, firstAmountMin, secondAmountMin, desired))
     }
 
-    override fun openPoolListScreen(chainId: ChainId, isUserPools: Boolean) {
-        mutableRoutesFlow.tryEmit(LiquidityPoolsNavGraphRoute.ListPoolsScreen(chainId, isUserPools))
+    override fun openPoolListScreen(isUserPools: Boolean) {
+        mutableRoutesFlow.tryEmit(LiquidityPoolsNavGraphRoute.ListPoolsScreen(isUserPools))
     }
 
     override fun openErrorsScreen(title: String?, message: String) {

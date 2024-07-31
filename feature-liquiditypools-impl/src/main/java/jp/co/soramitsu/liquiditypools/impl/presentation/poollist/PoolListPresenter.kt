@@ -9,7 +9,6 @@ import jp.co.soramitsu.liquiditypools.impl.presentation.CoroutinesStore
 import jp.co.soramitsu.liquiditypools.impl.presentation.toListItemState
 import jp.co.soramitsu.liquiditypools.navigation.InternalPoolsRouter
 import jp.co.soramitsu.liquiditypools.navigation.LiquidityPoolsNavGraphRoute
-import jp.co.soramitsu.polkaswap.api.domain.models.BasicPoolData
 import jp.co.soramitsu.polkaswap.api.domain.models.isFilterMatch
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
@@ -82,8 +81,7 @@ class PoolListPresenter @Inject constructor(
     }
 
     override fun onPoolClicked(pair: StringPair) {
-        val chainId = screenArgsFlow.replayCache.firstOrNull()?.chainId ?: return
-        internalPoolsRouter.openDetailsPoolScreen(chainId, pair)
+        internalPoolsRouter.openDetailsPoolScreen(pair)
     }
 
     override fun onAssetSearchEntered(value: String) {

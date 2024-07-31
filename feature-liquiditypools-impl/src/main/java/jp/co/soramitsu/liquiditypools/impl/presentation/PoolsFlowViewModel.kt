@@ -116,7 +116,7 @@ class PoolsFlowViewModel @Inject constructor(
         ?: error("Can't find ${PoolsFlowFragment.POLKASWAP_CHAIN_ID} in arguments")
 
     init {
-        internalPoolsRouter.openAllPoolsScreen(polkaswapChainId)
+        internalPoolsRouter.openAllPoolsScreen()
 
         launch {
 //            poolsInteractor.updateApy()
@@ -182,7 +182,7 @@ class PoolsFlowViewModel @Inject constructor(
     }
 
     override fun onPoolClicked(pair: StringPair) {
-        internalPoolsRouter.openDetailsPoolScreen(polkaswapChainId, pair)
+        internalPoolsRouter.openDetailsPoolScreen(pair)
     }
 
     fun onNavigationClick() {
