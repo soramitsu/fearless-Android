@@ -10,6 +10,7 @@ import jp.co.soramitsu.common.compose.component.FeeInfoViewState
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.MAX_DECIMALS_8
 import jp.co.soramitsu.common.utils.applyFiatRate
+import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.common.utils.formatCrypto
 import jp.co.soramitsu.common.utils.formatCryptoDetail
 import jp.co.soramitsu.common.utils.formatFiat
@@ -106,7 +107,7 @@ class LiquidityRemovePresenter @Inject constructor(
     @OptIn(ExperimentalCoroutinesApi::class)
     val assetsInPoolFlow = screenArgsFlow.flatMapLatest { screenArgs ->
         val ids = screenArgs.ids
-        val chainId = screenArgs.chainId
+        val chainId = poolsInteractor.poolsChainId
         println("!!! assetsInPoolFlow ids = $ids")
         val assetsFlow = walletInteractor.assetsFlow().mapNotNull {
             val firstInPair = it.firstOrNull {
@@ -135,7 +136,6 @@ class LiquidityRemovePresenter @Inject constructor(
     @OptIn(ExperimentalCoroutinesApi::class)
     val poolDataFlow = screenArgsFlow.flatMapLatest {
         poolsInteractor.getPoolData(
-            chainId = it.chainId,
             baseTokenId = it.ids.first,
             targetTokenId = it.ids.second
         )
@@ -163,8 +163,8 @@ class LiquidityRemovePresenter @Inject constructor(
                     val ids = screenArgsFlow.replayCache.firstOrNull()?.ids ?: return@map null
                     val (token1Id, token2Id) = ids
 
-                    val chainId = screenArgsFlow.replayCache.firstOrNull()?.chainId
-                    val result = if (poolDataLocal != null && chainId != null) {
+                    val chainId = poolsInteractor.poolsChainId
+                    val result = if (poolDataLocal != null) {
                         val maxPercent = demeterFarmingInteractor.getFarmedPools(chainId)?.filter { pool ->
                             pool.tokenBase.token.configuration.currencyId == token1Id
                                     && pool.tokenTarget.token.configuration.currencyId == token2Id
@@ -424,22 +424,20 @@ class LiquidityRemovePresenter @Inject constructor(
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val utilityAssetFlow = screenArgsFlow.map { screenArgs ->
-        val utilityAssetId = requireNotNull(chainsRepository.getChain(screenArgs.chainId).utilityAsset?.id)
-        screenArgs.chainId to utilityAssetId
-    }.flatMapLatest { (chainId, utilityAssetId) ->
-        walletInteractor.assetFlow(chainId, utilityAssetId)
+    val utilityAssetFlow = flowOf {
+        requireNotNull(chainsRepository.getChain(poolsInteractor.poolsChainId).utilityAsset?.id)
+    }.flatMapLatest { utilityAssetId ->
+        walletInteractor.assetFlow(poolsInteractor.poolsChainId, utilityAssetId)
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private val feeInfoViewStateFlow: Flow<FeeInfoViewState> =
-        screenArgsFlow.map { screenArgs ->
-            val utilityAssetId = requireNotNull(chainsRepository.getChain(screenArgs.chainId).utilityAsset?.id)
-            screenArgs.chainId to utilityAssetId
-        }.flatMapLatest { (chainId, utilityAssetId) ->
+        flowOf {
+            requireNotNull(chainsRepository.getChain(poolsInteractor.poolsChainId).utilityAsset?.id)
+        }.flatMapLatest { utilityAssetId ->
             combine(
                 networkFeeFlow,
-                walletInteractor.assetFlow(chainId, utilityAssetId)
+                walletInteractor.assetFlow(poolsInteractor.poolsChainId, utilityAssetId)
             ) { networkFee, utilityAsset ->
                 val tokenSymbol = utilityAsset.token.configuration.symbol
                 val tokenFiatRate = utilityAsset.token.fiatRate
@@ -456,10 +454,7 @@ class LiquidityRemovePresenter @Inject constructor(
         tokenBase: Asset,
         tokenTarget: Asset,
     ): BigDecimal {
-        val chainId = screenArgsFlow.replayCache.firstOrNull()?.chainId ?: return BigDecimal.ZERO
-
         val result = poolsInteractor.calcRemoveLiquidityNetworkFee(
-            chainId,
             tokenBase,
             tokenTarget,
         )
@@ -476,8 +471,6 @@ class LiquidityRemovePresenter @Inject constructor(
         setButtonLoading(true)
 
         coroutinesStore.uiScope.launch {
-            val chainId = screenArgsFlow.replayCache.firstOrNull()?.chainId ?: return@launch
-
             val utilityAmount = utilityAssetFlow.firstOrNull()?.transferable ?: return@launch
             val feeAmount = networkFeeFlow.firstOrNull().orZero()
 
@@ -531,7 +524,7 @@ class LiquidityRemovePresenter @Inject constructor(
 
             val ids = screenArgsFlow.replayCache.lastOrNull()?.ids ?: return@launch
 
-            internalPoolsRouter.openRemoveLiquidityConfirmScreen(chainId, ids, amountBase, amountTarget, firstAmountMin, secondAmountMin, desired)
+            internalPoolsRouter.openRemoveLiquidityConfirmScreen(ids, amountBase, amountTarget, firstAmountMin, secondAmountMin, desired)
         }.invokeOnCompletion {
             println("!!! setButtonLoading(false)")
             coroutinesStore.uiScope.launch {

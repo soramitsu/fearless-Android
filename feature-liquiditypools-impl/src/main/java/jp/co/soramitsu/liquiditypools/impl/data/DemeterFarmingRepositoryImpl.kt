@@ -13,9 +13,9 @@ import jp.co.soramitsu.androidfoundation.format.safeCast
 import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
 import jp.co.soramitsu.common.data.network.rpc.retrieveAllValues
 import jp.co.soramitsu.liquiditypools.data.DemeterFarmingRepository
+import jp.co.soramitsu.liquiditypools.data.PoolsRepository
 import jp.co.soramitsu.liquiditypools.domain.DemeterFarmingBasicPool
 import jp.co.soramitsu.liquiditypools.domain.DemeterFarmingPool
-import jp.co.soramitsu.polkaswap.api.data.PolkaswapRepository
 import jp.co.soramitsu.runtime.ext.addressOf
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
@@ -37,7 +37,7 @@ class DemeterFarmingRepositoryImpl(
     private val bulkRetriever: BulkRetriever,
     private val accountRepository: AccountRepository,
     private val walletRepository: WalletRepository,
-    private val polkaswapRepository: PolkaswapRepository,
+    private val poolsRepository: PoolsRepository,
 ) : DemeterFarmingRepository {
 
     companion object {
@@ -113,7 +113,7 @@ class DemeterFarmingRepositoryImpl(
                         val poolTokenPrice = poolTokenMapped.token.fiatRate.orZero()
                         val rewardTokenPrice = rewardTokenMapped.token.fiatRate.orZero()
                         val tvl = if (basic.isFarm) {
-                            polkaswapRepository.getBasicPool(chainId, basic.base, basic.pool)?.let { pool ->
+                            poolsRepository.getBasicPool(chainId, basic.base, basic.pool)?.let { pool ->
                                 val kf = pool.targetReserves.div(pool.totalIssuance)
                                 kf.times(total).times(2.toBigDecimal()).times(poolTokenPrice)
                             } ?: BigDecimal.ZERO

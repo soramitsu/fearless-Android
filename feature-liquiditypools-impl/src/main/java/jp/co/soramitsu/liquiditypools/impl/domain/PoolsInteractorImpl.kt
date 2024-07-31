@@ -9,39 +9,37 @@ import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
 import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.core.extrinsic.keypair_provider.KeypairProvider
 import jp.co.soramitsu.core.models.Asset
+import jp.co.soramitsu.liquiditypools.data.PoolsRepository
 import jp.co.soramitsu.liquiditypools.domain.interfaces.PoolsInteractor
-import jp.co.soramitsu.polkaswap.api.data.PolkaswapRepository
 import jp.co.soramitsu.polkaswap.api.data.PoolDataDto
-import jp.co.soramitsu.polkaswap.api.domain.PolkaswapInteractor
 import jp.co.soramitsu.polkaswap.api.domain.models.BasicPoolData
 import jp.co.soramitsu.polkaswap.api.domain.models.CommonPoolData
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraTestChainId
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.mapNotNull
 
 class PoolsInteractorImpl(
-    private val polkaswapRepository: PolkaswapRepository,
+    private val poolsRepository: PoolsRepository,
     private val accountRepository: AccountRepository,
-    private val polkaswapInteractor: PolkaswapInteractor,
     private val chainRegistry: ChainRegistry,
     private val keypairProvider: KeypairProvider,
 ) : PoolsInteractor {
-    override val poolsChainId = soraTestChainId
 
-    override suspend fun getBasicPools(chainId: ChainId): List<BasicPoolData> {
-        return polkaswapRepository.getBasicPools(chainId)
+    override val poolsChainId = poolsRepository.poolsChainId
+
+    override suspend fun getBasicPools(): List<BasicPoolData> {
+        return poolsRepository.getBasicPools(poolsChainId)
     }
 
 //    override fun subscribePoolsCache(): Flow<List<BasicPoolData>> {
-//        return polkaswapRepository.subscribePools()
+//        return poolsRepository.subscribePools()
 //    }
 
     override fun subscribePoolsCacheOfAccount(address: String): Flow<List<CommonPoolData>> {
-        return polkaswapRepository.subscribePools(address)
+        return poolsRepository.subscribePools(address)
     }
 
     private val soraPoolsAddressFlow = flowOf {
@@ -54,14 +52,14 @@ class PoolsInteractorImpl(
 
     override fun subscribePoolsCacheCurrentAccount(): Flow<List<CommonPoolData>> {
         return soraPoolsAddressFlow.flatMapLatest { address ->
-            polkaswapRepository.subscribePools(address)
+            poolsRepository.subscribePools(address)
         }
 
     }
 
-    override suspend fun getPoolData(chainId: ChainId, baseTokenId: String, targetTokenId: String): Flow<CommonPoolData> {
-        val address = accountRepository.getSelectedAccount(chainId).address
-        return polkaswapRepository.subscribePool(address, baseTokenId, targetTokenId)
+    override suspend fun getPoolData(baseTokenId: String, targetTokenId: String): Flow<CommonPoolData> {
+        val address = accountRepository.getSelectedAccount(poolsChainId).address
+        return poolsRepository.subscribePool(address, baseTokenId, targetTokenId)
     }
 
 //    override suspend fun getPoolCacheOfCurAccount(
@@ -72,7 +70,7 @@ class PoolsInteractorImpl(
 //        val chainId = polkaswapInteractor.polkaswapChainId
 //        val chain = chainRegistry.getChain(chainId)
 //        val address = wallet.address(chain)
-//        return polkaswapRepository.getPoolOfAccount(address, tokenFromId, tokenToId, chainId)
+//        return poolsRepository.getPoolOfAccount(address, tokenFromId, tokenToId, chainId)
 //    }
 
     override suspend fun getUserPoolData(
@@ -81,8 +79,8 @@ class PoolsInteractorImpl(
         baseTokenId: String,
         tokenId: ByteArray
     ): PoolDataDto? {
-//        return polkaswapRepository.getPoolOfAccount(address, baseTokenId, tokenId.toHexString(true), polkaswapInteractor.polkaswapChainId)
-        return polkaswapRepository.getUserPoolData(chainId, address, baseTokenId, tokenId)
+//        return poolsRepository.getPoolOfAccount(address, baseTokenId, tokenId.toHexString(true), polkaswapInteractor.polkaswapChainId)
+        return poolsRepository.getUserPoolData(chainId, address, baseTokenId, tokenId)
 
     }
 
@@ -97,7 +95,7 @@ class PoolsInteractorImpl(
         pairPresented: Boolean,
         slippageTolerance: Double
     ): BigDecimal? {
-        return polkaswapRepository.calcAddLiquidityNetworkFee(
+        return poolsRepository.calcAddLiquidityNetworkFee(
             chainId,
             address,
             tokenBase,
@@ -111,24 +109,23 @@ class PoolsInteractorImpl(
     }
 
     override suspend fun calcRemoveLiquidityNetworkFee(
-        chainId: ChainId,
         tokenBase: Asset,
         tokenTarget: Asset,
     ): BigDecimal? {
-        return polkaswapRepository.calcRemoveLiquidityNetworkFee(
-            chainId,
+        return poolsRepository.calcRemoveLiquidityNetworkFee(
+            poolsChainId,
             tokenBase,
             tokenTarget
         )
     }
 
     override fun getPoolStrategicBonusAPY(reserveAccountOfPool: String): Double? =
-        polkaswapInteractor.getPoolStrategicBonusAPY(reserveAccountOfPool)
+        poolsRepository.getPoolStrategicBonusAPY(reserveAccountOfPool)
 
-    override suspend fun isPairEnabled(chainId: ChainId, baseTokenId: String, targetTokenId: String): Boolean {
-        val dexId = polkaswapRepository.getPoolBaseTokenDexId(chainId, baseTokenId)
-        return polkaswapRepository.isPairAvailable(
-            chainId,
+    override suspend fun isPairEnabled(baseTokenId: String, targetTokenId: String): Boolean {
+        val dexId = poolsRepository.getPoolBaseTokenDexId(poolsChainId, baseTokenId)
+        return poolsRepository.isPairAvailable(
+            poolsChainId,
             baseTokenId,
             targetTokenId,
             dexId
@@ -146,7 +143,7 @@ class PoolsInteractorImpl(
     ): String {
         val address = accountRepository.getSelectedAccount(chainId).address
 
-        val status = polkaswapRepository.observeRemoveLiquidity(
+        val status = poolsRepository.observeRemoveLiquidity(
            chainId,
             tokenBase,
             tokenTarget,
@@ -191,7 +188,7 @@ class PoolsInteractorImpl(
         val nonce = secrets[KeyPairSchema.Nonce]
         val keypair = Keypair(public, private, nonce)
 
-        val status = polkaswapRepository.observeAddLiquidity(
+        val status = poolsRepository.observeAddLiquidity(
             chainId,
             address,
             keypair,
@@ -227,8 +224,8 @@ class PoolsInteractorImpl(
 
     override suspend fun updatePools(chainId: ChainId) {
         val address = accountRepository.getSelectedAccount(chainId).address
-        polkaswapRepository.updateAccountPools(chainId, address)
+        poolsRepository.updateAccountPools(chainId, address)
 
-        polkaswapRepository.updateBasicPools(chainId)
+        poolsRepository.updateBasicPools(chainId)
     }
 }

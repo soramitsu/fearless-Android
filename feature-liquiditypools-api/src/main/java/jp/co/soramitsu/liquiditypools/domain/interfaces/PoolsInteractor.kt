@@ -11,14 +11,13 @@ import kotlinx.coroutines.flow.Flow
 interface PoolsInteractor {
     val poolsChainId: String
 
-    suspend fun getBasicPools(chainId: ChainId): List<BasicPoolData>
+    suspend fun getBasicPools(): List<BasicPoolData>
 //    fun subscribePoolsCache(): Flow<List<BasicPoolData>>
 
     //    suspend fun getPoolCacheOfCurAccount(tokenFromId: String, tokenToId: String): CommonUserPoolData?
     fun subscribePoolsCacheOfAccount(address: String): Flow<List<CommonPoolData>>
     fun subscribePoolsCacheCurrentAccount(): Flow<List<CommonPoolData>>
     suspend fun getPoolData(
-        chainId: ChainId,
         baseTokenId: String,
         targetTokenId: String,
     ): Flow<CommonPoolData>
@@ -43,13 +42,11 @@ interface PoolsInteractor {
     ): BigDecimal?
 
     suspend fun calcRemoveLiquidityNetworkFee(
-        chainId: ChainId,
         tokenBase: Asset,
         tokenTarget: Asset,
     ): BigDecimal?
 
     suspend fun isPairEnabled(
-        chainId: ChainId,
         baseTokenId: String,
         targetTokenId: String
     ): Boolean

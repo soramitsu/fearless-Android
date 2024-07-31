@@ -5,6 +5,7 @@ import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.androidfoundation.format.StringPair
 import jp.co.soramitsu.androidfoundation.format.compareNullDesc
+import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.liquiditypools.domain.interfaces.PoolsInteractor
 import jp.co.soramitsu.liquiditypools.impl.presentation.CoroutinesStore
 import jp.co.soramitsu.liquiditypools.impl.presentation.toListItemState
@@ -17,12 +18,11 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterIsInstance
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
@@ -51,8 +51,8 @@ class AllPoolsPresenter @Inject constructor(
 //        it.map(BasicPoolData::toListItemState)
 //    }
 
-    val chainFlow = screenArgsFlow.map { screenArgs ->
-        chainsRepository.getChain(screenArgs.chainId)
+    private val chainFlow = flowOf {
+        chainsRepository.getChain(poolsInteractor.poolsChainId)
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -119,12 +119,10 @@ class AllPoolsPresenter @Inject constructor(
 
 
     override fun onPoolClicked(pair: StringPair) {
-        val chainId = screenArgsFlow.replayCache.firstOrNull()?.chainId ?: return
-        internalPoolsRouter.openDetailsPoolScreen(chainId, pair)
+        internalPoolsRouter.openDetailsPoolScreen(pair)
     }
 
     override fun onMoreClick(isUserPools: Boolean) {
-        val chainId = screenArgsFlow.replayCache.firstOrNull()?.chainId ?: return
-        internalPoolsRouter.openPoolListScreen(chainId, isUserPools)
+        internalPoolsRouter.openPoolListScreen(isUserPools)
     }
 }

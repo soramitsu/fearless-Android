@@ -11,6 +11,7 @@ import jp.co.soramitsu.common.compose.component.FeeInfoViewState
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.MAX_DECIMALS_8
 import jp.co.soramitsu.common.utils.applyFiatRate
+import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.common.utils.formatCrypto
 import jp.co.soramitsu.common.utils.formatCryptoDetail
 import jp.co.soramitsu.common.utils.formatFiat
@@ -103,7 +104,7 @@ class LiquidityAddPresenter @Inject constructor(
     @OptIn(ExperimentalCoroutinesApi::class)
     val assetsInPoolFlow = screenArgsFlow.distinctUntilChanged().flatMapLatest { screenArgs ->
         val ids = screenArgs.ids
-        val chainId = screenArgs.chainId
+        val chainId = poolsInteractor.poolsChainId
         println("!!! assetsInPoolFlow ADD ids = $ids")
         val assetsFlow = walletInteractor.assetsFlow().mapNotNull {
             val firstInPair = it.firstOrNull {
@@ -135,7 +136,6 @@ class LiquidityAddPresenter @Inject constructor(
         screenArgsFlow.flatMapLatest { screenargs ->
             println("!!! AddPresenter screenArgsFlow = $screenargs")
             poolsInteractor.getPoolData(
-                chainId = screenargs.chainId,
                 baseTokenId = screenargs.ids.first,
                 targetTokenId = screenargs.ids.second
             ).onEach {
@@ -267,7 +267,7 @@ class LiquidityAddPresenter @Inject constructor(
                         tokenAmount = scaledTargetAmount,
                         fiatAmount = scaledTargetAmount.applyFiatRate(tokenTarget?.fiatRate)?.formatFiat(tokenTarget?.fiatSymbol),
 
-                    )
+                        )
                 )
                 amountTarget = scaledTargetAmount
             } else {
@@ -303,7 +303,6 @@ class LiquidityAddPresenter @Inject constructor(
 
         val liquidity = screenArgsFlow.flatMapLatest { screenArgs ->
             poolsInteractor.getPoolData(
-                chainId = screenArgs.chainId,
                 baseTokenId = screenArgs.ids.first,
                 targetTokenId = screenArgs.ids.second
             )
@@ -332,7 +331,6 @@ class LiquidityAddPresenter @Inject constructor(
         screenArgsFlow.map { screenArgs ->
             val (baseTokenId, targetTokenId) = screenArgs.ids
             poolsInteractor.isPairEnabled(
-                screenArgs.chainId,
                 baseTokenId,
                 targetTokenId
             )
@@ -361,24 +359,23 @@ class LiquidityAddPresenter @Inject constructor(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private val feeInfoViewStateFlow: Flow<FeeInfoViewState> =
-        screenArgsFlow.map { screenArgs ->
-            val utilityAssetId = requireNotNull(chainsRepository.getChain(screenArgs.chainId).utilityAsset?.id)
-            screenArgs.chainId to utilityAssetId
-    }.flatMapLatest { (chainId, utilityAssetId) ->
-        combine(
-            networkFeeFlow,
-            walletInteractor.assetFlow(chainId, utilityAssetId)
-        ) { networkFee, utilityAsset ->
-            val tokenSymbol = utilityAsset.token.configuration.symbol
-            val tokenFiatRate = utilityAsset.token.fiatRate
-            val tokenFiatSymbol = utilityAsset.token.fiatSymbol
+        flowOf {
+            requireNotNull(chainsRepository.getChain(poolsInteractor.poolsChainId).utilityAsset?.id)
+        }.flatMapLatest { utilityAssetId ->
+            combine(
+                networkFeeFlow,
+                walletInteractor.assetFlow(poolsInteractor.poolsChainId, utilityAssetId)
+            ) { networkFee, utilityAsset ->
+                val tokenSymbol = utilityAsset.token.configuration.symbol
+                val tokenFiatRate = utilityAsset.token.fiatRate
+                val tokenFiatSymbol = utilityAsset.token.fiatSymbol
 
-            FeeInfoViewState(
-                feeAmount = networkFee.formatCryptoDetail(tokenSymbol),
-                feeAmountFiat = networkFee.applyFiatRate(tokenFiatRate)?.formatFiat(tokenFiatSymbol),
-            )
+                FeeInfoViewState(
+                    feeAmount = networkFee.formatCryptoDetail(tokenSymbol),
+                    feeAmountFiat = networkFee.applyFiatRate(tokenFiatRate)?.formatFiat(tokenFiatSymbol),
+                )
+            }
         }
-    }
 
     private suspend fun getLiquidityNetworkFee(
         tokenBase: Asset,
@@ -389,7 +386,7 @@ class LiquidityAddPresenter @Inject constructor(
         pairPresented: Boolean,
         slippageTolerance: Double
     ): BigDecimal {
-        val chainId = screenArgsFlow.replayCache.firstOrNull()?.chainId ?: return BigDecimal.ZERO
+        val chainId = poolsInteractor.poolsChainId
 
         val soraChain = walletInteractor.getChain(chainId)
         val address = accountInteractor.selectedMetaAccount().address(soraChain).orEmpty()
@@ -418,8 +415,7 @@ class LiquidityAddPresenter @Inject constructor(
         println("!!! should setButtonLoading(true)")
 
         coroutinesStore.uiScope.launch {
-            val chainId = screenArgsFlow.replayCache.firstOrNull()?.chainId ?: return@launch
-
+            val chainId = poolsInteractor.poolsChainId
             val utilityAssetId = requireNotNull(chainsRepository.getChain(chainId).utilityAsset?.id)
             val utilityAmount = walletInteractor.getCurrentAsset(chainId, utilityAssetId).total
             val feeAmount = networkFeeFlow.firstOrNull().orZero()
@@ -448,7 +444,7 @@ class LiquidityAddPresenter @Inject constructor(
             }
 
             val ids = screenArgsFlow.replayCache.lastOrNull()?.ids ?: return@launch
-            internalPoolsRouter.openAddLiquidityConfirmScreen(chainId, ids, amountBase, amountTarget, stateFlow.value.apy.orEmpty())
+            internalPoolsRouter.openAddLiquidityConfirmScreen(ids, amountBase, amountTarget, stateFlow.value.apy.orEmpty())
         }.invokeOnCompletion {
             println("!!! setButtonLoading(false)")
             coroutinesStore.uiScope.launch {

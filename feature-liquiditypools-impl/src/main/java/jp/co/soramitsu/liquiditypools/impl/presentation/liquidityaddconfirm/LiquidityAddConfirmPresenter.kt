@@ -7,6 +7,7 @@ import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.common.compose.component.FeeInfoViewState
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.applyFiatRate
+import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.common.utils.formatCrypto
 import jp.co.soramitsu.common.utils.formatCryptoDetail
 import jp.co.soramitsu.common.utils.formatFiat
@@ -58,7 +59,7 @@ class LiquidityAddConfirmPresenter @Inject constructor(
 
     val assetsInPoolFlow = screenArgsFlow.flatMapLatest { screenArgs ->
         val ids = screenArgs.ids
-        val chainId = screenArgs.chainId
+        val chainId = poolsInteractor.poolsChainId
         val assetsFlow = walletInteractor.assetsFlow().mapNotNull {
             val firstInPair = it.firstOrNull {
                 it.asset.token.configuration.currencyId == ids.first
@@ -84,7 +85,6 @@ class LiquidityAddConfirmPresenter @Inject constructor(
     private val isPoolPairEnabled =
         screenArgsFlow.map { screenArgs ->
             poolsInteractor.isPairEnabled(
-                chainId = screenArgs.chainId,
                 baseTokenId = screenArgs.ids.first,
                 targetTokenId = screenArgs.ids.second
             )
@@ -151,13 +151,12 @@ class LiquidityAddConfirmPresenter @Inject constructor(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private val feeInfoViewStateFlow: Flow<FeeInfoViewState> =
-        screenArgsFlow.map { screenArgs ->
-            val utilityAssetId = requireNotNull(chainsRepository.getChain(screenArgs.chainId).utilityAsset?.id)
-            screenArgs.chainId to utilityAssetId
-        }.flatMapLatest { (chainId, utilityAssetId) ->
+        flowOf {
+            requireNotNull(chainsRepository.getChain(poolsInteractor.poolsChainId).utilityAsset?.id)
+        }.flatMapLatest {  utilityAssetId ->
             combine(
                 networkFeeFlow,
-                walletInteractor.assetFlow(chainId, utilityAssetId)
+                walletInteractor.assetFlow(poolsInteractor.poolsChainId, utilityAssetId)
             ) { networkFee, utilityAsset ->
                 val tokenSymbol = utilityAsset.token.configuration.symbol
                 val tokenFiatRate = utilityAsset.token.fiatRate
@@ -179,7 +178,7 @@ class LiquidityAddConfirmPresenter @Inject constructor(
         pairPresented: Boolean,
         slippageTolerance: Double
     ): BigDecimal {
-        val chainId = screenArgsFlow.replayCache.firstOrNull()?.chainId ?: return BigDecimal.ZERO
+        val chainId = poolsInteractor.poolsChainId
         val soraChain = walletInteractor.getChain(chainId)
         val user = accountInteractor.selectedMetaAccount().address(soraChain).orEmpty()
         val result = poolsInteractor.calcAddLiquidityNetworkFee(
@@ -199,7 +198,7 @@ class LiquidityAddConfirmPresenter @Inject constructor(
     override fun onConfirmClick() {
         setButtonLoading(true)
         coroutinesStore.ioScope.launch {
-            val chainId = screenArgsFlow.replayCache.firstOrNull()?.chainId ?: return@launch
+            val chainId = poolsInteractor.poolsChainId
             val tokenBase = tokensInPoolFlow.firstOrNull()?.first?.configuration ?: return@launch
             val tokenTarget = tokensInPoolFlow.firstOrNull()?.second?.configuration ?: return@launch
             val amountBase = screenArgsFlow.firstOrNull()?.amountBase.orZero()
