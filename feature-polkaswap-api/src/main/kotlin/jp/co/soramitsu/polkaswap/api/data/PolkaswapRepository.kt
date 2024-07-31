@@ -1,16 +1,16 @@
 package jp.co.soramitsu.polkaswap.api.data
 
 import java.math.BigDecimal
+import java.math.BigInteger
+import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.core.runtime.models.responses.QuoteResponse
+import jp.co.soramitsu.polkaswap.api.domain.models.BasicPoolData
+import jp.co.soramitsu.polkaswap.api.domain.models.CommonPoolData
 import jp.co.soramitsu.polkaswap.api.models.Market
 import jp.co.soramitsu.polkaswap.api.models.WithDesired
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
-import kotlinx.coroutines.flow.Flow
-import java.math.BigInteger
-import jp.co.soramitsu.core.models.Asset
-import jp.co.soramitsu.polkaswap.api.domain.models.BasicPoolData
-import jp.co.soramitsu.polkaswap.api.domain.models.CommonPoolData
 import jp.co.soramitsu.shared_utils.encrypt.keypair.Keypair
+import kotlinx.coroutines.flow.Flow
 
 interface PolkaswapRepository {
     suspend fun getAvailableDexes(chainId: ChainId): List<BigInteger>
@@ -63,27 +63,20 @@ interface PolkaswapRepository {
 
     suspend fun getBasicPool(chainId: ChainId, baseTokenId: String, targetTokenId: String): BasicPoolData?
 
-//    suspend fun getPoolOfAccount(
-//        address: String?,
-//        tokenFromId: String,
-//        tokenToId: String,
-//        chainId: String
-//    ): CommonUserPoolData?
-//
     suspend fun getUserPoolData(
         chainId: ChainId,
         address: String,
         baseTokenId: String,
-        tokenId: ByteArray
+        targetTokenId: ByteArray
     ): PoolDataDto?
 
     suspend fun calcAddLiquidityNetworkFee(
         chainId: ChainId,
         address: String,
-        tokenFrom: Asset,
-        tokenTo: Asset,
-        tokenFromAmount: BigDecimal,
-        tokenToAmount: BigDecimal,
+        tokenBase: Asset,
+        tokenTarget: Asset,
+        tokenBaseAmount: BigDecimal,
+        tokenTargetAmount: BigDecimal,
         pairEnabled: Boolean,
         pairPresented: Boolean,
         slippageTolerance: Double
@@ -91,18 +84,18 @@ interface PolkaswapRepository {
 
     suspend fun calcRemoveLiquidityNetworkFee(
         chainId: ChainId,
-        tokenFrom: Asset,
-        tokenTo: Asset,
+        tokenBase: Asset,
+        tokenTarget: Asset,
     ): BigDecimal?
 
     suspend fun getPoolBaseTokenDexId(chainId: ChainId, tokenId: String?): Int
-//    suspend fun updatePoolsSbApy()
+
     fun getPoolStrategicBonusAPY(reserveAccountOfPool: String): Double?
 
     suspend fun observeRemoveLiquidity(
         chainId: ChainId,
-        tokenFrom: Asset,
-        tokenTo: Asset,
+        tokenBase: Asset,
+        tokenTarget: Asset,
         markerAssetDesired: BigDecimal,
         firstAmountMin: BigDecimal,
         secondAmountMin: BigDecimal
@@ -112,10 +105,10 @@ interface PolkaswapRepository {
         chainId: ChainId,
         address: String,
         keypair: Keypair,
-        tokenFrom: Asset,
-        tokenTo: Asset,
-        amountFrom: BigDecimal,
-        amountTo: BigDecimal,
+        tokenBase: Asset,
+        tokenTarget: Asset,
+        amountBase: BigDecimal,
+        amountTarget: BigDecimal,
         pairEnabled: Boolean,
         pairPresented: Boolean,
         slippageTolerance: Double
@@ -124,6 +117,7 @@ interface PolkaswapRepository {
     suspend fun updateAccountPools(chainId: ChainId, address: String)
     suspend fun updateBasicPools(chainId: ChainId)
 
+//    fun subscribePools(): Flow<List<BasicPoolData>>
     fun subscribePools(address: String): Flow<List<CommonPoolData>>
     fun subscribePool(address: String, baseTokenId: String, targetTokenId: String): Flow<CommonPoolData>
 

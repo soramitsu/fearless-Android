@@ -86,10 +86,10 @@ class LiquidityAddPresenter @Inject constructor(
         .shareIn(coroutinesStore.uiScope, SharingStarted.Eagerly, 1)
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val assetsInPoolFlow = screenArgsFlow.flatMapLatest { screenArgs ->
+    val assetsInPoolFlow = screenArgsFlow.distinctUntilChanged().flatMapLatest { screenArgs ->
         val ids = screenArgs.ids
         val chainId = screenArgs.chainId
-        println("!!! assetsInPoolFlow ids = $ids")
+        println("!!! assetsInPoolFlow ADD ids = $ids")
         val assetsFlow = walletInteractor.assetsFlow().mapNotNull {
             val firstInPair = it.firstOrNull {
                 it.asset.token.configuration.currencyId == ids.first
@@ -100,7 +100,7 @@ class LiquidityAddPresenter @Inject constructor(
                         && it.asset.token.configuration.chainId == chainId
             }
 
-            println("!!! assetsInPoolFlow result% $firstInPair; $secondInPair")
+            println("!!! assetsInPoolFlow ADD result: $firstInPair; $secondInPair")
             if (firstInPair == null || secondInPair == null) {
                 return@mapNotNull null
             } else {
@@ -121,8 +121,10 @@ class LiquidityAddPresenter @Inject constructor(
 
     @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
     private fun subscribeState(coroutineScope: CoroutineScope) {
+        println("!!! AddPresenter subscribeState")
         screenArgsFlow.flatMapLatest {
             val (tokenFromId, tokenToId) = it.ids
+            println("!!! AddPresenter screenArgsFlow = $it")
             poolsInteractor.getPoolData(it.chainId, tokenFromId, tokenToId).onEach {
                 stateFlow.value = stateFlow.value.copy(
                     apy = it.basic.sbapy?.toBigDecimal()?.formatPercent()?.let { "$it%" }
@@ -322,11 +324,11 @@ class LiquidityAddPresenter @Inject constructor(
 
     val isPoolPairEnabled =
         screenArgsFlow.map { screenArgs ->
-            val (tokenFromId, tokenToId) = screenArgs.ids
+            val (baseTokenId, targetTokenId) = screenArgs.ids
             poolsInteractor.isPairEnabled(
                 screenArgs.chainId,
-                tokenFromId,
-                tokenToId
+                baseTokenId,
+                targetTokenId
             )
         }
 
@@ -337,14 +339,14 @@ class LiquidityAddPresenter @Inject constructor(
         stateSlippage,
         isPoolPairEnabled
     )
-    { amountFrom, amountTo, (baseAsset, targetAsset), slippage, pairEnabled ->
+    { amountBase, amountTarget, (baseAsset, targetAsset), slippage, pairEnabled ->
         val networkFee = getLiquidityNetworkFee(
-            tokenFrom = baseAsset,
-            tokenTo = targetAsset,
-            tokenFromAmount = amountFrom,
-            tokenToAmount = amountTo,
+            tokenBase = baseAsset,
+            tokenTarget = targetAsset,
+            tokenBaseAmount = amountBase,
+            tokenToAmount = amountTarget,
             pairEnabled = pairEnabled,
-            pairPresented = true, //pairPresented,
+            pairPresented = true,
             slippageTolerance = slippage
         )
         println("!!!! networkFeeFlow emit $networkFee")
@@ -373,9 +375,9 @@ class LiquidityAddPresenter @Inject constructor(
     }
 
     private suspend fun getLiquidityNetworkFee(
-        tokenFrom: Asset,
-        tokenTo: Asset,
-        tokenFromAmount: BigDecimal,
+        tokenBase: Asset,
+        tokenTarget: Asset,
+        tokenBaseAmount: BigDecimal,
         tokenToAmount: BigDecimal,
         pairEnabled: Boolean,
         pairPresented: Boolean,
@@ -388,9 +390,9 @@ class LiquidityAddPresenter @Inject constructor(
         val result = poolsInteractor.calcAddLiquidityNetworkFee(
             chainId,
             address,
-            tokenFrom,
-            tokenTo,
-            tokenFromAmount,
+            tokenBase,
+            tokenTarget,
+            tokenBaseAmount,
             tokenToAmount,
             pairEnabled,
             pairPresented,
@@ -476,6 +478,10 @@ class LiquidityAddPresenter @Inject constructor(
         if (desired != WithDesired.OUTPUT) {
             desired = WithDesired.OUTPUT
         }
+    }
+
+    override fun onAddTableItemClick(itemId: Int) {
+        internalPoolsRouter.openInfoScreen(itemId)
     }
 
     private fun showError(throwable: Throwable) {

@@ -5,22 +5,23 @@ import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.androidfoundation.format.StringPair
 import jp.co.soramitsu.androidfoundation.format.compareNullDesc
-import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.liquiditypools.domain.interfaces.PoolsInteractor
 import jp.co.soramitsu.liquiditypools.impl.presentation.CoroutinesStore
 import jp.co.soramitsu.liquiditypools.impl.presentation.toListItemState
 import jp.co.soramitsu.liquiditypools.navigation.InternalPoolsRouter
 import jp.co.soramitsu.liquiditypools.navigation.LiquidityPoolsNavGraphRoute
-import jp.co.soramitsu.polkaswap.api.domain.models.BasicPoolData
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
@@ -36,10 +37,6 @@ class AllPoolsPresenter @Inject constructor(
     private val poolsInteractor: PoolsInteractor,
     private val accountInteractor: AccountInteractor,
 ) : AllPoolsScreenInterface {
-
-    private val _stateSlippage = MutableStateFlow(0.5)
-    val stateSlippage = _stateSlippage.asStateFlow()
-
 
     private val screenArgsFlow = internalPoolsRouter.createNavGraphRoutesFlow()
         .filterIsInstance<LiquidityPoolsNavGraphRoute.AllPoolsScreen>()
@@ -58,6 +55,7 @@ class AllPoolsPresenter @Inject constructor(
         chainsRepository.getChain(screenArgs.chainId)
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     val allPools = combine(
         accountInteractor.selectedMetaAccountFlow(),
         chainFlow
@@ -65,15 +63,21 @@ class AllPoolsPresenter @Inject constructor(
         wallet.address(chain)
     }
         .mapNotNull { it }
+        .distinctUntilChanged()
         .flatMapLatest { address ->
+            println("!!! allPools flatMapLatest address = $address")
             poolsInteractor.subscribePoolsCacheOfAccount(address)
         }.map { pools ->
-            pools.sortedWith { o1, o2 ->
-                compareNullDesc(o1.basic.tvl, o2.basic.tvl)
-            }.groupBy {
+            println("!!! allPools subscribePoolsCacheOfAccount pools.size = ${pools.size}")
+            pools.groupBy {
                 it.user != null
+            }.mapValues {
+                it.value.sortedWith { o1, o2 ->
+                    compareNullDesc(o1.basic.tvl, o2.basic.tvl)
+                }
             }
         }.map {
+            println("!!! allPools grouped users = ${it[true]?.size}; other = ${it[false]?.size}")
 //            it.map(BasicPoolData::toListItemState)
             it.mapValues { it ->
                 it.value.mapNotNull { it.basic.toListItemState() }
@@ -91,13 +95,11 @@ class AllPoolsPresenter @Inject constructor(
     }
 
     private fun subscribeState(coroutineScope: CoroutineScope) {
-//        pools.onEach {
-//            stateFlow.value = stateFlow.value.copy(pools = it)
-//        }.launchIn(coroutineScope)
-
         allPools.onEach { poolLists ->
+            println("!!! allPools subscribeState poolLists.size = ${poolLists.size}")
+
             val userPools = poolLists[true].orEmpty()
-            val otherPools = poolLists[false]?.take(10).orEmpty()
+            val otherPools = poolLists[false].orEmpty()
 
             val shownUserPools = userPools.take(10)
             val shownOtherPools = otherPools.take(10)
@@ -106,17 +108,17 @@ class AllPoolsPresenter @Inject constructor(
             val hasExtraAllPools = shownOtherPools.size < otherPools.size
 
             stateFlow.value = stateFlow.value.copy(
-                userPools = userPools,
-                allPools = otherPools,
+                userPools = shownUserPools,
+                allPools = shownOtherPools,
                 hasExtraUserPools = hasExtraUserPools,
-                hasExtraAllPools = hasExtraAllPools
+                hasExtraAllPools = hasExtraAllPools,
+                isLoading = false
             )
         }.launchIn(coroutineScope)
     }
 
 
     override fun onPoolClicked(pair: StringPair) {
-//        val xorPswap = Pair("b774c386-5cce-454a-a845-1ec0381538ec", "37a999a2-5e90-4448-8b0e-98d06ac8f9d4")
         val chainId = screenArgsFlow.replayCache.firstOrNull()?.chainId ?: return
         internalPoolsRouter.openDetailsPoolScreen(chainId, pair)
     }
@@ -125,11 +127,4 @@ class AllPoolsPresenter @Inject constructor(
         val chainId = screenArgsFlow.replayCache.firstOrNull()?.chainId ?: return
         internalPoolsRouter.openPoolListScreen(chainId, isUserPools)
     }
-
-    private fun jp.co.soramitsu.wallet.impl.domain.model.Asset.isMatchFilter(filter: String): Boolean =
-        this.token.configuration.name?.lowercase()?.contains(filter.lowercase()) == true ||
-                this.token.configuration.symbol.lowercase().contains(filter.lowercase()) ||
-                this.token.configuration.id.lowercase().contains(filter.lowercase())
-
-
 }

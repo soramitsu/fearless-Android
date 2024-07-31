@@ -3,6 +3,7 @@ package jp.co.soramitsu.liquiditypools.impl.navigation
 import java.math.BigDecimal
 import java.util.Stack
 import jp.co.soramitsu.androidfoundation.format.StringPair
+import jp.co.soramitsu.liquiditypools.impl.presentation.PoolsFlowViewModel
 import jp.co.soramitsu.liquiditypools.navigation.InternalPoolsRouter
 import jp.co.soramitsu.liquiditypools.navigation.LiquidityPoolsNavGraphRoute
 import jp.co.soramitsu.liquiditypools.navigation.NavAction
@@ -81,8 +82,26 @@ class InternalPoolsRouterImpl(
         mutableActionsFlow.tryEmit(NavAction.ShowError(title, message))
     }
 
+    override fun openInfoScreen(title: String, message: String) {
+        mutableActionsFlow.tryEmit(NavAction.ShowInfo(title, message))
+    }
+
+    override fun openInfoScreen(itemId: Int) {
+        when (itemId) {
+            PoolsFlowViewModel.ITEM_APY_ID -> {
+                openInfoScreen("Strategic Bonus APY", "Farming reward for liquidity provision.")
+            }
+            PoolsFlowViewModel.ITEM_FEE_ID -> {
+                openInfoScreen("Network fee", "Network fee is used to ensure SORA system’s growth and  stable performance. ")
+            }
+        }
+    }
+
     override fun openSuccessScreen(txHash: String, chainId: ChainId, customMessage: String) {
         walletRouter.openOperationSuccess(txHash, chainId, customMessage)
     }
 
+    override fun <T : LiquidityPoolsNavGraphRoute> destination(clazz: Class<T>): T? {
+        return routesStack.filterIsInstance(clazz).lastOrNull()
+    }
 }

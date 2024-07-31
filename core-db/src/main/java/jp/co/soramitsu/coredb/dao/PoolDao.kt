@@ -74,10 +74,10 @@ interface PoolDao {
     @Delete
     suspend fun deleteBasicPools(p: List<BasicPoolLocal>)
 
-    @Upsert()
+    @Upsert
     suspend fun insertBasicPools(pools: List<BasicPoolLocal>)
 
-    @Upsert()
+    @Upsert
     suspend fun insertUserPools(pools: List<UserPoolLocal>)
 
 }

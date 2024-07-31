@@ -38,6 +38,8 @@ import jp.co.soramitsu.common.compose.theme.backgroundBlack
 import jp.co.soramitsu.common.compose.theme.customColors
 import jp.co.soramitsu.common.compose.theme.customTypography
 import jp.co.soramitsu.feature_wallet_impl.R
+import jp.co.soramitsu.liquiditypools.impl.presentation.PoolsFlowViewModel
+import jp.co.soramitsu.liquiditypools.impl.presentation.PoolsFlowViewModel.Companion.ITEM_FEE_ID
 
 data class LiquidityRemoveConfirmState(
     val assetFromIconUrl: String? = null,
@@ -54,6 +56,7 @@ data class LiquidityRemoveConfirmState(
 interface LiquidityRemoveConfirmCallbacks {
 
     fun onRemoveConfirmClick()
+    fun onRemoveConfirmItemClick(itemId: Int)
 }
 
 @Composable
@@ -88,7 +91,7 @@ fun LiquidityRemoveConfirmScreen(
                             contentDescription = null,
                             modifier = Modifier
                                 .size(64.dp)
-                                .offset(x = 7.dp)
+                                .offset(x = 14.dp)
                                 .zIndex(1f)
                         )
                         AsyncImage(
@@ -96,7 +99,7 @@ fun LiquidityRemoveConfirmScreen(
                             contentDescription = null,
                             modifier = Modifier
                                 .size(64.dp)
-                                .offset(x = (-7).dp)
+                                .offset(x = (-14).dp)
                                 .zIndex(0f)
                         )
                     }
@@ -142,8 +145,9 @@ fun LiquidityRemoveConfirmScreen(
                             title = "Network fee",
                             value = state.feeInfo.feeAmount,
                             additionalValue = state.feeInfo.feeAmountFiat,
-                            clickState = TitleValueViewState.ClickState.Title(R.drawable.ic_info_14, 2)
-                        )
+                            clickState = TitleValueViewState.ClickState.Title(R.drawable.ic_info_14, ITEM_FEE_ID)
+                        ),
+                        onClick = { callbacks.onRemoveConfirmItemClick(ITEM_FEE_ID) }
                     )
                 }
             }
@@ -175,6 +179,7 @@ private fun PreviewLiquidityRemoveConfirmScreen() {
         ),
         callbacks = object : LiquidityRemoveConfirmCallbacks {
             override fun onRemoveConfirmClick() {}
+            override fun onRemoveConfirmItemClick(itemId: Int) {}
         },
     )
 }

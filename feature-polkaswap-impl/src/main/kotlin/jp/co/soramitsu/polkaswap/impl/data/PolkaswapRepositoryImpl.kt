@@ -1,5 +1,7 @@
 package jp.co.soramitsu.polkaswap.impl.data
 
+import androidx.room.Transaction
+import androidx.room.withTransaction
 import java.math.BigDecimal
 import java.math.BigInteger
 import javax.inject.Inject
@@ -12,7 +14,9 @@ import jp.co.soramitsu.common.data.network.config.PolkaswapRemoteConfig
 import jp.co.soramitsu.common.data.network.config.RemoteConfigFetcher
 import jp.co.soramitsu.common.utils.Modules
 import jp.co.soramitsu.common.utils.dexManager
+import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.common.utils.fromHex
+import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.common.utils.poolTBC
 import jp.co.soramitsu.common.utils.poolXYK
 import jp.co.soramitsu.common.utils.u32ArgumentFromStorageKey
@@ -21,6 +25,7 @@ import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.core.rpc.RpcCalls
 import jp.co.soramitsu.core.runtime.models.responses.QuoteResponse
 import jp.co.soramitsu.core.utils.utilityAsset
+import jp.co.soramitsu.coredb.AppDatabase
 import jp.co.soramitsu.coredb.dao.PoolDao
 import jp.co.soramitsu.coredb.model.BasicPoolLocal
 import jp.co.soramitsu.coredb.model.UserPoolJoinedLocal
@@ -82,12 +87,14 @@ import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.onEach
 
 class PolkaswapRepositoryImpl @Inject constructor(
     private val remoteConfigFetcher: RemoteConfigFetcher,
@@ -99,6 +106,7 @@ class PolkaswapRepositoryImpl @Inject constructor(
     private val walletRepository: WalletRepository,
     private val blockExplorerManager: BlockExplorerManager,
     private val poolDao: PoolDao,
+    private val db: AppDatabase,
 ) : PolkaswapRepository {
 
     override suspend fun getAvailableDexes(chainId: ChainId): List<BigInteger> {
@@ -448,12 +456,12 @@ override suspend fun getBasicPool(chainId: ChainId, baseTokenId: String, targetT
                                 val reserveAccountAddress = reserveAccount?.let { soraChain.addressOf(it) } ?: ""
 
                                 val element = BasicPoolData(
-                                    asset,
-                                    targetAsset,
-                                    mapBalance(reserves[0], asset.token.configuration.precision),
-                                    mapBalance(reserves[1], asset.token.configuration.precision),
-                                    total ?: BigDecimal.ZERO,
-                                    reserveAccountAddress,
+                                    baseToken = asset,
+                                    targetToken = targetAsset,
+                                    baseReserves = mapBalance(reserves[0], asset.token.configuration.precision),
+                                    targetReserves = mapBalance(reserves[1], asset.token.configuration.precision),
+                                    totalIssuance = total ?: BigDecimal.ZERO,
+                                    reserveAccount = reserveAccountAddress,
                                     sbapy = getPoolStrategicBonusAPY(reserveAccountAddress)
                                 )
 
@@ -502,11 +510,11 @@ override suspend fun getBasicPool(chainId: ChainId, baseTokenId: String, targetT
         chainId: ChainId,
         address: String,
         baseTokenId: String,
-        tokenId: ByteArray
+        targetTokenId: ByteArray
     ): PoolDataDto? {
-        val reserves = getPairWithXorReserves(chainId, baseTokenId, tokenId)
+        val reserves = getPairWithXorReserves(chainId, baseTokenId, targetTokenId)
         val totalIssuanceAndProperties =
-            getPoolTotalIssuanceAndProperties(chainId, baseTokenId, tokenId, address)
+            getPoolTotalIssuanceAndProperties(chainId, baseTokenId, targetTokenId, address)
 
         if (reserves == null || totalIssuanceAndProperties == null) {
             return null
@@ -515,7 +523,7 @@ override suspend fun getBasicPool(chainId: ChainId, baseTokenId: String, targetT
 
         return PoolDataDto(
             baseTokenId,
-            tokenId.toHexString(true),
+            targetTokenId.toHexString(true),
             reserves.first,
             reserves.second,
             totalIssuanceAndProperties.first,
@@ -527,29 +535,30 @@ override suspend fun getBasicPool(chainId: ChainId, baseTokenId: String, targetT
     override suspend fun calcAddLiquidityNetworkFee(
         chainId: ChainId,
         address: String,
-        tokenFrom: Asset,
-        tokenTo: Asset,
-        tokenFromAmount: BigDecimal,
-        tokenToAmount: BigDecimal,
+        tokenBase: Asset,
+        tokenTarget: Asset,
+        tokenBaseAmount: BigDecimal,
+        tokenTargetAmount: BigDecimal,
         pairEnabled: Boolean,
         pairPresented: Boolean,
         slippageTolerance: Double
     ): BigDecimal? {
-        val amountFromMin = PolkaswapFormulas.calculateMinAmount(tokenFromAmount, slippageTolerance)
-        val amountToMin = PolkaswapFormulas.calculateMinAmount(tokenToAmount, slippageTolerance)
-        val dexId = getPoolBaseTokenDexId(chainId, tokenFrom.currencyId)
+        val amountFromMin = PolkaswapFormulas.calculateMinAmount(tokenBaseAmount, slippageTolerance)
+        val amountToMin = PolkaswapFormulas.calculateMinAmount(tokenTargetAmount, slippageTolerance)
+        val dexId = getPoolBaseTokenDexId(chainId, tokenBase.currencyId)
         val chain = chainRegistry.getChain(chainId)
+
         val fee = extrinsicService.estimateFee(chain) {
             liquidityAdd(
-                dexId,
-                tokenFrom,
-                tokenTo,
-                pairPresented,
-                pairEnabled,
-                tokenFromAmount,
-                tokenToAmount,
-                amountFromMin,
-                amountToMin
+                dexId = dexId,
+                baseTokenId = tokenBase.currencyId,
+                targetTokenId = tokenTarget.currencyId,
+                pairPresented = pairPresented,
+                pairEnabled = pairEnabled,
+                tokenBaseAmount = tokenBase.planksFromAmount(tokenBaseAmount),
+                tokenTargetAmount = tokenTarget.planksFromAmount(tokenTargetAmount),
+                amountBaseMin = tokenBase.planksFromAmount(amountFromMin),
+                amountTargetMin = tokenTarget.planksFromAmount(amountToMin),
             )
         }
 
@@ -559,21 +568,21 @@ override suspend fun getBasicPool(chainId: ChainId, baseTokenId: String, targetT
 
     override suspend fun calcRemoveLiquidityNetworkFee(
         chainId: ChainId,
-        tokenFrom: Asset,
-        tokenTo: Asset,
+        tokenBase: Asset,
+        tokenTarget: Asset,
     ): BigDecimal? {
         val chain = chainRegistry.getChain(chainId)
-        val baseTokenId = tokenFrom.currencyId ?: return null
-        val targetTokenId = tokenTo.currencyId ?: return null
+        val baseTokenId = tokenBase.currencyId ?: return null
+        val targetTokenId = tokenTarget.currencyId ?: return null
 
         val fee = extrinsicService.estimateFee(chain) {
             removeLiquidity(
                 dexId = getPoolBaseTokenDexId(chainId, baseTokenId),
                 outputAssetIdA = baseTokenId,
                 outputAssetIdB = targetTokenId,
-                markerAssetDesired = tokenFrom.planksFromAmount(BigDecimal.ONE),
-                outputAMin = tokenFrom.planksFromAmount(BigDecimal.ONE),
-                outputBMin = tokenTo.planksFromAmount(BigDecimal.ONE),
+                markerAssetDesired = tokenBase.planksFromAmount(BigDecimal.ONE),
+                outputAMin = tokenBase.planksFromAmount(BigDecimal.ONE),
+                outputBMin = tokenTarget.planksFromAmount(BigDecimal.ONE),
             )
         }
         val feeToken = chain.utilityAsset
@@ -615,7 +624,6 @@ override suspend fun getBasicPool(chainId: ChainId, baseTokenId: String, targetT
             }
         }
     }
-
 
     fun Struct.Instance.mapToToken(field: String) =
         this.get<Struct.Instance>(field)?.getTokenId()?.toHexString(true)
@@ -930,26 +938,21 @@ override suspend fun getBasicPool(chainId: ChainId, baseTokenId: String, targetT
                         storageKey.assetIdFromKey() to tokens
                     }
             }
-        }.onFailure {
-            println("!!! getUserPoolsTokenIds onFailure")
-//            it.printStackTrace()
         }.getOrThrow()
     }
 
-
-
     override suspend fun observeRemoveLiquidity(
         chainId: ChainId,
-        tokenFrom: Asset,
-        tokenTo: Asset,
+        tokenBase: Asset,
+        tokenTarget: Asset,
         markerAssetDesired: BigDecimal,
         firstAmountMin: BigDecimal,
         secondAmountMin: BigDecimal
     ): Result<String>? {
         val soraChain = accountRepository.getChain(chainId)
         val accountId = accountRepository.getSelectedMetaAccount().substrateAccountId
-        val baseTokenId = tokenFrom.currencyId ?: return null
-        val targetTokenId = tokenTo.currencyId ?: return null
+        val baseTokenId = tokenBase.currencyId ?: return null
+        val targetTokenId = tokenTarget.currencyId ?: return null
 
         return extrinsicService.submitExtrinsic(
             chain = soraChain,
@@ -959,9 +962,9 @@ override suspend fun getBasicPool(chainId: ChainId, baseTokenId: String, targetT
                 dexId = getPoolBaseTokenDexId(chainId, baseTokenId),
                 outputAssetIdA = baseTokenId,
                 outputAssetIdB = targetTokenId,
-                markerAssetDesired = tokenFrom.planksFromAmount(markerAssetDesired),
-                outputAMin = tokenFrom.planksFromAmount(firstAmountMin),
-                outputBMin = tokenTo.planksFromAmount(secondAmountMin),
+                markerAssetDesired = tokenBase.planksFromAmount(markerAssetDesired),
+                outputAMin = tokenBase.planksFromAmount(firstAmountMin),
+                outputBMin = tokenTarget.planksFromAmount(secondAmountMin),
             )
         }
     }
@@ -970,23 +973,22 @@ override suspend fun getBasicPool(chainId: ChainId, baseTokenId: String, targetT
         chainId: ChainId,
         address: String,
         keypair: Keypair,
-        tokenFrom: Asset,
-        tokenTo: Asset,
-        amountFrom: BigDecimal,
-        amountTo: BigDecimal,
+        tokenBase: Asset,
+        tokenTarget: Asset,
+        amountBase: BigDecimal,
+        amountTarget: BigDecimal,
         pairEnabled: Boolean,
         pairPresented: Boolean,
         slippageTolerance: Double
     ): Result<String>? {
-//    ): Pair<String, String>? {
-        val amountFromMin = PolkaswapFormulas.calculateMinAmount(amountFrom, slippageTolerance)
-        val amountToMin = PolkaswapFormulas.calculateMinAmount(amountTo, slippageTolerance)
-        val dexId = getPoolBaseTokenDexId(chainId, tokenFrom.currencyId)
+        val amountFromMin = PolkaswapFormulas.calculateMinAmount(amountBase, slippageTolerance)
+        val amountToMin = PolkaswapFormulas.calculateMinAmount(amountTarget, slippageTolerance)
+        val dexId = getPoolBaseTokenDexId(chainId, tokenBase.currencyId)
         val soraChain = accountRepository.getChain(chainId)
         val accountId = accountRepository.getSelectedMetaAccount().substrateAccountId
 
-        val baseTokenId = tokenFrom.currencyId
-        val targetTokenId = tokenTo.currencyId
+        val baseTokenId = tokenBase.currencyId
+        val targetTokenId = tokenTarget.currencyId
         if (baseTokenId == null || targetTokenId == null) return null
 
         return extrinsicService.submitExtrinsic(
@@ -1013,10 +1015,10 @@ override suspend fun getBasicPool(chainId: ChainId, baseTokenId: String, targetT
                 dexId = dexId,
                 baseAssetId = baseTokenId,
                 targetAssetId = targetTokenId,
-                baseAssetAmount = mapBalance(amountFrom, tokenFrom.precision),
-                targetAssetAmount = mapBalance(amountTo, tokenTo.precision),
-                amountFromMin = mapBalance(amountFromMin, tokenFrom.precision),
-                amountToMin = mapBalance(amountToMin, tokenTo.precision)
+                baseAssetAmount = mapBalance(amountBase, tokenBase.precision),
+                targetAssetAmount = mapBalance(amountTarget, tokenTarget.precision),
+                amountFromMin = mapBalance(amountFromMin, tokenBase.precision),
+                amountToMin = mapBalance(amountToMin, tokenTarget.precision)
             )
         }
     }
@@ -1083,17 +1085,26 @@ override suspend fun getBasicPool(chainId: ChainId, baseTokenId: String, targetT
             }
         }
 
-        poolDao.clearTable(address)
-        poolDao.insertBasicPools(
-            pools.map {
+        db.withTransaction {
+            println("!!! updateAccountPools: poolDao.clearTable(address)")
+            poolDao.clearTable(address)
+            println("!!! updateAccountPools: poolDao.insertBasicPools() size = ${pools.map {
                 it.basicPoolLocal
-            }
-        )
-        poolDao.insertUserPools(
-            pools.map {
+            }.size}")
+            poolDao.insertBasicPools(
+                pools.map {
+                    it.basicPoolLocal
+                }
+            )
+            println("!!! updateAccountPools: poolDao.insertUSERPools() size = ${pools.map {
                 it.userPoolLocal
-            }
-        )
+            }.size}")
+            poolDao.insertUserPools(
+                pools.map {
+                    it.userPoolLocal
+                }
+            )
+        }
     }
 
     override suspend fun updateBasicPools(chainId: ChainId) {
@@ -1130,7 +1141,6 @@ override suspend fun getBasicPool(chainId: ChainId, baseTokenId: String, targetT
                                 mapBalance(it, asset.precision)
                             }
 
-                            val targetAsset = assets.firstOrNull { it.currencyId == targetToken }
                             val reserveAccountAddress = reserveAccount?.let { soraChain.addressOf(it) } ?: ""
 
                             list.add(
@@ -1154,22 +1164,60 @@ override suspend fun getBasicPool(chainId: ChainId, baseTokenId: String, targetT
         poolDao.deleteBasicPools(minus)
         poolDao.insertBasicPools(list)
     }
+    val assetsFlow = accountRepository.selectedMetaAccountFlow()
+        .distinctUntilChanged { old, new -> old.id != new.id }
+        .flatMapLatest { meta ->
+            walletRepository.assetsFlow(meta)
+        }.mapList { it.asset }
 
     @OptIn(FlowPreview::class)
     override fun subscribePool(address: String, baseTokenId: String, targetTokenId: String): Flow<CommonPoolData> {
-        return poolDao.subscribePool(address, baseTokenId, targetTokenId).mapNotNull {
-            mapPoolLocalToData(it)
-        }.debounce(500)
+        return combine(
+            poolDao.subscribePool(address, baseTokenId, targetTokenId),
+            assetsFlow
+        ) { pool, assets ->
+            mapPoolLocalToData(pool, assets)
+        }
+            .mapNotNull { it }
+            .debounce(500)
+
+//        return poolDao.subscribePool(address, baseTokenId, targetTokenId).mapNotNull {
+//            val metaId = accountRepository.getSelectedLightMetaAccount().id
+//            val assets = walletRepository.getAssets(metaId)
+//            mapPoolLocalToData(it, assets)
+//        }.debounce(500)
     }
 
     @OptIn(FlowPreview::class)
     override fun subscribePools(address: String): Flow<List<CommonPoolData>> {
-//        return poolDao.subscribePoolsList(address).map { pools ->
-        return poolDao.subscribeAllPools(address).map { pools ->
-            pools.mapNotNull { poolLocal ->
-                mapPoolLocalToData(poolLocal)
+        println("!!! repoImpl call subscribePools for address: $address")
+
+        return combine(
+            poolDao.subscribeAllPools(address),
+            assetsFlow
+        ) { pools, assets ->
+            println("!!! repoImpl subscribePools pools: ${pools.size}")
+            val mapNotNull = pools.mapNotNull { poolLocal ->
+                mapPoolLocalToData(poolLocal, assets)
             }
-        }.debounce(500)
+            println("!!! repoImpl subscribePools mapNotNull pools: ${mapNotNull.size}")
+            mapNotNull
+        }
+            .debounce(500)
+
+//        return poolDao.subscribeAllPools(address).map { pools ->
+//            println("!!! repoImpl subscribePools pools: ${pools.size}")
+//            val metaId = accountRepository.getSelectedLightMetaAccount().id
+//            val assets = walletRepository.getAssets(metaId)
+//            val mapNotNull = pools.mapNotNull { poolLocal ->
+//                mapPoolLocalToData(poolLocal, assets)
+//            }
+//            println("!!! repoImpl subscribePools mapNotNull pools: ${mapNotNull.size}")
+//            mapNotNull
+//        }.debounce(500)
+            .onEach {
+                println("!!! repoImpl .debounce(500) pools: ${it.size}")
+            }
     }
 
     fun RuntimeSnapshot.accountPoolsKey(address: String): String =
@@ -1177,13 +1225,10 @@ override suspend fun getBasicPool(chainId: ChainId, baseTokenId: String, targetT
             .storage("AccountPools")
             .storageKey(this, address.toAccountId())
 
-    private suspend fun mapPoolLocalToData(
+    private fun mapPoolLocalToData(
         poolLocal: UserPoolJoinedLocalNullable,
-//        poolLocal: UserPoolJoinedLocal,
+        assets: List<jp.co.soramitsu.wallet.impl.domain.model.Asset>
     ): CommonPoolData? {
-        val metaId = accountRepository.getSelectedLightMetaAccount().id
-        val assets = walletRepository.getAssets(metaId)
-
         val baseToken = assets.firstOrNull {
             it.token.configuration.currencyId == poolLocal.basicPoolLocal.tokenIdBase
         } ?: return null

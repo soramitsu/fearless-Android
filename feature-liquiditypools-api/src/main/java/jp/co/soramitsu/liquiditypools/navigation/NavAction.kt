@@ -7,4 +7,9 @@ sealed interface NavAction {
         val errorTitle: String?,
         val errorText: String
     ) : NavAction
+
+    class ShowInfo(
+        val title: String,
+        val message: String
+    ) : NavAction
 }

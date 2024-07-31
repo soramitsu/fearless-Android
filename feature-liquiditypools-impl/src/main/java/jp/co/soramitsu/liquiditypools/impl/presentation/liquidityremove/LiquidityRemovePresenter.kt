@@ -23,6 +23,7 @@ import jp.co.soramitsu.feature_liquiditypools_impl.R
 import jp.co.soramitsu.liquiditypools.domain.interfaces.DemeterFarmingInteractor
 import jp.co.soramitsu.liquiditypools.domain.interfaces.PoolsInteractor
 import jp.co.soramitsu.liquiditypools.impl.presentation.CoroutinesStore
+import jp.co.soramitsu.liquiditypools.impl.presentation.PoolsFlowViewModel
 import jp.co.soramitsu.liquiditypools.impl.usecase.ValidateRemoveLiquidityUseCase
 import jp.co.soramitsu.liquiditypools.navigation.InternalPoolsRouter
 import jp.co.soramitsu.liquiditypools.navigation.LiquidityPoolsNavGraphRoute
@@ -545,6 +546,10 @@ class LiquidityRemovePresenter @Inject constructor(
 
     override fun onRemoveToAmountFocusChange(isFocused: Boolean) {
         isToAmountFocused.value = isFocused
+    }
+
+    override fun onRemoveItemClick(itemId: Int) {
+        internalPoolsRouter.openInfoScreen(itemId)
     }
 
     private fun showError(throwable: Throwable) {

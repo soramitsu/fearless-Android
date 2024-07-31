@@ -2,9 +2,11 @@ package jp.co.soramitsu.liquiditypools.impl.domain
 
 import java.math.BigDecimal
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.common.data.secrets.v1.Keypair
 import jp.co.soramitsu.common.data.secrets.v2.KeyPairSchema
 import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
+import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.core.extrinsic.keypair_provider.KeypairProvider
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.liquiditypools.domain.interfaces.PoolsInteractor
@@ -15,7 +17,11 @@ import jp.co.soramitsu.polkaswap.api.domain.models.BasicPoolData
 import jp.co.soramitsu.polkaswap.api.domain.models.CommonPoolData
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraTestChainId
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.mapNotNull
 
 class PoolsInteractorImpl(
     private val polkaswapRepository: PolkaswapRepository,
@@ -24,13 +30,33 @@ class PoolsInteractorImpl(
     private val chainRegistry: ChainRegistry,
     private val keypairProvider: KeypairProvider,
 ) : PoolsInteractor {
+    override val poolsChainId = soraTestChainId
 
     override suspend fun getBasicPools(chainId: ChainId): List<BasicPoolData> {
         return polkaswapRepository.getBasicPools(chainId)
     }
 
+//    override fun subscribePoolsCache(): Flow<List<BasicPoolData>> {
+//        return polkaswapRepository.subscribePools()
+//    }
+
     override fun subscribePoolsCacheOfAccount(address: String): Flow<List<CommonPoolData>> {
         return polkaswapRepository.subscribePools(address)
+    }
+
+    private val soraPoolsAddressFlow = flowOf {
+        val meta = accountRepository.getSelectedMetaAccount()
+        println("!!! accountflow poolsChainId = $poolsChainId")
+        val chain = accountRepository.getChain(poolsChainId)
+        meta.address(chain)
+    }.mapNotNull { it }
+        .distinctUntilChanged()
+
+    override fun subscribePoolsCacheCurrentAccount(): Flow<List<CommonPoolData>> {
+        return soraPoolsAddressFlow.flatMapLatest { address ->
+            polkaswapRepository.subscribePools(address)
+        }
+
     }
 
     override suspend fun getPoolData(chainId: ChainId, baseTokenId: String, targetTokenId: String): Flow<CommonPoolData> {
@@ -63,10 +89,10 @@ class PoolsInteractorImpl(
     override suspend fun calcAddLiquidityNetworkFee(
         chainId: ChainId,
         address: String,
-        tokenFrom: Asset,
-        tokenTo: Asset,
-        tokenFromAmount: BigDecimal,
-        tokenToAmount: BigDecimal,
+        tokenBase: Asset,
+        tokenTarget: Asset,
+        tokenBaseAmount: BigDecimal,
+        tokenTargetAmount: BigDecimal,
         pairEnabled: Boolean,
         pairPresented: Boolean,
         slippageTolerance: Double
@@ -74,10 +100,10 @@ class PoolsInteractorImpl(
         return polkaswapRepository.calcAddLiquidityNetworkFee(
             chainId,
             address,
-            tokenFrom,
-            tokenTo,
-            tokenFromAmount,
-            tokenToAmount,
+            tokenBase,
+            tokenTarget,
+            tokenBaseAmount,
+            tokenTargetAmount,
             pairEnabled,
             pairPresented,
             slippageTolerance,
@@ -86,49 +112,44 @@ class PoolsInteractorImpl(
 
     override suspend fun calcRemoveLiquidityNetworkFee(
         chainId: ChainId,
-        tokenFrom: Asset,
-        tokenTo: Asset,
+        tokenBase: Asset,
+        tokenTarget: Asset,
     ): BigDecimal? {
         return polkaswapRepository.calcRemoveLiquidityNetworkFee(
             chainId,
-            tokenFrom,
-            tokenTo
+            tokenBase,
+            tokenTarget
         )
     }
-
-//    override suspend fun updateApy() {
-//        polkaswapInteractor.updatePoolsSbApy()
-//    }
 
     override fun getPoolStrategicBonusAPY(reserveAccountOfPool: String): Double? =
         polkaswapInteractor.getPoolStrategicBonusAPY(reserveAccountOfPool)
 
-    override suspend fun isPairEnabled(chainId: ChainId, inputTokenId: String, outputTokenId: String): Boolean {
-        val dexId = polkaswapRepository.getPoolBaseTokenDexId(chainId, inputTokenId)
+    override suspend fun isPairEnabled(chainId: ChainId, baseTokenId: String, targetTokenId: String): Boolean {
+        val dexId = polkaswapRepository.getPoolBaseTokenDexId(chainId, baseTokenId)
         return polkaswapRepository.isPairAvailable(
             chainId,
-            inputTokenId,
-            outputTokenId,
+            baseTokenId,
+            targetTokenId,
             dexId
         )
     }
 
-//    override suspend fun removeLiquidity(
     override suspend fun observeRemoveLiquidity(
-        chainId: ChainId,
-        tokenFrom: Asset,
-        tokenTo: Asset,
-        markerAssetDesired: BigDecimal,
-        firstAmountMin: BigDecimal,
-        secondAmountMin: BigDecimal,
-        networkFee: BigDecimal
+    chainId: ChainId,
+    tokenBase: Asset,
+    tokenTarget: Asset,
+    markerAssetDesired: BigDecimal,
+    firstAmountMin: BigDecimal,
+    secondAmountMin: BigDecimal,
+    networkFee: BigDecimal
     ): String {
         val address = accountRepository.getSelectedAccount(chainId).address
 
         val status = polkaswapRepository.observeRemoveLiquidity(
            chainId,
-            tokenFrom,
-            tokenTo,
+            tokenBase,
+            tokenTarget,
             markerAssetDesired,
             firstAmountMin,
             secondAmountMin,
@@ -140,10 +161,10 @@ class PoolsInteractorImpl(
 
     override suspend fun observeAddLiquidity(
         chainId: ChainId,
-        tokenFrom: Asset,
-        tokenTo: Asset,
-        amountFrom: BigDecimal,
-        amountTo: BigDecimal,
+        tokenBase: Asset,
+        tokenTarget: Asset,
+        amountBase: BigDecimal,
+        amountTarget: BigDecimal,
         enabled: Boolean,
         presented: Boolean,
         slippageTolerance: Double
@@ -154,10 +175,10 @@ class PoolsInteractorImpl(
         val networkFee = calcAddLiquidityNetworkFee(
             chainId,
             address,
-            tokenFrom,
-            tokenTo,
-            amountFrom,
-            amountTo,
+            tokenBase,
+            tokenTarget,
+            amountBase,
+            amountTarget,
             enabled,
             presented,
             slippageTolerance
@@ -174,10 +195,10 @@ class PoolsInteractorImpl(
             chainId,
             address,
             keypair,
-            tokenFrom,
-            tokenTo,
-            amountFrom,
-            amountTo,
+            tokenBase,
+            tokenTarget,
+            amountBase,
+            amountTarget,
             enabled,
             presented,
             slippageTolerance

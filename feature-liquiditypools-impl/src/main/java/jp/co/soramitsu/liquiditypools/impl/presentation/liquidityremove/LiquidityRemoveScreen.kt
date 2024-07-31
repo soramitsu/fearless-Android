@@ -37,6 +37,8 @@ import jp.co.soramitsu.common.compose.theme.grayButtonBackground
 import jp.co.soramitsu.common.compose.theme.white
 import jp.co.soramitsu.common.compose.theme.white08
 import jp.co.soramitsu.feature_wallet_impl.R
+import jp.co.soramitsu.liquiditypools.impl.presentation.PoolsFlowViewModel
+import jp.co.soramitsu.liquiditypools.impl.presentation.PoolsFlowViewModel.Companion.ITEM_FEE_ID
 
 data class LiquidityRemoveState(
     val fromAmountInputViewState: AmountInputViewState = AmountInputViewState.defaultObj,
@@ -59,6 +61,8 @@ interface LiquidityRemoveCallbacks {
     fun onRemoveToAmountChange(amount: BigDecimal)
 
     fun onRemoveToAmountFocusChange(isFocused: Boolean)
+
+    fun onRemoveItemClick(itemId: Int)
 }
 
 @Composable
@@ -143,8 +147,9 @@ fun LiquidityRemoveScreen(
                             title = "Network fee",
                             value = state.feeInfo.feeAmount,
                             additionalValue = state.feeInfo.feeAmountFiat,
-                            clickState = TitleValueViewState.ClickState.Title(R.drawable.ic_info_14, 2)
-                        )
+                            clickState = TitleValueViewState.ClickState.Title(R.drawable.ic_info_14, ITEM_FEE_ID)
+                        ),
+                        onClick = { callbacks.onRemoveItemClick(ITEM_FEE_ID) }
                     )
                 }
             }
@@ -182,6 +187,7 @@ private fun PreviewLiquidityRemoveScreen() {
             override fun onRemoveFromAmountFocusChange(isFocused: Boolean) {}
             override fun onRemoveToAmountChange(amount: BigDecimal) {}
             override fun onRemoveToAmountFocusChange(isFocused: Boolean) {}
+            override fun onRemoveItemClick(itemId: Int) {}
         },
     )
 }

@@ -44,6 +44,9 @@ import jp.co.soramitsu.common.compose.theme.customTypography
 import jp.co.soramitsu.common.compose.theme.white50
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.feature_wallet_impl.R
+import jp.co.soramitsu.liquiditypools.impl.presentation.PoolsFlowViewModel
+import jp.co.soramitsu.liquiditypools.impl.presentation.PoolsFlowViewModel.Companion.ITEM_APY_ID
+import jp.co.soramitsu.liquiditypools.impl.presentation.PoolsFlowViewModel.Companion.ITEM_FEE_ID
 
 data class LiquidityAddConfirmState(
     val assetFrom: Asset? = null,
@@ -62,6 +65,7 @@ data class LiquidityAddConfirmState(
 interface LiquidityAddConfirmCallbacks {
 
     fun onConfirmClick()
+    fun onAddItemClick(itemId: Int)
 }
 
 @Composable
@@ -85,12 +89,12 @@ fun LiquidityAddConfirmScreen(
             MarginVertical(margin = 16.dp)
 
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-              AsyncImage(
+                AsyncImage(
                     model = getImageRequest(LocalContext.current, state.assetFrom?.iconUrl.orEmpty()),
                     contentDescription = null,
                     modifier = Modifier
                         .size(64.dp)
-                        .offset(x = 7.dp)
+                        .offset(x = 14.dp)
                         .zIndex(1f)
                 )
                 AsyncImage(
@@ -98,7 +102,7 @@ fun LiquidityAddConfirmScreen(
                     contentDescription = null,
                     modifier = Modifier
                         .size(64.dp)
-                        .offset(x = (-7).dp)
+                        .offset(x = (-14).dp)
                         .zIndex(0f)
                 )
             }
@@ -159,8 +163,9 @@ fun LiquidityAddConfirmScreen(
                         TitleValueViewState(
                             title = "Strategic bonus APY",
                             value = state.apy,
-                            clickState = TitleValueViewState.ClickState.Title(R.drawable.ic_info_14, 1)
-                        )
+                            clickState = TitleValueViewState.ClickState.Title(R.drawable.ic_info_14, ITEM_APY_ID)
+                        ),
+                        onClick = { callbacks.onAddItemClick(ITEM_APY_ID)}
                     )
                     InfoTableItemAsset(
                         TitleIconValueState(
@@ -174,8 +179,9 @@ fun LiquidityAddConfirmScreen(
                             title = "Network fee",
                             value = state.feeInfo.feeAmount,
                             additionalValue = state.feeInfo.feeAmountFiat,
-                            clickState = TitleValueViewState.ClickState.Title(R.drawable.ic_info_14, 2)
-                        )
+                            clickState = TitleValueViewState.ClickState.Title(R.drawable.ic_info_14, ITEM_FEE_ID)
+                        ),
+                        onClick = { callbacks.onAddItemClick(ITEM_FEE_ID)}
                     )
                     InfoTableItem(
                         TitleValueViewState(
@@ -224,6 +230,7 @@ private fun PreviewLiquidityAddConfirmScreen() {
         ),
         callbacks = object : LiquidityAddConfirmCallbacks {
             override fun onConfirmClick() {}
+            override fun onAddItemClick(itemId: Int) {}
         },
     )
 }

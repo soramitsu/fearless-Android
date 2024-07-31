@@ -202,23 +202,22 @@ class LiquidityAddConfirmPresenter @Inject constructor(
         setButtonLoading(true)
         coroutinesStore.ioScope.launch {
             val chainId = screenArgsFlow.replayCache.firstOrNull()?.chainId ?: return@launch
-            val tokenFrom = tokensInPoolFlow.firstOrNull()?.first?.configuration ?: return@launch
-            val tokento = tokensInPoolFlow.firstOrNull()?.second?.configuration ?: return@launch
-            val amountFrom = screenArgsFlow.firstOrNull()?.amountFrom.orZero()
-            val amountTo = screenArgsFlow.firstOrNull()?.amountTo.orZero()
+            val tokenBase = tokensInPoolFlow.firstOrNull()?.first?.configuration ?: return@launch
+            val tokenTarget = tokensInPoolFlow.firstOrNull()?.second?.configuration ?: return@launch
+            val amountBase = screenArgsFlow.firstOrNull()?.amountFrom.orZero()
+            val amountTarget = screenArgsFlow.firstOrNull()?.amountTo.orZero()
             val pairEnabled = isPoolPairEnabled.firstOrNull() ?: true
-            val pairPresented = true
             var result = ""
             try {
                 result = poolsInteractor.observeAddLiquidity(
-                    chainId,
-                    tokenFrom,
-                    tokento,
-                    amountFrom,
-                    amountTo,
-                    pairEnabled,
-                    pairPresented,
-                    _stateSlippage.value,
+                    chainId = chainId,
+                    tokenBase = tokenBase,
+                    tokenTarget = tokenTarget,
+                    amountBase = amountBase,
+                    amountTarget = amountTarget,
+                    enabled = pairEnabled,
+                    presented = true,
+                    slippageTolerance = _stateSlippage.value,
                 )
             } catch (t: Throwable) {
                 coroutinesStore.uiScope.launch {
@@ -238,6 +237,10 @@ class LiquidityAddConfirmPresenter @Inject constructor(
             println("!!! add confirm invokeOnCompletion")
             setButtonLoading(false)
         }
+    }
+
+    override fun onAddItemClick(itemId: Int) {
+        internalPoolsRouter.openInfoScreen(itemId)
     }
 
     private fun setButtonLoading(loading: Boolean) {

@@ -124,17 +124,15 @@ fun ExtrinsicBuilder.removeLiquidity(
 
 fun ExtrinsicBuilder.liquidityAdd(
     dexId: Int,
-    tokenFrom: Asset,
-    tokenTo: Asset,
+    baseTokenId: String?,
+    targetTokenId: String?,
     pairPresented: Boolean,
     pairEnabled: Boolean,
-    tokenFromAmount: BigDecimal,
-    tokenToAmount: BigDecimal,
-    amountFromMin: BigDecimal,
-    amountToMin: BigDecimal
+    tokenBaseAmount: BigInteger,
+    tokenTargetAmount: BigInteger,
+    amountBaseMin: BigInteger,
+    amountTargetMin: BigInteger
 ) {
-    val baseTokenId = tokenFrom.currencyId
-    val targetTokenId = tokenTo.currencyId
     if (baseTokenId != null && targetTokenId != null) {
         if (!pairPresented) {
             if (!pairEnabled) {
@@ -155,10 +153,10 @@ fun ExtrinsicBuilder.liquidityAdd(
             dexId = dexId,
             baseTokenId,
             targetTokenId,
-            tokenFrom.planksFromAmount(tokenFromAmount),
-            tokenTo.planksFromAmount(tokenToAmount),
-            tokenFrom.planksFromAmount(amountFromMin),
-            tokenTo.planksFromAmount(amountToMin),
+            tokenBaseAmount,
+            tokenTargetAmount,
+            amountBaseMin,
+            amountTargetMin,
         )
     }
 }

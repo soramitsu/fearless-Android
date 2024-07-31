@@ -236,6 +236,10 @@ class LiquidityRemoveConfirmPresenter @Inject constructor(
         }
     }
 
+    override fun onRemoveConfirmItemClick(itemId: Int) {
+        internalPoolsRouter.openInfoScreen(itemId)
+    }
+
     private fun setButtonLoading(loading: Boolean) {
         stateFlow.value = stateFlow.value.copy(
             buttonLoading = loading
