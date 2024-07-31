@@ -9,31 +9,31 @@ import jp.co.soramitsu.wallet.impl.domain.model.AssetWithStatus
 class ValidateAddLiquidityUseCase @Inject constructor() {
 
     operator fun invoke(
-        assetFrom: AssetWithStatus,
-        assetTo: AssetWithStatus,
+        assetBase: AssetWithStatus,
+        assetTarget: AssetWithStatus,
         utilityAssetId: String,
         utilityAmount: BigDecimal,
-        amountFrom: BigDecimal,
-        amountTo: BigDecimal,
+        amountBase: BigDecimal,
+        amountTarget: BigDecimal,
         feeAmount: BigDecimal
     ): Result<TransferValidationResult> {
         return runCatching {
-            val isEnoughAmountFrom = amountFrom + feeAmount.takeIf {
-                assetFrom.asset.token.configuration.id == utilityAssetId
-            }.orZero() < assetFrom.asset.total.orZero()
+            val isEnoughAmountBase = amountBase + feeAmount.takeIf {
+                assetBase.asset.token.configuration.id == utilityAssetId
+            }.orZero() < assetBase.asset.total.orZero()
 
-            val isEnoughAmountTo = amountTo + feeAmount.takeIf {
-                assetTo.asset.token.configuration.id == utilityAssetId
-            }.orZero() < assetTo.asset.total.orZero()
+            val isEnoughAmountTarget = amountTarget + feeAmount.takeIf {
+                assetTarget.asset.token.configuration.id == utilityAssetId
+            }.orZero() < assetTarget.asset.total.orZero()
 
-            val isEnoughAmountFee = if (utilityAssetId in listOf(assetFrom.asset.token.configuration.id, assetTo.asset.token.configuration.id)) {
+            val isEnoughAmountFee = if (utilityAssetId in listOf(assetBase.asset.token.configuration.id, assetTarget.asset.token.configuration.id)) {
                 true
             } else {
                 feeAmount < utilityAmount
             }
 
             val validationChecks = mapOf (
-                TransferValidationResult.InsufficientBalance to (!isEnoughAmountFrom || !isEnoughAmountTo),
+                TransferValidationResult.InsufficientBalance to (!isEnoughAmountBase || !isEnoughAmountTarget),
                 TransferValidationResult.InsufficientUtilityAssetBalance to !isEnoughAmountFee
             )
 

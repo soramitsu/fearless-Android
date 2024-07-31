@@ -1024,7 +1024,7 @@ override suspend fun getBasicPool(chainId: ChainId, baseTokenId: String, targetT
     }
 
     override suspend fun updateAccountPools(chainId: ChainId, address: String) {
-        println("!!! call blockExplorerManager.updatePoolsSbApy()")
+        println("!!! call blockExplorerManager.updateAccountPools()")
         blockExplorerManager.updatePoolsSbApy()
 
         val pools = mutableListOf<UserPoolJoinedLocal>()
@@ -1032,6 +1032,7 @@ override suspend fun getBasicPool(chainId: ChainId, baseTokenId: String, targetT
         val assets = chainRegistry.getChain(chainId).assets
 
         val tokenIds = getUserPoolsTokenIds(chainId, address)
+        println("!!! call blockExplorerManager.updateAccountPools() tokenIds = ${tokenIds.size}")
         tokenIds.forEach { (baseTokenId, tokensId) ->
 
             val baseToken = assets.firstOrNull {
@@ -1108,6 +1109,7 @@ override suspend fun getBasicPool(chainId: ChainId, baseTokenId: String, targetT
     }
 
     override suspend fun updateBasicPools(chainId: ChainId) {
+        println("!!! pswapRepo updateBasicPools")
         val runtimeOrNull = chainRegistry.getRuntimeOrNull(chainId)
         val storage = runtimeOrNull?.metadata
             ?.module(Modules.POOL_XYK)
@@ -1162,6 +1164,7 @@ override suspend fun getBasicPool(chainId: ChainId, baseTokenId: String, targetT
             list.find { it.tokenIdBase == db.tokenIdBase && it.tokenIdTarget == db.tokenIdTarget } == null
         }
         poolDao.deleteBasicPools(minus)
+        println("!!! pswapRepo insertBasicPools(list) size = ${list.size}")
         poolDao.insertBasicPools(list)
     }
     val assetsFlow = accountRepository.selectedMetaAccountFlow()

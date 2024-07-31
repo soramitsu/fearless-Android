@@ -21,17 +21,18 @@ import jp.co.soramitsu.common.compose.theme.white04
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.liquiditypools.impl.presentation.allpools.BasicPoolListItem
 import jp.co.soramitsu.liquiditypools.impl.presentation.allpools.BasicPoolListItemState
+import jp.co.soramitsu.liquiditypools.impl.presentation.allpools.ShimmerPoolList
 import jp.co.soramitsu.ui_core.resources.Dimens
 
 data class PoolListState(
     val pools: List<BasicPoolListItemState> = listOf(),
-    val searchQuery: String? = null
+    val searchQuery: String? = null,
+    val isLoading: Boolean = true
 )
 
 interface PoolListScreenInterface {
     fun onPoolClicked(pair: StringPair)
     fun onAssetSearchEntered(value: String)
-
 }
 
 @Composable
@@ -54,20 +55,23 @@ fun PoolListScreen(
                 onInput = callback::onAssetSearchEntered
             )
         }
+        if (state.isLoading) {
+            ShimmerPoolList(20)
+        } else {
+            val listState = rememberLazyListState()
 
-        val listState = rememberLazyListState()
-
-        LazyColumn(
-            state = listState,
-            modifier = Modifier
-                .wrapContentHeight()
-        ) {
-            items(state.pools) { pool ->
-                BasicPoolListItem(
-                    modifier = Modifier.padding(vertical = Dimens.x1),
-                    state = pool,
-                    onPoolClick = callback::onPoolClicked,
-                )
+            LazyColumn(
+                state = listState,
+                modifier = Modifier
+                    .wrapContentHeight()
+            ) {
+                items(state.pools) { pool ->
+                    BasicPoolListItem(
+                        modifier = Modifier.padding(vertical = Dimens.x1),
+                        state = pool,
+                        onPoolClick = callback::onPoolClicked,
+                    )
+                }
             }
         }
     }

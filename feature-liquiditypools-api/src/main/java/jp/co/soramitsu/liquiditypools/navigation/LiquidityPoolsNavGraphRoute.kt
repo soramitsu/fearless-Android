@@ -50,8 +50,8 @@ sealed interface LiquidityPoolsNavGraphRoute {
     class LiquidityAddConfirmScreen(
         val chainId: ChainId,
         val ids: StringPair,
-        val amountFrom: BigDecimal,
-        val amountTo: BigDecimal,
+        val amountBase: BigDecimal,
+        val amountTarget: BigDecimal,
         val apy: String
     ) : LiquidityPoolsNavGraphRoute by Companion {
         companion object : LiquidityPoolsNavGraphRoute {
@@ -71,8 +71,8 @@ sealed interface LiquidityPoolsNavGraphRoute {
     class LiquidityRemoveConfirmScreen(
         val chainId: ChainId,
         val ids: StringPair,
-        val amountFrom: BigDecimal,
-        val amountTo: BigDecimal,
+        val amountBase: BigDecimal,
+        val amountTarget: BigDecimal,
         val firstAmountMin: BigDecimal,
         val secondAmountMin: BigDecimal,
         val desired: BigDecimal,

@@ -38,6 +38,9 @@ class PoolListPresenter @Inject constructor(
 
     private val screenArgsFlow = internalPoolsRouter.createNavGraphRoutesFlow()
         .filterIsInstance<LiquidityPoolsNavGraphRoute.ListPoolsScreen>()
+        .onEach {
+            stateFlow.value = stateFlow.value.copy(isLoading = true)
+        }
         .shareIn(coroutinesStore.uiScope, SharingStarted.Lazily, 1)
 
     val pools = screenArgsFlow.flatMapLatest { screenArgs ->
@@ -61,11 +64,6 @@ class PoolListPresenter @Inject constructor(
         }
     }
 
-
-    init {
-
-    }
-
     private val stateFlow = MutableStateFlow(PoolListState())
 
     fun createScreenStateFlow(coroutineScope: CoroutineScope): StateFlow<PoolListState> {
@@ -75,7 +73,7 @@ class PoolListPresenter @Inject constructor(
 
     private fun subscribeState(coroutineScope: CoroutineScope) {
         pools.onEach {
-            stateFlow.value = stateFlow.value.copy(pools = it)
+            stateFlow.value = stateFlow.value.copy(pools = it, isLoading = false)
         }.launchIn(coroutineScope)
 
         enteredAssetQueryFlow.onEach {

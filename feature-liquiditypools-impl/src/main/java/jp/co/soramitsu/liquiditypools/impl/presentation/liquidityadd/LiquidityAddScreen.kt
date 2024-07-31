@@ -37,13 +37,12 @@ import jp.co.soramitsu.common.compose.theme.grayButtonBackground
 import jp.co.soramitsu.common.compose.theme.white
 import jp.co.soramitsu.common.compose.theme.white08
 import jp.co.soramitsu.feature_wallet_impl.R
-import jp.co.soramitsu.liquiditypools.impl.presentation.PoolsFlowViewModel
 import jp.co.soramitsu.liquiditypools.impl.presentation.PoolsFlowViewModel.Companion.ITEM_APY_ID
 import jp.co.soramitsu.liquiditypools.impl.presentation.PoolsFlowViewModel.Companion.ITEM_FEE_ID
 
 data class LiquidityAddState(
-    val fromAmountInputViewState: AmountInputViewState = AmountInputViewState.defaultObj,
-    val toAmountInputViewState: AmountInputViewState = AmountInputViewState.defaultObj,
+    val baseAmountInputViewState: AmountInputViewState = AmountInputViewState.defaultObj,
+    val targetAmountInputViewState: AmountInputViewState = AmountInputViewState.defaultObj,
     val slippage: String = "0.5%",
     val apy: String? = null,
     val feeInfo: FeeInfoViewState = FeeInfoViewState.default,
@@ -55,13 +54,13 @@ interface LiquidityAddCallbacks {
 
     fun onAddReviewClick()
 
-    fun onAddFromAmountChange(amount: BigDecimal)
+    fun onAddBaseAmountChange(amount: BigDecimal)
 
-    fun onAddFromAmountFocusChange(isFocused: Boolean)
+    fun onAddBaseAmountFocusChange(isFocused: Boolean)
 
-    fun onAddToAmountChange(amount: BigDecimal)
+    fun onAddTargetAmountChange(amount: BigDecimal)
 
-    fun onAddToAmountFocusChange(isFocused: Boolean)
+    fun onAddTargetAmountFocusChange(isFocused: Boolean)
 
     fun onAddTableItemClick(itemId: Int)
 }
@@ -99,20 +98,20 @@ fun LiquidityAddScreen(
             ) {
                 Column {
                     AmountInput(
-                        state = state.fromAmountInputViewState,
+                        state = state.baseAmountInputViewState,
                         borderColorFocused = colorAccentDark,
-                        onInput = callbacks::onAddFromAmountChange,
-                        onInputFocusChange = callbacks::onAddFromAmountFocusChange,
+                        onInput = callbacks::onAddBaseAmountChange,
+                        onInputFocusChange = callbacks::onAddBaseAmountFocusChange,
                         onKeyboardDone = { keyboardController?.hide() }
                     )
 
                     MarginVertical(margin = 8.dp)
 
                     AmountInput(
-                        state = state.toAmountInputViewState,
+                        state = state.targetAmountInputViewState,
                         borderColorFocused = colorAccentDark,
-                        onInput = callbacks::onAddToAmountChange,
-                        onInputFocusChange = callbacks::onAddToAmountFocusChange,
+                        onInput = callbacks::onAddTargetAmountChange,
+                        onInputFocusChange = callbacks::onAddTargetAmountFocusChange,
                         onKeyboardDone = { keyboardController?.hide() }
                     )
                 }
@@ -191,18 +190,18 @@ fun LiquidityAddScreen(
 private fun PreviewLiquidityAddScreen() {
     LiquidityAddScreen(
         state = LiquidityAddState(
-            fromAmountInputViewState = AmountInputViewState.defaultObj,
-            toAmountInputViewState = AmountInputViewState.defaultObj,
+            baseAmountInputViewState = AmountInputViewState.defaultObj,
+            targetAmountInputViewState = AmountInputViewState.defaultObj,
             apy = "23.3%",
             feeInfo = FeeInfoViewState.default,
             slippage = "0.5%"
         ),
         callbacks = object : LiquidityAddCallbacks {
             override fun onAddReviewClick() {}
-            override fun onAddFromAmountChange(amount: BigDecimal) {}
-            override fun onAddFromAmountFocusChange(isFocused: Boolean) {}
-            override fun onAddToAmountChange(amount: BigDecimal) {}
-            override fun onAddToAmountFocusChange(isFocused: Boolean) {}
+            override fun onAddBaseAmountChange(amount: BigDecimal) {}
+            override fun onAddBaseAmountFocusChange(isFocused: Boolean) {}
+            override fun onAddTargetAmountChange(amount: BigDecimal) {}
+            override fun onAddTargetAmountFocusChange(isFocused: Boolean) {}
             override fun onAddTableItemClick(itemId: Int) {}
         },
     )

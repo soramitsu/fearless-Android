@@ -77,24 +77,19 @@ class LiquidityRemoveConfirmPresenter @Inject constructor(
         assetsFlow
     }
 
-    val tokensInPoolFlow = assetsInPoolFlow.map {
+    private val tokensInPoolFlow = assetsInPoolFlow.map {
         it.first.asset.token to it.second.asset.token
     }.distinctUntilChanged()
 
-    val isPoolPairEnabled =
+    private val isPoolPairEnabled =
         screenArgsFlow.map { screenArgs ->
-            val (tokenFromId, tokenToId) = screenArgs.ids
             poolsInteractor.isPairEnabled(
-                screenArgs.chainId,
-                tokenFromId,
-                tokenToId
+                chainId = screenArgs.chainId,
+                baseTokenId = screenArgs.ids.first,
+                targetTokenId = screenArgs.ids.second
             )
         }
 
-
-    init {
-
-    }
     private val stateFlow = MutableStateFlow(LiquidityRemoveConfirmState())
 
     fun createScreenStateFlow(coroutineScope: CoroutineScope): StateFlow<LiquidityRemoveConfirmState> {
@@ -103,15 +98,14 @@ class LiquidityRemoveConfirmPresenter @Inject constructor(
     }
 
     private fun subscribeState(coroutineScope: CoroutineScope) {
-        combine(screenArgsFlow, tokensInPoolFlow) { screenArgs, (assetFrom, assetTo) ->
+        combine(screenArgsFlow, tokensInPoolFlow) { screenArgs, (assetBase, assetTarget) ->
             stateFlow.value = stateFlow.value.copy(
-                assetFromIconUrl = assetFrom.configuration.iconUrl,
-                assetToIconUrl = assetTo.configuration.iconUrl,
-                baseAmount = screenArgs.amountFrom.formatCrypto(assetFrom.configuration.symbol),
-                baseFiat = screenArgs.amountFrom.applyFiatRate(assetFrom.fiatRate)?.formatFiat(assetFrom.fiatSymbol).orEmpty(),
-                targetAmount = screenArgs.amountTo.formatCrypto(assetTo.configuration.symbol),
-                targetFiat = screenArgs.amountTo.applyFiatRate(assetTo.fiatRate)?.formatFiat(assetTo.fiatSymbol).orEmpty(),
-//                apy = screenArgs.apy
+                assetBaseIconUrl = assetBase.configuration.iconUrl,
+                assetTargetIconUrl = assetTarget.configuration.iconUrl,
+                baseAmount = screenArgs.amountBase.formatCrypto(assetBase.configuration.symbol),
+                baseFiat = screenArgs.amountBase.applyFiatRate(assetBase.fiatRate)?.formatFiat(assetBase.fiatSymbol).orEmpty(),
+                targetAmount = screenArgs.amountTarget.formatCrypto(assetTarget.configuration.symbol),
+                targetFiat = screenArgs.amountTarget.applyFiatRate(assetTarget.fiatRate)?.formatFiat(assetTarget.fiatSymbol).orEmpty(),
             )
         }.launchIn(coroutineScope)
 
@@ -121,10 +115,9 @@ class LiquidityRemoveConfirmPresenter @Inject constructor(
                 buttonEnabled = it.feeAmount.isNullOrEmpty().not()
             )
         }.launchIn(coroutineScope)
-
     }
 
-    val networkFeeFlow = combine(
+    private val networkFeeFlow = combine(
         screenArgsFlow,
         tokensInPoolFlow,
         stateSlippage,
@@ -132,12 +125,12 @@ class LiquidityRemoveConfirmPresenter @Inject constructor(
     )
     { screenArgs, (baseAsset, targetAsset), slippage, pairEnabled ->
         val networkFee = getLiquidityNetworkFee(
-            tokenFrom = baseAsset.configuration,
-            tokenTo = targetAsset.configuration,
-            tokenFromAmount = screenArgs.amountFrom,
-            tokenToAmount = screenArgs.amountTo,
+            tokenBase = baseAsset.configuration,
+            tokenTarget = targetAsset.configuration,
+            tokenBaseAmount = screenArgs.amountBase,
+            tokenTargetAmount = screenArgs.amountTarget,
             pairEnabled = pairEnabled,
-            pairPresented = true, //pairPresented,
+            pairPresented = true,
             slippageTolerance = slippage
         )
         println("!!!! networkFeeFlow emit $networkFee")
@@ -166,10 +159,10 @@ class LiquidityRemoveConfirmPresenter @Inject constructor(
         }
 
     private suspend fun getLiquidityNetworkFee(
-        tokenFrom: Asset,
-        tokenTo: Asset,
-        tokenFromAmount: BigDecimal,
-        tokenToAmount: BigDecimal,
+        tokenBase: Asset,
+        tokenTarget: Asset,
+        tokenBaseAmount: BigDecimal,
+        tokenTargetAmount: BigDecimal,
         pairEnabled: Boolean,
         pairPresented: Boolean,
         slippageTolerance: Double
@@ -180,10 +173,10 @@ class LiquidityRemoveConfirmPresenter @Inject constructor(
         val result = poolsInteractor.calcAddLiquidityNetworkFee(
             chainId,
             user,
-            tokenFrom,
-            tokenTo,
-            tokenFromAmount,
-            tokenToAmount,
+            tokenBase,
+            tokenTarget,
+            tokenBaseAmount,
+            tokenTargetAmount,
             pairEnabled,
             pairPresented,
             slippageTolerance,
@@ -200,21 +193,21 @@ class LiquidityRemoveConfirmPresenter @Inject constructor(
             val networkFee = networkFeeFlow.firstOrNull() ?: return@launch
 
             val chainId = screenArgsFlow.replayCache.firstOrNull()?.chainId ?: return@launch
-            val tokenFrom = tokensInPoolFlow.firstOrNull()?.first?.configuration ?: return@launch
-            val tokenTo = tokensInPoolFlow.firstOrNull()?.second?.configuration ?: return@launch
+            val tokenBase = tokensInPoolFlow.firstOrNull()?.first?.configuration ?: return@launch
+            val tokenTarget = tokensInPoolFlow.firstOrNull()?.second?.configuration ?: return@launch
 
             var result = ""
 
 
             try {
                 result = poolsInteractor.observeRemoveLiquidity(
-                    chainId,
-                    tokenFrom,
-                    tokenTo,
-                    desired,
-                    firstAmountMin,
-                    secondAmountMin,
-                    networkFee
+                    chainId = chainId,
+                    tokenBase = tokenBase,
+                    tokenTarget = tokenTarget,
+                    markerAssetDesired = desired,
+                    firstAmountMin = firstAmountMin,
+                    secondAmountMin = secondAmountMin,
+                    networkFee = networkFee
                 )
             } catch (t: Throwable) {
                 coroutinesStore.uiScope.launch {

@@ -52,7 +52,6 @@ class LiquidityAddConfirmPresenter @Inject constructor(
     private val _stateSlippage = MutableStateFlow(0.5)
     val stateSlippage = _stateSlippage.asStateFlow()
 
-
     private val screenArgsFlow = internalPoolsRouter.createNavGraphRoutesFlow()
         .filterIsInstance<LiquidityPoolsNavGraphRoute.LiquidityAddConfirmScreen>()
         .shareIn(coroutinesStore.uiScope, SharingStarted.Eagerly, 1)
@@ -78,17 +77,16 @@ class LiquidityAddConfirmPresenter @Inject constructor(
         assetsFlow
     }
 
-    val tokensInPoolFlow = assetsInPoolFlow.map {
+    private val tokensInPoolFlow = assetsInPoolFlow.map {
         it.first.asset.token to it.second.asset.token
     }.distinctUntilChanged()
 
-    val isPoolPairEnabled =
+    private val isPoolPairEnabled =
         screenArgsFlow.map { screenArgs ->
-            val (tokenFromId, tokenToId) = screenArgs.ids
             poolsInteractor.isPairEnabled(
-                screenArgs.chainId,
-                tokenFromId,
-                tokenToId
+                chainId = screenArgs.chainId,
+                baseTokenId = screenArgs.ids.first,
+                targetTokenId = screenArgs.ids.second
             )
         }
 
@@ -104,14 +102,14 @@ class LiquidityAddConfirmPresenter @Inject constructor(
     }
 
     private fun subscribeState(coroutineScope: CoroutineScope) {
-        combine(screenArgsFlow, tokensInPoolFlow) { screenArgs, (assetFrom, assetTo) ->
+        combine(screenArgsFlow, tokensInPoolFlow) { screenArgs, (assetBase, assetTarget) ->
             stateFlow.value = stateFlow.value.copy(
-                assetFrom = assetFrom.configuration,
-                assetTo = assetTo.configuration,
-                baseAmount = screenArgs.amountFrom.formatCrypto(assetFrom.configuration.symbol),
-                baseFiat = screenArgs.amountFrom.applyFiatRate(assetFrom.fiatRate)?.formatFiat(assetFrom.fiatSymbol).orEmpty(),
-                targetAmount = screenArgs.amountTo.formatCrypto(assetTo.configuration.symbol),
-                targetFiat = screenArgs.amountTo.applyFiatRate(assetTo.fiatRate)?.formatFiat(assetTo.fiatSymbol).orEmpty(),
+                assetBase = assetBase.configuration,
+                assetTarget = assetTarget.configuration,
+                baseAmount = screenArgs.amountBase.formatCrypto(assetBase.configuration.symbol),
+                baseFiat = screenArgs.amountBase.applyFiatRate(assetBase.fiatRate)?.formatFiat(assetBase.fiatSymbol).orEmpty(),
+                targetAmount = screenArgs.amountTarget.formatCrypto(assetTarget.configuration.symbol),
+                targetFiat = screenArgs.amountTarget.applyFiatRate(assetTarget.fiatRate)?.formatFiat(assetTarget.fiatSymbol).orEmpty(),
                 apy = screenArgs.apy
             )
         }.launchIn(coroutineScope)
@@ -139,10 +137,10 @@ class LiquidityAddConfirmPresenter @Inject constructor(
     )
     { screenArgs, (baseAsset, targetAsset), slippage, pairEnabled ->
         val networkFee = getLiquidityNetworkFee(
-            tokenFrom = baseAsset.configuration,
-            tokenTo = targetAsset.configuration,
-            tokenFromAmount = screenArgs.amountFrom,
-            tokenToAmount = screenArgs.amountTo,
+            tokenBase = baseAsset.configuration,
+            tokenTarget = targetAsset.configuration,
+            tokenBaseAmount = screenArgs.amountBase,
+            tokenTargetAmount = screenArgs.amountTarget,
             pairEnabled = pairEnabled,
             pairPresented = true, //pairPresented,
             slippageTolerance = slippage
@@ -173,10 +171,10 @@ class LiquidityAddConfirmPresenter @Inject constructor(
         }
 
     private suspend fun getLiquidityNetworkFee(
-        tokenFrom: Asset,
-        tokenTo: Asset,
-        tokenFromAmount: BigDecimal,
-        tokenToAmount: BigDecimal,
+        tokenBase: Asset,
+        tokenTarget: Asset,
+        tokenBaseAmount: BigDecimal,
+        tokenTargetAmount: BigDecimal,
         pairEnabled: Boolean,
         pairPresented: Boolean,
         slippageTolerance: Double
@@ -185,15 +183,15 @@ class LiquidityAddConfirmPresenter @Inject constructor(
         val soraChain = walletInteractor.getChain(chainId)
         val user = accountInteractor.selectedMetaAccount().address(soraChain).orEmpty()
         val result = poolsInteractor.calcAddLiquidityNetworkFee(
-            chainId,
-            user,
-            tokenFrom,
-            tokenTo,
-            tokenFromAmount,
-            tokenToAmount,
-            pairEnabled,
-            pairPresented,
-            slippageTolerance,
+            chainId = chainId,
+            address = user,
+            tokenBase = tokenBase,
+            tokenTarget = tokenTarget,
+            tokenBaseAmount = tokenBaseAmount,
+            tokenTargetAmount = tokenTargetAmount,
+            pairEnabled = pairEnabled,
+            pairPresented = pairPresented,
+            slippageTolerance = slippageTolerance,
         )
         return result ?: BigDecimal.ZERO
     }
@@ -204,8 +202,8 @@ class LiquidityAddConfirmPresenter @Inject constructor(
             val chainId = screenArgsFlow.replayCache.firstOrNull()?.chainId ?: return@launch
             val tokenBase = tokensInPoolFlow.firstOrNull()?.first?.configuration ?: return@launch
             val tokenTarget = tokensInPoolFlow.firstOrNull()?.second?.configuration ?: return@launch
-            val amountBase = screenArgsFlow.firstOrNull()?.amountFrom.orZero()
-            val amountTarget = screenArgsFlow.firstOrNull()?.amountTo.orZero()
+            val amountBase = screenArgsFlow.firstOrNull()?.amountBase.orZero()
+            val amountTarget = screenArgsFlow.firstOrNull()?.amountTarget.orZero()
             val pairEnabled = isPoolPairEnabled.firstOrNull() ?: true
             var result = ""
             try {

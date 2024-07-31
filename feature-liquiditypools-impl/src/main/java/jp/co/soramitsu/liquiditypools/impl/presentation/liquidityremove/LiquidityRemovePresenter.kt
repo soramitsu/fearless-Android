@@ -13,7 +13,6 @@ import jp.co.soramitsu.common.utils.applyFiatRate
 import jp.co.soramitsu.common.utils.formatCrypto
 import jp.co.soramitsu.common.utils.formatCryptoDetail
 import jp.co.soramitsu.common.utils.formatFiat
-import jp.co.soramitsu.common.utils.isNotZero
 import jp.co.soramitsu.common.utils.moreThanZero
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.requireValue
@@ -23,7 +22,6 @@ import jp.co.soramitsu.feature_liquiditypools_impl.R
 import jp.co.soramitsu.liquiditypools.domain.interfaces.DemeterFarmingInteractor
 import jp.co.soramitsu.liquiditypools.domain.interfaces.PoolsInteractor
 import jp.co.soramitsu.liquiditypools.impl.presentation.CoroutinesStore
-import jp.co.soramitsu.liquiditypools.impl.presentation.PoolsFlowViewModel
 import jp.co.soramitsu.liquiditypools.impl.usecase.ValidateRemoveLiquidityUseCase
 import jp.co.soramitsu.liquiditypools.navigation.InternalPoolsRouter
 import jp.co.soramitsu.liquiditypools.navigation.LiquidityPoolsNavGraphRoute
@@ -68,14 +66,14 @@ class LiquidityRemovePresenter @Inject constructor(
     private val resourceManager: ResourceManager,
     private val validateRemoveLiquidityUseCase: ValidateRemoveLiquidityUseCase,
 ) : LiquidityRemoveCallbacks {
-    private val enteredFromAmountFlow = MutableStateFlow(BigDecimal.ZERO)
-    private val enteredToAmountFlow = MutableStateFlow(BigDecimal.ZERO)
+    private val enteredBaseAmountFlow = MutableStateFlow(BigDecimal.ZERO)
+    private val enteredTargetAmountFlow = MutableStateFlow(BigDecimal.ZERO)
 
-    private var amountFrom: BigDecimal = BigDecimal.ZERO
-    private var amountTo: BigDecimal = BigDecimal.ZERO
+    private var amountBase: BigDecimal = BigDecimal.ZERO
+    private var amountTarget: BigDecimal = BigDecimal.ZERO
 
-    private val isFromAmountFocused = MutableStateFlow(false)
-    private val isToAmountFocused = MutableStateFlow(false)
+    private val isBaseAmountFocused = MutableStateFlow(false)
+    private val isTargetAmountFocused = MutableStateFlow(false)
 
     private var poolInFarming = false
     private var poolDataUsable: CommonUserPoolData? = null
@@ -85,7 +83,25 @@ class LiquidityRemovePresenter @Inject constructor(
 
     private val screenArgsFlow = internalPoolsRouter.createNavGraphRoutesFlow()
         .filterIsInstance<LiquidityPoolsNavGraphRoute.LiquidityRemoveScreen>()
+        .onEach {
+            resetState()
+        }
         .shareIn(coroutinesStore.uiScope, SharingStarted.Eagerly, 1)
+
+    private fun resetState() {
+        amountTarget = BigDecimal.ZERO
+        amountBase = BigDecimal.ZERO
+        stateFlow.value = stateFlow.value.copy(
+            baseAmountInputViewState = stateFlow.value.baseAmountInputViewState.copy(
+                tokenAmount = BigDecimal.ZERO,
+                fiatAmount = null
+            ),
+            targetAmountInputViewState = stateFlow.value.targetAmountInputViewState.copy(
+                tokenAmount = BigDecimal.ZERO,
+                fiatAmount = null
+            )
+        )
+    }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val assetsInPoolFlow = screenArgsFlow.flatMapLatest { screenArgs ->
@@ -112,14 +128,17 @@ class LiquidityRemovePresenter @Inject constructor(
         assetsFlow
     }.distinctUntilChanged()
 
-    val tokensInPoolFlow = assetsInPoolFlow.map {
+    private val tokensInPoolFlow = assetsInPoolFlow.map {
         it.first.asset.token.configuration to it.second.asset.token.configuration
     }.distinctUntilChanged()
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val poolDataFlow = screenArgsFlow.flatMapLatest {
-        val (tokenFromId, tokenToId) = it.ids
-        poolsInteractor.getPoolData(it.chainId, tokenFromId, tokenToId)
+        poolsInteractor.getPoolData(
+            chainId = it.chainId,
+            baseTokenId = it.ids.first,
+            targetTokenId = it.ids.second
+        )
     }
 
     init {
@@ -191,13 +210,13 @@ class LiquidityRemovePresenter @Inject constructor(
                     println("!!! poolDataFlow collectLatest poolDataLocal = $poolDataLocal")
 
                     poolDataUsable = poolDataLocal
-                    amountFrom =
+                    amountBase =
                         if (poolDataLocal != null) PolkaswapFormulas.calculateAmountByPercentage(
                             poolDataLocal.user.basePooled,
                             percent,
                             poolDataLocal.basic.baseToken.token.configuration.precision,
                         ) else BigDecimal.ZERO
-                    amountTo =
+                    amountTarget =
                         if (poolDataLocal != null) PolkaswapFormulas.calculateAmountByPercentage(
                             poolDataLocal.user.targetPooled,
                             percent,
@@ -217,26 +236,26 @@ class LiquidityRemovePresenter @Inject constructor(
             val baseToken = it.basic.baseToken.token
             val targetToken = it.basic.targetToken?.token
 
-            val pooledFromCrypto = it.user?.basePooled?.formatCrypto(baseToken.configuration.symbol).orEmpty()
-            val pooledFromFiat = it.user?.basePooled?.applyFiatRate(baseToken.fiatRate)?.formatFiat(baseToken.fiatSymbol)
-            val argsFrom = pooledFromCrypto + pooledFromFiat?.let { " ($it)" }
-            val pooledFromBalance = resourceManager.getString(R.string.common_available_format, argsFrom)
+            val pooledBaseCrypto = it.user?.basePooled?.formatCrypto(baseToken.configuration.symbol).orEmpty()
+            val pooledBaseFiat = it.user?.basePooled?.applyFiatRate(baseToken.fiatRate)?.formatFiat(baseToken.fiatSymbol)
+            val argsBase = pooledBaseCrypto + pooledBaseFiat?.let { " ($it)" }.orEmpty()
+            val pooledBaseBalance = resourceManager.getString(R.string.common_available_format, argsBase)
 
-            val pooledToCrypto = it.user?.targetPooled?.formatCrypto(targetToken?.configuration?.symbol).orEmpty()
-            val pooledToFiat = it.user?.targetPooled?.applyFiatRate(targetToken?.fiatRate)?.formatFiat(targetToken?.fiatSymbol)
-            val argsTo = pooledToCrypto + pooledToFiat?.let { " ($it)" }
-            val pooledToBalance = resourceManager.getString(R.string.common_available_format, argsTo)
+            val pooledTargetCrypto = it.user?.targetPooled?.formatCrypto(targetToken?.configuration?.symbol).orEmpty()
+            val pooledTargetFiat = it.user?.targetPooled?.applyFiatRate(targetToken?.fiatRate)?.formatFiat(targetToken?.fiatSymbol)
+            val argsTarget = pooledTargetCrypto + pooledTargetFiat?.let { " ($it)" }.orEmpty()
+            val pooledTargetBalance = resourceManager.getString(R.string.common_available_format, argsTarget)
 
             stateFlow.value = stateFlow.value.copy(
-                fromAmountInputViewState = stateFlow.value.fromAmountInputViewState.copy(
+                baseAmountInputViewState = stateFlow.value.baseAmountInputViewState.copy(
                     tokenName = baseToken.configuration.symbol,
                     tokenImage = baseToken.configuration.iconUrl,
-                    totalBalance = pooledFromBalance,
+                    totalBalance = pooledBaseBalance,
                 ),
-                toAmountInputViewState = stateFlow.value.toAmountInputViewState.copy(
+                targetAmountInputViewState = stateFlow.value.targetAmountInputViewState.copy(
                     tokenName = targetToken?.configuration?.symbol,
                     tokenImage = targetToken?.configuration?.iconUrl,
-                    totalBalance = pooledToBalance,
+                    totalBalance = pooledTargetBalance,
                 )
             )
         }.launchIn(coroutineScope)
@@ -248,10 +267,10 @@ class LiquidityRemovePresenter @Inject constructor(
             )
         }.launchIn(coroutineScope)
 
-        enteredFromAmountFlow.onEach {
+        enteredBaseAmountFlow.onEach {
             val baseToken = assetsInPoolFlow.firstOrNull()?.first?.asset?.token
             stateFlow.value = stateFlow.value.copy(
-                fromAmountInputViewState = stateFlow.value.fromAmountInputViewState.copy(
+                baseAmountInputViewState = stateFlow.value.baseAmountInputViewState.copy(
                     fiatAmount = it.applyFiatRate(baseToken?.fiatRate)?.formatFiat(baseToken?.fiatSymbol),
                     tokenAmount = it,
                 )
@@ -260,17 +279,17 @@ class LiquidityRemovePresenter @Inject constructor(
             .debounce(900)
             .onEach { amount ->
                 poolDataUsable?.let {
-                    amountFrom = if (it.user.basePooled <= amount) amount else it.user.basePooled
+                    amountBase = if (it.user.basePooled <= amount) amount else it.user.basePooled
 
                     val precisionTo = poolDataFlow.firstOrNull()?.basic?.targetToken?.token?.configuration?.precision
-                    amountTo = PolkaswapFormulas.calculateOneAmountFromAnother(
-                        amountFrom,
+                    amountTarget = PolkaswapFormulas.calculateOneAmountFromAnother(
+                        amountBase,
                         it.user.basePooled,
                         it.user.targetPooled,
                         precisionTo
                     )
                     percent = PolkaswapFormulas.calculateShareOfPoolFromAmount(
-                        amountFrom,
+                        amountBase,
                         it.user.basePooled,
                     )
                 }
@@ -280,12 +299,12 @@ class LiquidityRemovePresenter @Inject constructor(
                 }
             }.launchIn(coroutineScope)
 
-        enteredToAmountFlow.onEach {
+        enteredTargetAmountFlow.onEach {
             println("!!! enteredToAmountFlow.onEach = $it")
 
             val targetToken = assetsInPoolFlow.firstOrNull()?.second?.asset?.token
             stateFlow.value = stateFlow.value.copy(
-                toAmountInputViewState = stateFlow.value.toAmountInputViewState.copy(
+                targetAmountInputViewState = stateFlow.value.targetAmountInputViewState.copy(
                     fiatAmount = it.applyFiatRate(targetToken?.fiatRate)?.formatFiat(targetToken?.fiatSymbol),
                     tokenAmount = it
                 ),
@@ -295,17 +314,17 @@ class LiquidityRemovePresenter @Inject constructor(
             .onEach { amount ->
                 println("!!! enteredToAmountFlow.onEach debounced = $amount")
                 poolDataUsable?.let {
-                    amountTo = if (amount <= it.user.targetPooled) amount else it.user.targetPooled
+                    amountTarget = if (amount <= it.user.targetPooled) amount else it.user.targetPooled
 
-                    val precisionFrom = poolDataFlow.firstOrNull()?.basic?.baseToken?.token?.configuration?.precision
-                    amountFrom = PolkaswapFormulas.calculateOneAmountFromAnother(
-                        amountTo,
+                    val precisionBase = poolDataFlow.firstOrNull()?.basic?.baseToken?.token?.configuration?.precision
+                    amountBase = PolkaswapFormulas.calculateOneAmountFromAnother(
+                        amountTarget,
                         it.user.targetPooled,
                         it.user.basePooled,
-                        precisionFrom
+                        precisionBase
                     )
                     percent = PolkaswapFormulas.calculateShareOfPoolFromAmount(
-                        amountFrom,
+                        amountBase,
                         it.user.basePooled,
                     )
                 }
@@ -316,17 +335,17 @@ class LiquidityRemovePresenter @Inject constructor(
                 }
             }.launchIn(coroutineScope)
 
-        isFromAmountFocused.onEach {
+        isBaseAmountFocused.onEach {
             stateFlow.value = stateFlow.value.copy(
-                fromAmountInputViewState = stateFlow.value.fromAmountInputViewState.copy(
+                baseAmountInputViewState = stateFlow.value.baseAmountInputViewState.copy(
                     isFocused = it
                 ),
             )
         }.launchIn(coroutineScope)
 
-        isToAmountFocused.onEach {
+        isTargetAmountFocused.onEach {
             stateFlow.value = stateFlow.value.copy(
-                toAmountInputViewState = stateFlow.value.toAmountInputViewState.copy(
+                targetAmountInputViewState = stateFlow.value.targetAmountInputViewState.copy(
                     isFocused = it
                 ),
             )
@@ -348,38 +367,38 @@ class LiquidityRemovePresenter @Inject constructor(
     }
 
     private suspend fun updateAmounts() {
-        assetsInPoolFlow.firstOrNull()?.let { (assetFrom, assetTo) ->
-            if (amountFrom.compareTo(stateFlow.value.fromAmountInputViewState.tokenAmount) != 0) {
-                println("!!! updateAmounts amountFrom to $amountFrom")
+        assetsInPoolFlow.firstOrNull()?.let { (assetBase, assetTarget) ->
+            if (amountBase.compareTo(stateFlow.value.baseAmountInputViewState.tokenAmount) != 0) {
+                println("!!! updateAmounts amountFrom to $amountBase")
 
-                val scaledAmountFrom = when {
-                    amountFrom.isZero() -> BigDecimal.ZERO
-                    else -> amountFrom.setScale(
-                        min(MAX_DECIMALS_8, amountFrom.scale()),
+                val scaledAmountBase = when {
+                    amountBase.isZero() -> BigDecimal.ZERO
+                    else -> amountBase.setScale(
+                        min(MAX_DECIMALS_8, amountBase.scale()),
                         RoundingMode.DOWN
                     )
                 }
 
                 stateFlow.value = stateFlow.value.copy(
-                    fromAmountInputViewState = stateFlow.value.fromAmountInputViewState.copy(
-                        tokenAmount = scaledAmountFrom,
-                        fiatAmount = amountFrom.applyFiatRate(assetFrom.asset.token.fiatRate)?.formatFiat(assetFrom.asset.token.fiatSymbol),
+                    baseAmountInputViewState = stateFlow.value.baseAmountInputViewState.copy(
+                        tokenAmount = scaledAmountBase,
+                        fiatAmount = amountBase.applyFiatRate(assetBase.asset.token.fiatRate)?.formatFiat(assetBase.asset.token.fiatSymbol),
                     )
                 )
             }
-            if (amountTo.compareTo(stateFlow.value.toAmountInputViewState.tokenAmount) != 0) {
-                println("!!! updateAmounts amountTo to $amountTo")
-                val scaledAmountTo = when {
-                    amountTo.isZero() -> BigDecimal.ZERO
-                    else -> amountTo.setScale(
-                        min(MAX_DECIMALS_8, amountTo.scale()),
+            if (amountTarget.compareTo(stateFlow.value.targetAmountInputViewState.tokenAmount) != 0) {
+                println("!!! updateAmounts amountTo to $amountTarget")
+                val scaledAmountTarget = when {
+                    amountTarget.isZero() -> BigDecimal.ZERO
+                    else -> amountTarget.setScale(
+                        min(MAX_DECIMALS_8, amountTarget.scale()),
                         RoundingMode.DOWN
                     )
                 }
                 stateFlow.value = stateFlow.value.copy(
-                    toAmountInputViewState = stateFlow.value.toAmountInputViewState.copy(
-                        tokenAmount = scaledAmountTo,
-                        fiatAmount = amountTo.applyFiatRate(assetTo.asset.token.fiatRate)?.formatFiat(assetTo.asset.token.fiatSymbol),
+                    targetAmountInputViewState = stateFlow.value.targetAmountInputViewState.copy(
+                        tokenAmount = scaledAmountTarget,
+                        fiatAmount = amountTarget.applyFiatRate(assetTarget.asset.token.fiatRate)?.formatFiat(assetTarget.asset.token.fiatSymbol),
                     )
                 )
             }
@@ -389,7 +408,7 @@ class LiquidityRemovePresenter @Inject constructor(
     }
 
     private fun updateButtonState() {
-        val isButtonEnabled = amountTo.moreThanZero() && amountTo.moreThanZero() && stateFlow.value.feeInfo.feeAmount != null
+        val isButtonEnabled = amountTarget.moreThanZero() && amountTarget.moreThanZero() && stateFlow.value.feeInfo.feeAmount != null
         stateFlow.value = stateFlow.value.copy(
             buttonEnabled = isButtonEnabled
         )
@@ -397,8 +416,8 @@ class LiquidityRemovePresenter @Inject constructor(
 
     private val networkFeeFlow = tokensInPoolFlow.map { (baseAsset, targetAsset) ->
         val networkFee = getRemoveLiquidityNetworkFee(
-            tokenFrom = baseAsset,
-            tokenTo = targetAsset,
+            tokenBase = baseAsset,
+            tokenTarget = targetAsset,
         )
         println("!!!! RemoveLiquidity FeeFlow emit $networkFee")
         networkFee
@@ -434,15 +453,15 @@ class LiquidityRemovePresenter @Inject constructor(
         }
 
     private suspend fun getRemoveLiquidityNetworkFee(
-        tokenFrom: Asset,
-        tokenTo: Asset,
+        tokenBase: Asset,
+        tokenTarget: Asset,
     ): BigDecimal {
         val chainId = screenArgsFlow.replayCache.firstOrNull()?.chainId ?: return BigDecimal.ZERO
 
         val result = poolsInteractor.calcRemoveLiquidityNetworkFee(
             chainId,
-            tokenFrom,
-            tokenTo,
+            tokenBase,
+            tokenTarget,
         )
         return result ?: BigDecimal.ZERO
     }
@@ -459,8 +478,6 @@ class LiquidityRemovePresenter @Inject constructor(
         coroutinesStore.uiScope.launch {
             val chainId = screenArgsFlow.replayCache.firstOrNull()?.chainId ?: return@launch
 
-//            val utilityAssetId = requireNotNull(chainsRepository.getChain(chainId).utilityAsset?.id)
-//            val utilityAmount = walletInteractor.getCurrentAsset(chainId, utilityAssetId).total
             val utilityAmount = utilityAssetFlow.firstOrNull()?.transferable ?: return@launch
             val feeAmount = networkFeeFlow.firstOrNull().orZero()
 
@@ -473,8 +490,8 @@ class LiquidityRemovePresenter @Inject constructor(
                 utilityAmount = utilityAmount.orZero(),
                 userBasePooled = userBasePooled,
                 userTargetPooled = userTargetPooled,
-                amountFrom = amountFrom,
-                amountTo = amountTo,
+                amountBase = amountBase,
+                amountTarget = amountTarget,
                 feeAmount = feeAmount,
             )
 
@@ -493,12 +510,12 @@ class LiquidityRemovePresenter @Inject constructor(
 
             val firstAmountMin =
                 PolkaswapFormulas.calculateMinAmount(
-                    amountFrom,
+                    amountBase,
                     slippage
                 )
             val secondAmountMin =
                 PolkaswapFormulas.calculateMinAmount(
-                    amountTo,
+                    amountTarget,
                     slippage
                 )
             val desired =
@@ -514,7 +531,7 @@ class LiquidityRemovePresenter @Inject constructor(
 
             val ids = screenArgsFlow.replayCache.lastOrNull()?.ids ?: return@launch
 
-            internalPoolsRouter.openRemoveLiquidityConfirmScreen(chainId, ids, amountFrom, amountTo, firstAmountMin, secondAmountMin, desired)
+            internalPoolsRouter.openRemoveLiquidityConfirmScreen(chainId, ids, amountBase, amountTarget, firstAmountMin, secondAmountMin, desired)
         }.invokeOnCompletion {
             println("!!! setButtonLoading(false)")
             coroutinesStore.uiScope.launch {
@@ -524,28 +541,24 @@ class LiquidityRemovePresenter @Inject constructor(
         }
     }
 
-    override fun onRemoveFromAmountChange(amount: BigDecimal) {
-        println("!!! onRemoveFromAmountChange(amount = $amount")
-        enteredFromAmountFlow.value = amount
-//        amountFrom = amount
-
+    override fun onRemoveBaseAmountChange(amount: BigDecimal) {
+        println("!!! onRemoveBaseAmountChange(amount = $amount")
+        enteredBaseAmountFlow.value = amount
         updateButtonState()
     }
 
-    override fun onRemoveToAmountChange(amount: BigDecimal) {
+    override fun onRemoveTargetAmountChange(amount: BigDecimal) {
         println("!!! onRemoveToAmountChange(amount = $amount")
-        enteredToAmountFlow.value = amount
-//        amountTo = amount
-
+        enteredTargetAmountFlow.value = amount
         updateButtonState()
     }
 
-    override fun onRemoveFromAmountFocusChange(isFocused: Boolean) {
-        isFromAmountFocused.value = isFocused
+    override fun onRemoveBaseAmountFocusChange(isFocused: Boolean) {
+        isBaseAmountFocused.value = isFocused
     }
 
-    override fun onRemoveToAmountFocusChange(isFocused: Boolean) {
-        isToAmountFocused.value = isFocused
+    override fun onRemoveTargetAmountFocusChange(isFocused: Boolean) {
+        isTargetAmountFocused.value = isFocused
     }
 
     override fun onRemoveItemClick(itemId: Int) {
