@@ -39,5 +39,5 @@ interface PolkaswapRouter {
 
     fun openWebViewer(title: String, url: String)
 
-    fun openPools(chainId: ChainId)
+    fun openPools()
 }

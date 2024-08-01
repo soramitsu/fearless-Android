@@ -112,15 +112,12 @@ class PoolsFlowViewModel @Inject constructor(
             replay = 1
         )
 
-    private val polkaswapChainId = savedStateHandle.get<String>(PoolsFlowFragment.POLKASWAP_CHAIN_ID)
-        ?: error("Can't find ${PoolsFlowFragment.POLKASWAP_CHAIN_ID} in arguments")
-
     init {
         internalPoolsRouter.openAllPoolsScreen()
 
         launch {
 //            poolsInteractor.updateApy()
-            poolsInteractor.updatePools(polkaswapChainId)
+            poolsInteractor.updatePools(poolsInteractor.poolsChainId)
         }
     }
 

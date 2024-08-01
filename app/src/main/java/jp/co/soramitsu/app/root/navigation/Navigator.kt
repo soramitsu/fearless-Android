@@ -72,7 +72,6 @@ import jp.co.soramitsu.crowdloan.impl.presentation.contribute.custom.CustomContr
 import jp.co.soramitsu.crowdloan.impl.presentation.contribute.custom.model.CustomContributePayload
 import jp.co.soramitsu.crowdloan.impl.presentation.contribute.select.CrowdloanContributeFragment
 import jp.co.soramitsu.crowdloan.impl.presentation.contribute.select.parcel.ContributePayload
-import jp.co.soramitsu.liquiditypools.impl.presentation.PoolsFlowFragment
 import jp.co.soramitsu.liquiditypools.navigation.LiquidityPoolsRouter
 import jp.co.soramitsu.nft.impl.presentation.NFTFlowFragment
 import jp.co.soramitsu.nft.navigation.NFTRouter
@@ -1515,8 +1514,7 @@ class Navigator :
         navController?.navigate(R.id.serviceFragment)
     }
 
-    override fun openPools(chainId: ChainId) {
-        val bundle = PoolsFlowFragment.getBundle(chainId)
-        navController?.navigate(R.id.poolsFlowFragment, bundle)
+    override fun openPools() {
+        navController?.navigate(R.id.poolsFlowFragment)
     }
 }
