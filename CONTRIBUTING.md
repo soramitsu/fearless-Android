@@ -27,7 +27,7 @@ If you think you miss some functionality on our application, please open issue o
 * (OPTIONAL) If possible, provide complete description of functionality you suggest
 * (OPTIONAL) Provide your telegram username, and be sure to join [Our Community Channel](https://t.me/fearlesshappiness) on Telegram, so our team can get in touch with you to retrieve more information about your vision
 
-Even if you provide mockups, please understand that our design team will review it and might implement this in very different way. 
+Even if you provide mockups, please understand that our design team will review them and might implement this in very different way. 
 
 ### 💻 Opening Pull Requests
 
@@ -39,7 +39,7 @@ If you would like to help us by contributing writing the code, please follow nex
 * Please avoid huge PRs, and if your contribution really requires lots of files, please make a base branch with series of small PRs on your fork, and then provide link to those PRs in your big one PR in our repository 
 * Provide steps for QA engineer to test your functionality (they should cover requirements from your issue)
 
-Even if you provide mockups, please understand that our design team will review it and might implement this in very different way. 
+Even if you provide mockups, please understand that our design team will review them and might implement this in very different way. 
 
 ### Telegram links
 
