@@ -65,16 +65,6 @@ import kotlinx.coroutines.flow.onEach
 @AndroidEntryPoint
 class PoolsFlowFragment : BaseComposeBottomSheetDialogFragment<PoolsFlowViewModel>() {
 
-    companion object {
-        const val POLKASWAP_CHAIN_ID = "polkaswapChainId"
-
-        fun getBundle(
-            polkaswapChainId: ChainId,
-        ) = bundleOf(
-            POLKASWAP_CHAIN_ID to polkaswapChainId
-        )
-    }
-
     override val viewModel: PoolsFlowViewModel by viewModels()
 
     // Compose BackHandler does not work in DialogFragments, nor does BackPressedDispatcher

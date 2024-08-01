@@ -27,6 +27,9 @@ class BlockExplorerManager @Inject constructor(
             tempApy.clear()
             tempApy.addAll(response)
             println("!!! call blockExplorerManager.updatePoolsSbApy() result updated")
+        }.onFailure {
+            println("!!! updateSbApyInternal error% ${it.message}")
+            it.printStackTrace()
         }
     }
 

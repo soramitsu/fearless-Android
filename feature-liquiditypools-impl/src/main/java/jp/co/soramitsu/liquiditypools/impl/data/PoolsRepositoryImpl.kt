@@ -736,7 +736,7 @@ class PoolsRepositoryImpl @Inject constructor(
         ?.toByteArray()
 
 
-    suspend fun getUserPoolsTokenIdsKeys(chainId: ChainId, address: String): List<String> {
+    private suspend fun getUserPoolsTokenIdsKeys(chainId: ChainId, address: String): List<String> {
         val accountPoolsKey = chainRegistry.getRuntimeOrNull(chainId)?.accountPoolsKey(address)
         return runCatching {
             chainRegistry.awaitConnection(chainId).socketService.executeAsync(
@@ -750,7 +750,7 @@ class PoolsRepositoryImpl @Inject constructor(
             .getOrThrow()
     }
 
-    suspend fun getUserPoolsTokenIds(
+    private suspend fun getUserPoolsTokenIds(
         chainId: ChainId,
         address: String
     ): List<Pair<String, List<ByteArray>>> {
@@ -864,12 +864,13 @@ class PoolsRepositoryImpl @Inject constructor(
     }
 
     override suspend fun updateAccountPools(chainId: ChainId, address: String) {
-        println("!!! call blockExplorerManager.updateAccountPools()")
+        println("!!! call blockExplorerManager.updateAccountPools() chainId = $chainId")
         blockExplorerManager.updatePoolsSbApy()
 
         val pools = mutableListOf<UserPoolJoinedLocal>()
 
         val assets = chainRegistry.getChain(chainId).assets
+        println("!!! call blockExplorerManager.updateAccountPools() assets = ${assets.size}")
 
         val tokenIds = getUserPoolsTokenIds(chainId, address)
         println("!!! call blockExplorerManager.updateAccountPools() tokenIds = ${tokenIds.size}")

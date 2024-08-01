@@ -67,7 +67,7 @@ fun AllPoolsScreen(
         ) {
             MarginVertical(margin = 8.dp)
 
-            if (state.isLoading) {
+            if (state.isLoading || (state.userPools.isEmpty() && state.allPools.isEmpty())) {
                 ShimmerPoolList()
             } else {
                 if (state.userPools.isNotEmpty()) {
@@ -169,6 +169,7 @@ private fun PoolGroupHeader(title: String, onMoreClick: (() -> Unit)?) {
                             color = white08,
                             shape = CircleShape,
                         )
+                        .clickable(onClick = onMoreClick)
                         .padding(all = Dimens.x1)
                 ) {
                     Text(
@@ -185,7 +186,6 @@ private fun PoolGroupHeader(title: String, onMoreClick: (() -> Unit)?) {
                         modifier = Modifier
                             .padding(start = 8.dp)
                             .align(Alignment.CenterVertically)
-                            .clickable(onClick = onMoreClick)
                     )
                 }
             }
