@@ -1,6 +1,5 @@
 package jp.co.soramitsu.app.root.presentation
 
-import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
@@ -71,21 +70,12 @@ class RootViewModel @Inject constructor(
     }
 
     private suspend fun syncConfigs() {
-        interactor.testNomisVitalikScore()
-            .onFailure {
-                Log.d("&&&", "failed test nomis score: $it")
-            }
-            .onSuccess {
-                Log.d("&&&", "successful test nomis score: $it")
-            }
-
         coroutineScope {
             checkAppVersion()
             interactor.fetchFeatureToggle()
             interactor.syncChainsConfigs().onFailure {
                 _showNoInternetConnectionAlert.value = Event(Unit)
             }
-
         }
     }
 

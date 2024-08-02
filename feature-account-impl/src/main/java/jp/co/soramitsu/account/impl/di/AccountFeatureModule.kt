@@ -43,6 +43,7 @@ import jp.co.soramitsu.core.extrinsic.keypair_provider.KeypairProvider
 import jp.co.soramitsu.coredb.dao.AccountDao
 import jp.co.soramitsu.coredb.dao.AssetDao
 import jp.co.soramitsu.coredb.dao.MetaAccountDao
+import jp.co.soramitsu.coredb.dao.NomisScoresDao
 import jp.co.soramitsu.coredb.dao.TokenPriceDao
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
@@ -76,9 +77,8 @@ class AccountFeatureModule {
         jsonSeedDecoder: JsonSeedDecoder,
         jsonSeedEncoder: JsonSeedEncoder,
         languagesHolder: LanguagesHolder,
-        chainRegistry: ChainRegistry,
         chainsRepository: ChainsRepository,
-        assetDao: AssetDao
+        nomisScoresDao: NomisScoresDao
     ): AccountRepository {
         return AccountRepositoryImpl(
             accountDataSource,
@@ -88,9 +88,8 @@ class AccountFeatureModule {
             jsonSeedDecoder,
             jsonSeedEncoder,
             languagesHolder,
-            chainRegistry,
             chainsRepository,
-            assetDao
+            nomisScoresDao
         )
     }
 

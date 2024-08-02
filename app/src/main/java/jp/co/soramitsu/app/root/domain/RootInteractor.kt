@@ -67,12 +67,6 @@ class RootInteractor(
         }
     }
 
-    suspend fun testNomisVitalikScore(): Result<String> {
-        return withContext(Dispatchers.Default) {
-            walletRepository.testNomisVitalikScore()
-        }
-    }
-
     fun chainRegistrySyncUp() = chainRegistry.syncUp()
 
     suspend fun fetchFeatureToggle() = withContext(Dispatchers.Default) { pendulumPreInstalledAccountsScenario.fetchFeatureToggle() }

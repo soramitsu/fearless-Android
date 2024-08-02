@@ -75,15 +75,16 @@ class NetworkModule {
     @Singleton
     fun provideNomisHttpClient(): NomisApi {
         val builder = OkHttpClient.Builder()
-            .connectTimeout(NOMIS_TIMEOUT_MINUTES, TimeUnit.MINUTES)
-            .writeTimeout(NOMIS_TIMEOUT_MINUTES, TimeUnit.MINUTES)
-            .readTimeout(NOMIS_TIMEOUT_MINUTES, TimeUnit.MINUTES)
+//            .connectTimeout(NOMIS_TIMEOUT_MINUTES, TimeUnit.MINUTES)
+//            .writeTimeout(NOMIS_TIMEOUT_MINUTES, TimeUnit.MINUTES)
+//            .readTimeout(NOMIS_TIMEOUT_MINUTES, TimeUnit.MINUTES)
+            .callTimeout(NOMIS_TIMEOUT_MINUTES, TimeUnit.MINUTES)
             .addInterceptor {
-                val r = it.request().newBuilder().apply {
+                val request = it.request().newBuilder().apply {
                     addHeader("X-API-Key", "j9Us1Kxoo9fs3nD")
                     addHeader("X-ClientId", "FCEB90FC-E3F9-4CF5-980E-A8111A3FFF31")
                 }.build()
-                it.proceed(r)
+                it.proceed(request)
             }
             .retryOnConnectionFailure(true)
 

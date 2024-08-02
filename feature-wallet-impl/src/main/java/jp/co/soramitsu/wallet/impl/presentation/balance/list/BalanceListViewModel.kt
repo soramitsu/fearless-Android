@@ -43,7 +43,6 @@ import jp.co.soramitsu.common.domain.SelectedFiat
 import jp.co.soramitsu.common.domain.model.NetworkIssueType
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
-import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
@@ -416,6 +415,50 @@ class BalanceListViewModel @Inject constructor(
             .stateIn(viewModelScope, SharingStarted.Eagerly, initialValue = null)
     }
 
+    private fun observeToolbarStates() {
+        currentAddressModelFlow().onEach { addressModel ->
+            toolbarState.update { prevState ->
+                val newWalletIconState = when(prevState.homeIconState) {
+                    is ToolbarHomeIconState.Navigation -> ToolbarHomeIconState.Wallet(walletIcon = addressModel.image)
+                    is ToolbarHomeIconState.Wallet -> (prevState.homeIconState as ToolbarHomeIconState.Wallet).copy(walletIcon = addressModel.image)
+                }
+                prevState.copy(
+                    title = addressModel.nameOrAddress,
+                    homeIconState = newWalletIconState,
+                )
+            }
+        }.launchIn(viewModelScope)
+
+        combine(
+            interactor.observeSelectedAccountChainSelectFilter(),
+            selectedChainItemFlow
+        ) { filter, chain ->
+            toolbarState.update { prevState ->
+                prevState.copy(
+                    selectorViewState = ChainSelectorViewStateWithFilters(
+                        selectedChainName = chain?.title,
+                        selectedChainId = chain?.id,
+                        selectedChainImageUrl = chain?.imageUrl,
+                        filterApplied = ChainSelectorViewStateWithFilters.Filter.entries.find {
+                            it.name == filter
+                        } ?: ChainSelectorViewStateWithFilters.Filter.All
+                    )
+                )
+            }
+        }.launchIn(viewModelScope)
+
+        accountInteractor.observeCurrentAccountScore()
+            .onEach { score ->
+                toolbarState.update { prevState ->
+                    val newWalletIconState = (prevState.homeIconState as? ToolbarHomeIconState.Wallet)?.copy(score = score.score)
+                    newWalletIconState?.let {
+                        prevState.copy(homeIconState = newWalletIconState)
+                    } ?: prevState
+                }
+            }
+            .launchIn(viewModelScope)
+    }
+
     private fun observeNetworkIssues() {
         combine(
             currentAssetsFlow,
@@ -557,33 +600,11 @@ class BalanceListViewModel @Inject constructor(
         }.launchIn(this)
     }
 
-    val toolbarState = combine(
-        currentAddressModelFlow(),
-        interactor.observeSelectedAccountChainSelectFilter(),
-        selectedChainItemFlow
-    ) { addressModel, filter, chain ->
-        LoadingState.Loaded(
-            MainToolbarViewStateWithFilters(
-                title = addressModel.nameOrAddress,
-                homeIconState = ToolbarHomeIconState(walletIcon = addressModel.image),
-                selectorViewState = ChainSelectorViewStateWithFilters(
-                    selectedChainName = chain?.title,
-                    selectedChainId = chain?.id,
-                    selectedChainImageUrl = chain?.imageUrl,
-                    filterApplied = ChainSelectorViewStateWithFilters.Filter.entries.find {
-                        it.name == filter
-                    } ?: ChainSelectorViewStateWithFilters.Filter.All
-                )
-            )
-        )
-    }.stateIn(
-        scope = this,
-        started = SharingStarted.Eagerly,
-        initialValue = LoadingState.Loading()
-    )
+    val toolbarState: MutableStateFlow<MainToolbarViewStateWithFilters> = MutableStateFlow(MainToolbarViewStateWithFilters(title = null, selectorViewState = null))
 
     init {
         subscribeScreenState()
+        observeToolbarStates()
         observeNetworkIssues()
         observeFiatSymbolChange()
         sync()
@@ -938,5 +959,12 @@ class BalanceListViewModel @Inject constructor(
 
     fun onServiceButtonClick() {
         router.openServiceScreen()
+    }
+
+    fun onScoreClick() {
+        viewModelScope.launch {
+            val currentAccount = currentMetaAccountFlow.first()
+            router.openScoreDetailsScreen(currentAccount.id)
+        }
     }
 }

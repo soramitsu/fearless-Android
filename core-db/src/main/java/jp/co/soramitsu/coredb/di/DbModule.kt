@@ -5,6 +5,7 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import javax.inject.Singleton
 import jp.co.soramitsu.common.data.secrets.v1.SecretStoreV1
 import jp.co.soramitsu.common.data.secrets.v2.SecretStoreV2
 import jp.co.soramitsu.coredb.AppDatabase
@@ -14,13 +15,13 @@ import jp.co.soramitsu.coredb.dao.AddressBookDao
 import jp.co.soramitsu.coredb.dao.AssetDao
 import jp.co.soramitsu.coredb.dao.ChainDao
 import jp.co.soramitsu.coredb.dao.MetaAccountDao
+import jp.co.soramitsu.coredb.dao.NomisScoresDao
 import jp.co.soramitsu.coredb.dao.OperationDao
 import jp.co.soramitsu.coredb.dao.PhishingDao
 import jp.co.soramitsu.coredb.dao.SoraCardDao
 import jp.co.soramitsu.coredb.dao.StakingTotalRewardDao
 import jp.co.soramitsu.coredb.dao.StorageDao
 import jp.co.soramitsu.coredb.dao.TokenPriceDao
-import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -106,5 +107,11 @@ class DbModule {
     @Singleton
     fun provideSoraCardDao(appDatabase: AppDatabase): SoraCardDao {
         return appDatabase.soraCardDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideNomisScoresDao(appDatabase: AppDatabase): NomisScoresDao {
+        return appDatabase.nomisScoresDao()
     }
 }

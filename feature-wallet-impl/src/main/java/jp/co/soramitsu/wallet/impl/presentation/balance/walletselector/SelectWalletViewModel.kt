@@ -24,12 +24,12 @@ import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.formatAsChange
 import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.inBackground
-import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
@@ -54,6 +54,7 @@ class SelectWalletViewModel @Inject constructor(
 
     init {
         accountListingMixin.accountsFlow(AddressIconGenerator.SIZE_BIG)
+            .distinctUntilChanged()
             .inBackground()
             .onEach { newList ->
                 walletItemsFlow.update {
@@ -69,11 +70,19 @@ class SelectWalletViewModel @Inject constructor(
                     }
                 }
             }
-            .onEach {
-                walletItemsFlow.update { prevList ->
-                    prevList.map { prevState ->
-                        val balanceModel = getTotalBalance(prevState.id)
-                        prevState.copy(
+            .onEach { accounts ->
+                accounts.forEach { observeTotalBalance(it.id) }
+                observeScores()
+            }
+            .launchIn(viewModelScope)
+    }
+
+    private fun observeTotalBalance(metaId: Long) {
+        getTotalBalance.observe(metaId).onEach { balanceModel ->
+            walletItemsFlow.update {
+                it.map {  state ->
+                    if(state.id == metaId) {
+                        state.copy(
                             balance = balanceModel.balance.formatFiat(balanceModel.fiatSymbol),
                             changeBalanceViewState = ChangeBalanceViewState(
                                 percentChange = balanceModel.rateChange?.formatAsChange().orEmpty(),
@@ -81,6 +90,21 @@ class SelectWalletViewModel @Inject constructor(
                                     .formatFiat(balanceModel.fiatSymbol)
                             )
                         )
+                    } else {
+                        state
+                    }
+                }
+            }
+        }.launchIn(viewModelScope)
+    }
+
+    private fun observeScores() {
+        accountInteractor.observeNomisScores()
+            .onEach { scores ->
+                walletItemsFlow.update { oldStates ->
+                    oldStates.map { state ->
+                        val score = scores.find { it.metaId == state.id }
+                        score?.let { state.copy(score = score.score) } ?: state
                     }
                 }
             }
@@ -195,5 +219,9 @@ class SelectWalletViewModel @Inject constructor(
                     router.back()
                 }
         }
+    }
+
+    fun onScoreClick(state: WalletItemViewState) {
+        router.openScoreDetailsScreen(state.id)
     }
 }

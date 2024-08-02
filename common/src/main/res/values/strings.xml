@@ -47,6 +47,19 @@
   <string name="account_no_chain_projection">No account found</string>
   <string name="account_option">Account option</string>
   <string name="account_shared_secret">Accounts with a shared secret</string>
+  <string name="account_stats_avg_transaction_time_title">Avg. transaction time</string>
+  <string name="account_stats_description_text">Your Multichain Score is based on your onchain journey through 3 ecosystems: Ethereum, Polygon and Binance Smart Chain</string>
+  <string name="account_stats_error_message">Unable to retrieve account score information. Please try again later.</string>
+  <string name="account_stats_hold_tokens_usd_title">Hold tokens USD</string>
+  <string name="account_stats_max_transaction_time_title">Max transaction time</string>
+  <string name="account_stats_min_transaction_time_title">Min transaction time</string>
+  <string name="account_stats_native_balance_usd_title">Native balance USD</string>
+  <string name="account_stats_rejected_transactions_title">Rejected transactions</string>
+  <string name="account_stats_title">Your score</string>
+  <string name="account_stats_total_transactions_title">Total transactions</string>
+  <string name="account_stats_updated_title">Updated</string>
+  <string name="account_stats_wallet_age_title">Wallet age</string>
+  <string name="account_stats_wallet_option_title">Show wallet score</string>
   <string name="account_template">%s account</string>
   <string name="accounts_add_account">Add an account</string>
   <string name="accounts_for_export">Accounts to export</string>
@@ -233,6 +246,10 @@
     <item quantity="one">%d hour</item>
     <item quantity="other">%d hours</item>
   </plurals>
+  <plurals name="common_months_format">
+    <item quantity="one">%d month</item>
+    <item quantity="other">%d months</item>
+  </plurals>
   <string name="common_import_wallet">Import wallet</string>
   <string name="common_important">Important</string>
   <string name="common_info">Info</string>
@@ -244,6 +261,7 @@
   <string name="common_message">Message</string>
   <string name="common_min_received">Min received</string>
   <string name="common_module">Module</string>
+  <string name="common_more">More</string>
   <string name="common_my_networks">My networks</string>
   <string name="common_network">Network</string>
   <string name="common_network_fee">Network fee</string>
@@ -490,6 +508,28 @@
   <string name="label_link">Link</string>
   <string name="label_testnet">Testnet</string>
   <string name="language_title">Language</string>
+  <string name="lp_apy_alert_text">Farming reward for liquidity provision</string>
+  <string name="lp_apy_alert_title">Strategic Bonus APY</string>
+  <string name="lp_apy_title">Strategic Bonus APY</string>
+  <string name="lp_available_pools_title">Available pools</string>
+  <string name="lp_banner_action_details_title">Show details</string>
+  <string name="lp_banner_text">Invest your funds in Liquidity\npools and receive rewards</string>
+  <string name="lp_confirm_liquidity_screen_title">Confirm Liquidity</string>
+  <string name="lp_confirm_liquidity_warning_text">Output is estimated. If the price changes more than 0.5% your transaction will revert.</string>
+  <string name="lp_network_fee_alert_text">Network fee is used to ensure SORA system’s growth and stable performance.</string>
+  <string name="lp_network_fee_alert_title">Network fee</string>
+  <string name="lp_pool_details_title">Pool details</string>
+  <string name="lp_pool_remove_warning_text">Removing pool tokens converts your position back into underlying tokens at the current rate, proportional to your share of the pool. Accrued fees are included in the amounts you receive.</string>
+  <string name="lp_pool_remove_warning_title">NOTE</string>
+  <string name="lp_remove_button_title">Remove Liquidity</string>
+  <string name="lp_remove_liquidity_screen_title">Remove Liquidity</string>
+  <string name="lp_reward_token_text">Earn %s</string>
+  <string name="lp_reward_token_title">Rewards Payout In</string>
+  <string name="lp_slippage_title">Slippage</string>
+  <string name="lp_supply_button_title">Supply Liquidity</string>
+  <string name="lp_supply_liquidity_screen_title">Supply Liquidity</string>
+  <string name="lp_token_pooled_text">Your %s Pooled</string>
+  <string name="lp_user_pools_title">User pools</string>
   <string name="make_payout_transaction_sent">Payout transaction sent</string>
   <string name="manage_assets_account_missing_text">Add an account...</string>
   <string name="manage_assets_search_hint">Search by asset</string>

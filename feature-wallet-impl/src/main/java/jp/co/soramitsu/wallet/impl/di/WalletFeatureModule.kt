@@ -36,6 +36,7 @@ import jp.co.soramitsu.coredb.dao.AddressBookDao
 import jp.co.soramitsu.coredb.dao.AssetDao
 import jp.co.soramitsu.coredb.dao.ChainDao
 import jp.co.soramitsu.coredb.dao.MetaAccountDao
+import jp.co.soramitsu.coredb.dao.NomisScoresDao
 import jp.co.soramitsu.coredb.dao.OperationDao
 import jp.co.soramitsu.coredb.dao.PhishingDao
 import jp.co.soramitsu.coredb.dao.TokenPriceDao
@@ -178,8 +179,7 @@ class WalletFeatureModule {
         chainsRepository: ChainsRepository,
         extrinsicService: ExtrinsicService,
         @Named(REMOTE_STORAGE_SOURCE)
-        remoteStorageSource: StorageDataSource,
-        nomisApi: NomisApi
+        remoteStorageSource: StorageDataSource
     ): WalletRepository = WalletRepositoryImpl(
         substrateSource,
         ethereumRemoteSource,
@@ -197,8 +197,7 @@ class WalletFeatureModule {
         accountRepository,
         chainsRepository,
         extrinsicService,
-        remoteStorageSource,
-        nomisApi
+        remoteStorageSource
     )
 
     @Provides
@@ -209,13 +208,17 @@ class WalletFeatureModule {
         chainRegistry: ChainRegistry,
         remoteStorageSource: RemoteStorageSource,
         assetDao: AssetDao,
+        nomisApi: NomisApi,
+        nomisScoresDao: NomisScoresDao
     ): WalletSyncService {
         return WalletSyncService(
             metaAccountDao,
             chainsRepository,
             chainRegistry,
             remoteStorageSource,
-            assetDao
+            assetDao,
+            nomisApi,
+            nomisScoresDao
         )
     }
 

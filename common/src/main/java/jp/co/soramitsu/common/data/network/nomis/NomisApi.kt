@@ -7,5 +7,5 @@ interface NomisApi {
     @GET("wallet/{address}/score/")
     suspend fun getNomisScore(
         @Path("address") address: String
-    ): String
+    ): NomisResponse
 }

@@ -107,5 +107,4 @@ interface WalletRepository {
     suspend fun estimateClaimRewardsFee(chainId: ChainId): BigInteger
     suspend fun claimRewards(chain: IChain, accountId: AccountId): Result<String>
     suspend fun updateAssetsHidden(state: List<AssetUpdateItem>)
-    suspend fun testNomisVitalikScore(): Result<String>
 }

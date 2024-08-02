@@ -7,12 +7,15 @@ import jp.co.soramitsu.account.api.domain.model.Account
 import jp.co.soramitsu.account.api.domain.model.ImportJsonData
 import jp.co.soramitsu.account.api.domain.model.LightMetaAccount
 import jp.co.soramitsu.account.api.domain.model.MetaAccountOrdering
+import jp.co.soramitsu.account.api.domain.model.NomisScoreData
 import jp.co.soramitsu.common.interfaces.FileProvider
+import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.core.model.Language
 import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
@@ -326,5 +329,25 @@ class AccountInteractorImpl(
             .flatMapLatest {
                 accountRepository.observeFavoriteChains(it.id)
             }.flowOn(Dispatchers.IO)
+    }
+
+    override fun observeNomisScores(): Flow<List<NomisScoreData>> {
+        return accountRepository.observeNomisScores()
+        .flowOn(context)
+    }
+
+    override fun observeCurrentAccountScore(): Flow<NomisScoreData> {
+        return selectedMetaAccountFlow().flatMapLatest {
+            accountRepository.observeNomisScore(it.id)
+        }
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    override fun observeAccountScore(metaId: Long): Flow<NomisScoreData> {
+        return flowOf {
+            accountRepository.getMetaAccount(metaId)
+        }.flatMapLatest {
+            accountRepository.observeNomisScore(it.id)
+        }
     }
 }

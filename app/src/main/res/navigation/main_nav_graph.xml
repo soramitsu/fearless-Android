@@ -1362,4 +1362,9 @@
         android:name="jp.co.soramitsu.wallet.impl.presentation.beacon.sign.TransactionRawDataFragment"
         android:label="TransactionRawDataFragment" />
 
+    <fragment
+        android:id="@+id/scoreDetailsFragment"
+        android:name="jp.co.soramitsu.account.impl.presentation.nomis_scoring.ScoreDetailsFragment"
+        android:label="ScoreDetailsFragment" />
+
 </navigation>

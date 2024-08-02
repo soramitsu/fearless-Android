@@ -15,7 +15,7 @@ import jp.co.soramitsu.coredb.model.chain.MetaAccountLocal
             childColumns = ["metaId"],
             onDelete = ForeignKey.CASCADE
         )
-    ],
+    ]
 )
 data class NomisWalletScoreLocal(
     val metaId: Long,
@@ -23,10 +23,43 @@ data class NomisWalletScoreLocal(
     val updated: Long,
     val nativeBalanceUsd: BigDecimal,
     val holdTokensUsd: BigDecimal,
-    val walletAge: Long,
+    val walletAgeInMonths: Long,
     val totalTransactions: Long,
     val rejectedTransactions: Long,
-    val avgTransactionTime: Long,
-    val maxTransactionTime: Long,
-    val minTransactionTime: Long
-)
+    val avgTransactionTimeInHours: Double,
+    val maxTransactionTimeInHours: Double,
+    val minTransactionTimeInHours: Double,
+    val scoredAt: String
+) {
+    companion object {
+        fun loading(metaId: Long) = NomisWalletScoreLocal(
+            metaId = metaId,
+            score = -1,
+            updated = 0,
+            nativeBalanceUsd = BigDecimal.ZERO,
+            holdTokensUsd = BigDecimal.ZERO,
+            walletAgeInMonths = 0,
+            totalTransactions = 0,
+            rejectedTransactions = 0,
+            avgTransactionTimeInHours = 0.0,
+            maxTransactionTimeInHours = 0.0,
+            minTransactionTimeInHours = 0.0,
+            scoredAt = ""
+        )
+
+        fun error(metaId: Long) = NomisWalletScoreLocal(
+            metaId = metaId,
+            score = -2,
+            updated = 0,
+            nativeBalanceUsd = BigDecimal.ZERO,
+            holdTokensUsd = BigDecimal.ZERO,
+            walletAgeInMonths = 0,
+            totalTransactions = 0,
+            rejectedTransactions = 0,
+            avgTransactionTimeInHours = 0.0,
+            maxTransactionTimeInHours = 0.0,
+            minTransactionTimeInHours = 0.0,
+            scoredAt = ""
+        )
+    }
+}

@@ -161,6 +161,7 @@
   <string name="common_assets_filters_fiat">Saldo fiat</string>
   <string name="common_assets_filters_name">Nama</string>
   <string name="common_assets_filters_popularity">Popularitas</string>
+  <string name="common_attention">Perhatian</string>
   <string name="common_available_format">Tersedia: %s</string>
   <string name="common_available_networks">Jaringan yang tersedia</string>
   <string name="common_backup_your_wallet">Dompet cadangan</string>

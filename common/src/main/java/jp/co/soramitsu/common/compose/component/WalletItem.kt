@@ -39,7 +39,8 @@ data class WalletItemViewState(
     val title: String,
     val walletIcon: Any,
     val isSelected: Boolean,
-    val additionalMetadata: String = ""
+    val additionalMetadata: String = "",
+    val score: Int? = null
 )
 
 @Composable
@@ -48,6 +49,7 @@ fun WalletItem(
     onOptionsClick: ((WalletItemViewState) -> Unit)? = null,
     onSelected: (WalletItemViewState) -> Unit,
     onLongClick: (WalletItemViewState) -> Unit = {},
+    onScoreClick: (WalletItemViewState) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val borderColor = if (state.isSelected) {
@@ -120,6 +122,11 @@ fun WalletItem(
                 }
             }
             Spacer(modifier = Modifier.weight(1f))
+            state.score?.let { score ->
+                Box(modifier = Modifier.padding(9.dp).clickableWithNoIndication { onScoreClick(state) }) {
+                    ScoreStar(score = score)
+                }
+            }
             onOptionsClick?.let { optionsAction ->
                 Box(
                     contentAlignment = Alignment.CenterEnd
@@ -166,7 +173,8 @@ private fun WalletItemPreview() {
         title = walletTitle,
         walletIcon = R.drawable.ic_wallet,
         isSelected = isSelected,
-        changeBalanceViewState = changeBalanceViewState
+        changeBalanceViewState = changeBalanceViewState,
+        score = 50
     )
 
     Column {

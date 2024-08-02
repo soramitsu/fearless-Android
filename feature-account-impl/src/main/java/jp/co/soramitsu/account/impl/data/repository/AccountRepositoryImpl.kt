@@ -9,10 +9,11 @@ import jp.co.soramitsu.account.api.domain.model.ImportJsonData
 import jp.co.soramitsu.account.api.domain.model.LightMetaAccount
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.MetaAccountOrdering
+import jp.co.soramitsu.account.api.domain.model.NomisScoreData
 import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.account.api.domain.model.cryptoType
 import jp.co.soramitsu.account.api.domain.model.hasChainAccount
-import jp.co.soramitsu.account.impl.data.mappers.mapMetaAccountLocalToMetaAccount
+import jp.co.soramitsu.account.impl.data.mappers.toDomain
 import jp.co.soramitsu.account.impl.data.repository.datasource.AccountDataSource
 import jp.co.soramitsu.backup.domain.models.BackupAccountType
 import jp.co.soramitsu.common.data.Keypair
@@ -31,16 +32,14 @@ import jp.co.soramitsu.core.crypto.mapEncryptionToCryptoType
 import jp.co.soramitsu.core.model.Language
 import jp.co.soramitsu.core.model.SecuritySource
 import jp.co.soramitsu.core.models.CryptoType
-import jp.co.soramitsu.core.models.accountIdOf
 import jp.co.soramitsu.coredb.dao.AccountDao
-import jp.co.soramitsu.coredb.dao.AssetDao
 import jp.co.soramitsu.coredb.dao.MetaAccountDao
+import jp.co.soramitsu.coredb.dao.NomisScoresDao
 import jp.co.soramitsu.coredb.model.AccountLocal
-import jp.co.soramitsu.coredb.model.AssetLocal
+import jp.co.soramitsu.coredb.model.NomisWalletScoreLocal
 import jp.co.soramitsu.coredb.model.chain.ChainAccountLocal
 import jp.co.soramitsu.coredb.model.chain.FavoriteChainLocal
 import jp.co.soramitsu.coredb.model.chain.MetaAccountLocal
-import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
@@ -62,8 +61,6 @@ import jp.co.soramitsu.shared_utils.runtime.AccountId
 import jp.co.soramitsu.shared_utils.scale.EncodableStruct
 import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.addressByte
 import jp.co.soramitsu.shared_utils.ss58.SS58Encoder.toAccountId
-import jp.co.soramitsu.wallet.api.data.cache.AssetCache
-import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -87,9 +84,8 @@ class AccountRepositoryImpl(
     private val jsonSeedDecoder: JsonSeedDecoder,
     private val jsonSeedEncoder: JsonSeedEncoder,
     private val languagesHolder: LanguagesHolder,
-    private val chainRegistry: ChainRegistry,
     private val chainsRepository: ChainsRepository,
-    private val assetDao: AssetDao,
+    private val nomisScoresDao: NomisScoresDao,
     private val dispatcher: CoroutineDispatcher = Dispatchers.Default
 ) : AccountRepository {
 
@@ -931,4 +927,16 @@ class AccountRepositoryImpl(
     }
 
     override fun observeFavoriteChains(metaId: Long) = accountDataSource.observeFavoriteChains(metaId).map { list -> list.associate { it.chainId to it.isFavorite } }
+
+    override fun observeNomisScores(): Flow<List<NomisScoreData>> {
+        return nomisScoresDao.observeScores().map { scores ->
+            scores.map(NomisWalletScoreLocal::toDomain)
+        }
+    }
+
+    override fun observeNomisScore(metaId: Long): Flow<NomisScoreData> {
+        return nomisScoresDao.observeScore(metaId).map { score ->
+            score.toDomain()
+        }
+    }
 }
