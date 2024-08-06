@@ -34,6 +34,11 @@ private fun mapSectionTypeRemoteToSectionType(section: String) = when (section) 
     "oklink" -> Chain.ExternalApi.Section.Type.OKLINK
     "zeta" -> Chain.ExternalApi.Section.Type.ZETA
     "reef" -> Chain.ExternalApi.Section.Type.REEF
+    "klaytn" -> Chain.ExternalApi.Section.Type.KLAYTN
+    "5ire" -> Chain.ExternalApi.Section.Type.FIVEIRE
+    "vicscan" -> Chain.ExternalApi.Section.Type.VICSCAN
+    "zchain" -> Chain.ExternalApi.Section.Type.ZCHAIN
+    "atleta" -> Chain.ExternalApi.Section.Type.ATLETA
     else -> Chain.ExternalApi.Section.Type.UNKNOWN
 }
 
@@ -45,6 +50,7 @@ private fun mapExplorerTypeRemoteToExplorerType(explorer: String) = when (explor
     "okx explorer" -> Chain.Explorer.Type.OKLINK
     "zeta" -> Chain.Explorer.Type.ZETA
     "reef" -> Chain.Explorer.Type.REEF
+    "klaytn" -> Chain.Explorer.Type.KLAYTN
     else -> Chain.Explorer.Type.UNKNOWN
 }
 
