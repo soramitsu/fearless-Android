@@ -100,11 +100,11 @@ class HistoryRepository(
                 getOperations(pageSize, cursor = nextCursor, filters, accountId, chain, chainAsset)
             }.getOrDefault(CursorPage(null, emptyList()))
             nextCursor = page.nextCursor
-            hasNextPage = nextCursor != null
+            hasNextPage = nextCursor != null && page.items.isNotEmpty()
             elements.addAll(page.map {
                 mapOperationToOperationLocalDb(
                     it,
-                    OperationLocal.Source.SUBQUERY
+                    OperationLocal.Source.BLOCKCHAIN
                 )
             })
         }

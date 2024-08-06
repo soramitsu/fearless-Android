@@ -22,6 +22,11 @@ class HistorySourceProvider(
             Chain.ExternalApi.Section.Type.OKLINK -> OkLinkHistorySource(walletOperationsApi, historyUrl)
             Chain.ExternalApi.Section.Type.ZETA -> ZetaHistorySource(walletOperationsApi, historyUrl)
             Chain.ExternalApi.Section.Type.REEF -> ReefHistorySource(walletOperationsApi, historyUrl)
+            Chain.ExternalApi.Section.Type.KLAYTN -> KlaytnHistorySource(walletOperationsApi, historyUrl)
+            Chain.ExternalApi.Section.Type.FIVEIRE -> FiveireHistorySource(walletOperationsApi, historyUrl)
+            Chain.ExternalApi.Section.Type.VICSCAN -> VicscanHistorySource(walletOperationsApi, historyUrl)
+            Chain.ExternalApi.Section.Type.ZCHAIN -> ZchainHistorySource(walletOperationsApi, historyUrl)
+            Chain.ExternalApi.Section.Type.ATLETA -> AtletaHistorySource(walletOperationsApi, historyUrl)
             else -> null
         }
     }
