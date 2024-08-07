@@ -636,7 +636,7 @@
     <item quantity="other">+ %d others</item>
   </plurals>
   <string name="pl_your_pooled_format">Your %s pooled</string>
-  <string name="pl_your_pools">Your pools</string>
+  <string name="pl_user_pools">User pools</string>
   <string name="pl_liquidity_add_complete">Your supply to Liquidity pools has been successfully completed</string>
   <string name="pl_available_pools">Available pools</string>
   <string name="polkaswap_btn_reset_to_default">Reset to default</string>

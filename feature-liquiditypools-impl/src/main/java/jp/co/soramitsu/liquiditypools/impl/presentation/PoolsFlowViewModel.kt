@@ -8,9 +8,12 @@ import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.androidfoundation.format.StringPair
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.models.TextModel
+import jp.co.soramitsu.common.compose.theme.greenText
+import jp.co.soramitsu.common.compose.theme.white50
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.utils.formatCrypto
 import jp.co.soramitsu.common.utils.formatFiat
+import jp.co.soramitsu.feature_liquiditypools_impl.R
 import jp.co.soramitsu.liquiditypools.domain.interfaces.PoolsInteractor
 import jp.co.soramitsu.liquiditypools.impl.presentation.allpools.AllPoolsPresenter
 import jp.co.soramitsu.liquiditypools.impl.presentation.allpools.AllPoolsScreenInterface
@@ -39,6 +42,7 @@ import jp.co.soramitsu.liquiditypools.navigation.LiquidityPoolsNavGraphRoute
 import jp.co.soramitsu.liquiditypools.navigation.LiquidityPoolsRouter
 import jp.co.soramitsu.liquiditypools.navigation.NavAction
 import jp.co.soramitsu.polkaswap.api.domain.models.BasicPoolData
+import jp.co.soramitsu.polkaswap.api.domain.models.CommonPoolData
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -49,7 +53,6 @@ import kotlinx.coroutines.launch
 
 @HiltViewModel
 class PoolsFlowViewModel @Inject constructor(
-    savedStateHandle: SavedStateHandle,
     allPoolsPresenter: AllPoolsPresenter,
     poolListPresenter: PoolListPresenter,
     poolDetailsPresenter: PoolDetailsPresenter,
@@ -116,7 +119,6 @@ class PoolsFlowViewModel @Inject constructor(
         internalPoolsRouter.openAllPoolsScreen()
 
         launch {
-//            poolsInteractor.updateApy()
             poolsInteractor.updatePools(poolsInteractor.poolsChainId)
         }
     }
@@ -136,14 +138,14 @@ class PoolsFlowViewModel @Inject constructor(
 
             LiquidityPoolsNavGraphRoute.ListPoolsScreen.routeName -> {
                 val destinationArgs = internalPoolsRouter.destination(LiquidityPoolsNavGraphRoute.ListPoolsScreen::class.java)
-                val title = if (destinationArgs?.isUserPools == true) {
-                    "Your pools"
+                val titleId = if (destinationArgs?.isUserPools == true) {
+                    R.string.pl_user_pools
                 } else {
-                    "Available pools"
+                    R.string.pl_available_pools
                 }
 
                 LoadingState.Loaded(
-                    TextModel.SimpleString(title)
+                    TextModel.ResId(titleId)
                 )
             }
 
@@ -191,20 +193,27 @@ class PoolsFlowViewModel @Inject constructor(
     }
 }
 
-fun BasicPoolData.toListItemState(): BasicPoolListItemState? {
-    val tvl = this.baseToken.token.fiatRate?.times(BigDecimal(2))
-        ?.multiply(this.baseReserves)
+fun CommonPoolData.toListItemState(): BasicPoolListItemState? {
+    val tvl = basic.baseToken.token.fiatRate?.times(BigDecimal(2))
+        ?.multiply(basic.baseReserves)
+        ?.formatFiat(basic.baseToken.token.fiatSymbol).orEmpty()
 
-    val baseTokenId = this.baseToken.token.configuration.currencyId ?: return null
-    val targetTokenId = this.targetToken?.token?.configuration?.currencyId ?: return null
+    val baseTokenId = basic.baseToken.token.configuration.currencyId ?: return null
+    val targetTokenId = basic.targetToken?.token?.configuration?.currencyId ?: return null
+
+    val baseSymbol = basic.baseToken.token.configuration.symbol
+    val targetSymbol = basic.targetToken?.token?.configuration?.symbol
+    val userPooledInfo = user?.let { "${it.basePooled.formatCrypto(baseSymbol)} - ${it.targetPooled.formatCrypto(targetSymbol)}" }
+    val text2Color = if (user == null) white50 else user.let { greenText }
 
     return BasicPoolListItemState(
         ids = StringPair(baseTokenId, targetTokenId),
-        token1Icon = this.baseToken.token.configuration.iconUrl,
-        token2Icon = this.targetToken?.token?.configuration?.iconUrl.orEmpty(),
-        text1 = "${this.baseToken.token.configuration.symbol}-${this.targetToken?.token?.configuration?.symbol}".uppercase(),
-        text2 = tvl?.formatFiat(this.baseToken.token.fiatSymbol).orEmpty(),
-        text3 = this.sbapy?.let {
+        token1Icon = basic.baseToken.token.configuration.iconUrl,
+        token2Icon = basic.targetToken?.token?.configuration?.iconUrl.orEmpty(),
+        text1 = "$baseSymbol-$targetSymbol".uppercase(),
+        text2 = userPooledInfo ?: tvl,
+        text2Color = text2Color,
+        text3 = basic.sbapy?.let {
             "%s%%".format(it.toBigDecimal().formatCrypto())
         }.orEmpty(),
         text4 = "Earn PSWAP"
