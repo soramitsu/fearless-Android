@@ -13,6 +13,7 @@ import jp.co.soramitsu.liquiditypools.navigation.InternalPoolsRouter
 import jp.co.soramitsu.liquiditypools.navigation.LiquidityPoolsNavGraphRoute
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
+import kotlin.math.max
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -101,7 +102,7 @@ class AllPoolsPresenter @Inject constructor(
             val userPools = poolLists[true].orEmpty()
             val otherPools = poolLists[false].orEmpty()
 
-            val shownUserPools = userPools.take(10)
+            val shownUserPools = userPools.take(5)
             val shownOtherPools = otherPools.take(10)
 
             val hasExtraUserPools = shownUserPools.size < userPools.size
