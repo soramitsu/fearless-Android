@@ -139,7 +139,7 @@ class PoolsFlowViewModel @Inject constructor(
                 val title = if (destinationArgs?.isUserPools == true) {
                     "Your pools"
                 } else {
-                    "All pools"
+                    "Available pools"
                 }
 
                 LoadingState.Loaded(
