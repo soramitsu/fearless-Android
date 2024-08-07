@@ -105,7 +105,7 @@ fun AllPoolsScreen(
                             modifier = Modifier.wrapContentHeight()
                         ) {
                             PoolGroupHeader(
-                                title = stringResource(id = R.string.pl_all_pools),
+                                title = stringResource(id = R.string.pl_available_pools),
                                 onMoreClick = { callback.onMoreClick(false) }.takeIf { state.hasExtraAllPools }
                             )
                             state.allPools.forEach { pool ->
@@ -134,7 +134,7 @@ fun ShimmerPoolList(size: Int = 10) {
             modifier = Modifier.wrapContentHeight()
         ) {
             PoolGroupHeader(
-                title = stringResource(id = R.string.pl_all_pools),
+                title = stringResource(id = R.string.pl_available_pools),
                 onMoreClick = null
             )
             repeat(size) {
