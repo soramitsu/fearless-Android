@@ -266,14 +266,9 @@ class PoolsFlowFragment : BaseComposeBottomSheetDialogFragment<PoolsFlowViewMode
                 .wrapContentHeight()
                 .padding(bottom = 12.dp)
         ) {
-            NavigationIconButton(
-                modifier = Modifier.padding(start = 16.dp),
-                onNavigationClick = viewModel::onNavigationClick
-            )
-
             Image(
                 modifier = Modifier
-                    .padding(start = 8.dp)
+                    .padding(start = 16.dp)
                     .align(Alignment.Top)
                     .size(
                         width = 100.dp,
