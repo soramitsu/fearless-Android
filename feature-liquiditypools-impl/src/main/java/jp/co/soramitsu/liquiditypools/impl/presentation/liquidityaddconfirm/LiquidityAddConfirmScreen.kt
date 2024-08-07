@@ -51,9 +51,7 @@ data class LiquidityAddConfirmState(
     val assetBase: Asset? = null,
     val assetTarget: Asset? = null,
     val baseAmount: String = "",
-    val baseFiat: String = "",
     val targetAmount: String = "",
-    val targetFiat: String = "",
     val slippage: String = "0.5%",
     val apy: String? = null,
     val feeInfo: FeeInfoViewState = FeeInfoViewState.default,
@@ -114,7 +112,7 @@ fun LiquidityAddConfirmScreen(
                 horizontalArrangement = Arrangement.Center
             ) {
                 Text(
-                    text = state.assetBase?.symbol?.uppercase().orEmpty(),
+                    text = state.baseAmount,
                     style = MaterialTheme.customTypography.header3,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -132,7 +130,7 @@ fun LiquidityAddConfirmScreen(
                 MarginHorizontal(margin = 8.dp)
 
                 Text(
-                    text = state.assetTarget?.symbol?.uppercase().orEmpty(),
+                    text = state.targetAmount,
                     style = MaterialTheme.customTypography.header3,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -182,20 +180,6 @@ fun LiquidityAddConfirmScreen(
                         ),
                         onClick = { callbacks.onAddItemClick(ITEM_FEE_ID)}
                     )
-                    InfoTableItem(
-                        TitleValueViewState(
-                            title = stringResource(id = R.string.pl_your_pooled_format, state.assetBase?.symbol?.uppercase().orEmpty()),
-                            value = state.baseAmount,
-                            additionalValue = state.baseFiat
-                        )
-                    )
-                    InfoTableItem(
-                        TitleValueViewState(
-                            title = stringResource(id = R.string.pl_your_pooled_format, state.assetTarget?.symbol?.uppercase().orEmpty()),
-                            value = state.targetAmount,
-                            additionalValue = state.targetFiat
-                        )
-                    )
                     MarginVertical(margin = 8.dp)
                 }
             }
@@ -223,6 +207,8 @@ fun LiquidityAddConfirmScreen(
 private fun PreviewLiquidityAddConfirmScreen() {
     LiquidityAddConfirmScreen(
         state = LiquidityAddConfirmState(
+            baseAmount = "100.003 XOR",
+            targetAmount = "12340443,24312 PSWAP",
             slippage = "0.5%",
             apy = "23.3%",
             feeInfo = FeeInfoViewState.default,
