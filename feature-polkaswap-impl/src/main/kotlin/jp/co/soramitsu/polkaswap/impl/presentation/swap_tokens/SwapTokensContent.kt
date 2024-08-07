@@ -75,6 +75,7 @@ data class SwapTokensContentViewState(
     val swapDetailsViewState: SwapDetailsViewState?,
     val isLoading: Boolean,
     val networkFeeViewState: LoadingState<out SwapDetailsViewState.NetworkFee?>,
+    val showLiquidityBanner: Boolean,
     val hasReadDisclaimer: Boolean,
     val isSoftKeyboardOpen: Boolean
 ) {
@@ -88,6 +89,7 @@ data class SwapTokensContentViewState(
                 swapDetailsViewState = null,
                 isLoading = false,
                 networkFeeViewState = LoadingState.Loaded(null),
+                showLiquidityBanner = true,
                 hasReadDisclaimer = false,
                 isSoftKeyboardOpen = false
             )
@@ -126,6 +128,8 @@ interface SwapTokensCallbacks {
     fun onDisclaimerClick()
 
     fun onPoolsClick()
+
+    fun onLiquidityBannerClose()
 }
 
 @Composable
@@ -263,7 +267,11 @@ fun SwapTokensContent(
                 }
 
                 if (state.fromAmountInputViewState.tokenName == null && state.toAmountInputViewState.tokenName == null) {
-                    Banners(callbacks)
+                    Banners(
+                        showLiquidity = state.showLiquidityBanner,
+                        showDemeter = false,
+                        callback = callbacks
+                    )
                 }
 
                 AccentButton(
@@ -405,18 +413,21 @@ private fun MarketLabel(
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun Banners(
+    showLiquidity: Boolean,
+    showDemeter: Boolean,
     callback: SwapTokensCallbacks,
     autoPlay: Boolean = true
 ) {
-    val bannerLiquidityPools: @Composable (() -> Unit) =
+    val bannerLiquidityPools: @Composable (() -> Unit)? = if (showLiquidity) {
         {
             BannerLiquidityPools(
                 onShowMoreClick = callback::onPoolsClick,
-                onCloseClick = {}
+                onCloseClick = callback::onLiquidityBannerClose
             )
         }
+    } else null
 
-    val bannerDemeter: @Composable (() -> Unit)? = if (false) {
+    val bannerDemeter: @Composable (() -> Unit)? = if (showDemeter) {
         {
             BannerDemeter(
                 onShowMoreClick = {},
@@ -485,6 +496,7 @@ fun SwapTokensContentPreview() {
             swapDetailsViewState = null,
             isLoading = false,
             networkFeeViewState = LoadingState.Loading(),
+            showLiquidityBanner = true,
             hasReadDisclaimer = false,
             isSoftKeyboardOpen = false
         )
@@ -504,6 +516,7 @@ fun SwapTokensContentPreview() {
             override fun onQuickAmountInput(value: Double) {}
             override fun onDisclaimerClick() {}
             override fun onPoolsClick() {}
+            override fun onLiquidityBannerClose() {}
         }
 
         SwapTokensContent(

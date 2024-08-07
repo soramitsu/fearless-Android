@@ -134,6 +134,7 @@ class SwapTokensViewModel @Inject constructor(
     )
 
     private val isLoading = MutableStateFlow(false)
+    private val isShowBannerLiquidity = MutableStateFlow(true)
     private var initialFee = BigDecimal.ZERO
     private val availableDexPathsFlow: MutableStateFlow<List<Int>?> = MutableStateFlow(null)
 
@@ -280,9 +281,10 @@ class SwapTokensViewModel @Inject constructor(
         swapDetailsViewState,
         networkFeeViewStateFlow,
         isLoading,
+        isShowBannerLiquidity,
         polkaswapInteractor.observeHasReadDisclaimer(),
         isSoftKeyboardOpenFlow
-    ) { fromAmountInput, toAmountInput, selectedMarket, swapDetails, networkFeeState, isLoading, hasReadDisclaimer, isSoftKeyboardOpen ->
+    ) { fromAmountInput, toAmountInput, selectedMarket, swapDetails, networkFeeState, isLoading, isShowBannerLiquidity, hasReadDisclaimer, isSoftKeyboardOpen ->
         SwapTokensContentViewState(
             fromAmountInputViewState = fromAmountInput,
             toAmountInputViewState = toAmountInput,
@@ -290,6 +292,7 @@ class SwapTokensViewModel @Inject constructor(
             swapDetailsViewState = swapDetails,
             networkFeeViewState = networkFeeState,
             isLoading = isLoading,
+            showLiquidityBanner = isShowBannerLiquidity,
             hasReadDisclaimer = hasReadDisclaimer,
             isSoftKeyboardOpen = isSoftKeyboardOpen
         )
@@ -729,5 +732,9 @@ class SwapTokensViewModel @Inject constructor(
 
     override fun onPoolsClick() {
         polkaswapRouter.openPools()
+    }
+
+    override fun onLiquidityBannerClose() {
+        isShowBannerLiquidity.value = false
     }
 }
