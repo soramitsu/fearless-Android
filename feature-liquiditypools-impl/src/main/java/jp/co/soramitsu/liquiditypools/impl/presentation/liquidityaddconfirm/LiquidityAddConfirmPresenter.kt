@@ -107,9 +107,7 @@ class LiquidityAddConfirmPresenter @Inject constructor(
                 assetBase = assetBase.configuration,
                 assetTarget = assetTarget.configuration,
                 baseAmount = screenArgs.amountBase.formatCrypto(assetBase.configuration.symbol),
-                baseFiat = screenArgs.amountBase.applyFiatRate(assetBase.fiatRate)?.formatFiat(assetBase.fiatSymbol).orEmpty(),
                 targetAmount = screenArgs.amountTarget.formatCrypto(assetTarget.configuration.symbol),
-                targetFiat = screenArgs.amountTarget.applyFiatRate(assetTarget.fiatRate)?.formatFiat(assetTarget.fiatSymbol).orEmpty(),
                 apy = screenArgs.apy
             )
         }.launchIn(coroutineScope)
