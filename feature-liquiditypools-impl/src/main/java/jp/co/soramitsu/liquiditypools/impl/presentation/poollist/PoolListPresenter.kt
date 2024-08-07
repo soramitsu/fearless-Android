@@ -59,7 +59,7 @@ class PoolListPresenter @Inject constructor(
                 compareNullDesc(o1.basic.tvl, o2.basic.tvl)
             }
         }.map {
-            it.mapNotNull{ it.basic.toListItemState() }
+            it.mapNotNull{ it.toListItemState() }
         }
     }
 

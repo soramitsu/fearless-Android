@@ -20,6 +20,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -49,6 +50,7 @@ data class BasicPoolListItemState(
     val token2Icon: String,
     val text1: String,
     val text2: String,
+    val text2Color: Color = white50,
     val text3: String,
     val text4: String? = null,
 )
@@ -144,8 +146,8 @@ fun BasicPoolListItem(
                 )
 
                 Text(
-                    modifier = Modifier.wrapContentHeight(),
-                    color = white50,
+                    modifier = Modifier.wrapContentHeight().padding(start = 6.dp),
+                    color = state.text2Color,
                     style = MaterialTheme.customTypography.body2,
                     text = state.text2,
                     maxLines = 1,

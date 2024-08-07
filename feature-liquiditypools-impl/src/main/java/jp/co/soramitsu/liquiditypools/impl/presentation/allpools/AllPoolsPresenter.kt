@@ -81,7 +81,7 @@ class AllPoolsPresenter @Inject constructor(
             println("!!! allPools grouped users = ${it[true]?.size}; other = ${it[false]?.size}")
 //            it.map(BasicPoolData::toListItemState)
             it.mapValues { it ->
-                it.value.mapNotNull { it.basic.toListItemState() }
+                it.value.mapNotNull { it.toListItemState() }
             }
         }
 

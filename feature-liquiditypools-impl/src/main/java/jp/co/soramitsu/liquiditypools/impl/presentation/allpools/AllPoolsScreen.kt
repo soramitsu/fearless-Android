@@ -68,7 +68,12 @@ fun AllPoolsScreen(
             MarginVertical(margin = 8.dp)
 
             if (state.isLoading || (state.userPools.isEmpty() && state.allPools.isEmpty())) {
-                ShimmerPoolList()
+                BackgroundCorneredWithBorder(
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp)
+                ) {
+                    ShimmerPoolList()
+                }
             } else {
                 if (state.userPools.isNotEmpty()) {
                     BackgroundCorneredWithBorder(
@@ -81,7 +86,7 @@ fun AllPoolsScreen(
                                 .wrapContentHeight()
                         ) {
                             PoolGroupHeader(
-                                title = stringResource(id = R.string.pl_your_pools),
+                                title = stringResource(id = R.string.pl_user_pools),
                                 onMoreClick = { callback.onMoreClick(true) }.takeIf { state.hasExtraUserPools }
                             )
                             state.userPools.forEach { pool ->
@@ -125,21 +130,16 @@ fun AllPoolsScreen(
 
 @Composable
 fun ShimmerPoolList(size: Int = 10) {
-    BackgroundCorneredWithBorder(
-        modifier = Modifier
-            .padding(horizontal = 16.dp)
+    Column(
+        verticalArrangement = Arrangement.spacedBy(0.dp),
+        modifier = Modifier.wrapContentHeight()
     ) {
-        Column(
-            verticalArrangement = Arrangement.spacedBy(0.dp),
-            modifier = Modifier.wrapContentHeight()
-        ) {
-            PoolGroupHeader(
-                title = stringResource(id = R.string.pl_available_pools),
-                onMoreClick = null
-            )
-            repeat(size) {
-                BasicPoolShimmerItem(modifier = Modifier.padding(vertical = Dimens.x1))
-            }
+        PoolGroupHeader(
+            title = stringResource(id = R.string.pl_available_pools),
+            onMoreClick = null
+        )
+        repeat(size) {
+            BasicPoolShimmerItem(modifier = Modifier.padding(vertical = Dimens.x1))
         }
     }
 }
