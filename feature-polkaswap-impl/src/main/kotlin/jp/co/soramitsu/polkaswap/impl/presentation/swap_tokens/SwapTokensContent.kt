@@ -266,13 +266,11 @@ fun SwapTokensContent(
                     MarginVertical(margin = 16.dp)
                 }
 
-                if (state.fromAmountInputViewState.tokenName == null && state.toAmountInputViewState.tokenName == null) {
-                    Banners(
-                        showLiquidity = state.showLiquidityBanner,
-                        showDemeter = false,
-                        callback = callbacks
-                    )
-                }
+                Banners(
+                    showLiquidity = state.showLiquidityBanner,
+                    showDemeter = false,
+                    callback = callbacks
+                )
 
                 AccentButton(
                     modifier = Modifier
