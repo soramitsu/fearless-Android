@@ -6,24 +6,22 @@ import com.mastercard.mpqr.pushpayment.model.PushPaymentData
 import com.mastercard.mpqr.pushpayment.parser.Parser
 import java.math.BigDecimal
 import java.math.BigInteger
-import java.math.RoundingMode
 import java.net.URLDecoder
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.LightMetaAccount
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.accountId
 import jp.co.soramitsu.account.api.domain.model.address
-import jp.co.soramitsu.common.compose.component.QuickAmountInput
 import jp.co.soramitsu.common.data.model.CursorPage
 import jp.co.soramitsu.common.data.network.runtime.binding.EqAccountInfo
 import jp.co.soramitsu.common.data.network.runtime.binding.EqOraclePricePoint
 import jp.co.soramitsu.common.data.storage.Preferences
+import jp.co.soramitsu.common.domain.NetworkStateService
 import jp.co.soramitsu.common.domain.SelectedFiat
+import jp.co.soramitsu.common.domain.model.NetworkIssueType
 import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
-import jp.co.soramitsu.common.domain.NetworkStateService
-import jp.co.soramitsu.common.domain.model.NetworkIssueType
 import jp.co.soramitsu.common.model.AssetBooleanState
 import jp.co.soramitsu.common.utils.Modules
 import jp.co.soramitsu.common.utils.mapList
@@ -32,7 +30,6 @@ import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.core.models.Asset.StakingType
 import jp.co.soramitsu.core.models.ChainId
 import jp.co.soramitsu.core.utils.isValidAddress
-import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.coredb.model.AssetUpdateItem
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
@@ -63,24 +60,18 @@ import jp.co.soramitsu.wallet.impl.domain.model.QrContentCBDC
 import jp.co.soramitsu.wallet.impl.domain.model.QrContentSora
 import jp.co.soramitsu.wallet.impl.domain.model.Transfer
 import jp.co.soramitsu.wallet.impl.domain.model.WalletAccount
-import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.toPhishingModel
-import jp.co.soramitsu.wallet.impl.presentation.send.setup.SendSetupViewModel
 import jp.co.soramitsu.xcm.domain.XcmEntitiesFetcher
 import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.withIndex
 import kotlinx.coroutines.withContext
@@ -484,15 +475,22 @@ class WalletInteractorImpl(
         chainId: ChainId,
         limit: Int?
     ): Flow<Set<String>> =
-        historyRepository.getOperationAddressWithChainIdFlow(chainId, limit)
+        historyRepository.getOperationAddressWithChainIdFlow(chainId, limit).flowOn(coroutineContext)
 
-    override suspend fun saveAddress(name: String, address: String, selectedChainId: String) {
+    override suspend fun getOperationAddressWithChainId(
+        chainId: ChainId,
+        limit: Int?
+    ): Set<String> =
+        withContext(coroutineContext){ historyRepository.getOperationAddressWithChainId(chainId, limit) }
+
+    override suspend fun saveAddress(name: String, address: String, selectedChainId: String) = withContext(coroutineContext) {
         addressBookRepository.saveAddress(name, address, selectedChainId)
     }
 
     override fun observeAddressBook(chainId: ChainId) =
         addressBookRepository.observeAddressBook(chainId)
             .mapList { it.copy(address = it.address.trim()) }
+            .flowOn(coroutineContext)
 
     override fun saveChainId(walletId: Long, chainId: ChainId?) {
         preferences.putString(PREFS_WALLET_SELECTED_CHAIN_ID + walletId, chainId)

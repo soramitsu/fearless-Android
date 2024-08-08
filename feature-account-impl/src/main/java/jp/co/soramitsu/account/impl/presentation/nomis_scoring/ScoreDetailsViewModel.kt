@@ -8,6 +8,8 @@ import java.util.Date
 import java.util.Locale
 import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
+import jp.co.soramitsu.account.api.domain.interfaces.NomisScoreInteractor
+import jp.co.soramitsu.account.api.domain.model.NomisScoreData
 import jp.co.soramitsu.account.impl.presentation.AccountRouter
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ClipboardManager
@@ -26,6 +28,7 @@ import kotlinx.coroutines.launch
 class ScoreDetailsViewModel @Inject constructor(
     private val router: AccountRouter,
     private val accountInteractor: AccountInteractor,
+    private val nomisScoreInteractor: NomisScoreInteractor,
     private val clipboardManager: ClipboardManager,
     private val resourceManager: ResourceManager,
     private val savedStateHandle: SavedStateHandle
@@ -42,11 +45,12 @@ class ScoreDetailsViewModel @Inject constructor(
 
     init {
         val metaAccountId = requireNotNull(savedStateHandle.get<Long>(ScoreDetailsFragment.META_ACCOUNT_ID_KEY))
-        accountInteractor.observeAccountScore(metaAccountId)
+        nomisScoreInteractor.observeAccountScore(metaAccountId)
             .onEach { nomisData ->
+                nomisData ?: return@onEach
                 val newInfoState = when (nomisData.score) {
-                    -1 -> ScoreDetailsViewState.Loading
-                    -2 -> ScoreDetailsViewState.Error
+                    NomisScoreData.LOADING_CODE -> ScoreDetailsViewState.Loading
+                    NomisScoreData.ERROR_CODE -> ScoreDetailsViewState.Error
                     else -> {
                         val scoredAt = nomisData.scoredAt?.let {
                             val formatter = SimpleDateFormat("MMM d, yyyy", Locale.getDefault())

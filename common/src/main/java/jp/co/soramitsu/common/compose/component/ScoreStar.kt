@@ -16,7 +16,7 @@ import jp.co.soramitsu.common.compose.theme.warningYellow
 import jp.co.soramitsu.common.compose.theme.white30
 
 @Composable
-fun ScoreStar(score: Int) {
+fun ScoreStar(score: Int, modifier: Modifier = Modifier) {
     val (starRes, color) = when (score) {
         in 0..33 -> R.drawable.ic_score_star_empty to warningOrange
         in 33..66 -> R.drawable.ic_score_star_half to warningYellow
@@ -26,21 +26,25 @@ fun ScoreStar(score: Int) {
 
     when {
         score >= 0 -> {
-            Row {
+            Row(modifier = modifier) {
                 Image(res = starRes, tint = color, modifier = Modifier.size(12.dp))
                 MarginHorizontal(margin = 3.dp)
                 B2(text = score.toString(), color = color)
             }
         }
+
         score == -1 -> {
             // loading
-            Image(res = starRes, tint = color, modifier = Modifier
-                .size(12.dp)
-                .shimmer())
+            Image(
+                res = starRes, tint = color, modifier = modifier
+                    .size(12.dp)
+                    .shimmer()
+            )
         }
+
         score == -2 -> {
             //error
-            Row {
+            Row(modifier = modifier) {
                 Image(res = starRes, tint = color, modifier = Modifier.size(12.dp))
                 MarginHorizontal(margin = 3.dp)
                 B2(text = "N/A", color = color)
@@ -51,7 +55,7 @@ fun ScoreStar(score: Int) {
 
 @Preview
 @Composable
-private fun ScoreStarPreview(){
+private fun ScoreStarPreview() {
     FearlessAppTheme {
         Column {
             ScoreStar(score = -1)

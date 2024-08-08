@@ -726,6 +726,7 @@
   <string name="pool_your_total_stake">Your total stake</string>
   <string name="pools_limit_has_reached_error_message">The limit of pools in this network has been reached</string>
   <string name="pools_limit_has_reached_error_title">You cannot create more pools</string>
+  <string name="profile_account_score_title">Nomis multichain score</string>
   <string name="profile_accounts_title">Accounts</string>
   <string name="profile_experimets_subtitle">Dapps and more...</string>
   <string name="profile_experimets_title">Experimental features</string>
@@ -771,7 +772,11 @@
   <string name="scam_additional_stub">Additional:</string>
   <string name="scam_alert_message_format">We strongly recommend that you don\'t send %s to this account.</string>
   <string name="scam_alert_title">This address has been flagged due to evidence of a scam.</string>
-  <string name="scam_warning_message">This address has been flagged due to evidence of a scam. We strongly recommend that you don\'t send %s to this account.</string>
+  <string name="scam_description_lowscore_text">The address you are about to transfer to has low onchain activity, which may indicate a potential scammer or sybil attacker</string>
+  <string name="scam_info_nomis_name">Nomis multi-chain score</string>
+  <string name="scam_info_nomis_reason_text">Low network activity</string>
+  <string name="scam_info_nomis_subtype_text">Proceed with caution</string>
+  <string name="scam_warning_message">This address has been flagged due to evidence of a scam. We strongly recommend that you don\'t send {asset} to this account.</string>
   <string name="scan_qr_subtitle">Scan code from receiver</string>
   <string name="scan_qr_title">QR Code</string>
   <string name="scan_qr_upload_button_title">Upload from gallery</string>
@@ -780,6 +785,7 @@
   <string name="search_network_hint">Search by network</string>
   <string name="search_recipient_hint">Account address or account name</string>
   <string name="search_recipient_no_results">No search results</string>
+  <string name="search_textfield_placeholder"> Public address</string>
   <string name="select_another_network_description">The address doesn\'t match the destination network. You should select another network</string>
   <string name="select_collator_having_relevant_minimum_bond">Having relevant minimum bond</string>
   <string name="select_collators_warning">DISCLAIMER: Algorithmic сollator suggestions do not constitute financial consultation or advice. Staking is a high-risk activity, and algorithmic сollator suggestions do not necessarily mitigate this risk. A сollator suggested by the algorithm could still leave the pool of candidates. A сollator suggested by the algorithm could also change their parameters (e.g.,commission rates, etc.) at any time after having been suggested and/or selected. You could lose rewards for these or other reasons. Only stake tokens and use сollator suggestions at your own discretion, after conducting due diligence and carefully considering the risks involved.</string>

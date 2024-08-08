@@ -24,16 +24,17 @@ import jp.co.soramitsu.shared_utils.wsrpc.recovery.Reconnector
 import jp.co.soramitsu.shared_utils.wsrpc.request.CoroutinesRequestExecutor
 import jp.co.soramitsu.shared_utils.wsrpc.request.RequestExecutor
 import okhttp3.Cache
+import okhttp3.CacheControl
 import okhttp3.OkHttpClient
-import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.converter.scalars.ScalarsConverterFactory
 
 private const val HTTP_CACHE = "http_cache"
+private const val NOMIS_CACHE = "nomis_cache"
 private const val CACHE_SIZE = 50L * 1024L * 1024L // 50 MiB
 private const val TIMEOUT_SECONDS = 60L
-private const val NOMIS_TIMEOUT_MINUTES = 5L
+private const val NOMIS_TIMEOUT_MINUTES = 2L
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -65,7 +66,7 @@ class NetworkModule {
             .retryOnConnectionFailure(true)
 
         if (BuildConfig.DEBUG) {
-            builder.addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
+//            builder.addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
         }
 
         return builder.build()
@@ -73,18 +74,28 @@ class NetworkModule {
 
     @Provides
     @Singleton
-    fun provideNomisHttpClient(): NomisApi {
+    fun provideNomisHttpClient(context: Context): NomisApi {
         val builder = OkHttpClient.Builder()
-//            .connectTimeout(NOMIS_TIMEOUT_MINUTES, TimeUnit.MINUTES)
-//            .writeTimeout(NOMIS_TIMEOUT_MINUTES, TimeUnit.MINUTES)
-//            .readTimeout(NOMIS_TIMEOUT_MINUTES, TimeUnit.MINUTES)
+            .connectTimeout(NOMIS_TIMEOUT_MINUTES, TimeUnit.MINUTES)
+            .writeTimeout(NOMIS_TIMEOUT_MINUTES, TimeUnit.MINUTES)
+            .readTimeout(NOMIS_TIMEOUT_MINUTES, TimeUnit.MINUTES)
             .callTimeout(NOMIS_TIMEOUT_MINUTES, TimeUnit.MINUTES)
+            .cache(Cache(File(context.cacheDir, NOMIS_CACHE), CACHE_SIZE))
             .addInterceptor {
                 val request = it.request().newBuilder().apply {
                     addHeader("X-API-Key", "j9Us1Kxoo9fs3nD")
                     addHeader("X-ClientId", "FCEB90FC-E3F9-4CF5-980E-A8111A3FFF31")
                 }.build()
                 it.proceed(request)
+            }
+            .addInterceptor { chain ->
+                val request = chain.request().newBuilder()
+                    .cacheControl(
+                        CacheControl.Builder()
+                        .maxAge(24, TimeUnit.HOURS)
+                        .build())
+                    .build()
+                chain.proceed(request)
             }
             .retryOnConnectionFailure(true)
 

@@ -21,6 +21,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.valentinilk.shimmer.shimmer
+import jp.co.soramitsu.account.api.domain.model.NomisScoreData
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.compose.component.AccentButton
 import jp.co.soramitsu.common.compose.component.Address
@@ -246,7 +247,7 @@ fun ScoreBar(score: Int, modifier: Modifier = Modifier) {
                 }
             }
 
-            score == -1 -> {
+            score == NomisScoreData.LOADING_CODE -> {
                 repeat(5) {
                     Image(
                         res = R.drawable.ic_score_star_empty,
@@ -258,7 +259,7 @@ fun ScoreBar(score: Int, modifier: Modifier = Modifier) {
                 }
             }
 
-            score == -2 -> {
+            score == NomisScoreData.ERROR_CODE -> {
                 repeat(5) {
                     Image(
                         res = R.drawable.ic_score_star_empty,

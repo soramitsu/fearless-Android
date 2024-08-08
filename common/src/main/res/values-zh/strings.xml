@@ -754,6 +754,7 @@
   <string name="search_network_hint">按网络搜索</string>
   <string name="search_recipient_hint">账户地址或账户名称</string>
   <string name="search_recipient_no_results">无搜索结果</string>
+  <string name="search_textfield_placeholder">公共地址</string>
   <string name="select_another_network_description">地址与目标网络不匹配。您应该选择另一个网络。</string>
   <string name="select_collator_having_relevant_minimum_bond">具备相关的最低绑定额</string>
   <string name="select_collators_warning">免责声明：算法收集人建议并不构成金融咨询或建议。质押是一项高风险活动，算法收集人建议并不能完全减轻这种风险。由算法提供的收集人仍有可能离开候选池。由算法提供的收集人也可以在被推荐和/或选择后随时更改其参数（例如佣金率等）。您可能因此或其他原因而失去奖励。请在进行尽职调查和慎重考虑风险后，根据自己的判断谨慎使用质押代币和使用收集人建议。</string>

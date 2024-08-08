@@ -4,7 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
-import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
+import jp.co.soramitsu.account.api.domain.interfaces.NomisScoreInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.TotalBalanceUseCase
 import jp.co.soramitsu.account.impl.presentation.account.mixin.api.AccountListingMixin
 import jp.co.soramitsu.common.address.AddressIconGenerator
@@ -33,7 +33,7 @@ class WalletSelectorViewModel @Inject constructor(
     accountListingMixin: AccountListingMixin,
     private val router: WalletRouter,
     private val totalBalanceUseCase: TotalBalanceUseCase,
-    private val accountInteractor: AccountInteractor,
+    private val nomisScoreInteractor: NomisScoreInteractor,
     savedStateHandle: SavedStateHandle
 ) : BaseViewModel() {
 
@@ -92,7 +92,7 @@ class WalletSelectorViewModel @Inject constructor(
     }
 
     private fun observeScores() {
-        accountInteractor.observeNomisScores()
+        nomisScoreInteractor.observeNomisScores()
             .onEach { scores ->
                 walletItemsFlow.update { oldStates ->
                     oldStates.map { state ->

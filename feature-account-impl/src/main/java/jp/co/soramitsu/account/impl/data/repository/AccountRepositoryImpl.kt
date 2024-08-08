@@ -934,9 +934,9 @@ class AccountRepositoryImpl(
         }
     }
 
-    override fun observeNomisScore(metaId: Long): Flow<NomisScoreData> {
+    override fun observeNomisScore(metaId: Long): Flow<NomisScoreData?> {
         return nomisScoresDao.observeScore(metaId).map { score ->
-            score.toDomain()
+            score?.toDomain()
         }
     }
 }

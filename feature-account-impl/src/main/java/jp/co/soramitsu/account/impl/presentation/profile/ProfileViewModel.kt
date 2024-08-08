@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
+import jp.co.soramitsu.account.api.domain.interfaces.NomisScoreInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.TotalBalanceUseCase
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
@@ -27,12 +28,15 @@ import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
 import jp.co.soramitsu.soracard.api.domain.SoraCardInteractor
 import jp.co.soramitsu.soracard.impl.presentation.SoraCardItemViewState
-import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -42,6 +46,7 @@ private const val AVATAR_SIZE_DP = 32
 class ProfileViewModel @Inject constructor(
     private val interactor: AccountInteractor,
     private val accountDetailsInteractor: AccountDetailsInteractor,
+    private val nomisScoreInteractor: NomisScoreInteractor,
     private val soraCardInteractor: SoraCardInteractor,
     private val router: AccountRouter,
     private val addressIconGenerator: AddressIconGenerator,
@@ -77,11 +82,22 @@ class ProfileViewModel @Inject constructor(
     val hasChainsWithNoAccountFlow = accountDetailsInteractor.hasChainsWithNoAccount()
         .stateIn(this, SharingStarted.Eagerly, false)
 
+    private val _nomisMultichainScoreEnabledFlow = MutableStateFlow(nomisScoreInteractor.nomisMultichainScoreEnabled)
+    val nomisMultichainScoreEnabledFlow: Flow<Boolean> = _nomisMultichainScoreEnabledFlow
+
 //    private val soraCardState = soraCardInteractor.subscribeSoraCardInfo().map {
 //        val kycStatus = it?.kycStatus?.let(::mapKycStatus)
 //        SoraCardItemViewState(kycStatus, it, null, true)
 //    }
     private val soraCardState = flowOf(SoraCardItemViewState())
+
+    init {
+        nomisScoreInteractor.observeNomisMultichainScoreEnabled()
+            .onEach {
+                _nomisMultichainScoreEnabledFlow.value = it
+            }
+            .launchIn(viewModelScope)
+    }
 
     fun aboutClicked() {
         router.openAboutScreen()
@@ -152,5 +168,9 @@ class ProfileViewModel @Inject constructor(
 
     fun onWalletConnectClick() {
         router.openConnectionsScreen()
+    }
+
+    fun onNomisMultichainScoreContainerClick() {
+        nomisScoreInteractor.nomisMultichainScoreEnabled = !nomisScoreInteractor.nomisMultichainScoreEnabled
     }
 }

@@ -22,5 +22,5 @@ interface NomisScoresDao {
     fun observeScores(): Flow<List<NomisWalletScoreLocal>>
 
     @Query("SELECT * FROM nomis_wallet_score WHERE metaId = :metaId")
-    fun observeScore(metaId: Long): Flow<NomisWalletScoreLocal>
+    fun observeScore(metaId: Long): Flow<NomisWalletScoreLocal?>
 }

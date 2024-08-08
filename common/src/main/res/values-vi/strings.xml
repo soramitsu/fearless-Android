@@ -757,6 +757,7 @@
   <string name="search_network_hint">Tìm kiếm theo mạng</string>
   <string name="search_recipient_hint">Địa chỉ tài khoản hoặc tên tài khoản</string>
   <string name="search_recipient_no_results">Không có kết quả tìm kiếm</string>
+  <string name="search_textfield_placeholder">Địa chỉ public</string>
   <string name="select_another_network_description">Địa chỉ không khớp với mạng đích. Bạn nên chọn mạng khác</string>
   <string name="select_collator_having_relevant_minimum_bond">Có trái phiếu tối thiểu có liên quan</string>
   <string name="select_collators_warning">TUYÊN BỐ TỪ CHỐI: Các đề xuất của trình xác minh thuật toán không cấu thành tư vấn hoặc lời khuyên tài chính. Staking là một hoạt động có rủi ro cao và các đề xuất của trình xác thực thuật toán không nhất thiết giảm thiểu rủi ro này. Một сollator do thuật toán đề xuất vẫn có thể rời khỏi nhóm ứng cử viên. Một сollator do thuật toán đề xuất cũng có thể thay đổi các thông số của chúng (ví dụ: tỷ lệ hoa hồng, v.v.) bất kỳ lúc nào sau khi được đề xuất và/hoặc chọn. Bạn có thể mất phần thưởng vì những lý do này hoặc lý do khác. Chỉ đặt cược mã thông báo và sử dụng các đề xuất сollator theo quyết định của riêng bạn, sau khi tiến hành thẩm định và xem xét cẩn thận các rủi ro liên quan.</string>

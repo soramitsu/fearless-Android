@@ -34,11 +34,13 @@ fun mapCryptoTypeToCryptoTypeModel(
                 R.string.sr25519_selection_subtitle
             )
         }"
+
         CryptoType.ED25519 -> "${resourceManager.getString(R.string.ed25519_selection_title)} ${
             resourceManager.getString(
                 R.string.ed25519_selection_subtitle
             )
         }"
+
         CryptoType.ECDSA -> "${resourceManager.getString(R.string.ecdsa_selection_title)} ${
             resourceManager.getString(
                 R.string.ecdsa_selection_subtitle
@@ -99,7 +101,7 @@ fun mapMetaAccountLocalToMetaAccount(
         keySelector = FavoriteChainLocal::chainId,
         valueTransform = {
             MetaAccount.FavoriteChain(
-                chain =  chainsById[it.chainId],
+                chain = chainsById[it.chainId],
                 isFavorite = it.isFavorite
             )
         }
@@ -175,7 +177,6 @@ fun NomisResponse.toLocal(metaId: Long): NomisWalletScoreLocal {
 
 fun NomisWalletScoreLocal.toDomain(): NomisScoreData {
     val formatter = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'", Locale.getDefault())
-//    sdf.timeZone = TimeZone.getTimeZone("UTC")
     val scoredAtMillis = runCatching { formatter.parse(scoredAt)?.time }.getOrNull()
 
     return NomisScoreData(
@@ -190,6 +191,27 @@ fun NomisWalletScoreLocal.toDomain(): NomisScoreData {
         avgTransactionTimeInHours = avgTransactionTimeInHours,
         maxTransactionTimeInHours = maxTransactionTimeInHours,
         minTransactionTimeInHours = minTransactionTimeInHours,
+        scoredAt = scoredAtMillis
+    )
+}
+
+fun NomisResponse.toDomain(): NomisScoreData {
+    val formatter = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'", Locale.getDefault())
+    val scoredAtMillis = runCatching { formatter.parse(data.stats.scoredAt)?.time }.getOrNull()
+
+    val score = (data.score * 100).toInt()
+    return NomisScoreData(
+        metaId = -1,
+        score = score,
+        updated = System.currentTimeMillis(),
+        nativeBalanceUsd = data.stats.nativeBalanceUSD.toBigDecimal(),
+        holdTokensUsd = data.stats.holdTokensBalanceUSD.toBigDecimal(),
+        walletAgeInMonths = data.stats.walletAgeInMonths,
+        totalTransactions = data.stats.totalTransactions,
+        rejectedTransactions = data.stats.totalRejectedTransactions,
+        avgTransactionTimeInHours = data.stats.averageTransactionTimeInHours,
+        maxTransactionTimeInHours = data.stats.maxTransactionTimeInHours,
+        minTransactionTimeInHours = data.stats.minTransactionTimeInHours,
         scoredAt = scoredAtMillis
     )
 }

@@ -15,7 +15,12 @@ data class NomisScoreData(
     val maxTransactionTimeInHours: Double,
     val minTransactionTimeInHours: Double,
     val scoredAt: Long?
-){
+) {
     val isError = score == -2
     val isLoading = score == -1
+
+    companion object {
+        const val LOADING_CODE = -1
+        const val ERROR_CODE = -2
+    }
 }

@@ -191,5 +191,5 @@ interface AccountRepository {
     fun observeFavoriteChains(metaId: Long): Flow<Map<ChainId, Boolean>>
 
     fun observeNomisScores(): Flow<List<NomisScoreData>>
-    fun observeNomisScore(metaId: Long): Flow<NomisScoreData>
+    fun observeNomisScore(metaId: Long): Flow<NomisScoreData?>
 }

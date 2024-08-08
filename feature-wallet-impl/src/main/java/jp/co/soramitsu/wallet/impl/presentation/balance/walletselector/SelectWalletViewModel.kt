@@ -8,6 +8,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.PendulumPreInstalledAccountsScenario
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
+import jp.co.soramitsu.account.api.domain.interfaces.NomisScoreInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.TotalBalanceUseCase
 import jp.co.soramitsu.account.api.domain.model.ImportMode
 import jp.co.soramitsu.account.impl.presentation.account.mixin.api.AccountListingMixin
@@ -42,6 +43,7 @@ private const val SUBSTRATE_BLOCKCHAIN_TYPE = 0
 class SelectWalletViewModel @Inject constructor(
     accountListingMixin: AccountListingMixin,
     private val accountInteractor: AccountInteractor,
+    private val nomisScoreInteractor: NomisScoreInteractor,
     private val router: WalletRouter,
     private val updatesMixin: UpdatesMixin,
     private val getTotalBalance: TotalBalanceUseCase,
@@ -99,7 +101,7 @@ class SelectWalletViewModel @Inject constructor(
     }
 
     private fun observeScores() {
-        accountInteractor.observeNomisScores()
+        nomisScoreInteractor.observeNomisScores()
             .onEach { scores ->
                 walletItemsFlow.update { oldStates ->
                     oldStates.map { state ->

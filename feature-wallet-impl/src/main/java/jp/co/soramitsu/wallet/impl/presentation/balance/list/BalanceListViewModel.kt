@@ -16,6 +16,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.PendulumPreInstalledAccountsScenario
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
+import jp.co.soramitsu.account.api.domain.interfaces.NomisScoreInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.TotalBalanceUseCase
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.common.BuildConfig
@@ -129,6 +130,7 @@ class BalanceListViewModel @Inject constructor(
     private val getAvailableFiatCurrencies: GetAvailableFiatCurrencies,
     private val selectedFiat: SelectedFiat,
     private val accountInteractor: AccountInteractor,
+    private val nomisScoreInteractor: NomisScoreInteractor,
     private val updatesMixin: UpdatesMixin,
     private val resourceManager: ResourceManager,
     private val clipboardManager: ClipboardManager,
@@ -447,10 +449,10 @@ class BalanceListViewModel @Inject constructor(
             }
         }.launchIn(viewModelScope)
 
-        accountInteractor.observeCurrentAccountScore()
+        nomisScoreInteractor.observeCurrentAccountScore()
             .onEach { score ->
                 toolbarState.update { prevState ->
-                    val newWalletIconState = (prevState.homeIconState as? ToolbarHomeIconState.Wallet)?.copy(score = score.score)
+                    val newWalletIconState = (prevState.homeIconState as? ToolbarHomeIconState.Wallet)?.copy(score = score?.score)
                     newWalletIconState?.let {
                         prevState.copy(homeIconState = newWalletIconState)
                     } ?: prevState

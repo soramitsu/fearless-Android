@@ -51,6 +51,7 @@ class ProfileFragment : BaseFragment<ProfileViewModel>() {
             polkaswapDisclaimerTv.setOnClickListener { viewModel.polkaswapDisclaimerClicked() }
             profileSoraCard.setOnClickListener { viewModel.onSoraCardClicked() }
             profileWalletConnect.setOnClickListener { viewModel.onWalletConnectClick() }
+            nomisMultichainScoreContainer.setOnClickListener { viewModel.onNomisMultichainScoreContainerClick() }
 
             viewModel.hasChainsWithNoAccountFlow.observe {
                 missingAccountsIcon.isVisible = it
@@ -82,6 +83,10 @@ class ProfileFragment : BaseFragment<ProfileViewModel>() {
         viewModel.showFiatChooser.observeEvent(::showFiatChooser)
 
         viewModel.selectedFiatLiveData.observe(binding.selectedCurrencyTv::setText)
+
+        viewModel.nomisMultichainScoreEnabledFlow.observe {
+            binding.nomisMultichainScoreSwitch.isChecked = it
+        }
     }
 
     private fun showFiatChooser(payload: DynamicListBottomSheet.Payload<FiatCurrency>) {

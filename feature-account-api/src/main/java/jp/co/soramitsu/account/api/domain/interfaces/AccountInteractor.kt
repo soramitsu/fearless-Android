@@ -5,7 +5,6 @@ import jp.co.soramitsu.account.api.domain.model.Account
 import jp.co.soramitsu.account.api.domain.model.ImportJsonData
 import jp.co.soramitsu.account.api.domain.model.LightMetaAccount
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
-import jp.co.soramitsu.account.api.domain.model.NomisScoreData
 import jp.co.soramitsu.backup.domain.models.BackupAccountType
 import jp.co.soramitsu.common.data.secrets.v2.ChainAccountSecrets
 import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
@@ -163,9 +162,4 @@ interface AccountInteractor {
     suspend fun updateFavoriteChain(chainId: ChainId, isFavorite: Boolean, metaId: Long)
     suspend fun selectedLightMetaAccount(): LightMetaAccount
     fun observeSelectedMetaAccountFavoriteChains(): Flow<Map<ChainId, Boolean>>
-
-    fun observeNomisScores(): Flow<List<NomisScoreData>>
-
-    fun observeCurrentAccountScore(): Flow<NomisScoreData>
-    fun observeAccountScore(metaId: Long): Flow<NomisScoreData>
 }
