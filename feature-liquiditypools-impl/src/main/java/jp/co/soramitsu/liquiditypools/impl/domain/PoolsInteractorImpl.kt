@@ -16,6 +16,7 @@ import jp.co.soramitsu.polkaswap.api.domain.models.BasicPoolData
 import jp.co.soramitsu.polkaswap.api.domain.models.CommonPoolData
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
@@ -50,6 +51,7 @@ class PoolsInteractorImpl(
     }.mapNotNull { it }
         .distinctUntilChanged()
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     override fun subscribePoolsCacheCurrentAccount(): Flow<List<CommonPoolData>> {
         return soraPoolsAddressFlow.flatMapLatest { address ->
             poolsRepository.subscribePools(address)

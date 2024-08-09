@@ -4,13 +4,13 @@ import java.math.BigDecimal
 import javax.inject.Inject
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.wallet.api.domain.TransferValidationResult
-import jp.co.soramitsu.wallet.impl.domain.model.AssetWithStatus
+import jp.co.soramitsu.wallet.impl.domain.model.Asset
 
 class ValidateAddLiquidityUseCase @Inject constructor() {
 
     operator fun invoke(
-        assetBase: AssetWithStatus,
-        assetTarget: AssetWithStatus,
+        assetBase: Asset,
+        assetTarget: Asset,
         utilityAssetId: String,
         utilityAmount: BigDecimal,
         amountBase: BigDecimal,
@@ -19,14 +19,14 @@ class ValidateAddLiquidityUseCase @Inject constructor() {
     ): Result<TransferValidationResult> {
         return runCatching {
             val isEnoughAmountBase = amountBase + feeAmount.takeIf {
-                assetBase.asset.token.configuration.id == utilityAssetId
-            }.orZero() < assetBase.asset.total.orZero()
+                assetBase.token.configuration.id == utilityAssetId
+            }.orZero() < assetBase.total.orZero()
 
             val isEnoughAmountTarget = amountTarget + feeAmount.takeIf {
-                assetTarget.asset.token.configuration.id == utilityAssetId
-            }.orZero() < assetTarget.asset.total.orZero()
+                assetTarget.token.configuration.id == utilityAssetId
+            }.orZero() < assetTarget.total.orZero()
 
-            val isEnoughAmountFee = if (utilityAssetId in listOf(assetBase.asset.token.configuration.id, assetTarget.asset.token.configuration.id)) {
+            val isEnoughAmountFee = if (utilityAssetId in listOf(assetBase.token.configuration.id, assetTarget.token.configuration.id)) {
                 true
             } else {
                 feeAmount < utilityAmount
