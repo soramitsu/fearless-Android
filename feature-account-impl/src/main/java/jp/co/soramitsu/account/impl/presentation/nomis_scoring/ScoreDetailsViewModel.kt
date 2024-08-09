@@ -83,7 +83,7 @@ class ScoreDetailsViewModel @Inject constructor(
             .launchIn(viewModelScope)
 
         viewModelScope.launch {
-            val metaAccount = accountInteractor.selectedMetaAccount()
+            val metaAccount = accountInteractor.getMetaAccount(metaAccountId)
             val address = metaAccount.ethereumAddress?.toHexString(withPrefix = true)
             if (address != null) {
                 rawAddress.value = address

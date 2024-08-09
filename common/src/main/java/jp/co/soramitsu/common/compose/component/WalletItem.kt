@@ -47,7 +47,7 @@ data class WalletItemViewState(
 fun WalletItem(
     state: WalletItemViewState,
     onOptionsClick: ((WalletItemViewState) -> Unit)? = null,
-    onSelected: (WalletItemViewState) -> Unit,
+    onSelected: (WalletItemViewState) -> Unit = {},
     onLongClick: (WalletItemViewState) -> Unit = {},
     onScoreClick: (WalletItemViewState) -> Unit = {},
     modifier: Modifier = Modifier

@@ -547,8 +547,7 @@ class SendSetupViewModel @Inject constructor(
             val score = if(it is LoadingState.Loading) {
                 NomisScoreData.LOADING_CODE
             } else {
-                val loadedState = it as LoadingState.Loaded
-                loadedState.data?.score ?: NomisScoreData.ERROR_CODE
+                it.dataOrNull()?.score
             }
             state.update { prevState ->
                 if(prevState.addressInputState is AddressInputWithScore.Filled) {
