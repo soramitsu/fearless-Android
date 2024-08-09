@@ -27,6 +27,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import com.valentinilk.shimmer.shimmer
 import java.math.BigDecimal
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
@@ -51,8 +52,10 @@ data class AmountInputViewState(
     val isFocused: Boolean = false,
     val allowAssetChoose: Boolean = false,
     val precision: Int = MAX_DECIMALS_8,
-    val inputEnabled: Boolean = true
+    val inputEnabled: Boolean = true,
+    val isShimmerAmounts: Boolean = false
 ) {
+
     companion object {
         val defaultObj = AmountInputViewState(
             tokenName = null,
@@ -120,7 +123,16 @@ fun AmountInput(
                 val title = state.title ?: stringResource(id = R.string.common_amount)
                 H5(text = title, modifier = Modifier.weight(1f), color = black2)
                 state.fiatAmount?.let {
-                    B1(text = it, modifier = Modifier.weight(1f), textAlign = TextAlign.End, color = black2)
+                    B1(
+                        text = it,
+                        modifier = Modifier
+                            .weight(1f)
+                            .then(
+                                if (state.isShimmerAmounts) Modifier.shimmer() else Modifier
+                            ),
+                        textAlign = TextAlign.End,
+                        color = black2
+                    )
                 }
             }
 
@@ -155,7 +167,14 @@ fun AmountInput(
                     modifier = Modifier
                         .fillMaxWidth()
                         .testTag("InputAmountField" + (state.tokenName.orEmpty()))
-                        .wrapContentHeight(),
+                        .wrapContentHeight()
+                        .then(
+                            if (state.isShimmerAmounts) {
+                                Modifier.shimmer()
+                            } else {
+                                Modifier
+                            }
+                        ),
                     onFocusChanged = onInputFocusChange,
                     textStyle = MaterialTheme.customTypography.displayS.copy(textAlign = TextAlign.End, color = textColorState),
                     enabled = state.inputEnabled,
