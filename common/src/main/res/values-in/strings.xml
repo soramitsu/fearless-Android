@@ -161,6 +161,7 @@
   <string name="common_assets_filters_fiat">Saldo fiat</string>
   <string name="common_assets_filters_name">Nama</string>
   <string name="common_assets_filters_popularity">Popularitas</string>
+  <string name="common_attention">Perhatian</string>
   <string name="common_available_format">Tersedia: %s</string>
   <string name="common_available_networks">Jaringan yang tersedia</string>
   <string name="common_backup_your_wallet">Dompet cadangan</string>
@@ -726,6 +727,7 @@
   <string name="search_network_hint">Cari berdasarkan jaringan</string>
   <string name="search_recipient_hint">Alamat akun atau nama akun</string>
   <string name="search_recipient_no_results">Tidak ada hasil pencarian</string>
+  <string name="search_textfield_placeholder">Alamat publik</string>
   <string name="select_another_network_description">Alamatnya tidak cocok dengan jaringan tujuan. Anda harus memilih jaringan lain</string>
   <string name="select_collator_having_relevant_minimum_bond">Memiliki obligasi minimum yang relevan</string>
   <string name="select_collators_warning">PENAFIAN: Saran kolator algoritmik bukan merupakan konsultasi atau nasihat keuangan. Staking adalah aktivitas berisiko tinggi, dan saran kolator algoritmik tidak serta merta memitigasi risiko ini. Seorang pengumpul yang disarankan oleh algoritme masih dapat meninggalkan kumpulan kandidat. Pengumpul yang disarankan oleh algoritme juga dapat mengubah parameternya (misalnya, tarif komisi, dll.) kapan saja setelah disarankan dan/atau dipilih. Anda bisa kehilangan hadiah karena alasan ini atau lainnya. Hanya pertaruhkan token dan gunakan saran kolektor sesuai kebijaksanaan Anda sendiri, setelah melakukan uji tuntas dan dengan cermat mempertimbangkan risiko yang ada.</string>

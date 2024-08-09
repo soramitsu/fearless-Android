@@ -193,6 +193,12 @@
     <item quantity="many">%d часов</item>
     <item quantity="other">%d час</item>
   </plurals>
+  <plurals name="common_months_format">
+    <item quantity="one">%d месяц</item>
+    <item quantity="few">%d месяца</item>
+    <item quantity="many">%d месяцев</item>
+    <item quantity="other">%d месяц</item>
+  </plurals>
   <string name="common_import_wallet">Импорт кошелька</string>
   <string name="common_important">Важно</string>
   <string name="common_info">Информация</string>
@@ -401,6 +407,26 @@
   <string name="label_link">Ссылка</string>
   <string name="label_testnet">Testnet</string>
   <string name="language_title">Язык</string>
+  <string name="lp_apy_alert_text">Вознаграждение за предоставление ликвидности</string>
+  <string name="lp_apy_alert_title">Стратегический бонус APY</string>
+  <string name="lp_apy_title">Стратегический бонус APY</string>
+  <string name="lp_available_pools_title">Доступные пулы</string>
+  <string name="lp_confirm_liquidity_screen_title">Подтвердите ликвидность</string>
+  <string name="lp_confirm_liquidity_warning_text">Оценка результата. Если цена изменится более чем на 0.5%, ваша транзакция будет отменена</string>
+  <string name="lp_network_fee_alert_text">Комиссия сети используется для обеспечения роста и стабильной работы системы SORA.</string>
+  <string name="lp_network_fee_alert_title">Комиссия сети</string>
+  <string name="lp_pool_details_title">Детали пула ликвидности</string>
+  <string name="lp_pool_remove_warning_text">Удаление токенов из пула конвертирует вашу позицию обратно в исходные токены по текущему курсу, пропорционально вашей доле в пуле. Начисленные комиссии включены в получаемые вами суммы.</string>
+  <string name="lp_pool_remove_warning_title">ПРИМЕЧАНИЕ</string>
+  <string name="lp_remove_button_title">Убрать ликвидность</string>
+  <string name="lp_remove_liquidity_screen_title">Убрать ликвидность</string>
+  <string name="lp_reward_token_text">Заработать %@</string>
+  <string name="lp_reward_token_title">Выплата вознаграждений в</string>
+  <string name="lp_slippage_title">Проскальзывание</string>
+  <string name="lp_supply_button_title">Добавить ликвидность</string>
+  <string name="lp_supply_liquidity_screen_title">Добавить ликвидность</string>
+  <string name="lp_token_pooled_text">Ваши %s добавлены в пул</string>
+  <string name="lp_user_pools_title">Пулы пользователя</string>
   <string name="make_payout_transaction_sent">Транзакция на выплату отправлена</string>
   <string name="manage_assets_account_missing_text">Добавить аккаунт...</string>
   <string name="manage_assets_search_hint">Поиск по токену</string>
@@ -605,6 +631,7 @@
   <string name="search_network_hint">Поиск по сети</string>
   <string name="search_recipient_hint">Адрес аккаунта или имя аккаунта</string>
   <string name="search_recipient_no_results">Нет результатов</string>
+  <string name="search_textfield_placeholder"> Публичный адрес</string>
   <string name="select_collator_having_relevant_minimum_bond">Релевантный минимальный стейк</string>
   <string name="select_import_mode_btn_google">Импорт из Google</string>
   <string name="select_import_mode_btn_json">JSON</string>

@@ -1,6 +1,5 @@
 package jp.co.soramitsu.wallet.impl.presentation.balance.detail
 
-import android.util.Log
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LiveData
@@ -180,7 +179,7 @@ class BalanceDetailViewModel @Inject constructor(
         LoadingState.Loaded(
             MainToolbarViewState(
                 title = interactor.getSelectedMetaAccount().name,
-                homeIconState = ToolbarHomeIconState(navigationIcon = R.drawable.ic_arrow_back_24dp),
+                homeIconState = ToolbarHomeIconState.Navigation(navigationIcon = R.drawable.ic_arrow_back_24dp),
                 selectorViewState = ChainSelectorViewState(selectedChain?.title, selectedChain?.id)
             )
         )

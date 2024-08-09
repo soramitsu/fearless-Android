@@ -105,7 +105,7 @@ class BalanceDetailFragment : BaseComposeFragment<BalanceDetailViewModel>() {
         when (toolbarState) {
             is LoadingState.Loading<MainToolbarViewState> -> {
                 MainToolbarShimmer(
-                    homeIconState = ToolbarHomeIconState(navigationIcon = R.drawable.ic_arrow_back_24dp),
+                    homeIconState = ToolbarHomeIconState.Navigation(navigationIcon = R.drawable.ic_arrow_back_24dp),
                     menuItems = listOf(
                         MenuIconItem(icon = R.drawable.ic_dots_horizontal_24, {})
                     )

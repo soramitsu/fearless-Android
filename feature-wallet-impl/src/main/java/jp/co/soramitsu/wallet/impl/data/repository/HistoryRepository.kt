@@ -1,6 +1,5 @@
 package jp.co.soramitsu.wallet.impl.data.repository
 
-import android.util.Log
 import jp.co.soramitsu.common.data.model.CursorPage
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.core.models.Asset
@@ -19,6 +18,7 @@ import jp.co.soramitsu.wallet.impl.data.storage.TransferCursorStorage
 import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
 import jp.co.soramitsu.wallet.impl.domain.interfaces.TransactionFilter
 import jp.co.soramitsu.wallet.impl.domain.model.Operation
+import kotlin.coroutines.coroutineContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -141,4 +141,11 @@ class HistoryRepository(
                 addresses.toSet()
             }
     }
+
+    suspend fun getOperationAddressWithChainId(chainId: ChainId, limit: Int?): Set<String> =
+        withContext(coroutineContext) {
+            val address = currentAccountAddress.invoke(chainId) ?: return@withContext emptySet()
+            val operations = operationDao.getOperationAddresses(chainId, address, limit ?: NO_LIMIT)
+            return@withContext operations.toSet()
+        }
 }

@@ -35,7 +35,8 @@ fun SelectWalletContent(
     onWalletOptionsClick: (WalletItemViewState) -> Unit,
     addNewWallet: () -> Unit,
     importWallet: () -> Unit,
-    onBackClicked: () -> Unit
+    onBackClicked: () -> Unit,
+    onScoreClick: (WalletItemViewState) -> Unit
 ) {
     BottomSheetScreen {
         Column(
@@ -61,7 +62,8 @@ fun SelectWalletContent(
                         WalletItem(
                             state = walletItemState,
                             onOptionsClick = onWalletOptionsClick,
-                            onSelected = onWalletSelected
+                            onSelected = onWalletSelected,
+                            onScoreClick = onScoreClick
                         )
                     }
                     item {
@@ -126,7 +128,8 @@ private fun SelectWalletScreenPreview() {
             addNewWallet = {},
             importWallet = {},
             onBackClicked = {},
-            onWalletOptionsClick = {}
+            onWalletOptionsClick = {},
+            onScoreClick = {}
         )
     }
 }

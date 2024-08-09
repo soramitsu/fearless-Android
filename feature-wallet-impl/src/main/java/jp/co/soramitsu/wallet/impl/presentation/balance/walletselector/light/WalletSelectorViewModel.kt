@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import jp.co.soramitsu.account.api.domain.interfaces.NomisScoreInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.TotalBalanceUseCase
 import jp.co.soramitsu.account.impl.presentation.account.mixin.api.AccountListingMixin
 import jp.co.soramitsu.common.address.AddressIconGenerator
@@ -11,8 +12,6 @@ import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.ChangeBalanceViewState
 import jp.co.soramitsu.common.compose.component.WalletItemViewState
 import jp.co.soramitsu.common.compose.component.WalletSelectorViewState
-import jp.co.soramitsu.common.mixin.api.UpdatesMixin
-import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
 import jp.co.soramitsu.common.navigation.payload.WalletSelectorPayload
 import jp.co.soramitsu.common.utils.formatAsChange
 import jp.co.soramitsu.common.utils.formatFiat
@@ -21,6 +20,7 @@ import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -32,10 +32,10 @@ import kotlinx.coroutines.launch
 class WalletSelectorViewModel @Inject constructor(
     accountListingMixin: AccountListingMixin,
     private val router: WalletRouter,
-    private val updatesMixin: UpdatesMixin,
     private val totalBalanceUseCase: TotalBalanceUseCase,
+    private val nomisScoreInteractor: NomisScoreInteractor,
     savedStateHandle: SavedStateHandle
-) : BaseViewModel(), UpdatesProviderUi by updatesMixin {
+) : BaseViewModel() {
 
     private val tag = savedStateHandle.get<String>(WalletSelectorFragment.TAG_ARGUMENT_KEY)!!
     private val selectedWalletId =
@@ -47,9 +47,10 @@ class WalletSelectorViewModel @Inject constructor(
 
     init {
         accountListingMixin.accountsFlow(AddressIconGenerator.SIZE_BIG)
+            .distinctUntilChanged()
             .inBackground()
             .onEach { newList ->
-                walletItemsFlow.value =
+                walletItemsFlow.update {
                     newList.map {
                         WalletItemViewState(
                             id = it.id,
@@ -60,13 +61,21 @@ class WalletSelectorViewModel @Inject constructor(
                             changeBalanceViewState = null
                         )
                     }
-
+                }
             }
-            .onEach {
-                walletItemsFlow.update { prevList ->
-                    prevList.map { prevState ->
-                        val balanceModel = totalBalanceUseCase(prevState.id)
-                        prevState.copy(
+            .onEach { accounts ->
+                accounts.forEach { observeTotalBalance(it.id) }
+                observeScores()
+            }
+            .launchIn(viewModelScope)
+    }
+
+    private fun observeTotalBalance(metaId: Long) {
+        totalBalanceUseCase.observe(metaId).onEach { balanceModel ->
+            walletItemsFlow.update {
+                it.map {  state ->
+                    if(state.id == metaId) {
+                        state.copy(
                             balance = balanceModel.balance.formatFiat(balanceModel.fiatSymbol),
                             changeBalanceViewState = ChangeBalanceViewState(
                                 percentChange = balanceModel.rateChange?.formatAsChange().orEmpty(),
@@ -74,6 +83,21 @@ class WalletSelectorViewModel @Inject constructor(
                                     .formatFiat(balanceModel.fiatSymbol)
                             )
                         )
+                    } else {
+                        state
+                    }
+                }
+            }
+        }.launchIn(viewModelScope)
+    }
+
+    private fun observeScores() {
+        nomisScoreInteractor.observeNomisScores()
+            .onEach { scores ->
+                walletItemsFlow.update { oldStates ->
+                    oldStates.map { state ->
+                        val score = scores.find { it.metaId == state.id }
+                        score?.let { state.copy(score = score.score) } ?: state
                     }
                 }
             }

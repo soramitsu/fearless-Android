@@ -1,6 +1,5 @@
 package jp.co.soramitsu.common.compose.component
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
@@ -13,16 +12,15 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.R
-import jp.co.soramitsu.common.compose.theme.FearlessTheme
-import jp.co.soramitsu.common.compose.theme.customColors
+import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
 import jp.co.soramitsu.common.compose.theme.customTypography
 import jp.co.soramitsu.common.compose.theme.white
+import jp.co.soramitsu.common.compose.theme.white08
 import jp.co.soramitsu.common.utils.formatting.shortenAddress
 
 @Composable
@@ -32,10 +30,9 @@ fun Address(
     onClick: () -> Unit
 ) {
     Surface(
-        modifier.background(
-            color = MaterialTheme.customColors.white08,
-            shape = RoundedCornerShape(100.dp)
-        )
+        color = white08,
+        shape = RoundedCornerShape(100.dp),
+        modifier = modifier
     ) {
         Row(
             modifier = Modifier
@@ -45,7 +42,7 @@ fun Address(
             Text(
                 text = address.shortenAddress(),
                 style = MaterialTheme.customTypography.body2,
-                color = Color.White,
+                color = white,
                 maxLines = 1,
                 modifier = Modifier
                     .testTag("address")
@@ -68,12 +65,10 @@ fun Address(
 @Preview
 @Composable
 private fun AddressPreview() {
-    FearlessTheme {
-        Surface(Modifier.background(Color.Black)) {
+    FearlessAppTheme {
             Address(
                 address = "0x32141235qwegtf24315reqwerfasdgqwert243rfasdvgergsdf",
                 onClick = {}
             )
-        }
     }
 }
