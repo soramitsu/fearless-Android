@@ -249,7 +249,15 @@ fun SwapTokensContent(
                             callbacks = callbacks
                         )
                     }
-                }
+                    if (state.showLiquidityBanner && state.isSoftKeyboardOpen.not()) {
+                        Spacer(modifier = Modifier.weight(1f))
+
+                        Banners(
+                            showLiquidity = state.showLiquidityBanner,
+                            showDemeter = false,
+                            callback = callbacks
+                        )
+                    }                }
                 if (state.hasReadDisclaimer.not()) {
                     Box(modifier = modifier.padding(horizontal = 16.dp)) {
                         Notification(
@@ -265,12 +273,6 @@ fun SwapTokensContent(
                     }
                     MarginVertical(margin = 16.dp)
                 }
-
-                Banners(
-                    showLiquidity = state.showLiquidityBanner,
-                    showDemeter = false,
-                    callback = callbacks
-                )
 
                 AccentButton(
                     modifier = Modifier
