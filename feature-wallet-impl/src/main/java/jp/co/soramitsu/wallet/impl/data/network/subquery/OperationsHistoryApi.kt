@@ -10,7 +10,7 @@ import jp.co.soramitsu.wallet.impl.data.network.model.request.SubqueryHistoryReq
 import jp.co.soramitsu.wallet.impl.data.network.model.request.SubsquidHistoryRequest
 import jp.co.soramitsu.wallet.impl.data.network.model.response.AtletaHistoryResponse
 import jp.co.soramitsu.wallet.impl.data.network.model.response.EtherscanHistoryResponse
-import jp.co.soramitsu.wallet.impl.data.network.model.response.FiveireHistoryResponse
+import jp.co.soramitsu.wallet.impl.data.network.model.response.FireHistoryResponse
 import jp.co.soramitsu.wallet.impl.data.network.model.response.GiantsquidHistoryResponse
 import jp.co.soramitsu.wallet.impl.data.network.model.response.KlaytnHistoryResponse
 import jp.co.soramitsu.wallet.impl.data.network.model.response.OkLinkHistoryResponse
@@ -85,11 +85,11 @@ interface OperationsHistoryApi {
     ): KlaytnHistoryResponse
 
     @GET
-    suspend fun getFiveireOperationsHistory(
+    suspend fun getFireOperationsHistory(
         @Url url: String,
         @Query("page") page: Int,
         @Query("limit") limit: Int
-    ): FiveireHistoryResponse
+    ): FireHistoryResponse
 
     @GET
     suspend fun getZchainOperationsHistory(

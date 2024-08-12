@@ -12,7 +12,7 @@ import jp.co.soramitsu.wallet.impl.data.network.subquery.OperationsHistoryApi
 import jp.co.soramitsu.wallet.impl.domain.interfaces.TransactionFilter
 import jp.co.soramitsu.wallet.impl.domain.model.Operation
 
-class FiveireHistorySource(
+class FireHistorySource(
     private val walletOperationsApi: OperationsHistoryApi,
     private val historyUrl: String
 ) : HistorySource {
@@ -28,9 +28,9 @@ class FiveireHistorySource(
         val page = cursor?.toInt() ?: 1
         val responseResult =
             runCatching {
-                val url = historyUrl.replace("{address}", accountAddress)
-                walletOperationsApi.getFiveireOperationsHistory(
-                    url = url,
+                val urlBuilder = StringBuilder(historyUrl).append("transactions/address/").append(accountAddress)
+                walletOperationsApi.getFireOperationsHistory(
+                    url = urlBuilder.toString(),
                     page = page,
                     limit = pageSize
                 )

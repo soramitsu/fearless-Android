@@ -1,9 +1,5 @@
 package jp.co.soramitsu.wallet.impl.data.historySource
 
-import android.os.Build
-import java.text.SimpleDateFormat
-import java.time.Instant
-import java.util.Locale
 import jp.co.soramitsu.common.data.model.CursorPage
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
@@ -28,9 +24,13 @@ class KlaytnHistorySource(
         val page = cursor?.toInt() ?: 1
         val responseResult =
             runCatching {
-                val url = historyUrl.replace("{address}", accountAddress)
+                val urlBuilder = StringBuilder(historyUrl)
+                    .append("accounts")
+                    .append(accountAddress)
+                    .append("txs")
+
                 walletOperationsApi.getKlaytnOperationsHistory(
-                    url = url,
+                    url = urlBuilder.toString(),
                     page = page
                 )
             }

@@ -28,9 +28,9 @@ class AtletaHistorySource(
         val page = cursor?.toInt() ?: 1
         val responseResult =
             runCatching {
-                val url = historyUrl.replace("{address}", accountAddress)
+                val urlBuilder = StringBuilder(historyUrl).append("addresses/").append(accountAddress).append("/transactions")
                 walletOperationsApi.getAtletaOperationsHistory(
-                    url = url
+                    url = urlBuilder.toString()
                 )
             }
 

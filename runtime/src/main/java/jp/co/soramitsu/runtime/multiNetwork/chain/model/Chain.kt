@@ -67,9 +67,9 @@ data class Chain(
     ) {
         data class Section(val type: Type, val url: String) {
             enum class Type {
-                SUBQUERY, SORA, SUBSQUID, GIANTSQUID, ETHERSCAN, OKLINK, ZETA, REEF, KLAYTN, FIVEIRE, VICSCAN, ZCHAIN, ATLETA, UNKNOWN, GITHUB;
+                SUBQUERY, SORA, SUBSQUID, GIANTSQUID, ETHERSCAN, OKLINK, ZETA, REEF, KLAYTN, FIRE, VICSCAN, ZCHAINS, ATLETA, UNKNOWN, GITHUB;
 
-                fun isHistory() = this in listOf(SUBQUERY, SORA, SUBSQUID, GIANTSQUID, ETHERSCAN, OKLINK, ZETA, REEF, KLAYTN, FIVEIRE, VICSCAN, ZCHAIN, ATLETA)
+                fun isHistory() = this in listOf(SUBQUERY, SORA, SUBSQUID, GIANTSQUID, ETHERSCAN, OKLINK, ZETA, REEF, KLAYTN, FIRE, VICSCAN, ZCHAINS, ATLETA)
             }
         }
     }

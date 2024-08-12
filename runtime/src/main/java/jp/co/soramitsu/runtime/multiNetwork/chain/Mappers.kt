@@ -35,9 +35,9 @@ private fun mapSectionTypeRemoteToSectionType(section: String) = when (section) 
     "zeta" -> Chain.ExternalApi.Section.Type.ZETA
     "reef" -> Chain.ExternalApi.Section.Type.REEF
     "klaytn" -> Chain.ExternalApi.Section.Type.KLAYTN
-    "5ire" -> Chain.ExternalApi.Section.Type.FIVEIRE
+    "fire" -> Chain.ExternalApi.Section.Type.FIRE
     "vicscan" -> Chain.ExternalApi.Section.Type.VICSCAN
-    "zchain" -> Chain.ExternalApi.Section.Type.ZCHAIN
+    "zchain" -> Chain.ExternalApi.Section.Type.ZCHAINS
     "atleta" -> Chain.ExternalApi.Section.Type.ATLETA
     else -> Chain.ExternalApi.Section.Type.UNKNOWN
 }
