@@ -1,8 +1,11 @@
 package jp.co.soramitsu.account.impl.presentation.nomis_scoring
 
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.core.os.bundleOf
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -25,7 +28,9 @@ class ScoreDetailsFragment : BaseComposeBottomSheetDialogFragment<ScoreDetailsVi
     override fun Content(padding: PaddingValues) {
         val state by viewModel.state.collectAsStateWithLifecycle()
 
-        BottomSheetScreen {
+        BottomSheetScreen(
+            modifier = Modifier.padding(top = 56.dp)
+        ) {
             ScoreDetailsContent(state, viewModel)
         }
     }

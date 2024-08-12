@@ -82,10 +82,11 @@ fun ScoreDetailsContent(
     state: ScoreDetailsScreenState,
     callback: ScoreDetailsScreenCallback
 ) {
-    val verticalScrollModifier = if(state.info is ScoreDetailsViewState.Success) Modifier.verticalScroll(rememberScrollState()) else Modifier
-    Column(modifier = verticalScrollModifier
-        .fillMaxSize()
-        ) {
+    val verticalScrollModifier = if (state.info is ScoreDetailsViewState.Success) Modifier.verticalScroll(rememberScrollState()) else Modifier
+    Column(
+        modifier = verticalScrollModifier
+            .fillMaxSize()
+    ) {
         Toolbar(
             state = ToolbarViewState(
                 stringResource(id = R.string.account_stats_title),
@@ -128,7 +129,12 @@ fun ScoreDetailsContent(
             MarginVertical(margin = 16.dp)
 
             when (val info = state.info) {
-                is ScoreDetailsViewState.Error -> Error()
+                is ScoreDetailsViewState.Error -> {
+                    Box(modifier = Modifier.weight(1f)) {
+                        Error()
+                    }
+                }
+
                 ScoreDetailsViewState.Loading -> ScoresInfoTable(null)
                 is ScoreDetailsViewState.Success -> ScoresInfoTable(state = info.data)
             }
@@ -168,6 +174,8 @@ private fun Error() {
 @Composable
 private fun ScoresInfoTable(state: ScoreInfoState?) {
     InfoTable(
+        modifier = Modifier
+            .fillMaxSize(),
         items = listOf(
             TitleValueViewState(
                 title = stringResource(id = R.string.account_stats_updated_title),
@@ -291,7 +299,8 @@ private fun ScoreDetailsScreenPreview() {
         val successState = ScoreDetailsViewState.Success(info)
         val state = ScoreDetailsScreenState(
             "Blue Bird 0x23f4g34nign234ij134f0134ifm13i4f134f",
-            info = ScoreDetailsViewState.Error
+//            info = ScoreDetailsViewState.Error
+            info = successState
         )
         ScoreDetailsContent(state, object : ScoreDetailsScreenCallback {
             override fun onBackClicked() = Unit
