@@ -22,10 +22,12 @@ class VicscanHistorySource(
         accountAddress: String
     ): CursorPage<Operation> {
         val page = cursor?.toInt() ?: 1
+        val urlBuilder = StringBuilder(historyUrl).append("transaction/list")
+
         val responseResult =
             runCatching {
                 walletOperationsApi.getVicscanOperationsHistory(
-                    url = historyUrl,
+                    url = urlBuilder.toString(),
                     account = accountAddress,
                     limit = pageSize,
                     offset = (page - 1) * pageSize

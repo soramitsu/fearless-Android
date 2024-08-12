@@ -4,19 +4,19 @@ import com.google.gson.annotations.SerializedName
 import java.math.BigInteger
 import jp.co.soramitsu.common.data.network.runtime.binding.BlockNumber
 
-data class FiveireHistoryResponse(
+data class FireHistoryResponse(
     val message: String,
-    val data: FiveireHistoryData,
+    val data: FireHistoryData,
     val page: Int,
     val total: Int
 )
 
-data class FiveireHistoryData(
+data class FireHistoryData(
     val count: Int,
-    val transactions: List<FiveireHistoryItem>
+    val transactions: List<FireHistoryItem>
 )
 
-data class FiveireHistoryItem(
+data class FireHistoryItem(
     val hash: String,
     @SerializedName("receipt_status")
     val status: Int,

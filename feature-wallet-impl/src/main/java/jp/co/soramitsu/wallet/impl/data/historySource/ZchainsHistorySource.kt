@@ -8,7 +8,7 @@ import jp.co.soramitsu.wallet.impl.data.network.subquery.OperationsHistoryApi
 import jp.co.soramitsu.wallet.impl.domain.interfaces.TransactionFilter
 import jp.co.soramitsu.wallet.impl.domain.model.Operation
 
-class ZchainHistorySource(
+class ZchainsHistorySource(
     private val walletOperationsApi: OperationsHistoryApi,
     private val historyUrl: String
 ) : HistorySource {
@@ -22,10 +22,12 @@ class ZchainHistorySource(
         accountAddress: String
     ): CursorPage<Operation> {
         val page = cursor?.toInt() ?: 1
+        val urlBuilder = StringBuilder(historyUrl).append("transaction")
+
         val responseResult =
             runCatching {
                 walletOperationsApi.getZchainOperationsHistory(
-                    url = historyUrl,
+                    url = urlBuilder.toString(),
                     address = accountAddress,
                     pageSize = pageSize,
                     page = page
