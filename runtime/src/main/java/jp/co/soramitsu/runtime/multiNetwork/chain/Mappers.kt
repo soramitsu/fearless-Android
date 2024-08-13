@@ -32,13 +32,12 @@ private fun mapSectionTypeRemoteToSectionType(section: String) = when (section) 
     "sora" -> Chain.ExternalApi.Section.Type.SORA
     "etherscan" -> Chain.ExternalApi.Section.Type.ETHERSCAN
     "oklink" -> Chain.ExternalApi.Section.Type.OKLINK
-    "zeta" -> Chain.ExternalApi.Section.Type.ZETA
+    "blockscout" -> Chain.ExternalApi.Section.Type.BLOCKSCOUT
     "reef" -> Chain.ExternalApi.Section.Type.REEF
     "klaytn" -> Chain.ExternalApi.Section.Type.KLAYTN
     "fire" -> Chain.ExternalApi.Section.Type.FIRE
     "vicscan" -> Chain.ExternalApi.Section.Type.VICSCAN
     "zchain" -> Chain.ExternalApi.Section.Type.ZCHAINS
-    "atleta" -> Chain.ExternalApi.Section.Type.ATLETA
     else -> Chain.ExternalApi.Section.Type.UNKNOWN
 }
 
