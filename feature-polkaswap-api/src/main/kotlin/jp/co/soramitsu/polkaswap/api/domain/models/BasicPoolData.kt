@@ -1,7 +1,7 @@
 package jp.co.soramitsu.polkaswap.api.domain.models
 
+import jp.co.soramitsu.core.models.Asset
 import java.math.BigDecimal
-import jp.co.soramitsu.wallet.impl.domain.model.Asset
 
 data class BasicPoolData(
     val baseToken: Asset,
@@ -12,6 +12,7 @@ data class BasicPoolData(
     val reserveAccount: String,
     val sbapy: Double?,
 ) {
-    val tvl: BigDecimal?
-        get() = baseToken.token.fiatRate?.times(BigDecimal(2))?.multiply(baseReserves)
+    fun getTvl(baseTokenFiatRate: BigDecimal?): BigDecimal? {
+        return baseTokenFiatRate?.times(BigDecimal(2))?.multiply(baseReserves)
+    }
 }

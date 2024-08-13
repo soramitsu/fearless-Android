@@ -23,11 +23,11 @@ data class UserPoolData(
 fun BasicPoolData.isFilterMatch(filter: String): Boolean {
     val t1 =
 //        targetToken?.token?.configuration?.name?.lowercase()?.contains(filter.lowercase()) == true ||
-        targetToken?.token?.configuration?.symbol?.lowercase()?.contains(filter.lowercase())  == true ||
-        targetToken?.token?.configuration?.currencyId?.lowercase()?.contains(filter.lowercase()) == true
+        targetToken?.symbol?.lowercase()?.contains(filter.lowercase())  == true ||
+        targetToken?.currencyId?.lowercase()?.contains(filter.lowercase()) == true
     val t2 =
 //        baseToken.token.configuration.name?.lowercase()?.contains(filter.lowercase()) == true ||
-        baseToken.token.configuration.symbol.lowercase().contains(filter.lowercase()) ||
-        baseToken.token.configuration.currencyId?.lowercase()?.contains(filter.lowercase()) == true
+        baseToken.symbol.lowercase().contains(filter.lowercase()) ||
+        baseToken.currencyId?.lowercase()?.contains(filter.lowercase()) == true
     return t1 || t2
 }

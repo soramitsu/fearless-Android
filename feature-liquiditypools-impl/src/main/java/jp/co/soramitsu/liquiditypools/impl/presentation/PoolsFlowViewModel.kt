@@ -1,9 +1,6 @@
 package jp.co.soramitsu.liquiditypools.impl.presentation
 
-import androidx.lifecycle.SavedStateHandle
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.math.BigDecimal
-import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.androidfoundation.format.StringPair
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -41,8 +38,8 @@ import jp.co.soramitsu.liquiditypools.navigation.InternalPoolsRouter
 import jp.co.soramitsu.liquiditypools.navigation.LiquidityPoolsNavGraphRoute
 import jp.co.soramitsu.liquiditypools.navigation.LiquidityPoolsRouter
 import jp.co.soramitsu.liquiditypools.navigation.NavAction
-import jp.co.soramitsu.polkaswap.api.domain.models.BasicPoolData
 import jp.co.soramitsu.polkaswap.api.domain.models.CommonPoolData
+import jp.co.soramitsu.wallet.impl.domain.model.Token
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -50,6 +47,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
+import javax.inject.Inject
 
 @HiltViewModel
 class PoolsFlowViewModel @Inject constructor(
@@ -81,7 +80,7 @@ class PoolsFlowViewModel @Inject constructor(
     }
 
     val allPoolsScreenState: StateFlow<AllPoolsState> =
-        allPoolsPresenter.createScreenStateFlow(coroutinesStore.uiScope)
+        allPoolsPresenter.createScreenStateFlow()
 
     val poolListScreenState: StateFlow<PoolListState> =
         poolListPresenter.createScreenStateFlow(coroutinesStore.uiScope)
@@ -119,7 +118,7 @@ class PoolsFlowViewModel @Inject constructor(
         internalPoolsRouter.openAllPoolsScreen()
 
         launch {
-            poolsInteractor.updatePools(poolsInteractor.poolsChainId)
+            poolsInteractor.syncPools(poolsInteractor.poolsChainId)
         }
     }
 
@@ -193,23 +192,23 @@ class PoolsFlowViewModel @Inject constructor(
     }
 }
 
-fun CommonPoolData.toListItemState(): BasicPoolListItemState? {
-    val tvl = basic.baseToken.token.fiatRate?.times(BigDecimal(2))
+fun CommonPoolData.toListItemState(baseToken: Token?): BasicPoolListItemState? {
+        val tvl = baseToken?.fiatRate?.times(BigDecimal(2))
         ?.multiply(basic.baseReserves)
-        ?.formatFiat(basic.baseToken.token.fiatSymbol).orEmpty()
+        ?.formatFiat(baseToken.fiatSymbol).orEmpty()
 
-    val baseTokenId = basic.baseToken.token.configuration.currencyId ?: return null
-    val targetTokenId = basic.targetToken?.token?.configuration?.currencyId ?: return null
+    val baseTokenId = basic.baseToken.currencyId ?: return null
+    val targetTokenId = basic.targetToken?.currencyId ?: return null
 
-    val baseSymbol = basic.baseToken.token.configuration.symbol
-    val targetSymbol = basic.targetToken?.token?.configuration?.symbol
+    val baseSymbol = basic.baseToken.symbol
+    val targetSymbol = basic.targetToken?.symbol
     val userPooledInfo = user?.let { "${it.basePooled.formatCrypto(baseSymbol)} - ${it.targetPooled.formatCrypto(targetSymbol)}" }
     val text2Color = if (user == null) white50 else user.let { greenText }
 
     return BasicPoolListItemState(
         ids = StringPair(baseTokenId, targetTokenId),
-        token1Icon = basic.baseToken.token.configuration.iconUrl,
-        token2Icon = basic.targetToken?.token?.configuration?.iconUrl.orEmpty(),
+        token1Icon = basic.baseToken.iconUrl,
+        token2Icon = basic.targetToken?.iconUrl.orEmpty(),
         text1 = "$baseSymbol-$targetSymbol".uppercase(),
         text2 = userPooledInfo ?: tvl,
         text2Color = text2Color,

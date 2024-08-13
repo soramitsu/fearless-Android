@@ -1,8 +1,5 @@
 package jp.co.soramitsu.liquiditypools.impl.presentation.liquidityremove
 
-import java.math.BigDecimal
-import java.math.RoundingMode
-import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.androidfoundation.format.isZero
 import jp.co.soramitsu.common.base.errors.ValidationException
@@ -31,10 +28,11 @@ import jp.co.soramitsu.polkaswap.impl.util.PolkaswapFormulas
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.wallet.api.domain.fromValidationResult
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
-import kotlin.math.min
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -46,6 +44,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
@@ -54,6 +53,10 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
+import java.math.RoundingMode
+import javax.inject.Inject
+import kotlin.math.min
 
 @OptIn(FlowPreview::class)
 class LiquidityRemovePresenter @Inject constructor(
@@ -104,33 +107,20 @@ class LiquidityRemovePresenter @Inject constructor(
         )
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val assetsInPoolFlow = screenArgsFlow.flatMapLatest { screenArgs ->
-        val ids = screenArgs.ids
+    private val baseToTargetTokensFlow = screenArgsFlow.mapNotNull { screenArgs ->
+        val currencyIds = screenArgs.ids
         val chainId = poolsInteractor.poolsChainId
-        println("!!! assetsInPoolFlow ids = $ids")
-        val assetsFlow = walletInteractor.assetsFlow().mapNotNull {
-            val firstInPair = it.firstOrNull {
-                it.asset.token.configuration.currencyId == ids.first
-                        && it.asset.token.configuration.chainId == chainId
-            }
-            val secondInPair = it.firstOrNull {
-                it.asset.token.configuration.currencyId == ids.second
-                        && it.asset.token.configuration.chainId == chainId
-            }
 
-            println("!!! assetsInPoolFlow result% $firstInPair; $secondInPair")
-            if (firstInPair == null || secondInPair == null) {
-                return@mapNotNull null
-            } else {
-                firstInPair to secondInPair
-            }
+        val chain = chainsRepository.getChain(chainId)
+        val first = chain.assets.find { it.currencyId == currencyIds.first } ?: return@mapNotNull null
+        val second = chain.assets.find { it.currencyId == currencyIds.second } ?: return@mapNotNull null
+
+        coroutineScope {
+            val baseTokenDeferred = async { walletInteractor.getToken(first) }
+            val targetTokenDeferred = async { walletInteractor.getToken(second) }
+
+            baseTokenDeferred.await() to targetTokenDeferred.await()
         }
-        assetsFlow
-    }.distinctUntilChanged()
-
-    private val tokensInPoolFlow = assetsInPoolFlow.map {
-        it.first.asset.token.configuration to it.second.asset.token.configuration
     }.distinctUntilChanged()
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -183,17 +173,17 @@ class LiquidityRemovePresenter @Inject constructor(
                                     basePooled = PolkaswapFormulas.calculateAmountByPercentage(
                                         poolDataLocal.user.basePooled,
                                         usablePercent,
-                                        poolDataLocal.basic.baseToken.token.configuration.precision,
+                                        poolDataLocal.basic.baseToken.precision,
                                     ),
                                     targetPooled = PolkaswapFormulas.calculateAmountByPercentage(
                                         poolDataLocal.user.targetPooled,
                                         usablePercent,
-                                        poolDataLocal.basic.baseToken.token.configuration.precision,
+                                        poolDataLocal.basic.baseToken.precision,
                                     ),
                                     poolProvidersBalance = PolkaswapFormulas.calculateAmountByPercentage(
                                         poolDataLocal.user.poolProvidersBalance,
                                         usablePercent,
-                                        poolDataLocal.basic.baseToken.token.configuration.precision,
+                                        poolDataLocal.basic.baseToken.precision,
                                     ),
                                 )
                             )
@@ -214,13 +204,13 @@ class LiquidityRemovePresenter @Inject constructor(
                         if (poolDataLocal != null) PolkaswapFormulas.calculateAmountByPercentage(
                             poolDataLocal.user.basePooled,
                             percent,
-                            poolDataLocal.basic.baseToken.token.configuration.precision,
+                            poolDataLocal.basic.baseToken.precision,
                         ) else BigDecimal.ZERO
                     amountTarget =
                         if (poolDataLocal != null) PolkaswapFormulas.calculateAmountByPercentage(
                             poolDataLocal.user.targetPooled,
                             percent,
-                            poolDataLocal.basic.targetToken?.token?.configuration?.precision!!,
+                            poolDataLocal.basic.targetToken?.precision!!,
                         ) else BigDecimal.ZERO
 
                     coroutinesStore.ioScope.launch {
@@ -232,17 +222,16 @@ class LiquidityRemovePresenter @Inject constructor(
 
     @OptIn(FlowPreview::class)
     private fun subscribeState(coroutineScope: CoroutineScope) {
-        poolDataFlow.onEach {
-            val baseToken = it.basic.baseToken.token
-            val targetToken = it.basic.targetToken?.token
+        poolDataFlow.onEach { pool ->
+            val (baseToken, targetToken) = baseToTargetTokensFlow.first()
 
-            val pooledBaseCrypto = it.user?.basePooled?.formatCrypto(baseToken.configuration.symbol).orEmpty()
-            val pooledBaseFiat = it.user?.basePooled?.applyFiatRate(baseToken.fiatRate)?.formatFiat(baseToken.fiatSymbol)
+            val pooledBaseCrypto = pool.user?.basePooled?.formatCrypto(baseToken.configuration.symbol).orEmpty()
+            val pooledBaseFiat = pool.user?.basePooled?.applyFiatRate(baseToken.fiatRate)?.formatFiat(baseToken.fiatSymbol)
             val argsBase = pooledBaseCrypto + pooledBaseFiat?.let { " ($it)" }.orEmpty()
             val pooledBaseBalance = resourceManager.getString(R.string.common_available_format, argsBase)
 
-            val pooledTargetCrypto = it.user?.targetPooled?.formatCrypto(targetToken?.configuration?.symbol).orEmpty()
-            val pooledTargetFiat = it.user?.targetPooled?.applyFiatRate(targetToken?.fiatRate)?.formatFiat(targetToken?.fiatSymbol)
+            val pooledTargetCrypto = pool.user?.targetPooled?.formatCrypto(targetToken.configuration.symbol).orEmpty()
+            val pooledTargetFiat = pool.user?.targetPooled?.applyFiatRate(targetToken.fiatRate)?.formatFiat(targetToken.fiatSymbol)
             val argsTarget = pooledTargetCrypto + pooledTargetFiat?.let { " ($it)" }.orEmpty()
             val pooledTargetBalance = resourceManager.getString(R.string.common_available_format, argsTarget)
 
@@ -253,8 +242,8 @@ class LiquidityRemovePresenter @Inject constructor(
                     totalBalance = pooledBaseBalance,
                 ),
                 targetAmountInputViewState = stateFlow.value.targetAmountInputViewState.copy(
-                    tokenName = targetToken?.configuration?.symbol,
-                    tokenImage = targetToken?.configuration?.iconUrl,
+                    tokenName = targetToken.configuration.symbol,
+                    tokenImage = targetToken.configuration.iconUrl,
                     totalBalance = pooledTargetBalance,
                 )
             )
@@ -268,10 +257,11 @@ class LiquidityRemovePresenter @Inject constructor(
         }.launchIn(coroutineScope)
 
         enteredBaseAmountFlow.onEach {
-            val baseToken = assetsInPoolFlow.firstOrNull()?.first?.asset?.token
+            val (baseToken, _) = baseToTargetTokensFlow.first()
+
             stateFlow.value = stateFlow.value.copy(
                 baseAmountInputViewState = stateFlow.value.baseAmountInputViewState.copy(
-                    fiatAmount = it.applyFiatRate(baseToken?.fiatRate)?.formatFiat(baseToken?.fiatSymbol),
+                    fiatAmount = it.applyFiatRate(baseToken.fiatRate)?.formatFiat(baseToken.fiatSymbol),
                     tokenAmount = it,
                 )
             )
@@ -281,7 +271,7 @@ class LiquidityRemovePresenter @Inject constructor(
                 poolDataUsable?.let {
                     amountBase = if (it.user.basePooled <= amount) amount else it.user.basePooled
 
-                    val precisionTo = poolDataFlow.firstOrNull()?.basic?.targetToken?.token?.configuration?.precision
+                    val precisionTo = poolDataFlow.firstOrNull()?.basic?.targetToken?.precision
                     amountTarget = PolkaswapFormulas.calculateOneAmountFromAnother(
                         amountBase,
                         it.user.basePooled,
@@ -301,11 +291,11 @@ class LiquidityRemovePresenter @Inject constructor(
 
         enteredTargetAmountFlow.onEach {
             println("!!! enteredToAmountFlow.onEach = $it")
+            val (_, targetToken) = baseToTargetTokensFlow.first()
 
-            val targetToken = assetsInPoolFlow.firstOrNull()?.second?.asset?.token
             stateFlow.value = stateFlow.value.copy(
                 targetAmountInputViewState = stateFlow.value.targetAmountInputViewState.copy(
-                    fiatAmount = it.applyFiatRate(targetToken?.fiatRate)?.formatFiat(targetToken?.fiatSymbol),
+                    fiatAmount = it.applyFiatRate(targetToken.fiatRate)?.formatFiat(targetToken.fiatSymbol),
                     tokenAmount = it
                 ),
             )
@@ -316,7 +306,7 @@ class LiquidityRemovePresenter @Inject constructor(
                 poolDataUsable?.let {
                     amountTarget = if (amount <= it.user.targetPooled) amount else it.user.targetPooled
 
-                    val precisionBase = poolDataFlow.firstOrNull()?.basic?.baseToken?.token?.configuration?.precision
+                    val precisionBase = poolDataFlow.firstOrNull()?.basic?.baseToken?.precision
                     amountBase = PolkaswapFormulas.calculateOneAmountFromAnother(
                         amountTarget,
                         it.user.targetPooled,
@@ -367,7 +357,7 @@ class LiquidityRemovePresenter @Inject constructor(
     }
 
     private suspend fun updateAmounts() {
-        assetsInPoolFlow.firstOrNull()?.let { (assetBase, assetTarget) ->
+        baseToTargetTokensFlow.firstOrNull()?.let { (tokenBase, tokenTarget) ->
             if (amountBase.compareTo(stateFlow.value.baseAmountInputViewState.tokenAmount) != 0) {
                 println("!!! updateAmounts amountFrom to $amountBase")
 
@@ -382,7 +372,7 @@ class LiquidityRemovePresenter @Inject constructor(
                 stateFlow.value = stateFlow.value.copy(
                     baseAmountInputViewState = stateFlow.value.baseAmountInputViewState.copy(
                         tokenAmount = scaledAmountBase,
-                        fiatAmount = amountBase.applyFiatRate(assetBase.asset.token.fiatRate)?.formatFiat(assetBase.asset.token.fiatSymbol),
+                        fiatAmount = amountBase.applyFiatRate(tokenBase.fiatRate)?.formatFiat(tokenTarget.fiatSymbol),
                     )
                 )
             }
@@ -398,7 +388,7 @@ class LiquidityRemovePresenter @Inject constructor(
                 stateFlow.value = stateFlow.value.copy(
                     targetAmountInputViewState = stateFlow.value.targetAmountInputViewState.copy(
                         tokenAmount = scaledAmountTarget,
-                        fiatAmount = amountTarget.applyFiatRate(assetTarget.asset.token.fiatRate)?.formatFiat(assetTarget.asset.token.fiatSymbol),
+                        fiatAmount = amountTarget.applyFiatRate(tokenTarget.fiatRate)?.formatFiat(tokenTarget.fiatSymbol),
                     )
                 )
             }
@@ -414,10 +404,10 @@ class LiquidityRemovePresenter @Inject constructor(
         )
     }
 
-    private val networkFeeFlow = tokensInPoolFlow.map { (baseAsset, targetAsset) ->
+    private val networkFeeFlow = baseToTargetTokensFlow.map { (baseToken, targetToken) ->
         val networkFee = getRemoveLiquidityNetworkFee(
-            tokenBase = baseAsset,
-            tokenTarget = targetAsset,
+            tokenBase = baseToken.configuration,
+            tokenTarget = targetToken.configuration,
         )
         println("!!!! RemoveLiquidity FeeFlow emit $networkFee")
         networkFee
@@ -474,7 +464,7 @@ class LiquidityRemovePresenter @Inject constructor(
             val utilityAmount = utilityAssetFlow.firstOrNull()?.transferable ?: return@launch
             val feeAmount = networkFeeFlow.firstOrNull().orZero()
 
-            val poolAssets = assetsInPoolFlow.firstOrNull() ?: return@launch
+            val poolAssets = baseToTargetTokensFlow.first()
 
             val userBasePooled = poolDataReal?.user?.basePooled ?: return@launch
             val userTargetPooled = poolDataReal?.user?.targetPooled ?: return@launch
@@ -518,7 +508,7 @@ class LiquidityRemovePresenter @Inject constructor(
                     PolkaswapFormulas.calculateAmountByPercentage(
                         poolDataUsable?.user?.poolProvidersBalance.orZero(),
                         percent,
-                        poolAssets.first.asset.token.configuration.precision
+                        poolAssets.first.configuration.precision
                     )
                 }
 
