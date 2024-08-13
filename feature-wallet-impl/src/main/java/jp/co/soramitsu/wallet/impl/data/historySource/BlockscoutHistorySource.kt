@@ -15,7 +15,7 @@ import jp.co.soramitsu.wallet.impl.domain.interfaces.TransactionFilter
 import jp.co.soramitsu.wallet.impl.domain.model.Operation
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
 
-class ZetaHistorySource(
+class BlockscoutHistorySource(
     private val walletOperationsApi: OperationsHistoryApi,
     private val historyUrl: String
 ) : HistorySource {
@@ -30,7 +30,7 @@ class ZetaHistorySource(
     ): CursorPage<Operation> {
         val responseResult =
             runCatching {
-                val zetaUrl = StringBuilder(historyUrl).append(accountId.toHexString(true)).apply {
+                val urlBuilder = StringBuilder(historyUrl).append("addresses/").append(accountId.toHexString(true)).apply {
                     when (chainAsset.ethereumType) {
                         Asset.EthereumType.NORMAL -> {
                             this.append("/transactions").toString()
@@ -42,7 +42,7 @@ class ZetaHistorySource(
                 }
 
                 walletOperationsApi.getZetaOperationsHistory(
-                    url = zetaUrl.toString()
+                    url = urlBuilder.toString()
                 )
             }
 

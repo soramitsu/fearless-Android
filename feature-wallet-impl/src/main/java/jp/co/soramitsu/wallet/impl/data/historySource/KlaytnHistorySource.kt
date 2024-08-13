@@ -25,9 +25,9 @@ class KlaytnHistorySource(
         val responseResult =
             runCatching {
                 val urlBuilder = StringBuilder(historyUrl)
-                    .append("accounts")
+                    .append("accounts/")
                     .append(accountAddress)
-                    .append("txs")
+                    .append("/txs")
 
                 walletOperationsApi.getKlaytnOperationsHistory(
                     url = urlBuilder.toString(),
