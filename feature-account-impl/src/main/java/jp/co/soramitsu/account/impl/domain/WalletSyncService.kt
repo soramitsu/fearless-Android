@@ -1,7 +1,6 @@
 package jp.co.soramitsu.account.impl.domain
 
 import android.util.Log
-import java.math.BigInteger
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.accountId
 import jp.co.soramitsu.account.impl.data.mappers.mapMetaAccountLocalToMetaAccount
@@ -9,6 +8,7 @@ import jp.co.soramitsu.account.impl.data.mappers.toLocal
 import jp.co.soramitsu.common.data.network.nomis.NomisApi
 import jp.co.soramitsu.common.data.network.runtime.binding.AssetBalance
 import jp.co.soramitsu.common.data.network.runtime.binding.toAssetBalance
+import jp.co.soramitsu.common.utils.ethereumAddressFromPublicKey
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.positiveOrNull
 import jp.co.soramitsu.core.models.ChainAssetType
@@ -18,10 +18,13 @@ import jp.co.soramitsu.coredb.dao.MetaAccountDao
 import jp.co.soramitsu.coredb.dao.NomisScoresDao
 import jp.co.soramitsu.coredb.model.AssetLocal
 import jp.co.soramitsu.coredb.model.NomisWalletScoreLocal
-import jp.co.soramitsu.coredb.model.chain.MetaAccountLocal
+import jp.co.soramitsu.coredb.model.chain.RelationJoinedMetaAccountInfo
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.BSCChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ethereumChainId
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.polygonChainId
 import jp.co.soramitsu.runtime.multiNetwork.connection.EvmConnectionStatus
 import jp.co.soramitsu.runtime.storage.source.RemoteStorageSource
 import jp.co.soramitsu.shared_utils.extensions.toHexString
@@ -47,6 +50,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
+import java.math.BigInteger
 
 private const val TAG = "WalletSyncService"
 class WalletSyncService(
@@ -549,9 +553,15 @@ class WalletSyncService(
 
     private fun observeNomisScores() {
         var syncJob: Job? = null
-        metaAccountDao.metaAccountsFlow()
-            .distinctUntilChangedBy { it.size }
-            .map { accounts ->
+        val supportedChains = setOf(
+            ethereumChainId,
+            BSCChainId,
+            polygonChainId,
+        )
+
+        metaAccountDao.observeJoinedMetaAccountsInfo()
+            .distinctUntilChangedBy { it.size + it.map { info -> info.chainAccounts }.flatten().size }
+            .map { metaAccountInfo ->
                 val existingScores = nomisScoresDao.getScores()
                 val currentTime = System.currentTimeMillis()
                 val twelveHoursMillis = 12 * 60 * 60 * 1000L
@@ -559,14 +569,14 @@ class WalletSyncService(
                     existingScores.filter { currentTime - it.updated > twelveHoursMillis }
                         .map { it.metaId }
 
-                val metaAccounts = accounts.asSequence()
-                    .filter { it.ethereumAddress != null }
+                val metaAccounts = metaAccountInfo.asSequence()
+                    .filter { info -> info.metaAccount.ethereumAddress != null || info.chainAccounts.any { it.chainId in supportedChains } }
 
                 val newAccounts =
-                    metaAccounts.filter { it.id !in existingScores.map { score -> score.metaId } }
+                    metaAccounts.filter { it.metaAccount.id !in existingScores.map { score -> score.metaId } }
 
-                val accountsToUpdate = accounts.asSequence()
-                    .filter { it.id in existingScoresToUpdate }
+                val accountsToUpdate = metaAccountInfo.asSequence()
+                    .filter { it.metaAccount.id in existingScoresToUpdate }
 
                 (newAccounts + accountsToUpdate).toSet()
             }
@@ -579,17 +589,24 @@ class WalletSyncService(
             .launchIn(nomisUpdateScope)
     }
 
-    private suspend fun syncNomisScores(vararg metaAccount: MetaAccountLocal) {
+    private suspend fun syncNomisScores(vararg metaAccount: RelationJoinedMetaAccountInfo) {
         return coroutineScope {
-            metaAccount.onEach { account ->
+            val supportedChains = setOf(
+                ethereumChainId,
+                BSCChainId,
+                polygonChainId,
+            )
+            metaAccount.onEach { accountInfo ->
                 launch {
-                    nomisScoresDao.insert(NomisWalletScoreLocal.loading(account.id))
+                    val id = accountInfo.metaAccount.id
+                    nomisScoresDao.insert(NomisWalletScoreLocal.loading(id))
                     runCatching {
-                        nomisApi.getNomisScore(account.ethereumAddress!!.toHexString(true))
+                        val address = accountInfo.metaAccount.ethereumAddress ?: accountInfo.chainAccounts.firstOrNull { it.chainId in supportedChains }?.publicKey?.ethereumAddressFromPublicKey()
+                        nomisApi.getNomisScore(address!!.toHexString(true))
                     }.onSuccess { response ->
-                        nomisScoresDao.insert(response.toLocal(account.id))
+                        nomisScoresDao.insert(response.toLocal(id))
                     }.onFailure {
-                        nomisScoresDao.insert(NomisWalletScoreLocal.error(account.id))
+                        nomisScoresDao.insert(NomisWalletScoreLocal.error(id))
                     }
                 }
             }

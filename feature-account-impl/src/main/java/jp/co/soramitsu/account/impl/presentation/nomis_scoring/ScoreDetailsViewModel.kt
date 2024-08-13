@@ -3,10 +3,6 @@ package jp.co.soramitsu.account.impl.presentation.nomis_scoring
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
-import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.NomisScoreInteractor
 import jp.co.soramitsu.account.api.domain.model.NomisScoreData
@@ -23,6 +19,10 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import javax.inject.Inject
 
 @HiltViewModel
 class ScoreDetailsViewModel @Inject constructor(
@@ -84,10 +84,10 @@ class ScoreDetailsViewModel @Inject constructor(
 
         viewModelScope.launch {
             val metaAccount = accountInteractor.getMetaAccount(metaAccountId)
-            val address = metaAccount.ethereumAddress?.toHexString(withPrefix = true)
+            val address = (metaAccount.ethereumAddress ?: metaAccount.chainAccounts.values.firstOrNull { it.chain?.isEthereumChain == true || it.chain?.isEthereumBased == true}?.publicKey)?.toHexString(withPrefix = true)
             if (address != null) {
                 rawAddress.value = address
-                state.update { prevState -> prevState.copy(address = "${metaAccount.name} $address") }
+                state.update { prevState -> prevState.copy(address = address) }
             } else {
                 state.update { prevState -> prevState.copy(info = ScoreDetailsViewState.Error) }
             }
