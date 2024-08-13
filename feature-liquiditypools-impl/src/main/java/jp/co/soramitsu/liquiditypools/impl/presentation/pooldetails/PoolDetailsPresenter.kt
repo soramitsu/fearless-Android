@@ -1,6 +1,5 @@
 package jp.co.soramitsu.liquiditypools.impl.presentation.pooldetails
 
-import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.androidfoundation.format.StringPair
@@ -16,6 +15,7 @@ import jp.co.soramitsu.polkaswap.api.domain.models.CommonPoolData
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.shared_utils.extensions.fromHex
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
+import jp.co.soramitsu.wallet.impl.domain.model.Token
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -28,6 +28,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 class PoolDetailsPresenter @Inject constructor(
     private val coroutinesStore: CoroutinesStore,
@@ -56,9 +57,10 @@ class PoolDetailsPresenter @Inject constructor(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private fun subscribeState(coroutineScope: CoroutineScope) {
-        screenArgsFlow.flatMapLatest {
-            observePoolDetails(it.ids).onEach {
-                stateFlow.value = it.mapToState()
+        screenArgsFlow.flatMapLatest { args ->
+            observePoolDetails(args.ids).onEach { pool ->
+                val token = walletInteractor.getToken(pool.basic.baseToken)
+                stateFlow.value = pool.mapToState(token)
             }
 //            requestPoolDetails(it.ids)?.let {
 //                stateFlow.value = it
@@ -113,15 +115,16 @@ class PoolDetailsPresenter @Inject constructor(
     }
 }
 
-private fun CommonPoolData.mapToState(): PoolDetailsState {
+private fun CommonPoolData.mapToState(token: Token): PoolDetailsState {
+    val tvl = basic.getTvl(token.fiatRate)
     return PoolDetailsState(
-        assetBase = basic.baseToken.token.configuration,
-        assetTarget = basic.targetToken?.token?.configuration,
-        pooledBaseAmount = user?.basePooled?.formatCrypto(basic.baseToken.token.configuration.symbol).orEmpty(),
-        pooledBaseFiat = user?.basePooled?.applyFiatRate(basic.baseToken.token.fiatRate)?.formatFiat(basic.baseToken.token.fiatSymbol).orEmpty(),
-        pooledTargetAmount = user?.targetPooled?.formatCrypto(basic.targetToken?.token?.configuration?.symbol).orEmpty(),
-        pooledTargetFiat = user?.targetPooled?.applyFiatRate(basic.targetToken?.token?.fiatRate)?.formatFiat(basic.targetToken?.token?.fiatSymbol).orEmpty(),
-        tvl = basic.tvl?.formatFiat(basic.baseToken.token.fiatSymbol),
+        assetBase = basic.baseToken,
+        assetTarget = basic.targetToken,
+        pooledBaseAmount = user?.basePooled?.formatCrypto(basic.baseToken.symbol).orEmpty(),
+        pooledBaseFiat = user?.basePooled?.applyFiatRate(token.fiatRate)?.formatFiat(token.fiatSymbol).orEmpty(),
+        pooledTargetAmount = user?.targetPooled?.formatCrypto(basic.targetToken?.symbol).orEmpty(),
+        pooledTargetFiat = user?.targetPooled?.applyFiatRate(token.fiatRate)?.formatFiat(token.fiatSymbol).orEmpty(),
+        tvl = tvl?.formatFiat(token.fiatSymbol),
         apy = "${basic.sbapy?.toBigDecimal()?.formatPercent()}%"
     )
 }

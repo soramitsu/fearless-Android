@@ -1,6 +1,5 @@
 package jp.co.soramitsu.liquiditypools.impl.domain
 
-import java.math.BigDecimal
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.common.data.secrets.v1.Keypair
@@ -14,19 +13,29 @@ import jp.co.soramitsu.liquiditypools.domain.interfaces.PoolsInteractor
 import jp.co.soramitsu.polkaswap.api.data.PoolDataDto
 import jp.co.soramitsu.polkaswap.api.domain.models.BasicPoolData
 import jp.co.soramitsu.polkaswap.api.domain.models.CommonPoolData
+import jp.co.soramitsu.polkaswap.api.sorablockexplorer.BlockExplorerManager
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.supervisorScope
+import kotlinx.coroutines.withContext
+import java.math.BigDecimal
+import kotlin.coroutines.CoroutineContext
 
 class PoolsInteractorImpl(
     private val poolsRepository: PoolsRepository,
     private val accountRepository: AccountRepository,
     private val chainRegistry: ChainRegistry,
     private val keypairProvider: KeypairProvider,
+    private val blockExplorerManager: BlockExplorerManager,
+    private val coroutineContext: CoroutineContext = Dispatchers.Default
 ) : PoolsInteractor {
 
     override val poolsChainId = poolsRepository.poolsChainId
@@ -40,7 +49,7 @@ class PoolsInteractorImpl(
 //    }
 
     override fun subscribePoolsCacheOfAccount(address: String): Flow<List<CommonPoolData>> {
-        return poolsRepository.subscribePools(address)
+        return poolsRepository.subscribePools(address).flowOn(coroutineContext)
     }
 
     private val soraPoolsAddressFlow = flowOf {
@@ -224,10 +233,14 @@ class PoolsInteractorImpl(
         return status?.getOrNull() ?: ""
     }
 
-    override suspend fun updatePools(chainId: ChainId) {
+    override suspend fun syncPools(chainId: ChainId): Unit = withContext(Dispatchers.Default) {
         val address = accountRepository.getSelectedAccount(chainId).address
-        poolsRepository.updateAccountPools(chainId, address)
+        supervisorScope {
+            launch { blockExplorerManager.updatePoolsSbApy() }
 
-        poolsRepository.updateBasicPools(chainId)
+            launch { poolsRepository.updateAccountPools(chainId, address) }
+
+            launch { poolsRepository.updateBasicPools(chainId) }
+        }
     }
 }

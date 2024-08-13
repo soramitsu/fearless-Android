@@ -1,6 +1,5 @@
 package jp.co.soramitsu.liquiditypools.impl.presentation.poollist
 
-import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.androidfoundation.format.StringPair
 import jp.co.soramitsu.androidfoundation.format.compareNullDesc
@@ -13,6 +12,9 @@ import jp.co.soramitsu.polkaswap.api.domain.models.isFilterMatch
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -20,9 +22,9 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
+import javax.inject.Inject
 
 class PoolListPresenter @Inject constructor(
     private val coroutinesStore: CoroutinesStore,
@@ -42,24 +44,31 @@ class PoolListPresenter @Inject constructor(
         }
         .shareIn(coroutinesStore.uiScope, SharingStarted.Lazily, 1)
 
-    val pools = screenArgsFlow.flatMapLatest { screenArgs ->
+    private val pools = screenArgsFlow.flatMapLatest { screenArgs ->
         combine(
             poolsInteractor.subscribePoolsCacheCurrentAccount(),
             enteredAssetQueryFlow
         ) { pools, query ->
-            pools.filter {
-                if (screenArgs.isUserPools) {
-                    it.user != null
-                } else {
-                    true
-                }
-            }.filter {
-                it.basic.isFilterMatch(query)
-            }.sortedWith { o1, o2 ->
-                compareNullDesc(o1.basic.tvl, o2.basic.tvl)
+            coroutineScope {
+
+                val tokensDeferred =
+                    pools.map { async { walletInteractor.getToken(it.basic.baseToken) } }
+                val tokensMap = tokensDeferred.awaitAll().associateBy { it.configuration.id }
+
+                pools.filter {
+                    if (screenArgs.isUserPools) {
+                        it.user != null
+                    } else {
+                        true
+                    }
+                }.filter {
+                    it.basic.isFilterMatch(query)
+                }.sortedWith { current, next ->
+                    val currentTvl = current.basic.getTvl(tokensMap[current.basic.baseToken.id]?.fiatRate)
+                    val nextTvl = next.basic.getTvl(tokensMap[next.basic.baseToken.id]?.fiatRate)
+                    compareNullDesc(currentTvl, nextTvl)
+                }.mapNotNull { it.toListItemState(tokensMap[it.basic.baseToken.id]) }
             }
-        }.map {
-            it.mapNotNull{ it.toListItemState() }
         }
     }
 

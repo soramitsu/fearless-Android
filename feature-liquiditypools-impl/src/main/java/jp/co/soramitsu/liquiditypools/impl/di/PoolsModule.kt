@@ -4,8 +4,6 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import javax.inject.Named
-import javax.inject.Singleton
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
 import jp.co.soramitsu.core.extrinsic.ExtrinsicService
@@ -22,14 +20,11 @@ import jp.co.soramitsu.liquiditypools.impl.domain.DemeterFarmingInteractorImpl
 import jp.co.soramitsu.liquiditypools.impl.domain.PoolsInteractorImpl
 import jp.co.soramitsu.liquiditypools.impl.navigation.InternalPoolsRouterImpl
 import jp.co.soramitsu.liquiditypools.navigation.InternalPoolsRouter
-import jp.co.soramitsu.polkaswap.api.data.PolkaswapRepository
-import jp.co.soramitsu.polkaswap.api.domain.PolkaswapInteractor
 import jp.co.soramitsu.polkaswap.api.sorablockexplorer.BlockExplorerManager
-import jp.co.soramitsu.runtime.di.REMOTE_STORAGE_SOURCE
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
-import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
+import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -41,9 +36,10 @@ class PoolsModule {
         poolsRepository: PoolsRepository,
         accountRepository: AccountRepository,
         chainRegistry: ChainRegistry,
-        keypairProvider: KeypairProvider
+        keypairProvider: KeypairProvider,
+        blockExplorerManager: BlockExplorerManager
     ): PoolsInteractor =
-        PoolsInteractorImpl(poolsRepository, accountRepository, chainRegistry, keypairProvider)
+        PoolsInteractorImpl(poolsRepository, accountRepository, chainRegistry, keypairProvider, blockExplorerManager)
 
     @Provides
     @Singleton

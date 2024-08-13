@@ -1,12 +1,12 @@
 package jp.co.soramitsu.liquiditypools.domain.interfaces
 
-import java.math.BigDecimal
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.polkaswap.api.data.PoolDataDto
 import jp.co.soramitsu.polkaswap.api.domain.models.BasicPoolData
 import jp.co.soramitsu.polkaswap.api.domain.models.CommonPoolData
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.coroutines.flow.Flow
+import java.math.BigDecimal
 
 interface PoolsInteractor {
     val poolsChainId: String
@@ -66,7 +66,7 @@ interface PoolsInteractor {
         slippageTolerance: Double
     ): String
 
-    suspend fun updatePools(chainId: ChainId)
+    suspend fun syncPools(chainId: ChainId)
 
     suspend fun observeRemoveLiquidity(
         chainId: ChainId,
