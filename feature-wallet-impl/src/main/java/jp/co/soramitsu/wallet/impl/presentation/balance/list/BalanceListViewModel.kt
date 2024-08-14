@@ -594,6 +594,10 @@ class BalanceListViewModel @Inject constructor(
             selectedChainId.value = chainId
         }.launchIn(this)
 
+        selectedChainId.onEach { chainId ->
+            BalanceUpdateTrigger.invoke(chainId = chainId)
+        }.launchIn(this)
+
         interactor.selectedLightMetaAccountFlow().map { wallet ->
             if (pendulumPreInstalledAccountsScenario.isPendulumMode(wallet.id)) {
                 selectedChainId.value = pendulumChainId
@@ -608,7 +612,7 @@ class BalanceListViewModel @Inject constructor(
     }
 
     override fun onRefresh() {
-        refresh()
+        sync()
         viewModelScope.launch {
             BalanceUpdateTrigger.invoke()
         }
@@ -628,10 +632,6 @@ class BalanceListViewModel @Inject constructor(
                 networkIssueStateFlow.update { it?.copy(retryButtonLoading = false) }
             }
         }
-    }
-
-    private fun refresh() {
-        sync()
     }
 
     fun onResume() {
