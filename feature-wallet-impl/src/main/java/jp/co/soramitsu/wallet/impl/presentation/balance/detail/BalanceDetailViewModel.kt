@@ -204,6 +204,10 @@ class BalanceDetailViewModel @Inject constructor(
             chainId?.let { selectedChainId.value = chainId }
         }.launchIn(viewModelScope)
 
+        selectedChainId.onEach { chainId ->
+            BalanceUpdateTrigger.invoke(chainId = chainId)
+        }.launchIn(viewModelScope)
+
         transactionHistoryProvider.sideEffects().onEach {
             when (it) {
                 is TransactionHistoryUi.SideEffect.Error -> showError(
