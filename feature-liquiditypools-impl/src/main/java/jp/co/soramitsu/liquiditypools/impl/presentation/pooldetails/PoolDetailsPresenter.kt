@@ -27,6 +27,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -43,11 +44,6 @@ class PoolDetailsPresenter @Inject constructor(
         .filterIsInstance<LiquidityPoolsNavGraphRoute.PoolDetailsScreen>()
         .shareIn(coroutinesStore.uiScope, SharingStarted.Eagerly, 1)
 
-
-    init {
-
-    }
-
     private val stateFlow = MutableStateFlow(PoolDetailsState())
 
     fun createScreenStateFlow(coroutineScope: CoroutineScope): StateFlow<PoolDetailsState> {
@@ -62,9 +58,11 @@ class PoolDetailsPresenter @Inject constructor(
                 val token = walletInteractor.getToken(pool.basic.baseToken)
                 stateFlow.value = pool.mapToState(token)
             }
-//            requestPoolDetails(it.ids)?.let {
-//                stateFlow.value = it
-//            }
+        }.onEach {
+            val apy = poolsInteractor.getSbApy(it.basic.reserveAccount)
+            stateFlow.update { prevState ->
+                prevState.copy(apy = "${apy?.toBigDecimal()?.formatPercent()}%")
+            }
         }.launchIn(coroutineScope)
     }
 
@@ -125,6 +123,6 @@ private fun CommonPoolData.mapToState(token: Token): PoolDetailsState {
         pooledTargetAmount = user?.targetPooled?.formatCrypto(basic.targetToken?.symbol).orEmpty(),
         pooledTargetFiat = user?.targetPooled?.applyFiatRate(token.fiatRate)?.formatFiat(token.fiatSymbol).orEmpty(),
         tvl = tvl?.formatFiat(token.fiatSymbol),
-        apy = "${basic.sbapy?.toBigDecimal()?.formatPercent()}%"
+        apy = null//"${basic.sbapy?.toBigDecimal()?.formatPercent()}%"
     )
 }

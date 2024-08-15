@@ -18,6 +18,7 @@ import jp.co.soramitsu.androidfoundation.format.StringPair
 import jp.co.soramitsu.common.compose.component.CorneredInput
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.theme.white04
+import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.liquiditypools.impl.presentation.allpools.BasicPoolListItem
 import jp.co.soramitsu.liquiditypools.impl.presentation.allpools.BasicPoolListItemState
@@ -86,14 +87,14 @@ private fun PreviewPoolListScreen() {
         token2Icon = "DEFAULT_ICON_URI",
         text1 = "XOR-VAL",
         text2 = "123.4M",
-        text3 = "1234.3%",
+        apy = LoadingState.Loaded("1234.3%"),
         text4 = "Earn SWAP",
     )
 
     val items = listOf(
         itemState,
-        itemState.copy(text1 = "TEXT1", text2 = "TEXT2", text3 = "TEXT3", text4 = "TEXT4"),
-        itemState.copy(text1 = "text1", text2 = "text2", text3 = "text3", text4 = "text4"),
+        itemState.copy(text1 = "TEXT1", text2 = "TEXT2", apy = LoadingState.Loaded("TEXT3"), text4 = "TEXT4"),
+        itemState.copy(text1 = "text1", text2 = "text2", apy = LoadingState.Loaded("text3"), text4 = "text4"),
     )
     PoolListScreen(
         state = PoolListState(

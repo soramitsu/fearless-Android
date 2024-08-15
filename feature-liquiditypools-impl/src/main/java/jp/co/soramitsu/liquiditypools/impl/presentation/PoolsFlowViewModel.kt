@@ -80,7 +80,7 @@ class PoolsFlowViewModel @Inject constructor(
     }
 
     val allPoolsScreenState: StateFlow<AllPoolsState> =
-        allPoolsPresenter.createScreenStateFlow()
+        allPoolsPresenter.createScreenStateFlow(coroutinesStore.uiScope)
 
     val poolListScreenState: StateFlow<PoolListState> =
         poolListPresenter.createScreenStateFlow(coroutinesStore.uiScope)
@@ -193,7 +193,7 @@ class PoolsFlowViewModel @Inject constructor(
 }
 
 fun CommonPoolData.toListItemState(baseToken: Token?): BasicPoolListItemState? {
-        val tvl = baseToken?.fiatRate?.times(BigDecimal(2))
+    val tvl = baseToken?.fiatRate?.times(BigDecimal(2))
         ?.multiply(basic.baseReserves)
         ?.formatFiat(baseToken.fiatSymbol).orEmpty()
 
@@ -202,7 +202,11 @@ fun CommonPoolData.toListItemState(baseToken: Token?): BasicPoolListItemState? {
 
     val baseSymbol = basic.baseToken.symbol
     val targetSymbol = basic.targetToken?.symbol
-    val userPooledInfo = user?.let { "${it.basePooled.formatCrypto(baseSymbol)} - ${it.targetPooled.formatCrypto(targetSymbol)}" }
+    val userPooledInfo = user?.let {
+        "${it.basePooled.formatCrypto(baseSymbol)} - ${
+            it.targetPooled.formatCrypto(targetSymbol)
+        }"
+    }
     val text2Color = if (user == null) white50 else user.let { greenText }
 
     return BasicPoolListItemState(
@@ -212,9 +216,7 @@ fun CommonPoolData.toListItemState(baseToken: Token?): BasicPoolListItemState? {
         text1 = "$baseSymbol-$targetSymbol".uppercase(),
         text2 = userPooledInfo ?: tvl,
         text2Color = text2Color,
-        text3 = basic.sbapy?.let {
-            "%s%%".format(it.toBigDecimal().formatCrypto())
-        }.orEmpty(),
+        apy = LoadingState.Loading(),
         text4 = "Earn PSWAP"
     )
 }

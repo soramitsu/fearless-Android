@@ -51,10 +51,6 @@ interface PoolsInteractor {
         targetTokenId: String
     ): Boolean
 
-//    suspend fun updateApy()
-
-    fun getPoolStrategicBonusAPY(reserveAccountOfPool: String): Double?
-
     suspend fun observeAddLiquidity(
         chainId: ChainId,
         tokenBase: Asset,
@@ -77,4 +73,6 @@ interface PoolsInteractor {
         secondAmountMin: BigDecimal,
         networkFee: BigDecimal
     ): String
+
+    suspend fun getSbApy(id: String): Double?
 }

@@ -57,7 +57,6 @@ import jp.co.soramitsu.shared_utils.wsrpc.request.runtime.RuntimeRequest
 import jp.co.soramitsu.shared_utils.wsrpc.request.runtime.storage.GetStorageRequest
 import jp.co.soramitsu.shared_utils.wsrpc.request.runtime.storage.SubscribeStorageRequest
 import jp.co.soramitsu.shared_utils.wsrpc.subscription.response.SubscriptionChange
-import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
 import kotlinx.coroutines.async
@@ -79,7 +78,6 @@ class PoolsRepositoryImpl @Inject constructor(
     private val extrinsicService: ExtrinsicService,
     private val chainRegistry: ChainRegistry,
     private val accountRepository: AccountRepository,
-    private val walletRepository: WalletRepository,
     private val blockExplorerManager: BlockExplorerManager,
     private val poolDao: PoolDao,
     private val db: AppDatabase
@@ -194,8 +192,8 @@ class PoolsRepositoryImpl @Inject constructor(
             }
     }
 
-    override fun getPoolStrategicBonusAPY(reserveAccountOfPool: String): Double? {
-        val tempApy = blockExplorerManager.getTempApy(reserveAccountOfPool)
+    override suspend fun getPoolStrategicBonusAPY(reserveAccountOfPool: String): Double? {
+        val tempApy = blockExplorerManager.getApy(reserveAccountOfPool)
         return tempApy
     }
 
@@ -221,8 +219,7 @@ class PoolsRepositoryImpl @Inject constructor(
             baseReserves = poolLocal.reserveBase,
             targetReserves = poolLocal.reserveTarget,
             totalIssuance = poolLocal.totalIssuance,
-            reserveAccount = poolLocal.reservesAccount,
-            sbapy = getPoolStrategicBonusAPY(poolLocal.reservesAccount)
+            reserveAccount = poolLocal.reservesAccount
         )
     }
 
@@ -276,8 +273,7 @@ class PoolsRepositoryImpl @Inject constructor(
                                     baseReserves = mapBalance(reserves[0], asset.precision),
                                     targetReserves = mapBalance(reserves[1], asset.precision),
                                     totalIssuance = total ?: BigDecimal.ZERO,
-                                    reserveAccount = reserveAccountAddress,
-                                    sbapy = getPoolStrategicBonusAPY(reserveAccountAddress)
+                                    reserveAccount = reserveAccountAddress
                                 )
 
                                 println("!!!  getBasicPools() list.add(BasicPoolData: $element")
@@ -974,7 +970,6 @@ class PoolsRepositoryImpl @Inject constructor(
                 val asset = assets.firstOrNull { it.currencyId == tokenId } ?: return@async null
                 val key = runtimeOrNull.reservesKeyToken(tokenId)
 
-
                 val basicPoolDeferred = getStateKeys(chainId, key).map { storageKey ->
                     async basicPoolOperation@{
                         val targetToken = storageKey.assetIdFromKey()
@@ -1055,7 +1050,7 @@ class PoolsRepositoryImpl @Inject constructor(
             .storage("AccountPools")
             .storageKey(this, address.toAccountId())
 
-    private fun mapPoolLocalToData(
+    private suspend fun mapPoolLocalToData(
         poolLocal: UserPoolJoinedLocalNullable,
         assets: List<Asset>
     ): CommonPoolData? {
@@ -1072,8 +1067,7 @@ class PoolsRepositoryImpl @Inject constructor(
             baseReserves = poolLocal.basicPoolLocal.reserveBase,
             targetReserves = poolLocal.basicPoolLocal.reserveTarget,
             totalIssuance = poolLocal.basicPoolLocal.totalIssuance,
-            reserveAccount = poolLocal.basicPoolLocal.reservesAccount,
-            sbapy = getPoolStrategicBonusAPY(poolLocal.basicPoolLocal.reservesAccount),
+            reserveAccount = poolLocal.basicPoolLocal.reservesAccount
         )
 
         val userPoolData = poolLocal.userPoolLocal?.let { userPoolLocal ->

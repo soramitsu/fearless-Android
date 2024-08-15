@@ -25,7 +25,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import coil.compose.AsyncImage
+import coil.compose.SubcomposeAsyncImage
 import jp.co.soramitsu.common.compose.component.AccentButton
 import jp.co.soramitsu.common.compose.component.BackgroundCorneredWithBorder
 import jp.co.soramitsu.common.compose.component.GrayButton
@@ -33,6 +33,7 @@ import jp.co.soramitsu.common.compose.component.InfoTableItem
 import jp.co.soramitsu.common.compose.component.InfoTableItemAsset
 import jp.co.soramitsu.common.compose.component.MarginHorizontal
 import jp.co.soramitsu.common.compose.component.MarginVertical
+import jp.co.soramitsu.common.compose.component.Shimmer
 import jp.co.soramitsu.common.compose.component.TitleIconValueState
 import jp.co.soramitsu.common.compose.component.TitleValueViewState
 import jp.co.soramitsu.common.compose.component.getImageRequest
@@ -79,21 +80,23 @@ fun PoolDetailsScreen(
             MarginVertical(margin = 16.dp)
 
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-                AsyncImage(
+                SubcomposeAsyncImage(
                     model = getImageRequest(LocalContext.current, state.assetBase?.iconUrl.orEmpty()),
                     contentDescription = null,
                     modifier = Modifier
                         .size(64.dp)
                         .offset(x = 14.dp)
-                        .zIndex(1f)
+                        .zIndex(1f),
+                    loading = { Shimmer(Modifier.size(64.dp)) }
                 )
-                AsyncImage(
+                SubcomposeAsyncImage(
                     model = getImageRequest(LocalContext.current, state.assetTarget?.iconUrl.orEmpty()),
                     contentDescription = null,
                     modifier = Modifier
                         .size(64.dp)
                         .offset(x = (-14).dp)
-                        .zIndex(0f)
+                        .zIndex(0f),
+                    loading = { Shimmer(Modifier.size(64.dp)) }
                 )
             }
 

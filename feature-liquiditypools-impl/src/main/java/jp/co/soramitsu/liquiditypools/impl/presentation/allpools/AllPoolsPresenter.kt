@@ -4,6 +4,8 @@ import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.androidfoundation.format.StringPair
 import jp.co.soramitsu.androidfoundation.format.compareNullDesc
+import jp.co.soramitsu.common.presentation.LoadingState
+import jp.co.soramitsu.common.utils.formatCrypto
 import jp.co.soramitsu.liquiditypools.domain.interfaces.PoolsInteractor
 import jp.co.soramitsu.liquiditypools.impl.presentation.CoroutinesStore
 import jp.co.soramitsu.liquiditypools.impl.presentation.toListItemState
@@ -12,7 +14,9 @@ import jp.co.soramitsu.liquiditypools.navigation.LiquidityPoolsNavGraphRoute
 import jp.co.soramitsu.polkaswap.api.domain.models.CommonPoolData
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -41,12 +45,15 @@ class AllPoolsPresenter @Inject constructor(
         chainsRepository.getChain(poolsInteractor.poolsChainId)
     }
 
-    init {
-        loadPoolData()
+    private val stateFlow = MutableStateFlow(AllPoolsState())
+
+    fun createScreenStateFlow(scope: CoroutineScope): StateFlow<AllPoolsState> {
+        subscribeScreenState(scope)
+        return stateFlow
     }
 
-    private fun loadPoolData() {
-        coroutinesStore.ioScope.launch {
+    private fun subscribeScreenState(scope: CoroutineScope) {
+        scope.launch {
             val currentAccount = accountInteractor.selectedMetaAccount()
             val address = currentAccount.address(chainDeferred.await()) ?: return@launch
 
@@ -56,7 +63,8 @@ class AllPoolsPresenter @Inject constructor(
                         (commonPoolData.map { it.basic.baseToken } + commonPoolData.mapNotNull { it.basic.targetToken }).toSet()
 
                     val tokensDeferred =
-                        allRequiredChainAssets.filter { it.priceId != null }.map { walletInteractor.getToken(it) }
+                        allRequiredChainAssets.filter { it.priceId != null }
+                            .map { walletInteractor.getToken(it) }
 
                     val tokensMap = tokensDeferred.associateBy { it.configuration.id }
 
@@ -91,14 +99,50 @@ class AllPoolsPresenter @Inject constructor(
                             isLoading = false
                         )
                     }
-                }.launchIn(coroutinesStore.uiScope)
+                }
+                .onEach { commonPoolData: List<CommonPoolData> ->
+                    coroutineScope {
+                        commonPoolData.forEach { pool ->
+                            launch {
+                                val baseTokenId = pool.basic.baseToken.currencyId ?: return@launch
+                                val targetTokenId =
+                                    pool.basic.targetToken?.currencyId ?: return@launch
+                                val id = StringPair(baseTokenId, targetTokenId)
+                                val sbApy = poolsInteractor.getSbApy(pool.basic.reserveAccount)
+
+                                stateFlow.update { prevState ->
+                                    val newUserPools = prevState.userPools.map {
+                                        if (it.ids == id) {
+                                            it.copy(apy = LoadingState.Loaded(sbApy?.let { apy ->
+                                                "%s%%".format(apy.toBigDecimal().formatCrypto())
+                                            }.orEmpty()))
+                                        } else {
+                                            it
+                                        }
+                                    }
+
+                                    val newAllPools = prevState.allPools.map {
+                                        if (it.ids == id) {
+                                            it.copy(apy = LoadingState.Loaded(sbApy?.let { apy ->
+                                                "%s%%".format(apy.toBigDecimal().formatCrypto())
+                                            }.orEmpty()))
+                                        } else {
+                                            it
+                                        }
+                                    }
+
+                                    prevState.copy(
+                                        userPools = newUserPools,
+                                        allPools = newAllPools
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+                .launchIn(scope)
         }
-    }
 
-    private val stateFlow = MutableStateFlow(AllPoolsState())
-
-    fun createScreenStateFlow(): StateFlow<AllPoolsState> {
-        return stateFlow
     }
 
     override fun onPoolClicked(pair: StringPair) {

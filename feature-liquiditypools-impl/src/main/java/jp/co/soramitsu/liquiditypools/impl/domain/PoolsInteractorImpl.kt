@@ -44,10 +44,6 @@ class PoolsInteractorImpl(
         return poolsRepository.getBasicPools(poolsChainId)
     }
 
-//    override fun subscribePoolsCache(): Flow<List<BasicPoolData>> {
-//        return poolsRepository.subscribePools()
-//    }
-
     override fun subscribePoolsCacheOfAccount(address: String): Flow<List<CommonPoolData>> {
         return poolsRepository.subscribePools(address).flowOn(coroutineContext)
     }
@@ -65,7 +61,6 @@ class PoolsInteractorImpl(
         return soraPoolsAddressFlow.flatMapLatest { address ->
             poolsRepository.subscribePools(address)
         }
-
     }
 
     override suspend fun getPoolData(baseTokenId: String, targetTokenId: String): Flow<CommonPoolData> {
@@ -73,24 +68,12 @@ class PoolsInteractorImpl(
         return poolsRepository.subscribePool(address, baseTokenId, targetTokenId)
     }
 
-//    override suspend fun getPoolCacheOfCurAccount(
-//        tokenFromId: String,
-//        tokenToId: String
-//    ): CommonUserPoolData? {
-//        val wallet = accountRepository.getSelectedMetaAccount()
-//        val chainId = polkaswapInteractor.polkaswapChainId
-//        val chain = chainRegistry.getChain(chainId)
-//        val address = wallet.address(chain)
-//        return poolsRepository.getPoolOfAccount(address, tokenFromId, tokenToId, chainId)
-//    }
-
     override suspend fun getUserPoolData(
         chainId: ChainId,
         address: String,
         baseTokenId: String,
         tokenId: ByteArray
     ): PoolDataDto? {
-//        return poolsRepository.getPoolOfAccount(address, baseTokenId, tokenId.toHexString(true), polkaswapInteractor.polkaswapChainId)
         return poolsRepository.getUserPoolData(chainId, address, baseTokenId, tokenId)
 
     }
@@ -129,9 +112,6 @@ class PoolsInteractorImpl(
             tokenTarget
         )
     }
-
-    override fun getPoolStrategicBonusAPY(reserveAccountOfPool: String): Double? =
-        poolsRepository.getPoolStrategicBonusAPY(reserveAccountOfPool)
 
     override suspend fun isPairEnabled(baseTokenId: String, targetTokenId: String): Boolean {
         val dexId = poolsRepository.getPoolBaseTokenDexId(poolsChainId, baseTokenId)
@@ -236,11 +216,13 @@ class PoolsInteractorImpl(
     override suspend fun syncPools(chainId: ChainId): Unit = withContext(Dispatchers.Default) {
         val address = accountRepository.getSelectedAccount(chainId).address
         supervisorScope {
-            launch { blockExplorerManager.updatePoolsSbApy() }
-
-            launch { poolsRepository.updateAccountPools(chainId, address) }
-
             launch { poolsRepository.updateBasicPools(chainId) }
+            launch { poolsRepository.updateAccountPools(chainId, address) }
+            launch { blockExplorerManager.syncSbApy() }
         }
+    }
+
+    override suspend fun getSbApy(id: String): Double?  = withContext(coroutineContext) {
+        blockExplorerManager.getApy(id)
     }
 }

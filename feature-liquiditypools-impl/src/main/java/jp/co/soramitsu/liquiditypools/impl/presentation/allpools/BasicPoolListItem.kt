@@ -1,9 +1,9 @@
 package jp.co.soramitsu.liquiditypools.impl.presentation.allpools
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -13,7 +13,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -21,28 +21,29 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
-import com.valentinilk.shimmer.shimmer
+import coil.compose.SubcomposeAsyncImage
 import jp.co.soramitsu.androidfoundation.format.StringPair
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.component.Shimmer
-import jp.co.soramitsu.common.compose.theme.alertYellow
+import jp.co.soramitsu.common.compose.component.ShimmerB2
+import jp.co.soramitsu.common.compose.component.getImageRequest
 import jp.co.soramitsu.common.compose.theme.colorAccentDark
 import jp.co.soramitsu.common.compose.theme.customTypography
-import jp.co.soramitsu.common.compose.theme.red
-import jp.co.soramitsu.common.compose.theme.shimmerColor
 import jp.co.soramitsu.common.compose.theme.transparent
 import jp.co.soramitsu.common.compose.theme.white
 import jp.co.soramitsu.common.compose.theme.white50
-import jp.co.soramitsu.shared_utils.icon.Circle
+import jp.co.soramitsu.common.presentation.LoadingState
+import jp.co.soramitsu.feature_liquiditypools_impl.R
 import jp.co.soramitsu.ui_core.component.button.properties.Size
-import jp.co.soramitsu.ui_core.component.icons.TokenIcon
 
 data class BasicPoolListItemState(
     val ids: StringPair,
@@ -51,7 +52,7 @@ data class BasicPoolListItemState(
     val text1: String,
     val text2: String,
     val text2Color: Color = white50,
-    val text3: String,
+    val apy: LoadingState<String>?,
     val text4: String? = null,
 )
 
@@ -75,25 +76,33 @@ fun BasicPoolListItem(
                     .padding(start = 12.dp)
             ) {
                 val (token1, token2) = createRefs()
-                TokenIcon(
+                SubcomposeAsyncImage(
                     modifier = Modifier
                         .constrainAs(token1) {
                             top.linkTo(parent.top, 2.dp)
                             start.linkTo(parent.start)
                             bottom.linkTo(parent.bottom, 11.dp)
-                        },
-                    uri = state.token1Icon,
-                    size = Size.ExtraSmall,
+                        }
+                        .size(size = 32.dp),
+                    model = getImageRequest(LocalContext.current, state.token1Icon),
+                    contentDescription = null,
+                    loading = { Shimmer(Modifier.size(Size.ExtraSmall)) }
                 )
-                TokenIcon(
+                SubcomposeAsyncImage(
                     modifier = Modifier
                         .constrainAs(token2) {
                             top.linkTo(parent.top, 11.dp)
                             start.linkTo(token1.start, margin = 16.dp)
                             bottom.linkTo(parent.bottom, 2.dp)
-                        },
-                    uri = state.token2Icon,
-                    size = Size.ExtraSmall,
+                        }
+                        .size(size = 32.dp),
+                    model =getImageRequest(LocalContext.current, state.token2Icon),
+                    contentDescription = null,
+                    loading = { Shimmer(Modifier.size(Size.ExtraSmall)) },
+                    error = {
+                        it.result.throwable.message?.let { it1 -> Log.d("&&&", it1) }
+                        Icon(painterResource(id = R.drawable.ic_token_default), null, modifier = Modifier.size(size = 32.dp))
+                    }
                 )
             }
         }
@@ -118,17 +127,24 @@ fun BasicPoolListItem(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
+                when (state.apy) {
+                    is LoadingState.Loaded -> Text(
+                        modifier = Modifier
+                            .wrapContentHeight()
+                            .weight(1f),
+                        color = colorAccentDark,
+                        style = MaterialTheme.customTypography.header6,
+                        text = "%s %s".format(
+                            state.apy.data,
+                            "APY"
+                        ), //stringResource(id = R.string.polkaswap_apy)),
+                        maxLines = 1,
+                        textAlign = TextAlign.End
+                    )
 
-                Text(
-                    modifier = Modifier
-                        .wrapContentHeight()
-                        .weight(1f),
-                    color = colorAccentDark,
-                    style = MaterialTheme.customTypography.header6,
-                    text = "%s %s".format(state.text3, "APY"), //stringResource(id = R.string.polkaswap_apy)),
-                    maxLines = 1,
-                    textAlign = TextAlign.End
-                )
+                    is LoadingState.Loading -> ShimmerB2(modifier.width(64.dp))
+                    null -> Unit
+                }
 
             }
             Row(
@@ -146,7 +162,9 @@ fun BasicPoolListItem(
                 )
 
                 Text(
-                    modifier = Modifier.wrapContentHeight().padding(start = 6.dp),
+                    modifier = Modifier
+                        .wrapContentHeight()
+                        .padding(start = 6.dp),
                     color = state.text2Color,
                     style = MaterialTheme.customTypography.body2,
                     text = state.text2,
@@ -154,6 +172,7 @@ fun BasicPoolListItem(
                     overflow = TextOverflow.Ellipsis,
                 )
             }
+
         }
     }
 }
@@ -175,22 +194,24 @@ fun BasicPoolShimmerItem(
                     .padding(start = 12.dp)
             ) {
                 val (token1, token2) = createRefs()
-                Shimmer(Modifier
-                    .size(Size.ExtraSmall)
-                    .constrainAs(token1) {
-                        top.linkTo(parent.top, 2.dp)
-                        start.linkTo(parent.start)
-                        bottom.linkTo(parent.bottom, 11.dp)
-                    }
+                Shimmer(
+                    Modifier
+                        .size(Size.ExtraSmall)
+                        .constrainAs(token1) {
+                            top.linkTo(parent.top, 2.dp)
+                            start.linkTo(parent.start)
+                            bottom.linkTo(parent.bottom, 11.dp)
+                        }
                 )
 
-                Shimmer(Modifier
-                    .size(Size.ExtraSmall)
-                    .constrainAs(token2) {
-                        top.linkTo(parent.top, 11.dp)
-                        start.linkTo(token1.start, margin = 16.dp)
-                        bottom.linkTo(parent.bottom, 2.dp)
-                    }
+                Shimmer(
+                    Modifier
+                        .size(Size.ExtraSmall)
+                        .constrainAs(token2) {
+                            top.linkTo(parent.top, 11.dp)
+                            start.linkTo(token1.start, margin = 16.dp)
+                            bottom.linkTo(parent.bottom, 2.dp)
+                        }
                 )
             }
         }
@@ -210,11 +231,13 @@ fun BasicPoolShimmerItem(
                 Shimmer(
                     Modifier
                         .height(12.dp)
-                        .width(70.dp))
+                        .width(70.dp)
+                )
                 Shimmer(
                     Modifier
                         .height(12.dp)
-                        .width(100.dp))
+                        .width(100.dp)
+                )
             }
             MarginVertical(margin = 8.dp)
             Row(
@@ -226,11 +249,13 @@ fun BasicPoolShimmerItem(
                 Shimmer(
                     Modifier
                         .height(12.dp)
-                        .width(70.dp))
+                        .width(70.dp)
+                )
                 Shimmer(
                     Modifier
                         .height(12.dp)
-                        .width(90.dp))
+                        .width(90.dp)
+                )
             }
         }
     }
@@ -249,7 +274,7 @@ private fun PreviewBasicPoolListItem() {
                 token2Icon = "DEFAULT_ICON_URI",
                 text1 = "XOR-VAL",
                 text2 = "123.4M",
-                text3 = "1234.3%",
+                apy = LoadingState.Loaded("1234.3%"),
                 text4 = "Earn SWAP",
             )
         )
@@ -261,7 +286,31 @@ private fun PreviewBasicPoolListItem() {
                 token2Icon = "DEFAULT_ICON_URI",
                 text1 = "text1",
                 text2 = "text2",
-                text3 = "text3",
+                apy = LoadingState.Loaded("text3"),
+                text4 = "text4",
+            )
+        )
+        BasicPoolListItem(
+            modifier = Modifier.background(transparent),
+            state = BasicPoolListItemState(
+                ids = "0" to "1",
+                token1Icon = "DEFAULT_ICON_URI",
+                token2Icon = "DEFAULT_ICON_URI",
+                text1 = "text1",
+                text2 = "text2",
+                apy = LoadingState.Loading(),
+                text4 = "text4",
+            )
+        )
+        BasicPoolListItem(
+            modifier = Modifier.background(transparent),
+            state = BasicPoolListItemState(
+                ids = "0" to "1",
+                token1Icon = "DEFAULT_ICON_URI",
+                token2Icon = "DEFAULT_ICON_URI",
+                text1 = "text1",
+                text2 = "text2",
+                apy = null,
                 text4 = "text4",
             )
         )

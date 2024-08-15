@@ -77,7 +77,6 @@ class PoolsModule {
         extrinsicService: ExtrinsicService,
         chainRegistry: ChainRegistry,
         accountRepository: AccountRepository,
-        walletRepository: WalletRepository,
         sorablockexplorer: BlockExplorerManager,
         poolDao: PoolDao,
         appDataBase: AppDatabase
@@ -86,7 +85,6 @@ class PoolsModule {
             extrinsicService,
             chainRegistry,
             accountRepository,
-            walletRepository,
             sorablockexplorer,
             poolDao,
             appDataBase

@@ -9,8 +9,7 @@ data class BasicPoolData(
     val baseReserves: BigDecimal,
     val targetReserves: BigDecimal,
     val totalIssuance: BigDecimal,
-    val reserveAccount: String,
-    val sbapy: Double?,
+    val reserveAccount: String
 ) {
     fun getTvl(baseTokenFiatRate: BigDecimal?): BigDecimal? {
         return baseTokenFiatRate?.times(BigDecimal(2))?.multiply(baseReserves)

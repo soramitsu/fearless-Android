@@ -1,8 +1,5 @@
 package jp.co.soramitsu.liquiditypools.impl.presentation.liquidityadd
 
-import java.math.BigDecimal
-import java.math.RoundingMode
-import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.androidfoundation.format.isZero
@@ -35,7 +32,6 @@ import jp.co.soramitsu.polkaswap.impl.util.PolkaswapFormulas
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.wallet.api.domain.fromValidationResult
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
-import kotlin.math.min
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
@@ -58,6 +54,10 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
+import java.math.RoundingMode
+import javax.inject.Inject
+import kotlin.math.min
 
 class LiquidityAddPresenter @Inject constructor(
     private val coroutinesStore: CoroutinesStore,
@@ -129,23 +129,6 @@ class LiquidityAddPresenter @Inject constructor(
             }
         }.mapNotNull { it }
 
-//        val assetsFlow2 = walletInteractor.assetsFlow().mapNotNull {
-//            val firstInPair = it.firstOrNull {
-//                it.asset.token.configuration.currencyId == ids.first
-//                        && it.asset.token.configuration.chainId == chainId
-//            }
-//            val secondInPair = it.firstOrNull {
-//                it.asset.token.configuration.currencyId == ids.second
-//                        && it.asset.token.configuration.chainId == chainId
-//            }
-//
-//            println("!!! assetsInPoolFlow ADD result: $firstInPair; $secondInPair")
-//            if (firstInPair == null || secondInPair == null) {
-//                return@mapNotNull null
-//            } else {
-//                firstInPair.asset to secondInPair.asset
-//            }
-//        }
         assetsFlow
     }.distinctUntilChanged()
 
@@ -225,7 +208,7 @@ class LiquidityAddPresenter @Inject constructor(
                         isCalculatingAmounts.value == null
 
                 LiquidityAddState(
-                    apy = pool.basic.sbapy?.toBigDecimal()?.formatPercent()?.let { "$it%" }.orEmpty(),
+                    apy = poolsInteractor.getSbApy(pool.basic.reserveAccount)?.toBigDecimal()?.formatPercent()?.let { "$it%" }.orEmpty(),
                     slippage = "$slippage%",
                     feeInfo = feeInfo,
                     buttonEnabled = isButtonEnabled,
@@ -252,18 +235,6 @@ class LiquidityAddPresenter @Inject constructor(
             }
         }.stateIn(coroutineScope, SharingStarted.Lazily, LiquidityAddState())
     }
-
-//    suspend fun getPoolDataDto(): PoolDataDto? {
-//        val chain = accountInteractor.getChain(soraMainChainId)
-//        val address = accountInteractor.selectedMetaAccount().address(chain)
-//        val assets = assetsInPoolFlow.firstOrNull()
-//        val baseTokenId = assets?.first?.asset?.token?.configuration?.currencyId
-//        val tokenToId = assets?.second?.asset?.token?.configuration?.currencyId?.fromHex()
-//
-//        if (address == null || baseTokenId == null || tokenToId == null) return null
-//
-//        return poolsInteractor.getUserPoolData(soraMainChainId, address, baseTokenId, tokenToId)
-//    }
 
     private suspend fun updateAmounts() {
         calculateAmount()?.let { targetAmount ->
@@ -437,7 +408,9 @@ class LiquidityAddPresenter @Inject constructor(
             }
 
             val ids = screenArgsFlow.replayCache.lastOrNull()?.ids ?: return@launch
-            val apy = poolFlow.firstOrNull()?.basic?.sbapy?.toBigDecimal()?.formatPercent()?.let { "$it%" }.orEmpty()
+            val apy =
+                poolFlow.firstOrNull()?.basic?.reserveAccount?.let { poolsInteractor.getSbApy(it) }
+                    ?.toBigDecimal()?.formatPercent()?.let { "$it%" }.orEmpty()
 
             internalPoolsRouter.openAddLiquidityConfirmScreen(ids, amountBase, amountTarget, apy)
         }.invokeOnCompletion {
