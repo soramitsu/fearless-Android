@@ -33,6 +33,7 @@ import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.theme.customTypography
 import jp.co.soramitsu.common.compose.theme.white
 import jp.co.soramitsu.common.compose.theme.white08
+import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.feature_liquiditypools_impl.R
 import jp.co.soramitsu.ui_core.resources.Dimens
 
@@ -210,14 +211,14 @@ private fun PreviewAllPoolsScreen() {
         token2Icon = "DEFAULT_ICON_URI",
         text1 = "XOR-VAL",
         text2 = "123.4M",
-        text3 = "1234.3%",
+        apy = LoadingState.Loaded("1234.3%"),
         text4 = "Earn SWAP",
     )
 
     val items = listOf(
         itemState,
-        itemState.copy(text1 = "TEXT1", text2 = "TEXT2", text3 = "TEXT3", text4 = "TEXT4"),
-        itemState.copy(text1 = "text1", text2 = "text2", text3 = "text3", text4 = "text4"),
+        itemState.copy(text1 = "TEXT1", text2 = "TEXT2", apy = LoadingState.Loaded("TEXT3"), text4 = "TEXT4"),
+        itemState.copy(text1 = "text1", text2 = "text2", apy = LoadingState.Loaded("text3"), text4 = "text4"),
     )
     AllPoolsScreen(
         state = AllPoolsState(
