@@ -94,10 +94,6 @@ class ScoreDetailsViewModel @Inject constructor(
         }
     }
 
-    override fun onBackClicked() {
-        router.back()
-    }
-
     override fun onCloseClicked() {
         router.back()
     }

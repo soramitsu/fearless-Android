@@ -4,7 +4,6 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.NomisScoreInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.TotalBalanceUseCase
@@ -43,6 +42,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 private const val AVATAR_SIZE_DP = 32
 
@@ -258,5 +258,9 @@ class ProfileViewModel @Inject constructor(
     override fun onNomisMultichainScoreContainerClick() {
         nomisScoreInteractor.nomisMultichainScoreEnabled =
             !nomisScoreInteractor.nomisMultichainScoreEnabled
+    }
+
+    override fun onScoreClick(item: WalletItemViewState) {
+        router.openScoreDetailsScreen(item.id)
     }
 }

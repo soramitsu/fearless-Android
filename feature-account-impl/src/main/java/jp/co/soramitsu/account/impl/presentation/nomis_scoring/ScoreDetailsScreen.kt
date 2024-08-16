@@ -33,7 +33,6 @@ import jp.co.soramitsu.common.compose.component.H1
 import jp.co.soramitsu.common.compose.component.Image
 import jp.co.soramitsu.common.compose.component.InfoTable
 import jp.co.soramitsu.common.compose.component.MarginVertical
-import jp.co.soramitsu.common.compose.component.MenuIconItem
 import jp.co.soramitsu.common.compose.component.TitleValueViewState
 import jp.co.soramitsu.common.compose.component.Toolbar
 import jp.co.soramitsu.common.compose.component.ToolbarViewState
@@ -72,7 +71,6 @@ data class ScoreInfoState(
 )
 
 interface ScoreDetailsScreenCallback {
-    fun onBackClicked()
     fun onCloseClicked()
     fun onCopyAddressClicked()
 }
@@ -90,15 +88,9 @@ fun ScoreDetailsContent(
         Toolbar(
             state = ToolbarViewState(
                 stringResource(id = R.string.account_stats_title),
-                R.drawable.ic_arrow_back_24dp,
-                listOf(
-                    MenuIconItem(
-                        icon = R.drawable.ic_cross_24,
-                        onClick = callback::onCloseClicked
-                    )
-                )
+                R.drawable.ic_cross_24
             ),
-            onNavigationClick = callback::onBackClicked
+            onNavigationClick = callback::onCloseClicked
         )
         Column(
             modifier = Modifier
@@ -303,7 +295,6 @@ private fun ScoreDetailsScreenPreview() {
             info = successState
         )
         ScoreDetailsContent(state, object : ScoreDetailsScreenCallback {
-            override fun onBackClicked() = Unit
             override fun onCloseClicked() = Unit
             override fun onCopyAddressClicked() = Unit
         })

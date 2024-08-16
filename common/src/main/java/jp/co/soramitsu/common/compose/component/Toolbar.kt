@@ -368,7 +368,7 @@ fun Toolbar(state: ToolbarViewState, modifier: Modifier = Modifier, onNavigation
                 modifier = Modifier.weight(1f)
             ) {
                 ToolbarHomeIcon(
-                    state = ToolbarHomeIconState.Navigation(navigationIcon = navIcon),
+                    state = ToolbarHomeIconState.Navigation(navigationIcon = navIcon, tint = white),
                     onClick = onNavigationClick
                 )
             }
