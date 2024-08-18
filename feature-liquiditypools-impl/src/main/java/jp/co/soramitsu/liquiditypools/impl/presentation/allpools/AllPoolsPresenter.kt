@@ -11,7 +11,6 @@ import jp.co.soramitsu.liquiditypools.impl.presentation.CoroutinesStore
 import jp.co.soramitsu.liquiditypools.impl.presentation.toListItemState
 import jp.co.soramitsu.liquiditypools.navigation.InternalPoolsRouter
 import jp.co.soramitsu.liquiditypools.navigation.LiquidityPoolsNavGraphRoute
-import jp.co.soramitsu.polkaswap.api.domain.models.CommonPoolData
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import kotlinx.coroutines.CoroutineScope
@@ -27,6 +26,7 @@ import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import jp.co.soramitsu.liquiditypools.domain.model.CommonPoolData
 
 class AllPoolsPresenter @Inject constructor(
     private val coroutinesStore: CoroutinesStore,
@@ -103,10 +103,10 @@ class AllPoolsPresenter @Inject constructor(
                 .onEach { commonPoolData: List<CommonPoolData> ->
                     coroutineScope {
                         commonPoolData.forEach { pool ->
-                            launch {
-                                val baseTokenId = pool.basic.baseToken.currencyId ?: return@launch
+                            launch pool@ {
+                                val baseTokenId = pool.basic.baseToken.currencyId ?: return@pool
                                 val targetTokenId =
-                                    pool.basic.targetToken?.currencyId ?: return@launch
+                                    pool.basic.targetToken?.currencyId ?: return@pool
                                 val id = StringPair(baseTokenId, targetTokenId)
                                 val sbApy = poolsInteractor.getSbApy(pool.basic.reserveAccount)
 

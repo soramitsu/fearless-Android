@@ -1,9 +1,8 @@
 package jp.co.soramitsu.liquiditypools.data
 
 import jp.co.soramitsu.core.models.Asset
-import jp.co.soramitsu.polkaswap.api.data.PoolDataDto
-import jp.co.soramitsu.polkaswap.api.domain.models.BasicPoolData
-import jp.co.soramitsu.polkaswap.api.domain.models.CommonPoolData
+import jp.co.soramitsu.liquiditypools.domain.model.BasicPoolData
+import jp.co.soramitsu.liquiditypools.domain.model.CommonPoolData
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.shared_utils.encrypt.keypair.Keypair
 import kotlinx.coroutines.flow.Flow

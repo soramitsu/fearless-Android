@@ -1,18 +1,17 @@
 package jp.co.soramitsu.liquiditypools.impl.presentation.poollist
 
-import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
+import javax.inject.Inject
 import jp.co.soramitsu.androidfoundation.format.StringPair
 import jp.co.soramitsu.androidfoundation.format.compareNullDesc
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.utils.formatCrypto
 import jp.co.soramitsu.liquiditypools.domain.interfaces.PoolsInteractor
+import jp.co.soramitsu.liquiditypools.domain.model.CommonPoolData
+import jp.co.soramitsu.liquiditypools.domain.model.isFilterMatch
 import jp.co.soramitsu.liquiditypools.impl.presentation.CoroutinesStore
 import jp.co.soramitsu.liquiditypools.impl.presentation.toListItemState
 import jp.co.soramitsu.liquiditypools.navigation.InternalPoolsRouter
 import jp.co.soramitsu.liquiditypools.navigation.LiquidityPoolsNavGraphRoute
-import jp.co.soramitsu.polkaswap.api.domain.models.CommonPoolData
-import jp.co.soramitsu.polkaswap.api.domain.models.isFilterMatch
-import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -30,15 +29,12 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.update
-import javax.inject.Inject
 
 class PoolListPresenter @Inject constructor(
     private val coroutinesStore: CoroutinesStore,
     private val internalPoolsRouter: InternalPoolsRouter,
     private val walletInteractor: WalletInteractor,
-    private val chainsRepository: ChainsRepository,
-    private val poolsInteractor: PoolsInteractor,
-    private val accountInteractor: AccountInteractor,
+    private val poolsInteractor: PoolsInteractor
 ) : PoolListScreenInterface {
 
     private val enteredAssetQueryFlow = MutableStateFlow("")
@@ -68,7 +64,6 @@ class PoolListPresenter @Inject constructor(
             enteredAssetQueryFlow
         ) { pools, query ->
             coroutineScope {
-
                 val tokensDeferred =
                     pools.map { async { walletInteractor.getToken(it.basic.baseToken) } }
                 val tokensMap = tokensDeferred.awaitAll().associateBy { it.configuration.id }

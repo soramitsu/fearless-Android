@@ -28,7 +28,6 @@ import jp.co.soramitsu.liquiditypools.impl.usecase.ValidateAddLiquidityUseCase
 import jp.co.soramitsu.liquiditypools.navigation.InternalPoolsRouter
 import jp.co.soramitsu.liquiditypools.navigation.LiquidityPoolsNavGraphRoute
 import jp.co.soramitsu.polkaswap.api.models.WithDesired
-import jp.co.soramitsu.polkaswap.impl.util.PolkaswapFormulas
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.wallet.api.domain.fromValidationResult
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
@@ -57,6 +56,7 @@ import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import java.math.RoundingMode
 import javax.inject.Inject
+import jp.co.soramitsu.liquiditypools.impl.util.PolkaswapFormulas
 import kotlin.math.min
 
 class LiquidityAddPresenter @Inject constructor(

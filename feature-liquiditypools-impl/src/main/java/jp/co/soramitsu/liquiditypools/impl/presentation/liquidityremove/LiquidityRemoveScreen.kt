@@ -32,8 +32,6 @@ import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.component.Notification
 import jp.co.soramitsu.common.compose.component.NotificationState
 import jp.co.soramitsu.common.compose.component.TitleValueViewState
-import jp.co.soramitsu.common.compose.component.WarningInfo
-import jp.co.soramitsu.common.compose.component.WarningInfoState
 import jp.co.soramitsu.common.compose.theme.backgroundBlack
 import jp.co.soramitsu.common.compose.theme.colorAccentDark
 import jp.co.soramitsu.common.compose.theme.grayButtonBackground

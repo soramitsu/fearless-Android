@@ -2,13 +2,12 @@ package jp.co.soramitsu.liquiditypools.navigation
 
 import java.math.BigDecimal
 import jp.co.soramitsu.androidfoundation.format.StringPair
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 
 sealed interface LiquidityPoolsNavGraphRoute {
 
     val routeName: String
 
-    object Loading : LiquidityPoolsNavGraphRoute {
+    data object Loading : LiquidityPoolsNavGraphRoute {
         override val routeName: String = "Loading"
     }
 

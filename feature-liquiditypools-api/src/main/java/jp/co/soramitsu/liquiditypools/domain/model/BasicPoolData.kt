@@ -1,4 +1,4 @@
-package jp.co.soramitsu.polkaswap.api.domain.models
+package jp.co.soramitsu.liquiditypools.domain.model
 
 import jp.co.soramitsu.core.models.Asset
 import java.math.BigDecimal

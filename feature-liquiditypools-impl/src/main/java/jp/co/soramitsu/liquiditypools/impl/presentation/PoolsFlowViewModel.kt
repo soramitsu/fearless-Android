@@ -37,7 +37,6 @@ import jp.co.soramitsu.liquiditypools.navigation.InternalPoolsRouter
 import jp.co.soramitsu.liquiditypools.navigation.LiquidityPoolsNavGraphRoute
 import jp.co.soramitsu.liquiditypools.navigation.LiquidityPoolsRouter
 import jp.co.soramitsu.liquiditypools.navigation.NavAction
-import jp.co.soramitsu.polkaswap.api.domain.models.CommonPoolData
 import jp.co.soramitsu.wallet.impl.domain.model.Token
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -48,7 +47,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import javax.inject.Inject
-import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.liquiditypools.domain.model.CommonPoolData
 
 @HiltViewModel
 class PoolsFlowViewModel @Inject constructor(
@@ -62,8 +61,7 @@ class PoolsFlowViewModel @Inject constructor(
     private val coroutinesStore: CoroutinesStore,
     private val poolsInteractor: PoolsInteractor,
     private val internalPoolsRouter: InternalPoolsRouter,
-    private val poolsRouter: LiquidityPoolsRouter,
-    private val resourceManager: ResourceManager
+    private val poolsRouter: LiquidityPoolsRouter
 ) : BaseViewModel(),
     LiquidityAddCallbacks by liquidityAddPresenter,
     LiquidityAddConfirmCallbacks by liquidityAddConfirmPresenter,

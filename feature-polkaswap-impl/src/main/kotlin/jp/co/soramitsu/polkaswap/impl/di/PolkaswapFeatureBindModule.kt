@@ -9,7 +9,6 @@ import dagger.hilt.components.SingletonComponent
 import javax.inject.Named
 import javax.inject.Singleton
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
-import jp.co.soramitsu.common.BuildConfig
 import jp.co.soramitsu.common.data.network.OptionsProvider
 import jp.co.soramitsu.common.data.network.config.RemoteConfigFetcher
 import jp.co.soramitsu.common.data.storage.Preferences
@@ -22,13 +21,9 @@ import jp.co.soramitsu.polkaswap.impl.data.PolkaswapRepositoryImpl
 import jp.co.soramitsu.polkaswap.impl.domain.PolkaswapInteractorImpl
 import jp.co.soramitsu.runtime.di.REMOTE_STORAGE_SOURCE
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
-import jp.co.soramitsu.core.rpc.RpcCalls
 import jp.co.soramitsu.core.runtime.IChainRegistry
-import jp.co.soramitsu.coredb.AppDatabase
 import jp.co.soramitsu.coredb.dao.AssetDao
 import jp.co.soramitsu.coredb.dao.ChainDao
-import jp.co.soramitsu.coredb.dao.PoolDao
-import jp.co.soramitsu.polkaswap.api.sorablockexplorer.BlockExplorerManager
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainSyncService
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.runtime.multiNetwork.connection.ConnectionPool
@@ -124,11 +119,6 @@ class PolkaswapFeatureModule {
         )
     }
 
-//    @Singleton
-//    @Provides
-//    fun provideSoramitsuNetworkClient(): SoramitsuNetworkClient =
-//        SoramitsuNetworkClient(logging = BuildConfig.DEBUG, timeout = 20000)
-//
     @Singleton
     @Provides
     fun provideSoraRemoteConfigBuilder(
