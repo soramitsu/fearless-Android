@@ -143,7 +143,7 @@ fun LiquidityAddConfirmScreen(
                 modifier = Modifier
                     .padding(horizontal = 7.dp)
                     .align(Alignment.CenterHorizontally),
-                text = "Output is estimated. If the price changes more than 0.5% your transaction will revert.",
+                text = stringResource(id = R.string.lp_confirm_liquidity_warning_text),
                 textAlign = TextAlign.Center,
                 color = white50
             )
@@ -155,10 +155,10 @@ fun LiquidityAddConfirmScreen(
             ) {
                 Column {
                     MarginVertical(margin = 6.dp)
-                    InfoTableItem(TitleValueViewState("Slippage", state.slippage))
+                    InfoTableItem(TitleValueViewState(stringResource(id = R.string.lp_slippage_title), state.slippage))
                     InfoTableItem(
                         TitleValueViewState(
-                            title = "Strategic bonus APY",
+                            title = stringResource(id = R.string.lp_apy_title),
                             value = state.apy,
                             clickState = TitleValueViewState.ClickState.Title(R.drawable.ic_info_14, ITEM_APY_ID)
                         ),
@@ -166,14 +166,14 @@ fun LiquidityAddConfirmScreen(
                     )
                     InfoTableItemAsset(
                         TitleIconValueState(
-                            title = "Rewards payout in",
+                            title = stringResource(id = R.string.lp_reward_token_title),
                             iconUrl = "https://raw.githubusercontent.com/soramitsu/shared-features-utils/master/icons/tokens/coloured/PSWAP.svg",
                             value = "PSWAP"
                         )
                     )
                     InfoTableItem(
                         TitleValueViewState(
-                            title = "Network fee",
+                            title = stringResource(id = R.string.common_network_fee),
                             value = state.feeInfo.feeAmount,
                             additionalValue = state.feeInfo.feeAmountFiat,
                             clickState = TitleValueViewState.ClickState.Title(R.drawable.ic_info_14, ITEM_FEE_ID)
@@ -192,7 +192,7 @@ fun LiquidityAddConfirmScreen(
                 .height(48.dp)
                 .padding(horizontal = 16.dp)
                 .fillMaxWidth(),
-            text = "Confirm",
+            text = stringResource(id = R.string.common_confirm),
             enabled = state.buttonEnabled,
             loading = state.buttonLoading,
             onClick = callbacks::onConfirmClick

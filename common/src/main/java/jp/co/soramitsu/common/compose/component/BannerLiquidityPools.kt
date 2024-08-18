@@ -93,7 +93,7 @@ fun BannerLiquidityPools(
                 maxLines = 2,
                 modifier = Modifier
                     .wrapContentWidth(),
-                text = stringResource(R.string.banners_liquidity_pools_description),
+                text = stringResource(R.string.lp_banner_text),
                 style = MaterialTheme.customTypography.paragraphXS.copy(fontSize = 12.sp),
                 color = Color.White
             )

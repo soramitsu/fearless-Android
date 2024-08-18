@@ -4,8 +4,10 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import javax.inject.Singleton
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
+import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.core.extrinsic.ExtrinsicService
 import jp.co.soramitsu.core.extrinsic.keypair_provider.KeypairProvider
 import jp.co.soramitsu.coredb.AppDatabase
@@ -24,7 +26,6 @@ import jp.co.soramitsu.polkaswap.api.sorablockexplorer.BlockExplorerManager
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
-import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -43,8 +44,9 @@ class PoolsModule {
 
     @Provides
     @Singleton
-    fun provideInternalLiquidityPoolsRouter(walletRouter: WalletRouter): InternalPoolsRouter = InternalPoolsRouterImpl(
-        walletRouter = walletRouter
+    fun provideInternalLiquidityPoolsRouter(walletRouter: WalletRouter, resourceManager: ResourceManager): InternalPoolsRouter = InternalPoolsRouterImpl(
+        walletRouter = walletRouter,
+        resourceManager = resourceManager
     )
 
     @Provides

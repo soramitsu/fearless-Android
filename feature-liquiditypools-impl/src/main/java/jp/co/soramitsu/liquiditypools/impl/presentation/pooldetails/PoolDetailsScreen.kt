@@ -143,7 +143,7 @@ fun PoolDetailsScreen(
                     InfoTableItem(TitleValueViewState("TVL", state.tvl))
                     InfoTableItem(
                         TitleValueViewState(
-                            title = "Strategic bonus APY",
+                            title = stringResource(id = R.string.lp_apy_title),
                             value = state.apy,
                             clickState = TitleValueViewState.ClickState.Title(R.drawable.ic_info_14, ITEM_APY_ID)
                         ),
@@ -151,7 +151,7 @@ fun PoolDetailsScreen(
                     )
                     InfoTableItemAsset(
                         TitleIconValueState(
-                            title = "Rewards payout in",
+                            title = stringResource(id = R.string.lp_reward_token_title),
                             iconUrl = "https://raw.githubusercontent.com/soramitsu/shared-features-utils/master/icons/tokens/coloured/PSWAP.svg",
                             value = "PSWAP"
                         )
@@ -159,7 +159,7 @@ fun PoolDetailsScreen(
                     if (state.pooledBaseAmount.isNotEmpty()) {
                         InfoTableItem(
                             TitleValueViewState(
-                                title = stringResource(id = R.string.pl_your_pooled_format, state.assetBase?.symbol?.uppercase().orEmpty()),
+                                title = stringResource(id = R.string.lp_your_pooled_format, state.assetBase?.symbol?.uppercase().orEmpty()),
                                 value = state.pooledBaseAmount,
                                 additionalValue = state.pooledBaseFiat
                             )
@@ -168,12 +168,11 @@ fun PoolDetailsScreen(
                     if (state.pooledTargetAmount.isNotEmpty()) {
                         InfoTableItem(
                             TitleValueViewState(
-                                title = stringResource(id = R.string.pl_your_pooled_format, state.assetTarget?.symbol?.uppercase().orEmpty()),
+                                title = stringResource(id = R.string.lp_your_pooled_format, state.assetTarget?.symbol?.uppercase().orEmpty()),
                                 value = state.pooledTargetAmount,
                                 additionalValue = state.pooledTargetFiat
                             )
                         )
-
                     }
                 }
             }
@@ -185,7 +184,7 @@ fun PoolDetailsScreen(
                     .height(48.dp)
                     .padding(horizontal = 16.dp)
                     .fillMaxWidth(),
-                text = "Supply liquidity",
+                text = stringResource(id = R.string.lp_supply_button_title),
                 onClick = callbacks::onSupplyLiquidityClick
             )
             MarginVertical(margin = 8.dp)
@@ -196,7 +195,7 @@ fun PoolDetailsScreen(
                         .height(48.dp)
                         .padding(horizontal = 16.dp)
                         .fillMaxWidth(),
-                    text = "Remove liquidity",
+                    text = stringResource(id = R.string.lp_remove_button_title),
                     onClick = callbacks::onRemoveLiquidityClick
                 )
                 MarginVertical(margin = 8.dp)

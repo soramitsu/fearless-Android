@@ -93,7 +93,6 @@
   <string name="backup_wallet_warning_about_lose_phrase">If you loose access to this device, your funds will be lost, unless you back up!</string>
   <string name="balance_locks_blocked_row_title">Blocked</string>
   <string name="balance_locks_governance_row_title">Governance</string>
-  <string name="balance_locks_liquidity_pools_row_title">Liquidity Pools</string>
   <string name="balance_locks_nomination_pools_row_title">Nomination Pools</string>
   <string name="balance_locks_screen_title">Locked details</string>
   <string name="banners_backup_description">Protect yourself from losing access to your funds</string>
@@ -102,8 +101,7 @@
   <string name="banners_buy_xor">Buy XOR</string>
   <string name="banners_buy_xor_description">Buy or sell XOR token with\nEuro cash</string>
   <string name="banners_buy_xor_title">Buy XOR token</string>
-  <string name="banners_liquidity_pools_description">Invest your funds in Liquidity\npools and receive rewards</string>
-  <string name="banners_liquidity_pools_title">Liquidity pools</string>
+  <string name="banners_liquidity_pools_title">Liquidity Pools</string>
   <string name="beacon_connect_warning">Warning: By clicking connect, you allow this dapp to view your public address. This is an important security step to protect your data from potential phishing risks.</string>
   <string name="beacon_connected">Connected to %s</string>
   <string name="beacon_connected_to">Connected to</string>
@@ -248,6 +246,7 @@
   <string name="common_message">Message</string>
   <string name="common_min_received">Min received</string>
   <string name="common_module">Module</string>
+  <string name="common_more">More</string>
   <string name="common_my_networks">My networks</string>
   <string name="common_network">Network</string>
   <string name="common_network_fee">Network fee</string>
@@ -496,6 +495,26 @@
   <string name="label_link">Link</string>
   <string name="label_testnet">Testnet</string>
   <string name="language_title">Language</string>
+  <string name="lp_apy_alert_text">Farming reward for liquidity provision</string>
+  <string name="lp_apy_title">Strategic Bonus APY</string>
+  <string name="lp_available_pools_title">Available pools</string>
+  <string name="lp_banner_text">Invest your funds in Liquidity\npools and receive rewards</string>
+  <string name="lp_confirm_liquidity_screen_title">Confirm Liquidity</string>
+  <string name="lp_confirm_liquidity_warning_text">Output is estimated. If the price changes more than 0.5% your transaction will revert.</string>
+  <string name="lp_liquidity_add_complete_text">Your supply to Liquidity pools has been successfully completed</string>
+  <string name="lp_network_fee_alert_text">Network fee is used to ensure SORA system’s growth and stable performance.</string>
+  <string name="lp_pool_details_title">Pool details</string>
+  <string name="lp_pool_remove_warning_text">Removing pool tokens converts your position back into underlying tokens at the current rate, proportional to your share of the pool. Accrued fees are included in the amounts you receive.</string>
+  <string name="lp_pool_remove_warning_title">NOTE</string>
+  <string name="lp_remove_button_title">Remove Liquidity</string>
+  <string name="lp_remove_liquidity_screen_title">Remove Liquidity</string>
+  <string name="lp_reward_token_text">Earn %s</string>
+  <string name="lp_reward_token_title">Rewards Payout In</string>
+  <string name="lp_slippage_title">Slippage</string>
+  <string name="lp_supply_button_title">Supply Liquidity</string>
+  <string name="lp_supply_liquidity_screen_title">Supply Liquidity</string>
+  <string name="lp_user_pools_title">User pools</string>
+  <string name="lp_your_pooled_format">Your %s Pooled</string>
   <string name="make_payout_transaction_sent">Payout transaction sent</string>
   <string name="manage_assets_account_missing_text">Add an account...</string>
   <string name="manage_assets_search_hint">Search by asset</string>
@@ -595,10 +614,6 @@
     <item quantity="one">+ %d other</item>
     <item quantity="other">+ %d others</item>
   </plurals>
-  <string name="pl_your_pooled_format">Your %s pooled</string>
-  <string name="pl_user_pools">User pools</string>
-  <string name="pl_liquidity_add_complete">Your supply to Liquidity pools has been successfully completed</string>
-  <string name="pl_available_pools">Available pools</string>
   <string name="polkaswap_btn_reset_to_default">Reset to default</string>
   <string name="polkaswap_confirmation_swap_stub">Swap</string>
   <string name="polkaswap_confirmation_swapped_stub">Swapped</string>

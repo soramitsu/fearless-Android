@@ -40,8 +40,6 @@ class MainViewModel @Inject constructor(
         .asLiveData()
 
     fun navigateToSwapScreen() {
-        val xorPswap = Pair("b774c386-5cce-454a-a845-1ec0381538ec", "37a999a2-5e90-4448-8b0e-98d06ac8f9d4")
-//        polkaswapRouter.openAddLiquidity(xorPswap)
         if (polkaswapInteractor.hasReadDisclaimer) {
             walletRouter.openSwapTokensScreen(
                 chainId = null,

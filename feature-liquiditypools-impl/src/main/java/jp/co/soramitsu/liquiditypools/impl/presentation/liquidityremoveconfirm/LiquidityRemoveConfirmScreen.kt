@@ -20,6 +20,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -141,7 +142,7 @@ fun LiquidityRemoveConfirmScreen(
 
                     InfoTableItem(
                         TitleValueViewState(
-                            title = "Network fee",
+                            title = stringResource(id = R.string.common_network_fee),
                             value = state.feeInfo.feeAmount,
                             additionalValue = state.feeInfo.feeAmountFiat,
                             clickState = TitleValueViewState.ClickState.Title(R.drawable.ic_info_14, ITEM_FEE_ID)
@@ -159,7 +160,7 @@ fun LiquidityRemoveConfirmScreen(
                 .height(48.dp)
                 .padding(horizontal = 16.dp)
                 .fillMaxWidth(),
-            text = "Confirm",
+            text = stringResource(id = R.string.common_confirm),
             enabled = state.buttonEnabled,
             loading = state.buttonLoading,
             onClick = callbacks::onRemoveConfirmClick

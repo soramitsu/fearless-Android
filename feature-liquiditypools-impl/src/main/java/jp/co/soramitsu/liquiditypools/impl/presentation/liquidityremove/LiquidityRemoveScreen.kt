@@ -18,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import java.math.BigDecimal
@@ -28,10 +29,15 @@ import jp.co.soramitsu.common.compose.component.BackgroundCorneredWithBorder
 import jp.co.soramitsu.common.compose.component.FeeInfoViewState
 import jp.co.soramitsu.common.compose.component.InfoTableItem
 import jp.co.soramitsu.common.compose.component.MarginVertical
+import jp.co.soramitsu.common.compose.component.Notification
+import jp.co.soramitsu.common.compose.component.NotificationState
 import jp.co.soramitsu.common.compose.component.TitleValueViewState
+import jp.co.soramitsu.common.compose.component.WarningInfo
+import jp.co.soramitsu.common.compose.component.WarningInfoState
 import jp.co.soramitsu.common.compose.theme.backgroundBlack
 import jp.co.soramitsu.common.compose.theme.colorAccentDark
 import jp.co.soramitsu.common.compose.theme.grayButtonBackground
+import jp.co.soramitsu.common.compose.theme.warningOrange
 import jp.co.soramitsu.common.compose.theme.white
 import jp.co.soramitsu.common.compose.theme.white08
 import jp.co.soramitsu.feature_wallet_impl.R
@@ -134,14 +140,14 @@ fun LiquidityRemoveScreen(
                 Column {
                     InfoTableItem(
                         TitleValueViewState(
-                            title = "Transferable Balance",
+                            title = stringResource(id = R.string.assetdetails_balance_transferable),
                             value = state.transferableAmount,
                             additionalValue = state.transferableFiat
                         )
                     )
                     InfoTableItem(
                         TitleValueViewState(
-                            title = "Network fee",
+                            title = stringResource(id = R.string.common_network_fee),
                             value = state.feeInfo.feeAmount,
                             additionalValue = state.feeInfo.feeAmountFiat,
                             clickState = TitleValueViewState.ClickState.Title(R.drawable.ic_info_14, ITEM_FEE_ID)
@@ -154,12 +160,24 @@ fun LiquidityRemoveScreen(
             MarginVertical(margin = 24.dp)
         }
 
+        Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+            Notification(
+                state = NotificationState(
+                    iconRes = R.drawable.ic_warning_filled,
+                    title = stringResource(id = R.string.lp_pool_remove_warning_title).uppercase(),
+                    value = stringResource(id = R.string.lp_pool_remove_warning_text),
+                    color = warningOrange
+                )
+            )
+        }
+        MarginVertical(margin = 16.dp)
+
         AccentButton(
             modifier = Modifier
                 .height(48.dp)
                 .padding(horizontal = 16.dp)
                 .fillMaxWidth(),
-            text = "Review",
+            text = stringResource(id = R.string.common_preview),
             enabled = state.buttonEnabled,
             loading = state.buttonLoading,
             onClick = { runCallback(callbacks::onRemoveReviewClick) }

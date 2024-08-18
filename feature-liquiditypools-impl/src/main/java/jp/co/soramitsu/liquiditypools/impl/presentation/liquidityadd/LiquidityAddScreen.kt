@@ -18,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import java.math.BigDecimal
@@ -135,10 +136,10 @@ fun LiquidityAddScreen(
                     .fillMaxWidth()
             ) {
                 Column {
-                    InfoTableItem(TitleValueViewState("Slippage", state.slippage))
+                    InfoTableItem(TitleValueViewState(stringResource(id = R.string.lp_slippage_title), state.slippage))
                     InfoTableItem(
                         TitleValueViewState(
-                            title = "Strategic bonus APY",
+                            title = stringResource(id = R.string.lp_apy_title),
                             value = state.apy,
                             clickState = TitleValueViewState.ClickState.Title(R.drawable.ic_info_14, ITEM_APY_ID)
                         ),
@@ -148,14 +149,14 @@ fun LiquidityAddScreen(
                     )
                     InfoTableItemAsset(
                         TitleIconValueState(
-                            title = "Rewards payout in",
+                            title = stringResource(id = R.string.lp_reward_token_title),
                             iconUrl = "https://raw.githubusercontent.com/soramitsu/shared-features-utils/master/icons/tokens/coloured/PSWAP.svg",
                             value = "PSWAP"
                         )
                     )
                     InfoTableItem(
                         TitleValueViewState(
-                            title = "Network fee",
+                            title = stringResource(id = R.string.common_network_fee),
                             value = state.feeInfo.feeAmount,
                             additionalValue = state.feeInfo.feeAmountFiat,
                             clickState = TitleValueViewState.ClickState.Title(R.drawable.ic_info_14, ITEM_FEE_ID)

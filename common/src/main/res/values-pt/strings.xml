@@ -156,6 +156,7 @@
   <string name="common_assets_filters_fiat">Saldo Fiat</string>
   <string name="common_assets_filters_name">Nome</string>
   <string name="common_assets_filters_popularity">Popularidade</string>
+  <string name="common_attention">Atenção</string>
   <string name="common_available_format">Disponível: %s</string>
   <string name="common_backup_your_wallet">Faça backup da sua carteira</string>
   <string name="common_balance">Saldo</string>

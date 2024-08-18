@@ -24,6 +24,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -36,6 +37,8 @@ import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.component.Shimmer
 import jp.co.soramitsu.common.compose.component.ShimmerB2
 import jp.co.soramitsu.common.compose.component.getImageRequest
+import jp.co.soramitsu.common.compose.models.TextModel
+import jp.co.soramitsu.common.compose.models.retrieveString
 import jp.co.soramitsu.common.compose.theme.colorAccentDark
 import jp.co.soramitsu.common.compose.theme.customTypography
 import jp.co.soramitsu.common.compose.theme.transparent
@@ -53,7 +56,7 @@ data class BasicPoolListItemState(
     val text2: String,
     val text2Color: Color = white50,
     val apy: LoadingState<String>?,
-    val text4: String? = null,
+    val text4: TextModel? = null,
 )
 
 @Composable
@@ -136,8 +139,8 @@ fun BasicPoolListItem(
                         style = MaterialTheme.customTypography.header6,
                         text = "%s %s".format(
                             state.apy.data,
-                            "APY"
-                        ), //stringResource(id = R.string.polkaswap_apy)),
+                            stringResource(id = R.string.staking_only_apy)
+                        ),
                         maxLines = 1,
                         textAlign = TextAlign.End
                     )
@@ -157,7 +160,7 @@ fun BasicPoolListItem(
                     modifier = Modifier.wrapContentHeight(),
                     color = white50,
                     style = MaterialTheme.customTypography.body2,
-                    text = state.text4.orEmpty(),
+                    text = state.text4?.retrieveString().orEmpty(),
                     maxLines = 1,
                 )
 
@@ -217,7 +220,6 @@ fun BasicPoolShimmerItem(
         }
         Column(
             modifier = Modifier
-//                .wrapContentHeight()
                 .weight(1f)
                 .padding(start = 8.dp, end = 12.dp),
             verticalArrangement = Arrangement.SpaceBetween,
@@ -275,7 +277,7 @@ private fun PreviewBasicPoolListItem() {
                 text1 = "XOR-VAL",
                 text2 = "123.4M",
                 apy = LoadingState.Loaded("1234.3%"),
-                text4 = "Earn SWAP",
+                text4 = TextModel.SimpleString("Earn SWAP"),
             )
         )
         BasicPoolListItem(
@@ -287,7 +289,7 @@ private fun PreviewBasicPoolListItem() {
                 text1 = "text1",
                 text2 = "text2",
                 apy = LoadingState.Loaded("text3"),
-                text4 = "text4",
+                text4 = TextModel.SimpleString("text4"),
             )
         )
         BasicPoolListItem(
@@ -299,7 +301,7 @@ private fun PreviewBasicPoolListItem() {
                 text1 = "text1",
                 text2 = "text2",
                 apy = LoadingState.Loading(),
-                text4 = "text4",
+                text4 = TextModel.SimpleString("text4"),
             )
         )
         BasicPoolListItem(
@@ -311,7 +313,7 @@ private fun PreviewBasicPoolListItem() {
                 text1 = "text1",
                 text2 = "text2",
                 apy = null,
-                text4 = "text4",
+                text4 = TextModel.SimpleString("text4"),
             )
         )
         BasicPoolShimmerItem()

@@ -1,6 +1,8 @@
 package jp.co.soramitsu.liquiditypools.impl.presentation.liquidityremove
 
-import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
+import java.math.BigDecimal
+import java.math.RoundingMode
+import javax.inject.Inject
 import jp.co.soramitsu.androidfoundation.format.isZero
 import jp.co.soramitsu.common.base.errors.ValidationException
 import jp.co.soramitsu.common.compose.component.FeeInfoViewState
@@ -28,6 +30,7 @@ import jp.co.soramitsu.polkaswap.impl.util.PolkaswapFormulas
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.wallet.api.domain.fromValidationResult
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
+import kotlin.math.min
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
@@ -53,10 +56,6 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
-import java.math.BigDecimal
-import java.math.RoundingMode
-import javax.inject.Inject
-import kotlin.math.min
 
 @OptIn(FlowPreview::class)
 class LiquidityRemovePresenter @Inject constructor(
@@ -66,7 +65,6 @@ class LiquidityRemovePresenter @Inject constructor(
     private val chainsRepository: ChainsRepository,
     private val poolsInteractor: PoolsInteractor,
     private val demeterFarmingInteractor: DemeterFarmingInteractor,
-    private val accountInteractor: AccountInteractor,
     private val resourceManager: ResourceManager,
     private val validateRemoveLiquidityUseCase: ValidateRemoveLiquidityUseCase,
 ) : LiquidityRemoveCallbacks {
@@ -134,7 +132,6 @@ class LiquidityRemovePresenter @Inject constructor(
     init {
         coroutinesStore.ioScope.launch {
             poolDataFlow.map { data ->
-                println("!!! poolDataFlow data = $data")
                 data.user?.let {
                     CommonUserPoolData(
                         data.basic,
@@ -146,7 +143,6 @@ class LiquidityRemovePresenter @Inject constructor(
                 .distinctUntilChanged()
                 .debounce(500)
                 .map { poolDataLocal ->
-                    println("!!! poolDataFlow map poolDataLocal = $poolDataLocal")
                     poolDataReal = poolDataLocal
                     poolInFarming = false
 
@@ -193,12 +189,9 @@ class LiquidityRemovePresenter @Inject constructor(
                     } else {
                         null
                     }
-                    println("!!! poolDataFlow result = $result")
                     result
                 }
                 .collectLatest { poolDataLocal ->
-                    println("!!! poolDataFlow collectLatest poolDataLocal = $poolDataLocal")
-
                     poolDataUsable = poolDataLocal
                     amountBase =
                         if (poolDataLocal != null) PolkaswapFormulas.calculateAmountByPercentage(
@@ -290,7 +283,6 @@ class LiquidityRemovePresenter @Inject constructor(
             }.launchIn(coroutineScope)
 
         enteredTargetAmountFlow.onEach {
-            println("!!! enteredToAmountFlow.onEach = $it")
             val (_, targetToken) = baseToTargetTokensFlow.first()
 
             stateFlow.value = stateFlow.value.copy(
@@ -302,7 +294,6 @@ class LiquidityRemovePresenter @Inject constructor(
         }
             .debounce(900)
             .onEach { amount ->
-                println("!!! enteredToAmountFlow.onEach debounced = $amount")
                 poolDataUsable?.let {
                     amountTarget = if (amount <= it.user.targetPooled) amount else it.user.targetPooled
 
@@ -319,7 +310,6 @@ class LiquidityRemovePresenter @Inject constructor(
                     )
                 }
 
-//                updateAmounts()
                 coroutinesStore.uiScope.launch {
                     updateAmounts()
                 }
@@ -359,8 +349,6 @@ class LiquidityRemovePresenter @Inject constructor(
     private suspend fun updateAmounts() {
         baseToTargetTokensFlow.firstOrNull()?.let { (tokenBase, tokenTarget) ->
             if (amountBase.compareTo(stateFlow.value.baseAmountInputViewState.tokenAmount) != 0) {
-                println("!!! updateAmounts amountFrom to $amountBase")
-
                 val scaledAmountBase = when {
                     amountBase.isZero() -> BigDecimal.ZERO
                     else -> amountBase.setScale(
@@ -377,7 +365,6 @@ class LiquidityRemovePresenter @Inject constructor(
                 )
             }
             if (amountTarget.compareTo(stateFlow.value.targetAmountInputViewState.tokenAmount) != 0) {
-                println("!!! updateAmounts amountTo to $amountTarget")
                 val scaledAmountTarget = when {
                     amountTarget.isZero() -> BigDecimal.ZERO
                     else -> amountTarget.setScale(
@@ -405,12 +392,10 @@ class LiquidityRemovePresenter @Inject constructor(
     }
 
     private val networkFeeFlow = baseToTargetTokensFlow.map { (baseToken, targetToken) ->
-        val networkFee = getRemoveLiquidityNetworkFee(
+        getRemoveLiquidityNetworkFee(
             tokenBase = baseToken.configuration,
             tokenTarget = targetToken.configuration,
         )
-        println("!!!! RemoveLiquidity FeeFlow emit $networkFee")
-        networkFee
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -516,7 +501,6 @@ class LiquidityRemovePresenter @Inject constructor(
 
             internalPoolsRouter.openRemoveLiquidityConfirmScreen(ids, amountBase, amountTarget, firstAmountMin, secondAmountMin, desired)
         }.invokeOnCompletion {
-            println("!!! setButtonLoading(false)")
             coroutinesStore.uiScope.launch {
                 delay(300)
                 setButtonLoading(false)
@@ -525,13 +509,11 @@ class LiquidityRemovePresenter @Inject constructor(
     }
 
     override fun onRemoveBaseAmountChange(amount: BigDecimal) {
-        println("!!! onRemoveBaseAmountChange(amount = $amount")
         enteredBaseAmountFlow.value = amount
         updateButtonState()
     }
 
     override fun onRemoveTargetAmountChange(amount: BigDecimal) {
-        println("!!! onRemoveToAmountChange(amount = $amount")
         enteredTargetAmountFlow.value = amount
         updateButtonState()
     }

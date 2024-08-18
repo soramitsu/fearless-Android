@@ -3,6 +3,8 @@ package jp.co.soramitsu.liquiditypools.impl.navigation
 import java.math.BigDecimal
 import java.util.Stack
 import jp.co.soramitsu.androidfoundation.format.StringPair
+import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.liquiditypools.impl.presentation.PoolsFlowViewModel
 import jp.co.soramitsu.liquiditypools.navigation.InternalPoolsRouter
 import jp.co.soramitsu.liquiditypools.navigation.LiquidityPoolsNavGraphRoute
@@ -15,7 +17,8 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.onEach
 
 class InternalPoolsRouterImpl(
-    private val walletRouter: WalletRouter
+    private val walletRouter: WalletRouter,
+    private val resourceManager: ResourceManager
 ): InternalPoolsRouter {
     private val routesStack = Stack<LiquidityPoolsNavGraphRoute>()
 
@@ -88,10 +91,10 @@ class InternalPoolsRouterImpl(
     override fun openInfoScreen(itemId: Int) {
         when (itemId) {
             PoolsFlowViewModel.ITEM_APY_ID -> {
-                openInfoScreen("Strategic Bonus APY", "Farming reward for liquidity provision.")
+                openInfoScreen(resourceManager.getString(res = R.string.lp_apy_title), resourceManager.getString(res = R.string.lp_apy_alert_text))
             }
             PoolsFlowViewModel.ITEM_FEE_ID -> {
-                openInfoScreen("Network fee", "Network fee is used to ensure SORA system’s growth and  stable performance. ")
+                openInfoScreen(resourceManager.getString(res = R.string.common_network_fee), resourceManager.getString(res = R.string.lp_network_fee_alert_text))
             }
         }
     }

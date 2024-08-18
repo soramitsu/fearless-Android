@@ -78,7 +78,6 @@ interface PoolsRepository {
     suspend fun updateAccountPools(chainId: ChainId, address: String)
     suspend fun updateBasicPools(chainId: ChainId)
 
-//    fun subscribePools(): Flow<List<BasicPoolData>>
     fun subscribePools(address: String): Flow<List<CommonPoolData>>
     fun subscribePool(address: String, baseTokenId: String, targetTokenId: String): Flow<CommonPoolData>
 

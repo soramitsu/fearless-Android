@@ -12,9 +12,7 @@ interface PoolsInteractor {
     val poolsChainId: String
 
     suspend fun getBasicPools(): List<BasicPoolData>
-//    fun subscribePoolsCache(): Flow<List<BasicPoolData>>
 
-    //    suspend fun getPoolCacheOfCurAccount(tokenFromId: String, tokenToId: String): CommonUserPoolData?
     fun subscribePoolsCacheOfAccount(address: String): Flow<List<CommonPoolData>>
     fun subscribePoolsCacheCurrentAccount(): Flow<List<CommonPoolData>>
     suspend fun getPoolData(
