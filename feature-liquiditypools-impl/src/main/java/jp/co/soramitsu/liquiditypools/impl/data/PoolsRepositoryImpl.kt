@@ -224,7 +224,6 @@ class PoolsRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getBasicPools(chainId: ChainId): List<BasicPoolData> {
-        println("!!!  getBasicPools() start")
         val runtimeOrNull = chainRegistry.getRuntimeOrNull(chainId)
         val storage = runtimeOrNull?.metadata
             ?.module(Modules.POOL_XYK)
@@ -239,7 +238,6 @@ class PoolsRepositoryImpl @Inject constructor(
         val accountId = wallet.accountId(soraChain)
         val soraAssets = soraChain.assets
 
-        println("!!!  getBasicPools() soraAssets size: ${soraAssets.size}")
 
         soraAssets.forEach { asset ->
             val currencyId = asset.currencyId
@@ -276,7 +274,6 @@ class PoolsRepositoryImpl @Inject constructor(
                                     reserveAccount = reserveAccountAddress
                                 )
 
-                                println("!!!  getBasicPools() list.add(BasicPoolData: $element")
                                 list.add(
                                     element
                                 )
@@ -285,8 +282,6 @@ class PoolsRepositoryImpl @Inject constructor(
                 }
             }
         }
-
-        println("!!!  getBasicPools() return list.size = ${list.size}")
 
         return list
     }
@@ -859,13 +854,8 @@ class PoolsRepositoryImpl @Inject constructor(
     }
 
     override suspend fun updateAccountPools(chainId: ChainId, address: String) = supervisorScope {
-        println("!!! call blockExplorerManager.updateAccountPools() chainId = $chainId")
-
         val assets = chainRegistry.getChain(chainId).assets
-        println("!!! call blockExplorerManager.updateAccountPools() assets = ${assets.size}")
-
         val tokenIds = getUserPoolsTokenIds(chainId, address)
-        println("!!! call blockExplorerManager.updateAccountPools() tokenIds = ${tokenIds.size}")
         val poolsDeferred = tokenIds.map { (baseTokenId, tokensId) ->
             async {
                 val baseToken = assets.firstOrNull {
@@ -923,27 +913,11 @@ class PoolsRepositoryImpl @Inject constructor(
         val pools = poolsDeferred.awaitAll().flatten()
 
         db.withTransaction {
-            println("!!! updateAccountPools: poolDao.clearTable(address)")
             poolDao.clearTable(address)
-
-            println(
-                "!!! updateAccountPools: poolDao.insertBasicPools() size = ${
-                    pools.map {
-                        it.basicPoolLocal
-                    }.size
-                }"
-            )
             poolDao.insertBasicPools(
                 pools.map {
                     it.basicPoolLocal
                 }
-            )
-            println(
-                "!!! updateAccountPools: poolDao.insertUSERPools() size = ${
-                    pools.map {
-                        it.userPoolLocal
-                    }.size
-                }"
             )
             poolDao.insertUserPools(
                 pools.map {
@@ -954,13 +928,10 @@ class PoolsRepositoryImpl @Inject constructor(
     }
 
     override suspend fun updateBasicPools(chainId: ChainId) = coroutineScope {
-        println("!!! pswapRepo updateBasicPools")
         val runtimeOrNull = chainRegistry.awaitRuntimeProvider(chainId).get()
         val storage = runtimeOrNull.metadata
             .module(Modules.POOL_XYK)
             .storage("Reserves")
-
-//        val list = mutableListOf<BasicPoolLocal>()
 
         val soraChain = chainRegistry.getChain(chainId)
         val assets = soraChain.assets
@@ -1016,7 +987,6 @@ class PoolsRepositoryImpl @Inject constructor(
             list.find { it.tokenIdBase == db.tokenIdBase && it.tokenIdTarget == db.tokenIdTarget } == null
         }
         poolDao.deleteBasicPools(minus)
-        println("!!! pswapRepo insertBasicPools(list) size = ${list.size}")
         poolDao.insertBasicPools(list)
     }
 

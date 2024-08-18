@@ -93,13 +93,13 @@
   <string name="backup_wallet_warning_about_lose_phrase">Nếu bạn mất quyền truy cập vào thiết bị này, tiền của bạn sẽ bị mất, trừ khi bạn sao lưu!</string>
   <string name="balance_locks_blocked_row_title">Bị chặn</string>
   <string name="balance_locks_governance_row_title">Quản trị</string>
-  <string name="balance_locks_liquidity_pools_row_title">Pool thanh khoản</string>
   <string name="balance_locks_nomination_pools_row_title">Nhóm Nomination</string>
   <string name="balance_locks_screen_title">Chi tiết đã khóa</string>
   <string name="banners_backup_description">Nếu bạn làm mất thiết bị của mình, bạn\n sẽ mất tiền của bạn mãi mãi</string>
   <string name="banners_buy_xor">Mua XOR</string>
   <string name="banners_buy_xor_description">Mua hoặc bán tokr XOR với\ntiền Euro</string>
   <string name="banners_buy_xor_title">Mua token XOR</string>
+  <string name="banners_liquidity_pools_title">Pool thanh khoản</string>
   <string name="beacon_connect_warning">Cảnh báo: Bằng cách nhấp vào kết nối, bạn cho phép dapp này xem địa chỉ công khai của bạn. Đây là một bước bảo mật quan trọng để bảo vệ dữ liệu của bạn khỏi các nguy cơ lừa đảo tiềm ẩn.</string>
   <string name="beacon_connected">Đã kết nối với %s</string>
   <string name="beacon_connected_to">Đã kết nối với</string>
@@ -288,6 +288,7 @@
   <string name="common_select_network">Chọn mạng</string>
   <string name="common_selected">Đã chọn</string>
   <string name="common_share">Chia sẻ</string>
+  <string name="common_show_details">Hiển thị chi tiết</string>
   <string name="common_sign">Ký</string>
   <string name="common_skip">Bỏ qua</string>
   <string name="common_skip_process">Bỏ qua quá trình</string>
@@ -489,15 +490,12 @@
   <string name="label_testnet">Testnet</string>
   <string name="language_title">Ngôn ngữ</string>
   <string name="lp_apy_alert_text">Phần thưởng canh tác để cung cấp thanh khoản</string>
-  <string name="lp_apy_alert_title">APY tiền thưởng chiến lược</string>
   <string name="lp_apy_title">APY tiền thưởng chiến lược</string>
   <string name="lp_available_pools_title">Pool có sẵn</string>
-  <string name="lp_banner_action_details_title">Hiển thị chi tiết</string>
   <string name="lp_banner_text">Đầu tư tiền của bạn vào Pool\nthanh khoản và nhận phần thưởng</string>
   <string name="lp_confirm_liquidity_screen_title">Xác nhận thanh khoản</string>
   <string name="lp_confirm_liquidity_warning_text">Kết quả được ước tính. Nếu giá thay đổi hơn 0,5% thì giao dịch của bạn sẽ hoàn trả.</string>
   <string name="lp_network_fee_alert_text">Phí mạng được sử dụng để đảm bảo sự tăng trưởng và hiệu suất ổn định của hệ thống SORA.</string>
-  <string name="lp_network_fee_alert_title">Phí mạng</string>
   <string name="lp_pool_details_title">Chi tiết Pool</string>
   <string name="lp_pool_remove_warning_text">Việc xóa pool token sẽ chuyển đổi vị trí của bạn trở lại thành token cơ bản ở mức giá hiện tại, tỷ lệ thuận với phần chia sẻ của bạn trong pool. Phí tích lũy được bao gồm trong số tiền bạn nhận được.</string>
   <string name="lp_pool_remove_warning_title">GHI CHÚ</string>
@@ -508,8 +506,8 @@
   <string name="lp_slippage_title">Trượt giá</string>
   <string name="lp_supply_button_title">Nguồnn cung thanh khoản</string>
   <string name="lp_supply_liquidity_screen_title">Nguồnn cung thanh khoản</string>
-  <string name="lp_token_pooled_text">%s của bạn đã đóng góp</string>
   <string name="lp_user_pools_title">Pool người dùng</string>
+  <string name="lp_your_pooled_format">%s của bạn đã đóng góp</string>
   <string name="make_payout_transaction_sent">Giao dịch thanh toán đã được gửi</string>
   <string name="manage_assets_account_missing_text">Thêm một tài khoản...</string>
   <string name="manage_assets_search_hint">Tìm kiếm theo tài sản</string>
@@ -554,6 +552,7 @@
   <string name="nft_collection_title">Bộ sưu tập</string>
   <string name="nft_creator_title">Người sáng tạo</string>
   <string name="nft_list_empty_message">Chưa có bất kỳ NFT nào. Mua hoặc đúc NFT để xem chúng tại đây.</string>
+  <string name="nft_load_error">Không thể tải NFT</string>
   <string name="nft_owner_title">Sở hữu</string>
   <string name="nft_stub_text">NFTs sẽ sớm ra mắt</string>
   <string name="nft_stub_title">Sumimasen!</string>

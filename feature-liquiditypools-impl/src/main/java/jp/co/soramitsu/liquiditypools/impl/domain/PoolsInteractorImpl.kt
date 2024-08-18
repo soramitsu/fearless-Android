@@ -50,7 +50,6 @@ class PoolsInteractorImpl(
 
     private val soraPoolsAddressFlow = flowOf {
         val meta = accountRepository.getSelectedMetaAccount()
-        println("!!! accountflow poolsChainId = $poolsChainId")
         val chain = accountRepository.getChain(poolsChainId)
         meta.address(chain)
     }.mapNotNull { it }
@@ -75,7 +74,6 @@ class PoolsInteractorImpl(
         tokenId: ByteArray
     ): PoolDataDto? {
         return poolsRepository.getUserPoolData(chainId, address, baseTokenId, tokenId)
-
     }
 
     override suspend fun calcAddLiquidityNetworkFee(
@@ -132,10 +130,8 @@ class PoolsInteractorImpl(
     secondAmountMin: BigDecimal,
     networkFee: BigDecimal
     ): String {
-        val address = accountRepository.getSelectedAccount(chainId).address
-
         val status = poolsRepository.observeRemoveLiquidity(
-           chainId,
+            chainId,
             tokenBase,
             tokenTarget,
             markerAssetDesired,
@@ -143,8 +139,7 @@ class PoolsInteractorImpl(
             secondAmountMin,
         )
 
-
-    return status?.getOrNull() ?: ""
+        return status?.getOrNull() ?: ""
     }
 
     override suspend fun observeAddLiquidity(

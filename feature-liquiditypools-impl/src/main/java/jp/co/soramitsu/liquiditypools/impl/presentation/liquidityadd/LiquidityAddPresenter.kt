@@ -112,7 +112,6 @@ class LiquidityAddPresenter @Inject constructor(
     val assetsInPoolFlow = screenArgsFlow.flatMapLatest { screenArgs ->
         val ids = screenArgs.ids
         val chainId = poolsInteractor.poolsChainId
-        println("!!! assetsInPoolFlow ADD ids = $ids")
         val chainAssets = chainsRepository.getChain(chainId).assets
         val baseAsset = chainAssets.firstOrNull { it.currencyId == ids.first }?.let {
             walletInteractor.getCurrentAssetOrNull(chainId, it.id)
@@ -138,7 +137,6 @@ class LiquidityAddPresenter @Inject constructor(
 
     @OptIn(FlowPreview::class)
     private fun subscribeState(coroutineScope: CoroutineScope) {
-        println("!!! AddPresenter subscribeState")
         enteredBaseAmountFlow
             .onEach {
                 desired = WithDesired.INPUT
@@ -310,7 +308,7 @@ class LiquidityAddPresenter @Inject constructor(
         isPoolPairEnabled
     )
     { amountBase, amountTarget, (baseAsset, targetAsset), slippage, pairEnabled ->
-        val networkFee = getLiquidityNetworkFee(
+        getLiquidityNetworkFee(
             tokenBase = baseAsset,
             tokenTarget = targetAsset,
             tokenBaseAmount = amountBase,
@@ -319,8 +317,6 @@ class LiquidityAddPresenter @Inject constructor(
             pairPresented = true,
             slippageTolerance = slippage
         )
-        println("!!!! networkFeeFlow emit $networkFee")
-        networkFee
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -376,7 +372,6 @@ class LiquidityAddPresenter @Inject constructor(
 
     override fun onAddReviewClick() {
         setButtonLoading(true)
-        println("!!! should setButtonLoading(true)")
 
         coroutinesStore.uiScope.launch {
             val chainId = poolsInteractor.poolsChainId
@@ -414,7 +409,6 @@ class LiquidityAddPresenter @Inject constructor(
 
             internalPoolsRouter.openAddLiquidityConfirmScreen(ids, amountBase, amountTarget, apy)
         }.invokeOnCompletion {
-            println("!!! setButtonLoading(false)")
             coroutinesStore.uiScope.launch {
                 delay(300)
                 setButtonLoading(false)

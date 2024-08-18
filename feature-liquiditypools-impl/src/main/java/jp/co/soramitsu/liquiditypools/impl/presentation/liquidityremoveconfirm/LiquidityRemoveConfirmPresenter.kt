@@ -22,6 +22,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -122,9 +123,8 @@ class LiquidityRemoveConfirmPresenter @Inject constructor(
         tokensInPoolFlow,
         stateSlippage,
         isPoolPairEnabled
-    )
-    { screenArgs, (baseAsset, targetAsset), slippage, pairEnabled ->
-        val networkFee = getLiquidityNetworkFee(
+    ) { screenArgs, (baseAsset, targetAsset), slippage, pairEnabled ->
+        getLiquidityNetworkFee(
             tokenBase = baseAsset.configuration,
             tokenTarget = targetAsset.configuration,
             tokenBaseAmount = screenArgs.amountBase,
@@ -133,8 +133,6 @@ class LiquidityRemoveConfirmPresenter @Inject constructor(
             pairPresented = true,
             slippageTolerance = slippage
         )
-        println("!!!! networkFeeFlow emit $networkFee")
-        networkFee
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -197,7 +195,6 @@ class LiquidityRemoveConfirmPresenter @Inject constructor(
 
             var result = ""
 
-
             try {
                 result = poolsInteractor.observeRemoveLiquidity(
                     chainId = chainId,
@@ -219,12 +216,14 @@ class LiquidityRemoveConfirmPresenter @Inject constructor(
 //                    internalPoolsRouter.popupToScreen(LiquidityPoolsNavGraphRoute.PoolDetailsScreen)
                     internalPoolsRouter.back()
                     internalPoolsRouter.back()
-                    internalPoolsRouter.openSuccessScreen(result, chainId, resourceManager.getString(R.string.pl_liquidity_add_complete))
+                    internalPoolsRouter.openSuccessScreen(result, chainId, resourceManager.getString(R.string.lp_liquidity_add_complete_text))
                 }
             }
         }.invokeOnCompletion {
-            println("!!! remove confirm invokeOnCompletion")
-            setButtonLoading(false)
+            coroutinesStore.uiScope.launch {
+                delay(300)
+                setButtonLoading(false)
+            }
         }
     }
 

@@ -30,6 +30,7 @@ import jp.co.soramitsu.androidfoundation.format.StringPair
 import jp.co.soramitsu.common.compose.component.BackgroundCorneredWithBorder
 import jp.co.soramitsu.common.compose.component.Image
 import jp.co.soramitsu.common.compose.component.MarginVertical
+import jp.co.soramitsu.common.compose.models.TextModel
 import jp.co.soramitsu.common.compose.theme.customTypography
 import jp.co.soramitsu.common.compose.theme.white
 import jp.co.soramitsu.common.compose.theme.white08
@@ -87,7 +88,7 @@ fun AllPoolsScreen(
                                 .wrapContentHeight()
                         ) {
                             PoolGroupHeader(
-                                title = stringResource(id = R.string.pl_user_pools),
+                                title = stringResource(id = R.string.lp_user_pools_title),
                                 onMoreClick = { callback.onMoreClick(true) }.takeIf { state.hasExtraUserPools }
                             )
                             state.userPools.forEach { pool ->
@@ -111,7 +112,7 @@ fun AllPoolsScreen(
                             modifier = Modifier.wrapContentHeight()
                         ) {
                             PoolGroupHeader(
-                                title = stringResource(id = R.string.pl_available_pools),
+                                title = stringResource(id = R.string.lp_available_pools_title),
                                 onMoreClick = { callback.onMoreClick(false) }.takeIf { state.hasExtraAllPools }
                             )
                             state.allPools.forEach { pool ->
@@ -136,7 +137,7 @@ fun ShimmerPoolList(size: Int = 10) {
         modifier = Modifier.wrapContentHeight()
     ) {
         PoolGroupHeader(
-            title = stringResource(id = R.string.pl_available_pools),
+            title = stringResource(id = R.string.lp_available_pools_title),
             onMoreClick = null
         )
         repeat(size) {
@@ -174,7 +175,7 @@ private fun PoolGroupHeader(title: String, onMoreClick: (() -> Unit)?) {
                         .padding(all = Dimens.x1)
                 ) {
                     Text(
-                        text = "MORE",
+                        text = stringResource(id = R.string.common_more).uppercase(),
                         modifier = Modifier
                             .align(Alignment.CenterVertically),
                         maxLines = 1,
@@ -212,13 +213,13 @@ private fun PreviewAllPoolsScreen() {
         text1 = "XOR-VAL",
         text2 = "123.4M",
         apy = LoadingState.Loaded("1234.3%"),
-        text4 = "Earn SWAP",
+        text4 = TextModel.SimpleString("Earn SWAP"),
     )
 
     val items = listOf(
         itemState,
-        itemState.copy(text1 = "TEXT1", text2 = "TEXT2", apy = LoadingState.Loaded("TEXT3"), text4 = "TEXT4"),
-        itemState.copy(text1 = "text1", text2 = "text2", apy = LoadingState.Loaded("text3"), text4 = "text4"),
+        itemState.copy(text1 = "TEXT1", text2 = "TEXT2", apy = LoadingState.Loaded("TEXT3"), text4 = TextModel.SimpleString("TEXT4")),
+        itemState.copy(text1 = "text1", text2 = "text2", apy = LoadingState.Loaded("text3"), text4 = TextModel.SimpleString("text4")),
     )
     AllPoolsScreen(
         state = AllPoolsState(

@@ -1,7 +1,6 @@
 package jp.co.soramitsu.liquiditypools.impl.presentation
 
 import dagger.hilt.android.lifecycle.HiltViewModel
-import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.androidfoundation.format.StringPair
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.models.TextModel
@@ -49,6 +48,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import javax.inject.Inject
+import jp.co.soramitsu.common.resources.ResourceManager
 
 @HiltViewModel
 class PoolsFlowViewModel @Inject constructor(
@@ -61,9 +61,9 @@ class PoolsFlowViewModel @Inject constructor(
     liquidityRemoveConfirmPresenter: LiquidityRemoveConfirmPresenter,
     private val coroutinesStore: CoroutinesStore,
     private val poolsInteractor: PoolsInteractor,
-    private val accountInteractor: AccountInteractor,
     private val internalPoolsRouter: InternalPoolsRouter,
     private val poolsRouter: LiquidityPoolsRouter,
+    private val resourceManager: ResourceManager
 ) : BaseViewModel(),
     LiquidityAddCallbacks by liquidityAddPresenter,
     LiquidityAddConfirmCallbacks by liquidityAddConfirmPresenter,
@@ -138,9 +138,9 @@ class PoolsFlowViewModel @Inject constructor(
             LiquidityPoolsNavGraphRoute.ListPoolsScreen.routeName -> {
                 val destinationArgs = internalPoolsRouter.destination(LiquidityPoolsNavGraphRoute.ListPoolsScreen::class.java)
                 val titleId = if (destinationArgs?.isUserPools == true) {
-                    R.string.pl_user_pools
+                    R.string.lp_user_pools_title
                 } else {
-                    R.string.pl_available_pools
+                    R.string.lp_available_pools_title
                 }
 
                 LoadingState.Loaded(
@@ -150,27 +150,27 @@ class PoolsFlowViewModel @Inject constructor(
 
             LiquidityPoolsNavGraphRoute.PoolDetailsScreen.routeName ->
                 LoadingState.Loaded(
-                    TextModel.SimpleString("Pools details")
+                    TextModel.ResId(R.string.lp_pool_details_title)
                 )
 
             LiquidityPoolsNavGraphRoute.LiquidityAddScreen.routeName ->
                 LoadingState.Loaded(
-                    TextModel.SimpleString("Supply liquidity")
+                    TextModel.ResId(R.string.lp_supply_liquidity_screen_title)
                 )
 
             LiquidityPoolsNavGraphRoute.LiquidityAddConfirmScreen.routeName ->
                 LoadingState.Loaded(
-                    TextModel.SimpleString("Confirm liquidity")
+                    TextModel.ResId(R.string.lp_confirm_liquidity_screen_title)
                 )
 
             LiquidityPoolsNavGraphRoute.LiquidityRemoveScreen.routeName ->
                 LoadingState.Loaded(
-                    TextModel.SimpleString("Remove liquidity")
+                    TextModel.ResId(R.string.lp_remove_liquidity_screen_title)
                 )
 
             LiquidityPoolsNavGraphRoute.LiquidityRemoveConfirmScreen.routeName ->
                 LoadingState.Loaded(
-                    TextModel.SimpleString("Remove liquidity")
+                    TextModel.ResId(R.string.lp_remove_liquidity_screen_title)
                 )
 
             else -> LoadingState.Loading()
@@ -203,9 +203,9 @@ fun CommonPoolData.toListItemState(baseToken: Token?): BasicPoolListItemState? {
     val baseSymbol = basic.baseToken.symbol
     val targetSymbol = basic.targetToken?.symbol
     val userPooledInfo = user?.let {
-        "${it.basePooled.formatCrypto(baseSymbol)} - ${
-            it.targetPooled.formatCrypto(targetSymbol)
-        }"
+        val baseCrypto = it.basePooled.formatCrypto(baseSymbol)
+        val targetCrypto = it.targetPooled.formatCrypto(targetSymbol)
+        "$baseCrypto - $targetCrypto"
     }
     val text2Color = if (user == null) white50 else user.let { greenText }
 
@@ -217,6 +217,6 @@ fun CommonPoolData.toListItemState(baseToken: Token?): BasicPoolListItemState? {
         text2 = userPooledInfo ?: tvl,
         text2Color = text2Color,
         apy = LoadingState.Loading(),
-        text4 = "Earn PSWAP"
+        text4 = TextModel.ResIdWithArgs(id = R.string.lp_reward_token_text, arrayOf("PSWAP"))
     )
 }
