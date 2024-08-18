@@ -1,21 +1,21 @@
 package jp.co.soramitsu.liquiditypools.impl.domain
 
+import java.math.BigDecimal
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.common.data.secrets.v1.Keypair
 import jp.co.soramitsu.common.data.secrets.v2.KeyPairSchema
 import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
 import jp.co.soramitsu.common.utils.flowOf
-import jp.co.soramitsu.core.extrinsic.keypair_provider.KeypairProvider
 import jp.co.soramitsu.core.models.Asset
+import jp.co.soramitsu.liquiditypools.blockexplorer.BlockExplorerManager
+import jp.co.soramitsu.liquiditypools.data.PoolDataDto
 import jp.co.soramitsu.liquiditypools.data.PoolsRepository
 import jp.co.soramitsu.liquiditypools.domain.interfaces.PoolsInteractor
-import jp.co.soramitsu.polkaswap.api.data.PoolDataDto
-import jp.co.soramitsu.polkaswap.api.domain.models.BasicPoolData
-import jp.co.soramitsu.polkaswap.api.domain.models.CommonPoolData
-import jp.co.soramitsu.polkaswap.api.sorablockexplorer.BlockExplorerManager
-import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.liquiditypools.domain.model.BasicPoolData
+import jp.co.soramitsu.liquiditypools.domain.model.CommonPoolData
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -26,14 +26,10 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withContext
-import java.math.BigDecimal
-import kotlin.coroutines.CoroutineContext
 
 class PoolsInteractorImpl(
     private val poolsRepository: PoolsRepository,
     private val accountRepository: AccountRepository,
-    private val chainRegistry: ChainRegistry,
-    private val keypairProvider: KeypairProvider,
     private val blockExplorerManager: BlockExplorerManager,
     private val coroutineContext: CoroutineContext = Dispatchers.Default
 ) : PoolsInteractor {
@@ -155,18 +151,6 @@ class PoolsInteractorImpl(
         val metaAccount = accountRepository.getSelectedMetaAccount()
         val address = accountRepository.getSelectedAccount(chainId).address
 
-        val networkFee = calcAddLiquidityNetworkFee(
-            chainId,
-            address,
-            tokenBase,
-            tokenTarget,
-            amountBase,
-            amountTarget,
-            enabled,
-            presented,
-            slippageTolerance
-        )
-
         val secrets = accountRepository.getMetaAccountSecrets(metaAccount.id)?.get(MetaAccountSecrets.SubstrateKeypair)
         requireNotNull(secrets)
         val private = secrets[KeyPairSchema.PrivateKey]
@@ -187,24 +171,6 @@ class PoolsInteractorImpl(
             slippageTolerance
         )
 
-
-
-        if (status != null) {
-//            transactionHistoryRepository.saveTransaction(
-//                transactionBuilder.buildLiquidity(
-//                    txHash = status.txHash,
-//                    blockHash = status.blockHash,
-//                    fee = networkFee,
-//                    status = TransactionStatus.PENDING,
-//                    date = Date().time,
-//                    token1 = tokenFrom,
-//                    token2 = tokenTo,
-//                    amount1 = amountFrom,
-//                    amount2 = amountTo,
-//                    type = TransactionLiquidityType.ADD,
-//                )
-//            )
-        }
         return status?.getOrNull() ?: ""
     }
 

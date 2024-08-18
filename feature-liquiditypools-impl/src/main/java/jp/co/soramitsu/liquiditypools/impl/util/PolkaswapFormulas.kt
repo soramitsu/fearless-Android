@@ -1,4 +1,4 @@
-package jp.co.soramitsu.polkaswap.impl.util
+package jp.co.soramitsu.liquiditypools.impl.util
 
 import java.math.BigDecimal
 import jp.co.soramitsu.androidfoundation.format.Big100

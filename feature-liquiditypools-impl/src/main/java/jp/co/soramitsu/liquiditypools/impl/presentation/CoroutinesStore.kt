@@ -9,12 +9,15 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import javax.inject.Inject
 import javax.inject.Singleton
+import jp.co.soramitsu.feature_liquiditypools_impl.R
+import jp.co.soramitsu.liquiditypools.navigation.InternalPoolsRouter
 import kotlin.coroutines.CoroutineContext
 import kotlin.properties.Delegates
 
 @Singleton
 class CoroutinesStore @Inject constructor(
     private val resourceManager: ResourceManager,
+    private val internalPoolsRouter: InternalPoolsRouter
 ) {
 
     val uiScope: CoroutineScope by Delegates.cachedOrNew(isCorrupted = ::isScopeCanceled) {
@@ -29,13 +32,10 @@ class CoroutinesStore @Inject constructor(
         return scope.coroutineContext[Job]?.isActive != true
     }
 
-    @Suppress("UnusedParameter")
     private fun handleException(coroutineContext: CoroutineContext, throwable: Throwable?) {
-        println("!!! CoroutinesStore error: ${throwable?.message}")
-        throwable?.printStackTrace()
-//        internalRouter.openErrorsScreen(
-//            title = resourceManager.getString(R.string.common_error_general_title),
-//            message = resourceManager.getString(R.string.common_error_network)
-//        )
+        internalPoolsRouter.openErrorsScreen(
+            title = resourceManager.getString(R.string.common_error_general_title),
+            message = resourceManager.getString(R.string.common_error_network)
+        )
     }
 }

@@ -1,5 +1,6 @@
 package jp.co.soramitsu.liquiditypools.impl.presentation.pooldetails
 
+import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.androidfoundation.format.StringPair
@@ -8,11 +9,10 @@ import jp.co.soramitsu.common.utils.formatCrypto
 import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.utils.formatPercent
 import jp.co.soramitsu.liquiditypools.domain.interfaces.PoolsInteractor
+import jp.co.soramitsu.liquiditypools.domain.model.CommonPoolData
 import jp.co.soramitsu.liquiditypools.impl.presentation.CoroutinesStore
 import jp.co.soramitsu.liquiditypools.navigation.InternalPoolsRouter
 import jp.co.soramitsu.liquiditypools.navigation.LiquidityPoolsNavGraphRoute
-import jp.co.soramitsu.polkaswap.api.domain.models.CommonPoolData
-import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.shared_utils.extensions.fromHex
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.domain.model.Token
@@ -29,13 +29,11 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 class PoolDetailsPresenter @Inject constructor(
     private val coroutinesStore: CoroutinesStore,
     private val internalPoolsRouter: InternalPoolsRouter,
     private val walletInteractor: WalletInteractor,
-    private val chainsRepository: ChainsRepository,
     private val poolsInteractor: PoolsInteractor,
     private val accountInteractor: AccountInteractor,
 ) : PoolDetailsCallbacks {
@@ -123,6 +121,6 @@ private fun CommonPoolData.mapToState(token: Token): PoolDetailsState {
         pooledTargetAmount = user?.targetPooled?.formatCrypto(basic.targetToken?.symbol).orEmpty(),
         pooledTargetFiat = user?.targetPooled?.applyFiatRate(token.fiatRate)?.formatFiat(token.fiatSymbol).orEmpty(),
         tvl = tvl?.formatFiat(token.fiatSymbol),
-        apy = null//"${basic.sbapy?.toBigDecimal()?.formatPercent()}%"
+        apy = null
     )
 }

@@ -1,4 +1,4 @@
-package jp.co.soramitsu.polkaswap.api.domain.models
+package jp.co.soramitsu.liquiditypools.domain.model
 
 import java.math.BigDecimal
 
@@ -13,7 +13,6 @@ data class CommonPoolData(
 )
 
 data class UserPoolData(
-//    val address: String?,
     val basePooled: BigDecimal,
     val targetPooled: BigDecimal,
     val poolShare: Double,
@@ -22,11 +21,9 @@ data class UserPoolData(
 
 fun BasicPoolData.isFilterMatch(filter: String): Boolean {
     val t1 =
-//        targetToken?.token?.configuration?.name?.lowercase()?.contains(filter.lowercase()) == true ||
         targetToken?.symbol?.lowercase()?.contains(filter.lowercase())  == true ||
         targetToken?.currencyId?.lowercase()?.contains(filter.lowercase()) == true
     val t2 =
-//        baseToken.token.configuration.name?.lowercase()?.contains(filter.lowercase()) == true ||
         baseToken.symbol.lowercase().contains(filter.lowercase()) ||
         baseToken.currencyId?.lowercase()?.contains(filter.lowercase()) == true
     return t1 || t2

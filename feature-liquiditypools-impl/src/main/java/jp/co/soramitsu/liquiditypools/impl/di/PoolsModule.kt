@@ -9,9 +9,9 @@ import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.core.extrinsic.ExtrinsicService
-import jp.co.soramitsu.core.extrinsic.keypair_provider.KeypairProvider
 import jp.co.soramitsu.coredb.AppDatabase
 import jp.co.soramitsu.coredb.dao.PoolDao
+import jp.co.soramitsu.liquiditypools.blockexplorer.BlockExplorerManager
 import jp.co.soramitsu.liquiditypools.data.DemeterFarmingRepository
 import jp.co.soramitsu.liquiditypools.data.PoolsRepository
 import jp.co.soramitsu.liquiditypools.domain.interfaces.DemeterFarmingInteractor
@@ -22,7 +22,6 @@ import jp.co.soramitsu.liquiditypools.impl.domain.DemeterFarmingInteractorImpl
 import jp.co.soramitsu.liquiditypools.impl.domain.PoolsInteractorImpl
 import jp.co.soramitsu.liquiditypools.impl.navigation.InternalPoolsRouterImpl
 import jp.co.soramitsu.liquiditypools.navigation.InternalPoolsRouter
-import jp.co.soramitsu.polkaswap.api.sorablockexplorer.BlockExplorerManager
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
@@ -36,11 +35,9 @@ class PoolsModule {
     fun providesPoolInteractor(
         poolsRepository: PoolsRepository,
         accountRepository: AccountRepository,
-        chainRegistry: ChainRegistry,
-        keypairProvider: KeypairProvider,
         blockExplorerManager: BlockExplorerManager
     ): PoolsInteractor =
-        PoolsInteractorImpl(poolsRepository, accountRepository, chainRegistry, keypairProvider, blockExplorerManager)
+        PoolsInteractorImpl(poolsRepository, accountRepository, blockExplorerManager)
 
     @Provides
     @Singleton
