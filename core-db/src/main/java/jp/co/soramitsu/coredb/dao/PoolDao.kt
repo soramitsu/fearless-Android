@@ -15,7 +15,9 @@ interface PoolDao {
 
     companion object {
         private const val userPoolJoinBasic = """
-            SELECT * FROM userpools left join allpools on userpools.userTokenIdBase=allpools.tokenIdBase and userpools.userTokenIdTarget=allpools.tokenIdTarget
+            SELECT * FROM userpools 
+            left join allpools on userpools.userTokenIdBase = allpools.tokenIdBase 
+                              and userpools.userTokenIdTarget = allpools.tokenIdTarget
         """
     }
 
@@ -44,10 +46,11 @@ interface PoolDao {
 
     @Query(
         """
-        select * from allpools a left join userpools u on 
-        a.tokenIdBase = u.userTokenIdBase and a.tokenIdTarget = u.userTokenIdTarget 
-        and u.accountAddress is not null 
-        and u.accountAddress = :accountAddress
+        select * from allpools a 
+        left join userpools u on a.tokenIdBase = u.userTokenIdBase 
+                             and a.tokenIdTarget = u.userTokenIdTarget 
+                             and u.accountAddress is not null 
+                             and u.accountAddress = :accountAddress
     """
     )
     fun subscribeAllPools(accountAddress: String?): Flow<List<UserPoolJoinedLocalNullable>>
@@ -66,7 +69,7 @@ interface PoolDao {
                              and a.tokenIdTarget = u.userTokenIdTarget
                              and u.accountAddress is not null 
                              and u.accountAddress = :accountAddress
-        where a.tokenIdBase=:baseTokenId and a.tokenIdTarget=:targetTokenId
+        where a.tokenIdBase = :baseTokenId and a.tokenIdTarget = :targetTokenId
     """
     )
     fun subscribePool(accountAddress: String, baseTokenId: String, targetTokenId: String): Flow<UserPoolJoinedLocalNullable>
@@ -79,5 +82,4 @@ interface PoolDao {
 
     @Upsert
     suspend fun insertUserPools(pools: List<UserPoolLocal>)
-
 }

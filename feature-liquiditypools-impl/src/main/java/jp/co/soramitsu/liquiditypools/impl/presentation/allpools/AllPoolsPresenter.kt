@@ -1,5 +1,6 @@
 package jp.co.soramitsu.liquiditypools.impl.presentation.allpools
 
+import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.androidfoundation.format.StringPair
@@ -26,8 +27,12 @@ import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.applyFiatRate
 import jp.co.soramitsu.liquiditypools.domain.model.CommonPoolData
+import jp.co.soramitsu.wallet.impl.data.network.blockchain.updaters.BalanceUpdateTrigger
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 class AllPoolsPresenter @Inject constructor(
     private val coroutinesStore: CoroutinesStore,
@@ -46,6 +51,8 @@ class AllPoolsPresenter @Inject constructor(
         chainsRepository.getChain(poolsInteractor.poolsChainId)
     }
 
+    private val refresh = MutableStateFlow(Event(Unit))
+
     private val stateFlow = MutableStateFlow(AllPoolsState())
 
     fun createScreenStateFlow(scope: CoroutineScope): StateFlow<AllPoolsState> {
@@ -55,6 +62,11 @@ class AllPoolsPresenter @Inject constructor(
 
     private fun subscribeScreenState(scope: CoroutineScope) {
         scope.launch {
+            refresh.onEach {
+                println("!!! REFRESH SYNC AllPoolsPresenter call")
+                poolsInteractor.syncPools()
+            }.launchIn(scope)
+
             val currentAccount = accountInteractor.selectedMetaAccount()
             val address = currentAccount.address(chainDeferred.await()) ?: return@launch
 
@@ -152,7 +164,6 @@ class AllPoolsPresenter @Inject constructor(
                 }
                 .launchIn(scope)
         }
-
     }
 
     override fun onPoolClicked(pair: StringPair) {
@@ -161,5 +172,9 @@ class AllPoolsPresenter @Inject constructor(
 
     override fun onMoreClick(isUserPools: Boolean) {
         internalPoolsRouter.openPoolListScreen(isUserPools)
+    }
+
+    override fun onRefresh() {
+        refresh.value = Event(Unit)
     }
 }

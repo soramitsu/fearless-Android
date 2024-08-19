@@ -49,6 +49,7 @@ import jp.co.soramitsu.common.presentation.InfoDialog
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.feature_liquiditypools_impl.R
 import jp.co.soramitsu.liquiditypools.impl.presentation.allpools.AllPoolsScreen
+import jp.co.soramitsu.liquiditypools.impl.presentation.allpools.AllPoolsScreenWithRefresh
 import jp.co.soramitsu.liquiditypools.impl.presentation.liquidityadd.LiquidityAddScreen
 import jp.co.soramitsu.liquiditypools.impl.presentation.liquidityaddconfirm.LiquidityAddConfirmScreen
 import jp.co.soramitsu.liquiditypools.impl.presentation.liquidityremove.LiquidityRemoveScreen
@@ -172,7 +173,7 @@ class PoolsFlowFragment : BaseComposeBottomSheetDialogFragment<PoolsFlowViewMode
 
                 composable(LiquidityPoolsNavGraphRoute.AllPoolsScreen.routeName) {
                     val allPoolsScreenState by viewModel.allPoolsScreenState.collectAsStateWithLifecycle()
-                    AllPoolsScreen(
+                    AllPoolsScreenWithRefresh(
                         state = allPoolsScreenState,
                         callback = viewModel
                     )
@@ -283,9 +284,9 @@ class PoolsFlowFragment : BaseComposeBottomSheetDialogFragment<PoolsFlowViewMode
        }
     }
 
-    override fun setupBehavior(behavior: BottomSheetBehavior<FrameLayout>) {
-        behavior.state = BottomSheetBehavior.STATE_EXPANDED
-        behavior.isHideable = true
-        behavior.skipCollapsed = true
-    }
+//    override fun setupBehavior(behavior: BottomSheetBehavior<FrameLayout>) {
+//        behavior.state = BottomSheetBehavior.STATE_EXPANDED
+//        behavior.isHideable = false
+//        behavior.skipCollapsed = true
+//    }
 }

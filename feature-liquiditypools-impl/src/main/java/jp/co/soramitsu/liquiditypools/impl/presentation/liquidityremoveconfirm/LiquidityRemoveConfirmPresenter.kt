@@ -221,6 +221,11 @@ class LiquidityRemoveConfirmPresenter @Inject constructor(
                 }
             }
         }.invokeOnCompletion {
+            coroutinesStore.ioScope.launch {
+                delay(700)
+                poolsInteractor.updateAccountPools()
+            }
+
             coroutinesStore.uiScope.launch {
                 delay(300)
                 setButtonLoading(false)

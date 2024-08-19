@@ -114,10 +114,6 @@ class PoolsFlowViewModel @Inject constructor(
 
     init {
         internalPoolsRouter.openAllPoolsScreen()
-
-        launch {
-            poolsInteractor.syncPools(poolsInteractor.poolsChainId)
-        }
     }
 
     private val mutableToolbarStateFlow = MutableStateFlow<LoadingState<TextModel>>(LoadingState.Loading())
