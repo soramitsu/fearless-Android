@@ -264,9 +264,14 @@ class PoolsFlowFragment : BaseComposeBottomSheetDialogFragment<PoolsFlowViewMode
                 .wrapContentHeight()
                 .padding(bottom = 12.dp)
         ) {
+            NavigationIconButton(
+                modifier = Modifier.padding(start = 16.dp),
+                navigationIconResId = R.drawable.ic_cross_32,
+                onNavigationClick = viewModel::onNavigationClick
+            )
             Image(
                 modifier = Modifier
-                    .padding(start = 16.dp)
+                    .padding(start = 8.dp)
                     .align(Alignment.Top)
                     .size(
                         width = 100.dp,
@@ -275,15 +280,7 @@ class PoolsFlowFragment : BaseComposeBottomSheetDialogFragment<PoolsFlowViewMode
                 res = R.drawable.logo_polkaswap_big,
                 contentDescription = null
             )
-            Spacer(modifier = Modifier.weight(1f))
-            NavigationIconButton(
-                modifier = Modifier
-                    .align(Alignment.Top)
-                    .padding(end = 16.dp),
-                navigationIconResId = jp.co.soramitsu.common.R.drawable.ic_cross_32,
-                onNavigationClick = viewModel::onNavigationClick
-            )
-        }
+       }
     }
 
     override fun setupBehavior(behavior: BottomSheetBehavior<FrameLayout>) {
