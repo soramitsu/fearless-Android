@@ -4,6 +4,7 @@ import javax.inject.Inject
 import jp.co.soramitsu.androidfoundation.format.StringPair
 import jp.co.soramitsu.androidfoundation.format.compareNullDesc
 import jp.co.soramitsu.common.presentation.LoadingState
+import jp.co.soramitsu.common.utils.applyFiatRate
 import jp.co.soramitsu.common.utils.formatCrypto
 import jp.co.soramitsu.liquiditypools.domain.interfaces.PoolsInteractor
 import jp.co.soramitsu.liquiditypools.domain.model.CommonPoolData
@@ -71,9 +72,21 @@ class PoolListPresenter @Inject constructor(
                 pools.filter {
                     it.basic.isFilterMatch(query)
                 }.sortedWith { current, next ->
-                    val currentTvl = current.basic.getTvl(tokensMap[current.basic.baseToken.id]?.fiatRate)
-                    val nextTvl = next.basic.getTvl(tokensMap[next.basic.baseToken.id]?.fiatRate)
-                    compareNullDesc(currentTvl, nextTvl)
+                    val currentTokenFiatRate = tokensMap[current.basic.baseToken.id]?.fiatRate
+                    val nextTokenFiatRate = tokensMap[next.basic.baseToken.id]?.fiatRate
+                    val userPoolData = current.user
+                    val userPoolNextData = next.user
+
+                    if (userPoolData != null && userPoolNextData != null) {
+                        val currentPooled = userPoolData.basePooled.applyFiatRate(currentTokenFiatRate)
+                        val nextPooled = userPoolNextData.basePooled.applyFiatRate(nextTokenFiatRate)
+                        compareNullDesc(currentPooled, nextPooled)
+                    } else {
+                        val currentTvl = current.basic.getTvl(currentTokenFiatRate)
+                        val nextTvl = next.basic.getTvl(nextTokenFiatRate)
+                        compareNullDesc(currentTvl, nextTvl)
+                    }
+
                 }.mapNotNull { it.toListItemState(tokensMap[it.basic.baseToken.id]) }
             }
         }

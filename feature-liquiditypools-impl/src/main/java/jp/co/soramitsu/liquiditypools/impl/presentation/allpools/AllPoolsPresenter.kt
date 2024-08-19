@@ -26,6 +26,7 @@ import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import jp.co.soramitsu.common.utils.applyFiatRate
 import jp.co.soramitsu.liquiditypools.domain.model.CommonPoolData
 
 class AllPoolsPresenter @Inject constructor(
@@ -72,11 +73,20 @@ class AllPoolsPresenter @Inject constructor(
                         it.user != null
                     }.mapValues {
                         it.value.sortedWith { current, next ->
-                            val currentTvl =
-                                current.basic.getTvl(tokensMap[current.basic.baseToken.id]?.fiatRate)
-                            val nextTvl =
-                                next.basic.getTvl(tokensMap[next.basic.baseToken.id]?.fiatRate)
-                            compareNullDesc(currentTvl, nextTvl)
+                            val currentTokenFiatRate = tokensMap[current.basic.baseToken.id]?.fiatRate
+                            val nextTokenFiatRate = tokensMap[next.basic.baseToken.id]?.fiatRate
+                            val userPoolData = current.user
+                            val userPoolNextData = next.user
+
+                            if (userPoolData != null && userPoolNextData != null) {
+                                val currentPooled = userPoolData.basePooled.applyFiatRate(currentTokenFiatRate)
+                                val nextPooled = userPoolNextData.basePooled.applyFiatRate(nextTokenFiatRate)
+                                compareNullDesc(currentPooled, nextPooled)
+                            } else {
+                                val currentTvl = current.basic.getTvl(currentTokenFiatRate)
+                                val nextTvl = next.basic.getTvl(nextTokenFiatRate)
+                                compareNullDesc(currentTvl, nextTvl)
+                            }
                         }.mapNotNull { commonPoolData ->
                             val token = tokensMap[commonPoolData.basic.baseToken.id]
                             commonPoolData.toListItemState(token)
