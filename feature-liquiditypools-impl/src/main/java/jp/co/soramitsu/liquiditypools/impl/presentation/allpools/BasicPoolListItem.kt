@@ -6,6 +6,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -119,11 +120,15 @@ fun BasicPoolListItem(
             Row(
                 modifier = Modifier
                     .wrapContentHeight()
-                    .fillMaxWidth(),
+//                    .fillMaxWidth()
+                ,
+                verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    modifier = Modifier.wrapContentHeight(),
+                    modifier = Modifier
+                        .weight(1f)
+                        .wrapContentHeight(),
                     color = white,
                     style = MaterialTheme.customTypography.header6,
                     text = state.text1,
@@ -133,8 +138,7 @@ fun BasicPoolListItem(
                 when (state.apy) {
                     is LoadingState.Loaded -> Text(
                         modifier = Modifier
-                            .wrapContentHeight()
-                            .weight(1f),
+                            .wrapContentHeight(),
                         color = colorAccentDark,
                         style = MaterialTheme.customTypography.header6,
                         text = "%s %s".format(
@@ -145,10 +149,13 @@ fun BasicPoolListItem(
                         textAlign = TextAlign.End
                     )
 
-                    is LoadingState.Loading -> ShimmerB2(modifier.width(64.dp))
+                    is LoadingState.Loading -> Shimmer(
+                        Modifier
+                            .height(12.dp)
+                            .width(100.dp)
+                    )
                     null -> Unit
                 }
-
             }
             Row(
                 modifier = Modifier
@@ -241,7 +248,7 @@ fun BasicPoolShimmerItem(
                         .width(100.dp)
                 )
             }
-            MarginVertical(margin = 8.dp)
+            MarginVertical(margin = 6.dp)
             Row(
                 modifier = Modifier
                     .wrapContentHeight()

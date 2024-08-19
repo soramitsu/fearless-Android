@@ -60,7 +60,9 @@ interface PoolsInteractor {
         slippageTolerance: Double
     ): String
 
-    suspend fun syncPools(chainId: ChainId)
+    suspend fun syncPools()
+
+    suspend fun updateAccountPools()
 
     suspend fun observeRemoveLiquidity(
         chainId: ChainId,

@@ -37,6 +37,7 @@ import jp.co.soramitsu.common.compose.theme.white08
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.feature_liquiditypools_impl.R
 import jp.co.soramitsu.ui_core.resources.Dimens
+import jp.co.soramitsu.wallet.impl.presentation.balance.list.PullRefreshBox
 
 data class AllPoolsState(
     val userPools: List<BasicPoolListItemState> = listOf(),
@@ -49,8 +50,20 @@ data class AllPoolsState(
 interface AllPoolsScreenInterface {
     fun onPoolClicked(pair: StringPair)
     fun onMoreClick(isUserPools: Boolean)
+    fun onRefresh()
 }
 
+@Composable
+fun AllPoolsScreenWithRefresh(
+    state: AllPoolsState,
+    callback: AllPoolsScreenInterface
+) {
+    PullRefreshBox(
+        onRefresh = callback::onRefresh
+    ) {
+        AllPoolsScreen(state = state, callback = callback)
+    }
+}
 
 @Composable
 fun AllPoolsScreen(
@@ -225,11 +238,13 @@ private fun PreviewAllPoolsScreen() {
         state = AllPoolsState(
             userPools = items,
             allPools = items,
-            isLoading = false
+            isLoading = true
+//            isLoading = false
         ),
         callback = object : AllPoolsScreenInterface {
             override fun onPoolClicked(pair: StringPair) {}
             override fun onMoreClick(isUserPools: Boolean) {}
+            override fun onRefresh() {}
         },
     )
 }

@@ -174,14 +174,21 @@ class PoolsInteractorImpl(
         return status?.getOrNull() ?: ""
     }
 
-    override suspend fun syncPools(chainId: ChainId): Unit = withContext(Dispatchers.Default) {
-        val address = accountRepository.getSelectedAccount(chainId).address
+    override suspend fun syncPools(): Unit = withContext(Dispatchers.Default) {
+        val address = accountRepository.getSelectedAccount(poolsChainId).address
         supervisorScope {
-            launch { poolsRepository.updateBasicPools(chainId) }
-            launch { poolsRepository.updateAccountPools(chainId, address) }
+            launch { poolsRepository.updateBasicPools(poolsChainId) }
+            launch { poolsRepository.updateAccountPools(poolsChainId, address) }
             launch { blockExplorerManager.syncSbApy() }
         }
     }
+
+    override suspend fun updateAccountPools(): Unit = withContext(Dispatchers.Default) {
+        println("!!! updateAccountPools")
+        val address = accountRepository.getSelectedAccount(poolsChainId).address
+        poolsRepository.updateAccountPools(poolsChainId, address)
+    }
+
 
     override suspend fun getSbApy(id: String): Double?  = withContext(coroutineContext) {
         blockExplorerManager.getApy(id)
