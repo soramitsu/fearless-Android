@@ -216,6 +216,7 @@ class LiquidityRemoveConfirmPresenter @Inject constructor(
 //                    internalPoolsRouter.popupToScreen(LiquidityPoolsNavGraphRoute.PoolDetailsScreen)
                     internalPoolsRouter.back()
                     internalPoolsRouter.back()
+                    internalPoolsRouter.back()
                     internalPoolsRouter.openSuccessScreen(result, chainId, resourceManager.getString(R.string.lp_liquidity_add_complete_text))
                 }
             }
