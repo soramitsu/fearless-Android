@@ -1,11 +1,16 @@
 package jp.co.soramitsu.liquiditypools.impl.presentation.liquidityadd
 
+import java.math.BigDecimal
+import java.math.RoundingMode
+import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.androidfoundation.format.isZero
 import jp.co.soramitsu.common.base.errors.ValidationException
 import jp.co.soramitsu.common.compose.component.AmountInputViewState
 import jp.co.soramitsu.common.compose.component.FeeInfoViewState
+import jp.co.soramitsu.common.presentation.LoadingState
+import jp.co.soramitsu.common.presentation.dataOrNull
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.MAX_DECIMALS_8
@@ -19,18 +24,20 @@ import jp.co.soramitsu.common.utils.formatPercent
 import jp.co.soramitsu.common.utils.moreThanZero
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.requireValue
-import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.feature_liquiditypools_impl.R
 import jp.co.soramitsu.liquiditypools.domain.interfaces.PoolsInteractor
 import jp.co.soramitsu.liquiditypools.impl.presentation.CoroutinesStore
 import jp.co.soramitsu.liquiditypools.impl.usecase.ValidateAddLiquidityUseCase
+import jp.co.soramitsu.liquiditypools.impl.util.PolkaswapFormulas
 import jp.co.soramitsu.liquiditypools.navigation.InternalPoolsRouter
 import jp.co.soramitsu.liquiditypools.navigation.LiquidityPoolsNavGraphRoute
 import jp.co.soramitsu.polkaswap.api.models.WithDesired
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.wallet.api.domain.fromValidationResult
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
+import jp.co.soramitsu.wallet.impl.domain.model.Asset
+import kotlin.math.min
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
@@ -53,11 +60,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import java.math.BigDecimal
-import java.math.RoundingMode
-import javax.inject.Inject
-import jp.co.soramitsu.liquiditypools.impl.util.PolkaswapFormulas
-import kotlin.math.min
+import jp.co.soramitsu.core.models.Asset as CoreAsset
 
 class LiquidityAddPresenter @Inject constructor(
     private val coroutinesStore: CoroutinesStore,
@@ -108,35 +111,40 @@ class LiquidityAddPresenter @Inject constructor(
                 old.ids.second == new.ids.second
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val assetsInPoolFlow = screenArgsFlow.flatMapLatest { screenArgs ->
-        val ids = screenArgs.ids
-        val chainId = poolsInteractor.poolsChainId
-        val chainAssets = chainsRepository.getChain(chainId).assets
-        val baseAsset = chainAssets.firstOrNull { it.currencyId == ids.first }?.let {
-            walletInteractor.getCurrentAssetOrNull(chainId, it.id)
-        }
-        val targetAsset = chainAssets.firstOrNull { it.currencyId == ids.second }?.let {
-            walletInteractor.getCurrentAssetOrNull(chainId, it.id)
-        }
+    private val loadingAssetsInPoolFlow = MutableStateFlow<LoadingState<Pair<Asset, Asset>>>(LoadingState.Loading())
 
-        val assetsFlow = flowOf {
-            if (baseAsset == null || targetAsset == null) {
-                null
-            } else {
-                baseAsset to targetAsset
-            }
-        }.mapNotNull { it }
-
-        assetsFlow
+    private val tokensInPoolFlow = loadingAssetsInPoolFlow.filterIsInstance<LoadingState.Loaded<Pair<Asset, Asset>>>().map {
+        it.data.first.token.configuration to it.data.second.token.configuration
     }.distinctUntilChanged()
 
-    private val tokensInPoolFlow = assetsInPoolFlow.map {
-        it.first.token.configuration to it.second.token.configuration
-    }.distinctUntilChanged()
-
-    @OptIn(FlowPreview::class)
+    @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
     private fun subscribeState(coroutineScope: CoroutineScope) {
+        screenArgsFlow.onEach {
+            loadingAssetsInPoolFlow.value = LoadingState.Loading()
+        }.flatMapLatest { screenArgs ->
+            val ids = screenArgs.ids
+            val chainId = poolsInteractor.poolsChainId
+            val chainAssets = chainsRepository.getChain(chainId).assets
+            val baseAsset = chainAssets.firstOrNull { it.currencyId == ids.first }?.let {
+                walletInteractor.getCurrentAssetOrNull(chainId, it.id)
+            }
+            val targetAsset = chainAssets.firstOrNull { it.currencyId == ids.second }?.let {
+                walletInteractor.getCurrentAssetOrNull(chainId, it.id)
+            }
+
+            val assetsFlow = flowOf {
+                if (baseAsset == null || targetAsset == null) {
+                    null
+                } else {
+                    baseAsset to targetAsset
+                }
+            }.mapNotNull { it }
+
+            assetsFlow
+        }.onEach {
+            loadingAssetsInPoolFlow.value = LoadingState.Loaded(it)
+        }.launchIn(coroutineScope)
+
         enteredBaseAmountFlow
             .onEach {
                 desired = WithDesired.INPUT
@@ -180,7 +188,7 @@ class LiquidityAddPresenter @Inject constructor(
         }.debounce(200).flatMapLatest {
             combine(
                 poolFlow,
-                assetsInPoolFlow,
+                loadingAssetsInPoolFlow,
                 uiBaseAmountFlow,
                 uiTargetAmountFlow,
                 isBaseAmountFocused,
@@ -189,16 +197,47 @@ class LiquidityAddPresenter @Inject constructor(
                 feeInfoViewStateFlow,
                 isButtonLoading,
                 isCalculatingAmounts
-            ) { pool, (assetBase, assetTarget), baseShown, targetShown, baseFocused, targetFocused, slippage, feeInfo, isButtonLoading, isCalulatingAmount ->
-                val totalBaseCrypto = assetBase.total?.formatCrypto(assetBase.token.configuration.symbol).orEmpty()
-                val totalBaseFiat = assetBase.fiatAmount?.formatFiat(assetBase.token.fiatSymbol)
-                val argsBase = totalBaseCrypto + totalBaseFiat?.let { " ($it)" }.orEmpty()
-                val totalBaseBalance = resourceManager.getString(R.string.common_available_format, argsBase)
+            ) { pool, loadingAssetsState, baseShown, targetShown, baseFocused, targetFocused, slippage, feeInfo, isButtonLoading, isCalulatingAmount ->
+                val assetBase = loadingAssetsState.dataOrNull()?.first
+                val assetTarget = loadingAssetsState.dataOrNull()?.second
 
-                val totalTargetCrypto = assetTarget.total?.formatCrypto(assetTarget.token.configuration.symbol).orEmpty()
-                val totalTargetFiat = assetTarget.fiatAmount?.formatFiat(assetTarget.token.fiatSymbol)
-                val argsTarget = totalTargetCrypto + totalTargetFiat?.let { " ($it)" }.orEmpty()
-                val totalTargetBalance = resourceManager.getString(R.string.common_available_format, argsTarget)
+                val baseAmountInputViewState = if (assetBase == null) {
+                    AmountInputViewState.defaultObj
+                } else {
+                    val totalBaseCrypto = assetBase.total?.formatCrypto(assetBase.token.configuration.symbol).orEmpty()
+                    val totalBaseFiat = assetBase.fiatAmount?.formatFiat(assetBase.token.fiatSymbol)
+                    val argsBase = totalBaseCrypto + totalBaseFiat?.let { " ($it)" }.orEmpty()
+                    val totalBaseBalance = resourceManager.getString(R.string.common_available_format, argsBase)
+
+                    AmountInputViewState(
+                        tokenName = assetBase.token.configuration.symbol,
+                        tokenImage = assetBase.token.configuration.iconUrl,
+                        totalBalance = totalBaseBalance,
+                        tokenAmount = baseShown,
+                        fiatAmount = baseShown.applyFiatRate(assetBase.token.fiatRate)?.formatFiat(assetBase.token.fiatSymbol),
+                        isFocused = baseFocused,
+                        isShimmerAmounts = isCalulatingAmount == WithDesired.OUTPUT
+                    )
+                }
+
+                val targetAmountInputViewState = if (assetTarget == null) {
+                    AmountInputViewState.defaultObj
+                } else {
+                    val totalTargetCrypto = assetTarget.total?.formatCrypto(assetTarget.token.configuration.symbol).orEmpty()
+                    val totalTargetFiat = assetTarget.fiatAmount?.formatFiat(assetTarget.token.fiatSymbol)
+                    val argsTarget = totalTargetCrypto + totalTargetFiat?.let { " ($it)" }.orEmpty()
+                    val totalTargetBalance = resourceManager.getString(R.string.common_available_format, argsTarget)
+
+                    AmountInputViewState(
+                        tokenName = assetTarget.token.configuration.symbol,
+                        tokenImage = assetTarget.token.configuration.iconUrl,
+                        totalBalance = totalTargetBalance,
+                        tokenAmount = targetShown,
+                        fiatAmount = targetShown.applyFiatRate(assetTarget.token.fiatRate)?.formatFiat(assetTarget.token.fiatSymbol),
+                        isFocused = targetFocused,
+                        isShimmerAmounts = isCalulatingAmount == WithDesired.INPUT
+                    )
+                }
 
                 val isButtonEnabled = amountBase.moreThanZero() &&
                         amountTarget.moreThanZero() &&
@@ -211,24 +250,8 @@ class LiquidityAddPresenter @Inject constructor(
                     feeInfo = feeInfo,
                     buttonEnabled = isButtonEnabled,
                     buttonLoading = isButtonLoading,
-                    baseAmountInputViewState = AmountInputViewState(
-                        tokenName = assetBase.token.configuration.symbol,
-                        tokenImage = assetBase.token.configuration.iconUrl,
-                        totalBalance = totalBaseBalance,
-                        tokenAmount = baseShown,
-                        fiatAmount = baseShown.applyFiatRate(assetBase.token.fiatRate)?.formatFiat(assetBase.token.fiatSymbol),
-                        isFocused = baseFocused,
-                        isShimmerAmounts = isCalulatingAmount == WithDesired.OUTPUT
-                    ),
-                    targetAmountInputViewState = AmountInputViewState(
-                        tokenName = assetTarget.token.configuration.symbol,
-                        tokenImage = assetTarget.token.configuration.iconUrl,
-                        totalBalance = totalTargetBalance,
-                        tokenAmount = targetShown,
-                        fiatAmount = targetShown.applyFiatRate(assetTarget.token.fiatRate)?.formatFiat(assetTarget.token.fiatSymbol),
-                        isFocused = targetFocused,
-                        isShimmerAmounts = isCalulatingAmount == WithDesired.INPUT
-                    )
+                    baseAmountInputViewState = baseAmountInputViewState,
+                    targetAmountInputViewState = targetAmountInputViewState
                 )
             }
         }.stateIn(coroutineScope, SharingStarted.Lazily, LiquidityAddState())
@@ -260,7 +283,7 @@ class LiquidityAddPresenter @Inject constructor(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private suspend fun calculateAmount(): BigDecimal? {
-        val assets = assetsInPoolFlow.firstOrNull()
+        val assets = loadingAssetsInPoolFlow.firstOrNull()?.dataOrNull()
 
         val baseAmount = if (desired == WithDesired.INPUT) enteredBaseAmountFlow.value else enteredTargetAmountFlow.value
         val targetAmount = if (desired == WithDesired.INPUT) enteredTargetAmountFlow.value else enteredBaseAmountFlow.value
@@ -340,8 +363,8 @@ class LiquidityAddPresenter @Inject constructor(
         }
 
     private suspend fun getLiquidityNetworkFee(
-        tokenBase: Asset,
-        tokenTarget: Asset,
+        tokenBase: CoreAsset,
+        tokenTarget: CoreAsset,
         tokenBaseAmount: BigDecimal,
         tokenToAmount: BigDecimal,
         pairEnabled: Boolean,
@@ -379,7 +402,7 @@ class LiquidityAddPresenter @Inject constructor(
             val utilityAmount = walletInteractor.getCurrentAsset(chainId, utilityAssetId).total
             val feeAmount = networkFeeFlow.firstOrNull().orZero()
 
-            val poolAssets = assetsInPoolFlow.firstOrNull() ?: return@launch
+            val poolAssets = loadingAssetsInPoolFlow.firstOrNull()?.dataOrNull() ?: return@launch
 
             val validationResult = validateAddLiquidityUseCase(
                 assetBase = poolAssets.first,

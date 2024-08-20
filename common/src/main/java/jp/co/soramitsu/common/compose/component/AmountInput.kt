@@ -26,7 +26,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import coil.compose.AsyncImage
+import coil.compose.SubcomposeAsyncImage
 import com.valentinilk.shimmer.shimmer
 import java.math.BigDecimal
 import jp.co.soramitsu.common.R
@@ -213,10 +213,11 @@ private fun RowScope.TokenIcon(
         .padding(2.dp)
         .align(CenterVertically)
     if (url != null) {
-        AsyncImage(
+        SubcomposeAsyncImage(
+            modifier = imageModifier,
             model = getImageRequest(LocalContext.current, url),
             contentDescription = null,
-            modifier = imageModifier
+            loading = { Shimmer(Modifier.size(28.dp)) }
         )
     } else {
         Icon(
