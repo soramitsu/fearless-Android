@@ -1,11 +1,11 @@
 package jp.co.soramitsu.liquiditypools.impl.util
 
-import java.math.BigDecimal
 import jp.co.soramitsu.androidfoundation.format.Big100
 import jp.co.soramitsu.androidfoundation.format.divideBy
 import jp.co.soramitsu.androidfoundation.format.equalTo
 import jp.co.soramitsu.androidfoundation.format.safeDivide
 import jp.co.soramitsu.polkaswap.api.models.WithDesired
+import java.math.BigDecimal
 
 object PolkaswapFormulas {
 
@@ -13,7 +13,7 @@ object PolkaswapFormulas {
         reserves: BigDecimal,
         poolProvidersBalance: BigDecimal,
         totalIssuance: BigDecimal,
-        precision: Int? = 18 //OptionsProvider.defaultScale,
+        precision: Int? = 18 // OptionsProvider.defaultScale,
     ): BigDecimal =
         reserves.multiply(poolProvidersBalance).divideBy(totalIssuance, precision)
 
@@ -26,8 +26,11 @@ object PolkaswapFormulas {
     fun calculateShareOfPoolFromAmount(
         amount: BigDecimal,
         amountPooled: BigDecimal,
-    ): Double = if (amount.equalTo(amountPooled)) 100.0 else
+    ): Double = if (amount.equalTo(amountPooled)) {
+        100.0
+    } else {
         calculateShareOfPool(amount, amountPooled).toDouble()
+    }
 
     fun calculateAddLiquidityAmount(
         baseAmount: BigDecimal,
@@ -94,14 +97,17 @@ object PolkaswapFormulas {
         amount: BigDecimal,
         percentage: Double,
         precision: Int,
-    ): BigDecimal = if (percentage == 100.0) amount else
+    ): BigDecimal = if (percentage == 100.0) {
+        amount
+    } else {
         amount.multiply(percentage.toBigDecimal())
             .safeDivide(Big100, precision)
+    }
 
     fun calculateOneAmountFromAnother(
         amount: BigDecimal,
         amountPooled: BigDecimal,
         otherPooled: BigDecimal,
-        precision: Int? = 18 //OptionsProvider.defaultScale,
+        precision: Int? = 18 // OptionsProvider.defaultScale,
     ): BigDecimal = amount.multiply(otherPooled).safeDivide(amountPooled, precision)
 }

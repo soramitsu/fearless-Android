@@ -1,8 +1,5 @@
 package jp.co.soramitsu.liquiditypools.impl.data
 
-import java.math.BigDecimal
-import java.math.BigInteger
-import java.util.concurrent.ConcurrentHashMap
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.accountId
 import jp.co.soramitsu.androidfoundation.format.addHexPrefix
@@ -31,6 +28,9 @@ import jp.co.soramitsu.shared_utils.wsrpc.mappers.pojo
 import jp.co.soramitsu.shared_utils.wsrpc.request.runtime.storage.GetStorageRequest
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
+import java.math.BigDecimal
+import java.math.BigInteger
+import java.util.concurrent.ConcurrentHashMap
 
 class DemeterFarmingRepositoryImpl(
     private val chainRegistry: ChainRegistry,
@@ -47,9 +47,7 @@ class DemeterFarmingRepositoryImpl(
     private val cachedFarmedPools = ConcurrentHashMap<String, List<DemeterFarmingPool>>()
     private var cachedFarmedBasicPools: List<DemeterFarmingBasicPool>? = null
 
-    override suspend fun getFarmedPools(
-        chainId: String,
-    ): List<DemeterFarmingPool>? {
+    override suspend fun getFarmedPools(chainId: String): List<DemeterFarmingPool>? {
         val soraAccountAddress = accountRepository.getSelectedAccount(chainId).address
 
         if (cachedFarmedPools.containsKey(soraAccountAddress)) return cachedFarmedPools[soraAccountAddress]
@@ -120,10 +118,15 @@ class DemeterFarmingRepositoryImpl(
                         } else {
                             total.times(poolTokenPrice)
                         }
-                        val apr = if (tvl.isZero()) BigDecimal.ZERO else emission
-                            .times(BLOCKS_PER_YEAR.toBigDecimal())
-                            .times(rewardTokenPrice)
-                            .div(tvl).times(100.toBigDecimal())
+
+                        val apr = if (tvl.isZero()) {
+                            BigDecimal.ZERO
+                        } else {
+                            emission
+                                .times(BLOCKS_PER_YEAR.toBigDecimal())
+                                .times(rewardTokenPrice)
+                                .div(tvl).times(100.toBigDecimal())
+                        }
 
                         DemeterFarmingBasicPool(
                             tokenBase = baseTokenMapped,
@@ -163,7 +166,7 @@ class DemeterFarmingRepositoryImpl(
         val chain = chainRegistry.getChain(chainId)
 
         val storage = runtime.metadata.module("DemeterFarmingPlatform")
-                .storage("TokenInfos")
+            .storage("TokenInfos")
         val type = storage.type.value ?: return emptyList()
         val storageKey = storage.storageKey(
             runtime
@@ -196,7 +199,7 @@ class DemeterFarmingRepositoryImpl(
     private suspend fun getAllFarms(chainId: ChainId): List<DemeterBasicStorage> {
         val runtime = chainRegistry.getRuntimeOrNull(chainId) ?: return emptyList()
         val storage = runtime.metadata.module("DemeterFarmingPlatform")
-                .storage("Pools")
+            .storage("Pools")
         val type = storage.type.value ?: return emptyList()
         val storageKey = storage.storageKey(
             runtime,
@@ -252,10 +255,11 @@ class DemeterFarmingRepositoryImpl(
         return allocation.times(tokenPerBlock).times(multiplier)
     }
 
+    @Suppress("ComplexCondition")
     private suspend fun getDemeter(chainId: ChainId, address: String): List<DemeterStorage>? {
         val runtime = chainRegistry.getRuntimeOrNull(chainId) ?: return emptyList()
         val storage = runtime.metadata.module("DemeterFarmingPlatform")
-                .storage("UserInfos")
+            .storage("UserInfos")
         val storageKey = storage.storageKey(
             runtime,
             address.toAccountId(),
@@ -306,5 +310,4 @@ class DemeterFarmingRepositoryImpl(
     fun String.assetIdFromKey() = this.takeLast(64).addHexPrefix()
     fun String.assetIdFromKey(pos: Int): String =
         this.substring(0, this.length - (64 * pos)).assetIdFromKey()
-
 }

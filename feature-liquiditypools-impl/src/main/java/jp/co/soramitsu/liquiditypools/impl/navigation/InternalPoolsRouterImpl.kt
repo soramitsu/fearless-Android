@@ -1,7 +1,5 @@
 package jp.co.soramitsu.liquiditypools.impl.navigation
 
-import java.math.BigDecimal
-import java.util.Stack
 import jp.co.soramitsu.androidfoundation.format.StringPair
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_wallet_impl.R
@@ -15,11 +13,13 @@ import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.onEach
+import java.math.BigDecimal
+import java.util.Stack
 
 class InternalPoolsRouterImpl(
     private val walletRouter: WalletRouter,
     private val resourceManager: ResourceManager
-): InternalPoolsRouter {
+) : InternalPoolsRouter {
     private val routesStack = Stack<LiquidityPoolsNavGraphRoute>()
 
     private val mutableActionsFlow =
@@ -28,10 +28,11 @@ class InternalPoolsRouterImpl(
     private val mutableRoutesFlow =
         MutableSharedFlow<LiquidityPoolsNavGraphRoute>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 
-    override fun createNavGraphRoutesFlow(): Flow<LiquidityPoolsNavGraphRoute> = mutableRoutesFlow.onEach { routesStack.push(it) }
+    override fun createNavGraphRoutesFlow(): Flow<LiquidityPoolsNavGraphRoute> = mutableRoutesFlow.onEach {
+        routesStack.push(it)
+    }
     override fun createNavGraphActionsFlow(): Flow<NavAction> =
         mutableActionsFlow.onEach { if (it is NavAction.BackPressed && !routesStack.isEmpty()) routesStack.pop() }
-
 
     override fun back() {
         mutableActionsFlow.tryEmit(NavAction.BackPressed)

@@ -1,7 +1,7 @@
 package jp.co.soramitsu.liquiditypools.navigation
 
-import java.math.BigDecimal
 import jp.co.soramitsu.androidfoundation.format.StringPair
+import java.math.BigDecimal
 
 sealed interface LiquidityPoolsNavGraphRoute {
 
@@ -11,7 +11,7 @@ sealed interface LiquidityPoolsNavGraphRoute {
         override val routeName: String = "Loading"
     }
 
-    class AllPoolsScreen: LiquidityPoolsNavGraphRoute by Companion {
+    class AllPoolsScreen : LiquidityPoolsNavGraphRoute by Companion {
         companion object : LiquidityPoolsNavGraphRoute {
             override val routeName: String = "AllPoolsScreen"
         }

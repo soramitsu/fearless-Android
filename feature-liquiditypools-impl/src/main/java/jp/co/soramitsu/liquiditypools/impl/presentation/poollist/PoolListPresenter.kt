@@ -1,6 +1,5 @@
 package jp.co.soramitsu.liquiditypools.impl.presentation.poollist
 
-import javax.inject.Inject
 import jp.co.soramitsu.androidfoundation.format.StringPair
 import jp.co.soramitsu.androidfoundation.format.compareNullDesc
 import jp.co.soramitsu.common.presentation.LoadingState
@@ -30,6 +29,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.update
+import javax.inject.Inject
 
 class PoolListPresenter @Inject constructor(
     private val coroutinesStore: CoroutinesStore,
@@ -86,7 +86,6 @@ class PoolListPresenter @Inject constructor(
                         val nextTvl = next.basic.getTvl(nextTokenFiatRate)
                         compareNullDesc(currentTvl, nextTvl)
                     }
-
                 }.mapNotNull { it.toListItemState(tokensMap[it.basic.baseToken.id]) }
             }
         }
@@ -121,15 +120,18 @@ class PoolListPresenter @Inject constructor(
             stateFlow.update { prevState ->
                 val newPools = prevState.pools.map { pool ->
                     apyMap.await()[pool.ids]?.let { sbApy ->
-                        pool.copy(apy = LoadingState.Loaded(sbApy.let { apy ->
+                        pool.copy(
+                            apy = LoadingState.Loaded(
+                                sbApy.let { apy ->
                             "%s%%".format(apy.toBigDecimal().formatCrypto())
-                        }))
+                        }
+                            )
+                        )
                     } ?: pool
                 }
 
                 prevState.copy(pools = newPools)
             }
-
         }.launchIn(coroutineScope)
     }
 

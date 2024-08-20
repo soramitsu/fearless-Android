@@ -4,7 +4,6 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import javax.inject.Singleton
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -25,6 +24,7 @@ import jp.co.soramitsu.liquiditypools.navigation.InternalPoolsRouter
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
+import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -41,7 +41,10 @@ class PoolsModule {
 
     @Provides
     @Singleton
-    fun provideInternalLiquidityPoolsRouter(walletRouter: WalletRouter, resourceManager: ResourceManager): InternalPoolsRouter = InternalPoolsRouterImpl(
+    fun provideInternalLiquidityPoolsRouter(
+        walletRouter: WalletRouter,
+        resourceManager: ResourceManager
+    ): InternalPoolsRouter = InternalPoolsRouterImpl(
         walletRouter = walletRouter,
         resourceManager = resourceManager
     )
@@ -50,7 +53,7 @@ class PoolsModule {
     @Singleton
     fun provideDemeterFarmingInteractor(
         demeterFarmingRepository: DemeterFarmingRepository,
-    ) : DemeterFarmingInteractor =
+    ): DemeterFarmingInteractor =
         DemeterFarmingInteractorImpl(demeterFarmingRepository)
 
     @Provides
@@ -61,7 +64,7 @@ class PoolsModule {
         accountRepository: AccountRepository,
         walletRepository: WalletRepository,
         poolsRepository: PoolsRepository,
-    ) : DemeterFarmingRepository =
+    ): DemeterFarmingRepository =
         DemeterFarmingRepositoryImpl(
             chainRegistry,
             bulkRetriever,

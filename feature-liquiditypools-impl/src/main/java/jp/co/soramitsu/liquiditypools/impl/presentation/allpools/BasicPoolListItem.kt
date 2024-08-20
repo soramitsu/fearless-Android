@@ -6,7 +6,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -36,7 +35,6 @@ import coil.compose.SubcomposeAsyncImage
 import jp.co.soramitsu.androidfoundation.format.StringPair
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.component.Shimmer
-import jp.co.soramitsu.common.compose.component.ShimmerB2
 import jp.co.soramitsu.common.compose.component.getImageRequest
 import jp.co.soramitsu.common.compose.models.TextModel
 import jp.co.soramitsu.common.compose.models.retrieveString
@@ -100,7 +98,7 @@ fun BasicPoolListItem(
                             bottom.linkTo(parent.bottom, 2.dp)
                         }
                         .size(size = 32.dp),
-                    model =getImageRequest(LocalContext.current, state.token2Icon),
+                    model = getImageRequest(LocalContext.current, state.token2Icon),
                     contentDescription = null,
                     loading = { Shimmer(Modifier.size(Size.ExtraSmall)) },
                     error = {
@@ -179,7 +177,6 @@ fun BasicPoolListItem(
                     overflow = TextOverflow.Ellipsis,
                 )
             }
-
         }
     }
 }
@@ -266,7 +263,6 @@ fun BasicPoolShimmerItem(
         }
     }
 }
-
 
 @Preview
 @Composable

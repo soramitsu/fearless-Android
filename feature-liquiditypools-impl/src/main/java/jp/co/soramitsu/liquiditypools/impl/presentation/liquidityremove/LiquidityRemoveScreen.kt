@@ -21,7 +21,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import java.math.BigDecimal
 import jp.co.soramitsu.common.compose.component.AccentButton
 import jp.co.soramitsu.common.compose.component.AmountInput
 import jp.co.soramitsu.common.compose.component.AmountInputViewState
@@ -40,6 +39,7 @@ import jp.co.soramitsu.common.compose.theme.white
 import jp.co.soramitsu.common.compose.theme.white08
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.liquiditypools.impl.presentation.PoolsFlowViewModel.Companion.ITEM_FEE_ID
+import java.math.BigDecimal
 
 data class LiquidityRemoveState(
     val baseAmountInputViewState: AmountInputViewState = AmountInputViewState.defaultObj,

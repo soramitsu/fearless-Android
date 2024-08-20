@@ -1,7 +1,5 @@
 package jp.co.soramitsu.liquiditypools.impl.presentation.liquidityremoveconfirm
 
-import java.math.BigDecimal
-import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.common.compose.component.FeeInfoViewState
@@ -39,6 +37,8 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
+import javax.inject.Inject
 
 class LiquidityRemoveConfirmPresenter @Inject constructor(
     private val coroutinesStore: CoroutinesStore,
@@ -53,7 +53,6 @@ class LiquidityRemoveConfirmPresenter @Inject constructor(
     private val _stateSlippage = MutableStateFlow(0.5)
     val stateSlippage = _stateSlippage.asStateFlow()
 
-
     private val screenArgsFlow = internalPoolsRouter.createNavGraphRoutesFlow()
         .filterIsInstance<LiquidityPoolsNavGraphRoute.LiquidityRemoveConfirmScreen>()
         .shareIn(coroutinesStore.uiScope, SharingStarted.Eagerly, 1)
@@ -63,12 +62,12 @@ class LiquidityRemoveConfirmPresenter @Inject constructor(
         val chainId = poolsInteractor.poolsChainId
         val assetsFlow = walletInteractor.assetsFlow().mapNotNull {
             val firstInPair = it.firstOrNull {
-                it.asset.token.configuration.currencyId == ids.first
-                        && it.asset.token.configuration.chainId == chainId
+                it.asset.token.configuration.currencyId == ids.first &&
+                        it.asset.token.configuration.chainId == chainId
             }
             val secondInPair = it.firstOrNull {
-                it.asset.token.configuration.currencyId == ids.second
-                        && it.asset.token.configuration.chainId == chainId
+                it.asset.token.configuration.currencyId == ids.second &&
+                        it.asset.token.configuration.chainId == chainId
             }
             if (firstInPair == null || secondInPair == null) {
                 return@mapNotNull null

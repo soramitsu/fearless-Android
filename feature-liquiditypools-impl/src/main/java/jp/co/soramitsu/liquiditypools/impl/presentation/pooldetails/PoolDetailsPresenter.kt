@@ -1,6 +1,5 @@
 package jp.co.soramitsu.liquiditypools.impl.presentation.pooldetails
 
-import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.androidfoundation.format.StringPair
@@ -29,6 +28,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 class PoolDetailsPresenter @Inject constructor(
     private val coroutinesStore: CoroutinesStore,
@@ -64,7 +64,6 @@ class PoolDetailsPresenter @Inject constructor(
         }.launchIn(coroutineScope)
     }
 
-
     override fun onSupplyLiquidityClick() {
         coroutinesStore.ioScope.launch {
             val ids = screenArgsFlow.replayCache.firstOrNull()?.ids ?: return@launch
@@ -77,7 +76,6 @@ class PoolDetailsPresenter @Inject constructor(
             val ids = screenArgsFlow.replayCache.firstOrNull()?.ids ?: return@launch
             internalPoolsRouter.openRemoveLiquidityScreen(ids)
         }
-
     }
 
     override fun onDetailItemClick(itemId: Int) {

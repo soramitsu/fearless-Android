@@ -1,8 +1,5 @@
 package jp.co.soramitsu.liquiditypools.impl.presentation.liquidityremove
 
-import java.math.BigDecimal
-import java.math.RoundingMode
-import javax.inject.Inject
 import jp.co.soramitsu.androidfoundation.format.isZero
 import jp.co.soramitsu.common.base.errors.ValidationException
 import jp.co.soramitsu.common.compose.component.FeeInfoViewState
@@ -30,7 +27,6 @@ import jp.co.soramitsu.liquiditypools.navigation.LiquidityPoolsNavGraphRoute
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.wallet.api.domain.fromValidationResult
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
-import kotlin.math.min
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
@@ -56,6 +52,10 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
+import java.math.RoundingMode
+import javax.inject.Inject
+import kotlin.math.min
 
 @OptIn(FlowPreview::class)
 class LiquidityRemovePresenter @Inject constructor(
@@ -81,7 +81,6 @@ class LiquidityRemovePresenter @Inject constructor(
     private var poolDataUsable: CommonUserPoolData? = null
     private var poolDataReal: CommonUserPoolData? = null
     private var percent: Double = 0.0
-
 
     private val screenArgsFlow = internalPoolsRouter.createNavGraphRoutesFlow()
         .filterIsInstance<LiquidityPoolsNavGraphRoute.LiquidityRemoveScreen>()
@@ -152,8 +151,8 @@ class LiquidityRemovePresenter @Inject constructor(
                     val chainId = poolsInteractor.poolsChainId
                     val result = if (poolDataLocal != null) {
                         val maxPercent = demeterFarmingInteractor.getFarmedPools(chainId)?.filter { pool ->
-                            pool.tokenBase.token.configuration.currencyId == token1Id
-                                    && pool.tokenTarget.token.configuration.currencyId == token2Id
+                            pool.tokenBase.token.configuration.currencyId == token1Id &&
+                                    pool.tokenTarget.token.configuration.currencyId == token2Id
                         }?.maxOfOrNull {
                             PolkaswapFormulas.calculateShareOfPoolFromAmount(
                                 it.amount,
@@ -194,17 +193,25 @@ class LiquidityRemovePresenter @Inject constructor(
                 .collectLatest { poolDataLocal ->
                     poolDataUsable = poolDataLocal
                     amountBase =
-                        if (poolDataLocal != null) PolkaswapFormulas.calculateAmountByPercentage(
+                        if (poolDataLocal != null) {
+                            PolkaswapFormulas.calculateAmountByPercentage(
                             poolDataLocal.user.basePooled,
                             percent,
                             poolDataLocal.basic.baseToken.precision,
-                        ) else BigDecimal.ZERO
+                        )
+                        } else {
+                            BigDecimal.ZERO
+                        }
                     amountTarget =
-                        if (poolDataLocal != null) PolkaswapFormulas.calculateAmountByPercentage(
+                        if (poolDataLocal != null) {
+                            PolkaswapFormulas.calculateAmountByPercentage(
                             poolDataLocal.user.targetPooled,
                             percent,
                             poolDataLocal.basic.targetToken?.precision!!,
-                        ) else BigDecimal.ZERO
+                        )
+                        } else {
+                            BigDecimal.ZERO
+                        }
 
                     coroutinesStore.ioScope.launch {
                         updateAmounts()

@@ -1,9 +1,6 @@
 package jp.co.soramitsu.liquiditypools.impl.data
 
 import androidx.room.withTransaction
-import java.math.BigDecimal
-import java.math.BigInteger
-import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.accountId
 import jp.co.soramitsu.androidfoundation.format.addHexPrefix
@@ -73,6 +70,9 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.supervisorScope
+import java.math.BigDecimal
+import java.math.BigInteger
+import javax.inject.Inject
 
 class PoolsRepositoryImpl @Inject constructor(
     private val extrinsicService: ExtrinsicService,
@@ -237,7 +237,6 @@ class PoolsRepositoryImpl @Inject constructor(
 
         val accountId = wallet.accountId(soraChain)
         val soraAssets = soraChain.assets
-
 
         soraAssets.forEach { asset ->
             val currencyId = asset.currencyId
@@ -609,7 +608,6 @@ class PoolsRepositoryImpl @Inject constructor(
         ?.map { (it as BigInteger).toByte() }
         ?.toByteArray()
 
-
     private suspend fun getUserPoolsTokenIdsKeys(chainId: ChainId, address: String): List<String> {
         val accountPoolsKey = chainRegistry.getRuntimeOrNull(chainId)?.accountPoolsKey(address)
         return chainRegistry.awaitConnection(chainId).socketService.executeAsync(
@@ -945,5 +943,4 @@ class PoolsRepositoryImpl @Inject constructor(
             user = userPoolData,
         )
     }
-
 }
