@@ -118,10 +118,7 @@ fun BasicPoolListItem(
             verticalArrangement = Arrangement.SpaceBetween,
         ) {
             Row(
-                modifier = Modifier
-                    .wrapContentHeight()
-//                    .fillMaxWidth()
-                ,
+                modifier = Modifier.wrapContentHeight(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {

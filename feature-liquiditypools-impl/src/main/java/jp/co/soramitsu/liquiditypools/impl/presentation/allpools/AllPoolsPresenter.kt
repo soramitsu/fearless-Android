@@ -1,13 +1,18 @@
 package jp.co.soramitsu.liquiditypools.impl.presentation.allpools
 
-import androidx.lifecycle.viewModelScope
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
+import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.androidfoundation.format.StringPair
 import jp.co.soramitsu.androidfoundation.format.compareNullDesc
 import jp.co.soramitsu.common.presentation.LoadingState
+import jp.co.soramitsu.common.utils.Event
+import jp.co.soramitsu.common.utils.applyFiatRate
 import jp.co.soramitsu.common.utils.formatCrypto
 import jp.co.soramitsu.liquiditypools.domain.interfaces.PoolsInteractor
+import jp.co.soramitsu.liquiditypools.domain.model.CommonPoolData
 import jp.co.soramitsu.liquiditypools.impl.presentation.CoroutinesStore
 import jp.co.soramitsu.liquiditypools.impl.presentation.toListItemState
 import jp.co.soramitsu.liquiditypools.navigation.InternalPoolsRouter
@@ -26,13 +31,6 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import javax.inject.Inject
-import jp.co.soramitsu.common.utils.Event
-import jp.co.soramitsu.common.utils.applyFiatRate
-import jp.co.soramitsu.liquiditypools.domain.model.CommonPoolData
-import jp.co.soramitsu.wallet.impl.data.network.blockchain.updaters.BalanceUpdateTrigger
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 
 class AllPoolsPresenter @Inject constructor(
     private val coroutinesStore: CoroutinesStore,
@@ -52,6 +50,8 @@ class AllPoolsPresenter @Inject constructor(
     }
 
     private val refresh = MutableStateFlow(Event(Unit))
+    private val screenHeight = MutableStateFlow(0.dp)
+    private val groupHeight = MutableStateFlow(0.dp)
 
     private val stateFlow = MutableStateFlow(AllPoolsState())
 
@@ -63,7 +63,6 @@ class AllPoolsPresenter @Inject constructor(
     private fun subscribeScreenState(scope: CoroutineScope) {
         scope.launch {
             refresh.onEach {
-                println("!!! REFRESH SYNC AllPoolsPresenter call")
                 poolsInteractor.syncPools()
             }.launchIn(scope)
 
@@ -107,8 +106,24 @@ class AllPoolsPresenter @Inject constructor(
                     val userPools = poolLists[true].orEmpty()
                     val otherPools = poolLists[false].orEmpty()
 
-                    val shownUserPools = userPools.take(5)
-                    val shownOtherPools = otherPools.take(10)
+                    val screenHeight = screenHeight.value
+                    val groupHeight = groupHeight.value
+                    val itemHeight = 40.dp
+                    val margin = 16.dp
+
+                    val availableHeight = screenHeight - groupHeight - margin * 2 - if (userPools.isNotEmpty()) {
+                        groupHeight + margin
+                    } else {
+                        0.dp
+                    }
+
+                    val totalItems = (availableHeight / (itemHeight + margin)).toInt()
+                    val maxGroupItems = totalItems / 2
+
+                    val shownUserPools = userPools.take(maxGroupItems)
+                    val userGroupItems = shownUserPools.size
+                    val shownOtherPools = otherPools.take(totalItems - userGroupItems)
+
                     val hasExtraUserPools = shownUserPools.size < userPools.size
                     val hasExtraAllPools = shownOtherPools.size < otherPools.size
 
@@ -176,5 +191,13 @@ class AllPoolsPresenter @Inject constructor(
 
     override fun onRefresh() {
         refresh.value = Event(Unit)
+    }
+
+    override fun onWindowHeightChange(heightIs: Dp) {
+        screenHeight.value = heightIs
+    }
+
+    override fun onHeaderHeightChange(heightIs: Dp) {
+        groupHeight.value = heightIs
     }
 }

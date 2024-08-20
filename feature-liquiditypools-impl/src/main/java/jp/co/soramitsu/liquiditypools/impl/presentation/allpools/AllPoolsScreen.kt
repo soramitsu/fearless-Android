@@ -18,13 +18,20 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.rememberNestedScrollInteropConnection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.androidfoundation.format.StringPair
 import jp.co.soramitsu.common.compose.component.BackgroundCorneredWithBorder
@@ -51,6 +58,8 @@ interface AllPoolsScreenInterface {
     fun onPoolClicked(pair: StringPair)
     fun onMoreClick(isUserPools: Boolean)
     fun onRefresh()
+    fun onWindowHeightChange(heightIs: Dp)
+    fun onHeaderHeightChange(heightIs: Dp)
 }
 
 @Composable
@@ -70,8 +79,17 @@ fun AllPoolsScreen(
     state: AllPoolsState,
     callback: AllPoolsScreenInterface
 ) {
+    val localDensity = LocalDensity.current
+    var heightIs by remember {
+        mutableStateOf(0.dp)
+    }
+
     Box(
         modifier = Modifier
+            .onGloballyPositioned { coordinates ->
+                heightIs = with(localDensity) { coordinates.size.height.toDp() }
+                callback.onWindowHeightChange(heightIs)
+            }
             .fillMaxSize()
             .nestedScroll(rememberNestedScrollInteropConnection()),
     ) {
@@ -125,6 +143,10 @@ fun AllPoolsScreen(
                             modifier = Modifier.wrapContentHeight()
                         ) {
                             PoolGroupHeader(
+                                modifier = Modifier.onGloballyPositioned { coordinates ->
+                                    heightIs = with(localDensity) { coordinates.size.height.toDp() }
+                                    callback.onHeaderHeightChange(heightIs)
+                                },
                                 title = stringResource(id = R.string.lp_available_pools_title),
                                 onMoreClick = { callback.onMoreClick(false) }.takeIf { state.hasExtraAllPools }
                             )
@@ -160,11 +182,11 @@ fun ShimmerPoolList(size: Int = 10) {
 }
 
 @Composable
-private fun PoolGroupHeader(title: String, onMoreClick: (() -> Unit)?) {
-    Box(modifier = Modifier.wrapContentHeight()) {
+private fun PoolGroupHeader(modifier: Modifier = Modifier, title: String, onMoreClick: (() -> Unit)?) {
+    Box(modifier = modifier.wrapContentHeight()) {
         Row(
             modifier = Modifier
-                .padding(vertical = Dimens.x1_5, horizontal = Dimens.x1_5)
+                .padding(Dimens.x1_5)
                 .wrapContentHeight(),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -185,7 +207,7 @@ private fun PoolGroupHeader(title: String, onMoreClick: (() -> Unit)?) {
                             shape = CircleShape,
                         )
                         .clickable(onClick = onMoreClick)
-                        .padding(all = Dimens.x1)
+                        .padding(horizontal = Dimens.x1, vertical = 5.5.dp)
                 ) {
                     Text(
                         text = stringResource(id = R.string.common_more).uppercase(),
@@ -238,13 +260,16 @@ private fun PreviewAllPoolsScreen() {
         state = AllPoolsState(
             userPools = items,
             allPools = items,
-            isLoading = true
-//            isLoading = false
+//            isLoading = true
+            isLoading = false,
+            hasExtraUserPools = true
         ),
         callback = object : AllPoolsScreenInterface {
             override fun onPoolClicked(pair: StringPair) {}
             override fun onMoreClick(isUserPools: Boolean) {}
             override fun onRefresh() {}
+            override fun onWindowHeightChange(heightIs: Dp) {}
+            override fun onHeaderHeightChange(heightIs: Dp) {}
         },
     )
 }
