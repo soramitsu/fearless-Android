@@ -1,7 +1,7 @@
 [versions]
 accompanistVersion = "0.34.0"
 activityCompose = "1.8.2"
-android_plugin = "8.5.0"
+android_plugin = "8.5.2"
 appcompat = "1.6.1"
 architectureComponentVersion = "2.7.0"
 beaconVersion = "3.2.4"
@@ -170,7 +170,6 @@ detekt-cli = { module = "io.gitlab.arturbosch.detekt:detekt-cli", version.ref = 
 sharedFeaturesCoreDep = { module = "jp.co.soramitsu.shared_features:core", version.ref = "sharedFeaturesVersion" }
 sharedFeaturesXcmDep = { module = "jp.co.soramitsu.shared_features:xcm", version.ref = "sharedFeaturesVersion" }
 sharedFeaturesBackupDep = { module = "jp.co.soramitsu.shared_features:backup", version.ref = "sharedFeaturesVersion" }
-#sharedFeaturesPoolsDep = { module = "jp.co.soramitsu.shared_features:polkaswap", version.ref = "sharedFeaturesVersion" }
 beacon-android-sdk = { module = "com.github.airgap-it:beacon-android-sdk", version.ref = "beaconVersion" }
 
 web3jDep = { module = "org.web3j:core", version.ref = "web3j" }

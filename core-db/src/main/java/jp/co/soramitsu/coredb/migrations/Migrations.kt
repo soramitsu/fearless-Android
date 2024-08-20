@@ -19,7 +19,7 @@ val Migration_68_69 = object : Migration(68, 69) {
             `avgTransactionTimeInHours` REAL NOT NULL,
             `maxTransactionTimeInHours` REAL NOT NULL,
             `minTransactionTimeInHours` REAL NOT NULL,
-            `scoredAt` STRING NOT NULL
+            `scoredAt` STRING NOT NULL,
             PRIMARY KEY(`metaId`),
             FOREIGN KEY(`metaId`) REFERENCES `meta_accounts`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE 
             )
