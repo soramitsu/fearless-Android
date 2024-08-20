@@ -184,7 +184,6 @@ class PoolsInteractorImpl(
     }
 
     override suspend fun updateAccountPools(): Unit = withContext(Dispatchers.Default) {
-        println("!!! updateAccountPools")
         val address = accountRepository.getSelectedAccount(poolsChainId).address
         poolsRepository.updateAccountPools(poolsChainId, address)
     }
