@@ -1,9 +1,9 @@
 package jp.co.soramitsu.liquiditypools.navigation
 
-import java.math.BigDecimal
 import jp.co.soramitsu.androidfoundation.format.StringPair
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.coroutines.flow.Flow
+import java.math.BigDecimal
 
 interface InternalPoolsRouter {
     fun createNavGraphRoutesFlow(): Flow<LiquidityPoolsNavGraphRoute>

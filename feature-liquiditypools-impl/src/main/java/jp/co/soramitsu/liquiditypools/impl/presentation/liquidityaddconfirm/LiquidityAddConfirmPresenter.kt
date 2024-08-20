@@ -1,7 +1,5 @@
 package jp.co.soramitsu.liquiditypools.impl.presentation.liquidityaddconfirm
 
-import java.math.BigDecimal
-import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.common.compose.component.FeeInfoViewState
@@ -40,6 +38,8 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
+import javax.inject.Inject
 
 class LiquidityAddConfirmPresenter @Inject constructor(
     private val coroutinesStore: CoroutinesStore,
@@ -63,12 +63,12 @@ class LiquidityAddConfirmPresenter @Inject constructor(
         val chainId = poolsInteractor.poolsChainId
         val assetsFlow = walletInteractor.assetsFlow().mapNotNull {
             val firstInPair = it.firstOrNull {
-                it.asset.token.configuration.currencyId == ids.first
-                        && it.asset.token.configuration.chainId == chainId
+                it.asset.token.configuration.currencyId == ids.first &&
+                        it.asset.token.configuration.chainId == chainId
             }
             val secondInPair = it.firstOrNull {
-                it.asset.token.configuration.currencyId == ids.second
-                        && it.asset.token.configuration.chainId == chainId
+                it.asset.token.configuration.currencyId == ids.second &&
+                        it.asset.token.configuration.chainId == chainId
             }
             if (firstInPair == null || secondInPair == null) {
                 return@mapNotNull null
@@ -121,7 +121,6 @@ class LiquidityAddConfirmPresenter @Inject constructor(
                 buttonEnabled = it.feeAmount.isNullOrEmpty().not()
             )
         }.launchIn(coroutineScope)
-
     }
 
     val networkFeeFlow = combine(
@@ -129,8 +128,7 @@ class LiquidityAddConfirmPresenter @Inject constructor(
         tokensInPoolFlow,
         stateSlippage,
         isPoolPairEnabled
-    )
-    { screenArgs, (baseAsset, targetAsset), slippage, pairEnabled ->
+    ) { screenArgs, (baseAsset, targetAsset), slippage, pairEnabled ->
         getLiquidityNetworkFee(
             tokenBase = baseAsset.configuration,
             tokenTarget = targetAsset.configuration,
@@ -146,7 +144,7 @@ class LiquidityAddConfirmPresenter @Inject constructor(
     private val feeInfoViewStateFlow: Flow<FeeInfoViewState> =
         flowOf {
             requireNotNull(chainsRepository.getChain(poolsInteractor.poolsChainId).utilityAsset?.id)
-        }.flatMapLatest {  utilityAssetId ->
+        }.flatMapLatest { utilityAssetId ->
             combine(
                 networkFeeFlow,
                 walletInteractor.assetFlow(poolsInteractor.poolsChainId, utilityAssetId)

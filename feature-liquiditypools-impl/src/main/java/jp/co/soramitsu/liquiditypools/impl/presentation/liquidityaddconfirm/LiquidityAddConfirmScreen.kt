@@ -165,7 +165,7 @@ fun LiquidityAddConfirmScreen(
                             value = state.apy,
                             clickState = TitleValueViewState.ClickState.Title(R.drawable.ic_info_14, ITEM_APY_ID)
                         ),
-                        onClick = { callbacks.onAddItemClick(ITEM_APY_ID)}
+                        onClick = { callbacks.onAddItemClick(ITEM_APY_ID) }
                     )
                     InfoTableItemAsset(
                         TitleIconValueState(
@@ -181,7 +181,7 @@ fun LiquidityAddConfirmScreen(
                             additionalValue = state.feeInfo.feeAmountFiat,
                             clickState = TitleValueViewState.ClickState.Title(R.drawable.ic_info_14, ITEM_FEE_ID)
                         ),
-                        onClick = { callbacks.onAddItemClick(ITEM_FEE_ID)}
+                        onClick = { callbacks.onAddItemClick(ITEM_FEE_ID) }
                     )
                     MarginVertical(margin = 8.dp)
                 }

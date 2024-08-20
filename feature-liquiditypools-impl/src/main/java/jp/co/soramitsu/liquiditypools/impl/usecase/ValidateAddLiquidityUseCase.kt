@@ -1,10 +1,10 @@
 package jp.co.soramitsu.liquiditypools.impl.usecase
 
-import java.math.BigDecimal
-import javax.inject.Inject
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.wallet.api.domain.TransferValidationResult
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
+import java.math.BigDecimal
+import javax.inject.Inject
 
 class ValidateAddLiquidityUseCase @Inject constructor() {
 
@@ -32,7 +32,7 @@ class ValidateAddLiquidityUseCase @Inject constructor() {
                 feeAmount < utilityAmount
             }
 
-            val validationChecks = mapOf (
+            val validationChecks = mapOf(
                 TransferValidationResult.InsufficientBalance to (!isEnoughAmountBase || !isEnoughAmountTarget),
                 TransferValidationResult.InsufficientUtilityAssetBalance to !isEnoughAmountFee
             )

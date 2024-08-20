@@ -11,6 +11,7 @@ import jp.co.soramitsu.common.utils.formatCrypto
 import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.feature_liquiditypools_impl.R
 import jp.co.soramitsu.liquiditypools.domain.interfaces.PoolsInteractor
+import jp.co.soramitsu.liquiditypools.domain.model.CommonPoolData
 import jp.co.soramitsu.liquiditypools.impl.presentation.allpools.AllPoolsPresenter
 import jp.co.soramitsu.liquiditypools.impl.presentation.allpools.AllPoolsScreenInterface
 import jp.co.soramitsu.liquiditypools.impl.presentation.allpools.AllPoolsState
@@ -44,10 +45,8 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import javax.inject.Inject
-import jp.co.soramitsu.liquiditypools.domain.model.CommonPoolData
 
 @HiltViewModel
 class PoolsFlowViewModel @Inject constructor(
@@ -69,8 +68,7 @@ class PoolsFlowViewModel @Inject constructor(
     PoolListScreenInterface by poolListPresenter,
     PoolDetailsCallbacks by poolDetailsPresenter,
     LiquidityRemoveCallbacks by liquidityRemovePresenter,
-    LiquidityRemoveConfirmCallbacks by liquidityRemoveConfirmPresenter
-{
+    LiquidityRemoveConfirmCallbacks by liquidityRemoveConfirmPresenter {
 
     companion object {
         const val ITEM_APY_ID = 1
@@ -97,7 +95,6 @@ class PoolsFlowViewModel @Inject constructor(
 
     val liquidityRemoveConfirmState: StateFlow<LiquidityRemoveConfirmState> =
         liquidityRemoveConfirmPresenter.createScreenStateFlow(coroutinesStore.uiScope)
-
 
     val navGraphRoutesFlow: StateFlow<LiquidityPoolsNavGraphRoute> =
         internalPoolsRouter.createNavGraphRoutesFlow().stateIn(

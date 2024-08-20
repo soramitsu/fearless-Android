@@ -79,5 +79,4 @@ interface PoolsRepository {
 
     fun subscribePools(address: String): Flow<List<CommonPoolData>>
     fun subscribePool(address: String, baseTokenId: String, targetTokenId: String): Flow<CommonPoolData>
-
 }

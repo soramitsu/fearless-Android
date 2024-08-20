@@ -78,7 +78,6 @@ fun LiquidityRemoveConfirmScreen(
                 .padding(top = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-
             BackgroundCorneredWithBorder(
                 modifier = Modifier
                     .fillMaxWidth()

@@ -1,7 +1,7 @@
 package jp.co.soramitsu.liquiditypools.domain
 
-import java.math.BigDecimal
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
+import java.math.BigDecimal
 
 data class DemeterFarmingPool(
     val tokenBase: Asset,

@@ -21,7 +21,7 @@ data class UserPoolData(
 
 fun BasicPoolData.isFilterMatch(filter: String): Boolean {
     val t1 =
-        targetToken?.symbol?.lowercase()?.contains(filter.lowercase())  == true ||
+        targetToken?.symbol?.lowercase()?.contains(filter.lowercase()) == true ||
         targetToken?.currencyId?.lowercase()?.contains(filter.lowercase()) == true
     val t2 =
         baseToken.symbol.lowercase().contains(filter.lowercase()) ||

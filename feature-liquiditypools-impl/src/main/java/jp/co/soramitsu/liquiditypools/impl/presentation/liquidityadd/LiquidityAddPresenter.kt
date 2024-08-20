@@ -1,8 +1,5 @@
 package jp.co.soramitsu.liquiditypools.impl.presentation.liquidityadd
 
-import java.math.BigDecimal
-import java.math.RoundingMode
-import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.androidfoundation.format.isZero
@@ -37,7 +34,6 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.wallet.api.domain.fromValidationResult
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
-import kotlin.math.min
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
@@ -60,6 +56,10 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
+import java.math.RoundingMode
+import javax.inject.Inject
+import kotlin.math.min
 import jp.co.soramitsu.core.models.Asset as CoreAsset
 
 class LiquidityAddPresenter @Inject constructor(
@@ -329,8 +329,7 @@ class LiquidityAddPresenter @Inject constructor(
         tokensInPoolFlow,
         stateSlippage,
         isPoolPairEnabled
-    )
-    { amountBase, amountTarget, (baseAsset, targetAsset), slippage, pairEnabled ->
+    ) { amountBase, amountTarget, (baseAsset, targetAsset), slippage, pairEnabled ->
         getLiquidityNetworkFee(
             tokenBase = baseAsset,
             tokenTarget = targetAsset,

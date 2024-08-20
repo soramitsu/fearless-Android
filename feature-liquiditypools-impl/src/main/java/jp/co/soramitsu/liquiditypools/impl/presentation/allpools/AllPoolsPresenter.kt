@@ -2,7 +2,6 @@ package jp.co.soramitsu.liquiditypools.impl.presentation.allpools
 
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.androidfoundation.format.StringPair
@@ -16,21 +15,18 @@ import jp.co.soramitsu.liquiditypools.domain.model.CommonPoolData
 import jp.co.soramitsu.liquiditypools.impl.presentation.CoroutinesStore
 import jp.co.soramitsu.liquiditypools.impl.presentation.toListItemState
 import jp.co.soramitsu.liquiditypools.navigation.InternalPoolsRouter
-import jp.co.soramitsu.liquiditypools.navigation.LiquidityPoolsNavGraphRoute
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 class AllPoolsPresenter @Inject constructor(
     private val coroutinesStore: CoroutinesStore,
@@ -40,10 +36,6 @@ class AllPoolsPresenter @Inject constructor(
     private val poolsInteractor: PoolsInteractor,
     private val accountInteractor: AccountInteractor,
 ) : AllPoolsScreenInterface {
-
-    private val screenArgsFlow = internalPoolsRouter.createNavGraphRoutesFlow()
-        .filterIsInstance<LiquidityPoolsNavGraphRoute.AllPoolsScreen>()
-        .shareIn(coroutinesStore.uiScope, SharingStarted.Eagerly, 1)
 
     private val chainDeferred = coroutinesStore.uiScope.async {
         chainsRepository.getChain(poolsInteractor.poolsChainId)
@@ -140,7 +132,7 @@ class AllPoolsPresenter @Inject constructor(
                 .onEach { commonPoolData: List<CommonPoolData> ->
                     coroutineScope {
                         commonPoolData.forEach { pool ->
-                            launch pool@ {
+                            launch pool@{
                                 val baseTokenId = pool.basic.baseToken.currencyId ?: return@pool
                                 val targetTokenId =
                                     pool.basic.targetToken?.currencyId ?: return@pool
@@ -150,9 +142,13 @@ class AllPoolsPresenter @Inject constructor(
                                 stateFlow.update { prevState ->
                                     val newUserPools = prevState.userPools.map {
                                         if (it.ids == id) {
-                                            it.copy(apy = LoadingState.Loaded(sbApy?.let { apy ->
+                                            it.copy(
+                                                apy = LoadingState.Loaded(
+                                                    sbApy?.let { apy ->
                                                 "%s%%".format(apy.toBigDecimal().formatCrypto())
-                                            }.orEmpty()))
+                                            }.orEmpty()
+                                                )
+                                            )
                                         } else {
                                             it
                                         }
@@ -160,9 +156,13 @@ class AllPoolsPresenter @Inject constructor(
 
                                     val newAllPools = prevState.allPools.map {
                                         if (it.ids == id) {
-                                            it.copy(apy = LoadingState.Loaded(sbApy?.let { apy ->
+                                            it.copy(
+                                                apy = LoadingState.Loaded(
+                                                    sbApy?.let { apy ->
                                                 "%s%%".format(apy.toBigDecimal().formatCrypto())
-                                            }.orEmpty()))
+                                            }.orEmpty()
+                                                )
+                                            )
                                         } else {
                                             it
                                         }
