@@ -18,7 +18,6 @@ import jp.co.soramitsu.common.compose.component.MainToolbarViewState
 import jp.co.soramitsu.common.compose.component.MultiToggleButtonState
 import jp.co.soramitsu.common.compose.component.NetworkIssueType
 import jp.co.soramitsu.common.compose.component.ToolbarHomeIconState
-import jp.co.soramitsu.common.domain.model.NetworkIssue
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.applyFiatRate
@@ -139,7 +138,7 @@ class AssetDetailsViewModel @Inject constructor(
             LoadingState.Loaded(
                 MainToolbarViewState(
                     title = selectedMetaAccount.name,
-                    homeIconState = ToolbarHomeIconState(navigationIcon = R.drawable.ic_arrow_back_24dp),
+                    homeIconState = ToolbarHomeIconState.Navigation(navigationIcon = R.drawable.ic_arrow_back_24dp),
                     selectorViewState = ChainSelectorViewState()
                 )
             )

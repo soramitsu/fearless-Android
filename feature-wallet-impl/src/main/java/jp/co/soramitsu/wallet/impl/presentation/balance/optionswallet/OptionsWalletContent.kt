@@ -42,6 +42,8 @@ interface OptionsWalletCallback {
     fun onDeleteWalletClick()
 
     fun onCloseClick()
+
+    fun onShowWalletScoreClick()
 }
 
 @Composable
@@ -104,6 +106,14 @@ fun OptionsWalletContent(
                 text = stringResource(id = R.string.change_wallet_name),
                 onClick = callback::onChangeWalletNameClick
             )
+            MarginVertical(margin = 12.dp)
+            GrayButton(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp),
+                text = stringResource(id = R.string.account_stats_wallet_option_title),
+                onClick = callback::onShowWalletScoreClick
+            )
             if (!state.isSelected) {
                 MarginVertical(margin = 12.dp)
                 TextButton(
@@ -134,6 +144,7 @@ private fun OptionsWalletScreenPreview() {
                 override fun onBackupWalletClick() {}
                 override fun onDeleteWalletClick() {}
                 override fun onCloseClick() {}
+                override fun onShowWalletScoreClick() {}
             }
         )
     }

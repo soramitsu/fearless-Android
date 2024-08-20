@@ -10,10 +10,10 @@ buildscript {
 
         // SDK and tools
         compileSdkVersion = 34
-        minSdkVersion = 24
+        minSdkVersion = 26
         targetSdkVersion = 34
 
-        composeCompilerVersion = '1.5.11'
+        composeCompilerVersion = '1.5.14'
 
         withoutBasic = { exclude group: 'jp.co.soramitsu.xnetworking', module: 'basic' }
         withoutJna = { exclude group: 'net.java.dev.jna' }

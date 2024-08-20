@@ -26,7 +26,6 @@ import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.common.utils.tokens
 import jp.co.soramitsu.core.extrinsic.ExtrinsicService
 import jp.co.soramitsu.core.models.Asset.PriceProvider
-import jp.co.soramitsu.core.models.Asset.PriceProviderType.Chainlink
 import jp.co.soramitsu.core.models.IChain
 import jp.co.soramitsu.core.runtime.storage.returnType
 import jp.co.soramitsu.core.utils.utilityAsset

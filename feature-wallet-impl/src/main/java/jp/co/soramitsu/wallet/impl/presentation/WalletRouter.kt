@@ -195,4 +195,6 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
     fun openManageAssets()
 
     fun openServiceScreen()
+
+    fun openScoreDetailsScreen(metaId: Long)
 }

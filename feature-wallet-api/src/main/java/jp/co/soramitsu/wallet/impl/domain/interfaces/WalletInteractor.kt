@@ -163,4 +163,5 @@ interface WalletInteractor {
     suspend fun retryChainSync(chainId: ChainId): Result<Unit>
 
     fun observeCurrentAccountChainsPerAsset(assetId: String): Flow<Map<Chain, Asset?>>
+    suspend fun getOperationAddressWithChainId(chainId: ChainId, limit: Int?): Set<String>
 }

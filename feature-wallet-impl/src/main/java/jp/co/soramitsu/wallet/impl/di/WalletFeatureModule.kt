@@ -20,6 +20,7 @@ import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.network.coingecko.CoingeckoApi
 import jp.co.soramitsu.common.data.network.config.RemoteConfigFetcher
+import jp.co.soramitsu.common.data.network.nomis.NomisApi
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
 import jp.co.soramitsu.common.domain.NetworkStateService
@@ -35,6 +36,7 @@ import jp.co.soramitsu.coredb.dao.AddressBookDao
 import jp.co.soramitsu.coredb.dao.AssetDao
 import jp.co.soramitsu.coredb.dao.ChainDao
 import jp.co.soramitsu.coredb.dao.MetaAccountDao
+import jp.co.soramitsu.coredb.dao.NomisScoresDao
 import jp.co.soramitsu.coredb.dao.OperationDao
 import jp.co.soramitsu.coredb.dao.PhishingDao
 import jp.co.soramitsu.coredb.dao.TokenPriceDao
@@ -206,13 +208,17 @@ class WalletFeatureModule {
         chainRegistry: ChainRegistry,
         remoteStorageSource: RemoteStorageSource,
         assetDao: AssetDao,
+        nomisApi: NomisApi,
+        nomisScoresDao: NomisScoresDao
     ): WalletSyncService {
         return WalletSyncService(
             metaAccountDao,
             chainsRepository,
             chainRegistry,
             remoteStorageSource,
-            assetDao
+            assetDao,
+            nomisApi,
+            nomisScoresDao
         )
     }
 

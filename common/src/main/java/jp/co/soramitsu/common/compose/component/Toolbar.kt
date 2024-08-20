@@ -40,24 +40,30 @@ import jp.co.soramitsu.common.compose.theme.backgroundBlurColor
 import jp.co.soramitsu.common.compose.theme.colorAccent
 import jp.co.soramitsu.common.compose.theme.customTypography
 import jp.co.soramitsu.common.compose.theme.white
+import jp.co.soramitsu.common.utils.clickableWithNoIndication
 
 data class MainToolbarViewState(
     val title: String,
-    val homeIconState: ToolbarHomeIconState = ToolbarHomeIconState(),
+    val homeIconState: ToolbarHomeIconState = ToolbarHomeIconState.Navigation(R.drawable.ic_wallet),
     val selectorViewState: ChainSelectorViewState
 )
 
 data class MainToolbarViewStateWithFilters(
-    val title: String,
-    val homeIconState: ToolbarHomeIconState = ToolbarHomeIconState(),
-    val selectorViewState: ChainSelectorViewStateWithFilters
+    val title: String?,
+    val homeIconState: ToolbarHomeIconState = ToolbarHomeIconState.Navigation(R.drawable.ic_wallet),
+    val selectorViewState: ChainSelectorViewStateWithFilters?
 )
 
-data class ToolbarHomeIconState(
-    val walletIcon: Drawable? = null,
-    @DrawableRes val navigationIcon: Int? = null,
-    val tint: Color = Color.Unspecified
-)
+sealed interface ToolbarHomeIconState{
+    data class Wallet(
+        val walletIcon: Drawable,
+        val score: Int? = null,
+    ): ToolbarHomeIconState
+    data class Navigation(
+        @DrawableRes val navigationIcon: Int,
+        val tint: Color = Color.Unspecified
+    ): ToolbarHomeIconState
+}
 
 data class MenuIconItem(
     @DrawableRes val icon: Int,
@@ -153,6 +159,7 @@ fun MainToolbar(
     state: MainToolbarViewStateWithFilters,
     onChangeChainClick: () -> Unit,
     onNavigationClick: () -> Unit = {},
+    onScoreClick: () -> Unit,
     menuItems: List<MenuIconItem>? = null,
     modifier: Modifier = Modifier
 ) {
@@ -170,7 +177,8 @@ fun MainToolbar(
         ) {
             ToolbarHomeIcon(
                 state = state.homeIconState,
-                onClick = onNavigationClick
+                onClick = onNavigationClick,
+                onScoreClick = onScoreClick
             )
         }
         Column(
@@ -180,19 +188,30 @@ fun MainToolbar(
                 .align(Alignment.Center),
             horizontalAlignment = CenterHorizontally
         ) {
-            Text(
-                text = state.title,
-                style = MaterialTheme.customTypography.header4,
-                overflow = TextOverflow.Ellipsis,
-                maxLines = 1
-            )
+            if (state.title != null) {
+                Text(
+                    text = state.title,
+                    style = MaterialTheme.customTypography.header4,
+                    overflow = TextOverflow.Ellipsis,
+                    maxLines = 1
+                )
+            } else {
+                Shimmer(Modifier.height(14.dp))
+            }
 
             MarginVertical(margin = 4.dp)
 
-            ChainSelector(
-                selectorViewState = state.selectorViewState,
-                onChangeChainClick = onChangeChainClick
-            )
+            if (state.selectorViewState != null) {
+                ChainSelector(
+                    selectorViewState = state.selectorViewState,
+                    onChangeChainClick = onChangeChainClick
+                )
+            } else {
+                Shimmer(
+                    Modifier
+                        .height(12.dp)
+                        .padding(horizontal = 20.dp))
+            }
         }
         Row(
             verticalAlignment = CenterVertically,
@@ -220,7 +239,7 @@ fun MainToolbar(
 
 @Composable
 fun MainToolbarShimmer(
-    homeIconState: ToolbarHomeIconState,
+    homeIconState: ToolbarHomeIconState? = null,
     menuItems: List<MenuIconItem>? = null,
     modifier: Modifier = Modifier
 ) {
@@ -236,12 +255,13 @@ fun MainToolbarShimmer(
             contentAlignment = Alignment.CenterStart,
             modifier = Modifier.weight(1f)
         ) {
-            homeIconState.navigationIcon?.let {
+            (homeIconState as? ToolbarHomeIconState.Navigation)?.let {
                 IconButton(
-                    painter = painterResource(id = it),
+                    painter = painterResource(id = it.navigationIcon),
                     tint = Color.Unspecified,
                     onClick = {}
                 )
+
             }
         }
         Column(
@@ -283,17 +303,31 @@ fun MainToolbarShimmer(
 }
 
 @Composable
-fun ToolbarHomeIcon(state: ToolbarHomeIconState, onClick: () -> Unit) {
-    when {
-        state.navigationIcon != null -> painterResource(id = state.navigationIcon)
-        state.walletIcon != null -> rememberAsyncImagePainter(model = state.walletIcon)
-        else -> null
-    }?.let { painter ->
-        IconButton(
-            painter = painter,
-            tint = state.tint,
-            onClick = onClick
-        )
+fun ToolbarHomeIcon(state: ToolbarHomeIconState, onClick: () -> Unit, onScoreClick: () -> Unit = {}) {
+    when (state) {
+        is ToolbarHomeIconState.Navigation -> {
+            IconButton(
+                painter = painterResource(id = state.navigationIcon),
+                tint = state.tint,
+                onClick = onClick
+            )
+        }
+
+        is ToolbarHomeIconState.Wallet -> {
+            Column(horizontalAlignment = CenterHorizontally) {
+                IconButton(
+                    painter = rememberAsyncImagePainter(model = state.walletIcon),
+                    onClick = onClick
+                )
+                MarginVertical(margin = 6.dp)
+
+                state.score?.let {
+                    Box(modifier = Modifier.clickableWithNoIndication { onScoreClick() }) {
+                        ScoreStar(score = it)
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -328,15 +362,18 @@ fun Toolbar(state: ToolbarViewState, modifier: Modifier = Modifier, onNavigation
         verticalAlignment = CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Box(
-            contentAlignment = CenterStart,
-            modifier = Modifier.weight(1f)
-        ) {
-            ToolbarHomeIcon(
-                state = ToolbarHomeIconState(navigationIcon = state.navigationIcon),
-                onClick = onNavigationClick
-            )
+        state.navigationIcon?.let { navIcon ->
+            Box(
+                contentAlignment = CenterStart,
+                modifier = Modifier.weight(1f)
+            ) {
+                ToolbarHomeIcon(
+                    state = ToolbarHomeIconState.Navigation(navigationIcon = navIcon, tint = white),
+                    onClick = onNavigationClick
+                )
+            }
         }
+
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -384,7 +421,7 @@ private fun MainToolbarPreview() {
                 .padding(16.dp)
         ) {
             MainToolbarShimmer(
-                homeIconState = ToolbarHomeIconState(navigationIcon = R.drawable.ic_wallet),
+                homeIconState = ToolbarHomeIconState.Navigation(navigationIcon = R.drawable.ic_wallet),
                 menuItems = listOf(
                     MenuIconItem(icon = R.drawable.ic_scan, {}),
                     MenuIconItem(icon = R.drawable.ic_search, {})
@@ -394,7 +431,7 @@ private fun MainToolbarPreview() {
             MainToolbar(
                 state = MainToolbarViewState(
                     title = "Fearless wallet very long wallet name",
-                    homeIconState = ToolbarHomeIconState(navigationIcon = R.drawable.ic_wallet),
+                    homeIconState = ToolbarHomeIconState.Navigation(navigationIcon = R.drawable.ic_wallet),
                     selectorViewState = ChainSelectorViewState(
                         selectedChainId = "id",
                         selectedChainName = "Crust shadow parachain",

@@ -68,7 +68,7 @@ fun AssetDetailsToolbar(
     when(state) {
         is LoadingState.Loading -> {
             MainToolbarShimmer(
-                homeIconState = ToolbarHomeIconState(navigationIcon = R.drawable.ic_arrow_back_24dp),
+                homeIconState = ToolbarHomeIconState.Navigation(navigationIcon = R.drawable.ic_arrow_back_24dp),
             )
         }
         is LoadingState.Loaded -> {
@@ -84,7 +84,7 @@ fun AssetDetailsToolbar(
                         .align(Alignment.CenterStart)
                 ) {
                     ToolbarHomeIcon(
-                        state = ToolbarHomeIconState(navigationIcon = state.data.homeIconState.navigationIcon),
+                        state = state.data.homeIconState,
                         onClick = callback::onNavigationBack
                     )
                 }
@@ -121,7 +121,7 @@ private fun AssetDetailsToolbarPreview() {
             state = LoadingState.Loaded(
                 MainToolbarViewState(
                     title = "MyWallet",
-                    homeIconState = ToolbarHomeIconState(
+                    homeIconState = ToolbarHomeIconState.Navigation(
                         navigationIcon = R.drawable.ic_arrow_back_24dp
                     ),
                     selectorViewState = ChainSelectorViewState(

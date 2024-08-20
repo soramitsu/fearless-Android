@@ -73,6 +73,7 @@ val accountIconDark = Color(0xFF000000)
 val errorRed = Color(0xFFFF3B30)
 val warningOrange = Color(0xFFEE7700)
 val alertYellow = Color(0xFFEE7700)
+val warningYellow = Color(0xFFFFD600)
 
 val transparent = Color(0xffffff)
 
