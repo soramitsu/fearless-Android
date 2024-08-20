@@ -68,6 +68,7 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.withIndex
 import kotlinx.coroutines.withContext
@@ -476,15 +477,22 @@ class WalletInteractorImpl(
         chainId: ChainId,
         limit: Int?
     ): Flow<Set<String>> =
-        historyRepository.getOperationAddressWithChainIdFlow(chainId, limit)
+        historyRepository.getOperationAddressWithChainIdFlow(chainId, limit).flowOn(coroutineContext)
 
-    override suspend fun saveAddress(name: String, address: String, selectedChainId: String) {
+    override suspend fun getOperationAddressWithChainId(
+        chainId: ChainId,
+        limit: Int?
+    ): Set<String> =
+        withContext(coroutineContext){ historyRepository.getOperationAddressWithChainId(chainId, limit) }
+
+    override suspend fun saveAddress(name: String, address: String, selectedChainId: String) = withContext(coroutineContext) {
         addressBookRepository.saveAddress(name, address, selectedChainId)
     }
 
     override fun observeAddressBook(chainId: ChainId) =
         addressBookRepository.observeAddressBook(chainId)
             .mapList { it.copy(address = it.address.trim()) }
+            .flowOn(coroutineContext)
 
     override fun saveChainId(walletId: Long, chainId: ChainId?) {
         preferences.putString(PREFS_WALLET_SELECTED_CHAIN_ID + walletId, chainId)

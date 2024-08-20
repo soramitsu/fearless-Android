@@ -46,6 +46,7 @@ import jp.co.soramitsu.account.impl.presentation.node.add.AddNodeFragment
 import jp.co.soramitsu.account.impl.presentation.node.details.NodeDetailsFragment
 import jp.co.soramitsu.account.impl.presentation.node.details.NodeDetailsPayload
 import jp.co.soramitsu.account.impl.presentation.node.list.NodesFragment
+import jp.co.soramitsu.account.impl.presentation.nomis_scoring.ScoreDetailsFragment
 import jp.co.soramitsu.account.impl.presentation.options_switch_node.OptionsSwitchNodeFragment
 import jp.co.soramitsu.account.impl.presentation.optionsaddaccount.OptionsAddAccountFragment
 import jp.co.soramitsu.account.impl.presentation.pincode.PinCodeAction
@@ -1512,6 +1513,10 @@ class Navigator :
 
     override fun openServiceScreen() {
         navController?.navigate(R.id.serviceFragment)
+    }
+
+    override fun openScoreDetailsScreen(metaId: Long) {
+        navController?.navigate(R.id.scoreDetailsFragment, ScoreDetailsFragment.getBundle(metaId))
     }
 
     override fun openPools() {

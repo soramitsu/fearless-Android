@@ -193,6 +193,12 @@
     <item quantity="many">%d часов</item>
     <item quantity="other">%d час</item>
   </plurals>
+  <plurals name="common_months_format">
+    <item quantity="one">%d месяц</item>
+    <item quantity="few">%d месяца</item>
+    <item quantity="many">%d месяцев</item>
+    <item quantity="other">%d месяц</item>
+  </plurals>
   <string name="common_import_wallet">Импорт кошелька</string>
   <string name="common_important">Важно</string>
   <string name="common_info">Информация</string>
@@ -623,6 +629,7 @@
   <string name="search_network_hint">Поиск по сети</string>
   <string name="search_recipient_hint">Адрес аккаунта или имя аккаунта</string>
   <string name="search_recipient_no_results">Нет результатов</string>
+  <string name="search_textfield_placeholder"> Публичный адрес</string>
   <string name="select_collator_having_relevant_minimum_bond">Релевантный минимальный стейк</string>
   <string name="select_import_mode_btn_google">Импорт из Google</string>
   <string name="select_import_mode_btn_json">JSON</string>

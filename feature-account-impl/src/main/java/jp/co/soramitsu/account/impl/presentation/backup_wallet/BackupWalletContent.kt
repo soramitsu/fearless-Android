@@ -145,7 +145,7 @@ internal fun BackupWalletContent(
 }
 
 @Composable
-private fun SettingsDivider(
+fun SettingsDivider(
     modifier: Modifier = Modifier
 ) {
     Divider(

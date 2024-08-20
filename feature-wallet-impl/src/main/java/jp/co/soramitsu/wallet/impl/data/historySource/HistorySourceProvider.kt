@@ -20,8 +20,12 @@ class HistorySourceProvider(
             Chain.ExternalApi.Section.Type.GIANTSQUID -> GiantsquidHistorySource(walletOperationsApi, historyUrl)
             Chain.ExternalApi.Section.Type.ETHERSCAN -> EtherscanHistorySource(walletOperationsApi, historyUrl)
             Chain.ExternalApi.Section.Type.OKLINK -> OkLinkHistorySource(walletOperationsApi, historyUrl)
-            Chain.ExternalApi.Section.Type.ZETA -> ZetaHistorySource(walletOperationsApi, historyUrl)
+            Chain.ExternalApi.Section.Type.BLOCKSCOUT -> BlockscoutHistorySource(walletOperationsApi, historyUrl)
             Chain.ExternalApi.Section.Type.REEF -> ReefHistorySource(walletOperationsApi, historyUrl)
+            Chain.ExternalApi.Section.Type.KLAYTN -> KlaytnHistorySource(walletOperationsApi, historyUrl)
+            Chain.ExternalApi.Section.Type.FIRE -> FireHistorySource(walletOperationsApi, historyUrl)
+            Chain.ExternalApi.Section.Type.VICSCAN -> VicscanHistorySource(walletOperationsApi, historyUrl)
+            Chain.ExternalApi.Section.Type.ZCHAINS -> ZchainsHistorySource(walletOperationsApi, historyUrl)
             else -> null
         }
     }

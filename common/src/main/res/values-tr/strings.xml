@@ -746,6 +746,7 @@
   <string name="search_network_hint">Ağa göre ara</string>
   <string name="search_recipient_hint">Hesap adresi veya hesap adı</string>
   <string name="search_recipient_no_results">Arama sonucu bulunamadı</string>
+  <string name="search_textfield_placeholder">Açık adresi</string>
   <string name="select_another_network_description">Adres hedef ağla eşleşmiyor. Başka bir ağ seçmelisiniz</string>
   <string name="select_collator_having_relevant_minimum_bond">İlgili minimum teminata sahip olmak</string>
   <string name="select_collators_warning">UYARI: MOVR/GLMR token sahipleri, delege etmeden önce harmanlayıcıları üzerinde dikkatli bir araştırma yapmalıdır. Bir harmanlayıcı olarak listelenmek, Moonbeam Network, Moonriver Network veya Moonbeam Foundation\'ın bir onayı veya tavsiyesi değildir. Ne Moonbeam Network, ne Moonriver Network, ne de Moonbeam Foundation, listedeki harmanlayıcıları incelememiştir ve herhangi bir üçüncü taraf tekliflerinin seçimi, performansı, güvenliği, doğruluğu veya kullanımı ile ilgili hiçbir sorumluluk kabul etmez. Harmanlayıcılarınızın faaliyetlerini aktif bir şekilde takip etmek de dahil olmak üzere, uygulanabilecek ücretleri ve mevcut riskleri anlamak için gereken tüm özeni göstermekten yalnızca siz sorumlusunuz</string>

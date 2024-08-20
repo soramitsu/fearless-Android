@@ -5,17 +5,14 @@ import java.text.SimpleDateFormat
 import java.time.Instant
 import java.util.Locale
 import jp.co.soramitsu.common.data.model.CursorPage
-import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
-import jp.co.soramitsu.shared_utils.extensions.toHexString
 import jp.co.soramitsu.shared_utils.runtime.AccountId
 import jp.co.soramitsu.wallet.impl.data.network.subquery.OperationsHistoryApi
 import jp.co.soramitsu.wallet.impl.domain.interfaces.TransactionFilter
 import jp.co.soramitsu.wallet.impl.domain.model.Operation
-import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
 
-class ZetaHistorySource(
+class FireHistorySource(
     private val walletOperationsApi: OperationsHistoryApi,
     private val historyUrl: String
 ) : HistorySource {
@@ -28,54 +25,43 @@ class ZetaHistorySource(
         chainAsset: Asset,
         accountAddress: String
     ): CursorPage<Operation> {
+        val page = cursor?.toInt() ?: 1
         val responseResult =
             runCatching {
-                val zetaUrl = StringBuilder(historyUrl).append(accountId.toHexString(true)).apply {
-                    when (chainAsset.ethereumType) {
-                        Asset.EthereumType.NORMAL -> {
-                            this.append("/transactions").toString()
-                        }
-                        else -> {
-                            this.append("/token-transfers?token=${chainAsset.id}").toString()
-                        }
-                    }
-                }
-
-                walletOperationsApi.getZetaOperationsHistory(
-                    url = zetaUrl.toString()
+                val urlBuilder = StringBuilder(historyUrl).append("transactions/address/").append(accountAddress)
+                walletOperationsApi.getFireOperationsHistory(
+                    url = urlBuilder.toString(),
+                    page = page,
+                    limit = pageSize
                 )
             }
 
         return responseResult.fold(onSuccess = {
-            val operations = it.items.map { element ->
-                val status = when (element.status) {
-                    "success" -> Operation.Status.COMPLETED
-                    "error" -> Operation.Status.FAILED
-                    else -> Operation.Status.COMPLETED
-                }
-                val hash = element.hash ?: element.txHash ?: ""
-                val amount = element.value ?: chainAsset.planksFromAmount(element.total?.value.orZero())
+            val operations = it.data.transactions.mapNotNull { element ->
+                if (element.toAddress.isNullOrEmpty()) return@mapNotNull null
+                val status = if (element.status == 1) Operation.Status.COMPLETED else Operation.Status.FAILED
                 Operation(
-                    id = hash,
+                    id = element.hash,
                     address = accountAddress,
-                    time = parseTimeToMillis(element.timestamp),
+                    time = parseTimeToMillis(element.createdAt),
                     chainAsset = chainAsset,
                     type = Operation.Type.Transfer(
                         hash = element.hash,
                         myAddress = accountAddress,
-                        amount = amount,
-                        receiver = element.to.hash.lowercase(),
-                        sender = element.from.hash.lowercase(),
+                        amount = element.value,
+                        receiver = element.toAddress.lowercase(),
+                        sender = element.fromAddress.lowercase(),
                         status = status,
-                        fee = element.fee?.value
+                        fee = element.gasUsed
                     )
                 )
             }
-            CursorPage(null, operations)
+
+            val nextCursor = (page + 1).toString()
+            CursorPage(nextCursor, operations)
         }, onFailure = {
             CursorPage(null, emptyList())
         })
-
     }
 
     private val blockScanDateFormat by lazy {

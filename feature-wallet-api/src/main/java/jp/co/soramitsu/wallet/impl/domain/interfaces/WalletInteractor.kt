@@ -164,5 +164,6 @@ interface WalletInteractor {
     suspend fun retryChainSync(chainId: ChainId): Result<Unit>
 
     fun observeCurrentAccountChainsPerAsset(assetId: String): Flow<Map<Chain, Asset?>>
-    suspend fun getToken(chainAsset: jp.co.soramitsu.core.models.Asset): Token
+    suspend fun getOperationAddressWithChainId(chainId: ChainId, limit: Int?): Set<String>
+    suspend fun getToken(chainAsset: CoreAsset): Token
 }

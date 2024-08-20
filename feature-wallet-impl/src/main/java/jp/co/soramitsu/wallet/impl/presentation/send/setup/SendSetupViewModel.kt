@@ -9,12 +9,14 @@ import java.math.BigDecimal
 import java.math.BigInteger
 import java.math.RoundingMode
 import javax.inject.Inject
+import jp.co.soramitsu.account.api.domain.interfaces.NomisScoreInteractor
+import jp.co.soramitsu.account.api.domain.model.NomisScoreData
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressIcon
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.base.errors.ValidationException
 import jp.co.soramitsu.common.base.errors.ValidationWarning
-import jp.co.soramitsu.common.compose.component.AddressInputState
+import jp.co.soramitsu.common.compose.component.AddressInputWithScore
 import jp.co.soramitsu.common.compose.component.AmountInputViewState
 import jp.co.soramitsu.common.compose.component.ButtonViewState
 import jp.co.soramitsu.common.compose.component.FeeInfoViewState
@@ -22,7 +24,10 @@ import jp.co.soramitsu.common.compose.component.QuickAmountInput
 import jp.co.soramitsu.common.compose.component.SelectorState
 import jp.co.soramitsu.common.compose.component.ToolbarViewState
 import jp.co.soramitsu.common.compose.component.WarningInfoState
+import jp.co.soramitsu.common.compose.theme.warningOrange
 import jp.co.soramitsu.common.data.network.runtime.binding.cast
+import jp.co.soramitsu.common.presentation.LoadingState
+import jp.co.soramitsu.common.presentation.dataOrNull
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
@@ -31,6 +36,7 @@ import jp.co.soramitsu.common.utils.combine
 import jp.co.soramitsu.common.utils.formatCrypto
 import jp.co.soramitsu.common.utils.formatCryptoDetail
 import jp.co.soramitsu.common.utils.formatFiat
+import jp.co.soramitsu.common.utils.formatting.shortenAddress
 import jp.co.soramitsu.common.utils.greaterThen
 import jp.co.soramitsu.common.utils.isNotZero
 import jp.co.soramitsu.common.utils.isZero
@@ -75,7 +81,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
@@ -86,6 +91,7 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.retry
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -95,6 +101,7 @@ class SendSetupViewModel @Inject constructor(
     val savedStateHandle: SavedStateHandle,
     private val resourceManager: ResourceManager,
     private val walletInteractor: WalletInteractor,
+    private val nomisScoreInteractor: NomisScoreInteractor,
     private val polkaswapInteractor: PolkaswapInteractor,
     private val existentialDepositUseCase: ExistentialDepositUseCase,
     private val walletConstants: WalletConstants,
@@ -155,12 +162,7 @@ class SendSetupViewModel @Inject constructor(
         }
     }
 
-    private val defaultAddressInputState = AddressInputState(
-        title = resourceManager.getString(R.string.send_to),
-        input = "",
-        image = R.drawable.ic_address_placeholder,
-        editable = false
-    )
+    private val defaultAddressInputState = AddressInputWithScore.Empty(resourceManager.getString(R.string.send_to), resourceManager.getString(R.string.search_textfield_placeholder))
 
     private val defaultAmountInputState = AmountInputViewState(
         tokenName = "...",
@@ -353,10 +355,20 @@ class SendSetupViewModel @Inject constructor(
     private val phishingModelFlow = addressInputTrimmedFlow.map {
         walletInteractor.getPhishingInfo(it)
     }
+    private val nomisScore = addressInputTrimmedFlow.transform {
+        if(it.isEmpty()) {
+            return@transform
+        }
+        emit(LoadingState.Loading())
+        val score = nomisScoreInteractor.getNomisScore(it)
+        emit(LoadingState.Loaded(score))
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, LoadingState.Loading())
+
     private val warningInfoStateFlow = combine(
         phishingModelFlow,
-        isWarningExpanded
-    ) { phishing, isExpanded ->
+        isWarningExpanded,
+        nomisScore
+    ) { phishing, isExpanded, nomisScoreLoadingState ->
         phishing?.let {
             WarningInfoState(
                 message = getPhishingMessage(phishing.type),
@@ -367,6 +379,17 @@ class SendSetupViewModel @Inject constructor(
                 ).mapNotNull { it },
                 isExpanded = isExpanded,
                 color = phishing.color
+            )
+        } ?: nomisScoreLoadingState.dataOrNull()?.takeIf { it.score in 0..25 }?.let {
+            WarningInfoState(
+                message = resourceManager.getString(R.string.scam_description_lowscore_text),
+                extras = listOf(
+                    resourceManager.getString(R.string.username_setup_choose_title) to resourceManager.getString(R.string.scam_info_nomis_name),
+                    resourceManager.getString(R.string.reason) to resourceManager.getString(R.string.scam_info_nomis_reason_text),
+                     resourceManager.getString(R.string.scam_additional_stub) to resourceManager.getString(R.string.scam_info_nomis_subtype_text)
+                ),
+                isExpanded = isExpanded,
+                color = warningOrange
             )
         }
     }
@@ -454,8 +477,7 @@ class SendSetupViewModel @Inject constructor(
 
         lockInputFlow.onEach { isInputLocked ->
             state.value = state.value.copy(
-                isInputLocked = isInputLocked,
-                addressInputState = state.value.addressInputState.copy(showClear = isInputLocked.not())
+                isInputLocked = isInputLocked
             )
         }.launchIn(this)
 
@@ -493,12 +515,22 @@ class SendSetupViewModel @Inject constructor(
                     AddressIconGenerator.SIZE_BIG
                 )
             }
+            val addressState = if(address.isNotEmpty()) {
+                (state.value.addressInputState as? AddressInputWithScore.Filled)?.copy(
+                    address = address.shortenAddress(),
+                    image = image
+                ) ?: AddressInputWithScore.Filled(
+                    defaultAddressInputState.title,
+                    address.shortenAddress(),
+                    image,
+                    nomisScore.value.dataOrNull()?.score ?: nomisScoreInteractor.getNomisScoreFromMemoryCache(address)?.score ?: NomisScoreData.LOADING_CODE
+                )
+            } else {
+                defaultAddressInputState
+            }
 
             state.value = state.value.copy(
-                addressInputState = state.value.addressInputState.copy(
-                    input = address,
-                    image = image
-                ),
+                addressInputState = addressState,
                 isHistoryAvailable = chain?.externalApi?.history != null
             )
         }.launchIn(this)
@@ -510,6 +542,21 @@ class SendSetupViewModel @Inject constructor(
             val quickInputs = quickInputsUseCase.calculateTransfersQuickInputs(chainId, asset.token.configuration.id)
             quickInputsStateFlow.update { quickInputs }
         }.launchIn(this)
+
+        nomisScore.onEach {
+            val score = if(it is LoadingState.Loading) {
+                NomisScoreData.LOADING_CODE
+            } else {
+                it.dataOrNull()?.score
+            }
+            state.update { prevState ->
+                if(prevState.addressInputState is AddressInputWithScore.Filled) {
+                    prevState.copy(
+                        addressInputState = prevState.addressInputState.copy(score = score)
+                    )
+                } else prevState
+            }
+        }.launchIn(viewModelScope)
     }
 
     private fun observeExistentialDeposit(showMaxInput: Boolean) {

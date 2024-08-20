@@ -198,7 +198,7 @@ class NFTFlowFragment : BaseComposeBottomSheetDialogFragment<NFTFlowViewModel>()
 
                 is LoadingState.Loading<Pair<TextModel, Int>> ->
                     MainToolbarShimmer(
-                        homeIconState = ToolbarHomeIconState()
+                        homeIconState = ToolbarHomeIconState.Navigation(jp.co.soramitsu.feature_wallet_impl.R.drawable.ic_arrow_back_24dp)
                     )
             }
 
