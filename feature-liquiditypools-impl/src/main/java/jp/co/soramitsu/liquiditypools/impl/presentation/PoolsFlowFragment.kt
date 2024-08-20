@@ -159,7 +159,7 @@ class PoolsFlowFragment : BaseComposeBottomSheetDialogFragment<PoolsFlowViewMode
 
                 is LoadingState.Loading<TextModel> ->
                     MainToolbarShimmer(
-                        homeIconState = ToolbarHomeIconState()
+                        homeIconState = ToolbarHomeIconState.Navigation(jp.co.soramitsu.feature_wallet_impl.R.drawable.ic_arrow_back_24dp)
                     )
             }
 
