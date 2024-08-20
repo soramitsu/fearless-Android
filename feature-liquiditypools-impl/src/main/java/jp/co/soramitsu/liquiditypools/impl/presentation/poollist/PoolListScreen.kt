@@ -26,6 +26,8 @@ import jp.co.soramitsu.liquiditypools.impl.presentation.allpools.BasicPoolListIt
 import jp.co.soramitsu.liquiditypools.impl.presentation.allpools.ShimmerPoolList
 import jp.co.soramitsu.ui_core.resources.Dimens
 
+private const val SHIMMERS_SIZE = 20
+
 data class PoolListState(
     val pools: List<BasicPoolListItemState> = listOf(),
     val searchQuery: String? = null,
@@ -38,10 +40,7 @@ interface PoolListScreenInterface {
 }
 
 @Composable
-fun PoolListScreen(
-    state: PoolListState,
-    callback: PoolListScreenInterface
-) {
+fun PoolListScreen(state: PoolListState, callback: PoolListScreenInterface) {
     Column(
         modifier = Modifier.fillMaxSize(),
     ) {
@@ -57,8 +56,9 @@ fun PoolListScreen(
                 onInput = callback::onAssetSearchEntered
             )
         }
+
         if (state.isLoading) {
-            ShimmerPoolList(20)
+            ShimmerPoolList(SHIMMERS_SIZE)
         } else {
             val listState = rememberLazyListState()
 

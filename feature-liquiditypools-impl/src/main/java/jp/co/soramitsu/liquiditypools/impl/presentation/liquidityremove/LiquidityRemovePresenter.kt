@@ -58,6 +58,7 @@ import javax.inject.Inject
 import kotlin.math.min
 
 @OptIn(FlowPreview::class)
+@Suppress("LargeClass")
 class LiquidityRemovePresenter @Inject constructor(
     private val coroutinesStore: CoroutinesStore,
     private val internalPoolsRouter: InternalPoolsRouter,
@@ -89,21 +90,6 @@ class LiquidityRemovePresenter @Inject constructor(
         }
         .shareIn(coroutinesStore.uiScope, SharingStarted.Eagerly, 1)
 
-    private fun resetState() {
-        amountTarget = BigDecimal.ZERO
-        amountBase = BigDecimal.ZERO
-        stateFlow.value = stateFlow.value.copy(
-            baseAmountInputViewState = stateFlow.value.baseAmountInputViewState.copy(
-                tokenAmount = BigDecimal.ZERO,
-                fiatAmount = null
-            ),
-            targetAmountInputViewState = stateFlow.value.targetAmountInputViewState.copy(
-                tokenAmount = BigDecimal.ZERO,
-                fiatAmount = null
-            )
-        )
-    }
-
     private val baseToTargetTokensFlow = screenArgsFlow.mapNotNull { screenArgs ->
         val currencyIds = screenArgs.ids
         val chainId = poolsInteractor.poolsChainId
@@ -128,6 +114,42 @@ class LiquidityRemovePresenter @Inject constructor(
         )
     }
 
+    private val networkFeeFlow = baseToTargetTokensFlow.map { (baseToken, targetToken) ->
+        getRemoveLiquidityNetworkFee(
+            tokenBase = baseToken.configuration,
+            tokenTarget = targetToken.configuration,
+        )
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val utilityAssetFlow = flowOf {
+        requireNotNull(chainsRepository.getChain(poolsInteractor.poolsChainId).utilityAsset?.id)
+    }.flatMapLatest { utilityAssetId ->
+        walletInteractor.assetFlow(poolsInteractor.poolsChainId, utilityAssetId)
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val feeInfoViewStateFlow: Flow<FeeInfoViewState> =
+        flowOf {
+            requireNotNull(chainsRepository.getChain(poolsInteractor.poolsChainId).utilityAsset?.id)
+        }.flatMapLatest { utilityAssetId ->
+            combine(
+                networkFeeFlow,
+                walletInteractor.assetFlow(poolsInteractor.poolsChainId, utilityAssetId)
+            ) { networkFee, utilityAsset ->
+                val tokenSymbol = utilityAsset.token.configuration.symbol
+                val tokenFiatRate = utilityAsset.token.fiatRate
+                val tokenFiatSymbol = utilityAsset.token.fiatSymbol
+
+                FeeInfoViewState(
+                    feeAmount = networkFee.formatCryptoDetail(tokenSymbol),
+                    feeAmountFiat = networkFee.applyFiatRate(tokenFiatRate)?.formatFiat(tokenFiatSymbol),
+                )
+            }
+        }
+
+    private val stateFlow = MutableStateFlow(LiquidityRemoveState())
+
     init {
         coroutinesStore.ioScope.launch {
             poolDataFlow.map { data ->
@@ -140,7 +162,7 @@ class LiquidityRemovePresenter @Inject constructor(
             }
                 .catch { showError(it) }
                 .distinctUntilChanged()
-                .debounce(500)
+                .debounce(DEBOUNCE_500)
                 .map { poolDataLocal ->
                     poolDataReal = poolDataLocal
                     poolInFarming = false
@@ -220,6 +242,21 @@ class LiquidityRemovePresenter @Inject constructor(
         }
     }
 
+    private fun resetState() {
+        amountTarget = BigDecimal.ZERO
+        amountBase = BigDecimal.ZERO
+        stateFlow.value = stateFlow.value.copy(
+            baseAmountInputViewState = stateFlow.value.baseAmountInputViewState.copy(
+                tokenAmount = BigDecimal.ZERO,
+                fiatAmount = null
+            ),
+            targetAmountInputViewState = stateFlow.value.targetAmountInputViewState.copy(
+                tokenAmount = BigDecimal.ZERO,
+                fiatAmount = null
+            )
+        )
+    }
+
     @OptIn(FlowPreview::class)
     private fun subscribeState(coroutineScope: CoroutineScope) {
         poolDataFlow.onEach { pool ->
@@ -266,7 +303,7 @@ class LiquidityRemovePresenter @Inject constructor(
                 )
             )
         }
-            .debounce(900)
+            .debounce(INPUT_DEBOUNCE)
             .onEach { amount ->
                 poolDataUsable?.let {
                     amountBase = if (it.user.basePooled <= amount) amount else it.user.basePooled
@@ -299,7 +336,7 @@ class LiquidityRemovePresenter @Inject constructor(
                 ),
             )
         }
-            .debounce(900)
+            .debounce(INPUT_DEBOUNCE)
             .onEach { amount ->
                 poolDataUsable?.let {
                     amountTarget = if (amount <= it.user.targetPooled) amount else it.user.targetPooled
@@ -346,19 +383,19 @@ class LiquidityRemovePresenter @Inject constructor(
         }.launchIn(coroutineScope)
     }
 
-    private val stateFlow = MutableStateFlow(LiquidityRemoveState())
-
     fun createScreenStateFlow(coroutineScope: CoroutineScope): StateFlow<LiquidityRemoveState> {
         subscribeState(coroutineScope)
         return stateFlow
     }
 
+    @Suppress("NestedBlockDepth")
     private suspend fun updateAmounts() {
         baseToTargetTokensFlow.firstOrNull()?.let { (tokenBase, tokenTarget) ->
             if (amountBase.compareTo(stateFlow.value.baseAmountInputViewState.tokenAmount) != 0) {
-                val scaledAmountBase = when {
-                    amountBase.isZero() -> BigDecimal.ZERO
-                    else -> amountBase.setScale(
+                val scaledAmountBase = if (amountBase.isZero()) {
+                    BigDecimal.ZERO
+                } else {
+                    amountBase.setScale(
                         min(MAX_DECIMALS_8, amountBase.scale()),
                         RoundingMode.DOWN
                     )
@@ -372,9 +409,10 @@ class LiquidityRemovePresenter @Inject constructor(
                 )
             }
             if (amountTarget.compareTo(stateFlow.value.targetAmountInputViewState.tokenAmount) != 0) {
-                val scaledAmountTarget = when {
-                    amountTarget.isZero() -> BigDecimal.ZERO
-                    else -> amountTarget.setScale(
+                val scaledAmountTarget = if (amountTarget.isZero()) {
+                    BigDecimal.ZERO
+                } else {
+                    amountTarget.setScale(
                         min(MAX_DECIMALS_8, amountTarget.scale()),
                         RoundingMode.DOWN
                     )
@@ -398,44 +436,7 @@ class LiquidityRemovePresenter @Inject constructor(
         )
     }
 
-    private val networkFeeFlow = baseToTargetTokensFlow.map { (baseToken, targetToken) ->
-        getRemoveLiquidityNetworkFee(
-            tokenBase = baseToken.configuration,
-            tokenTarget = targetToken.configuration,
-        )
-    }
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val utilityAssetFlow = flowOf {
-        requireNotNull(chainsRepository.getChain(poolsInteractor.poolsChainId).utilityAsset?.id)
-    }.flatMapLatest { utilityAssetId ->
-        walletInteractor.assetFlow(poolsInteractor.poolsChainId, utilityAssetId)
-    }
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    private val feeInfoViewStateFlow: Flow<FeeInfoViewState> =
-        flowOf {
-            requireNotNull(chainsRepository.getChain(poolsInteractor.poolsChainId).utilityAsset?.id)
-        }.flatMapLatest { utilityAssetId ->
-            combine(
-                networkFeeFlow,
-                walletInteractor.assetFlow(poolsInteractor.poolsChainId, utilityAssetId)
-            ) { networkFee, utilityAsset ->
-                val tokenSymbol = utilityAsset.token.configuration.symbol
-                val tokenFiatRate = utilityAsset.token.fiatRate
-                val tokenFiatSymbol = utilityAsset.token.fiatSymbol
-
-                FeeInfoViewState(
-                    feeAmount = networkFee.formatCryptoDetail(tokenSymbol),
-                    feeAmountFiat = networkFee.applyFiatRate(tokenFiatRate)?.formatFiat(tokenFiatSymbol),
-                )
-            }
-        }
-
-    private suspend fun getRemoveLiquidityNetworkFee(
-        tokenBase: Asset,
-        tokenTarget: Asset,
-    ): BigDecimal {
+    private suspend fun getRemoveLiquidityNetworkFee(tokenBase: Asset, tokenTarget: Asset): BigDecimal {
         val result = poolsInteractor.calcRemoveLiquidityNetworkFee(
             tokenBase,
             tokenTarget,
@@ -481,7 +482,7 @@ class LiquidityRemovePresenter @Inject constructor(
                 return@launch
             }
 
-            val slippage = 0.5
+            val slippage = DEFAULT_SLIPPAGE
 
             val firstAmountMin =
                 PolkaswapFormulas.calculateMinAmount(
@@ -509,7 +510,7 @@ class LiquidityRemovePresenter @Inject constructor(
             internalPoolsRouter.openRemoveLiquidityConfirmScreen(ids, amountBase, amountTarget, firstAmountMin, secondAmountMin, desired)
         }.invokeOnCompletion {
             coroutinesStore.uiScope.launch {
-                delay(300)
+                delay(DEBOUNCE_300)
                 setButtonLoading(false)
             }
         }
@@ -538,15 +539,18 @@ class LiquidityRemovePresenter @Inject constructor(
     }
 
     private fun showError(throwable: Throwable) {
-        when (throwable) {
-            is ValidationException -> {
-                val (title, text) = throwable
-                internalPoolsRouter.openErrorsScreen(title, text)
-            }
-
-            else -> {
-                throwable.message?.let { internalPoolsRouter.openErrorsScreen(message = it) }
-            }
+        if (throwable is ValidationException) {
+            val (title, text) = throwable
+            internalPoolsRouter.openErrorsScreen(title, text)
+        } else {
+            throwable.message?.let { internalPoolsRouter.openErrorsScreen(message = it) }
         }
+    }
+
+    companion object {
+        private const val INPUT_DEBOUNCE = 900L
+        private const val DEBOUNCE_300 = 300L
+        private const val DEBOUNCE_500 = 500L
+        private const val DEFAULT_SLIPPAGE = 0.5
     }
 }

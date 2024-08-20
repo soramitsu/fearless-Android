@@ -91,38 +91,6 @@ class LiquidityAddConfirmPresenter @Inject constructor(
             )
         }
 
-    private val stateFlow = MutableStateFlow(LiquidityAddConfirmState())
-
-    fun createScreenStateFlow(coroutineScope: CoroutineScope): StateFlow<LiquidityAddConfirmState> {
-        subscribeState(coroutineScope)
-        return stateFlow
-    }
-
-    private fun subscribeState(coroutineScope: CoroutineScope) {
-        combine(screenArgsFlow, tokensInPoolFlow) { screenArgs, (assetBase, assetTarget) ->
-            stateFlow.value = stateFlow.value.copy(
-                assetBase = assetBase.configuration,
-                assetTarget = assetTarget.configuration,
-                baseAmount = screenArgs.amountBase.formatCrypto(assetBase.configuration.symbol),
-                targetAmount = screenArgs.amountTarget.formatCrypto(assetTarget.configuration.symbol),
-                apy = screenArgs.apy
-            )
-        }.launchIn(coroutineScope)
-
-        stateSlippage.onEach {
-            stateFlow.value = stateFlow.value.copy(
-                slippage = "$it%"
-            )
-        }.launchIn(coroutineScope)
-
-        feeInfoViewStateFlow.onEach {
-            stateFlow.value = stateFlow.value.copy(
-                feeInfo = it,
-                buttonEnabled = it.feeAmount.isNullOrEmpty().not()
-            )
-        }.launchIn(coroutineScope)
-    }
-
     val networkFeeFlow = combine(
         screenArgsFlow,
         tokensInPoolFlow,
@@ -159,6 +127,38 @@ class LiquidityAddConfirmPresenter @Inject constructor(
                 )
             }
         }
+
+    private val stateFlow = MutableStateFlow(LiquidityAddConfirmState())
+
+    fun createScreenStateFlow(coroutineScope: CoroutineScope): StateFlow<LiquidityAddConfirmState> {
+        subscribeState(coroutineScope)
+        return stateFlow
+    }
+
+    private fun subscribeState(coroutineScope: CoroutineScope) {
+        combine(screenArgsFlow, tokensInPoolFlow) { screenArgs, (assetBase, assetTarget) ->
+            stateFlow.value = stateFlow.value.copy(
+                assetBase = assetBase.configuration,
+                assetTarget = assetTarget.configuration,
+                baseAmount = screenArgs.amountBase.formatCrypto(assetBase.configuration.symbol),
+                targetAmount = screenArgs.amountTarget.formatCrypto(assetTarget.configuration.symbol),
+                apy = screenArgs.apy
+            )
+        }.launchIn(coroutineScope)
+
+        stateSlippage.onEach {
+            stateFlow.value = stateFlow.value.copy(
+                slippage = "$it%"
+            )
+        }.launchIn(coroutineScope)
+
+        feeInfoViewStateFlow.onEach {
+            stateFlow.value = stateFlow.value.copy(
+                feeInfo = it,
+                buttonEnabled = it.feeAmount.isNullOrEmpty().not()
+            )
+        }.launchIn(coroutineScope)
+    }
 
     private suspend fun getLiquidityNetworkFee(
         tokenBase: Asset,
@@ -224,12 +224,12 @@ class LiquidityAddConfirmPresenter @Inject constructor(
             }
         }.invokeOnCompletion {
             coroutinesStore.ioScope.launch {
-                delay(700)
+                delay(UPDATE_POOL_DELAY)
                 poolsInteractor.updateAccountPools()
             }
 
             coroutinesStore.uiScope.launch {
-                delay(300)
+                delay(DEBOUNCE_300)
                 setButtonLoading(false)
             }
         }
@@ -243,5 +243,10 @@ class LiquidityAddConfirmPresenter @Inject constructor(
         stateFlow.value = stateFlow.value.copy(
             buttonLoading = loading
         )
+    }
+
+    companion object {
+        private const val UPDATE_POOL_DELAY = 700L
+        private const val DEBOUNCE_300 = 300L
     }
 }

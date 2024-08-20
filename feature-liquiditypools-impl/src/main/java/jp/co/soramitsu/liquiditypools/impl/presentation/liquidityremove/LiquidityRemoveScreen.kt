@@ -67,10 +67,7 @@ interface LiquidityRemoveCallbacks {
 }
 
 @Composable
-fun LiquidityRemoveScreen(
-    state: LiquidityRemoveState,
-    callbacks: LiquidityRemoveCallbacks
-) {
+fun LiquidityRemoveScreen(state: LiquidityRemoveState, callbacks: LiquidityRemoveCallbacks) {
     val keyboardController = LocalSoftwareKeyboardController.current
     val runCallback: (() -> Unit) -> Unit = { block ->
         keyboardController?.hide()

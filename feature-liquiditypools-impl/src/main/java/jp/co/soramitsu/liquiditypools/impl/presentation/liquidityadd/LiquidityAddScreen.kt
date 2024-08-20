@@ -67,10 +67,7 @@ interface LiquidityAddCallbacks {
 }
 
 @Composable
-fun LiquidityAddScreen(
-    state: LiquidityAddState,
-    callbacks: LiquidityAddCallbacks
-) {
+fun LiquidityAddScreen(state: LiquidityAddState, callbacks: LiquidityAddCallbacks) {
     val keyboardController = LocalSoftwareKeyboardController.current
     val runCallback: (() -> Unit) -> Unit = { block ->
         keyboardController?.hide()

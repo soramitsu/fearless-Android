@@ -67,10 +67,7 @@ interface LiquidityAddConfirmCallbacks {
 }
 
 @Composable
-fun LiquidityAddConfirmScreen(
-    state: LiquidityAddConfirmState,
-    callbacks: LiquidityAddConfirmCallbacks
-) {
+fun LiquidityAddConfirmScreen(state: LiquidityAddConfirmState, callbacks: LiquidityAddConfirmCallbacks) {
     Column(
         modifier = Modifier
             .background(backgroundBlack)

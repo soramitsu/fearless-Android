@@ -5,6 +5,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.coroutines.flow.Flow
 import java.math.BigDecimal
 
+@Suppress("ComplexInterface")
 interface InternalPoolsRouter {
     fun createNavGraphRoutesFlow(): Flow<LiquidityPoolsNavGraphRoute>
     fun createNavGraphActionsFlow(): Flow<NavAction>
@@ -15,7 +16,12 @@ interface InternalPoolsRouter {
     fun openDetailsPoolScreen(ids: StringPair)
 
     fun openAddLiquidityScreen(ids: StringPair)
-    fun openAddLiquidityConfirmScreen(ids: StringPair, amountBase: BigDecimal, amountTarget: BigDecimal, apy: String)
+    fun openAddLiquidityConfirmScreen(
+        ids: StringPair,
+        amountBase: BigDecimal,
+        amountTarget: BigDecimal,
+        apy: String
+    )
 
     fun openRemoveLiquidityScreen(ids: StringPair)
     fun openRemoveLiquidityConfirmScreen(
@@ -32,6 +38,11 @@ interface InternalPoolsRouter {
     fun openErrorsScreen(title: String? = null, message: String)
     fun openInfoScreen(title: String, message: String)
     fun openInfoScreen(itemId: Int)
-    fun openSuccessScreen(txHash: String, chainId: ChainId, customMessage: String)
+    fun openSuccessScreen(
+        txHash: String,
+        chainId: ChainId,
+        customMessage: String
+    )
+
     fun <T : LiquidityPoolsNavGraphRoute> destination(clazz: Class<T>): T?
 }

@@ -63,10 +63,7 @@ interface AllPoolsScreenInterface {
 }
 
 @Composable
-fun AllPoolsScreenWithRefresh(
-    state: AllPoolsState,
-    callback: AllPoolsScreenInterface
-) {
+fun AllPoolsScreenWithRefresh(state: AllPoolsState, callback: AllPoolsScreenInterface) {
     PullRefreshBox(
         onRefresh = callback::onRefresh
     ) {
@@ -75,10 +72,7 @@ fun AllPoolsScreenWithRefresh(
 }
 
 @Composable
-fun AllPoolsScreen(
-    state: AllPoolsState,
-    callback: AllPoolsScreenInterface
-) {
+fun AllPoolsScreen(state: AllPoolsState, callback: AllPoolsScreenInterface) {
     val localDensity = LocalDensity.current
     var heightIs by remember {
         mutableStateOf(0.dp)
@@ -100,7 +94,7 @@ fun AllPoolsScreen(
         ) {
             MarginVertical(margin = 8.dp)
 
-            if (state.isLoading || (state.userPools.isEmpty() && state.allPools.isEmpty())) {
+            if (state.isLoading || state.userPools.isEmpty() && state.allPools.isEmpty()) {
                 BackgroundCorneredWithBorder(
                     modifier = Modifier
                         .padding(horizontal = 16.dp)
@@ -182,7 +176,11 @@ fun ShimmerPoolList(size: Int = 10) {
 }
 
 @Composable
-private fun PoolGroupHeader(modifier: Modifier = Modifier, title: String, onMoreClick: (() -> Unit)?) {
+private fun PoolGroupHeader(
+    modifier: Modifier = Modifier,
+    title: String,
+    onMoreClick: (() -> Unit)?
+) {
     Box(modifier = modifier.wrapContentHeight()) {
         Row(
             modifier = Modifier

@@ -60,10 +60,7 @@ interface LiquidityRemoveConfirmCallbacks {
 }
 
 @Composable
-fun LiquidityRemoveConfirmScreen(
-    state: LiquidityRemoveConfirmState,
-    callbacks: LiquidityRemoveConfirmCallbacks
-) {
+fun LiquidityRemoveConfirmScreen(state: LiquidityRemoveConfirmState, callbacks: LiquidityRemoveConfirmCallbacks) {
     Column(
         modifier = Modifier
             .background(backgroundBlack)

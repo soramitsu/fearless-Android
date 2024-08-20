@@ -8,6 +8,7 @@ import jp.co.soramitsu.shared_utils.encrypt.keypair.Keypair
 import kotlinx.coroutines.flow.Flow
 import java.math.BigDecimal
 
+@Suppress("ComplexInterface")
 interface PoolsRepository {
 
     val poolsChainId: String
@@ -21,7 +22,11 @@ interface PoolsRepository {
 
     suspend fun getBasicPools(chainId: ChainId): List<BasicPoolData>
 
-    suspend fun getBasicPool(chainId: ChainId, baseTokenId: String, targetTokenId: String): BasicPoolData?
+    suspend fun getBasicPool(
+        chainId: ChainId,
+        baseTokenId: String,
+        targetTokenId: String
+    ): BasicPoolData?
 
     suspend fun getUserPoolData(
         chainId: ChainId,
@@ -30,6 +35,7 @@ interface PoolsRepository {
         targetTokenId: ByteArray
     ): PoolDataDto?
 
+    @Suppress("LongParameterList")
     suspend fun calcAddLiquidityNetworkFee(
         chainId: ChainId,
         address: String,
@@ -61,6 +67,7 @@ interface PoolsRepository {
         secondAmountMin: BigDecimal
     ): Result<String>?
 
+    @Suppress("LongParameterList")
     suspend fun observeAddLiquidity(
         chainId: ChainId,
         address: String,
@@ -78,5 +85,9 @@ interface PoolsRepository {
     suspend fun updateBasicPools(chainId: ChainId)
 
     fun subscribePools(address: String): Flow<List<CommonPoolData>>
-    fun subscribePool(address: String, baseTokenId: String, targetTokenId: String): Flow<CommonPoolData>
+    fun subscribePool(
+        address: String,
+        baseTokenId: String,
+        targetTokenId: String
+    ): Flow<CommonPoolData>
 }

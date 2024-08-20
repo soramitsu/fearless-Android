@@ -58,7 +58,12 @@ class InternalPoolsRouterImpl(
         mutableRoutesFlow.tryEmit(LiquidityPoolsNavGraphRoute.LiquidityAddScreen(ids))
     }
 
-    override fun openAddLiquidityConfirmScreen(ids: StringPair, amountBase: BigDecimal, amountTarget: BigDecimal, apy: String) {
+    override fun openAddLiquidityConfirmScreen(
+        ids: StringPair,
+        amountBase: BigDecimal,
+        amountTarget: BigDecimal,
+        apy: String
+    ) {
         mutableRoutesFlow.tryEmit(LiquidityPoolsNavGraphRoute.LiquidityAddConfirmScreen(ids, amountBase, amountTarget, apy))
     }
 
@@ -100,7 +105,11 @@ class InternalPoolsRouterImpl(
         }
     }
 
-    override fun openSuccessScreen(txHash: String, chainId: ChainId, customMessage: String) {
+    override fun openSuccessScreen(
+        txHash: String,
+        chainId: ChainId,
+        customMessage: String
+    ) {
         walletRouter.openOperationSuccess(txHash, chainId, customMessage)
     }
 

@@ -182,9 +182,7 @@ fun BasicPoolListItem(
 }
 
 @Composable
-fun BasicPoolShimmerItem(
-    modifier: Modifier = Modifier,
-) {
+fun BasicPoolShimmerItem(modifier: Modifier = Modifier) {
     Row(
         modifier = modifier
             .fillMaxWidth()

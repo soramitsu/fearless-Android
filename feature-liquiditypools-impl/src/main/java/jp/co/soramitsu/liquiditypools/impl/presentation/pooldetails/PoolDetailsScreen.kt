@@ -61,10 +61,7 @@ interface PoolDetailsCallbacks {
 }
 
 @Composable
-fun PoolDetailsScreen(
-    state: PoolDetailsState,
-    callbacks: PoolDetailsCallbacks
-) {
+fun PoolDetailsScreen(state: PoolDetailsState, callbacks: PoolDetailsCallbacks) {
     Column(
         modifier = Modifier
             .fillMaxSize()

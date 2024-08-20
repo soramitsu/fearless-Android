@@ -31,9 +31,7 @@ class ValidateRemoveLiquidityUseCase @Inject constructor() {
         }
     }
 
-    private fun performChecks(
-        checks: Map<TransferValidationResult, Boolean>,
-    ): TransferValidationResult {
+    private fun performChecks(checks: Map<TransferValidationResult, Boolean>): TransferValidationResult {
         checks.forEach { (result, condition) ->
             if (condition) return result
         }
